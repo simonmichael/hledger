@@ -45,13 +45,13 @@ Note that `--inv` and `--pnl`'s argument is a query, and queries could have seve
 
 To indicate that all search terms form single command-line argument, you will need to put them in quotes (see [Special characters](https://hledger.org/hledger.html#special-characters)):
 
-```shell
+```cli
 $ hledger roi --inv 'term1 term2 term3 ...'
 ```
 
 If any query terms contain spaces themselves, you will need an extra level of nested quoting, eg:
 
-```shell
+```cli
 $ hledger roi --inv="'Assets:Test 1'" --pnl="'Equity:Unrealized Profit and Loss'"
 ```
 

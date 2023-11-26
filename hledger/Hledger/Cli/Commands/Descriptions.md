@@ -9,7 +9,7 @@ in alphabetic order.
 You can add a query to select a subset of transactions.
 
 Example:
-```shell
+```cli
 $ hledger descriptions
 Store Name
 Gas Station | Petrol

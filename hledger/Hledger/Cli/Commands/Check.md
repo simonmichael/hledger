@@ -13,7 +13,7 @@ Specify their names (or a prefix) as argument(s).
 
 Some examples:
 
-```shell
+```cli
 hledger check      # basic checks
 hledger check -s   # basic + strict checks
 hledger check ordereddates payees  # basic + two other checks

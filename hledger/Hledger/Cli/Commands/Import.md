@@ -73,13 +73,13 @@ to the terminal, without updating your journal or state files.
 The output is valid journal format, like the print command, so you can re-parse it.
 Eg, to see any importable transactions which CSV rules have not categorised:
 
-```shell
+```cli
 $ hledger import --dry bank.csv | hledger -f- -I print unknown
 ```
 
 or (live updating):
 
-```shell
+```cli
 $ ls bank.csv* | entr bash -c 'echo ====; hledger import --dry bank.csv | hledger -f- -I print unknown'
 ```
 
@@ -99,7 +99,7 @@ As a result, importing entries with balance assignments
 will probably generate incorrect posting amounts.
 To avoid this problem, use print instead of import:
 
-```shell
+```cli
 $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 ```
 

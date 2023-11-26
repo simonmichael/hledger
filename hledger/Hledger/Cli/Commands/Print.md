@@ -15,7 +15,7 @@ the directives and inter-transaction comments.
 
 Eg:
 
-```shell
+```cli
 $ hledger print -f examples/sample.journal date:200806
 2008/06/01 gift
     assets:bank:checking            $1
@@ -80,7 +80,7 @@ and you can process it again with a second hledger command.
 This can be useful for certain kinds of search
 (though the same can be achieved with `expr:` queries now):
 
-```shell
+```cli
 # Show running total of food expenses paid from cash.
 # -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
 $ hledger print assets:cash | hledger -f- -I reg expenses:food
@@ -140,7 +140,7 @@ Some limitations:
 
 Here's an example of print's CSV output:
 
-```shell
+```cli
 $ hledger print -Ocsv
 "txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"
 "1","2008/01/01","","","","income","","assets:bank:checking","1","$","","1","",""

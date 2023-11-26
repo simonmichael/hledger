@@ -16,7 +16,7 @@ run time is similar to that of a single-column balance report.
 
 Example:
 
-```shell
+```cli
 $ hledger stats -f examples/1000x1000x10.journal
 Main file                : /Users/simon/src/hledger/examples/1000x1000x10.journal
 Included files           : 

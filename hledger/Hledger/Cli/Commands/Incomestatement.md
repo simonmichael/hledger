@@ -16,7 +16,7 @@ Or if no such accounts are declared, it shows top-level accounts named
 `revenue` or `income` or `expense` (case insensitive, plurals allowed) and their subaccounts.
 
 Example:
-```shell
+```cli
 $ hledger incomestatement
 Income Statement
 

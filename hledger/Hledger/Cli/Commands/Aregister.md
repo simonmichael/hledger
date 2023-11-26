@@ -40,7 +40,7 @@ causing it to be different from the account's real-world running balance.
 An example: this shows the transactions and historical running balance
 during july, in the first account whose name contains "checking":
 
-```shell
+```cli
 $ hledger areg checking date:jul
 ```
 

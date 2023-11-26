@@ -16,7 +16,7 @@ You can add query arguments to select a subset of transactions. This implies --u
 
 
 Example:
-```shell
+```cli
 $ hledger payees
 Store Name
 Gas Station

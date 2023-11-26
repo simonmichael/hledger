@@ -166,7 +166,7 @@ Here are some ways to run it during development:
 
 - `yesod devel`: runs in developer mode, rebuilds automatically when config, template, static or haskell files change
 (but only files in the hledger-web package):
-```shell
+```cli
 $ (cd hledger-web; yesod devel)
 ```
 
@@ -176,7 +176,7 @@ $ (cd hledger-web; yesod devel)
 - `stack ghci`: runs the server in developer mode from GHCI.
 Changes to static files like hledger.js will be visible on page reload;
 to see other changes, restart it as shown.
-```shell
+```cli
 $ (cd hledger-web; stack ghci hledger-web)
 hledger-web> :main --serve   # restart: ctrl-c, :r, enter, ctrl-p, ctrl-p, enter
 ```
@@ -184,7 +184,7 @@ hledger-web> :main --serve   # restart: ctrl-c, :r, enter, ctrl-p, ctrl-p, enter
 - `make ghci-web`: runs the server in developer mode from GHCI, also
 interprets the hledger-lib and hledger packages so that :reload picks
 up changes in those packages too:
-```shell
+```cli
 $ make ghci-web
 ghci> :main --serve
 ```

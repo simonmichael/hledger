@@ -98,7 +98,7 @@ in [PART 5: COMMON TASKS](#part-5-common-tasks).
 
 hledger reads one or more data files, each time you run it. 
 You can specify a file with `-f`, like so
-```shell
+```cli
 $ hledger -f FILE print
 ```
 
@@ -135,7 +135,7 @@ so as to either read successfully or to show relevant error messages.
 You can also force a specific reader/format by prefixing the file path with the format and a colon.
 Eg, to read a .dat file as csv format:
 
-```shell
+```cli
 $ hledger -f csv:/some/csv-file.dat stats
 ```
 
@@ -143,13 +143,13 @@ $ hledger -f csv:/some/csv-file.dat stats
 
 The file name `-` means standard input:
 
-```shell
+```cli
 $ cat FILE | hledger -f- print
 ```
 
 If reading non-journal data in this way, you'll need to add a file format prefix, like:
 
-```shell
+```cli
 $ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
 ```
 
@@ -272,13 +272,13 @@ spaces, `<`, `>`, `(`, `)`, `|`, `$` and `\` - should be
 enclosing them in single or double quotes, or by writing a backslash
 before them. Eg to match an account name containing a space:
 
-```shell
+```cli
 $ hledger register 'credit card'
 ```
 
 or:
 
-```shell
+```cli
 $ hledger register credit\ card
 ```
 
@@ -296,13 +296,13 @@ writing backslashes before them, but since backslash is typically also
 a shell metacharacter, both shell-escaping and regex-escaping will be
 needed. Eg to match a literal `$` sign while using the bash shell:
 
-```shell
+```cli
 $ hledger balance cur:'\$'
 ```
 
 or:
 
-```shell
+```cli
 $ hledger balance cur:\\$
 ```
 
@@ -314,13 +314,13 @@ arguments intended for by the add-on command, so those need an extra
 level of shell-escaping. Eg to match a literal `$` sign while using
 the bash shell and running an add-on command (`ui`):
 
-```shell
+```cli
 $ hledger ui cur:'\\$'
 ```
 
 or:
 
-```shell
+```cli
 $ hledger ui cur:\\\\$
 ```
 
@@ -335,7 +335,7 @@ If you wondered why *four* backslashes, perhaps this helps:
 
 Or, you can avoid the extra escaping by running the add-on executable directly:
 
-```shell
+```cli
 $ hledger-ui cur:\\$
 ```
 
@@ -514,14 +514,14 @@ you would at the command prompt.
 
 hledger commands send their output to the terminal by default.
 You can of course redirect this, eg into a file, using standard shell syntax:
-```shell
+```cli
 $ hledger print > foo.txt
 ```
 
 Some commands (print, register, stats, the balance commands) also
 provide the `-o/--output-file` option, which does the same thing
 without needing the shell. Eg:
-```shell
+```cli
 $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
@@ -573,17 +573,17 @@ Here are those commands and the formats currently supported:
 -->
 
 The output format is selected by the `-O/--output-format=FMT` option:
-```shell
+```cli
 $ hledger print -O csv    # print CSV on stdout
 ```
 
 or by the filename extension of an output file specified with the `-o/--output-file=FILE.FMT` option:
-```shell
+```cli
 $ hledger balancesheet -o foo.csv    # write CSV to foo.csv
 ```
 
 The `-O` option can be combined with `-o` to override the file extension, if needed:
-```shell
+```cli
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
@@ -658,7 +658,7 @@ by the [`print`](#print) command, which are always displayed with all
 decimal digits).
 For example, the following will force dollar amounts to be displayed as shown:
 
-```shell
+```cli
 $ hledger print -c '$1.000,0'
 ```
 
@@ -710,7 +710,7 @@ Typically you would start with 1 and increase until you are seeing enough.
 Debug output goes to stderr, and is not affected by `-o/--output-file` (unless you redirect stderr to stdout, eg: `2>&1`).
 It will be interleaved with normal output, which can help reveal when parts of the code are evaluated.
 To capture debug output in a log file instead, you can usually redirect stderr, eg:
-```shell
+```cli
 hledger bal --debug=3 2>hledger.log
 ```
 
@@ -982,12 +982,12 @@ be reported on 6/1 for easy bank reconciliation:
     assets:checking        ; bank cleared it on monday, date:6/1
 ```
 
-```shell
+```cli
 $ hledger -f t.j register food
 2015-05-30                      expenses:food                  $10           $10
 ```
 
-```shell
+```cli
 $ hledger -f t.j register checking
 2015-06-01                      assets:checking               $-10          $-10
 ```
@@ -1785,7 +1785,7 @@ account expenses
 ```
 
 those accounts will be displayed in declaration order:
-```shell
+```cli
 $ hledger accounts -1
 assets
 liabilities
@@ -1994,7 +1994,7 @@ In case of trouble, adding `--debug=6` to the command line will show which alias
 
 As explained at [Directives and multiple files](#directives-and-multiple-files),
 `alias` directives do not affect parent or sibling files. Eg in this command,
-```shell
+```cli
 hledger -f a.aliases -f b.journal
 ```
 account aliases defined in a.aliases will not affect b.journal. 
@@ -2040,7 +2040,7 @@ For example, you could erase all account names:
   a:aa     1
   b
 ```
-```shell
+```cli
 $ hledger print --alias '/.*/='
 2021-01-01
                    1
@@ -2056,7 +2056,7 @@ that would give a different journal when reparsed:
   old    1
   other
 ```
-```shell
+```cli
 $ hledger print --alias old="new  USD" | hledger -f- print
 2021-01-01
     new             USD 1
@@ -2087,7 +2087,7 @@ it tries and fails to infer a type for "foo".
 If you are using account aliases and the [`type:` query](#queries) is not matching accounts as you expect,
 try troubleshooting with the accounts command, eg something like:
 
-```shell
+```cli
 $ hledger accounts --alias assets=bassetts type:a
 ```
 
@@ -2420,7 +2420,7 @@ Some examples:
   expenses:gifts   $20
   assets:checking
 ```
-```shell
+```cli
 $ hledger print --auto
 2017-12-01
     expenses:food              $10
@@ -2800,7 +2800,7 @@ skip         1
 fields       date, description, , amount
 date-format  %d/%m/%Y
 ```
-```shell
+```cli
 $ hledger print -f basic.csv
 2019-11-12 Foo
     expenses:unknown           10.23
@@ -2955,7 +2955,7 @@ In either of these cases, hledger will do a time-zone-aware conversion,
 localising the CSV date-times to your current system time zone.
 If you prefer to localise to some other time zone, eg for reproducibility,
 you can (on unix at least) set the output timezone with the TZ environment variable, eg:
-```shell
+```cli
 $ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
 ```
 
@@ -3448,7 +3448,7 @@ Some tips:
 
 It's a good idea to get rapid feedback while creating/troubleshooting CSV rules.
 Here's a good way, using entr from [eradman.com/entrproject](https://eradman.com/entrproject):
-```shell
+```cli
 $ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
 ```
 A desc: query (eg) is used to select just one, or a few, transactions of interest.
@@ -3480,7 +3480,7 @@ filename extension.
 When reading files with the "wrong" extension, you can ensure the CSV reader
 (and the default field separator) by prefixing the file path with `csv:`, `ssv:` or `tsv:`:
 Eg:
-```shell
+```cli
 $ hledger -f ssv:foo.dat print
 ```
 
@@ -3538,7 +3538,7 @@ There is one exception: balance assertions, if you have generated
 them, will not be checked, since normally these will work only when
 the CSV data is part of the main journal. If you do need to check
 balance assertions generated from CSV right away, pipe into another hledger:
-```shell
+```cli
 $ hledger -f file.csv print | hledger -f- print
 ```
 
@@ -3554,7 +3554,7 @@ journal. It is idempotent, so you don't have to remember how many
 times you ran it or with which version of the CSV.
 (It keeps state in a hidden `.latest.FILE.csv` file.)
 This is the easiest way to import CSV data. Eg:
-```shell
+```cli
 # download the latest CSV files, then run this command.
 # Note, no -f flags needed here.
 $ hledger import *.csv [--dry]
@@ -3833,7 +3833,7 @@ currency  EUR
 # set the base account for all txns
 account1  assets:bank:boi:checking
 ```
-```shell
+```cli
 $ hledger -f bankofireland-checking.csv print
 2012-12-07 LODGMENT       529898
     assets:bank:boi:checking         EUR10.0 = EUR131.2
@@ -3866,7 +3866,7 @@ description  %Notes
 account1     assets:coinbase:cc
 amount       %Quantity_Transacted %Asset @ %Spot_Price_at_Transaction %Spot_Price_Currency
 ```
-```shell
+```cli
 $ hledger print -f coinbase.csv
 2021-12-30 Received 100.00 USDC from an external account
     assets:coinbase:cc    100 USDC @ 0.740000 GBP
@@ -3920,7 +3920,7 @@ if %fees [1-9]
  account3    expenses:fees
  amount3     %fees
 ```
-```shell
+```cli
 $ hledger -f amazon-orders.csv print
 2012-07-29 (16000000000000DGLNJPI1P9B8DKPVHL) To Foo.  ; status:Completed
     assets:amazon
@@ -4059,7 +4059,7 @@ if Google
 
 ```
 
-```shell
+```cli
 $ hledger -f paypal-custom.csv  print
 2019-10-01 (60P57143A8206782E) Calm Radio MONTHLY - $1 for the first 2 Months: Me - Order 99309. Item total: $1.00 USD first 2 months, then $6.99 / Month  ; itemid:, fromemail:simon@joyful.com, toemail:memberships@calmradio.com, time:03:46:20, type:Subscription Payment, status:Completed
     assets:online:paypal          $-6.99 = $-6.99
@@ -4137,7 +4137,7 @@ Here is a
 [sample.timeclock](https://raw.github.com/simonmichael/hledger/master/examples/sample.timeclock) to
 download and some queries to try:
 
-```shell
+```cli
 $ hledger -f sample.timeclock balance                               # current time balances
 $ hledger -f sample.timeclock register -p 2009/3                    # sessions in march 2009
 $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summary by week
@@ -4181,7 +4181,7 @@ hledger reads this as a transaction on this day with three
 No commodity symbol is assumed, but we typically interpret it as hours.
 
 
-```shell
+```cli
 $ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is required
 2023-05-01 *
     (hom:errands)                    2.00  ; two hours
@@ -4263,7 +4263,7 @@ biz:research  .
 inc:client1   .... ....
 biz:research  .
 ```
-```shell
+```cli
 $ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
     (inc:client1)          2.00
@@ -4271,7 +4271,7 @@ $ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
     (biz:research)          0.25
 ```
-```shell
+```cli
 $ hledger -f a.timedot bal --daily --tree
 Balance changes in 2016-02-01-2016-02-03:
 
@@ -4304,13 +4304,13 @@ $ hledger -f a.timedot print
     (work:adm)  0.25  ; t:s
 
 ```
-```shell
+```cli
 $ hledger -f a.timedot bal
                 1.75  work:adm
 --------------------
                 1.75  
 ```
-```shell
+```cli
 $ hledger -f a.timedot bal --pivot t
                 1.00  c
                 0.50  e
@@ -4347,7 +4347,7 @@ Using `.` as account name separator:
 fos.hledger.timedot  4h
 fos.ledger           ..
 ```
-```shell
+```cli
 $ hledger -f a.timedot --alias '/\./=:' bal -t
                 4.50  fos
                 4.00    hledger:timedot
@@ -4359,7 +4359,7 @@ $ hledger -f a.timedot --alias '/\./=:' bal -t
 <!--
 Another sample, download from 
 https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot and try:
-```shell
+```cli
 $ hledger -f sample.timedot balance                               # current time balances
 $ hledger -f sample.timedot register -p 2009/3                    # sessions in march 2009
 $ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week
@@ -4404,7 +4404,7 @@ commodity A 1,000.00
     (a)      A 1000
 ```
 
-```shell
+```cli
 $ hledger print
 2023-01-02
     (a)        A 1,000.
@@ -4414,7 +4414,7 @@ $ hledger print
 If this is a problem (eg when exporting to [Ledger](/ledger.md#ledger-to-ledger)),
 you can avoid it by disabling digit group marks, eg with
 [-c/--commodity](#commodity-styles):
-```shell
+```cli
 $ hledger print -c 'A 1000.00'
 2023-01-02
     (a)          A 1000
@@ -4423,7 +4423,7 @@ $ hledger print -c 'A 1000.00'
 
 or by forcing print to show decimal digits in all amounts, eg with
 [--round](#print-amount-style):
-```shell
+```cli
 $ hledger print --round=soft
 2023-01-02
     (a)      A 1,000.00
@@ -4696,13 +4696,13 @@ Examples:
 
 Show historical balances at end of the 15th day of each month (N is an end date, exclusive as always):
 
-```shell
+```cli
 $ hledger balance -H -p "every 16th day"
 ```
 
 Group postings from the start of wednesday to end of the following tuesday (N is both (inclusive) start date and (exclusive) end date):
 
-```shell
+```cli
 $ hledger register checking -p "every 3rd day of week"
 ```
 
@@ -4940,7 +4940,7 @@ Some examples:
     income:dues                        -2 EUR  ; member: John Doe, kind: Lifetime
 ```
 Normal balance report showing account names:
-```shell
+```cli
 $ hledger balance
                2 EUR  assets:bank account
               -2 EUR  income:dues
@@ -4948,7 +4948,7 @@ $ hledger balance
                    0
 ```
 Pivoted balance report, using member: tag values instead:
-```shell
+```cli
 $ hledger balance --pivot member
                2 EUR
               -2 EUR  John Doe
@@ -4956,21 +4956,21 @@ $ hledger balance --pivot member
                    0
 ```
 One way to show only amounts with a member: value (using a [query](#queries)):
-```shell
+```cli
 $ hledger balance --pivot member tag:member=.
               -2 EUR  John Doe
 --------------------
               -2 EUR
 ```
 Another way (the acct: query matches against the pivoted "account name"):
-```shell
+```cli
 $ hledger balance --pivot member acct:.
               -2 EUR  John Doe
 --------------------
               -2 EUR
 ```
 Hierarchical reports can be generated with multiple pivots:
-```shell
+```cli
 $ hledger balance Income:Dues --pivot kind:member
               -2 EUR  Lifetime:John Doe
 --------------------
@@ -5247,7 +5247,7 @@ and `hledger bse`'s total will not be disrupted.
 And, hledger can still infer the cost for cost reporting,
 but it's not done by default - you must add the `--infer-costs` flag like so:
 
-```shell
+```cli
 $ hledger print --infer-costs
 2022-01-01 one hundred euros purchased at $1.35 each
     assets:dollars       $-135 @@ €100
@@ -5256,7 +5256,7 @@ $ hledger print --infer-costs
     equity:conversion            €-100
 
 ```
-```shell
+```cli
 $ hledger bal --infer-costs -B
                €-100  assets:dollars                                                                                                                                              
                 €100  assets:euros                                                                                                                                                
@@ -5286,7 +5286,7 @@ Eg:
   assets:euros     €100 @ $1.35
 ```
 
-```shell
+```cli
 $ hledger print --infer-equity
 2022-01-01
     assets:dollars                    $-135
@@ -5316,7 +5316,7 @@ revealing the per-unit cost basis, and providing more flexibility in how you wri
 ```
 
 All the other variants above can (usually) be rewritten to this final form with:
-```shell
+```cli
 $ hledger print -x --infer-costs --infer-equity
 ```
 
@@ -5507,7 +5507,7 @@ For reference, here is the current behaviour, since hledger 1.25.
 All of the transactions above are considered balanced (and on each day, the two transactions are considered equivalent).
 Here are the market prices inferred for B:
 
-```shell
+```cli
 $ hledger -f- --infer-market-prices prices
 P 2022-01-01 B A 1
 P 2022-01-01 B A 1.0
@@ -5565,17 +5565,17 @@ P 2016/11/01 € $1.10
 P 2016/12/21 € $1.03
 ```
 How many euros do I have ?
-```shell
+```cli
 $ hledger -f t.j bal -N euros
                 €100  assets:euros
 ```
 What are they worth at end of nov 3 ?
-```shell
+```cli
 $ hledger -f t.j bal -N euros -V -e 2016/11/4
              $110.00  assets:euros
 ```
 What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```shell
+```cli
 $ hledger -f t.j bal -N euros -V
              $103.00  assets:euros
 ```
@@ -5637,7 +5637,7 @@ P 2000-04-01 A  4 B
 ```
 
 Show the cost of each posting:
-```shell
+```cli
 $ hledger -f- print --cost
 2000-01-01
     (a)             5 B
@@ -5651,7 +5651,7 @@ $ hledger -f- print --cost
 ```
 
 Show the value as of the last day of the report period (2000-02-29):
-```shell
+```cli
 $ hledger -f- print --value=end date:2000/01-2000/03
 2000-01-01
     (a)             2 B
@@ -5662,7 +5662,7 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 ```
 
 With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
-```shell
+```cli
 $ hledger -f- print --value=end
 2000-01-01
     (a)             3 B
@@ -5676,7 +5676,7 @@ $ hledger -f- print --value=end
 ```
 
 Show the current value (the 2000-04-01 price is still in effect today):
-```shell
+```cli
 $ hledger -f- print --value=now
 2000-01-01
     (a)             4 B
@@ -5690,7 +5690,7 @@ $ hledger -f- print --value=now
 ```
 
 Show the value on 2000/01/15:
-```shell
+```cli
 $ hledger -f- print --value=2000-01-15
 2000-01-01
     (a)             1 B
@@ -5881,7 +5881,7 @@ Here are some quick examples of how to do some basic tasks with hledger.
 
 Here's how to list commands and view options and command docs:
 
-```shell
+```cli
 $ hledger                # show available commands
 $ hledger --help         # show common options
 $ hledger CMD --help     # show CMD's options, common options and CMD's documentation
@@ -5889,7 +5889,7 @@ $ hledger CMD --help     # show CMD's options, common options and CMD's document
 
 You can also view your hledger version's manual in several formats
 by using the [help command](#help). Eg:
-```shell
+```cli
 $ hledger help           # show the hledger manual with info, man or $PAGER (best available)
 $ hledger help journal   # show the journal topic in the hledger manual
 $ hledger help --help    # find out more about the help command
@@ -5914,7 +5914,7 @@ here are some tips that might help:
 ## Starting a journal file
 
 hledger looks for your accounting data in a journal file, `$HOME/.hledger.journal` by default:
-```shell
+```cli
 $ hledger stats
 The hledger journal file "/Users/simon/.hledger.journal" was not found.
 Please create it first, eg with "hledger add" or a text editor.
@@ -5924,7 +5924,7 @@ Or, specify an existing journal file with -f or LEDGER_FILE.
 You can override this by setting the `LEDGER_FILE` environment variable (see below).
 It's a good practice to keep this important file under version control,
 and to start a new file each year. So you could do something like this:
-```shell
+```cli
 $ mkdir ~/finance
 $ cd ~/finance
 $ git init
@@ -5951,7 +5951,7 @@ Market prices            : 0 ()
 How to set `LEDGER_FILE` permanently depends on your setup:
 
 On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
-```shell
+```cli
 $ echo 'export LEDGER_FILE=~/finance/2023.journal' >> ~/.profile
 $ source ~/.profile
 ```
@@ -5972,7 +5972,7 @@ and then run `killall Dock` in a terminal window (or restart the machine).
 On Windows, see <https://www.java.com/en/download/help/path.html>,
 or try running these commands in a powershell window
 (let us know if it persists across a reboot, and if you need to be an Administrator):
-```shell
+```cli
 > CD
 > MKDIR finance
 > SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
@@ -6013,7 +6013,7 @@ balances on this date. Here are two ways to do it:
   The = amounts are optional balance assertions, providing extra error checking.
 
 - The second way: run `hledger add` and follow the prompts to record a similar transaction:
-  ```shell
+  ```cli
   $ hledger add
   Adding transactions to journal file /Users/simon/finance/2023.journal
   Any command line arguments will be used as defaults.
@@ -6050,7 +6050,7 @@ balances on this date. Here are two ways to do it:
   ```
 
 If you're using version control, this could be a good time to commit the journal. Eg:
-```shell
+```cli
 $ git commit -m 'initial balances' 2023.journal
 ```
 
@@ -6126,7 +6126,7 @@ that, by adding the `*` marker.
 Eg in the paycheck transaction above, insert `*` between `2023-01-15` and `paycheck`
 
 If you're using version control, this can be another good time to commit:
-```shell
+```cli
 $ git commit -m 'txns' 2023.journal
 ```
 
@@ -6135,7 +6135,7 @@ $ git commit -m 'txns' 2023.journal
 Here are some basic reports.
 
 Show all transactions:
-```shell
+```cli
 $ hledger print
 2023-01-01 * opening balances
     assets:bank:checking                      $1000
@@ -6163,7 +6163,7 @@ $ hledger print
 ```
 
 Show account names, and their hierarchy:
-```shell
+```cli
 $ hledger accounts --tree
 assets
   bank
@@ -6183,7 +6183,7 @@ liabilities
 ```
 
 Show all account totals:
-```shell
+```cli
 $ hledger balance
                $4105  assets
                $4000    bank
@@ -6203,7 +6203,7 @@ $ hledger balance
 ```
 
 Show only asset and liability balances, as a flat list, limited to depth 2:
-```shell
+```cli
 $ hledger bal assets liabilities -2
                $4000  assets:bank
                 $105  assets:cash
@@ -6213,7 +6213,7 @@ $ hledger bal assets liabilities -2
 ```
 
 Show the same thing without negative numbers, formatted as a simple balance sheet:
-```shell
+```cli
 $ hledger bs -2
 Balance Sheet 2023-01-16
 
@@ -6238,7 +6238,7 @@ The final total is your "net worth" on the end date.
 (Or use `bse` for a full balance sheet with equity.)
 
 Show income and expense totals, formatted as an income statement:
-```shell
+```cli
 hledger is 
 Income Statement 2023-01-01-2023-01-16
 
@@ -6263,7 +6263,7 @@ Income Statement 2023-01-01-2023-01-16
 The final total is your net income during this period.
 
 Show transactions affecting your wallet, with running total:
-```shell
+```cli
 $ hledger register cash
 2023-01-01 opening balances     assets:cash                   $100          $100
 2023-01-10 gift received        assets:cash                    $20          $120
@@ -6272,7 +6272,7 @@ $ hledger register cash
 ```
 
 Show weekly posting counts as a bar chart:
-```shell
+```cli
 $ hledger activity -W
 2019-12-30 *****
 2023-01-06 ****
@@ -6343,13 +6343,13 @@ Then select it by setting the `LANG` environment variable.
 Note, exact spelling and capitalisation of the locale name may be important:
 Here's one common way to configure this permanently for your shell:
 
-```shell
+```cli
 $ echo "export LANG=en_US.utf8" >>~/.profile
 # close and re-open terminal window
 ```
 
 If you are using Nix (not NixOS) for GHC and Hledger, you might need to set the `LOCALE_ARCHIVE` variable:
-```shell
+```cli
 $ echo "export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale-archive" >>~/.profile
 # close and re-open terminal window
 ```

@@ -16,7 +16,7 @@ as a bug!
 This command also accepts tasty test runner options, written after a
 -- (double hyphen). Eg to run only the tests in Hledger.Data.Amount,
 with ANSI colour codes disabled:
-```shell
+```cli
 $ hledger test -- -pData.Amount --color=never
 ```
 For help on these, see https://github.com/feuerbach/tasty#options 

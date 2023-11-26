@@ -15,7 +15,7 @@ This installs haskell dependencies (but not system dependencies) and rebuilds as
 then runs [hledger/bench/bench.hs](https://github.com/simonmichael/hledger/blob/master/hledger/bench/bench.hs),
 which by default shows quick elapsed-time measurements for several operations on a standard data file:
 
-```shell
+```cli
 $ stack bench hledger
 NOTE: the bench command is functionally equivalent to 'build --bench'
 ...
@@ -35,7 +35,7 @@ Benchmark bench: FINISH
 bench.hs has some other modes, which you can use by compiling and running it directly.
 `--criterion` reports more detailed and dependable measurements, but takes longer:
 
-```shell
+```cli
 $ cd hledger; stack exec -- ghc -ibench bench/bench && bench/bench --criterion
 ...
 Linking bench/bench ...
@@ -80,7 +80,7 @@ variance introduced by outliers: 16% (moderately inflated)
 It can also show the results for multiple h/ledger executables side by side, if you tweak the bench.hs code.
 Unlike the other modes, it does not link with the hledger code directly, but runs the "hledger" executable found in $PATH (so ensure that's the one you intend to test).
 
-```shell
+```cli
 $ cd hledger; stack exec -- ghc -ibench bench/bench && bench/bench --simplebench
 Benchmarking /Users/simon/.local/bin/hledger in /Users/simon/src/hledger/hledger with simplebench and shell
 Using bench/default.bench
@@ -107,12 +107,12 @@ simplebench.hs is a generic benchmarker of one or more executables (specified on
 It has a better command-line interface than bench.hs, so you may find it more convenient
 for comparing multiple hledger versions, or hledger and ledger. Eg:
 
-```shell
+```cli
 $ stack exec -- ghc tools/simplebench
 [1 of 1] Compiling Main             ( tools/simplebench.hs, tools/simplebench.o )
 Linking tools/simplebench ...
 ```
-```shell
+```cli
 $ tools/simplebench -h
 tools/simplebench -h
 simplebench: at least one executable needed
@@ -133,7 +133,7 @@ Tips:
 - tests can be commented out with #
 - results are saved in benchresults.{html,txt}
 ```
-```shell
+```cli
 cd hledger; $ ../tools/simplebench -f bench/default.bench hledger ledger
 Using bench/default.bench
 Running 4 tests 2 times with 2 executables at 2015-08-24 04:24:37.257068 UTC:

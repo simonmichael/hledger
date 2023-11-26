@@ -17,7 +17,7 @@ Or if no such accounts are declared, it shows top-level accounts named
 
 Example:
 
-```shell
+```cli
 $ hledger balancesheet
 Balance Sheet
 

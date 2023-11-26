@@ -20,7 +20,7 @@ _FLAGS
 
 Examples:
 
-```shell
+```cli
 $ hledger diff -f $LEDGER_FILE -f bank.csv assets:bank:giro 
 These transactions are in the first file only:
 

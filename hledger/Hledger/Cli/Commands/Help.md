@@ -22,7 +22,7 @@ on mac you will likely have info 4.8, and should consider installing a newer ver
 eg with `brew install texinfo` (#1770).
 
 Examples
-```shell
+```cli
 $ hledger help --help      # show how the help command works
 $ hledger help             # show the hledger manual with info, man or $PAGER
 $ hledger help journal     # show the journal topic in the hledger manual

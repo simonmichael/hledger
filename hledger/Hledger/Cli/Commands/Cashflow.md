@@ -23,7 +23,7 @@ More precisely: all accounts matching this case insensitive regular expression:
 and their subaccounts.
 
 An example cashflow report:
-```shell
+```cli
 $ hledger cashflow
 Cashflow Statement
 

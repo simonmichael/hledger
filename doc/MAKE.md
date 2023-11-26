@@ -9,7 +9,7 @@ The Makefile contains a fair amount of obsolete cruft and needs cleanup. Some ta
 
 The Makefile is self-documenting. Run `make` to see a list of the main make rules:
 
-```shell
+```cli
 $ make
 Makefile:37: -------------------- hledger make rules --------------------
 Makefile:39: make [help] -- list documented rules in this makefile. make -n RULE shows more detail.
@@ -23,11 +23,11 @@ Makefile:304: make hledgerdev -- quickly build the hledger executable (with ghc 
 
 To see what a make rule will do without actually doing it, use the `-n` flag:
 
-```shell
+```cli
 $ make build -n
 stack build
 ```
-```shell
+```cli
 $ make test -n
 (stack test \
 		&& echo pkgtest PASSED) || echo pkgtest FAILED

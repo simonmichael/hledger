@@ -39,7 +39,7 @@ account name, or if none can be found, it fails with a non-zero exit code.
 
 Examples:
 
-```shell
+```cli
 $ hledger accounts
 assets:bank:checking
 assets:bank:saving
@@ -50,7 +50,7 @@ income:gifts
 income:salary
 liabilities:debts
 ```
-```shell
+```cli
 $ hledger accounts --undeclared --directives >> $LEDGER_FILE
 $ hledger check accounts
 ```

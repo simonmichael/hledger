@@ -106,14 +106,14 @@ in effect splitting the multi-day transaction into two single-day transactions:
 Record 2022's revenues/expenses as retained earnings on 2022-12-31,
 appending the generated transaction to the journal:
  
-```shell
+```cli
 $ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 ```
 
 Note 2022's income statement will now show only zeroes,
 because revenues and expenses have been moved entirely to equity.
 To see them again, you could exclude the retain transaction:
-```shell
+```cli
 $ hledger -f 2022.journal is not:desc:'retain earnings'
 ```
 
@@ -121,7 +121,7 @@ $ hledger -f 2022.journal is not:desc:'retain earnings'
 
 Close assets/liabilities/equity on 2022-12-31 and re-open them on 2023-01-01:
 
-```shell
+```cli
 $ hledger close --migrate -f 2022.journal -p 2022
 # copy/paste the closing transaction to the end of 2022.journal
 # copy/paste the opening transaction to the start of 2023.journal
@@ -130,7 +130,7 @@ $ hledger close --migrate -f 2022.journal -p 2022
 <!--
 Or, you can automate more by generating one transaction at a time:
 
-```shell
+```cli
 $ hledger close --close -f 2022.journal -p 2022 >> 2023.journal  # do this one first
 $ hledger close --open  -f 2022.journal -p 2022 >> 2022.journal
 ```
@@ -139,7 +139,7 @@ $ hledger close --open  -f 2022.journal -p 2022 >> 2022.journal
 Now 2022's balance sheet will show only zeroes, indicating a balanced accounting equation.
 ([Unless](/investments.html#a-more-correct-entry) you are using @/@@ notation - in that case, try adding --infer-equity.)
 To see the end-of-year balances again, you could exclude the closing transaction:
-```shell
+```cli
 $ hledger -f 2022.journal bs not:desc:'closing balances'
 ```
 
@@ -187,12 +187,12 @@ include 2023.journal
 
 The `clopen:` tag can exclude all but the first opening transaction.
 To show a clean multi-year checking register:
-```shell
+```cli
 $ hledger -f all.journal areg checking not:tag:clopen
 ```
 
 And the year values allow more precision.
 To show 2022's year-end balance sheet:
-```shell
+```cli
 $ hledger -f all.journal bs -e2023 not:tag:clopen=2023
 ```

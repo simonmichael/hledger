@@ -96,7 +96,7 @@ if any, and then alphabetically by account name.
 For instance 
 (using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/master/examples/sample.journal)):
 
-```shell
+```cli
 $ hledger -f examples/sample.journal bal
                   $1  assets:bank:saving
                  $-2  assets:cash
@@ -113,7 +113,7 @@ Accounts with a zero balance (and no non-zero subaccounts, in tree
 mode - see below) are hidden by default. Use `-E/--empty` to show them
 (revealing `assets:bank:checking` here):
  
-```shell
+```cli
 $ hledger -f examples/sample.journal bal  -E
                    0  assets:bank:checking
                   $1  assets:bank:saving
@@ -135,7 +135,7 @@ For single-period balance reports displayed in the terminal (only),
 you can use `--format FMT` to customise the format and content of each
 line. Eg:
 
-```shell
+```cli
 $ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
               assets          $-1
          bank:saving           $1
@@ -196,7 +196,7 @@ cleared transactions only, etc. by using [query](#queries)
 arguments or [options](#report-start--end-date) to limit
 the postings being matched. Eg:
 
-```shell
+```cli
 $ hledger -f examples/sample.journal bal --cleared assets date:200806
                  $-2  assets:cash
 --------------------
@@ -211,7 +211,7 @@ with their full names visible, as in the examples above.
 With `-t/--tree`, the account hierarchy is shown, with subaccounts'
 "leaf" names indented below their parent:
 
-```shell
+```cli
 $ hledger -f examples/sample.journal balance
                  $-1  assets
                   $1    bank:saving
@@ -253,7 +253,7 @@ Account balances at the depth limit always include the balances from
 any deeper subaccounts (even in list mode). 
 Eg, limiting to depth 1:
 
-```shell
+```cli
 $ hledger -f examples/sample.journal balance -1
                  $-1  assets
                   $2  expenses
@@ -268,7 +268,7 @@ $ hledger -f examples/sample.journal balance -1
 You can also hide one or more top-level account name parts, using `--drop NUM`.
 This can be useful for hiding repetitive top-level account names:
 
-```shell
+```cli
 $ hledger -f examples/sample.journal bal expenses --drop 1
                   $1  food
                   $1  supplies
@@ -314,7 +314,7 @@ Note it is not useful to calculate percentages if the amounts in a
 column have mixed signs. In this case, make a separate report for each
 sign, eg:
 
-```shell
+```cli
 $ hledger bal -% amt:`>0`
 $ hledger bal -% amt:`<0`
 ```
@@ -323,7 +323,7 @@ Similarly, if the amounts in a column have mixed commodities, convert
 them to one commodity with `-B`, `-V`, `-X` or `--value`, or make a
 separate report for each commodity:
 
-```shell
+```cli
 $ hledger bal -% cur:\\$
 $ hledger bal -% cur:€
 ```
@@ -335,7 +335,7 @@ With a [report interval](#report-intervals) (set by the `-D/--daily`,
 `-p/--period` flag), `balance` shows a tabular report, with columns
 representing successive time periods (and a title):
 
-```shell
+```cli
 $ hledger -f examples/sample.journal bal --quarterly income expenses -E
 Balance changes in 2008:
 
@@ -530,7 +530,7 @@ For example, you can take average monthly expenses in the common expense categor
 ```
 
 You can now see a monthly budget report:
-```shell
+```cli
 $ hledger balance -M --budget
 Budget performance in 2017/11/01-2017/12/31:
 
@@ -565,7 +565,7 @@ shown, as they have no budget amounts declared.
 This can be confusing. When you need to make things clearer, use the `-E/--empty` flag, 
 which will reveal all accounts including unbudgeted ones, giving the full picture. Eg:
 
-```shell
+```cli
 $ hledger balance -M --budget --empty
 Budget performance in 2017/11/01-2017/12/31:
 
@@ -587,7 +587,7 @@ Budget performance in 2017/11/01-2017/12/31:
 
 
 You can roll over unspent budgets to next period with `--cumulative`:
-```shell
+```cli
 $ hledger balance -M --budget --cumulative
 Budget performance in 2017/11/01-2017/12/31:
 
@@ -639,7 +639,7 @@ day of 2020-01-15:
   expenses:food    $400
   assets:checking
 ```
-```shell
+```cli
 $ hledger bal expenses --budget
 Budget performance in 2020-01-15:
 
@@ -654,7 +654,7 @@ To avoid this, specify the budget report's period, or at least the start date,
 with `-b`/`-e`/`-p`/`date:`, to ensure it includes the budget goal transactions
 (periodic transactions) that you want. Eg, adding `-b 2020/1/1` to the above:
 
-```shell
+```cli
 $ hledger bal expenses --budget -b 2020/1/1
 Budget performance in 2020-01-01..2020-01-15:
 
@@ -713,7 +713,7 @@ For example, let's consider these transactions:
 As you can see, we have transactions in `expenses:personal:electronics:upgrades` and `expenses:personal:train tickets`, and since both of these accounts are without explicitly defined budget,
 these transactions would be counted towards budgets of `expenses:personal:electronics` and `expenses:personal` accordingly:
 
-```shell
+```cli
 $ hledger balance --budget -M
 Budget performance in 2019/01:
 
@@ -728,7 +728,7 @@ Budget performance in 2019/01:
 ```
 
 And with `--empty`, we can get a better picture of budget allocation and consumption:
-```shell
+```cli
 $ hledger balance --budget -M --empty
 Budget performance in 2019/01:
 
@@ -749,7 +749,7 @@ Budget performance in 2019/01:
 The budget report evaluates periodic transaction rules to generate special "goal transactions",
 which generate the goal amounts for each account in each report subperiod.
 When troubleshooting, you can use `print --forecast` to show these as forecasted transactions:
-```shell
+```cli
 $ hledger print --forecast=BUDGETREPORTPERIOD tag:generated
 ```
 
@@ -826,7 +826,7 @@ note only CSV output supports all of them:
 Examples:
 
 - Wide layout. With many commodities, reports can be very wide:
-  ```shell
+  ```cli
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
   Balance changes in 2012-01-01..2014-12-31:
   
@@ -838,7 +838,7 @@ Examples:
   ```
 
 - Limited wide layout. A width limit reduces the width, but some commodities will be hidden:
-  ```shell  
+  ```cli  
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
   Balance changes in 2012-01-01..2014-12-31:
   
@@ -850,7 +850,7 @@ Examples:
   ```
 
 - Tall layout. Each commodity gets a new line (may be different in each column), and account names are repeated:
-  ```shell
+  ```cli
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
   Balance changes in 2012-01-01..2014-12-31:
   
@@ -870,7 +870,7 @@ Examples:
   ```
 
 - Bare layout. Commodity symbols are kept in one column, each commodity gets its own report row, account names are repeated:
-  ```shell
+  ```cli
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
   Balance changes in 2012-01-01..2014-12-31:
   
@@ -891,7 +891,7 @@ Examples:
 
 - Bare layout also affects [CSV output](#output-format),
   which is useful for producing data that is easier to consume, eg for making charts:
-  ```shell
+  ```cli
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
   "account","commodity","balance"
   "Assets:US:ETrade","GLD","70.00"
@@ -917,7 +917,7 @@ Examples:
   This is the easiest kind of data for other software to consume.
   Here's how it looks:
   
-  ```shell
+  ```cli
   $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
   "account","period","start_date","end_date","commodity","value"
   "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"

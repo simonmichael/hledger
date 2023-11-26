@@ -18,7 +18,7 @@ commodity).
 It is typically used with a [query](#queries) selecting a
 particular account, to see that account's activity:
 
-```shell
+```cli
 $ hledger register checking
 2008/01/01 income               assets:bank:checking            $1           $1
 2008/06/01 gift                 assets:bank:checking            $1           $2
@@ -37,7 +37,7 @@ The `--historical`/`-H` flag adds the balance from any undisplayed
 prior postings to the running total.  This is useful when you want to
 see only recent activity, with a historically accurate running balance:
 
-```shell
+```cli
 $ hledger register checking -b 2008/6 --historical
 2008/06/01 gift                 assets:bank:checking            $1           $2
 2008/06/02 save                 assets:bank:checking           $-1           $1
@@ -61,14 +61,14 @@ displayed as negative numbers.
 It's also useful to show postings on the checking account together with the
 related account:
 
-```shell
+```cli
 $ hledger register --related --invert assets:checking
 ```
 
 With a [reporting interval](#reporting-interval), register shows
 summary postings, one per interval, aggregating the postings to each account:
 
-```shell
+```cli
 $ hledger register --monthly income
 2008/01                 income:salary                          $-1          $-1
 2008/06                 income:gifts                           $-1          $-2
@@ -76,7 +76,7 @@ $ hledger register --monthly income
 Periods with no activity, and summary postings with a zero amount, are
 not shown by default; use the `--empty`/`-E` flag to see them:
 
-```shell
+```cli
 $ hledger register --monthly income -E
 2008/01                 income:salary                          $-1          $-1
 2008/02                                                          0          $-1
@@ -95,7 +95,7 @@ $ hledger register --monthly income -E
 Often, you'll want to see just one line per interval.
 The `--depth` option helps with this, causing subaccounts to be aggregated:
 
-```shell
+```cli
 $ hledger register --monthly assets --depth 1h
 2008/01                 assets                                  $1           $1
 2008/06                 assets                                 $-1            0
@@ -129,7 +129,7 @@ date (10)  description (D)       account (W-41-D)     amount (12)   balance (12)
 DDDDDDDDDD dddddddddddddddddddd  aaaaaaaaaaaaaaaaaaa  AAAAAAAAAAAA  AAAAAAAAAAAA
 ```
 and some examples:
-```shell
+```cli
 $ hledger reg                     # use terminal width (or 80 on windows)
 $ hledger reg -w 100              # use width 100
 $ COLUMNS=100 hledger reg         # set with one-time environment variable

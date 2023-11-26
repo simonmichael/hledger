@@ -22,7 +22,7 @@ SPACE to pause/unpause, . to step forward (while paused),
 CTRL-c  quit.
 
 Examples:
-```shell
+```cli
 $ hledger demo               # list available demos
 $ hledger demo 1             # play the first demo at default speed (2x)
 $ hledger demo install -s4   # play the "install" demo at 4x speed

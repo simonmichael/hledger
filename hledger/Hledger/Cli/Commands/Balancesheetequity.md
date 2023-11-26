@@ -15,7 +15,7 @@ Or if no such accounts are declared, it shows top-level accounts named
 `asset`, `liability` or `equity` (case insensitive, plurals allowed) and their subaccounts.
 
 Example:
-```shell
+```cli
 $ hledger balancesheetequity
 Balance Sheet With Equity
 

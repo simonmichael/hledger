@@ -11,7 +11,7 @@ The note is the part of the transaction description after a | character
 (or if there is no |, the whole description).
 
 Example:
-```shell
+```cli
 $ hledger notes
 Petrol
 Snacks

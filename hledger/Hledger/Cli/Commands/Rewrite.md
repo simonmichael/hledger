@@ -11,7 +11,7 @@ but adds one or more specified postings to any transactions matching QUERY.
 The posting amounts can be fixed, or a multiplier of the existing transaction's first posting amount. 
 
 Examples:
-```shell
+```cli
 $ hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
 $ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
 $ hledger-rewrite.hs -f rewrites.hledger
@@ -28,7 +28,7 @@ and the two spaces between account and amount.
 
 More:
 
-```shell
+```cli
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
 $ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
@@ -49,7 +49,7 @@ During the run this tool will execute so called
 found in any journal it process. I.e instead of specifying this operations in
 command line you can put them in a journal file.
 
-```shell
+```cli
 $ rewrite-rules.journal
 ```
 
@@ -68,13 +68,13 @@ Note that `'='` (equality symbol) that is used instead of date in transactions
 you usually write. It indicates the query by which you want to match the
 posting to add new ones.
 
-```shell
+```cli
 $ hledger rewrite -- -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
 ```
 
 This is something similar to the commands pipeline:
 
-```shell
+```cli
 $ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
   | hledger rewrite -- -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
                                                 --add-posting 'assets:budget  *1'       \
@@ -89,7 +89,7 @@ important. You can re-use result of previously added postings.
 To use this tool for batch modification of your journal files you may find
 useful output in form of unified diff.
 
-```shell
+```cli
 $ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
 ```
 

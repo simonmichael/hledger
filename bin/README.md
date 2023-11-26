@@ -66,7 +66,7 @@ $ fin        # list the scripts available
 is a way to organise your finance-related reports and scripts using standard bash.
 (See also [justfile](#justfile) below.)
 
-```shell
+```cli
 $ alias f=~/src/hledger/bin/ft
 $ f
 --------------------------------------------------------------------------------"; }
@@ -103,7 +103,7 @@ Add hledger options to customise reports.
 [`tt`](https://github.com/simonmichael/hledger/blob/master/bin/tt)
 is a similar bash multi-script for time reports.
 
-```shell
+```cli
 $ alias t=~/src/hledger/bin/tt
 $ t
 --------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ More on [hledger and just](just.md).
 Here is a [justfile](https://github.com/simonmichael/hledger/blob/master/bin/justfile)
 reimplementing the `ft` and `tt` scripts more simply:
 
-```shell
+```cli
 $ brew install just  # eg
 $ alias j=just
 $ cd ~/finance
@@ -268,7 +268,7 @@ The [hledger-utils python package](https://pypi.org/project/hledger-utils/) prov
 a `hledger-edit` command to edit the queried transactions in your `$EDITOR` no matter what file they reside in.
 
 Install or upgrade:
-```shell
+```cli
 $ pip install -U hledger-utils    # might be slightly different on your system
 ```
 
@@ -292,7 +292,7 @@ The [hledger-utils python package](https://pypi.org/project/hledger-utils/) prov
 a `hledger-plot` command for generating charts with matplotlib.
 
 Install or upgrade:
-```shell
+```cli
 $ pip install -U hledger-utils    # might be slightly different on your system
 ```
 Examples:

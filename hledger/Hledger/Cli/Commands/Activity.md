@@ -9,7 +9,7 @@ counts by day, week, month or other reporting interval (by day is the
 default). With query arguments, it counts only matched transactions.
 
 Examples:
-```shell
+```cli
 $ hledger activity --quarterly
 2008-01-01 **
 2008-04-01 *******
