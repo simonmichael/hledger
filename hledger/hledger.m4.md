@@ -4398,35 +4398,36 @@ to disambiguate them and allow them to be re-parsed reliably
 Eg:
 
 ```journal
-commodity A 1,000.00
+commodity $1,000.00
 
 2023-01-02
-    (a)      A 1000
+    (a)      $1000
 ```
 
 ```cli
 $ hledger print
 2023-01-02
-    (a)        A 1,000.
+    (a)        $1,000.
 
 ```
 
 If this is a problem (eg when [exporting to Ledger](/ledger.md#hledger-to-ledger)),
-you can avoid it by disabling digit group marks, eg with
-[-c/--commodity](#commodity-styles):
+you can avoid it by disabling digit group marks, eg with [-c/--commodity](#commodity-styles)
+(for each affected commodity):
+
 ```cli
-$ hledger print -c 'A 1000.00'
+$ hledger print -c '$1000.00'
 2023-01-02
-    (a)          A 1000
+    (a)          $1000
 
 ```
 
-or by forcing print to show decimal digits in all amounts, eg with
-[--round](#print-amount-style):
+or by forcing print to always show decimal digits, with [--round](#print-amount-style):
+
 ```cli
-$ hledger print --round=soft
+$ hledger print -c '$1,000.00' --round=soft
 2023-01-02
-    (a)      A 1,000.00
+    (a)      $1,000.00
 
 ```
 
