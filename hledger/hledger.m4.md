@@ -4291,7 +4291,11 @@ Balance changes in 2016-02-01-2016-02-03:
 Letters:
 
 ```timedot
-# Activity types: cleanup, enhancement, learning, support
+# Activity types:
+#  c cleanup/catchup/repair
+#  e enhancement
+#  s support
+#  l learning/research
 
 2023-11-01
 work:adm  ccecces
