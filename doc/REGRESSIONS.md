@@ -22,7 +22,7 @@ To claim the bounty:
 1. Discover a new regression yourself (and don't be the one who caused it, generally)
 2. Report it in the [hledger bug tracker](http://bugs.hledger.org)
 3. Wait for the issue manager ([SM](https://joyful.com)) to apply the REGRESSION label
-4. Submit an expense to our Open Collective:
+4. Submit an expense to our Open Collective. (Note: this might reveal your real name, on opencollective.com and here on hledger.org):
    - [Submit Expense](https://opencollective.com/hledger/expenses/new)
      (if you are logged in, it will be under the ACTIONS menu) 
    - choose Invoice
