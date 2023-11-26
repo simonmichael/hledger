@@ -4390,11 +4390,45 @@ per:admin    ....
 
 # Amount formatting, parseability
 
-If you're wondering why your `print` report sometimes shows trailing
-decimal marks, even when there are no decimal digits; it does this to
-disambiguate [ambiguous amounts](#decimal-marks-digit-group-marks)
-(amounts which have one digit group mark and no decimal digits),
-allowing them to be re-parsed reliably.
+If you're wondering why your [`print`](#print) report sometimes shows
+trailing decimal marks, with no decimal digits; it does this when
+showing amounts that have digit group marks but no decimal digits,
+to disambiguate them and allow them to be re-parsed reliably
+(see also [Decimal marks, digit group marks](#decimal-marks-digit-group-marks).
+Eg:
+
+```journal
+commodity A 1,000.00
+
+2023-01-02
+    (a)      A 1000
+```
+
+```shell
+$ hledger print
+2023-01-02
+    (a)        A 1,000.
+
+```
+
+If this is a problem (eg when exporting to [Ledger](ledger.md#ledger-to-ledger)),
+you can avoid it by disabling digit group marks, eg with
+[-c/--commodity](#commodity-styles):
+```shell
+$ hledger print -c 'A 1000.00'
+2023-01-02
+    (a)          A 1000
+
+```
+
+or by forcing print to show decimal digits in all amounts, eg with
+[--round](#print-amount-style):
+```shell
+$ hledger print --round=soft
+2023-01-02
+    (a)      A 1,000.00
+
+```
 
 More generally: hledger output falls into three rough categories, which
 format amounts a little bit differently to suit different consumers:
