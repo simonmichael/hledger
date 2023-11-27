@@ -16,6 +16,7 @@ import Safe
 import System.Environment
 import System.Exit
 import System.FilePath
+import System.Info (os)
 import System.Process
 
 import Hledger
@@ -123,13 +124,17 @@ editFileAtPositionCommand mpos f = do
   return $ unwords $ cmd:args
 
 -- | Get the user's preferred edit command. This is the value of the
--- $HLEDGER_UI_EDITOR environment variable, or of $EDITOR, or a
--- default ("emacsclient -a '' -nw", which starts/connects to an emacs
--- daemon in terminal mode).
+-- $HLEDGER_UI_EDITOR environment variable, or of $EDITOR, or an OS-specific default.
+--
+-- For non-windows machines that would be "emacsclient -a '' -nw",
+-- which starts/connects to an emacs daemon in terminal mode.
+--
+-- For windows the default is a plain "notepad.exe"
 getEditCommand :: IO String
 getEditCommand = do
   hledger_ui_editor_env <- lookupEnv "HLEDGER_UI_EDITOR"
   editor_env            <- lookupEnv "EDITOR"
-  let Just cmd = hledger_ui_editor_env <|> editor_env <|> Just "emacsclient -a '' -nw"
+  let defaultEditor = Just $ if os == "mingw32" then "notepad.exe" else "emacsclient -a '' -nw"
+  let Just cmd = hledger_ui_editor_env <|> editor_env <|> defaultEditor
   return cmd
 
