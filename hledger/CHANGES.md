@@ -146,8 +146,270 @@ Docs
 API
 
 
-# 1.31 2023-09-03
+# e601adaee
+- ;doc: changelogs (from TWIH)
 
+- ;doc: timedot: example tweak
+
+- ;doc: Amount formatting, parseability: improve example
+
+- ;doc: Amount formatting, parseability: fix link
+
+- ;doc: use ```cli not ```shell for command-line examples
+
+- ;doc: Amount formatting, parseability: fix link
+
+- ;doc: Amount formatting, parseability: examples, links
+
+- feat:timedot: tagged time logging with letters
+
+- ;doc:timedot: cleanups
+
+- imp:print:beancount: conversion improvements
+  - omit balance assertions
+  - replace more currency symbols, and match within symbols like C$
+  - do more account validation, and error if conversion is too hard
+  - backslash-escape double quotes and backslashes in payee and note
+
+- imp:print:beancount: also convert cost amounts
+
+- doc: update manuals
+
+- ;doc: update command help
+
+- ;cabal: update cabal files
+
+- feat:print: add a basic beancount output format
+  This prints journal output more likely (but not guaranteed) to
+  be readable by Beancount.
+
+  All packages now require text 1.2.4.1 or greater.
+
+- fix: -o/--outputfile with a .json or .sql extension now selects those formats
+
+- ;doc:commodity directive: edits
+
+- ;doc:commodity directive: explain why decimal mark is required
+
+- ;doc: amount formatting: correction, csv does not force . (#2115)
+
+- ;doc: amount formatting: edits (#2115)
+
+- ;doc: amount formatting: edits (#2115)
+
+- ;doc: amount formatting: edits (#2115)
+
+- fix: non-print-like reports no longer add trailing decimal marks (fix #2115)
+  That 1.31 change was advertised as being for the print command only,
+  but it affected all commands. Now it affects only print and other
+  "print-like" commands (ie all commands that show whole journal entries
+  that we might want to re-parse).
+
+  Also three classes of hledger output, and how they modify the
+  commodity display styles' digit group marks and decimal marks
+  to suit different consumers, have been identified and documented
+  (under REPORTING CONCEPTS).
+
+- ;doc:csv:if table: clarify, explain why backslash won't work (#2107)
+
+- fix:csv: fix tag: queries on CSV data (#2114)
+
+- ;doc:journal: decimal marks, commodity directives: rewrites
+
+- imp:import: support -s/--strict properly (fix #2113)
+  hledger import -s now runs strict checks on an in-memory copy of the
+  updated journal, before updating the journal file; if strict checks
+  fail, nothing is written to disk.
+
+  And hledger import now does not update any .latest files until it has
+  run without error (no failing strict checks, no failure while writing
+  the journal file). This makes it more idempotent, so you can run it
+  again after fixing problems.
+
+- ;doc: regular expressions: add examples (hledger_site#224)
+
+- ;doc: More valuation examples: drop obsolete explanation (precisiongeddon)
+
+- imp: roi: limit large decimals to 8 digits by default (precisiongeddon)
+  With valuation now preserving more decimal digits, roi could show
+  excessively precise decimals if there was no known display precision
+  for the valuation commodity. Now in that situation it limits the
+  precision to a maximum of 8 digits.
+
+- imp: more precision handling fixes, debug output, test updates (precisiongeddon)
+  This and the preceding commits were "work in progress" that got out of control.
+  There's more to do, but this one brings these precision-related improvements
+  (at least):
+
+  When "infinite decimals" arise, they are now generally shown with
+  8 decimal digits rather than 255.
+
+  print and prices no longer add trailing decimal zeros unnecessarily.
+
+  Some code has been refactored or given more debug output.
+
+  All tests have been updated to match the recent changes.
+
+- imp: prices: clarify, fixes, improve semantics (precisiongeddon)
+  - The prices comand now more accurately lists the prices that hledger
+    uses when calculating value reports (similar to what you'd see with
+    eg `hledger bal -V --debug=2`).
+
+  - The prices command's --infer-reverse-prices flag was confusing since
+    we always infer and use reverse prices; it has been renamed to --show-reverse.
+
+  - --infer-market-prices and --show-reverse combine properly.
+
+  - --show-reverse now ignores all zero prices rather than giving an error.
+
+  - Reverse prices (which can be infinite decimals) are now displayed
+    with at most 8 decimal digits (rather than the internal precision of
+    255 digits).
+
+  - Filtering prices by cur: or amt: now works properly.
+
+  - Price amounts are styled, but all decimal digits are shown.
+
+- imp: set display style, natural precision on valued amounts (fix #2105, precisiongeddon)
+  Cost/value conversion now applies the standard display style, and
+  sets the display precision equal to the internal decimal precision
+  (or 8 if the decimal appears to be infinite).
+  This means value reports and especially `print -V` now show amounts
+  with more accurate and standard style and precision.
+
+  New tests have been added describing and explaining various
+  style/precision behaviours in print cost/value reports.
+
+- ;dev: valuation.test: cleanup
+
+- ;doc: import: document Match Groups (Jonathan Dowland)
+  Add a description of Match Groups to the manual; Section "Matchers".
+  Include two examples.
+
+  Clarify a description of regular expression features with respect
+  to match groups.
+
+  Expand the description of field assignments to cover match group
+  interpolation, cross-referencing to Section "Matchers" for the full
+  description.
+
+  Signed-off-by: Jonathan Dowland <jon@dow.land>
+
+- test: import: functional tests for match group interpolation (Jonathan Dowland)
+  Add functional tests for matching substrings in field matchers and
+  interpolating them into the corresponding field assignments. Check
+  the following properties and use-cases:
+
+- Use-case 1: matching a portion of a date in a known format
+     (YYY-MM-DD) and writing a comment-command to warp a posting date.
+     Useful for credit cards.
+- Use-case 2: match a portion of a CSV field and use it as an
+     account assignment. Useful for my byzantine setup with two
+     separate ledgers cross-importing to each other.
+- Ensure bracketed portions of field matchers are captured.
+- Ensure bracketed portions of record matchers are captured.
+- Check match token numerical offset is relative to match group,
+     not the whole rules file.
+- Check nested matches work.
+- Ensure match group token expansion works with or without
+     surrounding text.
+
+  Signed-off-by: Jonathan Dowland <jon@dow.land>
+
+- ;doc: Setting LEDGER_FILE: fix a quote (hledger_site#93)
+
+- fix: auto postings: detect redundant costs properly (fix #2110)
+
+- feat: cli: Add tsv output (#869) (Peter Sagerson)
+  All commands that suport csv output now also support tsv output. The
+  data is identical, but the fields are separated by tab characters and
+  there is no quoting or escaping. Tab, carriage return, and newline
+  characters in data are converted to spaces (this should rarely if ever
+  happen in practice).
+
+- ;doc:tests:readme
+
+- ;dev: tests: ledger-compat tests cleanup
+
+- ;dev: tests: add outshine headings for more readability (in emacs)
+
+- ;doc: TESTS name/link
+
+- ;imp:Hledger.Cli.Script: don't export main, do export CompoundBalanceCommand
+
+- imp:demo: improve error message when asciinema fails
+
+- fix:demo: avoid breaking asciinema 2.3.0 (fix #2094)
+  We were adding a trailing newline, which causes asciinema 2.3.0 to
+  show a JSON decode error.
+
+- ;doc:cli:Data formats: link to each format's doc
+
+- imp:cli:Hledger.Cli.Version: export packagemajorversion
+
+- ;doc:areg,ui: note how separately-dated postings get combined
+
+- ;doc:print: cleanups (#2085)
+
+- ;doc:CHANGES: document print and zero-rendering changes (#2085)
+
+- feat:print: add --round option for more control of precisions (#2085)
+
+- lib!: use styleAmounts in more places; add rounding strategies
+
+- dev:print: refactor, add AmountStyle "rounding strategy"
+  Changes to enable more control of "rounding" behaviour
+  (ie, choosing display precisions for amounts).
+
+  This reverts 1.31's change of asprecision, making it a non-Maybe
+  again, and adds a new asrounding field providing more control over how
+  a target display precision is applied to existing amounts (two options
+  for now, more later). Functionality is in an interim state (reports do
+  no rounding).
+
+- fix:timedot: parse unitful quantities more accurately (fix #2096)
+  A quantity with a unit like "15m" was being parsed internally as
+  0.249999999... rather than 0.25 (and since hledger 1.21, printed that
+  way also). Now we round such quantities to two places during parsing,
+  to get exact quarter-hour amounts.
+
+- ;doc:journal: rewrite Commodity display style
+
+- fix: balance-assigned amounts affect styles again (fix #2091)
+
+- ;doc:troubleshooting: nix locale config (#2089)
+
+- ;doc: csv: negative matchers (#2088)
+
+- feat: balance: Add summary-only flag (#1012) (Stephen Morgan)
+  Add a flag --summary-only for multi-column balance reports, which does
+  not display the main date columns for a report, but only displays the
+  summary columns (--row-total, --average). This is useful when there are
+  many columns (a weekly summary over many years) where you're only
+  interested in the average (or some other summary).
+
+- ;cabal: update cabal files
+
+- ;doc: main module haddock cleanups
+
+- lib!: export less from cli and web packages, and more from ui
+
+- dev:cli: merge Hledger.Cli.Main with Hledger.Cli
+
+- fix: failing balance assertions with cost show correct highlight #2083
+
+- ;doc:journal: clarify valuation date, note bug #2084
+
+- ;doc: update manuals
+
+- ;doc: update command help
+
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.31.99
+
+- ;doc: merge 1.31 changelogs
+# 1.31 2023-09-03
 Features
 
 - Multi-pivot: the --pivot option now accepts multiple arguments,

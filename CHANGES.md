@@ -126,8 +126,177 @@ Finance
   months of data from Open Collective.
 
 
-# 1.31 2023-09-03
+# e601adaee
+- ;doc: changelogs (from TWIH)
 
+- ;tools: bake lastweek: drop an unnecessary report
+
+- ;doc: use ```cli not ```shell for command-line examples
+
+- ;doc:REGRESSIONS: note real name exposure
+
+- ;doc:REGRESSIONS: note one pending
+
+- ;bin:bar: cleanup
+
+- ;tools:bake lastweek: time percentage report
+
+- ;tools: bake jargon - extract Hledger.hs haddock examples to a test journal
+
+- ;tools: make haddock-watch etc.: new fast version, cleanups
+
+- ;tools:bake dbgstrs
+
+- ;tools:ghci :rmain
+
+- ci: do haddock testing less often, in the mac binaries workflow
+  It costs 1m+, doesn't fail that often, and is not hard to fix even if
+  detected late.
+
+- ci: really fix some redundant building of hledger-lib and hledger
+
+- ci: fix some redundant building of hledger-lib and hledger
+
+- ;ci: disable weekly scheduled builds
+  They also run in forks, which I don't want.
+
+- ci: fix tests breakage
+
+- ;tools:make:etags: include .test files
+
+- ;dev: tests: ledger-compat tests cleanup
+
+- ;doc: TESTS name/link
+
+- ;tools:bake:lastweek: improvements
+
+- ;bin:report1: cleanups
+
+- ;web:sandstorm: bump app version, tweak title
+
+- imp:web: cleanups; use --allow on Sandstorm (#834)
+
+- imp:web: access control UX cleanups (fix #834)
+  Changes:
+
+  1. rename the sandstorm "manage" permission to "edit"
+  (old permission names: view, add, manage;
+   new permission names: view, add, edit).
+
+  Rationale: "edit" best describes this permission's current powers, to users and to operators.
+  If we ever added more manager-type features we'd want that to be a new permission,
+  not a rename of the existing one (which would change the powers of existing users).
+
+  2. rename the sandstorm roles for consistency with permissions
+  (old role names: viewer, editor, manager;
+   new role names: viewer, adder, editor)
+
+  Rationale: it's needed to avoid confusion.
+
+  3. add a new option: --allow=view|add|edit|sandstorm (default: add).
+  'sandstorm' sets permissions according to the X-Sandstorm-Permissions header.
+  Drop the --capabilities and --capabilities-header options.
+
+  Rationale: it's simpler and more intuitive.
+
+  4. replace "capability" with "permission" in ui/docs/code.
+
+  Rationale: consistent with the above, more familiar.
+
+- ;bin:report1: cleanups
+
+- ;bin: link hledger-report1 scripts
+
+- ;bin: hledger-report1: a custom compound report in haskell and bash
+
+- ;make: copy-exe[s]-*: fix help
+  vv#	examples/shared-expenses.journal
+
+- ;feat: Upgrade Sandstorm package with permissions (Jacob Weisz)
+
+- ;dev:bake lastweek
+
+- ;examples:csv: note where to find vanguard, fidelity CSV
+
+- ;bin:justfile: rename forecast.journal, forecast-import refinement
+
+- ;dev:ci: rename usual CI branch to "ci"
+
+- ;dev:ci: clean up, rename main CI workflow
+  Back to ci.yml.
+
+- ;doc:REGRESSIONS: update
+
+- ;doc:REGRESSIONS: update
+
+- ;doc:REGRESSIONS: update
+
+- ;dev:stack: ghc 9.4 fix
+
+- ;doc:LINKS: updates
+
+- ;doc:REGRESSIONS: add 2034
+
+- ;doc:REGRESSIONS: cleanup
+
+- ;doc:REGRESSIONS: cleanup
+
+- ;doc:REGRESSIONS: update
+
+- ;dev:stack: stack9.8.yaml
+
+- ;dev:stack: drop stack9.6.yaml
+
+- dev:stack: bump default GHC to 9.6.3
+
+- ;doc:REGRESSIONS: update
+
+- ;doc:REGRESSIONS: update
+
+- ;doc:REGRESSIONS: update
+
+- ;doc:REGRESSIONS: cleanup, update
+
+- ;doc:regressions: fix link
+
+- ;doc: REGRESSIONS, moved from issue tracker; renamed FINANCE section
+
+- ;doc:examples/bin: add gsheet-csv.hs
+
+- ;doc:justfile: update import, time report scripts
+
+- ;doc:examples: fidelity csv rules
+
+- ci:test-linux: temporary workaround for haddock failure
+
+- ci:test-linux: temporary workaround for bad commit message
+
+- dev:cli: merge Hledger.Cli.Main with Hledger.Cli
+
+- make: fix haddock[-watch|-open]
+
+- dev:ci: cleanup
+
+- dev:ci: update notes
+
+- pkg:stack: build with nightly/ghc 9.6 by default
+
+- ;doc:RELEASING: updates
+
+- ;bin: tt,ft comment
+
+- ;doc:RELEASING: updates
+
+- ;pkg: bump version to 1.31.99
+
+- ;doc: merge 1.31 changelogs
+
+- ;doc: announce
+
+- install: bump to latest versions
+
+- install: replace hledger-stockquotes with pricehist
+# 1.31 2023-09-03
 Scripts/addons
 
 - ft, tt shell scripts for collecting financial and time reports

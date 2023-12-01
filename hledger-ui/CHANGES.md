@@ -21,8 +21,46 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.31 2023-09-03
+# 0c85b48d2
+- ;doc: use ```cli not ```shell for command-line examples
 
+- doc: update manuals
+
+- ;cabal: update cabal files
+
+- feat:print: add a basic beancount output format
+  This prints journal output more likely (but not guaranteed) to
+  be readable by Beancount.
+
+  All packages now require text 1.2.4.1 or greater.
+
+- imp: ui: round amounts to display precision as before (precisiongeddon)
+
+- cabal: update cabal files
+
+- pkg:ui: fix wasteful double-building of hledger-ui modules
+
+- ;doc:areg,ui: note how separately-dated postings get combined
+
+- ;cabal: update cabal files
+
+- ;doc: main module haddock cleanups
+
+- ;doc: package description cleanups
+
+- lib!: export less from cli and web packages, and more from ui
+
+- fix:ui: V key preserves startup valuation, if any (fix #2084)
+  Also: hledger-ui cost/value doc improvement and a useful cost/value test file.
+
+- ;doc: update manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.31.99
+
+- ;doc: merge 1.31 changelogs
+# 1.31 2023-09-03
 Improvements
 
 - Allow megaparsec 9.5

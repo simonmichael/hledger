@@ -21,8 +21,90 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 1.31 2023-09-03
+# 0c85b48d2
+- ;doc: use ```cli not ```shell for command-line examples
 
+- doc: update manuals
+
+- ;cabal: update cabal files
+
+- feat:print: add a basic beancount output format
+  This prints journal output more likely (but not guaranteed) to
+  be readable by Beancount.
+
+  All packages now require text 1.2.4.1 or greater.
+
+- imp: web: round amounts to display precision as before (precisiongeddon)
+
+- cabal: update cabal files
+
+- pkg:web: clean up some apparently redundant declarations and deps
+
+- dev:web: refactor permission checking
+
+- ;cabal: update cabal files
+
+- imp:web: cleanups; use --allow on Sandstorm (#834)
+
+- imp:web: access control UX cleanups (fix #834)
+  Changes:
+
+  1. rename the sandstorm "manage" permission to "edit"
+  (old permission names: view, add, manage;
+   new permission names: view, add, edit).
+
+  Rationale: "edit" best describes this permission's current powers, to users and to operators.
+  If we ever added more manager-type features we'd want that to be a new permission,
+  not a rename of the existing one (which would change the powers of existing users).
+
+  2. rename the sandstorm roles for consistency with permissions
+  (old role names: viewer, editor, manager;
+   new role names: viewer, adder, editor)
+
+  Rationale: it's needed to avoid confusion.
+
+  3. add a new option: --allow=view|add|edit|sandstorm (default: add).
+  'sandstorm' sets permissions according to the X-Sandstorm-Permissions header.
+  Drop the --capabilities and --capabilities-header options.
+
+  Rationale: it's simpler and more intuitive.
+
+  4. replace "capability" with "permission" in ui/docs/code.
+
+  Rationale: consistent with the above, more familiar.
+
+- fix:web: check options like --capabilities before starting the app
+
+- fix:web:edit form: fix broken "File format help" link (fix #2103)
+  Now not broken, https rather than http, and pointing to the "Data
+  formats" section, which has links to each of the file formats
+  (in case editing a non-journal file).
+
+- web: Use guessAppRootOr to enable relative root if desired (fix #2099) (Philipp Klocke)
+  This is useful when serving on 0.0.0.0, such that querying from any
+  other device with <IP>:<PORT> does not fallback to 0.0.0.0:PORT,
+  which would fail.
+
+  Tested: Manually
+
+- imp: web: include adeclarationinfo in accounts JSON (S. Zeid)
+
+- ;cabal: update cabal files
+
+- ;doc: main module haddock cleanups
+
+- ;doc: package description cleanups
+
+- lib!: export less from cli and web packages, and more from ui
+
+- ;doc: update manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.31.99
+
+- ;doc: merge 1.31 changelogs
+# 1.31 2023-09-03
 Improvements
 
 - Allow aeson 2.2, megaparsec 9.5
