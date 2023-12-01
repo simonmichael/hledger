@@ -707,11 +707,12 @@ balanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanc
      (Tab.Group Tab.NoLine $ map Tab.Header colheadings)
      (concat rows)
   where
-    totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
+    totalscolumn = hasAggregatedColumn opts row_total_
+    averagescolumn = hasAggregatedColumn opts average_
     colheadings = ["Commodity" | layout_ opts == LayoutBare]
                   ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
                   ++ ["  Total" | totalscolumn]
-                  ++ ["Average" | average_]
+                  ++ ["Average" | averagescolumn]
     fullRowAsTexts row =
       let rs = multiBalanceRowAsTableText opts row
        in (replicate (length rs) (renderacct row), rs)
@@ -729,7 +730,7 @@ balanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanc
                    | otherwise       = id
 
 multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
+multiBalanceRowAsWbs bopts opts@ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
       LayoutTall       -> paddedTranspose mempty
@@ -746,11 +747,12 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
                            $ as  -- Do not include totals column or average for tidy output, as this
                                  -- complicates the data representation and can be easily calculated
   where
-    totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
+    totalscolumn = hasAggregatedColumn opts row_total_
+    averagescolumn = hasAggregatedColumn opts average_
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = (if not summary_only_ then as else []) ++
                 [rowtot | totalscolumn && not (null as)] ++
-                [rowavg | average_ && not (null as)]
+                [rowavg | averagescolumn && not (null as)]
     addDateColumns spn@(DateSpan s e) = (wbFromText (showDateSpan spn) :)
                                        . (wbFromText (maybe "" showEFDate s) :)
                                        . (wbFromText (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
@@ -774,6 +776,9 @@ multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowA
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLine{displayColour=color_ opts} opts []
+
+hasAggregatedColumn :: ReportOpts -> Bool -> Bool
+hasAggregatedColumn ReportOpts{balanceaccum_} flag = flag && balanceaccum_ `notElem` [Cumulative, Historical]
 
 tests_Balance = testGroup "Balance" [
 
