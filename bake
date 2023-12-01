@@ -185,6 +185,13 @@ jargon() {
   rg '^ *> (.*)' -or '$1' hledger-lib/Hledger.hs > jargon.j
 }
 
+# Extract ledger/hledger/beancount commit stats to project-commits.j.
+# See also https://hledger.org/reporting-version-control-stats.html
+projectcommits() {
+  printf "account ledger\naccount hledger\naccount beancount\n\n" >project-commits.j
+  for p in ledger hledger beancount; do git -C ../$p log --format="%cd (%h) %s%n  ($p)  1%n" --date=short --reverse >> project-commits.j; done
+}
+
 if declare -f "$1" > /dev/null; then "$@"; else usage; fi
 
 # ** notes
