@@ -158,10 +158,6 @@ lastweek() {
   echo "hledger time last 7 days including today (this should be run on a Friday):"
   tt bal hledger -DTS -b '6 days ago' --drop 2
   echo
-  echo "By activity type:"
-  tt bal hledger -DTS -b '6 days ago' --pivot t --alias c=cleanup/fixing --alias e=enhancement --alias s=support --alias l=learning | tail +1
-   # XXX aliasing pivoted account names doesn't work
-  echo
   echo "By activity type, percentage:"
   tt bal hledger -DTS -b '6 days ago' --pivot t -% -c 1% | tail +1
   echo
