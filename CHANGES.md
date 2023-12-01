@@ -18,6 +18,114 @@ Infrastructure
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+
+Docs
+
+- hledger manual:
+
+  - Updated:
+  
+    - Decimal marks, digit group marks
+    - commodity directive
+    - CSV > if table (#2107)
+    - Timedot
+  
+  - Added:
+  
+    - Amount formatting, parseability: an explanation of trailing decimal marks
+      and number formatting differences between reports. (#2115)
+
+- Ledger: more notes on commodity directives, from chat.
+
+- Ledger: interoperating tips updates, more about commodity directives and balance assertions.
+
+- Checking for errors: tips on enforcing account lifetimes, from reddit,
+  and on minimising diffs in reports, from mail list.
+
+- As part of Precisiongeddon, I started expanding hledger's "code docs", in the Hledger module's haddock.
+  I spent time learning how to navigate Haddock and producing a fast-feedback authoring workflow (`make haddock-watch`).
+  And documented a bunch of "jargon" terms, and how we handle precision and display styles.
+
+- The "Regular expressions" manual section has been rewritten and now has examples:
+  <https://hledger.org/dev/hledger.html#regular-expressions>.
+
+- Unmentioned last week: I added a News page on hledger.org as a stable home
+  for This Week In Hledger and other news updates.
+
+- moved regression bounty info to <https://hledger.org/REGRESSIONS.html>
+
+- hledger manual > Journal > Commodity display style: rewritten
+
+- hledger manual > aregister, hledger-ui manual > Register screen: note how separately-dated postings get combined
+
+- [How to record journal entries](https://hledger.org/how-to-record.html#how-to-record-journal-entries)
+
+- [hledgermatic](https://hledger.org/hledgermatic.html#hledgermatic) , a simple up-to-date workflow
+
+- Cleanups: Common workflows, Simon's old setup
+
+- All hledger docs now use the `cli` class instead of `shell` for command-line examples,
+  avoiding inaccurate highlighting.
+
+- Videos: reorder hledger fan videos.
+
+- REGRESSIONS: cleanups, mention real names.
+
+
+Examples
+
+- justfile: forecast-import: show but don't consume future-dated forecast transactions
+
+- hledger-report1: a custom compound report script, haskell and bash versions
+
+
+Tools
+
+- tools: ghci :rmain - like :main, but reloads first, useful eg when changing --debug level
+
+
+Ops
+
+- Updated the stars.hledger.org redirect (we have reached the top 30 Haskell projects by github stars 🌟 🎉).
+
+- Fixed a problem with cloudflare authentication that was preventing
+  automatic TLS certificate renewal on hledger.org.
+
+- Committed hledger.org's  caddy config.
+
+- Fixed the hledger.org webhook that was not updating the site on git push.
+
+- Enabled https for "code.hledger.org" and "site.hledger.org" short urls.
+
+- CI (continuous integration) workflows on github have been optimised a bit:
+
+  - Scheduled weekly builds have been disabled, as they were propagating
+    to forks and running wastefully there in some cases.
+  - Some repeated rebuilding of the hledger-lib and hledger packages
+    that seems unnecessary has been stopped.
+  - hledger-ui no longer builds its modules twice.
+  - Haddock testing has been moved to the release workflows to save time.
+  
+  - Set up a self-hosted Sandstorm server and learned how to configure it.
+  
+  - Set up a public hledger-web instance in it: sandbox.hledger.org.
+    Unlike <https://demo.hledger.org>, and until the spammers find it,
+    sandbox is fully writable - use it as a pastebin for examples, eg.
+
+- renamed main CI workflow and branch to "ci"
+
+- updated and committed hledger.org's caddy config and short urls (redirects)
+
+- there's now an easy short url for trying out the hledger-web app on Sandstorm: <https://sandstorm.hledger.org>.
+
+
+Finance
+
+- Updated project finance scripts, regenerated the project ledger with
+  consistent precisions in assertions, updated it with the last few
+  months of data from Open Collective.
+
+
 # 1.31 2023-09-03
 
 Scripts/addons

@@ -23,6 +23,77 @@ User-visible changes in the hledger command line tool and library.
 
 Breaking changes
 
+- This week I completed the months-long yak shave that became
+  Precisiongeddon, and it has landed in master; see
+  <https://github.com/simonmichael/hledger/pull/2111> for details.
+  Heads up: this can change default precisions shown especially by
+  cost and value reports - all for the better hopefully.
+
+
+Features
+
+- The `print` command has a new `beancount` output format for exporting to Beancount.
+
+- Timedot format supports a new letters syntax for easier tagged time logging. (#2116)
+
+- Add tsv output (#869) (Peter Sagerson)
+
+- import: interpolate regex matches in field templates (#2009) (Jonathan Dowland)
+
+- print: add --round option for more control of precisions (#2085)
+
+- [feat: balance: Add only-summary flag (#1012) #2086](https://github.com/simonmichael/hledger/pull/2086) (Stephen Morgan)
+
+- [feat: CSV rule negation #2088](https://github.com/simonmichael/hledger/pull/2088) (bobobo1618)
+
+
+Improvements
+
+- Journal format now accepts lot costs with spaces after `{`, improving Ledger compatibility.
+
+- A new hledger user pointed out in chat out that -s/--strict mode
+  didn't work with the import command. This exposed a bug (#2113) and
+  led to some reworking of the API in Hledger.Read. Until now, when
+  reading multiple files, -s/--strict checks were performed for each
+  individual file, causing spurious failures, with import and other
+  commands.  Now strict checks are done only once, for the overall
+  journal.  Also, the import command now only updates .latest files at
+  the end of a successful run (after successfully passing strict
+  checks and after updating the journal file).
+
+- web: access control UX cleanups: replace --capabilities and --capabilities-header with --allow, and validate it before starting the app (#834)
+
+- web: sandstorm web app cleanups; rename/reorder roles & permissions
+
+- Jacob Weisz has updated the hledger-web app on Sandstorm 
+
+- [imp: web: include account declaration info in accounts JSON #2097](https://github.com/simonmichael/hledger/pull/2097) (S. Zeid)
+
+
+Fixes
+
+- Non-print-like reports no longer add trailing decimal marks (a regression in 1.31).
+  Clarified the policy on number formatting adjustments made in certain reports/output formats. (#2115)
+- `tag:` queries now work when reading CSV files. (#2114)
+- `-o`/`--outputfile` with a .json or .sql extension now properly selects those formats.
+
+- amounts in value reports can sometimes be shown unstyled / with zero decimal digits,
+  <https://github.com/simonmichael/hledger/issues/2105>
+
+- auto postings break redundant equity/cost detection and transaction balancing,
+  <https://github.com/simonmichael/hledger/issues/2110>
+  
+- demo: avoid a bug in asciinema 2.3.0, and improve the error message when asciinema fails (#2094)
+
+- web: fix broken "File format help" link in the edit form (#2103)
+
+- balance-assigned amounts affect commodity styles again (#2091, regression in 1.30)
+
+- timedot: parse unitful quantities more accurately (#2096)
+
+
+Breaking changes
+
 Features
 
 Improvements
