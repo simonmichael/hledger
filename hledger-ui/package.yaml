@@ -102,8 +102,8 @@ library:
   - transformers
   - vector
   # not installable on windows, cf buildable flag below
-  - brick >=1.5
-  - vty >=5.15
+  - brick >=1.5 && <2
+  - vty >=5.15 && <6
   - unix
 
 executables:
