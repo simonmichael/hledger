@@ -1,212 +1,333 @@
 <details>
 <summary>
 
-## Release notes (https://hledger.org/release-notes.html#hledger-1-30)
+## Release notes (https://hledger.org/release-notes.html#hledger-1-32)
 
 </summary>
 
-**Boolean queries, easier CSV file management, built-in demos, hledger-ui cash accounts screen, fixes.**
+**More precision control, beancount output, TSV output, --summary-only,
+strict/idempotent import, CSV rule enhancements, timedot letters, fixes.**
 
-### hledger 1.30
+### hledger 1.32
 
 Breaking changes
 
-- The CSV reader now properly skips all empty lines, as specified by docs.
-  Previously, inner empty lines were not being skipped automatically.
-  You might need to adjust the `skip` count in some CSV rules files.
-  (#2024)
+- Display styles and display precision are now managed more carefully
+  during calculations and output, fixing a number of issues (#2111,
+  "Precisiongeddon").  In brief:
 
-- Timedot format now generates a single multi-posting transaction per
-  date line, and supports comments and tags on all lines.
-  (#1754)
-
-- Timeclock format now supports comments and tags.
-  Descriptions can no longer contain semicolons.
-  (#1220)
-
-Features
-
-- CSV rules files can now be read directly, as in
-  `hledger -f foo.csv.rules CMD`. By default this will read data
-  from foo.csv in the same directory.
+  - Cost and value reports, such as `print -V`, now (1) consistently
+    apply commodity display styles, and (2) do not add or discard
+    decimal digits unnecessarily.  (#2105)
   
-- CSV rules files can use a new `source FILE` rule to specify the data file,
-  with some convenience features:
+  - When "infinite decimals" arise during calculations (eg in value
+    reports, or in `prices` or `roi` output), these are now shown
+    limited to 8 decimal digits rather than 255.
+  
+  - Non-print-like reports no longer add trailing decimal marks to
+    disambiguate digit group marks (this was an unintended regression
+    in 1.31). (#2115)
+    
+  - We now document number formatting adjustments made in certain
+    reports and output formats (hledger manual > REPORTING CONCEPTS >
+    Amount formatting, parseability).
 
-  - If the data file does not exist, it is treated as empty, not an
-    error.
-
-  - If FILE is a relative path, it is relative to the rules file's
-    directory. If it is just a file name with no path, it is relative
-    to `~/Downloads/`.
-
-  - If FILE is a glob pattern, the most recently modified matched file
-    is used.
-
-  This helps remove some of the busywork of managing CSV downloads.
-  Most of your financial institutions's default CSV filenames are
-  different and can be recognised by a glob pattern.  So you can put a
-  rule like `source Checking1*.csv` in foo-checking.csv.rules,
-  periodically download CSV from Foo's website accepting your browser's
-  defaults, and then run `hledger import checking.csv.rules` to import
-  any new transactions. The next time, if you have done no cleanup, your
-  browser will probably save it as something like Checking1-2.csv, and
-  hledger will still see that because of the * wild card. You can choose
-  whether to delete CSVs after import, or keep them for a while as
-  temporary backups, or archive them somewhere.
-  (Experimental)
-
-- The balance command has a new --count report type
-  which reports posting counts instead of amounts.
-
-- Full boolean queries, allowing arbitrary use of AND, OR, NOT
-  (case insensitive) and parentheses for grouping, are now supported.
-  For backward compatibility, these require an `expr:` prefix.
-  Existing queries work as before, and you can mix and match the
-  old and new styles if you like.
-  (Chris Lemaire)
- 
-- demo: This new command plays brief asciinema screencasts explaining
-  various features and use cases. We will add more of these over time.
-  (Experimental)
-
-Improvements
-
-- Add-on commands can now have `.js`, `.lua`, or `.php` file extensions.
-
-- Generated and modified transactions and postings have the same hidden
-  tags (beginning with underscore) as before, but no longer have visible
-  tags added by default. Use `--verbose-tags` if you want them added.
-
-- We now try harder to ensure `less` (and its `more` mode) show our
-  ANSI formatting properly in help output.
-  If you use some other $PAGER, you may have to configure it yourself
-  to show ANSI (or disable ANSI entirely, eg by setting NO_COLOR=1).
-  This is now documented in hledger manual > Paging.
-  (#2015)
-
-- The print command's `--match` mode has been refined.
-  Previously, similarity completely outweighed recency, so a
-  slightly-more-similar transaction would always be selected no matter
-  how old it was. Now similarity and recency are more balanced,
-  and it should produce the desired transaction more often.
-  There is also new debug output (at debug level 1) for troubleshooting.
-
-- Miscellaneous commands list updates.
-  Help has been added for all published add-on commands (like hledger-lots).
-
-- The help command's documentation now mentions an issue caused by
-  a too-old `info` program, as on mac.
-  (#1770)
-
-Fixes
-
-- Unbalanced virtual postings with no amount always infer a zero amount.
-  This is fixing and clarifying the status quo; they always did this,
-  but print always showed them with no amount, even with -x, and
-  the behaviour was undocumented.
-
-- On windows systems with multiple drive letters, the commands list
-  could fail to show all installed add-ons.
-  (#2040)
-
-- Balancing a transaction with a balance assignment now properly respects costs.
-  (#2039)
-
-- The commands list no longer lists non-installed addons.
-  (#2034)
-
-- Since hledger 1.25, "every Nth day of month" period rules with N > 28 could
-  be calculated wrongly by a couple of days when given certain forecast start dates.
-  Eg `~ every 31st day of month` with `--forecast='2023-03-30..'`.
-  This is now fixed.
-  (#2032)
-
-- Postings are now processed in correct date order when inferring balance assignments.
-  (#2025)
-
-- Posting comment lines no longer disrupt the underline position in error messages.
-  (#1927)
-
-- Debug output is now formatted to fit the terminal width.
-
-Docs
-
-- Miscellaneous manual cleanups.
-
-- Rewrite introductory sections,
-  Date adjustment,
-  Directives,
-  Forecasting,
-  etc.
-
-- Add Paging section.
-
-- Remove archaic mentions of `setenv`.
-
-API
-
-- Renamed: Hledger.Cli.Commands: findCommand -> findBuiltinCommand
-
-### hledger-ui 1.30
 
 Features
 
-- A "Cash accounts" screen has been added, showing
-  accounts of the `Cash` type.
+- Timedot format supports a new letters syntax for easier tagged time logging.
+  (#2116)
+
+- `print` has a new `beancount` output format for exporting to Beancount.
+  This prints journal output more likely (though not guaranteed) to
+  be readable by Beancount.
+
+- In CSV rules, matchers using regular expressions can now interpolate
+  their matched texts into the values they assign to fields (field
+  assignment values can reference match groups).
+  (#2009) (Jonathan Dowland)
+  
+- In CSV rules, matchers can be negated by prepending `!`.
+  (#2088) (bobobo1618)
+
+- Multi-column balance reports (from `bal`, `bs`, `is` etc.) can use
+  the new `--summary-only` flag (`--summary` also works) to display
+  just the Total and Average columns (if enabled by `--row-total` and
+  `-A/--average`) and hide the rest.
+  (#1012) (Stephen Morgan)
+
+- All commands that suport csv output now also support `tsv`
+  (tab-separated values) output. The data is identical, but the fields
+  are separated by tab characters and there is no quoting or
+  escaping. Tab, carriage return, and newline characters in data are
+  converted to spaces (this should rarely if ever happen in practice).
+  (#869) (Peter Sagerson).
+
 
 Improvements
 
-- The top-level menu screen is now the default screen.
-  Power users can use the `--cash`/`--bs`/`--is`/`--all`
-  flags to start up in another screen.
+- Journal format no longer fails to parse Ledger-style lot costs with spaces
+  after the `{`, improving Ledger compatibility.
 
-- "All accounts" screen has been moved to the bottom of the list.
+- `import` now does not update any .latest files until it has run
+  without error (no failing strict checks, no failure while writing
+  the journal file). This makes it more idempotent, so you can run it
+  again after fixing problems.
 
-- Screens' help footers have been improved.
+- `print` now shows zeros with a commodity symbol and decimal digits
+  when possible, preserving more information.
 
-Docs
+- `print` has a new option for controlling amount rounding (#2085):
+  
+  - `--round=none` - show amounts with original precisions (default;
+    like 1.31; avoids implying less or more precision than was
+    recorded)
 
-- The transaction screen's inability to update is now noted.
+  - `--round=soft` - add/remove decimal zeros in non-cost amounts
+    (like 1.30 but also affects balance assertion amounts)
 
-- Miscellaneous manual cleanups.
+  - `--round=hard` - round non-cost amounts (can hide significant digits)
 
-### hledger-web 1.30
+  - `--round=all`  - round all amounts and costs
+
+  For the record:
+  `print` shows four kinds of amount: posting amounts,
+  balance assertion amounts, and costs for each of those.
+  Past hledger versions styled and rounded these inconsistently.
+  Since 1.31 they are all styled, and since 1.32 they are rounded as follows:
+  
+  | hledger-1.32 print | amt  | cost | bal  | balcost |
+  |--------------------|------|------|------|---------|
+  | (default)          | none | none | none | none    |
+  | --round=soft       | soft | none | soft | none    |
+  | --round=hard       | hard | none | hard | none    |
+  | --round=all        | hard | hard | hard | hard    |
+
+- The `prices` command has had a number of fixes and improvements (#2111):
+
+  - It now more accurately lists the prices that hledger would use
+    when calculating value reports (similar to what you'd see with
+    `hledger bal -V --debug=2`).
+    
+  - The --infer-reverse-prices flag was confusing, since we always
+    infer and use reverse prices; it has been renamed to `--show-reverse`.
+    
+  - `--show-reverse` and `--infer-market-prices` flags now combine properly.
+    
+  - `--show-reverse` now ignores zero prices rather than giving an error.
+    
+  - Price amounts are now shown styled.
+  
+  - Price amounts are now shown with all their decimal digits; or with
+    8 decimal digits if they appear to be infinite decimals (which can
+    arise with reverse prices).
+    
+  - Filtering prices with `cur:` or `amt:` now works properly.
+    
 
 Fixes
 
-- A command line depth limit now works properly.
-  (#1763)
+- `print` now styles balance assertion costs consistently, like other
+  amounts.
+
+- `import` now works with `-s/--strict`.
+  And more generally, when reading multiple input files, eg with
+  multiple `-f` options, strict checks are done only for the overall
+  combined journal (not for each individual file).
+  (#2113)
+
+- `tag:` queries now work when reading CSV files. (#2114)
+
+- Using a `.json` or `.sql` file extension with `-o`/`--outputfile`
+  now properly selects those output formats.
+
+- Auto postings no longer break redundant equity/cost detection and
+  transaction balancing. (#2110)
+  
+- Amounts set by balance assignment now affect commodity styles again.
+  (#2091, a regression in 1.30)
+
+- Timedot quantities with units are parsed more accurately.
+  Eg a quantity like "15m" was evaluated as 0.249999999 not 0.25,
+  and since hledger 1.21, it was printed that way also.
+  Now we round such quantities to two places during parsing to get
+  exact quarter-hour amounts. (#2096)
+
+- The `demo` command no longer triggers a JSON decode error in asciinema
+  2.3.0. It now also shows a better error message if asciinema fails
+  (#2094).
+
+- Failing balance assertions with a cost now show correct markers in
+  the error message. (#2083)
+
 
 Docs
 
-- Miscellaneous manual cleanups.
+- New:
+  
+  - Amount formatting, parseability
+  - Started new code docs for developers, based in the Hledger module's haddock
 
-### project changes 1.30
+- Updated:
+  
+  - aregister
+  - commodity directive
+  - Commodity display style
+  - if table
+  - Decimal marks, digit group marks
+  - Regular expressions
+  - Timedot
+
+  
+### hledger-ui 1.32
+
+Fixes
+
+- The V key now preserves the valuation mode specified at the command
+  line, if any. (#2084)
+
+- The hledger-ui package no longer wastefully builds its modules
+  twice.
+
+
+### hledger-web 1.32
+
+Features
+
+- The hledger-web app on the Sandstorm cloud platform has been updated to
+  a recent version (Jacob Weisz, #2102), and now uses Sandstorm's access
+  control. (Jakub Zárybnický, #821)
+
+Improvements
+
+- The --capabilities and --capabilities-header options have been replaced
+  with an easier `--allow=view|add|edit|sandstorm` option.
+  `add` is the default access level, while `sandstorm` is for use on Sandstorm.
+  UI and docs now speak of "permissions" rather than "capabilities".
+  (#834)
+
+- The Sandstorm app's permissions and roles have been renamed for clarity. (#834)
+
+- Permissions are now checked earlier, before the web app is started,
+  producing clearer command line errors when appropriate.
+
+- Account's `adeclarationinfo` field is now included in JSON output. (#2097) (S. Zeid)
+
+Fixes
+
+- The app can now serve on address 0.0.0.0 (exposing it on all interfaces),
+  which previously didn't work.
+  (#2099) (Philipp Klocke)
+
+- The broken "File format help" link in the edit form has been fixed. (#2103)
+
+
+### project changes 1.32
 
 Scripts/addons
 
-- hledger-bar: new script for making simple bar charts in the terminal
+- hledger-install.sh: replaced hledger-stockquotes with pricehist
 
-- hledger-install: also list cabal, stack, pip tool versions
+- added gsheet-csv.hs: fetch a google sheet as CSV
+
+- added hledger-report1: an example custom compound report, with haskell and bash versions
+
+- justfile: updated import, time report scripts
+
 
 Examples
 
-- examples/csv: added a more up-to-date CSV makefile
+- New:
 
-- examples/i18: Added sample top level account and type declarations in several languages
+  - Fidelity CSV rules
+
+- Updated:
+
+  - roi-unrealised.ledger (Charlie Ambrose)
 
 Docs
 
-- A shorter, more example-heavy home page on the website.
+- New:
 
-- Simplified website and FAQ structure.
+  - Started a weekly This Week In Hledger news post, inspired by Matrix.
+  - There's now a News page, for This Week In Hledger etc.
+  - hledgermatic, an up-to-date, simple journal-first workflow
+  - How to record journal entries: added
+  - Reporting version control stats: added
+  - Moved regression bounty info from the issue tracker to Developer docs > REGRESSIONS.
 
-### credits 1.30
+- Updated:
+
+  - Checking for errors
+  - Common workflows
+  - Ledger
+  - Simon's old setup
+  - Videos
+  - All docs now use the `cli` class instead of `shell` for command-line examples,
+    avoiding inaccurate highlighting.
+
+
+Infrastructure
+
+- hledger.org website:
+
+  - Fixed the webhook that was not updating the site on git push.
+  
+  - Fixed a problem with cloudflare authentication that was preventing
+    automatic TLS certificate renewal on hledger.org.
+  
+  - Updated and committed hledger.org's caddy config and short urls (redirects)
+  
+  - Enabled https for code.hledger.org and site.hledger.org short urls.
+
+  - Updated the stars.hledger.org redirect
+    (we have reached the top 30 github-starred Haskell projects 🌟 🎉).
+  
+  - Set up a self-hosted Sandstorm server, and a public hledger-web
+    instance (sandbox.hledger.org) in it that is fully writable (until
+    spammers find it). Use it as a pastebin for examples, eg.
+
+- Github CI (continuous integration) workflows have been optimised somewhat:
+
+  - Scheduled weekly builds have been disabled, as they were propagating
+    to forks and running wastefully there in some cases.
+
+  - Some repeated rebuilding of the hledger-lib and hledger packages
+    that seems unnecessary has been stopped.
+
+  - hledger-ui no longer builds its modules twice.
+
+  - Haddock testing now done only at release time.
+  
+  - renamed main CI workflow and branch to "ci"
+
+- Tools:
+
+  - .ghci: added an :rmain alias, which is like :main but reloads first -
+  saves typing, and is useful eg when changing --debug level.
+
+  - make haddock-watch is now fast
+
+
+Finance
+
+- Updated project finance scripts, regenerated the journal with consistent precisions.
+  
+- Updated reports with the last few months of data from Open Collective.
+
+
+### credits 1.32
 
 Simon Michael,
-Chris Lemaire,
-Yehoshua Pesach Wallach.
+Jonathan Dowland,
+S. Zeid,
+Charlie Ambrose,
+Jacob Weisz,
+Peter Sagerson,
+Philipp Klocke,
+Stephen Morgan,
+bobobo1618.
+
 
 </details>
 
@@ -214,8 +335,8 @@ Yehoshua Pesach Wallach.
 
 At <https://hledger.org/install>, binary packages should be available for this release within a few days (look for green badges). 
 
-Or, you can build from source as described there, after cloning at tag `1.30`:
-`git clone https://github.com/simonmichael/hledger --depth 1 -b 1.30`
+Or, you can build from source as described there, after cloning at tag `1.32`:
+`git clone https://github.com/simonmichael/hledger --depth 1 -b 1.32`
 
 Or, if under "Assets" below there are release binaries suitable for your OS and hardware, you can use those.
 <!--
@@ -236,7 +357,7 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.30/hledger-linux-x64.zip   # can rerun if interrupted
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.32/hledger-linux-x64.zip   # can rerun if interrupted
 unzip hledger-linux-x64.zip; tar xvf hledger-linux-x64.tar; rm hledger-linux-x64.{zip,tar}        # github workaround, preserves permissions
 cd -
 hledger --version  # should show the new version
@@ -256,7 +377,7 @@ In a terminal window,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.30/hledger-mac-x64.zip
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.32/hledger-mac-x64.zip
 unzip hledger-mac-x64.zip; tar xvf hledger-mac-x64.tar; rm hledger-mac-x64.{zip,tar}              # github workaround, preserves permissions
 open .
 # for the hledger, hledger-ui, hledger-web icons: right-click, Open, confirm it's ok to run
@@ -286,7 +407,7 @@ $ENV:PATH += ";"+$HOME+"\bin"
 2. Download and install the release binaries:
 ```
 cd $HOME\bin
-curl https://github.com/simonmichael/hledger/releases/download/1.30/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+curl https://github.com/simonmichael/hledger/releases/download/1.32/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
 Expand-Archive hledger-windows-x64.zip -DestinationPath .
 rm hledger-windows-x64.zip
 cd $HOME
@@ -335,7 +456,7 @@ Problems:
 
 ## Next steps
 
-- https://hledger.org -> Quick start
+- https://hledger.org/#quick-start
 
 <!-- ## Updates -->
 <!-- 2022-06-08: windows-x64 binaries fixed. [#1869](https://github.com/simonmichael/hledger/issues/1869) -->
