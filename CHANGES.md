@@ -19,284 +19,97 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-Docs
+# e601adaee
 
-- hledger manual:
+Scripts/addons
 
-  - Updated:
-  
-    - Decimal marks, digit group marks
-    - commodity directive
-    - CSV > if table (#2107)
-    - Timedot
-  
-  - Added:
-  
-    - Amount formatting, parseability: an explanation of trailing decimal marks
-      and number formatting differences between reports. (#2115)
+- hledger-install.sh: replaced hledger-stockquotes with pricehist
 
-- Ledger: more notes on commodity directives, from chat.
+- added gsheet-csv.hs: fetch a google sheet as CSV
 
-- Ledger: interoperating tips updates, more about commodity directives and balance assertions.
+- added hledger-report1: an example custom compound report, with haskell and bash versions
 
-- Checking for errors: tips on enforcing account lifetimes, from reddit,
-  and on minimising diffs in reports, from mail list.
-
-- As part of Precisiongeddon, I started expanding hledger's "code docs", in the Hledger module's haddock.
-  I spent time learning how to navigate Haddock and producing a fast-feedback authoring workflow (`make haddock-watch`).
-  And documented a bunch of "jargon" terms, and how we handle precision and display styles.
-
-- The "Regular expressions" manual section has been rewritten and now has examples:
-  <https://hledger.org/dev/hledger.html#regular-expressions>.
-
-- Unmentioned last week: I added a News page on hledger.org as a stable home
-  for This Week In Hledger and other news updates.
-
-- moved regression bounty info to <https://hledger.org/REGRESSIONS.html>
-
-- hledger manual > Journal > Commodity display style: rewritten
-
-- hledger manual > aregister, hledger-ui manual > Register screen: note how separately-dated postings get combined
-
-- [How to record journal entries](https://hledger.org/how-to-record.html#how-to-record-journal-entries)
-
-- [hledgermatic](https://hledger.org/hledgermatic.html#hledgermatic) , a simple up-to-date workflow
-
-- Cleanups: Common workflows, Simon's old setup
-
-- All hledger docs now use the `cli` class instead of `shell` for command-line examples,
-  avoiding inaccurate highlighting.
-
-- Videos: reorder hledger fan videos.
-
-- REGRESSIONS: cleanups, mention real names.
+- justfile: updated import, time report scripts
 
 
 Examples
 
-- justfile: forecast-import: show but don't consume future-dated forecast transactions
-
-- hledger-report1: a custom compound report script, haskell and bash versions
+- Fidelity CSV rules
 
 
-Tools
+Docs
 
-- tools: ghci :rmain - like :main, but reloads first, useful eg when changing --debug level
+- New:
+
+  - Started a weekly This Week In Hledger news post, inspired by Matrix.
+  - There's now a News page, for This Week In Hledger etc.
+  - hledgermatic, an up-to-date, simple journal-first workflow
+  - How to record journal entries: added
+  - Reporting version control stats: added
+  - Moved regression bounty info from the issue tracker to Developer docs > REGRESSIONS.
+
+- Updated:
+
+  - Checking for errors
+  - Common workflows
+  - Ledger
+  - Simon's old setup
+  - Videos
+  - All docs now use the `cli` class instead of `shell` for command-line examples,
+    avoiding inaccurate highlighting.
 
 
-Ops
+Infrastructure
 
-- Updated the stars.hledger.org redirect (we have reached the top 30 Haskell projects by github stars 🌟 🎉).
+- hledger.org website:
 
-- Fixed a problem with cloudflare authentication that was preventing
-  automatic TLS certificate renewal on hledger.org.
+  - Fixed the webhook that was not updating the site on git push.
+  
+  - Fixed a problem with cloudflare authentication that was preventing
+    automatic TLS certificate renewal on hledger.org.
+  
+  - Updated and committed hledger.org's caddy config and short urls (redirects)
+  
+  - Enabled https for code.hledger.org and site.hledger.org short urls.
 
-- Committed hledger.org's  caddy config.
+  - Updated the stars.hledger.org redirect
+    (we have reached the top 30 github-starred Haskell projects 🌟 🎉).
+  
+  - Set up a self-hosted Sandstorm server, and a public hledger-web
+    instance (sandbox.hledger.org) in it that is fully writable (until
+    spammers find it). Use it as a pastebin for examples, eg.
 
-- Fixed the hledger.org webhook that was not updating the site on git push.
-
-- Enabled https for "code.hledger.org" and "site.hledger.org" short urls.
-
-- CI (continuous integration) workflows on github have been optimised a bit:
+- Github CI (continuous integration) workflows have been optimised somewhat:
 
   - Scheduled weekly builds have been disabled, as they were propagating
     to forks and running wastefully there in some cases.
+
   - Some repeated rebuilding of the hledger-lib and hledger packages
     that seems unnecessary has been stopped.
+
   - hledger-ui no longer builds its modules twice.
-  - Haddock testing has been moved to the release workflows to save time.
+
+  - Haddock testing now done only at release time.
   
-  - Set up a self-hosted Sandstorm server and learned how to configure it.
-  
-  - Set up a public hledger-web instance in it: sandbox.hledger.org.
-    Unlike <https://demo.hledger.org>, and until the spammers find it,
-    sandbox is fully writable - use it as a pastebin for examples, eg.
+  - renamed main CI workflow and branch to "ci"
 
-- renamed main CI workflow and branch to "ci"
+- Tools:
 
-- updated and committed hledger.org's caddy config and short urls (redirects)
+  - .ghci: added an :rmain alias, which is like :main but reloads first -
+  saves typing, and is useful eg when changing --debug level.
 
-- there's now an easy short url for trying out the hledger-web app on Sandstorm: <https://sandstorm.hledger.org>.
+  - make haddock-watch is now fast
 
 
 Finance
 
-- Updated project finance scripts, regenerated the project ledger with
-  consistent precisions in assertions, updated it with the last few
-  months of data from Open Collective.
+- Updated project finance scripts, regenerated the journal with consistent precisions.
+  
+- Updated reports with the last few months of data from Open Collective.
 
 
-# e601adaee
-- ;doc: changelogs (from TWIH)
-
-- ;tools: bake lastweek: drop an unnecessary report
-
-- ;doc: use ```cli not ```shell for command-line examples
-
-- ;doc:REGRESSIONS: note real name exposure
-
-- ;doc:REGRESSIONS: note one pending
-
-- ;bin:bar: cleanup
-
-- ;tools:bake lastweek: time percentage report
-
-- ;tools: bake jargon - extract Hledger.hs haddock examples to a test journal
-
-- ;tools: make haddock-watch etc.: new fast version, cleanups
-
-- ;tools:bake dbgstrs
-
-- ;tools:ghci :rmain
-
-- ci: do haddock testing less often, in the mac binaries workflow
-  It costs 1m+, doesn't fail that often, and is not hard to fix even if
-  detected late.
-
-- ci: really fix some redundant building of hledger-lib and hledger
-
-- ci: fix some redundant building of hledger-lib and hledger
-
-- ;ci: disable weekly scheduled builds
-  They also run in forks, which I don't want.
-
-- ci: fix tests breakage
-
-- ;tools:make:etags: include .test files
-
-- ;dev: tests: ledger-compat tests cleanup
-
-- ;doc: TESTS name/link
-
-- ;tools:bake:lastweek: improvements
-
-- ;bin:report1: cleanups
-
-- ;web:sandstorm: bump app version, tweak title
-
-- imp:web: cleanups; use --allow on Sandstorm (#834)
-
-- imp:web: access control UX cleanups (fix #834)
-  Changes:
-
-  1. rename the sandstorm "manage" permission to "edit"
-  (old permission names: view, add, manage;
-   new permission names: view, add, edit).
-
-  Rationale: "edit" best describes this permission's current powers, to users and to operators.
-  If we ever added more manager-type features we'd want that to be a new permission,
-  not a rename of the existing one (which would change the powers of existing users).
-
-  2. rename the sandstorm roles for consistency with permissions
-  (old role names: viewer, editor, manager;
-   new role names: viewer, adder, editor)
-
-  Rationale: it's needed to avoid confusion.
-
-  3. add a new option: --allow=view|add|edit|sandstorm (default: add).
-  'sandstorm' sets permissions according to the X-Sandstorm-Permissions header.
-  Drop the --capabilities and --capabilities-header options.
-
-  Rationale: it's simpler and more intuitive.
-
-  4. replace "capability" with "permission" in ui/docs/code.
-
-  Rationale: consistent with the above, more familiar.
-
-- ;bin:report1: cleanups
-
-- ;bin: link hledger-report1 scripts
-
-- ;bin: hledger-report1: a custom compound report in haskell and bash
-
-- ;make: copy-exe[s]-*: fix help
-  vv#	examples/shared-expenses.journal
-
-- ;feat: Upgrade Sandstorm package with permissions (Jacob Weisz)
-
-- ;dev:bake lastweek
-
-- ;examples:csv: note where to find vanguard, fidelity CSV
-
-- ;bin:justfile: rename forecast.journal, forecast-import refinement
-
-- ;dev:ci: rename usual CI branch to "ci"
-
-- ;dev:ci: clean up, rename main CI workflow
-  Back to ci.yml.
-
-- ;doc:REGRESSIONS: update
-
-- ;doc:REGRESSIONS: update
-
-- ;doc:REGRESSIONS: update
-
-- ;dev:stack: ghc 9.4 fix
-
-- ;doc:LINKS: updates
-
-- ;doc:REGRESSIONS: add 2034
-
-- ;doc:REGRESSIONS: cleanup
-
-- ;doc:REGRESSIONS: cleanup
-
-- ;doc:REGRESSIONS: update
-
-- ;dev:stack: stack9.8.yaml
-
-- ;dev:stack: drop stack9.6.yaml
-
-- dev:stack: bump default GHC to 9.6.3
-
-- ;doc:REGRESSIONS: update
-
-- ;doc:REGRESSIONS: update
-
-- ;doc:REGRESSIONS: update
-
-- ;doc:REGRESSIONS: cleanup, update
-
-- ;doc:regressions: fix link
-
-- ;doc: REGRESSIONS, moved from issue tracker; renamed FINANCE section
-
-- ;doc:examples/bin: add gsheet-csv.hs
-
-- ;doc:justfile: update import, time report scripts
-
-- ;doc:examples: fidelity csv rules
-
-- ci:test-linux: temporary workaround for haddock failure
-
-- ci:test-linux: temporary workaround for bad commit message
-
-- dev:cli: merge Hledger.Cli.Main with Hledger.Cli
-
-- make: fix haddock[-watch|-open]
-
-- dev:ci: cleanup
-
-- dev:ci: update notes
-
-- pkg:stack: build with nightly/ghc 9.6 by default
-
-- ;doc:RELEASING: updates
-
-- ;bin: tt,ft comment
-
-- ;doc:RELEASING: updates
-
-- ;pkg: bump version to 1.31.99
-
-- ;doc: merge 1.31 changelogs
-
-- ;doc: announce
-
-- install: bump to latest versions
-
-- install: replace hledger-stockquotes with pricehist
 # 1.31 2023-09-03
+
 Scripts/addons
 
 - ft, tt shell scripts for collecting financial and time reports
