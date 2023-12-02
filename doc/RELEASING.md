@@ -171,6 +171,7 @@ See [CHANGELOGS](CHANGELOGS.md).
 #### Release branch and version number
 Create release branch if needed, update all package versions, help, manuals, changelogs (preferred):
 - `./bake prep NEW`
+  - First ensure `hpack --version` matches the one in `stack --version`
   - NEW is `MA.JOR[.MINOR|.99.PREVIEWNUM]` (eg 1.24.99.1 for 1.25 preview 1)
   - for troubleshooting: bash -x PAUSE=1 ECHO=1 bake ...
   <!-- - "avoid possible bug with being in master instead" (?) -->
@@ -261,6 +262,10 @@ Sanity checks:
 - ensure no new commits have been made since push to `github/binaries`
 - in the release branch (?): `make tag`
 
+#### Hackage packages
+in main repo, release branch:
+- `make hackageupload` (major/bugfix/fixup release)
+
 #### Github release
 - in main repo, release branch:
   - `git push github MA.JOR-branch` or magit `P p`
@@ -269,7 +274,7 @@ Sanity checks:
 - choose release tag
 - title: VERSION
 - description:
-  - copy doc/github-release-doc.tmpl.md to emacs
+  - copy doc/github-release.md to emacs
   - insert latest release notes (minus topmost heading) from site/src/release-notes.md
   - replace all OLD version strings with NEW
   - copy to github release
@@ -277,10 +282,6 @@ Sanity checks:
 - upload platform binary zip files
 - Save draft
 - (and after successful hackage upload: Publish release)
-
-#### Hackage packages
-in main repo, release branch:
-- `make hackageupload` (major/bugfix/fixup release)
 
 #### Release manuals
 (major release)
@@ -324,7 +325,7 @@ In site repo:
     hledgerorg emacs, open /opt/hledger/site/hledger.org.caddy:
     - @oldmanpath: add `path` for NEW
     - @unversionedmanpath: update to NEW
-  - `systemctl reload caddy`
+  - `make caddy-restart`
 - check site in browser
   - install page versions, badge colours
   - manuals' versions list in browser. If not updating, try
