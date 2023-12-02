@@ -20,19 +20,6 @@ For package-specific changes, see the hledger package changelogs.
 
 
 # 1.32 2023-12-01
-- ;pkg: bump version to 1.32
-
-- ;doc: changelogs: edit
-
-- ;doc: draft changelogs from commit messages (Shake changelogs)
-
-- ;doc: draft changelogs from TWIH (site/src/news.md)
-
-- ;tools: bake projectcommits
-
-- ;tools: bake lastweek: drop an unnecessary report
-
-- ;doc: Update pathspec for running roi-unrealised.ledger and generated output. (Charlie Ambrose)
 
 Scripts/addons
 
@@ -47,8 +34,13 @@ Scripts/addons
 
 Examples
 
-- Fidelity CSV rules
+- New:
 
+  - Fidelity CSV rules
+
+- Updated:
+
+  - roi-unrealised.ledger (Charlie Ambrose)
 
 Docs
 
