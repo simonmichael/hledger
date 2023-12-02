@@ -13,7 +13,16 @@ Misc. changes
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# b6a46f637
+# 1.32 2023-12-01
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.32
+
+- ;doc: update manuals
+
+- ;doc: changelogs: edit
+
+- ;doc: draft changelogs from commit messages (Shake changelogs)
 
 Misc. changes
 

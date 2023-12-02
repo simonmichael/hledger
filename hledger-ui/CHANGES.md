@@ -21,7 +21,18 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 0c85b48d2
+# 1.32 2023-12-01
+- ;doc: update manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.32
+
+- ;doc: update manuals
+
+- ;doc: changelogs: edit
+
+- ;doc: draft changelogs from commit messages (Shake changelogs)
 
 Fixes
 
