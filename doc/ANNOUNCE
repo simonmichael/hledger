@@ -1,38 +1,29 @@
-I'm pleased to announce hledger 1.31 ! Highlights:
+I'm very pleased to announce hledger 1.32, including work from contributors
+Jonathan Dowland, S. Zeid, Charlie Ambrose, Jacob Weisz, Peter Sagerson, 
+Philipp Klocke, Stephen Morgan, and bobobo1618.
 
-- In conversion transactions, costs and equity postings are matched
-  more tolerantly.
+Highlights: 
+More precision control, beancount output, TSV output, --summary-only,
+strict/idempotent import, CSV rule enhancements, timedot letters, fixes -
+it's a lot. Set aside some time to read the notes.
 
-- The `print` command now more closely replicates the original journal
-   amount styles, which is helpful when round-tripping / cleaning up
-   journal files.
-
-- Multi-pivot - the --pivot option can now construct account names
-  from multiple fields.
-
-Thank you release contributors Dmitry Astapov, Eric Mertens,
-Jay Neubrand, and Jonathan Dowland.
-
-- https://github.com/simonmichael/hledger/releases/1.31
-- https://hledger.org/release-notes.html#hledger-1-31
+- https://github.com/simonmichael/hledger/releases/1.32
+- https://hledger.org/release-notes.html#2023-12-01-hledger-132
 - https://hledger.org/install
 
 What is hledger ?
-
-- Fast, reliable, free, multicurrency, double-entry, plain text accounting software
-  for unix, mac, windows, and the web
-
-- Built around human-readable, version-controllable plain text files
-
-- Inspired by and largely compatible with Ledger CLI,
-  convertible to and from Beancount
-
-- Written in Haskell for reliability and longevity.
+Fast, reliable, free, multicurrency, double-entry, plain text accounting software 
+for unix, mac, windows, and the web; 
+built around human-readable, version-controllable plain text files;
+inspired by and largely compatible with Ledger CLI;
+convertible to and from Beancount;
+written in Haskell for reliability and longevity.
 
 For help getting started or more info, see https://hledger.org
 and join our Matrix/IRC chat or mail list: https://hledger.org/support .
 Newcomers, experts, contributors, sponsors, feedback are welcome!
 For more about plain text accounting, see https://plaintextaccounting.org .
 
-Live well and prosper,
+May you be free from danger; may you have happy, peaceful, prosperous holidays.
+
 -Simon
