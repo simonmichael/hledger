@@ -265,6 +265,7 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.9; fi
+         # shelltestrunner 1.10 requires a newer resolver or extra deps
         shelltest --version
       if: env.CONTINUE
 
