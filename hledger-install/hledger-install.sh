@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20230903
+HLEDGER_INSTALL_VERSION=20231201
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -41,15 +41,15 @@ pip \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.31
-HLEDGER_VERSION=1.31
-HLEDGER_UI_VERSION=1.31
-HLEDGER_WEB_VERSION=1.31
+HLEDGER_LIB_VERSION=1.32
+HLEDGER_VERSION=1.32
+HLEDGER_UI_VERSION=1.32
+HLEDGER_WEB_VERSION=1.32
 # Third-party:
-HLEDGER_IADD_VERSION=1.3.18
-HLEDGER_INTEREST_VERSION=1.6.5
-HLEDGER_EDIT_VERSION=1.13.2
-HLEDGER_PLOT_VERSION=1.13.2
+HLEDGER_IADD_VERSION=1.3.19
+HLEDGER_INTEREST_VERSION=1.6.6
+HLEDGER_EDIT_VERSION=1.14.0
+HLEDGER_PLOT_VERSION=1.14.0
 HLEDGER_LOTS_VERSION=0.4.2
 PRICEHIST_VERSION=1.4.6
 
@@ -95,7 +95,7 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-21.9"
+STACK_RESOLVER="--resolver=lts-21.22"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
