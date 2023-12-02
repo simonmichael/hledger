@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# e601adaee
+# 1.32 2023-12-01
 
 Scripts/addons
 
@@ -34,8 +34,13 @@ Scripts/addons
 
 Examples
 
-- Fidelity CSV rules
+- New:
 
+  - Fidelity CSV rules
+
+- Updated:
+
+  - roi-unrealised.ledger (Charlie Ambrose)
 
 Docs
 

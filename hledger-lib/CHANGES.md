@@ -13,7 +13,7 @@ Misc. changes
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# b6a46f637
+# 1.32 2023-12-01
 
 Misc. changes
 

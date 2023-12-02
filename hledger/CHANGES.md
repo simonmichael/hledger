@@ -21,6 +21,8 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.32 2023-12-01
+
 Breaking changes
 
 - Display styles and display precision are now managed more carefully
@@ -190,7 +192,6 @@ Docs
   - Timedot
 
   
-
 # 1.31 2023-09-03
 
 Features

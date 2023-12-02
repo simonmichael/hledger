@@ -21,6 +21,8 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.32 2023-12-01
+
 Features
 
 - The hledger-web app on the Sandstorm cloud platform has been updated to
