@@ -1,20 +1,17 @@
 
-.TH "HLEDGER-WEB" "1" "November 2023" "hledger-web-1.31.99 " "hledger User Manuals"
+.TH "HLEDGER-WEB" "1" "December 2023" "hledger-web-1.31.99 " "hledger User Manuals"
 
 
 
 .SH NAME
-.PP
 hledger-web - robust, friendly plain text accounting (Web version)
 .SH SYNOPSIS
-.PP
-\f[V]hledger-web    [--serve|--serve-api] [OPTS] [ARGS]\f[R]
+\f[CR]hledger-web    [--serve|--serve-api] [OPTS] [ARGS]\f[R]
 .PD 0
 .P
 .PD
-\f[V]hledger web -- [--serve|--serve-api] [OPTS] [ARGS]\f[R]
+\f[CR]hledger web -- [--serve|--serve-api] [OPTS] [ARGS]\f[R]
 .SH DESCRIPTION
-.PP
 This manual is for hledger\[aq]s web interface, version 1.31.99.
 See also the hledger manual for common concepts and file formats.
 .PP
@@ -40,9 +37,9 @@ instance, it writes a numbered backup of the main journal file (only) on
 every edit.
 .PP
 Like hledger, it reads from (and appends to) a journal file specified by
-the \f[V]LEDGER_FILE\f[R] environment variable (defaulting to
-\f[V]$HOME/.hledger.journal\f[R]); or you can specify files with
-\f[V]-f\f[R] options.
+the \f[CR]LEDGER_FILE\f[R] environment variable (defaulting to
+\f[CR]$HOME/.hledger.journal\f[R]); or you can specify files with
+\f[CR]-f\f[R] options.
 It can also read timeclock files, timedot files, or any CSV/SSV/TSV file
 with a date field.
 (See hledger(1) -> Input for details.)
@@ -54,15 +51,14 @@ show the app if possible, and the app exits automatically after two
 minutes of inactivity (no requests received and no open browser windows
 viewing it).
 .IP \[bu] 2
-With \f[V]--serve\f[R]: the app runs without stopping, and without
+With \f[CR]--serve\f[R]: the app runs without stopping, and without
 opening a browser.
 .IP \[bu] 2
-With \f[V]--serve-api\f[R]: only the JSON API is served.
+With \f[CR]--serve-api\f[R]: only the JSON API is served.
 .PP
 In all cases hledger-web runs as a foreground process, logging requests
 to stdout.
 .SH OPTIONS
-.PP
 Command-line options and arguments may be used to set an initial filter
 on the data.
 These filter options are not shown in the web UI, but it will be applied
@@ -70,84 +66,82 @@ in addition to any search query entered there.
 .PP
 hledger-web provides the following options:
 .TP
-\f[V]--serve\f[R]
+\f[CR]--serve\f[R]
 serve and log requests, don\[aq]t browse or auto-exit after timeout
 .TP
-\f[V]--serve-api\f[R]
+\f[CR]--serve-api\f[R]
 like --serve, but serve only the JSON web API, without the server-side
 web UI
 .TP
-\f[V]--host=IPADDR\f[R]
+\f[CR]--host=IPADDR\f[R]
 listen on this IP address (default: 127.0.0.1)
 .TP
-\f[V]--port=PORT\f[R]
+\f[CR]--port=PORT\f[R]
 listen on this TCP port (default: 5000)
 .TP
-\f[V]--socket=SOCKETFILE\f[R]
+\f[CR]--socket=SOCKETFILE\f[R]
 use a unix domain socket file to listen for requests instead of a TCP
 socket.
-Implies \f[V]--serve\f[R].
+Implies \f[CR]--serve\f[R].
 It can only be used if the operating system can provide this type of
 socket.
 .TP
-\f[V]--base-url=URL\f[R]
+\f[CR]--base-url=URL\f[R]
 set the base url (default: http://IPADDR:PORT).
 Note: affects url generation but not route parsing.
 Can be useful if running behind a reverse web proxy that does path
 rewriting.
 .TP
-\f[V]--file-url=URL\f[R]
+\f[CR]--file-url=URL\f[R]
 set the static files url (default: BASEURL/static).
 hledger-web normally serves static files itself, but if you wanted to
 serve them from another server for efficiency, you would set the url
 with this.
 .TP
-\f[V]--allow=view|add|edit\f[R]
+\f[CR]--allow=view|add|edit\f[R]
 set the user\[aq]s access level for changing data (default:
-\f[V]add\f[R]).
-It also accepts \f[V]sandstorm\f[R] for use on that platform (reads
-permissions from the \f[V]X-Sandstorm-Permissions\f[R] request header).
+\f[CR]add\f[R]).
+It also accepts \f[CR]sandstorm\f[R] for use on that platform (reads
+permissions from the \f[CR]X-Sandstorm-Permissions\f[R] request header).
 .TP
-\f[V]--test\f[R]
+\f[CR]--test\f[R]
 run hledger-web\[aq]s tests and exit.
 hspec test runner args may follow a --, eg: hledger-web --test -- --help
 .PP
 By default the server listens on IP address 127.0.0.1, accessible only
 to local requests.
-You can use \f[V]--host\f[R] to change this, eg \f[V]--host 0.0.0.0\f[R]
-to listen on all configured addresses.
+You can use \f[CR]--host\f[R] to change this, eg
+\f[CR]--host 0.0.0.0\f[R] to listen on all configured addresses.
 .PP
-Similarly, use \f[V]--port\f[R] to set a TCP port other than 5000, eg if
-you are running multiple hledger-web instances.
+Similarly, use \f[CR]--port\f[R] to set a TCP port other than 5000, eg
+if you are running multiple hledger-web instances.
 .PP
-Both of these options are ignored when \f[V]--socket\f[R] is used.
-In this case, it creates an \f[V]AF_UNIX\f[R] socket file at the
+Both of these options are ignored when \f[CR]--socket\f[R] is used.
+In this case, it creates an \f[CR]AF_UNIX\f[R] socket file at the
 supplied path and uses that for communication.
 This is an alternative way of running multiple hledger-web instances
 behind a reverse proxy that handles authentication for different users.
 The path can be derived in a predictable way, eg by using the username
 within the path.
-As an example, \f[V]nginx\f[R] as reverse proxy can use the variable
-\f[V]$remote_user\f[R] to derive a path from the username used in a HTTP
-basic authentication.
-The following \f[V]proxy_pass\f[R] directive allows access to all
-\f[V]hledger-web\f[R] instances that created a socket in
-\f[V]/tmp/hledger/\f[R]:
+As an example, \f[CR]nginx\f[R] as reverse proxy can use the variable
+\f[CR]$remote_user\f[R] to derive a path from the username used in a
+HTTP basic authentication.
+The following \f[CR]proxy_pass\f[R] directive allows access to all
+\f[CR]hledger-web\f[R] instances that created a socket in
+\f[CR]/tmp/hledger/\f[R]:
 .IP
-.nf
-\f[C]
+.EX
   proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
-\f[R]
-.fi
+.EE
 .PP
-You can use \f[V]--base-url\f[R] to change the protocol, hostname, port
+You can use \f[CR]--base-url\f[R] to change the protocol, hostname, port
 and path that appear in hyperlinks, useful eg for integrating
 hledger-web within a larger website.
-The default is \f[V]http://HOST:PORT/\f[R] using the server\[aq]s
-configured host address and TCP port (or \f[V]http://HOST\f[R] if PORT
+The default is \f[CR]http://HOST:PORT/\f[R] using the server\[aq]s
+configured host address and TCP port (or \f[CR]http://HOST\f[R] if PORT
 is 80).
 .PP
-With \f[V]--file-url\f[R] you can set a different base url for static
+With \f[CR]--file-url\f[R] you can set a different base url for static
 files, eg for better caching or cookie-less serving on high performance
 websites.
 .PP
@@ -155,144 +149,144 @@ hledger-web also supports many of hledger\[aq]s general options (and the
 hledger manual\[aq]s command line tips also apply here):
 .SS General help options
 .TP
-\f[V]-h --help\f[R]
+\f[CR]-h --help\f[R]
 show general or COMMAND help
 .TP
-\f[V]--man\f[R]
+\f[CR]--man\f[R]
 show general or COMMAND user manual with man
 .TP
-\f[V]--info\f[R]
+\f[CR]--info\f[R]
 show general or COMMAND user manual with info
 .TP
-\f[V]--version\f[R]
+\f[CR]--version\f[R]
 show general or ADDONCMD version
 .TP
-\f[V]--debug[=N]\f[R]
+\f[CR]--debug[=N]\f[R]
 show debug output (levels 1-9, default: 1)
 .SS General input options
 .TP
-\f[V]-f FILE --file=FILE\f[R]
+\f[CR]-f FILE --file=FILE\f[R]
 use a different input file.
-For stdin, use - (default: \f[V]$LEDGER_FILE\f[R] or
-\f[V]$HOME/.hledger.journal\f[R])
+For stdin, use - (default: \f[CR]$LEDGER_FILE\f[R] or
+\f[CR]$HOME/.hledger.journal\f[R])
 .TP
-\f[V]--rules-file=RULESFILE\f[R]
+\f[CR]--rules-file=RULESFILE\f[R]
 Conversion rules file to use when reading CSV (default: FILE.rules)
 .TP
-\f[V]--separator=CHAR\f[R]
+\f[CR]--separator=CHAR\f[R]
 Field separator to expect when reading CSV (default: \[aq],\[aq])
 .TP
-\f[V]--alias=OLD=NEW\f[R]
+\f[CR]--alias=OLD=NEW\f[R]
 rename accounts named OLD to NEW
 .TP
-\f[V]--anon\f[R]
+\f[CR]--anon\f[R]
 anonymize accounts and payees
 .TP
-\f[V]--pivot FIELDNAME\f[R]
+\f[CR]--pivot FIELDNAME\f[R]
 use some other field or tag for the account name
 .TP
-\f[V]-I --ignore-assertions\f[R]
+\f[CR]-I --ignore-assertions\f[R]
 disable balance assertion checks (note: does not disable balance
 assignments)
 .TP
-\f[V]-s --strict\f[R]
+\f[CR]-s --strict\f[R]
 do extra error checking (check that all posted accounts are declared)
 .SS General reporting options
 .TP
-\f[V]-b --begin=DATE\f[R]
+\f[CR]-b --begin=DATE\f[R]
 include postings/txns on or after this date (will be adjusted to
 preceding subperiod start when using a report interval)
 .TP
-\f[V]-e --end=DATE\f[R]
+\f[CR]-e --end=DATE\f[R]
 include postings/txns before this date (will be adjusted to following
 subperiod end when using a report interval)
 .TP
-\f[V]-D --daily\f[R]
+\f[CR]-D --daily\f[R]
 multiperiod/multicolumn report by day
 .TP
-\f[V]-W --weekly\f[R]
+\f[CR]-W --weekly\f[R]
 multiperiod/multicolumn report by week
 .TP
-\f[V]-M --monthly\f[R]
+\f[CR]-M --monthly\f[R]
 multiperiod/multicolumn report by month
 .TP
-\f[V]-Q --quarterly\f[R]
+\f[CR]-Q --quarterly\f[R]
 multiperiod/multicolumn report by quarter
 .TP
-\f[V]-Y --yearly\f[R]
+\f[CR]-Y --yearly\f[R]
 multiperiod/multicolumn report by year
 .TP
-\f[V]-p --period=PERIODEXP\f[R]
+\f[CR]-p --period=PERIODEXP\f[R]
 set start date, end date, and/or reporting interval all at once using
 period expressions syntax
 .TP
-\f[V]--date2\f[R]
+\f[CR]--date2\f[R]
 match the secondary date instead (see command help for other effects)
 .TP
-\f[V]--today=DATE\f[R]
+\f[CR]--today=DATE\f[R]
 override today\[aq]s date (affects relative smart dates, for
 tests/examples)
 .TP
-\f[V]-U --unmarked\f[R]
+\f[CR]-U --unmarked\f[R]
 include only unmarked postings/txns (can combine with -P or -C)
 .TP
-\f[V]-P --pending\f[R]
+\f[CR]-P --pending\f[R]
 include only pending postings/txns
 .TP
-\f[V]-C --cleared\f[R]
+\f[CR]-C --cleared\f[R]
 include only cleared postings/txns
 .TP
-\f[V]-R --real\f[R]
+\f[CR]-R --real\f[R]
 include only non-virtual postings
 .TP
-\f[V]-NUM --depth=NUM\f[R]
+\f[CR]-NUM --depth=NUM\f[R]
 hide/aggregate accounts or postings more than NUM levels deep
 .TP
-\f[V]-E --empty\f[R]
+\f[CR]-E --empty\f[R]
 show items with zero amount, normally hidden (and vice-versa in
 hledger-ui/hledger-web)
 .TP
-\f[V]-B --cost\f[R]
+\f[CR]-B --cost\f[R]
 convert amounts to their cost/selling amount at transaction time
 .TP
-\f[V]-V --market\f[R]
+\f[CR]-V --market\f[R]
 convert amounts to their market value in default valuation commodities
 .TP
-\f[V]-X --exchange=COMM\f[R]
+\f[CR]-X --exchange=COMM\f[R]
 convert amounts to their market value in commodity COMM
 .TP
-\f[V]--value\f[R]
+\f[CR]--value\f[R]
 convert amounts to cost or market value, more flexibly than -B/-V/-X
 .TP
-\f[V]--infer-equity\f[R]
+\f[CR]--infer-equity\f[R]
 infer conversion equity postings from costs
 .TP
-\f[V]--infer-costs\f[R]
+\f[CR]--infer-costs\f[R]
 infer costs from conversion equity postings
 .TP
-\f[V]--infer-market-prices\f[R]
+\f[CR]--infer-market-prices\f[R]
 use costs as additional market prices, as if they were P directives
 .TP
-\f[V]--forecast\f[R]
+\f[CR]--forecast\f[R]
 generate transactions from periodic rules,
 between the latest recorded txn and 6 months from today,
 or during the specified PERIOD (= is required).
 Auto posting rules will be applied to these transactions as well.
 Also, in hledger-ui make future-dated transactions visible.
 .TP
-\f[V]--auto\f[R]
+\f[CR]--auto\f[R]
 generate extra postings by applying auto posting rules to all txns (not
 just forecast txns)
 .TP
-\f[V]--verbose-tags\f[R]
+\f[CR]--verbose-tags\f[R]
 add visible tags indicating transactions or postings which have been
 generated/modified
 .TP
-\f[V]--commodity-style\f[R]
+\f[CR]--commodity-style\f[R]
 Override the commodity style in the output for the specified commodity.
 For example \[aq]EUR1.000,00\[aq].
 .TP
-\f[V]--color=WHEN (or --colour=WHEN)\f[R]
+\f[CR]--color=WHEN (or --colour=WHEN)\f[R]
 Should color-supporting commands use ANSI color codes in text output.
 \[aq]auto\[aq] (default): whenever stdout seems to be a color-supporting
 terminal.
@@ -301,7 +295,7 @@ into \[aq]less -R\[aq].
 \[aq]never\[aq] or \[aq]no\[aq]: never.
 A NO_COLOR environment variable overrides this.
 .TP
-\f[V]--pretty[=WHEN]\f[R]
+\f[CR]--pretty[=WHEN]\f[R]
 Show prettier output, e.g.
 using unicode box-drawing characters.
 Accepts \[aq]yes\[aq] (the default) or \[aq]no\[aq] (\[aq]y\[aq],
@@ -314,13 +308,12 @@ last one takes precedence.
 .PP
 Some reporting options can also be written as query arguments.
 .SH PERMISSIONS
-.PP
 By default, hledger-web allows anyone who can reach it to view the
 journal and to add new transactions, but not to change existing data.
 .PP
 You can restrict who can reach it by
 .IP \[bu] 2
-setting the IP address it listens on (see \f[V]--host\f[R] above).
+setting the IP address it listens on (see \f[CR]--host\f[R] above).
 By default it listens on 127.0.0.1, accessible to all users on the local
 machine.
 .IP \[bu] 2
@@ -330,27 +323,26 @@ custom firewall rules
 .PP
 You can restrict what the users who reach it can do, by
 .IP \[bu] 2
-using the \f[V]--capabilities=CAP[,CAP..]\f[R] flag when you start it,
+using the \f[CR]--capabilities=CAP[,CAP..]\f[R] flag when you start it,
 enabling one or more of the following capabilities.
-The default value is \f[V]view,add\f[R]:
+The default value is \f[CR]view,add\f[R]:
 .RS 2
 .IP \[bu] 2
-\f[V]view\f[R] - allows viewing the journal file and all included files
+\f[CR]view\f[R] - allows viewing the journal file and all included files
 .IP \[bu] 2
-\f[V]add\f[R] - allows adding new transactions to the main journal file
+\f[CR]add\f[R] - allows adding new transactions to the main journal file
 .IP \[bu] 2
-\f[V]manage\f[R] - allows editing, uploading or downloading the main or
+\f[CR]manage\f[R] - allows editing, uploading or downloading the main or
 included files
 .RE
 .IP \[bu] 2
-using the \f[V]--capabilities-header=HTTPHEADER\f[R] flag to specify a
+using the \f[CR]--capabilities-header=HTTPHEADER\f[R] flag to specify a
 HTTP header from which it will read capabilities to enable.
 hledger-web on Sandstorm uses the X-Sandstorm-Permissions header to
 integrate with Sandstorm\[aq]s permissions.
 This is disabled by default.
 .SH EDITING, UPLOADING, DOWNLOADING
-.PP
-If you enable the \f[V]manage\f[R] capability mentioned above,
+If you enable the \f[CR]manage\f[R] capability mentioned above,
 you\[aq]ll see a new \[dq]spanner\[dq] button to the right of the search
 form.
 Clicking this will let you edit, upload, or download the journal file or
@@ -371,7 +363,6 @@ Changes which would leave the journal file(s) unparseable or non-valid
 (Probably.
 This needs re-testing.)
 .SH RELOADING
-.PP
 hledger-web detects changes made to the files by other means (eg if you
 edit it directly, outside of hledger-web), and it will show the new data
 when you reload the page or navigate to a new page.
@@ -381,24 +372,20 @@ message until the file has been fixed.
 (Note: if you are viewing files mounted from another machine, make sure
 that both machine clocks are roughly in step.)
 .SH JSON API
-.PP
 In addition to the web UI, hledger-web also serves a JSON API that can
 be used to get data or add new transactions.
-If you want the JSON API only, you can use the \f[V]--serve-api\f[R]
+If you want the JSON API only, you can use the \f[CR]--serve-api\f[R]
 flag.
 Eg:
 .IP
-.nf
-\f[C]
+.EX
 $ hledger-web -f examples/sample.journal --serve-api
 \&...
-\f[R]
-.fi
+.EE
 .PP
 You can get JSON data from these routes:
 .IP
-.nf
-\f[C]
+.EX
 /version
 /accountnames
 /transactions
@@ -406,15 +393,13 @@ You can get JSON data from these routes:
 /commodities
 /accounts
 /accounttransactions/ACCOUNTNAME
-\f[R]
-.fi
+.EE
 .PP
 Eg, all account names in the journal (similar to the accounts command).
 (hledger-web\[aq]s JSON does not include newlines, here we use python to
 prettify it):
 .IP
-.nf
-\f[C]
+.EX
 $ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
 [
     \[dq]assets\[dq],
@@ -431,13 +416,11 @@ $ curl -s http://127.0.0.1:5000/accountnames | python -m json.tool
     \[dq]liabilities\[dq],
     \[dq]liabilities:debts\[dq]
 ]
-\f[R]
-.fi
+.EE
 .PP
 Or all transactions:
 .IP
-.nf
-\f[C]
+.EX
 $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
 [
     {
@@ -456,8 +439,7 @@ $ curl -s http://127.0.0.1:5000/transactions | python -m json.tool
                         \[dq]aismultiplier\[dq]: false,
                         \[dq]aprice\[dq]: null,
 \&...
-\f[R]
-.fi
+.EE
 .PP
 Most of the JSON corresponds to hledger\[aq]s data types; for details of
 what the fields mean, see the Hledger.Data.Json haddock docs and click
@@ -468,34 +450,31 @@ In some cases there is outer JSON corresponding to a \[dq]Report\[dq]
 type.
 To understand that, go to the Hledger.Web.Handler.MiscR haddock and look
 at the source for the appropriate handler to see what it returns.
-Eg for \f[V]/accounttransactions\f[R] it\[aq]s getAccounttransactionsR,
-returning a \[dq]\f[V]accountTransactionsReport ...\f[R]\[dq].
+Eg for \f[CR]/accounttransactions\f[R] it\[aq]s getAccounttransactionsR,
+returning a \[dq]\f[CR]accountTransactionsReport ...\f[R]\[dq].
 Looking up the haddock for that we can see that /accounttransactions
 returns an AccountTransactionsReport, which consists of a report title
 and a list of AccountTransactionsReportItem (etc).
 .PP
 You can add a new transaction to the journal with a PUT request to
-\f[V]/add\f[R], if hledger-web was started with the \f[V]add\f[R]
+\f[CR]/add\f[R], if hledger-web was started with the \f[CR]add\f[R]
 capability (enabled by default).
 The payload must be the full, exact JSON representation of a hledger
 transaction (partial data won\[aq]t do).
-You can get sample JSON from hledger-web\[aq]s \f[V]/transactions\f[R]
-or \f[V]/accounttransactions\f[R], or you can export it with
+You can get sample JSON from hledger-web\[aq]s \f[CR]/transactions\f[R]
+or \f[CR]/accounttransactions\f[R], or you can export it with
 hledger-lib, eg like so:
 .IP
-.nf
-\f[C]
+.EX
 \&.../hledger$ stack ghci hledger-lib
 >>> writeJsonFile \[dq]txn.json\[dq] (head $ jtxns samplejournal)
 >>> :q
-\f[R]
-.fi
+.EE
 .PP
 Here\[aq]s how it looks as of hledger-1.17 (remember, this JSON
 corresponds to hledger\[aq]s Transaction and related data types):
 .IP
-.nf
-\f[C]
+.EX
 {
     \[dq]tcomment\[dq]: \[dq]\[dq],
     \[dq]tpostings\[dq]: [
@@ -581,21 +560,17 @@ corresponds to hledger\[aq]s Transaction and related data types):
     \[dq]tdescription\[dq]: \[dq]income\[dq],
     \[dq]tstatus\[dq]: \[dq]Unmarked\[dq]
 }
-\f[R]
-.fi
+.EE
 .PP
 And here\[aq]s how to test adding it with curl.
 This should add a new entry to your journal:
 .IP
-.nf
-\f[C]
+.EX
 $ curl http://127.0.0.1:5000/add -X PUT -H \[aq]Content-Type: application/json\[aq] --data-binary \[at]txn.json
-\f[R]
-.fi
+.EE
 .SH DEBUG OUTPUT
 .SS Debug output
-.PP
-You can add \f[V]--debug[=N]\f[R] to the command line to log debug
+You can add \f[CR]--debug[=N]\f[R] to the command line to log debug
 output.
 N ranges from 1 (least output, the default) to 9 (maximum output).
 Typically you would start with 1 and increase until you are seeing
@@ -607,14 +582,12 @@ stderr, eg:
 .PD 0
 .P
 .PD
-\f[V]hledger-web --debug=3 2>hledger-web.log\f[R].
+\f[CR]hledger-web --debug=3 2>hledger-web.log\f[R].
 .SH ENVIRONMENT
-.PP
 \f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
-with \f[V]-f/--file\f[R].
-Default: \f[V]$HOME/.hledger.journal\f[R].
+with \f[CR]-f/--file\f[R].
+Default: \f[CR]$HOME/.hledger.journal\f[R].
 .SH BUGS
-.PP
 We welcome bug reports in the hledger issue tracker (shortcut:
 http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 (https://hledger.org/support).
