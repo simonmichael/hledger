@@ -9,7 +9,7 @@ The colour scheme may be somewhat hard-coded.
 
 -}
 
-{-# LANGUAGE CPP, LambdaCase #-}
+{-# LANGUAGE CPP, LambdaCase, PackageImports #-}
 
 module Hledger.Utils.IO (
 
@@ -125,7 +125,7 @@ import           Text.Pretty.Simple
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
-import System.FilePath.Glob (glob)
+import "Glob" System.FilePath.Glob (glob)
 import Data.Functor ((<&>))
 
 -- Pretty showing/printing with pretty-simple
