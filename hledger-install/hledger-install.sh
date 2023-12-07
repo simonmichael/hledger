@@ -41,8 +41,8 @@ pip \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.32
-HLEDGER_VERSION=1.32
+HLEDGER_LIB_VERSION=1.32.1
+HLEDGER_VERSION=1.32.1
 HLEDGER_UI_VERSION=1.32
 HLEDGER_WEB_VERSION=1.32
 # Third-party:
