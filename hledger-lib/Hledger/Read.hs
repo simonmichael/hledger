@@ -109,6 +109,7 @@ module Hledger.Read (
   -- * Misc
   journalStrictChecks,
   saveLatestDates,
+  saveLatestDatesForFiles,
 
   -- * Re-exported
   JournalReader.tmpostingrulep,
@@ -132,7 +133,7 @@ import Data.Default (def)
 import Data.Foldable (asum)
 import Data.List (group, sort, sortBy)
 import Data.List.NonEmpty (nonEmpty)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe)
 import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
@@ -243,15 +244,17 @@ readJournal iopts@InputOpts{strict_} mpath txt = do
 --
 readJournalFile :: InputOpts -> PrefixedFilePath -> ExceptT String IO Journal
 readJournalFile iopts@InputOpts{new_, new_save_} prefixedfile = do
-  (j,latestdates) <- readJournalFileAndLatestDates iopts prefixedfile
+  (j, mlatestdates) <- readJournalFileAndLatestDates iopts prefixedfile
   when (new_ && new_save_) $ liftIO $
-    saveLatestDates latestdates (snd $ splitReaderPrefix prefixedfile)
+    case mlatestdates of
+      Nothing                        -> return ()
+      Just (LatestDatesForFile f ds) -> saveLatestDates ds f
   return j
 
--- The implementation of readJournalFile, but with --new, 
--- also returns the latest transaction date(s) read.
--- Used by readJournalFiles, to save those at the end.
-readJournalFileAndLatestDates :: InputOpts -> PrefixedFilePath -> ExceptT String IO (Journal,LatestDates)
+-- The implementation of readJournalFile.
+-- With --new, it also returns the latest transaction date(s) read from each file.
+-- readJournalFiles uses this to update .latest files only after a successful read of all.
+readJournalFileAndLatestDates :: InputOpts -> PrefixedFilePath -> ExceptT String IO (Journal, Maybe LatestDatesForFile)
 readJournalFileAndLatestDates iopts prefixedfile = do
   let
     (mfmt, f) = splitReaderPrefix prefixedfile
@@ -266,9 +269,9 @@ readJournalFileAndLatestDates iopts prefixedfile = do
     then do
       ds <- liftIO $ previousLatestDates f
       let (newj, newds) = journalFilterSinceLatestDates ds j
-      return (newj, newds)
+      return (newj, Just $ LatestDatesForFile f newds)
     else
-      return (j, [])
+      return (j, Nothing)
 
 -- | Read a Journal from each specified file path (using @readJournalFile@) 
 -- and combine them into one; or return the first error message.
@@ -285,20 +288,20 @@ readJournalFileAndLatestDates iopts prefixedfile = do
 readJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
 readJournalFiles iopts@InputOpts{strict_,new_,new_save_} prefixedfiles = do
   let iopts' = iopts{strict_=False, new_save_=False}
-  (j,latestdates) <-
+  (j, latestdatesforfiles) <-
     traceOrLogAt 6 ("readJournalFiles: "++show prefixedfiles) $
     readJournalFilesAndLatestDates iopts' prefixedfiles
   when strict_ $ liftEither $ journalStrictChecks j
-  when (new_ && new_save_) $ liftIO $
-    mapM_ (saveLatestDates latestdates . snd . splitReaderPrefix) prefixedfiles
+  when (new_ && new_save_) $ liftIO $ saveLatestDatesForFiles latestdatesforfiles
   return j
 
 -- The implementation of readJournalFiles, but with --new, 
 -- also returns the latest transaction date(s) read in each file.
 -- Used by the import command, to save those at the end.
-readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal,LatestDates)
-readJournalFilesAndLatestDates iopts =
-  fmap (maybe def sconcat . nonEmpty) . mapM (readJournalFileAndLatestDates iopts)
+readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal, [LatestDatesForFile])
+readJournalFilesAndLatestDates iopts pfs = do
+  (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
+  return (maybe def sconcat $ nonEmpty js, catMaybes lastdates)
 
 -- | Run the extra -s/--strict checks on a journal,
 -- returning the first error message if any of them fail.
@@ -371,6 +374,9 @@ newJournalContent = do
 -- and how many transactions there were on that date.
 type LatestDates = [Day]
 
+-- The path of an input file, and its current "LatestDates".
+data LatestDatesForFile = LatestDatesForFile FilePath LatestDates
+
 -- | Get all instances of the latest date in an unsorted list of dates.
 -- Ie, if the latest date appears once, return it in a one-element list,
 -- if it appears three times (anywhere), return three of it.
@@ -382,6 +388,10 @@ latestDates = {-# HLINT ignore "Avoid reverse" #-}
 -- in a hidden file named .latest.FILE, creating it if needed.
 saveLatestDates :: LatestDates -> FilePath -> IO ()
 saveLatestDates dates f = T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
+
+-- | Save each file's latest dates.
+saveLatestDatesForFiles :: [LatestDatesForFile] -> IO ()
+saveLatestDatesForFiles = mapM_ (\(LatestDatesForFile f ds) -> saveLatestDates ds f)
 
 -- | What were the latest transaction dates seen the last time this
 -- journal file was read ? If there were multiple transactions on the

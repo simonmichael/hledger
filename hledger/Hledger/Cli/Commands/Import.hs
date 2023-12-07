@@ -54,10 +54,10 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   case inputfiles of
     [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
     fs -> do
-      enewjandlatestdates <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
-      case enewjandlatestdates of
+      enewjandlatestdatesforfiles <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
+      case enewjandlatestdatesforfiles of
         Left err -> error' err
-        Right (newj, latestdates) ->
+        Right (newj, latestdatesforfiles) ->
           case sortOn tdate $ jtxns newj of
             -- with --dry-run the output should be valid journal format, so messages have ; prepended
             [] -> do
@@ -71,23 +71,27 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
             newts -> do
               if dryrun
               then do
-                -- first show imported txns
+                -- show txns to be imported
                 printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
                 mapM_ (T.putStr . showTransaction) newts
+
                 -- then check the whole journal with them added, if in strict mode
                 when (strict_ iopts) $ strictChecks
 
               else do
                 -- first check the whole journal with them added, if in strict mode
                 when (strict_ iopts) $ strictChecks
-                -- then add (append) the transactions to the main journal file
+
+                -- then append the transactions to the main journal file.
                 -- XXX This writes unix line endings (\n), some at least,
                 -- even if the file uses dos line endings (\r\n), which could leave
                 -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
                 foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
+
                 printf "imported %d new transactions from %s to %s\n" (length newts) inputstr (journalFilePath j)
-                -- and finally update the .latest files
-                mapM_ (saveLatestDates latestdates . snd . splitReaderPrefix) fs
+
+                -- and if we got this far, update each file's .latest file
+                saveLatestDatesForFiles latestdatesforfiles
 
               where
                 -- add the new transactions to the journal in memory and check the whole thing
