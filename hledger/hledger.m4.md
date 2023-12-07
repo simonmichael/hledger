@@ -3303,6 +3303,8 @@ that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
 and nothing else.
 If you have trouble, see "Regular expressions" in the hledger manual (<https://hledger.org/hledger.html#regular-expressions>).
 
+### What matchers match
+
 With record matchers, it's important to know that the record matched is not the original CSV record, but a modified one:
 separators will be converted to commas, and enclosing double quotes (but not enclosing whitespace) are removed.
 So for example, when reading an SSV file, if the original record was:
@@ -3314,12 +3316,16 @@ the regex would see, and try to match, this modified record text:
 2023-01-01,Acme, Inc.,  1,000
 ```
 
+### Combining matchers
+
 When an if block has multiple matchers, they are combined as follows:
 
 - By default they are OR'd (any one of them can match)
-- When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match).
+- When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match)
+- When a matcher is preceded by an exclamation mark (`!`), the matcher is negated (it may not match).
 
-When a matcher is preceded by an exclamation mark (!), the matcher will be negated, ie it will exclude CSV records that match.
+[Currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398) there is a limitation:
+you can't use both `&` and `!` on the same line (you can't AND a negated matcher).
 
 ### Match groups
 
