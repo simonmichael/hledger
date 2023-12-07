@@ -664,7 +664,6 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
         -- "display precision:  %d",
         "this balance was asserted:     %s", -- (at display precision: %s)",
         "but the calculated balance is: %s", -- (at display precision: %s)",
-        "a difference of:               %s",
         "",
         "To troubleshoot, you can view this account's running balance. Eg:",
         "",
@@ -680,7 +679,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
       -- (showAmount assertedamt)
       (show $ aquantity actualbalincomm)
       -- (showAmount actualbalincommodity)
-      (show $ aquantity assertedamt - aquantity actualbalincomm)
+      -- (show $ aquantity assertedamt - aquantity actualbalincomm)
       (acct ++ if isinclusive then "" else "$")
       (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))
       where
