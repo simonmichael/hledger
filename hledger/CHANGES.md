@@ -21,6 +21,10 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.32.1 2023-12-06
+
+- fix:import: save each file's latest dates, separately (#2125)
+
 # 1.32 2023-12-01
 
 Breaking changes
