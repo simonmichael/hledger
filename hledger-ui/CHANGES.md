@@ -21,8 +21,11 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.32 2023-12-01
+# 1.32.1 2023-12-07
 
+- Use hledger-1.32.1
+
+# 1.32 2023-12-01
 Fixes
 
 - The V key now preserves the valuation mode specified at the command

@@ -21,6 +21,26 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.32.1 2023-12-07
+
+- Fixed: `import` with multiple files now updates .latest files correctly. (#2125)
+
+- Fixed: `print --round=hard` now properly pads/rounds amounts with inferred costs. (#2123)
+
+- CSV matcher syntax: mention that ! and & can't be used in the same line yet. (#2088)
+
+- Drop the "a difference of ..." line from balance assertion failure output.
+  I feel it made the message harder to read and isn't really necessary.
+
+- Declaring the empty payee name with `payee ""` now works,
+  to let `hledger check payees` accept payee-less transactions.
+  (#2119)
+
+- Built-in tags with special meaning like `type:` and `t:` are now implicitly declared,
+  so using type: in account declarations or generating t: with timedot letters 
+  won't cause `hledger check tags` to fail.
+  (#2119)
+
 # 1.32 2023-12-01
 
 Breaking changes
