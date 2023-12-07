@@ -2128,6 +2128,8 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 ```
 
+Commodities do not have tags (tags in the comment will be ignored).
+
 A commodity directive's sample amount must always include a period or comma decimal mark
 (this rule helps disambiguate decimal marks and digit group marks).
 If you don't want to show any decimal digits, write the decimal mark at the end:
@@ -2257,15 +2259,19 @@ in another commodity. See [Value reporting](#value-reporting).
 
 This directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
 The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
-To declare the empty payee name, use `""`.
 Eg:
 
 ```journal
-payee Whole Foods
+payee Whole Foods    ; a comment
+```
+Payees do not have tags (tags in the comment will be ignored).
+
+To declare the empty payee name, use `""`.
+```journal
 payee ""
 ```
 
-Any indented subdirectives are currently ignored.
+Ledger-style indented subdirectives, if any, are currently ignored.
 
 ## `tag` directive
 
