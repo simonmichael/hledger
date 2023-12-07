@@ -80,6 +80,7 @@ module Hledger.Utils.IO (
   expandGlob,
   sortByModTime,
   readFileOrStdinPortably,
+  readFileStrictly,
   readFilePortably,
   readHandlePortably,
   -- hereFileRelative,
@@ -91,6 +92,7 @@ module Hledger.Utils.IO (
   )
 where
 
+import qualified Control.Exception as C (evaluate)
 import           Control.Monad (when, forM)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
@@ -460,6 +462,10 @@ sortByModTime :: [FilePath] -> IO [FilePath]
 sortByModTime fs = do
   ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
   return $ map snd $ reverse $ sort ftimes
+
+-- | Like readFilePortably, but read all of the file before proceeding.
+readFileStrictly :: FilePath -> IO T.Text
+readFileStrictly f = readFilePortably f >>= \t -> C.evaluate (T.length t) >> return t
 
 -- | Read text from a file,
 -- converting any \r\n line endings to \n,,

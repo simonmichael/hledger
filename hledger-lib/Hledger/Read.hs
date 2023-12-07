@@ -405,9 +405,6 @@ latestDatesFileFor f = dir </> ".latest" <.> fname
   where
     (dir, fname) = splitFileName f
 
-readFileStrictly :: FilePath -> IO Text
-readFileStrictly f = readFilePortably f >>= \t -> C.evaluate (T.length t) >> return t
-
 -- | Given zero or more latest dates (all the same, representing the
 -- latest previously seen transaction date, and how many transactions
 -- were seen on that date), remove transactions with earlier dates
