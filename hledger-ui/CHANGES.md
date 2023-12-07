@@ -21,11 +21,13 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 1.32.1 2023-12-07
+# 7ace5ee56
 
+# 1.32.1 2023-12-07
 - Use hledger-1.32.1
 
 # 1.32 2023-12-01
+
 Fixes
 
 - The V key now preserves the valuation mode specified at the command
@@ -33,6 +35,8 @@ Fixes
 
 - The hledger-ui package no longer wastefully builds its modules
   twice.
+
+- Add upper bounds for vty & brick.
 
 # 1.31 2023-09-03
 

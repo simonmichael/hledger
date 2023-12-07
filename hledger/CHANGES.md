@@ -21,6 +21,8 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1bd7e1bf4
+
 # 1.32.1 2023-12-07
 
 - Fixed: `import` with multiple files now updates .latest files correctly. (#2125)
