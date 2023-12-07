@@ -2144,6 +2144,8 @@ Journal
               commodity 1.000,00 EUR
               commodity 1 000 000.0000   ; the no-symbol commodity
 
+       Commodities do not have tags (tags in the comment will be ignored).
+
        A commodity directive's sample amount must always include a  period  or
        comma  decimal  mark  (this  rule  helps disambiguate decimal marks and
        digit group marks).  If you don't want  to  show  any  decimal  digits,
@@ -2256,9 +2258,15 @@ Journal
        error if any transaction refers to a payee that has not been  declared.
        Eg:
 
-              payee Whole Foods
+              payee Whole Foods    ; a comment
 
-       Any indented subdirectives are currently ignored.
+       Payees do not have tags (tags in the comment will be ignored).
+
+       To declare the empty payee name, use "".
+
+              payee ""
+
+       Ledger-style indented subdirectives, if any, are currently ignored.
 
    tag directive
        tag TAGNAME
@@ -3264,6 +3272,7 @@ CSV
        in the hledger manual (https://hledger.org/hledger.html#regular-expres-
        sions).
 
+   What matchers match
        With record matchers, it's important to know that the record matched is
        not  the  original  CSV  record, but a modified one: separators will be
        converted to commas, and enclosing double  quotes  (but  not  enclosing
@@ -3276,15 +3285,19 @@ CSV
 
               2023-01-01,Acme, Inc.,  1,000
 
+   Combining matchers
        When an if block has multiple matchers, they are combined as follows:
 
        o By default they are OR'd (any one of them can match)
 
        o When a matcher is preceded by ampersand (&) it will  be  AND'ed  with
-         the previous matcher (both of them must match).
+         the previous matcher (both of them must match)
 
-       When a matcher is preceded by an exclamation mark (!), the matcher will
-       be negated, ie it will exclude CSV records that match.
+       o When a matcher is preceded by an exclamation mark (!), the matcher is
+         negated (it may not match).
+
+       Currently there is a limitation: you can't use both & and ! on the same
+       line (you can't AND a negated matcher).
 
    Match groups
        Matchers can define match groups: parenthesised portions of the regular

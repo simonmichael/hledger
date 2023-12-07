@@ -2797,6 +2797,8 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 .EE
 .PP
+Commodities do not have tags (tags in the comment will be ignored).
+.PP
 A commodity directive\[aq]s sample amount must always include a period
 or comma decimal mark (this rule helps disambiguate decimal marks and
 digit group marks).
@@ -2932,10 +2934,18 @@ refers to a payee that has not been declared.
 Eg:
 .IP
 .EX
-payee Whole Foods
+payee Whole Foods    ; a comment
 .EE
 .PP
-Any indented subdirectives are currently ignored.
+Payees do not have tags (tags in the comment will be ignored).
+.PP
+To declare the empty payee name, use \f[CR]\[dq]\[dq]\f[R].
+.IP
+.EX
+payee \[dq]\[dq]
+.EE
+.PP
+Ledger-style indented subdirectives, if any, are currently ignored.
 .SS \f[CR]tag\f[R] directive
 \f[CR]tag TAGNAME\f[R]
 .PP
@@ -4154,7 +4164,7 @@ expression, that also supports GNU word boundaries (\f[CR]\[rs]b\f[R],
 else.
 If you have trouble, see \[dq]Regular expressions\[dq] in the hledger
 manual (https://hledger.org/hledger.html#regular-expressions).
-.PP
+.SS What matchers match
 With record matchers, it\[aq]s important to know that the record matched
 is not the original CSV record, but a modified one: separators will be
 converted to commas, and enclosing double quotes (but not enclosing
@@ -4170,16 +4180,19 @@ the regex would see, and try to match, this modified record text:
 .EX
 2023-01-01,Acme, Inc.,  1,000
 .EE
-.PP
+.SS Combining matchers
 When an if block has multiple matchers, they are combined as follows:
 .IP \[bu] 2
 By default they are OR\[aq]d (any one of them can match)
 .IP \[bu] 2
 When a matcher is preceded by ampersand (\f[CR]&\f[R]) it will be
-AND\[aq]ed with the previous matcher (both of them must match).
+AND\[aq]ed with the previous matcher (both of them must match)
+.IP \[bu] 2
+When a matcher is preceded by an exclamation mark (\f[CR]!\f[R]), the
+matcher is negated (it may not match).
 .PP
-When a matcher is preceded by an exclamation mark (!), the matcher will
-be negated, ie it will exclude CSV records that match.
+Currently there is a limitation: you can\[aq]t use both \f[CR]&\f[R] and
+\f[CR]!\f[R] on the same line (you can\[aq]t AND a negated matcher).
 .SS Match groups
 Matchers can define match groups: parenthesised portions of the regular
 expression which are available for reference in field assignments.
