@@ -186,7 +186,6 @@ In account:    a
 and commodity: 
 this balance was asserted:     1
 but the calculated balance is: 0
-a difference of:               1
 
 To troubleshoot, you can view this account's running balance. Eg:
 
