@@ -13,7 +13,7 @@ Misc. changes
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# 1.32.1 2023-12-06
+# 1.32.1 2023-12-07
 
 - readFileStrictly is now provided by Hledger.Utils.IO
 
