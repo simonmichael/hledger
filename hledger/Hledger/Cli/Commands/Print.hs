@@ -113,55 +113,52 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
       where styles0 = journalCommodityStyles j
 
     fmt = outputFormatFromOpts opts
-    render | fmt=="txt"  = entriesReportAsText opts      . styleAmounts styles
-           | fmt=="beancount" = entriesReportAsBeancount opts . styleAmounts styles
-           | fmt=="csv"  = printCSV . entriesReportAsCsv . styleAmounts styles
-           | fmt=="tsv"  = printTSV . entriesReportAsCsv . styleAmounts styles
-           | fmt=="json" = toJsonText                    . styleAmounts styles
-           | fmt=="sql"  = entriesReportAsSql            . styleAmounts styles
-           | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-
-entriesReportAsText :: CliOpts -> EntriesReport -> TL.Text
-entriesReportAsText = entriesReportAsTextHelper showTransaction
-
-entriesReportAsTextHelper :: (Transaction -> T.Text) -> CliOpts -> EntriesReport -> TL.Text
-entriesReportAsTextHelper showtxn opts =
-    TB.toLazyText . foldMap (TB.fromText . showtxn . txntransform)
-  where
-    txntransform
-      -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
-      -- with -x/--explicit:
-      | boolopt "explicit" (rawopts_ opts) = id
-      -- with --show-costs:
-      | opts ^. infer_costs = id
-      -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
-      | has (value . _Just) opts = id
-      -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
-      | otherwise = transactionWithMostlyOriginalPostings
+    render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount      . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="json"      = toJsonText                    . styleAmounts styles
+           | fmt=="sql"       = entriesReportAsSql            . styleAmounts styles
+           | otherwise        = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+      where
+        maybeoriginalamounts
+          -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
+          -- with -x/--explicit:
+          | boolopt "explicit" (rawopts_ opts) = id
+          -- with --show-costs:
+          | opts ^. infer_costs = id
+          -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
+          | has (value . _Just) opts = id
+          -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
+          | otherwise = transactionWithMostlyOriginalPostings
 
 -- | Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings.
 -- This is mainly for showing transactions with the amounts in their original journal format.
 transactionWithMostlyOriginalPostings :: Transaction -> Transaction
 transactionWithMostlyOriginalPostings = transactionMapPostings postingMostlyOriginal
-
--- Get the original posting if any, but keep the current (possibly rewritten) account name,
--- and the amounts of any auto postings.
-postingMostlyOriginal p = orig
-    { paccount = paccount p
-    , pamount = pamount $ if isGenerated then p else orig }
   where
-    orig = originalPosting p
-    isGenerated = "_generated-posting" `elem` map fst (ptags p)
+    postingMostlyOriginal p = orig
+        { paccount = paccount p
+        , pamount = pamount $ if isGenerated then p else orig }
+      where
+        orig = originalPosting p
+        isGenerated = "_generated-posting" `elem` map fst (ptags p)
+
+entriesReportAsText :: EntriesReport -> TL.Text
+entriesReportAsText = entriesReportAsTextHelper showTransaction
+
+entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text
+entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showtxn)
 
 -- In addition to rendering the transactions in (best effort) Beancount format,
 -- this generates an account open directive for each account name used
 -- (using the earliest transaction date).
-entriesReportAsBeancount :: CliOpts -> EntriesReport -> TL.Text
-entriesReportAsBeancount opts ts =
+entriesReportAsBeancount :: EntriesReport -> TL.Text
+entriesReportAsBeancount ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
   opendirectives <> "\n" <>
-  entriesReportAsTextHelper showTransactionBeancount opts ts
+  entriesReportAsTextHelper showTransactionBeancount ts
   where
     opendirectives
       | null ts = ""
