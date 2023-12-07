@@ -65,6 +65,7 @@ To claim the bounty:
 | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171) | [#2045](https://github.com/simonmichael/hledger/issues/2045) | 2023-10-17  |
 | [Petr Slansky](https://opencollective.com/hledger/expenses/166632)    | [#2091](https://github.com/simonmichael/hledger/issues/2091) | 2023-10-16  |
 | pepe_pecas[](https://opencollective.com/hledger/expenses/?)           | [#2115](https://github.com/simonmichael/hledger/issues/2115) |             |
+| Simon Michael                                                         | [#2125](https://github.com/simonmichael/hledger/issues/2125) | -           |
 |                                                                       |                                                              |             |
 
 
