@@ -2257,10 +2257,12 @@ in another commodity. See [Value reporting](#value-reporting).
 
 This directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
 The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
+To declare the empty payee name, use `""`.
 Eg:
 
 ```journal
 payee Whole Foods
+payee ""
 ```
 
 Any indented subdirectives are currently ignored.

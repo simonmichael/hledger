@@ -629,7 +629,7 @@ payeedirectivep :: JournalParser m ()
 payeedirectivep = do
   string "payee" <?> "payee directive"
   lift skipNonNewlineSpaces1
-  payee <- lift $ T.strip <$> noncommenttext1p
+  payee <- lift $ T.strip <$> (try doublequotedtextp <|> noncommenttext1p)
   (comment, tags) <- lift transactioncommentp
   skipMany indentedlinep
   addPayeeDeclaration (payee, comment, tags)
@@ -1134,8 +1134,10 @@ tests_JournalReader = testGroup "JournalReader" [
       }
 
   ,testGroup "payeedirectivep" [
-       testCase "simple"             $ assertParse payeedirectivep "payee foo\n"
+        testCase "simple"             $ assertParse payeedirectivep "payee foo\n"
        ,testCase "with-comment"       $ assertParse payeedirectivep "payee foo ; comment\n"
+       ,testCase "double-quoted"      $ assertParse payeedirectivep "payee \"a b\"\n"
+       ,testCase "empty        "      $ assertParse payeedirectivep "payee \"\"\n"
        ]
 
   ,testCase "tagdirectivep" $ do

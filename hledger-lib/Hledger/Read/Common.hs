@@ -105,6 +105,7 @@ module Hledger.Read.Common (
   bracketeddatetagsp,
 
   -- ** misc
+  doublequotedtextp,
   noncommenttextp,
   noncommenttext1p,
   singlespacedtext1p,
@@ -657,6 +658,11 @@ modifiedaccountnamep = do
 -- for now it remains as-is for backwards compatibility.
 accountnamep :: TextParser m AccountName
 accountnamep = singlespacedtext1p
+
+-- | Parse a single line of possibly empty text enclosed in double quotes.
+doublequotedtextp :: TextParser m Text
+doublequotedtextp = between (char '"') (char '"') $
+  takeWhileP Nothing $ \c -> not $ isNewline c || c == '"'
 
 -- | Parse possibly empty text, including whitespace, 
 -- until a comment start (semicolon) or newline.
