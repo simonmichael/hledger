@@ -80,7 +80,7 @@ module Hledger.Data.Amount (
   -- ** rendering
   AmountDisplayOpts(..),
   noColour,
-  noPrice,
+  noCost,
   oneLine,
   csvDisplay,
   showAmountB,
@@ -174,7 +174,7 @@ import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
-import Data.Maybe (fromMaybe, isNothing, isJust)
+import Data.Maybe (fromMaybe, isNothing)
 import Data.Semigroup (Semigroup(..))
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.Builder as TB
@@ -253,8 +253,8 @@ noColour = AmountDisplayOpts {
   }
 
 -- | Display Amount and MixedAmount with no prices.
-noPrice :: AmountDisplayOpts
-noPrice = def{displayCost=False}
+noCost :: AmountDisplayOpts
+noCost = def{displayCost=False}
 
 -- | Display Amount and MixedAmount on one line with no prices.
 oneLine :: AmountDisplayOpts
@@ -682,9 +682,9 @@ cshowAmount = wbUnpack . showAmountB def{displayColour=True}
 
 -- | Get the string representation of an amount, without any \@ price.
 --
--- > showAmountWithoutPrice = wbUnpack . showAmountB noPrice
+-- > showAmountWithoutPrice = wbUnpack . showAmountB noCost
 showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice = wbUnpack . showAmountB noPrice
+showAmountWithoutPrice = wbUnpack . showAmountB noCost
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 --
@@ -1057,9 +1057,9 @@ showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZ
 -- | Get the string representation of a mixed amount, without showing any transaction prices.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
+-- > showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noCost{displayColour=c}
 showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noPrice{displayColour=c}
+showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noCost{displayColour=c}
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ prices.

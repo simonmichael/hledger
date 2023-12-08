@@ -539,11 +539,11 @@ postingApplyValuation priceoracle styles periodlast today v p =
 postingToCost :: ConversionOp -> Posting -> Maybe Posting
 postingToCost NoConversionOp p = Just p
 postingToCost ToCost         p
-    -- If this is a conversion posting with a matched transaction price posting, ignore it
-    | "_conversion-matched" `elem` map fst (ptags p) && noCost = Nothing
-    | otherwise = Just $ postingTransformAmount mixedAmountCost p
+  -- If this is a conversion posting with a matched transaction price posting, ignore it
+  | "_conversion-matched" `elem` map fst (ptags p) && nocosts = Nothing
+  | otherwise = Just $ postingTransformAmount mixedAmountCost p
   where
-    noCost = (not . any (isJust . aprice) . amountsRaw) $ pamount p
+    nocosts = (not . any (isJust . aprice) . amountsRaw) $ pamount p
 
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
 -- Make sure not to generate equity postings when there are already matched
