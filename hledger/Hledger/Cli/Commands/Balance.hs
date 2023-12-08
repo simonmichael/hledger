@@ -524,7 +524,7 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
           | topaligned          = TopRight
           | ljust               = BottomLeft
           | otherwise           = BottomRight
-    dopts = noPrice{displayColour=color_ opts, displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = noCost{displayColour=color_ opts, displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
 
 -- rendering multi-column balance reports
 

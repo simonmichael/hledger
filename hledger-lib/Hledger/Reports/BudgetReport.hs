@@ -339,7 +339,7 @@ budgetReportAsTable
       LayoutWide width ->
            ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=width}
            , \a -> pure . percentage a)
-      _ -> ( showMixedAmountLinesB noPrice{displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+      _ -> ( showMixedAmountLinesB noCost{displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
            , \a b -> fmap (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
