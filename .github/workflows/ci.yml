@@ -69,7 +69,8 @@ jobs:
         # keep synced with branch protection rules, see link above
         plan:  
         # the oldest supported ghc, to check backward compatibility
-        - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
+        # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
+        - { ghc: "944", stack: "stack --stack-yaml=stack9.4.yaml" }
     steps:
 
     - name: Check out
