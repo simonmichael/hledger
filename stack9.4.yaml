@@ -1,6 +1,6 @@
-# stack build plan using GHC 9.4.7
+# stack build plan using GHC 9.4.8
 
-resolver: lts-21.16
+resolver: lts-21.24
 
 packages:
 - hledger-lib
