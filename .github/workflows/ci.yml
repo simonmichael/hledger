@@ -265,8 +265,7 @@ jobs:
         stack: ${{ matrix.plan.stack }}
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.9; fi
-         # shelltestrunner 1.10 requires a newer resolver or extra deps
+        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
         shelltest --version
       if: env.CONTINUE
 
