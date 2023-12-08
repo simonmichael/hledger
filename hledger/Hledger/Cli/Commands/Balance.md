@@ -498,11 +498,15 @@ For reference, here is what the combinations of accumulation and valuation show:
 
 ### Budget report
 
-The `--budget` report type is like a regular balance report, but also shows budget goals and budget performance for each account and period.
+The `--budget` report type is like a regular balance report, but with two main differences:
+
+- Budget goals and performance percentages are also shown, in brackets
+- Accounts which don't have budget goals are hidden by default.
+
 This is useful for comparing planned and actual income, expenses, time usage, etc.
 
 [Periodic transaction rules](hledger.html#periodic-transactions) are used to define budget goals.
-For example, here's a periodic transaction defining monthly goals for bus travel and food expenses:
+For example, here's a periodic rule defining monthly goals for bus travel and food expenses:
 
 ```journal
 ;; Budget
@@ -511,7 +515,7 @@ For example, here's a periodic transaction defining monthly goals for bus travel
   (expenses:food)            $400
 ```
 
-After also recording some actual expenses,
+After recording some actual expenses,
 ```journal
 ;; Two months worth of expenses
 2017-11-01
@@ -531,7 +535,7 @@ After also recording some actual expenses,
   assets:bank:checking
 ```
 
-`hledger balance --budget` will show a budget report, like this:
+we can see a budget report like this:
 
 ```cli
 $ hledger bal -M --budget
@@ -547,114 +551,65 @@ Budget performance in 2017-11-01..2017-12-31:
                ||     0 [  0% of $430]      0 [  0% of $430] 
 ```
 
-The budget report has two main differences compared to a normal balance report:
-
-- Goal amounts and performance percentages are also shown, in brackets after the actual amounts.
-
-- Accounts which don't have budget goals (or subaccounts with goals) are grouped under "\<unbudgeted>" and not shown.
-
+This is "goal-based budgeting"; you define goals for accounts and periods,
+often recurring, and hledger shows performance relative to the goals. 
+This contrasts with "envelope budgeting", which is more detailed and strict -
+useful when cash is tight, but also quite a bit more work.
+<https://plaintextaccounting.org/Budgeting> has more on this topic.
 
 #### Using the budget report
 
-This is a "goal-based budgeting" report; you define goals for accounts
-and periods, often recurring, and hledger shows performance relative
-to the goals. Contrast this with "envelope budgeting", which is more
-detailed and strict - useful when cash is tight, but also quite a bit more work.
-<https://plaintextaccounting.org/Budgeting> has more on this topic.
-
 Historically this report has been confusing and fragile.
-hledger's version is more robust than Ledger's, but bugs may still lurk.
-Here are some more notes, to help with troubleshooting:
+hledger's version should be relatively robust and intuitive, but you may still find surprises.
+Here are more notes to help with learning and troubleshooting.
 
 - In the above example, `expenses:bus` and `expenses:food` are shown
   because they have budget goals during the report period.
   
 - Their parent `expenses` is also shown, with budget goals aggregated from the children.
    
-- Their subaccounts `expenses:food:groceries` and `expenses:food:dining`
+- The subaccounts `expenses:food:groceries` and `expenses:food:dining`
   are not shown since they have no budget goal of their own,
   but they contribute to `expenses:food`'s actual amount.
 
 - Unbudgeted accounts `expenses:movies` and `expenses:gifts` are also not shown,
   but they contribute to `expenses`'s actual amount.
 
-- The other unbudgeted accounts `income` and `assets:bank:checking`)
-  are grouped as `<unbudgeted>`.
+- The other unbudgeted accounts `income` and `assets:bank:checking` are grouped as `<unbudgeted>`.
 
-- Amounts are always inclusive of subaccounts, even in `-l/--list` mode.
+- `--depth` or `depth:` can be used to limit report depth in the usual way
+  (but will not reveal unbudgeted subaccounts).
 
-- `--depth` or `depth:` can be used to limit report depth in the usual way,
-  but increasing the depth will not expose the unbudgeted subaccounts).
+- Amounts are always inclusive of subaccounts (even in `-l/--list` mode).
 
 - Numbers displayed in a --budget report will not always agree with the totals,
   because of hidden unbudgeted accounts; this is normal.
+  `-E/--empty` can be used to reveal the hidden accounts.
 
-- Adding `-E` reveals the hidden accounts, which can make things clearer. Eg:
+- In the periodic rules used for setting budget goals,
+  unbalanced postings are convenient.
+  
+- You can filter budget reports with the usual queries, eg to focus on particular accounts.
+  It's common to restrict them to just expenses.
+  (The `<unbudgeted>` account is occasionally hard to exclude; this is because of date surprises, discussed below.)
 
-```cli
-$ hledger bal -M --budget -E
-Budget performance in 2017-11-01..2017-12-31:
+- When you have multiple currencies, you may want to convert them to
+  one (`-X COMM --infer-market-prices`) and/or show just one at a time
+  (`cur:COMM`).  If you do need to show multiple currencies at once,
+  `--layout bare` can be helpful.
 
-                                   ||                   Nov                    Dec 
-===================================++==============================================
- <unbudgeted>                      ||  $-425                  $-565                
- <unbudgeted>:assets:bank:checking ||  $1525                  $1535                
- <unbudgeted>:income               || $-1950                 $-2100                
- expenses                          ||   $425 [ 99% of $430]    $565 [131% of $430] 
- expenses:bus                      ||    $35 [117% of  $30]     $53 [177% of  $30] 
- expenses:food                     ||   $352 [ 88% of $400]    $412 [103% of $400] 
- expenses:food:dining              ||    $42                    $32                
- expenses:food:groceries           ||   $310                   $380                
- expenses:gifts                    ||      0                   $100                
- expenses:movies                   ||    $38                      0                
------------------------------------++----------------------------------------------
-                                   ||      0 [  0% of $430]       0 [  0% of $430] 
-```
-
-
-It's common to restrict budget reports to just expenses, with a `expenses` or `type:x` query. Eg:
-
-```cli
-$ hledger bal -M --budget expenses
-Budget performance in 2017-11-01..2017-12-31:
-
-               ||                 Nov                  Dec 
-===============++==========================================
- expenses      || $425 [ 99% of $430]  $565 [131% of $430] 
- expenses:bus  ||  $35 [117% of  $30]   $53 [177% of  $30] 
- expenses:food || $352 [ 88% of $400]  $412 [103% of $400] 
----------------++------------------------------------------
-               || $425 [ 99% of $430]  $565 [131% of $430] 
-```
-
-When you have multiple currencies, it's also useful to convert them to one (`-X COMM [--infer-market-prices]`),
-and/or to show just one of them at a time (`cur:COMM`).
-If you need to show multiple currencies at once, `--layout bare` can be helpful.
-
-You can "roll over" amounts (actual and budgeted) to the next period with `--cumulative`:
-
-```cli
-$ hledger bal -M --budget expenses --cumulative
-Budget performance in 2017-11-01..2017-12-31:
-
-               ||          2017-11-30           2017-12-31 
-===============++==========================================
- expenses      || $425 [ 99% of $430]  $990 [115% of $860] 
- expenses:bus  ||  $35 [117% of  $30]   $88 [147% of  $60] 
- expenses:food || $352 [ 88% of $400]  $764 [ 96% of $800] 
----------------++------------------------------------------
-               || $425 [ 99% of $430]  $990 [115% of $860] 
-```
+- You can "roll over" amounts (actual and budgeted) to the next period with `--cumulative`.
 
 See also: <https://hledger.org/budgeting.html>.
 
 
 #### Budget date surprises
 
-With small data, or when starting out, you might run into this (possibly a UX bug):
-the report start date [inferred by hledger](hledger.md#report-start--end-date) might exclude
-some of the budget goal updates generated by [periodic rules](hledger.md#period-expressions).
-Eg with the following journal and report, the first period appears to have no expenses:food budget:
+With small data, or when starting out,
+some of the generated [budget goal transaction dates](hledger.md#period-expressions)
+might fall outside the [report periods](hledger.md#report-start--end-date).
+Eg with the following journal and report, the first period appears to have no `expenses:food` budget.
+(Also the `<unbudgeted>` account should be excluded by the `expenses` query, but isn't.):
 
 ```journal
 ~ monthly in 2020
@@ -677,30 +632,15 @@ Budget performance in 2020-01-15:
                || $400 [80% of $500] 
 ```
 
-The report heading(s) shows the report period. 
-In this case, it defaulted to just the 15th day of january, 
-including none of the budget goal updates which were generated on the 1st.
 
-To fix this kind of thing, be more explicit about the report period (and/or the periodic rules' dates),
-to make sure the report periods include your budget goal updates. In this case, adding `-b 2020` did the trick.
+In this case, the budget goal transactions are generated on first
+days of of month (this can be seen with 
+`hledger print --forecast tag:generated expenses`).
+Whereas the report period defaults to just the 15th day of january
+(this can be seen from the report table's column headings).
 
-To see the budget goal updates, try replacing `bal --budget` with
-`print --forecast tag:generated`, keeping the rest of the command the same. Eg:
-
-```cli
-$ hledger print --forecast expenses tag:generated
-2020-02-01
-    (expenses:food)            $500
-
-2020-03-01
-    (expenses:food)            $500
-
-2020-04-01
-    (expenses:food)            $500
-
-...etc...
-```
-
+To fix this kind of thing, be more explicit about the report period (and/or the periodic rules' dates).
+In this case, adding `-b 2020` does the trick.
 
 #### Selecting budget goals
 
