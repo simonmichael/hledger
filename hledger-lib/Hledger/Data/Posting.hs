@@ -293,7 +293,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB displayopts $ pamount p
         where displayopts = noColour{
-          displayZeroCommodity=True, displayAddDecimalMark=True, displayOneLine=onelineamounts
+          displayZeroCommodity=True, displayForceDecimalMark=True, displayOneLine=onelineamounts
           }
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
@@ -361,7 +361,7 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB displayopts a'
         where
-          displayopts = noColour{ displayZeroCommodity=True, displayAddDecimalMark=True }
+          displayopts = noColour{ displayZeroCommodity=True, displayForceDecimalMark=True }
           a' = mapMixedAmount amountToBeancount $ pamount p
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
