@@ -339,7 +339,7 @@ budgetReportAsTable
       LayoutWide width ->
            ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=width}
            , \a -> pure . percentage a)
-      _ -> ( showMixedAmountLinesB noPrice{displayOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+      _ -> ( showMixedAmountLinesB noPrice{displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
            , \a b -> fmap (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
@@ -476,7 +476,7 @@ budgetReportAsCsv
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
-          . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayOrder=Just cs, displayMinWidth=Nothing}
+          . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayCommodityOrder=Just cs, displayMinWidth=Nothing}
                  .fromMaybe nullmixedamt)
           $ vals
       where

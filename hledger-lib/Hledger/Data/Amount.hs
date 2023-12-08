@@ -219,18 +219,19 @@ quoteCommoditySymbolIfNeeded s
 -- | Options for the display of Amount and MixedAmount.
 -- (ee also Types.AmountStyle.
 data AmountDisplayOpts = AmountDisplayOpts
-  { displayPrice         :: Bool       -- ^ Whether to display the Price of an Amount.
-  , displayZeroCommodity :: Bool       -- ^ If the Amount rounds to 0, whether to display its commodity string.
-  , displayThousandsSep  :: Bool       -- ^ Whether to display digit group marks (eg thousands separators)
-  , displayAddDecimalMark  :: Bool     -- ^ Whether to add a trailing decimal mark when there are no decimal digits 
-                                       --   and there are digit group marks, to disambiguate
-  , displayColour        :: Bool       -- ^ Whether to colourise negative Amounts.
-  , displayOneLine       :: Bool       -- ^ Whether to display on one line.
-  , displayMinWidth      :: Maybe Int  -- ^ Minimum width to pad to
-  , displayMaxWidth      :: Maybe Int  -- ^ Maximum width to clip to
-  -- | Display amounts in this order (without the commodity symbol) and display
-  -- a 0 in case a corresponding commodity does not exist
-  , displayOrder         :: Maybe [CommoditySymbol]
+  { displayCommodity        :: Bool       -- ^ Whether to display commodity symbols.
+  , displayZeroCommodity    :: Bool       -- ^ Whether to display commodity symbols for zero Amounts.
+  , displayCommodityOrder   :: Maybe [CommoditySymbol]
+                                          -- ^ For a MixedAmount, an optional order in which to display the commodities.
+                                          --   Also causes 0s to be displayed for commodities which are not present.
+  , displayDigitGroups      :: Bool       -- ^ Whether to display digit group marks (eg thousands separators)
+  , displayForceDecimalMark :: Bool       -- ^ Whether to add a trailing decimal mark when there are no decimal digits 
+                                          --   and there are digit group marks, to disambiguate
+  , displayOneLine          :: Bool       -- ^ Whether to display on one line.
+  , displayMinWidth         :: Maybe Int  -- ^ Minimum width to pad to
+  , displayMaxWidth         :: Maybe Int  -- ^ Maximum width to clip to
+  , displayCost             :: Bool       -- ^ Whether to display Amounts' costs.
+  , displayColour           :: Bool       -- ^ Whether to ansi-colourise negative Amounts.
   } deriving (Show)
 
 -- | By default, display Amount and MixedAmount using @noColour@ amount display options.
@@ -238,28 +239,30 @@ instance Default AmountDisplayOpts where def = noColour
 
 -- | Display amounts without colour, and with various other defaults.
 noColour :: AmountDisplayOpts
-noColour = AmountDisplayOpts { displayPrice         = True
-                             , displayColour        = False
-                             , displayZeroCommodity = False
-                             , displayThousandsSep  = True
-                             , displayAddDecimalMark = False
-                             , displayOneLine       = False
-                             , displayMinWidth      = Just 0
-                             , displayMaxWidth      = Nothing
-                             , displayOrder         = Nothing
-                             }
+noColour = AmountDisplayOpts {
+    displayCommodity        = True
+  , displayZeroCommodity    = False
+  , displayCommodityOrder   = Nothing
+  , displayDigitGroups      = True
+  , displayForceDecimalMark   = False
+  , displayOneLine          = False
+  , displayMinWidth         = Just 0
+  , displayMaxWidth         = Nothing
+  , displayCost             = True
+  , displayColour           = False
+  }
 
 -- | Display Amount and MixedAmount with no prices.
 noPrice :: AmountDisplayOpts
-noPrice = def{displayPrice=False}
+noPrice = def{displayCost=False}
 
 -- | Display Amount and MixedAmount on one line with no prices.
 oneLine :: AmountDisplayOpts
-oneLine = def{displayOneLine=True, displayPrice=False}
+oneLine = def{displayOneLine=True, displayCost=False}
 
 -- | Display Amount and MixedAmount in a form suitable for CSV output.
 csvDisplay :: AmountDisplayOpts
-csvDisplay = oneLine{displayThousandsSep=False}
+csvDisplay = oneLine{displayDigitGroups=False}
 
 -------------------------------------------------------------------------------
 -- Amount arithmetic
@@ -649,24 +652,26 @@ showAmount = wbUnpack . showAmountB noColour
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
-  AmountDisplayOpts{displayPrice, displayColour, displayZeroCommodity, 
-    displayThousandsSep, displayAddDecimalMark, displayOrder}
+  AmountDisplayOpts{displayCost, displayColour, displayZeroCommodity, 
+    displayDigitGroups, displayForceDecimalMark, displayCommodityOrder}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> showC (wbFromText comm) space <> quantity' <> price
-      R -> quantity' <> showC space (wbFromText comm) <> price
+      L -> showsym (wbFromText comm) space <> quantity' <> price
+      R -> quantity' <> showsym space (wbFromText comm) <> price
   where
     color = if displayColour && isNegativeAmount a then colorB Dull Red else id
-    quantity = showAmountQuantity displayAddDecimalMark $
-      if displayThousandsSep then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
+    quantity = showAmountQuantity displayForceDecimalMark $
+      if displayDigitGroups then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity', comm)
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
-    -- concatenate these texts,
-    -- or return the empty text if there's a commodity display order. XXX why ?
-    showC l r = if isJust displayOrder then mempty else l <> r
-    price = if displayPrice then showAmountPrice a else mempty
+    price = if displayCost then showAmountPrice a else mempty
+    -- Show a commodity symbol and its optional space, concatenated.
+    -- Unless there's a commodity display order, in which case show nothing. XXX for --layout=bare, but wrong for --layout=tall
+    showsym l r
+      | isJust displayCommodityOrder = mempty
+      | otherwise           = l <> r
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
@@ -1040,7 +1045,7 @@ showMixedAmount = wbUnpack . showMixedAmountB noColour
 --
 -- > showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine{displayPrice=True}
+showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLine{displayCost=True}
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
@@ -1107,7 +1112,7 @@ showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidt
     map (adBuilder . pad) elided
   where
     astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
-              if displayPrice opts then ma else mixedAmountStripPrices ma
+              if displayCost opts then ma else mixedAmountStripPrices ma
     sep   = WideBuilder (TB.singleton '\n') 0
     width = maximum $ map (wbWidth . adBuilder) elided
 
@@ -1133,7 +1138,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
   where
     width  = maybe 0 adTotal $ lastMay elided
     astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
-               if displayPrice opts then ma else mixedAmountStripPrices ma
+               if displayCost opts then ma else mixedAmountStripPrices ma
     sep    = WideBuilder (TB.fromString ", ") 2
     n      = length astrs
 
@@ -1159,7 +1164,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
 -- optionally preserving multiple zeros in different commodities,
 -- optionally sorting them according to a commodity display order.
 orderedAmounts :: AmountDisplayOpts -> MixedAmount -> [Amount]
-orderedAmounts AmountDisplayOpts{displayZeroCommodity=preservezeros, displayOrder=mcommodityorder} =
+orderedAmounts AmountDisplayOpts{displayZeroCommodity=preservezeros, displayCommodityOrder=mcommodityorder} =
   if preservezeros then amountsPreservingZeros else amounts
   <&> maybe id (mapM findfirst) mcommodityorder  -- maybe sort them (somehow..)
   where

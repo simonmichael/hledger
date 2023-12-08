@@ -109,7 +109,7 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripPrices
-   showZeroCommodity = wbUnpack . showMixedAmountB oneLine{displayPrice=False,displayZeroCommodity=True}
+   showZeroCommodity = wbUnpack . showMixedAmountB oneLine{displayCost=False,displayZeroCommodity=True}
    shownull c = if null c then " " else c
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
