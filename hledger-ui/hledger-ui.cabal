@@ -73,7 +73,7 @@ library
       ansi-terminal >=0.9
     , async
     , base >=4.14 && <4.19
-    , brick >=1.5 && <2
+    , brick >=2.1.1 && <2.2
     , cmdargs >=0.8
     , containers >=0.5.9
     , data-default
@@ -95,14 +95,16 @@ library
     , text-zipper >=0.4
     , time >=1.5
     , transformers
-    , unix
     , vector
-    , vty >=5.15 && <6
+    , vty ==6.1.*
+    , vty-crossplatform >=0.4.0.0 && <0.5.0.0
   default-language: Haskell2010
   if os(windows)
-    buildable: False
+    build-depends:
+        vty-windows >=0.2.0.1 && <0.3.0.0
   else
-    buildable: True
+    build-depends:
+        unix
 
 executable hledger-ui
   main-is: hledger-ui.hs
@@ -116,9 +118,5 @@ executable hledger-ui
       base >=4.14 && <4.19
     , hledger-ui
   default-language: Haskell2010
-  if os(windows)
-    buildable: False
-  else
-    buildable: True
   if flag(threaded)
     ghc-options: -threaded
