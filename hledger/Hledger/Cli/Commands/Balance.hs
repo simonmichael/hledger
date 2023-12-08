@@ -434,8 +434,11 @@ balanceReportAsCsv opts (items, total) =
 
     showName = accountNameDrop (drop_ opts)
     renderAmount amt = wbToText $ showMixedAmountB bopts amt
-      where bopts = csvDisplay{displayCommodityOrder = order}
-            order = if layout_ opts == LayoutBare then Just (S.toList $ maCommodities amt) else Nothing
+      where
+        bopts = csvDisplay{displayCommodity=showcomm, displayCommodityOrder = commorder}
+        (showcomm, commorder)
+          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities amt)
+          | otherwise                  = (True, Nothing)
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -467,7 +470,7 @@ balanceReportAsText' opts ((items, total)) =
         [ Cell TopRight damts
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
-      where dopts = oneLine{displayColour=color_ opts, displayCommodityOrder=Just cs}
+      where dopts = oneLine{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
             cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
             dispname = T.replicate ((dep - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
@@ -524,7 +527,12 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
           | topaligned          = TopRight
           | ljust               = BottomLeft
           | otherwise           = BottomRight
-    dopts = noCost{displayColour=color_ opts, displayOneLine=oneline, displayMinWidth=mmin, displayMaxWidth=mmax}
+    dopts = noCost{displayCommodity = layout_ opts /= LayoutBare
+                  ,displayOneLine   = oneline
+                  ,displayMinWidth  = mmin
+                  ,displayMaxWidth  = mmax
+                  ,displayColour    = color_ opts
+                  }
 
 -- rendering multi-column balance reports
 
@@ -737,12 +745,12 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
                            $ allamts
       LayoutBare       -> zipWith (:) (fmap wbFromText cs)  -- add symbols
                            . transpose                         -- each row becomes a list of Text quantities
-                           . fmap (showMixedAmountLinesB bopts{displayCommodityOrder=Just cs, displayMinWidth=Nothing})
+                           . fmap (showMixedAmountLinesB bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
                            $ allamts
       LayoutTidy       -> concat
                            . zipWith (map . addDateColumns) colspans
                            . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
-                                  . showMixedAmountLinesB bopts{displayCommodityOrder=Just cs, displayMinWidth=Nothing})
+                                  . showMixedAmountLinesB bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
                            $ as  -- Do not include totals column or average for tidy output, as this
                                  -- complicates the data representation and can be easily calculated
   where

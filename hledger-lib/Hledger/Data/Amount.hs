@@ -223,7 +223,8 @@ data AmountDisplayOpts = AmountDisplayOpts
   , displayZeroCommodity    :: Bool       -- ^ Whether to display commodity symbols for zero Amounts.
   , displayCommodityOrder   :: Maybe [CommoditySymbol]
                                           -- ^ For a MixedAmount, an optional order in which to display the commodities.
-                                          --   Also causes 0s to be displayed for commodities which are not present.
+                                          --   Also, causes 0s to be generated for any commodities which are not present
+                                          --   (important for tabular reports).
   , displayDigitGroups      :: Bool       -- ^ Whether to display digit group marks (eg thousands separators)
   , displayForceDecimalMark :: Bool       -- ^ Whether to add a trailing decimal mark when there are no decimal digits 
                                           --   and there are digit group marks, to disambiguate
@@ -652,12 +653,12 @@ showAmount = wbUnpack . showAmountB noColour
 showAmountB :: AmountDisplayOpts -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
-  AmountDisplayOpts{displayCost, displayColour, displayZeroCommodity, 
-    displayDigitGroups, displayForceDecimalMark, displayCommodityOrder}
+  AmountDisplayOpts{displayCommodity, displayZeroCommodity, displayDigitGroups
+                   ,displayForceDecimalMark, displayCost, displayColour}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> showsym (wbFromText comm) space <> quantity' <> price
-      R -> quantity' <> showsym space (wbFromText comm) <> price
+      L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> price
+      R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> price
   where
     color = if displayColour && isNegativeAmount a then colorB Dull Red else id
     quantity = showAmountQuantity displayForceDecimalMark $
@@ -667,11 +668,6 @@ showAmountB
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     price = if displayCost then showAmountPrice a else mempty
-    -- Show a commodity symbol and its optional space, concatenated.
-    -- Unless there's a commodity display order, in which case show nothing. XXX for --layout=bare, but wrong for --layout=tall
-    showsym l r
-      | isJust displayCommodityOrder = mempty
-      | otherwise           = l <> r
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
