@@ -8,8 +8,12 @@ packages:
 - hledger-ui
 - hledger-web
 
-# extra-deps:
-
+extra-deps:
+  - vty-windows-0.2.0.1
+  - vty-crossplatform-0.4.0.0
+  - brick-2.1.1
+  - vty-6.1
+  - vty-unix-0.2.0.0
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
