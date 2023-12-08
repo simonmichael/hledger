@@ -324,10 +324,10 @@ budgetReportAsTable
         padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
         padtr    = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip trwidths) . maybetranspose
 
-        -- commodities are shown with the amounts without `layout_ == LayoutBare`
+        -- with --layout=bare, begin with a commodity column
         prependcs cs
-          | layout_ /= LayoutBare = id
-          | otherwise = zipWith (:) cs
+          | layout_ == LayoutBare = zipWith (:) cs
+          | otherwise             = id
 
     rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
         ++ [rowtot | row_total_ && not (null as)]
@@ -337,9 +337,9 @@ budgetReportAsTable
     rowfuncs :: [CommoditySymbol] -> (BudgetShowMixed, BudgetPercBudget)
     rowfuncs cs = case layout_ of
       LayoutWide width ->
-           ( pure . showMixedAmountB oneLine{displayColour=color_, displayMaxWidth=width}
+           ( pure . showMixedAmountB oneLine{displayMaxWidth=width, displayColour=color_}
            , \a -> pure . percentage a)
-      _ -> ( showMixedAmountLinesB noCost{displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+      _ -> ( showMixedAmountLinesB noCost{displayCommodity=layout_/=LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
            , \a b -> fmap (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
@@ -476,11 +476,11 @@ budgetReportAsCsv
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
-          . fmap (fmap wbToText . showMixedAmountLinesB oneLine{displayCommodityOrder=Just cs, displayMinWidth=Nothing}
-                 .fromMaybe nullmixedamt)
+          . fmap (fmap wbToText . showMixedAmountLinesB dopts . fromMaybe nullmixedamt)
           $ vals
       where
         cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes vals
+        dopts = oneLine{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
         vals = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]

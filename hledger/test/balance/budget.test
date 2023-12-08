@@ -708,3 +708,23 @@ Budget performance in 2022-01-01:
  a || 1.0 [100% of 1.0] 
 ---++-------------------
    || 1.0 [100% of 1.0] 
+
+# ** 38. Tall budget report adds per-column zeroes properly.
+<
+2020-01-15
+  (a)    A 100
+
+2020-02-15
+  (a)    A 200
+  (b)    B 200
+
+$ hledger -f- bal --budget -M --layout=tall
+Budget performance in 2020-01-01..2020-02-29:
+
+              ||   Jan    Feb 
+==============++==============
+ <unbudgeted> || A 100  A 200 
+ <unbudgeted> ||     0  B 200 
+--------------++--------------
+              || A 100  A 200 
+              ||     0  B 200 
