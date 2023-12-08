@@ -51,7 +51,6 @@ ghc-options:
 dependencies:
 - base >=4.14 && <4.19
 
-when:
  # curses is required to build terminfo for vty for hledger-ui.
  # On POSIX systems it might be not present.
  # On windows it's very likely not present, but possibly it could be.
@@ -61,12 +60,10 @@ when:
  #  curses
  #    default: True
  #    description:
- # For now, just don't build hledger-ui on windows
- - condition: os(windows)
-   then:
-     buildable: false
-   else:
-     buildable: true
+ #
+ # note on windows: the vty-windows (and hence hledger-ui) will reliably work only on the newer backends
+ # like Windows Terminal.
+ # mintty-based backends (default for cygwin/gitbash/msys2) are not supported (yet)
 
 library:
   source-dirs: .
@@ -101,10 +98,16 @@ library:
   - time >=1.5
   - transformers
   - vector
-  # not installable on windows, cf buildable flag below
-  - brick >=1.5 && <2
-  - vty >=5.15 && <6
-  - unix
+  - brick >=2.1.1 && <2.2
+  - vty >=6.1 && <6.2
+  - vty-crossplatform >= 0.4.0.0 && < 0.5.0.0
+  when:
+    - condition: os(windows)
+      then:
+        dependencies: vty-windows >= 0.2.0.1 && < 0.3.0.0
+      else:
+        dependencies: unix
+
 
 executables:
   hledger-ui:
