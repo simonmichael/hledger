@@ -14,6 +14,12 @@
 @fmt:
     just -q check || just --fmt --unstable
 
+# ** dev
+
+# push to github CI branch, wait for CI tests to pass, then push to master
+@push *INTERVALSECS:
+    tools/push {{ INTERVALSECS }}
+
 # ** releasing
 
 # Symlink/copy important files temporarily in .relfiles/.
