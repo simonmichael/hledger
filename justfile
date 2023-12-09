@@ -8,11 +8,11 @@
 @help:
     just -lu
 
-@check:
+@_check:
     just --fmt --unstable --check
 
-@fmt:
-    just -q check || just --fmt --unstable
+@_fmt:
+    just -q _check || just --fmt --unstable
 
 # ** dev
 
