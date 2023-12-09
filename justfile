@@ -2,7 +2,7 @@
 # * Light project scripts, without file dependendencies, using https://github.com/casey/just.
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
 # https://just.systems/man/en/chapter_31.html Functions
-# See also Makefile, Shake.hs
+# See also Makefile, Shake.hs..
 
 @help:
     just -lu
@@ -124,6 +124,23 @@ _gitSwitchAutoCreate BRANCH:
     else
       git switch -c {{ BRANCH }}
     fi
+
+# ** installing
+
+STACK := 'stack'
+
+# stack install, then move the hledger executables to bin/old/hledger*-VER
+@install-as VER:
+	{{ STACK }} install --local-bin-path bin/old
+	for e in hledger hledger-ui hledger-web ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
+
+# copy the hledger executables from ~/.local/bin to bin/old/hledger*-VER
+@copy-as VER:
+	for e in hledger hledger-ui hledger-web ; do cp ~/.local/bin/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
+
+# copy just the hledger executable from ~/.local/bin to bin/old/hledger-VER
+copy1-as VER:
+	cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
 
 # ** misc
 
