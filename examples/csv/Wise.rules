@@ -1,0 +1,18 @@
+skip 1
+date-format %Y-%m-%d %H:%M:%S
+
+fields id,status,direction, date_created,date_finished,source_fee_amount, source_fee_currency, target_fee_amount,target_fee_currency,source_name,source_amount_after_fees,source_currency,target_name,target_amount_after_fees,target_currency,exchange_rate,reference,batch
+
+date           %date_created
+code           %id
+description    %target_name | %reference
+# assume it's always USD to EUR for now, otherwise use %target_fee_currency, %source_currency, %target_currency
+amount1        €%target_amount_after_fees @@ $%source_amount_after_fees
+comment1       exchange:€to$=%exchange_rate
+amount2        $%source_fee_amount
+if %target_fee_amount [0-9]
+  amount4        €%target_fee_amount
+status         *
+decimal-mark   .
+
+account1 assets:current:yourname:Wise:main
