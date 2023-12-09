@@ -193,16 +193,9 @@ BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DD
 TIME := "{{ shell date +'%Y%m%d%H%M' }}"
 MONTHYEAR := "{{ shell date +'%B %Y' }}"
 
-# ** misc
-
-# sym-link some directories required by hledger-web dev builds
-mkwebdirs:
-    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
-    ln -sf hledger-web/messages
-    ln -sf hledger-web/static
-    ln -sf hledger-web/templates
-
 # ** GHCI
+
+GHCI:
 
 # run GHCI on hledger-lib + hledger
 @ghci:
@@ -249,6 +242,8 @@ mkwebdirs:
     {{ STACK }} exec {{ SHAKEDEPS }} -- ghci Shake.hs
 
 # ** ghcid
+
+GHCID:
 
 # run ghcid on hledger-lib + hledger
 @ghcid:
@@ -325,7 +320,9 @@ ghcid-shake:
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
-# ** special builds
+# ** building
+
+BUILDING:
 
 # build the hledger package showing GHC codegen times/allocations
 @buildtimes:
@@ -349,6 +346,9 @@ ghcid-shake:
 # hledgercov:
 #     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
 # ** installing
+
+INSTALLING:
+
 # # copy the current ~/.local/bin/hledger to bin/old/hledger-VER
 # @copy-as VER:
 # 	cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
@@ -363,13 +363,9 @@ ghcid-shake:
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
-# ** pushing
-
-# push to github CI, wait for tests to pass, then push to master
-@push:
-    tools/push
-
 # ** releasing
+
+RELEASING:
 
 # Symlink/copy important files temporarily in .relfiles/.
 relfiles:
@@ -477,6 +473,13 @@ _gitSwitchAutoCreate BRANCH:
     fi
 
 # ** misc
+
+MISC:
+
+# push to github CI, wait for tests to pass, then push to master
+@push:
+    tools/push
+
 # run some tests to validate the development environment
 # check-setup:
 #     run some tests to validate the development environment\
@@ -485,16 +488,15 @@ _gitSwitchAutoCreate BRANCH:
 #     @({{ SHELLTEST }} checks \
 #         && echo $@ PASSED) || echo $@ FAILED
 
-# show the sorted, unique files matched by SOURCEFILES
-@listsourcefiles:
-    for f in {{ SOURCEFILES }}; do echo $f; done | sort | uniq
-
-# show the sorted, unique subdirectories containing hs files
-@listsourcedirs:
-    find . -name '*hs' | sed -e 's%[^/]*hs$%%' | sort | uniq
+# sym-link some directories required by hledger-web dev builds
+mkwebdirs:
+    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
+    ln -sf hledger-web/messages
+    ln -sf hledger-web/static
+    ln -sf hledger-web/templates
 
 # Show last week's activity, for TWIH
-@lastweek:
+@_lastweek:
     echo "hledger time last 7 days including today (this should be run on a Friday):"
     tt bal hledger -DTS -b '6 days ago' --drop 2
     echo
@@ -513,6 +515,14 @@ _gitSwitchAutoCreate BRANCH:
     echo "finance repo:"
     git -C finance log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
     echo
+
+# show the sorted, unique files matched by SOURCEFILES
+@_listsourcefiles:
+    for f in {{ SOURCEFILES }}; do echo $f; done | sort | uniq
+
+# show the sorted, unique subdirectories containing hs files
+@_listsourcedirs:
+    find . -name '*hs' | sed -e 's%[^/]*hs$%%' | sort | uniq
 
 # Show a bunch of debug messages.
 @_dbgmsgs:
