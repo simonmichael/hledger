@@ -6,8 +6,6 @@
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
 # See also Makefile, Shake.hs.
-
-
 # ** prelude
 
 @help:
@@ -19,53 +17,55 @@
 @_fmt:
     just -q _check || just --fmt --unstable
 
-
 # ** vars
-
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
-
 # command to run during profiling (time and heap)
+
 PROFCMD := 'stack exec --profile -- hledger balance -f examples/10000x1000x10.journal >/dev/null'
 
 #PROFRTSFLAGS := '-p'
+
 PROFRTSFLAGS := '-P'
 
 # # command to run during "make coverage"
 # COVCMD := 'test'
 # COVCMD := '-f test-wf.csv print'
-
 # misc. system tools
+
 BROWSE := 'open'
+
 # VIEWHTML := '{{ BROWSE }}'
 # VIEWPDF := '{{ BROWSE }}'
 # PRINT := 'lpr'
-
 #GHC := 'ghc'
-GHCI := 'ghci' #-package ghc-datasize #-package ghc-heap-view
+
+GHCI := 'ghci'
+
 # GHCPKG := 'ghc-pkg'
 # HADDOCK := 'haddock'
 # CABAL := 'cabal'
 # CABALINSTALL := 'cabal install -w {{ GHC }}'
-
 # Which stack command (and in particular, stack yaml/GHC version) to use for building etc. ?
+
 STACK := 'stack'
+
 #STACK := 'stack --stack-yaml=stack8.10.yaml'
 # Or override temporarily with an env var:
 # STACK := '"stack --stack-yaml=stack8.10.yaml" make functest'
-
 # Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
-STACKGHCI := STACK
-#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 
+STACKGHCI := STACK
+
+#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 # if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
 # it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
 #STACK := 'stack --with-hpack=hpack-0.20'
-
 # --threads := '16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless'
 # --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
 # slow hackage index or compiler setup on first build, etc.
+
 SHELLTESTOPTS := '--execdir --threads=64 --exclude=/_'
 
 # make sure shelltest is a released version of shelltestrunner
@@ -73,23 +73,20 @@ SHELLTESTOPTS := '--execdir --threads=64 --exclude=/_'
 # SHELLTEST := 'COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin shelltest {{ SHELLTESTOPTS }}'
 # run shell tests using the stack build of hledger
 #SHELLTESTSTK := 'shelltest -w `stack exec which hledger` {{ SHELLTESTOPTS }}'
+
 SHELLTESTSTK := 'COLUMNS=80 ' + STACK + ' exec -- shelltest ' + SHELLTESTOPTS
-
 WATCHEXEC := 'watchexec'
-
 PACKAGES := '\
     hledger-lib \
     hledger \
     hledger-ui \
     hledger-web \
     '
-
 BINARIES := '\
     hledger \
     hledger-ui \
     hledger-web
     '
-
 INCLUDEPATHS := '\
     -ihledger-lib \
     -ihledger \
@@ -97,11 +94,11 @@ INCLUDEPATHS := '\
     -ihledger-web \
     -ihledger-web/app \
     '
-
 MAIN := 'hledger/app/hledger-cli.hs'
 
 # All source files in the project (plus a few strays like Setup.hs & hlint.hs).
 # Used eg for building tags. Doesn't reliably catch all source files.
+
 SOURCEFILES := '\
     dev.hs                    \
     hledger/*hs               \
@@ -119,46 +116,37 @@ SOURCEFILES := '\
     hledger-*/Hledger/*/*/*hs \
     hledger-lib/Text/*/*hs    \
     '
+
 #    hledger-*/src/*hs         \
 
 HPACKFILES := '\
     hledger/*package.yaml \
     hledger-*/*package.yaml \
     '
-
 CABALFILES := '\
     hledger/hledger.cabal \
     hledger-*/*.cabal \
     '
-
 MANUALSOURCEFILES := '\
     doc/common.m4 \
     */*.m4.md \
     '
-
 MANUALGENFILES := '\
     hledger*/hledger*.{1,5,info,txt} \
     '
-
 COMMANDHELPFILES := '\
     hledger/Hledger/Cli/Commands/*.md \
     '
-
 WEBTEMPLATEFILES := '\
     hledger-web/templates/* \
     '
-
 WEBCODEFILES := '\
     hledger-web/static/*.js \
     hledger-web/static/*.css \
     '
-
 DOCSOURCEFILES := '\
     README.md \
-    CONTRIBUTING.md' \
-    + MANUALSOURCEFILES \
-    + COMMANDHELPFILES
-
+    CONTRIBUTING.md' + MANUALSOURCEFILES + COMMANDHELPFILES
 TESTFILES := '\
     hledger/test/*.test \
     hledger/test/*/*.test \
@@ -167,15 +155,15 @@ TESTFILES := '\
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE := 'hledger/Hledger/Cli/Version.hs'
-
 # Two or three-part version string, set as program version in builds made by this makefile.
 # We use hledger CLI's current version (XXX for all packages, which isn't quite right).
+
 export VERSION := `cat hledger/.version`
 
 # Flags for ghc builds.
-
 # Warnings to see during dev tasks like make ghci*. See also the warnings in package.yamls.
 # XXX redundant with package.yamls ?
+
 WARNINGS := '\
     -Wall \
     -Wno-incomplete-uni-patterns \
@@ -186,32 +174,24 @@ WARNINGS := '\
     '
 
 # if you have need to try building in less memory
-GHCLOWMEMFLAGS := '' # '+RTS -M200m -RTS'
+
+GHCLOWMEMFLAGS := ''
 
 # ghc-only builds need the macro definitions generated by cabal
 # from cabal's dist or dist-sandbox dir, hopefully there's just one:
 #CABALMACROSFLAGS := '-optP-include -optP hledger/dist*/build/autogen/cabal_macros.h'
 # or from stack's dist dir:
 #CABALMACROSFLAGS := '-optP-include -optP hledger/.stack-work/dist/*/*/build/autogen/cabal_macros.h'
-CABALMACROSFLAGS := ''
 
-BUILDFLAGS := \
-    '-rtsopts ' \
-    + WARNINGS \
-    + GHCLOWMEMFLAGS \
-    + CABALMACROSFLAGS \
-    + ' -DDEVELOPMENT' \
-    + ' -DVERSION=\"'+VERSION+'\"' \
-    + INCLUDEPATHS \
+CABALMACROSFLAGS := ''
+BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DDEVELOPMENT' + ' -DVERSION=\"' + VERSION + '\"' + INCLUDEPATHS
 
 #    -fplugin Debug.Breakpoint \
 #    -fhide-source-paths \
-
 # PROFBUILDFLAGS := '-prof -fprof-auto -osuf hs_p'
 
 TIME := "{{ shell date +'%Y%m%d%H%M' }}"
 MONTHYEAR := "{{ shell date +'%B %Y' }}"
-
 
 # ** misc
 
@@ -221,7 +201,6 @@ mkwebdirs:
     ln -sf hledger-web/messages
     ln -sf hledger-web/static
     ln -sf hledger-web/templates
-
 
 # ** GHCI
 
@@ -255,7 +234,6 @@ mkwebdirs:
 # # run GHCI on hledger-lib + test runner
 # ghci-lib-test:
 #     {{ STACKGHCI }} ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
-
 # run GHCI on all the hledger
 # ghci-all:
 #     {{ STACK }} exec -- {{ GHCI }} {{ BUILDFLAGS }} \
@@ -269,7 +247,6 @@ mkwebdirs:
 # run GHCI on Shake.hs
 @ghci-shake:
     {{ STACK }} exec {{ SHAKEDEPS }} -- ghci Shake.hs
-
 
 # ** ghcid
 
@@ -285,14 +262,13 @@ mkwebdirs:
 @ghcid-web:
     ghcid -c 'just ghci-web'
 
-# run ghcid autobuilding and running hledger-web with sample journal on port 5001 
+# run ghcid autobuilding and running hledger-web with sample journal on port 5001
 @ghcid-web-run:
     ghcid -c 'just ghci-web' --test ':main -f examples/sample.journal --port 5001 --serve'
 
 # # run ghcid autobuilding and running the test command
 # ghcid-test:
 #     ghcid -c 'just ghci' --test ':main test -- --color=always'
-
 # # run ghcid autobuilding and running the test command with this TESTPATTERN
 # ghcid-test-%:
 #     ghcid -c 'just ghci' --test ':main test -- --color=always -p$*'
@@ -302,14 +278,14 @@ mkwebdirs:
     ghcid -c 'cd hledger-lib; {{ STACK }} ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
 
 GHCIDRESTART := '--restart Makefile --restart Makefile.local'
-GHCIDRELOAD  := '--reload t.j --reload t.timedot'
-GHCIDCMD     := ':main -f t.j bal date:today -S'
+GHCIDRELOAD := '--reload t.j --reload t.timedot'
+GHCIDCMD := ':main -f t.j bal date:today -S'
 
 # # run ghcid autobuilding and running a custom GHCI command with reload/restart on certain files - customise this
 # ghcid-watch watch:
 #     ghcid -c 'just ghci' --test '{{ GHCIDCMD }}' {{ GHCIDRELOAD }} {{ GHCIDRESTART }}
-
 # keep synced with Shake.hs header
+
 SHAKEDEPS := '\
     --package base-prelude \
     --package directory \
@@ -320,42 +296,35 @@ SHAKEDEPS := '\
     --package shake \
     --package time \
     '
+
 #    --package hledger-lib \  # for Hledger.Utils.Debug
 
 # run ghcid autobuilder on Shake.hs
 ghcid-shake:
     stack exec {{ SHAKEDEPS }} -- ghcid Shake.hs
 
-
 # ** dev.hs script
-
 # #    hledger-lib/Hledger/Read/TimeclockReaderPP.hs
-# # build the dev.hs script for quick experiments (with ghc) 
+# # build the dev.hs script for quick experiments (with ghc)
 # dev:
 #     {{ STACK }} ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs \
-
 # # to get profiling deps installed, first do something like:
 # # stack build --library-profiling hledger-lib timeit criterion
-# # build the dev.hs script with profiling support 
+# # build the dev.hs script with profiling support
 # devprof:
 #     {{ STACK }} ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
-
-# # get a time & space profile of the dev.hs script 
+# # get a time & space profile of the dev.hs script
 # dev-profile:
 #     time ./devprof +RTS -P \
 #     && cp devprof.prof devprof.prof.{{ TIME }} \
 #     && profiterole devprof.prof
-
-# # get heap profiles of the dev.hs script 
+# # get heap profiles of the dev.hs script
 # dev-heap:
 #     time ./devprof +RTS -hc -L1000 && cp devprof.hp devprof-hc.hp && hp2ps devprof-hc.hp
 #     time ./devprof +RTS -hr -L1000 && cp devprof.hp devprof-hr.hp && hp2ps devprof-hr.hp
-
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
-
-
 # ** special builds
 
 # build the hledger package showing GHC codegen times/allocations
@@ -370,44 +339,35 @@ ghcid-shake:
 #     {{ STACK }} --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
 #     mv bin/hledger "$exe"
 #     echo "$exe"
-
 # # build hledger with profiling enabled at bin/hledgerprof
 # hledgerprof:
 # # {{ STACK }} --verbosity=error install --local-bin-path=bin hledger
 #     {{ STACK }} build --profile hledger
 # # hledger-lib --ghc-options=-fprof-auto
 # #    @echo "to profile, use {{ STACK }} exec --profile -- hledger ..."
-
-# # build "bin/hledgercov" for coverage reports (with ghc) 
+# # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
-
-
-
 # ** installing
-
 # # copy the current ~/.local/bin/hledger to bin/old/hledger-VER
 # @copy-as VER:
 # 	cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
 
 # stack install, then copy the hledger executables to bin/old/hledger*-VER
 @installas VER:
-	{{ STACK }} install --local-bin-path bin/old
-	for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
+    {{ STACK }} install --local-bin-path bin/old
+    for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
 
 # # make must be GNU Make 4.3+
 # .PHONY: shellcompletions
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
-
-
 # ** pushing
 
 # push to github CI, wait for tests to pass, then push to master
 @push:
     tools/push
-
 
 # ** releasing
 
@@ -458,7 +418,6 @@ relprep VER:
     # assumes the github remote is named "github"
     git push -f github HEAD:binaries
 
-
 # *** hledger version number helpers
 # (as hidden recipes, since just doesn't support global custom functions)
 # See doc/RELEASING.md > Glossary.
@@ -502,7 +461,6 @@ _versionReleaseBranch VER:
       echo "$MAJOR-branch"
     fi
 
-
 # *** git helpers
 
 # Does the named branch exist in this git repo ?
@@ -518,9 +476,7 @@ _gitSwitchAutoCreate BRANCH:
       git switch -c {{ BRANCH }}
     fi
 
-
 # ** misc
-
 # run some tests to validate the development environment
 # check-setup:
 #     run some tests to validate the development environment\
