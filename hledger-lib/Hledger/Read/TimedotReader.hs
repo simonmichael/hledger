@@ -209,8 +209,8 @@ type Hours = Quantity
 -- (or empty string for none).
 durationsp :: TextParser m [(Hours,TagValue)]
 durationsp =
-      (dotquantityp     <&> \h -> [(h,"")])
-  <|> (numericquantityp <&> \h -> [(h,"")])
+      (try numericquantityp <&> \h -> [(h,"")])  -- try needed because numbers can begin with .
+  <|> (dotquantityp     <&> \h -> [(h,"")])
   <|> letterquantitiesp
   <|> pure [(0,"")]
 

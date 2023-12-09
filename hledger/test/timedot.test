@@ -57,17 +57,25 @@ $ hledger -ftimedot:- reg -w80
 $ hledger -ftimedot:- reg -w80 tag:posting-tag --alias fos:haskell=λ
 2023-01-01 different transac..  (λ)                           1.00          1.00
 
-# ** 4. Each of these formats is printed as exactly a quarter hour.
+# ** 4. Each of these formats is parsed as exactly 0.25.
 <
 2023-01-01
 a  .
 b  0.25
-c  15m
+c  .25
+d  0,25
+e  ,25
+f  15m
+g  0.25h
 
 $ hledger -ftimedot:- print
 2023-01-01 *
     (a)            0.25
     (b)            0.25
     (c)            0.25
+    (d)            0.25
+    (e)            0.25
+    (f)            0.25
+    (g)            0.25
 
 >=
