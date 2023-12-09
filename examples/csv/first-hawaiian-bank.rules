@@ -1,0 +1,30 @@
+skip 1
+date-format %-m/%-d/%Y # default date format of their CSV export
+# date-format %F # I prefer to preformat the CSVs so they're all %F.
+
+fields account_number, date, check, description_, debit, credit, status, balance_
+
+# code           %account_number
+description    %description_
+amount1-out    %debit
+amount1-in     %credit
+balance1       %balance_
+currency1      $
+status         *
+
+account1 assets:current:yourname:FHB:checking
+
+# default fallbacks
+if %debit [0-9]
+  account2 expenses:unknown
+if %credit [0-9]
+  account2 income:unknown
+
+# exchanges with my other assets
+if
+%description_ preauthorized trnsfr Venmo
+  account2 assets:transfers:FHBVenmo
+
+# assume cash, but could be a cheque too!
+if %type DEPOSIT
+  account2 assets:current:yourname:cash:USD
