@@ -1,0 +1,17 @@
+skip 4
+
+date-format %Y-%m-%dT%T
+
+fields , id, date, type_, status_, note, from, to, amount_total, amount_tip, amount_tax, amount_fee, tax_rate, tax_exempt, funding_source, destination, beginning_balance, ending_balance, statement_period_venmo_fees, terminal_location, year_to_date_venmo_fees, disclaimer
+
+if
+%disclaimer In case of errors or questions about your
+  skip
+
+code        %id
+amount      %amount_total
+balance     %ending_balance
+description %from | %to %note
+status      *
+
+account1 assets:current:yourname:Venmo:checking
