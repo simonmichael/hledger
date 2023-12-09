@@ -14,22 +14,12 @@
 -- add this to see packages being installed instead of a long silence:
    --verbosity=info
 
-This is one of two collections of maintainer/developer scripts; Makefile is the other.
-This one, based on shake, provides a stronger programming language and
-more platform independence. It requires stack and will auto-install
-the haskell packages above when needed.
-
-Some of the commands below require additional command-line tools, including:
+Heavy project scripts, with file dependencies, using https://shakebuild.com.
+See also justfile, Makefile.
+Also uses tools like:
 - hpack (same version that's in current stack release)
-- GNU date (on mac: brew install coreutils)
-- groff
-- m4
-- makeinfo
-- pandoc
-- sed
-- mv
-- cat
-- rm
+- GNU date (on mac, get it with brew install coreutils)
+- pandoc, groff, m4, makeinfo, sed, mv, cat, rm
 
 Some things that may be useful when working on this:
 - https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
@@ -66,7 +56,7 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["Shake: heavy project scripting. See also: make, ./bake"
+  ["Shake: heavy project scripting. See also: justfile, Makefile"
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"

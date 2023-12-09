@@ -1,5 +1,9 @@
-# * project task scripts managed with https://github.com/casey/just.
-# This aspires to gradually replace Makefile and bake.
+#!/usr/bin/env just
+# * Light project scripts, without file dependendencies, using https://github.com/casey/just.
+# https://docs.rs/regex/1.5.4/regex/#syntax Regexps
+# https://just.systems/man/en/chapter_31.html Functions
+# See also Makefile, Shake.hs
+
 
 @help:
     just -lu

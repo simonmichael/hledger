@@ -1,8 +1,6 @@
-# One of two project scripts files (Makefile, Shake.hs).
-# This one was a reboot of Makefile.old.
-# It is probably used by hledger developers/contributors but not end-users.
-# It requires GNU Make (https://www.gnu.org/software/make/).
-# Also, some rules may require:
+# Project scripts, some with file dependencies, using GNU Make.
+# Soon to be migrated to justfile or Shake.hs hopefully.
+# Also uses tools like
 # - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
 # - shelltestrunner (hackage, runs functional tests)
 # - quickbench (hackage/stackage, runs benchmarks)
@@ -12,21 +10,6 @@
 # - profiteur (hackage/stackage, renders profiles as html)
 # - hpack (hackage/stackage, generates cabal files from package.yaml files)
 # - perl
-#
-# Kinds of hledger builds:
-#
-# - stack build: built with stack
-#   (hledger/.stack-work/dist/ARCH/CABAL/build/hledger/hledger,
-#   .stack-work/install/ARCH/SNAPSHOT/GHC/bin/hledger, installs to ~/.local/bin)
-# - cabal (v1) build: built with cabal (and maybe a sandbox)
-#   (hledger/dist/build/hledger/hledger, installs to ~/.cabal/bin)
-# - ghc-only build: built quickly with ghc only, unoptimised, with DEVELOPMENT flag
-#   (hledgerdev)
-#
-# This makefile mostly uses stack to get things done (slow but robust).
-# It may sometimes (still ?) use ghc only, or cabal, when easier.
-
-# see also: https://gmsl.sourceforge.io/
 
 # XXX do we need this ?
 #SHELL=/bin/bash
