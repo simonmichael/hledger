@@ -1,0 +1,85 @@
+skip 1
+# date-format %Y-%m-%d # this is the same as below
+date-format %F
+
+fields date, payee, account_number, transaction_type, payment_reference, amount_eur, amount_foreign_currency, type_foreign_currency, exchange_rate
+
+code          %account_number
+description   %payee | %payment_reference
+comment       type:%transaction_type
+status        *
+
+account1      assets:current:yourname:N26:main
+amount1       €%amount_eur
+amount2       -€%amount_eur
+
+# parse some foreign currencies with correct conversion
+
+# for now repeat the whole ordeal if I want to get rid of 3-letter codes
+# USD → $
+# GBP → £
+# THB → ฿
+
+# if there is an amount_foreign_currency
+# that is positive
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [^-]
+& %type_foreign_currency USD
+  amount1     €%amount_eur
+  amount2     -$%amount_foreign_currency @@ €%amount_eur
+  comment2    exchange:$to€=%exchange_rate
+  # the comment2 is a bit ugly, feel free to tweak it.
+# that is negative
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [-]
+& %type_foreign_currency USD
+  amount1     €%amount_eur
+  amount2     -$%amount_foreign_currency @@ -€%amount_eur
+  comment2    exchange:$to€=%exchange_rate
+# amount2     -$%amount_foreign_currency @ €%exchange_rate # this should work but is off by €0.0050 quite often
+# balance2    €%amount_eur
+
+# GBP → £
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [^-]
+& %type_foreign_currency GBP
+  amount1     €%amount_eur
+  amount2     -£%amount_foreign_currency @@ €%amount_eur
+  comment1    exchange:£to€=%exchange_rate
+# that is negative
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [-]
+& %type_foreign_currency GBP
+  amount1     €%amount_eur
+  amount2     -£%amount_foreign_currency @@ -€%amount_eur
+  comment2    exchange:£to€=%exchange_rate
+
+# THB → ฿
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [^-]
+& %type_foreign_currency THB
+  amount1     €%amount_eur
+  amount2     -฿%amount_foreign_currency @@ €%amount_eur
+  comment1    exchange:฿to€=%exchange_rate
+# that is negative
+if
+%amount_foreign_currency [0-9]
+& %amount_eur [-]
+& %type_foreign_currency THB
+  amount1     €%amount_eur
+  amount2     -฿%amount_foreign_currency @@ -€%amount_eur
+  comment1    exchange:฿to€=%exchange_rate
+
+# link to other bank accounts
+if
+%account_number YOUROTHERBANK
+Thank you for topping up with iDEAL from the account ending in XXXX
+  account2 assets:transfers:N26BankB
+
+if %payee N26 Bank
+  account2 expenses:banking:fees:N26
