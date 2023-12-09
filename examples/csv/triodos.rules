@@ -1,0 +1,21 @@
+date-format %d-%m-%Y
+
+fields date, bank_number, amount_, debet_credit, payee, bank_other, type_, description_, balance_
+
+if %debet_credit Debet
+  amount1 -%amount_
+  account2 expenses:unknown
+
+if %debet_credit Credit
+  amount1 %amount_
+  account2 income:unknown
+
+code          %bank_other
+description   %payee | %description_
+balance       %balance_
+comment       type:%type_
+currency1     €
+decimal-mark  ,
+status        *
+
+account1 assets:current:yourname:Triodos:checking
