@@ -1,6 +1,6 @@
 ---
 name:  A bug
-about: Any problem that seems to be an error or weakness in hledger's software, documentation, marketing, usability...
+about: A problem or weakness in the software, documentation, usability, or project
 labels: A BUG
 ---
 
