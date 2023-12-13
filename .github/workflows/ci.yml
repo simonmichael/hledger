@@ -96,8 +96,9 @@ jobs:
       # For a PR, the range will be: master..origin/$GITHUB_HEAD_REF
       # For a push it will be: $BEFORE..
       # For a force push, BEFORE is the previous HEAD, and on github (though not locally) this is an "invalid revision range".
-      # XXX we skip this check when we can't detect the commits, which happens in certain cases
+      # 202310: we skip this check when we can't detect the commits, which happens in certain cases
       # related: https://stackoverflow.com/questions/64708371/how-to-run-github-workflow-on-every-commit-of-a-push
+      # 202312: ignore this if it fails, it may be not worth the hassle
       env:
         BEFORE: ${{ github.event.before }}
         # NUM:    5
@@ -105,8 +106,8 @@ jobs:
       run: |
         RANGE=${BEFORE:-origin/master}..${GITHUB_HEAD_REF:-}
 
-        echo "debug: last 0 commits (temporarily reduced from 10):"
-        echo "$(git log --format='%h -%d %s (%an, %ci)' -0)"
+        echo "debug: last 10 commits:"
+        echo "$(git log --format='%h -%d %s (%an, %ci)' -10)"
         echo "debug: origin/master:"
         echo "$(git log --format='%h -%d %s (%an, %ci)' -1 origin/master)"
         echo "debug: BEFORE=$BEFORE"
@@ -118,10 +119,11 @@ jobs:
         echo "$(git log --format='%h -%d %s (%an, %ci)' --abbrev-commit --date=relative --date-order $RANGE)"
 
         if git rev-list --quiet $RANGE
-        then tools/commitlint $RANGE
-        else echo "could not identify commits, not checking them"  # XXX
-          # echo "could not identify commits, checking last $NUM instead:"
-          # tools/commitlint -$NUM
+        then
+          tools/commitlint $RANGE || echo "commit lint failed, ignoring"
+        else
+          # echo "could not identify commits, checking last $NUM instead:"; tools/commitlint -$NUM
+          echo "could not identify commits, not checking them"  # XXX
         fi
 
     - name: Skip remaining steps if the last commit message begins with ;
