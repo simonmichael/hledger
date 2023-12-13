@@ -10,6 +10,8 @@
 
 @help:
     just -lu
+# This and all other just invocations assume you are in this justfile's directory,
+# otherwise we must write --justfile {{ justfile() }} or {{ just }} everywhere.
 
 @_check:
     just --fmt --unstable --check
@@ -66,15 +68,6 @@ STACKGHCI := STACK
 # --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
 # slow hackage index or compiler setup on first build, etc.
 
-SHELLTESTOPTS := '--execdir --threads=64 --exclude=/_'
-
-# make sure shelltest is a released version of shelltestrunner
-# run shell tests using the executable specified in tests
-# SHELLTEST := 'COLUMNS=80 PATH=~/.local/bin:/usr/bin:/bin shelltest {{ SHELLTESTOPTS }}'
-# run shell tests using the stack build of hledger
-#SHELLTESTSTK := 'shelltest -w `stack exec which hledger` {{ SHELLTESTOPTS }}'
-
-SHELLTESTSTK := 'COLUMNS=80 ' + STACK + ' exec -- shelltest ' + SHELLTESTOPTS
 WATCHEXEC := 'watchexec'
 PACKAGES := '\
     hledger-lib \
@@ -345,6 +338,449 @@ BUILDING:
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
+
+# ** testing
+
+TESTING:
+
+# run tests that are reasonably quick (files, unit, functional) and benchmarks
+test: filestest functest #bench
+
+# For quieter tests add --silent. It may hide troubleshooting info.
+# For very verbose tests add --verbosity=debug. It seems hard to get something in between.
+STACKTEST := STACK + ' test --fast'
+
+# # When doing build testing, save a little time and output noise by not
+# # running tests & benchmarks. Comment this out if you want to run them.
+# SKIPTESTSBENCHS := '--no-run-tests --no-run-benchmarks'
+
+# check all files embedded with file-embed are declared in extra-source-files
+@filestest:
+    tools/checkembeddedfiles
+
+# # stack build --dry-run all hledger packages ensuring an install plan with default snapshot) 
+# buildplantest:
+#     buildplantest-stack.yaml
+
+# # stack build --dry-run all hledger packages ensuring an install plan with each ghc version/stackage snapshot 
+# buildplantest-all:
+#     for F in stack*.yaml; do make --no-print-directory buildplantest-$F; done
+
+# # stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack8.2.yaml 
+# buildplantest-%:
+#     {{ STACK }} build --dry-run --test --bench --stack-yaml=$*
+
+# # force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot) 
+# buildtest:
+#     buildtest-stack.yaml
+
+# # force-rebuild all hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot 
+# buildtest-all:
+#     for F in stack*.yaml; do make --no-print-directory buildtest-$F; done
+
+# # force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack8.2.yaml 
+# buildtest-%:
+#     {{ STACK }} build --test --bench {{ SKIPTESTSBENCHS }} --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+
+# # build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.) 
+# incr-buildtest:
+#     incr-buildtest-stack.yaml
+
+# # build any outdated hledger packages/modules quickly ensuring no warnings with each ghc version/stackage snapshot. Wont detect warnings in up-to-date modules. 
+# incr-buildtest-all:
+#     for F in stack*.yaml; do make --no-print-directory incr-buildtest-$F; done
+
+# # build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack8.2.yaml. Wont detect warnings in up-to-date modules. 
+# incr-buildtest-%:
+#     {{ STACK }} build --test --bench {{ SKIPTESTSBENCHS }} --fast --ghc-options=-Werror --stack-yaml=$*
+
+# # do a stack clean --full with all ghc versions for paranoia/troubleshooting 
+# stack-clean-all:
+#     for F in stack*.yaml; do {{ STACK }} clean --full --stack-yaml=$F; done
+
+# run all test suites in the hledger packages 
+@pkgtest:
+    ({{ STACKTEST }} && echo $@ PASSED) || (echo $@ FAILED; false)
+
+# doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
+# Or, could run it with ghc 8.2: 
+#    @({{ STACKTEST }} --stack-yaml stack8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+# run the doctests in hledger-lib module/function docs 
+@doctest:
+    ({{ STACKTEST }} hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+
+# # run the unit tests in hledger-lib 
+# unittest:
+#     @({{ STACKTEST }} hledger-lib:test:unittest && echo $@ PASSED) || (echo $@ FAILED; false)
+
+# run hledger & hledger-lib unit tests (do a stack build hledger first).
+@unittest:
+    ({{ STACK }} exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
+
+SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 --exclude=/_'
+#  --hide-successes
+
+# build hledger quickly and run functional tests, or just the ones matching PAT. (Run mktestaddons first.)
+@functest *PAT:
+    {{ STACK }} build --fast hledger
+    ({{ SHELLTEST }} {{ if PAT == '' { '' } else { '-i "'+PAT+'"' } }} \
+        hledger/test/ bin/ \
+        -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
+        && echo $@ PASSED) || (echo $@ FAILED; false)
+
+ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
+
+# generate dummy add-ons for testing the CLI
+@mktestaddons:
+    rm -rf hledger/test/addons/hledger-*
+    printf '#!/bin/sh\necho add-on: $0\necho args: $*\n' >hledger/test/addons/hledger-addon
+    for E in '' {{ ADDONEXTS }}; do \
+        cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-addon.$E; done
+    for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
+        cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-$F; done
+    mkdir hledger/test/addons/hledger-addondir
+    chmod +x hledger/test/addons/hledger-*
+
+# generate a hlint report
+# hlinttest hlint:
+#     hlint --hint=hlint --report=hlint.html {{ SOURCEFILES }}
+
+# # run haddock to make sure it can generate docs without dying 
+# @haddocktest:
+#     (make --quiet haddock && echo $@ PASSED) || (echo $@ FAILED; false)
+
+# # run cabal check to test cabal file syntax 
+# cabalfiletest:
+#     @(make --no-print-directory cabalcheck && echo $@ PASSED) || (echo $@ FAILED; false)
+
+# test-stack%yaml:
+#     {{ STACK }} --stack-yaml stack$*yaml clean
+#     {{ STACK }} --stack-yaml stack$*yaml build --ghc-options="{{ WARNINGS }} -Werror" --test --bench --haddock --no-haddock-deps
+
+# committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
+#     
+
+# releasetest: Clean unittest functest fullcabaltest haddocktest #buildtest doctest \
+#     {{ call def-help,releasetest,pre-release tests }}
+
+# run hledger-install.sh not from inside a haskell project
+installtest:
+    cd; {{ justfile_directory() }}/hledger-install/hledger-install.sh
+
+# ** benchmarking
+
+BENCHMARKING:
+
+# generate standard sample journals in examples/
+mksamplejournals:
+
+# samplejournals: $(call def-help,samplejournals, regenerate standard sample journals in examples/) \
+# 	examples/sample.journal \
+# 	examples/10x10x10.journal \
+# 	examples/100x100x10.journal \
+# 	examples/1000x1000x10.journal \
+# 	examples/1000x10000x10.journal \
+# 	examples/2000x1000x10.journal \
+# 	examples/3000x1000x10.journal \
+# 	examples/4000x1000x10.journal \
+# 	examples/5000x1000x10.journal \
+# 	examples/6000x1000x10.journal \
+# 	examples/7000x1000x10.journal \
+# 	examples/8000x1000x10.journal \
+# 	examples/9000x1000x10.journal \
+# 	examples/10000x1000x10.journal \
+# 	examples/10000x10000x10.journal \
+# 	examples/100000x1000x10.journal \
+# 	examples/1000000x1000x10.journal \
+# #	examples/ascii.journal \
+# #	examples/chinese.journal \
+# #	examples/mixed.journal \
+
+# examples/sample.journal:
+# 	true # XXX should probably regenerate this
+
+# examples/10x10x10.journal: tools/generatejournal
+# 	tools/generatejournal 10 10 10 >$@
+
+# examples/100x100x10.journal: tools/generatejournal
+# 	tools/generatejournal 100 100 10 >$@
+
+# examples/1000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 1000 1000 10 >$@
+
+# examples/1000x10000x10.journal: tools/generatejournal
+# 	tools/generatejournal 1000 10000 10 >$@
+
+# examples/2000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 2000 1000 10 >$@
+
+# examples/3000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 3000 1000 10 >$@
+
+# examples/4000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 4000 1000 10 >$@
+
+# examples/5000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 5000 1000 10 >$@
+
+# examples/6000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 6000 1000 10 >$@
+
+# examples/7000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 7000 1000 10 >$@
+
+# examples/8000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 8000 1000 10 >$@
+
+# examples/9000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 9000 1000 10 >$@
+
+# examples/10000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 10000 1000 10 >$@
+
+# examples/10000x10000x10.journal: tools/generatejournal
+# 	tools/generatejournal 10000 10000 10 >$@
+
+# examples/100000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 100000 1000 10 >$@
+
+# examples/1000000x1000x10.journal: tools/generatejournal
+# 	tools/generatejournal 1000000 1000 10 >$@
+
+# examples/ascii.journal: tools/generatejournal
+# 	tools/generatejournal 3 5 5 >$@
+
+# examples/chinese.journal: tools/generatejournal
+# 	tools/generatejournal 3 5 5 --chinese >$@
+
+# examples/mixed.journal: tools/generatejournal
+# 	tools/generatejournal 3 5 5 --mixed >$@
+
+# # hledger executables to bench test, can be overridden by env var, 
+# # eg: BENCHEXES=ledger,hledger-1.18,hledger make bench
+# BENCHEXES ?= hledger
+
+# bench: quickbench
+
+# quickbench: samplejournals bench.sh $(call def-help,quickbench, benchmark commands in bench.sh with quickbench and $(BENCHEXES))
+# 	@echo; echo "run quick performance benchmarks in bench.sh (approximate, can be skewed):"
+# 	@which quickbench >/dev/null && quickbench -w $(BENCHEXES) || echo "quickbench not installed (see bench.sh), skipping"
+
+# # bench: samplejournals tests/bench.tests tools/simplebench \
+# # 	$(call def-help,bench,\
+# # 	run simple performance benchmarks and archive results\
+# # 	Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.\
+# # 	)
+# # 	tools/simplebench -v -ftests/bench.tests $(BENCHEXES) | tee doc/profs/$(TIME).bench
+# # 	@rm -f benchresults.*
+# # 	@(cd doc/profs; rm -f latest.bench; ln -s $(TIME).bench latest.bench)
+
+# # criterionbench: samplejournals tools/criterionbench \
+# # 	$(call def-help,criterionbench,\
+# # 	run criterion benchmark tests and save graphical results\
+# # 	)
+# # 	tools/criterionbench -t png -k png
+
+# # progressionbench: samplejournals tools/progressionbench \
+# # 	$(call def-help,progressionbench,\
+# # 	run progression benchmark tests and save graphical results\
+# # 	)
+# # 	tools/progressionbench -- -t png -k png
+
+# throughput: throughput-hledger \
+# 		$(call def-help,throughput, show throughput at various data sizes with the default hledger executable  )
+
+# throughput-%: samplejournals \
+# 		$(call def-help,throughput-HLEDGEREXE, show throughput at various data sizes with the given hledger executable  )
+# 	@echo date: `date`
+# 	@echo system: `uname -a`
+# 	@echo executable: $*
+# 	@echo version: `$* --version`
+# 	@for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
+# 		printf "%6d txns: " $$n; $* stats -f examples/$${n}x1000x10.journal | tail -1; \
+# 	done
+# 	@date
+
+# throughput-dev: samplejournals \
+# 		$(call def-help,throughput-dev, show throughput at various data sizes with the latest hledger dev build (optimised or not)  )
+# 	@stack build hledger
+# 	@stack exec -- make -s throughput
+
+# # prof: samplejournals \
+# # 	$(call def-help,prof,\
+# # 	generate and archive an execution profile\
+# # 	) #bin/hledgerprof
+# # 	@echo "Profiling: $(PROFCMD)"
+# # 	-$(PROFCMD) +RTS $(PROFRTSFLAGS) -RTS
+# # 	mv hledgerprof.prof doc/profs/$(TIME).prof
+# # 	(cd doc/profs; rm -f latest*.prof; ln -s $(TIME).prof latest.prof)
+
+# # viewprof: prof \
+# # 	$(call def-help,viewprof,\
+# # 	generate, archive, simplify and display an execution profile\
+# # 	)
+# # 	tools/simplifyprof.hs doc/profs/latest.prof
+
+# quickprof-%: hledgerprof samplejournals \
+# 		$(call def-help,quickprof-"CMD", run some command against a standard sample journal and display the execution profile )
+# 	$(STACK) exec --profile -- hledger +RTS $(PROFRTSFLAGS) -RTS $* -f examples/1000x1000x10.journal >/dev/null
+# 	profiterole hledger.prof
+# 	@echo
+# 	@head -20 hledger.prof
+# 	@echo ...
+# 	@echo
+# 	@head -20 hledger.profiterole.txt
+# 	@echo ...
+# 	@echo
+# 	@echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
+
+# # heap: samplejournals \
+# # 	$(call def-help,heap,\
+# # 	generate and archive a graphical heap profile\
+# # 	) #bin/hledgerprof
+# # 	@echo "Profiling heap with: $(PROFCMD)"
+# # 	$(PROFCMD) +RTS -hc -RTS
+# # 	mv hledgerprof.hp doc/profs/$(TIME).hp
+# # 	(cd doc/profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
+# # 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
+
+# # viewheap: heap \
+# # 	$(call def-help,viewheap,\
+# # 	\
+# # 	)
+# # 	$(VIEWPS) doc/profs/latest.ps
+
+# quickheap-%: hledgerprof samplejournals \
+# 		$(call def-help,quickheap-"CMD", run some command against a sample journal and display the heap profile )
+# 	$(STACK) exec -- hledgerprof +RTS -hc -RTS $* -f examples/10000x1000x10.journal >/dev/null
+# 	hp2ps hledgerprof.hp
+# 	@echo generated hledgerprof.ps
+# 	$(VIEWPS) hledgerprof.ps
+
+# # quickcoverage: hledgercov \
+# # 	$(call def-help,quickcoverage,\
+# # 	display a code coverage text report from running hledger COVCMD\
+# # 	)
+# # 	@echo "Generating code coverage text report for hledger command: $(COVCMD)"
+# # 	tools/runhledgercov "report" $(COVCMD)
+
+# # coverage: samplejournals hledgercov \
+# # 	$(call def-help,coverage,\
+# # 	generate a code coverage html report from running hledger COVCMD\
+# # 	)
+# # 	@echo "Generating code coverage html report for hledger command: $(COVCMD)"
+# # 	tools/runhledgercov "markup --destdir=doc/profs/coverage" $(COVCMD)
+# # 	cd doc/profs/coverage; rm -f index.html; ln -s hpc_index.html index.html
+
+# # viewcoverage: \
+# # 	$(call def-help,viewcoverage,\
+# # 	view the last html code coverage report\
+# # 	)
+# # 	$(VIEWHTML) doc/profs/coverage/index.html
+
+# ###############################################################################
+# $(call def-help-subheading,DOCUMENTATION: (see also Shake.hs))
+
+# # http://www.haskell.org/haddock/doc/html/invoking.html
+# STACKHADDOCK=time $(STACK) --verbosity=error haddock --fast --no-keep-going \
+# 	--only-locals --no-haddock-deps --no-haddock-hyperlink-source \
+# 	--haddock-arguments="--no-warnings"
+# # -ghc-options='-optP-P'  # workaround for http://trac.haskell.org/haddock/ticket/284
+
+# # uncomment to run haddock on fewer packages, saving time
+# #HADDOCKPKGS=hledger-lib
+
+# releasediag: \
+# 	$(call def-help,releasediag, optimise and commit RELEASING value map diagram )
+# 	pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png && git add doc/HledgerReleaseValueMap.png && git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
+
+# # Renders all hledger packages. Run make haddock-open to open contents page.
+# haddock: \
+# 	$(call def-help,haddock, regenerate haddock docs for the hledger packages and open them )
+# 	$(STACKHADDOCK) $(HADDOCKPKGS) && make -s haddock-open   # --open shows all deps and packages
+
+# # Rerenders all hledger packages. Run make haddock-open to open contents page.
+# haddock-watch1: \
+# 	$(call def-help,haddock-watch, regenerate haddock docs when files change )
+# 	$(STACKHADDOCK) $(HADDOCK_PKGS) --file-watch --exec='echo done'
+
+# # Rerenders hledger-lib modules, opens hledger-lib contents page.
+# haddock-watch2: \
+# 	$(call def-help,haddock-watch2, regenerate hledger-lib haddock docs when files change )
+# 	watchexec -r -e yaml,cabal,hs --print-events -- \
+# 	$(STACKHADDOCK) --verbosity=info $(HADDOCK_PKGS) --exec="'echo done'" hledger-lib --open
+
+# # Rerenders/reopens the Hledger module, without submodules. (Fastest)
+# haddock-watch: \
+# 	$(call def-help,haddock-watch3, quickly regenerate & reload Hledger.hs haddock when files change )
+# 	watchexec -r -e yaml,cabal,hs --print-events --shell=none -- bash -c 'mkdir -p tmp && rm -f tmp/Hledger.html && haddock -h -o tmp hledger-lib/Hledger.hs --no-warnings --no-print-missing-docs 2>&1 | grep -v "Could not find documentation" && open tmp/Hledger.html'
+
+# haddock-open: \
+# 	$(call def-help,haddock-open, open the haddock packages contents page in a browser )
+# 	$(BROWSE) `stack path --local-install-root`/doc/index.html
+
+# hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks and a hoogle db for the project and all deps )
+# 	stack hoogle --rebuild
+
+# HOOGLEBROWSER="/Applications/Firefox Dev.app/Contents/MacOS/firefox"   # safari not supported
+# hoogle-serve: $(call def-help,hoogle-serve, run hoogle web app and open in browser after doing setup if needed )
+# 	$(HOOGLEBROWSER) http://localhost:8080 &
+# 	stack --verbosity=warn hoogle --server
+
+# # sourcegraph: \
+# # 	$(call def-help,sourcegraph,\
+# # 	\
+# # 	)
+# # 	for p in $(PACKAGES); do (cd $$p; SourceGraph $$p.cabal); done
+
+# manuals-watch: Shake \
+# 		$(call def-help,manuals-watch, rerender manuals when their source files change  )
+# 	ls $(DOCSOURCEFILES) | entr ./Shake -VV manuals
+
+# man-watch: man-watch-hledger \
+# 		$(call def-help,man-watch, run man on the hledger man page when its source file changes )
+
+# man-watch-%: Shake \
+# 		$(call def-help,man-watch-PROG, run man on the given man page when its source file changes. Eg make man-watch-hledger-web )
+# 	$(WATCHEXEC) -r -w $*/$*.m4.md './Shake $*/$*.1 && man $*/$*.1'
+
+# shakehelp-watch: \
+# 		$(call def-help,shakehelp-watch, rerender Shake.hs's help when it changes)
+# 	ls Shake.hs | entr -c ./Shake.hs
+
+# # The following rule, for updating the website, gets called on hledger.org by:
+# # 1. github-post-receive (github webhook handler), when something is pushed
+# #    to the main or wiki repos on Github. Config:
+# #     /etc/supervisord.conf -> [program:github-post-receive]
+# #     /etc/github-post-receive.conf
+# # 2. cron, nightly. Config: /etc/crontab
+# # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
+
+
+# .PHONY: site
+
+# # Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
+# # site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
+# # 	@[ ! -x Shake ] \
+# # 		&& echo 'Please run "make Shake" first (manual compilation required for safety)' \
+# # 		|| ( \
+# # 			echo; \
+# # 			./Shake -V site; \
+# # 		) 2>&1 | tee -a site.log
+
+# site: Shake \
+# 	$(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
+# 	./Shake -V site 2>&1 | tee -a site.log
+
+
+# BROWSE=open
+# BROWSEDELAY=5
+# LOCALSITEURL=http://localhost:3000/dev/hledger.html
+# site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
+# 	@make -s Shake
+# 	@(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
+# 	@$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+
 # ** installing
 
 INSTALLING:
@@ -363,6 +799,8 @@ INSTALLING:
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
+
+
 # ** releasing
 
 RELEASING:
@@ -472,6 +910,211 @@ _gitSwitchAutoCreate BRANCH:
       git switch -c {{ BRANCH }}
     fi
 
+
+# ###############################################################################
+# $(call def-help-subheading,RELEASING:)
+
+# # old/desired release process:
+# #  a normal release: echo 0.7   >.version; make release
+# #  a bugfix release: echo 0.7.1 >.version; make release
+# #release: releasetest bumpversion tagrelease $(call def-help,release, prepare and test a release and tag the repo )
+# #publish: hackageupload pushtags $(call def-help,upload, publish latest hackage packages and push tags to github )
+# #releaseandpublish: release upload $(call def-help,releaseandpublish, release and upload and publish updated docs )
+
+# ISCLEAN=git diff-index --quiet HEAD --
+
+# # stop if the working directory has uncommitted changes
+# iscleanwd:
+# 	@$(ISCLEAN) || (echo "please clean the working directory first"; false)
+
+# # stop if the given file(s) have uncommitted changes
+# isclean-%:
+# 	@$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
+
+# # update all cabal files based on latest package.yaml files using stack's built-in hpack
+# cabal: $(call def-help,cabal, regenerate cabal files from package.yaml files with stack )
+# 	$(STACK) build --dry-run --silent
+
+# # Update all cabal files based on latest package.yaml files using a specific hpack version.
+# # To avoid warnings, this should be the same version as stack's built-in hpack.
+# cabal-with-hpack-%:
+# 	$(STACK) build --with-hpack hpack-$* --dry-run --silent
+
+# # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
+# # 	@read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
+# # 	git commit -m "update cabal files" $(shell ls */*.cabal)
+
+# # we use shake for this job; so dependencies aren't checked here
+# manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manuals (might need -B) )
+# 	./Shake manuals
+# 	git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
+
+# tag: $(call def-help,tag, make git release tags for the project and all packages )
+# 	@for p in $(PACKAGES); do make tag-$$p; done
+# 	@make tag-project
+
+# tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
+# 	git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
+
+# tag-project: $(call def-help,tag-project, make a git release tag for the project as a whole )
+# 	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+# 	@printf "if tagging a major release, please also review and run this command:\n"
+# 	@printf " git tag -fs `cat .version`.99 master -m \"Start of next release cycle. This tag influences git describe and dev builds' version strings.\"\n"
+
+# # hackageupload-dry: \
+# # 	$(call def-help,hackageupload-dry,\
+# # 	upload all packages to hackage; dry run\
+# # 	)
+# # 	for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
+
+# hackageupload: \
+# 	$(call def-help,hackageupload, upload all packages to hackage	from a release branch)
+# 	tools/hackageupload $(PACKAGES)
+
+# # showreleasestats stats: \
+# # 	showreleasedays \
+# # 	showunreleasedchangecount \
+# # 	showloc \
+# # 	showtestcount \
+# # 	showunittestcoverage \
+# # 	showreleaseauthors \
+# # 	showunreleasedcodechanges \
+# # 	showunpushedchanges \
+# # 	$(call def-help,showreleasestats stats,\
+# # 	show project stats useful for release notes\
+# # 	)
+# # #	showerrors
+
+# # FROMTAG=.
+
+# # showreleasedays: \
+# # 	$(call def-help,showreleasedays,\
+# # 	\
+# # 	)
+# # 	@echo Days since last release:
+# # 	@tools/dayssincetag.hs $(FROMTAG) | head -1 | cut -d' ' -f-1
+# # 	@echo
+
+# # # XXX
+# # showunreleasedchangecount: \
+# # 	$(call def-help,showunreleasedchangecount,\
+# # 	\
+# # 	)
+# # 	@echo Commits since last release:
+# # 	@darcs changes --from-tag $(FROMTAG) --count
+# # 	@echo
+
+# describe: $(call def-help,describe, show a precise git-describe version string )
+# 	@git describe --tags --match 'hledger-[0-9]*' --dirty
+
+# # showreleaseauthors: $(call def-help,showreleaseauthors, show author names since last release)
+# # 	@echo Commit authors since last release:
+# # 	@git shortlog -sn $(CHANGELOGSTART)..  # TODO undefined
+
+# showauthors: $(call def-help,showauthors, show all commit author names)
+# 	@echo "Commit authors ($$(git shortlog -sn | wc -l | awk '{print $$1}'))":
+# 	@git shortlog -sn
+
+# cloc: $(call def-help,cloc, count lines of source code )
+# 	@echo Lines of code including tests:
+# 	@cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
+
+# SCC=scc -z --cocomo-project-type semi-detached -f wide -s code
+
+# scc: $(call def-help,scc, count lines of source code with scc)
+# 	@echo Lines of code including tests:
+# 	@$(SCC) -i hs,sh,m4,hamlet
+
+# sccv: $(call def-help,sccv, count lines of source code with scc showing all files)
+# 	@echo Lines of code including tests:
+# 	@$(SCC) -i hs,sh,m4,hamlet --by-file
+
+# # `ls $(SOURCEFILES)`
+
+# # sloc: \
+# # 	$(call def-help,sloc,\
+# # 	\
+# # 	)
+# # 	@sloccount hledger-lib hledger hledger-web
+
+# # cloc: \
+# # 	$(call def-help,cloc,\
+# # 	\
+# # 	)
+# # 	@echo
+# # 	@echo "Lines of code as of `date`:"
+# # 	@echo
+# # 	@echo "hledger-lib, hledger"
+# # 	@cloc -q hledger-lib hledger             2>&1 | grep -v 'defined('
+# # 	@echo
+# # 	@echo "hledger-web"
+# # 	@cloc -q hledger-web                     2>&1 | grep -v 'defined('
+# # 	@echo
+# # 	@echo "hledger-lib, hledger, hledger-web"
+# # 	@cloc -q hledger-lib hledger hledger-web 2>&1 | grep -v 'defined('
+
+# # showtestcount: \
+# # 	$(call def-help,showtestcount,\
+# # 	\
+# # 	)
+# # 	@echo "Unit tests:"
+# # 	@hledger test 2>&1 | cut -d' ' -f2
+# # 	@echo "Functional tests:"
+# # 	@make --no-print functest | egrep '^ Total' | awk '{print $$2}'
+# # 	@echo
+
+# # showunittestcoverage: \
+# # 	$(call def-help,showunittestcoverage,\
+# # 	\
+# # 	)
+# # 	@echo Unit test coverage:
+# # 	@make --no-print quickcoverage | grep 'expressions'
+# # 	@echo
+
+# # # showerrors:
+# # # 	@echo Known errors:
+# # # 	@awk '/^** errors/, /^** / && !/^** errors/' NOTES.org | grep '^\*\*\* ' | tail +1
+# # # 	@echo
+
+# # # XXX
+# # showunpushedchanges showunpushed: \
+# # 	$(call def-help,showunpushedchanges showunpushed,\
+# # 	\
+# # 	)
+# # 	@echo "Changes not yet pushed upstream (to `darcs show repo | grep 'Default Remote' | cut -c 17-`):"
+# # 	@-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
+# # 	@echo
+
+# # # XXX
+# # showunreleasedcodechanges showunreleased showchanges: \
+# # 	$(call def-help,showunreleasedcodechanges showunreleased showchanges,\
+# # 	\
+# # 	)
+# # 	@echo "hledger code changes since last release:"
+# # 	@darcs changes --from-tag $(FROMTAG) --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
+# # 	@echo
+
+# # # XXX
+# # showcodechanges: \
+# # 	$(call def-help,showcodechanges,\
+# # 	\
+# # 	)
+# # 	@echo "hledger code changes:"
+# # 	@darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
+# # 	@echo
+
+# nix-hledger-version: $(call def-help,nix-hledger-version, show which version of hledger has reached nixpkgs)
+# 	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger"'
+
+# nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
+# 	@curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
+
+# nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
+# 	@open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
+
+# list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
+# 	@git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
+
 # ** misc
 
 MISC:
@@ -524,6 +1167,10 @@ mkwebdirs:
 @_listsourcedirs:
     find . -name '*hs' | sed -e 's%[^/]*hs$%%' | sort | uniq
 
+# show the ghc versions used by all stack files 
+@_listghcversions:
+    for F in stack*.yaml; do {{ STACK }} --stack-yaml=$F --no-install-ghc exec -- ghc --version; done 2>&1 | grep -v 'To install the correct GHC'
+
 # Show a bunch of debug messages.
 @_dbgmsgs:
     rg --sort path -t hs 'dbg.*?(".*")' -r '$1' -o
@@ -539,3 +1186,70 @@ mkwebdirs:
     printf "account ledger\naccount hledger\naccount beancount\n\n" >project-commits.j
     for p in ledger hledger beancount; do git -C ../$p log --format="%cd (%h) %s%n  ($p)  1%n" --date=short --reverse >> project-commits.j; done
     echo "wrote project-commits.j"
+
+
+# ###############################################################################
+# $(call def-help-subheading,MISCELLANEOUS:)
+
+# installcommithook: $(call def-help,installcommithook, symlink tools/commitlint as .git/hooks/commit-msg)
+# 	ln -s ../../tools/commitlint .git/hooks/commit-msg
+
+# watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed file changes)
+# 	 @git ls-files | entr -r make $*
+
+# Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
+# 	./Shake.hs
+
+# usage: cabalusage stackusage \
+# 	$(call def-help,usage, show size of various dirs )
+# 	du -sh .git bin data doc extra
+# 	du -sh .
+
+# stackusage: \
+# 	$(call def-help,stackusage, show size of stack working dirs if any )
+# 	-du -shc `find . -name '.stack*'`
+
+# cabalusage: \
+# 	$(call def-help,cabalusage, show size of cabal working dirs if any )
+# 	-du -shc */dist* 2>/dev/null
+
+# # Generate an emacs TAGS file. Tag:
+# # 1. haskell source files with hasktags
+# # 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
+# # 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+# etags:$(call def-help,etags, generate emacs TAGS file for haskell source and other project files )
+# 	hasktags -e $(SOURCEFILES)
+# 	ctags -a -e -R
+# 	for f in \
+# 		$(WEBTEMPLATEFILES) \
+# 		$(DOCSOURCEFILES) \
+# 		$(TESTFILES) \
+# 		$(HPACKFILES) \
+# 		$(CABALFILES) \
+# 		Shake.hs \
+# 	; do printf "\n$$f,1\n" >> TAGS; done
+# 	-etagsls >TAGS.files
+
+# etags-ls:  # list files indexed in TAGS
+# 	@rg -v '[ ]' TAGS | rg -r '$$1' '^(.*?)([0-9]+)?,[0-9,]+*'
+
+# cleantags: \
+# 	$(call def-help-hide,cleantags, remove tag files )
+# 	rm -f TAGS tags
+
+# stackclean: \
+# 	$(call def-help-hide,stackclean, remove .stack-work/ dirs )
+# 	$(STACK) purge
+
+# cleanghco: \
+# 	$(call def-help-hide,cleanghc, remove ghc build leftovers )
+# 	rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*.dyn_o" -o -name "*.dyn_hi" -o -name "*~" | grep -vE '\.(stack-work|cabal-sandbox|virthualenv)'`
+# #rm -f `fd -I '\.(hi|o|dyn_hi|dyn_o)$'`
+
+# clean: cleanghco \
+# 	$(call def-help,clean, default cleanup (ghc build leftovers) )
+
+# Clean: stackclean cleanghco cleantags \
+# 	$(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
+
+# # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
