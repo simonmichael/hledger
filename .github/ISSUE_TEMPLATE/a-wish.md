@@ -4,9 +4,7 @@ about: A request or proposal for improving hledger or the project.
 labels: A WISH
 ---
 
-You can delete the following text before submitting.
-
-Thanks for your suggestion! Some tips:
+Thanks for your suggestion! Here are some tips (please delete them before submitting):
 
 - Have you looked for related features in the hledger manuals ? Eg:
   https://hledger.org/dev/hledger.html
