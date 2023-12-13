@@ -1510,7 +1510,7 @@ One workaround is to isolate each commodity into its own subaccount:
   a:euro   0 ==  1€
 ```
 
-### Assertions and prices
+### Assertions and costs
 
 Balance assertions ignore [costs](#costs),
 and should normally be written without one:
@@ -1520,10 +1520,10 @@ and should normally be written without one:
   (a)     $1 @ €1 = $1
 ```
 
-We do allow prices to be written there, however, and [print](#print) shows them,
-even though they don't affect whether the assertion passes or fails.
-This is for backward compatibility (hledger's [close](#close) command used to generate balance assertions with prices),
-and because [balance *assignments*](#balance-assignments) do use them (see below).
+We do allow costs to be written in balance assertion amounts, however, and [print](#print) shows them,
+but they don't affect whether the assertion passes or fails.
+This is for backward compatibility (hledger's [close](#close) command used to generate balance assertions with costs),
+and because [balance *assignments*](#balance-assignments) do use costs (see below).
 
 ### Assertions and subaccounts
 
