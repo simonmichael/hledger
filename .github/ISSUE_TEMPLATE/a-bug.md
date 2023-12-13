@@ -1,25 +1,23 @@
 ---
 name:  A bug
-about: A problem or weakness in the software, documentation, usability, or project
+about: A weakness in the software, documentation, usability, or project
 labels: A BUG
 ---
 
-Thank you for helping to make hledger better!
-You can delete this template text before submitting.
+You can delete the following text before submitting.
 
-Some things to check before reporting:
+Thanks for your report! Some tips:
+
+- Have you checked the hledger manuals, and the right version ?
+  Eg for `hledger`: run `hledger help`, or go to
+  https://hledger.org/hledger.html and select your version at the top.
 
 - If you're not sure this is a bug, or if some discussion would help,
-  contact us on chat or the mail list first: https://hledger.org/support.html
+  contact us on chat or the mail list first:
+  https://hledger.org/support.html
 
-- Have you looked at (the right version of) the user manual ? 
-  Use `hledger help [--help]` to view the built-in manuals,
-  or view the hledger.org -> USER MANUALS and choose the right version
-  at the top of the page.
-
-Things that can help us resolve your issue faster:
-
-- A small reproducible example  (--anon can help anonymise data)
-- The output of hledger --version
-- What platform you're on
-- Any related docs that you found
+- Consider adding:
+  - A small reproducible example
+  - The output of hledger --version
+  - What platform you're on
+  - Links to any related docs that you found
