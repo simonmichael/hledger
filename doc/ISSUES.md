@@ -143,35 +143,27 @@ As of 2023 it's not too much of a problem knowing what's high priority to fix.
 Still, <https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
 describes an interesting method of ranking issues by a single "User Pain" metric. 
 This would be interesting to try at least once for hledger's open issues; it might bring some benefit ?
-What adaptation of it might work for the hledger project ? Eg (WIP):
+What adaptation of it might work for the hledger project ? Here's a simplified version:
 
-**Type (What type of bug is this?)**
+**Severity (What is the severity level of this bug ?)**
 
-- 5: Crash or data loss or privacy/security loss.
-- 4: Major usability or documentation issue.
-- 3: Minor usability or documentation issue.
-- 2: Installability or packaging issue.
-- 1: Localisation or internationalisation issue.
+- 5: Data loss or privacy/security loss. A user would drop the product.
+- 4: Crash or major usability or documentation issue. A user would look for an alternative product.
+- 3: Installability, packaging or new user experience issue. A potential user would fail to get started.
+- 2: Minor usability or documentation issue. Noticeable but not a big deal.
+- 1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
 
-**Priority (How will those affected feel about the bug?)**
+**Likelihood (Who is likely to be affected by this bug ?)**
 
-- 5: Blocking further progress on the daily build.
-- 4: A User would return the product. Cannot RTM. The Team would hold the release for this bug.
-- 3: A User would likely not purchase the product. Will show up in review. Clearly a noticeable issue.
-- 2: A Pain – users won’t like this once they notice it. A moderate number of users won’t buy.
-- 1: Nuisance – not a big deal but noticeable. Extremely unlikely to affect sales.
+- 5: All users.
+- 4: Most users.
+- 3: A minority of users.
+- 2: Only packagers or developers.
+- 1: Almost no one.
 
-**Likelihood (Who will be affected by this bug)**
+**User Pain = Severity * Likelihood / (Max Severity * Max Likelihood)**
 
-- 5: Will affect all users.
-- 4: Will affect most users.
-- 3: Will affect average number of users.
-- 2: Will only affect a few users.
-- 1: Will affect almost no one.
-
-**User Pain = Type * Likelihood * Priority / Max Possible Score**
-
-- List all the active bugs in order of User Pain.
+- List all the active bugs in order of User Pain (AKA Priority).
 - Developers check the Pain List daily and fix the highest pain bugs on the list.
 - If there are no bugs left above the current quality bar, they work on feature work.
 - When you do stumble upon a bug that will take more than a week to fix, flag it as a ‘killer’ bug (for special treatment).
