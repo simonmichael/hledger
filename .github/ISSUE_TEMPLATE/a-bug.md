@@ -14,11 +14,13 @@ Thanks for reporting! Here are some tips (please delete them before submitting):
   contact us on chat or the mail list first:
   https://hledger.org/support.html
 
-- Consider adding:
+- Not required, but any of these can help get issues resolved faster:
   - A small reproducible example
   - The output of hledger --version
   - What platform you're on
   - Links to any related docs that you found
+  - Appropriate topic labels, if you have the access level to set those
+    (If not, feel free to write them in the issue title, eg as a prefix.)
   - Estimates from 1 to 5 of
 
     - How serious is this bug ?
