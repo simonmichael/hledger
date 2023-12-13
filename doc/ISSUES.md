@@ -137,3 +137,72 @@ The [trello board](http://trello.hledger.org) (trello.hledger.org) is an
 old collection of wishlist items. This should probably be considered
 deprecated.
 
+## Prioritisation
+
+As of 2023 it's not too much of a problem knowing what's high priority to fix.
+Still, <https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
+describes an interesting method of ranking issues by a single "User Pain" metric. 
+This would be interesting to try at least once for hledger's open issues; it might bring some benefit ?
+
+Here is their system, in brief:
+
+**Type (What type of bug is this?)**
+
+7: Crash: Bug causes crash or data loss. Asserts in the Debug release.
+6: Major usability: Impairs usability in key scenarios.
+5: Minor usability: Impairs usability in secondary scenarios.
+4: Balancing: Enables degenerate usage strategies that harm the experience.
+3: Visual and Sound Polish: Aesthetic issues
+2: Localization:
+1: Documentation: A documentation issue
+
+**Priority (How will those affected feel about the bug?)**
+
+5: Blocking further progress on the daily build.
+4: A User would return the product. Cannot RTM. The Team would hold the release for this bug.
+3: A User would likely not purchase the product. Will show up in review. Clearly a noticeable issue.
+2: A Pain – users won’t like this once they notice it. A moderate number of users won’t buy.
+1: Nuisance – not a big deal but noticeable. Extremely unlikely to affect sales.
+
+**Likelihood (Who will be affected by this bug)**
+
+5: Will affect all users.
+4: Will affect most users.
+3: Will affect average number of users.
+2: Will only affect a few users.
+1: Will affect almost no one.
+
+**User Pain = Type * Likelihood * Priority / Max Possible Score**
+
+List all the active bugs in order of User Pain.
+Developers check the Pain List daily and fix the highest pain bugs on the list.
+If there are no bugs left above the current quality bar, they work on feature work.
+When you do stumble upon a bug that will take more than a week to fix, flag it as a ‘killer’ bug (for special treatment).
+
+What adaptation of the above might work for the hledger project ?
+
+**Type (What type of bug is this?)**
+
+5: Crash or data loss or privacy/security loss.
+4: Major usability or documentation issue.
+3: Minor usability or documentation issue.
+2: Installability or packaging issue.
+1: Localisation or internationalisation issue.
+
+WIP:
+
+**Priority (How will those affected feel about the bug?)**
+
+5: Blocking further progress on the daily build.
+4: A User would return the product. Cannot RTM. The Team would hold the release for this bug.
+3: A User would likely not purchase the product. Will show up in review. Clearly a noticeable issue.
+2: A Pain – users won’t like this once they notice it. A moderate number of users won’t buy.
+1: Nuisance – not a big deal but noticeable. Extremely unlikely to affect sales.
+
+**Likelihood (Who will be affected by this bug)**
+
+5: Will affect all users.
+4: Will affect most users.
+3: Will affect average number of users.
+2: Will only affect a few users.
+1: Will affect almost no one.
