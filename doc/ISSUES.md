@@ -148,7 +148,7 @@ What adaptation of it might work for the hledger project ? Here's a simplified v
 **Severity (What is the severity level of this bug ?)**
 
 - 5: Data loss or privacy/security loss. A user would drop the product.
-- 4: Crash or major usability or documentation issue. A user would look for an alternative product.
+- 4: Crash or bothersome regression or major usability or documentation issue. A user may look for an alternative product.
 - 3: Installability, packaging or new user experience issue. A potential user would fail to get started.
 - 2: Minor usability or documentation issue. Noticeable but not a big deal.
 - 1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
@@ -161,7 +161,8 @@ What adaptation of it might work for the hledger project ? Here's a simplified v
 - 2: Only packagers or developers.
 - 1: Almost no one.
 
-**User Pain = Severity * Likelihood / (Max Severity * Max Likelihood)**
+**User Pain = Severity * Likelihood / (Max Severity * Max Likelihood)**\
+**(P = S*L/25)**
 
 - List all the active bugs in order of User Pain (AKA Priority).
 - Developers check the Pain List daily and fix the highest pain bugs on the list.
