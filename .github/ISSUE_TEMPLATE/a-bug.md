@@ -19,23 +19,25 @@ Thanks for reporting! Here are some tips (please delete them before submitting):
   - The output of hledger --version
   - What platform you're on
   - Links to any related docs that you found
-  - Appropriate topic labels, if you have the access level to set those
-    (If not, feel free to write them in the issue title, eg as a prefix.)
-  - Estimates from 1 to 5 of
 
-    - How serious is this bug ?
+- If you have the access level to set labels, consider adding
+  - Any topic labels that seem appropriate
+  - Severity and impact labels estimating 
 
-      - 5: Data loss or privacy/security loss. A user would drop the product.
-      - 4: Crash or bothersome regression or major usability or documentation issue. A user may look for an alternative product.
-      - 3: Installability, packaging or new user experience issue. A potential user would fail to get started.
-      - 2: Minor usability or documentation issue. Noticeable but easy to avoid / not a big deal.
-      - 1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
+    - How severe is this bug ?
 
-    - Who is likely to be affected by this bug ?
+      - severity5: Data loss or privacy/security loss. A user would drop the product.
+      - severity4: Crash or bothersome regression or major usability or documentation issue. A user may look for an alternative product.
+      - severity3: Installability, packaging or new user experience issue. A potential user would fail to get started.
+      - severity2: Minor/moderate usability/doc issue. Easy to avoid or not a big deal.
+      - severity1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
 
-      - 5: All users.
-      - 4: Most users.
-      - 3: A minority of users.
-      - 2: Only packagers or developers.
-      - 1: Almost no one.
+    - Who is likely to be impacted by this bug ?
 
+      - impact5: All users.
+      - impact4: Most users.
+      - impact3: A minority of users.
+      - impact2: Only packagers or developers.
+      - impact1: Almost no one.
+
+(These are now in the issue tracker as severityN and impactN labels, keep synced.)
