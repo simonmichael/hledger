@@ -141,16 +141,17 @@ deprecated.
 
 As of 2023 it's not too much of a problem knowing what's high priority to fix.
 Still, <https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
-describes an interesting method of ranking issues by a single "User Pain" metric. 
-This would be interesting to try at least once for hledger's open issues; it might bring some benefit ?
-What adaptation of it might work for the hledger project ? Here's a simplified version:
+describes an interesting method of ranking issues by a single "User Pain" metric,
+what might be useful to try on our open bugs.
+What adaptation of it might work for the hledger project ?
+Here's a simplified version:
 
-**Severity (What is the severity level of this bug ?)**
+**Severity (How serious is this bug ?)**
 
 - 5: Data loss or privacy/security loss. A user would drop the product.
 - 4: Crash or bothersome regression or major usability or documentation issue. A user may look for an alternative product.
 - 3: Installability, packaging or new user experience issue. A potential user would fail to get started.
-- 2: Minor usability or documentation issue. Noticeable but not a big deal.
+- 2: Minor usability or documentation issue. Noticeable but easy to avoid / not a big deal.
 - 1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
 
 **Likelihood (Who is likely to be affected by this bug ?)**
@@ -161,10 +162,12 @@ What adaptation of it might work for the hledger project ? Here's a simplified v
 - 2: Only packagers or developers.
 - 1: Almost no one.
 
-**User Pain = Severity * Likelihood / (Max Severity * Max Likelihood)**\
-**(P = S*L/25)**
+**User Pain = S * L / 25**
 
-- List all the active bugs in order of User Pain (AKA Priority).
+  (Severity * Likelihood / (Max Severity * Max Likelihood) )
+
+- All open bugs are listed in order of User Pain (AKA Priority).
 - Developers check the Pain List daily and fix the highest pain bugs on the list.
+- The team can set easy-to-understand quality bars. For example, they can say “In order to release, we want no bugs greater than 30 pain.” 
 - If there are no bugs left above the current quality bar, they work on feature work.
-- When you do stumble upon a bug that will take more than a week to fix, flag it as a ‘killer’ bug (for special treatment).
+- When you do stumble upon a bug that will take more than a week to fix, it is flagged as a ‘killer’ bug, for special treatment.
