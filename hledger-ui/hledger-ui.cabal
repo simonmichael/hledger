@@ -84,7 +84,7 @@ library
     , fsnotify ==0.4.*
     , hledger >=1.32.99 && <1.33
     , hledger-lib >=1.32.99 && <1.33
-    , megaparsec >=7.0.0 && <9.6
+    , megaparsec >=7.0.0 && <9.7
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
     , mtl >=2.2.1
