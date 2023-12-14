@@ -148,19 +148,19 @@ Here's a simplified version:
 
 **Severity (How serious is this bug ?)**
 
-- 5: Data loss or privacy/security loss. A user would drop the product.
-- 4: Crash or bothersome regression or major usability or documentation issue. A user may look for an alternative product.
-- 3: Installability, packaging or new user experience issue. A potential user would fail to get started.
-- 2: Minor usability or documentation issue. Noticeable but easy to avoid / not a big deal.
-- 1: Cleanup/design/developer issue. Significant only to developers and design-minded users.
+- 5: Data loss or privacy/security loss bug.
+- 4: Regression, crash or major usability/doc bug.
+- 3: Installability, packaging or new user experience bug. A potential user could fail to get started.
+- 2: Minor/moderate usability/doc bug. Easy to avoid or not a big deal.
+- 1: Cleanup/design/developer bug. Significant only to developers and design-minded users.
 
 **Likelihood (Who is likely to be affected by this bug ?)**
 
-- 5: All users.
-- 4: Most users.
-- 3: A minority of users.
-- 2: Only packagers or developers.
-- 1: Almost no one.
+- 5: Affects all users.
+- 4: Affects most users.
+- 3: Affects a minority of users.
+- 2: Affects only packagers or developers.
+- 1: Affects almost no one.
 
 **User Pain = S * L / 25**
 
