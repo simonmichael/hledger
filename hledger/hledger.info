@@ -1853,7 +1853,7 @@ does not disable balance assignments, described below).
 * Assertions and multiple included files::
 * Assertions and multiple -f files::
 * Assertions and commodities::
-* Assertions and prices::
+* Assertions and costs::
 * Assertions and subaccounts::
 * Assertions and virtual postings::
 * Assertions and auto postings::
@@ -1909,7 +1909,7 @@ problems in earlier files to disrupt valid assertions in later files.
 'include', or concatenate the files temporarily.
 
 
-File: hledger.info,  Node: Assertions and commodities,  Next: Assertions and prices,  Prev: Assertions and multiple -f files,  Up: Balance assertions
+File: hledger.info,  Node: Assertions and commodities,  Next: Assertions and costs,  Prev: Assertions and multiple -f files,  Up: Balance assertions
 
 9.14.4 Assertions and commodities
 ---------------------------------
@@ -1957,10 +1957,10 @@ commodity into its own subaccount:
   a:euro   0 ==  1€
 
 
-File: hledger.info,  Node: Assertions and prices,  Next: Assertions and subaccounts,  Prev: Assertions and commodities,  Up: Balance assertions
+File: hledger.info,  Node: Assertions and costs,  Next: Assertions and subaccounts,  Prev: Assertions and commodities,  Up: Balance assertions
 
-9.14.5 Assertions and prices
-----------------------------
+9.14.5 Assertions and costs
+---------------------------
 
 Balance assertions ignore costs, and should normally be written without
 one:
@@ -1968,14 +1968,14 @@ one:
 2019/1/1
   (a)     $1 @ €1 = $1
 
-   We do allow prices to be written there, however, and print shows
-them, even though they don't affect whether the assertion passes or
-fails.  This is for backward compatibility (hledger's close command used
-to generate balance assertions with prices), and because balance
-_assignments_ do use them (see below).
+   We do allow costs to be written in balance assertion amounts,
+however, and print shows them, but they don't affect whether the
+assertion passes or fails.  This is for backward compatibility
+(hledger's close command used to generate balance assertions with
+costs), and because balance _assignments_ do use costs (see below).
 
 
-File: hledger.info,  Node: Assertions and subaccounts,  Next: Assertions and virtual postings,  Prev: Assertions and prices,  Up: Balance assertions
+File: hledger.info,  Node: Assertions and subaccounts,  Next: Assertions and virtual postings,  Prev: Assertions and costs,  Up: Balance assertions
 
 9.14.6 Assertions and subaccounts
 ---------------------------------
@@ -8113,148 +8113,138 @@ File: hledger.info,  Node: Budget report,  Next: Balance report layout,  Prev: B
 24.6.14 Budget report
 ---------------------
 
-The '--budget' report type activates extra columns showing any budget
-goals for each account and period.  The budget goals are defined by
-periodic transactions.  This is useful for comparing planned and actual
-income, expenses, time usage, etc.
+The '--budget' report type is like a regular balance report, but with
+two main differences:
 
-   For example, you can take average monthly expenses in the common
-expense categories to construct a minimal monthly budget:
+   * Budget goals and performance percentages are also shown, in
+     brackets
+   * Accounts which don't have budget goals are hidden by default.
+
+   This is useful for comparing planned and actual income, expenses,
+time usage, etc.
+
+   Periodic transaction rules are used to define budget goals.  For
+example, here's a periodic rule defining monthly goals for bus travel
+and food expenses:
 
 ;; Budget
 ~ monthly
-  income  $2000
-  expenses:food    $400
-  expenses:bus     $50
-  expenses:movies  $30
-  assets:bank:checking
+  (expenses:bus)              $30
+  (expenses:food)            $400
+
+   After recording some actual expenses,
 
 ;; Two months worth of expenses
 2017-11-01
-  income  $1950
-  expenses:food    $396
-  expenses:bus     $49
-  expenses:movies  $30
-  expenses:supplies  $20
+  income                   $-1950
+  expenses:bus                $35
+  expenses:food:groceries    $310
+  expenses:food:dining        $42
+  expenses:movies             $38
   assets:bank:checking
 
 2017-12-01
-  income  $2100
-  expenses:food    $412
-  expenses:bus     $53
-  expenses:gifts   $100
+  income                   $-2100
+  expenses:bus                $53
+  expenses:food:groceries    $380
+  expenses:food:dining        $32
+  expenses:gifts             $100
   assets:bank:checking
 
-   You can now see a monthly budget report:
+   we can see a budget report like this:
 
-$ hledger balance -M --budget
-Budget performance in 2017/11/01-2017/12/31:
+$ hledger bal -M --budget
+Budget performance in 2017-11-01..2017-12-31:
 
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
- expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
- expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
- expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
- income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
+               ||                  Nov                   Dec 
+===============++============================================
+ <unbudgeted>  || $-425                 $-565                
+ expenses      ||  $425 [ 99% of $430]   $565 [131% of $430] 
+ expenses:bus  ||   $35 [117% of  $30]    $53 [177% of  $30] 
+ expenses:food ||  $352 [ 88% of $400]   $412 [103% of $400] 
+---------------++--------------------------------------------
+               ||     0 [  0% of $430]      0 [  0% of $430] 
 
-   This is different from a normal balance report in several ways.
-Currently:
-
-   * Accounts with budget goals during the report period, and their
-     parents, are shown.
-   * Their subaccounts are not shown (regardless of the depth setting).
-   * Accounts without budget goals, if any, are aggregated and shown as
-     "<unbudgeted>".
-   * Amounts are always inclusive (subaccount-including), even in list
-     mode.
-   * After each actual amount, the corresponding goal amount and
-     percentage of goal reached are also shown, in square brackets.
-
-   This means that the numbers displayed will not always add up!  Eg
-above, the 'expenses' actual amount includes the gifts and supplies
-transactions, but the 'expenses:gifts' and 'expenses:supplies' accounts
-are not shown, as they have no budget amounts declared.
-
-   This can be confusing.  When you need to make things clearer, use the
-'-E/--empty' flag, which will reveal all accounts including unbudgeted
-ones, giving the full picture.  Eg:
-
-$ hledger balance -M --budget --empty
-Budget performance in 2017/11/01-2017/12/31:
-
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
- expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
- expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
- expenses:gifts       ||      0                      $100                   
- expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
- expenses:supplies    ||    $20                         0                   
- income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
-
-   You can roll over unspent budgets to next period with '--cumulative':
-
-$ hledger balance -M --budget --cumulative
-Budget performance in 2017/11/01-2017/12/31:
-
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
- expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
- expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
- expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
- income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
-
-   It's common to limit budgets/budget reports to just expenses
-
-hledger bal -M --budget expenses
-
-   or just revenues and expenses (eg, using account types):
-
-hledger bal -M --budget type:rx
-
-   It's also common to limit or convert them to a single currency
-('cur:COMM' or '-X COMM [--infer-market-prices]').  If showing multiple
-currencies, '--layout bare' or '--layout tall' can help.
-
-   For more examples and notes, see Budgeting.
+   This is "goal-based budgeting"; you define goals for accounts and
+periods, often recurring, and hledger shows performance relative to the
+goals.  This contrasts with "envelope budgeting", which is more detailed
+and strict - useful when cash is tight, but also quite a bit more work.
+https://plaintextaccounting.org/Budgeting has more on this topic.
 
 * Menu:
 
-* Budget report start date::
-* Budgets and subaccounts::
+* Using the budget report::
+* Budget date surprises::
 * Selecting budget goals::
-* Budget vs forecast::
+* Budgeting vs forecasting::
 
 
-File: hledger.info,  Node: Budget report start date,  Next: Budgets and subaccounts,  Up: Budget report
+File: hledger.info,  Node: Using the budget report,  Next: Budget date surprises,  Up: Budget report
 
-24.6.14.1 Budget report start date
-..................................
+24.6.14.1 Using the budget report
+.................................
 
-This might be a bug, but for now: when making budget reports, it's a
-good idea to explicitly set the report's start date to the first day of
-a reporting period, because a periodic rule like '~ monthly' generates
-its transactions on the 1st of each month, and if your journal has no
-regular transactions on the 1st, the default report start date could
-exclude that budget goal, which can be a little surprising.  Eg here the
-default report period is just the day of 2020-01-15:
+Historically this report has been confusing and fragile.  hledger's
+version should be relatively robust and intuitive, but you may still
+find surprises.  Here are more notes to help with learning and
+troubleshooting.
+
+   * In the above example, 'expenses:bus' and 'expenses:food' are shown
+     because they have budget goals during the report period.
+
+   * Their parent 'expenses' is also shown, with budget goals aggregated
+     from the children.
+
+   * The subaccounts 'expenses:food:groceries' and
+     'expenses:food:dining' are not shown since they have no budget goal
+     of their own, but they contribute to 'expenses:food''s actual
+     amount.
+
+   * Unbudgeted accounts 'expenses:movies' and 'expenses:gifts' are also
+     not shown, but they contribute to 'expenses''s actual amount.
+
+   * The other unbudgeted accounts 'income' and 'assets:bank:checking'
+     are grouped as '<unbudgeted>'.
+
+   * '--depth' or 'depth:' can be used to limit report depth in the
+     usual way (but will not reveal unbudgeted subaccounts).
+
+   * Amounts are always inclusive of subaccounts (even in '-l/--list'
+     mode).
+
+   * Numbers displayed in a -budget report will not always agree with
+     the totals, because of hidden unbudgeted accounts; this is normal.
+     '-E/--empty' can be used to reveal the hidden accounts.
+
+   * In the periodic rules used for setting budget goals, unbalanced
+     postings are convenient.
+
+   * You can filter budget reports with the usual queries, eg to focus
+     on particular accounts.  It's common to restrict them to just
+     expenses.  (The '<unbudgeted>' account is occasionally hard to
+     exclude; this is because of date surprises, discussed below.)
+
+   * When you have multiple currencies, you may want to convert them to
+     one ('-X COMM --infer-market-prices') and/or show just one at a
+     time ('cur:COMM').  If you do need to show multiple currencies at
+     once, '--layout bare' can be helpful.
+
+   * You can "roll over" amounts (actual and budgeted) to the next
+     period with '--cumulative'.
+
+   See also: https://hledger.org/budgeting.html.
+
+
+File: hledger.info,  Node: Budget date surprises,  Next: Selecting budget goals,  Prev: Using the budget report,  Up: Budget report
+
+24.6.14.2 Budget date surprises
+...............................
+
+With small data, or when starting out, some of the generated budget goal
+transaction dates might fall outside the report periods.  Eg with the
+following journal and report, the first period appears to have no
+'expenses:food' budget.  (Also the '<unbudgeted>' account should be
+excluded by the 'expenses' query, but isn't.):
 
 ~ monthly in 2020
   (expenses:food)  $500
@@ -8263,131 +8253,33 @@ default report period is just the day of 2020-01-15:
   expenses:food    $400
   assets:checking
 
-$ hledger bal expenses --budget
+$ hledger bal --budget expenses
 Budget performance in 2020-01-15:
 
-              || 2020-01-15 
-==============++============
- <unbudgeted> ||       $400 
---------------++------------
-              ||       $400 
+               ||         2020-01-15 
+===============++====================
+ <unbudgeted>  || $400               
+ expenses:food ||    0 [ 0% of $500] 
+---------------++--------------------
+               || $400 [80% of $500] 
 
-   To avoid this, specify the budget report's period, or at least the
-start date, with '-b'/'-e'/'-p'/'date:', to ensure it includes the
-budget goal transactions (periodic transactions) that you want.  Eg,
-adding '-b 2020/1/1' to the above:
+   In this case, the budget goal transactions are generated on first
+days of of month (this can be seen with 'hledger print --forecast
+tag:generated expenses').  Whereas the report period defaults to just
+the 15th day of january (this can be seen from the report table's column
+headings).
 
-$ hledger bal expenses --budget -b 2020/1/1
-Budget performance in 2020-01-01..2020-01-15:
-
-               || 2020-01-01..2020-01-15 
-===============++========================
- expenses:food ||     $400 [80% of $500] 
----------------++------------------------
-               ||     $400 [80% of $500] 
+   To fix this kind of thing, be more explicit about the report period
+(and/or the periodic rules' dates).  In this case, adding '-b 2020' does
+the trick.
 
 
-File: hledger.info,  Node: Budgets and subaccounts,  Next: Selecting budget goals,  Prev: Budget report start date,  Up: Budget report
-
-24.6.14.2 Budgets and subaccounts
-.................................
-
-You can add budgets to any account in your account hierarchy.  If you
-have budgets on both parent account and some of its children, then
-budget(s) of the child account(s) would be added to the budget of their
-parent, much like account balances behave.
-
-   In the most simple case this means that once you add a budget to any
-account, all its parents would have budget as well.
-
-   To illustrate this, consider the following budget:
-
-~ monthly from 2019/01
-    expenses:personal             $1,000.00
-    expenses:personal:electronics    $100.00
-    liabilities
-
-   With this, monthly budget for electronics is defined to be $100 and
-budget for personal expenses is an additional $1000, which implicitly
-means that budget for both 'expenses:personal' and 'expenses' is $1100.
-
-   Transactions in 'expenses:personal:electronics' will be counted both
-towards its $100 budget and $1100 of 'expenses:personal' , and
-transactions in any other subaccount of 'expenses:personal' would be
-counted towards only towards the budget of 'expenses:personal'.
-
-   For example, let's consider these transactions:
-
-~ monthly from 2019/01
-    expenses:personal             $1,000.00
-    expenses:personal:electronics    $100.00
-    liabilities
-
-2019/01/01 Google home hub
-    expenses:personal:electronics          $90.00
-    liabilities                           $-90.00
-
-2019/01/02 Phone screen protector
-    expenses:personal:electronics:upgrades          $10.00
-    liabilities
-
-2019/01/02 Weekly train ticket
-    expenses:personal:train tickets       $153.00
-    liabilities
-
-2019/01/03 Flowers
-    expenses:personal          $30.00
-    liabilities
-
-   As you can see, we have transactions in
-'expenses:personal:electronics:upgrades' and 'expenses:personal:train
-tickets', and since both of these accounts are without explicitly
-defined budget, these transactions would be counted towards budgets of
-'expenses:personal:electronics' and 'expenses:personal' accordingly:
-
-$ hledger balance --budget -M
-Budget performance in 2019/01:
-
-                               ||                           Jan 
-===============================++===============================
- expenses                      ||  $283.00 [  26% of  $1100.00] 
- expenses:personal             ||  $283.00 [  26% of  $1100.00] 
- expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
- liabilities                   || $-283.00 [  26% of $-1100.00] 
--------------------------------++-------------------------------
-                               ||        0 [                 0] 
-
-   And with '--empty', we can get a better picture of budget allocation
-and consumption:
-
-$ hledger balance --budget -M --empty
-Budget performance in 2019/01:
-
-                                        ||                           Jan 
-========================================++===============================
- expenses                               ||  $283.00 [  26% of  $1100.00] 
- expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
- expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
- expenses:personal:electronics:upgrades ||   $10.00                      
- expenses:personal:train tickets        ||  $153.00                      
- liabilities                            || $-283.00 [  26% of $-1100.00] 
-----------------------------------------++-------------------------------
-                                        ||        0 [                 0] 
-
-
-File: hledger.info,  Node: Selecting budget goals,  Next: Budget vs forecast,  Prev: Budgets and subaccounts,  Up: Budget report
+File: hledger.info,  Node: Selecting budget goals,  Next: Budgeting vs forecasting,  Prev: Budget date surprises,  Up: Budget report
 
 24.6.14.3 Selecting budget goals
 ................................
 
-The budget report evaluates periodic transaction rules to generate
-special "goal transactions", which generate the goal amounts for each
-account in each report subperiod.  When troubleshooting, you can use
-'print --forecast' to show these as forecasted transactions:
-
-$ hledger print --forecast=BUDGETREPORTPERIOD tag:generated
-
-   By default, the budget report uses all available periodic transaction
+By default, the budget report uses all available periodic transaction
 rules to generate goals.  This includes rules with a different report
 interval from your report.  Eg if you have daily, weekly and monthly
 periodic rules, all of these will contribute to the goals in a monthly
@@ -8397,56 +8289,47 @@ budget report.
 the '--budget' flag.  '--budget=DESCPAT' will match all periodic rules
 whose description contains DESCPAT, a case-insensitive substring (not a
 regular expression or query).  This means you can give your periodic
-rules descriptions (remember that two spaces are needed), and then
-select from multiple budgets defined in your journal.
+rules descriptions (remember that two spaces are needed between period
+expression and description), and then select from multiple budgets
+defined in your journal.
 
 
-File: hledger.info,  Node: Budget vs forecast,  Prev: Selecting budget goals,  Up: Budget report
+File: hledger.info,  Node: Budgeting vs forecasting,  Prev: Selecting budget goals,  Up: Budget report
 
-24.6.14.4 Budget vs forecast
-............................
+24.6.14.4 Budgeting vs forecasting
+..................................
 
-'hledger --forecast ...' and 'hledger balance --budget ...' are separate
-features, though both of them use the periodic transaction rules defined
-in the journal, and both of them generate temporary transactions for
-reporting purposes ("forecast transactions" and "budget goal
-transactions", respectively).  You can use both features at the same
-time if you want.  Here are some differences between them, as of hledger
-1.29:
+'--budget' and '--forecast' both use the periodic transaction rules in
+the journal to generate temporary transactions for reporting purposes.
+However they are separate features - though you can use both at the same
+time if you want.  Here are some differences between them:
 
-   CLI:
+  1. '--budget' is a command-specific option; it selects the *budget
+     report*.
 
-   * -forecast is a general hledger option, usable with any command
-   * -budget is a 'balance' command option, usable only with that
-     command.
+     '--forecast' is a general option; *forecasting works with all
+     reports*.
 
-   Visibility of generated transactions:
+  2. '--budget' uses *all periodic rules*; '--budget=DESCPAT' uses *just
+     the rules matched* by DESCPAT.
 
-   * forecast transactions are visible in any report, like ordinary
-     transactions
-   * budget goal transactions are invisible except for the goal amounts
-     they produce in -budget reports.
+     '--forecast' uses *all periodic rules*.
 
-   Periodic transaction rules:
+  3. '--budget''s budget goal transactions are invisible, except that
+     they produce *goal amounts*.
 
-   * -forecast uses all available periodic transaction rules
-   * -budget uses all periodic rules ('--budget') or a selected subset
-     ('--budget=DESCPAT')
+     '--forecast''s forecast transactions are visible, and *appear in
+     reports*.
 
-   Period of generated transactions:
+  4. '--budget' generates budget goal transactions *throughout the
+     report period*, optionally restricted by periods specified in the
+     periodic transaction rules.
 
-   * -forecast generates forecast transactions
-        * from after the last regular transaction to the end of the
-          report period ('--forecast')
-        * or, during a specified period ('--forecast=PERIODEXPR')
-        * possibly further restricted by a period specified in the
-          periodic transaction rule
-        * and always restricted within the bounds of the report period
-
-   * -budget generates budget goal transactions
-        * throughout the report period
-        * possibly restricted by a period specified in the periodic
-          transaction rule.
+     '--forecast' generates forecast transactions from *after the last
+     regular transaction*, to the end of the report period; while
+     '--forecast=PERIODEXPR' generates them *throughout the specified
+     period*; both optionally restricted by periods specified in the
+     periodic transaction rules.
 
 
 File: hledger.info,  Node: Balance report layout,  Next: Useful balance reports,  Prev: Budget report,  Up: balance
@@ -11006,536 +10889,536 @@ Node: Other cost/lot notations61978
 Ref: #other-costlot-notations62110
 Node: Balance assertions64699
 Ref: #balance-assertions64850
-Node: Assertions and ordering65933
-Ref: #assertions-and-ordering66122
-Node: Assertions and multiple included files66822
-Ref: #assertions-and-multiple-included-files67082
-Node: Assertions and multiple -f files67582
-Ref: #assertions-and-multiple--f-files67833
-Node: Assertions and commodities68230
-Ref: #assertions-and-commodities68452
-Node: Assertions and prices69632
-Ref: #assertions-and-prices69838
-Node: Assertions and subaccounts70265
-Ref: #assertions-and-subaccounts70486
-Node: Assertions and virtual postings70810
-Ref: #assertions-and-virtual-postings71048
-Node: Assertions and auto postings71180
-Ref: #assertions-and-auto-postings71410
-Node: Assertions and precision72055
-Ref: #assertions-and-precision72237
-Node: Posting comments72504
-Ref: #posting-comments72650
-Node: Tags73027
-Ref: #tags73141
-Node: Tag values74334
-Ref: #tag-values74423
-Node: Directives75182
-Ref: #directives75309
-Node: Directives and multiple files76639
-Ref: #directives-and-multiple-files76817
-Node: Directive effects77584
-Ref: #directive-effects77738
-Node: account directive80751
-Ref: #account-directive80907
-Node: Account comments82305
-Ref: #account-comments82455
-Node: Account subdirectives82963
-Ref: #account-subdirectives83154
-Node: Account error checking83296
-Ref: #account-error-checking83494
-Node: Account display order84683
-Ref: #account-display-order84871
-Node: Account types85972
-Ref: #account-types86113
-Node: alias directive89740
-Ref: #alias-directive89901
-Node: Basic aliases90951
-Ref: #basic-aliases91082
-Node: Regex aliases91826
-Ref: #regex-aliases91983
-Node: Combining aliases92873
-Ref: #combining-aliases93051
-Node: Aliases and multiple files94327
-Ref: #aliases-and-multiple-files94531
-Node: end aliases directive95110
-Ref: #end-aliases-directive95329
-Node: Aliases can generate bad account names95478
-Ref: #aliases-can-generate-bad-account-names95726
-Node: Aliases and account types96311
-Ref: #aliases-and-account-types96503
-Node: commodity directive97199
-Ref: #commodity-directive97373
-Node: Commodity directive syntax98558
-Ref: #commodity-directive-syntax98743
-Node: Commodity error checking100194
-Ref: #commodity-error-checking100375
-Node: decimal-mark directive100669
-Ref: #decimal-mark-directive100851
-Node: include directive101248
-Ref: #include-directive101412
-Node: P directive102324
-Ref: #p-directive102469
-Node: payee directive103358
-Ref: #payee-directive103507
-Node: tag directive103980
-Ref: #tag-directive104135
-Node: Periodic transactions104603
-Ref: #periodic-transactions104768
-Node: Periodic rule syntax106474
-Ref: #periodic-rule-syntax106652
-Node: Periodic rules and relative dates107297
-Ref: #periodic-rules-and-relative-dates107563
-Node: Two spaces between period expression and description!108074
-Ref: #two-spaces-between-period-expression-and-description108351
-Node: Auto postings109035
-Ref: #auto-postings109183
-Node: Auto postings and multiple files111620
-Ref: #auto-postings-and-multiple-files111784
-Node: Auto postings and dates112185
-Ref: #auto-postings-and-dates112433
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions112608
-Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions112964
-Node: Auto posting tags113467
-Ref: #auto-posting-tags113749
-Node: Auto postings on forecast transactions only114385
-Ref: #auto-postings-on-forecast-transactions-only114631
-Node: Other syntax114878
-Ref: #other-syntax114994
-Node: Balance assignments115621
-Ref: #balance-assignments115777
-Node: Balance assignments and prices117150
-Ref: #balance-assignments-and-prices117365
-Node: Balance assignments and multiple files117576
-Ref: #balance-assignments-and-multiple-files117807
-Node: Bracketed posting dates118000
-Ref: #bracketed-posting-dates118184
-Node: D directive118698
-Ref: #d-directive118866
-Node: apply account directive120466
-Ref: #apply-account-directive120646
-Node: Y directive121333
-Ref: #y-directive121493
-Node: Secondary dates122321
-Ref: #secondary-dates122475
-Node: Star comments123289
-Ref: #star-comments123449
-Node: Valuation expressions123981
-Ref: #valuation-expressions124158
-Node: Virtual postings124280
-Ref: #virtual-postings124457
-Node: Other Ledger directives125894
-Ref: #other-ledger-directives126057
-Node: CSV126623
-Ref: #csv126716
-Node: CSV rules cheatsheet128796
-Ref: #csv-rules-cheatsheet128925
-Node: source130723
-Ref: #source130846
-Node: separator131726
-Ref: #separator131839
-Node: skip132379
-Ref: #skip132487
-Node: date-format133031
-Ref: #date-format133152
-Node: timezone133876
-Ref: #timezone133999
-Node: newest-first135004
-Ref: #newest-first135142
-Node: intra-day-reversed135719
-Ref: #intra-day-reversed135873
-Node: decimal-mark136321
-Ref: #decimal-mark136462
-Node: fields list136801
-Ref: #fields-list136940
-Node: Field assignment138611
-Ref: #field-assignment138755
-Node: Field names139832
-Ref: #field-names139963
-Node: date field141166
-Ref: #date-field141284
-Node: date2 field141332
-Ref: #date2-field141473
-Node: status field141529
-Ref: #status-field141672
-Node: code field141721
-Ref: #code-field141866
-Node: description field141911
-Ref: #description-field142071
-Node: comment field142130
-Ref: #comment-field142285
-Node: account field142578
-Ref: #account-field142728
-Node: amount field143298
-Ref: #amount-field143447
-Node: currency field146139
-Ref: #currency-field146292
-Node: balance field146549
-Ref: #balance-field146681
-Node: if block147053
-Ref: #if-block147174
-Node: Matchers148582
-Ref: #matchers148696
-Node: What matchers match149493
-Ref: #what-matchers-match149642
-Node: Combining matchers150082
-Ref: #combining-matchers150250
-Node: Match groups150736
-Ref: #match-groups150864
-Node: if table151611
-Ref: #if-table151733
-Node: balance-type153295
-Ref: #balance-type153424
-Node: include154124
-Ref: #include154251
-Node: Working with CSV154695
-Ref: #working-with-csv154842
-Node: Rapid feedback155249
-Ref: #rapid-feedback155382
-Node: Valid CSV155834
-Ref: #valid-csv155980
-Node: File Extension156712
-Ref: #file-extension156885
-Node: Reading CSV from standard input157449
-Ref: #reading-csv-from-standard-input157673
-Node: Reading multiple CSV files157837
-Ref: #reading-multiple-csv-files158068
-Node: Reading files specified by rule158309
-Ref: #reading-files-specified-by-rule158537
-Node: Valid transactions159708
-Ref: #valid-transactions159907
-Node: Deduplicating importing160535
-Ref: #deduplicating-importing160730
-Node: Setting amounts161766
-Ref: #setting-amounts161937
-Node: Amount signs164295
-Ref: #amount-signs164465
-Node: Setting currency/commodity165362
-Ref: #setting-currencycommodity165566
-Node: Amount decimal places166740
-Ref: #amount-decimal-places166946
-Node: Referencing other fields167258
-Ref: #referencing-other-fields167471
-Node: How CSV rules are evaluated168368
-Ref: #how-csv-rules-are-evaluated168585
-Node: Well factored rules170038
-Ref: #well-factored-rules170206
-Node: CSV rules examples170530
-Ref: #csv-rules-examples170665
-Node: Bank of Ireland170730
-Ref: #bank-of-ireland170867
-Node: Coinbase172329
-Ref: #coinbase172467
-Node: Amazon173514
-Ref: #amazon173639
-Node: Paypal175358
-Ref: #paypal175466
-Node: Timeclock183110
-Ref: #timeclock183215
-Node: Timedot185393
-Ref: #timedot185516
-Node: Timedot examples188621
-Ref: #timedot-examples188727
-Node: PART 3 REPORTING CONCEPTS190898
-Ref: #part-3-reporting-concepts191080
-Node: Amount formatting parseability191080
-Ref: #amount-formatting-parseability191277
-Node: Time periods193482
-Ref: #time-periods193621
-Node: Report start & end date193739
-Ref: #report-start-end-date193891
-Node: Smart dates195550
-Ref: #smart-dates195703
-Node: Report intervals197571
-Ref: #report-intervals197726
-Node: Date adjustment198144
-Ref: #date-adjustment198304
-Node: Period expressions199155
-Ref: #period-expressions199296
-Node: Period expressions with a report interval201060
-Ref: #period-expressions-with-a-report-interval201294
-Node: More complex report intervals201508
-Ref: #more-complex-report-intervals201753
-Node: Multiple weekday intervals203554
-Ref: #multiple-weekday-intervals203743
-Node: Depth204565
-Ref: #depth204667
-Node: Queries204963
-Ref: #queries205065
-Node: Query types206190
-Ref: #query-types206311
-Node: Combining query terms209647
-Ref: #combining-query-terms209824
-Node: Queries and command options211092
-Ref: #queries-and-command-options211291
-Node: Queries and valuation211540
-Ref: #queries-and-valuation211735
-Node: Querying with account aliases211964
-Ref: #querying-with-account-aliases212175
-Node: Querying with cost or value212305
-Ref: #querying-with-cost-or-value212482
-Node: Pivoting212783
-Ref: #pivoting212897
-Node: Generating data214674
-Ref: #generating-data214806
-Node: Forecasting216389
-Ref: #forecasting216514
-Node: --forecast217045
-Ref: #forecast217176
-Node: Inspecting forecast transactions218222
-Ref: #inspecting-forecast-transactions218424
-Node: Forecast reports219554
-Ref: #forecast-reports219727
-Node: Forecast tags220663
-Ref: #forecast-tags220823
-Node: Forecast period in detail221283
-Ref: #forecast-period-in-detail221477
-Node: Forecast troubleshooting222371
-Ref: #forecast-troubleshooting222539
-Node: Budgeting223442
-Ref: #budgeting223562
-Node: Cost reporting223999
-Ref: #cost-reporting224133
-Node: Recording costs224794
-Ref: #recording-costs224930
-Node: Reporting at cost226521
-Ref: #reporting-at-cost226696
-Node: Equity conversion postings227286
-Ref: #equity-conversion-postings227500
-Node: Inferring equity conversion postings229931
-Ref: #inferring-equity-conversion-postings230194
-Node: Combining costs and equity conversion postings230946
-Ref: #combining-costs-and-equity-conversion-postings231256
-Node: Requirements for detecting equity conversion postings232244
-Ref: #requirements-for-detecting-equity-conversion-postings232566
-Node: Infer cost and equity by default ?233766
-Ref: #infer-cost-and-equity-by-default233995
-Node: Value reporting234203
-Ref: #value-reporting234345
-Node: -V Value235119
-Ref: #v-value235251
-Node: -X Value in specified commodity235446
-Ref: #x-value-in-specified-commodity235647
-Node: Valuation date235796
-Ref: #valuation-date235973
-Node: Finding market price236756
-Ref: #finding-market-price236967
-Node: --infer-market-prices market prices from transactions238136
-Ref: #infer-market-prices-market-prices-from-transactions238418
-Node: Valuation commodity241180
-Ref: #valuation-commodity241399
-Node: Simple valuation examples242612
-Ref: #simple-valuation-examples242816
-Node: --value Flexible valuation243475
-Ref: #value-flexible-valuation243685
-Node: More valuation examples245329
-Ref: #more-valuation-examples245544
-Node: Interaction of valuation and queries246814
-Ref: #interaction-of-valuation-and-queries247061
-Node: Effect of valuation on reports247533
-Ref: #effect-of-valuation-on-reports247736
-Node: PART 4 COMMANDS255433
-Ref: #part-4-commands255582
-Node: Commands overview255961
-Ref: #commands-overview256095
-Node: DATA ENTRY256274
-Ref: #data-entry256398
-Node: DATA CREATION256597
-Ref: #data-creation256751
-Node: DATA MANAGEMENT256869
-Ref: #data-management257034
-Node: REPORTS FINANCIAL257155
-Ref: #reports-financial257330
-Node: REPORTS VERSATILE257635
-Ref: #reports-versatile257808
-Node: REPORTS BASIC258061
-Ref: #reports-basic258213
-Node: HELP258722
-Ref: #help258844
-Node: ADD-ONS258954
-Ref: #add-ons259060
-Node: accounts259639
-Ref: #accounts259772
-Node: activity261659
-Ref: #activity261778
-Node: add262152
-Ref: #add262262
-Node: aregister265073
-Ref: #aregister265194
-Node: aregister and posting dates268082
-Ref: #aregister-and-posting-dates268227
-Node: balance268983
-Ref: #balance269109
-Node: balance features270094
-Ref: #balance-features270234
-Node: Simple balance report272200
-Ref: #simple-balance-report272385
-Node: Balance report line format274010
-Ref: #balance-report-line-format274212
-Node: Filtered balance report276370
-Ref: #filtered-balance-report276562
-Node: List or tree mode276889
-Ref: #list-or-tree-mode277057
-Node: Depth limiting278402
-Ref: #depth-limiting278568
-Node: Dropping top-level accounts279169
-Ref: #dropping-top-level-accounts279369
-Node: Showing declared accounts279679
-Ref: #showing-declared-accounts279878
-Node: Sorting by amount280409
-Ref: #sorting-by-amount280576
-Node: Percentages281246
-Ref: #percentages281405
-Node: Multi-period balance report281953
-Ref: #multi-period-balance-report282153
-Node: Balance change end balance284428
-Ref: #balance-change-end-balance284637
-Node: Balance report types286065
-Ref: #balance-report-types286246
-Node: Calculation type286744
-Ref: #calculation-type286899
-Node: Accumulation type287448
-Ref: #accumulation-type287628
-Node: Valuation type288530
-Ref: #valuation-type288718
-Node: Combining balance report types289719
-Ref: #combining-balance-report-types289913
-Node: Budget report291751
-Ref: #budget-report291913
-Node: Budget report start date297567
-Ref: #budget-report-start-date297745
-Node: Budgets and subaccounts299077
-Ref: #budgets-and-subaccounts299284
-Node: Selecting budget goals302724
-Ref: #selecting-budget-goals302923
-Node: Budget vs forecast303958
-Ref: #budget-vs-forecast304117
-Node: Balance report layout305747
-Ref: #balance-report-layout305927
-Node: Useful balance reports314112
-Ref: #useful-balance-reports314272
-Node: balancesheet315357
-Ref: #balancesheet315502
-Node: balancesheetequity316829
-Ref: #balancesheetequity316987
-Node: cashflow318383
-Ref: #cashflow318514
-Node: check319949
-Ref: #check320063
-Node: Default checks320867
-Ref: #default-checks320993
-Node: Strict checks321490
-Ref: #strict-checks321635
-Node: Other checks322115
-Ref: #other-checks322257
-Node: Custom checks322790
-Ref: #custom-checks322947
-Node: More about specific checks323364
-Ref: #more-about-specific-checks323526
-Node: close324232
-Ref: #close324343
-Node: close and balance assertions327808
-Ref: #close-and-balance-assertions327986
-Node: Example retain earnings329137
-Ref: #example-retain-earnings329354
-Node: Example migrate balances to a new file329786
-Ref: #example-migrate-balances-to-a-new-file330051
-Node: Example excluding closing/opening transactions330627
-Ref: #example-excluding-closingopening-transactions330876
-Node: codes332094
-Ref: #codes332211
-Node: commodities333075
-Ref: #commodities333203
-Node: demo333273
-Ref: #demo333394
-Node: descriptions334310
-Ref: #descriptions334440
-Node: diff334731
-Ref: #diff334846
-Node: files335888
-Ref: #files335997
-Node: help336138
-Ref: #help-1336247
-Node: import337620
-Ref: #import337743
-Node: Deduplication338851
-Ref: #deduplication338976
-Node: Import testing340995
-Ref: #import-testing341160
-Node: Importing balance assignments342003
-Ref: #importing-balance-assignments342209
-Node: Commodity display styles342858
-Ref: #commodity-display-styles343031
-Node: incomestatement343160
-Ref: #incomestatement343302
-Node: notes344630
-Ref: #notes344752
-Node: payees345114
-Ref: #payees345229
-Node: prices345748
-Ref: #prices345863
-Node: print346516
-Ref: #print346631
-Node: print explicitness347607
-Ref: #print-explicitness347750
-Node: print amount style348529
-Ref: #print-amount-style348699
-Node: print parseability349751
-Ref: #print-parseability349923
-Node: print other features350672
-Ref: #print-other-features350851
-Node: print output format351372
-Ref: #print-output-format351520
-Node: register354639
-Ref: #register354761
-Node: Custom register output359792
-Ref: #custom-register-output359923
-Node: rewrite361267
-Ref: #rewrite361385
-Node: Re-write rules in a file363283
-Ref: #re-write-rules-in-a-file363446
-Node: Diff output format364595
-Ref: #diff-output-format364778
-Node: rewrite vs print --auto365870
-Ref: #rewrite-vs.-print---auto366030
-Node: roi366586
-Ref: #roi366693
-Node: Spaces and special characters in --inv and --pnl368505
-Ref: #spaces-and-special-characters-in---inv-and---pnl368745
-Node: Semantics of --inv and --pnl369233
-Ref: #semantics-of---inv-and---pnl369472
-Node: IRR and TWR explained371322
-Ref: #irr-and-twr-explained371482
-Node: stats374735
-Ref: #stats374843
-Node: tags376230
-Ref: #tags-1376337
-Node: test377346
-Ref: #test377439
-Node: PART 5 COMMON TASKS378181
-Ref: #part-5-common-tasks378327
-Node: Getting help378625
-Ref: #getting-help378766
-Node: Constructing command lines379526
-Ref: #constructing-command-lines379727
-Node: Starting a journal file380384
-Ref: #starting-a-journal-file380586
-Node: Setting LEDGER_FILE381788
-Ref: #setting-ledger_file381980
-Node: Setting opening balances382937
-Ref: #setting-opening-balances383138
-Node: Recording transactions386279
-Ref: #recording-transactions386468
-Node: Reconciling387024
-Ref: #reconciling387176
-Node: Reporting389433
-Ref: #reporting389582
-Node: Migrating to a new file393567
-Ref: #migrating-to-a-new-file393724
-Node: BUGS394023
-Ref: #bugs394113
-Node: Troubleshooting394992
-Ref: #troubleshooting395092
+Node: Assertions and ordering65932
+Ref: #assertions-and-ordering66121
+Node: Assertions and multiple included files66821
+Ref: #assertions-and-multiple-included-files67081
+Node: Assertions and multiple -f files67581
+Ref: #assertions-and-multiple--f-files67832
+Node: Assertions and commodities68229
+Ref: #assertions-and-commodities68450
+Node: Assertions and costs69630
+Ref: #assertions-and-costs69833
+Node: Assertions and subaccounts70274
+Ref: #assertions-and-subaccounts70494
+Node: Assertions and virtual postings70818
+Ref: #assertions-and-virtual-postings71056
+Node: Assertions and auto postings71188
+Ref: #assertions-and-auto-postings71418
+Node: Assertions and precision72063
+Ref: #assertions-and-precision72245
+Node: Posting comments72512
+Ref: #posting-comments72658
+Node: Tags73035
+Ref: #tags73149
+Node: Tag values74342
+Ref: #tag-values74431
+Node: Directives75190
+Ref: #directives75317
+Node: Directives and multiple files76647
+Ref: #directives-and-multiple-files76825
+Node: Directive effects77592
+Ref: #directive-effects77746
+Node: account directive80759
+Ref: #account-directive80915
+Node: Account comments82313
+Ref: #account-comments82463
+Node: Account subdirectives82971
+Ref: #account-subdirectives83162
+Node: Account error checking83304
+Ref: #account-error-checking83502
+Node: Account display order84691
+Ref: #account-display-order84879
+Node: Account types85980
+Ref: #account-types86121
+Node: alias directive89748
+Ref: #alias-directive89909
+Node: Basic aliases90959
+Ref: #basic-aliases91090
+Node: Regex aliases91834
+Ref: #regex-aliases91991
+Node: Combining aliases92881
+Ref: #combining-aliases93059
+Node: Aliases and multiple files94335
+Ref: #aliases-and-multiple-files94539
+Node: end aliases directive95118
+Ref: #end-aliases-directive95337
+Node: Aliases can generate bad account names95486
+Ref: #aliases-can-generate-bad-account-names95734
+Node: Aliases and account types96319
+Ref: #aliases-and-account-types96511
+Node: commodity directive97207
+Ref: #commodity-directive97381
+Node: Commodity directive syntax98566
+Ref: #commodity-directive-syntax98751
+Node: Commodity error checking100202
+Ref: #commodity-error-checking100383
+Node: decimal-mark directive100677
+Ref: #decimal-mark-directive100859
+Node: include directive101256
+Ref: #include-directive101420
+Node: P directive102332
+Ref: #p-directive102477
+Node: payee directive103366
+Ref: #payee-directive103515
+Node: tag directive103988
+Ref: #tag-directive104143
+Node: Periodic transactions104611
+Ref: #periodic-transactions104776
+Node: Periodic rule syntax106482
+Ref: #periodic-rule-syntax106660
+Node: Periodic rules and relative dates107305
+Ref: #periodic-rules-and-relative-dates107571
+Node: Two spaces between period expression and description!108082
+Ref: #two-spaces-between-period-expression-and-description108359
+Node: Auto postings109043
+Ref: #auto-postings109191
+Node: Auto postings and multiple files111628
+Ref: #auto-postings-and-multiple-files111792
+Node: Auto postings and dates112193
+Ref: #auto-postings-and-dates112441
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions112616
+Ref: #auto-postings-and-transaction-balancing-inferred-amounts-balance-assertions112972
+Node: Auto posting tags113475
+Ref: #auto-posting-tags113757
+Node: Auto postings on forecast transactions only114393
+Ref: #auto-postings-on-forecast-transactions-only114639
+Node: Other syntax114886
+Ref: #other-syntax115002
+Node: Balance assignments115629
+Ref: #balance-assignments115785
+Node: Balance assignments and prices117158
+Ref: #balance-assignments-and-prices117373
+Node: Balance assignments and multiple files117584
+Ref: #balance-assignments-and-multiple-files117815
+Node: Bracketed posting dates118008
+Ref: #bracketed-posting-dates118192
+Node: D directive118706
+Ref: #d-directive118874
+Node: apply account directive120474
+Ref: #apply-account-directive120654
+Node: Y directive121341
+Ref: #y-directive121501
+Node: Secondary dates122329
+Ref: #secondary-dates122483
+Node: Star comments123297
+Ref: #star-comments123457
+Node: Valuation expressions123989
+Ref: #valuation-expressions124166
+Node: Virtual postings124288
+Ref: #virtual-postings124465
+Node: Other Ledger directives125902
+Ref: #other-ledger-directives126065
+Node: CSV126631
+Ref: #csv126724
+Node: CSV rules cheatsheet128804
+Ref: #csv-rules-cheatsheet128933
+Node: source130731
+Ref: #source130854
+Node: separator131734
+Ref: #separator131847
+Node: skip132387
+Ref: #skip132495
+Node: date-format133039
+Ref: #date-format133160
+Node: timezone133884
+Ref: #timezone134007
+Node: newest-first135012
+Ref: #newest-first135150
+Node: intra-day-reversed135727
+Ref: #intra-day-reversed135881
+Node: decimal-mark136329
+Ref: #decimal-mark136470
+Node: fields list136809
+Ref: #fields-list136948
+Node: Field assignment138619
+Ref: #field-assignment138763
+Node: Field names139840
+Ref: #field-names139971
+Node: date field141174
+Ref: #date-field141292
+Node: date2 field141340
+Ref: #date2-field141481
+Node: status field141537
+Ref: #status-field141680
+Node: code field141729
+Ref: #code-field141874
+Node: description field141919
+Ref: #description-field142079
+Node: comment field142138
+Ref: #comment-field142293
+Node: account field142586
+Ref: #account-field142736
+Node: amount field143306
+Ref: #amount-field143455
+Node: currency field146147
+Ref: #currency-field146300
+Node: balance field146557
+Ref: #balance-field146689
+Node: if block147061
+Ref: #if-block147182
+Node: Matchers148590
+Ref: #matchers148704
+Node: What matchers match149501
+Ref: #what-matchers-match149650
+Node: Combining matchers150090
+Ref: #combining-matchers150258
+Node: Match groups150744
+Ref: #match-groups150872
+Node: if table151619
+Ref: #if-table151741
+Node: balance-type153303
+Ref: #balance-type153432
+Node: include154132
+Ref: #include154259
+Node: Working with CSV154703
+Ref: #working-with-csv154850
+Node: Rapid feedback155257
+Ref: #rapid-feedback155390
+Node: Valid CSV155842
+Ref: #valid-csv155988
+Node: File Extension156720
+Ref: #file-extension156893
+Node: Reading CSV from standard input157457
+Ref: #reading-csv-from-standard-input157681
+Node: Reading multiple CSV files157845
+Ref: #reading-multiple-csv-files158076
+Node: Reading files specified by rule158317
+Ref: #reading-files-specified-by-rule158545
+Node: Valid transactions159716
+Ref: #valid-transactions159915
+Node: Deduplicating importing160543
+Ref: #deduplicating-importing160738
+Node: Setting amounts161774
+Ref: #setting-amounts161945
+Node: Amount signs164303
+Ref: #amount-signs164473
+Node: Setting currency/commodity165370
+Ref: #setting-currencycommodity165574
+Node: Amount decimal places166748
+Ref: #amount-decimal-places166954
+Node: Referencing other fields167266
+Ref: #referencing-other-fields167479
+Node: How CSV rules are evaluated168376
+Ref: #how-csv-rules-are-evaluated168593
+Node: Well factored rules170046
+Ref: #well-factored-rules170214
+Node: CSV rules examples170538
+Ref: #csv-rules-examples170673
+Node: Bank of Ireland170738
+Ref: #bank-of-ireland170875
+Node: Coinbase172337
+Ref: #coinbase172475
+Node: Amazon173522
+Ref: #amazon173647
+Node: Paypal175366
+Ref: #paypal175474
+Node: Timeclock183118
+Ref: #timeclock183223
+Node: Timedot185401
+Ref: #timedot185524
+Node: Timedot examples188629
+Ref: #timedot-examples188735
+Node: PART 3 REPORTING CONCEPTS190906
+Ref: #part-3-reporting-concepts191088
+Node: Amount formatting parseability191088
+Ref: #amount-formatting-parseability191285
+Node: Time periods193490
+Ref: #time-periods193629
+Node: Report start & end date193747
+Ref: #report-start-end-date193899
+Node: Smart dates195558
+Ref: #smart-dates195711
+Node: Report intervals197579
+Ref: #report-intervals197734
+Node: Date adjustment198152
+Ref: #date-adjustment198312
+Node: Period expressions199163
+Ref: #period-expressions199304
+Node: Period expressions with a report interval201068
+Ref: #period-expressions-with-a-report-interval201302
+Node: More complex report intervals201516
+Ref: #more-complex-report-intervals201761
+Node: Multiple weekday intervals203562
+Ref: #multiple-weekday-intervals203751
+Node: Depth204573
+Ref: #depth204675
+Node: Queries204971
+Ref: #queries205073
+Node: Query types206198
+Ref: #query-types206319
+Node: Combining query terms209655
+Ref: #combining-query-terms209832
+Node: Queries and command options211100
+Ref: #queries-and-command-options211299
+Node: Queries and valuation211548
+Ref: #queries-and-valuation211743
+Node: Querying with account aliases211972
+Ref: #querying-with-account-aliases212183
+Node: Querying with cost or value212313
+Ref: #querying-with-cost-or-value212490
+Node: Pivoting212791
+Ref: #pivoting212905
+Node: Generating data214682
+Ref: #generating-data214814
+Node: Forecasting216397
+Ref: #forecasting216522
+Node: --forecast217053
+Ref: #forecast217184
+Node: Inspecting forecast transactions218230
+Ref: #inspecting-forecast-transactions218432
+Node: Forecast reports219562
+Ref: #forecast-reports219735
+Node: Forecast tags220671
+Ref: #forecast-tags220831
+Node: Forecast period in detail221291
+Ref: #forecast-period-in-detail221485
+Node: Forecast troubleshooting222379
+Ref: #forecast-troubleshooting222547
+Node: Budgeting223450
+Ref: #budgeting223570
+Node: Cost reporting224007
+Ref: #cost-reporting224141
+Node: Recording costs224802
+Ref: #recording-costs224938
+Node: Reporting at cost226529
+Ref: #reporting-at-cost226704
+Node: Equity conversion postings227294
+Ref: #equity-conversion-postings227508
+Node: Inferring equity conversion postings229939
+Ref: #inferring-equity-conversion-postings230202
+Node: Combining costs and equity conversion postings230954
+Ref: #combining-costs-and-equity-conversion-postings231264
+Node: Requirements for detecting equity conversion postings232252
+Ref: #requirements-for-detecting-equity-conversion-postings232574
+Node: Infer cost and equity by default ?233774
+Ref: #infer-cost-and-equity-by-default234003
+Node: Value reporting234211
+Ref: #value-reporting234353
+Node: -V Value235127
+Ref: #v-value235259
+Node: -X Value in specified commodity235454
+Ref: #x-value-in-specified-commodity235655
+Node: Valuation date235804
+Ref: #valuation-date235981
+Node: Finding market price236764
+Ref: #finding-market-price236975
+Node: --infer-market-prices market prices from transactions238144
+Ref: #infer-market-prices-market-prices-from-transactions238426
+Node: Valuation commodity241188
+Ref: #valuation-commodity241407
+Node: Simple valuation examples242620
+Ref: #simple-valuation-examples242824
+Node: --value Flexible valuation243483
+Ref: #value-flexible-valuation243693
+Node: More valuation examples245337
+Ref: #more-valuation-examples245552
+Node: Interaction of valuation and queries246822
+Ref: #interaction-of-valuation-and-queries247069
+Node: Effect of valuation on reports247541
+Ref: #effect-of-valuation-on-reports247744
+Node: PART 4 COMMANDS255441
+Ref: #part-4-commands255590
+Node: Commands overview255969
+Ref: #commands-overview256103
+Node: DATA ENTRY256282
+Ref: #data-entry256406
+Node: DATA CREATION256605
+Ref: #data-creation256759
+Node: DATA MANAGEMENT256877
+Ref: #data-management257042
+Node: REPORTS FINANCIAL257163
+Ref: #reports-financial257338
+Node: REPORTS VERSATILE257643
+Ref: #reports-versatile257816
+Node: REPORTS BASIC258069
+Ref: #reports-basic258221
+Node: HELP258730
+Ref: #help258852
+Node: ADD-ONS258962
+Ref: #add-ons259068
+Node: accounts259647
+Ref: #accounts259780
+Node: activity261667
+Ref: #activity261786
+Node: add262160
+Ref: #add262270
+Node: aregister265081
+Ref: #aregister265202
+Node: aregister and posting dates268090
+Ref: #aregister-and-posting-dates268235
+Node: balance268991
+Ref: #balance269117
+Node: balance features270102
+Ref: #balance-features270242
+Node: Simple balance report272208
+Ref: #simple-balance-report272393
+Node: Balance report line format274018
+Ref: #balance-report-line-format274220
+Node: Filtered balance report276378
+Ref: #filtered-balance-report276570
+Node: List or tree mode276897
+Ref: #list-or-tree-mode277065
+Node: Depth limiting278410
+Ref: #depth-limiting278576
+Node: Dropping top-level accounts279177
+Ref: #dropping-top-level-accounts279377
+Node: Showing declared accounts279687
+Ref: #showing-declared-accounts279886
+Node: Sorting by amount280417
+Ref: #sorting-by-amount280584
+Node: Percentages281254
+Ref: #percentages281413
+Node: Multi-period balance report281961
+Ref: #multi-period-balance-report282161
+Node: Balance change end balance284436
+Ref: #balance-change-end-balance284645
+Node: Balance report types286073
+Ref: #balance-report-types286254
+Node: Calculation type286752
+Ref: #calculation-type286907
+Node: Accumulation type287456
+Ref: #accumulation-type287636
+Node: Valuation type288538
+Ref: #valuation-type288726
+Node: Combining balance report types289727
+Ref: #combining-balance-report-types289921
+Node: Budget report291759
+Ref: #budget-report291921
+Node: Using the budget report294064
+Ref: #using-the-budget-report294237
+Node: Budget date surprises296340
+Ref: #budget-date-surprises296540
+Node: Selecting budget goals297704
+Ref: #selecting-budget-goals297907
+Node: Budgeting vs forecasting298652
+Ref: #budgeting-vs-forecasting298829
+Node: Balance report layout300100
+Ref: #balance-report-layout300280
+Node: Useful balance reports308465
+Ref: #useful-balance-reports308625
+Node: balancesheet309710
+Ref: #balancesheet309855
+Node: balancesheetequity311182
+Ref: #balancesheetequity311340
+Node: cashflow312736
+Ref: #cashflow312867
+Node: check314302
+Ref: #check314416
+Node: Default checks315220
+Ref: #default-checks315346
+Node: Strict checks315843
+Ref: #strict-checks315988
+Node: Other checks316468
+Ref: #other-checks316610
+Node: Custom checks317143
+Ref: #custom-checks317300
+Node: More about specific checks317717
+Ref: #more-about-specific-checks317879
+Node: close318585
+Ref: #close318696
+Node: close and balance assertions322161
+Ref: #close-and-balance-assertions322339
+Node: Example retain earnings323490
+Ref: #example-retain-earnings323707
+Node: Example migrate balances to a new file324139
+Ref: #example-migrate-balances-to-a-new-file324404
+Node: Example excluding closing/opening transactions324980
+Ref: #example-excluding-closingopening-transactions325229
+Node: codes326447
+Ref: #codes326564
+Node: commodities327428
+Ref: #commodities327556
+Node: demo327626
+Ref: #demo327747
+Node: descriptions328663
+Ref: #descriptions328793
+Node: diff329084
+Ref: #diff329199
+Node: files330241
+Ref: #files330350
+Node: help330491
+Ref: #help-1330600
+Node: import331973
+Ref: #import332096
+Node: Deduplication333204
+Ref: #deduplication333329
+Node: Import testing335348
+Ref: #import-testing335513
+Node: Importing balance assignments336356
+Ref: #importing-balance-assignments336562
+Node: Commodity display styles337211
+Ref: #commodity-display-styles337384
+Node: incomestatement337513
+Ref: #incomestatement337655
+Node: notes338983
+Ref: #notes339105
+Node: payees339467
+Ref: #payees339582
+Node: prices340101
+Ref: #prices340216
+Node: print340869
+Ref: #print340984
+Node: print explicitness341960
+Ref: #print-explicitness342103
+Node: print amount style342882
+Ref: #print-amount-style343052
+Node: print parseability344104
+Ref: #print-parseability344276
+Node: print other features345025
+Ref: #print-other-features345204
+Node: print output format345725
+Ref: #print-output-format345873
+Node: register348992
+Ref: #register349114
+Node: Custom register output354145
+Ref: #custom-register-output354276
+Node: rewrite355620
+Ref: #rewrite355738
+Node: Re-write rules in a file357636
+Ref: #re-write-rules-in-a-file357799
+Node: Diff output format358948
+Ref: #diff-output-format359131
+Node: rewrite vs print --auto360223
+Ref: #rewrite-vs.-print---auto360383
+Node: roi360939
+Ref: #roi361046
+Node: Spaces and special characters in --inv and --pnl362858
+Ref: #spaces-and-special-characters-in---inv-and---pnl363098
+Node: Semantics of --inv and --pnl363586
+Ref: #semantics-of---inv-and---pnl363825
+Node: IRR and TWR explained365675
+Ref: #irr-and-twr-explained365835
+Node: stats369088
+Ref: #stats369196
+Node: tags370583
+Ref: #tags-1370690
+Node: test371699
+Ref: #test371792
+Node: PART 5 COMMON TASKS372534
+Ref: #part-5-common-tasks372680
+Node: Getting help372978
+Ref: #getting-help373119
+Node: Constructing command lines373879
+Ref: #constructing-command-lines374080
+Node: Starting a journal file374737
+Ref: #starting-a-journal-file374939
+Node: Setting LEDGER_FILE376141
+Ref: #setting-ledger_file376333
+Node: Setting opening balances377290
+Ref: #setting-opening-balances377491
+Node: Recording transactions380632
+Ref: #recording-transactions380821
+Node: Reconciling381377
+Ref: #reconciling381529
+Node: Reporting383786
+Ref: #reporting383935
+Node: Migrating to a new file387920
+Ref: #migrating-to-a-new-file388077
+Node: BUGS388376
+Ref: #bugs388466
+Node: Troubleshooting389345
+Ref: #troubleshooting389445
 
 End Tag Table
 

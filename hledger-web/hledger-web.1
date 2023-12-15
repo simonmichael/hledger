@@ -59,44 +59,13 @@ With \f[CR]--serve-api\f[R]: only the JSON API is served.
 In all cases hledger-web runs as a foreground process, logging requests
 to stdout.
 .SH OPTIONS
-Command-line options and arguments may be used to set an initial filter
-on the data.
-These filter options are not shown in the web UI, but it will be applied
-in addition to any search query entered there.
-.PP
 hledger-web provides the following options:
 .TP
 \f[CR]--serve\f[R]
 serve and log requests, don\[aq]t browse or auto-exit after timeout
 .TP
 \f[CR]--serve-api\f[R]
-like --serve, but serve only the JSON web API, without the server-side
-web UI
-.TP
-\f[CR]--host=IPADDR\f[R]
-listen on this IP address (default: 127.0.0.1)
-.TP
-\f[CR]--port=PORT\f[R]
-listen on this TCP port (default: 5000)
-.TP
-\f[CR]--socket=SOCKETFILE\f[R]
-use a unix domain socket file to listen for requests instead of a TCP
-socket.
-Implies \f[CR]--serve\f[R].
-It can only be used if the operating system can provide this type of
-socket.
-.TP
-\f[CR]--base-url=URL\f[R]
-set the base url (default: http://IPADDR:PORT).
-Note: affects url generation but not route parsing.
-Can be useful if running behind a reverse web proxy that does path
-rewriting.
-.TP
-\f[CR]--file-url=URL\f[R]
-set the static files url (default: BASEURL/static).
-hledger-web normally serves static files itself, but if you wanted to
-serve them from another server for efficiency, you would set the url
-with this.
+like --serve, but serve only the JSON web API, not the web UI
 .TP
 \f[CR]--allow=view|add|edit\f[R]
 set the user\[aq]s access level for changing data (default:
@@ -104,49 +73,59 @@ set the user\[aq]s access level for changing data (default:
 It also accepts \f[CR]sandstorm\f[R] for use on that platform (reads
 permissions from the \f[CR]X-Sandstorm-Permissions\f[R] request header).
 .TP
+\f[CR]--cors=ORIGIN\f[R]
+allow cross-origin requests from the specified origin; setting ORIGIN to
+\[dq]*\[dq] allows requests from any origin
+.TP
+\f[CR]--host=IPADDR\f[R]
+listen on this IP address (default: 127.0.0.1)
+.PP
+By default the server listens on IP address \f[CR]127.0.0.1\f[R], which
+is accessible only to requests from the local machine..
+You can use \f[CR]--host\f[R] to listen on a different address
+configured on the machine, eg to allow access from other machines.
+The special address \f[CR]0.0.0.0\f[R] causes it to listen on all
+addresses configured on the machine.
+.TP
+\f[CR]--port=PORT\f[R]
+listen on this TCP port (default: 5000)
+.PP
+Similarly, you can use \f[CR]--port\f[R] to listen on a TCP port other
+than 5000.
+This is useful if you want to run multiple hledger-web instances on a
+machine.
+.TP
+\f[CR]--socket=SOCKETFILE\f[R]
+listen on the given unix socket instead of an IP address and port (unix
+only; implies --serve)
+.PP
+When \f[CR]--socket\f[R] is used, hledger-web creates and communicates
+via a socket file instead of a TCP port.
+This can be more secure, respects unix file permissions, and makes
+certain use cases easier, such as running per-user instances behind an
+nginx reverse proxy.
+(Eg:
+\f[CR]proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;\f[R].)
+.TP
+\f[CR]--base-url=URL\f[R]
+set the base url (default: http://IPADDR:PORT).
+.PP
+You can use \f[CR]--base-url\f[R] to change the protocol, hostname, port
+and path that appear in hledger-web\[aq]s hyperlinks.
+This is useful eg when integrating hledger-web within a larger website.
+The default is \f[CR]http://HOST:PORT/\f[R] using the server\[aq]s
+configured host address and TCP port (or \f[CR]http://HOST\f[R] if PORT
+is 80).
+Note this affects url generation but not route parsing.
+.TP
 \f[CR]--test\f[R]
 run hledger-web\[aq]s tests and exit.
 hspec test runner args may follow a --, eg: hledger-web --test -- --help
 .PP
-By default the server listens on IP address 127.0.0.1, accessible only
-to local requests.
-You can use \f[CR]--host\f[R] to change this, eg
-\f[CR]--host 0.0.0.0\f[R] to listen on all configured addresses.
-.PP
-Similarly, use \f[CR]--port\f[R] to set a TCP port other than 5000, eg
-if you are running multiple hledger-web instances.
-.PP
-Both of these options are ignored when \f[CR]--socket\f[R] is used.
-In this case, it creates an \f[CR]AF_UNIX\f[R] socket file at the
-supplied path and uses that for communication.
-This is an alternative way of running multiple hledger-web instances
-behind a reverse proxy that handles authentication for different users.
-The path can be derived in a predictable way, eg by using the username
-within the path.
-As an example, \f[CR]nginx\f[R] as reverse proxy can use the variable
-\f[CR]$remote_user\f[R] to derive a path from the username used in a
-HTTP basic authentication.
-The following \f[CR]proxy_pass\f[R] directive allows access to all
-\f[CR]hledger-web\f[R] instances that created a socket in
-\f[CR]/tmp/hledger/\f[R]:
-.IP
-.EX
-  proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;
-.EE
-.PP
-You can use \f[CR]--base-url\f[R] to change the protocol, hostname, port
-and path that appear in hyperlinks, useful eg for integrating
-hledger-web within a larger website.
-The default is \f[CR]http://HOST:PORT/\f[R] using the server\[aq]s
-configured host address and TCP port (or \f[CR]http://HOST\f[R] if PORT
-is 80).
-.PP
-With \f[CR]--file-url\f[R] you can set a different base url for static
-files, eg for better caching or cookie-less serving on high performance
-websites.
-.PP
-hledger-web also supports many of hledger\[aq]s general options (and the
-hledger manual\[aq]s command line tips also apply here):
+hledger-web also supports many of hledger\[aq]s general options.
+Query options and arguments may be used to set an initial filter, which
+although not shown in the UI, will restrict the data shown, in addition
+to any search query entered in the UI.
 .SS General help options
 .TP
 \f[CR]-h --help\f[R]

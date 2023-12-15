@@ -1938,7 +1938,7 @@ One workaround is to isolate each commodity into its own subaccount:
   a:usd    0 == $1
   a:euro   0 ==  1€
 .EE
-.SS Assertions and prices
+.SS Assertions and costs
 Balance assertions ignore costs, and should normally be written without
 one:
 .IP
@@ -1947,11 +1947,12 @@ one:
   (a)     $1 \[at] €1 = $1
 .EE
 .PP
-We do allow prices to be written there, however, and print shows them,
-even though they don\[aq]t affect whether the assertion passes or fails.
+We do allow costs to be written in balance assertion amounts, however,
+and print shows them, but they don\[aq]t affect whether the assertion
+passes or fails.
 This is for backward compatibility (hledger\[aq]s close command used to
-generate balance assertions with prices), and because balance
-\f[I]assignments\f[R] do use them (see below).
+generate balance assertions with costs), and because balance
+\f[I]assignments\f[R] do use costs (see below).
 .SS Assertions and subaccounts
 The balance assertions above (\f[CR]=\f[R] and \f[CR]==\f[R]) do not
 count the balance from subaccounts; they check the account\[aq]s
@@ -8431,157 +8432,131 @@ DATE-value of change from journal start to period end
 T}
 .TE
 .SS Budget report
-The \f[CR]--budget\f[R] report type activates extra columns showing any
-budget goals for each account and period.
-The budget goals are defined by periodic transactions.
+The \f[CR]--budget\f[R] report type is like a regular balance report,
+but with two main differences:
+.IP \[bu] 2
+Budget goals and performance percentages are also shown, in brackets
+.IP \[bu] 2
+Accounts which don\[aq]t have budget goals are hidden by default.
+.PP
 This is useful for comparing planned and actual income, expenses, time
 usage, etc.
 .PP
-For example, you can take average monthly expenses in the common expense
-categories to construct a minimal monthly budget:
+Periodic transaction rules are used to define budget goals.
+For example, here\[aq]s a periodic rule defining monthly goals for bus
+travel and food expenses:
 .IP
 .EX
 ;; Budget
 \[ti] monthly
-  income  $2000
-  expenses:food    $400
-  expenses:bus     $50
-  expenses:movies  $30
-  assets:bank:checking
-
+  (expenses:bus)              $30
+  (expenses:food)            $400
+.EE
+.PP
+After recording some actual expenses,
+.IP
+.EX
 ;; Two months worth of expenses
 2017-11-01
-  income  $1950
-  expenses:food    $396
-  expenses:bus     $49
-  expenses:movies  $30
-  expenses:supplies  $20
+  income                   $-1950
+  expenses:bus                $35
+  expenses:food:groceries    $310
+  expenses:food:dining        $42
+  expenses:movies             $38
   assets:bank:checking
 
 2017-12-01
-  income  $2100
-  expenses:food    $412
-  expenses:bus     $53
-  expenses:gifts   $100
+  income                   $-2100
+  expenses:bus                $53
+  expenses:food:groceries    $380
+  expenses:food:dining        $32
+  expenses:gifts             $100
   assets:bank:checking
 .EE
 .PP
-You can now see a monthly budget report:
+we can see a budget report like this:
 .IP
 .EX
-$ hledger balance -M --budget
-Budget performance in 2017/11/01-2017/12/31:
+$ hledger bal -M --budget
+Budget performance in 2017-11-01..2017-12-31:
 
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
- expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
- expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
- expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
- income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
+               ||                  Nov                   Dec 
+===============++============================================
+ <unbudgeted>  || $-425                 $-565                
+ expenses      ||  $425 [ 99% of $430]   $565 [131% of $430] 
+ expenses:bus  ||   $35 [117% of  $30]    $53 [177% of  $30] 
+ expenses:food ||  $352 [ 88% of $400]   $412 [103% of $400] 
+---------------++--------------------------------------------
+               ||     0 [  0% of $430]      0 [  0% of $430] 
 .EE
 .PP
-This is different from a normal balance report in several ways.
-Currently:
+This is \[dq]goal-based budgeting\[dq]; you define goals for accounts
+and periods, often recurring, and hledger shows performance relative to
+the goals.
+This contrasts with \[dq]envelope budgeting\[dq], which is more detailed
+and strict - useful when cash is tight, but also quite a bit more work.
+https://plaintextaccounting.org/Budgeting has more on this topic.
+.SS Using the budget report
+Historically this report has been confusing and fragile.
+hledger\[aq]s version should be relatively robust and intuitive, but you
+may still find surprises.
+Here are more notes to help with learning and troubleshooting.
 .IP \[bu] 2
-Accounts with budget goals during the report period, and their parents,
-are shown.
+In the above example, \f[CR]expenses:bus\f[R] and
+\f[CR]expenses:food\f[R] are shown because they have budget goals during
+the report period.
 .IP \[bu] 2
-Their subaccounts are not shown (regardless of the depth setting).
+Their parent \f[CR]expenses\f[R] is also shown, with budget goals
+aggregated from the children.
 .IP \[bu] 2
-Accounts without budget goals, if any, are aggregated and shown as
-\[dq]<unbudgeted>\[dq].
+The subaccounts \f[CR]expenses:food:groceries\f[R] and
+\f[CR]expenses:food:dining\f[R] are not shown since they have no budget
+goal of their own, but they contribute to \f[CR]expenses:food\f[R]\[aq]s
+actual amount.
 .IP \[bu] 2
-Amounts are always inclusive (subaccount-including), even in list mode.
+Unbudgeted accounts \f[CR]expenses:movies\f[R] and
+\f[CR]expenses:gifts\f[R] are also not shown, but they contribute to
+\f[CR]expenses\f[R]\[aq]s actual amount.
 .IP \[bu] 2
-After each actual amount, the corresponding goal amount and percentage
-of goal reached are also shown, in square brackets.
+The other unbudgeted accounts \f[CR]income\f[R] and
+\f[CR]assets:bank:checking\f[R] are grouped as \f[CR]<unbudgeted>\f[R].
+.IP \[bu] 2
+\f[CR]--depth\f[R] or \f[CR]depth:\f[R] can be used to limit report
+depth in the usual way (but will not reveal unbudgeted subaccounts).
+.IP \[bu] 2
+Amounts are always inclusive of subaccounts (even in
+\f[CR]-l/--list\f[R] mode).
+.IP \[bu] 2
+Numbers displayed in a --budget report will not always agree with the
+totals, because of hidden unbudgeted accounts; this is normal.
+\f[CR]-E/--empty\f[R] can be used to reveal the hidden accounts.
+.IP \[bu] 2
+In the periodic rules used for setting budget goals, unbalanced postings
+are convenient.
+.IP \[bu] 2
+You can filter budget reports with the usual queries, eg to focus on
+particular accounts.
+It\[aq]s common to restrict them to just expenses.
+(The \f[CR]<unbudgeted>\f[R] account is occasionally hard to exclude;
+this is because of date surprises, discussed below.)
+.IP \[bu] 2
+When you have multiple currencies, you may want to convert them to one
+(\f[CR]-X COMM --infer-market-prices\f[R]) and/or show just one at a
+time (\f[CR]cur:COMM\f[R]).
+If you do need to show multiple currencies at once,
+\f[CR]--layout bare\f[R] can be helpful.
+.IP \[bu] 2
+You can \[dq]roll over\[dq] amounts (actual and budgeted) to the next
+period with \f[CR]--cumulative\f[R].
 .PP
-This means that the numbers displayed will not always add up!
-Eg above, the \f[CR]expenses\f[R] actual amount includes the gifts and
-supplies transactions, but the \f[CR]expenses:gifts\f[R] and
-\f[CR]expenses:supplies\f[R] accounts are not shown, as they have no
-budget amounts declared.
-.PP
-This can be confusing.
-When you need to make things clearer, use the \f[CR]-E/--empty\f[R]
-flag, which will reveal all accounts including unbudgeted ones, giving
-the full picture.
-Eg:
-.IP
-.EX
-$ hledger balance -M --budget --empty
-Budget performance in 2017/11/01-2017/12/31:
-
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank          || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-2665 [ 107% of $-2480] 
- expenses             ||   $495 [ 103% of   $480]    $565 [ 118% of   $480] 
- expenses:bus         ||    $49 [  98% of    $50]     $53 [ 106% of    $50] 
- expenses:food        ||   $396 [  99% of   $400]    $412 [ 103% of   $400] 
- expenses:gifts       ||      0                      $100                   
- expenses:movies      ||    $30 [ 100% of    $30]       0 [   0% of    $30] 
- expenses:supplies    ||    $20                         0                   
- income               ||  $1950 [  98% of  $2000]   $2100 [ 105% of  $2000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
-.EE
-.PP
-You can roll over unspent budgets to next period with
-\f[CR]--cumulative\f[R]:
-.IP
-.EX
-$ hledger balance -M --budget --cumulative
-Budget performance in 2017/11/01-2017/12/31:
-
-                      ||                      Nov                       Dec 
-======================++====================================================
- assets               || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- assets:bank          || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- assets:bank:checking || $-2445 [  99% of $-2480]  $-5110 [ 103% of $-4960] 
- expenses             ||   $495 [ 103% of   $480]   $1060 [ 110% of   $960] 
- expenses:bus         ||    $49 [  98% of    $50]    $102 [ 102% of   $100] 
- expenses:food        ||   $396 [  99% of   $400]    $808 [ 101% of   $800] 
- expenses:movies      ||    $30 [ 100% of    $30]     $30 [  50% of    $60] 
- income               ||  $1950 [  98% of  $2000]   $4050 [ 101% of  $4000] 
-----------------------++----------------------------------------------------
-                      ||      0 [              0]       0 [              0] 
-.EE
-.PP
-It\[aq]s common to limit budgets/budget reports to just expenses
-.IP
-.EX
-hledger bal -M --budget expenses
-.EE
-.PP
-or just revenues and expenses (eg, using account types):
-.IP
-.EX
-hledger bal -M --budget type:rx
-.EE
-.PP
-It\[aq]s also common to limit or convert them to a single currency
-(\f[CR]cur:COMM\f[R] or \f[CR]-X COMM [--infer-market-prices]\f[R]).
-If showing multiple currencies, \f[CR]--layout bare\f[R] or
-\f[CR]--layout tall\f[R] can help.
-.PP
-For more examples and notes, see Budgeting.
-.SS Budget report start date
-This might be a bug, but for now: when making budget reports, it\[aq]s a
-good idea to explicitly set the report\[aq]s start date to the first day
-of a reporting period, because a periodic rule like
-\f[CR]\[ti] monthly\f[R] generates its transactions on the 1st of each
-month, and if your journal has no regular transactions on the 1st, the
-default report start date could exclude that budget goal, which can be a
-little surprising.
-Eg here the default report period is just the day of 2020-01-15:
+See also: https://hledger.org/budgeting.html.
+.SS Budget date surprises
+With small data, or when starting out, some of the generated budget goal
+transaction dates might fall outside the report periods.
+Eg with the following journal and report, the first period appears to
+have no \f[CR]expenses:food\f[R] budget.
+(Also the \f[CR]<unbudgeted>\f[R] account should be excluded by the
+\f[CR]expenses\f[R] query, but isn\[aq]t.):
 .IP
 .EX
 \[ti] monthly in 2020
@@ -8593,137 +8568,27 @@ Eg here the default report period is just the day of 2020-01-15:
 .EE
 .IP
 .EX
-$ hledger bal expenses --budget
+$ hledger bal --budget expenses
 Budget performance in 2020-01-15:
 
-              || 2020-01-15 
-==============++============
- <unbudgeted> ||       $400 
---------------++------------
-              ||       $400 
+               ||         2020-01-15 
+===============++====================
+ <unbudgeted>  || $400               
+ expenses:food ||    0 [ 0% of $500] 
+---------------++--------------------
+               || $400 [80% of $500] 
 .EE
 .PP
-To avoid this, specify the budget report\[aq]s period, or at least the
-start date, with
-\f[CR]-b\f[R]/\f[CR]-e\f[R]/\f[CR]-p\f[R]/\f[CR]date:\f[R], to ensure it
-includes the budget goal transactions (periodic transactions) that you
-want.
-Eg, adding \f[CR]-b 2020/1/1\f[R] to the above:
-.IP
-.EX
-$ hledger bal expenses --budget -b 2020/1/1
-Budget performance in 2020-01-01..2020-01-15:
-
-               || 2020-01-01..2020-01-15 
-===============++========================
- expenses:food ||     $400 [80% of $500] 
----------------++------------------------
-               ||     $400 [80% of $500] 
-.EE
-.SS Budgets and subaccounts
-You can add budgets to any account in your account hierarchy.
-If you have budgets on both parent account and some of its children,
-then budget(s) of the child account(s) would be added to the budget of
-their parent, much like account balances behave.
+In this case, the budget goal transactions are generated on first days
+of of month (this can be seen with
+\f[CR]hledger print --forecast tag:generated expenses\f[R]).
+Whereas the report period defaults to just the 15th day of january (this
+can be seen from the report table\[aq]s column headings).
 .PP
-In the most simple case this means that once you add a budget to any
-account, all its parents would have budget as well.
-.PP
-To illustrate this, consider the following budget:
-.IP
-.EX
-\[ti] monthly from 2019/01
-    expenses:personal             $1,000.00
-    expenses:personal:electronics    $100.00
-    liabilities
-.EE
-.PP
-With this, monthly budget for electronics is defined to be $100 and
-budget for personal expenses is an additional $1000, which implicitly
-means that budget for both \f[CR]expenses:personal\f[R] and
-\f[CR]expenses\f[R] is $1100.
-.PP
-Transactions in \f[CR]expenses:personal:electronics\f[R] will be counted
-both towards its $100 budget and $1100 of \f[CR]expenses:personal\f[R] ,
-and transactions in any other subaccount of \f[CR]expenses:personal\f[R]
-would be counted towards only towards the budget of
-\f[CR]expenses:personal\f[R].
-.PP
-For example, let\[aq]s consider these transactions:
-.IP
-.EX
-\[ti] monthly from 2019/01
-    expenses:personal             $1,000.00
-    expenses:personal:electronics    $100.00
-    liabilities
-
-2019/01/01 Google home hub
-    expenses:personal:electronics          $90.00
-    liabilities                           $-90.00
-
-2019/01/02 Phone screen protector
-    expenses:personal:electronics:upgrades          $10.00
-    liabilities
-
-2019/01/02 Weekly train ticket
-    expenses:personal:train tickets       $153.00
-    liabilities
-
-2019/01/03 Flowers
-    expenses:personal          $30.00
-    liabilities
-.EE
-.PP
-As you can see, we have transactions in
-\f[CR]expenses:personal:electronics:upgrades\f[R] and
-\f[CR]expenses:personal:train tickets\f[R], and since both of these
-accounts are without explicitly defined budget, these transactions would
-be counted towards budgets of \f[CR]expenses:personal:electronics\f[R]
-and \f[CR]expenses:personal\f[R] accordingly:
-.IP
-.EX
-$ hledger balance --budget -M
-Budget performance in 2019/01:
-
-                               ||                           Jan 
-===============================++===============================
- expenses                      ||  $283.00 [  26% of  $1100.00] 
- expenses:personal             ||  $283.00 [  26% of  $1100.00] 
- expenses:personal:electronics ||  $100.00 [ 100% of   $100.00] 
- liabilities                   || $-283.00 [  26% of $-1100.00] 
--------------------------------++-------------------------------
-                               ||        0 [                 0] 
-.EE
-.PP
-And with \f[CR]--empty\f[R], we can get a better picture of budget
-allocation and consumption:
-.IP
-.EX
-$ hledger balance --budget -M --empty
-Budget performance in 2019/01:
-
-                                        ||                           Jan 
-========================================++===============================
- expenses                               ||  $283.00 [  26% of  $1100.00] 
- expenses:personal                      ||  $283.00 [  26% of  $1100.00] 
- expenses:personal:electronics          ||  $100.00 [ 100% of   $100.00] 
- expenses:personal:electronics:upgrades ||   $10.00                      
- expenses:personal:train tickets        ||  $153.00                      
- liabilities                            || $-283.00 [  26% of $-1100.00] 
-----------------------------------------++-------------------------------
-                                        ||        0 [                 0] 
-.EE
+To fix this kind of thing, be more explicit about the report period
+(and/or the periodic rules\[aq] dates).
+In this case, adding \f[CR]-b 2020\f[R] does the trick.
 .SS Selecting budget goals
-The budget report evaluates periodic transaction rules to generate
-special \[dq]goal transactions\[dq], which generate the goal amounts for
-each account in each report subperiod.
-When troubleshooting, you can use \f[CR]print --forecast\f[R] to show
-these as forecasted transactions:
-.IP
-.EX
-$ hledger print --forecast=BUDGETREPORTPERIOD tag:generated
-.EE
-.PP
 By default, the budget report uses all available periodic transaction
 rules to generate goals.
 This includes rules with a different report interval from your report.
@@ -8736,63 +8601,50 @@ the \f[CR]--budget\f[R] flag.
 description contains DESCPAT, a case-insensitive substring (not a
 regular expression or query).
 This means you can give your periodic rules descriptions (remember that
-two spaces are needed), and then select from multiple budgets defined in
-your journal.
-.SS Budget vs forecast
-\f[CR]hledger --forecast ...\f[R] and
-\f[CR]hledger balance --budget ...\f[R] are separate features, though
-both of them use the periodic transaction rules defined in the journal,
-and both of them generate temporary transactions for reporting purposes
-(\[dq]forecast transactions\[dq] and \[dq]budget goal transactions\[dq],
-respectively).
-You can use both features at the same time if you want.
-Here are some differences between them, as of hledger 1.29:
+two spaces are needed between period expression and description), and
+then select from multiple budgets defined in your journal.
+.SS Budgeting vs forecasting
+\f[CR]--budget\f[R] and \f[CR]--forecast\f[R] both use the periodic
+transaction rules in the journal to generate temporary transactions for
+reporting purposes.
+However they are separate features - though you can use both at the same
+time if you want.
+Here are some differences between them:
+.IP "1." 3
+\f[CR]--budget\f[R] is a command-specific option; it selects the
+\f[B]budget report\f[R].
+.RS 4
 .PP
-CLI:
-.IP \[bu] 2
---forecast is a general hledger option, usable with any command
-.IP \[bu] 2
---budget is a \f[CR]balance\f[R] command option, usable only with that
-command.
-.PP
-Visibility of generated transactions:
-.IP \[bu] 2
-forecast transactions are visible in any report, like ordinary
-transactions
-.IP \[bu] 2
-budget goal transactions are invisible except for the goal amounts they
-produce in --budget reports.
-.PP
-Periodic transaction rules:
-.IP \[bu] 2
---forecast uses all available periodic transaction rules
-.IP \[bu] 2
---budget uses all periodic rules (\f[CR]--budget\f[R]) or a selected
-subset (\f[CR]--budget=DESCPAT\f[R])
-.PP
-Period of generated transactions:
-.IP \[bu] 2
---forecast generates forecast transactions
-.RS 2
-.IP \[bu] 2
-from after the last regular transaction to the end of the report period
-(\f[CR]--forecast\f[R])
-.IP \[bu] 2
-or, during a specified period (\f[CR]--forecast=PERIODEXPR\f[R])
-.IP \[bu] 2
-possibly further restricted by a period specified in the periodic
-transaction rule
-.IP \[bu] 2
-and always restricted within the bounds of the report period
+\f[CR]--forecast\f[R] is a general option; \f[B]forecasting works with
+all reports\f[R].
 .RE
-.IP \[bu] 2
---budget generates budget goal transactions
-.RS 2
-.IP \[bu] 2
-throughout the report period
-.IP \[bu] 2
-possibly restricted by a period specified in the periodic transaction
-rule.
+.IP "2." 3
+\f[CR]--budget\f[R] uses \f[B]all periodic rules\f[R];
+\f[CR]--budget=DESCPAT\f[R] uses \f[B]just the rules matched\f[R] by
+DESCPAT.
+.RS 4
+.PP
+\f[CR]--forecast\f[R] uses \f[B]all periodic rules\f[R].
+.RE
+.IP "3." 3
+\f[CR]--budget\f[R]\[aq]s budget goal transactions are invisible, except
+that they produce \f[B]goal amounts\f[R].
+.RS 4
+.PP
+\f[CR]--forecast\f[R]\[aq]s forecast transactions are visible, and
+\f[B]appear in reports\f[R].
+.RE
+.IP "4." 3
+\f[CR]--budget\f[R] generates budget goal transactions \f[B]throughout
+the report period\f[R], optionally restricted by periods specified in
+the periodic transaction rules.
+.RS 4
+.PP
+\f[CR]--forecast\f[R] generates forecast transactions from \f[B]after
+the last regular transaction\f[R], to the end of the report period;
+while \f[CR]--forecast=PERIODEXPR\f[R] generates them \f[B]throughout
+the specified period\f[R]; both optionally restricted by periods
+specified in the periodic transaction rules.
 .RE
 .SS Balance report layout
 The \f[CR]--layout\f[R] option affects how balance reports show
