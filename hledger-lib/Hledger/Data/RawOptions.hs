@@ -9,6 +9,8 @@ more easily by hledger commands/scripts in this and other packages.
 
 module Hledger.Data.RawOptions (
   RawOpts,
+  mkRawOpts,
+  overRawOpts,
   setopt,
   setboolopt,
   unsetboolopt,
@@ -24,8 +26,7 @@ module Hledger.Data.RawOptions (
   posintopt,
   maybeintopt,
   maybeposintopt,
-  maybecharopt,
-  overRawOpts
+  maybecharopt
 )
 where
 
@@ -42,6 +43,10 @@ newtype RawOpts = RawOpts { unRawOpts :: [(String,String)] }
 
 instance Default RawOpts where def = RawOpts []
 
+mkRawOpts :: [(String,String)] -> RawOpts
+mkRawOpts = RawOpts
+
+overRawOpts :: ([(String,String)] -> [(String,String)]) -> RawOpts -> RawOpts
 overRawOpts f = RawOpts . f . unRawOpts
 
 setopt :: String -> String -> RawOpts -> RawOpts

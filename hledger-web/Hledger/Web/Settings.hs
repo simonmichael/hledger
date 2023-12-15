@@ -49,7 +49,8 @@ defport = 5000
 
 defbaseurl :: String -> Int -> String
 defbaseurl host port =
-  if ':' `elem` host then
+  if ':' `elem` host
+  then  -- ipv6 address
     "http://[" ++ host ++ "]" ++ if port /= 80 then ":" ++ show port else ""
   else
     "http://" ++ host ++ if port /= 80 then ":" ++ show port else ""
