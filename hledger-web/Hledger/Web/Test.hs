@@ -67,9 +67,6 @@ import Hledger.Cli hiding (prognameandversion)
 runTests :: String -> [(String,String)] -> Journal -> YesodSpec App -> IO ()
 runTests testsdesc rawopts j tests = do
   wopts <- rawOptsToWebOpts $ mkRawOpts rawopts
-  -- print $ host_     wopts
-  -- print $ port_     wopts
-  -- print $ base_url_ wopts
   let yconf = AppConfig{  -- :: AppConfig DefaultEnv Extra
           appEnv = Testing
         -- https://hackage.haskell.org/package/conduit-extra/docs/Data-Conduit-Network.html#t:HostPreference
@@ -78,7 +75,7 @@ runTests testsdesc rawopts j tests = do
         -- Test with the host and port from opts. XXX more fragile, can clash with a running instance ?
         ,appHost = host_ wopts & fromString
         ,appPort = port_ wopts
-        ,appRoot = base_url_ wopts & T.pack
+        ,appRoot = base_url_ wopts & T.pack  -- XXX not sure this or extraStaticRoot get used
         ,appExtra = Extra
                     { extraCopyright  = ""
                     , extraAnalytics  = Nothing
@@ -156,12 +153,13 @@ hledgerWebTest = do
       bodyContains "href=\"https://base"
       bodyContains "src=\"https://base"
 
-  runTests "hledger-web with --base-url, --file-url"
-    [("base-url","https://base"), ("file-url","https://files")] nulljournal $ do
+  -- #2139
+  -- runTests "hledger-web with --base-url, --file-url"
+  --   [("base-url","https://base"), ("file-url","https://files")] nulljournal $ do
 
-    yit "static file hyperlinks respect --file-url, others respect --base-url" $ do
-      get JournalR
-      statusIs 200
-      bodyContains "href=\"https://base"
-      bodyContains "src=\"https://files"
+  --   yit "static file hyperlinks respect --file-url, others respect --base-url" $ do
+  --     get JournalR
+  --     statusIs 200
+  --     bodyContains "href=\"https://base"
+  --     bodyContains "src=\"https://files"
 

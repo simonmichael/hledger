@@ -72,7 +72,7 @@ web opts j = do
       h = host_ opts
       p = port_ opts
       u = base_url_ opts
-      staticRoot = T.pack <$> file_url_ opts
+      staticRoot = T.pack <$> file_url_ opts  -- XXX not used #2139
       appconfig = AppConfig{appEnv = Development
                            ,appHost = fromString h
                            ,appPort = p
