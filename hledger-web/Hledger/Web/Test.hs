@@ -48,7 +48,7 @@ import Test.Hspec (hspec)
 import Yesod.Default.Config
 import Yesod.Test
 
-import Hledger.Web.Application ( makeFoundationWith )
+import Hledger.Web.Application ( makeAppWith )
 import Hledger.Web.WebOptions  -- ( WebOpts(..), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
 import Hledger.Cli hiding (prognameandversion)
@@ -82,7 +82,7 @@ runTests testsdesc rawopts j tests = do
                     , extraStaticRoot = T.pack <$> file_url_ wopts
                     }
         }
-  app <- makeFoundationWith j yconf wopts
+  app <- makeAppWith j yconf wopts
   hspec $ yesodSpec app $ ydescribe testsdesc tests    -- https://hackage.haskell.org/package/yesod-test/docs/Yesod-Test.html
 
 -- | Run hledger-web's built-in tests using the hspec test runner.
