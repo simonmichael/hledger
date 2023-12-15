@@ -102,7 +102,21 @@ type Form a = Html -> MForm Handler (FormResult a, Widget)
 -- Please see the documentation for the Yesod typeclass. There are a number
 -- of settings which can be configured by overriding methods here.
 instance Yesod App where
-  approot = guessApprootOr (ApprootMaster $ appRoot . settings)
+
+  -- Configure the app root, AKA base url, which is prepended to relative hyperlinks.
+  -- Broadly, we'd like this:
+  -- 1. when --base-url has been specified, use that;
+  -- 2. otherwise, guess it from request headers, which helps us respond from the
+  --    same hostname/IP address when hledger-web is accessible at multiple IPs;
+  -- 3. otherwise, leave it empty (relative links stay relative).
+  -- But it's hard to see how to achieve this.
+  -- For now we do (I believe) 1 or 3, with 2 unfortunately not supported.
+  -- Issues include: #2099, #2100, #2127
+  approot =
+    -- ApprootRelative
+    -- ApprootMaster $ appRoot . settings
+    -- guessApprootOr (ApprootMaster $ appRoot . settings)
+    ApprootMaster $ \(App{settings=AppConfig{appRoot=r}, appOpts=WebOpts{base_url_=bu}}) -> if null bu then r else T.pack bu
 
   makeSessionBackend _ = do
     hledgerdata <- getXdgDirectory XdgCache "hledger"
