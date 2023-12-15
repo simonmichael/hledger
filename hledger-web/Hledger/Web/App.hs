@@ -1,3 +1,9 @@
+{-|
+Most of the definition of the web app is here.
+In the usual Yesod style, this defines the web app's core types and configuration,
+and then Application.hs completes the job.
+-}
+
 {-# OPTIONS_GHC -fno-warn-orphans  #-}
 {-# LANGUAGE CPP                   #-}
 {-# LANGUAGE FlexibleInstances     #-}
@@ -77,15 +83,18 @@ data App = App
 --   resources declared below. This is used in Handler.hs by the call to
 --   mkYesodDispatch
 --
--- What this function does *not* do is create a YesodSite instance for
--- App. Creating that instance requires all of the handler functions
+-- What this function does *not* do is create a YesodSite instance for App.
+-- AppCreating that instance requires all of the handler functions
 -- for our application to be in scope. However, the handler functions
 -- usually require access to the AppRoute datatype. Therefore, we
--- split these actions into two functions and place them in separate files.
+-- split these actions into two functions and place the other in a
+-- separate file (Application.hs).
+-- mkYesodData defines things like:
+--
+-- * type Handler = HandlerFor App   -- HandlerT App IO, https://www.yesodweb.com/book/routing-and-handlers#routing-and-handlers_handler_monad
+-- * type Widget = WidgetFor App ()  -- WidgetT App IO (), https://www.yesodweb.com/book/widgets
+--
 mkYesodData "App" $(parseRoutesFile "config/routes")
--- ^ defines things like:
--- type Handler = HandlerFor App   -- HandlerT App IO, https://www.yesodweb.com/book/routing-and-handlers#routing-and-handlers_handler_monad
--- type Widget = WidgetFor App ()  -- WidgetT App IO (), https://www.yesodweb.com/book/widgets
 
 type AppRoute = Route App
 type Form a = Html -> MForm Handler (FormResult a, Widget)
@@ -193,7 +202,7 @@ instance RenderMessage App FormMessage where
 data ViewData = VD
   { opts  :: WebOpts    -- ^ the command-line options at startup
   , today :: Day        -- ^ today's date (for queries containing relative dates)
-  , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal
+  , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal    -- XXX rename
   , qparam :: Text       -- ^ the current "q" request parameter
   , q     :: Query      -- ^ a query parsed from the q parameter
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
