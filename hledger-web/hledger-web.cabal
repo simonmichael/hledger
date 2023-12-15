@@ -136,7 +136,7 @@ library
       Hledger.Web.Import
       Hledger.Web.Test
   other-modules:
-      Hledger.Web.Foundation
+      Hledger.Web.App
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
