@@ -1,9 +1,8 @@
 {-|
+hledger-web - a basic but robust web UI and JSON API server for hledger.
 
-hledger-web - a hledger add-on providing a web interface.
-Copyright (c) 2007-2020 Simon Michael <simon@joyful.com>
+Copyright (c) 2007-2023 Simon Michael <simon@joyful.com> and contributors.
 Released under GPL version 3 or later.
-
 -}
 
 {-# LANGUAGE MultiWayIf #-}

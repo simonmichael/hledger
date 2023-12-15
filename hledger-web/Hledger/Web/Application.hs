@@ -1,3 +1,8 @@
+{-|
+Complete the definition of the web app begun in App.hs.
+This is always done in two files for (TH?) reasons.
+-}
+
 {-# OPTIONS_GHC -fno-warn-orphans #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
