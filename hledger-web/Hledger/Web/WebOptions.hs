@@ -45,7 +45,7 @@ webflags =
   , flagNone
       ["serve-api"]
       (setboolopt "serve-api")
-      "like --serve, but serve only the JSON web API, without the server-side web UI"
+      "like --serve, but serve only the JSON web API, not the web UI"
   , flagReq
       ["allow"]
       (\s opts -> Right $ setopt "allow" s opts)
@@ -57,11 +57,6 @@ webflags =
       "ORIGIN"
       ("allow cross-origin requests from the specified origin; setting ORIGIN to \"*\" allows requests from any origin")
   , flagReq
-      ["socket"]
-      (\s opts -> Right $ setopt "socket" s opts)
-      "SOCKET"
-      "use the given socket instead of the given IP and port (implies --serve)"
-  , flagReq
       ["host"]
       (\s opts -> Right $ setopt "host" s opts)
       "IPADDR"
@@ -72,6 +67,11 @@ webflags =
       "PORT"
       ("listen on this TCP port (default: " ++ show defport ++ ")")
   , flagReq
+      ["socket"]
+      (\s opts -> Right $ setopt "socket" s opts)
+      "SOCKET"
+      "listen on the given unix socket instead of an IP address and port (unix only; implies --serve)"
+  , flagReq
       ["base-url"]
       (\s opts -> Right $ setopt "base-url" s opts)
       "BASEURL"
@@ -80,7 +80,7 @@ webflags =
       ["file-url"]
       (\s opts -> Right $ setopt "file-url" s opts)
       "FILEURL"
-      "set the static files url (default: BASEURL/static)"
+      "set a different base url for static files (default: `BASEURL/static/`)"
   , flagNone
       ["test"]
       (setboolopt "test")
