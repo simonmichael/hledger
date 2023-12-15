@@ -80,9 +80,25 @@ web opts j = do
                            ,appExtra = Extra "" Nothing staticRoot
                            }
   app <- makeApplication opts j' appconfig
-  -- XXX would like to allow a host name not just an IP address here
-  _ <- printf "Serving web %s on %s:%d with base url %s\n"
-         (if serve_api_ opts then "API" else "UI and API" :: String) h p u
+
+  -- show configuration
+  let
+    services | serve_api_ opts = "json API"
+             | otherwise       = "web UI and json API"
+    prettyip ip
+        | ip == "127.0.0.1" = ip ++ " (local access)"
+        | ip == "0.0.0.0"   = ip ++ " (all interfaces)"
+        | otherwise         = ip
+    listenat =
+      case socket_ opts of
+        Just s  -> printf "socket %s" s
+        Nothing -> printf "IP address %s, port %d" (prettyip h) p
+  printf "Serving %s at %s\nwith base url %s\n" (services::String) (listenat::String) u
+  case file_url_ opts of
+    Just fu -> printf "and static files base url %s\n" fu
+    Nothing -> pure ()
+
+  -- start server and maybe browser
   if serve_ opts || serve_api_ opts
     then do
       putStrLn "Press ctrl-c to quit"
@@ -108,7 +124,9 @@ web opts j = do
               putStrLn "Unix domain sockets are not available on your operating system"
               putStrLn "Please try again without --socket"
               exitFailure
+
         Nothing -> Network.Wai.Handler.Warp.runSettings warpsettings app
+
     else do
       putStrLn "This server will exit after 2m with no browser windows open (or press ctrl-c)"
       putStrLn "Opening web browser..."
