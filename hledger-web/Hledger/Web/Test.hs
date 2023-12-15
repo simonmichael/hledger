@@ -106,6 +106,13 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "accounts"
 
+    yit "hyperlinks use a base url made from the default host and port" $ do
+      get JournalR
+      statusIs 200
+      let defaultbaseurl = defbaseurl defhost defport
+      bodyContains ("href=\"" ++ defaultbaseurl)
+      bodyContains ("src=\"" ++ defaultbaseurl)
+
     -- WIP
     -- yit "shows the add form" $ do
     --   get JournalR
@@ -139,4 +146,22 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "id=\"transaction-2-1\""
       bodyContains "id=\"transaction-2-2\""
+
+  runTests "hledger-web with --base-url"
+    [("base-url","https://base")] nulljournal $ do
+
+    yit "hyperlinks respect --base-url" $ do
+      get JournalR
+      statusIs 200
+      bodyContains "href=\"https://base"
+      bodyContains "src=\"https://base"
+
+  runTests "hledger-web with --base-url, --file-url"
+    [("base-url","https://base"), ("file-url","https://files")] nulljournal $ do
+
+    yit "static file hyperlinks respect --file-url, others respect --base-url" $ do
+      get JournalR
+      statusIs 200
+      bodyContains "href=\"https://base"
+      bodyContains "src=\"https://files"
 
