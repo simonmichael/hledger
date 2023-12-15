@@ -171,6 +171,7 @@ instance Yesod App where
 
     withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
+-- XXX why disabled during development ? Affects ghci, ghcid, tests, #2139 ?
 #ifndef DEVELOPMENT
   -- This function creates static content files in the static folder
   -- and names them based on a hash of their content. This allows
