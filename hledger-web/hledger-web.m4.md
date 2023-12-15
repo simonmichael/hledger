@@ -111,6 +111,7 @@ The default is `http://HOST:PORT/` using the server's configured host address an
 (or `http://HOST` if PORT is 80).
 Note this affects url generation but not route parsing.
 
+<!--  #2139
 `--file-url=URL`
 : set a different base url for static files (default: `BASEURL/static/`)
 
@@ -118,6 +119,7 @@ hledger-web normally serves static files itself,
 but if you wanted to serve them from another server,
 eg for better caching or cookie-less serving on high performance websites,
 you can customise their urls with this.
+-->
 
 `--test`
 : run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help

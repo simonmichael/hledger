@@ -76,11 +76,12 @@ webflags =
       (\s opts -> Right $ setopt "base-url" s opts)
       "BASEURL"
       "set the base url (default: http://IPADDR:PORT)"
-  , flagReq
-      ["file-url"]
-      (\s opts -> Right $ setopt "file-url" s opts)
-      "FILEURL"
-      "set a different base url for static files (default: `BASEURL/static/`)"
+  -- XXX #2139
+  -- , flagReq
+  --     ["file-url"]
+  --     (\s opts -> Right $ setopt "file-url" s opts)
+  --     "FILEURL"
+  --     "set a different base url for static files (default: `BASEURL/static/`)"
   , flagNone
       ["test"]
       (setboolopt "test")
