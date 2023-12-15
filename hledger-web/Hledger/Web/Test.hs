@@ -144,19 +144,23 @@ hledgerWebTest = do
       bodyContains "id=\"transaction-2-1\""
       bodyContains "id=\"transaction-2-2\""
 
-  runTests "hledger-web with --base-url"
-    [("base-url","https://base")] nulljournal $ do
-
-    yit "hyperlinks respect --base-url" $ do
-      get JournalR
-      statusIs 200
-      bodyContains "href=\"https://base"
-      bodyContains "src=\"https://base"
+  -- #2127
+  -- XXX I'm pretty sure this test lies, ie does not match production behaviour.
+  -- (test with curl -s http://localhost:5000/journal | rg '(href)="[\w/].*?"' -o )
+  -- App root setup is a maze of twisty passages, all alike.
+  -- runTests "hledger-web with --base-url"
+  --   [("base-url","https://base")] nulljournal $ do
+  --   yit "hyperlinks respect --base-url" $ do
+  --     get JournalR
+  --     statusIs 200
+  --     bodyContains "href=\"https://base"
+  --     bodyContains "src=\"https://base"
 
   -- #2139
+  -- XXX Not passing.
+  -- Static root setup is a maze of twisty passages, all different.
   -- runTests "hledger-web with --base-url, --file-url"
   --   [("base-url","https://base"), ("file-url","https://files")] nulljournal $ do
-
   --   yit "static file hyperlinks respect --file-url, others respect --base-url" $ do
   --     get JournalR
   --     statusIs 200
