@@ -25,7 +25,7 @@ import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)
 import Yesod
 
 import Hledger
-import Hledger.Web.Foundation (App, Handler, Widget)
+import Hledger.Web.App (App, Handler, Widget)
 import Hledger.Web.Settings (widgetFile)
 import Data.Function ((&))
 import Control.Arrow (right)

@@ -67,10 +67,10 @@ staticDir = "static"
 -- files, more easily set expires and cache values, and avoid possibly
 -- costly transference of cookies on static files.
 --
--- If you change the resource pattern for StaticR in Foundation.hs,
+-- If you change the resource pattern for StaticR in App.hs,
 -- (or staticDir above), you will have to make a corresponding change here.
 --
--- To see how this value is used, see urlRenderOverride in Foundation.hs
+-- To see how this value is used, see urlRenderOverride in App.hs
 --
 -- XXX Does not respect --file-url #2139
 staticRoot :: AppConfig DefaultEnv Extra -> Text

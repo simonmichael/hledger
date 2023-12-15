@@ -26,9 +26,9 @@ import Hledger.Web.Handler.RegisterR
 import Hledger.Web.Import
 import Hledger.Web.WebOptions (WebOpts(serve_,serve_api_), corsPolicy)
 
--- This line actually creates our YesodDispatch instance. It is the second half
--- of the call to mkYesodData which occurs in Foundation.hs. Please see the
--- comments there for more details.
+-- mkYesodDispatch creates our YesodDispatch instance. 
+-- It complements the mkYesodData call in App.hs,
+-- but must be in a separate file for (TH?) reasons.
 mkYesodDispatch "App" resourcesApp
 
 -- This function allocates resources (such as a database connection pool),

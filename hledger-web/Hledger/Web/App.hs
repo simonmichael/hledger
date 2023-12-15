@@ -10,10 +10,7 @@
 {-# LANGUAGE TypeFamilies          #-}
 {-# LANGUAGE ViewPatterns          #-}
 
--- | Define the web application's foundation, in the usual Yesod style.
---   See a default Yesod app's comments for more details of each part.
-
-module Hledger.Web.Foundation where
+module Hledger.Web.App where
 
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, unless)
