@@ -23,21 +23,19 @@
 #   ))
 #
 # This file is formatted by `just _fmt`, which currently eats blank lines a bit.
-
 # ** Prelude
-
 # Reference:
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
 # https://just.systems/man/en/chapter_31.html Functions
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
-
 # Invocations of just in this file assume you are in this justfile's directory,
 # since otherwise we must write --justfile {{ justfile() }} or {{ just }} everywhere.
 
 # list this justfile's recipes, optionally filtered by REGEX
 @help *REGEX:
     if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; fi
+
 #    if [[ "$REGEX" =~ "" ]]; then just -lu; else just -lu | rg -i "$REGEX"; true; fi
 
 @_check:
@@ -68,10 +66,10 @@ watchdbg *OPTS:
 # write $VAR instead of {{ VAR }}. Notes:
 # They handle multi-word values differently, {{ }} is better ?
 # In command lines in output, {{ }} is fully evaluated, $ is not.
-set export
+
+set export := true
 
 # ** Constants
-
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
@@ -161,7 +159,6 @@ SOURCEFILES := '\
     hledger-*/Hledger/*/*/*hs \
     hledger-lib/Text/*/*hs    \
     '
-
 SOURCEFILES2 := '''
     dev.hs
     hledger/*hs
@@ -1144,9 +1141,11 @@ installcommithook:
 # 1. haskell source files with hasktags
 # 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
 # 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+
 # generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
 @etags:
     hasktags -e {{ SOURCEFILES }}
+
 #   ctags -a -e -R
 #   for f in \
 #       $WEBTEMPLATEFILES \
