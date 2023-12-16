@@ -1,19 +1,44 @@
 #!/usr/bin/env just
-# * Light project scripts, without file dependendencies
-# using https://github.com/casey/just 0.16.
+# * Project scripts, using https://github.com/casey/just (last tested with 1.16.0)
+# Usage: alias j=just, run j to list available scripts.
+#
+# After many years with make and plain shell and haskell for
+# scripting, just is better enough, and the goal of clean consolidated
+# efficient project automation is so valuable, that I am relying on it
+# even though it's not installed by default.
+#
+# All of Makefile has been absorbed below; uncomment/update/drop
+# remaining bits when needed. Makefile will be removed some time soon.
+#
+# just currently lacks make-style file dependency tracking.  When that
+# is needed for efficiency, or when more powerful code is needed, use
+# Shake.hs instead of just.
+#
+# Lines beginning with "# * ", "# ** ", etc are section headings,
+# foldable in Emacs outshine-mode. Some extra Emacs highlighting:
+# (add-hook 'just-mode-hook (lambda ()
+#   (display-line-numbers-mode 1)
+#   (highlight-lines-matching-regexp "^# \\*\\*? " 'hi-yellow)  ; level 1-2 outshine headings
+#   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
+#   ))
+#
+# This file is formatted by `just _fmt`, which currently eats blank lines a bit.
+
+# ** Prelude
+
+# Reference:
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
 # https://just.systems/man/en/chapter_31.html Functions
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
-# This has absorbed all of Makefile; uncomment and update remaining bits when needed.
-# See also Shake.hs.
-# ** prelude
 
-@help:
-    just -lu
+# Invocations of just in this file assume you are in this justfile's directory,
+# since otherwise we must write --justfile {{ justfile() }} or {{ just }} everywhere.
 
-# This and all other just invocations assume you are in this justfile's directory,
-# otherwise we must write --justfile {{ justfile() }} or {{ just }} everywhere.
+# list this justfile's recipes, optionally filtered by REGEX
+@help *REGEX:
+    if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; fi
+#    if [[ "$REGEX" =~ "" ]]; then just -lu; else just -lu | rg -i "$REGEX"; true; fi
 
 @_check:
     just --fmt --unstable --check
@@ -24,7 +49,29 @@
 @_watch:
     watchexec -w {{ justfile() }} -- 'just; just -q _check && echo format ok || echo non-standard format'
 
-# ** vars
+# rerun RECIPE when any git-committed file changes
+watchgit RECIPE *OPTS:
+    #!/usr/bin/env bash
+    watchexec -r --filter-file <(git ls-files) -- just $RECIPE
+
+# show watchexec env vars when any git-committed file changes
+watchgitdbg *OPTS:
+    #!/usr/bin/env bash
+     watchexec -r --filter-file <(git ls-files) {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+
+# show watchexec env vars when any file changes, ignoring nothing and printing events
+watchdbg *OPTS:
+    watchexec --ignore-nothing --print-events {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+
+# Constants and recipe arguments will also be available as environment variables
+# in recipes, making just code easier to convert to and from shell, so you can
+# write $VAR instead of {{ VAR }}. Notes:
+# They handle multi-word values differently, {{ }} is better ?
+# In command lines in output, {{ }} is fully evaluated, $ is not.
+set export
+
+# ** Constants
+
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
@@ -115,6 +162,24 @@ SOURCEFILES := '\
     hledger-lib/Text/*/*hs    \
     '
 
+SOURCEFILES2 := '''
+    dev.hs
+    hledger/*hs
+    hledger/app/*hs
+    hledger/bench/*hs
+    hledger/test/*hs
+    hledger/Hledger/*hs
+    hledger/Hledger/*/*hs
+    hledger/Hledger/*/*/*hs
+    hledger-*/*hs
+    hledger-*/app/*hs
+    hledger-*/test/*hs
+    hledger-*/Hledger/*hs
+    hledger-*/Hledger/*/*hs
+    hledger-*/Hledger/*/*/*hs
+    hledger-lib/Text/*/*hs
+    '''
+
 #    hledger-*/src/*hs         \
 
 HPACKFILES := '\
@@ -191,51 +256,51 @@ BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DD
 TIME := "{{ shell date +'%Y%m%d%H%M' }}"
 MONTHYEAR := "{{ shell date +'%B %Y' }}"
 
-# ** GHCI
+# ** ghci
 
 GHCI:
 
-# run GHCI on hledger-lib + hledger
+# run ghci on hledger-lib + hledger
 @ghci:
     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger/Hledger/Cli.hs
 
-# run GHCI on hledger-lib + hledger with profiling/call stack information
+# run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof:
     stack build --profile hledger --only-dependencies
     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
 
-# # run GHCI on hledger-lib + hledger + dev.hs script
+# # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
 #     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
-# run GHCI on hledger-lib + hledger + hledger-ui
+# run ghci on hledger-lib + hledger + hledger-ui
 @ghci-ui:
     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-ui/Hledger/UI/Main.hs
 
-# run GHCI on hledger-lib + hledger + hledger-web
+# run ghci on hledger-lib + hledger + hledger-web
 @ghci-web:
     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-web/app/main.hs
 
-# run GHCI on hledger-lib + hledger + hledger-web + hledger-web test suite
+# run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
 @ghci-web-test:
     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-web/test/test.hs
 
 # # better than stack exec ?
 # # XXX does not see changes to files
-# # run GHCI on hledger-lib + test runner
+# # run ghci on hledger-lib + test runner
 # ghci-lib-test:
 #     {{ STACKGHCI }} ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
-# run GHCI on all the hledger
+# run ghci on all the hledger
 # ghci-all:
 #     {{ STACK }} exec -- {{ GHCI }} {{ BUILDFLAGS }} \
 #         hledger-ui/Hledger/UI/Main.hs \
 #         hledger-web/app/main.hs \
 
-# run GHCI on hledger-lib doctests
+# run ghci on hledger-lib doctests
 @ghci-doctest:
     cd hledger-lib; {{ STACKGHCI }} ghci hledger-lib:test:doctest
 
-# run GHCI on Shake.hs
+# run ghci on Shake.hs
 @ghci-shake:
     {{ STACK }} exec {{ SHAKEDEPS }} -- ghci Shake.hs
 
@@ -318,11 +383,11 @@ ghcid-shake:
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
-# ** building
+# ** Building
 
 BUILDING:
 
-# build the hledger package showing GHC codegen times/allocations
+# build the hledger package showing ghc codegen times/allocations
 @buildtimes:
     time ({{ STACK }} build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
 
@@ -343,7 +408,7 @@ BUILDING:
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
-# ** testing
+# ** Testing
 
 TESTING:
 
@@ -460,7 +525,7 @@ ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 installtest:
     cd; {{ justfile_directory() }}/hledger-install/hledger-install.sh
 
-# ** benchmarking
+# ** Benchmarking
 
 BENCHMARKING:
 
@@ -490,10 +555,8 @@ samplejournals:
 
 BENCHEXES := 'hledger'
 
-bench: quickbench
-
 # run benchmark commands in bench.sh for each of BENCHEXES, with quickbench
-@quickbench:
+@bench:
     printf "Running benchmarks with {{ BENCHEXES }} (times are approximate, can be skewed):\n"
     which quickbench >/dev/null && quickbench -w {{ BENCHEXES }} || echo "quickbench not installed (see bench.sh), skipping"
 
@@ -596,9 +659,9 @@ bench: quickbench
 # # 	view the last html code coverage report\
 # # 	)
 # # 	$(VIEWHTML) doc/profs/coverage/index.html
-# ** documentation
+# ** Documenting
 
-DOCUMENTATION:
+DOCUMENTING:
 
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
@@ -689,7 +752,7 @@ haddock-open:
 #     @make -s Shake
 #     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
 #     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
-# ** installing
+# ** Installing
 
 INSTALLING:
 
@@ -707,7 +770,7 @@ INSTALLING:
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
-# ** releasing
+# ** Releasing
 
 RELEASING:
 
@@ -889,24 +952,43 @@ _gitSwitchAutoCreate BRANCH:
 # #     @echo Commits since last release:
 # #     @darcs changes --from-tag $(FROMTAG) --count
 # #     @echo
-# describe: $(call def-help,describe, show a precise git-describe version string )
-#     @git describe --tags --match 'hledger-[0-9]*' --dirty
-# # showreleaseauthors: $(call def-help,showreleaseauthors, show author names since last release)
-# #     @echo Commit authors since last release:
-# #     @git shortlog -sn $(CHANGELOGSTART)..  # TODO undefined
-# showauthors: $(call def-help,showauthors, show all commit author names)
-#     @echo "Commit authors ($$(git shortlog -sn | wc -l | awk '{print $$1}'))":
-#     @git shortlog -sn
-# cloc: $(call def-help,cloc, count lines of source code )
-#     @echo Lines of code including tests:
-#     @cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
-# SCC=scc -z --cocomo-project-type semi-detached -f wide -s code
-# scc: $(call def-help,scc, count lines of source code with scc)
-#     @echo Lines of code including tests:
-#     @$(SCC) -i hs,sh,m4,hamlet
-# sccv: $(call def-help,sccv, count lines of source code with scc showing all files)
-#     @echo Lines of code including tests:
-#     @$(SCC) -i hs,sh,m4,hamlet --by-file
+
+# show a precise git-describe version string
+@describe:
+    git describe --tags --match 'hledger-[0-9]*' --dirty
+
+# show commit author names since last release
+@authors-release:
+    echo "Commit authors since last release:"
+    git shortlog -sn `git tag --sort=-creatordate -l '[0-9]*' | head -1`..
+
+# show all commit author names
+@authors:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sn
+
+# show all commit author names and emails
+@authorsv:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sne
+
+# count lines of code with cloc
+@cloc:
+    echo "Lines of code including tests:"
+    cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
+
+SCC := 'scc -z --cocomo-project-type semi-detached -f wide -s code'
+
+# count lines of code with scc
+@scc:
+    echo Lines of code including tests:
+    $SCC -i hs,sh,m4,hamlet
+
+# count lines of code with scc showing all files
+@sccv:
+    echo Lines of code including tests:
+    $SCC -i hs,sh,m4,hamlet --by-file
+
 # # `ls $(SOURCEFILES)`
 # # sloc: \
 # #     $(call def-help,sloc,\
@@ -980,7 +1062,7 @@ _gitSwitchAutoCreate BRANCH:
 #     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
 # list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
 #     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
-# ** misc
+# ** Misc
 
 MISC:
 
@@ -1052,45 +1134,43 @@ mkwebdirs:
     for p in ledger hledger beancount; do git -C ../$p log --format="%cd (%h) %s%n  ($p)  1%n" --date=short --reverse >> project-commits.j; done
     echo "wrote project-commits.j"
 
-# ###############################################################################
-# $(call def-help-subheading,MISCELLANEOUS:)
-# installcommithook: $(call def-help,installcommithook, symlink tools/commitlint as .git/hooks/commit-msg)
-#     ln -s ../../tools/commitlint .git/hooks/commit-msg
-# watch-%: $(call def-help,watch-RULE, run make RULE repeatedly when any committed file changes)
-#      @git ls-files | entr -r make $*
+# symlink tools/commitlint as .git/hooks/commit-msg
+installcommithook:
+    ln -s ../../tools/commitlint .git/hooks/commit-msg
+
 # Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
 #     ./Shake.hs
-# usage: cabalusage stackusage \
-#     $(call def-help,usage, show size of various dirs )
-#     du -sh .git bin data doc extra
-#     du -sh .
-# stackusage: \
-#     $(call def-help,stackusage, show size of stack working dirs if any )
-#     -du -shc `find . -name '.stack*'`
-# cabalusage: \
-#     $(call def-help,cabalusage, show size of cabal working dirs if any )
-#     -du -shc */dist* 2>/dev/null
-# # Generate an emacs TAGS file. Tag:
-# # 1. haskell source files with hasktags
-# # 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
-# # 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
-# etags:$(call def-help,etags, generate emacs TAGS file for haskell source and other project files )
-#     hasktags -e $(SOURCEFILES)
-#     ctags -a -e -R
-#     for f in \
-#         $(WEBTEMPLATEFILES) \
-#         $(DOCSOURCEFILES) \
-#         $(TESTFILES) \
-#         $(HPACKFILES) \
-#         $(CABALFILES) \
-#         Shake.hs \
-#     ; do printf "\n$$f,1\n" >> TAGS; done
-#     -etagsls >TAGS.files
-# etags-ls:  # list files indexed in TAGS
-#     @rg -v '[ ]' TAGS | rg -r '$$1' '^(.*?)([0-9]+)?,[0-9,]+*'
-# cleantags: \
-#     $(call def-help-hide,cleantags, remove tag files )
-#     rm -f TAGS tags
+
+# show some big directory sizes
+@usage:
+    -du -sh .git bin data doc extra `find . -name '.stack*' -prune -o -name 'dist' -prune -o -name 'dist-newstyle' -prune` 2>/dev/null | sort -hr
+
+# Tags:
+# 1. haskell source files with hasktags
+# 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
+# 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+# generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
+@etags:
+    hasktags -e {{ SOURCEFILES }}
+#   ctags -a -e -R
+#   for f in \
+#       $WEBTEMPLATEFILES \
+#       $DOCSOURCEFILES \
+#       $TESTFILES \
+#       $HPACKFILES \
+#       $CABALFILES \
+#       Shake.hs \
+#   ; do printf "\n$f,1\n" >> TAGS; done
+#   -just etags-ls >TAGS.files
+
+# list the files tagged in TAGS
+@etags-ls:
+    rg -v '[ ]' TAGS | rg -r '$1' '^(.*?)([0-9]+)?,[0-9,]+*'
+
+# remove TAGS files
+@etags-clean:
+    rm -f TAGS TAGS.files
+
 # stackclean: \
 #     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
 #     $(STACK) purge
