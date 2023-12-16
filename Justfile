@@ -529,7 +529,6 @@ BENCHMARKING:
 # generate standard sample journals in examples/
 samplejournals:
     tools/generatejournal.hs 3 5 5           > examples/ascii.journal
-    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal
     tools/generatejournal.hs 3 5 5 --mixed   > examples/mixed.journal
     tools/generatejournal.hs 10 10 10        > examples/10x10x10.journal       
     tools/generatejournal.hs 100 100 10      > examples/100x100x10.journal     
@@ -547,6 +546,7 @@ samplejournals:
     tools/generatejournal.hs 10000 10000 10  > examples/10000x10000x10.journal 
     tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
     tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
+#    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 
 # $ just --set BENCHEXES ledger,hledger  bench
 
