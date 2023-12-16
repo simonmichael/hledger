@@ -57,7 +57,7 @@ watchgitdbg *OPTS:
     #!/usr/bin/env bash
      watchexec -r --filter-file <(git ls-files) {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
 
-# show watchexec env vars when any file changes, ignoring nothing and printing events
+# show watchexec env vars when any file changes, printing events and ignoring nothing
 watchdbg *OPTS:
     watchexec --ignore-nothing --print-events {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
 
@@ -480,10 +480,10 @@ SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 
 
 #  --hide-successes
 
-# build hledger quickly and run functional tests, or just the ones matching PAT. (Run mktestaddons first.)
-@functest *PAT:
+# build hledger quickly and run functional tests, with any shelltest OPTS (requires mktestaddons)
+@functest *OPTS:
     {{ STACK }} build --fast hledger
-    ({{ SHELLTEST }} {{ if PAT == '' { '' } else { '-i "' + PAT + '"' } }} \
+    ({{ SHELLTEST }} {{ if OPTS == '' { '' } else { OPTS } }} \
         hledger/test/ bin/ \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
         && echo $@ PASSED) || (echo $@ FAILED; false)
