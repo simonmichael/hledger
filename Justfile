@@ -20,6 +20,9 @@
 @_fmt:
     just -q _check || just --fmt --unstable
 
+@_watch:
+    watchexec -w {{ justfile() }} -- 'just; just -q _check && echo format ok || echo format non-standard'
+
 # ** vars
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
