@@ -972,22 +972,17 @@ _gitSwitchAutoCreate BRANCH:
     echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
     git shortlog -sne
 
-# count lines of code with cloc
-@cloc:
-    echo "Lines of code including tests:"
-    cloc --exclude-lang=HTML --exclude-dir=.stack-work,.idea,dist,old,bin,doc,site,.tutorial-data,static,angular .
-
 SCC := 'scc -z --cocomo-project-type semi-detached -f wide -s code'
 
 # count lines of code with scc
-@scc:
-    echo Lines of code including tests:
-    $SCC -i hs,sh,m4,hamlet
+scc:
+    echo "Lines of code including tests:"
+    {{ SCC }} -i hs,sh,m4,hamlet
 
-# count lines of code with scc showing all files
-@sccv:
-    echo Lines of code including tests:
-    $SCC -i hs,sh,m4,hamlet --by-file
+# count lines of code with scc, showing all files
+sccv:
+    echo "Lines of code including tests:"
+    {{ SCC }} -i hs,sh,m4,hamlet --by-file
 
 # # `ls $(SOURCEFILES)`
 # # sloc: \
