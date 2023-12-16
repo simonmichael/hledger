@@ -40,7 +40,7 @@ To claim the bounty:
 
 ## Regressions reported
 
-| Report                                                       | By                                                                    | Bounty paid             |
+| Issue, version                                               | Reporter                                                              | Bounty paid             |
 |--------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------|
 | **1.19**                                                     |                                                                       |                         |
 | [#1698](https://github.com/simonmichael/hledger/issues/1698) | [David Lowe](https://opencollective.com/hledger/expenses/50380)       | 2021-09-18              |
@@ -79,10 +79,7 @@ To claim the bounty:
 |                                                              |                                                                       |                         |
 
 
-All regression issues: [bugs.hledger.org/regressions](https://bugs.hledger.org/regressions)
+All regression issues: <https://bugs.hledger.org/regressions>
 
-
-## Regression bounty payments
-
-<https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500>
+All regression bounty payments: <https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500>
 
