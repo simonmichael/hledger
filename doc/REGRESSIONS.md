@@ -28,7 +28,9 @@ To claim the bounty:
    - choose Invoice
    - choose a Payout method; Next
    - Expense title: Regression bounty for #NNNN
-   - Description: "QA", and the WORK DATE or WORK PERIOD
+   - Description: "QA", and for fast processing also include
+     - the WORK DATE or WORK PERIOD
+     - the ISSUE URL
    - Date: today's date
    - Amount: USD 100
      (or if you choose another currency, convert with that day's conversion rate
