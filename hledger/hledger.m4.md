@@ -2369,16 +2369,21 @@ So,
 
 ## Auto postings
 
-The `=` directive declares a rule for generating temporary extra postings 
-on transactions. Wherever the rule matches an existing posting, it can
-add one or more companion postings below that one, optionally influenced
-by the matched posting's amount. This can be useful for generating
-tax postings with a standard percentage, for example.
+The `=` directive declares a rule for generating temporary extra postings on transactions. 
+When the `--auto` flag is used, wherever the `=` rule matches an existing posting, 
+it will generate a new companion posting (or several) below it.
+Optionally the generated posting amount(s) can depend on the matched posting's amount.
+This can be useful for generating tax postings with a standard percentage, for example.
 
-Note that depending on generated data is not ideal for financial records
-(it's less portable, less future-proof, less auditable by others, 
-and less robust, since other features like balance assertions will depend
-on using or not using `--auto`).
+Note these generated postings exist only for the duration of the report, and only when hledger is run with the `--auto` flag.
+They affect the report calculations and output but they are not saved in the journal file by hledger.
+
+Also note that depending fully on this kind of generated data has some drawbacks -
+it's less portable, less future-proof, less auditable by others, and less robust
+(since other features like balance assertions will depend on whether you use or don't use `--auto`).
+An alternative is to use auto postings in "one time" fashion -
+use them to help build a complex journal entry, view it with `hledger print --auto`,
+and then copy that output into the journal file to make it permanent.
 
 An auto posting rule looks a bit like a transaction:
 ```journal
