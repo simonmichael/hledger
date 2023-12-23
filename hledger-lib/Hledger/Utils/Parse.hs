@@ -39,8 +39,8 @@ module Hledger.Utils.Parse (
   skipNonNewlineSpaces',
 
   -- ** Trace the state of hledger parsers
-  traceOrLogParse,
   dbgparse,
+  traceOrLogParse,
 
   -- * re-exports
   HledgerParseErrors,
@@ -72,6 +72,16 @@ type SimpleTextParser = Parsec HledgerParseErrorData Text  -- XXX an "a" argumen
 -- | A parser of text that runs in some monad.
 type TextParser m a = ParsecT HledgerParseErrorData Text m a
 
+-- class (Stream s, MonadPlus m) => MonadParsec e s m 
+-- dbgparse :: (MonadPlus m, MonadParsec e String m) => Int -> String -> m ()
+
+-- | Trace to stderr or log to debug log the provided label (if non-null)
+-- and current parser state (position and next input),
+-- if the global debug level is at or above the specified level.
+-- Uses unsafePerformIO.
+dbgparse :: Int -> String -> TextParser m ()
+dbgparse level msg = when (level <= debugLevel) $ traceOrLogParse msg
+
 -- | Trace to stderr or log to debug log the provided label (if non-null)
 -- and current parser state (position and next input).
 -- See also: Hledger.Utils.Debug, megaparsec's dbg.
@@ -87,16 +97,6 @@ traceOrLogParse msg = do
   traceOrLog s' $ return ()
   where
     peeklength = 30
-
--- class (Stream s, MonadPlus m) => MonadParsec e s m 
--- dbgparse :: (MonadPlus m, MonadParsec e String m) => Int -> String -> m ()
-
--- | Trace to stderr or log to debug log the provided label (if non-null)
--- and current parser state (position and next input),
--- if the global debug level is at or above the specified level.
--- Uses unsafePerformIO.
-dbgparse :: Int -> String -> TextParser m ()
-dbgparse level msg = when (level <= debugLevel) $ traceOrLogParse msg
 
 -- | Render a pair of source positions in human-readable form, only displaying the range of lines.
 sourcePosPairPretty :: (SourcePos, SourcePos) -> String
