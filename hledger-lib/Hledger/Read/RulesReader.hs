@@ -69,7 +69,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (asum, toList)
 import Text.Megaparsec hiding (match, parse)
-import Text.Megaparsec.Char (char, newline, string)
+import Text.Megaparsec.Char (char, newline, string, digitChar)
 import Text.Megaparsec.Custom (parseErrorAt)
 import Text.Printf (printf)
 
@@ -788,11 +788,15 @@ renderTemplate rules record f t =
     )
     t
   where
-    literaltextp = takeWhile1P Nothing isNotEscapeChar
-    matchrefp = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref")  isDigit)         :: Parsec HledgerParseErrorData Text Text   -- XXX: can we return a parsed Int here?
-    fieldrefp = liftA2 T.cons (char '%')  (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec HledgerParseErrorData Text Text
+    literaltextp :: SimpleTextParser Text
+    literaltextp = some (nonBackslashOrPercent <|> nonRefBackslash <|> nonRefPercent) <&> T.pack
+      where
+        nonBackslashOrPercent = noneOf ['\\', '%'] <?> "character other than backslash or percent"
+        nonRefBackslash = try (char '\\' <* notFollowedBy digitChar) <?> "backslash that does not begin a match group reference"
+        nonRefPercent   = try (char '%'  <* notFollowedBy (satisfy isFieldNameChar)) <?> "percent that does not begin a field reference"
+    matchrefp    = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref")  isDigit)
+    fieldrefp    = liftA2 T.cons (char '%')  (takeWhile1P (Just "reference") isFieldNameChar)
     isFieldNameChar c = isAlphaNum c || c == '_' || c == '-'
-    isNotEscapeChar c = c /='%' && c /= '\\'
 
 -- | Replace something that looks like a Regex match group reference with the
 -- resulting match group value after applying the Regex.

@@ -1117,6 +1117,20 @@ $  ./csvtest.sh tag:ttag
 
 >=
 
+# ** 58. handle newlines in an assignment value, without breaking interpolations (#2134)
+<
+2023-01-01,1
+RULES
+fields date, amount
+account1 (a)
+comment \n %amount
+$  ./csvtest.sh
+2023-01-01
+    ;  1
+    (a)               1
+
+>=
+
 # ** .
 #<
 #$  ./csvtest.sh
