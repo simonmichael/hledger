@@ -23,43 +23,53 @@
 #   ))
 #
 # This file is formatted by `just _fmt`, which currently eats blank lines a bit.
-# ** Prelude
+#
 # Reference:
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
 # https://just.systems/man/en/chapter_31.html Functions
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
-# Invocations of just in this file assume you are in this justfile's directory,
-# since otherwise we must write --justfile {{ justfile() }} or {{ just }} everywhere.
+
+# ** Helpers ------------------------------------------------------------
+HELPERS: help
+
+# just := "just -f " + justfile()
+# Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
 
 # list this justfile's recipes, optionally filtered by REGEX
 @help *REGEX:
-    if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; fi
+    if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; true; fi
 
-#    if [[ "$REGEX" =~ "" ]]; then just -lu; else just -lu | rg -i "$REGEX"; true; fi
-
+# check this justfile for errors and non-standard format
 @_check:
     just --fmt --unstable --check
 
-@_fmt:
-    just -q _check || just --fmt --unstable
+# keep checking this justfile
+@_check-watch:
+    watchexec -q -w {{ justfile() }} -- 'just; just -q _check && echo format ok || (echo non-standard format; false)'
 
-@_watch:
-    watchexec -w {{ justfile() }} -- 'just; just -q _check && echo format ok || echo non-standard format'
+# if this justfile is error free but in non-standard format, reformat and commit it
+@_fmt:
+    just -q check || just --fmt --unstable && git commit -m 'just: fmt' -- {{ justfile() }}
 
 # rerun RECIPE when any git-committed file changes
 watchgit RECIPE *OPTS:
     #!/usr/bin/env bash
-    watchexec -r --filter-file <(git ls-files) -- just $RECIPE
+    watchexec -q -r --filter-file <(git ls-files) -- just $RECIPE
 
 # show watchexec env vars when any git-committed file changes
 watchgitdbg *OPTS:
     #!/usr/bin/env bash
-     watchexec -r --filter-file <(git ls-files) {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+     watchexec -q -r --filter-file <(git ls-files) {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+
+# rerun RECIPE when any watched-by-default file changes
+watch RECIPE *OPTS:
+    #!/usr/bin/env bash
+    watchexec -q -r --filter-file <(git ls-files) -- just $RECIPE
 
 # show watchexec env vars when any file changes, printing events and ignoring nothing
 watchdbg *OPTS:
-    watchexec --ignore-nothing --print-events {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+    watchexec -q --ignore-nothing --print-events {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
 
 # Constants and recipe arguments will also be available as environment variables
 # in recipes, making just code easier to convert to and from shell, so you can
@@ -69,7 +79,8 @@ watchdbg *OPTS:
 
 set export := true
 
-# ** Constants
+# ** Constants ------------------------------------------------------------
+
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
@@ -118,7 +129,7 @@ STACKGHCI := STACK
 # --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
 # slow hackage index or compiler setup on first build, etc.
 
-WATCHEXEC := 'watchexec'
+# WATCHEXEC := 'watchexec -q'
 PACKAGES := '\
     hledger-lib \
     hledger \
@@ -253,8 +264,7 @@ BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DD
 TIME := "{{ shell date +'%Y%m%d%H%M' }}"
 MONTHYEAR := "{{ shell date +'%B %Y' }}"
 
-# ** ghci
-
+# ** ghci ------------------------------------------------------------
 GHCI:
 
 # run ghci on hledger-lib + hledger
@@ -301,8 +311,7 @@ GHCI:
 @ghci-shake:
     {{ STACK }} exec {{ SHAKEDEPS }} -- ghci Shake.hs
 
-# ** ghcid
-
+# ** ghcid ------------------------------------------------------------
 GHCID:
 
 # run ghcid on hledger-lib + hledger
@@ -358,7 +367,7 @@ SHAKEDEPS := '\
 ghcid-shake:
     stack exec {{ SHAKEDEPS }} -- ghcid Shake.hs
 
-# ** dev.hs script
+# ** dev.hs script ------------------------------------------------------------
 # #    hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 # # build the dev.hs script for quick experiments (with ghc)
 # dev:
@@ -380,8 +389,7 @@ ghcid-shake:
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
-# ** Building
-
+# ** Building ------------------------------------------------------------
 BUILDING:
 
 # build the hledger package showing ghc codegen times/allocations
@@ -405,8 +413,7 @@ BUILDING:
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
-# ** Testing
-
+# ** Testing ------------------------------------------------------------
 TESTING:
 
 # run tests that are reasonably quick (files, unit, functional) and benchmarks
@@ -522,8 +529,7 @@ ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 installtest:
     cd; {{ justfile_directory() }}/hledger-install/hledger-install.sh
 
-# ** Benchmarking
-
+# ** Benchmarking ------------------------------------------------------------
 BENCHMARKING:
 
 # generate standard sample journals in examples/
@@ -656,8 +662,7 @@ BENCHEXES := 'hledger'
 # # 	view the last html code coverage report\
 # # 	)
 # # 	$(VIEWHTML) doc/profs/coverage/index.html
-# ** Documenting
-
+# ** Documenting ------------------------------------------------------------
 DOCUMENTING:
 
 # see also Shake.hs
@@ -749,8 +754,7 @@ haddock-open:
 #     @make -s Shake
 #     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
 #     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
-# ** Installing
-
+# ** Installing ------------------------------------------------------------
 INSTALLING:
 
 # # copy the current ~/.local/bin/hledger to bin/old/hledger-VER
@@ -767,8 +771,7 @@ INSTALLING:
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
-# ** Releasing
-
+# ** Releasing ------------------------------------------------------------
 RELEASING:
 
 # Symlink/copy important files temporarily in .relfiles/.
@@ -1054,8 +1057,7 @@ sccv:
 #     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
 # list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
 #     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
-# ** Misc
-
+# ** Misc ------------------------------------------------------------
 MISC:
 
 # push to github CI, wait for tests to pass, then push to master
@@ -1077,25 +1079,25 @@ mkwebdirs:
     ln -sf hledger-web/static
     ln -sf hledger-web/templates
 
-# Show last week's activity, for TWIH
-@_lastweek:
-    echo "hledger time last 7 days including today (this should be run on a Friday):"
-    tt bal hledger -DTS -b '6 days ago' --drop 2
+# Show activity over the last N days (eg 7), for This Week In Hledger.
+@_lastweek DAYS:
+    echo "hledger time last $DAYS days including today (this should be run on a Friday):"
+    tt bal hledger -DTS -b "$DAYS days ago" --drop 2
     echo
     echo "By activity type, percentage:"
-    tt bal hledger -DTS -b '6 days ago' --pivot t -% -c 1% | tail +1
+    tt bal hledger -DTS -b "$DAYS days ago" --pivot t -% -c 1% | tail +1
     echo
     echo "Time log details:"
-    tt print hledger -b '6 days ago' | grep -E '^[^ ]|hledger'
+    tt print hledger -b "$DAYS days ago" | grep -E '^[^ ]|hledger'
     echo
     echo "main repo:"
-    git log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+    git log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="$DAYS days ago" --reverse
     echo
     echo "site repo:"
-    git -C site log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+    git -C site log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="$DAYS days ago" --reverse
     echo
     echo "finance repo:"
-    git -C finance log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="6 days ago" --reverse
+    git -C finance log --format='%C(yellow)%cd %ad %Cred%h%Creset %s %Cgreen(%an)%Creset%C(bold blue)%d%Creset' --date=short --since="$DAYS days ago" --reverse
     echo
 
 # show the sorted, unique files matched by SOURCEFILES
