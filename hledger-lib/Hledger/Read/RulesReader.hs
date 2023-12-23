@@ -297,6 +297,9 @@ type HledgerFieldName = Text
 -- containing csv field references to be interpolated.
 type FieldTemplate    = Text
 
+-- | A reference to a regular expression match group. Eg \1.
+type MatchGroupReference = Text
+
 -- | A strptime date parsing pattern, as supported by Data.Time.Format.
 type DateFormat       = Text
 
@@ -773,23 +776,27 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
         matcherPrefix (FieldMatcher prefix _ _) = prefix
 
 -- | Render a field assignment's template, possibly interpolating referenced
--- CSV field values. Outer whitespace is removed from interpolated values.
+-- CSV field values or match groups. Outer whitespace is removed from interpolated values.
 renderTemplate ::  CsvRules -> CsvRecord -> HledgerFieldName -> FieldTemplate -> Text
-renderTemplate rules record f t = maybe t mconcat $ parseMaybe
-    (many $ takeWhile1P Nothing isNotEscapeChar
-        <|> replaceRegexGroupReference rules record f <$> matchp
-        <|> replaceCsvFieldReference rules record <$> referencep)
+renderTemplate rules record f t =
+  maybe t mconcat $ parseMaybe
+    (many
+      (   literaltextp
+      <|> (matchrefp <&> replaceRegexGroupReference rules record f)
+      <|> (fieldrefp <&> replaceCsvFieldReference   rules record)
+      )
+    )
     t
   where
-    -- XXX: can we return a parsed Int here?
-    matchp = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref") isDigit) :: Parsec HledgerParseErrorData Text Text
-    referencep = liftA2 T.cons (char '%') (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec HledgerParseErrorData Text Text
+    literaltextp = takeWhile1P Nothing isNotEscapeChar
+    matchrefp = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref")  isDigit)         :: Parsec HledgerParseErrorData Text Text   -- XXX: can we return a parsed Int here?
+    fieldrefp = liftA2 T.cons (char '%')  (takeWhile1P (Just "reference") isFieldNameChar) :: Parsec HledgerParseErrorData Text Text
     isFieldNameChar c = isAlphaNum c || c == '_' || c == '-'
     isNotEscapeChar c = c /='%' && c /= '\\'
 
 -- | Replace something that looks like a Regex match group reference with the
 -- resulting match group value after applying the Regex.
-replaceRegexGroupReference :: CsvRules -> CsvRecord -> HledgerFieldName -> FieldTemplate -> Text
+replaceRegexGroupReference :: CsvRules -> CsvRecord -> HledgerFieldName -> MatchGroupReference -> Text
 replaceRegexGroupReference rules record f s = case T.uncons s of
     Just ('\\', group) -> fromMaybe "" $ regexMatchValue rules record f group
     _                  -> s
