@@ -329,27 +329,27 @@ ptraceLogAtIO level label a =
   then return ()
   else traceLogIO (labelledPretty False label a)
 
--- Trace or log a string depending on shouldLog,
+-- | Trace or log a string depending on shouldLog,
 -- before returning the second argument.
 traceOrLog :: String -> a -> a
 traceOrLog = if shouldLog then trace else traceLog
 
--- Trace or log a string depending on shouldLog,
+-- | Trace or log a string depending on shouldLog,
 -- when global debug level is at or above the specified level,
 -- before returning the second argument.
 traceOrLogAt :: Int -> String -> a -> a
 traceOrLogAt = if shouldLog then traceLogAt else traceAt
 
--- Pretty-trace or log depending on shouldLog, when global debug level
+-- | Pretty-trace or log depending on shouldLog, when global debug level
 -- is at or above the specified level.
 ptraceOrLogAt :: Show a => Int -> String -> a -> a
 ptraceOrLogAt = if shouldLog then ptraceLogAt else ptraceAt
 
--- Like ptraceOrLogAt, but convenient in IO.
+-- | Like ptraceOrLogAt, but convenient in IO.
 ptraceOrLogAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
 ptraceOrLogAtIO = if shouldLog then ptraceLogAtIO else ptraceAtIO
 
--- Trace or log, with a show function, depending on shouldLog.
+-- | Trace or log, with a show function, depending on shouldLog.
 traceOrLogAtWith :: Int -> (a -> String) -> a -> a
 traceOrLogAtWith = if shouldLog then traceLogAtWith else traceAtWith
 
