@@ -364,6 +364,12 @@ pricesShortestPath start end edges =
       case concatMap extend paths of
         [] -> Nothing 
         _ | pathlength > maxpathlength -> 
+          -- XXX This is unusual:
+          -- 1. A warning, not an error, which we usually avoid
+          -- 2. Not a debug message (when triggered, we always print it)
+          -- 3. Printed either to stdout or (eg in hledger-ui) to the debug log file.
+          -- This is the only place we use traceOrLog like this.
+          -- Also before 1.32.2, traceOrLog was doing the opposite of what it should [#2134].
           traceOrLog ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
           Nothing
           where 
