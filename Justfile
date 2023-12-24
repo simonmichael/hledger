@@ -1121,33 +1121,30 @@ installcommithook:
 @usage:
     -du -sh .git bin data doc extra `find . -name '.stack*' -prune -o -name 'dist' -prune -o -name 'dist-newstyle' -prune` 2>/dev/null | sort -hr
 
-# Tags:
-# 1. haskell source files with hasktags
+# Files to include in emacs TAGS file:
+# 1. haskell source files with hasktags -e (or ctags -aeR)
 # 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
 # 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+TAGFILES := \
+    WEBTEMPLATEFILES + \
+    DOCSOURCEFILES + \
+    TESTFILES + \
+    HPACKFILES + \
+    CABALFILES + \
+    'Shake.hs'
 
 # generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
 @etags:
-    hasktags -e {{ SOURCEFILES }}
-
-#   ctags -a -e -R
-#   for f in \
-#       $WEBTEMPLATEFILES \
-#       $DOCSOURCEFILES \
-#       $TESTFILES \
-#       $HPACKFILES \
-#       $CABALFILES \
-#       Shake.hs \
-#   ; do printf "\n$f,1\n" >> TAGS; done
-#   -just etags-ls >TAGS.files
+    hasktags -e $SOURCEFILES
+    for f in $TAGFILES; do printf "\n$f,1\n" >>TAGS; done
 
 # list the files tagged in TAGS
 @etags-ls:
-    rg -v '[ ]' TAGS | rg -r '$1' '^(.*?)([0-9]+)?,[0-9,]+*'
+    rg -v '[ ]' TAGS | rg -r '$1' '^(.*?([0-9]+)?),[0-9,]+*'
 
 # remove TAGS files
 @etags-clean:
-    rm -f TAGS TAGS.files
+    rm -f TAGS
 
 # stackclean: \
 #     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
