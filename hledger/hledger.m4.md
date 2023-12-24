@@ -4767,7 +4767,7 @@ The syntax is as follows:
 - Zero or more space-separated query terms. 
   By default these are interpreted as case-insensitive [account name](#account-names) substrings:
 
-  `car:fuel`
+  `car:fuel`\
   `dining groceries`
 
 - Patterns containing spaces or other [special characters](#special-characters) must be enclosed in quotes:
@@ -4794,7 +4794,7 @@ The syntax is as follows:
 
 - Add a `not:` prefix to negate:
 
-  `not:cur:USD`
+  `not:cur:USD`\
   `not:desc:opening|closing`
 
 - Multiple unlike terms are AND-ed, multiple like terms are OR-ed
