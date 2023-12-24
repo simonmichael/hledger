@@ -81,47 +81,36 @@ set export := true
 
 # ** Constants ------------------------------------------------------------
 
+BROWSE := 'open'
+# VIEWHTML := BROWSE
+# VIEWPDF := BROWSE
+# PRINT := 'lpr'
+
+#GHC := 'ghc'
+GHCI := 'ghci'
+# GHCPKG := 'ghc-pkg'
+# HADDOCK := 'haddock'
+# CABAL := 'cabal'
+# CABALINSTALL := 'cabal install -w {{ GHC }}'
+
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
 # command to run during profiling (time and heap)
 
+# command to run when profiling
 PROFCMD := 'stack exec --profile -- hledger balance -f examples/10000x1000x10.journal >/dev/null'
-
-#PROFRTSFLAGS := '-p'
-
 PROFRTSFLAGS := '-P'
 
-# # command to run during "make coverage"
+# # command to run when checking test coverage
 # COVCMD := 'test'
 # COVCMD := '-f test-wf.csv print'
-# misc. system tools
 
-BROWSE := 'open'
-
-# VIEWHTML := '{{ BROWSE }}'
-# VIEWPDF := '{{ BROWSE }}'
-# PRINT := 'lpr'
-#GHC := 'ghc'
-
-GHCI := 'ghci'
-
-# GHCPKG := 'ghc-pkg'
-# HADDOCK := 'haddock'
-# CABAL := 'cabal'
-# CABALINSTALL := 'cabal install -w {{ GHC }}'
 # Which stack command (and in particular, stack yaml/GHC version) to use for building etc. ?
-
 STACK := 'stack'
-
 #STACK := 'stack --stack-yaml=stack8.10.yaml'
 # Or override temporarily with an env var:
 # STACK := '"stack --stack-yaml=stack8.10.yaml" make functest'
-# Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
-
-STACKGHCI := STACK
-
-#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 # if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
 # it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
 #STACK := 'stack --with-hpack=hpack-0.20'
@@ -129,48 +118,38 @@ STACKGHCI := STACK
 # --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
 # slow hackage index or compiler setup on first build, etc.
 
+# Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
+STACKGHCI := STACK
+#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
+
 # WATCHEXEC := 'watchexec -q'
-PACKAGES := '\
-    hledger-lib \
-    hledger \
-    hledger-ui \
-    hledger-web \
+# PACKAGES := '
+#     hledger-lib
+#     hledger
+#     hledger-ui
+#     hledger-web
+#     '
+
+# BINARIES := '
+#     hledger
+#     hledger-ui
+#     hledger-web
+#     '
+
+INCLUDEPATHS := '
+    -ihledger-lib
+    -ihledger
+    -ihledger-ui
+    -ihledger-web
+    -ihledger-web/app
     '
-BINARIES := '\
-    hledger \
-    hledger-ui \
-    hledger-web
-    '
-INCLUDEPATHS := '\
-    -ihledger-lib \
-    -ihledger \
-    -ihledger-ui \
-    -ihledger-web \
-    -ihledger-web/app \
-    '
+
 MAIN := 'hledger/app/hledger-cli.hs'
 
 # All source files in the project (plus a few strays like Setup.hs & hlint.hs).
 # Used eg for building tags. Doesn't reliably catch all source files.
 
-SOURCEFILES := '\
-    dev.hs                    \
-    hledger/*hs               \
-    hledger/app/*hs           \
-    hledger/bench/*hs         \
-    hledger/test/*hs          \
-    hledger/Hledger/*hs       \
-    hledger/Hledger/*/*hs     \
-    hledger/Hledger/*/*/*hs   \
-    hledger-*/*hs             \
-    hledger-*/app/*hs         \
-    hledger-*/test/*hs        \
-    hledger-*/Hledger/*hs     \
-    hledger-*/Hledger/*/*hs   \
-    hledger-*/Hledger/*/*/*hs \
-    hledger-lib/Text/*/*hs    \
-    '
-SOURCEFILES2 := '''
+SOURCEFILES := '
     dev.hs
     hledger/*hs
     hledger/app/*hs
@@ -186,43 +165,46 @@ SOURCEFILES2 := '''
     hledger-*/Hledger/*/*hs
     hledger-*/Hledger/*/*/*hs
     hledger-lib/Text/*/*hs
-    '''
+    '
 
-#    hledger-*/src/*hs         \
+HPACKFILES := '
+    hledger/*package.yaml
+    hledger-*/*package.yaml
+    '
 
-HPACKFILES := '\
-    hledger/*package.yaml \
-    hledger-*/*package.yaml \
+CABALFILES := '
+    hledger/hledger.cabal
+    hledger-*/*.cabal
     '
-CABALFILES := '\
-    hledger/hledger.cabal \
-    hledger-*/*.cabal \
+
+MANUALSOURCEFILES := '
+    doc/common.m4
+    */*.m4.md
     '
-MANUALSOURCEFILES := '\
-    doc/common.m4 \
-    */*.m4.md \
+
+# MANUALGENFILES := '
+#     hledger*/hledger*.{1,5,info,txt}
+#     '
+
+COMMANDHELPFILES := '
+    hledger/Hledger/Cli/Commands/*.md
     '
-MANUALGENFILES := '\
-    hledger*/hledger*.{1,5,info,txt} \
+
+WEBTEMPLATEFILES := '
+    hledger-web/templates/*
     '
-COMMANDHELPFILES := '\
-    hledger/Hledger/Cli/Commands/*.md \
+
+WEBCODEFILES := '
+    hledger-web/static/*.js
+    hledger-web/static/*.css
     '
-WEBTEMPLATEFILES := '\
-    hledger-web/templates/* \
-    '
-WEBCODEFILES := '\
-    hledger-web/static/*.js \
-    hledger-web/static/*.css \
-    '
-DOCSOURCEFILES := '\
-    README.md \
-    CONTRIBUTING.md' + MANUALSOURCEFILES + COMMANDHELPFILES
-TESTFILES := '\
-    hledger/test/*.test \
-    hledger/test/*/*.test \
-    hledger/test/*/*/*.test \
-    '
+
+DOCSOURCEFILES := '
+    README.md
+    CONTRIBUTING.md
+    ' + MANUALSOURCEFILES + COMMANDHELPFILES
+
+TESTFILES := `fd '\.test$' --exclude ledger-compat`
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE := 'hledger/Hledger/Cli/Version.hs'
@@ -235,13 +217,13 @@ export VERSION := `cat hledger/.version`
 # Warnings to see during dev tasks like make ghci*. See also the warnings in package.yamls.
 # XXX redundant with package.yamls ?
 
-WARNINGS := '\
-    -Wall \
-    -Wno-incomplete-uni-patterns \
-    -Wno-missing-signatures \
-    -Wno-orphans \
-    -Wno-type-defaults \
-    -Wno-unused-do-bind \
+WARNINGS := '
+    -Wall
+    -Wno-incomplete-uni-patterns
+    -Wno-missing-signatures
+    -Wno-orphans
+    -Wno-type-defaults
+    -Wno-unused-do-bind
     '
 
 # if you have need to try building in less memory
@@ -255,7 +237,7 @@ GHCLOWMEMFLAGS := ''
 #CABALMACROSFLAGS := '-optP-include -optP hledger/.stack-work/dist/*/*/build/autogen/cabal_macros.h'
 
 CABALMACROSFLAGS := ''
-BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DDEVELOPMENT' + ' -DVERSION=\"' + VERSION + '\"' + INCLUDEPATHS
+BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DDEVELOPMENT' + ' -DVERSION="' + VERSION + '"' + INCLUDEPATHS
 
 #    -fplugin Debug.Breakpoint \
 #    -fhide-source-paths \
@@ -269,47 +251,47 @@ GHCI:
 
 # run ghci on hledger-lib + hledger
 @ghci:
-    {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger/Hledger/Cli.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof:
     stack build --profile hledger --only-dependencies
-    {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
 
 # # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
-#     {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+#     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 # run ghci on hledger-lib + hledger + hledger-ui
 @ghci-ui:
-    {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-ui/Hledger/UI/Main.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-ui/Hledger/UI/Main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web
 @ghci-web:
-    {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-web/app/main.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/app/main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
 @ghci-web-test:
-    {{ STACKGHCI }} exec -- {{ GHCI }} {{ BUILDFLAGS }} hledger-web/test/test.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/test/test.hs
 
 # # better than stack exec ?
 # # XXX does not see changes to files
 # # run ghci on hledger-lib + test runner
 # ghci-lib-test:
-#     {{ STACKGHCI }} ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
+#     $STACKGHCI ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
 # run ghci on all the hledger
 # ghci-all:
-#     {{ STACK }} exec -- {{ GHCI }} {{ BUILDFLAGS }} \
+#     $STACK exec -- $GHCI $BUILDFLAGS \
 #         hledger-ui/Hledger/UI/Main.hs \
 #         hledger-web/app/main.hs \
 
 # run ghci on hledger-lib doctests
 @ghci-doctest:
-    cd hledger-lib; {{ STACKGHCI }} ghci hledger-lib:test:doctest
+    cd hledger-lib; $STACKGHCI ghci hledger-lib:test:doctest
 
 # run ghci on Shake.hs
 @ghci-shake:
-    {{ STACK }} exec {{ SHAKEDEPS }} -- ghci Shake.hs
+    $STACK exec {{ SHAKEDEPS }} -- ghci Shake.hs
 
 # ** ghcid ------------------------------------------------------------
 GHCID:
@@ -339,7 +321,7 @@ GHCID:
 
 # run ghcid autobuilding and running hledger-lib doctests
 @ghcid-doctest:
-    ghcid -c 'cd hledger-lib; {{ STACK }} ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
+    ghcid -c 'cd hledger-lib; $STACK ghci hledger-lib:test:doctest' --test ':main' --reload hledger-lib
 
 GHCIDRESTART := '--restart Makefile --restart Makefile.local'
 GHCIDRELOAD := '--reload t.j --reload t.timedot'
@@ -371,12 +353,12 @@ ghcid-shake:
 # #    hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 # # build the dev.hs script for quick experiments (with ghc)
 # dev:
-#     {{ STACK }} ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs \
+#     $STACK ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs \
 # # to get profiling deps installed, first do something like:
 # # stack build --library-profiling hledger-lib timeit criterion
 # # build the dev.hs script with profiling support
 # devprof:
-#     {{ STACK }} ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
+#     $STACK ghc -- {{ CABALMACROSFLAGS }} -ihledger-lib dev.hs -rtsopts -prof -fprof-auto -osuf p_o -o devprof
 # # get a time & space profile of the dev.hs script
 # dev-profile:
 #     time ./devprof +RTS -P \
@@ -394,25 +376,25 @@ BUILDING:
 
 # build the hledger package showing ghc codegen times/allocations
 @buildtimes:
-    time ({{ STACK }} build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
+    time ($STACK build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
 
 # # build an unoptimised hledger at bin/hledger.EXT.unopt (default: git describe)
 # build-unopt *EXT:
 #     #!/usr/bin/env bash
 #     ext={{ if EXT == '' { `git describe --tags` } else { EXT } }}
 #     exe="bin/hledger.$ext.unopt"
-#     {{ STACK }} --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
+#     $STACK --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
 #     mv bin/hledger "$exe"
 #     echo "$exe"
 # # build hledger with profiling enabled at bin/hledgerprof
 # hledgerprof:
-# # {{ STACK }} --verbosity=error install --local-bin-path=bin hledger
-#     {{ STACK }} build --profile hledger
+# # $STACK --verbosity=error install --local-bin-path=bin hledger
+#     $STACK build --profile hledger
 # # hledger-lib --ghc-options=-fprof-auto
-# #    @echo "to profile, use {{ STACK }} exec --profile -- hledger ..."
+# #    @echo "to profile, use $STACK exec --profile -- hledger ..."
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
-#     {{ STACK }} ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs {{ BUILDFLAGS }}
+#     $STACK ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $BUILDFLAGS
 # ** Testing ------------------------------------------------------------
 TESTING:
 
@@ -440,7 +422,7 @@ STACKTEST := STACK + ' test --fast'
 #     for F in stack*.yaml; do make --no-print-directory buildplantest-$F; done
 # # stack build --dry-run all hledger packages ensuring an install plan with the given stack yaml file; eg make buildplantest-stack8.2.yaml
 # buildplantest-%:
-#     {{ STACK }} build --dry-run --test --bench --stack-yaml=$*
+#     $STACK build --dry-run --test --bench --stack-yaml=$*
 # # force-rebuild all hledger packages/modules quickly ensuring no warnings with default snapshot)
 # buildtest:
 #     buildtest-stack.yaml
@@ -449,7 +431,7 @@ STACKTEST := STACK + ' test --fast'
 #     for F in stack*.yaml; do make --no-print-directory buildtest-$F; done
 # # force-rebuild all hledger packages/modules quickly ensuring no warnings with the given stack yaml file; eg make buildtest-stack8.2.yaml
 # buildtest-%:
-#     {{ STACK }} build --test --bench {{ SKIPTESTSBENCHS }} --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
+#     $STACK build --test --bench {{ SKIPTESTSBENCHS }} --fast --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --stack-yaml=$*
 # # build any outdated hledger packages/modules quickly ensuring no warnings with default snapshot. Wont detect warnings in up-to-date modules.)
 # incr-buildtest:
 #     incr-buildtest-stack.yaml
@@ -458,30 +440,30 @@ STACKTEST := STACK + ' test --fast'
 #     for F in stack*.yaml; do make --no-print-directory incr-buildtest-$F; done
 # # build any outdated hledger packages/modules quickly ensuring no warnings with the stack yaml file; eg make buildtest-stack8.2.yaml. Wont detect warnings in up-to-date modules.
 # incr-buildtest-%:
-#     {{ STACK }} build --test --bench {{ SKIPTESTSBENCHS }} --fast --ghc-options=-Werror --stack-yaml=$*
+#     $STACK build --test --bench {{ SKIPTESTSBENCHS }} --fast --ghc-options=-Werror --stack-yaml=$*
 # # do a stack clean --full with all ghc versions for paranoia/troubleshooting
 # stack-clean-all:
-#     for F in stack*.yaml; do {{ STACK }} clean --full --stack-yaml=$F; done
+#     for F in stack*.yaml; do $STACK clean --full --stack-yaml=$F; done
 
 # run all test suites in the hledger packages
 @pkgtest:
-    ({{ STACKTEST }} && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACKTEST && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # doctest with ghc 8.4 on mac requires a workaround, see hledger-lib/package.yaml.
 # Or, could run it with ghc 8.2:
-#    @({{ STACKTEST }} --stack-yaml stack8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+#    @($STACKTEST --stack-yaml stack8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # run the doctests in hledger-lib module/function docs
 @doctest:
-    ({{ STACKTEST }} hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACKTEST hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # # run the unit tests in hledger-lib
 # unittest:
-#     @({{ STACKTEST }} hledger-lib:test:unittest && echo $@ PASSED) || (echo $@ FAILED; false)
+#     @($STACKTEST hledger-lib:test:unittest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # run hledger & hledger-lib unit tests (do a stack build hledger first).
 @unittest:
-    ({{ STACK }} exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
 SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 --exclude=/_'
 
@@ -489,7 +471,7 @@ SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 
 
 # build hledger quickly and run functional tests, with any shelltest OPTS (requires mktestaddons)
 @functest *OPTS:
-    {{ STACK }} build --fast hledger
+    $STACK build --fast hledger
     ({{ SHELLTEST }} {{ if OPTS == '' { '' } else { OPTS } }} \
         hledger/test/ bin/ \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
@@ -518,8 +500,8 @@ ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 # cabalfiletest:
 #     @(make --no-print-directory cabalcheck && echo $@ PASSED) || (echo $@ FAILED; false)
 # test-stack%yaml:
-#     {{ STACK }} --stack-yaml stack$*yaml clean
-#     {{ STACK }} --stack-yaml stack$*yaml build --ghc-options="{{ WARNINGS }} -Werror" --test --bench --haddock --no-haddock-deps
+#     $STACK --stack-yaml stack$*yaml clean
+#     $STACK --stack-yaml stack$*yaml build --ghc-options="{{ WARNINGS }} -Werror" --test --bench --haddock --no-haddock-deps
 # committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
 #
 # releasetest: Clean unittest functest fullcabaltest haddocktest #buildtest doctest \
@@ -704,7 +686,7 @@ haddock:
 
 # open the haddock packages contents page in a browser
 haddock-open:
-    {{ BROWSE }} `{{ STACK }} path --local-install-root`/doc/index.html
+    {{ BROWSE }} `$STACK path --local-install-root`/doc/index.html
 
 # hoogle-setup: $(call def-help,hoogle-setup, install hoogle then build haddocks and a hoogle db for the project and all deps )
 #     stack hoogle --rebuild
@@ -763,7 +745,7 @@ INSTALLING:
 
 # stack install, then copy the hledger executables to bin/old/hledger*-VER
 @installas VER:
-    {{ STACK }} install --local-bin-path bin/old
+    $STACK install --local-bin-path bin/old
     for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
 
 # # make must be GNU Make 4.3+
@@ -1102,7 +1084,7 @@ mkwebdirs:
 
 # show the sorted, unique files matched by SOURCEFILES
 @_listsourcefiles:
-    for f in {{ SOURCEFILES }}; do echo $f; done | sort | uniq
+    for f in $SOURCEFILES; do echo $f; done | sort | uniq
 
 # show the sorted, unique subdirectories containing hs files
 @_listsourcedirs:
@@ -1110,7 +1092,7 @@ mkwebdirs:
 
 # show the ghc versions used by all stack files
 @_listghcversions:
-    for F in stack*.yaml; do {{ STACK }} --stack-yaml=$F --no-install-ghc exec -- ghc --version; done 2>&1 | grep -v 'To install the correct GHC'
+    for F in stack*.yaml; do $STACK --stack-yaml=$F --no-install-ghc exec -- ghc --version; done 2>&1 | grep -v 'To install the correct GHC'
 
 # Show a bunch of debug messages.
 @_dbgmsgs:
