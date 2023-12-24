@@ -4770,48 +4770,47 @@ The syntax is as follows:
   `car:fuel`\
   `dining groceries`
 
-- Patterns containing spaces or other [special characters](#special-characters) must be enclosed in quotes:
+- Patterns containing spaces or other [special characters](#special-characters) must be enclosed in single or double quotes:
 
-  `"personal care"`
+  `'personal care'`
 
 - These patterns are actually [regular expressions](#regular-expressions),
   so you can add regular expression metacharacters for more precision
-  (see "Regular expressions" for more details):
+  (see "Regular expressions" above for more details):
 
-  `"^expenses\b"`\
-  `"food$"`\
-  `"fuel|repair"`\
-  `"accounts (payable|receivable)"`
+  `'^expenses\b'`\
+  `'food$'`\
+  `'fuel|repair'`\
+  `'accounts (payable|receivable)'`
 
-- Add a query type prefix to match other parts of the data:
+- Add a query type prefix to match things other than account names (see "Query types" below):
 
   `date:202312-`\
   `status:`\
   `desc:amazon`\
   `cur:USD`\
   `cur:\\$`\
-  `"amt:>0"`
+  `amt:'>0'`
 
-- Add a `not:` prefix to negate:
+- Add a `not:` prefix to negate a term:
 
   `not:cur:USD`\
-  `not:desc:opening|closing`
+  `not:desc:'opening|closing'`
 
-- Multiple unlike terms are AND-ed, multiple like terms are OR-ed
+- Terms with different types are AND-ed, terms with the same type are OR-ed (mostly; see "Combining query terms" below).
+  The following query means\
+  *date is in 2022 AND ( description contains "amazon" OR "amzn" )* :
 
-  `date:2022 desc:amazon desc:amzn`\
-  (all transactions with "amazon" or "amzn" in description during 2022)
+  `date:2022 desc:amazon desc:amzn`
 
 ## Query types
 
 Here are the types of query term available.
 Remember these can also be prefixed with **`not:`** to convert them into a negative match.
 
-**`acct:REGEX`, `REGEX`**\
-Match account names containing this (case insensitive) [regular expression]. 
-This is the default query type when there is no prefix,
-and regular expression syntax is typically not needed,
-so usually we just write an account name substring, like `expenses` or `food`.
+**`acct:REGEX`** or **`REGEX`**\
+Match account names containing this case insensitive [regular expression]. 
+This is the default query type, so we usually don't bother writing the "acct:" prefix.
 
 **`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**\
 Match postings with a single-commodity amount equal to, less than, or greater than N.
