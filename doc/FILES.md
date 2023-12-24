@@ -376,7 +376,7 @@ src/hledger/
     SHAKE.md
     TESTS.md
     VERSIONNUMBERS.md
-    WORKFLOWS.md
+    DEVWORKFLOWS.md
     github-release-doc.tmpl.md
     haskellerz/
       haskellerz.md
@@ -496,7 +496,7 @@ src/hledger/site/src/
   SUMMARY.md
   TESTS.md
   VERSIONNUMBERS.md
-  WORKFLOWS.md
+  DEVWORKFLOWS.md
   accounting.md
   balancing-the-accounting-equation.md
   basics.md

@@ -25,7 +25,7 @@ Browse the ideas below, or say hello in the chat and we'll help find you a job.
 
 ### Developer
 
-- See the [Developer workflows](WORKFLOWS.md) 
+- See the [Developer workflows](DEVWORKFLOWS.md) 
 - and other [Developer docs](dev.md)
 
 ### Developer using the hledger libraries
