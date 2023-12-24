@@ -332,7 +332,7 @@ ptraceLogAtIO level label a =
 -- | Trace or log a string depending on shouldLog,
 -- before returning the second argument.
 traceOrLog :: String -> a -> a
-traceOrLog = if shouldLog then trace else traceLog
+traceOrLog = if shouldLog then traceLog else trace
 
 -- | Trace or log a string depending on shouldLog,
 -- when global debug level is at or above the specified level,
