@@ -4765,17 +4765,22 @@ Most hledger commands accept optional query arguments to restrict their scope.
 The syntax is as follows:
 
 - Zero or more space-separated query terms. 
-These are most often [account name](#account-names) substrings:
+  By default these are interpreted as case-insensitive [account name](#account-names) substrings:
 
-  `utilities food:groceries`
+  `car:fuel`
+  `dining groceries`
 
-- Terms with spaces or other [special characters](#special-characters) should be enclosed in quotes:
+- Patterns containing spaces or other [special characters](#special-characters) must be enclosed in quotes:
 
   `"personal care"`
 
-- [Regular expressions](#regular-expressions) are also supported:
+- These patterns are actually [regular expressions](#regular-expressions),
+  so you can add regular expression metacharacters for more precision
+  (see "Regular expressions" for more details):
 
   `"^expenses\b"`\
+  `"food$"`\
+  `"fuel|repair"`\
   `"accounts (payable|receivable)"`
 
 - Add a query type prefix to match other parts of the data:
@@ -4784,11 +4789,13 @@ These are most often [account name](#account-names) substrings:
   `status:`\
   `desc:amazon`\
   `cur:USD`\
+  `cur:\\$`\
   `"amt:>0"`
 
 - Add a `not:` prefix to negate:
 
   `not:cur:USD`
+  `not:desc:opening|closing`
 
 - Multiple unlike terms are AND-ed, multiple like terms are OR-ed
 
