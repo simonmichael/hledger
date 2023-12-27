@@ -2291,12 +2291,14 @@ if you want to prevent this, you can declare and check your tags .
 
 ## Periodic transactions
 
-The `~` directive declares recurring transactions.
-Such directives allow hledger to generate temporary future transactions (visible in reports, not in the journal file)
-to help with [forecasting](#forecasting) or [budgeting](#budgeting).
+The `~` directive declares a "periodic rule" which generates temporary extra transactions, usually recurring at some interval,
+when hledger is run with the `--forecast` flag.
+These "forecast transactions" are useful for [forecasting](#forecasting) future activity.
+They exist only for the duration of the report, and only when `--forecast` is used; they are not saved in the journal file by hledger.
 
-Periodic transactions can be a little tricky, so before you use them,
-read this whole section, or at least these tips:
+Periodic rules also have a second use: with the `--budget` flag they set budget goals for [budgeting](#budgeting).
+
+Periodic rules can be a little tricky, so before you use them, read this whole section, or at least the following tips:
 
 1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
 2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
@@ -2369,29 +2371,32 @@ So,
 
 ## Auto postings
 
-The `=` directive declares a rule for generating temporary extra postings on transactions. 
-When the `--auto` flag is used, wherever the `=` rule matches an existing posting, 
-it will generate a new companion posting (or several) below it.
-Optionally the generated posting amount(s) can depend on the matched posting's amount.
-This can be useful for generating tax postings with a standard percentage, for example.
+The `=` directive declares an "auto posting rule" which generates temporary extra postings on existing transactions,
+when hledger is run with the `--auto` flag.
+(Remember, [postings](#postings) are the account name & amount lines.)
+The rule contains a [query](#queries) and one or more posting templates.
+Wherever the query matches an existing posting, the new posting(s) will be generated and added below that one.
+Optionally the generated amount(s) can depend on the matched posting's amount.
 
-Note these generated postings exist only for the duration of the report, and only when hledger is run with the `--auto` flag.
-They affect the report calculations and output but they are not saved in the journal file by hledger.
+These auto postings can be useful for, eg, adding tax postings with a standard percentage.
+They exist only for the duration of the report, and only when `--auto` is used; they are not saved in the journal file by hledger.
 
-Also note that depending fully on this kind of generated data has some drawbacks -
+Note that depending fully on generated data such as this has some drawbacks -
 it's less portable, less future-proof, less auditable by others, and less robust
-(since other features like balance assertions will depend on whether you use or don't use `--auto`).
+(eg your balance assertions will depend on whether you use or don't use `--auto`).
 An alternative is to use auto postings in "one time" fashion -
 use them to help build a complex journal entry, view it with `hledger print --auto`,
 and then copy that output into the journal file to make it permanent.
 
-An auto posting rule looks a bit like a transaction:
+Here's the journal file syntax. An auto posting rule looks a bit like a transaction:
+
 ```journal
 = QUERY
     ACCOUNT  AMOUNT
     ...
     ACCOUNT  [AMOUNT]
 ```
+
 except the first line is an equals sign (mnemonic: `=` suggests matching),
 followed by a [query](#queries) (which matches existing postings),
 and each "posting" line describes a posting to be generated, 
