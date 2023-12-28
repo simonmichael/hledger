@@ -4766,47 +4766,51 @@ This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=
 # Queries
 
 One of hledger's strengths is being able to quickly report on a precise subset of your data. 
-Most hledger commands accept optional query arguments to restrict their scope.
-The syntax is as follows:
+Most hledger commands accept query arguments, to restrict their scope.
+Multiple query terms can be provided to build up a more complex query.
 
-- Zero or more space-separated query terms. 
-  By default these are interpreted as case-insensitive [account name](#account-names) substrings:
+- By default, a query term is interpreted as a case-insensitive substring pattern for matching [account names](#account-names):
 
   `car:fuel`\
-  `dining groceries`
+  `dining groceries`\
 
 - Patterns containing spaces or other [special characters](#special-characters) must be enclosed in single or double quotes:
 
-  `'personal care'`
+  `'personal care'`\
 
-- These patterns are actually [regular expressions](#regular-expressions),
-  so you can add regular expression metacharacters for more precision
-  (see "Regular expressions" above for more details):
+- These patterns are actually regular expressions,
+  so you can add regexp metacharacters for more precision
+  (see "[Regular expressions](#regular-expressions)" above for details):
 
   `'^expenses\b'`\
   `'food$'`\
   `'fuel|repair'`\
-  `'accounts (payable|receivable)'`
+  `'accounts (payable|receivable)'`\
 
-- Add a query type prefix to match things other than account names (see "Query types" below):
+- To match something other than account name, add one of the query type prefixes described in "Query types" below:
 
   `date:202312-`\
   `status:`\
   `desc:amazon`\
   `cur:USD`\
   `cur:\\$`\
-  `amt:'>0'`
+  `amt:'>0'`\
 
 - Add a `not:` prefix to negate a term:
 
+  `not:status:'*'`\
+  `not:desc:'opening|closing'`\
   `not:cur:USD`\
-  `not:desc:'opening|closing'`
 
 - Terms with different types are AND-ed, terms with the same type are OR-ed (mostly; see "Combining query terms" below).
-  The following query means\
-  *date is in 2022 AND ( description contains "amazon" OR "amzn" )* :
+  The following query:
 
   `date:2022 desc:amazon desc:amzn`
+  
+  is interpreted as:
+  
+  *date is in 2022 AND ( transaction description contains "amazon" OR "amzn" )*
+
 
 ## Query types
 
