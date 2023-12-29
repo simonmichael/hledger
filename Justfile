@@ -22,7 +22,11 @@
 #   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
 #   ))
 #
-# This file is formatted by `just _fmt`, which currently eats blank lines a bit.
+# This file is formatted by `just _fmt`, which currently eats blank lines a bit (and commits).
+#
+# 'set export' makes constants and arguments available as $VAR as well as {{ VAR }}.
+# $ makes just code more like shell code.
+# {{ }} handles multi-word values better and is fully evaluated in -n/--dry-run output.
 #
 # Reference:
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
@@ -33,6 +37,10 @@
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
 
+set export
+WATCHEXEC := 'watchexec -q --stop-timeout=1'
+TODAY     := `date +%Y-%m-%d`
+
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
 
@@ -40,44 +48,34 @@ HELPERS: help
 @help *REGEX:
     if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; true; fi
 
+alias h := help
+
 # check this justfile for errors and non-standard format
-@_check:
+@check:
     just --fmt --unstable --check
 
-# keep checking this justfile
-@_check-watch:
-    watchexec -q -w {{ justfile() }} -- 'just; just -q _check && echo format ok || (echo non-standard format; false)'
-
 # if this justfile is error free but in non-standard format, reformat and commit it
-@_fmt:
-    just -q check || just --fmt --unstable && git commit -m 'just: fmt' -- {{ justfile() }}
-
-# rerun RECIPE when any git-committed file changes
-watchgit RECIPE *OPTS:
-    #!/usr/bin/env bash
-    watchexec -q -r --filter-file <(git ls-files) -- just $RECIPE
-
-# show watchexec env vars when any git-committed file changes
-watchgitdbg *OPTS:
-    #!/usr/bin/env bash
-     watchexec -q -r --filter-file <(git ls-files) {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+@format:
+    just -q chk || just --fmt --unstable && git commit -m 'just: fmt' -- {{ justfile() }}
 
 # rerun RECIPE when any watched-by-default file changes
-watch RECIPE *OPTS:
+watch RECIPE *JOPTS:
     #!/usr/bin/env bash
-    watchexec -q -r --filter-file <(git ls-files) -- just $RECIPE
+    $WATCHEXEC  -r --filter-file <(git ls-files) -- just $RECIPE {{ JOPTS }}
+
+# rerun RECIPE when any git-committed file changes
+watchgit RECIPE *JOPTS:
+    #!/usr/bin/env bash
+    $WATCHEXEC  -r --filter-file <(git ls-files) -- just $RECIPE {{ JOPTS }}
 
 # show watchexec env vars when any file changes, printing events and ignoring nothing
-watchdbg *OPTS:
-    watchexec -q --ignore-nothing --print-events {{ OPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
+_watchdbg *WOPTS:
+    $WATCHEXEC  --ignore-nothing --print-events {{ WOPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
 
-# Constants and recipe arguments will also be available as environment variables
-# in recipes, making just code easier to convert to and from shell, so you can
-# write $VAR instead of {{ VAR }}. Notes:
-# They handle multi-word values differently, {{ }} is better ?
-# In command lines in output, {{ }} is fully evaluated, $ is not.
-
-set export := true
+# show watchexec env vars when any git-committed file changes
+_watchgitdbg *WOPTS:
+    #!/usr/bin/env bash
+     $WATCHEXEC  -r --filter-file <(git ls-files) {{ WOPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
 
 # ** Constants ------------------------------------------------------------
 
@@ -122,7 +120,6 @@ STACK := 'stack'
 STACKGHCI := STACK
 #STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 
-# WATCHEXEC := 'watchexec -q'
 # PACKAGES := '
 #     hledger-lib
 #     hledger
