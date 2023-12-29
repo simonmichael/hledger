@@ -39,8 +39,8 @@ HELPERS: help
 
 set export := true
 
-WATCHEXEC := 'watchexec -q --stop-timeout=1'
-TODAY := `date +%Y-%m-%d`
+WATCHEXEC := 'watchexec --timings'  # and/or: -q --bell --stop-timeout=1
+#TODAY := `date +%Y-%m-%d`
 
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
@@ -559,13 +559,13 @@ BENCHEXES := 'hledger'
 # 	tools/progressionbench -- -t png -k png
 
 # show throughput at various data sizes with the given hledger executable (requires samplejournals)
-@throughput HLEDGEREXE:
+@throughput EXE:
     echo date:       `date`
     echo system:     `uname -a`
-    echo executable: {{ HLEDGEREXE }}
-    echo version:    `{{ HLEDGEREXE }} --version`
+    echo executable: {{ EXE }}
+    echo version:    `{{ EXE }} --version`
     for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
-        printf "%6d txns: " $n; {{ HLEDGEREXE }} stats -f examples/${n}x1000x10.journal | tail -1; \
+        printf "%6d txns: " $n; {{ EXE }} stats -f examples/${n}x1000x10.journal | tail -1; \
     done
     date
 
