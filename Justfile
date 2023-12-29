@@ -38,12 +38,14 @@
 HELPERS: help
 
 set export := true
+
 # and/or: -q --bell --stop-timeout=1
+
 WATCHEXEC := 'watchexec --timings'
+
 # grep-like rg
 #RG_ := 'rg --sort=path --no-heading -i'
 #TODAY := `date +%Y-%m-%d`
-
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
 
@@ -285,6 +287,7 @@ GHCI:
 # run ghci on Shake.hs
 @ghci-shake:
     $STACK exec {{ SHAKEDEPS }} -- ghci Shake.hs
+
 # ** ghcid ------------------------------------------------------------
 GHCID:
 
@@ -814,7 +817,7 @@ relprep VER:
 
 # Convert DATEARG to an ISO date. It can be an ISO date, number of recent days, or nothing (meaning last release date).
 @datearg *DATEARG:
-    echo {{ if DATEARG == '' { `just reldate` } else if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } }}
+    echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
 
 # Show activity that has happened since (mostly) DATE or DAYS ago or last release, to help write change docs/news. Eg: just log > log.org
 log *DATE:
@@ -913,8 +916,6 @@ redditlog *DATE:
 # # Clean links copied from old.reddit.com.
 # @redditclean:
 #     rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
-
-
 # *** hledger version number helpers
 # (as hidden recipes, since just doesn't support global custom functions)
 # See doc/RELEASING.md > Glossary.
