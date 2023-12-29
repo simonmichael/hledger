@@ -37,9 +37,10 @@
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
 
-set export
+set export := true
+
 WATCHEXEC := 'watchexec -q --stop-timeout=1'
-TODAY     := `date +%Y-%m-%d`
+TODAY := `date +%Y-%m-%d`
 
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
@@ -80,32 +81,34 @@ _watchgitdbg *WOPTS:
 # ** Constants ------------------------------------------------------------
 
 BROWSE := 'open'
+
 # VIEWHTML := BROWSE
 # VIEWPDF := BROWSE
 # PRINT := 'lpr'
-
 #GHC := 'ghc'
+
 GHCI := 'ghci'
+
 # GHCPKG := 'ghc-pkg'
 # HADDOCK := 'haddock'
 # CABAL := 'cabal'
 # CABALINSTALL := 'cabal install -w {{ GHC }}'
-
 # GHC-compiled executables require a locale (and not just C) or they
 # will die on encountering non-ascii data. Set LANG to something if not already set.
 # export LANG? := 'en_US.UTF-8'
 # command to run during profiling (time and heap)
-
 # command to run when profiling
+
 PROFCMD := 'stack exec --profile -- hledger balance -f examples/10000x1000x10.journal >/dev/null'
 PROFRTSFLAGS := '-P'
 
 # # command to run when checking test coverage
 # COVCMD := 'test'
 # COVCMD := '-f test-wf.csv print'
-
 # Which stack command (and in particular, stack yaml/GHC version) to use for building etc. ?
+
 STACK := 'stack'
+
 #STACK := 'stack --stack-yaml=stack8.10.yaml'
 # Or override temporarily with an env var:
 # STACK := '"stack --stack-yaml=stack8.10.yaml" make functest'
@@ -115,18 +118,17 @@ STACK := 'stack'
 # --threads := '16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless'
 # --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
 # slow hackage index or compiler setup on first build, etc.
-
 # Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
-STACKGHCI := STACK
-#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 
+STACKGHCI := STACK
+
+#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
 # PACKAGES := '
 #     hledger-lib
 #     hledger
 #     hledger-ui
 #     hledger-web
 #     '
-
 # BINARIES := '
 #     hledger
 #     hledger-ui
@@ -140,7 +142,6 @@ INCLUDEPATHS := '
     -ihledger-web
     -ihledger-web/app
     '
-
 MAIN := 'hledger/app/hledger-cli.hs'
 
 # All source files in the project (plus a few strays like Setup.hs & hlint.hs).
@@ -163,17 +164,14 @@ SOURCEFILES := '
     hledger-*/Hledger/*/*/*hs
     hledger-lib/Text/*/*hs
     '
-
 HPACKFILES := '
     hledger/*package.yaml
     hledger-*/*package.yaml
     '
-
 CABALFILES := '
     hledger/hledger.cabal
     hledger-*/*.cabal
     '
-
 MANUALSOURCEFILES := '
     doc/common.m4
     */*.m4.md
@@ -186,21 +184,17 @@ MANUALSOURCEFILES := '
 COMMANDHELPFILES := '
     hledger/Hledger/Cli/Commands/*.md
     '
-
 WEBTEMPLATEFILES := '
     hledger-web/templates/*
     '
-
 WEBCODEFILES := '
     hledger-web/static/*.js
     hledger-web/static/*.css
     '
-
 DOCSOURCEFILES := '
     README.md
     CONTRIBUTING.md
     ' + MANUALSOURCEFILES + COMMANDHELPFILES
-
 TESTFILES := `fd '\.test$' --exclude ledger-compat`
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
@@ -368,6 +362,7 @@ ghcid-shake:
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
+
 # ** Building ------------------------------------------------------------
 BUILDING:
 
@@ -392,6 +387,7 @@ BUILDING:
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     $STACK ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $BUILDFLAGS
+
 # ** Testing ------------------------------------------------------------
 TESTING:
 
@@ -531,8 +527,8 @@ samplejournals:
     tools/generatejournal.hs 10000 10000 10  > examples/10000x10000x10.journal 
     tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
     tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
-#    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 
+#    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
 
 BENCHEXES := 'hledger'
@@ -641,6 +637,7 @@ BENCHEXES := 'hledger'
 # # 	view the last html code coverage report\
 # # 	)
 # # 	$(VIEWHTML) doc/profs/coverage/index.html
+
 # ** Documenting ------------------------------------------------------------
 DOCUMENTING:
 
@@ -733,6 +730,7 @@ haddock-open:
 #     @make -s Shake
 #     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
 #     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+
 # ** Installing ------------------------------------------------------------
 INSTALLING:
 
@@ -750,6 +748,7 @@ INSTALLING:
 # # update shell completions in hledger package
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
+
 # ** Releasing ------------------------------------------------------------
 RELEASING:
 
@@ -1036,6 +1035,7 @@ sccv:
 #     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
 # list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
 #     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
+
 # ** Misc ------------------------------------------------------------
 MISC:
 
@@ -1122,13 +1122,8 @@ installcommithook:
 # 1. haskell source files with hasktags -e (or ctags -aeR)
 # 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
 # 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
-TAGFILES := \
-    WEBTEMPLATEFILES + \
-    DOCSOURCEFILES + \
-    TESTFILES + \
-    HPACKFILES + \
-    CABALFILES + \
-    'Shake.hs'
+
+TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFILES + 'Shake.hs'
 
 # generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
 @etags:
