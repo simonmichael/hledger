@@ -819,19 +819,20 @@ relprep VER:
 @datearg *DATEARG:
     echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
 
-# Show activity that has happened since (mostly) DATE or DAYS ago or last release, to help write change docs/news. Eg: just log > log.org
-log *DATE:
+# Show activity since (mostly) this date or days ago or last release. Eg: just log > log.org
+log *DATEARG:
     #!/usr/bin/env osh
-    ISODATE=`just datearg $DATE`
-    printf "* Activity since $ISODATE:\n\n"
+    DATE=`just datearg $DATEARG`
+    printf "* Activity since $DATE:\n\n"
     printf "Last release: `just rel`\n\n"
     just chlog
-    just commitlog $DATE; echo
-    just timelog   $DATE; echo
-    just worklog   $DATE
-    just chatlog   $DATE
-    just tootlog   $DATE
-    just redditlog $DATE
+    just commitlog $DATEARG
+    just timelog   $DATEARG
+    just worklog   $DATEARG
+    just chatlog   $DATEARG
+    just maillog   $DATEARG
+    just redditlog $DATEARG
+    just tootlog   $DATEARG
 
 CHANGELOGS := 'CHANGES.md hledger/CHANGES.md hledger-ui/CHANGES.md hledger-web/CHANGES.md hledger-lib/CHANGES.md'
 
@@ -850,60 +851,87 @@ chlog *CHANGELOG:
 
 GITLG := "git log --format='%ad %h %s' --date=short"
 
-# Show commits in the three repos since DATE or DAYS ago or last release date, briefly.
-commitlog *DATE:
+# Show commits in the three repos since this date or days ago or last release, briefly.
+commitlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATE`
-    printf "** hledger commits:\n\n"
+    DATE=`just datearg $DATEARG`
+    printf "** hledger commits\n\n"
     {{ GITLG }} --since $DATE
     echo
-    printf "** hledger_site commits:\n\n"
+    printf "** hledger_site commits\n\n"
     {{ GITLG }} --since $DATE -C site
     echo
-    printf "** hledger_finance commits:\n\n"
+    printf "** hledger_finance commits\n\n"
     {{ GITLG }} --since $DATE -C finance
+    echo
 
-# Show hledger-related time logged since DATE or DAYS ago or last release date
-timelog *DATE:
+# Show hledger-related time logged since this date or days ago or last release
+timelog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATE`
-    printf "** Time log since $DATE\n\n"
-    hledger -f $TIMELOG print hledger -b $DATE
+    DATE=`just datearg $DATEARG`
+    printf "** Time log\n\n"
+    hledger -f $TIMELOG print hledger -b $DATE | rg '^2|hledger'
+    echo
+    hledger -f $TIMELOG bal -S hledger -b $DATE -e tomorrow
+    echo
 
-# Show hledger work log
-@worklog:
+WORKLOG := "../../notes/CLOUD/hledger.md"
+
+# Show dates logged in hledger work log.
+@worklogdates:
+    awk "/^## Journal/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^### (\d{4}-\d{2}-\d{2})' -or '$1'
+
+# make ghc usable for scripting
+GHC := 'ghc -package-env - -ignore-dot-ghci'
+
+# try to find GNU date
+GDATE := `type -P gdate || echo date`
+
+# Show hledger work logged since this date or days ago or last release
+worklog *DATEARG:
+    #!/usr/bin/env osh
+    DATE=`just datearg $DATEARG`
+    WORKDATE=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$DATE\") . (++[\"9999-99-99\"]) . lines"`
     printf "** Work log\n"
-    awk '/^## Journal/{p=1;next};/^## /{p=0};p' ~/notes/CLOUD/hledger.md
+    awk "/^### $WORKDATE/{p=1;print;next};/^## /{p=0};p" $WORKLOG
     echo
 
 # Copy some text to the system clipboard if possible
 @clip TEXT:
     type -P pbcopy >/dev/null && (printf "$TEXT" | pbcopy)
 
-# Show matrix chat since DATE or DAYS ago
-chatlog *DATE:
+# Show matrix chat since this date or days ago or last release
+chatlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATE`
+    DATE=`just datearg $DATEARG`
     JUMP="/jumptodate $DATE"
     just clip "$JUMP"
-    echo "** matrix:   https://matrix.hledger.org, $JUMP"
+    echo "** matrix:    https://matrix.hledger.org, $JUMP"
     echo
 
-# Show #hledger-tagged mastodon toots since DATE or DAYS ago
-tootlog *DATE:
+# Show mail list discussion since this date or days ago or last release
+maillog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATE`
+    DATE=`just datearg $DATEARG`
+    DATE2=`$GDATE -d $DATE +"%b %-d"`
+    echo "** mail list: https://list.hledger.org, since $DATE2 ($DATE)"
+    echo
+
+# Show /r/plaintextaccounting posts since this date or days ago or last release
+redditlog *DATEARG:
+    #!/usr/bin/env osh
+    DATE=`just datearg $DATEARG`
+    DAYS=`datediff $DATE now`
+    echo "** reddit:    https://www.reddit.com/r/plaintextaccounting/new, since $DAYS days ago ($DATE)"
+    echo
+
+# Show #hledger-tagged mastodon toots since this date or days ago or last release
+tootlog *DATEARG:
+    #!/usr/bin/env osh
+    DATE=`just datearg $DATEARG`
     SEARCH="#hledger #plaintextaccounting after:$DATE"
     just clip "$SEARCH"
-    echo "** mastodon: https://fosstodon.org/search, $SEARCH"
-    echo
-
-# Show /r/plaintextaccounting posts since DATE or DAYS ago
-redditlog *DATE:
-    #!/usr/bin/env osh
-    DATE=`just datearg $DATE`
-    DAYS=`datediff $DATE now`
-    echo "** reddit:   https://www.reddit.com/r/plaintextaccounting/new, since $DAYS days ago ($DATE)"
+    echo "** mastodon:  https://fosstodon.org/search, $SEARCH"
     echo
 
 # Some evil works against this..
@@ -913,9 +941,10 @@ redditlog *DATE:
 #     cat $$.tmp
 #     rm -f $$.tmp
 #
-# # Clean links copied from old.reddit.com.
-# @redditclean:
-#     rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
+# Clean links copied from old.reddit.com.
+@redditclean:
+    rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
+
 # *** hledger version number helpers
 # (as hidden recipes, since just doesn't support global custom functions)
 # See doc/RELEASING.md > Glossary.
