@@ -22,21 +22,6 @@ _notinfo_({{
 # DESCRIPTION
 }})
 
-_web_({{
-*[Quick reference links:
-[Options][options],
-[Commands][commands-list],
-[Queries],
-[Regular expressions],
-[Period expressions],
-[Journal],
-[Directives],
-[CSV],
-[Timeclock],
-[Timedot],
-[Common tasks]]*
-}})
-
 _hledgerdescription_
 
 This manual is for hledger's command line interface, version _version_.
