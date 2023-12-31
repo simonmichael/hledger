@@ -7,11 +7,11 @@
 
 Breaking changes
 
+Fixes
+
 Features
 
 Improvements
-
-Fixes
 
 Docs
 
@@ -20,6 +20,32 @@ API
 -->
 User-visible changes in the hledger command line tool and library.
 
+
+# a7b2c74d3
+
+Fixes
+
+- In CSV field assignments,  %FIELD interpolation and `\n` can be used together again. [#2134]
+
+- In timedot data, numbers beginning with a decimal point are accepted again. [#2130]
+
+- In a `balance --budget` report, `--layout=tall` no longer hides commodity symbols.
+
+- Value reports seeing a pathological price chain with 1000 or more
+  steps now write their warning to the console, not a debug log file.
+
+Improvements
+
+- Allow megaparsec 9.6
+
+Docs
+
+- Updated: 
+  Queries,
+  Periodic transactions,
+  Auto postings,
+  Assertions and costs,
+  Budget report
 
 # 1.32.1 2023-12-07
 
