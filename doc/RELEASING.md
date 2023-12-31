@@ -4,19 +4,25 @@
 
 <!-- toc -->
 </div>
+
 Notes for hledger release managers and maintainers.
 
 ## Goals
 
-### 2023
-- [ ] Make releasing easy
+**2023**
+- [ ] Make releasing eas<s>y</s>ier
 
-### 2022
+**2022**
 - [x] Update/consolidate release process docs
 - [x] Establish routine <s>monthly</s> release cadence
 - [ ] Make releasing easy
 
-## Release types
+## Overview
+
+hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
+Bugfix releases follow when needed.
+Preview releases happen in the other months if wanted.
+
 |                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
 |---------------------|----------------------------------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
 | **Contains:**       | New features, breaking changes                           | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
@@ -36,18 +42,40 @@ Notes for hledger release managers and maintainers.
 
 [Regression bounty]: http://hledger.org/regressionbounty
 
-hledger major releases happen in the third month of each quarter, normally at or close to the start of the month.
-Preview releases happen in the other months, if needed.
-Here's the ideal release schedule:
+**Ideal release schedule:**
 
-| Q1               | Q2               | Q3               | Q4               |
-|------------------|------------------|------------------|------------------|
-| Jan 1: preview 1 | Apr 1: preview 1 | Jul 1: preview 1 | Oct 1: preview 1 |
-| Feb 1: preview 2 | May 1: preview 2 | Aug 1: preview 2 | Nov 1: preview 2 |
-| Mar 1: major     | Jun 1: major     | Sep 1: major     | Dec 1: major     |
+| Q1                 | Q2                 | Q3                 | Q4                 |
+|--------------------|--------------------|--------------------|--------------------|
+| Jan 1: (preview 1) | Apr 1: (preview 1) | Jul 1: (preview 1) | Oct 1: (preview 1) |
+| Feb 1: (preview 2) | May 1: (preview 2) | Aug 1: (preview 2) | Nov 1: (preview 2) |
+| Mar 1: major       | Jun 1: major       | Sep 1: major       | Dec 1: major       |
 
+**Release manager activities/responsibilities:**
+
+These have complex interdependencies and sequencing constraints.
+Chunk, separate, routinise, document and automate them as far as possible.
+
+|                       |                                                                                                                                                            |
+|-----------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **Software**          | selecting changes, packages, release dates; coordinating contributions; ensuring release readiness                                                         |
+| **Branch Management** | coordinating main and release branch, local and remote repos, CI branches                                                                                  |
+| **Version Bumping**   | choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed |
+| **Docs**              | command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs                         |
+| **Testing**           | local testing, CI testing, extra release-specific testing                                                                                                  |
+| **Artifacts**         | generating binaries, zip files, github releases etc.                                                                                                       |
+| **Publishing**        | uploading, pushing, making visible, finalising                                                                                                             |
+| **Announcing**        | various announcement stages and channels                                                                                                                   |
+
+**Value flows/artifacts/dependencies:**
+
+Higher things depend on lower things; when doing a release, work upward from the bottom.
+(Or downward through the [Procedures](#procedures)).
+
+[![release diagram](RELEASING.png)](RELEASING.png)
+<!-- source: RELEASING.canvas (Obsidian) -->
 
 ## Glossary
+
 Here is some terminology used in this doc. These form a domain language that we use for precision and shared understanding when working with the hledger release process.
 
 |                                     |                                                                                                                                                                                                                                                                                                                                                                                                                            |
@@ -85,41 +113,61 @@ Here is some terminology used in this doc. These form a domain language that we 
 | *release&nbsp;branch*               | Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases and release previews are always made from a release branch.                                                                                                                                                                                                                                                                                 |
 
 
-## Activities
-Release manager activities/responsibilities include:
-- **Software** - selecting changes, packages, release dates; coordinating contributions; ensuring release readiness
-- **Branch Management** - coordinating main and release branch, local and remote repos, CI branches
-- **Version Bumping** - choosing and applying new version numbers and related things like tags, github releases, urls, ghc and dep versions, stackage resolvers, everywhere needed
-- **Docs** - command help, manuals, changelogs, release notes, github release notes, install page, install scripts, announcements, process docs
-- **Testing** - local testing, CI testing, extra release-specific testing
-- **Artifacts** - generating binaries, zip files, github releases etc.
-- **Publishing** - uploading, pushing, making visible, finalising
-- **Announcing** - various announcement stages and channels
+## Tips
 
-These have complex interdependencies and sequencing constraints. Chunk, separate, routinise, document and automate them as far as possible.
+- Release (or practice releasing) often to improve the process.
+- Use and continually update RELEASING.md and the overview diagram (RELEASING.canvas, made with Obsidian).
+- Document procedures and gotchas to save time and enable automation in future.
+- But don't document prematurely or in too much detail.
+- Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
+- When starting a release, make a copy of this file and update notes there until after release, to avoid blocking git branch switching.
+- Run `just` to list helpful scripts.
+- Update changelogs early and often, eg during/after a PR, to spread the work.  See also [CHANGELOGS](CHANGELOGS.md).
+- Do releases from a release branch, not from master.
+- All release binaries should be built from the same commit, the one with the release tags.
+  The binaries' --version output should match the release tag and release date.
+- Avoid partial releases if possible. When releasing a package, also release all the packages that depend on it.
+
+
+## Process
+
+Here's a summary of the happy-path hledger release process.
+These steps can be interleaved/reordered a little if needed.
+
+### 1 Prep software
+1. Check [release readiness](#check-dev-readiness)
+1. Update changelogs: `./Shake changelogs` & manually edit
+1. Update announcements: `doc/ANNOUNCE*`
+1. Set versions and dates: `just relprep NEW`
+1. Update install script: `hledger-install/hledger-install.sh`
+1. Tag release locally: `make tag`
+1. Test & build release binaries: `just relbin`
+
+### 2 Prep website
+1. Update release notes: `site/src/release-notes.md`
+1. [Update](#release-manuals) online manuals: `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
+1. Update install page: `site/src/install.md`
+
+### 3 Release
+1. Upload to hackage: `make hackageupload`
+1. Push release branch:  `git push --tags`
+1. Create [github release](#github-release)
+1. Update website: `git -C site push`
+1. Send announcements: matrix, mail list(s), mastodon
+
+### 4 Post-release
+1. [Merge release changes](#merge-release-branch-changes-to-master) to master
+1. [Bump version](#bump-master-to-next-version) in master
+1. Push master: `git push`
+1. Commit any process updates: `doc/RELEASING.md`
+1. Monitor/respond to issues, especially regressions; keep doc/REGRESSIONS.md updated
+1. Monitor packaging status (including stackage); update install page
+
 
 ## Procedures
 
-### Map
-
-Here's a map of the value flows/artifacts/dependencies in a hledger release (arrows mean "depends on").
-To do a release, start at the bottom of the diagram and work up / start at the top of the procedures described below and work down.
-
-[![release diagram](RELEASING.png)](RELEASING.png)
-<!-- source: RELEASING.canvas (Obsidian) -->
-
-### General tips
-- Release (or practice releasing) often to improve the process.
-- Use and continually update RELEASING.md and RELEASING.canvas.
-- At the start of any release work, copy these (eg Obsidian > CMD-p > Make a copy of this file). Edit in the copies until done, to avoid blocking git branch switching. (Likewise if editing other docs, like CHANGELOGS.md.)
-- Don't document procedures in too much detail / prematurely. 
-- Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
-- `make`, `./Shake` and `./bake`.
-- Update changelogs early and often, eg during/after a PR, to spread the work. 
-  See also [CHANGELOGS](CHANGELOGS.md).
-- Do releases from a release branch, not from master.
-- All platform binaries should be built from the same commit, the one with the release tags.
-- Binaries' --version shows their git hash and build date; these should match the release tag and release date.                                                   
+More detail on the diagram and process above.
+These need updating to `just` instead of `make`/`bake`.
 
 ### STATE 1 - STABLE
 
