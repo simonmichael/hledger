@@ -7,11 +7,11 @@ __      _____| |__
 
 Breaking changes
 
+Fixes
+
 Features
 
 Improvements
-
-Fixes
 
 Docs
 
@@ -21,10 +21,30 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# ac50d8c5a
+
+Fixes
+
+- The --base-url option works again. [#2127], [#2100]
+
+- Startup messages are more accurate and informative, eg with --socket. [#2127]
+
+- The non-working --file-url option has been dropped for now. [#2139]
+
+Improvements
+
+- Allow megaparsec 9.6
+
+- hledger-web's tests now respect and can test command line options.
+
+- hledger-web's tests now run the app at 127.0.0.1 and port 5000,
+  rather than "any of our IPv4 or IPv6 addresses" and 3000,
+
 # 1.32.1 2023-12-07
 - Use hledger-1.32.1
 
 # 1.32 2023-12-01
+
 Features
 
 - The hledger-web app on the Sandstorm cloud platform has been updated to

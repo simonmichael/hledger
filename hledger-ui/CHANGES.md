@@ -7,11 +7,11 @@
 
 Breaking changes
 
+Fixes
+
 Features
 
 Improvements
-
-Fixes
 
 Docs
 
@@ -20,6 +20,20 @@ API
 -->
 User-visible changes in hledger-ui.
 See also the hledger changelog.
+
+# 095f65d9b
+
+Features
+
+- hledger-ui is now available on Windows (ShrykeWindgrace)
+
+Improvements
+
+- Use Notepad as default editor on Windows (ShrykeWindgrace)
+
+- Allow brick 2.2 (Vekhir)
+
+- Allow megaparsec 9.6
 
 # 1.32.1 2023-12-07
 - Use hledger-1.32.1

@@ -6,18 +6,52 @@
 | .__/|_|  \___// |\___|\___|\__|
 |_|           |__/
 
-Scripts/addons
+Docs
 
 Examples
 
-Docs
+Scripts/addons
 
 Infrastructure
 
 -->
+
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+
+# 3b3adc83c
+
+Docs
+
+- Added: 
+
+- Updated: ISSUES.md, REGRESSIONS.md
+
+- WORKFLOWS.md is renamed to DEVWORKFLOWS.md to avoid a name clash.
+
+Examples
+
+- New CSV rules examples for Wise, ING, Venmo, PayPal, FHB, N26, Triodos (Ilja Kocken) 
+
+Scripts/addons
+
+Infrastructure
+
+- Project scripts in `Makefile` and `bake` have been converted to a `Justfile`.
+  After many years using `make` and shell for scripting, I find `just`
+  better enough, and the goal of clean consolidated efficient project
+  automation so valuable, that we will use it in the hledger project
+  even though it usually is not installed by default.
+
+- The `.mailmap` file has been updated to clean up committer info in git output.
+
+- `tools/generatejournal` can now be run as a script.
+
+- The "new issue" and "new PR" templates have had some cleanup.
+
+- There are some new issue tracker labels intended for use with a new 
+  ISSUES.md > Prioritising scheme, and a few issues using them.
 
 # 1.32 2023-12-01
 

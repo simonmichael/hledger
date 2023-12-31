@@ -7,11 +7,29 @@
 
 Breaking changes
 
-Misc. changes
+Fixes
+
+Improvements
 
 -->
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
+
+# 8b45d4ba8
+
+Breaking changes
+
+- In Hledger.Data.Amount, noPrice is renamed to noCost.
+
+- AmountDisplayOpts has a new displayCommodity flag, controlling commodity symbol display.
+
+Fixes
+
+- Hledger.Utils.Debug.traceOrLog was logging when it should trace and vice versa.
+
+Improvements
+
+- Allow megaparsec 9.6
 
 # 1.32.1 2023-12-07
 
