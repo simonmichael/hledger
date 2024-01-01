@@ -21,7 +21,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# a7b2c74d3
+# 1.32.2 2023-12-31
 
 Fixes
 
