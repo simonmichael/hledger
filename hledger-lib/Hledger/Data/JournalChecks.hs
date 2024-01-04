@@ -204,9 +204,11 @@ builtinTags = [
   -- optionally generated on periodic transactions and auto postings
   ,"generated-transaction"
   ,"generated-posting"
+  ,"modified"
   -- used internally, not shown (but queryable)
   ,"_generated-transaction"
   ,"_generated-posting"
+  ,"_modified"
   ,"_conversion-matched"
   ]
 
