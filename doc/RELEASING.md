@@ -9,8 +9,11 @@ Notes for hledger release managers and maintainers.
 
 ## Goals
 
+**2024**
+- [ ] Make releasing easier
+
 **2023**
-- [ ] Make releasing eas<s>y</s>ier
+- [x] Make releasing eas<s>y</s>ier
 
 **2022**
 - [x] Update/consolidate release process docs
@@ -122,7 +125,7 @@ Here is some terminology used in this doc. These form a domain language that we 
 - Make things a little better each time through: simpler, more reliable, better documented, more automated, easier, faster, cheaper, higher quality.
 - When starting a release, make a copy of this file and update notes there until after release, to avoid blocking git branch switching.
 - Run `just` to list helpful scripts.
-- Update changelogs early and often, eg during/after a PR, to spread the work.  See also [CHANGELOGS](CHANGELOGS.md).
+- Update changelogs & announcements only in release branch. master's are updated only by post-release merge. (See also [CHANGELOGS](CHANGELOGS.md), old).
 - Do releases from a release branch, not from master.
 - All release binaries should be built from the same commit, the one with the release tags.
   The binaries' --version output should match the release tag and release date.
@@ -131,43 +134,53 @@ Here is some terminology used in this doc. These form a domain language that we 
 
 ## Process
 
-Here's a summary of the happy-path hledger release process.
+Here's an approximate summary of a happy-path hledger release.
 These steps can be interleaved/reordered a little if needed.
 
 ### 1 Prep software
+In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
-1. Update changelogs: `./Shake changelogs` & manually edit
-1. Update announcements: `doc/ANNOUNCE*`
-1. Set versions and dates: `just relprep NEW`
+1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
+1. Cherry-pick changes from master: `magit l o REL-branch..master` (minor releases)
 1. Update install script: `hledger-install/hledger-install.sh`
+1. Update changelogs: `./Shake changelogs` & manually edit
+1. Update announcements: `doc/ANNOUNCE*` (major releases)
 1. Tag release locally: `make tag`
 1. Test & build release binaries: `just relbin`
 
 ### 2 Prep website
+In site repo:
+1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
 1. Update release notes: `site/src/release-notes.md`
-1. [Update](#release-manuals) online manuals: `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
 1. Update install page: `site/src/install.md`
 
-### 3 Release
+### 3 Release part 1 - hackage, github
+In main repo, release branch:
 1. Upload to hackage: `make hackageupload`
+1. Download release binaries
 1. Push release branch:  `git push --tags`
-1. Create [github release](#github-release)
-1. Update website: `git -C site push`
-1. Send announcements: matrix, mail list(s), mastodon
+1. Create [github release](#github-release), upload release binaries
 
-### 4 Post-release
-1. [Merge release changes](#merge-release-branch-changes-to-master) to master
-1. [Bump version](#bump-master-to-next-version) in master
-1. Push master: `git push`
+### 4 Release part 2 - install script, website
+In main repo, master:
+1. Cherry-pick changes from release branch to master, including hledger-install update: `magit l o LASTREL..REL-branch`
+1. [Bump version](#bump-master-to-next-version) in master (major releases)
+1. Push master: `just push`
+1. Push website: `git -C site push`
+1. Send announcements: matrix, mail list(s), mastodon (major releases, others if needed)
+
+### 5 Post-release
+In main repo, master:
 1. Commit any process updates: `doc/RELEASING.md`
-1. Monitor/respond to issues, especially regressions; keep doc/REGRESSIONS.md updated
 1. Monitor packaging status (including stackage); update install page
+1. Monitor/respond to issues, especially regressions; keep doc/REGRESSIONS.md updated
 
 
 ## Procedures
 
 More detail on the diagram and process above.
-These need updating to `just` instead of `make`/`bake`.
+
+*These need updating to `just` instead of `make`/`bake`.*
 
 ### STATE 1 - STABLE
 
