@@ -2382,17 +2382,17 @@ Generated postings' amounts can depend on the matched posting's amount.
 So auto postings can be useful for, eg, adding tax postings with a standard percentage.
 AMOUNT can be:
 
+- a number with no commodity symbol, like `2`. 
+  The matched posting's commodity symbol will be added to this.
+
 - a normal amount with a commodity symbol, like `$2`.
   This will be used as-is.
 
-- a number with no commodity symbol, like `2`. 
-  The commodity symbol from the matched posting will be added to this.
-
-- a multipier, which is an asterisk followed by a number, like `*2`.
+- an asterisk followed by a number, like `*2`.
   This will multiply the matched posting's amount (and total price, if any) by the number.
 
-- a multiplier with a commodity symbol, like `*$2`.
-  Like a simple multiplier, but also replaces the commodity symbol with this new one.
+- an asterisk followed by an amount with commodity symbol, like `*$2`.
+  This multiplies and also replaces the commodity symbol with this new one.
 
 Some examples:
 
