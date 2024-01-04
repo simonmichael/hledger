@@ -155,7 +155,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , aeson >=1 && <2.3
-    , base >=4.14 && <4.19
+    , base >=4.14 && <4.20
     , base64
     , blaze-html
     , blaze-markup
@@ -215,7 +215,7 @@ executable hledger-web
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   cpp-options: -DVERSION="1.32.99"
   build-depends:
-      base >=4.14 && <4.19
+      base >=4.14 && <4.20
     , hledger-web
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
@@ -235,7 +235,7 @@ test-suite test
   ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
   cpp-options: -DVERSION="1.32.99"
   build-depends:
-      base >=4.14 && <4.19
+      base >=4.14 && <4.20
     , hledger-web
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))

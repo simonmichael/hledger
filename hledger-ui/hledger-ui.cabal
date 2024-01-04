@@ -72,8 +72,8 @@ library
   build-depends:
       ansi-terminal >=0.9
     , async
-    , base >=4.14 && <4.19
-    , brick >=2.1.1 && <2.3
+    , base >=4.14 && <4.20
+    , brick >=2.1.1 && <2.4
     , cmdargs >=0.8
     , containers >=0.5.9
     , data-default
@@ -115,7 +115,7 @@ executable hledger-ui
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.32.99"
   build-depends:
-      base >=4.14 && <4.19
+      base >=4.14 && <4.20
     , hledger-ui
   default-language: Haskell2010
   if flag(threaded)
