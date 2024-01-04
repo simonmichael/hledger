@@ -15,7 +15,7 @@ import Control.Concurrent as M
 import Control.Monad as M
 import Data.Char as M
 import Data.Either as M
-import Data.Functor as M
+import Data.Functor as M hiding (unzip)
 import Data.List as M
 import Data.Maybe as M
 import Data.Ord as M

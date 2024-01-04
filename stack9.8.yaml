@@ -1,20 +1,37 @@
-# stack build plan using GHC 9.8.1 (WIP)
+# stack build plan using GHC 9.8.1
 
-resolver: ghc-9.8.1
+resolver: nightly-2024-01-04
 
 packages:
 - hledger-lib
-# - hledger
-# - hledger-ui
-# - hledger-web
+- hledger
+# blocked by https://github.com/luite/hfsevents/issues/16
+#- hledger-ui
+- hledger-web
 
-# extra-deps:
+extra-deps:
+- cassava-megaparsec-2.1.0
+- email-validate-2.3.2.19
+- yesod-1.6.2.1
+- yesod-form-1.7.6
+
+# work around https://github.com/stackbuilders/cassava-megaparsec/issues/39
+allow-newer: true
+
+# not working for me
+# allow-newer-deps:
+# - cassava-megaparsec
+# - vector
+
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-# ghc-options:
+ghc-options:
+  # silence 9.8's new partial warnings for now
+  "$locals": -Wno-x-partial
+
 #   "$locals": -fplugin Debug.Breakpoint
 
 # # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:

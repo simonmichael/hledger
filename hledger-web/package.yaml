@@ -78,7 +78,7 @@ when:
   ghc-options: -O0
 
 dependencies:
-- base >=4.14 && <4.19
+- base >=4.14 && <4.20
 
 library:
   source-dirs: .

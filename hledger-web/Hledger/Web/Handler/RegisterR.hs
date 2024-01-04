@@ -11,6 +11,7 @@ module Hledger.Web.Handler.RegisterR where
 
 import Data.List (intersperse, nub, partition)
 import qualified Data.Text as T
+import Safe (tailDef)
 import Text.Hamlet (hamletFile)
 
 import Hledger
@@ -44,7 +45,7 @@ getRegisterR = do
       addCommas xs =
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
-          tail $ (", "<$xs) ++ [""]
+          tailDef [""] $ (", "<$xs)
       items =
         styleAmounts (journalCommodityStylesWith HardRounding j) $
         accountTransactionsReport rspec{_rsQuery=q} j acctQuery

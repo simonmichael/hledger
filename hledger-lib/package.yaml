@@ -39,7 +39,7 @@ extra-source-files:
 #data-files:
 
 dependencies:
-- base >=4.14 && <4.19
+- base >=4.14 && <4.20
 - base-compat
 - aeson >=1 && <2.3
 - aeson-pretty
