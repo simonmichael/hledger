@@ -13,7 +13,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20231201
+HLEDGER_INSTALL_VERSION=20240104
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -95,7 +95,7 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-21.22"
+STACK_RESOLVER="--resolver=lts-22"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
