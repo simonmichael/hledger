@@ -2356,55 +2356,46 @@ So,
 
 ## Auto postings
 
-The `=` directive declares an "auto posting rule" which generates temporary extra postings on existing transactions,
-when hledger is run with the `--auto` flag.
-(Remember, [postings](#postings) are the account name & amount lines.)
-The rule contains a [query](#queries) and one or more posting templates.
-Wherever the query matches an existing posting, the new posting(s) will be generated and added below that one.
-Optionally the generated amount(s) can depend on the matched posting's amount.
+The `=` directive declares an "auto posting rule", 
+which adds extra [postings](#postings) to existing transactions.
+(Remember, postings are the account name & amount lines below a transaction's date & description.)
 
-These auto postings can be useful for, eg, adding tax postings with a standard percentage.
-They exist only for the duration of the report, and only when `--auto` is used; they are not saved in the journal file by hledger.
-
-Note that depending fully on generated data such as this has some drawbacks -
-it's less portable, less future-proof, less auditable by others, and less robust
-(eg your balance assertions will depend on whether you use or don't use `--auto`).
-An alternative is to use auto postings in "one time" fashion -
-use them to help build a complex journal entry, view it with `hledger print --auto`,
-and then copy that output into the journal file to make it permanent.
-
-Here's the journal file syntax. An auto posting rule looks a bit like a transaction:
+In the journal, an auto posting rule looks quite like a transaction,
+but instead of date and description it has `=` (mnemonic: "match") and a [query](#queries), like this:
 
 ```journal
 = QUERY
-    ACCOUNT  AMOUNT
+    ACCOUNT    AMOUNT
     ...
-    ACCOUNT  [AMOUNT]
 ```
 
-except the first line is an equals sign (mnemonic: `=` suggests matching),
-followed by a [query](#queries) (which matches existing postings),
-and each "posting" line describes a posting to be generated, 
-and the posting amounts can be:
+Queries are just like command line queries; an account name substring is most common.
+Query terms containing spaces should be enclosed in single or double quotes.
 
-- a normal amount with a commodity symbol, eg `$2`. This will be used as-is.
-- a number, eg `2`. The commodity symbol (if any) from the matched
-  posting will be added to this.
-- a numeric multiplier, eg `*2` (a star followed by a number N). The
-  matched posting's amount (and total price, if any) will be
-  multiplied by N.
-- a multiplier with a commodity symbol, eg `*$2` (a star, number N,
-  and symbol S). The matched posting's amount will be multiplied by N,
-  and its commodity symbol will be replaced with S.
+Each `=` rule works like this: when hledger is run with the `--auto` flag,
+wherever the QUERY matches a posting in the journal,
+the rule's postings are added to that transaction, immediately below the matched posting.
+Note these generated postings are temporary, existing only for the duration of the report,
+and only when `--auto` is used; they are not saved in the journal file by hledger.
 
-Any query term containing spaces must be enclosed in single or double
-quotes, as on the command line. Eg, note the quotes around the second query term below:
-```journal
-= expenses:groceries 'expenses:dining out'
-    (budget:funds:dining out)                 *-1
-```
+Generated postings' amounts can depend on the matched posting's amount.
+So auto postings can be useful for, eg, adding tax postings with a standard percentage.
+AMOUNT can be:
+
+- a normal amount with a commodity symbol, like `$2`.
+  This will be used as-is.
+
+- a number with no commodity symbol, like `2`. 
+  The commodity symbol from the matched posting will be added to this.
+
+- a multipier, which is an asterisk followed by a number, like `*2`.
+  This will multiply the matched posting's amount (and total price, if any) by the number.
+
+- a multiplier with a commodity symbol, like `*$2`.
+  Like a simple multiplier, but also replaces the commodity symbol with this new one.
 
 Some examples:
+
 ```journal
 ; every time I buy food, schedule a dollar donation
 = expenses:food
@@ -2436,6 +2427,13 @@ $ hledger print --auto
     assets:checking:gifts     -$20
     assets:checking            $20
 ```
+
+Note that depending fully on generated data such as this has some drawbacks -
+it's less portable, less future-proof, less auditable by others, and less robust
+(eg your balance assertions will depend on whether you use or don't use `--auto`).
+An alternative is to use auto postings in "one time" fashion -
+use them to help build a complex journal entry, view it with `hledger print --auto`,
+and then copy that output into the journal file to make it permanent.
 
 #### Auto postings and multiple files
 
