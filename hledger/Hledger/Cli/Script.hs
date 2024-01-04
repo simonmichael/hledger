@@ -3,6 +3,7 @@ A convenient module to import in hledger scripts,
 aiming to provide the most useful imports and reduce boilerplate.
 |-}
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE PackageImports #-}
 
 module Hledger.Cli.Script 
@@ -15,7 +16,13 @@ import Control.Concurrent as M
 import Control.Monad as M
 import Data.Char as M
 import Data.Either as M
-import Data.Functor as M hiding (unzip)
+
+import Data.Functor as M
+#if MIN_VERSION_base(4,19,0)
+  hiding (unzip)
+#endif
+-- import Data.Functor as M (Functor, fmap, (<$), ($>), (<$>), (<&>))  -- or without CPP ? redundant import warning
+
 import Data.List as M
 import Data.Maybe as M
 import Data.Ord as M
