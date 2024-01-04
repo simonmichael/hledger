@@ -833,6 +833,7 @@ log *DATEARG:
     just maillog   $DATEARG
     just redditlog $DATEARG
     just tootlog   $DATEARG
+    just bloglog
 
 CHANGELOGS := 'CHANGES.md hledger/CHANGES.md hledger-ui/CHANGES.md hledger-web/CHANGES.md hledger-lib/CHANGES.md'
 
@@ -932,6 +933,13 @@ tootlog *DATEARG:
     SEARCH="#hledger #plaintextaccounting after:$DATE"
     just clip "$SEARCH"
     echo "** mastodon:  https://fosstodon.org/search, $SEARCH"
+    echo
+
+# Show recent PTA blog posts added on plaintextaccounting.org
+bloglog:
+    #!/usr/bin/env osh
+    # DATE=`just datearg $DATEARG`
+    echo "** pta.o:  https://plaintextaccounting.org/#`date +%Y`"
     echo
 
 # Some evil works against this..
