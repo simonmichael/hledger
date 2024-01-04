@@ -26,7 +26,7 @@ Features:
 - The tab key will auto-complete whenever possible - accounts,
   payees/descriptions, dates (`yesterday`, `today`, `tomorrow`).
   If the input area is empty, it will insert the default value.
-- If the journal defines a [default commodity](#default-commodity),
+- If the journal defines a [default commodity](#d-directive),
   it will be added to any bare numbers entered.
 - A parenthesised transaction [code](#entries) may be entered following a date.
 - [Comments](#transaction-comments) and tags may be entered following a description or amount.

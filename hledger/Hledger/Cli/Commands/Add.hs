@@ -348,10 +348,9 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
     where
       parseAmountAndComment s = if s == "<" then return Nothing else either (const Nothing) (return . Just) $
                                 runParser
-                                  (evalStateT (amountandcommentp <* eof) nodefcommodityj)
+                                  (evalStateT (amountandcommentp <* eof) esJournal)
                                   ""
                                   (T.pack s)
-      nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
       amountandcommentp :: JournalParser Identity (Amount, Text)
       amountandcommentp = do
         a <- amountp

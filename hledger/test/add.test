@@ -60,7 +60,21 @@ $$$  printf 'D $1000.0\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm
 >>> /a  +\$1000\.00/
 >>>2 //
 
-# ** 6. existing commodity with greater precision
+# ** 6. default commodity symbol is added when not entered
+<<<
+
+
+a
+1000
+b
+
+.
+
+$$$  printf 'D $1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
+>>> /a  +\$1000\.00/
+>>>2 //
+
+# ** 7. existing commodity with greater precision
 <<<
 
 
@@ -73,7 +87,7 @@ $$$  printf '2010/1/1\n a  $1000.00\n b\n' >t$$.j; hledger -f t$$.j add >/dev/nu
 >>> /a  +\$1000\.0/
 >>>2 //
 
-# ** 7. existing commodity with less precision
+# ** 8. existing commodity with less precision
 <<<
 
 
@@ -87,7 +101,7 @@ $$$  printf '2010/1/1\n a  $1000.0\n b\n' >t$$.j; hledger -f t$$.j add >/dev/nul
 >>> /a  +\$1000\.00/
 >>>2 //
 
-# ** 8. default amounts should not fail to balance due to precision
+# ** 9. default amounts should not fail to balance due to precision
 <<<
 2010/1/1
 x
@@ -100,7 +114,7 @@ $$$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 >>> /Amount  3 \[-0.75\]:/
 >>>2 //
 
-## 9. shouldn't add decimals if there aren't any
+## 10. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # hledger -f /dev/null add
 # <<<
