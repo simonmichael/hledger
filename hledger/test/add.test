@@ -32,7 +32,7 @@ $ hledger -f $$-add.j add; rm -f $$-add.j
 > /Date.*Description.*Account 1.*Amount  1.*Account 2.*Amount  2.*Account 3.*or \. or enter to finish.*/
 >2 //
 
-# ** 4. default commodity with greater precision
+# ** 4. default commodity with greater precision does not alter entered precision
 <
 
 
@@ -46,7 +46,7 @@ $  printf 'D A1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm 
 > /a  +A1000\.0/
 >2 //
 
-# ** 5. default commodity with less precision
+# ** 5. default commodity with less precision does not alter entered precision
 <
 
 
@@ -71,7 +71,7 @@ b
 .
 
 $  printf 'D A1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-> /a  +1000\.00/
+> /a  +1000/
 >2 //
 
 # ** 7. existing commodity with greater precision
