@@ -2,8 +2,6 @@
 # Produces optimised windows binaries,
 # using the default stack.yaml's GHC version.
 # Currently runs no tests.
-# Currently using nightly-2023-04-24 (ghc-9.4) to avoid ghc 9.4.5/9.6 windows bugs
-# ( https://gitlab.haskell.org/ghc/ghc/-/issues/23309 , https://gitlab.haskell.org/ghc/ghc/-/issues/23378 )
 
 name: binaries-windows-x64
 
@@ -138,7 +136,7 @@ jobs:
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
-        ./stack --no-terminal setup --install-ghc --resolver nightly-2023-04-24
+        ./stack --no-terminal setup --install-ghc
       if: env.CONTINUE
 
     # - name: Install shelltestrunner
@@ -148,15 +146,15 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        ./stack --no-terminal build --only-dependencies --dry-run --resolver nightly-2023-04-24
-        ./stack --no-terminal build --only-dependencies --resolver nightly-2023-04-24
+        ./stack --no-terminal build --only-dependencies --dry-run
+        ./stack --no-terminal build --only-dependencies
       if: env.CONTINUE
 
     # use whichever GHC is in default stack.yaml
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror --resolver nightly-2023-04-24
+        ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
       if: env.CONTINUE
