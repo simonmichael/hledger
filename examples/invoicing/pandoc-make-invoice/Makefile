@@ -2,9 +2,9 @@
 # Generates HTML/PDF invoices from a markdown template
 
 help:
-	@echo "make copy     # copy last invoice to YYYYMMab.md, open in emacs"
-	@echo "(edit)"
-	@echo "make invoice  # make YYYYMMab.pdf and YYYYMMab.html, git commit, add invoice transaction to journal"
+	@echo "1. make copy     # copy last invoice to YYYYMMab.md, open in emacs"
+	@echo "2. (edit)"
+	@echo "3. make invoice  # make YYYYMMab.pdf and YYYYMMab.html, git commit, add invoice transaction to journal"
 
 CSS=invoice.css
 LAST=`ls -t 2*md | head -1`
