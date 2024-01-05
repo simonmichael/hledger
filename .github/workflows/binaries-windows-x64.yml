@@ -172,8 +172,10 @@ jobs:
         mkdir tmp
         cd tmp
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-ui.exe  .
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
         strip hledger.exe
+        strip hledger-ui.exe
         strip hledger-web.exe
       if: env.CONTINUE
              
@@ -183,5 +185,6 @@ jobs:
         name: hledger-windows-x64
         path: |
           tmp/hledger.exe
+          tmp/hledger-ui.exe
           tmp/hledger-web.exe
       if: env.CONTINUE
