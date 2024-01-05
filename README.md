@@ -144,6 +144,17 @@ It's easy! Please see <https://hledger.org/sponsor.html> for details.
 <a href="https://opencollective.com/hledger/organization/17/website"><img src="https://opencollective.com/hledger/organization/17/avatar.svg?avatarHeight=200"></a>
 <a href="https://opencollective.com/hledger/organization/18/website"><img src="https://opencollective.com/hledger/organization/18/avatar.svg?avatarHeight=200"></a>
 <a href="https://opencollective.com/hledger/organization/19/website"><img src="https://opencollective.com/hledger/organization/19/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/20/website"><img src="https://opencollective.com/hledger/organization/20/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/21/website"><img src="https://opencollective.com/hledger/organization/21/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/22/website"><img src="https://opencollective.com/hledger/organization/22/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/23/website"><img src="https://opencollective.com/hledger/organization/23/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/24/website"><img src="https://opencollective.com/hledger/organization/24/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/25/website"><img src="https://opencollective.com/hledger/organization/25/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/26/website"><img src="https://opencollective.com/hledger/organization/26/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/27/website"><img src="https://opencollective.com/hledger/organization/27/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/28/website"><img src="https://opencollective.com/hledger/organization/28/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/29/website"><img src="https://opencollective.com/hledger/organization/29/avatar.svg?avatarHeight=200"></a>
+<a href="https://opencollective.com/hledger/organization/30/website"><img src="https://opencollective.com/hledger/organization/30/avatar.svg?avatarHeight=200"></a>
 
 ### Individual sponsors
 
@@ -187,5 +198,16 @@ It's easy! Please see <https://hledger.org/sponsor.html> for details.
 <a href="https://opencollective.com/hledger/individual/37/website"><img src="https://opencollective.com/hledger/individual/37/avatar.svg?avatarHeight=100"></a>
 <a href="https://opencollective.com/hledger/individual/38/website"><img src="https://opencollective.com/hledger/individual/38/avatar.svg?avatarHeight=100"></a>
 <a href="https://opencollective.com/hledger/individual/39/website"><img src="https://opencollective.com/hledger/individual/39/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/40/website"><img src="https://opencollective.com/hledger/individual/40/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/41/website"><img src="https://opencollective.com/hledger/individual/41/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/42/website"><img src="https://opencollective.com/hledger/individual/42/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/43/website"><img src="https://opencollective.com/hledger/individual/43/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/44/website"><img src="https://opencollective.com/hledger/individual/44/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/45/website"><img src="https://opencollective.com/hledger/individual/45/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/46/website"><img src="https://opencollective.com/hledger/individual/46/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/47/website"><img src="https://opencollective.com/hledger/individual/47/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/48/website"><img src="https://opencollective.com/hledger/individual/48/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/49/website"><img src="https://opencollective.com/hledger/individual/49/avatar.svg?avatarHeight=100"></a>
+<a href="https://opencollective.com/hledger/individual/50/website"><img src="https://opencollective.com/hledger/individual/50/avatar.svg?avatarHeight=100"></a>
 
 If your logo/avatar needs to be added, [let me know](mailto:webmaster@hledger.org)!
