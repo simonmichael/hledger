@@ -348,7 +348,7 @@ requireJournalFileExists f = do
 -- which could cause data loss (see 'isWindowsUnsafeDotPath').
 ensureJournalFileExists :: FilePath -> IO ()
 ensureJournalFileExists f = do
-  when (os/="mingw32" && isWindowsUnsafeDotPath f) $ do
+  when (os=="mingw32" && isWindowsUnsafeDotPath f) $ do
     hPutStr stderr $ "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
     exitFailure
   exists <- doesFileExist f
