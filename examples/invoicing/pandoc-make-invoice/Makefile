@@ -21,7 +21,7 @@ invoice:
 	@make $(NEW)
 	@git add $(NEW).{md,html,pdf}
 	@git commit -m "invoice $(NEW)" -- $(NEW).{md,html,pdf}
-	@printf "`date +%Y-%m-%d` * (`date +%Y%m`ab) AB Inc. | invoice\n    (assets:receivable:ab)                 \$$1000  ; TODO:adjust\n\n" >>$$LEDGER_FILE
+	@printf "`date +%Y-%m-%d` * (`date +%Y%m`ab) AB Inc. | invoice\n    (assets:receivable:ab)                 \$$1000  ; TODO:adjust\n\n"
 
 %ab:
 	@make $@.pdf $@.html
