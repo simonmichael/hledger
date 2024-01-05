@@ -2525,10 +2525,10 @@ assignments' forcing of balances can hide errors.  These things make
 your financial data less portable, less future-proof, and less
 trustworthy in an audit.
 
-#### Balance assignments and prices
+#### Balance assignments and costs
 
 A [cost](#costs) in a balance assignment
-will cause the calculated amount to have that price attached:
+will cause the calculated amount to have that cost attached:
 
 ``` journal
 2019/1/1
