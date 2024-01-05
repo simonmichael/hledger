@@ -62,6 +62,12 @@ Starting the next transaction (. or ctrl-D/ctrl-C to quit)
 Date [2015/05/22]: <CTRL-D> $
 ```
 
+If you enter a number with no commodity symbol,
+and you have declared a default commodity with a `D` directive,
+you might expect `add` to add this symbol for you.
+It does not do this; we assume that if you are using a `D` directive
+you prefer not to see the commodity symbol repeated on amounts in the journal.
+
 On Microsoft Windows, the add command makes sure that no part of the
 file path ends with a period, as that would cause problems
 ([#1056](https://github.com/simonmichael/hledger/issues/1056)).

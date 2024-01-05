@@ -60,7 +60,7 @@ $  printf 'D A1000.0\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -
 > /a  +A1000\.00/
 >2 //
 
-# ** 6. default commodity symbol is added when not entered
+# ** 6. default commodity symbol is not added when not provided (#815)
 <
 
 
@@ -71,7 +71,7 @@ b
 .
 
 $  printf 'D A1000.00\n' >t$$.j; hledger -f t$$.j add >/dev/null; cat t$$.j; rm -f t$$.j
-> /a  +A1000\.00/
+> /a  +1000\.00/
 >2 //
 
 # ** 7. existing commodity with greater precision
