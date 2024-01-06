@@ -15,14 +15,18 @@ We don't like regressions. We want to detect them quickly, repair them quickly, 
 ## Regression bounty
 
 You can help!
-We offer a standard bounty ($100 USD) for each new regression reported in hledger releases.
+We offer a standard $100 bounty for each new regression reported in hledger releases
 ([original discussion](https://github.com/simonmichael/hledger/issues/1570)).
+In 2024, the bounty is split: $50 to the finder and $50 to the fixer (can be the same person, can't be the breaker).
+
 To claim the bounty:
 
 1. Discover a new regression yourself (and don't be the one who caused it, generally)
 2. Report it in the [hledger bug tracker](http://bugs.hledger.org)
-3. Wait for the issue manager ([SM](https://joyful.com)) to apply the REGRESSION label
-4. Submit an expense to our Open Collective. (Note: this might reveal your real name, on opencollective.com and here on hledger.org):
+3. Wait for the issue manager ([SM](https://joyful.com)) confirm it with the REGRESSION label
+4. And/or, fix a regression yourself.
+5. Send an expense reimbursement request to our Open Collective.
+   - Be aware this might reveal your real name, on opencollective.com and here on hledger.org
    - [Submit Expense](https://opencollective.com/hledger/expenses/new)
      (if you are logged in, it will be under the ACTIONS menu) 
    - choose Invoice
@@ -32,9 +36,8 @@ To claim the bounty:
      - the WORK DATE or WORK PERIOD
      - the ISSUE URL
    - Date: today's date
-   - Amount: USD 100
-     (or if you choose another currency, convert with that day's conversion rate
-      and mention the rate in Description)
+   - Amount: USD 50, or 100 if you reported and fixed.
+     Or if you choose to receive another currency, convert from USD with that day's conversion rate and mention the rate in Description.
    - Next; Submit Expense
 5. Announce on the issue page or in chat that you've submitted (to help ensure it is not overlooked)
 6. Wait for the finance manager (SM) to approve it. This should not take more than a day or two.
