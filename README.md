@@ -210,4 +210,4 @@ It's easy! Please see <https://hledger.org/sponsor.html> for details.
 <a href="https://opencollective.com/hledger/individual/49/website"><img src="https://opencollective.com/hledger/individual/49/avatar.svg?avatarHeight=100"></a>
 <a href="https://opencollective.com/hledger/individual/50/website"><img src="https://opencollective.com/hledger/individual/50/avatar.svg?avatarHeight=100"></a>
 
-If your logo/avatar needs to be added, [let me know](mailto:webmaster@hledger.org)!
+<!-- (If your logo/avatar isn't appearing here, eg because you didn't use Open Collective, please [let me know](mailto:webmaster@hledger.org).) -->
