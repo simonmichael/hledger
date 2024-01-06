@@ -2,42 +2,58 @@
 
 (equity)
 
-Generate transactions which transfer account balances to and/or from
-another account (typically equity).
-This can be useful for migrating balances to a new journal file, 
-or for merging earnings into equity at end of accounting period.
-
-By default, it prints a transaction that zeroes out ALE accounts
-(asset, liability, equity accounts; this requires account types to be configured);
-or if ACCTQUERY is provided, the accounts matched by that.
+A transaction-generating command which generates several kinds of "closing"
+and/or "opening" transactions useful in certain situations.
+It prints one or two transactions to stdout, but does not write them to the journal automatically.
 
 *(experimental)*
 
 _FLAGS
 
-This command has four main modes, corresponding to the most common use cases:
+This command is most often used when migrating balances to a new
+journal file, at the start of a new financial year. There are a few
+ways to do that, we're not sure which is best, and this command has
+other uses as well; so it currently has six modes, selected by a mode
+flag. Use only one of these flags at a time:
 
-1. With `--close` (default), it prints a "closing balances" transaction
-that zeroes out ALE (asset, liability, equity) accounts by default
-(this requires [account types](hledger.md#account-types) to be inferred or declared);
-or, the accounts matched by the provided ACCTQUERY arguments.
+1. With `--close` (or no mode flag) it prints a "closing balances" transaction
+that zeroes out all the ALE (asset, liability, equity) accounts, by default
+(this requires inferred or declared [account types](hledger.md#account-types));
+or, the accounts matched by ACCTQUERY arguments you provide.
+The balances are transferred to an equity account.
 
-2. With `--open`, it prints an opposite "opening balances" transaction that restores
-those balances from zero. This is similar to Ledger's equity command.
+2. With `--open`, it prints an opposite "opening balances" transaction that
+"unzeros" the same accounts, restoring their balances from zero.
+(This mode is similar to Ledger's equity command.)
 
-3. With `--migrate`, it prints both the closing and opening transactions.
-This is the preferred way to migrate balances to a new file:
-run `hledger close --migrate`, 
-add the closing transaction at the end of the old file, and
-add the opening transaction at the start of the new file.
-The matching closing/opening transactions cancel each other out,
-preserving correct balances during multi-file reporting.
+3. With `--migrate`, it prints both the `--close` and the `--open` transactions.
+This is a common way to migrate balances to a new file at year end;
+run `hledger close --migrate` (or `hledger close --close` and `hleddger close --open`)
+and add the closing transaction at the end of the old file,
+and the opening transaction at the start of the new file.
+This allows you to use the new file by itself, or together with previous file(s),
+and still get correct balances either way, 
+because the matching closing/opening transactions will cancel each other out.
+(You will need to exclude them sometimes, eg to see an end of year balance sheet;
+`not:opening/closing` often works.)
 
-4. With `--retain`, it prints a "retain earnings" transaction that transfers
+4. With `--assert` it prints a "closing balances" transaction that
+just asserts the current balances, without changing them.
+
+5. With `--assign` it prints an "opening balances" transaction that
+restores the account balances by using balance assignments,
+which always succeed and do need to be preceded by a closing transaction.
+This is an alternative to `--close` and `--open`: at year end
+you can `--assert` in the old file and `--assign` in the new file;
+(or skip the `--assert` and just do the `--assign`).
+This sacrifices some error checking, but could be convenient if you are
+often doing cleanups or fixes which break your closing/opening transactions.
+
+6. With `--retain`, it prints a "retain earnings" transaction that transfers
 RX (revenue and expense) balances to `equity:retained earnings`.
-Businesses traditionally do this at the end of each accounting period;
-it is less necessary with computer-based accounting, but it could still be useful
-if you want to see the accounting equation (A=L+E) satisfied.
+This is a traditional end-of-period bookkeeping operation also called "closing the books";
+in personal accounting you probably will not need this but it could be useful
+if you want to see the accounting equation (A=L+E) balanced.
 
 In all modes, the defaults can be overridden:
 
