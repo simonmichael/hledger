@@ -13,11 +13,10 @@ _FLAGS
 
 <!-- related:  -->
 
-This command is most often used when migrating balances to a new
-journal file, at the start of a new financial year. There are a few
-ways to do that, we're not sure which is best, and this command is
-also a sort of general "balance mover"; so it currently has six modes,
-selected by a mode flag. Use only one of these flags at a time:
+This command is most often used when migrating balances to a new journal file, at the start of a new financial year. 
+It can also be used to "retain earnings" (transfer revenues and expenses to equity),
+or as a sort of generic mover of balances from any group of accounts to some other account.
+So it currently has six modes, selected by a mode flag. Use only one of these flags at a time:
 
 1. With `--close` (or no mode flag) it prints a "closing balances" transaction
 that zeroes out all the asset, liability, and equity account balances, by default
@@ -26,12 +25,13 @@ Or, it will zero out the accounts matched by any ACCTQUERY arguments you provide
 All of the balances are transferred to a special "opening/closing balances" equity account.
 
 2. With `--open`, it prints an opposite "opening balances" transaction that
-"unzeros" the same accounts, restoring their balances from zero.
-(This mode is similar to Ledger's equity command.)
+restores the same account balances, starting from zero.
+This mode is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command).
 
 3. With `--migrate`, it prints both the closing and opening transactions above.
 This is a common way to migrate balances to a new file at year end;
-run `hledger close --migrate -e NEWYEAR` and add the closing transaction at the end of the old file,
+run `hledger close --migrate -e NEWYEAR` (-e influences the transaction date)
+and add the closing transaction at the end of the old file,
 and the opening transaction at the start of the new file.
 Doing this means you can include past year files in your reports at any time
 without disturbing asset/liability/equity balances,
@@ -57,7 +57,7 @@ and `hledger close --assign -e NEWYEAR` in the new file.
 This might be more convenient, eg if you are often doing cleanups or fixes which would break closing/opening transactions.
 
 6. With `--retain`, it prints a "retain earnings" transaction that transfers
-RX (revenue and expense) balances to `equity:retained earnings`.
+revenue and expense balances to `equity:retained earnings`.
 This is a traditional end-of-period bookkeeping operation also called "closing the books";
 in personal accounting you probably will not need this but it could be useful
 if you want to see the accounting equation (A=L+E) balanced.
