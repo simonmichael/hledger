@@ -202,8 +202,7 @@ is an adventuresome awk script intended to clean up and merge similar postings i
 (see [original discussion](https://unix.stackexchange.com/questions/526995/re-order-lines-and-merge-others-based-on-a-specific-criteria/527004)).
 It sorts postings so that positive ones are first, negative ones last.
 Within each sign, postings are sorted alphabetically by account name.
-Lastly it facilitates merging postings on transactions with more than one posting in the same direction on the same account.
-This works by removing the duplicates and cleaning the amount field for at-most one account per run
+Lastly if there are multiple postings to the same account in the same direction, it tries to merge them (by leaving some amounts blank).
 Piping the output to `hledger print` can recalculate the missing amounts.
 Multiple runs might be needed to clean up all duplicates.
 ```cli
