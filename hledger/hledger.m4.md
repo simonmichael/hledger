@@ -5040,7 +5040,8 @@ Forecasting, or speculative future reporting, can be useful for estimating futur
 The simplest and most flexible way to do it with hledger is to manually record a bunch of future-dated transactions. You could keep these in a separate `future.journal` and include that with `-f` only when you want to see them.
 
 ## --forecast
-There is another way: with the `--forecast` option, hledger can generate temporary "forecast transactions" for reporting purposes, according to [periodic transaction rules](#periodic-transactions) defined in the journal. Each rule can generate multiple recurring transactions, so by changing one rule you can change many forecasted transactions. (These same rules can also generate budget goals, described in [Budgeting](#budgeting).)
+There is another way: with the `--forecast` option, hledger can generate temporary "forecast transactions" for reporting purposes, according to [periodic transaction rules](#periodic-transactions) defined in the journal. 
+Each rule can generate multiple recurring transactions, so by changing one rule you can change many forecasted transactions.
 
 Forecast transactions usually start after ordinary transactions end. By default, they begin after your latest-dated ordinary transaction, or today, whichever is later, and they end six months from today. (The exact rules are a little more complicated, and are given below.)
 
