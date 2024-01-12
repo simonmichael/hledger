@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 7.0.3 from stdin.
+This is hledger-ui.info, produced by makeinfo version 7.1 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -673,47 +673,47 @@ above).
 
 
 Tag Table:
-Node: Top223
-Node: OPTIONS1832
-Ref: #options1930
-Node: General help options2953
-Ref: #general-help-options3102
-Node: General input options3384
-Ref: #general-input-options3569
-Node: General reporting options4271
-Ref: #general-reporting-options4435
-Node: MOUSE7825
-Ref: #mouse7920
-Node: KEYS8157
-Ref: #keys8250
-Node: SCREENS12905
-Ref: #screens13003
-Node: Menu13583
-Ref: #menu13676
-Node: Cash accounts13871
-Ref: #cash-accounts14013
-Node: Balance sheet accounts14197
-Ref: #balance-sheet-accounts14378
-Node: Income statement accounts14498
-Ref: #income-statement-accounts14684
-Node: All accounts14848
-Ref: #all-accounts14994
-Node: Register15176
-Ref: #register15300
-Node: Transaction17584
-Ref: #transaction17707
-Node: Error19124
-Ref: #error19218
-Node: TIPS19462
-Ref: #tips19561
-Node: Watch mode19603
-Ref: #watch-mode19710
-Node: Debug output21169
-Ref: #debug-output21280
-Node: ENVIRONMENT21492
-Ref: #environment21602
-Node: BUGS21793
-Ref: #bugs21876
+Node: Top221
+Node: OPTIONS1830
+Ref: #options1928
+Node: General help options2951
+Ref: #general-help-options3100
+Node: General input options3382
+Ref: #general-input-options3567
+Node: General reporting options4269
+Ref: #general-reporting-options4433
+Node: MOUSE7823
+Ref: #mouse7918
+Node: KEYS8155
+Ref: #keys8248
+Node: SCREENS12903
+Ref: #screens13001
+Node: Menu13581
+Ref: #menu13674
+Node: Cash accounts13869
+Ref: #cash-accounts14011
+Node: Balance sheet accounts14195
+Ref: #balance-sheet-accounts14376
+Node: Income statement accounts14496
+Ref: #income-statement-accounts14682
+Node: All accounts14846
+Ref: #all-accounts14992
+Node: Register15174
+Ref: #register15298
+Node: Transaction17582
+Ref: #transaction17705
+Node: Error19122
+Ref: #error19216
+Node: TIPS19460
+Ref: #tips19559
+Node: Watch mode19601
+Ref: #watch-mode19708
+Node: Debug output21167
+Ref: #debug-output21278
+Node: ENVIRONMENT21490
+Ref: #environment21600
+Node: BUGS21791
+Ref: #bugs21874
 
 End Tag Table
 

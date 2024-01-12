@@ -20,23 +20,23 @@ DESCRIPTION
 
        hledger-ui is hledger's  terminal  interface,  providing  an  efficient
        full-window  text  UI  for  viewing accounts and transactions, and some
-       limited data entry capability.  It is easier  than  hledger's  command-
-       line  interface, and sometimes quicker and more convenient than the web
-       interface.
+       limited data entry  capability.   It  is  easier  than  hledger's  com-
+       mand-line interface, and sometimes quicker and more convenient than the
+       web interface.
 
-       Like hledger, it reads from (and appends to) a journal  file  specified
-       by    the    LEDGER_FILE    environment    variable    (defaulting   to
-       $HOME/.hledger.journal); or you can specify files with -f options.   It
-       can  also  read timeclock files, timedot files, or any CSV/SSV/TSV file
+       Like  hledger,  it reads from (and appends to) a journal file specified
+       by   the    LEDGER_FILE    environment    variable    (defaulting    to
+       $HOME/.hledger.journal);  or you can specify files with -f options.  It
+       can also read timeclock files, timedot files, or any  CSV/SSV/TSV  file
        with a date field.  (See hledger(1) -> Input for details.)
 
-       Unlike hledger, hledger-ui hides all future-dated transactions  by  de-
-       fault.   They  can  be revealed, along with any rule-generated periodic
-       transactions, by pressing the F key (or starting  with  --forecast)  to
+       Unlike  hledger,  hledger-ui hides all future-dated transactions by de-
+       fault.  They can be revealed, along with  any  rule-generated  periodic
+       transactions,  by  pressing  the F key (or starting with --forecast) to
        enable "forecast mode".
 
 OPTIONS
-       Any  QUERYARGS  are interpreted as a hledger search query which filters
+       Any QUERYARGS are interpreted as a hledger search query  which  filters
        the data.
 
        hledger-ui provides the following options:
@@ -61,7 +61,7 @@ OPTIONS
               start in the (first) matched account's register screen
 
        --change
-              show period balances (changes) at startup instead of  historical
+              show  period balances (changes) at startup instead of historical
               balances
 
        -l --flat
@@ -70,7 +70,7 @@ OPTIONS
        -t --tree
               show accounts as a tree
 
-       hledger-ui  also  supports  many  of hledger's general options (and the
+       hledger-ui also supports many of hledger's  general  options  (and  the
        hledger manual's command line tips also apply here):
 
    General help options
@@ -93,7 +93,7 @@ OPTIONS
               $LEDGER_FILE or $HOME/.hledger.journal)
 
        --rules-file=RULESFILE
-              Conversion   rules  file  to  use  when  reading  CSV  (default:
+              Conversion  rules  file  to  use  when  reading  CSV   (default:
               FILE.rules)
 
        --separator=CHAR
@@ -112,7 +112,7 @@ OPTIONS
               assignments)
 
        -s --strict
-              do extra error checking (check that all posted accounts are  de-
+              do  extra error checking (check that all posted accounts are de-
               clared)
 
    General reporting options
@@ -140,7 +140,7 @@ OPTIONS
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set  start date, end date, and/or reporting interval all at once
+              set start date, end date, and/or reporting interval all at  once
               using period expressions syntax
 
        --date2
@@ -148,7 +148,7 @@ OPTIONS
               fects)
 
        --today=DATE
-              override  today's  date  (affects  relative  smart  dates,   for
+              override   today's  date  (affects  relative  smart  dates,  for
               tests/examples)
 
        -U --unmarked
@@ -167,21 +167,21 @@ OPTIONS
               hide/aggregate accounts or postings more than NUM levels deep
 
        -E --empty
-              show  items with zero amount, normally hidden (and vice-versa in
+              show items with zero amount, normally hidden (and vice-versa  in
               hledger-ui/hledger-web)
 
        -B --cost
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert amounts to their market value in default valuation  com-
+              convert  amounts to their market value in default valuation com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert  amounts  to  cost  or  market value, more flexibly than
+              convert amounts to cost or  market  value,  more  flexibly  than
               -B/-V/-X
 
        --infer-equity
@@ -191,32 +191,32 @@ OPTIONS
               infer costs from conversion equity postings
 
        --infer-market-prices
-              use costs as additional market prices, as if they were P  direc-
+              use  costs as additional market prices, as if they were P direc-
               tives
 
        --forecast
-              generate  transactions  from  periodic rules, between the latest
-              recorded txn and 6 months from today, or  during  the  specified
-              PERIOD  (=  is required).  Auto posting rules will be applied to
-              these transactions as well.  Also, in  hledger-ui  make  future-
-              dated transactions visible.
+              generate transactions from periodic rules,  between  the  latest
+              recorded  txn  and  6 months from today, or during the specified
+              PERIOD (= is required).  Auto posting rules will be  applied  to
+              these  transactions  as  well.   Also,  in  hledger-ui  make fu-
+              ture-dated transactions visible.
 
-       --auto generate  extra  postings  by applying auto posting rules to all
+       --auto generate extra postings by applying auto posting  rules  to  all
               txns (not just forecast txns)
 
        --verbose-tags
-              add visible tags indicating transactions or postings which  have
+              add  visible tags indicating transactions or postings which have
               been generated/modified
 
        --commodity-style
-              Override  the  commodity  style  in the output for the specified
+              Override the commodity style in the  output  for  the  specified
               commodity.  For example 'EUR1.000,00'.
 
        --color=WHEN (or --colour=WHEN)
-              Should color-supporting commands use ANSI color  codes  in  text
-              output.   'auto' (default): whenever stdout seems to be a color-
-              supporting terminal.  'always' or 'yes': always, useful eg  when
-              piping  output  into  'less  -R'.   'never'  or  'no': never.  A
+              Should  color-supporting  commands  use ANSI color codes in text
+              output.   'auto'  (default):  whenever  stdout  seems  to  be  a
+              color-supporting terminal.  'always' or 'yes': always, useful eg
+              when  piping  output into 'less -R'.  'never' or 'no': never.  A
               NO_COLOR environment variable overrides this.
 
        --pretty[=WHEN]
@@ -257,22 +257,22 @@ KEYS
        that.)
 
        With  shift pressed, the cursor keys adjust the report period, limiting
-       the transactions to be shown  (by  default,  all  are  shown).   SHIFT-
-       DOWN/UP  steps downward and upward through these standard report period
-       durations: year, quarter, month,  week,  day.   Then,  SHIFT-LEFT/RIGHT
-       moves  to the previous/next period.  T sets the report period to today.
-       With the -w/--watch option, when viewing a "current" period  (the  cur-
-       rent day, week, month, quarter, or year), the period will move automat-
-       ically  to  track  the current date.  To set a non-standard period, you
-       can use / and a date: query.
+       the  transactions  to  be  shown   (by   default,   all   are   shown).
+       SHIFT-DOWN/UP  steps  downward and upward through these standard report
+       period   durations:   year,   quarter,   month,   week,   day.    Then,
+       SHIFT-LEFT/RIGHT  moves to the previous/next period.  T sets the report
+       period to today.  With the -w/--watch option, when viewing a  "current"
+       period  (the  current  day,  week, month, quarter, or year), the period
+       will move automatically to track the current date.  To set a  non-stan-
+       dard period, you can use / and a date: query.
 
-       (Mac users: SHIFT-DOWN/UP keys do not work by default in  Terminal,  as
-       of  MacOS  Monterey.  You can configure them as follows: open Terminal,
-       press CMD-comma to open preferences, click Profiles, select  your  cur-
+       (Mac  users:  SHIFT-DOWN/UP keys do not work by default in Terminal, as
+       of MacOS Monterey.  You can configure them as follows:  open  Terminal,
+       press  CMD-comma  to open preferences, click Profiles, select your cur-
        rent terminal profile on the left, click Keyboard on the right, click +
-       and add this for Shift-Down: \033[1;2B, click + and add this for Shift-
-       Up:  \033[1;2A.  Press the Escape key to enter the \033 part, you can't
-       type it directly.)
+       and add this for Shift-Down:  \033[1;2B,  click  +  and  add  this  for
+       Shift-Up:  \033[1;2A.  Press the Escape key to enter the \033 part, you
+       can't type it directly.)
 
        / lets you set a general filter query limiting the  data  shown,  using
        the  same query terms as in hledger and hledger-web.  While editing the
@@ -446,8 +446,8 @@ SCREENS
        show  them  until you exit and re-enter it.  So eg to see the effect of
        using the E key, currently you must: - press E, edit and save the file,
        then exit the editor, returning to hledger-ui - press g to  reload  the
-       file  (or  use -w/--watch mode) - press LEFT then RIGHT to exit and re-
-       enter the transaction screen.
+       file  (or  use  -w/--watch  mode)  -  press LEFT then RIGHT to exit and
+       re-enter the transaction screen.
 
    Error
        This screen will appear if there is a problem, such as a  parse  error,
@@ -537,4 +537,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-ui-1.32.99               December 2023                   HLEDGER-UI(1)
+hledger-ui-1.32.99               January 2024                    HLEDGER-UI(1)

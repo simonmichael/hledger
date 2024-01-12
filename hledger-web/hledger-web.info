@@ -1,4 +1,4 @@
-This is hledger-web.info, produced by makeinfo version 7.0.3 from stdin.
+This is hledger-web.info, produced by makeinfo version 7.1 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -631,31 +631,31 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 
 Tag Table:
-Node: Top225
-Node: OPTIONS2580
-Ref: #options2685
-Node: General help options5259
-Ref: #general-help-options5409
-Node: General input options5691
-Ref: #general-input-options5877
-Node: General reporting options6579
-Ref: #general-reporting-options6744
-Node: PERMISSIONS10134
-Ref: #permissions10273
-Node: EDITING UPLOADING DOWNLOADING11485
-Ref: #editing-uploading-downloading11666
-Node: RELOADING12500
-Ref: #reloading12634
-Node: JSON API13067
-Ref: #json-api13182
-Node: DEBUG OUTPUT18670
-Ref: #debug-output18795
-Node: Debug output18822
-Ref: #debug-output-118923
-Node: ENVIRONMENT19340
-Ref: #environment19459
-Node: BUGS19576
-Ref: #bugs19660
+Node: Top223
+Node: OPTIONS2578
+Ref: #options2683
+Node: General help options5257
+Ref: #general-help-options5407
+Node: General input options5689
+Ref: #general-input-options5875
+Node: General reporting options6577
+Ref: #general-reporting-options6742
+Node: PERMISSIONS10132
+Ref: #permissions10271
+Node: EDITING UPLOADING DOWNLOADING11483
+Ref: #editing-uploading-downloading11664
+Node: RELOADING12498
+Ref: #reloading12632
+Node: JSON API13065
+Ref: #json-api13180
+Node: DEBUG OUTPUT18668
+Ref: #debug-output18793
+Node: Debug output18820
+Ref: #debug-output-118921
+Node: ENVIRONMENT19338
+Ref: #environment19457
+Node: BUGS19574
+Ref: #bugs19658
 
 End Tag Table
 
