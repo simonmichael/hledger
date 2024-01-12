@@ -58,7 +58,7 @@ Amounts will be (mostly) normalised to their [commodity display style](#commodit
 their symbol placement, decimal mark, and digit group marks will be made consistent.
 By default, decimal digits are shown as they are written in the journal.
 
-With the `--round` option, `print` will try increasingly hard to
+With the `--round` (*Added in 1.32*) option, `print` will try increasingly hard to
 display decimal digits according to the [commodity display styles](#commodity-display-style):
 
 - `--round=none` show amounts with original precisions (default)
@@ -115,7 +115,7 @@ This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
 The output formats supported are
-`txt`, `beancount`, `csv`, `tsv`, `json` and `sql`.
+`txt`, `beancount` (*Added in 1.32*), `csv`, `tsv` (*Added in 1.32*), `json` and `sql`.
 
 The `beancount` format tries to produce Beancount-compatible output, as follows:
 

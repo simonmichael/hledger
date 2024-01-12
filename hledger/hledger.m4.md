@@ -3338,12 +3338,14 @@ When an if block has multiple matchers, they are combined as follows:
 
 - By default they are OR'd (any one of them can match)
 - When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match)
-- When a matcher is preceded by an exclamation mark (`!`), the matcher is negated (it may not match).
+- *Added in 1.32* When a matcher is preceded by an exclamation mark (`!`), the matcher is negated (it may not match).
 
 [Currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398) there is a limitation:
 you can't use both `&` and `!` on the same line (you can't AND a negated matcher).
 
 ### Match groups
+
+*Added in 1.32*
 
 Matchers can define match groups: parenthesised portions of the regular expression
 which are available for reference in field assignments. Groups are enclosed
@@ -4240,7 +4242,7 @@ After the date line are zero or more time postings, consisting of:
     These are the dots in "timedot".
     Spaces are ignored and can be used for grouping/alignment.
 
-  - one or more letters. These are like dots but they also generate
+  - *Added in 1.32* one or more letters. These are like dots but they also generate
     a tag `t:` (short for "type") with the letter as its value,
     and a separate posting for each of the values.
     This provides a second dimension of categorisation,

@@ -142,4 +142,4 @@ This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
 The output formats supported are
-`txt`, `csv`, `tsv`, and `json`.
+`txt`, `csv`, `tsv` (*Added in 1.32*), and `json`.
