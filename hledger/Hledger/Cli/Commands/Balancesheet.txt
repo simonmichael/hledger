@@ -41,5 +41,4 @@ It is similar to hledger balance -H assets liabilities, but with smarter
 account detection, and liabilities displayed with their sign flipped.
 
 This command also supports the output destination and output format
-options The output formats supported are txt, csv, tsv, html, and
-(experimental) json.
+options The output formats supported are txt, csv, tsv, html, and json.

@@ -332,7 +332,7 @@ Notes:
 -   Accounts (rows) containing all zeroes are not shown, unless
     -E/--empty is used.
 -   Amounts with many commodities are shown in abbreviated form, unless
-    --no-elide is used. (experimental)
+    --no-elide is used.
 -   Average and/or total columns can be added with the -A/--average and
     -T/--row-total flags.
 -   The --transpose flag can be used to exchange rows and columns.
