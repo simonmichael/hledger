@@ -7033,8 +7033,7 @@ PART 4: COMMANDS
        sign flipped.
 
        This command also supports the output destination and output format op-
-       tions The output formats supported are txt, csv, tsv, html, and (exper-
-       imental) json.
+       tions The output formats supported are txt, csv, tsv, html, and json.
 
    cashflow
        (cf)

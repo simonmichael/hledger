@@ -8640,7 +8640,7 @@ their sign flipped.
 
    This command also supports the output destination and output format
 options The output formats supported are 'txt', 'csv', 'tsv', 'html',
-and (experimental) 'json'.
+and 'json'.
 
 
 File: hledger.info,  Node: cashflow,  Next: check,  Prev: balancesheetequity,  Up: PART 4 COMMANDS
@@ -11352,124 +11352,124 @@ Node: balancesheet310789
 Ref: #balancesheet310934
 Node: balancesheetequity312246
 Ref: #balancesheetequity312404
-Node: cashflow313800
-Ref: #cashflow313931
-Node: check315351
-Ref: #check315465
-Node: Default checks316269
-Ref: #default-checks316395
-Node: Strict checks316892
-Ref: #strict-checks317037
-Node: Other checks317517
-Ref: #other-checks317659
-Node: Custom checks318192
-Ref: #custom-checks318349
-Node: More about specific checks318766
-Ref: #more-about-specific-checks318928
-Node: close319634
-Ref: #close319745
-Node: close and balance assertions325072
-Ref: #close-and-balance-assertions325250
-Node: Example retain earnings326401
-Ref: #example-retain-earnings326618
-Node: Example migrate balances to a new file327050
-Ref: #example-migrate-balances-to-a-new-file327315
-Node: Example excluding closing/opening transactions327891
-Ref: #example-excluding-closingopening-transactions328140
-Node: codes329358
-Ref: #codes329475
-Node: commodities330339
-Ref: #commodities330467
-Node: demo330537
-Ref: #demo330658
-Node: descriptions331574
-Ref: #descriptions331704
-Node: diff331995
-Ref: #diff332110
-Node: files333152
-Ref: #files333261
-Node: help333402
-Ref: #help-1333511
-Node: import334884
-Ref: #import335007
-Node: Deduplication336115
-Ref: #deduplication336240
-Node: Import testing338259
-Ref: #import-testing338424
-Node: Importing balance assignments339267
-Ref: #importing-balance-assignments339473
-Node: Commodity display styles340122
-Ref: #commodity-display-styles340295
-Node: incomestatement340424
-Ref: #incomestatement340566
-Node: notes341879
-Ref: #notes342001
-Node: payees342363
-Ref: #payees342478
-Node: prices342997
-Ref: #prices343112
-Node: print343765
-Ref: #print343880
-Node: print explicitness344856
-Ref: #print-explicitness344999
-Node: print amount style345778
-Ref: #print-amount-style345948
-Node: print parseability347000
-Ref: #print-parseability347172
-Node: print other features347921
-Ref: #print-other-features348100
-Node: print output format348621
-Ref: #print-output-format348769
-Node: register351872
-Ref: #register351994
-Node: Custom register output357025
-Ref: #custom-register-output357156
-Node: rewrite358485
-Ref: #rewrite358603
-Node: Re-write rules in a file360501
-Ref: #re-write-rules-in-a-file360664
-Node: Diff output format361813
-Ref: #diff-output-format361996
-Node: rewrite vs print --auto363088
-Ref: #rewrite-vs.-print---auto363248
-Node: roi363804
-Ref: #roi363911
-Node: Spaces and special characters in --inv and --pnl365723
-Ref: #spaces-and-special-characters-in---inv-and---pnl365963
-Node: Semantics of --inv and --pnl366451
-Ref: #semantics-of---inv-and---pnl366690
-Node: IRR and TWR explained368540
-Ref: #irr-and-twr-explained368700
-Node: stats371953
-Ref: #stats372061
-Node: tags373448
-Ref: #tags-1373555
-Node: test374564
-Ref: #test374657
-Node: PART 5 COMMON TASKS375399
-Ref: #part-5-common-tasks375545
-Node: Getting help375843
-Ref: #getting-help375984
-Node: Constructing command lines376744
-Ref: #constructing-command-lines376945
-Node: Starting a journal file377602
-Ref: #starting-a-journal-file377804
-Node: Setting LEDGER_FILE379006
-Ref: #setting-ledger_file379198
-Node: Setting opening balances380155
-Ref: #setting-opening-balances380356
-Node: Recording transactions383497
-Ref: #recording-transactions383686
-Node: Reconciling384242
-Ref: #reconciling384394
-Node: Reporting386651
-Ref: #reporting386800
-Node: Migrating to a new file390785
-Ref: #migrating-to-a-new-file390942
-Node: BUGS391241
-Ref: #bugs391331
-Node: Troubleshooting392210
-Ref: #troubleshooting392310
+Node: cashflow313785
+Ref: #cashflow313916
+Node: check315336
+Ref: #check315450
+Node: Default checks316254
+Ref: #default-checks316380
+Node: Strict checks316877
+Ref: #strict-checks317022
+Node: Other checks317502
+Ref: #other-checks317644
+Node: Custom checks318177
+Ref: #custom-checks318334
+Node: More about specific checks318751
+Ref: #more-about-specific-checks318913
+Node: close319619
+Ref: #close319730
+Node: close and balance assertions325057
+Ref: #close-and-balance-assertions325235
+Node: Example retain earnings326386
+Ref: #example-retain-earnings326603
+Node: Example migrate balances to a new file327035
+Ref: #example-migrate-balances-to-a-new-file327300
+Node: Example excluding closing/opening transactions327876
+Ref: #example-excluding-closingopening-transactions328125
+Node: codes329343
+Ref: #codes329460
+Node: commodities330324
+Ref: #commodities330452
+Node: demo330522
+Ref: #demo330643
+Node: descriptions331559
+Ref: #descriptions331689
+Node: diff331980
+Ref: #diff332095
+Node: files333137
+Ref: #files333246
+Node: help333387
+Ref: #help-1333496
+Node: import334869
+Ref: #import334992
+Node: Deduplication336100
+Ref: #deduplication336225
+Node: Import testing338244
+Ref: #import-testing338409
+Node: Importing balance assignments339252
+Ref: #importing-balance-assignments339458
+Node: Commodity display styles340107
+Ref: #commodity-display-styles340280
+Node: incomestatement340409
+Ref: #incomestatement340551
+Node: notes341864
+Ref: #notes341986
+Node: payees342348
+Ref: #payees342463
+Node: prices342982
+Ref: #prices343097
+Node: print343750
+Ref: #print343865
+Node: print explicitness344841
+Ref: #print-explicitness344984
+Node: print amount style345763
+Ref: #print-amount-style345933
+Node: print parseability346985
+Ref: #print-parseability347157
+Node: print other features347906
+Ref: #print-other-features348085
+Node: print output format348606
+Ref: #print-output-format348754
+Node: register351857
+Ref: #register351979
+Node: Custom register output357010
+Ref: #custom-register-output357141
+Node: rewrite358470
+Ref: #rewrite358588
+Node: Re-write rules in a file360486
+Ref: #re-write-rules-in-a-file360649
+Node: Diff output format361798
+Ref: #diff-output-format361981
+Node: rewrite vs print --auto363073
+Ref: #rewrite-vs.-print---auto363233
+Node: roi363789
+Ref: #roi363896
+Node: Spaces and special characters in --inv and --pnl365708
+Ref: #spaces-and-special-characters-in---inv-and---pnl365948
+Node: Semantics of --inv and --pnl366436
+Ref: #semantics-of---inv-and---pnl366675
+Node: IRR and TWR explained368525
+Ref: #irr-and-twr-explained368685
+Node: stats371938
+Ref: #stats372046
+Node: tags373433
+Ref: #tags-1373540
+Node: test374549
+Ref: #test374642
+Node: PART 5 COMMON TASKS375384
+Ref: #part-5-common-tasks375530
+Node: Getting help375828
+Ref: #getting-help375969
+Node: Constructing command lines376729
+Ref: #constructing-command-lines376930
+Node: Starting a journal file377587
+Ref: #starting-a-journal-file377789
+Node: Setting LEDGER_FILE378991
+Ref: #setting-ledger_file379183
+Node: Setting opening balances380140
+Ref: #setting-opening-balances380341
+Node: Recording transactions383482
+Ref: #recording-transactions383671
+Node: Reconciling384227
+Ref: #reconciling384379
+Node: Reporting386636
+Ref: #reporting386785
+Node: Migrating to a new file390770
+Ref: #migrating-to-a-new-file390927
+Node: BUGS391226
+Ref: #bugs391316
+Node: Troubleshooting392195
+Ref: #troubleshooting392295
 
 End Tag Table
 
