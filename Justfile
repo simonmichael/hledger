@@ -538,9 +538,9 @@ samplejournals:
 BENCHEXES := 'hledger'
 
 # run benchmark commands in bench.sh for each of BENCHEXES, with quickbench
-@bench:
+@bench *ARGS:
     printf "Running benchmarks with {{ BENCHEXES }} (times are approximate, can be skewed):\n"
-    which quickbench >/dev/null && quickbench -w {{ BENCHEXES }} || echo "quickbench not installed (see bench.sh), skipping"
+    which quickbench >/dev/null && quickbench -w {{ BENCHEXES }} {{ ARGS }} || echo "quickbench not installed (see bench.sh), skipping"
 
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
