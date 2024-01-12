@@ -7,8 +7,6 @@ and/or "opening" transactions useful in certain situations.
 It prints one or two transactions to stdout, but does not write them to the journal file;
 you can append or copy them there when you are happy with the output.
 
-*(experimental)*
-
 _FLAGS
 
 <!-- related:  -->

@@ -5345,8 +5345,6 @@ $ hledger print -x --infer-costs --infer-equity
 
 Downsides:
 
-- This was added in hledger-1.29 and is still somewhat experimental.
-
 - The precise format of the journal entry becomes more important.
   If hledger can't detect and match up the cost and equity postings, it will give a transaction balancing error.
 

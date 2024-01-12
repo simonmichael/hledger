@@ -117,7 +117,6 @@ This command also supports the
 The output formats supported are
 `txt`, `beancount`, `csv`, `tsv`, `json` and `sql`.
 
-*Experimental:*
 The `beancount` format tries to produce Beancount-compatible output, as follows:
 
 - Transaction and postings with unmarked status are converted to cleared (`*`) status.
