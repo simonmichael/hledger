@@ -1588,7 +1588,7 @@ in a transaction or posting or account directive's [comment](#account-comments).
 You can write multiple tags separated by comma, and/or you can add more comment lines
 and write more tags there.
 
-Here four different tags are recorded: one on the checking account,
+Here five different tags are recorded: one on the checking account,
 two on the transaction, and two on the expenses posting:
 
 ```journal
