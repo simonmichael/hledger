@@ -17,14 +17,16 @@ or as a sort of generic mover of balances from any group of accounts to some oth
 So it currently has six modes, selected by a mode flag. Use only one of these flags at a time:
 
 1. With `--close` (or no mode flag) it prints a "closing balances" transaction
-that zeroes out all the asset, liability, and equity account balances, by default
-(this requires inferred or declared [account types](hledger.md#account-types)).
-Or, it will zero out the accounts matched by any ACCTQUERY arguments you provide.
+that zeroes out all the asset and liability account balances, by default
+(this requires [account types](hledger.md#account-types) to be detected or declared.).
 All of the balances are transferred to a special "opening/closing balances" equity account.
+Or, if it will zero out the accounts matched by query arguments you provide.
+Eg you could include assets, liabilities, and equity with `hledger close type:ALE`.
+The "opening/closing balances" equity account is always excluded.
 
 2. With `--open`, it prints an opposite "opening balances" transaction that
 restores the same account balances, starting from zero.
-This mode is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command).
+<!-- This mode is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command). -->
 
 3. With `--migrate`, it prints both the closing and opening transactions above.
 This is a common way to migrate balances to a new file at year end;

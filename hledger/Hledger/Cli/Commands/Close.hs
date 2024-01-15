@@ -62,11 +62,11 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- currently only one of the six mode flags takes effect at a time (hledger close --close --open only does --open).
     (close_, open_, assert_, assign_, defclosedesc_, defopendesc_, defcloseacct_, defacctsq_) = if
       | boolopt "retain"  rawopts -> (True,  False, False, False, defretaindesc, undefined,   defretainacct, Type [Revenue, Expense])
-      | boolopt "migrate" rawopts -> (True,  True,  False, False, defclosedesc,  defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
-      | boolopt "assign"  rawopts -> (False, False, False, True,  undefined,     defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
-      | boolopt "assert"  rawopts -> (False, False, True,  False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability, Equity])
-      | boolopt "open"    rawopts -> (False, True,  False, False, undefined,     defopendesc, defcloseacct,  Type [Asset, Liability, Equity])
-      | otherwise                 -> (True,  False, False, False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability, Equity]) -- close
+      | boolopt "migrate" rawopts -> (True,  True,  False, False, defclosedesc,  defopendesc, defcloseacct,  Type [Asset, Liability])
+      | boolopt "assign"  rawopts -> (False, False, False, True,  undefined,     defopendesc, defcloseacct,  Type [Asset, Liability])
+      | boolopt "assert"  rawopts -> (False, False, True,  False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability])
+      | boolopt "open"    rawopts -> (False, True,  False, False, undefined,     defopendesc, defcloseacct,  Type [Asset, Liability])
+      | otherwise {- close -}     -> (True,  False, False, False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability])
 
     -- descriptions to use for the closing/opening transactions
     closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
@@ -96,11 +96,14 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- should we show the amount(s) on the equity posting(s) ?
     explicit = boolopt "explicit" rawopts || copts ^. infer_costs
 
-    -- the balances to close
+    -- the accounts to close
     argsacctq = filterQuery (\q -> queryIsAcct q || queryIsType q) argsq
     q2 = if queryIsNull argsacctq then And [argsq, defacctsq_] else argsq
-    rspec2 = rspec1{_rsQuery=q2}
-    (acctbals',_) = balanceReport rspec2 j
+    -- always exclude the balancing equity account
+    q3 = And [q2, Not $ Acct $ accountNameToAccountOnlyRegex closeacct]
+    -- the balances to close
+    rspec3 = rspec1{_rsQuery=q3}
+    (acctbals',_) = balanceReport rspec3 j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
     totalamt = maSum $ map snd acctbals
 

@@ -23,7 +23,6 @@ $ hledger close -f- -e 2017
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
-    equity:opening                             $120 = $0
     liabilities                                $-25 = $0
     equity:opening/closing balances
 
@@ -34,7 +33,6 @@ $ hledger close -f- -e 2017 --close
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
-    equity:opening                             $120 = $0
     liabilities                                $-25 = $0
     equity:opening/closing balances
 
@@ -53,14 +51,12 @@ $ hledger close -f- -p 2016 --migrate
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
-    equity:opening                             $120 = $0
     liabilities                                $-25 = $0
     equity:opening/closing balances
 
 2017-01-01 opening balances
     assets:bank                                 $80 = $80
     assets:cash                                 $10 = $10
-    equity:opening                            $-120 = $-120
     liabilities                                 $25 = $25
     equity:opening/closing balances
 
@@ -71,7 +67,6 @@ $ hledger close -f- -p 2016 --open
 2017-01-01 opening balances
     assets:bank                                 $80 = $80
     assets:cash                                 $10 = $10
-    equity:opening                            $-120 = $-120
     liabilities                                 $25 = $25
     equity:opening/closing balances
 
@@ -82,9 +77,8 @@ $ hledger close -f- -p 2016 -x
 2016-12-31 closing balances
     assets:bank                                $-80 = $0
     assets:cash                                $-10 = $0
-    equity:opening                             $120 = $0
     liabilities                                $-25 = $0
-    equity:opening/closing balances             $-5
+    equity:opening/closing balances            $115
 
 >=0
 
