@@ -651,6 +651,10 @@ This option can repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
 the [commodity directive](#commodity-directive).
 
+hledger will occasionally make some additional adjustments to number formatting,
+eg adding a trailing decimal mark to disambiguate numbers with digit group marks;
+for details, see [Amount formatting, parseability](#amount-formatting-parseability).
+
 ## Colour
 
 In terminal output, some commands can produce colour when the terminal supports it:
@@ -1265,6 +1269,12 @@ and rounded to their display precision (the number of decimal digits specified b
 by other reports.
 When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
 (it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
+
+### Number format
+
+hledger will occasionally make some additional adjustments to number formatting,
+eg adding a trailing decimal mark to disambiguate numbers with digit group marks;
+for details, see [Amount formatting, parseability](#amount-formatting-parseability).
 
 <a name="transaction-prices"></a>
 
