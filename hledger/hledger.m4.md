@@ -1585,8 +1585,11 @@ which you can then [search](#queries) or [pivot](#pivoting) on.
 They are written as a word (optionally hyphenated) immediately followed by a full colon,
 in a transaction or posting or account directive's [comment](#account-comments).
 (This is an exception to the usual rule that things in comments are ignored.)
-Eg, here four different tags are recorded: one on the checking account,
-two on the transaction, and one on the expenses posting:
+You can write multiple tags separated by comma, and/or you can add more comment lines
+and write more tags there.
+
+Here four different tags are recorded: one on the checking account,
+two on the transaction, and two on the expenses posting:
 
 ```journal
 account assets:checking         ; accounttag:
@@ -1594,17 +1597,19 @@ account assets:checking         ; accounttag:
 2017/1/16 bought groceries      ; transactiontag-1:
     ; transactiontag-2:
     assets:checking        $-1
-    expenses:food           $1  ; postingtag:
+    expenses:food           $1  ; postingtag:, another-posting-tag:
 ```
-
-Postings also inherit tags from their transaction and their account.
-And transactions also acquire tags from their postings (and postings' accounts).
-So in the example above, the expenses posting effectively has all four tags
-(by inheriting from account and transaction), 
-and the transaction also has all four tags (by acquiring from the expenses posting).
 
 You can list tag names with `hledger tags [NAMEREGEX]`,
 or match by tag name with a `tag:NAMEREGEX` query.
+
+### Tag inheritance
+
+Postings also inherit tags from their transaction and their account.
+And transactions also acquire tags from their postings (and postings' accounts).
+So in the example above, the expenses posting effectively has all five tags
+(by inheriting from the account and transaction), 
+and the transaction also has all five tags (by acquiring from the expenses posting).
 
 ### Tag values
 
