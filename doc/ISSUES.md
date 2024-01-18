@@ -13,7 +13,7 @@ The hledger project\'s issue tracker is on github. It contains:
 -   uncategorised issues - we don\'t know what these are yet
 -   pull requests - proposed changes to code and docs
 
-## Quick urls
+Here are some shortcut urls:
 
 - <https://issues.hledger.org>       - all issues, open or closed
 - <https://bugs.hledger.org>         - open BUGs
