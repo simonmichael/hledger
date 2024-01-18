@@ -45,7 +45,7 @@ To claim the bounty:
 
 ## Regressions reported
 
-| Issue, version                                               | Reporter                                                              | Bounty paid             |
+| Version, bug report                                          | Reporter                                                              | Bounty paid             |
 |--------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------|
 | **1.19**                                                     |                                                                       |                         |
 | [#1698](https://github.com/simonmichael/hledger/issues/1698) | [David Lowe](https://opencollective.com/hledger/expenses/50380)       | 2021-09-18              |
