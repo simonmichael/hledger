@@ -15,14 +15,14 @@ The hledger project\'s issue tracker is on github. It contains:
 
 ## Quick urls
 
-- <http://issues.hledger.org>    - all issues, open or closed
-- <http://bugs.hledger.org>      - open BUGs
-- <http://wishes.hledger.org>    - open WISHes
-- <http://prs.hledger.org>       - open pull requests
-- <http://readyprs.hledger.org>  - open pull requests ready for review
-- <http://draftprs.hledger.org>  - open draft pull requests
-- <http://bugs.hledger.org/new>  - report a new issue
-- <https://hledger.org/regressions  - how to claim the regression finder's bounty
+- <https://issues.hledger.org>       - all issues, open or closed
+- <https://bugs.hledger.org>         - open BUGs
+- <https://wishes.hledger.org>       - open WISHes
+- <https://prs.hledger.org>          - open pull requests
+- <https://readyprs.hledger.org>     - open pull requests ready for review
+- <https://draftprs.hledger.org>     - open draft pull requests
+- <https://bugs.hledger.org/new>     - report a new issue
+- <https://hledger.org/regressions>  - how to claim regression bounties
 
 ## Open issues
 
