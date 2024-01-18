@@ -865,6 +865,9 @@ commitlog *DATEARG:
     printf "** hledger_finance commits\n\n"
     {{ GITLG }} --since $DATE -C finance
     echo
+    printf "** plaintextaccounting.org commits\n\n"
+    (cd ../plaintextaccounting.org; {{ GITLG }} --since $DATE)
+    echo
 
 # Show hledger-related time logged since this date or days ago or last release
 timelog *DATEARG:
