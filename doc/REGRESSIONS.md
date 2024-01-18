@@ -81,6 +81,7 @@ To claim the bounty:
 | [#2127](https://github.com/simonmichael/hledger/issues/2127) | rajeevn1                                                              |                         |
 | [#2130](https://github.com/simonmichael/hledger/issues/2130) | Simon Michael                                                         | N/A                     |
 | [#2134](https://github.com/simonmichael/hledger/issues/2134) | pepe_pecas                                                            | 2023-12-15 (re-donated) |
+| [#2156](https://github.com/simonmichael/hledger/issues/2156) | ishmaelavila                                                          |                         |
 |                                                              |                                                                       |                         |
 
 
