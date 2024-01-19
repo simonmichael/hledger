@@ -102,9 +102,9 @@ Some loose conventions:
 - In bug titles, mention the hledger version in which the bug first appeared 
   (and avoid mentioning version numbers otherwise).
   This allows searches like
-  [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+)
+  [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22)
   and
-  [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression%21)
+  [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression)
 
 
 ## Labels
