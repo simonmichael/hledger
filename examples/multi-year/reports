@@ -1,0 +1,14 @@
+#!/usr/bin/env sh
+
+# Suppressing redundant starting/ending balances transactions as suggested in
+# https://hledger.org/dev/hledger.html#example-exclude-openingclosing-transactions .
+# All of these will show the year-end balances correctly.
+# In each case, we exclude all transactions tagged with start: except the earliest.
+
+hledger bs -Y -f 2021.journal -f 2022.journal -f 2023.journal expr:'tag:start=2021 or not tag:start'
+hledger bs -Y -f 2021.journal -f 2022.journal                 expr:'tag:start=2021 or not tag:start'
+hledger bs -Y -f 2022.journal -f 2023.journal                 expr:'tag:start=2022 or not tag:start'
+hledger bs -Y -f 2021.journal                                 expr:'tag:start=2021 or not tag:start'
+hledger bs -Y -f 2022.journal                                 expr:'tag:start=2022 or not tag:start'
+hledger bs -Y -f 2023.journal                                 # unclosed file, no query needed
+

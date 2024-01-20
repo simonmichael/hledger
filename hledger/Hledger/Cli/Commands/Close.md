@@ -188,7 +188,7 @@ $ hledger -f 2022.journal bs not:desc:'closing balances'
 When combining files for multi-year reports, for some reports (eg a yearly balance sheet)
 you may need to suppress all opening/closing transactions except the first.
 This is a bit awkward if you also want to be able to choose any range of year files,
-but here is a way, using tags:
+but here is a way, using tags (full example [here](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/)):
 
 ```journal
 ; 2021.journal

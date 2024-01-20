@@ -1,0 +1,10 @@
+; 2023.journal
+
+2023-01-01 opening balances  ; start:2023
+    assets                                        22 = 22
+    equity:start
+
+2023-07-01 income
+    income
+    assets                                         1
+
