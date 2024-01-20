@@ -19,6 +19,10 @@ and by the innumerable other benefactors making it all possible.
 
 ## Commit authors 
 
+<a href="https://github.com/simonmichael/hledger/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=simonmichael/hledger&max=9999" />
+</a>
+
 <https://github.com/simonmichael/hledger/graphs/contributors>
 
 11231 commits in 16 years by 155 people as of 2022-12-21:
