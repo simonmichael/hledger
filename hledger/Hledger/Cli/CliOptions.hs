@@ -134,7 +134,6 @@ inputflags = [
   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use - (default: $LEDGER_FILE or $HOME/.hledger.journal)"
  ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
  ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
- ,flagNone ["anon"]          (setboolopt "anon") "anonymize accounts and payees"
  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
  ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "ignore any balance assertions"
  ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checking (check that all posted accounts are declared)"
@@ -250,9 +249,11 @@ flattreeflags showamounthelp = [
 -- such as --effective, --aux-date.
 hiddenflags :: [Flag RawOpts]
 hiddenflags = [
-   flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
-  ,flagNone ["infer-value"] (setboolopt "infer-market-prices") "legacy flag that was renamed"
-  ,flagNone ["pretty-tables"] (setopt "pretty" "always") "legacy flag that was renamed"
+   flagNone ["effective","aux-date"]  (setboolopt "date2") "Ledger-compatible aliases for --date2"
+  ,flagNone ["infer-value"]  (setboolopt "infer-market-prices") "legacy flag that was renamed"
+  ,flagNone ["pretty-tables"]  (setopt "pretty" "always") "legacy flag that was renamed"
+  ,flagNone ["anon"]  (setboolopt "anon") "deprecated, renamed to --obfuscate"  -- #2133, handled by anonymiseByOpts
+  ,flagNone ["obfuscate"]  (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
   ]
 
 -- | Common output-related flags: --output-file, --output-format...

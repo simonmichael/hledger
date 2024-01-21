@@ -87,17 +87,30 @@ journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
       pivotByOpts opts
   <&> anonymiseByOpts opts
+  <&> maybeObfuscate opts
 
--- | Apply the pivot transformation on a journal, if option is present.
+-- | Apply the pivot transformation on a journal (replacing account names by a different field's value), if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
 pivotByOpts opts =
   case maybestringopt "pivot" . rawopts_ $ opts of
     Just tag -> journalPivot $ T.pack tag
     Nothing  -> id
 
--- | Apply the anonymisation transformation on a journal, if option is present
+-- #2133
+-- | Raise an error, announcing the rename to --obfuscate and its limitations.
 anonymiseByOpts :: CliOpts -> Journal -> Journal
 anonymiseByOpts opts =
+  if boolopt "anon" $ rawopts_ opts
+    then error' $ unlines [
+       "--anon does not give privacy, and perhaps should be avoided;"
+      ,"please see https://github.com/simonmichael/hledger/issues/2133 ."
+      ,"For now it has been renamed to --obfuscate (a hidden flag)."
+      ]
+    else id
+
+-- | Apply light obfuscation to a journal, if --obfuscate is present (formerly --anon).
+maybeObfuscate :: CliOpts -> Journal -> Journal
+maybeObfuscate opts =
   if anon_ . inputopts_ $ opts
       then anon
       else id
