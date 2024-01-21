@@ -173,12 +173,14 @@ For more flexibility, it helps to tag closing and opening transactions with eg `
 then you can ensure correct balances by excluding all opening/closing transactions except the first, like so:
 
 ```cli
-$ hledger bs -Y -f 2021.journal -f 2022.journal -f 2023.journal expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2021.journal -f 2022.journal                 expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2022.journal -f 2023.journal                 expr:'tag:start=2022 or not tag:start'
-$ hledger bs -Y -f 2021.journal                                 expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2022.journal                                 expr:'tag:start=2022 or not tag:start'
-$ hledger bs -Y -f 2023.journal                                 # unclosed file, no query needed
+$ hledger bs -Y -f 2021.j -f 2022.j -f 2023.j expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2021.j -f 2022.j           expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2022.j -f 2023.j           expr:'tag:start=2022 or not tag:start'
+$ hledger bs -Y -f 2021.j                     expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2022.j                     expr:'tag:start=2022 or not tag:start'
+$ hledger bs -Y -f 2023.j                     # unclosed file, no query needed
 ```
 
-For more detailed `close` examples, see [examples/multi-year](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/).
+#### More detailed close examples
+
+See [examples/multi-year](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/).
