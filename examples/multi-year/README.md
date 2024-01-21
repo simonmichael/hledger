@@ -1,4 +1,4 @@
-## Working with multiple year files
+# Working with multiple year files
 
 Here are some yearly journal files demonstrating issues and techniques
 discussed in the [close docs](https://hledger.org/dev/hledger.html).
@@ -48,6 +48,8 @@ Finally, add a tag like this (manually for now) to the closing and opening trans
 ```journal
 2022-01-01 opening balances  ; start:2022
 ```
+
+## Reports
 
 Now we can confirm that the accounting equation was preserved in 2021,
 by checking that the grand total of Assets, Liabilities, and Equity is zero.
