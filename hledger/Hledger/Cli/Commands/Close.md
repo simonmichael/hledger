@@ -13,7 +13,7 @@ _FLAGS
 
 `close` currently has six modes, selected by a single mode flag:
 
-### `close --migrate`
+### close --migrate
 
 This is the most common mode.
 It prints a "closing balances" transaction that zeroes out all asset and liability balances (by default),
@@ -34,24 +34,24 @@ Eg if you want to include equity, you can add `assets liabilities equity` or [`t
 (The balancing account is always excluded.)
 Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
 
-### `close --close`
+### close --close
 
 This prints just the closing balances transaction of `--migrate`.
 It is the default behaviour if you specify no mode flag.
 Using the customisation options below, you can move balances from any set of accounts to a different account.
 
-### `close --open`
+### close --open
 
 This prints just the opening balances transaction of `--migrate`.
 It is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command).
 
-### `close --assert`
+### close --assert
 
 This prints a "closing balances" transaction that just declares [balance assertions](#balance-assertions)
 for the current balances without changing them.
 It could be useful as documention and to guard against changes.
 
-### `close --assign`
+### close --assign
 
 This prints an "opening balances" transaction that
 restores the account balances using [balance assignments](#balance-assignments).
@@ -61,7 +61,7 @@ However, omitting the closing balances transaction would unbalance equity.
 This is relatively harmless for personal reports, but it disturbs the accounting equation, removing a source of error detection.
 So `--migrate` is generally the best way to set to set balances in new files, [for now](https://github.com/simonmichael/hledger/issues/2151).
 
-### `close --retain`
+### close --retain
 
 This is like `--close` with different defaults:
 it prints a "retain earnings" transaction that transfers revenue and expense balances to `equity:retained earnings`.
@@ -74,7 +74,7 @@ to consolidate revenues and expenses into the main equity balance.
 In personal accounting you generally don't need to do this,
 unless you want the `balancesheetequity` report to show a zero total, demonstrating that the accounting equation (A-L=E) is satisfied.
 
-### `close` customisation
+### close customisation
 
 In all modes, the following things can be overridden:
 
