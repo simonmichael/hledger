@@ -9,8 +9,6 @@ You can append or copy these to your journal file(s) when you are happy with how
 
 _FLAGS
 
-<!-- related:  -->
-
 `close` currently has six modes, selected by a single mode flag:
 
 ### close --migrate
@@ -21,7 +19,7 @@ and an opposite "opening balances" transaction that restores them again.
 The balancing account will be `equity:opening/closing balances` (or another specified by `--close-acct` or `--open-acct`).
 
 This is useful when migrating balances to a new journal file at the start of a new year.
-Essentially, you run `hledger close --migrate -e NEWYEAR`
+Essentially, you run `hledger close --migrate=NEWYEAR -e NEWYEAR`
 and then copy the closing transaction to the end of the old file
 and the opening transaction to the start of the new file.
 The opening transaction sets correct starting balances in the new file when it is used alone,
@@ -33,6 +31,11 @@ You can close a different set of accounts by providing a query.
 Eg if you want to include equity, you can add `assets liabilities equity` or [`type:ALE`](hledger.md#account-types) arguments.
 (The balancing account is always excluded.)
 Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
+
+The generated transactions will have a `start:` tag, with its value set to 
+`--migrate`'s `NEW` argument if any, for easier matching or exclusion. 
+It's a good idea to provide a `NEW` argument, unique to the new file; the new year number is most often used.
+The other modes behave similarly.
 
 ### close --close
 
@@ -47,8 +50,8 @@ It is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.ht
 
 ### close --assert
 
-This prints a "closing balances" transaction that just declares [balance assertions](#balance-assertions)
-for the current balances without changing them.
+This prints a "closing balances" transaction (with `balances:` tag), 
+that just declares [balance assertions](#balance-assertions) for the current balances without changing them.
 It could be useful as documention and to guard against changes.
 
 ### close --assign
@@ -64,7 +67,8 @@ So `--migrate` is generally the best way to set to set balances in new files, [f
 ### close --retain
 
 This is like `--close` with different defaults:
-it prints a "retain earnings" transaction that transfers revenue and expense balances to `equity:retained earnings`.
+it prints a "retain earnings" transaction (with `retain:` tag), 
+that transfers revenue and expense balances to `equity:retained earnings`.
 
 This is a different kind of closing, called "retaining earnings" or "closing the books";
 it is traditionally performed by businesses at the end of each accounting period,
@@ -81,6 +85,7 @@ In all modes, the following things can be overridden:
 - the accounts to be closed/opened, with account query arguments
 - the balancing account, with `--close-acct=ACCT` and/or `--open-acct=ACCT`
 - the transaction descriptions, with `--close-desc=DESC` and `--open-desc=DESC`
+- the transaction's tag value, with a `--MODE=NEW` option argument
 - the closing/opening dates, with `-e OPENDATE`
 
 By default, the closing date is yesterday, or the journal's end date, whichever is later;

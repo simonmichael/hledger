@@ -21,20 +21,25 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Safe (lastDef, readMay)
 
-defretaindesc = "retain earnings"
 defclosedesc  = "closing balances"
 defopendesc   = "opening balances"
-defretainacct = "equity:retained earnings"
+defretaindesc = "retain earnings"
+
 defcloseacct  = "equity:opening/closing balances"
+defretainacct = "equity:retained earnings"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagNone ["close"]        (setboolopt "close")   "show a closing transaction (default)"
-  ,flagNone ["open"]         (setboolopt "open")    "show an opening transaction"
-  ,flagNone ["migrate"]      (setboolopt "migrate") "show both closing and opening transactions"
-  ,flagNone ["assert"]       (setboolopt "assert")  "show closing balance assertions"
-  ,flagNone ["assign"]       (setboolopt "assign")  "show opening balance assignments (an alternative to closing/opening transactions)"
-  ,flagNone ["retain"]       (setboolopt "retain")  "show a retain earnings transaction (for RX accounts)"
+  [flagOpt "" ["migrate"]    (\s opts -> Right $ setopt "migrate" s opts) "NEW" ("show closing and opening transactions,"
+    <> " for Asset and Liability accounts by default,"
+    <> " tagged for easy matching,"
+    <> " with NEW (eg a new year) as tag value."
+    )
+  ,flagOpt "" ["close"]      (\s opts -> Right $ setopt "close" s opts)  "NEW" "(default) show a closing transaction"
+  ,flagOpt "" ["open"]       (\s opts -> Right $ setopt "open" s opts)   "NEW" "show an opening transaction"
+  ,flagOpt "" ["assign"]     (\s opts -> Right $ setopt "assign" s opts) "NEW" "show opening balance assignments"
+  ,flagOpt "" ["assert"]     (\s opts -> Right $ setopt "assert" s opts) "NEW" "show closing balance assertions"
+  ,flagOpt "" ["retain"]     (\s opts -> Right $ setopt "retain" s opts) "NEW" "show a retain earnings transaction, for Revenue and Expense accounts by default"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "show amounts with different costs separately"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
@@ -52,10 +57,11 @@ closemode = hledgerCommandMode
     ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "old spelling of --open-acct"
     ]
   )
-  ([], Just $ argsFlag "[--close | --open | --migrate | --retain] [ACCTQUERY]")
+  ([], Just $ argsFlag "[--migrate|--close|--open|--assign|--assert|--retain] [ACCTQUERY]")
 
--- | The close command's mode. Really a subcommand.
-data CloseMode = Migrate | Close | Open | Assert | Assign | Retain deriving (Eq,Show,Read,Enum)
+-- | The close command's mode (subcommand).
+-- The code depends on these spellings.
+data CloseMode = Migrate | Close | Open | Assign | Assert | Retain deriving (Eq,Show,Read)
 
 -- | Pick the rightmost flag spelled like a CloseMode (--migrate, --close, --open, etc), or default to Close.
 closeModeFromRawOpts :: RawOpts -> CloseMode
@@ -70,6 +76,16 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     defcloseacct_ = if mode_ == Retain then defretainacct else defcloseacct
     closeacct = T.pack $ fromMaybe defcloseacct_ $ maybestringopt "close-acct" rawopts
     openacct  = maybe closeacct T.pack $ maybestringopt "open-acct" rawopts
+
+    -- For easy matching and exclusion, a recognisable tag is added to all generated transactions,
+    -- with the mode flag's argument if any (NEW, eg a new year number) as its argument.
+    comment = T.pack $ if
+      | mode_ == Assert -> "balances:" <> flagval
+      | mode_ == Retain -> "retain:"   <> flagval
+      | otherwise       -> "start:"    <> flagval
+      where
+        flagval = fromMaybe "" $ maybestringopt modeflag rawopts
+          where modeflag = lowercase $ show mode_
 
     ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}
@@ -112,7 +128,9 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- the closing (balance-asserting or balance-zeroing) transaction
     mclosetxn
       | mode_ `notElem` [Migrate, Close, Assert, Retain] = Nothing
-      | otherwise = Just nulltransaction{tdate=closedate, tdescription=closedesc, tpostings=closeps}
+      | otherwise = Just nulltransaction{
+          tdate=closedate, tdescription=closedesc, tcomment=comment, tpostings=closeps
+          }
       where
         closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
           where defclosedesc_ = if mode_ == Retain then defretaindesc else defclosedesc
@@ -169,7 +187,9 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- the opening (balance-assigning or balance-unzeroing) transaction
     mopentxn
       | mode_ `notElem` [Migrate, Open, Assign] = Nothing
-      | otherwise = Just nulltransaction{tdate=opendate, tdescription=opendesc, tpostings=openps}
+      | otherwise = Just nulltransaction{
+          tdate=opendate, tdescription=opendesc, tcomment=comment, tpostings=openps
+          }
       where
         opendesc  = T.pack $ fromMaybe defopendesc  $ maybestringopt "open-desc"  rawopts
         openps
