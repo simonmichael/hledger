@@ -527,6 +527,8 @@ journalBalanceTransactions bopts' j' =
         ts' <- lift $ getElems balancedtxns
         return j{jtxns=ts'}
 
+-- Before #2039: "Costs are removed, which helps eg balance-assertions.test: 15. Mix different commodities and assignments."
+
 -- | This function is called statefully on each of a date-ordered sequence of
 -- 1. fully explicit postings from already-balanced transactions and
 -- 2. not-yet-balanced transactions containing balance assignments.
@@ -534,7 +536,6 @@ journalBalanceTransactions bopts' j' =
 -- and checks balance assertions on each posting as it goes.
 -- An error will be thrown if a transaction can't be balanced
 -- or if an illegal balance assignment is found (cf checkIllegalBalanceAssignment).
--- Transaction prices are removed, which helps eg balance-assertions.test: 15. Mix different commodities and assignments.
 -- This stores the balanced transactions in case 2 but not in case 1.
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
@@ -630,7 +631,7 @@ checkBalanceAssertionB _ _ = return ()
 -- If the assertion is inclusive, the expected amount is compared with the account's
 -- subaccount-inclusive balance; otherwise, with the subaccount-exclusive balance.
 checkBalanceAssertionOneCommodityB :: Posting -> Amount -> MixedAmount -> Balancing s ()
-checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt actualbal = do
+checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcommbal actualbal = do
   let isinclusive = maybe False bainclusive $ pbalanceassertion p
   let istotal     = maybe False batotal     $ pbalanceassertion p
   actualbal' <-
@@ -645,49 +646,84 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedamt 
           bsBalances
     else return actualbal
   let
-    assertedcomm    = acommodity assertedamt
-    actualbalincomm = headDef nullamt . amountsRaw . filterMixedAmountByCommodity assertedcomm $ actualbal'
+    assertedcomm    = acommodity assertedcommbal
+    assertedcommbalcostless = amountStripPrices assertedcommbal
+    actualcommbalcostless   = amountStripPrices . headDef nullamt . amountsRaw . filterMixedAmountByCommodity assertedcomm $ actualbal'
+
+    -- test the assertion. Costs are ignored currently.
     pass =
-      aquantity
+      aquantity (
         -- traceWith (("asserted:"++).showAmountDebug)
-        assertedamt ==
-      aquantity
+        assertedcommbalcostless)
+      ==
+      aquantity (
         -- traceWith (("actual:"++).showAmountDebug)
-        actualbalincomm
+        actualcommbalcostless)
+
     errmsg = chomp $ printf (unlines
       [ "%s:",
         "%s\n",
-        "This balance assertion failed.",
-        -- "date:       %s",
-        "In account:    %s",
-        "and commodity: %s",
-        -- "display precision:  %d",
-        "this balance was asserted:     %s", -- (at display precision: %s)",
-        "but the calculated balance is: %s", -- (at display precision: %s)",
-        "",
-        "To troubleshoot, you can view this account's running balance. Eg:",
-        "",
-        "hledger reg '%s'%s -I  # -f FILE"
+        "Balance assertion failed in %s",
+        "%s at this point, %s, ignoring costs,",
+        "the expected balance is:        %s", -- (at display precision: %s)",
+        "but the calculated balance is:  %s", -- (at display precision: %s)",
+        "(difference: %s)",
+        "To troubleshoot, check this account's running balance with assertions disabled, eg:",
+        "hledger reg -I '%s'%s"
       ])
-      (sourcePosPretty pos)
-      (textChomp ex)
-      -- (showDate $ postingDate p)
-      (if isinclusive then printf "%-30s  (including subaccounts)" acct else acct)
-      (if istotal     then printf "%-30s  (no other commodities allowed)" (T.unpack assertedcomm) else (T.unpack assertedcomm))
-      -- (asprecision $ astyle actualbalincommodity)  -- should be the standard display precision I think
-      (show $ aquantity assertedamt)
-      -- (showAmount assertedamt)
-      (show $ aquantity actualbalincomm)
-      -- (showAmount actualbalincommodity)
-      -- (show $ aquantity assertedamt - aquantity actualbalincomm)
-      (acct ++ if isinclusive then "" else "$")
-      (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))
+
+      (sourcePosPretty pos)  -- position
+      (textChomp ex)  -- journal excerpt
+      acct  -- asserted account
+      (if istotal then "Across all commodities" else "In commodity " <> assertedcommstr)  -- asserted commodity (partial assertion) or all commodities (total assertion)
+      (if isinclusive then "including subaccounts" else "excluding subaccounts" :: String)  -- inclusive or exclusive balance asserted ?
+      assertedcommbalstrpadded
+      actualcommbalstrpadded
+      diffstr  -- diff
+      (acct ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
+      (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))  -- query matching the commodity(ies)
+
       where
         acct = T.unpack $ paccount p
         ass = fromJust $ pbalanceassertion p  -- PARTIAL: fromJust won't fail, there is a balance assertion
         pos = baposition ass
         (_,_,_,ex) = makeBalanceAssertionErrorExcerpt p
+        assertedcommstr = if T.null assertedcomm then "\"\"" else assertedcomm
+        showamt = showAmountWithZeroCommodity
+        assertedcommbalstr = showamt assertedcommbalcostless
+        actualcommbalstr   = showamt actualcommbalcostless
+        amtswidth = max (length assertedcommbalstr) (length actualcommbalstr)
+        assertedcommbalstrpadded = fitText (Just amtswidth) Nothing False False $ T.pack assertedcommbalstr
+        actualcommbalstrpadded   = fitText (Just amtswidth) Nothing False False $ T.pack actualcommbalstr
+        -- diffstr = show $ aquantity assertedcommbal - aquantity actualcommbalcostless
+        diffstr = showamt $ assertedcommbal - actualcommbalcostless
+
+      -- (showDate $ postingDate p)
+      -- (asprecision $ astyle actualcommbalodity)  -- should be the standard display precision I think
+
   unless pass $ throwError errmsg
+{- XXX
+When the posting amount has a cost, the highlight region expands to the full line:
+
+*** Exception: Error: /Users/simon/src/hledger/2024-01-21.j:12:69:
+   | 2023-12-31 closing balances
+12 |     assets:cash:petty:saved:rent       -4.00 EUR @ 2 UAH == 0.00 EUR
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |     equity:opening/closing balances                8 UAH
+
+Maybe it's better than the normal region ?
+
+*** Exception: Error: /Users/simon/src/hledger/2024-01-21.j:12:61:
+   | 2023-12-31 closing balances
+12 |     assets:cash:petty:saved:rent          -4.00 EUR == 0.00 EUR @ 3 UAH
+   |                                                     ^^^^^^^^^^^^^^^^^^^
+   |     equity:opening/closing balances        4.00 EUR
+
+If changed also check flycheck-hledger, which currently highlights the equals:
+
+    assets:cash:petty:saved:rent                  -4.00 EUR @ 2 UAH == 0.00 EUR @ 3 UAH 
+                                                                    --
+-}
 
 -- | Throw an error if this posting is trying to do an illegal balance assignment.
 checkIllegalBalanceAssignmentB :: Posting -> Balancing s ()
