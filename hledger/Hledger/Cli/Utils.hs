@@ -57,6 +57,7 @@ import Hledger.Read
 import Hledger.Reports
 import Hledger.Utils
 import Control.Monad (when)
+import Data.Functor ((<&>))
 
 -- | Standard error message for a bad output format specified with -O/-o.
 unsupportedOutputFormatError :: String -> String
@@ -74,22 +75,18 @@ withJournalDo opts cmd = do
   j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) journalpaths
   either error' cmd j  -- PARTIAL:
 
--- | Apply some extra post-parse transformations to the journal, if
--- specified by options. These happen after journal validation, but
--- before report calculation. They include:
+-- | Apply some extra post-parse transformations to the journal, if enabled by options.
+-- These happen after parsing and finalising the journal, but before report calculation.
+-- They are, in processing order:
 --
--- - adding forecast transactions (--forecast)
 -- - pivoting account names (--pivot)
+--
 -- - anonymising (--anonymise).
 --
--- This will return an error message if the query in any auto posting rule fails
--- to parse, or the generated transactions are not balanced.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
-    anonymiseByOpts opts
-  -- - converting amounts to market value (--value)
-  -- . journalApplyValue ropts
-  . pivotByOpts opts
+      pivotByOpts opts
+  <&> anonymiseByOpts opts
 
 -- | Apply the pivot transformation on a journal, if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
