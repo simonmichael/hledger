@@ -18,7 +18,7 @@ _FLAGS
 This is the most common mode.
 It prints a "closing balances" transaction that zeroes out all asset and liability balances (by default),
 and an opposite "opening balances" transaction that restores them again.
-The balancing account will be `equity:opening/closing balances` (or another specified by `--close-acct` and/or `--open-acct`).
+The balancing account will be `equity:opening/closing balances` (or another specified by `--close-acct` or `--open-acct`).
 
 This is useful when migrating balances to a new journal file at the start of a new year.
 Essentially, you run `hledger close --migrate -e NEWYEAR`
@@ -30,8 +30,8 @@ by cancelling out the following opening transaction and preventing buildup of du
 Think of the closing/opening pair as "moving the balances into the next file".
 
 You can close a different set of accounts by providing a query.
-Most people don't need to migrate equity (?)
-but you can include it by adding a `type:ALE` argument (except `equity:opening/closing balances`, which is always excluded).
+Eg if you want to include equity, you can add `assets liabilities equity` or [`type:ALE`](hledger.md#account-types) arguments.
+(The balancing account is always excluded.)
 Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
 
 ### `close --close`
@@ -103,17 +103,17 @@ This may generate very large journal entries, if you have many currency conversi
 
 ### close and balance assertions
 
-Balance assertions will be generated, verifying that the accounts have been reset to zero
-(and then restored to their previous balances, if there is an opening transaction).
-
+`close` adds balance assertions verifying
+that the accounts have been reset to zero in a closing transaction
+or restored to their previous balances in an opening transaction.
 These provide useful error checking, but you can ignore them temporarily with `-I`,
 or remove them if you prefer.
 
-You probably should avoid filtering transactions by status or realness
-(`-C`, `-R`, `status:`), or generating postings (`--auto`),
-with this command, since the balance assertions would depend on these.
+When running `close` you should probably avoid using `-C`, `-R`, `status:` (filtering by status or realness)
+or `--auto` (generating postings), since the generated balance assertions would then require these.
 
-Note custom posting dates spanning the file boundary will disrupt the balance assertions:
+Transactions with multiple dates (eg posting dates) spanning the file boundary
+also can disrupt the balance assertions:
 
 ```journal
 2023-12-30 a purchase made in december, cleared in january
@@ -121,8 +121,8 @@ Note custom posting dates spanning the file boundary will disrupt the balance as
     assets:bank:checking  -5  ; date: 2023-01-02
 ```
 
-To solve that you can transfer the money to and from a temporary account,
-in effect splitting the multi-day transaction into two single-day transactions:
+To solve this you can transfer the money to and from a temporary account,
+splitting the multi-day transaction into two single-day transactions:
 
 ```journal
 ; in 2022.journal:
@@ -140,8 +140,6 @@ in effect splitting the multi-day transaction into two single-day transactions:
 
 #### Retain earnings
 
-<!-- XXX update -->
-
 Record 2022's revenues/expenses as retained earnings on 2022-12-31,
 appending the generated transaction to the journal:
  
@@ -149,9 +147,8 @@ appending the generated transaction to the journal:
 $ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 ```
 
-2022's income statement will now show only zeroes,
-because revenues and expenses have been moved entirely to equity.
-To see their end balances, you could exclude the retain transaction:
+After this, to see 2022's revenues and expenses you must exclude the retain earnings transaction:
+
 ```cli
 $ hledger -f 2022.journal is not:desc:'retain earnings'
 ```
@@ -166,53 +163,14 @@ $ hledger close --migrate -f 2022.journal -p 2022
 # copy/paste the opening transaction to the start of 2023.journal
 ```
 
-<!--
-Or, you can automate more by generating one transaction at a time:
+After this, to see 2022's end-of-year balances you must exclude the closing balances transaction:
 
-```cli
-$ hledger close --close -f 2022.journal -p 2022 >> 2023.journal  # do this one first
-$ hledger close --open  -f 2022.journal -p 2022 >> 2022.journal
-```
--->
-
-2022's balance sheet will now show only zeroes, indicating a balanced accounting equation.
-([Unless](/investments.html#a-more-correct-entry) you are using @/@@ notation - in that case, try adding --infer-equity.)
-(Do we need to close equity also ? retest)
-To see the end-of-year balances, you could exclude the closing transaction:
 ```cli
 $ hledger -f 2022.journal bs not:desc:'closing balances'
 ```
 
-#### Exclude opening/closing transactions
-
-When combining files for multi-year reports, for some reports (eg a yearly balance sheet)
-you may need to suppress all opening/closing transactions except the first.
-This is a bit awkward if you also want to be able to choose any range of year files,
-but here is a way, using tags (full example [here](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/)):
-
-```journal
-; 2021.journal
-2021-06-01 opening balances  ; start:2021
-...
-2021-12-31 closing balances  ; start:2022
-...
-```
-
-```journal
-; 2022.journal
-2022-01-01 opening balances  ; start:2022
-...
-2022-12-31 closing balances  ; start:2023
-...
-```
-
-```journal
-; 2023.journal
-2023-01-01 opening balances  ; start:2023
-...
-```
-
-All of these will show the year-end balances correctly:
+For more flexibility, it helps to tag closing and opening transactions with eg `start:NEWYEAR`,
+then you can ensure correct balances by excluding all opening/closing transactions except the first, like so:
 
 ```cli
 $ hledger bs -Y -f 2021.journal -f 2022.journal -f 2023.journal expr:'tag:start=2021 or not tag:start'
@@ -223,3 +181,4 @@ $ hledger bs -Y -f 2022.journal                                 expr:'tag:start=
 $ hledger bs -Y -f 2023.journal                                 # unclosed file, no query needed
 ```
 
+For more detailed `close` examples, see [examples/multi-year](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/).
