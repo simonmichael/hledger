@@ -65,8 +65,12 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               let semicolon = if dryrun then "; " else "" :: String
               printf "%sno new transactions found in %s\n\n" semicolon inputstr
 
-            newts | catchup -> do
-              printf "marked %s as caught up, skipping %d unimported transactions\n\n" inputstr (length newts)
+            newts | catchup ->
+              if dryrun
+                then printf "--catchup would skip %d transactions (dry run)\n\n" (length newts)
+                else do
+                  printf "marked %s as caught up, skipping %d transactions\n\n" inputstr (length newts)
+                  saveLatestDatesForFiles latestdatesforfiles
 
             newts -> do
               if dryrun
