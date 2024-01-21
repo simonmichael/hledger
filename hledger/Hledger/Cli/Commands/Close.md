@@ -99,7 +99,7 @@ With `--interleaved`, each individual transfer is shown with source and destinat
 With `--show-costs`, balances' costs are also shown, with different costs kept separate.
 This may generate very large journal entries, if you have many currency conversions or investment transactions.
 `close --show-costs` is currently the best way to view investment lots with hledger.
-(To move or dispose of lots, see the more capable [`hledger-move`](scripts.md#hledger-move) script.)
+(To move or dispose of lots, see the more capable [`hledger-move`](/scripts.md#hledger-move) script.)
 
 ### close and balance assertions
 
