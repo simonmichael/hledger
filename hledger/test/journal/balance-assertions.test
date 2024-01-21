@@ -398,7 +398,7 @@ commodity $1000.00
     (a)             $1.00  = $1.01
 
 $ hledger -f- print
->2 /balance assertion failed/
+>2 /Balance assertion failed/
 >=1
 
 # ** 25. This fails
@@ -412,7 +412,7 @@ commodity $1000.00
     (a)             $1.00  = $1.0061
 
 $ hledger -f- print
->2 /balance assertion failed/
+>2 /Balance assertion failed/
 >=1
 
 # ** 26. Inclusive assertions include balances from subaccounts.
