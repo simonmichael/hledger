@@ -19,7 +19,9 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Safe (lastDef, readMay)
+import Safe (lastDef, readMay, readDef)
+import System.FilePath (takeFileName)
+import Data.Char (isDigit)
 
 defclosedesc  = "closing balances"
 defopendesc   = "opening balances"
@@ -31,9 +33,8 @@ defretainacct = "equity:retained earnings"
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
   [flagOpt "" ["migrate"]    (\s opts -> Right $ setopt "migrate" s opts) "NEW" ("show closing and opening transactions,"
-    <> " for Asset and Liability accounts by default,"
-    <> " tagged for easy matching,"
-    <> " with NEW (eg a new year) as tag value."
+    <> " for Asset and Liability accounts by default, tagged for easy matching."
+    <> " The tag's default value can be overridden by providing NEW."
     )
   ,flagOpt "" ["close"]      (\s opts -> Right $ setopt "close" s opts)  "NEW" "(default) show a closing transaction"
   ,flagOpt "" ["open"]       (\s opts -> Right $ setopt "open" s opts)   "NEW" "show an opening transaction"
@@ -77,15 +78,29 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     closeacct = T.pack $ fromMaybe defcloseacct_ $ maybestringopt "close-acct" rawopts
     openacct  = maybe closeacct T.pack $ maybestringopt "open-acct" rawopts
 
-    -- For easy matching and exclusion, a recognisable tag is added to all generated transactions,
-    -- with the mode flag's argument if any (NEW, eg a new year number) as its argument.
+    -- For easy matching and exclusion, a recognisable tag is added to all generated transactions
     comment = T.pack $ if
-      | mode_ == Assert -> "balances:" <> flagval
-      | mode_ == Retain -> "retain:"   <> flagval
-      | otherwise       -> "start:"    <> flagval
+      | mode_ == Assert -> "balances:" <> val
+      | mode_ == Retain -> "retain:"   <> val
+      | otherwise       -> "start:"    <> val
       where
-        flagval = fromMaybe "" $ maybestringopt modeflag rawopts
-          where modeflag = lowercase $ show mode_
+        val = if null flagval then inferredval else flagval
+          where
+            inferredval = newfilename
+              where
+                oldfilename = takeFileName $ journalFilePath j
+                (nonnum, rest) = break isDigit $ reverse oldfilename
+                (oldnum, rest2) = span isDigit rest
+                newfilename = case oldnum of
+                  [] -> ""
+                  _  -> reverse rest2 <> newnum <> reverse nonnum
+                    where
+                      newnum = show $ 1 + readDef err (reverse oldnum)  -- PARTIAL: should not fail
+                        where err = error' $ "could not read " <> show oldnum <> " as a number in Hledger.Cli.Commands.Close.close"
+
+            flagval = fromMaybe "" $ maybestringopt modeflag rawopts
+              where
+                modeflag = lowercase $ show mode_
 
     ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}

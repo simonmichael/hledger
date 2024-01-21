@@ -33,8 +33,9 @@ Eg if you want to include equity, you can add `assets liabilities equity` or [`t
 Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
 
 The generated transactions will have a `start:` tag, with its value set to 
-`--migrate`'s `NEW` argument if any, for easier matching or exclusion. 
-It's a good idea to provide a `NEW` argument, unique to the new file; the new year number is most often used.
+`--migrate`'s `NEW` argument if any, for easier matching or exclusion.
+When `NEW` is not specified, it will be inferred if possible by incrementing
+a number (eg a year number) within the default journal's main file name.
 The other modes behave similarly.
 
 ### close --close
