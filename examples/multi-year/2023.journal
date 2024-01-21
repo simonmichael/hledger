@@ -2,9 +2,13 @@
 
 2023-01-01 opening balances  ; start:2023
     assets                                        22 = 22
-    equity:start
+    equity:opening/closing balances
 
 2023-07-01 income
     income
     assets                                         1
+
+2023-08-01 currency conversion
+    income                                        -1 A
+    expenses                                       1 B
 

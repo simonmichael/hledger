@@ -2,13 +2,13 @@
 
 2021-06-01 opening balances  ; start:2021
     assets                                        20 = 20
-    equity:start
+    equity:opening/closing balances
 
 2021-07-01 income
     income
     assets                                         1
 
-2021-12-31 closing balances  ; start:2022
-    assets                                       -21 = 0
-    equity:start
+2021-08-01 currency conversion
+    income                                        -1 A
+    expenses                                       1 B
 
