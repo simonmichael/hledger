@@ -8,7 +8,6 @@ module Hledger.Cli.Commands.Close (
 )
 where
 
-import Control.Monad (when)
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Maybe (fromMaybe)
@@ -20,6 +19,7 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Safe (lastDef, readMay)
 
 defretaindesc = "retain earnings"
 defclosedesc  = "closing balances"
@@ -54,25 +54,20 @@ closemode = hledgerCommandMode
   )
   ([], Just $ argsFlag "[--close | --open | --migrate | --retain] [ACCTQUERY]")
 
+-- | The close command's mode. Really a subcommand.
+data CloseMode = Migrate | Close | Open | Assert | Assign | Retain deriving (Eq,Show,Read,Enum)
+
+-- | Pick the rightmost flag spelled like a CloseMode (--migrate, --close, --open, etc), or default to Close.
+closeModeFromRawOpts :: RawOpts -> CloseMode
+closeModeFromRawOpts rawopts = lastDef Close $ collectopts (\(name,_) -> readMay (capitalise name)) rawopts
+
 -- Debugger, beware: close is incredibly devious; simple rules combine to make a horrid maze.
 -- Tests are in hledger/test/close.test.
--- This code is also used by the close command.
 close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   let
-    -- currently only one of the six mode flags takes effect at a time (hledger close --close --open only does --open).
-    (close_, open_, assert_, assign_, defclosedesc_, defopendesc_, defcloseacct_, defacctsq_) = if
-      | boolopt "retain"  rawopts -> (True,  False, False, False, defretaindesc, undefined,   defretainacct, Type [Revenue, Expense])
-      | boolopt "migrate" rawopts -> (True,  True,  False, False, defclosedesc,  defopendesc, defcloseacct,  Type [Asset, Liability])
-      | boolopt "assign"  rawopts -> (False, False, False, True,  undefined,     defopendesc, defcloseacct,  Type [Asset, Liability])
-      | boolopt "assert"  rawopts -> (False, False, True,  False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability])
-      | boolopt "open"    rawopts -> (False, True,  False, False, undefined,     defopendesc, defcloseacct,  Type [Asset, Liability])
-      | otherwise {- close -}     -> (True,  False, False, False, defclosedesc,  undefined,   defcloseacct,  Type [Asset, Liability])
-
-    -- descriptions to use for the closing/opening transactions
-    closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
-    opendesc  = T.pack $ fromMaybe defopendesc_  $ maybestringopt "open-desc"  rawopts
-
-    -- equity/balancing accounts to use
+    mode_ = closeModeFromRawOpts rawopts
+    defacctsq_    = if mode_ == Retain then Type [Revenue, Expense] else Type [Asset, Liability]
+    defcloseacct_ = if mode_ == Retain then defretainacct else defcloseacct
     closeacct = T.pack $ fromMaybe defcloseacct_ $ maybestringopt "close-acct" rawopts
     openacct  = maybe closeacct T.pack $ maybestringopt "open-acct" rawopts
 
@@ -115,100 +110,110 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     interleaved = boolopt "interleaved" rawopts
 
     -- the closing (balance-asserting or balance-zeroing) transaction
-    closetxn = nulltransaction{tdate=closedate, tdescription=closedesc, tpostings=closeps}
-    closeps
-      -- XXX some duplication
-      | assert_ =
-        [ posting{
-               paccount          = a
-              ,pamount           = mixedAmount $ precise b{aquantity=0, aprice=Nothing}
-              -- after each commodity's last posting, assert 0 balance (#1035)
-              -- balance assertion amounts are unpriced (#824)
-              ,pbalanceassertion =
-                  if islast
-                  then Just nullassertion{baamount=precise b}
-                  else Nothing
-              }
-          | -- get the balances for each commodity and transaction price
-            (a,mb) <- acctbals
-          , let bs0 = amounts mb
-            -- mark the last balance in each commodity with True
-          , let bs2 = concat [reverse $ zip (reverse bs1) (True : repeat False)
-                            | bs1 <- groupBy ((==) `on` acommodity) bs0]
-          , (b, islast) <- bs2
-        ]
+    mclosetxn
+      | mode_ `notElem` [Migrate, Close, Assert, Retain] = Nothing
+      | otherwise = Just nulltransaction{tdate=closedate, tdescription=closedesc, tpostings=closeps}
+      where
+        closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
+          where defclosedesc_ = if mode_ == Retain then defretaindesc else defclosedesc
+        closeps
+          -- XXX some duplication
+          | mode_ == Assert =
+            [ posting{
+                  paccount          = a
+                  ,pamount           = mixedAmount $ precise b{aquantity=0, aprice=Nothing}
+                  -- after each commodity's last posting, assert 0 balance (#1035)
+                  -- balance assertion amounts are unpriced (#824)
+                  ,pbalanceassertion =
+                      if islast
+                      then Just nullassertion{baamount=precise b}
+                      else Nothing
+                  }
+              | -- get the balances for each commodity and transaction price
+                (a,mb) <- acctbals
+              , let bs0 = amounts mb
+                -- mark the last balance in each commodity with True
+              , let bs2 = concat [reverse $ zip (reverse bs1) (True : repeat False)
+                                | bs1 <- groupBy ((==) `on` acommodity) bs0]
+              , (b, islast) <- bs2
+            ]
 
-      | otherwise =
-        concat [
-          posting{paccount          = a
-                ,pamount           = mixedAmount . precise $ negate b
-                -- after each commodity's last posting, assert 0 balance (#1035)
-                -- balance assertion amounts are unpriced (#824)
-                ,pbalanceassertion =
-                    if islast
-                    then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
-                    else Nothing
-                }
+          | otherwise =
+            concat [
+              posting{paccount          = a
+                    ,pamount           = mixedAmount . precise $ negate b
+                    -- after each commodity's last posting, assert 0 balance (#1035)
+                    -- balance assertion amounts are unpriced (#824)
+                    ,pbalanceassertion =
+                        if islast
+                        then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
+                        else Nothing
+                    }
 
-          -- maybe an interleaved posting transferring this balance to equity
-          : [posting{paccount=closeacct, pamount=mixedAmount $ precise b} | interleaved]
+              -- maybe an interleaved posting transferring this balance to equity
+              : [posting{paccount=closeacct, pamount=mixedAmount $ precise b} | interleaved]
 
-          | -- get the balances for each commodity and transaction price
-            (a,mb) <- acctbals
-          , let bs0 = amounts mb
-            -- mark the last balance in each commodity with True
-          , let bs2 = concat [reverse $ zip (reverse bs1) (True : repeat False)
-                            | bs1 <- groupBy ((==) `on` acommodity) bs0]
-          , (b, islast) <- bs2
-        ]
+              | -- get the balances for each commodity and transaction price
+                (a,mb) <- acctbals
+              , let bs0 = amounts mb
+                -- mark the last balance in each commodity with True
+              , let bs2 = concat [reverse $ zip (reverse bs1) (True : repeat False)
+                                | bs1 <- groupBy ((==) `on` acommodity) bs0]
+              , (b, islast) <- bs2
+            ]
 
-        -- or a final multicommodity posting transferring all balances to equity
-        -- (print will show this as multiple single-commodity postings)
-        ++ [posting{paccount=closeacct, pamount=if explicit then mixedAmountSetFullPrecision totalamt else missingmixedamt} | not interleaved]
+            -- or a final multicommodity posting transferring all balances to equity
+            -- (print will show this as multiple single-commodity postings)
+            ++ [posting{paccount=closeacct, pamount=if explicit then mixedAmountSetFullPrecision totalamt else missingmixedamt} | not interleaved]
 
     -- the opening (balance-assigning or balance-unzeroing) transaction
-    opentxn = nulltransaction{tdate=opendate, tdescription=opendesc, tpostings=openps}
-    openps
-      | assign_ =
-        [ posting{paccount         = a
-                ,pamount           = missingmixedamt
-                ,pbalanceassertion = Just nullassertion{baamount=b}
-                    -- case mcommoditysum of
-                    --   Just s  -> Just nullassertion{baamount=precise s}
-                    --   Nothing -> Nothing
-                }
+    mopentxn
+      | mode_ `notElem` [Migrate, Open, Assign] = Nothing
+      | otherwise = Just nulltransaction{tdate=opendate, tdescription=opendesc, tpostings=openps}
+      where
+        opendesc  = T.pack $ fromMaybe defopendesc  $ maybestringopt "open-desc"  rawopts
+        openps
+          | mode_ == Assign =
+            [ posting{paccount         = a
+                    ,pamount           = missingmixedamt
+                    ,pbalanceassertion = Just nullassertion{baamount=b}
+                        -- case mcommoditysum of
+                        --   Just s  -> Just nullassertion{baamount=precise s}
+                        --   Nothing -> Nothing
+                    }
 
-          | (a,mb) <- acctbals
-          , let bs0 = amounts mb
-            -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
-          , let bs2 = concat [reverse $ zip (reverse bs1) (Just commoditysum : repeat Nothing)
-                            | bs1 <- groupBy ((==) `on` acommodity) bs0
-                            , let commoditysum = (sum bs1)]
-          , (b, _mcommoditysum) <- bs2
-        ]
-        ++ [posting{paccount=openacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
+              | (a,mb) <- acctbals
+              , let bs0 = amounts mb
+                -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
+              , let bs2 = concat [reverse $ zip (reverse bs1) (Just commoditysum : repeat Nothing)
+                                | bs1 <- groupBy ((==) `on` acommodity) bs0
+                                , let commoditysum = (sum bs1)]
+              , (b, _mcommoditysum) <- bs2
+            ]
+            ++ [posting{paccount=openacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 
-      | otherwise =
-        concat [
-          posting{paccount          = a
-                ,pamount           = mixedAmount $ precise b
-                ,pbalanceassertion =
-                    case mcommoditysum of
-                      Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
-                      Nothing -> Nothing
-                }
-          : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]
+          | otherwise =
+            concat [
+              posting{paccount          = a
+                    ,pamount           = mixedAmount $ precise b
+                    ,pbalanceassertion =
+                        case mcommoditysum of
+                          Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
+                          Nothing -> Nothing
+                    }
+              : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 
-          | (a,mb) <- acctbals
-          , let bs0 = amounts mb
-            -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
-          , let bs2 = concat [reverse $ zip (reverse bs1) (Just commoditysum : repeat Nothing)
-                            | bs1 <- groupBy ((==) `on` acommodity) bs0
-                            , let commoditysum = (sum bs1)]
-          , (b, mcommoditysum) <- bs2
-        ]
-        ++ [posting{paccount=openacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
+              | (a,mb) <- acctbals
+              , let bs0 = amounts mb
+                -- mark the last balance in each commodity with the unpriced sum in that commodity (for a balance assertion)
+              , let bs2 = concat [reverse $ zip (reverse bs1) (Just commoditysum : repeat Nothing)
+                                | bs1 <- groupBy ((==) `on` acommodity) bs0
+                                , let commoditysum = (sum bs1)]
+              , (b, mcommoditysum) <- bs2
+            ]
+            ++ [posting{paccount=openacct, pamount=if explicit then mixedAmountSetFullPrecision (maNegate totalamt) else missingmixedamt} | not interleaved]
 
   -- print them
-  when (close_ || assert_) . T.putStr $ showTransaction closetxn
-  when (open_  || assign_) . T.putStr $ showTransaction opentxn
+  maybe (pure ()) (T.putStr . showTransaction) mclosetxn
+  maybe (pure ()) (T.putStr . showTransaction) mopentxn
+ 
