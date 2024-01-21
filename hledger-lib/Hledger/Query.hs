@@ -123,15 +123,15 @@ data Query =
 
 instance Default Query where def = Any
 
--- | Construct a payee tag
+-- | Construct a query for the payee: tag
 payeeTag :: Maybe Text -> Either RegexError Query
 payeeTag = fmap (Tag (toRegexCI' "payee")) . maybe (pure Nothing) (fmap Just . toRegexCI)
 
--- | Construct a note tag
+-- | Construct a query for the note: tag
 noteTag :: Maybe Text -> Either RegexError Query
 noteTag = fmap (Tag (toRegexCI' "note")) . maybe (pure Nothing) (fmap Just . toRegexCI)
 
--- | Construct a generated-transaction tag
+-- | Construct a query for the generated-transaction: tag
 generatedTransactionTag :: Query
 generatedTransactionTag = Tag (toRegexCI' "generated-transaction") Nothing
 
