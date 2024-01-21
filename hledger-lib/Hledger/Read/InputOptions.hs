@@ -29,7 +29,7 @@ data InputOpts = InputOpts {
                                                 --   by a filename prefix. Nothing means try all.
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
-    ,anon_              :: Bool                 -- ^ do light anonymisation/obfuscation of the data
+    ,anon_              :: Bool                 -- ^ do light obfuscation of the data. Now corresponds to --obfuscate, not the old --anon flag.
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
     ,pivot_             :: String               -- ^ use the given field's value as the account name

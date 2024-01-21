@@ -13,29 +13,41 @@ alias tips=expenses:tips
     (liabilities)   1
     (tips)  3
 
-# Basic tests on accounts
 # ** 1.
 $ hledger -f- print --anon
-> !/assets|liabilities|expenses|tips/
+>2 /--anon does not give privacy/
+>=1
+
+# Basic tests on accounts
+
 # ** 2.
-$ hledger -f- reg --anon
+$ hledger -f- print --obfuscate
 > !/assets|liabilities|expenses|tips/
+
 # ** 3.
-$ hledger -f- bal --anon
+$ hledger -f- reg --obfuscate
 > !/assets|liabilities|expenses|tips/
+
 # ** 4.
-$ hledger -f- accounts --anon
+$ hledger -f- bal --obfuscate
+> !/assets|liabilities|expenses|tips/
+
+# ** 5.
+$ hledger -f- accounts --obfuscate
 > !/assets|liabilities|expenses|tips/
 
 # Basic tests on descriptions and comments
-# ** 5.
-$ hledger -f- print --anon
-> !/borrow|signed/
+
 # ** 6.
-$ hledger -f- reg --anon
+$ hledger -f- print --obfuscate
+> !/borrow|signed/
+
+# ** 7.
+$ hledger -f- reg --obfuscate
 > !/borrow/
 
 # Basic tests on transaction code
-# ** 7.
-$ hledger -f- print --anon
+
+# ** 8.
+$ hledger -f- print --obfuscate
 > !/receipt/

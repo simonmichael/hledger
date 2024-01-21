@@ -87,9 +87,6 @@ m4_define({{_inputoptions_}}, {{
 `--alias=OLD=NEW`
 : rename accounts named OLD to NEW
 
-`--anon`
-: anonymize accounts and payees
-
 `--pivot FIELDNAME`
 : use some other field or tag for the account name
 
