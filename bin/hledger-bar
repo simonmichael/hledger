@@ -78,7 +78,7 @@ poschar="+"
 
 # https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit and 24-bit colors.
 # Disable if stdout is not a terminal or NO_COLOR is defined.
-if [[ ! -t 1 || -v  ]]; then
+if [[ ! -t 1 || $NO_COLOR ]]; then
     red=''
     green=''
     nocol=''
