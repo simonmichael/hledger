@@ -78,7 +78,7 @@ poschar="+"
 
 # https://en.wikipedia.org/wiki/ANSI_escape_code#8-bit and 24-bit colors.
 # Disable if stdout is not a terminal or NO_COLOR is defined.
-if [[ ! -t 1 || $NO_COLOR ]]; then
+if [[ ! -t 1 || -n ${NO_COLOR} ]]; then
     red=''
     green=''
     nocol=''
@@ -93,7 +93,7 @@ unquote() { s="${1%\"}"; echo "${s#\"}"; }
 # process command line
 shownum=0
 verbose=0
-scale=$defscale
+scale=${defscale}
 if [[ $# -eq 0 || $1 == --help || $1 == -h ]]; then usage; exit; fi
 if [[ $1 == -v ]]; then shownum=1; shift; elif [[ $1 == -vv ]]; then shownum=1; verbose=1; shift; fi
 if [[ $1 =~ ^[0-9]+$ ]]; then scale=$1; shift; fi
@@ -107,7 +107,7 @@ cmd="hledger balance -Ocsv --transpose -N -0 --layout=bare -M $*"
 
 printcmd() {
     echo "From command (might need added quotes):"  # don't know how to print all the slashes
-    echo "$cmd"
+    echo "${cmd}"
 }
 
 printamterr() {
@@ -120,17 +120,18 @@ EOS
 }
 
 # main
-
-$cmd | while IFS=, read -r period amount; do
-    if [[ ! $amount =~ [0-9] ]]; then continue; fi  # ignore lines where amount has no digits
-    if [[ $amount =~ , ]]; then printamterr "$amount"; exit 1; fi  # check there is a single amount column
-    int=$(printf '%.f' "$(unquote "$amount")")
-    if [[ $shownum -gt 0 ]]; then num=$(printf "%10d " "$int"); else num=""; fi
-    if [[ $int -lt 0 ]]; then c="$negchar"; col=$red; else c="$poschar"; col=$green; fi
+# shellcheck disable=SC2312
+${cmd} | while IFS=, read -r period amount; do
+    if [[ ! ${amount} =~ [0-9] ]]; then continue; fi  # ignore lines where amount has no digits
+    if [[ ${amount} =~ , ]]; then printamterr "${amount}"; exit 1; fi  # check there is a single amount column
+    set -o inherit_exit
+    int=$(printf '%.f' "$(unquote "${amount}")")
+    if [[ ${shownum} -gt 0 ]]; then num=$(printf "%10d " "${int}"); else num=""; fi
+    if [[ ${int} -lt 0 ]]; then c="${negchar}"; col=${red}; else c="${poschar}"; col=${green}; fi
     n=$((int / scale))
     absn=${n#-}
-    bar=$(while [[ $absn -gt 0 ]]; do printf "%s" "$c"; absn=$((absn - 1)); done)
-    printf '%s\t%b%s%s%b\n' "$(unquote "$period")" "$col" "$num" "$bar" "$nocol"
+    bar=$(while [[ ${absn} -gt 0 ]]; do printf "%s" "${c}"; absn=$((absn - 1)); done)
+    printf '%s\t%b%s%s%b\n' "$(unquote "${period}")" "${col}" "${num}" "${bar}" "${nocol}"
 done
 
-if [[ $verbose -gt 0 ]]; then printcmd; fi
+if [[ ${verbose} -gt 0 ]]; then printcmd; fi
