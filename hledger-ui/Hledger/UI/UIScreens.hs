@@ -291,7 +291,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
                             ,rsItemTransaction   = t
                             }
             where
-              showamt = showMixedAmountB oneLine{displayMaxWidth=Just 3}
+              showamt = showMixedAmountB oneLineFmt{displayMaxWidth=Just 3}
               wd = whichDate ropts'
 
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.

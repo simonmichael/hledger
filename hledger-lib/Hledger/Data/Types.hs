@@ -250,8 +250,13 @@ data AmountCost = UnitCost !Amount | TotalCost !Amount
   deriving (Eq,Ord,Generic,Show)
 
 -- | Every Amount has one of these, influencing how the amount is displayed.
--- Also, each Commodity can have one, which can be applied to its amounts for consistent display.
--- See also Amount.AmountDisplayOpts.
+-- Also each Commodity has one, inferred from the corresponding amounts, directives and options,
+-- then applied to all of its amounts for consistent display.
+-- Similar to "AmountFormat" but higher level.
+-- See also:
+-- - hledger manual > Commodity styles
+-- - hledger manual > Amounts
+-- - hledger manual > Commodity display style
 data AmountStyle = AmountStyle {
   ascommodityside   :: !Side,                     -- ^ show the symbol on the left or the right ?
   ascommodityspaced :: !Bool,                     -- ^ show a space between symbol and quantity ?
@@ -261,7 +266,7 @@ data AmountStyle = AmountStyle {
   asrounding        :: !Rounding                  -- ^ "rounding strategy" - kept here for convenience, for now:
                                                   --   when displaying an amount, it is ignored,
                                                   --   but when applying this style to another amount, it determines 
-                                                  --   how hard we should try to adjust the amount's display precision.
+                                                  --   how hard we should try to adjust that amount's display precision.
 } deriving (Eq,Ord,Read,Generic)
 
 instance Show AmountStyle where

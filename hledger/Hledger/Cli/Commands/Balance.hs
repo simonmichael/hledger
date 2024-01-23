@@ -435,7 +435,7 @@ balanceReportAsCsv opts (items, total) =
     showName = accountNameDrop (drop_ opts)
     renderAmount amt = wbToText $ showMixedAmountB bopts amt
       where
-        bopts = csvDisplay{displayCommodity=showcomm, displayCommodityOrder = commorder}
+        bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
         (showcomm, commorder)
           | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities amt)
           | otherwise                  = (True, Nothing)
@@ -470,7 +470,7 @@ balanceReportAsText' opts ((items, total)) =
         [ Cell TopRight damts
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
-      where dopts = oneLine{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
+      where dopts = oneLineFmt{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
             cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
             dispname = T.replicate ((dep - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
@@ -527,7 +527,7 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
           | topaligned          = TopRight
           | ljust               = BottomLeft
           | otherwise           = BottomRight
-    dopts = noCost{displayCommodity = layout_ opts /= LayoutBare
+    dopts = noCostFmt{displayCommodity = layout_ opts /= LayoutBare
                   ,displayOneLine   = oneline
                   ,displayMinWidth  = mmin
                   ,displayMaxWidth  = mmax
@@ -736,7 +736,7 @@ balanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanc
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
 
-multiBalanceRowAsWbs :: AmountDisplayOpts -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsWbs :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
@@ -778,10 +778,10 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
           m [] = [n]
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs csvDisplay opts colspans
+multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs machineFmt opts colspans
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLine{displayColour=color_ opts} opts []
+multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLineFmt{displayColour=color_ opts} opts []
 
 tests_Balance = testGroup "Balance" [
 

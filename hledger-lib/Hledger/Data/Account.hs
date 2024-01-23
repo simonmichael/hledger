@@ -52,8 +52,8 @@ instance Show Account where
                        aname
                        (if aboring then "y" else "n" :: String)
                        anumpostings
-                       (wbUnpack $ showMixedAmountB noColour aebalance)
-                       (wbUnpack $ showMixedAmountB noColour aibalance)
+                       (wbUnpack $ showMixedAmountB defaultFmt aebalance)
+                       (wbUnpack $ showMixedAmountB defaultFmt aibalance)
 
 instance Eq Account where
   (==) a b = aname a == aname b -- quick equality test for speed
@@ -303,6 +303,6 @@ showAccountsBoringFlag = unlines . map (show . aboring) . flattenAccounts
 
 showAccountDebug a = printf "%-25s %4s %4s %s"
                      (aname a)
-                     (wbUnpack . showMixedAmountB noColour $ aebalance a)
-                     (wbUnpack . showMixedAmountB noColour $ aibalance a)
+                     (wbUnpack . showMixedAmountB defaultFmt $ aebalance a)
+                     (wbUnpack . showMixedAmountB defaultFmt $ aibalance a)
                      (if aboring a then "b" else " " :: String)

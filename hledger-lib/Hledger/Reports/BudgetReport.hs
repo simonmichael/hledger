@@ -337,9 +337,9 @@ budgetReportAsTable
     rowfuncs :: [CommoditySymbol] -> (BudgetShowMixed, BudgetPercBudget)
     rowfuncs cs = case layout_ of
       LayoutWide width ->
-           ( pure . showMixedAmountB oneLine{displayMaxWidth=width, displayColour=color_}
+           ( pure . showMixedAmountB oneLineFmt{displayMaxWidth=width, displayColour=color_}
            , \a -> pure . percentage a)
-      _ -> ( showMixedAmountLinesB noCost{displayCommodity=layout_/=LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
+      _ -> ( showMixedAmountLinesB noCostFmt{displayCommodity=layout_/=LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
            , \a b -> fmap (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
@@ -466,7 +466,7 @@ budgetReportAsCsv
 
   where
     flattentuples tups = concat [[a,b] | (a,b) <- tups]
-    showNorm = maybe "" (wbToText . showMixedAmountB oneLine)
+    showNorm = maybe "" (wbToText . showMixedAmountB oneLineFmt)
 
     rowAsTexts :: (PeriodicReportRow a BudgetCell -> Text)
                -> PeriodicReportRow a BudgetCell
@@ -480,7 +480,7 @@ budgetReportAsCsv
           $ vals
       where
         cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes vals
-        dopts = oneLine{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
+        dopts = oneLineFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
         vals = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]

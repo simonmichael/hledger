@@ -128,8 +128,8 @@ accountTransactionsReportItemAsCsvRecord
   where
     idx  = T.pack $ show tindex
     date = showDate $ transactionRegisterDate wd reportq thisacctq t
-    amt  = wbToText $ showMixedAmountB csvDisplay change
-    bal  = wbToText $ showMixedAmountB csvDisplay balance
+    amt  = wbToText $ showMixedAmountB machineFmt change
+    bal  = wbToText $ showMixedAmountB machineFmt balance
 
 -- | Render a register report as a HTML snippet.
 accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
@@ -148,9 +148,9 @@ htmlRow CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} reportq thisacctq
     L.tr_ (do (L.td_ . toHtml . show . transactionRegisterDate (whichDate ropts) reportq thisacctq) t
               (L.td_ . toHtml) tdescription
               (L.td_ . toHtml) otheracctsstr
-              -- piggy back on the oneLine display style for now.
-              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLine) amt
-              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLine) bal)
+              -- piggy back on the oneLineFmt display style for now.
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineFmt) amt
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineFmt) bal)
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text

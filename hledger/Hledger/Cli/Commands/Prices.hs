@@ -89,7 +89,7 @@ showPriceDirective mp = T.unwords [
   "P",
   T.pack . show $ pddate mp,
   quoteCommoditySymbolIfNeeded $ pdcommodity mp,
-  wbToText . showAmountB noColour{displayZeroCommodity=True} $ pdamount mp
+  wbToText . showAmountB defaultFmt{displayZeroCommodity=True} $ pdamount mp
   ]
 
 -- | Convert a market price directive to a corresponding one in the

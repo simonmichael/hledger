@@ -1747,7 +1747,7 @@ getAmount rules record currency p1IsVirtual n =
         ] ++
         ["rule \"" <> f <> " " <>
           fromMaybe "" (hledgerField rules record f) <>
-          "\" assigned value \"" <> wbToText (showMixedAmountB noColour a) <> "\"" -- XXX not sure this is showing all the right info
+          "\" assigned value \"" <> wbToText (showMixedAmountB defaultFmt a) <> "\"" -- XXX not sure this is showing all the right info
           | (f,a) <- fs
         ] ++
         [""
