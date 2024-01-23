@@ -154,7 +154,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
           | mode_ == Assert =
             [ posting{
                   paccount          = a
-                  ,pamount           = mixedAmount $ precise b{aquantity=0, aprice=Nothing}
+                  ,pamount           = mixedAmount $ precise b{aquantity=0, acost=Nothing}
                   -- after each commodity's last posting, assert 0 balance (#1035)
                   -- balance assertion amounts are unpriced (#824)
                   ,pbalanceassertion =
@@ -179,7 +179,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                     -- balance assertion amounts are unpriced (#824)
                     ,pbalanceassertion =
                         if islast
-                        then Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
+                        then Just nullassertion{baamount=precise b{aquantity=0, acost=Nothing}}
                         else Nothing
                     }
 
@@ -233,7 +233,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                     ,pamount           = mixedAmount $ precise b
                     ,pbalanceassertion =
                         case mcommoditysum of
-                          Just s  -> Just nullassertion{baamount=precise s{aprice=Nothing}}
+                          Just s  -> Just nullassertion{baamount=precise s{acost=Nothing}}
                           Nothing -> Nothing
                     }
               : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]

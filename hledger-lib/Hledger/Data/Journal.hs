@@ -970,7 +970,7 @@ journalMarkRedundantCosts j = do
 
 -- -- | Get this amount's commodity and any commodities referenced in its price.
 -- amountCommodities :: Amount -> [CommoditySymbol]
--- amountCommodities Amount{acommodity=c,aprice=p} =
+-- amountCommodities Amount{acommodity=c,acost=p} =
 --     case p of Nothing -> [c]
 --               Just (UnitCost ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalCost ma) -> c:(concatMap amountCommodities $ amounts ma)
@@ -983,7 +983,7 @@ journalMarkRedundantCosts j = do
 -- * posting amounts in transactions (in parse order)
 -- * the amount in the final default commodity (D) directive
 --
--- Transaction price amounts (posting amounts' aprice field) are not included.
+-- Transaction price amounts (posting amounts' acost field) are not included.
 --
 journalStyleInfluencingAmounts :: Journal -> [Amount]
 journalStyleInfluencingAmounts j =
@@ -1023,7 +1023,7 @@ journalStyleInfluencingAmounts j =
 -- * posting amounts in transactions (in parse order)
 --
 -- Transaction price amounts, which may be embedded in posting amounts
--- (the aprice field), are left intact but not traversed/processed.
+-- (the acost field), are left intact but not traversed/processed.
 --
 -- traverseJournalAmounts :: Applicative f => (Amount -> f Amount) -> Journal -> f Journal
 -- traverseJournalAmounts f j =

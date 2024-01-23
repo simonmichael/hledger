@@ -774,7 +774,7 @@ amountp' mult =
           <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
-  pure $ amt { aprice = mcost }
+  pure $ amt { acost = mcost }
 
 -- An amount with optional cost, but no cost basis.
 amountnobasisp :: JournalParser m Amount
@@ -785,7 +785,7 @@ amountnobasisp =
   amt <- simpleamountp False
   spaces
   mprice <- optional $ costp amt <* spaces
-  pure $ amt { aprice = mprice }
+  pure $ amt { acost = mprice }
 
 -- An amount with no cost or cost basis.
 -- A flag indicates whether we are parsing a multiplier amount;
@@ -815,7 +815,7 @@ simpleamountp mult =
     let numRegion = (offBeforeNum, offAfterNum)
     (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion suggestedStyle ambiguousRawNum mExponent
     let s = amountstyle{ascommodityside=L, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps}
-    return nullamt{acommodity=c, aquantity=sign (sign2 q), astyle=s, aprice=Nothing}
+    return nullamt{acommodity=c, aquantity=sign (sign2 q), astyle=s, acost=Nothing}
 
   -- An amount with commodity symbol on the right or no commodity symbol.
   -- A no-symbol amount will have the default commodity applied to it
@@ -837,7 +837,7 @@ simpleamountp mult =
         let msuggestedStyle = mdecmarkStyle <|> mcommodityStyle
         (q,prec,mdec,mgrps) <- lift $ interpretNumber numRegion msuggestedStyle ambiguousRawNum mExponent
         let s = amountstyle{ascommodityside=R, ascommodityspaced=commodityspaced, asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps}
-        return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
+        return nullamt{acommodity=c, aquantity=sign q, astyle=s, acost=Nothing}
       -- no symbol amount
       Nothing -> do
         -- look for a number style to use when parsing, based on
@@ -854,7 +854,7 @@ simpleamountp mult =
         let (c,s) = case (mult, defcs) of
               (False, Just (defc,defs)) -> (defc, defs{asprecision=max (asprecision defs) prec})
               _ -> ("", amountstyle{asprecision=prec, asdecimalmark=mdec, asdigitgroups=mgrps})
-        return nullamt{acommodity=c, aquantity=sign q, astyle=s, aprice=Nothing}
+        return nullamt{acommodity=c, aquantity=sign q, astyle=s, acost=Nothing}
 
   -- For reducing code duplication. Doesn't parse anything. Has the type
   -- of a parser only in order to throw parse errors (for convenience).
@@ -1586,7 +1586,7 @@ tests_Common = testGroup "Common" [
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
-        ,aprice=Just $ UnitCost $
+        ,acost=Just $ UnitCost $
           nullamt{
              acommodity="€"
             ,aquantity=0.5
@@ -1598,7 +1598,7 @@ tests_Common = testGroup "Common" [
          acommodity="$"
         ,aquantity=10
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
-        ,aprice=Just $ TotalCost $
+        ,acost=Just $ TotalCost $
           nullamt{
              acommodity="€"
             ,aquantity=5

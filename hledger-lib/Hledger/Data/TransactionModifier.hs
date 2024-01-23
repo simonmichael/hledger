@@ -140,7 +140,7 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
               -- TODO multipliers with commodity symbols are not yet a documented feature.
               -- For now: in addition to multiplying the quantity, it also replaces the
               -- matched amount's commodity, display style, and price with those of the posting rule.
-              c  -> mapMixedAmount (\a -> a{acommodity = c, astyle = astyle pramount, aprice = aprice pramount}) as
+              c  -> mapMixedAmount (\a -> a{acommodity = c, astyle = astyle pramount, acost = acost pramount}) as
 
 postingRuleMultiplier :: TMPostingRule -> Maybe Quantity
 postingRuleMultiplier tmpr = case amountsRaw . pamount $ tmprPosting tmpr of

@@ -206,7 +206,7 @@ main = do
                   -- the final balance portion to move
                   finalamt = dbgamt "final amt to move" $
                     (balincommsinglecost + stilltomovenext)
-                      {aprice=aprice balincommsinglecost}  -- + discards cost, need to restore it
+                      {acost=acost balincommsinglecost}  -- + discards cost, need to restore it
                 in (0, reverse $ (acct, mixed [finalamt]) : balscollected)
             where
               -- how much of the requested commodity is in this account
@@ -228,7 +228,7 @@ main = do
       fromps = [
         posting{paccount = a
                 ,pamount = mixedAmount $ negate b
-                -- ,pbalanceassertion = Just nullassertion{baamount=precise b{aquantity=0, aprice=Nothing}}
+                -- ,pbalanceassertion = Just nullassertion{baamount=precise b{aquantity=0, acost=Nothing}}
                 }
 
         | -- get the balances for each commodity and transaction price

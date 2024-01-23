@@ -112,7 +112,7 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- The price's display precision will be set to show all significant
 -- decimal digits; or if they seem to be infinite, defaultPrecisionLimit.
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
-amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case aprice amt of
+amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case acost amt of
     Just (UnitCost u)           -> Just $ pd{pdamount=u}
     Just (TotalCost t) | n /= 0 -> Just $ pd{pdamount=u}
       where u = amountSetFullPrecisionOr Nothing $ divideAmount n t

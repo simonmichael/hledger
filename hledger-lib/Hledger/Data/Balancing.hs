@@ -340,7 +340,7 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
     inferFromAndTo = case sumamounts of
       [a,b] | noprices, oppositesigns -> asum $ map orderIfMatches pcommodities
         where
-          noprices      = all (isNothing . aprice) sumamounts
+          noprices      = all (isNothing . acost) sumamounts
           oppositesigns = signum (aquantity a) /= signum (aquantity b)
           orderIfMatches x | x == acommodity a = Just (a,b)
                            | x == acommodity b = Just (b,a)
@@ -352,7 +352,7 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
     -- then set its cost based on the ratio between fromamount and toamount.
     infercost (fromamount, toamount) p
         | [a] <- amounts (pamount p), ptype p == pt, acommodity a == acommodity fromamount
-            = p{ pamount   = mixedAmount a{aprice=Just conversionprice}
+            = p{ pamount   = mixedAmount a{acost=Just conversionprice}
                   & dbg9With (lbl "inferred cost".showMixedAmountOneLine)
                , poriginal = Just $ originalPosting p }
         | otherwise = p

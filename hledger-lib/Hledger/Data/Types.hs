@@ -312,7 +312,7 @@ data Amount = Amount {
       acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
       aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
       astyle      :: !AmountStyle,
-      aprice      :: !(Maybe AmountCost)  -- ^ the (fixed, transaction-specific) cost in another commodity of this amount, if any
+      acost       :: !(Maybe AmountCost)  -- ^ the (fixed, transaction-specific) cost in another commodity of this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
 -- | Types with this class have one or more amounts,
@@ -351,7 +351,7 @@ maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
     go [] ((_,y):ys) = compareQuantities Nothing  (Just y) <> go [] ys
     go []         [] = EQ
     compareQuantities = comparing (maybe 0 aquantity) <> comparing (maybe 0 totalcost)
-    totalcost x = case aprice x of
+    totalcost x = case acost x of
                         Just (TotalCost p) -> aquantity p
                         _                   -> 0
 

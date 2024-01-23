@@ -617,7 +617,7 @@ balanceReportTableAsText ReportOpts{..} =
 tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
 
   let
-    amt0 = Amount {acommodity="$", aquantity=0, aprice=Nothing, 
+    amt0 = Amount {acommodity="$", aquantity=0, acost=Nothing, 
       astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing, 
       asdecimalmark = Just '.', asprecision = Precision 2, asrounding = NoRounding}}
     (rspec,journal) `gives` r = do

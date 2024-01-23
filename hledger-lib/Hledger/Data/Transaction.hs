@@ -386,7 +386,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
     -- with the matching amount which must be present in another non-conversion posting.
     costfulPostingIfMatchesBothAmounts :: Amount -> Amount -> Posting -> Maybe Posting
     costfulPostingIfMatchesBothAmounts a1 a2 costfulp = do
-        a@Amount{aprice=Just _} <- postingSingleAmount costfulp
+        a@Amount{acost=Just _} <- postingSingleAmount costfulp
         if
            | dbgamtmatch 1 a1 a (amountsMatch (-a1) a)  &&  dbgcostmatch 2 a2 a (amountsMatch a2 (amountCost a)) -> Just costfulp
            | dbgamtmatch 2 a2 a (amountsMatch (-a2) a)  &&  dbgcostmatch 1 a1 a (amountsMatch a1 (amountCost a)) -> Just costfulp
@@ -400,7 +400,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
     addCostIfMatchesOneAmount :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
     addCostIfMatchesOneAmount a1 a2 p = do
         a <- postingSingleAmount p
-        let newp cost = p{pamount = mixedAmount a{aprice = Just $ TotalCost cost}}
+        let newp cost = p{pamount = mixedAmount a{acost = Just $ TotalCost cost}}
         if
            | amountsMatch (-a1) a -> Just (newp a2, a2)
            | amountsMatch (-a2) a -> Just (newp a1, a1)
@@ -408,8 +408,8 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
 
     -- Get the single-commodity costless amount from a conversion posting, or raise an error.
     conversionPostingAmountNoCost p = case postingSingleAmount p of
-        Just a@Amount{aprice=Nothing} -> Right a
-        Just Amount{aprice=Just _} -> Left $ annotateWithPostings [p] "Conversion postings must not have a cost:"
+        Just a@Amount{acost=Nothing} -> Right a
+        Just Amount{acost=Just _} -> Left $ annotateWithPostings [p] "Conversion postings must not have a cost:"
         Nothing                    -> Left $ annotateWithPostings [p] "Conversion postings must have a single-commodity amount:"
 
     -- Do these amounts look the same when compared at the first's display precision ?
@@ -456,7 +456,7 @@ partitionAndCheckConversionPostings check acctTypes =
       | check          = Left "Conversion postings must occur in adjacent pairs"
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
     isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
-    hasCost p = isJust $ aprice =<< postingSingleAmount p
+    hasCost p = isJust $ acost =<< postingSingleAmount p
 
 -- | Get a posting's amount if it is single-commodity.
 postingSingleAmount :: Posting -> Maybe Amount

@@ -386,7 +386,7 @@ type BeancountAmount = Amount
 -- in a way that Beancount can read: forces the commodity symbol to the right,
 -- converts a few currency symbols to names, capitalises all letters.
 amountToBeancount :: Amount -> BeancountAmount
-amountToBeancount a@Amount{acommodity=c,astyle=s,aprice=mp} = a{acommodity=c', astyle=s', aprice=mp'}
+amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', astyle=s', acost=mp'}
   -- https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
   where
     c' = T.toUpper $
@@ -543,7 +543,7 @@ postingToCost ToCost         p
   | "_conversion-matched" `elem` map fst (ptags p) && nocosts = Nothing
   | otherwise = Just $ postingTransformAmount mixedAmountCost p
   where
-    nocosts = (not . any (isJust . aprice) . amountsRaw) $ pamount p
+    nocosts = (not . any (isJust . acost) . amountsRaw) $ pamount p
 
 -- | Generate inferred equity postings from a 'Posting' using transaction prices.
 -- Make sure not to generate equity postings when there are already matched
@@ -556,7 +556,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
     taggedPosting
       | null priceAmounts = p
       | otherwise         = p{ ptags = ("_price-matched","") : ptags p }
-    conversionPostings amt = case aprice amt of
+    conversionPostings amt = case acost amt of
         Nothing -> []
         Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
                        , pamount = mixedAmount . negate $ amountStripCost amt
@@ -581,7 +581,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
         -- Take the commodity of an amount and collapse consecutive spaces to a single space
         commodity = T.unwords . filter (not . T.null) . T.words . acommodity
 
-    priceAmounts = filter (isJust . aprice) . amountsRaw $ pamount p
+    priceAmounts = filter (isJust . acost) . amountsRaw $ pamount p
 
 -- | Make a market price equivalent to this posting's amount's unit
 -- price, if any.
