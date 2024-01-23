@@ -85,7 +85,7 @@ module Hledger.Data.Amount (
   csvDisplay,
   showAmountB,
   showAmount,
-  showAmountPrice,
+  showAmountCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
@@ -617,17 +617,17 @@ withDecimalPoint = flip setAmountDecimalPoint
 amountStripPrices :: Amount -> Amount
 amountStripPrices a = a{aprice=Nothing}
 
-showAmountPrice :: Amount -> WideBuilder
-showAmountPrice amt = case aprice amt of
+showAmountCostB :: Amount -> WideBuilder
+showAmountCostB amt = case aprice amt of
     Nothing              -> mempty
     Just (UnitPrice  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour{displayZeroCommodity=True} pa
     Just (TotalPrice pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour{displayZeroCommodity=True} (sign pa)
   where sign = if aquantity amt < 0 then negate else id
 
-showAmountPriceDebug :: Maybe AmountPrice -> String
-showAmountPriceDebug Nothing                = ""
-showAmountPriceDebug (Just (UnitPrice pa))  = " @ "  ++ showAmountDebug pa
-showAmountPriceDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
+showAmountCostDebug :: Maybe AmountPrice -> String
+showAmountCostDebug Nothing                = ""
+showAmountCostDebug (Just (UnitPrice pa))  = " @ "  ++ showAmountDebug pa
+showAmountCostDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 
 -- | Get the string representation of an amount, based on its
 -- commodity's display settings. String representations equivalent to
@@ -667,7 +667,7 @@ showAmountB
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
-    price = if displayCost then showAmountPrice a else mempty
+    price = if displayCost then showAmountCostB a else mempty
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
@@ -694,7 +694,7 @@ showAmountDebug :: Amount -> String
 showAmountDebug Amount{acommodity="AUTO"} = "(missing)"
 showAmountDebug Amount{..} =
       "Amount {acommodity=" ++ show acommodity ++ ", aquantity=" ++ show aquantity
-   ++ ", aprice=" ++ showAmountPriceDebug aprice ++ ", astyle=" ++ show astyle ++ "}"
+   ++ ", aprice=" ++ showAmountCostDebug aprice ++ ", astyle=" ++ show astyle ++ "}"
 
 -- | Get a Text Builder for the string representation of the number part of of an amount,
 -- using the display settings from its commodity. Also returns the width of the number.
