@@ -84,7 +84,7 @@ module Hledger.Data.Amount (
   csvDisplay,
   showAmountB,
   showAmount,
-  showAmountCostB,
+  showAmountsCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
@@ -617,8 +617,9 @@ withDecimalPoint = flip setAmountDecimalPoint
 
 -- Amount rendering
 
-showAmountCostB :: Amount -> WideBuilder
-showAmountCostB amt = case acost amt of
+-- Show an amount's cost as @ UNITCOST or @@ TOTALCOST (builder version).
+showAmountsCostB :: Amount -> WideBuilder
+showAmountsCostB amt = case acost amt of
     Nothing              -> mempty
     Just (UnitCost  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB noColour{displayZeroCommodity=True} pa
     Just (TotalCost pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB noColour{displayZeroCommodity=True} (sign pa)
@@ -667,7 +668,7 @@ showAmountB
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
-    cost = if displayCost then showAmountCostB a else mempty
+    cost = if displayCost then showAmountsCostB a else mempty
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
