@@ -82,8 +82,9 @@ module Hledger.Data.Amount (
   noCostFmt,
   oneLineFmt,
   machineFmt,
-  showAmountB,
   showAmount,
+  showAmountWith,
+  showAmountB,
   showAmountsCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -143,6 +144,7 @@ module Hledger.Data.Amount (
   mixedAmountUnstyled,
   -- ** rendering
   showMixedAmount,
+  showMixedAmountWith,
   showMixedAmountOneLine,
   showMixedAmountDebug,
   showMixedAmountWithoutCost,
@@ -214,9 +216,8 @@ quoteCommoditySymbolIfNeeded s
   | T.any isNonsimpleCommodityChar s = "\"" <> s <> "\""
   | otherwise = s
 
-
--- | Options for displaying Amounts and MixedAmounts.
--- Similar to "AmountStyle" but lower level.
+-- | Formatting options available when displaying Amounts and MixedAmounts.
+-- Similar to "AmountStyle" but lower level, and not attached to amounts or commodities.
 -- See also hledger manual > "Amount formatting, parseability", which speaks of human, hledger, and machine output.
 data AmountFormat = AmountFormat
   { displayCommodity        :: Bool       -- ^ Whether to display commodity symbols.
@@ -631,27 +632,19 @@ showAmountCostDebug Nothing                = ""
 showAmountCostDebug (Just (UnitCost pa))  = " @ "  ++ showAmountDebug pa
 showAmountCostDebug (Just (TotalCost pa)) = " @@ " ++ showAmountDebug pa
 
--- | Get the string representation of an amount, based on its
--- commodity's display settings. String representations equivalent to
--- zero are converted to just \"0\". The special "missing" amount is
--- displayed as the empty string.
---
--- > showAmount = wbUnpack . showAmountB defaultFmt
+-- | Render an amount using its display style and the default amount format.
+-- Zero-equivalent amounts  are shown as just \"0\".
+-- The special "missing" amount is shown as the empty string.
 showAmount :: Amount -> String
 showAmount = wbUnpack . showAmountB defaultFmt
 
--- | General function to generate a WideBuilder for an Amount, according the
--- supplied AmountFormat. This is the main function to use for showing
--- Amounts, constructing a builder; it can then be converted to a Text with
--- wbToText, or to a String with wbUnpack.
--- Some special cases:
---
--- * The special "missing" amount is displayed as the empty string. 
---
--- * If an amount is showing digit group separators but no decimal places,
---   we force showing a decimal mark (with nothing after it) to make
---   it easier to parse correctly.
---
+-- | Like showAmount but uses the given amount format.
+showAmountWith :: AmountFormat -> Amount -> String
+showAmountWith fmt = wbUnpack . showAmountB fmt
+
+-- | Render an amount using its display style and the given amount format, as a builder for efficiency.
+-- (This can be converted to a Text with wbToText or to a String with wbUnpack).
+-- The special "missing" amount is displayed as the empty string. 
 showAmountB :: AmountFormat -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
@@ -1031,9 +1024,13 @@ mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
 showMixedAmount :: MixedAmount -> String
 showMixedAmount = wbUnpack . showMixedAmountB defaultFmt
 
+-- | Like showMixedAmount but uses the given amount format.
+-- See showMixedAmountB for special cases.
+showMixedAmountWith :: AmountFormat -> MixedAmount -> String
+showMixedAmountWith fmt = wbUnpack . showMixedAmountB fmt
+
 -- | Get the one-line string representation of a mixed amount (also showing any costs).
---
--- > showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLineFmt
+-- See showMixedAmountB for special cases.
 showMixedAmountOneLine :: MixedAmount -> String
 showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLineFmt{displayCost=True}
 

@@ -249,10 +249,13 @@ deriving instance Generic (DecimalRaw a)
 data AmountCost = UnitCost !Amount | TotalCost !Amount
   deriving (Eq,Ord,Generic,Show)
 
--- | Every Amount has one of these, influencing how the amount is displayed.
--- Also each Commodity has one, inferred from the corresponding amounts, directives and options,
--- then applied to all of its amounts for consistent display.
--- Similar to "AmountFormat" but higher level.
+-- | Display styles for amounts - things which can be detected during parsing, such as
+-- commodity side and spacing, digit group marks, decimal mark, number of decimal digits etc.
+-- Every "Amount" has an AmountStyle.
+-- After amounts are parsed from the input, for each "Commodity" a standard style is inferred
+-- and then used when displaying amounts in that commodity.
+-- Related to "AmountFormat" but higher level.
+--
 -- See also:
 -- - hledger manual > Commodity styles
 -- - hledger manual > Amounts
