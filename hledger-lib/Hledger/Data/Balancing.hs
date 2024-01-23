@@ -105,7 +105,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
     -- convert this posting's amount to cost,
     -- without getting confused by redundant costs/equity postings
     postingBalancingAmount p
-      | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripPrices $ pamount p
+      | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
 
     -- transaction balancedness is checked at each commodity's display precision
@@ -131,11 +131,11 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
         rmsg
           | rsumok        = ""
           | not rsignsok  = "The real postings all have the same sign. Consider negating some of them."
-          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutPrice False rsumcost
+          | otherwise     = "The real postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutCost False rsumcost
         bvmsg
           | bvsumok       = ""
           | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
-          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutPrice False bvsumcost
+          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++ showMixedAmountOneLineWithoutCost False bvsumcost
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
@@ -541,7 +541,7 @@ balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
   -- Update the account's running balance and check the balance assertion if any.
   -- Note, cost is ignored when checking balance assertions, currently.
-  void . addAmountAndCheckAssertionB $ postingStripPrices p
+  void $ addAmountAndCheckAssertionB $ postingStripCosts p
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
   mapM_ checkIllegalBalanceAssignmentB ps

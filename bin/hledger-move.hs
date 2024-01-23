@@ -183,7 +183,7 @@ main = do
       availablebal =
         headDef zero $ amounts $
         filterMixedAmountByCommodity comm $
-        mixedAmountStripPrices $ sum $ map fourth4 acctbals
+        mixedAmountStripCosts $ sum $ map fourth4 acctbals
 
       -- Take just enough of these account balances, in the order given,
       -- to cover the requested AMT. Or if there is not enough, take what is there.

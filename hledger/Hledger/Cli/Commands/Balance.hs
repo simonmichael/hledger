@@ -429,7 +429,7 @@ balanceReportAsCsv opts (items, total) =
     rows name ma = case layout_ opts of
       LayoutBare ->
           map (\a -> [showName name, acommodity a, renderAmount $ mixedAmount a])
-          . amounts $ mixedAmountStripPrices ma
+          . amounts $ mixedAmountStripCosts ma
       _ -> [[showName name, renderAmount ma]]
 
     showName = accountNameDrop (drop_ opts)

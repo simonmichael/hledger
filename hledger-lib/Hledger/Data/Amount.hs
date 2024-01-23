@@ -88,7 +88,7 @@ module Hledger.Data.Amount (
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
-  showAmountWithoutPrice,
+  showAmountWithoutCost,
   amountSetPrecision,
   amountSetPrecisionMin,
   amountSetPrecisionMax,
@@ -120,7 +120,7 @@ module Hledger.Data.Amount (
   filterMixedAmountByCommodity,
   mapMixedAmount,
   unifyMixedAmount,
-  mixedAmountStripPrices,
+  mixedAmountStripCosts,
   -- ** arithmetic
   mixedAmountCost,
   maNegate,
@@ -145,8 +145,8 @@ module Hledger.Data.Amount (
   showMixedAmount,
   showMixedAmountOneLine,
   showMixedAmountDebug,
-  showMixedAmountWithoutPrice,
-  showMixedAmountOneLineWithoutPrice,
+  showMixedAmountWithoutCost,
+  showMixedAmountOneLineWithoutCost,
   showMixedAmountElided,
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
@@ -319,14 +319,15 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
 amountWithCommodity :: CommoditySymbol -> Amount -> Amount
 amountWithCommodity c a = a{acommodity=c, acost=Nothing}
 
--- | Convert a amount to its "cost" or "selling price" in another commodity,
--- using its attached cost if it has one.  Notes:
+-- | Convert a amount to its total cost in another commodity,
+-- using its attached cost amount if it has one.  Notes:
 --
 -- - cost amounts must be MixedAmounts with exactly one component Amount
 --   (or there will be a runtime error XXX)
 --
 -- - cost amounts should be positive in the Journal
 --   (though this is currently not enforced)
+--
 amountCost :: Amount -> Amount
 amountCost a@Amount{aquantity=q, acost=mp} =
     case mp of
@@ -677,9 +678,9 @@ cshowAmount = wbUnpack . showAmountB def{displayColour=True}
 
 -- | Get the string representation of an amount, without any \@ cost.
 --
--- > showAmountWithoutPrice = wbUnpack . showAmountB noCost
-showAmountWithoutPrice :: Amount -> String
-showAmountWithoutPrice = wbUnpack . showAmountB noCost
+-- > showAmountWithoutCost = wbUnpack . showAmountB noCost
+showAmountWithoutCost :: Amount -> String
+showAmountWithoutCost = wbUnpack . showAmountB noCost
 
 -- | Like showAmount, but show a zero amount's commodity if it has one.
 --
@@ -790,7 +791,7 @@ mixedAmount a = Mixed $ M.singleton (amountKey a) a
 -- | Add an Amount to a MixedAmount, normalising the result.
 -- Amounts with different costs are kept separate.
 maAddAmount :: MixedAmount -> Amount -> MixedAmount
-maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstPrice (amountKey a) a ma
+maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstCost (amountKey a) a ma
 
 -- | Add a collection of Amounts to a MixedAmount, normalising the result.
 -- Amounts with different costs are kept separate.
@@ -804,7 +805,7 @@ maNegate = transformMixedAmount negate
 -- | Sum two MixedAmount, keeping the cost of the first if any.
 -- Amounts with different costs are kept separate (since 2021).
 maPlus :: MixedAmount -> MixedAmount -> MixedAmount
-maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmountsUsingFirstPrice as bs
+maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmountsUsingFirstCost as bs
 
 -- | Subtract a MixedAmount from another.
 -- Amounts with different costs are kept separate.
@@ -836,7 +837,7 @@ averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` maSum as
 -- Ie when normalised, are all individual commodity amounts negative ?
 isNegativeMixedAmount :: MixedAmount -> Maybe Bool
 isNegativeMixedAmount m =
-  case amounts $ mixedAmountStripPrices m of
+  case amounts $ mixedAmountStripCosts m of
     []  -> Just False
     [a] -> Just $ isNegativeAmount a
     as | all isNegativeAmount as -> Just True
@@ -941,20 +942,13 @@ unifyMixedAmount = foldM combine 0 . amounts
 -- | Sum same-commodity amounts in a lossy way, applying the first
 -- cost to the result and discarding any other costs. Only used as a
 -- rendering helper.
-sumSimilarAmountsUsingFirstPrice :: Amount -> Amount -> Amount
-sumSimilarAmountsUsingFirstPrice a b = (a + b){acost=p}
+sumSimilarAmountsUsingFirstCost :: Amount -> Amount -> Amount
+sumSimilarAmountsUsingFirstCost a b = (a + b){acost=p}
   where
     p = case (acost a, acost b) of
         (Just (TotalCost ap), Just (TotalCost bp))
           -> Just . TotalCost $ ap{aquantity = aquantity ap + aquantity bp }
         _ -> acost a
-
--- -- | Sum same-commodity amounts. If there were different costs, set
--- -- the cost to a special marker indicating "various". Only used as a
--- -- rendering helper.
--- sumSimilarAmountsNotingPriceDifference :: [Amount] -> Amount
--- sumSimilarAmountsNotingPriceDifference [] = nullamt
--- sumSimilarAmountsNotingPriceDifference as = undefined
 
 -- | Filter a mixed amount's component amounts by a predicate.
 filterMixedAmount :: (Amount -> Bool) -> MixedAmount -> MixedAmount
@@ -980,8 +974,7 @@ mapMixedAmount f (Mixed ma) = mixed . map f $ toList ma
 mapMixedAmountUnsafe :: (Amount -> Amount) -> MixedAmount -> MixedAmount
 mapMixedAmountUnsafe f (Mixed ma) = Mixed $ M.map f ma  -- Use M.map instead of fmap to maintain strictness
 
--- | Convert all component amounts to cost/selling price where
--- possible (see amountCost).
+-- | Convert all component amounts to cost where possible (see amountCost).
 mixedAmountCost :: MixedAmount -> MixedAmount
 mixedAmountCost (Mixed ma) =
     foldl' (\m a -> maAddAmount m (amountCost a)) (Mixed noCosts) withCosts
@@ -992,8 +985,8 @@ mixedAmountCost (Mixed ma) =
 -- -- For now, use this when cross-commodity zero equality is important.
 -- mixedAmountEquals :: MixedAmount -> MixedAmount -> Bool
 -- mixedAmountEquals a b = amounts a' == amounts b' || (mixedAmountLooksZero a' && mixedAmountLooksZero b')
---     where a' = mixedAmountStripPrices a
---           b' = mixedAmountStripPrices b
+--     where a' = mixedAmountStripCosts a
+--           b' = mixedAmountStripCosts b
 
 -- Mixed amount styles
 
@@ -1052,19 +1045,19 @@ showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB noColour{displayZ
 -- | Get the string representation of a mixed amount, without showing any costs.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noCost{displayColour=c}
-showMixedAmountWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountWithoutPrice c = wbUnpack . showMixedAmountB noCost{displayColour=c}
+-- > showMixedAmountWithoutCost c = wbUnpack . showMixedAmountB noCost{displayColour=c}
+showMixedAmountWithoutCost :: Bool -> MixedAmount -> String
+showMixedAmountWithoutCost c = wbUnpack . showMixedAmountB noCost{displayColour=c}
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ costs.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
--- > showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
-showMixedAmountOneLineWithoutPrice :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutPrice c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
+-- > showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
+showMixedAmountOneLineWithoutCost :: Bool -> MixedAmount -> String
+showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLine{displayColour=c}
 
--- | Like showMixedAmountOneLineWithoutPrice, but show at most the given width,
+-- | Like showMixedAmountOneLineWithoutCost, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
 --
@@ -1107,7 +1100,7 @@ showMixedAmountLinesB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWidt
     map (adBuilder . pad) elided
   where
     astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
-              if displayCost opts then ma else mixedAmountStripPrices ma
+              if displayCost opts then ma else mixedAmountStripCosts ma
     sep   = WideBuilder (TB.singleton '\n') 0
     width = maximum $ map (wbWidth . adBuilder) elided
 
@@ -1133,7 +1126,7 @@ showMixedAmountOneLineB opts@AmountDisplayOpts{displayMaxWidth=mmax,displayMinWi
   where
     width  = maybe 0 adTotal $ lastMay elided
     astrs  = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
-               if displayCost opts then ma else mixedAmountStripPrices ma
+               if displayCost opts then ma else mixedAmountStripCosts ma
     sep    = WideBuilder (TB.fromString ", ") 2
     n      = length astrs
 
@@ -1225,10 +1218,10 @@ mixedAmountSetPrecisionMax :: Word8 -> MixedAmount -> MixedAmount
 mixedAmountSetPrecisionMax p = mapMixedAmountUnsafe (amountSetPrecisionMax p)
 
 -- | Remove all costs from a MixedAmount.
-mixedAmountStripPrices :: MixedAmount -> MixedAmount
-mixedAmountStripPrices (Mixed ma) =
-    foldl' (\m a -> maAddAmount m a{acost=Nothing}) (Mixed noPrices) withPrices
-  where (noPrices, withPrices) = M.partition (isNothing . acost) ma
+mixedAmountStripCosts :: MixedAmount -> MixedAmount
+mixedAmountStripCosts (Mixed ma) =
+    foldl' (\m a -> maAddAmount m a{acost=Nothing}) (Mixed noCosts) withCosts
+  where (noCosts, withCosts) = M.partition (isNothing . acost) ma
 
 
 -------------------------------------------------------------------------------
@@ -1298,10 +1291,10 @@ tests_Amount = testGroup "Amount" [
        showMixedAmount nullmixedamt @?= "0"
        showMixedAmount missingmixedamt @?= ""
 
-    ,testCase "showMixedAmountWithoutPrice" $ do
+    ,testCase "showMixedAmountWithoutCost" $ do
       let a = usd 1 `at` eur 2
-      showMixedAmountWithoutPrice False (mixedAmount (a)) @?= "$1.00"
-      showMixedAmountWithoutPrice False (mixed [a, -a]) @?= "0"
+      showMixedAmountWithoutCost False (mixedAmount (a)) @?= "$1.00"
+      showMixedAmountWithoutCost False (mixed [a, -a]) @?= "0"
 
     ,testGroup "amounts" [
        testCase "a missing amount overrides any other amounts" $
@@ -1316,9 +1309,9 @@ tests_Amount = testGroup "Amount" [
         amounts (mixed [usd 1 @@ eur 1, usd 1 @@ eur 1]) @?= [usd 2 @@ eur 2]
     ]
 
-    ,testCase "mixedAmountStripPrices" $ do
-       amounts (mixedAmountStripPrices nullmixedamt) @?= [nullamt]
-       assertBool "" $ mixedAmountLooksZero $ mixedAmountStripPrices
+    ,testCase "mixedAmountStripCosts" $ do
+       amounts (mixedAmountStripCosts nullmixedamt) @?= [nullamt]
+       assertBool "" $ mixedAmountLooksZero $ mixedAmountStripCosts
         (mixed [usd 10
                ,usd 10 @@ eur 7
                ,usd (-10)

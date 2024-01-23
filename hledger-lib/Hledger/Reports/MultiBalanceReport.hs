@@ -449,7 +449,7 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
         balance = maybeStripPrices . case accountlistmode_ ropts of
             ALTree | d == qdepth -> aibalance
             _                    -> aebalance
-          where maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripPrices
+          where maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
     -- Accounts interesting because they are a fork for interesting subaccounts
     interestingParents = dbg5 "interestingParents" $ case accountlistmode_ ropts of
@@ -490,7 +490,7 @@ sortRows ropts j
     sortFlatMBRByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
         NormallyNegative -> sortOn (\r -> (amt r, prrFullName r))
-      where amt = mixedAmountStripPrices . prrTotal
+      where amt = mixedAmountStripCosts . prrTotal
 
     -- Sort the report rows by account declaration order then account name.
     sortMBRByAccountDeclaration :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]

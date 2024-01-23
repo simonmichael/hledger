@@ -124,7 +124,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         -- speed improvement by stripping them early. In some cases, such as in hledger-ui, we still
         -- want to keep prices around, so we can toggle between cost and no cost quickly. We can use
         -- the show_costs_ flag to be efficient when we can, and detailed when we have to.
-          (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripPrices)
+          (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripCosts)
         . traceOrLogAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec

@@ -392,7 +392,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
            | dbgamtmatch 2 a2 a (amountsMatch (-a2) a)  &&  dbgcostmatch 1 a1 a (amountsMatch a1 (amountCost a)) -> Just costfulp
            | otherwise -> Nothing
            where
-            dbgamtmatch  n a b = dbg7 ("conversion posting "     <>show n<>" "<>showAmount a<>" balances amount "<>showAmountWithoutPrice b <>" of costful posting "<>showAmount b<>" at precision "<>dbgShowAmountPrecision a<>" ?")
+            dbgamtmatch  n a b = dbg7 ("conversion posting "     <>show n<>" "<>showAmount a<>" balances amount "<>showAmountWithoutCost b <>" of costful posting "<>showAmount b<>" at precision "<>dbgShowAmountPrecision a<>" ?")
             dbgcostmatch n a b = dbg7 ("and\nconversion posting "<>show n<>" "<>showAmount a<>" matches cost "   <>showAmount (amountCost b)<>" of costful posting "<>showAmount b<>" at precision "<>dbgShowAmountPrecision a<>" ?") 
 
     -- Add a cost to a posting if it matches (negative) one of the

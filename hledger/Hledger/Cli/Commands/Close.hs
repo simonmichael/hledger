@@ -130,7 +130,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- the balances to close
     rspec3 = rspec1{_rsQuery=q3}
     (acctbals',_) = balanceReport rspec3 j
-    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripPrices b)) acctbals'
+    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripCosts b)) acctbals'
     totalamt = maSum $ map snd acctbals
 
     -- since balance assertion amounts are required to be exact, the
