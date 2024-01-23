@@ -131,7 +131,7 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
             matchedamount = dbg6 "matchedamount" . filterMixedAmount (symq `matchesAmount`) $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly
-            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalPriceToUnitPrice matchedamount
+            -- Mixed as = dbg6 "multipliedamount" $ n `multiplyMixedAmount` mixedAmountTotalCostToUnitCost matchedamount
             -- Approach 2: multiply the total price (keeping it positive) as well as the quantity
             as = dbg6 "multipliedamount" $ multiplyMixedAmount n matchedamount
           in

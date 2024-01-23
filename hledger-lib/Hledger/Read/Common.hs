@@ -909,14 +909,14 @@ simplecommoditysymbolp = takeWhile1P Nothing (not . isNonsimpleCommodityChar)
 
 -- | Ledger-style cost notation:
 -- @ UNITAMT, @@ TOTALAMT, (@) UNITAMT, or (@@) TOTALAMT. The () are ignored.
-costp :: Amount -> JournalParser m AmountPrice
+costp :: Amount -> JournalParser m AmountCost
 costp baseAmt =
   -- dbg "costp" $
   label "transaction price" $ do
   -- https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
   parenthesised <- option False $ char '(' >> pure True
   char '@'
-  totalPrice <- char '@' $> True <|> pure False
+  totalCost <- char '@' $> True <|> pure False
   when parenthesised $ void $ char ')'
 
   lift skipNonNewlineSpaces
@@ -925,9 +925,9 @@ costp baseAmt =
   let amtsign' = signum $ aquantity baseAmt
       amtsign  = if amtsign' == 0 then 1 else amtsign'
 
-  pure $ if totalPrice
-            then TotalPrice priceAmount{aquantity=amtsign * aquantity priceAmount}
-            else UnitPrice  priceAmount
+  pure $ if totalCost
+            then TotalCost priceAmount{aquantity=amtsign * aquantity priceAmount}
+            else UnitCost  priceAmount
 
 -- | A valuation function or value can be written in double parentheses after an amount.
 valuationexprp :: JournalParser m ()
@@ -1586,7 +1586,7 @@ tests_Common = testGroup "Common" [
          acommodity="$"
         ,aquantity=10 -- need to test internal precision with roundTo ? I think not
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
-        ,aprice=Just $ UnitPrice $
+        ,aprice=Just $ UnitCost $
           nullamt{
              acommodity="€"
             ,aquantity=0.5
@@ -1598,7 +1598,7 @@ tests_Common = testGroup "Common" [
          acommodity="$"
         ,aquantity=10
         ,astyle=amountstyle{asprecision=Precision 0, asdecimalmark=Nothing}
-        ,aprice=Just $ TotalPrice $
+        ,aprice=Just $ TotalCost $
           nullamt{
              acommodity="€"
             ,aquantity=5

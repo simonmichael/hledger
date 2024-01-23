@@ -357,13 +357,13 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
                , poriginal = Just $ originalPosting p }
         | otherwise = p
       where
-        -- If only one Amount in the posting list matches fromamount we can use TotalPrice.
+        -- If only one Amount in the posting list matches fromamount we can use TotalCost.
         -- Otherwise divide the conversion equally among the Amounts by using a unit price.
         conversionprice = case filter (== acommodity fromamount) pcommodities of
-            [_] -> TotalPrice $ negate toamount
-            _   -> UnitPrice  $ negate unitprice `withPrecision` unitprecision
+            [_] -> TotalCost $ negate toamount
+            _   -> UnitCost  $ negate unitcost `withPrecision` unitprecision
 
-        unitprice     = aquantity fromamount `divideAmount` toamount
+        unitcost     = aquantity fromamount `divideAmount` toamount
         unitprecision = case (asprecision $ astyle fromamount, asprecision $ astyle toamount) of
             (Precision a, Precision b) -> Precision . max 2 $ saturatedAdd a b
             _                          -> NaturalPrecision

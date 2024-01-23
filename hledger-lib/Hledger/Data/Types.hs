@@ -171,7 +171,7 @@ data AccountType =
   | Revenue
   | Expense
   | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
-  | Conversion -- ^ a subtype of Equity - account in which to generate conversion postings for transaction prices
+  | Conversion -- ^ a subtype of Equity - account with which to balance commodity conversions
   deriving (Eq,Ord,Generic)
 
 instance Show AccountType where
@@ -246,7 +246,7 @@ deriving instance Generic (DecimalRaw a)
 -- | An amount's per-unit or total cost/selling price in another
 -- commodity, as recorded in the journal entry eg with @ or @@.
 -- "Cost", formerly AKA "transaction price". The amount is always positive.
-data AmountPrice = UnitPrice !Amount | TotalPrice !Amount
+data AmountCost = UnitCost !Amount | TotalCost !Amount
   deriving (Eq,Ord,Generic,Show)
 
 -- | Every Amount has one of these, influencing how the amount is displayed.
@@ -312,7 +312,7 @@ data Amount = Amount {
       acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
       aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
       astyle      :: !AmountStyle,
-      aprice      :: !(Maybe AmountPrice)  -- ^ the (fixed, transaction-specific) price for this amount, if any
+      aprice      :: !(Maybe AmountCost)  -- ^ the (fixed, transaction-specific) cost in another commodity of this amount, if any
     } deriving (Eq,Ord,Generic,Show)
 
 -- | Types with this class have one or more amounts,
@@ -350,41 +350,41 @@ maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
     go ((_,x):xs) [] = compareQuantities (Just x) Nothing  <> go xs []
     go [] ((_,y):ys) = compareQuantities Nothing  (Just y) <> go [] ys
     go []         [] = EQ
-    compareQuantities = comparing (maybe 0 aquantity) <> comparing (maybe 0 totalprice)
-    totalprice x = case aprice x of
-                        Just (TotalPrice p) -> aquantity p
+    compareQuantities = comparing (maybe 0 aquantity) <> comparing (maybe 0 totalcost)
+    totalcost x = case aprice x of
+                        Just (TotalCost p) -> aquantity p
                         _                   -> 0
 
 -- | Stores the CommoditySymbol of the Amount, along with the CommoditySymbol of
--- the price, and its unit price if being used.
+-- the cost, and its unit cost if being used.
 data MixedAmountKey
-  = MixedAmountKeyNoPrice    !CommoditySymbol
-  | MixedAmountKeyTotalPrice !CommoditySymbol !CommoditySymbol
-  | MixedAmountKeyUnitPrice  !CommoditySymbol !CommoditySymbol !Quantity
+  = MixedAmountKeyNoCost   !CommoditySymbol
+  | MixedAmountKeyTotalCost !CommoditySymbol !CommoditySymbol
+  | MixedAmountKeyUnitCost  !CommoditySymbol !CommoditySymbol !Quantity
   deriving (Eq,Generic,Show)
 
 -- | We don't auto-derive the Ord instance because it would give an undesired ordering.
 -- We want the keys to be sorted lexicographically:
 -- (1) By the primary commodity of the amount.
--- (2) By the commodity of the price, with no price being first.
--- (3) By the unit price, from most negative to most positive, with total prices
--- before unit prices.
+-- (2) By the commodity of the cost, with no cost being first.
+-- (3) By the unit cost, from most negative to most positive, with total costs
+-- before unit costs.
 -- For example, we would like the ordering to give
--- MixedAmountKeyNoPrice "X" < MixedAmountKeyTotalPrice "X" "Z" < MixedAmountKeyNoPrice "Y"
+-- MixedAmountKeyNoCost "X" < MixedAmountKeyTotalCost "X" "Z" < MixedAmountKeyNoCost "Y"
 instance Ord MixedAmountKey where
-  compare = comparing commodity <> comparing pCommodity <> comparing pPrice
+  compare = comparing commodity <> comparing pCommodity <> comparing pCost
     where
-      commodity (MixedAmountKeyNoPrice    c)     = c
-      commodity (MixedAmountKeyTotalPrice c _)   = c
-      commodity (MixedAmountKeyUnitPrice  c _ _) = c
+      commodity (MixedAmountKeyNoCost    c)     = c
+      commodity (MixedAmountKeyTotalCost c _)   = c
+      commodity (MixedAmountKeyUnitCost  c _ _) = c
 
-      pCommodity (MixedAmountKeyNoPrice    _)      = Nothing
-      pCommodity (MixedAmountKeyTotalPrice _ pc)   = Just pc
-      pCommodity (MixedAmountKeyUnitPrice  _ pc _) = Just pc
+      pCommodity (MixedAmountKeyNoCost    _)      = Nothing
+      pCommodity (MixedAmountKeyTotalCost _ pc)   = Just pc
+      pCommodity (MixedAmountKeyUnitCost  _ pc _) = Just pc
 
-      pPrice (MixedAmountKeyNoPrice    _)     = Nothing
-      pPrice (MixedAmountKeyTotalPrice _ _)   = Nothing
-      pPrice (MixedAmountKeyUnitPrice  _ _ q) = Just q
+      pCost (MixedAmountKeyNoCost    _)     = Nothing
+      pCost (MixedAmountKeyTotalCost _ _)   = Nothing
+      pCost (MixedAmountKeyUnitCost  _ _ q) = Just q
 
 data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
                    deriving (Eq,Show,Generic)
@@ -439,7 +439,7 @@ data Posting = Posting {
       ptransaction      :: Maybe Transaction,       -- ^ this posting's parent transaction (co-recursive types).
                                                     --   Tying this knot gets tedious, Maybe makes it easier/optional.
       poriginal         :: Maybe Posting            -- ^ When this posting has been transformed in some way
-                                                    --   (eg its amount or price was inferred, or the account name was
+                                                    --   (eg its amount or cost was inferred, or the account name was
                                                     --   changed by a pivot or budget report), this references the original
                                                     --   untransformed posting (which will have Nothing in this field).
     } deriving (Generic)

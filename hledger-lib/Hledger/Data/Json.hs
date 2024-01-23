@@ -102,7 +102,7 @@ instance ToJSON MixedAmount where
   toEncoding = toEncoding . amountsRaw
 
 instance ToJSON BalanceAssertion
-instance ToJSON AmountPrice
+instance ToJSON AmountCost
 instance ToJSON MarketPrice
 instance ToJSON PostingType
 
@@ -208,7 +208,7 @@ instance FromJSON MixedAmount where
   parseJSON = fmap (mixed :: [Amount] -> MixedAmount) . parseJSON
 
 instance FromJSON BalanceAssertion
-instance FromJSON AmountPrice
+instance FromJSON AmountCost
 instance FromJSON MarketPrice
 instance FromJSON PostingType
 instance FromJSON Posting

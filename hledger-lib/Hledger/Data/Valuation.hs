@@ -113,8 +113,8 @@ priceDirectiveToMarketPrice PriceDirective{..} =
 -- decimal digits; or if they seem to be infinite, defaultPrecisionLimit.
 amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
 amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case aprice amt of
-    Just (UnitPrice u)           -> Just $ pd{pdamount=u}
-    Just (TotalPrice t) | n /= 0 -> Just $ pd{pdamount=u}
+    Just (UnitCost u)           -> Just $ pd{pdamount=u}
+    Just (TotalCost t) | n /= 0 -> Just $ pd{pdamount=u}
       where u = amountSetFullPrecisionOr Nothing $ divideAmount n t
     _                            -> Nothing
   where

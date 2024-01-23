@@ -180,8 +180,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
 timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan begin end valueBeforeAmt valueAfter cashFlow pnl) = do
   let valueBefore = unMix valueBeforeAmt
-  let initialUnitPrice = 100 :: Decimal
-  let initialUnits = valueBefore / initialUnitPrice
+  let initialUnitCost = 100 :: Decimal
+  let initialUnits = valueBefore / initialUnitCost
   let changes =
         -- If cash flow and PnL changes happen on the same day, this
         -- will sort PnL changes to come before cash flows (on any
@@ -227,29 +227,29 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
   let units =
         tail $
         scanl
-          (\(_, _, unitPrice, unitBalance) (date, amt) ->
+          (\(_, _, unitCost, unitBalance) (date, amt) ->
              let valueOnDate = unMix $ mixedAmountValue end date $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just $ Exact date))])
              in
              case amt of
                Right amt' ->
                  -- we are buying or selling
-                 let unitsBoughtOrSold = unMix amt' / unitPrice
-                 in (valueOnDate, unitsBoughtOrSold, unitPrice, unitBalance + unitsBoughtOrSold)
+                 let unitsBoughtOrSold = unMix amt' / unitCost
+                 in (valueOnDate, unitsBoughtOrSold, unitCost, unitBalance + unitsBoughtOrSold)
                Left pnl' ->
                  -- PnL change
                  let valueAfterDate = valueOnDate + unMix pnl'
-                     unitPrice' = valueAfterDate/unitBalance
-                 in (valueOnDate, 0, unitPrice', unitBalance))
-          (0, 0, initialUnitPrice, initialUnits)
+                     unitCost' = valueAfterDate/unitBalance
+                 in (valueOnDate, 0, unitCost', unitBalance))
+          (0, 0, initialUnitCost, initialUnits)
           $ dbg3 "changes" changes
 
   let finalUnitBalance = if null units then initialUnits else let (_,_,_,u) = last units in u
-      finalUnitPrice = if finalUnitBalance == 0 then
-                         if null units then initialUnitPrice
-                         else let (_,_,lastUnitPrice,_) = last units in lastUnitPrice
+      finalUnitCost = if finalUnitBalance == 0 then
+                         if null units then initialUnitCost
+                         else let (_,_,lastUnitCost,_) = last units in lastUnitCost
                        else (unMix valueAfter) / finalUnitBalance
-      -- Technically, totalTWR should be (100*(finalUnitPrice - initialUnitPrice) / initialUnitPrice), but initalUnitPrice is 100, so 100/100 == 1
-      totalTWR = roundTo 2 $ (finalUnitPrice - initialUnitPrice)
+      -- Technically, totalTWR should be (100*(finalUnitCost - initialUnitCost) / initialUnitCost), but initalUnitCost is 100, so 100/100 == 1
+      totalTWR = roundTo 2 $ (finalUnitCost - initialUnitCost)
       (startYear, _, _) = toGregorian begin
       years = fromIntegral (diffDays end begin) / (if isLeapYear startYear then 366 else 365) :: Double
       annualizedTWR = 100*((1+(realToFrac totalTWR/100))**(1/years)-1) :: Double
@@ -264,7 +264,7 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
         dates = add begin dates'
         cashflows = add valueBeforeAmt cashflows'
         unitsBoughtOrSold = add initialUnits unitsBoughtOrSold'
-        unitPrices = add initialUnitPrice unitPrices'
+        unitPrices = add initialUnitCost unitPrices'
         unitBalances = add initialUnits unitBalances'
 
     TL.putStr $ Tab.render prettyTables id id T.pack
@@ -283,7 +283,7 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
        | udelta <- map showDecimal unitsBoughtOrSold ])
 
     printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
-      (showMixedAmount $ styleAmounts styles valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitPrice) (showDecimal totalTWR) years annualizedTWR
+      (showMixedAmount $ styleAmounts styles valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitCost) (showDecimal totalTWR) years annualizedTWR
 
   return ((realToFrac totalTWR) :: Double, annualizedTWR)
 

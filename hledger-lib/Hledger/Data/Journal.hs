@@ -906,7 +906,7 @@ canonicalStyle a b = a{asprecision=prec, asdecimalmark=decmark, asdigitgroups=mg
 --         fixmixedamount = mapMixedAmount fixamount
 --         fixamount = fixprice
 --         fixprice a@Amount{price=Just _} = a
---         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitPrice) $ journalPriceDirectiveFor j d c}
+--         fixprice a@Amount{commodity=c} = a{price=maybe Nothing (Just . UnitCost) $ journalPriceDirectiveFor j d c}
 
 -- -- | Get the price for a commodity on the specified day from the price database, if known.
 -- -- Does only one lookup step, ie will not look up the price of a price.
@@ -972,8 +972,8 @@ journalMarkRedundantCosts j = do
 -- amountCommodities :: Amount -> [CommoditySymbol]
 -- amountCommodities Amount{acommodity=c,aprice=p} =
 --     case p of Nothing -> [c]
---               Just (UnitPrice ma)  -> c:(concatMap amountCommodities $ amounts ma)
---               Just (TotalPrice ma) -> c:(concatMap amountCommodities $ amounts ma)
+--               Just (UnitCost ma)  -> c:(concatMap amountCommodities $ amounts ma)
+--               Just (TotalCost ma) -> c:(concatMap amountCommodities $ amounts ma)
 
 -- | Get an ordered list of amounts in this journal which can
 -- influence canonical amount display styles. Those amounts are, in

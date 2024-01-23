@@ -398,8 +398,8 @@ amountToBeancount a@Amount{acommodity=c,astyle=s,aprice=mp} = a{acommodity=c', a
     s' = s{ascommodityside=R, ascommodityspaced=True}
     mp' = costToBeancount <$> mp
       where
-        costToBeancount (TotalPrice amt) = TotalPrice $ amountToBeancount amt
-        costToBeancount (UnitPrice  amt) = UnitPrice  $ amountToBeancount amt
+        costToBeancount (TotalCost amt) = TotalCost $ amountToBeancount amt
+        costToBeancount (UnitCost  amt) = UnitCost  $ amountToBeancount amt
 
 -- | Like showAccountName for Beancount journal format.
 -- Calls accountNameToBeancount first.

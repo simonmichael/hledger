@@ -400,7 +400,7 @@ transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTra
     addCostIfMatchesOneAmount :: Amount -> Amount -> Posting -> Maybe (Posting, Amount)
     addCostIfMatchesOneAmount a1 a2 p = do
         a <- postingSingleAmount p
-        let newp cost = p{pamount = mixedAmount a{aprice = Just $ TotalPrice cost}}
+        let newp cost = p{pamount = mixedAmount a{aprice = Just $ TotalCost cost}}
         if
            | amountsMatch (-a1) a -> Just (newp a2, a2)
            | amountsMatch (-a2) a -> Just (newp a1, a1)
