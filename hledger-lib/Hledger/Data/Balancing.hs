@@ -647,8 +647,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
     else return actualbal
   let
     assertedcomm    = acommodity assertedcommbal
-    assertedcommbalcostless = amountStripPrices assertedcommbal
-    actualcommbalcostless   = amountStripPrices . headDef nullamt . amountsRaw . filterMixedAmountByCommodity assertedcomm $ actualbal'
+    assertedcommbalcostless = amountStripCost assertedcommbal
+    actualcommbalcostless   = amountStripCost . headDef nullamt . amountsRaw . filterMixedAmountByCommodity assertedcomm $ actualbal'
 
     -- test the assertion. Costs are ignored currently.
     pass =

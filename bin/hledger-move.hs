@@ -156,7 +156,7 @@ main = do
       force       = boolopt "force" rawopts
 
       -- parse the AMT arg as a cost-less Amount (any provided cost is ignored)
-      eamt = styleAmount (journalCommodityStyles j) . amountStripPrices <$> parseamount amtarg
+      eamt = styleAmount (journalCommodityStyles j) . amountStripCost <$> parseamount amtarg
       amt = case eamt of
         Left err ->
           error' $ "could not parse " ++ show amtarg ++ " as a hledger amount\n" ++ customErrorBundlePretty err ++ "\n" ++shortusage
@@ -220,7 +220,7 @@ main = do
                             ++ showMixedAmountOneLine balincomm ++ ")"
               -- subtract this from the amount remaining to move (ignoring cost)
               stilltomovenext = dbgamt "remaining amt to move" $
-                stilltomove - amountStripPrices balincommsinglecost
+                stilltomove - amountStripCost balincommsinglecost
 
       -- since balance assertion amounts are required to be exact, the
       -- amounts in opening/closing transactions should be too (#941, #1137)

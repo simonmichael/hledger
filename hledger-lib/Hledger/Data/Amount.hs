@@ -103,7 +103,7 @@ module Hledger.Data.Amount (
   withInternalPrecision,
   setAmountDecimalPoint,
   withDecimalPoint,
-  amountStripPrices,
+  amountStripCost,
 
   -- * MixedAmount
   nullmixedamt,
@@ -334,6 +334,10 @@ amountCost a@Amount{aquantity=q, aprice=mp} =
       Nothing                                  -> a
       Just (UnitPrice  p@Amount{aquantity=pq}) -> p{aquantity=pq * q}
       Just (TotalPrice p@Amount{aquantity=pq}) -> p{aquantity=pq}
+
+-- | Strip all prices from an Amount
+amountStripCost :: Amount -> Amount
+amountStripCost a = a{aprice=Nothing}
 
 -- | Apply a function to an amount's quantity (and its total price, if it has one).
 transformAmount :: (Quantity -> Quantity) -> Amount -> Amount
@@ -612,10 +616,6 @@ withDecimalPoint :: Amount -> Maybe Char -> Amount
 withDecimalPoint = flip setAmountDecimalPoint
 
 -- Amount rendering
-
--- | Strip all prices from an Amount
-amountStripPrices :: Amount -> Amount
-amountStripPrices a = a{aprice=Nothing}
 
 showAmountCostB :: Amount -> WideBuilder
 showAmountCostB amt = case aprice amt of

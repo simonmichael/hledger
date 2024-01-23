@@ -559,7 +559,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
     conversionPostings amt = case aprice amt of
         Nothing -> []
         Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
-                       , pamount = mixedAmount . negate $ amountStripPrices amt
+                       , pamount = mixedAmount . negate $ amountStripCost amt
                        }
                    , cp{ paccount = accountPrefix <> costCommodity
                        , pamount = mixedAmount cost
