@@ -470,7 +470,7 @@ balanceReportAsText' opts ((items, total)) =
         [ Cell TopRight damts
         , Cell TopLeft (fmap wbFromText cs)
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
-      where dopts = oneLineFmt{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
+      where dopts = oneLineNoCostFmt{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
             cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
             dispname = T.replicate ((dep - 1) * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
@@ -781,7 +781,7 @@ multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a Mixe
 multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs machineFmt opts colspans
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLineFmt{displayColour=color_ opts} opts []
+multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLineNoCostFmt{displayColour=color_ opts} opts []
 
 tests_Balance = testGroup "Balance" [
 

@@ -148,9 +148,9 @@ htmlRow CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}} reportq thisacctq
     L.tr_ (do (L.td_ . toHtml . show . transactionRegisterDate (whichDate ropts) reportq thisacctq) t
               (L.td_ . toHtml) tdescription
               (L.td_ . toHtml) otheracctsstr
-              -- piggy back on the oneLineFmt display style for now.
-              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineFmt) amt
-              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineFmt) bal)
+              -- piggy back on the oneLineNoCostFmt display style for now.
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineNoCostFmt) amt
+              (L.td_ . toHtml . wbUnpack . showMixedAmountB oneLineNoCostFmt) bal)
 
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text

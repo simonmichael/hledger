@@ -79,8 +79,10 @@ module Hledger.Data.Amount (
   -- ** rendering
   AmountFormat(..),
   defaultFmt,
+  fullZeroFmt,
   noCostFmt,
   oneLineFmt,
+  oneLineNoCostFmt,
   machineFmt,
   showAmount,
   showAmountWith,
@@ -217,7 +219,7 @@ quoteCommoditySymbolIfNeeded s
   | otherwise = s
 
 -- | Formatting options available when displaying Amounts and MixedAmounts.
--- Similar to "AmountStyle" but lower level, and not attached to amounts or commodities.
+-- Similar to "AmountStyle" but lower level, not attached to amounts or commodities, and can override it in some ways.
 -- See also hledger manual > "Amount formatting, parseability", which speaks of human, hledger, and machine output.
 data AmountFormat = AmountFormat
   { displayCommodity        :: Bool       -- ^ Whether to display commodity symbols.
@@ -254,17 +256,25 @@ defaultFmt = AmountFormat {
   , displayColour           = False
   }
 
+-- | Like defaultFmt but show zero amounts with commodity symbol and styling, like non-zero amounts.
+fullZeroFmt :: AmountFormat
+fullZeroFmt = defaultFmt{displayZeroCommodity=True}
+
 -- | Like defaultFmt but don't show costs.
 noCostFmt :: AmountFormat
 noCostFmt = defaultFmt{displayCost=False}
 
--- | Like noCostFmt but display amounts on one line rather than several.
+-- | Like defaultFmt but display all amounts on one line.
 oneLineFmt :: AmountFormat
-oneLineFmt = noCostFmt{displayOneLine=True}
+oneLineFmt = defaultFmt{displayOneLine=True}
 
--- | A (slightly more) machine-readable amount format; like oneLineFmt but don't show digit group marks.
+-- | Like noCostFmt but display all amounts on one line.
+oneLineNoCostFmt :: AmountFormat
+oneLineNoCostFmt = noCostFmt{displayOneLine=True}
+
+-- | A (slightly more) machine-readable amount format; like oneLineNoCostFmt but don't show digit group marks.
 machineFmt :: AmountFormat
-machineFmt = oneLineFmt{displayDigitGroups=False}
+machineFmt = oneLineNoCostFmt{displayDigitGroups=False}
 
 -------------------------------------------------------------------------------
 -- Amount arithmetic
@@ -1032,7 +1042,7 @@ showMixedAmountWith fmt = wbUnpack . showMixedAmountB fmt
 -- | Get the one-line string representation of a mixed amount (also showing any costs).
 -- See showMixedAmountB for special cases.
 showMixedAmountOneLine :: MixedAmount -> String
-showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLineFmt{displayCost=True}
+showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=True}
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
@@ -1054,7 +1064,7 @@ showMixedAmountWithoutCost c = wbUnpack . showMixedAmountB noCostFmt{displayColo
 --
 -- > showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c}
 showMixedAmountOneLineWithoutCost :: Bool -> MixedAmount -> String
-showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c}
+showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayColour=c}
 
 -- | Like showMixedAmountOneLineWithoutCost, but show at most the given width,
 -- with an elision indicator if there are more.
@@ -1062,7 +1072,7 @@ showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineFmt{dis
 --
 -- > showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c, displayMaxWidth=Just w}
 showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
-showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c, displayMaxWidth=Just w}
+showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayColour=c, displayMaxWidth=Just w}
 
 -- | Get an unambiguous string representation of a mixed amount for debugging.
 showMixedAmountDebug :: MixedAmount -> String

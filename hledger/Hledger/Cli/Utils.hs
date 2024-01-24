@@ -282,7 +282,7 @@ postingsOrTransactionsReportAsText alignAll opts itemAsText itemamt itembal repo
         startAlign = (if alignAll then id else take chunkSize) itemsWithAmounts
 
     itemsWithAmounts = map (\x -> (x, showAmt $ itemamt x, showAmt $ itembal x)) report
-    showAmt = showMixedAmountLinesB oneLineFmt{displayColour=opts^.color__}
+    showAmt = showMixedAmountLinesB oneLineNoCostFmt{displayColour=opts^.color__}
     amt = second3
     bal = third3
 

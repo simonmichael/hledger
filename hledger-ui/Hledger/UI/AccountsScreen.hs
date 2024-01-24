@@ -80,7 +80,7 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
             displayitems = ass ^. assList . listElementsL
 
             acctwidths = V.map (\AccountsScreenItem{..} -> asItemIndentLevel + realLength asItemDisplayAccountName) displayitems
-            balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLineFmt) . asItemMixedAmount) displayitems
+            balwidths  = V.map (maybe 0 (wbWidth . showMixedAmountB oneLineNoCostFmt) . asItemMixedAmount) displayitems
             preferredacctwidth = V.maximum acctwidths
             totalacctwidthseen = V.sum acctwidths
             preferredbalwidth  = V.maximum balwidths
@@ -169,7 +169,7 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
       splitAmounts balBuilder
       where
         balBuilder = maybe mempty showamt asItemMixedAmount
-        showamt = showMixedAmountB oneLineFmt{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
+        showamt = showMixedAmountB oneLineNoCostFmt{displayMinWidth=Just balwidth, displayMaxWidth=Just balwidth}
         balspace = T.replicate (2 + balwidth - wbWidth balBuilder) " "
         splitAmounts = foldr1 (<+>) . intersperse (str ", ") . map renderamt . T.splitOn ", " . wbToText
         renderamt :: T.Text -> Widget Name
