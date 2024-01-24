@@ -488,3 +488,21 @@ $ hledger -f- print -x date:2022-01-02
     assets:usd             €10
 
 >=
+
+# ** 29. -10 A should be inferred for a.
+# And the 0 B balaance assertion should ignore costs and succeed,
+# even though the balance is 1 B @@ 10 A - 1 B. (#2150)
+<
+2024-01-01
+    a            10 A
+    e
+
+2024-01-02
+    b     1 B @@ 10 A
+    a                 = 0 A
+
+2024-01-03
+    b            -1 B = 0 B
+    e
+
+$ hledger -f - check

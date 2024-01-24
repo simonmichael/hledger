@@ -46,7 +46,6 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Time.Calendar (fromGregorian)
 import qualified Data.Map as M
-import Safe (headDef)
 import Text.Printf (printf)
 
 import Hledger.Utils
@@ -540,7 +539,7 @@ journalBalanceTransactions bopts' j' =
 balanceTransactionAndCheckAssertionsB :: Either Posting Transaction -> Balancing s ()
 balanceTransactionAndCheckAssertionsB (Left p@Posting{}) =
   -- Update the account's running balance and check the balance assertion if any.
-  -- Note, cost is ignored when checking balance assertions, currently.
+  -- Cost is ignored when checking balance assertions currently.
   void $ addAmountAndCheckAssertionB $ postingStripCosts p
 balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- make sure we can handle the balance assignments
@@ -552,7 +551,7 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   ps' <- ps
     & zip [1..]                 -- attach original positions
     & sortOn (postingDate.snd)  -- sort by date
-    & mapM (addOrAssignAmountAndCheckAssertionB)  -- infer amount, check assertion on each one
+    & mapM addOrAssignAmountAndCheckAssertionB  -- infer amount, check assertion on each one
     <&> sortOn fst              -- restore original order
     <&> map snd                 -- discard positions
 
@@ -616,7 +615,7 @@ addAmountAndCheckAssertionB p = return p
 -- are ignored; if it is total, they will cause the assertion to fail.
 checkBalanceAssertionB :: Posting -> MixedAmount -> Balancing s ()
 checkBalanceAssertionB p@Posting{pbalanceassertion=Just (BalanceAssertion{baamount,batotal})} actualbal =
-    forM_ (baamount : otheramts) $ \amt -> checkBalanceAssertionOneCommodityB p amt actualbal
+  forM_ (baamount : otheramts) $ \amt -> checkBalanceAssertionOneCommodityB p amt actualbal
   where
     assertedcomm = acommodity baamount
     otheramts | batotal   = map (\a -> a{aquantity=0}) . amountsRaw
@@ -625,15 +624,17 @@ checkBalanceAssertionB p@Posting{pbalanceassertion=Just (BalanceAssertion{baamou
 checkBalanceAssertionB _ _ = return ()
 
 -- | Does this (single commodity) expected balance match the amount of that
--- commodity in the given (multicommodity) actual balance ? If not, returns a
--- balance assertion failure message based on the provided posting.  To match,
--- the amounts must be exactly equal (display precision is ignored here).
+-- commodity in the given (multicommodity) actual balance, ignoring costs ?
+-- If not, returns a balance assertion failure message based on the provided posting.
+-- To match, the amounts must be exactly equal (display precision is ignored here).
 -- If the assertion is inclusive, the expected amount is compared with the account's
 -- subaccount-inclusive balance; otherwise, with the subaccount-exclusive balance.
 checkBalanceAssertionOneCommodityB :: Posting -> Amount -> MixedAmount -> Balancing s ()
 checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcommbal actualbal = do
   let isinclusive = maybe False bainclusive $ pbalanceassertion p
   let istotal     = maybe False batotal     $ pbalanceassertion p
+  -- mstyles <- R.reader bsStyles
+  -- let styled = maybe id styleAmounts mstyles
   actualbal' <-
     if isinclusive
     then
@@ -646,27 +647,31 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
           bsBalances
     else return actualbal
   let
-    assertedcomm    = acommodity assertedcommbal
-    assertedcommbalcostless = amountStripCost assertedcommbal
-    actualcommbalcostless   = amountStripCost . headDef nullamt . amountsRaw . filterMixedAmountByCommodity assertedcomm $ actualbal'
+    assertedcomm = acommodity assertedcommbal
 
-    -- test the assertion. Costs are ignored currently.
+    -- The asserted single-commodity balance, without cost
+    assertedcommbalcostless = amountStripCost assertedcommbal
+
+    -- The balance in this commodity, from the current multi-commodity running balance at this point.
+    -- This is unnormalised, and could include one or more different costs.
+    actualcommbal           = filterMixedAmountByCommodity assertedcomm $ actualbal'
+
+    -- The above balance without costs, as a single Amount (Amount's + discards costs).
+    actualcommbalcostless   = sum $ amountsRaw actualcommbal
+
+    -- test the assertion
     pass =
-      aquantity (
-        -- traceWith (("asserted:"++).showAmountDebug)
-        assertedcommbalcostless)
+      aquantity assertedcommbalcostless
       ==
-      aquantity (
-        -- traceWith (("actual:"++).showAmountDebug)
-        actualcommbalcostless)
+      aquantity actualcommbalcostless
 
     errmsg = chomp $ printf (unlines
       [ "%s:",
         "%s\n",
         "Balance assertion failed in %s",
         "%s at this point, %s, ignoring costs,",
-        "the expected balance is:        %s", -- (at display precision: %s)",
-        "but the calculated balance is:  %s", -- (at display precision: %s)",
+        "the expected balance is:        %s",
+        "but the calculated balance is:  %s",
         "(difference: %s)",
         "To troubleshoot, check this account's running balance with assertions disabled, eg:",
         "hledger reg -I '%s'%s"
@@ -675,11 +680,12 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
       (sourcePosPretty pos)  -- position
       (textChomp ex)  -- journal excerpt
       acct  -- asserted account
-      (if istotal then "Across all commodities" else "In commodity " <> assertedcommstr)  -- asserted commodity (partial assertion) or all commodities (total assertion)
+      (if istotal then "Across all commodities" else "In commodity " <> assertedcommstr)  -- asserted commodity or all commodities ?
       (if isinclusive then "including subaccounts" else "excluding subaccounts" :: String)  -- inclusive or exclusive balance asserted ?
-      assertedcommbalstrpadded
-      actualcommbalstrpadded
-      diffstr  -- diff
+      (pad assertedstr)  -- asserted amount, without cost
+      (pad actualstr)    -- actual amount, without cost
+        -- <> " (with costs: " <> T.pack (showMixedAmountWith fmt actualcommbal) <> ")" -- debugging
+      diffstr  -- their difference
       (acct ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
       (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))  -- query matching the commodity(ies)
 
@@ -689,17 +695,12 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
         pos = baposition ass
         (_,_,_,ex) = makeBalanceAssertionErrorExcerpt p
         assertedcommstr = if T.null assertedcomm then "\"\"" else assertedcomm
-        showamt = showAmountWithZeroCommodity
-        assertedcommbalstr = showamt assertedcommbalcostless
-        actualcommbalstr   = showamt actualcommbalcostless
-        amtswidth = max (length assertedcommbalstr) (length actualcommbalstr)
-        assertedcommbalstrpadded = fitText (Just amtswidth) Nothing False False $ T.pack assertedcommbalstr
-        actualcommbalstrpadded   = fitText (Just amtswidth) Nothing False False $ T.pack actualcommbalstr
-        -- diffstr = show $ aquantity assertedcommbal - aquantity actualcommbalcostless
-        diffstr = showamt $ assertedcommbal - actualcommbalcostless
+        fmt = oneLineFmt{displayZeroCommodity=True}
+        assertedstr = showAmountWith fmt assertedcommbalcostless
+        actualstr   = showAmountWith fmt actualcommbalcostless
+        diffstr     = showAmountWith fmt $ assertedcommbalcostless - actualcommbalcostless
+        pad = fitText (Just w) Nothing False False . T.pack where w = max (length assertedstr) (length actualstr)
 
-      -- (showDate $ postingDate p)
-      -- (asprecision $ astyle actualcommbalodity)  -- should be the standard display precision I think
 
   unless pass $ throwError errmsg
 {- XXX
