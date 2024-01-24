@@ -22,7 +22,8 @@ Also (not necessary for basic personal accounting, but if we want to be fully co
 
 Combining these in the right sequence can be tricky, so here's an example of fully migrating to a new file at the end of 2021/start of 2022.
 `2021-closed.journal` and `2022-closed.journal` are the result of applying this procedure to the 2021 and 2022 journals.
-(They are named differently from the original journals for clarity here; normally you wouldn't change the name.)
+(They are named differently from the original journals for clarity here; also because the `print --infer-equity` step overwrites your entries and 
+discards directives, requiring some extra manual steps to preserve those.  Normally you would keep the file names unchanged.)
 
 First, ensure all equity changes are recorded:
 
