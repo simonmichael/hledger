@@ -670,7 +670,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
         "%s\n",
         "Balance assertion failed in %s",
         "%s at this point, %s, ignoring costs,",
-        "the expected balance is:        %s",
+        "the asserted balance is:        %s",
         "but the calculated balance is:  %s",
         "(difference: %s)",
         "To troubleshoot, check this account's running balance with assertions disabled, eg:",

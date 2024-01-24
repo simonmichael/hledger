@@ -8,7 +8,7 @@ $ hledger check -f assertions.j
 
 Balance assertion failed in a
 In commodity "" at this point, excluding subaccounts, ignoring costs,
-the expected balance is:        1
+the asserted balance is:        1
 but the calculated balance is:  0
 \(difference: 1\)
 /
