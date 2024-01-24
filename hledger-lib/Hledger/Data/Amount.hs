@@ -959,10 +959,17 @@ sumSimilarAmountsUsingFirstCost a b = (a + b){acost=p}
 filterMixedAmount :: (Amount -> Bool) -> MixedAmount -> MixedAmount
 filterMixedAmount p (Mixed ma) = Mixed $ M.filter p ma
 
--- | Return an unnormalised MixedAmount containing exactly one Amount
--- with the specified commodity and the quantity of that commodity
--- found in the original. NB if Amount's quantity is zero it will be
--- discarded next time the MixedAmount gets normalised.
+-- | Return an unnormalised MixedAmount containing just the amounts in the
+-- requested commodity from the original mixed amount.
+--
+-- The result will contain at least one Amount of the requested commodity,
+-- even if the original mixed amount did not (with quantity zero in that case,
+-- and this would be discarded when the mixed amount is next normalised).
+--
+-- The result can contain more than one Amount of the requested commodity,
+-- eg because there were several with different costs,
+-- or simply because the original mixed amount was was unnormalised.
+--
 filterMixedAmountByCommodity :: CommoditySymbol -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed ma)
   | M.null ma' = mixedAmount nullamt{acommodity=c}
@@ -1026,11 +1033,10 @@ mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
 
 -- Mixed amount rendering
 
--- | Get the string representation of a mixed amount, after
--- normalising it to one amount per commodity. Assumes amounts have
--- no or similar costs, otherwise this can show misleading costs.
---
--- > showMixedAmount = wbUnpack . showMixedAmountB defaultFmt
+
+-- | Render a mixed amount using its amount display styles and the default amount format,
+-- after normalising it (to at most one amount in each of its commodities).
+-- See showMixedAmountB for special cases.
 showMixedAmount :: MixedAmount -> String
 showMixedAmount = wbUnpack . showMixedAmountB defaultFmt
 
@@ -1046,31 +1052,27 @@ showMixedAmountOneLine = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCos
 
 -- | Like showMixedAmount, but zero amounts are shown with their
 -- commodity if they have one.
---
--- > showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB defaultFmt{displayZeroCommodity=True}
+-- See showMixedAmountB for special cases.
 showMixedAmountWithZeroCommodity :: MixedAmount -> String
 showMixedAmountWithZeroCommodity = wbUnpack . showMixedAmountB defaultFmt{displayZeroCommodity=True}
 
 -- | Get the string representation of a mixed amount, without showing any costs.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
---
--- > showMixedAmountWithoutCost c = wbUnpack . showMixedAmountB noCostFmt{displayColour=c}
+-- See showMixedAmountB for special cases.
 showMixedAmountWithoutCost :: Bool -> MixedAmount -> String
 showMixedAmountWithoutCost c = wbUnpack . showMixedAmountB noCostFmt{displayColour=c}
 
 -- | Get the one-line string representation of a mixed amount, but without
 -- any \@ costs.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
---
--- > showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c}
+-- See showMixedAmountB for special cases.
 showMixedAmountOneLineWithoutCost :: Bool -> MixedAmount -> String
 showMixedAmountOneLineWithoutCost c = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayColour=c}
 
 -- | Like showMixedAmountOneLineWithoutCost, but show at most the given width,
 -- with an elision indicator if there are more.
 -- With a True argument, adds ANSI codes to show negative amounts in red.
---
--- > showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLineFmt{displayColour=c, displayMaxWidth=Just w}
+-- See showMixedAmountB for special cases.
 showMixedAmountElided :: Int -> Bool -> MixedAmount -> String
 showMixedAmountElided w c = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayColour=c, displayMaxWidth=Just w}
 
@@ -1080,18 +1082,27 @@ showMixedAmountDebug m | m == missingmixedamt = "(missing)"
                        | otherwise       = "Mixed [" ++ as ++ "]"
     where as = intercalate "\n       " $ map showAmountDebug $ amounts m
 
--- | General function to generate a WideBuilder for a MixedAmount, according to the
--- supplied AmountFormat. This is the main function to use for showing
--- MixedAmounts, constructing a builder; it can then be converted to a Text with
--- wbToText, or to a String with wbUnpack.
+-- | Render a mixed amount using its amount display styles and the given amount format,
+-- as a builder for efficiency.
+-- (This can be converted to a Text with wbToText or to a String with wbUnpack).
+--
+-- Warning: this (and its showMixedAmount aliases above) basically assumes amounts have no costs.
+-- It can show misleading costs or not show costs which are there.
 --
 -- If a maximum width is given then:
+--
 -- - If displayed on one line, it will display as many Amounts as can
 --   fit in the given width, and further Amounts will be elided. There
 --   will always be at least one amount displayed, even if this will
 --   exceed the requested maximum width.
+--
 -- - If displayed on multiple lines, any Amounts longer than the
 --   maximum width will be elided.
+--
+-- Zero-equivalent amounts  are shown as just \"0\".
+--
+-- The special "missing" amount is shown as the empty string (?).
+--
 showMixedAmountB :: AmountFormat -> MixedAmount -> WideBuilder
 showMixedAmountB opts ma
     | displayOneLine opts = showMixedAmountOneLineB opts ma
