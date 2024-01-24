@@ -682,9 +682,12 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
       acct  -- asserted account
       (if istotal then "Across all commodities" else "In commodity " <> assertedcommstr)  -- asserted commodity or all commodities ?
       (if isinclusive then "including subaccounts" else "excluding subaccounts" :: String)  -- inclusive or exclusive balance asserted ?
-      (pad assertedstr)  -- asserted amount, without cost
-      (pad actualstr)    -- actual amount, without cost
-        -- <> " (with costs: " <> T.pack (showMixedAmountWith fmt actualcommbal) <> ")" -- debugging
+      (pad assertedstr  -- asserted amount, without cost
+        <> if debugLevel >= 2 then " (with cost:  " <> T.pack (showAmountWith fmt assertedcommbal) <> ")" else ""
+      )
+      (pad actualstr    -- actual amount, without cost
+        <> if debugLevel >= 2 then " (with costs: " <> T.pack (showMixedAmountWith fmt actualcommbal) <> ")" else ""
+      )
       diffstr  -- their difference
       (acct ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
       (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))  -- query matching the commodity(ies)
