@@ -85,6 +85,7 @@ module Hledger.Data.Amount (
   csvDisplay,
   showAmountB,
   showAmount,
+  showAmountWith,
   showAmountCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -144,6 +145,7 @@ module Hledger.Data.Amount (
   mixedAmountUnstyled,
   -- ** rendering
   showMixedAmount,
+  showMixedAmountWith,
   showMixedAmountOneLine,
   showMixedAmountDebug,
   showMixedAmountWithoutPrice,
@@ -638,6 +640,10 @@ showAmountCostDebug (Just (TotalPrice pa)) = " @@ " ++ showAmountDebug pa
 showAmount :: Amount -> String
 showAmount = wbUnpack . showAmountB noColour
 
+-- | Like showAmount but uses the given amount display options.
+showAmountWith :: AmountDisplayOpts -> Amount -> String
+showAmountWith fmt = wbUnpack . showAmountB fmt
+
 -- | General function to generate a WideBuilder for an Amount, according the
 -- supplied AmountDisplayOpts. This is the main function to use for showing
 -- Amounts, constructing a builder; it can then be converted to a Text with
@@ -1036,6 +1042,11 @@ mixedAmountUnstyled = mapMixedAmountUnsafe amountUnstyled
 -- > showMixedAmount = wbUnpack . showMixedAmountB noColour
 showMixedAmount :: MixedAmount -> String
 showMixedAmount = wbUnpack . showMixedAmountB noColour
+
+-- | Like showMixedAmount but uses the given amount display options.
+-- See showMixedAmountB for special cases.
+showMixedAmountWith :: AmountDisplayOpts -> MixedAmount -> String
+showMixedAmountWith fmt = wbUnpack . showMixedAmountB fmt
 
 -- | Get the one-line string representation of a mixed amount (also showing any costs).
 --
