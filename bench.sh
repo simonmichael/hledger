@@ -41,6 +41,6 @@ hledger -f examples/10000x1000x10.journal balance
 # hledger -f examples/10000x1000x10.journal balance ff
 #hledger -f examples/100000x1000x10.journal balance
 #hledger -f examples/100000x1000x10.journal balance ff
-hledger -f examples/1000x1000x10.journal balance --weekly
-hledger -f examples/10000x1000x10.journal balance --weekly
+#hledger -f examples/1000x1000x10.journal balance --weekly
+#hledger -f examples/10000x1000x10.journal balance --weekly
 
