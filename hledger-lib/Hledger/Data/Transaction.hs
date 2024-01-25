@@ -274,6 +274,7 @@ type IdxPosting = (Int, Posting)
 label s = ((s <> ": ")++)
 
 -- | Add costs inferred from equity postings in this transaction.
+-- The name(s) of conversion equity accounts should be provided.
 -- For every adjacent pair of conversion postings, it will first search the postings
 -- with costs to see if any match. If so, it will tag these as matched.
 -- If no postings with costs match, it will then search the postings without costs,
@@ -281,13 +282,13 @@ label s = ((s <> ": ")++)
 -- If it finds a match, it will add a cost and then tag it.
 -- If the first argument is true, do a dry run instead: identify and tag
 -- the costful and conversion postings, but don't add costs.
-transactionInferCostsFromEquity :: Bool -> M.Map AccountName AccountType -> Transaction -> Either String Transaction
-transactionInferCostsFromEquity dryrun acctTypes t = first (annotateErrorWithTransaction t . T.unpack) $ do
+transactionInferCostsFromEquity :: Bool -> [AccountName] -> Transaction -> Either String Transaction
+transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorWithTransaction t . T.unpack) $ do
   -- number the postings
   let npostings = zip [0..] $ tpostings t
 
   -- Identify all pairs of conversion postings and all other postings (with and without costs) in the transaction.
-  (conversionPairs, otherps) <- partitionAndCheckConversionPostings False acctTypes npostings
+  (conversionPairs, otherps) <- partitionAndCheckConversionPostings False conversionaccts npostings
 
   -- Generate a pure function that can be applied to each of this transaction's postings,
   -- possibly modifying it, to produce the following end result:
@@ -434,13 +435,13 @@ dbgShowAmountPrecision a =
     Precision n      -> show n
     NaturalPrecision -> show $ decimalPlaces $ normalizeDecimal $ aquantity a
 
--- Using the provided account types map, sort the given indexed postings
+-- Given the names of conversion equity accounts, sort the given indexed postings
 -- into three lists of posting numbers (stored in two pairs), like so:
 -- (conversion postings, (costful other postings, costless other postings)).
 -- A true first argument activates its secondary function: check that all
 -- conversion postings occur in adjacent pairs, otherwise return an error.
-partitionAndCheckConversionPostings :: Bool -> M.Map AccountName AccountType -> [IdxPosting] -> Either Text ( [(IdxPosting, IdxPosting)], ([IdxPosting], [IdxPosting]) )
-partitionAndCheckConversionPostings check acctTypes =
+partitionAndCheckConversionPostings :: Bool -> [AccountName] -> [IdxPosting] -> Either Text ( [(IdxPosting, IdxPosting)], ([IdxPosting], [IdxPosting]) )
+partitionAndCheckConversionPostings check conversionaccts =
   -- Left fold processes postings in parse order, so that eg inferred costs
   -- will be added to the first (top-most) posting, not the last one.
   foldlM select (([], ([], [])), Nothing)
@@ -455,7 +456,7 @@ partitionAndCheckConversionPostings check acctTypes =
       | isConversion p = Right (((lst, np):cs, others), Nothing)
       | check          = Left "Conversion postings must occur in adjacent pairs"
       | otherwise      = Right ((cs, (ps, np:os)), Nothing)
-    isConversion p = M.lookup (paccount p) acctTypes == Just Conversion
+    isConversion p = paccount p `elem` conversionaccts
     hasCost p = isJust $ acost =<< postingSingleAmount p
 
 -- | Get a posting's amount if it is single-commodity.

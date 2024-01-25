@@ -219,11 +219,12 @@ builtinTags = [
 -- | In each tranaction, check that any conversion postings occur in adjacent pairs.
 journalCheckPairedConversionPostings :: Journal -> Either String ()
 journalCheckPairedConversionPostings j =
-  mapM_ (transactionCheckPairedConversionPostings (jaccounttypes j)) $ jtxns j
+  mapM_ (transactionCheckPairedConversionPostings conversionaccts) $ jtxns j
+  where conversionaccts = journalConversionAccounts j
 
-transactionCheckPairedConversionPostings :: M.Map AccountName AccountType -> Transaction -> Either String ()
-transactionCheckPairedConversionPostings accttypes t =
-  case partitionAndCheckConversionPostings True accttypes (zip [0..] $ tpostings t) of
+transactionCheckPairedConversionPostings :: [AccountName] -> Transaction -> Either String ()
+transactionCheckPairedConversionPostings conversionaccts t =
+  case partitionAndCheckConversionPostings True conversionaccts (zip [0..] $ tpostings t) of
     Left err -> Left $ T.unpack err
     Right _  -> Right ()
 

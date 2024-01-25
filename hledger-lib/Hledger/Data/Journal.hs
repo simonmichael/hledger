@@ -96,6 +96,7 @@ module Hledger.Data.Journal (
   journalPostingsAddAccountTags,
   -- journalPrices,
   journalConversionAccount,
+  journalConversionAccounts,
   -- * Misc
   canonicalStyleFrom,
   nulljournal,
@@ -519,13 +520,6 @@ letterPairs :: String -> [String]
 letterPairs (a:b:rest) = [a,b] : letterPairs (b:rest)
 letterPairs _ = []
 
--- | The 'AccountName' to use for automatically generated conversion postings.
-journalConversionAccount :: Journal -> AccountName
-journalConversionAccount =
-    headDef (T.pack "equity:conversion")
-    . M.findWithDefault [] Conversion
-    . jdeclaredaccounttypes
-
 -- Newer account type code.
 
 journalAccountType :: Journal -> AccountName -> Maybe AccountType
@@ -557,7 +551,7 @@ journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- fla
                             then mparenttype
                             else (,False) <$> accountNameInferType a <|> mparenttype
 
--- | Build a map of the account types explicitly declared.
+-- | Build a map of the account types explicitly declared for each account.
 journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
 journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
   M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
@@ -568,6 +562,19 @@ journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
 journalPostingsAddAccountTags :: Journal -> Journal
 journalPostingsAddAccountTags j = journalMapPostings addtags j
   where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
+
+-- | The account to use for automatically generated conversion postings in this journal:
+-- the first of the journalConversionAccounts.
+journalConversionAccount :: Journal -> AccountName
+journalConversionAccount = headDef defaultConversionAccount . journalConversionAccounts
+
+-- | All the accounts declared or inferred as Conversion type in this journal.
+journalConversionAccounts :: Journal -> [AccountName]
+journalConversionAccounts = M.keys . M.filter (==Conversion) . jaccounttypes
+
+-- The fallback account to use for automatically generated conversion postings
+-- if no account is declared with the Conversion type.
+defaultConversionAccount = "equity:conversion"
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -943,9 +950,11 @@ journalInferEquityFromCosts verbosetags j = journalMapTransactions (transactionA
 -- See hledger manual > Cost reporting.
 journalInferCostsFromEquity :: Journal -> Either String Journal
 journalInferCostsFromEquity j = do
-    ts <- mapM (transactionInferCostsFromEquity False $ jaccounttypes j) $ jtxns j
-    return j{jtxns=ts}
+  ts <- mapM (transactionInferCostsFromEquity False conversionaccts) $ jtxns j
+  return j{jtxns=ts}
+  where conversionaccts = journalConversionAccounts j
 
+-- XXX duplication of the above
 -- | Do just the internal tagging that is normally done by journalInferCostsFromEquity,
 -- identifying equity conversion postings and, in particular, postings which have redundant costs.
 -- Tagging the latter is useful as it allows them to be ignored during transaction balancedness checking.
@@ -953,8 +962,9 @@ journalInferCostsFromEquity j = do
 -- when it will have more information (amounts) to work with.
 journalMarkRedundantCosts :: Journal -> Either String Journal
 journalMarkRedundantCosts j = do
-    ts <- mapM (transactionInferCostsFromEquity True $ jaccounttypes j) $ jtxns j
-    return j{jtxns=ts}
+  ts <- mapM (transactionInferCostsFromEquity True conversionaccts) $ jtxns j
+  return j{jtxns=ts}
+  where conversionaccts = journalConversionAccounts j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol
