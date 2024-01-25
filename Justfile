@@ -532,7 +532,7 @@ samplejournals:
     tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
     tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
 
-GNUTAR := 'gtar'
+GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 
 # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
 OS := `ghc -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
