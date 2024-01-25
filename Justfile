@@ -532,6 +532,30 @@ samplejournals:
     tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
     tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
 
+GNUTAR := 'gtar'
+
+# The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
+OS := `ghc -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
+
+# download a recent set of hledger versions from github releases to bin/hledger-VER
+get-binaries:
+    for V in 1.32.2 1.31 1.30 1.29.2 1.28 1.27.1; do just get-binary $OS x64 $V; done
+    just symlink-binaries
+
+# download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
+get-binary OS ARCH VER:
+    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | {{ GNUTAR }} xf - hledger --transform 's/$/-{{ VER }}/'
+
+# add easier symlinks for all the minor hledger releases downloaded by get-binaries.
+symlink-binaries:
+    just symlink-binary 1.32.2
+    just symlink-binary 1.29.2
+    just symlink-binary 1.27.1
+
+# add an easier symlink for this minor hledger release (hledger-1.29 -> hledger-1.29.2, etc.)
+@symlink-binary MINORVER:
+    cd bin && ln -s hledger-$MINORVER hledger-`echo $MINORVER | sed -E 's/\.[0-9]+$//'`
+
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
 
