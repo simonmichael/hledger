@@ -86,11 +86,13 @@ _watchgitdbg *WOPTS:
 
 BROWSE := 'open'
 
-# VIEWHTML := BROWSE
-# VIEWPDF := BROWSE
-# PRINT := 'lpr'
-#GHC := 'ghc'
+# find GNU tools, eg on mac
+GDATE := `type -P gdate || echo date`
+GTAR  := `type -P gtar || echo tar`
+#GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 
+# make ghc usable for scripting with -e
+GHC := 'ghc -ignore-dot-ghci -package-env -'
 GHCI := 'ghci'
 
 # GHCPKG := 'ghc-pkg'
@@ -532,10 +534,9 @@ samplejournals:
     tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
     tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
 
-GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
-
 # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
-OS := `ghc -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
+# can't use $GHC or {{GHC}} here for some reason
+OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
 
 # download a recent set of hledger versions from github releases to bin/hledger-VER
 get-binaries:
@@ -544,7 +545,7 @@ get-binaries:
 
 # download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
 get-binary OS ARCH VER:
-    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | {{ GNUTAR }} xf - hledger --transform 's/$/-{{ VER }}/'
+    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | {{ GTAR }} xf - hledger --transform 's/$/-{{ VER }}/'
 
 # add easier symlinks for all the minor hledger releases downloaded by get-binaries.
 symlink-binaries:
@@ -906,12 +907,6 @@ WORKLOG := "../../notes/CLOUD/hledger.md"
 # Show dates logged in hledger work log.
 @worklogdates:
     awk "/^## Journal/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^### (\d{4}-\d{2}-\d{2})' -or '$1'
-
-# make ghc usable for scripting
-GHC := 'ghc -package-env - -ignore-dot-ghci'
-
-# try to find GNU date
-GDATE := `type -P gdate || echo date`
 
 # Show hledger work logged since this date or days ago or last release
 worklog *DATEARG:
