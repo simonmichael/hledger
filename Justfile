@@ -204,6 +204,7 @@ DOCSOURCEFILES := '
     CONTRIBUTING.md
     ' + MANUALSOURCEFILES + COMMANDHELPFILES
 TESTFILES := `fd '\.test$' --exclude ledger-compat`
+# XXX it's fd-find on gnu/linux ?
 
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE := 'hledger/Hledger/Cli/Version.hs'
