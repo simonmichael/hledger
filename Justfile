@@ -559,12 +559,10 @@ symlink-binaries:
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
 
-BENCHEXES := 'hledger'
-
-# run benchmark commands in bench.sh for each of BENCHEXES, with quickbench
+# run the benchmark commands in bench.sh with quickbench. Eg: just bench -h; just bench -n2 -N2 -whledger-1.27,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32
 @bench *ARGS:
-    printf "Running benchmarks with {{ BENCHEXES }} (times are approximate, can be skewed):\n"
-    which quickbench >/dev/null && quickbench -w {{ BENCHEXES }} {{ ARGS }} || echo "quickbench not installed (see bench.sh), skipping"
+    printf "Running quick benchmarks (times are approximate, can be skewed):\n"
+    which quickbench >/dev/null && quickbench {{ ARGS }} || echo "quickbench not installed (see bench.sh), skipping"
 
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
