@@ -86,6 +86,8 @@ _watchgitdbg *WOPTS:
 
 BROWSE := 'open'
 
+# XXX These often don't work well interpolated as $CMD or {{ CMD }}, not sure why
+
 # find GNU tools, eg on mac
 GDATE := `type -P gdate || echo date`
 GTAR  := `type -P gtar || echo tar`
@@ -544,8 +546,10 @@ get-binaries:
     just symlink-binaries
 
 # download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
+# On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
 get-binary OS ARCH VER:
-    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | {{ GTAR }} xf - hledger --transform 's/$/-{{ VER }}/'
+    #!/usr/bin/env bash
+    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - hledger --transform 's/$/-{{ VER }}/'
 
 # add easier symlinks for all the minor hledger releases downloaded by get-binaries.
 symlink-binaries:
