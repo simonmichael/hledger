@@ -559,7 +559,7 @@ symlink-binaries:
 
 # add an easier symlink for this minor hledger release (hledger-1.29 -> hledger-1.29.2, etc.)
 @symlink-binary MINORVER:
-    cd bin && ln -s hledger-$MINORVER hledger-`echo $MINORVER | sed -E 's/\.[0-9]+$//'`
+    cd bin && ln -sf hledger-$MINORVER hledger-`echo $MINORVER | sed -E 's/\.[0-9]+$//'`
 
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
