@@ -44,6 +44,7 @@ module Hledger.Data.AccountName (
   ,parentAccountNames
   ,subAccountNamesFrom
   ,topAccountNames
+  ,topAccountName
   ,unbudgetedAccountName
   ,accountNamePostingType
   ,accountNameWithoutPostingType
@@ -67,13 +68,14 @@ import Data.MemoUgly (memo)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
-import Data.Tree (Tree(..))
+import Data.Tree (Tree(..), unfoldTree)
 import Safe
 import Text.DocLayout (realLength)
 
-import Hledger.Data.Types
+import Hledger.Data.Types hiding (asubs)
 import Hledger.Utils
 import Data.Char (isDigit, isLetter)
+import Data.List (partition)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -234,6 +236,10 @@ expandAccountName = map accountNameFromComponents . NE.tail . NE.inits . account
 topAccountNames :: [AccountName] -> [AccountName]
 topAccountNames = filter ((1==) . accountNameLevel) . expandAccountNames
 
+-- | "a:b:c" -> "a"
+topAccountName :: AccountName -> AccountName
+topAccountName = T.takeWhile (/= acctsepchar)
+
 parentAccountName :: AccountName -> AccountName
 parentAccountName = accountNameFromComponents . init . accountNameComponents
 
@@ -249,24 +255,28 @@ isAccountNamePrefixOf = T.isPrefixOf . (<> acctsep)
 
 isSubAccountNameOf :: AccountName -> AccountName -> Bool
 s `isSubAccountNameOf` p =
-    (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
+  (p `isAccountNamePrefixOf` s) && (accountNameLevel s == (accountNameLevel p + 1))
 
 -- | From a list of account names, select those which are direct
 -- subaccounts of the given account name.
 subAccountNamesFrom :: [AccountName] -> AccountName -> [AccountName]
 subAccountNamesFrom accts a = filter (`isSubAccountNameOf` a) accts
 
--- | Convert a list of account names to a tree.
+-- | Convert a list of account names to a tree, efficiently.
 accountNameTreeFrom :: [AccountName] -> Tree AccountName
-accountNameTreeFrom accts =
-    Node "root" (accounttreesfrom (topAccountNames accts))
-        where
-          accounttreesfrom :: [AccountName] -> [Tree AccountName]
-          accounttreesfrom [] = []
-          accounttreesfrom as = [Node a (accounttreesfrom $ subs a) | a <- as]
-          subs = subAccountNamesFrom (expandAccountNames accts)
-
---nullaccountnametree = Node "root" []
+accountNameTreeFrom accts = unfoldTree grow ("root", expandAccountNames accts)
+  where
+    -- unfoldTree :: (b -> (a, [b])) -> b -> Tree a
+    -- grow :: (b -> (a, [b]))
+    -- a = AccountName                  - the label at each node of the tree
+    -- b = (AccountName, [AccountName]) - the next node's account, and the accounts remaining to consume under it
+    grow :: ((AccountName, [AccountName]) -> (AccountName, [(AccountName, [AccountName])]))
+    grow (a,[])   = (a,[])
+    grow (a,rest) = (a, [(s, filter (s `isAccountNamePrefixOf`) deepersubs) | s <- asubs])
+      where
+        (asubs, deepersubs) = partition (isChildOf a) rest
+        isChildOf "root" = (1==) . accountNameLevel
+        isChildOf acct   = (`isSubAccountNameOf` acct)
 
 -- | Elide an account name to fit in the specified width.
 -- From the ledger 2.6 news:
