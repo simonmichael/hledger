@@ -545,17 +545,17 @@ postingToCost ToCost         p
   where
     nocosts = (not . any (isJust . acost) . amountsRaw) $ pamount p
 
--- | Generate inferred equity postings from a 'Posting' using transaction prices.
--- Make sure not to generate equity postings when there are already matched
--- conversion postings.
+-- | Generate inferred equity postings from a 'Posting''s costs.
+-- Make sure not to duplicate them when matching ones exist already.
 postingAddInferredEquityPostings :: Bool -> Text -> Posting -> [Posting]
 postingAddInferredEquityPostings verbosetags equityAcct p
     | "_price-matched" `elem` map fst (ptags p) = [p]
-    | otherwise = taggedPosting : concatMap conversionPostings priceAmounts
+    | otherwise = taggedPosting : concatMap conversionPostings costs
   where
+    costs = filter (isJust . acost) . amountsRaw $ pamount p
     taggedPosting
-      | null priceAmounts = p
-      | otherwise         = p{ ptags = ("_price-matched","") : ptags p }
+      | null costs = p
+      | otherwise  = p{ ptags = ("_price-matched","") : ptags p }
     conversionPostings amt = case acost amt of
         Nothing -> []
         Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
@@ -580,8 +580,6 @@ postingAddInferredEquityPostings verbosetags equityAcct p
         accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
         -- Take the commodity of an amount and collapse consecutive spaces to a single space
         commodity = T.unwords . filter (not . T.null) . T.words . acommodity
-
-    priceAmounts = filter (isJust . acost) . amountsRaw $ pamount p
 
 -- | Make a market price equivalent to this posting's amount's unit
 -- price, if any.
