@@ -558,6 +558,14 @@ samplejournals:
     tools/generatejournal 10000 100 10     > examples/10ktxns-100accts.journal
     #tools/generatejournal 10000 1000 10   > examples/10ktxns-1kaccts.journal
     tools/generatejournal 10000 10000 10   > examples/10ktxns-10kaccts.journal
+    tools/generatejournal 10000 20000 10   > examples/10ktxns-20kaccts.journal
+    tools/generatejournal 10000 30000 10   > examples/10ktxns-30kaccts.journal
+    tools/generatejournal 10000 40000 10   > examples/10ktxns-40kaccts.journal
+    tools/generatejournal 10000 50000 10   > examples/10ktxns-50kaccts.journal
+    tools/generatejournal 10000 60000 10   > examples/10ktxns-60kaccts.journal
+    tools/generatejournal 10000 70000 10   > examples/10ktxns-70kaccts.journal
+    tools/generatejournal 10000 80000 10   > examples/10ktxns-80kaccts.journal
+    tools/generatejournal 10000 90000 10   > examples/10ktxns-90kaccts.journal
     tools/generatejournal 10000 100000 10  > examples/10ktxns-100kaccts.journal
     tools/generatejournal 10000 1000000 10 > examples/10ktxns-1maccts.journal
 
@@ -629,11 +637,23 @@ symlink-binaries:
     for v in 1.25 1.28 1.29 1.32 21ad; do printf "\nhledger-$v:\n"; for i in `seq 1 3`; do hledger-$v -f examples/10ktxns-10kaccts.journal stats | grep throughput; done; done
 
 @bench-balance-many-accts:
-    quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
+    quickbench -w hledger-1.26,hledger-21ad,ledger -f bench-many-accts.sh -N2
+    #quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
 
 @bench-balance-many-txns:
     quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
 
+#            examples/100txns-100accts.journal \
+compare-balance:
+    #!/usr/bin/env bash
+    for f in examples/1txns-1accts.journal \
+            examples/10txns-10accts.journal \
+            ; do \
+        (export f=$f; \
+        printf "\n-------------------------------------------------------------------------------\n"; \
+        echo "comparing hledger -f $f balance and ledger -f $f balance --flat"; \
+        difft --color=always --display side-by-side-show-both <(hledger -f $f balance) <(ledger -f $f balance --flat) ) | tail +2; \
+        done
 
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \

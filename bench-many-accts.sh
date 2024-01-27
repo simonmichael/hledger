@@ -10,5 +10,13 @@ hledger -f examples/10ktxns-10accts.journal   balance
 hledger -f examples/10ktxns-100accts.journal  balance
 hledger -f examples/10ktxns-1kaccts.journal   balance
 hledger -f examples/10ktxns-10kaccts.journal  balance
+hledger -f examples/10ktxns-20kaccts.journal  balance
+hledger -f examples/10ktxns-30kaccts.journal  balance
+hledger -f examples/10ktxns-40kaccts.journal  balance
+hledger -f examples/10ktxns-50kaccts.journal  balance
+hledger -f examples/10ktxns-60kaccts.journal  balance
+hledger -f examples/10ktxns-70kaccts.journal  balance
+hledger -f examples/10ktxns-80kaccts.journal  balance
+hledger -f examples/10ktxns-90kaccts.journal  balance
 hledger -f examples/10ktxns-100kaccts.journal balance
-hledger -f examples/10ktxns-1maccts.journal   balance
+#hledger -f examples/10ktxns-1maccts.journal   balance
