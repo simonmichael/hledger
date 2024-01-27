@@ -171,23 +171,23 @@ Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to b
 
 **Impact**
 
-Who is likely to be affected by this bug ?
+Who may be impacted by this bug ?
 
-- impact5: Affects all users.
-- impact4: Affects most users.
-- impact3: Affects a minority of users.
-- impact2: Affects only packagers or developers.
 - impact1: Affects almost no one.
+- impact2: Affects packagers or developers.
+- impact3: Affects just a few users.
+- impact4: Affects more than a few users.
+- impact5: Affects most or all users.
 
 **Severity**
 
-To people affected, how serious is this bug ?
+To people impacted, how serious is this bug ?
 
-- severity5: Data loss or privacy/security loss bug.
-- severity4: Regression, crash or major usability/doc bug.
-- severity3: Installability, packaging or new user experience bug. A potential user could fail to get started.
-- severity2: Minor/moderate usability/doc bug. Easy to avoid or not a big deal.
-- severity1: Cleanup/design/developer bug. Significant only to developers and design-minded users.
+- severity1: Cleanliness/consistency/developer bug. Only perfectionists care.
+- severity2: Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
+- severity3: New user experience or installability bug. A potential user could fail to get started.
+- severity4: Major usability/doc bug, crash, or any regression.
+- severity5: Any loss of user's data, privacy, security, or trust.
 
 **User Pain**
 
@@ -248,3 +248,23 @@ $ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' 
 
 -->
 
+## Reducing bugs and regressions
+
+Some ideas in 2024-01:
+
+- Maintain ratio of user-visible bugfixes to new features, eg above 10:1 (a new master merge test, human checked)
+- A release cycle with no new features
+- Alternate bugfix and feature release cycles
+- Set bug count targets
+- Label all issues for impact/severity/user pain; set max user pain targets
+- Gate releases on user pain targets or other bug metrics
+- Document and follow more disciplined bug triage/fixing methods
+- Identify every new bug early as a regression/non-regression
+- Prioritise rapid fixing and releasing for regressions / new bugs
+- Cheaper, more frequent bugfix releases
+- More intentional systematic tests ? Analyse for weak spots ?
+- Property tests ?
+- Internal cleanup, architectural improvements, more type safety ?
+- Custom issue dashboards (HTMX on hledger.org ?)
+- Public list / QA dashboard
+- Grow a QA team
