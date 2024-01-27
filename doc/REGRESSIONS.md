@@ -87,14 +87,17 @@ To claim the bounty:
 | [#2023](https://github.com/simonmichael/hledger/issues/2023) | Simon Michael   | [2023-04-06](https://opencollective.com/hledger/expenses/132635) |
 | [#2034](https://github.com/simonmichael/hledger/issues/2034) | Simon Michael   | N/A                                                              |
 | [#2045](https://github.com/simonmichael/hledger/issues/2045) | Pranesh Prakash | [2023-10-17](https://opencollective.com/hledger/expenses/150171) |
+| [#2153](https://github.com/simonmichael/hledger/issues/2153) | markokocic      | 2024-01-25, $50 donated                                          |
+| **1.30** 2023-06-01                                          | -               | -                                                                |
+| [#2072](https://github.com/simonmichael/hledger/issues/2072), #2137, #2150 | Simon Michael, usaAmch, ipvych |                                     |
 | **1.31** 2023-09-03                                          | -               | -                                                                |
 | [#2091](https://github.com/simonmichael/hledger/issues/2091) | Petr Slansky    | [2023-10-16](https://opencollective.com/hledger/expenses/166632) |
-| [#2115](https://github.com/simonmichael/hledger/issues/2115) | pepe_pecas      | 2023-12-15, donated                                              |
+| [#2115](https://github.com/simonmichael/hledger/issues/2115) | pepe_pecas      | 2023-12-15, $100 donated                                         |
 | **1.32** 2023-12-01                                          | -               | -                                                                |
 | [#2125](https://github.com/simonmichael/hledger/issues/2125) | Simon Michael   | N/A                                                              |
 | [#2127](https://github.com/simonmichael/hledger/issues/2127) | rajeevn1        |                                                                  |
 | [#2130](https://github.com/simonmichael/hledger/issues/2130) | Simon Michael   | N/A                                                              |
-| [#2134](https://github.com/simonmichael/hledger/issues/2134) | pepe_pecas      | 2023-12-15, donated                                              |
+| [#2134](https://github.com/simonmichael/hledger/issues/2134) | pepe_pecas      | 2023-12-15, $100 donated                                         |
 | [#2156](https://github.com/simonmichael/hledger/issues/2156) | ishmaelavila    |                                                                  |
 
 
