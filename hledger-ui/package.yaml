@@ -99,7 +99,7 @@ library:
   - transformers
   - vector
   - brick >=2.1.1 && <2.4
-  - vty >=6.1 && <6.2
+  - vty >=6.1 && <6.3
   - vty-crossplatform >= 0.4.0.0 && < 0.5.0.0
   when:
     - condition: os(windows)
