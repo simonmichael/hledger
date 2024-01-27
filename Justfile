@@ -518,24 +518,40 @@ BENCHMARKING:
 
 # generate standard sample journals in examples/
 samplejournals:
-    tools/generatejournal.hs 3 5 5           > examples/ascii.journal
-    tools/generatejournal.hs 3 5 5 --mixed   > examples/mixed.journal
-    tools/generatejournal.hs 10 10 10        > examples/10x10x10.journal       
-    tools/generatejournal.hs 100 100 10      > examples/100x100x10.journal     
-    tools/generatejournal.hs 1000 1000 10    > examples/1000x1000x10.journal   
-    tools/generatejournal.hs 1000 10000 10   > examples/1000x10000x10.journal  
-    tools/generatejournal.hs 2000 1000 10    > examples/2000x1000x10.journal   
-    tools/generatejournal.hs 3000 1000 10    > examples/3000x1000x10.journal   
-    tools/generatejournal.hs 4000 1000 10    > examples/4000x1000x10.journal   
-    tools/generatejournal.hs 5000 1000 10    > examples/5000x1000x10.journal   
-    tools/generatejournal.hs 6000 1000 10    > examples/6000x1000x10.journal   
-    tools/generatejournal.hs 7000 1000 10    > examples/7000x1000x10.journal   
-    tools/generatejournal.hs 8000 1000 10    > examples/8000x1000x10.journal   
-    tools/generatejournal.hs 9000 1000 10    > examples/9000x1000x10.journal   
-    tools/generatejournal.hs 10000 1000 10   > examples/10000x1000x10.journal  
-    tools/generatejournal.hs 10000 10000 10  > examples/10000x10000x10.journal 
-    tools/generatejournal.hs 100000 1000 10  > examples/100000x1000x10.journal 
-    tools/generatejournal.hs 1000000 1000 10 > examples/1000000x1000x10.journal
+    # small journals
+    tools/generatejournal 3 5 5            > examples/ascii.journal
+    tools/generatejournal 3 5 5 --mixed    > examples/mixed.journal
+    tools/generatejournal 1 1 10           > examples/1txns-1accts.journal
+    tools/generatejournal 10 10 10         > examples/10txns-10accts.journal
+    tools/generatejournal 100 100 10       > examples/100txns-100accts.journal
+    # many transactions
+    tools/generatejournal 1000    1000 10  > examples/1ktxns-1kaccts.journal
+    tools/generatejournal 2000    1000 10  > examples/2ktxns-1kaccts.journal
+    tools/generatejournal 3000    1000 10  > examples/3ktxns-1kaccts.journal
+    tools/generatejournal 4000    1000 10  > examples/4ktxns-1kaccts.journal
+    tools/generatejournal 5000    1000 10  > examples/5ktxns-1kaccts.journal
+    tools/generatejournal 6000    1000 10  > examples/6ktxns-1kaccts.journal
+    tools/generatejournal 7000    1000 10  > examples/7ktxns-1kaccts.journal
+    tools/generatejournal 8000    1000 10  > examples/8ktxns-1kaccts.journal
+    tools/generatejournal 9000    1000 10  > examples/9ktxns-1kaccts.journal
+    tools/generatejournal 10000   1000 10  > examples/10ktxns-1kaccts.journal
+    tools/generatejournal 100000  1000 10  > examples/100ktxns-1kaccts.journal
+    tools/generatejournal 1000000 1000 10  > examples/1Mtxns-1kaccts.journal
+    # many accounts
+    tools/generatejournal 1000 1 10        > examples/1ktxns-1accts.journal
+    tools/generatejournal 1000 10 10       > examples/1ktxns-10accts.journal
+    tools/generatejournal 1000 100 10      > examples/1ktxns-100accts.journal
+    #tools/generatejournal 1000 1000 10    > examples/1ktxns-1kaccts.journal
+    tools/generatejournal 1000 10000 10    > examples/1ktxns-10kaccts.journal
+    tools/generatejournal 1000 100000 10   > examples/1ktxns-100kaccts.journal
+    tools/generatejournal 1000 1000000 10  > examples/1ktxns-1maccts.journal
+    tools/generatejournal 10000 1 10       > examples/10ktxns-1accts.journal
+    tools/generatejournal 10000 10 10      > examples/10ktxns-10accts.journal
+    tools/generatejournal 10000 100 10     > examples/10ktxns-100accts.journal
+    #tools/generatejournal 10000 1000 10   > examples/10ktxns-1kaccts.journal
+    tools/generatejournal 10000 10000 10   > examples/10ktxns-10kaccts.journal
+    tools/generatejournal 10000 100000 10  > examples/10ktxns-100kaccts.journal
+    tools/generatejournal 10000 1000000 10 > examples/10ktxns-1maccts.journal
 
 # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
 # can't use $GHC or {{GHC}} here for some reason
