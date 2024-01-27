@@ -535,6 +535,14 @@ samplejournals:
     tools/generatejournal 8000    1000 10  > examples/8ktxns-1kaccts.journal
     tools/generatejournal 9000    1000 10  > examples/9ktxns-1kaccts.journal
     tools/generatejournal 10000   1000 10  > examples/10ktxns-1kaccts.journal
+    tools/generatejournal 20000   1000 10  > examples/20ktxns-1kaccts.journal
+    tools/generatejournal 30000   1000 10  > examples/30ktxns-1kaccts.journal
+    tools/generatejournal 40000   1000 10  > examples/40ktxns-1kaccts.journal
+    tools/generatejournal 50000   1000 10  > examples/50ktxns-1kaccts.journal
+    tools/generatejournal 60000   1000 10  > examples/60ktxns-1kaccts.journal
+    tools/generatejournal 70000   1000 10  > examples/70ktxns-1kaccts.journal
+    tools/generatejournal 80000   1000 10  > examples/80ktxns-1kaccts.journal
+    tools/generatejournal 90000   1000 10  > examples/90ktxns-1kaccts.journal
     tools/generatejournal 100000  1000 10  > examples/100ktxns-1kaccts.journal
     tools/generatejournal 1000000 1000 10  > examples/1Mtxns-1kaccts.journal
     # many accounts
@@ -586,6 +594,47 @@ symlink-binaries:
     printf "Running quick benchmarks (times are approximate, can be skewed):\n"
     which quickbench >/dev/null && quickbench {{ ARGS }} || echo "quickbench not installed (see bench.sh), skipping"
 
+@bench-quick8:
+    quickbench -w hledger-1.23,hledger-1.24,hledger-1.25,hledger-1.26,hledger-1.28,hledger-1.29,hledger-21ad,ledger
+
+@bench-quick3:
+    quickbench -w hledger-1.26,hledger-21ad,ledger '_ -f examples/10ktxns-1kaccts.journal print' '_ -f examples/10ktxns-1kaccts.journal register' '_ -f examples/10ktxns-1kaccts.journal balance'
+
+@bench-gtime:
+    for args in '-f examples/10ktxns-1kaccts.journal print' '-f examples/100ktxns-1kaccts.journal register' '-f examples/100ktxns-1kaccts.journal balance'; do \
+    echo; \
+    for app in hledger-1.26 hledger-21ad ledger; do \
+    echo; echo $app $args:; \
+    gtime $app $args >/dev/null; \
+    done; \
+    done
+
+# show throughput at various data sizes with the given hledger executable (requires samplejournals)
+@bench-throughput EXE:
+    echo date:       `date`
+    echo system:     `uname -a`
+    echo executable: {{ EXE }}
+    echo version:    `{{ EXE }} --version`
+    for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
+        printf "%6d txns: " $n; {{ EXE }} stats -f examples/${n}x1000x10.journal | tail -1; \
+    done
+    date
+
+# show throughput at various data sizes with the latest hledger dev build, optimised or not (requires samplejournals)
+@bench-throughput-dev:
+    stack build hledger
+    stack exec -- just throughput hledger
+
+@bench-throughput-recent:
+    for v in 1.25 1.28 1.29 1.32 21ad; do printf "\nhledger-$v:\n"; for i in `seq 1 3`; do hledger-$v -f examples/10ktxns-10kaccts.journal stats | grep throughput; done; done
+
+@bench-balance-many-accts:
+    quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
+
+@bench-balance-many-txns:
+    quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
+
+
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
@@ -605,22 +654,6 @@ symlink-binaries:
 # 	run progression benchmark tests and save graphical results\
 # 	)
 # 	tools/progressionbench -- -t png -k png
-
-# show throughput at various data sizes with the given hledger executable (requires samplejournals)
-@throughput EXE:
-    echo date:       `date`
-    echo system:     `uname -a`
-    echo executable: {{ EXE }}
-    echo version:    `{{ EXE }} --version`
-    for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
-        printf "%6d txns: " $n; {{ EXE }} stats -f examples/${n}x1000x10.journal | tail -1; \
-    done
-    date
-
-# show throughput at various data sizes with the latest hledger dev build, optimised or not (requires samplejournals)
-@throughput-dev:
-    stack build hledger
-    stack exec -- just throughput hledger
 
 # # prof: samplejournals \
 # # 	$(call def-help,prof,\
