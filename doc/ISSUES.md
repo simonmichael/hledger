@@ -161,35 +161,90 @@ deprecated.
 
 ## Prioritising
 
-As of 2023 it's not too much of a problem knowing what's high priority to fix.
-Still, <https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
-describes an interesting method of ranking issues by a single "User Pain" metric,
-what might be useful to try on our open bugs.
-What adaptation of it might work for the hledger project ?
-Here's a simplified version:
+<https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
+describes an interesting method of ranking issues by a single "User Pain" metric.
+What adaptation of this might be useful for the hledger project ?
 
-**Severity (How serious is this bug ?)**
+Here's a simplified version, currently being tested in the hledger issue tracker:
 
-- 5: Data loss or privacy/security loss bug.
-- 4: Regression, crash or major usability/doc bug.
-- 3: Installability, packaging or new user experience bug. A potential user could fail to get started.
-- 2: Minor/moderate usability/doc bug. Easy to avoid or not a big deal.
-- 1: Cleanup/design/developer bug. Significant only to developers and design-minded users.
+Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to bug reports, each with levels from 1 to 5:
 
-**Likelihood (Who is likely to be affected by this bug ?)**
+**Impact**
 
-- 5: Affects all users.
-- 4: Affects most users.
-- 3: Affects a minority of users.
-- 2: Affects only packagers or developers.
-- 1: Affects almost no one.
+Who is likely to be affected by this bug ?
 
-**User Pain = S * L / 25**
+- impact5: Affects all users.
+- impact4: Affects most users.
+- impact3: Affects a minority of users.
+- impact2: Affects only packagers or developers.
+- impact1: Affects almost no one.
 
-  (Severity * Likelihood / (Max Severity * Max Likelihood) )
+**Severity**
 
-- All open bugs are listed in order of User Pain (AKA Priority).
-- Developers check the Pain List daily and fix the highest pain bugs on the list.
-- The team can set easy-to-understand quality bars. For example, they can say “In order to release, we want no bugs greater than 30 pain.” 
-- If there are no bugs left above the current quality bar, they work on feature work.
-- When you do stumble upon a bug that will take more than a week to fix, it is flagged as a ‘killer’ bug, for special treatment.
+To people affected, how serious is this bug ?
+
+- severity5: Data loss or privacy/security loss bug.
+- severity4: Regression, crash or major usability/doc bug.
+- severity3: Installability, packaging or new user experience bug. A potential user could fail to get started.
+- severity2: Minor/moderate usability/doc bug. Easy to avoid or not a big deal.
+- severity1: Cleanup/design/developer bug. Significant only to developers and design-minded users.
+
+**User Pain**
+
+The bug's User Pain score is **Impact * Severity / 25**, ranging from 0.04 to 1.
+
+Then, practices like these are possible:
+
+- All open bugs can be listed in order of User Pain (AKA priority).
+- Developers can check the Pain List daily and fix the highest pain bugs on the list.
+- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 15 pain.” 
+- If there are no bugs left above the current quality bar, they can work on feature work.
+- If a bug is found that will take more than a week to fix, it can be flagged as a ‘killer’ bug, for special treatment.
+
+<!--
+$ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s / 25 = " `ruby -e "p $i*$s/25.0"`; done; done
+
+1 x 1 / 25 =  0.04
+1 x 2 / 25 =  0.08
+1 x 3 / 25 =  0.12
+1 x 4 / 25 =  0.16
+1 x 5 / 25 =  0.2
+2 x 1 / 25 =  0.08
+2 x 2 / 25 =  0.16
+2 x 3 / 25 =  0.24
+2 x 4 / 25 =  0.32
+2 x 5 / 25 =  0.4
+3 x 1 / 25 =  0.12
+3 x 2 / 25 =  0.24
+3 x 3 / 25 =  0.36
+3 x 4 / 25 =  0.48
+3 x 5 / 25 =  0.6
+4 x 1 / 25 =  0.16
+4 x 2 / 25 =  0.32
+4 x 3 / 25 =  0.48
+4 x 4 / 25 =  0.64
+4 x 5 / 25 =  0.8
+5 x 1 / 25 =  0.2
+5 x 2 / 25 =  0.4
+5 x 3 / 25 =  0.6
+5 x 4 / 25 =  0.8
+5 x 5 / 25 =  1.0 
+
+$ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%.2f\n") $ nub $ sort [i*s/(maximum is * maximum ss) | i<-is, s<-ss]'
+0.04
+0.08
+0.12
+0.16
+0.20
+0.24
+0.32
+0.36
+0.40
+0.48
+0.60
+0.64
+0.80
+1.00
+
+-->
+
