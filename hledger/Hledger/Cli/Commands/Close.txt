@@ -2,125 +2,150 @@ close
 
 (equity)
 
-A transaction-generating command which generates several kinds of
-"closing" and/or "opening" transactions useful in certain situations. It
-prints one or two transactions to stdout, but does not write them to the
-journal file; you can append or copy them there when you are happy with
-the output.
+close generates several kinds of "closing" and/or "opening"
+transactions, useful in certain situations, including migrating balances
+to a new journal file, retaining earnings into equity, consolidating
+balances, or viewing lots. Like print, it prints valid journal entries.
+You can append or copy these to your journal file(s) when you are happy
+with how they look.
 
 _FLAGS
 
-This command is most often used when migrating balances to a new journal
-file, at the start of a new financial year. It can also be used to
-"retain earnings" (transfer revenues and expenses to equity), or as a
-sort of generic mover of balances from any group of accounts to some
-other account. So it currently has six modes, selected by a mode flag.
-Use only one of these flags at a time:
+close currently has six modes, selected by a single mode flag:
 
-1.  With --close (or no mode flag) it prints a "closing balances"
-    transaction that zeroes out all the asset, liability, and equity
-    account balances, by default (this requires inferred or declared
-    account types). Or, it will zero out the accounts matched by any
-    ACCTQUERY arguments you provide. All of the balances are transferred
-    to a special "opening/closing balances" equity account.
+close --migrate
 
-2.  With --open, it prints an opposite "opening balances" transaction
-    that restores the same account balances, starting from zero. This
-    mode is similar to Ledger's equity command.
+This is the most common mode. It prints a "closing balances" transaction
+that zeroes out all asset and liability balances (by default), and an
+opposite "opening balances" transaction that restores them again. The
+balancing account will be equity:opening/closing balances (or another
+specified by --close-acct or --open-acct).
 
-3.  With --migrate, it prints both the closing and opening transactions
-    above. This is a common way to migrate balances to a new file at
-    year end; run hledger close --migrate -e NEWYEAR (-e influences the
-    transaction date) and add the closing transaction at the end of the
-    old file, and the opening transaction at the start of the new file.
-    Doing this means you can include past year files in your reports at
-    any time without disturbing asset/liability/equity balances, because
-    the closing balances transaction cancels out the following opening
-    balances transaction. You will sometimes need to exclude these
-    transactions from reports, eg to see an end of year balance sheet; a
-    not:opening/closing query argument should do. You should probably
-    also use this query when close-ing, to exclude the "opening/closing
-    balances" account which might otherwise cause problems. Or you can
-    just migrate assets and liabilities: hledger close type:AL. Most
-    people don't need to migrate equity. And revenues and expenses
-    usually should not be migrated.
+This is useful when migrating balances to a new journal file at the
+start of a new year. Essentially, you run
+hledger close --migrate=NEWYEAR -e NEWYEAR and then copy the closing
+transaction to the end of the old file and the opening transaction to
+the start of the new file. The opening transaction sets correct starting
+balances in the new file when it is used alone, and the closing
+transaction keeps balances correct when you use both old and new files
+together, by cancelling out the following opening transaction and
+preventing buildup of duplicated opening balances. Think of the
+closing/opening pair as "moving the balances into the next file".
 
-4.  With --assert it prints a "closing balances" transaction that just
-    asserts the current balances, without changing them. This can be
-    useful as documention and to guard against errors and changes.
+You can close a different set of accounts by providing a query. Eg if
+you want to include equity, you can add assets liabilities equity or
+type:ALE arguments. (The balancing account is always excluded.) Revenues
+and expenses usually are not migrated to a new file directly; see
+--retain below.
 
-5.  With --assign it prints an "opening balances" transaction that
-    restores the account balances using balance assignments. Balance
-    assignments work regardless of any previous balance, so a preceding
-    closing balances transaction is not needed. This is an alternative
-    to --close and --open: at year end,
-    hledger close --assert -e NEWYEAR in the old file (optional, but
-    useful for error checking), and hledger close --assign -e NEWYEAR in
-    the new file. This might be more convenient, eg if you are often
-    doing cleanups or fixes which would break closing/opening
-    transactions.
+The generated transactions will have a start: tag, with its value set to
+--migrate's NEW argument if any, for easier matching or exclusion. When
+NEW is not specified, it will be inferred if possible by incrementing a
+number (eg a year number) within the default journal's main file name.
+The other modes behave similarly.
 
-6.  With --retain, it prints a "retain earnings" transaction that
-    transfers revenue and expense balances to equity:retained earnings.
-    This is a traditional end-of-period bookkeeping operation also
-    called "closing the books"; in personal accounting you probably will
-    not need this but it could be useful if you want to see the
-    accounting equation (A=L+E) balanced.
+close --close
+
+This prints just the closing balances transaction of --migrate. It is
+the default behaviour if you specify no mode flag. Using the
+customisation options below, you can move balances from any set of
+accounts to a different account.
+
+close --open
+
+This prints just the opening balances transaction of --migrate. It is
+similar to Ledger's equity command.
+
+close --assert
+
+This prints a "closing balances" transaction (with balances: tag), that
+just declares balance assertions for the current balances without
+changing them. It could be useful as documention and to guard against
+changes.
+
+close --assign
+
+This prints an "opening balances" transaction that restores the account
+balances using balance assignments. Balance assignments work regardless
+of any previous balance, so a preceding closing balances transaction is
+not needed.
+
+However, omitting the closing balances transaction would unbalance
+equity. This is relatively harmless for personal reports, but it
+disturbs the accounting equation, removing a source of error detection.
+So --migrate is generally the best way to set to set balances in new
+files, for now.
+
+close --retain
+
+This is like --close with different defaults: it prints a "retain
+earnings" transaction (with retain: tag), that transfers revenue and
+expense balances to equity:retained earnings.
+
+This is a different kind of closing, called "retaining earnings" or
+"closing the books"; it is traditionally performed by businesses at the
+end of each accounting period, to consolidate revenues and expenses into
+the main equity balance. ("Revenues" and "expenses" are actually equity
+by another name, kept separate temporarily for reporting purposes.)
+
+In personal accounting you generally don't need to do this, unless you
+want the balancesheetequity report to show a zero total, demonstrating
+that the accounting equation (A-L=E) is satisfied.
+
+close customisation
 
 In all modes, the following things can be overridden:
 
--   the transaction descriptions can be changed with --close-desc=DESC
-    and --open-desc=DESC
--   the account to transfer to and from can be changed with
-    --close-acct=ACCT and --open-acct=ACCT
--   the accounts to be closed/opened can be changed with ACCTQUERY
-    (account query arguments).
--   the closing/opening dates can be changed with -e DATE (a report end
-    date)
+-   the accounts to be closed/opened, with account query arguments
+-   the balancing account, with --close-acct=ACCT and/or
+    --open-acct=ACCT
+-   the transaction descriptions, with --close-desc=DESC and
+    --open-desc=DESC
+-   the transaction's tag value, with a --MODE=NEW option argument
+-   the closing/opening dates, with -e OPENDATE
 
-By default just one destination/source posting will be used, with its
-amount left implicit. With --x/--explicit, the amount will be shown
-explicitly, and if it involves multiple commodities, a separate posting
-will be generated for each of them (similar to print -x).
+By default, the closing date is yesterday, or the journal's end date,
+whichever is later; and the opening date is always one day after the
+closing date. You can change these by specifying a report end date; the
+closing date will be the last day of the report period. Eg -e 2024 means
+"close on 2023-12-31, open on 2024-01-01".
 
-With --show-costs, any amount costs are shown, with separate postings
-for each cost. This is currently the best way to view investment lots.
-If you have many currency conversion or investment transactions, it can
-generate very large journal entries.
+With --x/--explicit, the balancing amount will be shown explicitly, and
+if it involves multiple commodities, a separate posting will be
+generated for each of them (similar to print -x).
 
 With --interleaved, each individual transfer is shown with source and
-destination postings next to each other. This could be useful for
-troubleshooting.
+destination postings next to each other (perhaps useful for
+troubleshooting).
 
-The default closing date is yesterday, or the journal's end date,
-whichever is later. You can change this by specifying a report end date
-with -e. The last day of the report period will be the closing date, eg
--e 2024 means "close on 2023-12-31". The opening date is always the day
-after the closing date.
+With --show-costs, balances' costs are also shown, with different costs
+kept separate. This may generate very large journal entries, if you have
+many currency conversions or investment transactions. close --show-costs
+is currently the best way to view investment lots with hledger. (To move
+or dispose of lots, see the more capable hledger-move script.)
 
 close and balance assertions
 
-Balance assertions will be generated, verifying that the accounts have
-been reset to zero (and then restored to their previous balances, if
-there is an opening transaction).
+close adds balance assertions verifying that the accounts have been
+reset to zero in a closing transaction or restored to their previous
+balances in an opening transaction. These provide useful error checking,
+but you can ignore them temporarily with -I, or remove them if you
+prefer.
 
-These provide useful error checking, but you can ignore them temporarily
-with -I, or remove them if you prefer.
+When running close you should probably avoid using -C, -R, status:
+(filtering by status or realness) or --auto (generating postings), since
+the generated balance assertions would then require these.
 
-You probably should avoid filtering transactions by status or realness
-(-C, -R, status:), or generating postings (--auto), with this command,
-since the balance assertions would depend on these.
-
-Note custom posting dates spanning the file boundary will disrupt the
-balance assertions:
+Transactions with multiple dates (eg posting dates) spanning the file
+boundary also can disrupt the balance assertions:
 
 2023-12-30 a purchase made in december, cleared in january
     expenses:food          5
     assets:bank:checking  -5  ; date: 2023-01-02
 
-To solve that you can transfer the money to and from a temporary
-account, in effect splitting the multi-day transaction into two
-single-day transactions:
+To solve this you can transfer the money to and from a temporary
+account, splitting the multi-day transaction into two single-day
+transactions:
 
 ; in 2022.journal:
 2022-12-30 a purchase made in december, cleared in january
@@ -132,76 +157,44 @@ single-day transactions:
     equity:pending         5 = 0
     assets:bank:checking  -5
 
-Example: retain earnings
+close examples
+
+Retain earnings
 
 Record 2022's revenues/expenses as retained earnings on 2022-12-31,
 appending the generated transaction to the journal:
 
 $ hledger close --retain -f 2022.journal -p 2022 >> 2022.journal
 
-Note 2022's income statement will now show only zeroes, because revenues
-and expenses have been moved entirely to equity. To see them again, you
-could exclude the retain transaction:
+After this, to see 2022's revenues and expenses you must exclude the
+retain earnings transaction:
 
 $ hledger -f 2022.journal is not:desc:'retain earnings'
 
-Example: migrate balances to a new file
+Migrate balances to a new file
 
-Close assets/liabilities/equity on 2022-12-31 and re-open them on
-2023-01-01:
+Close assets/liabilities on 2022-12-31 and re-open them on 2023-01-01:
 
 $ hledger close --migrate -f 2022.journal -p 2022
 # copy/paste the closing transaction to the end of 2022.journal
 # copy/paste the opening transaction to the start of 2023.journal
 
-Now 2022's balance sheet will show only zeroes, indicating a balanced
-accounting equation. (Unless you are using @/@@ notation - in that case,
-try adding --infer-equity.) To see the end-of-year balances again, you
-could exclude the closing transaction:
+After this, to see 2022's end-of-year balances you must exclude the
+closing balances transaction:
 
 $ hledger -f 2022.journal bs not:desc:'closing balances'
 
-Example: excluding closing/opening transactions
+For more flexibility, it helps to tag closing and opening transactions
+with eg start:NEWYEAR, then you can ensure correct balances by excluding
+all opening/closing transactions except the first, like so:
 
-When combining many files for multi-year reports, the closing/opening
-transactions cause some noise in transaction-oriented reports like print
-and register. You can exclude them as shown above, but not:desc:... is
-not ideal as it depends on consistent descriptions; also you will want
-to avoid excluding the very first opening transaction, which could be
-awkward. Here is one alternative, using tags:
+$ hledger bs -Y -f 2021.j -f 2022.j -f 2023.j expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2021.j -f 2022.j           expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2022.j -f 2023.j           expr:'tag:start=2022 or not tag:start'
+$ hledger bs -Y -f 2021.j                     expr:'tag:start=2021 or not tag:start'
+$ hledger bs -Y -f 2022.j                     expr:'tag:start=2022 or not tag:start'
+$ hledger bs -Y -f 2023.j                     # unclosed file, no query needed
 
-Add clopen: tags to all opening/closing balances transactions except the
-first, like this:
+More detailed close examples
 
-; 2021.journal
-2021-06-01 first opening balances
-...
-2021-12-31 closing balances  ; clopen:2022
-...
-
-; 2022.journal
-2022-01-01 opening balances  ; clopen:2022
-...
-2022-12-31 closing balances  ; clopen:2023
-...
-
-; 2023.journal
-2023-01-01 opening balances  ; clopen:2023
-...
-
-Now, assuming a combined journal like:
-
-; all.journal
-include 2021.journal
-include 2022.journal
-include 2023.journal
-
-The clopen: tag can exclude all but the first opening transaction. To
-show a clean multi-year checking register:
-
-$ hledger -f all.journal areg checking not:tag:clopen
-
-And the year values allow more precision. To show 2022's year-end
-balance sheet:
-
-$ hledger -f all.journal bs -e2023 not:tag:clopen=2023
+See examples/multi-year.

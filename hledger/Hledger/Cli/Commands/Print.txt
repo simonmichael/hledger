@@ -55,8 +55,9 @@ their symbol placement, decimal mark, and digit group marks will be made
 consistent. By default, decimal digits are shown as they are written in
 the journal.
 
-With the --round option, print will try increasingly hard to display
-decimal digits according to the commodity display styles:
+With the --round (Added in 1.32) option, print will try increasingly
+hard to display decimal digits according to the commodity display
+styles:
 
 -   --round=none show amounts with original precisions (default)
 -   --round=soft add/remove decimal zeros in amounts (except costs)
@@ -105,8 +106,8 @@ shown and the program exit code will be non-zero.
 print output format
 
 This command also supports the output destination and output format
-options The output formats supported are txt, beancount, csv, tsv, json
-and sql.
+options The output formats supported are txt, beancount (Added in 1.32),
+csv, tsv (Added in 1.32), json and sql.
 
 The beancount format tries to produce Beancount-compatible output, as
 follows:

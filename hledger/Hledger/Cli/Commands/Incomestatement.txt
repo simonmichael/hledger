@@ -43,4 +43,5 @@ smarter account detection, and revenues/income displayed with their sign
 flipped.
 
 This command also supports the output destination and output format
-options The output formats supported are txt, csv, tsv, html, and json.
+options The output formats supported are txt, csv, tsv (Added in 1.32),
+html, and json.
