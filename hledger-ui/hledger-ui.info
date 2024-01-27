@@ -148,9 +148,6 @@ File: hledger-ui.info,  Node: General input options,  Next: General reporting op
 '--alias=OLD=NEW'
 
      rename accounts named OLD to NEW
-'--anon'
-
-     anonymize accounts and payees
 '--pivot FIELDNAME'
 
      use some other field or tag for the account name
@@ -680,40 +677,40 @@ Node: General help options2951
 Ref: #general-help-options3100
 Node: General input options3382
 Ref: #general-input-options3567
-Node: General reporting options4269
-Ref: #general-reporting-options4433
-Node: MOUSE7823
-Ref: #mouse7918
-Node: KEYS8155
-Ref: #keys8248
-Node: SCREENS12903
-Ref: #screens13001
-Node: Menu13581
-Ref: #menu13674
-Node: Cash accounts13869
-Ref: #cash-accounts14011
-Node: Balance sheet accounts14195
-Ref: #balance-sheet-accounts14376
-Node: Income statement accounts14496
-Ref: #income-statement-accounts14682
-Node: All accounts14846
-Ref: #all-accounts14992
-Node: Register15174
-Ref: #register15298
-Node: Transaction17582
-Ref: #transaction17705
-Node: Error19122
-Ref: #error19216
-Node: TIPS19460
-Ref: #tips19559
-Node: Watch mode19601
-Ref: #watch-mode19708
-Node: Debug output21167
-Ref: #debug-output21278
-Node: ENVIRONMENT21490
-Ref: #environment21600
-Node: BUGS21791
-Ref: #bugs21874
+Node: General reporting options4224
+Ref: #general-reporting-options4388
+Node: MOUSE7778
+Ref: #mouse7873
+Node: KEYS8110
+Ref: #keys8203
+Node: SCREENS12858
+Ref: #screens12956
+Node: Menu13536
+Ref: #menu13629
+Node: Cash accounts13824
+Ref: #cash-accounts13966
+Node: Balance sheet accounts14150
+Ref: #balance-sheet-accounts14331
+Node: Income statement accounts14451
+Ref: #income-statement-accounts14637
+Node: All accounts14801
+Ref: #all-accounts14947
+Node: Register15129
+Ref: #register15253
+Node: Transaction17537
+Ref: #transaction17660
+Node: Error19077
+Ref: #error19171
+Node: TIPS19415
+Ref: #tips19514
+Node: Watch mode19556
+Ref: #watch-mode19663
+Node: Debug output21122
+Ref: #debug-output21233
+Node: ENVIRONMENT21445
+Ref: #environment21555
+Node: BUGS21746
+Ref: #bugs21829
 
 End Tag Table
 

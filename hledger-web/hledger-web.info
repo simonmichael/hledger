@@ -189,9 +189,6 @@ File: hledger-web.info,  Node: General input options,  Next: General reporting o
 '--alias=OLD=NEW'
 
      rename accounts named OLD to NEW
-'--anon'
-
-     anonymize accounts and payees
 '--pivot FIELDNAME'
 
      use some other field or tag for the account name
@@ -638,24 +635,24 @@ Node: General help options5257
 Ref: #general-help-options5407
 Node: General input options5689
 Ref: #general-input-options5875
-Node: General reporting options6577
-Ref: #general-reporting-options6742
-Node: PERMISSIONS10132
-Ref: #permissions10271
-Node: EDITING UPLOADING DOWNLOADING11483
-Ref: #editing-uploading-downloading11664
-Node: RELOADING12498
-Ref: #reloading12632
-Node: JSON API13065
-Ref: #json-api13180
-Node: DEBUG OUTPUT18668
-Ref: #debug-output18793
-Node: Debug output18820
-Ref: #debug-output-118921
-Node: ENVIRONMENT19338
-Ref: #environment19457
-Node: BUGS19574
-Ref: #bugs19658
+Node: General reporting options6532
+Ref: #general-reporting-options6697
+Node: PERMISSIONS10087
+Ref: #permissions10226
+Node: EDITING UPLOADING DOWNLOADING11438
+Ref: #editing-uploading-downloading11619
+Node: RELOADING12453
+Ref: #reloading12587
+Node: JSON API13020
+Ref: #json-api13135
+Node: DEBUG OUTPUT18623
+Ref: #debug-output18748
+Node: Debug output18775
+Ref: #debug-output-118876
+Node: ENVIRONMENT19293
+Ref: #environment19412
+Node: BUGS19529
+Ref: #bugs19613
 
 End Tag Table
 
