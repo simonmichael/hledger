@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>hledger bugs dashboard</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
+        integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+    <style>
+      body { padding:.5em; }
+      th { white-space: nowrap; }
+      tr { border-top:thin solid #eee; vertical-align:top; }
+      td { padding:0 1em; }
+      .tag { color:white; text-shadow: 2px 2px 2px black; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
+      .paletag { color:black; font-weight:bold; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
+    </style>
+</head>
+<body>
+    <h3 class="text-center">hledger open bugs</h3>
+    <p>
+      Currently our <a href="https://hledger.org/ISSUES.html#prioritising">user pain</a> score is
+      <i>Impact</i> (number of people affected, 1-5) <i>* Severity</i> (for those affected, 1-5) <i>/ 25</i>.
+      <br>
+      The possible scores are:
+0.04
+0.08
+0.12
+0.16
+0.20
+0.24
+0.32
+0.36
+0.40
+0.48
+0.60
+0.64
+0.80
+1.00
+.
+    </p>
+    <table id="issues">
+    </table>
+    <script src="app.js"></script>
+</body>
+</html>
