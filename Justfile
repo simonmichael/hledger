@@ -980,7 +980,7 @@ WORKLOG := "../../notes/CLOUD/hledger.md"
 
 # Show dates logged in hledger work log.
 @worklogdates:
-    awk "/^## Journal/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^### (\d{4}-\d{2}-\d{2})' -or '$1'
+    awk "/^## Journal/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^#### (\d{4}-\d{2}-\d{2})' -or '$1'
 
 # Show hledger work logged since this date or days ago or last release
 worklog *DATEARG:
@@ -988,7 +988,7 @@ worklog *DATEARG:
     DATE=`just datearg $DATEARG`
     WORKDATE=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$DATE\") . (++[\"9999-99-99\"]) . lines"`
     printf "** Work log\n"
-    awk "/^### $WORKDATE/{p=1;print;next};/^## /{p=0};p" $WORKLOG
+    awk "/^#### $WORKDATE/{p=1;print;next};/^## /{p=0};p" $WORKLOG
     echo
 
 # Copy some text to the system clipboard if possible
