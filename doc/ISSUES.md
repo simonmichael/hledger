@@ -24,6 +24,9 @@ Here are some shortcut urls:
 - <https://bugs.hledger.org/new>     - report a new issue
 - <https://hledger.org/regressions>  - how to claim regression bounties
 
+In 2017 we experimented with Github projects, in 2018 with Github milestones.
+Long ago we collected some wishlist items in a [trello board](https://trello.hledger.org) (trello.hledger.org).
+
 ## Open issues
 
 <!-- 
@@ -96,68 +99,48 @@ By topic and type.
 | [valuation](https://github.com/simonmichael/hledger/issues?q=is:open+label:valuation)                   | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:valuation)          | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:valuation)          | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:valuation)          | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:valuation)          |
 
 
+## Labels
+
+In the github issue tracker we use various <https://github.com/simonmichael/hledger/labels>,
+some which appear above, to categorise things like:
+
+- whether an issue is a bug (red) or a wish (pink)
+- which subcomponents (tools, commands, input/output formats) are involved (light blue)
+- which platforms are involved (light purple)
+- whether a bounty has been offered (bright green)
+- what is blocking an issue (grey)
+- bug impact and severity (light orange and light pink, see below)
+- miscellaneous things like security (bright red), regressions (black), release needed (orange)
+- etc.
+
+These labels also get used as prefixes in [commit messages](#commit-messages), in issue/PR titles, etc.
+
+## Conventions
 
 Some loose conventions:
 
-- In bug titles, mention the hledger version in which the bug first appeared 
-  (and avoid mentioning version numbers otherwise).
+- We can prefix bug titles (especially regressions) with the hledger version in which the bug first appeared.
   This allows searches like
   [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22)
   and
   [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression)
 
-
-## Labels
-
-<https://github.com/simonmichael/hledger/labels>,
-also listed at [open issues](#open-issues) above,
-are used to categorise:
-
-- whether an issue is a bug (red) or a wish (pink)
-- related subcomponents (tools, commands, input/output formats) (light blue)
-- related general topics (light green)
-- related platforms (light purple)
-- whether a bounty has been offered (dark green)
-- why an issue is blocked (dark grey) or was closed (black)
-- low priority info, like "imported" (white)
-
-Labels can also be used as prefixes in issue/PR titles,
-as prefixes in [commit messages](#commit-messages), etc.
-
-## Custodians
-
-If you are interested in helping with a particular component for a
-while, please add yourself as a custodian in Open Issues table above.
-A custodian\'s job is to help manage the issues, rally the troops, and
-drive the open issue count towards zero. The more custodians, the
-better! By dividing up the work this way, we can scale and make forward
-progress.
-
-## Milestones and Projects
-
-Milestones are used a little bit to plan releases. In 2017 we
-experimented with projects, but in 2018 milestones are in favour again..
-
 ## Estimates
 
-You might see some experiments in estimate tracking, where some issue
-names might have a suffix noting estimated and spent time. Basic format:
-\[ESTIMATEDTOTALTASKTIME\|TIMESPENTSOFAR\]. Examples: \`\`\` \[2\] two
-hours estimated, no time spent \[..\] half an hour estimated (a dot is
-\~a quarter hour, as in timedot format) \[1d\] one day estimated (a day
-is \~4 hours) \[1w\] one week estimated (a week is \~5 days or \~20
-hours) \[3\|2\] three hours estimated, about two hours spent so far
-\[1\|1w\|2d\] first estimate one hour, second estimate one week, about
-two days spent so far \`\`\` Estimates are always for the total time
-cost (not time remaining). Estimates are not usually changed, a new
-estimate is added instead. Numbers are very approximate, but better than
-nothing.
+You might see some old experiments in estimate tracking, where issue titles have a suffix noting estimated and spent time.
+Basic format: `[ESTIMATEDTOTALTASKTIME|TIMESPENTSOFAR]`.
+Examples:
 
-## Trello
+- `[2]` two hours estimated, no time spent
+- `[..]` half an hour estimated (a dot is ~a quarter hour, as in timedot format)
+- `[1d]` one day estimated (a day is ~4 hours)
+- `[1w]` one week estimated (a week is ~5 days or ~20 hours)
+- `[3|2]` three hours estimated, about two hours spent so far
+- `[1|1w|2d]` first estimate one hour, second estimate one week, about two days spent so far
 
-The [trello board](http://trello.hledger.org) (trello.hledger.org) is an
-old collection of wishlist items. This should probably be considered
-deprecated.
+Estimates are always for the total time cost (not time remaining).
+Estimates are not usually changed, a new estimate is added instead.
+Numbers are very approximate, but better than nothing.
 
 ## Prioritising
 
@@ -268,3 +251,9 @@ Some ideas in 2024-01:
 - Custom issue dashboards (HTMX on hledger.org ?)
 - Public list / QA dashboard
 - Grow a QA team
+
+Older ideas
+
+- Custodians for particular components/topics
+  ("If you are interested in helping with a particular component for a while, please add yourself as a custodian in the Open Issues table. A custodian\'s job is to help manage the issues, rally the troops, and drive the open issue count towards zero. The more custodians, the better! By dividing up the work this way, we can scale and make forward progress.")
+
