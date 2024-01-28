@@ -251,8 +251,6 @@ Options
        --alias=OLD=NEW
               rename accounts named OLD to NEW
 
-       --anon anonymize accounts and payees
-
        --pivot FIELDNAME
               use some other field or tag for the account name
 
@@ -4910,8 +4908,7 @@ Forecasting
        temporary  "forecast transactions" for reporting purposes, according to
        periodic transaction rules defined in the journal.  Each rule can  gen-
        erate  multiple recurring transactions, so by changing one rule you can
-       change many forecasted transactions.  (These same rules can also gener-
-       ate budget goals, described in Budgeting.)
+       change many forecasted transactions.
 
        Forecast transactions usually start after  ordinary  transactions  end.
        By default, they begin after your latest-dated ordinary transaction, or
