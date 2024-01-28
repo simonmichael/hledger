@@ -21,6 +21,14 @@ Improvements
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.32.3 2024-01-28
+
+- Some API renames ended up in this release, including
+
+  - amountStripPrices    -> amountStripCost
+  - showAmountPrice      -> showAmountCostB
+  - showAmountPriceDebug -> showAmountCostDebug
+
 # 1.32.2 2023-12-31
 
 Breaking changes

@@ -21,6 +21,12 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.32.3 2024-01-28
+
+- Use hledger-1.32.3
+
+- Allow vty 6.2, brick 2.3
+
 # 1.32.2 2023-12-31
 
 Features
