@@ -21,8 +21,17 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.32.2 2023-12-31
+# 1.32.3 2024-01-28
+- ;doc: update manuals
 
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.32.3
+
+- fix: check mixed-cost balances correctly again (#2150, #2137)
+  Fixes a latent bug exposed by 1.30's fix for #2039.
+  This is a minimal backport of the fix from master, for 1.32.3.
+# 1.32.2 2023-12-31
 Fixes
 
 - In CSV field assignments,  %FIELD interpolation and `\n` can be used together again. [#2134]

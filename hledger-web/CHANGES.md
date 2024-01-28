@@ -21,8 +21,13 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 1.32.2 2023-12-31
+# 1.32.3 2024-01-28
+- ;doc: update manuals
 
+- ;cabal: update cabal files
+
+- ;pkg: bump version to 1.32.3
+# 1.32.2 2023-12-31
 Fixes
 
 - The --base-url option works again. [#2127], [#2100]
