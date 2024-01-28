@@ -22,16 +22,25 @@ User-visible changes in the hledger command line tool and library.
 
 
 # 1.32.3 2024-01-28
-- ;doc: update manuals
 
-- ;cabal: update cabal files
+Fixes
 
-- ;pkg: bump version to 1.32.3
+- A performance slowdown since 1.29, especially noticeable with many
+  accounts and transactions, has been fixed. [#2153]
 
-- fix: check mixed-cost balances correctly again (#2150, #2137)
-  Fixes a latent bug exposed by 1.30's fix for #2039.
-  This is a minimal backport of the fix from master, for 1.32.3.
+- Balance assertions involving mixed-cost balances are checked correctly again
+  (a regression in 1.30). [#2150]
+
+- import --catchup works again (a regression in 1.32). [#2156]
+
+- --anon is now a deprecated hidden flag that raises an error,
+  but is still usable as --obfuscate (also hidden). [#2133]
+
+- Balance assertion error messages are clearer, and show the diff again.
+
+
 # 1.32.2 2023-12-31
+
 Fixes
 
 - In CSV field assignments,  %FIELD interpolation and `\n` can be used together again. [#2134]

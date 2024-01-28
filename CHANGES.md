@@ -21,10 +21,18 @@ For package-specific changes, see the hledger package changelogs.
 
 
 # 1.32.3 2024-01-28
-- ;pkg: bump version to 1.32.3
 
-- fix:pkg:include hledger-ui.exe in release binaries
+Scripts/addons
+
+- bin/hledger-bar: Fix an error when NO_COLOR is not defined;
+  allow color when NO_COLOR is defined but empty, per no-color spec;
+  and fix shellcheck warnings.
+  [#2159] (Colin Dean, Simon Michael)
+
+- bin/hledger-simplebal: Fix shellcheck warnings. (Colin Dean)
+
 # 1.32.2 2023-12-31
+
 Docs
 
 - Added: 
