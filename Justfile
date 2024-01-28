@@ -879,11 +879,12 @@ relfiles:
 # Prepare to release today, creating/switching to release branch, updating versions, dates, manuals, changelogs etc.
 relprep VER:
     #!/usr/bin/env bash
+    set -euo pipefail
     [[ -z {{ VER }} ]] && usage
     BRANCH=$(just _versionReleaseBranch {{ VER }})
     COMMIT="-c"
     echo "Switching to $BRANCH, auto-creating it if needed..."
-    _gitSwitchAutoCreate "$BRANCH"
+    just _gitSwitchAutoCreate "$BRANCH"
     echo "Bumping all version strings to {{ VER }} ..."
     ./Shake setversion {{ VER }} $COMMIT
     echo "Updating all command help texts for embedding..."
