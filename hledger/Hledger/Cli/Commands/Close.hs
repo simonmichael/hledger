@@ -79,28 +79,23 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     openacct  = maybe closeacct T.pack $ maybestringopt "open-acct" rawopts
 
     -- For easy matching and exclusion, a recognisable tag is added to all generated transactions
+    tagval = fromMaybe "" $ maybestringopt modeflag rawopts where modeflag = lowercase $ show mode_
     comment = T.pack $ if
-      | mode_ == Assert -> "balances:" <> val
-      | mode_ == Retain -> "retain:"   <> val
-      | otherwise       -> "start:"    <> val
+      | mode_ == Assert -> "assert:" <> tagval
+      | mode_ == Retain -> "retain:" <> tagval
+      | otherwise       -> "start:"  <> if null tagval then inferredval else tagval
       where
-        val = if null flagval then inferredval else flagval
+        inferredval = newfilename
           where
-            inferredval = newfilename
-              where
-                oldfilename = takeFileName $ journalFilePath j
-                (nonnum, rest) = break isDigit $ reverse oldfilename
-                (oldnum, rest2) = span isDigit rest
-                newfilename = case oldnum of
-                  [] -> ""
-                  _  -> reverse rest2 <> newnum <> reverse nonnum
-                    where
-                      newnum = show $ 1 + readDef err (reverse oldnum)  -- PARTIAL: should not fail
-                        where err = error' $ "could not read " <> show oldnum <> " as a number in Hledger.Cli.Commands.Close.close"
-
-            flagval = fromMaybe "" $ maybestringopt modeflag rawopts
-              where
-                modeflag = lowercase $ show mode_
+            oldfilename = takeFileName $ journalFilePath j
+            (nonnum, rest) = break isDigit $ reverse oldfilename
+            (oldnum, rest2) = span isDigit rest
+            newfilename = case oldnum of
+              [] -> ""
+              _  -> reverse rest2 <> newnum <> reverse nonnum
+                where
+                  newnum = show $ 1 + readDef err (reverse oldnum)  -- PARTIAL: should not fail
+                    where err = error' $ "could not read " <> show oldnum <> " as a number in Hledger.Cli.Commands.Close.close"
 
     ropts = (_rsReportOpts rspec0){balanceaccum_=Historical, accountlistmode_=ALFlat}
     rspec1 = setDefaultConversionOp NoConversionOp rspec0{_rsReportOpts=ropts}
