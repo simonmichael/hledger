@@ -579,7 +579,7 @@ $ hledger bal -f- --budget -TA not:income -O csv
 "expenses:bills","$80","$370","$80","$370","$80","$370"
 "expenses:bills:a","$10","$20","$10","$20","$10","$20"
 "expenses:bills:b","$40","$200","$40","$200","$40","$200"
-"expenses:bills:c","","$50","","$50","","$50"
+"expenses:bills:c","0","$50","0","$50","0","$50"
 "expenses:bills:f","$10","0","$10","0","$10","0"
 "Total:","$80","$370","$80","$370","$80","$370"
 
@@ -589,7 +589,7 @@ Account	2019-01-01..2019-01-02	budget	Total	budget	Average	budget
 expenses:bills	$80	$370	$80	$370	$80	$370
 expenses:bills:a	$10	$20	$10	$20	$10	$20
 expenses:bills:b	$40	$200	$40	$200	$40	$200
-expenses:bills:c		$50		$50		$50
+expenses:bills:c	0	$50	0	$50	0	$50
 expenses:bills:f	$10	0	$10	0	$10	0
 Total:	$80	$370	$80	$370	$80	$370
 

@@ -246,9 +246,9 @@ combineBudgetAndActual ropts j
       | PeriodicReportRow acct budgetgoals budgettot budgetavg <- budgetrows
       , displayFull acct `notElem` map prrFullName actualsplusgoals
       , let acctBudgetByPeriod = Map.fromList $ zip budgetperiods budgetgoals :: Map DateSpan BudgetGoal
-      , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
-      , let totamtandgoal      = (Nothing, Just budgettot)
-      , let avgamtandgoal      = (Nothing, Just budgetavg)
+      , let amtandgoals        = [ (Just 0, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
+      , let totamtandgoal      = (Just 0, Just budgettot)
+      , let avgamtandgoal      = (Just 0, Just budgetavg)
       ]
 
     -- combine and re-sort rows
