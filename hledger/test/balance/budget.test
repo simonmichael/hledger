@@ -583,7 +583,7 @@ $ hledger bal -f- --budget -TA not:income -O csv
 "expenses:bills:f","$10","0","$10","0","$10","0"
 "Total:","$80","$370","$80","$370","$80","$370"
 
-# TSV output works.
+# ** 30. TSV output works.
 $ hledger bal -f- --budget -TA not:income -O tsv
 Account	2019-01-01..2019-01-02	budget	Total	budget	Average	budget
 expenses:bills	$80	$370	$80	$370	$80	$370
@@ -593,7 +593,7 @@ expenses:bills:c		$50		$50		$50
 expenses:bills:f	$10	0	$10	0	$10	0
 Total:	$80	$370	$80	$370	$80	$370
 
-# ** 30. You would expect this to show a budget goal in jan, feb, mar.
+# ** 31. You would expect this to show a budget goal in jan, feb, mar.
 # But by the usual report date logic, which picks the oldest and newest 
 # transaction date (1/15 and 3/15) as start and end date by default, 
 # and since "monthly" generates transactions on the 1st,
@@ -621,7 +621,7 @@ Budget performance in 2020Q1:
 ---------------++-----------------------------------------------------------
                ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
 
-# ** 31. Specifying the report period works around it.
+# ** 32. Specifying the report period works around it.
 $ hledger -f- bal --budget -M date:2020q1
 Budget performance in 2020Q1:
 
@@ -632,7 +632,7 @@ Budget performance in 2020Q1:
 ---------------++-----------------------------------------------------------
                ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
 
-# 32, 33. Select from multiple named budgets.
+# ** 33, 34. Select from multiple named budgets.
 <
 ~ weekly   weekly budget
   (aaa)   1
@@ -648,7 +648,7 @@ $ hledger -f- bal --budget=monthly -p 2021-01
 > !/aaa/
 >=
 
-# ** 34. Cumulative budget report.
+# ** 35. Cumulative budget report.
 <
 ~ monthly
   (a)  10
@@ -668,7 +668,7 @@ Budget performance in 2022-01-01..2022-02-28:
 ---++---------------------------------
    || 10 [100% of 10]  15 [75% of 20] 
 
-# ** 35. Historical budget report.
+# ** 36. Historical budget report.
 $ hledger -f- bal --budget -MH -b 2022-02-01
 Budget performance in 2022-02:
 
@@ -678,7 +678,7 @@ Budget performance in 2022-02:
 ---++----------------
    || 15 [75% of 20] 
 
-# ** 36. Historical budget report where the periodic transaction has date bounds.
+# ** 37. Historical budget report where the periodic transaction has date bounds.
 <
 ~ every february 2nd from 2020/01
     (a)  1
@@ -692,7 +692,7 @@ Budget performance in 2020Q1:
 ---++--------------------------------------
    ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
 
-# ** 37. Budget report applies command line commodity styles to goal amounts (#1905).
+# ** 38. Budget report applies command line commodity styles to goal amounts (#1905).
 <
 ~ daily
     (a)  1
@@ -709,7 +709,7 @@ Budget performance in 2022-01-01:
 ---++-------------------
    || 1.0 [100% of 1.0] 
 
-# ** 38. Tall budget report adds per-column zeroes properly.
+# ** 39. Tall budget report adds per-column zeroes properly.
 <
 2020-01-15
   (a)    A 100
