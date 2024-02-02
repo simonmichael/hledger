@@ -26,7 +26,7 @@ import Data.Decimal (roundTo)
 import Data.Function (on)
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
-import Data.List (find, partition, transpose, foldl', maximumBy)
+import Data.List (find, partition, transpose, foldl', maximumBy, intercalate)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe, catMaybes, isJust)
 import Data.Map (Map)
@@ -63,6 +63,16 @@ type BudgetDisplayCell = (WideBuilder, Maybe (WideBuilder, Maybe WideBuilder))
 type BudgetDisplayRow  = [BudgetDisplayCell]
 type BudgetShowMixed   = MixedAmount -> [WideBuilder]
 type BudgetPercBudget  = Change -> BudgetGoal -> [Maybe Percentage]
+
+_brrShowDebug :: BudgetReportRow -> String
+_brrShowDebug (PeriodicReportRow dname budgetpairs _tot _avg) =
+  unwords [
+    T.unpack $ displayFull dname,
+    "",
+    intercalate " | "
+      [ maybe "-" showMixedAmount mactual <> " [" <> maybe "-" showMixedAmount mgoal <> "]"
+      | (mactual,mgoal) <- budgetpairs ]
+    ]
 
 -- | Calculate per-account, per-period budget (balance change) goals
 -- from all periodic transactions, calculate actual balance changes
@@ -201,14 +211,16 @@ combineBudgetAndActual :: ReportOpts -> Journal -> MultiBalanceReport -> MultiBa
 combineBudgetAndActual ropts j
       (PeriodicReport budgetperiods budgetrows (PeriodicReportRow _ budgettots budgetgrandtot budgetgrandavg))
       (PeriodicReport actualperiods actualrows (PeriodicReportRow _ actualtots actualgrandtot actualgrandavg)) =
-    PeriodicReport periods sortedrows totalrow
+    PeriodicReport periods combinedrows totalrow
   where
     periods = nubSort . filter (/= nulldatespan) $ budgetperiods ++ actualperiods
 
     -- first, combine any corresponding budget goals with actual changes
-    rows1 =
-      [ PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
-      | PeriodicReportRow acct actualamts actualtot actualavg <- actualrows
+    actualsplusgoals = [
+        -- dbg0With (("actualsplusgoals: "<>)._brrShowDebug) $
+        PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
+      | PeriodicReportRow acct actualamts actualtot actualavg <- actualrows  -- XXX #2071 can miss budgeted rows with elided parent no actual
+
       , let mbudgetgoals       = HM.lookup (displayFull acct) budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
       , let budgetmamts        = maybe (Nothing <$ periods) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
       , let mbudgettot         = second3 <$> mbudgetgoals :: Maybe BudgetTotal
@@ -222,13 +234,17 @@ combineBudgetAndActual ropts j
       where
         budgetGoalsByAcct :: HashMap AccountName ([BudgetGoal], BudgetTotal, BudgetAverage) =
           HM.fromList [ (displayFull acct, (amts, tot, avg))
-                         | PeriodicReportRow acct amts tot avg <- budgetrows ]
+                      | PeriodicReportRow acct amts tot avg <-
+                          -- dbg0With (unlines.map (("budgetgoals: "<>).prrShowDebug)) $
+                          budgetrows
+                      ]
 
     -- next, make rows for budget goals with no actual changes
-    rows2 =
-      [ PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
+    othergoals = [
+        -- dbg0With (("othergoals: "<>)._brrShowDebug) $
+        PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
       | PeriodicReportRow acct budgetgoals budgettot budgetavg <- budgetrows
-      , displayFull acct `notElem` map prrFullName rows1
+      , displayFull acct `notElem` map prrFullName actualsplusgoals
       , let acctBudgetByPeriod = Map.fromList $ zip budgetperiods budgetgoals :: Map DateSpan BudgetGoal
       , let amtandgoals        = [ (Nothing, Map.lookup p acctBudgetByPeriod) | p <- periods ] :: [BudgetCell]
       , let totamtandgoal      = (Nothing, Just budgettot)
@@ -237,11 +253,13 @@ combineBudgetAndActual ropts j
 
     -- combine and re-sort rows
     -- TODO: add --sort-budget to sort by budget goal amount
-    sortedrows :: [BudgetReportRow] = sortRowsLike (mbrsorted unbudgetedrows ++ mbrsorted rows') rows
+    combinedrows :: [BudgetReportRow] =
+      -- map (dbg0With (("combinedrows: "<>)._brrShowDebug)) $
+      sortRowsLike (mbrsorted unbudgetedrows ++ mbrsorted rows') rows
       where
         (unbudgetedrows, rows') = partition ((==unbudgetedAccountName) . prrFullName) rows
         mbrsorted = map prrFullName . sortRows ropts j . map (fmap $ fromMaybe nullmixedamt . fst)
-        rows = rows1 ++ rows2
+        rows = actualsplusgoals ++ othergoals
 
     totalrow = PeriodicReportRow ()
         [ (Map.lookup p totActualByPeriod, Map.lookup p totBudgetByPeriod) | p <- periods ]

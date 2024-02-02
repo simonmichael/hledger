@@ -28,6 +28,7 @@ module Hledger.Reports.ReportTypes
 , flatDisplayName
 , treeDisplayName
 
+, prrShowDebug
 , prrFullName
 , prrDisplayName
 , prrDepth
@@ -44,6 +45,8 @@ import GHC.Generics (Generic)
 import Hledger.Data
 import Hledger.Query (Query)
 import Hledger.Reports.ReportOptions (ReportOpts)
+import qualified Data.Text as T
+import Data.List (intercalate)
 
 type Percentage = Decimal
 
@@ -118,6 +121,14 @@ instance HasAmounts b => HasAmounts (PeriodicReportRow a b) where
      ,prrTotal  =styleAmounts styles $ prrTotal r
      ,prrAverage=styleAmounts styles $ prrAverage r
      }
+
+prrShowDebug :: PeriodicReportRow DisplayName MixedAmount -> String
+prrShowDebug (PeriodicReportRow dname amts _tot _avg) =
+  unwords [
+    T.unpack $ displayFull dname,
+    "",
+    intercalate " | " $ map showMixedAmount amts
+    ]
 
 -- | Add two 'PeriodicReportRows', preserving the name of the first.
 prrAdd :: Semigroup b => PeriodicReportRow a b -> PeriodicReportRow a b -> PeriodicReportRow a b
