@@ -329,7 +329,7 @@ budgetReportAsTable
     (accts, rows, totalrows) = (accts', prependcs itemscs (padcells texts), prependcs trcs (padtr trtexts))
       where
         shownitems :: [[(AccountName, WideBuilder, BudgetDisplayRow)]]
-        shownitems = (fmap (\i -> fmap (\(cs, cvals) -> (renderacct i, cs, cvals)) . showrow $ rowToBudgetCells i) items)
+        shownitems = (map (\i -> map (\(cs, cvals) -> (renderacct i, cs, cvals)) . showrow $ rowToBudgetCells i) items)
         (accts', itemscs, texts) = unzip3 $ concat shownitems
 
         showntr    :: [[(WideBuilder, BudgetDisplayRow)]]
@@ -339,8 +339,8 @@ budgetReportAsTable
           | transpose_ = drop (length texts) widths
           | otherwise = widths
 
-        padcells = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip widths)   . maybetranspose
-        padtr    = maybetranspose . fmap (fmap (uncurry paddisplaycell) . zip trwidths) . maybetranspose
+        padcells = maybetranspose . map (map (uncurry paddisplaycell) . zip widths)   . maybetranspose
+        padtr    = maybetranspose . map (map (uncurry paddisplaycell) . zip trwidths) . maybetranspose
 
         -- with --layout=bare, begin with a commodity column
         prependcs cs
@@ -358,18 +358,18 @@ budgetReportAsTable
            ( pure . showMixedAmountB oneLineNoCostFmt{displayMaxWidth=width, displayColour=color_}
            , \a -> pure . percentage a)
       _ -> ( showMixedAmountLinesB noCostFmt{displayCommodity=layout_/=LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing, displayColour=color_}
-           , \a b -> fmap (percentage' a b) cs)
+           , \a b -> map (percentage' a b) cs)
 
     showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
     showrow row =
       let cs = budgetCellsCommodities row
           (showmixed, percbudget) = rowfuncs cs
-       in   zip (fmap wbFromText cs)
+       in   zip (map wbFromText cs)
           . transpose
-          . fmap (showcell showmixed percbudget)
+          . map (showcell showmixed percbudget)
           $ row
 
-    budgetCellsCommodities = S.toList . foldl' S.union mempty . fmap budgetCellCommodities
+    budgetCellsCommodities = S.toList . foldl' S.union mempty . map budgetCellCommodities
     budgetCellCommodities :: BudgetCell -> S.Set CommoditySymbol
     budgetCellCommodities (am, bm) = f am `S.union` f bm
       where f = maybe mempty maCommodities
@@ -381,7 +381,7 @@ budgetReportAsTable
           disp = showcell showmixed percbudget
           budgetpercwidth = wbWidth *** maybe 0 wbWidth
           cellwidth (am, bm) = let (bw, pw) = maybe (0, 0) budgetpercwidth bm in (wbWidth am, bw, pw)
-       in fmap (fmap cellwidth . disp) row
+       in map (map cellwidth . disp) row
 
     -- build a list of widths for each column. In the case of transposed budget
     -- reports, the total 'row' must be included in this list
@@ -490,20 +490,20 @@ budgetReportAsCsv
                -> PeriodicReportRow a BudgetCell
                -> [[Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | layout_ /= LayoutBare = [render row : fmap showNorm vals]
+      | layout_ /= LayoutBare = [render row : map showNorm vals]
       | otherwise =
             joinNames . zipWith (:) cs  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
-          . fmap (fmap wbToText . showMixedAmountLinesB dopts . fromMaybe nullmixedamt)
+          . map (map wbToText . showMixedAmountLinesB dopts . fromMaybe nullmixedamt)
           $ vals
       where
-        cs = S.toList . foldl' S.union mempty . fmap maCommodities $ catMaybes vals
+        cs = S.toList . foldl' S.union mempty . map maCommodities $ catMaybes vals
         dopts = oneLineNoCostFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
         vals = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]
 
-        joinNames = fmap (render row :)
+        joinNames = map (render row :)
 
 -- tests
 
