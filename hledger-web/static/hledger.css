@@ -86,6 +86,11 @@ ul {
     padding-left: 30px;
 }
 
+#message {
+    white-space: pre;
+    overflow-x: auto;
+}
+
 #sidebar-menu {
     overflow:hidden;
     border-right: 1px solid #ebebeb;
