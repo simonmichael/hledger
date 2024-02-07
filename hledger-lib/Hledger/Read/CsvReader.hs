@@ -41,11 +41,11 @@ import Hledger.Read.RulesReader (readJournalFromCsv)
 
 --- ** reader
 
-reader :: MonadIO m => Reader m
-reader = Reader
-  {rFormat     = "csv"
-  ,rExtensions = ["csv","tsv","ssv"]
-  ,rReadFn     = parse
+reader :: MonadIO m => SepFormat -> Reader m
+reader sep = Reader
+  {rFormat     = Sep sep
+  ,rExtensions = [show sep]
+  ,rReadFn     = parse sep
   ,rParser     = error' "sorry, CSV files can't be included yet"  -- PARTIAL:
   }
 
@@ -54,10 +54,10 @@ reader = Reader
 -- This file path is normally the CSV(/SSV/TSV) data file, and a corresponding rules file is inferred.
 -- But it can also be the rules file, in which case the corresponding data file is inferred.
 -- This does not check balance assertions.
-parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts f t = do
+parse :: SepFormat -> InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+parse sep iopts f t = do
   let mrulesfile = mrules_file_ iopts
-  readJournalFromCsv (Right <$> mrulesfile) f t
+  readJournalFromCsv (Right <$> mrulesfile) f t (Just sep)
   -- apply any command line account aliases. Can fail with a bad replacement pattern.
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
       -- journalFinalise assumes the journal's items are

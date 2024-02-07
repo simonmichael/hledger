@@ -622,9 +622,38 @@ data Journal = Journal {
 -- The data is partial, and list fields are in reverse order.
 type ParsedJournal = Journal
 
+-- | One of the standard *-separated value file types known by hledger,
+data SepFormat 
+  = Csv  -- comma-separated
+  | Tsv  -- tab-separated
+  | Ssv  -- semicolon-separated
+  deriving Eq
+
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
-type StorageFormat = String
+data StorageFormat 
+  = Rules 
+  | Journal' 
+  | Ledger' 
+  | Timeclock 
+  | Timedot 
+  | Sep SepFormat 
+  deriving Eq
+
+instance Show SepFormat where
+  show Csv = "csv"
+  show Ssv = "ssv"
+  show Tsv = "tsv"
+
+instance Show StorageFormat where
+  show Rules = "rules"
+  show Journal' = "journal"
+  show Ledger' = "ledger"
+  show Timeclock = "timeclock"
+  show Timedot = "timedot"
+  show (Sep Csv) = "csv"
+  show (Sep Ssv) = "ssv"
+  show (Sep Tsv) = "tsv"
 
 -- | Extra information found in a payee directive.
 data PayeeDeclarationInfo = PayeeDeclarationInfo {

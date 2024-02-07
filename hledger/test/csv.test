@@ -1131,6 +1131,19 @@ $  ./csvtest.sh
 
 >=
 
+# ** 59. specify ssv prefix and no extension
+<
+12/11/2019;Foo;123;10.23
+RULES
+fields date, description, , amount
+date-format %d/%m/%Y
+$  ./ssvtest.sh
+2019-11-12 Foo
+    expenses:unknown           10.23
+    income:unknown            -10.23
+
+>=
+
 # ** .
 #<
 #$  ./csvtest.sh

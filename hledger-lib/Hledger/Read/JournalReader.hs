@@ -139,21 +139,25 @@ readers' = [
  ,TimeclockReader.reader
  ,TimedotReader.reader
  ,RulesReader.reader
- ,CsvReader.reader
+ ,CsvReader.reader Csv
+ ,CsvReader.reader Tsv
+ ,CsvReader.reader Ssv
 --  ,LedgerReader.reader
  ]
 
 readerNames :: [String]
-readerNames = map rFormat (readers'::[Reader IO])
+readerNames = map (show . rFormat) (readers'::[Reader IO])
 
 -- | @findReader mformat mpath@
 --
 -- Find the reader named by @mformat@, if provided.
+-- ("ssv" and "tsv" are recognised as alternate names for the csv reader,
+-- which also handles those formats.)
 -- Or, if a file path is provided, find the first reader that handles
 -- its file extension, if any.
 findReader :: MonadIO m => Maybe StorageFormat -> Maybe FilePath -> Maybe (Reader m)
 findReader Nothing Nothing     = Nothing
-findReader (Just fmt) _        = headMay [r | r <- readers', rFormat r == fmt]
+findReader (Just fmt) _        = headMay [r | r <- readers', let rname = rFormat r, rname == fmt]
 findReader Nothing (Just path) =
   case prefix of
     Just fmt -> headMay [r | r <- readers', rFormat r == fmt]
@@ -168,16 +172,27 @@ type PrefixedFilePath = FilePath
 
 -- | If a filepath is prefixed by one of the reader names and a colon,
 -- split that off. Eg "csv:-" -> (Just "csv", "-").
-splitReaderPrefix :: PrefixedFilePath -> (Maybe String, FilePath)
+-- These reader prefixes can be used to force a specific reader,
+-- overriding the file extension. 
+splitReaderPrefix :: PrefixedFilePath -> (Maybe StorageFormat, FilePath)
 splitReaderPrefix f =
-  headDef (Nothing, f) $
-  [(Just r, drop (length r + 1) f) | r <- readerNames, (r++":") `isPrefixOf` f]
+  let 
+  candidates = [(Just r, drop (length r + 1) f) | r <- readerNames ++ ["ssv","tsv"], (r++":") `isPrefixOf` f]
+  (strPrefix, newF) = headDef (Nothing, f) candidates
+  in case strPrefix of
+  Just "csv" -> (Just (Sep Csv), newF)
+  Just "tsv" -> (Just (Sep Tsv), newF)
+  Just "ssv" -> (Just (Sep Ssv), newF)
+  Just "journal" -> (Just Journal', newF)
+  Just "timeclock" -> (Just Timeclock, newF)
+  Just "timedot" -> (Just Timedot, newF)
+  _ -> (Nothing, f)
 
 --- ** reader
 
 reader :: MonadIO m => Reader m
 reader = Reader
-  {rFormat     = "journal"
+  {rFormat     = Journal'
   ,rExtensions = ["journal", "j", "hledger", "ledger"]
   ,rReadFn     = parse
   ,rParser    = journalp  -- no need to add command line aliases like journalp'
@@ -282,7 +297,7 @@ includedirectivep = do
   paths <- getFilePaths parentoff parentpos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
-        Just fmt -> map ((fmt++":")++) paths
+        Just fmt -> map ((show fmt++":")++) paths
   forM_ prefixedpaths $ parseChild parentpos
   void newline
 

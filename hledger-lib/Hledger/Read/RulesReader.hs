@@ -90,7 +90,7 @@ _READER__________________________________________ = undefined  -- VSCode outline
 
 reader :: MonadIO m => Reader m
 reader = Reader
-  {rFormat     = "rules"
+  {rFormat     = Rules
   ,rExtensions = ["rules"]
   ,rReadFn     = parse
   ,rParser     = error' "sorry, rules files can't be included"  -- PARTIAL:
@@ -135,7 +135,7 @@ parse iopts f _ = do
       then return nulljournal      -- data file inferred from rules file name was not found
       else do
         t <- liftIO $ readFileOrStdinPortably dat
-        readJournalFromCsv (Just $ Left rules) dat t
+        readJournalFromCsv (Just $ Left rules) dat t Nothing
         -- apply any command line account aliases. Can fail with a bad replacement pattern.
         >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
             -- journalFinalise assumes the journal's items are
@@ -855,9 +855,9 @@ _CSV_READING__________________________________________ = undefined
 --
 -- 4. Return the transactions as a Journal.
 --
-readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Text -> ExceptT String IO Journal
-readJournalFromCsv Nothing "-" _ = throwError "please use --rules-file when reading CSV from stdin"
-readJournalFromCsv merulesfile csvfile csvtext = do
+readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
+readJournalFromCsv Nothing "-" _ _ = throwError "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv merulesfile csvfile csvtext sep = do
     -- for now, correctness is the priority here, efficiency not so much
 
     rules <- case merulesfile of
@@ -879,14 +879,19 @@ readJournalFromCsv merulesfile csvfile csvtext = do
     -- convert back to text and parse as csv records
     let
       csvtext1 = T.unlines csvlines2
-      separator =
-        case getDirective "separator" rules >>= parseSeparator of
-          Just c           -> c
-          _ | ext == "ssv" -> ';'
-          _ | ext == "tsv" -> '\t'
-          _                -> ','
-          where
-            ext = map toLower $ drop 1 $ takeExtension csvfile
+      -- The separator in the rules file takes precedence over the extension or prefix
+      separator = case getDirective "separator" rules >>= parseSeparator of
+        Just c           -> c
+        _ | ext == "ssv" -> ';'
+        _ | ext == "tsv" -> '\t'
+        _                -> 
+          case sep of
+            Just Csv -> ','
+            Just Ssv -> ';'
+            Just Tsv -> '\t'
+            Nothing -> ','
+        where
+          ext = map toLower $ drop 1 $ takeExtension csvfile
       -- parsec seemed to fail if you pass it "-" here   -- TODO: try again with megaparsec
       parsecfilename = if csvfile == "-" then "(stdin)" else csvfile
     dbg6IO "using separator" separator
