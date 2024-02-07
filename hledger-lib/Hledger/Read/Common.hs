@@ -190,7 +190,7 @@ data Reader m = Reader {
     ,rParser :: MonadIO m => ErroringJournalParser m ParsedJournal
     }
 
-instance Show (Reader m) where show r = rFormat r ++ " reader"
+instance Show (Reader m) where show r = show (rFormat r) ++ " reader"
 
 -- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.

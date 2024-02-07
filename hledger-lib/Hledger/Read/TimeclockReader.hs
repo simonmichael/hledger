@@ -77,7 +77,7 @@ import Data.Text as T (strip)
 
 reader :: MonadIO m => Reader m
 reader = Reader
-  {rFormat     = "timeclock"
+  {rFormat     = Timeclock
   ,rExtensions = ["timeclock"]
   ,rReadFn     = parse
   ,rParser    = timeclockfilep

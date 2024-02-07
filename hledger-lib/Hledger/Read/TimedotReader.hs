@@ -66,7 +66,7 @@ import Data.List (group)
 
 reader :: MonadIO m => Reader m
 reader = Reader
-  {rFormat     = "timedot"
+  {rFormat     = Timedot
   ,rExtensions = ["timedot"]
   ,rReadFn     = parse
   ,rParser    = timedotp

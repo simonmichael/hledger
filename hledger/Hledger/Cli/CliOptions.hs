@@ -625,7 +625,7 @@ expandPathPreservingPrefix d prefixedf = do
   let (p,f) = splitReaderPrefix prefixedf
   f' <- expandPath d f
   return $ case p of
-    Just p'  -> p' ++ ":" ++ f'
+    Just p'  -> (show p') ++ ":" ++ f'
     Nothing -> f'
 
 -- | Get the expanded, absolute output file path specified by an
