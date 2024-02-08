@@ -100,15 +100,17 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 
 ## Data formats
 
-Usually the data file is in hledger's journal format, but it can be in
-any of the supported file formats, which currently are:
+Usually the data file is in hledger's journal format, but it can be in any of the supported file formats, which currently are:
 
-| Reader:                   | Reads:                                                           | Used for file extensions:                                   |
-|---------------------------|------------------------------------------------------------------|-------------------------------------------------------------|
-| [`journal`](#journal)     | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger`                        |
-| [`timeclock`](#timeclock) | timeclock files, for precise time logging                        | `.timeclock`                                                |
-| [`timedot`](#timedot)     | timedot files, for approximate time logging                      | `.timedot`                                                  |
-| [`csv`](#csv)             | CSV/SSV/TSV/character-separated values, for data import          | `.csv` `.ssv` `.tsv` `.csv.rules` `.ssv.rules` `.tsv.rules` |
+| Reader:                   | Reads:                                                           | Automatically used for files with extensions: |
+|---------------------------|------------------------------------------------------------------|-----------------------------------------------|
+| [`journal`](#journal)     | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger`          |
+| [`timeclock`](#timeclock) | timeclock files, for precise time logging                        | `.timeclock`                                  |
+| [`timedot`](#timedot)     | timedot files, for approximate time logging                      | `.timedot`                                    |
+| [`csv`](#csv)             | Comma or other character separated values, for data import       | `.csv`                                        |
+| [`ssv`](#csv)             | Semicolon separated values                                       | `.ssv`                                        |
+| [`tsv`](#csv)             | Tab separated values                                             | `.tsv`                                        |
+| [`rules`](#csv)           | CSV/SSV/TSV/other separated values, alternate way                | `.rules`                                      |
 
 These formats are described in more detail below.
 
@@ -118,10 +120,10 @@ So for non-journal files, it's important to use a recognised file extension,
 so as to either read successfully or to show relevant error messages.
 
 You can also force a specific reader/format by prefixing the file path with the format and a colon.
-Eg, to read a .dat file as csv format:
+Eg, to read a .dat file containing tab separated values:
 
 ```cli
-$ hledger -f csv:/some/csv-file.dat stats
+$ hledger -f tsv:/some/file.dat stats
 ```
 
 ## Standard input
