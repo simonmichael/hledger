@@ -981,7 +981,7 @@ WORKLOG := "../../notes/CLOUD/hledger.md"
 
 # Show dates logged in hledger work log.
 @worklogdates:
-    awk "/^## Journal/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^#### (\d{4}-\d{2}-\d{2})' -or '$1'
+    awk "/^## Log/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^#### (\d{4}-\d{2}-\d{2})' -or '$1'
 
 # Show hledger work logged since this date or days ago or last release
 worklog *DATEARG:
