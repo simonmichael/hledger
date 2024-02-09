@@ -103,6 +103,29 @@ themesList = [
     (attrName "list" <> attrName "selected"                             , defAttr & reverseVideo)
   ])
 
+  ,("dark", attrMap (white `on` black & dim) [
+      (attrName "border"                                                                   , white `on` black)
+    , (attrName "border" <> attrName "bold"                                                , currentAttr & bold)
+    , (attrName "border" <> attrName "depth"                                               , active)
+    , (attrName "border" <> attrName "filename"                                            , currentAttr)
+    , (attrName "border" <> attrName "key"                                                 , active)
+    , (attrName "border" <> attrName "minibuffer"                                          , white `on` black & bold)
+    , (attrName "border" <> attrName "query"                                               , active)
+    , (attrName "border" <> attrName "selected"                                            , active)
+    , (attrName "error"                                                                    , fg red)
+    , (attrName "help"                                                                     , currentAttr & bold)
+    , (attrName "help" <> attrName "heading"                                               , fg blue)
+    , (attrName "help" <> attrName "key"                                                   , active)
+    , (attrName "list" <> attrName "amount" <> attrName "decrease"                         , fg red)
+    , (attrName "list" <> attrName "amount" <> attrName "decrease" <> attrName "selected"  , red `on` black & bold)
+    , (attrName "list" <> attrName "balance"                                               , currentAttr)
+    , (attrName "list" <> attrName "balance" <> attrName "negative"                        , fg red)
+    , (attrName "list" <> attrName "balance" <> attrName "positive"                        , fg white)
+    , (attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` black    & bold)
+    , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , yellow `on` black & bold)
+    , (attrName "list" <> attrName "selected"                                              , yellow `on` black & bold)
+  ])
+
   ]
 
 -- halfbrightattr = defAttr & dim
