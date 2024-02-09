@@ -57,7 +57,7 @@ hledger-ui provides the following options:
 `-w --watch`
 : watch for data and date changes and reload automatically
 
-`--theme=default|terminal|greenterm`
+`--theme=default|terminal|greenterm|dark`
 : use this custom display theme
 
 `--menu`
