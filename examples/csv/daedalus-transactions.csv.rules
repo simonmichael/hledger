@@ -1,14 +1,57 @@
+# hledger CSV conversion rules for Daedalus's transactions export. Tested with daedalus 5.3.
+
+# ID,Type,TOTAL (ADA),Sent amount (ADA),Deposit amount (ADA),Fee (ADA),Tokens (unformatted amounts),Date & time,Status,Addresses from,Addresses to,Withdrawals
+fields id, type, total_ada, sent_ada, deposit_ada, fee_ada, tokens, datetime, status_, addresses_from, addresses_to, withdrawals
 skip 1
-# ID,Type,Amount,Date & time,Status,Addresses from,Addresses to,Withdrawals
-fields id,type,amount,date,status_,addressesfrom,addressesto,withdrawals
-date-format %Y-%m-%dT%s%Q%Z
+date %datetime
+date-format %Y-%m-%dT%T%Q%Z
 newest-first
-status *
-code %id
-description | from %addressesfrom
-comment cc-ada-acquire:, datetime:%date, status: %status_, TODO: fix lot, add cost basis
+if ! %status_ Confirmed
+ status !
+description %type %tokens
+
+account1 assets:cc:cardano:wallet1:YYYY-MM-DD
+
+# Received
+# posting 1 is for the wallet
+# posting 2 is for the source
+
+if %type Received
+ comment \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\ndatetime: %datetime\nstatus: %status_\ncc-ada-acquire:
+ amount %total_ada ADA
+ comment1 TODO: add lot date & cost
+
+# Sent
+# posting 1 is for the wallet
+# posting 2 is for deposits
+# posting 3 is for fees
+# posting 4 is for the destination
 
 if %type Sent
- amount -%amount
- description | to %addressesto
- comment cc-ada-dispose:, datetime:%date, status: %status_, TODO: select lot, add cost basis & disposal price & gain
+ comment \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\ndatetime: %datetime\nstatus: %status_\ncc-ada-dispose:\nTODO: select source lots; add costs & prices & gain/loss
+ amount1 %total_ada ADA
+
+if %type Sent
+& %deposit_ada [1-9]
+ amount2  %deposit_ada ADA
+ account2 assets:cc:cardano:wallet1:deposit
+ description %type deposit
+
+if %type Sent
+& %fee_ada [1-9]
+ amount3  %fee_ada ADA
+ account3 expenses:fees:cardano
+
+# The CSV duplicates the amount in sent deposit transactions so we need to avoid those here.
+# &! is not yet supported, work around with regexp.
+if %type Sent
+& %sent_ada [1-9]
+& %deposit_ada ^[^1-9]*$
+ amount4  %sent_ada ADA
+ account4 expenses:unknown
+
+# Categorise manually, or add categorising rules below.
+
+if %addresses_to addr1alksjdflkjsadfff098234lkjlkjasfd09234jlljkasdf09234jl
+ account4 assets:cc:cardano:wallet2:YYYY-MM-DD
+ comment4 TODO: add lot date & cost
