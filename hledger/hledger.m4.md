@@ -1753,6 +1753,13 @@ They are written as the word `account` followed by a hledger-style [account name
 account assets:bank:checking
 ```
 
+Ledger-style indented subdirectives are also accepted, but ignored:
+
+```journal
+account assets:bank:checking
+  format subdirective  ; currently ignored
+```
+
 ### Account comments
 
 Text following **two or more spaces** and `;` at the end of an account directive line,
@@ -1765,15 +1772,6 @@ The two-space requirement for same-line account comments is because `;` is allow
 account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
   ; next-line comment
   ; some tags - type:A, acctnum:12345
-```
-
-### Account subdirectives
-
-Ledger-style indented subdirectives are also accepted, but currently ignored:
-
-```journal
-account assets:bank:checking
-  format subdirective is ignored
 ```
 
 ### Account error checking
