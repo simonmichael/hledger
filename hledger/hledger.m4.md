@@ -1740,25 +1740,17 @@ Here are all hledger's directives, with their effects and scope summarised - nin
 Though not required, these declarations can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
-- In [strict mode], they restrict which accounts may be posted to by transactions, which helps detect typos.
-- They control account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
+- They can store additional account information as [comments](#account-comments),
+  or as [tags](#tags) which can be used to filter or pivot reports.
+- They can restrict which accounts may be posted to by transactions, eg in [strict mode], which helps prevent errors.
+- They influence account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
+- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), enabling reports like [balancesheet](#balancesheet) and [incomestatement](#incomestatement).
 - They help with account name completion (in hledger add, hledger-web, hledger-iadd, ledger-mode, etc.)
-- They can store additional account information as [comments](#account-comments), or as [tags](#tags) which can be used to filter or pivot reports.
-- They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), affecting reports like 
-  [balancesheet](#balancesheet) and [incomestatement](#incomestatement).
 
-They are written as the word `account` followed by a hledger-style [account name](#account-names), eg: 
+They are written as the word `account` followed by a hledger-style [account name](#account-names). Eg:
 
 ```journal
 account assets:bank:checking
-```
-
-Note, however, that accounts declared in account directives are not allowed to have surrounding
-brackets and parentheses, unlike accounts used in postings.
-So the following journal will not parse:
-
-```journal 
-account (assets:bank:checking)
 ```
 
 ### Account comments
@@ -1800,7 +1792,7 @@ In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an 
 
 ### Account display order
 
-Account directives have another useful function: they cause hledger to display accounts in a particular order, not just alphabetically.
+Account directives also cause hledger to display accounts in a particular order, not just alphabetically.
 Eg, here is a conventional ordering for the top-level accounts:
 
 ```journal
@@ -1838,9 +1830,7 @@ hledger knows that accounts come in several types: assets, liabilities, expenses
 This enables easy reports like [balancesheet] and [incomestatement], and filtering by account type with the [`type:` query](#queries). 
 
 As a convenience, hledger will detect these account types automatically if you are using common english-language top-level account names (described below). 
-But generally we recommend you declare types explicitly, 
-by adding a `type:` [tag](#tags) to your top-level account directives.
-Subaccounts will inherit the type of their parent. 
+But it's more robust to declare accounts' types explicitly, by adding `type:` [tags](#tags) to their account directives.
 The tag's value should be one of the [five main account types]:
 
 - `A` or `Asset`		(things you own)
@@ -1854,6 +1844,7 @@ or, it can be (these are used less often):
 - `C` or `Cash`			(a subtype of Asset, indicating [liquid assets][CCE] for the [cashflow] report)
 - `V` or `Conversion`	(a subtype of Equity, for conversions (see [Cost reporting](#cost-reporting)).)
 
+Subaccounts inherit their parent's type, or they can override it.
 Here is a typical set of account type declarations:
 
 ```journal
