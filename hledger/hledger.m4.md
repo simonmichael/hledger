@@ -1800,10 +1800,9 @@ In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an 
 
 ### Account display order
 
-The order in which account directives are written influences 
-the order in which accounts appear in reports, hledger-ui, hledger-web etc.
-By default accounts appear in alphabetical order,
-but if you add these account directives to the journal file:
+Account directives have another useful function: they cause hledger to display accounts in a particular order, not just alphabetically.
+Eg, here is a conventional ordering for the top-level accounts:
+
 ```journal
 account assets
 account liabilities
@@ -1812,9 +1811,9 @@ account revenues
 account expenses
 ```
 
-those accounts will be displayed in declaration order:
+Now hledger displays them in that order:
 ```cli
-$ hledger accounts -1
+$ hledger accounts
 assets
 liabilities
 equity
@@ -1822,19 +1821,15 @@ revenues
 expenses
 ```
 
-Any undeclared accounts are displayed last, in alphabetical order.
+If there are undeclared accounts, those will be displayed last, in alphabetical order.
 
-Sorting is done at each level of the account tree, 
-within each group of sibling accounts under the same parent.
-And currently, this directive:
-```journal
-account other:zoo
-```
-would influence the position of `zoo` among `other`'s subaccounts, but not the position of `other` among the top-level accounts.
-This means:
+Sorting is done within each group of sibling accounts, at each level of the account tree.
+Eg, a declaration like `account parent:child` influences `child`'s position among its siblings.
+Note to make this work, and/or to influence `parent`'s position, you may need to also declare `account parent`.
 
-- you will sometimes declare parent accounts (eg `account other` above) that you don't intend to post to, just to customize their display order
-- sibling accounts stay together (you couldn't display `x:y` in between `a:b` and `a:c`).
+Sibling accounts are always displayed together; hledger won't display `x:y` in between `a:b` and `a:c`.
+
+An account directive both declares an account as a valid posting target, and declares its display order; you can't easily do one without the other.
 
 ### Account types
 
