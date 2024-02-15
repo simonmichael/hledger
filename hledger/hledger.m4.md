@@ -1825,7 +1825,8 @@ If there are undeclared accounts, those will be displayed last, in alphabetical 
 
 Sorting is done within each group of sibling accounts, at each level of the account tree.
 Eg, a declaration like `account parent:child` influences `child`'s position among its siblings.
-Note to make this work, and/or to influence `parent`'s position, you may need to also declare `account parent`.
+
+Note, it does not affect `parent`'s position; for that, you would need to also declare `account parent`.
 
 Sibling accounts are always displayed together; hledger won't display `x:y` in between `a:b` and `a:c`.
 
