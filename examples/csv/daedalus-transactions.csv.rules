@@ -1,24 +1,27 @@
-# hledger CSV conversion rules for Daedalus's transactions export. Tested with daedalus 5.3.
+# Sample hledger CSV conversion rules for Daedalus's transactions export, tested with daedalus 5.3.
+
+# The account corresponding to the CSV. This could be in a parent rules file including this one.
+account1 assets:cc:cardano:wallet1:YYYY-MM-DD
 
 # ID,Type,TOTAL (ADA),Sent amount (ADA),Deposit amount (ADA),Fee (ADA),Tokens (unformatted amounts),Date & time,Status,Addresses from,Addresses to,Withdrawals
 fields id, type, total_ada, sent_ada, deposit_ada, fee_ada, tokens, datetime, status_, addresses_from, addresses_to, withdrawals
 skip 1
+newest-first
 date %datetime
 date-format %Y-%m-%dT%T%Q%Z
-newest-first
 if ! %status_ Confirmed
  status !
 description %type %tokens
-
-account1 assets:cc:cardano:wallet1:YYYY-MM-DD
 
 # Received
 # posting 1 is for the wallet
 # posting 2 is for the source
 
+# The from: and to: tag values should probably have their commas removed.
+
 if %type Received
- comment \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\ndatetime: %datetime\nstatus: %status_\ncc-ada-acquire:
- amount %total_ada ADA
+ comment  \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\nid: %id\ndatetime: %datetime\nstatus: %status_\ncc-ada-acquire:
+ amount   %total_ada ADA
  comment1 TODO: add lot date & cost
 
 # Sent
@@ -28,13 +31,13 @@ if %type Received
 # posting 4 is for the destination
 
 if %type Sent
- comment \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\ndatetime: %datetime\nstatus: %status_\ncc-ada-dispose:\nTODO: select source lots; add costs & prices & gain/loss
+ comment \nfrom: %addresses_from\nto: %addresses_to\nwithdrawals: %withdrawals\nid: %id\ndatetime: %datetime\nstatus: %status_\ncc-ada-dispose:\nTODO: select source lots; add costs & prices & gain/loss
  amount1 %total_ada ADA
 
 if %type Sent
 & %deposit_ada [1-9]
- amount2  %deposit_ada ADA
- account2 assets:cc:cardano:wallet1:deposit
+ amount2     %deposit_ada ADA
+ account2    assets:cc:cardano:wallet1:deposit
  description %type deposit
 
 if %type Sent
@@ -43,7 +46,7 @@ if %type Sent
  account3 expenses:fees:cardano
 
 # The CSV duplicates the amount in sent deposit transactions so we need to avoid those here.
-# &! is not yet supported, work around with regexp.
+# &! is not yet supported, work around with a regexp.
 if %type Sent
 & %sent_ada [1-9]
 & %deposit_ada ^[^1-9]*$
