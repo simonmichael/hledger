@@ -932,6 +932,7 @@ log *DATEARG:
     just redditlog $DATEARG
     just tootlog   $DATEARG
     just bloglog
+    echo "News url will be (if this is friday): https://hledger.org/news.html#this-week-in-hledger-"`date -I`
 
 CHANGELOGS := 'CHANGES.md hledger/CHANGES.md hledger-ui/CHANGES.md hledger-web/CHANGES.md hledger-lib/CHANGES.md'
 
@@ -1025,9 +1026,8 @@ redditlog *DATEARG:
 tootlog *DATEARG:
     #!/usr/bin/env osh
     DATE=`just datearg $DATEARG`
-    SEARCH="#hledger #plaintextaccounting after:$DATE"
-    just clip "$SEARCH"
-    echo "** mastodon:  https://fosstodon.org/search, $SEARCH"
+    just clip "#hledger after:$DATE"
+    echo "** mastodon:  https://fosstodon.org/search, #hledger after:$DATE , #plaintextaccounting after:$DATE"
     echo
 
 # Show recent PTA blog posts added on plaintextaccounting.org
