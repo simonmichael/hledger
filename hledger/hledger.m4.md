@@ -1624,9 +1624,9 @@ You can declare valid tag names with the [tag directive](#tag-directive) and the
 
 ### Special tags
 
-Some tag names have special significance to hledger, 
-and could produce an error message if you use them wrongly (the `date:` tag in particular).
-They are explained elsewhere, but here is a list for reference:
+Some tag names have special significance to hledger.
+There's not much harm in using them yourself, but some could produce an error message, particularly the `date:` tag.
+They are explained elsewhere, but here is a quick list for reference:
 
 <!-- keep synced with JournalChecks.hs -->
 ```
