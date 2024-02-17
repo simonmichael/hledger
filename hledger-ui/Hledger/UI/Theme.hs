@@ -135,10 +135,3 @@ themesList = [
   ])
 
   ]
-
--- halfbrightattr = defAttr & dim
--- reverseattr = defAttr & reverseVideo
--- redattr = defAttr `withForeColor` red
--- greenattr = defAttr `withForeColor` green
--- reverseredattr = defAttr & reverseVideo `withForeColor` red
--- reversegreenattr= defAttr & reverseVideo `withForeColor` green
