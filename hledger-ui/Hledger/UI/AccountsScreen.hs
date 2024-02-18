@@ -1,5 +1,6 @@
 -- The accounts screen, showing accounts and balances like the CLI balance command.
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
@@ -23,7 +24,11 @@ import Brick.Widgets.List
 import Brick.Widgets.Edit
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
+#if MIN_VERSION_base(4,19,0)
+import Data.List hiding (reverse, (!?))
+#else
 import Data.List hiding (reverse)
+#endif
 import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)

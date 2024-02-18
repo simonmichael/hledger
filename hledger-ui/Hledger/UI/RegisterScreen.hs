@@ -19,7 +19,11 @@ where
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Bifunctor (bimap, Bifunctor (second))
+#if MIN_VERSION_base(4,19,0)
+import Data.List hiding ((!?))
+#else
 import Data.List
+#endif
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Vector as V
