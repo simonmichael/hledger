@@ -124,7 +124,7 @@ EOS
 ${cmd} | while IFS=, read -r period amount; do
     if [[ ! ${amount} =~ [0-9] ]]; then continue; fi  # ignore lines where amount has no digits
     if [[ ${amount} =~ , ]]; then printamterr "${amount}"; exit 1; fi  # check there is a single amount column
-    set -o inherit_exit
+    shopt -s inherit_errexit
     int=$(printf '%.f' "$(unquote "${amount}")")
     if [[ ${shownum} -gt 0 ]]; then num=$(printf "%10d " "${int}"); else num=""; fi
     if [[ ${int} -lt 0 ]]; then c="${negchar}"; col=${red}; else c="${poschar}"; col=${green}; fi
