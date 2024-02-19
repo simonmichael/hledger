@@ -1038,16 +1038,34 @@ or reference number.
 
 ## Description
 
-A transaction's description is the rest of the line following the date and status mark (or until a comment begins).
-Sometimes called the "narration" in traditional bookkeeping, it can be used for whatever you wish,
-or left blank. Transaction descriptions can be queried, unlike [comments](#transaction-comments).
+After the date, status mark and/or code fields, the rest of the line (or until a comment is begun with `;`) is the transaction's description.
+Here you can describe the transaction (called the "narration" in traditional bookkeeping),
+or you can record a payee/payer name,
+or you can leave it empty.
+
+Transaction descriptions show up in [print](#print) output and in [register](#register) reports,
+and can be listed with the [descriptions](#descriptions) command.
+
+You can [query](#queries) by description with `desc:DESCREGEX`, 
+or [pivot](#pivoting) on description with `--pivot desc`.
 
 ### Payee and note
 
-You can optionally include a `|` (pipe) character in descriptions to subdivide the description
-into separate fields for payee/payer name on the left (up to the first `|`) and an additional note
-field on the right (after the first `|`). This may be worthwhile if you need to do more precise
-[querying](#queries) and [pivoting](#pivoting) by payee or by note.
+Sometimes people want a dedicated payee/payer field that can be queried and checked more strictly.
+If you want that, you can write a `|` (pipe) character in the description.
+This divides it into a "payee" field on the left, and a "note" field on the right.
+(Either can be empty.)
+
+You can query these with `payee:PAYEEREGEX` and `note:NOTEREGEX`,
+list their values with the [payees](#payees) and [notes](#notes) commands,
+or pivot on `payee` or `note`.
+
+Note: in transactions with no `|` character, description, payee, and note all have the same value.
+Once a `|` is added, they become distinct.
+(If you'd like to change this behaviour, please propose it on the mail list.)
+
+If you want more strict error checking, you can declare the valid payee names with `payee` directives, and then enforce these with `hledger check payees`.
+Note: because of the above, for this you'll need to ensure every transaction description contains a `|` and therefore a checkable payee name (even if it's empty).
 
 ## Transaction comments
 
