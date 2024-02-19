@@ -1064,8 +1064,10 @@ Note: in transactions with no `|` character, description, payee, and note all ha
 Once a `|` is added, they become distinct.
 (If you'd like to change this behaviour, please propose it on the mail list.)
 
-If you want more strict error checking, you can declare the valid payee names with `payee` directives, and then enforce these with `hledger check payees`.
-Note: because of the above, for this you'll need to ensure every transaction description contains a `|` and therefore a checkable payee name (even if it's empty).
+If you want more strict error checking, you can declare the valid payee names with [payee directives](#payee-directive), 
+and then enforce these with [hledger check payees](#check).
+(Note: because of the above, for this you'll need to ensure every transaction description contains a `|` and therefore a checkable payee name, even if it's empty.)
+
 
 ## Transaction comments
 
