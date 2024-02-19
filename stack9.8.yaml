@@ -1,26 +1,27 @@
 # stack build plan using GHC 9.8.1
 
-resolver: nightly-2024-01-26
+resolver: nightly-2024-02-19
 
 packages:
 - hledger-lib
 - hledger
-# blocked by https://github.com/luite/hfsevents/issues/16
-# - hledger-ui
+- hledger-ui
 - hledger-web
 
 extra-deps:
+- base64-0.4.2.4
 - cassava-megaparsec-2.1.0
 - email-validate-2.3.2.19
+- hfsevents-0.1.7
 - yesod-1.6.2.1
 - yesod-form-1.7.6
 
 # work around https://github.com/stackbuilders/cassava-megaparsec/issues/39 etc.
 # both of these are needed:
-allow-newer: true
-allow-newer-deps:
-- cassava-megaparsec
-- email-validate
+#allow-newer: true
+#allow-newer-deps:
+#- cassava-megaparsec
+#- email-validate
 
 nix:
   pure: false
