@@ -94,7 +94,7 @@ library:
   - hledger-lib >=1.32.99 && <1.33
   - hledger >=1.32.99 && <1.33
   - aeson >=1 && <2.3
-  - base64
+  - base64 <1
   - blaze-html
   - blaze-markup
   - bytestring
