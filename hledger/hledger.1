@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "January 2024" "hledger-1.32.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "February 2024" "hledger-1.32.99 " "hledger User Manuals"
 
 
 
@@ -141,13 +141,13 @@ in any of the supported file formats, which currently are:
 .PP
 .TS
 tab(@);
-lw(12.3n) lw(30.0n) lw(27.7n).
+lw(13.5n) lw(33.0n) lw(23.5n).
 T{
 Reader:
 T}@T{
 Reads:
 T}@T{
-Used for file extensions:
+Automatically used for files with extensions:
 T}
 _
 T{
@@ -174,10 +174,30 @@ T}
 T{
 \f[CR]csv\f[R]
 T}@T{
-CSV/SSV/TSV/character\-separated values, for data import
+Comma or other character separated values, for data import
 T}@T{
-\f[CR].csv\f[R] \f[CR].ssv\f[R] \f[CR].tsv\f[R] \f[CR].csv.rules\f[R]
-\f[CR].ssv.rules\f[R] \f[CR].tsv.rules\f[R]
+\f[CR].csv\f[R]
+T}
+T{
+\f[CR]ssv\f[R]
+T}@T{
+Semicolon separated values
+T}@T{
+\f[CR].ssv\f[R]
+T}
+T{
+\f[CR]tsv\f[R]
+T}@T{
+Tab separated values
+T}@T{
+\f[CR].tsv\f[R]
+T}
+T{
+\f[CR]rules\f[R]
+T}@T{
+CSV/SSV/TSV/other separated values, alternate way
+T}@T{
+\f[CR].rules\f[R]
 T}
 .TE
 .PP
@@ -193,10 +213,10 @@ messages.
 .PP
 You can also force a specific reader/format by prefixing the file path
 with the format and a colon.
-Eg, to read a .dat file as csv format:
+Eg, to read a .dat file containing tab separated values:
 .IP
 .EX
-$ hledger \-f csv:/some/csv\-file.dat stats
+$ hledger \-f tsv:/some/file.dat stats
 .EE
 .SS Standard input
 The file name \f[CR]\-\f[R] means standard input:
@@ -1403,18 +1423,43 @@ write a transaction \[dq]code\[dq], enclosed in parentheses.
 This is a good place to record a check number, or some other important
 transaction id or reference number.
 .SS Description
-A transaction\[aq]s description is the rest of the line following the
-date and status mark (or until a comment begins).
-Sometimes called the \[dq]narration\[dq] in traditional bookkeeping, it
-can be used for whatever you wish, or left blank.
-Transaction descriptions can be queried, unlike comments.
+After the date, status mark and/or code fields, the rest of the line (or
+until a comment is begun with \f[CR];\f[R]) is the transaction\[aq]s
+description.
+Here you can describe the transaction (called the \[dq]narration\[dq] in
+traditional bookkeeping), or you can record a payee/payer name, or you
+can leave it empty.
+.PP
+Transaction descriptions show up in print output and in register
+reports, and can be listed with the descriptions command.
+.PP
+You can query by description with \f[CR]desc:DESCREGEX\f[R], or pivot on
+description with \f[CR]\-\-pivot desc\f[R].
 .SS Payee and note
-You can optionally include a \f[CR]|\f[R] (pipe) character in
-descriptions to subdivide the description into separate fields for
-payee/payer name on the left (up to the first \f[CR]|\f[R]) and an
-additional note field on the right (after the first \f[CR]|\f[R]).
-This may be worthwhile if you need to do more precise querying and
-pivoting by payee or by note.
+Sometimes people want a dedicated payee/payer field that can be queried
+and checked more strictly.
+If you want that, you can write a \f[CR]|\f[R] (pipe) character in the
+description.
+This divides it into a \[dq]payee\[dq] field on the left, and a
+\[dq]note\[dq] field on the right.
+(Either can be empty.)
+.PP
+You can query these with \f[CR]payee:PAYEEREGEX\f[R] and
+\f[CR]note:NOTEREGEX\f[R], list their values with the payees and notes
+commands, or pivot on \f[CR]payee\f[R] or \f[CR]note\f[R].
+.PP
+Note: in transactions with no \f[CR]|\f[R] character, description,
+payee, and note all have the same value.
+Once a \f[CR]|\f[R] is added, they become distinct.
+(If you\[aq]d like to change this behaviour, please propose it on the
+mail list.)
+.PP
+If you want more strict error checking, you can declare the valid payee
+names with \f[CR]payee\f[R] directives, and then enforce these with
+\f[CR]hledger check payees\f[R].
+Note: because of the above, for this you\[aq]ll need to ensure every
+transaction description contains a \f[CR]|\f[R] and therefore a
+checkable payee name (even if it\[aq]s empty).
 .SS Transaction comments
 Text following \f[CR];\f[R], after a transaction description, and/or on
 indented lines immediately below it, form comments for that transaction.
@@ -2017,19 +2062,22 @@ they may contain tags, which are not ignored.
     ; a second comment line for posting 2
 .EE
 .SS Tags
-Tags are a way to add extra labels or labelled data to transactions,
+Tags are a way to add extra labels or data fields to transactions,
 postings, or accounts, which you can then search or pivot on.
 .PP
-They are written as a word (optionally hyphenated) immediately followed
-by a full colon, in a transaction or posting or account directive\[aq]s
-comment.
-(This is an exception to the usual rule that things in comments are
-ignored.)
-You can write multiple tags separated by comma, and/or you can add more
-comment lines and write more tags there.
+A tag is a word, optionally hyphenated, immediately followed by a full
+colon, in the comment of a transaction, a posting, or an account
+directive.
+Eg: \f[CR]2024\-01\-01 a transaction   ; foo:\f[R] Note this is an
+exception to the usual rule that things in comments are ignored.
 .PP
-Here five different tags are recorded: one on the checking account, two
-on the transaction, and two on the expenses posting:
+You can write multiple tags on one line, separated by comma.
+Or you can write each tag on its own comment line (no comma needed in
+this case).
+.PP
+For example, here are five different tags: one on the
+\f[CR]assets:checking\f[R] account, two on the transaction, and two on
+the \f[CR]expenses:food\f[R] posting:
 .IP
 .EX
 account assets:checking         ; accounttag:
@@ -2040,9 +2088,6 @@ account assets:checking         ; accounttag:
     expenses:food           $1  ; postingtag:, another\-posting\-tag:
 .EE
 .PP
-You can list tag names with \f[CR]hledger tags [NAMEREGEX]\f[R], or
-match by tag name with a \f[CR]tag:NAMEREGEX\f[R] query.
-.SS Tag inheritance
 Postings also inherit tags from their transaction and their account.
 And transactions also acquire tags from their postings (and
 postings\[aq] accounts).
@@ -2051,48 +2096,65 @@ tags (by inheriting from the account and transaction), and the
 transaction also has all five tags (by acquiring from the expenses
 posting).
 .SS Tag names
-Tag names are currently not very clearly specified; any sequence of
-non\-whitespace characters followed by a colon may work.
+Most non\-whitespace characters are allowed in tag names.
+Eg \f[CR]😀:\f[R] is a valid tag.
 .PP
-The following tag names are generated by hledger or have special
-significance to hledger, so you may want to avoid using them yourself:
-.IP \[bu] 2
-\f[CR]balances\f[R] \-\- a balance assertions transaction generated by
-close
-.IP \[bu] 2
-\f[CR]retain\f[R] \-\- a retain earnings transaction generated by close
-.IP \[bu] 2
-\f[CR]start\f[R] \-\- a opening balances, closing balances or balance
-assignment transaction generated by close
-.IP \[bu] 2
-\f[CR]generated\-transaction\f[R] \-\- a transaction generated by
-\-\-forecast
-.IP \[bu] 2
-\f[CR]generated\-posting\f[R] \-\- a posting generated by \-\-auto
-.IP \[bu] 2
-\f[CR]modified\f[R] \-\- a transaction which has had postings added by
-\-\-auto
-.IP \[bu] 2
-\f[CR]type\f[R] \-\- declares an account\[aq]s type in an account
-declaration
-.IP \[bu] 2
-\f[CR]t\f[R] \-\- stores the (user defined, single letter) type of a 15m
-unit of time parsed from timedot format
+You can list the tag names used in your journal with the tags command:
+.PD 0
+.P
+.PD
+\f[CR]hledger tags [NAMEREGEX]\f[R]
 .PP
-Some additional tag names with an underscore prefix are used internally
-and not displayed in reports (but can be matched by queries):
-.IP \[bu] 2
-\f[CR]_generated\-transaction\f[R]
-.IP \[bu] 2
-\f[CR]_generated\-posting\f[R]
-.IP \[bu] 2
-\f[CR]_modified\f[R]
-.IP \[bu] 2
-\f[CR]_conversion\-matched\f[R]
+In commands which use a query, you can match by tag name.
+Eg:
+.PD 0
+.P
+.PD
+\f[CR]hledger print tag:NAMEREGEX\f[R]
+.PP
+You can declare valid tag names with the tag directive and then check
+them with the check command.
+.SS Special tags
+Some tag names have special significance to hledger.
+There\[aq]s not much harm in using them yourself, but some could produce
+an error message, particularly the \f[CR]date:\f[R] tag.
+They are explained elsewhere, but here is a quick list for reference:
+.PP
+Tags you can set to influence hledger\[aq]s behaviour:
+.IP
+.EX
+ date                   \-\- overrides a posting\[aq]s date
+ date2                  \-\- overrides a posting\[aq]s secondary date
+ type                   \-\- declares an account\[aq]s type
+.EE
+.PP
+Tags hledger adds to indicate generated data:
+.IP
+.EX
+ t                      \-\- appears on postings generated by timedot letters
+ assert                 \-\- appears on txns generated by close \-\-assert
+ retain                 \-\- appears on txns generated by close \-\-retain
+ start                  \-\- appears on txns generated by close \-\-migrate/\-\-close/\-\-open/\-\-assign
+ generated\-transaction  \-\- appears on generated periodic txns (with \-\-verbose\-tags)
+ generated\-posting      \-\- appears on generated auto postings (with \-\-verbose\-tags)
+ modified               \-\- appears on txns which have had auto postings added (with \-\-verbose\-tags)
+Not displayed, but queryable:
+ _generated\-transaction \-\- exists on generated periodic txns (always)
+ _generated\-posting     \-\- exists on generated auto postings (always)
+ _modified              \-\- exists on txns which have had auto postings added (always)
+.EE
+.PP
+Tags hledger uses internally:
+.IP
+.EX
+ _conversion\-matched    \-\- exists on postings which have been matched with a nearby \[at]/\[at]\[at] cost annotation
+.EE
 .SS Tag values
 Tags can have a value, which is any text after the colon up until a
-comma or end of line (with surrounding whitespace removed).
-Note this means that hledger tag values can not contain commas.
+comma or end of line, with surrounding whitespace removed.
+Ending at comma allows us to write multiple tags on one line, but also
+means that tag values can not contain commas.
+.PP
 Eg in the following posting, the three tags\[aq] values are \[dq]value
 1\[dq], \[dq]value 2\[dq], and \[dq]\[dq] (empty) respectively:
 .IP
@@ -2100,14 +2162,21 @@ Eg in the following posting, the three tags\[aq] values are \[dq]value
     expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
 .EE
 .PP
-Note that tags can be repeated, and are additive rather than overriding:
+Multiple tags with the same name are additive rather than overriding:
 when the same tag name is seen again with a new value, the new
 name:value pair is added to the tags.
-(It is not possible to override a tag\[aq]s value or remove a tag.)
+It is not possible to override a previous tag\[aq]s value or remove a
+tag.
 .PP
-You can list a tag\[aq]s values with
-\f[CR]hledger tags TAGNAME \-\-values\f[R], or match by tag value with a
-\f[CR]tag:NAMEREGEX=VALUEREGEX\f[R] query.
+You can list all the values used for a particular tag in the journal
+with
+.PD 0
+.P
+.PD
+\f[CR]hledger tags TAGNAME \-\-values\f[R]
+.PP
+You can match on tag values with a query like
+\f[CR]tag:NAMEREGEX=VALUEREGEX\f[R]
 .SS Directives
 Besides transactions, there is something else you can put in a
 \f[CR]journal\f[R] file: directives.
@@ -2370,36 +2439,35 @@ Though not required, these declarations can provide several benefits:
 They can document your intended chart of accounts, providing a
 reference.
 .IP \[bu] 2
-In strict mode, they restrict which accounts may be posted to by
-transactions, which helps detect typos.
-.IP \[bu] 2
-They control account display order in reports, allowing non\-alphabetic
-sorting (eg Revenues to appear above Expenses).
-.IP \[bu] 2
-They help with account name completion (in hledger add, hledger\-web,
-hledger\-iadd, ledger\-mode, etc.)
-.IP \[bu] 2
 They can store additional account information as comments, or as tags
 which can be used to filter or pivot reports.
 .IP \[bu] 2
+They can restrict which accounts may be posted to by transactions, eg in
+strict mode, which helps prevent errors.
+.IP \[bu] 2
+They influence account display order in reports, allowing
+non\-alphabetic sorting (eg Revenues to appear above Expenses).
+.IP \[bu] 2
 They can help hledger know your accounts\[aq] types (asset, liability,
-equity, revenue, expense), affecting reports like balancesheet and
+equity, revenue, expense), enabling reports like balancesheet and
 incomestatement.
+.IP \[bu] 2
+They help with account name completion (in hledger add, hledger\-web,
+hledger\-iadd, ledger\-mode, etc.)
 .PP
 They are written as the word \f[CR]account\f[R] followed by a
-hledger\-style account name, eg:
+hledger\-style account name.
+Eg:
 .IP
 .EX
 account assets:bank:checking
 .EE
 .PP
-Note, however, that accounts declared in account directives are not
-allowed to have surrounding brackets and parentheses, unlike accounts
-used in postings.
-So the following journal will not parse:
+Ledger\-style indented subdirectives are also accepted, but ignored:
 .IP
 .EX
-account (assets:bank:checking)
+account assets:bank:checking
+  format subdirective  ; currently ignored
 .EE
 .SS Account comments
 Text following \f[B]two or more spaces\f[R] and \f[CR];\f[R] at the end
@@ -2414,14 +2482,6 @@ The two\-space requirement for same\-line account comments is because
 account assets:bank:checking    ; same\-line comment, at least 2 spaces before the semicolon
   ; next\-line comment
   ; some tags \- type:A, acctnum:12345
-.EE
-.SS Account subdirectives
-Ledger\-style indented subdirectives are also accepted, but currently
-ignored:
-.IP
-.EX
-account assets:bank:checking
-  format subdirective is ignored
 .EE
 .SS Account error checking
 By default, accounts need not be declared; they come into existence when
@@ -2453,10 +2513,9 @@ It\[aq]s currently not possible to declare \[dq]all possible
 subaccounts\[dq] with a wildcard; every account posted to must be
 declared.
 .SS Account display order
-The order in which account directives are written influences the order
-in which accounts appear in reports, hledger\-ui, hledger\-web etc.
-By default accounts appear in alphabetical order, but if you add these
-account directives to the journal file:
+Account directives also cause hledger to display accounts in a
+particular order, not just alphabetically.
+Eg, here is a conventional ordering for the top\-level accounts:
 .IP
 .EX
 account assets
@@ -2466,10 +2525,10 @@ account revenues
 account expenses
 .EE
 .PP
-those accounts will be displayed in declaration order:
+Now hledger displays them in that order:
 .IP
 .EX
-$ hledger accounts \-1
+$ hledger accounts
 assets
 liabilities
 equity
@@ -2477,27 +2536,23 @@ revenues
 expenses
 .EE
 .PP
-Any undeclared accounts are displayed last, in alphabetical order.
+If there are undeclared accounts, those will be displayed last, in
+alphabetical order.
 .PP
-Sorting is done at each level of the account tree, within each group of
-sibling accounts under the same parent.
-And currently, this directive:
-.IP
-.EX
-account other:zoo
-.EE
+Sorting is done within each group of sibling accounts, at each level of
+the account tree.
+Eg, a declaration like \f[CR]account parent:child\f[R] influences
+\f[CR]child\f[R]\[aq]s position among its siblings.
 .PP
-would influence the position of \f[CR]zoo\f[R] among
-\f[CR]other\f[R]\[aq]s subaccounts, but not the position of
-\f[CR]other\f[R] among the top\-level accounts.
-This means:
-.IP \[bu] 2
-you will sometimes declare parent accounts (eg \f[CR]account other\f[R]
-above) that you don\[aq]t intend to post to, just to customize their
-display order
-.IP \[bu] 2
-sibling accounts stay together (you couldn\[aq]t display \f[CR]x:y\f[R]
-in between \f[CR]a:b\f[R] and \f[CR]a:c\f[R]).
+Note, it does not affect \f[CR]parent\f[R]\[aq]s position; for that, you
+need an \f[CR]account parent\f[R] declaration.
+.PP
+Sibling accounts are always displayed together; hledger won\[aq]t
+display \f[CR]x:y\f[R] in between \f[CR]a:b\f[R] and \f[CR]a:c\f[R].
+.PP
+An account directive both declares an account as a valid posting target,
+and declares its display order; you can\[aq]t easily do one without the
+other.
 .SS Account types
 hledger knows that accounts come in several types: assets, liabilities,
 expenses and so on.
@@ -2507,9 +2562,8 @@ filtering by account type with the \f[CR]type:\f[R] query.
 As a convenience, hledger will detect these account types automatically
 if you are using common english\-language top\-level account names
 (described below).
-But generally we recommend you declare types explicitly, by adding a
-\f[CR]type:\f[R] tag to your top\-level account directives.
-Subaccounts will inherit the type of their parent.
+But it\[aq]s more robust to declare accounts\[aq] types explicitly, by
+adding \f[CR]type:\f[R] tags to their account directives.
 The tag\[aq]s value should be one of the five main account types:
 .IP \[bu] 2
 \f[CR]A\f[R] or \f[CR]Asset\f[R] (things you own)
@@ -2533,6 +2587,7 @@ assets for the cashflow report)
 \f[CR]V\f[R] or \f[CR]Conversion\f[R] (a subtype of Equity, for
 conversions (see Cost reporting).)
 .PP
+Subaccounts inherit their parent\[aq]s type, or they can override it.
 Here is a typical set of account type declarations:
 .IP
 .EX
@@ -3017,8 +3072,8 @@ Any indented subdirectives are currently ignored.
 The \[dq]tags\[dq] check will report an error if any undeclared tag name
 is used.
 It is quite easy to accidentally create a tag through normal use of
-colons in comments(#comments]; if you want to prevent this, you can
-declare and check your tags .
+colons in comments; if you want to prevent this, you can declare and
+check your tags .
 .SS Periodic transactions
 The \f[CR]\[ti]\f[R] directive declares a \[dq]periodic rule\[dq] which
 generates temporary extra transactions, usually recurring at some

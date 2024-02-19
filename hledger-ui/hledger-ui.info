@@ -673,44 +673,44 @@ Tag Table:
 Node: Top221
 Node: OPTIONS1830
 Ref: #options1928
-Node: General help options2951
-Ref: #general-help-options3100
-Node: General input options3382
-Ref: #general-input-options3567
-Node: General reporting options4224
-Ref: #general-reporting-options4388
-Node: MOUSE7778
-Ref: #mouse7873
-Node: KEYS8110
-Ref: #keys8203
-Node: SCREENS12858
-Ref: #screens12956
-Node: Menu13536
-Ref: #menu13629
-Node: Cash accounts13824
-Ref: #cash-accounts13966
-Node: Balance sheet accounts14150
-Ref: #balance-sheet-accounts14331
-Node: Income statement accounts14451
-Ref: #income-statement-accounts14637
-Node: All accounts14801
-Ref: #all-accounts14947
-Node: Register15129
-Ref: #register15253
-Node: Transaction17537
-Ref: #transaction17660
-Node: Error19077
-Ref: #error19171
-Node: TIPS19415
-Ref: #tips19514
-Node: Watch mode19556
-Ref: #watch-mode19663
-Node: Debug output21122
-Ref: #debug-output21233
-Node: ENVIRONMENT21445
-Ref: #environment21555
-Node: BUGS21746
-Ref: #bugs21829
+Node: General help options2956
+Ref: #general-help-options3105
+Node: General input options3387
+Ref: #general-input-options3572
+Node: General reporting options4229
+Ref: #general-reporting-options4393
+Node: MOUSE7783
+Ref: #mouse7878
+Node: KEYS8115
+Ref: #keys8208
+Node: SCREENS12863
+Ref: #screens12961
+Node: Menu13541
+Ref: #menu13634
+Node: Cash accounts13829
+Ref: #cash-accounts13971
+Node: Balance sheet accounts14155
+Ref: #balance-sheet-accounts14336
+Node: Income statement accounts14456
+Ref: #income-statement-accounts14642
+Node: All accounts14806
+Ref: #all-accounts14952
+Node: Register15134
+Ref: #register15258
+Node: Transaction17542
+Ref: #transaction17665
+Node: Error19082
+Ref: #error19176
+Node: TIPS19420
+Ref: #tips19519
+Node: Watch mode19561
+Ref: #watch-mode19668
+Node: Debug output21127
+Ref: #debug-output21238
+Node: ENVIRONMENT21450
+Ref: #environment21560
+Node: BUGS21751
+Ref: #bugs21834
 
 End Tag Table
 
