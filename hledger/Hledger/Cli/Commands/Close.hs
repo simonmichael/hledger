@@ -143,7 +143,11 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
           }
       where
         closedesc = T.pack $ fromMaybe defclosedesc_ $ maybestringopt "close-desc" rawopts
-          where defclosedesc_ = if mode_ == Retain then defretaindesc else defclosedesc
+          where
+            defclosedesc_
+              | mode_ == Retain = defretaindesc
+              | mode_ == Assert = "assert balances"
+              | otherwise       = defclosedesc
         closeps
           -- XXX some duplication
           | mode_ == Assert =
