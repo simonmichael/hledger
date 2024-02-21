@@ -20,6 +20,7 @@ Most of the code for reading rules files and csv files is in this module.
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# LANGUAGE LambdaCase #-}
 
 --- ** exports
 module Hledger.Read.RulesReader (
@@ -33,6 +34,7 @@ module Hledger.Read.RulesReader (
   -- CsvRules,
   dataFileFor,
   rulesFileFor,
+  parseBalanceAssertionType,
   -- * Tests
   tests_RulesReader,
 )
@@ -2361,16 +2363,26 @@ mkBalanceAssertion rules record (amt, pos) = assrt{baamount=amt, baposition=pos}
   where
     assrt =
       case getDirective "balance-type" rules of
-        Nothing    -> nullassertion
-        Just "="   -> nullassertion
-        Just "=="  -> nullassertion{batotal=True}
-        Just "=*"  -> nullassertion{bainclusive=True}
-        Just "==*" -> nullassertion{batotal=True, bainclusive=True}
-        Just x     -> error' . T.unpack $ T.unlines  -- PARTIAL:
-          [ "balance-type \"" <> x <>"\" is invalid. Use =, ==, =* or ==*."
-          , showRecord record
-          , showRules rules record
-          ]
+        Nothing -> nullassertion
+        Just x  ->
+          case parseBalanceAssertionType $ T.unpack x of
+            Just (total, inclusive) -> nullassertion{batotal=total, bainclusive=inclusive}
+            Nothing -> error' . T.unpack $ T.unlines  -- PARTIAL:
+              [ "balance-type \"" <> x <>"\" is invalid. Use =, ==, =* or ==*."
+              , showRecord record
+              , showRules rules record
+              ]
+
+-- | Detect from a balance assertion's syntax (=, ==, =*, ==*)
+-- whether it is (a) total (multi-commodity) and (b) subaccount-inclusive.
+-- Returns nothing if invalid syntax was provided.
+parseBalanceAssertionType :: String -> Maybe (Bool, Bool)
+parseBalanceAssertionType = \case
+  "="   -> Just (False, False)
+  "=="  -> Just (True,  False)
+  "=*"  -> Just (False, True )
+  "==*" -> Just (True,  True )
+  _     -> Nothing
 
 -- | Figure out the account name specified for posting N, if any.
 -- And whether it is the default unknown account (which may be
