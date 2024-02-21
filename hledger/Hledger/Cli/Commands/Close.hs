@@ -22,6 +22,7 @@ import Hledger.Cli.CliOptions
 import Safe (lastDef, readMay, readDef)
 import System.FilePath (takeFileName)
 import Data.Char (isDigit)
+import Hledger.Read.RulesReader (parseBalanceAssertionType)
 
 defclosedesc  = "closing balances"
 defopendesc   = "opening balances"
@@ -44,6 +45,7 @@ closemode = hledgerCommandMode
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["show-costs"]   (setboolopt "show-costs") "show amounts with different costs separately"
   ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
+  ,flagReq  ["assertion-type"]  (\s opts -> Right $ setopt "assertion-type" s opts) "TYPE" "=, ==, =* or ==*"
   ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "set closing transaction's description"
   ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "set closing transaction's destination account"
   ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "set opening transaction's description"
@@ -135,6 +137,12 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
     interleaved = boolopt "interleaved" rawopts
 
+    -- a balance assertion template of the right type
+    assertion =
+      case maybestringopt "assertion-type" rawopts >>= parseBalanceAssertionType of
+        Nothing                 -> nullassertion
+        Just (total, inclusive) -> nullassertion{batotal=total, bainclusive=inclusive}
+
     -- the closing (balance-asserting or balance-zeroing) transaction
     mclosetxn
       | mode_ `notElem` [Migrate, Close, Assert, Retain] = Nothing
@@ -158,7 +166,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                   -- balance assertion amounts are unpriced (#824)
                   ,pbalanceassertion =
                       if islast
-                      then Just nullassertion{baamount=precise b}
+                      then Just assertion{baamount=precise b}
                       else Nothing
                   }
               | -- get the balances for each commodity and transaction price
@@ -178,7 +186,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                     -- balance assertion amounts are unpriced (#824)
                     ,pbalanceassertion =
                         if islast
-                        then Just nullassertion{baamount=precise b{aquantity=0, acost=Nothing}}
+                        then Just assertion{baamount=precise b{aquantity=0, acost=Nothing}}
                         else Nothing
                     }
 
@@ -210,7 +218,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
           | mode_ == Assign =
             [ posting{paccount         = a
                     ,pamount           = missingmixedamt
-                    ,pbalanceassertion = Just nullassertion{baamount=b}
+                    ,pbalanceassertion = Just assertion{baamount=b}
                         -- case mcommoditysum of
                         --   Just s  -> Just nullassertion{baamount=precise s}
                         --   Nothing -> Nothing
@@ -232,7 +240,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                     ,pamount           = mixedAmount $ precise b
                     ,pbalanceassertion =
                         case mcommoditysum of
-                          Just s  -> Just nullassertion{baamount=precise s{acost=Nothing}}
+                          Just s  -> Just assertion{baamount=precise s{acost=Nothing}}
                           Nothing -> Nothing
                     }
               : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]
