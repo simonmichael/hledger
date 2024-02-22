@@ -140,7 +140,7 @@ import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time (Day)
-import Safe (headDef)
+import Safe (headDef, headMay)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
 import System.Exit (exitFailure)
@@ -184,8 +184,12 @@ defaultJournal = defaultJournalPath >>= runExceptT . readJournalFile definputopt
 -- determine a home directory).
 defaultJournalPath :: IO String
 defaultJournalPath = do
-  s <- envJournalPath
-  if null s then defpath else return s
+  p <- envJournalPath
+  if null p
+  then defpath
+  else do
+    ps <- expandGlob "." p `C.catch` (\(_::C.IOException) -> return [])
+    maybe defpath return $ headMay ps
     where
       envJournalPath =
         getEnv journalEnvVar
