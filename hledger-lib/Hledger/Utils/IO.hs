@@ -450,12 +450,13 @@ expandHomePath = \case
 -- ~username is not supported. Leaves "-" unchanged. Can raise an error.
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p
+expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p  -- PARTIAL:
 
 -- | Like expandPath, but treats the expanded path as a glob, and returns
 -- zero or more matched absolute file paths, alphabetically sorted.
+-- Can raise an error.
 expandGlob :: FilePath -> FilePath -> IO [FilePath]
-expandGlob curdir p = expandPath curdir p >>= glob <&> sort
+expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
 
 -- | Given a list of existing file paths, sort them by modification time, most recent first.
 sortByModTime :: [FilePath] -> IO [FilePath]
