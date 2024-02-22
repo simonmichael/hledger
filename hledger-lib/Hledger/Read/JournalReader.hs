@@ -104,6 +104,7 @@ import qualified Hledger.Read.CsvReader as CsvReader (reader)
 import qualified Hledger.Read.RulesReader as RulesReader (reader)
 import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
 import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
+import System.Directory (canonicalizePath)
 
 --- ** doctest setup
 -- $setup
@@ -304,22 +305,24 @@ includedirectivep = do
   where
     getFilePaths
       :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths parseroff parserpos filename = do
-        let curdir = takeDirectory (sourceName parserpos)
-        filename' <- lift $ expandHomePath filename
-                         `orRethrowIOError` (show parserpos ++ " locating " ++ filename)
-        -- Compiling filename as a glob pattern works even if it is a literal
-        fileglob <- case tryCompileWith compDefault{errorRecovery=False} filename' of
+    getFilePaths parseroff parserpos fileglobpattern = do
+        -- Expand a ~ at the start of the glob pattern, if any.
+        fileglobpattern' <- lift $ expandHomePath fileglobpattern
+                         `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
+        -- Compile the glob pattern.
+        fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
             Right x -> pure x
-            Left e -> customFailure $
-                        parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
-        -- Get all matching files in the current working directory, sorting in
-        -- lexicographic order to simulate the output of 'ls'.
+            Left e -> customFailure $ parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
+        -- Get the directory of the including file. This will be used to resolve relative paths.
+        let parentfilepath = sourceName parserpos
+        realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
+        let curdir = takeDirectory realparentfilepath
+        -- Find all matched files, in lexicographic order mimicking the output of 'ls'.
         filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
         if (not . null) filepaths
             then pure filepaths
             else customFailure $ parseErrorAt parseroff $
-                   "No existing files match pattern: " ++ filename
+                   "No existing files match pattern: " ++ fileglobpattern
 
     parseChild :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
     parseChild parentpos prefixedpath = do
