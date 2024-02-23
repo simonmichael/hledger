@@ -3397,11 +3397,11 @@ the regex would see, and try to match, this modified record text:
 
 When an if block has multiple matchers, they are combined as follows:
 
-- By default they are OR'd (any one of them can match)
-- When a matcher is preceded by ampersand (`&`) it will be AND'ed with the previous matcher (both of them must match)
-- *Added in 1.32* When a matcher is preceded by an exclamation mark (`!`), the matcher is negated (it may not match).
+- By default they are OR'd (any of them can match)
+- When a matcher is preceded by ampersand (`&`, at the start of the line) it will be AND'ed with the previous matcher (all in the AND'ed group must match)
+- *Added in 1.32* When a matcher is preceded by an exclamation mark (`!`), it is negated (it must not match).
 
-[Currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398) there is a limitation:
+Note [currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398) there is a limitation:
 you can't use both `&` and `!` on the same line (you can't AND a negated matcher).
 
 ### Match groups
