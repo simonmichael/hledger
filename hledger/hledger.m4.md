@@ -98,6 +98,17 @@ So we usually configure a different journal file, by setting the `LEDGER_FILE` e
 to something like `~/finance/2023.journal`.
 For more about how to do that on your system, see [Common tasks > Setting LEDGER_FILE](#setting-ledger_file).
 
+## Text encoding
+
+Data files containing non-ascii characters must use UTF-8 encoding.
+Also, your system should be configured with a locale that can decode UTF-8 text.
+On some unix systems, you may need set the `LANG` environment variable, eg.
+You can read more about this in [Unicode characters](#unicode-characters), below.
+
+On unix systems you can check a file's encoding with the `file` command.
+If you need to import from a UTF-16-encoded CSV file, say,
+you can convert it to UTF-8 with the `iconv` command. 
+
 ## Data formats
 
 Usually the data file is in hledger's journal format, but it can be in any of the supported file formats, which currently are:
