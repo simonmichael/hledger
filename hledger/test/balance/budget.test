@@ -728,3 +728,39 @@ Budget performance in 2020-01-01..2020-02-29:
 --------------++--------------
               || A 100  A 200 
               ||     0  B 200 
+
+# ** 40. In tree-mode budget reports, parent accounts with no actual or goal amounts
+# are still shown, to preserve the tree structure. The effect is similar to --no-elide. (#2071)
+<
+2023-07-01
+    expenses:rent                  $100
+    income:gifts:cash
+
+~ monthly 2023-08
+    (income:employment)           $-100
+    (income:gifts:cash)           $-100
+
+$ hledger -f- bal --budget -p 202308 --tree
+Budget performance in 2023-08:
+
+              ||             Aug 
+==============++=================
+ income       || 0 [0% of $-200] 
+   employment || 0 [0% of $-100] 
+   gifts      || 0               
+     cash     || 0 [0% of $-100] 
+--------------++-----------------
+              || 0 [0% of $-200] 
+
+# ** 41. But, not exactly the same; notice --no-elide shows a goal amount for gifts. (#2071)
+$ hledger -f- bal --budget -p 202308 --tree --no-elide
+Budget performance in 2023-08:
+
+              ||             Aug 
+==============++=================
+ income       || 0 [0% of $-200] 
+   employment || 0 [0% of $-100] 
+   gifts      || 0 [0% of $-100] 
+     cash     || 0 [0% of $-100] 
+--------------++-----------------
+              || 0 [0% of $-200] 

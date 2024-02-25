@@ -228,7 +228,7 @@ combineBudgetAndActual ropts j
     actualsplusgoals = [
         -- dbg0With (("actualsplusgoals: "<>)._brrShowDebug) $
         PeriodicReportRow acct amtandgoals totamtandgoal avgamtandgoal
-      | PeriodicReportRow acct actualamts actualtot actualavg <- actualrows  -- XXX #2071 can miss budgeted rows with elided parent no actual
+      | PeriodicReportRow acct actualamts actualtot actualavg <- actualrows
 
       , let mbudgetgoals       = HM.lookup (displayFull acct) budgetGoalsByAcct :: Maybe ([BudgetGoal], BudgetTotal, BudgetAverage)
       , let budgetmamts        = maybe (Nothing <$ periods) (map Just . first3) mbudgetgoals :: [Maybe BudgetGoal]
@@ -398,8 +398,10 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
             shownitems :: [[(AccountName, WideBuilder, BudgetDisplayRow)]]
             shownitems =
               map (\i ->
-                let addacctcolumn = map (\(cs, cvals) -> (renderacct i, cs, cvals))
-                in addacctcolumn . showrow . rowToBudgetCells $ i)
+                let
+                  addacctcolumn = map (\(cs, cvals) -> (renderacct i, cs, cvals))
+                  isunbudgetedrow = displayFull (prrName i) == unbudgetedAccountName
+                in addacctcolumn $ showrow isunbudgetedrow $ rowToBudgetCells i)
               items
               where
                 -- FIXME. Have to check explicitly for which to render here, since
@@ -412,7 +414,7 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
         (totrowcs, totrowtexts)  = unzip  $ concat showntotrow
           where
             showntotrow :: [[(WideBuilder, BudgetDisplayRow)]]
-            showntotrow = [showrow $ rowToBudgetCells totrow]
+            showntotrow = [showrow False $ rowToBudgetCells totrow]
 
         -- | Get the data cells from a row or totals row, maybe adding 
         -- the row total and/or row average depending on options.
@@ -422,14 +424,27 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
             ++ [rowavg | average_   && not (null as)]
 
         -- | Render a row's data cells as "BudgetDisplayCell"s, and a rendered list of commodity symbols.
-        showrow :: [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
-        showrow row =
-          let cs = budgetCellsCommodities row
-              (showmixed, percbudget) = mkBudgetDisplayFns cs
-           in   zip (map wbFromText cs)
-              . transpose
-              . map (showcell showmixed percbudget)
-              $ row
+        -- Also requires a flag indicating whether this is the special <unbudgeted> row.
+        -- (The types make that hard to check here.)
+        showrow :: Bool -> [BudgetCell] -> [(WideBuilder, BudgetDisplayRow)]
+        showrow isunbudgetedrow cells =
+          let
+            cs = budgetCellsCommodities cells
+            -- #2071 If there are no commodities - because there are no actual or goal amounts -
+            -- the zipped list would be empty, causing this row not to be shown.
+            -- But rows like this sometimes need to be shown to preserve the account tree structure.
+            -- So, ensure 0 will be shown as actual amount(s).
+            -- Unfortunately this disables boring parent eliding, as if --no-elide had been used.
+            -- (Just turning on --no-elide higher up doesn't work right.)
+            -- Note, no goal amount will be shown for these rows,
+            -- whereas --no-elide is likely to show a goal amount aggregated from children.
+            cs1 = if null cs && not isunbudgetedrow then [""] else cs
+            (showmixed, percbudget) = mkBudgetDisplayFns cs1
+          in
+            zip (map wbFromText cs1) $
+            transpose $
+            map (showcell showmixed percbudget)
+            cells
 
         budgetCellsCommodities :: [BudgetCell] -> [CommoditySymbol]
         budgetCellsCommodities = S.toList . foldl' S.union mempty . map budgetCellCommodities
