@@ -11,6 +11,9 @@ module Hledger.Cli.Commands.Print (
   printmode
  ,print'
  -- ,entriesReportAsText
+ ,roundFlag
+ ,roundFromRawOpts
+ ,amountStylesSetRoundingFromRawOpts
  ,transactionWithMostlyOriginalPostings
 )
 where
@@ -31,7 +34,7 @@ import System.Exit (exitFailure)
 import Safe (lastMay, minimumDef)
 import Data.Function ((&))
 import Data.List.Extra (nubSort)
-
+import qualified Data.Map as M
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
@@ -39,18 +42,7 @@ printmode = hledgerCommandMode
     "show all amounts explicitly"
   ,flagNone ["show-costs"] (setboolopt "show-costs")
     "show transaction prices even with conversion postings"
-  ,flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
-    intercalate "\n"
-    ["how much rounding or padding should be done when displaying amounts ?"
-    ,"none - show original decimal digits,"
-    ,"       as in journal"
-    ,"soft - just add or remove decimal zeros"
-    ,"       to match precision (default)"
-    ,"hard - round posting amounts to precision"
-    ,"       (can unbalance transactions)"
-    ,"all  - also round cost amounts to precision"
-    ,"       (can unbalance transactions)"
-    ]
+  ,roundFlag
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
   ,let arg = "DESC" in
@@ -63,6 +55,19 @@ printmode = hledgerCommandMode
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
+roundFlag = flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
+  intercalate "\n"
+  ["how much rounding or padding should be done when displaying amounts ?"
+  ,"none - show original decimal digits,"
+  ,"       as in journal"
+  ,"soft - just add or remove decimal zeros"
+  ,"       to match precision (default)"
+  ,"hard - round posting amounts to precision"
+  ,"       (can unbalance transactions)"
+  ,"all  - also round cost amounts to precision"
+  ,"       (can unbalance transactions)"
+  ]
+
 -- | Get the --round option's value, if any. Can fail with a parse error.
 roundFromRawOpts :: RawOpts -> Maybe Rounding
 roundFromRawOpts = lastMay . collectopts roundfromrawopt
@@ -74,6 +79,14 @@ roundFromRawOpts = lastMay . collectopts roundfromrawopt
       | n=="round", v=="all"  = Just AllRounding
       | n=="round"            = error' $ "--round's value should be none, soft, hard or all; got: "++v
       | otherwise             = Nothing
+
+-- | Set these amount styles' rounding strategy when they are being applied to amounts,
+-- according to the value of the --round option, if any.
+amountStylesSetRoundingFromRawOpts :: RawOpts -> M.Map CommoditySymbol AmountStyle -> M.Map CommoditySymbol AmountStyle
+amountStylesSetRoundingFromRawOpts rawopts styles =
+  case roundFromRawOpts rawopts of
+    Just r  -> amountStylesSetRounding r styles
+    Nothing -> styles
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
@@ -105,12 +118,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
   writeOutputLazyText opts $ render $ entriesReport rspec j
   where
     -- print does user-specified rounding or (by default) no rounding, in all output formats
-    styles =
-      case roundFromRawOpts rawopts of
-        Nothing         -> styles0
-        Just NoRounding -> styles0
-        Just r          -> amountStylesSetRounding r styles0
-      where styles0 = journalCommodityStyles j
+    styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
 
     fmt = outputFormatFromOpts opts
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts

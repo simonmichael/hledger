@@ -605,12 +605,13 @@ amountStyleApplyWithRounding iscost q news@AmountStyle{asprecision=newp, asround
     HardRounding -> news{asprecision=if iscost then oldp else newp}
     AllRounding  -> news
 
--- | Set this amount style's rounding strategy when being applied to amounts.
+-- | Set this amount style's rounding strategy when it is being applied to amounts.
 amountStyleSetRounding :: Rounding -> AmountStyle -> AmountStyle
 amountStyleSetRounding r as = as{asrounding=r}
 
+-- | Set these amount styles' rounding strategy when they are being applied to amounts.
 amountStylesSetRounding :: Rounding -> M.Map CommoditySymbol AmountStyle -> M.Map CommoditySymbol AmountStyle
-amountStylesSetRounding r = M.map (amountStyleSetRounding r) 
+amountStylesSetRounding r = M.map (amountStyleSetRounding r)
 
 -- | Default amount style
 amountstyle = AmountStyle L False Nothing (Just '.') (Precision 0) NoRounding

@@ -259,3 +259,16 @@ $ hledger -f- close --migrate -e 2001
 
 >=
 
+# ** 18. close supports --round, like print.
+$ hledger -f- close --migrate -e 2001 --round=hard -c '$1.0'
+2000-12-31 closing balances  ; start:
+    assets:a                               $-1000.0 = $0.0
+    assets:b                               $-1000.0 = $0.0
+    equity:opening/closing balances
+
+2001-01-01 opening balances  ; start:
+    assets:a                                $1000.0 = $1000.0
+    assets:b                                $1000.0 = $1000.0
+    equity:opening/closing balances
+
+>=
