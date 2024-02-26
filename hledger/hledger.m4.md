@@ -3297,7 +3297,7 @@ it is equivalent to `balance1`.
 You can adjust the type of assertion/assignment with the
 [`balance-type` rule](#balance-type) (see below).
 
-See [Tips](#tips) below for more about setting amounts and currency.
+See the [Working with CSV](#working-with-csv) tips below for more about setting amounts and currency.
 
 
 ## `if` block
