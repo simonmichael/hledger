@@ -188,7 +188,7 @@ balassertTotInc amt = Just $ nullassertion{baamount=amt, batotal=True, bainclusi
 -- | Render a balance assertion, as the =[=][*] symbol and expected amount.
 showBalanceAssertion :: BalanceAssertion -> WideBuilder
 showBalanceAssertion ba =
-    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True} (baamount ba)
+    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True, displayForceDecimalMark=True} (baamount ba)
   where
     eq  = if batotal ba     then singleton '=' else mempty
     ast = if bainclusive ba then singleton '*' else mempty

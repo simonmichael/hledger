@@ -234,7 +234,28 @@ $ hledger -f- close
 > /999999-12-31 closing balances/
 >=
 
-# ** 15. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
+# ** 16. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
 $ hledger -f- close -e 100000-01-01
 > /99999-12-31 closing balances/
 >=
+
+# ** 17. Not specific to close, but easy to reproduce with it: trailing decimal marks should be added
+# in balance assertion/assignment amounts also, like posting amounts. (#2076)
+<
+2000-01-01
+    (assets:a)  $1,000.00
+    (assets:b)   $1000
+
+$ hledger -f- close --migrate -e 2001
+2000-12-31 closing balances  ; start:
+    assets:a                             $-1,000.00 = $0.00
+    assets:b                               $-1,000. = $0
+    equity:opening/closing balances
+
+2001-01-01 opening balances  ; start:
+    assets:a                              $1,000.00 = $1,000.00
+    assets:b                                $1,000. = $1,000.
+    equity:opening/closing balances
+
+>=
+
