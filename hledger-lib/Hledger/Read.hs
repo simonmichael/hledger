@@ -335,16 +335,16 @@ readJournalFiles' = orDieTrying . readJournalFiles definputopts
 orDieTrying :: MonadIO m => ExceptT String m a -> m a
 orDieTrying a = either (liftIO . fail) return =<< runExceptT a
 
--- | If the specified journal file does not exist (and is not "-"),
--- give a helpful error and quit.
+-- | If the specified journal file does not exist (and is not "-"), give a helpful error and quit.
+-- (Using "journal file" generically here; it could be in any of hledger's supported formats.)
 requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
-  unless exists $ do  -- XXX might not be a journal file
-    hPutStr stderr $ "The hledger journal file \"" <> f <> "\" was not found.\n"
+  unless exists $ do
+    hPutStr stderr $ "The hledger data file \"" <> f <> "\" was not found.\n"
     hPutStr stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
-    hPutStr stderr "Or, specify an existing journal file with -f or LEDGER_FILE.\n"
+    hPutStr stderr "Or, specify an existing data file with -f or $LEDGER_FILE.\n"
     exitFailure
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
