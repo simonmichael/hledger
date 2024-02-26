@@ -4972,11 +4972,9 @@ The [print](#print) command is a little different, showing transactions which:
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-We also support more complex boolean queries with the 'expr:' prefix.
-This allows one to combine queries using one of three operators:
-AND, OR, and NOT, where NOT is different syntax for 'not:'.
-
-Examples of such queries are:
+We also support more complex boolean queries with the `expr:` prefix.
+This allows one to combine queries using `AND`, `OR`, and `NOT`.
+(`NOT` is equivalent to the `not:` prefix.) Some examples:
 
 - Match transactions with 'cool' in the description AND with the 'A' tag
 
