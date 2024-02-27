@@ -1531,4 +1531,20 @@ tests_RulesReader = testGroup "RulesReader" [
 
    ]
 
+ -- testing match groups (#2158)
+ ,testGroup "hledgerFieldValue" $
+    let rules = mkrules $ defrules
+          { rcsvfieldindexes=[ ("date",1), ("description",2) ]
+          , rassignments=[ ("account2","equity"), ("amount1","1") ]
+          -- ConditionalBlocks here are in reverse order: mkrules reverses the list
+          , rconditionalblocks=[ CB { cbMatchers=[FieldMatcher None "%description" (toRegex' "PREFIX (.*) - (.*)")] 
+                                    , cbAssignments=[("account1","account:\\1:\\2")] }
+                               , CB { cbMatchers=[FieldMatcher None "%description" (toRegex' "PREFIX (.*)")]
+                                    , cbAssignments=[("account1","account:\\1"), ("comment1","\\1")] }
+                               ]
+          }
+        record = ["2019-02-01","PREFIX Text 1 - Text 2"]
+    in [ testCase "scoped match groups forwards" $ hledgerFieldValue rules record "account1" @?= (Just "account:Text 1:Text 2")
+       , testCase "scoped match groups backwards" $ hledgerFieldValue rules record "comment1" @?= (Just "Text 1 - Text 2")
+       ]
  ]
