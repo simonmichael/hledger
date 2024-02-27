@@ -103,6 +103,6 @@ To claim the bounty:
 
 
 - [all regression reports](https://bugs.hledger.org/regressions)
-- [regression bounty requests](https://opencollective.com/hledger/dashboard)
-- [regression bounty payments](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-500)
+- [regression bounty requests](https://opencollective.com/hledger/expenses?amount=50-100)
+- [regression bounty payments](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-100)
 
