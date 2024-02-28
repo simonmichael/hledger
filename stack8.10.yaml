@@ -1,9 +1,5 @@
 # stack build plan using GHC 8.10.7
 
-nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
-
 resolver: lts-18.28
 
 packages:
@@ -23,13 +19,20 @@ extra-deps:
 - isomorphism-class-0.1.0.7
 # for hledger:
 # for hledger-ui:
-- brick-1.5
+- brick-2.3.1
 - bimap-0.5.0
 - fsnotify-0.4.0.0
-- text-zipper-0.12
-- vty-5.36
+- text-zipper-0.13
+- vty-6.2
+- vty-crossplatform-0.4.0.0
+- vty-unix-0.2.0.0
+- vty-windows-0.2.0.1
 # for hledger-web:
 # for Shake.hs:
+
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
 
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint
