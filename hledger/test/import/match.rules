@@ -1,16 +1,23 @@
 fields _, date, _, description, account1, amount, _
-# checking brackets in a field matcher are captured...
+
+# checking brackets in a field matcher are captured and interpolated into field
+# assignments (real-life use-case #2)
 if %account1 liabilities:jon:(.*)
-# ...and interpolated into field assignments (real-life use-case #2)
     account1 \1
-# checking brackets in a record matcher are captured, including
-# nesting...
+
+# This should match, as should the next block. Both blocks assign to comment1,
+# so this block should be a no-op. It's here to test the match group numbering
+# between blocks are not conflated (#2158).
+if (Zettle)
+    comment1 ignore
+
+# checking brackets in a record matcher are captured, including nesting and the
+# interpolation token numerical offset is local to this match group; and the
+# token is interpolated into surrounding text
 if Zettle.*(Robert W. (Bell)).*£
-# ... and the interpolation token numerical offset is local to
-# this match group; and the token is interpolated into surrounding
-# text
     comment1 Bell=\2.
-# Match the YYY-MM of a date field and warp the posting date, useful
-# for credit cards (real-life use-case #1))
+
+# Match the YYYY-MM of a date field and warp the posting date, useful for
+# credit cards (real-life use-case #1))
 if %date (....-..)-..
     comment2 date:\1-01
