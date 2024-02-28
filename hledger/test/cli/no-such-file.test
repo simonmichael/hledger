@@ -2,7 +2,7 @@
 # $$ used for safe concurrent test running, may be a bash-ism
 
 $ hledger register -f no-such-file-$$; rm -f no-such-file-$$
->2 /journal file.*not found/
+>2 /data file.*not found/
 
 $ hledger balance --no-total -f no-such-file-$$; rm -f no-such-file-$$
->2 /journal file.*not found/
+>2 /data file.*not found/
