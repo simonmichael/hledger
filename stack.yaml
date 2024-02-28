@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.6.4
 
-resolver: lts-22.7
+resolver: lts-22.12
 
 packages:
 - hledger-lib
@@ -8,7 +8,8 @@ packages:
 - hledger-ui
 - hledger-web
 
-# extra-deps:
+extra-deps:
+- vty-windows-0.2.0.1   # not yet in stackage
 
 nix:
   pure: false
@@ -31,6 +32,3 @@ nix:
 # #  "$targets": -Werror
 # #  "$everything": -O2
 # #  some-package: -DSOME_CPP_FLAG
-extra-deps:
-  - vty-windows-0.2.0.1
-
