@@ -1,9 +1,5 @@
 # stack build plan using GHC 9.0.2
 
-nix:
-  pure: false
-  packages: [perl gmp ncurses zlib]
-
 resolver: lts-19.33
 
 # for https://gitlab.haskell.org/ghc/ghc/-/issues/20592 on mac m1 (adjust path if needed)
@@ -26,13 +22,20 @@ extra-deps:
 - isomorphism-class-0.1.0.7
 # for hledger:
 # for hledger-ui:
-- brick-1.5
 - bimap-0.5.0
-- fsnotify-0.4.0.0
-- text-zipper-0.12
-- vty-5.36
+- brick-2.3.1
+- vty-6.2
+- vty-crossplatform-0.4.0.0
+- vty-unix-0.2.0.0
+- vty-windows-0.2.0.1
+- text-zipper-0.13
+- fsnotify-0.4.1.0
 # for hledger-web:
 # for Shake.hs:
+
+nix:
+  pure: false
+  packages: [perl gmp ncurses zlib]
 
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint
