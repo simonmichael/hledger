@@ -1169,7 +1169,20 @@ rawnumberp = label "number" $ do
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalMark c || c == ' '
+isDigitSeparatorChar c = isDecimalMark c || isDigitSeparatorSpaceChar c
+
+-- | Kinds of unicode space character we accept as digit group marks.
+-- See also https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping .
+isDigitSeparatorSpaceChar :: Char -> Bool
+isDigitSeparatorSpaceChar c =
+     c == ' '  -- space
+  || c == ' '  -- no-break space
+  || c == ' '  -- en space
+  || c == ' '  -- em space
+  || c == ' '  -- punctuation space
+  || c == ' '  -- thin space
+  || c == ' '  -- narrow no-break space
+  || c == ' '  -- medium mathematical space
 
 -- | Some kinds of number literal we might parse.
 data RawNumber

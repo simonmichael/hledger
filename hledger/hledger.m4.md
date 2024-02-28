@@ -1200,13 +1200,23 @@ A *decimal mark* can be written as a period or a comma:
     1,23
 
 In the integer part of the quantity (left of the decimal mark), groups
-of digits can optionally be separated by a *digit group mark* - a
-space, comma, or period (different from the decimal mark):
+of digits can optionally be separated by a *digit group mark* -
+a comma or period (whichever is not used as decimal mark), 
+or a space (any of these Unicode space characters:
+space,
+no-break space,
+en space,
+em space,
+punctuation space,
+thin space,
+narrow no-break space,
+medium mathematical space).
 
          $1,000,000.00
       EUR 2.000.000,00
     INR 9,99,99,999.00
-          1 000 000.9455
+          1 000 000.00   <- ordinary space  
+          1 000 000.00   <- no-break space
 
 hledger is not biased towards [period or comma decimal marks][international number formats],
 so a number containing just one period or comma, like `1,000` or `1.000`, is ambiguous.

@@ -36,14 +36,27 @@ $ hledger bal -f -
 >2 //
 >= 1
 
-# ** 5. Space between digits groups
+# ** 5. Spaces between digit groups, any of the 8 unicode space characters we support.
 <
-2017/1/1
-	a   1 000.00 EUR
-	b  -1 000.00 EUR
-$ hledger bal -f - --no-total
-        1 000.00 EUR  a
-       -1 000.00 EUR  b
+2000-01-01
+  (a)  1 000. A  ; space                    
+  (b)  1 000. B  ; no-break space           
+  (c)  1 000. C  ; en space                 
+  (d)  1 000. D  ; em space                 
+  (e)  1 000. E  ; punctuation space        
+  (f)  1 000. F  ; thin space               
+  (g)  1 000. G  ; narrow no-break space    
+  (h)  1 000. H  ; medium mathematical space
+
+$ hledger bal -f - -N
+             1 000 A  a
+             1 000 B  b
+             1 000 C  c
+             1 000 D  d
+             1 000 E  e
+             1 000 F  f
+             1 000 G  g
+             1 000 H  h
 
 # ** 6. Space between digits groups in commodity directive
 <
@@ -203,3 +216,24 @@ Balance changes in 2021:
 ===++===================================
  a || -0.12345678901234567890123456 EUR 
 
+# ** 21. When spaces are used inconsistently, what happens ? The usual, first one seen sets commodity style.
+<
+2000-01-01
+  (a)  1 000. A  ; no-break space           
+  (a)  1 000. A  ; space                    
+  (a)  1 000. A  ; en space                 
+
+$ hledger bal -f - -N
+             3 000 A  a
+
+# ** 22. And a commodity directive can enforce consistency as usual.
+<
+commodity 1 000. A  ; narrow no-break space
+
+2000-01-01
+  (a)  1 000. A  ; space                    
+  (a)  1 000. A  ; no-break space           
+  (a)  1 000. A  ; en space                 
+
+$ hledger bal -f - -N
+             3 000 A  a
