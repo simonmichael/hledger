@@ -119,4 +119,4 @@ executable hledger-ui
     , hledger-ui
   default-language: Haskell2010
   if flag(threaded)
-    ghc-options: -threaded
+    ghc-options: -threaded -with-rtsopts=-T

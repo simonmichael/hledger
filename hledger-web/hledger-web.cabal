@@ -225,7 +225,7 @@ executable hledger-web
   if flag(library-only)
     buildable: False
   if flag(threaded)
-    ghc-options: -threaded
+    ghc-options: -threaded -with-rtsopts=-T
 
 test-suite test
   type: exitcode-stdio-1.0

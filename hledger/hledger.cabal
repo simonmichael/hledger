@@ -231,7 +231,7 @@ executable hledger
     build-depends:
         terminfo
   if flag(threaded)
-    ghc-options: -threaded
+    ghc-options: -threaded -with-rtsopts=-T
 
 test-suite unittest
   type: exitcode-stdio-1.0
