@@ -710,12 +710,21 @@ csvRule rules = (`getDirective` rules)
 -- list/field assignment rules, taking into account the current record and
 -- conditional rules.
 hledgerField :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe FieldTemplate
-hledgerField = getEffectiveAssignment
+hledgerField rules record f = fmap
+  (either id (lastCBAssignmentTemplate f))
+  (getEffectiveAssignment rules record f)
 
 -- | Look up the final value assigned to a hledger field, with csv field
 -- references interpolated.
-hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
-hledgerFieldValue rules record f = (fmap (renderTemplate rules record f) . hledgerField rules record) f
+hledgerFieldValue rules record f = (flip fmap) (getEffectiveAssignment rules record f)
+  $ either (renderTemplate rules record)
+  $ \cb -> let
+      t = lastCBAssignmentTemplate f cb
+      r = rules { rconditionalblocks = [cb] } -- XXX handle rblocksassigning
+      in renderTemplate r record t
+
+lastCBAssignmentTemplate :: HledgerFieldName -> ConditionalBlock -> FieldTemplate
+lastCBAssignmentTemplate f = snd . last . filter ((==f).fst) . cbAssignments
 
 maybeNegate :: MatcherPrefix -> Bool -> Bool
 maybeNegate Not origbool = not origbool
@@ -728,15 +737,22 @@ maybeNegate _ origbool = origbool
 -- Note conditional blocks' patterns are matched against an approximation of the
 -- CSV record: all the field values, without enclosing quotes, comma-separated.
 --
-getEffectiveAssignment :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe FieldTemplate
-getEffectiveAssignment rules record f = lastMay $ map snd $ assignments
+getEffectiveAssignment
+  :: CsvRules
+     -> CsvRecord
+     -> HledgerFieldName
+     -> Maybe (Either FieldTemplate ConditionalBlock)
+getEffectiveAssignment rules record f = lastMay assignments
   where
     -- all active assignments to field f, in order
-    assignments = dbg9 "csv assignments" $ filter ((==f).fst) $ toplevelassignments ++ conditionalassignments
+    assignments = dbg9 "csv assignments" $ toplevelassignments ++ conditionalassignments
     -- all top level field assignments
-    toplevelassignments    = rassignments rules 
+    toplevelassignments    = map (Left . snd) $ filter ((==f).fst) $ rassignments rules
     -- all field assignments in conditional blocks assigning to field f and active for the current csv record
-    conditionalassignments = concatMap cbAssignments $ filter (isBlockActive rules record) $ (rblocksassigning rules) f
+    conditionalassignments = map Right
+                           $ filter (any (==f) . map fst . cbAssignments)
+                           $ filter (isBlockActive rules record)
+                           $ (rblocksassigning rules) f
 
 -- does this conditional block match the current csv record ?
 isBlockActive :: CsvRules -> CsvRecord -> ConditionalBlock -> Bool
@@ -812,7 +828,8 @@ regexMatchValue rules record f sgroup = let
   matchgroups  = concatMap (getMatchGroups rules record)
                $ concatMap cbMatchers
                $ filter (isBlockActive rules record)
-               $ rblocksassigning rules f
+               $ rconditionalblocks rules
+               -- ^ XXX adjusted to not use memoized field as caller might be sending a subset of rules with just one CB (hacky)
   group = (read (T.unpack sgroup) :: Int) - 1 -- adjust to 0-indexing
   in atMay matchgroups group
 
