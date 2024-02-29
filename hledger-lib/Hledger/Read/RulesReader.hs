@@ -235,7 +235,7 @@ validateCsvRules rules = do
   unless (isAssigned "date")   $ Left "Please specify (at top level) the date field. Eg: date %1"
   Right rules
   where
-    isAssigned f = isJust $ getEffectiveAssignment rules [] f
+    isAssigned f = isJust $ hledgerField rules [] f
 
 --- *** rules types
 _RULES_TYPES__________________________________________ = undefined
@@ -1002,7 +1002,7 @@ applyConditionalSkips rules (r:rest) =
     Just cnt -> applyConditionalSkips rules $ drop (cnt-1) rest
   where
     skipnum r1 =
-      case (getEffectiveAssignment rules r1 "end", getEffectiveAssignment rules r1 "skip") of
+      case (hledgerField rules r1 "end", hledgerField rules r1 "skip") of
         (Nothing, Nothing) -> Nothing
         (Just _, _) -> Just maxBound
         (Nothing, Just "") -> Just 1
@@ -1293,7 +1293,7 @@ parseAmount rules record currency s =
 -- | Show the values assigned to each journal field.
 showRules rules record = T.unlines $ catMaybes
   [ (("the "<>fld<>" rule is: ")<>) <$>
-    getEffectiveAssignment rules record fld | fld <- journalfieldnames ]
+    hledgerField rules record fld | fld <- journalfieldnames ]
 
 -- | Show a (approximate) recreation of the original CSV record.
 showRecord :: CsvRecord -> Text
@@ -1503,31 +1503,31 @@ tests_RulesReader = testGroup "RulesReader" [
 
    ]
 
- ,testGroup "getEffectiveAssignment" [
+ ,testGroup "hledgerField" [
     let rules = mkrules $ defrules {rcsvfieldindexes=[("csvdate",1)],rassignments=[("date","%csvdate")]}
 
-    in testCase "toplevel" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+    in testCase "toplevel" $ hledgerField rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
-    in testCase "conditional" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional" $ hledgerField rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher Not "%csvdate" $ toRegex' "a"] [("date","%csvdate")]]}
-    in testCase "negated-conditional-false" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Nothing)
+    in testCase "negated-conditional-false" $ hledgerField rules ["a","b"] "date" @?= (Nothing)
   
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1)], rconditionalblocks=[CB [FieldMatcher Not "%csvdate" $ toRegex' "b"] [("date","%csvdate")]]}
-    in testCase "negated-conditional-true" $ getEffectiveAssignment rules ["a","b"] "date" @?= (Just "%csvdate")
+    in testCase "negated-conditional-true" $ hledgerField rules ["a","b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in testCase "conditional-with-or-a" $ getEffectiveAssignment rules ["a"] "date" @?= (Just "%csvdate")
+    in testCase "conditional-with-or-a" $ hledgerField rules ["a"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher None "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in testCase "conditional-with-or-b" $ getEffectiveAssignment rules ["_", "b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional-with-or-b" $ hledgerField rules ["_", "b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b"] [("date","%csvdate")]]}
-    in testCase "conditional.with-and" $ getEffectiveAssignment rules ["a", "b"] "date" @?= (Just "%csvdate")
+    in testCase "conditional.with-and" $ hledgerField rules ["a", "b"] "date" @?= (Just "%csvdate")
 
    ,let rules = mkrules $ defrules{rcsvfieldindexes=[("csvdate",1),("description",2)], rconditionalblocks=[CB [FieldMatcher None "%csvdate" $ toRegex' "a", FieldMatcher And "%description" $ toRegex' "b", FieldMatcher None "%description" $ toRegex' "c"] [("date","%csvdate")]]}
-    in testCase "conditional.with-and-or" $ getEffectiveAssignment rules ["_", "c"] "date" @?= (Just "%csvdate")
+    in testCase "conditional.with-and-or" $ hledgerField rules ["_", "c"] "date" @?= (Just "%csvdate")
 
    ]
 
