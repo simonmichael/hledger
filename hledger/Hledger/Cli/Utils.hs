@@ -31,6 +31,7 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
+import qualified Data.List.NonEmpty as NE (toList)
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -72,7 +73,7 @@ withJournalDo opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) journalpaths
+  j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
   either error' cmd j  -- PARTIAL:
 
 -- | Apply some extra post-parse transformations to the journal, if enabled by options.
@@ -145,15 +146,14 @@ journalReloadIfChanged opts _d j = do
   let maybeChangedFilename f = do newer <- journalFileIsNewer j f
                                   return $ if newer then Just f else Nothing
   changedfiles <- liftIO $ catMaybes <$> mapM maybeChangedFilename (journalFilePaths j)
-  if not $ null changedfiles
-   then do
-     -- XXX not sure why we use cmdarg's verbosity here, but keep it for now
-     verbose <- liftIO isLoud
-     when (verbose || debugLevel >= 6) . liftIO $ printf "%s has changed, reloading\n" (head changedfiles)
-     newj <- journalReload opts
-     return (newj, True)
-   else
-     return (j, False)
+  case changedfiles of
+    []  -> return (j, False)
+    f:_ -> do
+      -- XXX not sure why we use cmdarg's verbosity here, but keep it for now
+      verbose <- liftIO isLoud
+      when (verbose || debugLevel >= 6) . liftIO $ printf "%s has changed, reloading\n" f
+      newj <- journalReload opts
+      return (newj, True)
 
 -- | Re-read the journal file(s) specified by options, applying any
 -- transformations specified by options. Or return an error string.
@@ -161,7 +161,7 @@ journalReloadIfChanged opts _d j = do
 journalReload :: CliOpts -> ExceptT String IO Journal
 journalReload opts = do
   journalpaths <- liftIO $ dbg6 "reloading files" <$> journalFilePathFromOpts opts
-  journalTransform opts <$> readJournalFiles (inputopts_ opts) journalpaths
+  journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
 
 -- | Has the specified file changed since the journal was last read ?
 -- Typically this is one of the journal's journalFilePaths. These are

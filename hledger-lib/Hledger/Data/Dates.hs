@@ -105,7 +105,7 @@ import Data.Time.Calendar
 import Data.Time.Calendar.OrdinalDate (fromMondayStartWeek, mondayStartWeek)
 import Data.Time.Clock (UTCTime, diffUTCTime)
 import Data.Time.LocalTime (getZonedTime, localDay, zonedTimeToLocalTime)
-import Safe (headMay, lastMay, maximumMay, minimumMay)
+import Safe (headErr, headMay, lastMay, maximumMay, minimumMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, string, string')
 import Text.Megaparsec.Char.Lexer (decimal, signed)
@@ -900,7 +900,7 @@ weekday = do
                          show wday <> " in " <> show (weekdays ++ weekdayabbrevs)
 
 weekdaysp :: TextParser m [Int]
-weekdaysp = fmap head . group . sort <$> sepBy1 weekday (string' ",")
+weekdaysp = fmap headErr . group . sort <$> sepBy1 weekday (string' ",")  -- PARTIAL headErr will succeed because of sepBy1
 
 -- | Parse a period expression, specifying a date span and optionally
 -- a reporting interval. Requires a reference "today" date for

@@ -51,6 +51,7 @@ where
 
 import Control.Monad (when)
 import qualified Data.Text as T
+import Safe (tailErr)
 import Text.Megaparsec
 import Text.Printf
 import Control.Monad.State.Strict (StateT, evalStateT)
@@ -163,7 +164,7 @@ showParseError e = "parse error at " ++ show e
 
 showDateParseError
   :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> String
-showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tail $ lines $ show e)
+showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tailErr $ lines $ show e)  -- PARTIAL tailError won't be null because showing a parse error
 
 isNewline :: Char -> Bool 
 isNewline '\n' = True

@@ -82,7 +82,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )
-import Safe (readDef, readMay, maximumByMay, maximumMay, minimumMay)
+import Safe (headErr, readDef, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)
 import Text.Megaparsec.Char (char, string, string')
 
@@ -494,14 +494,14 @@ simplifyQuery q0 =
   where
     simplify (And []) = Any
     simplify (And [q]) = simplify q
-    simplify (And qs) | same qs = simplify $ head qs
+    simplify (And qs) | same qs = simplify $ headErr qs  -- PARTIAL headErr succeeds because pattern ensures non-null qs
                       | None `elem` qs = None
                       | all queryIsDate qs = Date $ spansIntersect $ mapMaybe queryTermDateSpan qs
                       | otherwise = And $ map simplify dateqs ++ map simplify otherqs
                       where (dateqs, otherqs) = partition queryIsDate $ filter (/=Any) qs
     simplify (Or []) = Any
     simplify (Or [q]) = simplifyQuery q
-    simplify (Or qs) | same qs = simplify $ head qs
+    simplify (Or qs) | same qs = simplify $ headErr qs  -- PARTIAL headErr succeeds because pattern ensures non-null qs
                      | Any `elem` qs = Any
                      -- all queryIsDate qs = Date $ spansUnion $ mapMaybe queryTermDateSpan qs  ?
                      | otherwise = Or $ map simplify $ filter (/=None) qs

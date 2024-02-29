@@ -20,10 +20,8 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-ghc-options:
-  # XXX silence 9.8's new partial warnings for now
-  "$locals": -Wno-x-partial
-
+# ghc-options:
+#   "$locals": -Wno-x-partial
 #   "$locals": -fplugin Debug.Breakpoint
 
 # # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:

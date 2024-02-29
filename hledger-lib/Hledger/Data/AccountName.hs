@@ -311,7 +311,7 @@ elideAccountName width s
         elideparts :: Int -> [Text] -> [Text] -> [Text]
         elideparts w done ss
           | realLength (accountNameFromComponents $ done++ss) <= w = done++ss
-          | length ss > 1 = elideparts w (done++[textTakeWidth 2 $ head ss]) (tail ss)
+          | length ss > 1 = elideparts w (done++[textTakeWidth 2 $ headErr ss]) (tailErr ss)  -- PARTIAL headErr, tailErr will succeed because length > 1
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n

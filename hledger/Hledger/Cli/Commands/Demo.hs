@@ -51,6 +51,7 @@ import Control.Applicative ((<|>))
 import Data.ByteString as B (ByteString)
 import Data.Maybe
 import qualified Data.ByteString.Char8 as B
+import Safe (tailMay)
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
 import System.Console.CmdArgs.Explicit (flagReq)
@@ -128,8 +129,7 @@ readDemo content = Demo title content
       where
         readTitle s
           | "\"title\":" `isPrefixOf` s = takeWhile (/='"') $ drop 1 $ lstrip $ drop 8 s
-          | null s = ""
-          | otherwise = readTitle $ tail s
+          | otherwise = maybe "" readTitle $ tailMay s
 
 findDemo :: [Demo] -> String -> Maybe Demo
 findDemo ds s =

@@ -80,6 +80,7 @@ import Data.Char
 import Data.Default
 import Data.Either (fromRight, isRight)
 import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
+import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, head, nonEmpty, singleton)
 import Data.List.Split (splitOn)
 import Data.Maybe
 --import Data.String.Here
@@ -534,7 +535,7 @@ rawOptsToCliOpts rawopts = do
     (`getCapability` termColumns) <$> setupTermFromEnv
     -- XXX Throws a SetupTermError if the terminfo database could not be read, should catch
 #endif
-  let availablewidth = head $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]
+  let availablewidth = NE.head $ NE.fromList $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = stringopt "command" rawopts
@@ -612,13 +613,14 @@ getHledgerCliOpts mode' = do
 -- Actually, returns one or more file paths. There will be more
 -- than one if multiple -f options were provided.
 -- File paths can have a READER: prefix naming a reader/data format.
-journalFilePathFromOpts :: CliOpts -> IO [String]
+journalFilePathFromOpts :: CliOpts -> IO (NE.NonEmpty String)
 journalFilePathFromOpts opts = do
   f <- defaultJournalPath
   d <- getCurrentDirectory
-  case file_ opts of
-    [] -> return [f]
-    fs -> mapM (expandPathPreservingPrefix d) fs
+  maybe
+    (return $ NE.singleton f)
+    (mapM (expandPathPreservingPrefix d))
+    $ NE.nonEmpty $ file_ opts
 
 expandPathPreservingPrefix :: FilePath -> PrefixedFilePath -> IO PrefixedFilePath
 expandPathPreservingPrefix d prefixedf = do

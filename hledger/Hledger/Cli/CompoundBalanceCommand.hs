@@ -22,6 +22,7 @@ import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C
 import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 import Lucid as L hiding (value_)
+import Safe (tailDef)
 import Text.Tabular.AsciiWide as Tab hiding (render)
 
 import Hledger
@@ -261,7 +262,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
     -- | Add a subreport title row and drop the heading row.
     subreportAsCsv ropts1 (subreporttitle, multibalreport, _) =
       padRow subreporttitle :
-      tail (multiBalanceReportAsCsv ropts1 multibalreport)
+      tailDef [] (multiBalanceReportAsCsv ropts1 multibalreport)
     padRow s = take numcols $ s : repeat ""
       where
         numcols

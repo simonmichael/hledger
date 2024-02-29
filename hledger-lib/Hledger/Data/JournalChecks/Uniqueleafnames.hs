@@ -9,6 +9,7 @@ import Data.Function (on)
 import Data.List (groupBy, sortBy)
 import Data.Text (Text)
 import qualified Data.Text as T
+import Safe (headErr)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountLeafName)
@@ -55,10 +56,14 @@ journalCheckUniqueleafnames j = do
 
 finddupes :: (Ord leaf, Eq full) => [(leaf, full)] -> [(leaf, [full])]
 finddupes leafandfullnames = zip dupLeafs dupAccountNames
-  where dupLeafs = map (fst . head) d
-        dupAccountNames = map (map snd) d
-        d = dupes' leafandfullnames
-        dupes' = filter ((> 1) . length)
+  where
+    dupAccountNames = map (map snd) dupes
+    dupLeafs = case dupes of
+      [] -> []
+      _  -> map (fst . headErr) dupes  -- PARTIAL headErr succeeds because of pattern
+    dupes = fnddupes leafandfullnames
+      where
+        fnddupes = filter ((> 1) . length)
           . groupBy ((==) `on` fst)
           . sortBy (compare `on` fst)
 

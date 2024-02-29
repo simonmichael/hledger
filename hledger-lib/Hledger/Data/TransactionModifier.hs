@@ -19,6 +19,7 @@ import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
+import Safe (headDef)
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates
@@ -127,7 +128,7 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
         Just n  -> \p ->
           -- Multiply the old posting's amount by the posting rule's multiplier.
           let
-            pramount = dbg6 "pramount" . head . amountsRaw $ pamount pr
+            pramount = dbg6 "pramount" . headDef nullamt . amountsRaw $ pamount pr
             matchedamount = dbg6 "matchedamount" . filterMixedAmount (symq `matchesAmount`) $ pamount p
             -- Handle a matched amount with a total price carefully so as to keep the transaction balanced (#928).
             -- Approach 1: convert to a unit price and increase the display precision slightly

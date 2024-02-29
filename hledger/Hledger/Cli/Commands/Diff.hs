@@ -20,6 +20,7 @@ import Data.Time (diffDays)
 import Data.Either (partitionEithers)
 import qualified Data.Text.IO as T
 import Lens.Micro (set)
+import Safe (headDef)
 import System.Exit (exitFailure)
 
 import Hledger
@@ -47,7 +48,7 @@ pptxn :: PostingWithPath -> Transaction
 pptxn = fromJust . ptransaction . ppposting
 
 ppamountqty :: PostingWithPath -> Quantity
-ppamountqty = aquantity . head . amounts . pamount . ppposting
+ppamountqty = aquantity . headDef nullamt . amounts . pamount . ppposting
 
 allPostingsWithPath :: Journal -> [PostingWithPath]
 allPostingsWithPath j = do

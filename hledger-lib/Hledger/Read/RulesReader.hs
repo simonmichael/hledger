@@ -948,8 +948,8 @@ readJournalFromCsv merulesfile csvfile csvtext sep = do
       newestfirst = dbg6 "newest-first" $ isJust $ getDirective "newest-first" rules
       mdatalooksnewestfirst = dbg6 "mdatalooksnewestfirst" $
         case nub $ map tdate txns of
-          ds | length ds > 1 -> Just $ head ds > last ds
-          _                  -> Nothing
+          ds@(d:_) -> Just $ d > last ds
+          []       -> Nothing
       txns2 = dbg7 "txns2" $
         (if newestfirst || mdatalooksnewestfirst == Just True then reverse else id) txns1
       -- 3. Disordered dates: in case the CSV records were ordered by chaos,

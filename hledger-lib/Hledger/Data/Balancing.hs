@@ -46,6 +46,7 @@ import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.Time.Calendar (fromGregorian)
 import qualified Data.Map as M
+import Safe (headErr)
 import Text.Printf (printf)
 
 import Hledger.Utils
@@ -834,7 +835,7 @@ tests_Balancing =
                 [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = missingmixedamt}])) @?=
           Right (mixedAmount $ usd (-1))
         ,testCase "conversion price is inferred" $
-          (pamount . head . tpostings <$>
+          (pamount . headErr . tpostings <$>  -- PARTIAL headErr succeeds because non-null postings list
            balanceTransaction defbalancingopts
              (Transaction
                 0
@@ -1026,7 +1027,7 @@ tests_Balancing =
               transaction (fromGregorian 2019 01 01) [ vpost' "a" missingamt (balassert (num 1)) ]
             ]}
       assertRight ej
-      case ej of Right j -> (jtxns j & head & tpostings & head & pamount & amountsRaw) @?= [num 1]
+      case ej of Right j -> (jtxns j & headErr & tpostings & headErr & pamount & amountsRaw) @?= [num 1]  -- PARTIAL headErrs succeed because non-null txns & postings lists given
                  Left _  -> error' "balance-assignment test: shouldn't happen"
 
     ,testCase "same-day-1" $ do

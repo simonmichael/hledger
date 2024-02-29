@@ -80,7 +80,7 @@ ledgerRootAccount = headDef nullacct . laccounts
 
 -- | List a ledger's top-level accounts (the ones below the root), in tree order.
 ledgerTopAccounts :: Ledger -> [Account]
-ledgerTopAccounts = asubs . head . laccounts
+ledgerTopAccounts = asubs . headDef nullacct . laccounts
 
 -- | List a ledger's bottom-level (subaccount-less) accounts, in tree order.
 ledgerLeafAccounts :: Ledger -> [Account]

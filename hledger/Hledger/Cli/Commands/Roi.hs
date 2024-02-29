@@ -27,6 +27,7 @@ import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TL
+import Safe (headDef, tailDef)
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular.AsciiWide as Tab
@@ -218,14 +219,14 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
           aggregateByDate datedAmounts =
             -- Aggregate all entries for a single day, assuming that intraday interest is negligible
             sort
-            $ map (\date_cash -> let (dates, cash) = unzip date_cash in (head dates, maSum cash))
+            $ map (\datecashes -> let (dates, cash) = unzip datecashes in (headDef (error' "Roi.hs: datecashes was null, please report a bug") dates, maSum cash))
             $ groupBy ((==) `on` fst)
             $ sortOn fst
             $ map (second maNegate)
             $ datedAmounts
 
   let units =
-        tail $
+        tailDef (error' "Roi.hs units was null, please report a bug") $
         scanl
           (\(_, _, unitCost, unitBalance) (date, amt) ->
              let valueOnDate = unMix $ mixedAmountValue end date $ total trans (And [investmentsQuery, Date (DateSpan Nothing (Just $ Exact date))])

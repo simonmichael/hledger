@@ -21,9 +21,10 @@ import qualified Data.Map as M
 import Data.Maybe
 import Graphics.Vty
 import Brick
+import Safe (headErr)
 
 defaultTheme :: AttrMap
-defaultTheme = fromMaybe (snd $ head themesList) $ getTheme "white"
+defaultTheme = fromMaybe (snd $ headErr themesList) $ getTheme "white"  -- PARTIAL headErr succeeds because themesList is non-null
   -- the theme named here should exist;
   -- otherwise it will take the first one from the list,
   -- which must be non-empty.

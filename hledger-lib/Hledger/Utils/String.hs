@@ -41,6 +41,7 @@ module Hledger.Utils.String (
 import Data.Char (isSpace, toLower, toUpper)
 import Data.List (intercalate, dropWhileEnd)
 import qualified Data.Text as T
+import Safe (headErr, tailErr)
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
@@ -203,12 +204,12 @@ unwords' = unwords . map quoteIfNeeded
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: String -> String
-stripquotes s = if isSingleQuoted s || isDoubleQuoted s then init $ tail s else s
+stripquotes s = if isSingleQuoted s || isDoubleQuoted s then init $ tailErr s else s  -- PARTIAL tailErr won't fail because isDoubleQuoted
 
-isSingleQuoted s@(_:_:_) = head s == '\'' && last s == '\''
+isSingleQuoted s@(_:_:_) = headErr s == '\'' && last s == '\''  -- PARTIAL headErr, last will succeed because of pattern
 isSingleQuoted _ = False
 
-isDoubleQuoted s@(_:_:_) = head s == '"' && last s == '"'
+isDoubleQuoted s@(_:_:_) = headErr s == '"' && last s == '"'  -- PARTIAL headErr, last will succeed because of pattern
 isDoubleQuoted _ = False
 
 -- Functions below treat wide (eg CJK) characters as double-width.

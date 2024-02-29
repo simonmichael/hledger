@@ -89,6 +89,7 @@ where
 
 import Control.Monad (when)
 import Data.List
+import qualified Data.List.NonEmpty as NE
 import Safe
 import qualified System.Console.CmdArgs.Explicit as C
 import System.Environment
@@ -261,7 +262,7 @@ main = do
           _ | cmd `elem` ["demo","help","test"] -> cmdaction opts journallesserror
           -- these commands should create the journal if missing
           _ | cmd `elem` ["add","import"] -> do
-            ensureJournalFileExists . head =<< journalFilePathFromOpts opts
+            ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
             withJournalDo opts (cmdaction opts)
           -- other commands read the journal and should fail if it's missing
           _ -> withJournalDo opts (cmdaction opts)

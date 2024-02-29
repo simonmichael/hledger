@@ -19,6 +19,7 @@ import Data.List
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Numeric
+import Safe (tailErr)
 import System.Environment
 import Text.Printf
 -- import Hledger.Utils.Debug
@@ -35,7 +36,7 @@ main = do
   let comms  = cycle ['A'..'Z']
   let rates = [0.70, 0.71 .. 1.3]
   mapM_ (\(n,d,(a,b),c,p) -> putStr $ showtxn n d a b c p) $ take numtxns $ zip5 [1..] dates accts comms (drop 1 comms)
-  mapM_ (\(d,rate) -> putStr $ showmarketprice d rate) $ take numtxns $ zip dates (cycle $ rates ++ init (tail (reverse rates)))
+  mapM_ (\(d,rate) -> putStr $ showmarketprice d rate) $ take numtxns $ zip dates (cycle $ rates ++ init (tailErr (reverse rates)))  -- PARTIAL tailErr succeeds because non-null rates list
 
 showtxn :: Int -> Day -> String -> String -> Char -> Char -> String
 showtxn txnno date acct1 acct2 comm pricecomm =
@@ -79,7 +80,7 @@ sequences :: Show a => Int -> [a] -> [[a]]
 sequences n l = go l
   where
     go [] = []
-    go l' = s : go (tail l')
+    go l' = s : go (tailErr l')  -- PARTIAL tailErr succeeds because of pattern
       where
         s' = take n l'
         s | length s' == n = s'

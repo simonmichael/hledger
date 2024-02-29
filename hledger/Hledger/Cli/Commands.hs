@@ -57,6 +57,7 @@ import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
+import Safe (headErr)
 import String.ANSI
 import System.Environment (withArgs)
 import System.Console.CmdArgs.Explicit as C
@@ -396,19 +397,19 @@ tests_Commands = testGroup "Commands" [
 
     ,testCase "preserves \"virtual\" posting type" $ do
       j <- readJournal' "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n"  -- PARTIAL:
-      let p = head $ tpostings $ head $ jtxns j
+      let p = headErr $ tpostings $ headErr $ jtxns j  -- PARTIAL headErrs succeed because txns & postings provided
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
 
   ,testCase "alias directive" $ do
     j <- readJournal' "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n"  -- PARTIAL:
-    let p = head $ tpostings $ head $ jtxns j
+    let p = headErr $ tpostings $ headErr $ jtxns j  -- PARTIAL headErrs succeed because txns & postings provided
     paccount p @?= "equity:draw:personal:food"
 
   ,testCase "Y default year directive" $ do
     j <- readJournal' defaultyear_journal_txt  -- PARTIAL:
-    tdate (head $ jtxns j) @?= fromGregorian 2009 1 1
+    tdate (headErr $ jtxns j) @?= fromGregorian 2009 1 1  -- PARTIAL headErr succeeds because defaultyear_journal_txt has a txn
 
   ,testCase "ledgerAccountNames" $
     (ledgerAccountNames ledger7)
