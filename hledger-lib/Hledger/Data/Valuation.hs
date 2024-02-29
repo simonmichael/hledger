@@ -115,7 +115,7 @@ amountPriceDirectiveFromCost :: Day -> Amount -> Maybe PriceDirective
 amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = case acost amt of
     Just (UnitCost u)           -> Just $ pd{pdamount=u}
     Just (TotalCost t) | n /= 0 -> Just $ pd{pdamount=u}
-      where u = amountSetFullPrecisionOr Nothing $ divideAmount n t
+      where u = amountSetFullPrecisionUpTo Nothing $ divideAmount n t
     _                            -> Nothing
   where
     pd = PriceDirective{pddate = d, pdcommodity = fromcomm, pdamount = nullamt}
@@ -209,7 +209,7 @@ amountValueAtDate priceoracle styles mto d a =
       -- set the display precision to match the internal precision (showing all digits),
       -- unnormalised (don't strip trailing zeros);
       -- but if it looks like an infinite decimal, limit the precision to 8.
-      & amountSetFullPrecisionOr Nothing
+      & amountSetFullPrecisionUpTo Nothing
       & dbg9With (lbl "calculated value".showAmount)
 
 -- | Calculate the gain of each component amount, that is the difference

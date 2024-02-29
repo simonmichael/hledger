@@ -97,7 +97,7 @@ module Hledger.Data.Amount (
   amountSetPrecisionMax,
   withPrecision,
   amountSetFullPrecision,
-  amountSetFullPrecisionOr,
+  amountSetFullPrecisionUpTo,
   amountInternalPrecision,
   amountDisplayPrecision,
   defaultMaxPrecision,
@@ -159,6 +159,7 @@ module Hledger.Data.Amount (
   wbUnpack,
   mixedAmountSetPrecision,
   mixedAmountSetFullPrecision,
+  mixedAmountSetFullPrecisionUpTo,
   mixedAmountSetPrecisionMin,
   mixedAmountSetPrecisionMax,
 
@@ -453,24 +454,26 @@ amountSetFullPrecision a = amountSetPrecision p a
 
 
 -- | We often want to display "infinite decimal" amounts rounded to some readable
--- number of digits, while still displaying amounts with a large "non infinite" number
--- of decimal digits (eg, 100 or 200 digits) in full.
+-- number of digits, while still displaying amounts with a large but "non infinite"
+-- number of decimal digits (eg 10 or 100 or 200 digits) in full.
 -- This helper is like amountSetFullPrecision, but with some refinements:
--- 1. If the internal precision is the maximum (255), indicating an infinite decimal, 
--- the display precision is set to a smaller hard-coded default (8).
--- 2. A maximum display precision can be specified, setting a hard upper limit.
+--
+-- 1. A maximum display precision can be specified, setting a hard upper limit.
+--
+-- 2. If no limit is specified, and the internal precision is the maximum (255),
+-- indicating an infinite decimal, display precision is set to a smaller default (8).
+--
 -- This function always sets an explicit display precision (ie, Precision n).
-amountSetFullPrecisionOr :: Maybe Word8 -> Amount -> Amount
-amountSetFullPrecisionOr mmaxp a = amountSetPrecision (Precision p2) a
+--
+amountSetFullPrecisionUpTo :: Maybe Word8 -> Amount -> Amount
+amountSetFullPrecisionUpTo mmaxp a = amountSetPrecision (Precision p) a
   where
-    p1 = if -- dbg0 "maxdigits" $
-            amountHasMaxDigits a then defaultMaxPrecision else max disp intp
-      -- & dbg0 "p1"
+    p = case mmaxp of
+      Just maxp -> min maxp $ max disp intp
+      Nothing   -> if amountHasMaxDigits a then defaultMaxPrecision else max disp intp
       where
-        intp = amountInternalPrecision a
         disp = amountDisplayPrecision a
-    p2 = maybe p1 (min p1) mmaxp
-      -- & dbg0 "p2"
+        intp = amountInternalPrecision a
 
 -- | The fallback display precision used when showing amounts
 -- representing an infinite decimal.
@@ -1227,6 +1230,14 @@ mixedAmountSetPrecision p = mapMixedAmountUnsafe (amountSetPrecision p)
 -- to render it exactly (showing all significant decimal digits).
 mixedAmountSetFullPrecision :: MixedAmount -> MixedAmount
 mixedAmountSetFullPrecision = mapMixedAmountUnsafe amountSetFullPrecision
+
+-- | In each component amount, increase the display precision sufficiently
+-- to render it exactly if possible, but not more than the given max precision,
+-- and if no max precision is given and the amount has infinite decimals,
+-- limit display precision to a hard-coded smaller number (8).
+-- See amountSetFullPrecisionUpTo.
+mixedAmountSetFullPrecisionUpTo :: Maybe Word8 -> MixedAmount -> MixedAmount
+mixedAmountSetFullPrecisionUpTo mmaxp = mapMixedAmountUnsafe (amountSetFullPrecisionUpTo mmaxp)
 
 -- | In each component amount, ensure the display precision is at least the given value.
 -- Makes all amounts have an explicit Precision.

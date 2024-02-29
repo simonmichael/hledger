@@ -147,7 +147,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                , T.pack $ showMixedAmount $ styleAmounts styles $ cashFlowAmt
                -- , T.pack $ showMixedAmount $
                --   -- dbg0With (lbl "cashflow after styling".showMixedAmountOneLine) $
-               --   mapMixedAmount (amountSetFullPrecisionOr (Just defaultMaxPrecision)) $
+               --   mapMixedAmount (amountSetFullPrecisionUpTo (Just defaultMaxPrecision)) $
                --   styleAmounts (styles
                --                 -- & dbg0With (lbl "styles".show))
                --   cashFlowAmt
