@@ -795,12 +795,12 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
 
 -- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values or match groups. Outer whitespace is removed from interpolated values.
-renderTemplate ::  CsvRules -> CsvRecord -> HledgerFieldName -> FieldTemplate -> Text
-renderTemplate rules record f t =
+renderTemplate ::  CsvRules -> CsvRecord -> FieldTemplate -> Text
+renderTemplate rules record t =
   maybe t mconcat $ parseMaybe
     (many
       (   literaltextp
-      <|> (matchrefp <&> replaceRegexGroupReference rules record f)
+      <|> (matchrefp <&> replaceRegexGroupReference rules record)
       <|> (fieldrefp <&> replaceCsvFieldReference   rules record)
       )
     )
@@ -818,13 +818,13 @@ renderTemplate rules record f t =
 
 -- | Replace something that looks like a Regex match group reference with the
 -- resulting match group value after applying the Regex.
-replaceRegexGroupReference :: CsvRules -> CsvRecord -> HledgerFieldName -> MatchGroupReference -> Text
-replaceRegexGroupReference rules record f s = case T.uncons s of
-    Just ('\\', group) -> fromMaybe "" $ regexMatchValue rules record f group
+replaceRegexGroupReference :: CsvRules -> CsvRecord -> MatchGroupReference -> Text
+replaceRegexGroupReference rules record s = case T.uncons s of
+    Just ('\\', group) -> fromMaybe "" $ regexMatchValue rules record group
     _                  -> s
 
-regexMatchValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Text -> Maybe Text
-regexMatchValue rules record f sgroup = let
+regexMatchValue :: CsvRules -> CsvRecord -> Text -> Maybe Text
+regexMatchValue rules record sgroup = let
   matchgroups  = concatMap (getMatchGroups rules record)
                $ concatMap cbMatchers
                $ filter (isBlockActive rules record)
@@ -1228,7 +1228,7 @@ getAmount rules record currency p1IsVirtual n =
 
     -- assignments to any of these field names with non-empty values
     assignments = [(f,a') | f <- fieldnames
-                          , Just v <- [T.strip . renderTemplate rules record f <$> hledgerField rules record f]
+                          , Just v <- [T.strip . renderTemplate rules record <$> hledgerField rules record f]
                           , not $ T.null v
                           -- XXX maybe ignore rule-generated values like "", "-", "$", "-$", "$-" ? cf CSV FORMAT -> "amount", "Setting amounts",
                           , let a = parseAmount rules record currency v
