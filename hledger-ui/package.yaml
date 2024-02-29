@@ -91,7 +91,7 @@ library:
   - megaparsec >=7.0.0 && <9.7
   - mtl >=2.2.1
   - process >=1.2
-  - safe >=0.3.19
+  - safe >=0.3.20
   - split >=0.1
   - text >=1.2.4.1
   - text-zipper >=0.4

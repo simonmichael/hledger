@@ -9,6 +9,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- safe-0.3.21
 - brick-2.3.1
 - vty-6.2
 - vty-crossplatform-0.4.0.0

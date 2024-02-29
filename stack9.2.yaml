@@ -10,6 +10,7 @@ packages:
 
 extra-deps:
 - megaparsec-9.3.0
+- safe-0.3.21
 # for hledger-lib:
 # for hledger:
 # for hledger-ui:

@@ -9,6 +9,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- safe-0.3.21
 # for hledger-lib:
 - doctest-0.20.0
 - ansi-terminal-0.11.4

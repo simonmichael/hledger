@@ -118,7 +118,7 @@ dependencies:
 - mtl >=2.2.1
 - process
 - regex-tdfa
-- safe >=0.3.19
+- safe >=0.3.20
 - shakespeare >=2.0.2.2
 - split >=0.1
 - math-functions >=0.3.3.0
