@@ -192,7 +192,7 @@ executables:
     cpp-options: -DVERSION="1.32.99"
     when:
     - condition: flag(threaded)
-      ghc-options: -threaded
+      ghc-options: -threaded -with-rtsopts=-T
     dependencies:
     - hledger
 

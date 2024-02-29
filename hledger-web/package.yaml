@@ -149,7 +149,7 @@ executables:
     - condition: flag(library-only)
       buildable: false
     - condition: flag(threaded)
-      ghc-options: -threaded
+      ghc-options: -threaded -with-rtsopts=-T
 
 tests:
   test:

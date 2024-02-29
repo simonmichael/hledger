@@ -118,4 +118,4 @@ executables:
     - hledger-ui
     when:
     - condition: flag(threaded)
-      ghc-options: -threaded
+      ghc-options: -threaded -with-rtsopts=-T

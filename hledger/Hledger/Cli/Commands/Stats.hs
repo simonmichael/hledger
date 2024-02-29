@@ -7,6 +7,7 @@ Print some statistics for the journal.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Cli.Commands.Stats (
   statsmode
@@ -15,22 +16,25 @@ module Hledger.Cli.Commands.Stats (
 where
 
 import Data.Default (def)
-import Data.List (nub, sortOn)
+import Data.List (intercalate, nub, sortOn)
 import Data.List.Extra (nubSort)
+import qualified Data.Map as Map
 import Data.Maybe (fromMaybe)
 import Data.HashSet (size, fromList)
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays, diffDays)
+import Data.Time.Clock.POSIX (getPOSIXTime)
+import GHC.Stats
 import System.Console.CmdArgs.Explicit hiding (Group)
+import System.Mem (performMajorGC)
 import Text.Printf (printf)
-import qualified Data.Map as Map
+import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (writeOutputLazyText)
-import Text.Tabular.AsciiWide
-import Data.Time.Clock.POSIX (getPOSIXTime)
 
 
 statsmode = hledgerCommandMode
@@ -53,11 +57,41 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
       (ls, txncounts) = unzip $ map showstats intervalspans
       numtxns = sum txncounts
       b = unlinesB ls
-  writeOutputLazyText opts $ TB.toLazyText b
+  writeOutputLazyText opts $ TL.init $ TB.toLazyText b
   t <- getPOSIXTime
   let dt = t - progstarttime_
-  printf "Run time (throughput)    : %.2fs (%.0f txns/s)\n" 
-    (realToFrac dt :: Float) (fromIntegral numtxns / realToFrac dt :: Float)
+  rtsStatsEnabled <- getRTSStatsEnabled
+  if rtsStatsEnabled
+  then do
+    -- do one last GC for most accurate memory stats; probably little effect, hopefully little wasted time
+    performMajorGC
+    RTSStats{..} <- getRTSStats
+    printf
+      (intercalate ", "
+        ["Runtime stats            : %.2f s elapsed"
+        ,"%.0f txns/s"
+        -- ,"%0.0f MB avg live"
+        ,"%0.0f MB max live"
+        ,"%0.0f MB peak allocation"
+        -- ,"(%0.0f MiB"
+        -- ,"%0.0f MiB)"
+        ] ++ "\n")
+      (realToFrac dt :: Float)
+      (fromIntegral numtxns / realToFrac dt :: Float)
+      -- (toMegabytes $ fromIntegral cumulative_live_bytes / fromIntegral major_gcs)
+      (toMegabytes max_live_bytes)
+      (toMegabytes max_mem_in_use_bytes)
+  else
+    printf
+      (intercalate ", "
+        ["Runtime stats            : %.2f s elapsed"
+        ,"%.0f txns/s"
+        ] ++ "\n(add +RTS -T -RTS for more)\n")
+      (realToFrac dt :: Float)
+      (fromIntegral numtxns / realToFrac dt :: Float)
+
+toMegabytes n = realToFrac n / 1000000 ::Float  -- SI preferred definition, 10^6
+-- toMebibytes n = realToFrac n / 1048576 ::Float  -- traditional computing definition, 2^20
 
 showLedgerStats :: Ledger -> Day -> DateSpan -> (TB.Builder, Int)
 showLedgerStats l today spn =
@@ -65,8 +99,9 @@ showLedgerStats l today spn =
     ,tnum)
   where
     showRow (label, val) = Group NoLine $ map (Header . textCell TopLeft)
-      [fitText (Just w1) (Just w1) False True label `T.append` ": ", T.pack val]
-    w1 = maximum $ map (T.length . fst) stts
+      [fitText (Just w) (Just w) False True label `T.append` ": ", T.pack val]
+    w = 25  -- keep synced with labels above
+    -- w = maximum $ map (T.length . fst) stts
     (stts, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)

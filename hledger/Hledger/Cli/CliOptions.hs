@@ -481,7 +481,7 @@ data CliOpts = CliOpts {
                                         -- 1. the COLUMNS env var, if set
                                         -- 2. the width reported by the terminal, if supported
                                         -- 3. the default (80)
-    ,progstarttime_   :: POSIXTime
+    ,progstarttime_   :: POSIXTime      -- system POSIX time at start
  } deriving (Show)
 
 instance Default CliOpts where def = defcliopts
