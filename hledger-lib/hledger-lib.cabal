@@ -138,7 +138,7 @@ library
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -197,7 +197,7 @@ test-suite doctest
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2
@@ -258,7 +258,7 @@ test-suite unittest
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , tabular >=0.2
     , tasty >=1.2.3
     , tasty-hunit >=0.10.0.2

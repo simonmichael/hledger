@@ -161,7 +161,7 @@ library
     , mtl >=2.2.1
     , process
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
@@ -211,7 +211,7 @@ executable hledger
     , mtl >=2.2.1
     , process
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
@@ -262,7 +262,7 @@ test-suite unittest
     , mtl >=2.2.1
     , process
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
@@ -312,7 +312,7 @@ benchmark bench
     , mtl >=2.2.1
     , process
     , regex-tdfa
-    , safe >=0.3.19
+    , safe >=0.3.20
     , shakespeare >=2.0.2.2
     , split >=0.1
     , tabular >=0.2
