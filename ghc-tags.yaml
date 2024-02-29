@@ -6,3 +6,5 @@ source_paths:
 cpp_options:
 - -DMIN_VERSION_megaparsec(x,y,z)=1
 - -DMIN_VERSION_aeson(x,y,z)=1
+exclude_paths:
+- hledger/test/addons
