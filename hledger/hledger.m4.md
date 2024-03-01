@@ -589,7 +589,7 @@ Some notes about the various output formats:
 
 ### CSV output
 
-- In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
+- In CSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
   are disabled automatically.
 
 ### HTML output
@@ -1201,15 +1201,39 @@ Scientific E notation is allowed:
     1E-6
     EUR 1E3
 
-### Decimal marks, digit group marks
+<a name="decimal-marks-digit-group-marks"></a>
+
+### Decimal marks
 
 A *decimal mark* can be written as a period or a comma:
 
     1.23
     1,23
 
-In the integer part of the quantity (left of the decimal mark), groups
-of digits can optionally be separated by a *digit group mark* -
+Both of these are common in [international number formats][international number formats],
+so hledger is not biased towards one or the other.
+Because hledger also supports digit group marks (eg thousands separators),
+this means that a number like `1,000` or `1.000` containing just one period or comma is ambiguous.
+In such cases, hledger by default assumes it is a decimal mark, and will parse both of those as 1.
+
+[international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
+
+To help hledger parse such ambiguous numbers more accurately,
+if you use digit group marks, we recommend declaring the decimal mark explicitly.
+The best way is to add a [`decimal-mark`](#decimal-mark-directive) directive at the top of each data file, like this:
+```journal
+decimal-mark .
+```
+Or you can declare it per commodity with [`commodity`](#commodity-directive) directives, described below.
+
+hledger also accepts numbers like `10.` with no digits after the decimal mark
+(and will sometimes display numbers that way to disambiguate them - see
+[Amount formatting, parseability](#amount-formatting-parseability)).
+
+### Digit group marks
+
+In the integer part of the amount quantity (left of the decimal mark),
+groups of digits can optionally be separated by a *digit group mark* -
 a comma or period (whichever is not used as decimal mark), 
 or a space (any of these Unicode space characters:
 space,
@@ -1221,33 +1245,13 @@ thin space,
 narrow no-break space,
 medium mathematical space).
 
+So these are all valid amounts in a journal file:
+
          $1,000,000.00
       EUR 2.000.000,00
     INR 9,99,99,999.00
-          1 000 000.00   <- ordinary space  
-          1 000 000.00   <- no-break space
-
-hledger is not biased towards [period or comma decimal marks][international number formats],
-so a number containing just one period or comma, like `1,000` or `1.000`, is ambiguous.
-In such cases hledger assumes it is a decimal mark, parsing both of these as 1.
-
-[international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
-
-To disambiguate these and ensure accurate number parsing, especially
-if you use digit group marks, we recommend declaring the decimal mark.
-You can declare it for each file with [`decimal-mark`](#decimal-mark-directive) directives,
-or for each commodity with [`commodity`](#commodity-directive) directives,
-described below.
-A quick example:
-
-```journal
-# Assume . is the decimal mark used by all amounts in this file (in all commodities)
-decimal-mark .
-```
-
-Note, hledger accepts numbers with no digits after the decimal mark, like `10.`.
-(And will sometimes display numbers that way to disambiguate them - see
-[Amount formatting, parseability](#amount-formatting-parseability).)
+          1 000 000.00   ; <- ordinary space  
+          1 000 000.00   ; <- no-break space
 
 ### Commodity
 
@@ -2209,7 +2213,7 @@ The `commodity` directive performs several functions:
 3. (If no `decimal-mark` directive is in effect:)
    It sets the decimal mark to expect (period or comma) when parsing amounts in this commodity,
    in this file and files it includes, from the directive until end of current file.
-   See [Decimal marks, digit group marks](hledger.md#decimal-marks-digit-group-marks) above.
+   See [Decimal marks](#decimal-marks) above.
 
 4. It declares the precision with which this commodity's amounts should be compared when checking for balanced transactions,
    anywhere in this file and files it includes, until end of current file.
@@ -2290,7 +2294,7 @@ or
 decimal-mark ,
 ```
 
-This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
+This prevents any [ambiguity](#decimal-mark) when
 parsing numbers in the file, so we recommend it, especially if the
 file contains digit group marks (eg thousands separators).
 
@@ -4523,7 +4527,7 @@ If you're wondering why your [`print`](#print) report sometimes shows
 trailing decimal marks, with no decimal digits; it does this when
 showing amounts that have digit group marks but no decimal digits,
 to disambiguate them and allow them to be re-parsed reliably
-(see also [Decimal marks, digit group marks](#decimal-marks-digit-group-marks).
+(see also [Decimal marks](#decimal-marks).
 Eg:
 
 ```journal
