@@ -740,9 +740,73 @@ unless overridden by an explicit `--color/--colour` option.
 
 # Journal
 
-hledger's default file format, representing a General Journal.
-Here's a cheatsheet/mini-tutorial,
-or you can skip ahead to [About journal format](#about-journal-format).
+hledger's usual data source is a plain text file containing journal entries in hledger `journal` format.
+If you're looking for a quick reference, jump ahead to the
+[journal cheatsheet](#journal-cheatsheet) (or use the table of contents at <https://hledger.org/hledger.html>).
+
+This file represents an accounting [General Journal](http://en.wikipedia.org/wiki/General_journal).
+The `.journal` file extension is most often used, though not strictly required.
+The journal file contains a number of transaction entries,
+each describing a transfer of money (or any commodity) between two or more named accounts,
+in a simple format readable by both hledger and humans.
+
+hledger's journal format is compatible with most of 
+[Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
+The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
+With some care, and by avoiding incompatible features, you can keep your hledger journal
+readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
+against the other.
+
+You can use hledger without learning any more about this file; just
+use the [add](#add) or [web](#web) or [import](#import) commands to
+create and update it.
+
+Many users, though, edit the journal file with a text editor,
+and track changes with a version control system such as git.
+Editor addons such as
+ledger-mode or hledger-mode for Emacs,
+vim-ledger for Vim,
+and hledger-vscode for Visual Studio Code,
+make this easier, adding colour, formatting, tab completion, and useful commands.
+See [Editor configuration](/editors.html) at hledger.org for the full list.
+
+<!--
+Here's an example:
+
+```journal
+; A sample journal file. This is a comment.
+
+2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
+    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
+    income:salary        $-1  ;    followed by at least two spaces and an amount
+
+2008/06/01 gift
+    assets:bank:checking  $1  ; <- at least two postings in a transaction
+    income:gifts         $-1  ; <- their amounts must balance to 0
+
+2008/06/02 save
+    assets:bank:saving    $1
+    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
+
+2008/06/03 eat & shop         ; <- description can be anything
+    expenses:food         $1
+    expenses:supplies     $1  ; <- this transaction debits two expense accounts
+    assets:cash               ; <- $-2 inferred
+
+2008/10/01 take a loan
+    assets:bank:checking  $1
+    liabilities:debts    $-1
+
+2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
+    liabilities:debts     $1
+    assets:bank:checking
+```
+-->
+
+A hledger journal file can contain three kinds of thing:
+comment lines, transactions, and/or directives (including periodic transaction rules and auto posting rules).
+Understanding the journal file format will also give you a good understanding of hledger's data model.
+Here's a quick cheatsheet/overview, followed by detailed descriptions of each part.
 
 ## Journal cheatsheet
 
@@ -836,74 +900,6 @@ P 2022-01-01 AAAA $1.40
 2022/1/1   formats are
 12/31      also allowed (but consistent YYYY-MM-DD is recommended).
 ```
-
-## About journal format
-
-hledger's usual data source is a plain text file containing journal entries in hledger journal format.
-This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
-I use file names ending in `.journal`, but that's not required.
-The journal file contains a number of transaction entries,
-each describing a transfer of money (or any commodity) between two or more named accounts,
-in a simple format readable by both hledger and humans.
-
-hledger's journal format is compatible with most of 
-[Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
-The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
-With some care, and by avoiding incompatible features, you can keep your hledger journal
-readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
-against the other.
-
-You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) or [import](#import) commands to
-create and update it.
-
-Many users, though, edit the journal file with a text editor,
-and track changes with a version control system such as git.
-Editor addons such as
-ledger-mode or hledger-mode for Emacs,
-vim-ledger for Vim,
-and hledger-vscode for Visual Studio Code,
-make this easier, adding colour, formatting, tab completion, and useful commands.
-See [Editor configuration](/editors.html) at hledger.org for the full list.
-
-<!--
-Here's an example:
-
-```journal
-; A sample journal file. This is a comment.
-
-2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
-    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
-    income:salary        $-1  ;    followed by at least two spaces and an amount
-
-2008/06/01 gift
-    assets:bank:checking  $1  ; <- at least two postings in a transaction
-    income:gifts         $-1  ; <- their amounts must balance to 0
-
-2008/06/02 save
-    assets:bank:saving    $1
-    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
-
-2008/06/03 eat & shop         ; <- description can be anything
-    expenses:food         $1
-    expenses:supplies     $1  ; <- this transaction debits two expense accounts
-    assets:cash               ; <- $-2 inferred
-
-2008/10/01 take a loan
-    assets:bank:checking  $1
-    liabilities:debts    $-1
-
-2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
-    liabilities:debts     $1
-    assets:bank:checking
-```
--->
-
-Here's a description of each part of the file format (and hledger's data model).
-
-A hledger journal file can contain three kinds of thing:
-file comments, transactions, and/or directives
-(counting periodic transaction rules and auto posting rules as directives).
 
 ## Comments
 
