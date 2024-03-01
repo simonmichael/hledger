@@ -716,6 +716,7 @@ hledgerField rules record f = fmap
 
 -- | Look up the final value assigned to a hledger field, with csv field
 -- references and regular expression match group references interpolated.
+hledgerFieldValue :: CsvRules -> CsvRecord -> HledgerFieldName -> Maybe Text
 hledgerFieldValue rules record f = (flip fmap) (getEffectiveAssignment rules record f)
   $ either (renderTemplate rules record)
   $ \cb -> let
@@ -1229,7 +1230,7 @@ getAmount rules record currency p1IsVirtual n =
 
     -- assignments to any of these field names with non-empty values
     assignments = [(f,a') | f <- fieldnames
-                          , Just v <- [T.strip . renderTemplate rules record <$> hledgerField rules record f]
+                          , Just v <- [T.strip <$> hledgerFieldValue rules record f]
                           , not $ T.null v
                           -- XXX maybe ignore rule-generated values like "", "-", "$", "-$", "$-" ? cf CSV FORMAT -> "amount", "Setting amounts",
                           , let a = parseAmount rules record currency v
