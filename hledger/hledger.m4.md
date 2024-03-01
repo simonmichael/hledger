@@ -932,8 +932,7 @@ See Transaction comments, Posting comments, and Account comments below.
 ## Transactions
 
 Transactions are the main unit of information in a journal file.
-They represent events, typically a movement of some quantity of
-commodities between two or more named accounts.
+They represent events, typically a movement of some quantity of commodities between two or more named accounts.
 
 Each transaction is recorded as a journal entry, beginning with a
 [simple date](#simple-dates) in column 0. This can be followed by any
@@ -1001,9 +1000,9 @@ eg a `date:` tag with no value is not allowed.
 
 ## Status
 
-Transactions, or individual postings within a transaction,
+Transactions (or individual postings within a transaction)
 can have a status mark, which is a single character before
-the transaction description or posting account name,
+the transaction description (or posting account name),
 separated from it by a space, indicating one of three statuses:
 
 | mark   | status   |
@@ -1013,14 +1012,13 @@ separated from it by a space, indicating one of three statuses:
 | `*`    | cleared  |
 
 When reporting, you can filter by status with
-the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
-or the `status:`, `status:!`, and `status:*` [queries](#queries);
+the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags
+(and you can combine these, eg `-UP` to match all except cleared things).
+Or you can use the `status:`, `status:!`, and `status:*` [queries](#queries),
 or the U, P, C keys in hledger-ui.
 
-Note, in Ledger and in older versions of hledger, the "unmarked" state is called
-"uncleared". As of hledger 1.3 we have renamed it to unmarked for clarity.
-
-To replicate Ledger and old hledger's behaviour of also matching pending, combine -U and -P.
+(Note: in Ledger the "unmarked" state is called "uncleared";
+in hledger we renamed it to "unmarked" for semantic clarity.)
 
 Status marks are optional, but can be helpful eg for reconciling with real-world accounts.
 Some editor modes provide highlighting and shortcuts for working with status.
@@ -1101,16 +1099,31 @@ Each posting line begins with at least one space or tab (2 or 4 spaces is common
 
 - (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
 - (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
-- (optional) **two or more spaces** or tabs followed by an [amount](#amounts).
+- (optional) **two or more spaces** (or tabs) followed by an [amount](#amounts).
 
-Positive amounts are being added to the account, negative amounts are being removed.
+If the amount is positive, it is being added to the account;
+if negative, it is being removed from the account.
 
-The amounts within a transaction must always sum up to zero.
-As a convenience, one amount may be left blank; it will be inferred so as to balance the transaction.
+The posting amounts in a transaction must sum up to zero, indicating that the inflows and outflows are equal. We call this a balanced transaction.
+(You can read more about the nitty-gritty details of "sum up to zero" in [Transaction balancing](#transaction-balancing) below.)
 
-Be sure to note the unusual two-space delimiter between account name and amount.
-This makes it easy to write account names containing spaces.
-But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
+As a convenience, you can optionally leave one amount blank; hledger will infer what it should be so as to balance the transaction.
+
+### Debits and credits
+
+These traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign, as described above.
+Positive and negative posting amounts represent debits and credits respectively.
+
+You don't need to remember that, but if you would like to - eg for helping newcomers or for talking with your accountant - here's a handy mnemonic:
+
+*`debit  / plus  / left  / short  words`*\
+*`credit / minus / right / longer words`*
+
+### The two space delimiter
+
+Be sure to notice the unusual separator between the account name and the following amount.
+Because hledger allows account names with spaces in them, you must separate the account name and amount (if any) by **two or more spaces** (or tabs).
+It's easy to forget at first. If you ever see the amount being treated as part of the account name, you'll know you probably need to add another space between them.
 
 ## Account names
 
@@ -1321,7 +1334,7 @@ for details, see [Amount formatting, parseability](#amount-formatting-parseabili
 
 <a name="transaction-prices"></a>
 
-## Costs
+### Costs
 
 After a posting amount, you can note its cost (when buying) or selling price (when selling) in another commodity,
 by writing either `@ UNITPRICE` or `@@ TOTALPRICE` after it.
