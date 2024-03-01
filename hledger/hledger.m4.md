@@ -1107,7 +1107,7 @@ As a convenience, you can optionally leave one amount blank; hledger will infer 
 
 ### Debits and credits
 
-These traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign, as described above.
+The traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign, as described above.
 Positive and negative posting amounts represent debits and credits respectively.
 
 You don't need to remember that, but if you would like to - eg for helping newcomers or for talking with your accountant - here's a handy mnemonic:
