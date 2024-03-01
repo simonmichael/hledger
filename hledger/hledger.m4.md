@@ -1235,7 +1235,8 @@ hledger also accepts numbers like `10.` with no digits after the decimal mark
 In the integer part of the amount quantity (left of the decimal mark),
 groups of digits can optionally be separated by a *digit group mark* -
 a comma or period (whichever is not used as decimal mark), 
-or a space (any of these Unicode space characters:
+or a space (several Unicode space variants, like no-break space, are also accepted).
+<!--
 space,
 no-break space,
 en space,
@@ -1244,7 +1245,7 @@ punctuation space,
 thin space,
 narrow no-break space,
 medium mathematical space).
-
+-->
 So these are all valid amounts in a journal file:
 
          $1,000,000.00
