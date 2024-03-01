@@ -1332,67 +1332,6 @@ Note that the cost normally should be a positive amount, though it's not require
 This can be a little confusing, see discussion at 
 [--infer-market-prices: market prices from transactions](#--infer-market-prices-market-prices-from-transactions).
 
-### Other cost/lot notations
-
-A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
-
-- `@ UNITCOST` and `@@ TOTALCOST`
-  - expresses a conversion rate, as in hledger
-  - when buying, also creates a lot than can be selected at selling time
-
-- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
-  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
-
-Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
-
-- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
-  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
-
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
-  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
-  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
-
-- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
-  - when buying, attaches this acquisition date to the lot
-  - when selling, selects a lot by its acquisition date
-
-- `(SOME TEXT)` ([lot note][ledger: lot notes])
-  - when buying, attaches this note to the lot
-  - when selling, selects a lot by its note
-
-Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
-(This can break transaction balancing.)
-
-[ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
-[ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
-[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-[ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
-[ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
-
-For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
-
-- `@ UNITCOST` and `@@ TOTALCOST`
-  - expresses a cost without creating a lot, as in hledger
-  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
-
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
-  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
-  - when selling (reducing),
-    - selects a lot by its cost basis
-    - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
-    - expresses the selling price for transaction balancing
-
-Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
-
-- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
-
-Currently, hledger rejects these.
-
-
-[beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
-[beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
-
-
 ## Balance assertions
 
 hledger supports
@@ -2831,6 +2770,67 @@ value       EXPR
 ```
 
 See also <https://hledger.org/ledger.html> for a detailed hledger/Ledger syntax comparison.
+
+### Other cost/lot notations
+
+A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a conversion rate, as in hledger
+  - when buying, also creates a lot than can be selected at selling time
+
+- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
+  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
+
+Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
+
+- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
+  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
+  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
+  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
+
+- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
+  - when buying, attaches this acquisition date to the lot
+  - when selling, selects a lot by its acquisition date
+
+- `(SOME TEXT)` ([lot note][ledger: lot notes])
+  - when buying, attaches this note to the lot
+  - when selling, selects a lot by its note
+
+Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
+(This can break transaction balancing.)
+
+[ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
+[ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
+[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
+[ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
+[ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
+
+For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a cost without creating a lot, as in hledger
+  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
+  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
+  - when selling (reducing),
+    - selects a lot by its cost basis
+    - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
+    - expresses the selling price for transaction balancing
+
+Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
+
+- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
+
+Currently, hledger rejects these.
+
+
+[beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
+[beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
+
 
 <a name="csv-format"></a>
 
