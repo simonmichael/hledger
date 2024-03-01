@@ -68,11 +68,11 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
     RTSStats{..} <- getRTSStats
     printf
       (intercalate ", "
-        ["Runtime stats            : %.2f s elapsed"
+        ["Runtime stats       : %.2f s elapsed"
         ,"%.0f txns/s"
         -- ,"%0.0f MB avg live"
-        ,"%0.0f MB max live"
-        ,"%0.0f MB peak allocation"
+        ,"%0.0f MB live"
+        ,"%0.0f MB alloc"
         -- ,"(%0.0f MiB"
         -- ,"%0.0f MiB)"
         ] ++ "\n")
@@ -84,7 +84,7 @@ stats opts@CliOpts{reportspec_=rspec, progstarttime_} j = do
   else
     printf
       (intercalate ", "
-        ["Runtime stats            : %.2f s elapsed"
+        ["Runtime stats       : %.2f s elapsed"
         ,"%.0f txns/s"
         ] ++ "\n(add +RTS -T -RTS for more)\n")
       (realToFrac dt :: Float)
@@ -100,24 +100,24 @@ showLedgerStats l today spn =
   where
     showRow (label, val) = Group NoLine $ map (Header . textCell TopLeft)
       [fitText (Just w) (Just w) False True label `T.append` ": ", T.pack val]
-    w = 25  -- keep synced with labels above
+    w = 20  -- keep synced with labels above
     -- w = maximum $ map (T.length . fst) stts
     (stts, tnum) = ([
        ("Main file", path) -- ++ " (from " ++ source ++ ")")
       ,("Included files", unlines $ drop 1 $ journalFilePaths j)
-      ,("Transactions span", printf "%s to %s (%d days)" (showstart spn) (showend spn) days)
-      ,("Last transaction", maybe "none" show lastdate ++ showelapsed lastelapsed)
-      ,("Transactions", printf "%d (%0.1f per day)" tnum txnrate)
-      ,("Transactions last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
-      ,("Transactions last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
+      ,("Txns span", printf "%s to %s (%d days)" (showstart spn) (showend spn) days)
+      ,("Last txn", maybe "none" show lastdate ++ showelapsed lastelapsed)
+      ,("Txns", printf "%d (%0.1f per day)" tnum txnrate)
+      ,("Txns last 30 days", printf "%d (%0.1f per day)" tnum30 txnrate30)
+      ,("Txns last 7 days", printf "%d (%0.1f per day)" tnum7 txnrate7)
       ,("Payees/descriptions", show $ size $ fromList $ map (tdescription) ts)
       ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
       ,("Commodities", printf "%s (%s)" (show $ length cs) (T.intercalate ", " cs))
       ,("Market prices", printf "%s (%s)" (show $ length mktprices) (T.intercalate ", " mktpricecommodities))
-    -- Transactions this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
-    -- Unmarked transactions      : %(unmarked)s
+    -- Txns this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
+    -- Unmarked txns      : %(unmarked)s
     -- Days since reconciliation   : %(reconcileelapsed)s
-    -- Days since last transaction : %(recentelapsed)s
+    -- Days since last txn : %(recentelapsed)s
      ] 
      ,tnum1)
        where
