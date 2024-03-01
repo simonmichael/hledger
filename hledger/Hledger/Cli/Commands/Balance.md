@@ -370,7 +370,9 @@ Multi-period reports with many periods can be too wide for easy viewing in the t
 Here are some ways to handle that:
 
 - Hide the totals row with `-N/--no-total`
-- Convert to a single currency with `-V`
+- Filter to a single currency with `cur:`
+- Convert to a single currency with `-V [--infer-market-price]`
+- Use a more compact layout like `--layout=bare`
 - Maximize the terminal window
 - Reduce the terminal's font size
 - View with a pager like less, eg: `hledger bal -D --color=yes | less -RS`
@@ -439,13 +441,13 @@ It is one of:
 
 #### Accumulation type
 
-How amounts should accumulate across report periods.
+How amounts should accumulate across a report's subperiods/columns.
 Another way to say it: which time period's postings should contribute to each cell's calculation.
 It is one of:
 
 - `--change` : calculate with postings from column start to column end, ie "just this column".
   Typically used to see revenues/expenses.
-  (**default for balance, incomestatement**)
+  (**default for balance, cashflow, incomestatement**)
 
 - `--cumulative` : calculate with postings from report start to column end, ie "previous columns plus this column".
   Typically used to show changes accumulated since the report's start date.
@@ -454,7 +456,7 @@ It is one of:
 - `--historical/-H` : calculate with postings from journal start to column end,
   ie "all postings from before report start date until this column's end".
   Typically used to see historical end balances of assets/liabilities/equity.
-  (**default for balancesheet, balancesheetequity, cashflow**)
+  (**default for balancesheet, balancesheetequity**)
 
 #### Valuation type
 
@@ -657,30 +659,16 @@ and then select from multiple budgets defined in your journal.
 
 #### Budgeting vs forecasting
 
-`--budget` and `--forecast` both use the periodic transaction rules in the journal to generate temporary transactions for reporting purposes.
+`--forecast` and `--budget` both use the periodic transaction rules in the journal to generate temporary transactions for reporting purposes.
 However they are separate features - though you can use both at the same time if you want.
 Here are some differences between them:
 
-1. `--budget` is a command-specific option; it selects the **budget report**.
-
-   `--forecast` is a general option; **forecasting works with all reports**.
-
-2. `--budget` uses **all periodic rules**; `--budget=DESCPAT` uses **just the rules matched** by DESCPAT.
-
-   `--forecast` uses **all periodic rules**.
-
-3. `--budget`'s budget goal transactions are invisible, except that they produce **goal amounts**.
-
-   `--forecast`'s forecast transactions are visible, and **appear in reports**.
-
-4. `--budget` generates budget goal transactions **throughout the report period**,
-   optionally restricted by periods specified in the periodic transaction rules.
-
-   `--forecast` generates forecast transactions
-   from **after the last regular transaction**, to the end of the report period;
-   while `--forecast=PERIODEXPR` generates them **throughout the specified period**;
-   both optionally restricted by periods specified in the periodic transaction rules.
-
+| --forecast | --budget |
+|------------|----------|
+| is a general option; it enables forecasting with all reports | is a balance command option; it selects the balance report's budget mode |
+| generates visible transactions which appear in reports | generates invisible transactions which produce goal amounts |
+| generates forecast transactions from after the last regular transaction, to the end of the report period; or with an argument `--forecast=PERIODEXPR` generates them throughout the specified period, both optionally restricted by periods specified in the periodic transaction rules | generates budget goal transactions throughout the report period, optionally restricted by periods specified in the periodic transaction rules |
+| uses all periodic rules | uses all periodic rules; or with an argument `--budget=DESCPAT` uses just the rules matched by DESCPAT |
 
 ### Balance report layout
 
