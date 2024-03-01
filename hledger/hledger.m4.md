@@ -1790,7 +1790,8 @@ Here are all hledger's directives, with their effects and scope summarised - nin
 | **[`account`]**               | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                                                                                                                                              | N                   |
 | **[`alias`]**                 | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                                                                                                                                                                | Y                   |
 | **[`comment`]**               | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
-| **[`commodity`]**             | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the decimal mark for parsing amounts of this commodity, in the following entries until end of current file (if there is no `decimal-mark` directive) <br>3. and the display style for amounts of this commodity <br>4. which is also the precision to use for balanced-transaction checking in this commodity.<br> Takes precedence over `D`. <br>Subdirectives: `format` (Ledger-compatible syntax). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>Y,<br>N,<br>N |
+| **[`commodity`]**             | Declares up to four things:
+<br>1. a commodity symbol, for checking all amounts in all files <br>2. the display style for all amounts of this commodity <br>3. the decimal mark for parsing amounts of this commodity, in the rest of this file and its children, if there is no `decimal-mark` directive <br>4. the precision to use for balanced-transaction checking in this commodity, in this file and its children. <br> Takes precedence over `D`. <br>Subdirectives: `format` (ignored). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>N,<br>Y,<br>Y |
 | **[`decimal-mark`]**          | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
 | **[`include`]**               | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
 | **[`payee`]**                 | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
@@ -2200,23 +2201,22 @@ The `commodity` directive performs several functions:
 
 1. It declares which commodity symbols may be used in the journal,
    enabling useful error checking with [strict mode] or the check command.
-   (See [Commodity error checking](#commodity-error-checking) below.)
+   See [Commodity error checking](#commodity-error-checking) below.
 
-2. It declares the precision with which this commodity's amounts
-   should be compared when checking for balanced transactions.
+2. It declares how all amounts in this commodity should be displayed, eg how many decimals to show.
+   See [Commodity display style](#commodity-display-style) above.
 
-3. It declares how this commodity's amounts should be displayed,
-   eg their symbol placement, digit group mark if any, digit group sizes,
-   decimal mark (period or comma), and the number of decimal places.
-   (See [Commodity display style](#commodity-display-style) above.)
-
-4. It sets which decimal mark (period or comma) to expect when parsing subsequent amounts in this commodity
-   (if there is no `decimal-mark` directive in effect.
+3. (If no `decimal-mark` directive is in effect:)
+   It sets the decimal mark to expect (period or comma) when parsing amounts in this commodity,
+   in this file and files it includes, from the directive until end of current file.
    See [Decimal marks, digit group marks](hledger.md#decimal-marks-digit-group-marks) above.
-   For related dev discussion, see [#793](https://github.com/simonmichael/hledger/issues/793).)
+
+4. It declares the precision with which this commodity's amounts should be compared when checking for balanced transactions,
+   anywhere in this file and files it includes, until end of current file.
 
 Declaring commodities solves several common parsing/display problems, so we recommend it.
-Generally you should put `commodity` directives at the top of your journal file (because function 4 is position-sensitive).
+
+(Related dev discussion: [#793](https://github.com/simonmichael/hledger/issues/793).)
 
 ### Commodity directive syntax
 
