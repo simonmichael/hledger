@@ -1527,7 +1527,7 @@ which are difficult or inconvenient to handle on a computer.
 So to be a practical accounting system, hledger allows some imprecision when checking transaction balancedness.
 The question is, how much imprecision should be allowed ?
 
-hledger currently decides it based on the commodity display precisions inferred or declared for each commodity:
+hledger currently decides it based on the [commodity display styles](#commodity-display-style)(\*):
 if the postings' sum would appear to be zero when displayed with the standard display precisions, the transaction is considered balanced.
 
 Or equivalently: if the journal entry is displayed with amounts rounded to the 
@@ -1542,6 +1542,12 @@ you might need to fix some of your journal entries (ie, add decimal digits to ma
 
 Other PTA tools (Ledger, Beancount..) have their own ways of doing it.
 Possible improvements are discussed at [#1964](https://github.com/simonmichael/hledger/issues/1964).
+
+(\*) (If you have multiple journal files, watch out for this snag:
+`commodity` directives should be placed  where they influence all files, eg in a topmost parent file.
+Related:
+[`commodity` directive](#commodity-directive),
+[#2135](https://github.com/simonmichael/hledger/issues/2135))
 
 ## Tags
 
@@ -2108,7 +2114,14 @@ The `commodity` directive performs several functions:
 
 Declaring commodities solves several common parsing/display problems, so we recommend it.
 
-(Related dev discussion: [#793](https://github.com/simonmichael/hledger/issues/793).)
+Note that effects 3 and 4 above end at the end of the directive's file,
+and will not affect sibling or parent files.
+So if you are relying on them (especially 4) and using multiple files,
+consider placing your commodity directives in a top-level parent file,
+where they can influence all the included files.
+(Though I keep mine in a `YYYY-commodities` child file without trouble.)
+
+(Related: [#793](https://github.com/simonmichael/hledger/issues/793))
 
 ### Commodity directive syntax
 
