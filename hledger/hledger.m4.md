@@ -664,9 +664,8 @@ This option can repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
 the [commodity directive](#commodity-directive).
 
-hledger will occasionally make some additional adjustments to number formatting,
-eg adding a trailing decimal mark to disambiguate numbers with digit group marks;
-for details, see [Amount formatting, parseability](#amount-formatting-parseability).
+In some cases hledger will adjust number formatting to improve their parseability
+(such as adding [trailing decimal marks](#trailing-decimal-marks) when needed).
 
 ## Colour
 
@@ -1228,7 +1227,7 @@ Or you can declare it per commodity with [`commodity`](#commodity-directive) dir
 
 hledger also accepts numbers like `10.` with no digits after the decimal mark
 (and will sometimes display numbers that way to disambiguate them - see
-[Amount formatting, parseability](#amount-formatting-parseability)).
+[Trailing decimal marks](#trailing-decimal-marks)).
 
 ### Digit group marks
 
@@ -1275,58 +1274,8 @@ output; you can't write them directly in the journal file.
 <!-- (Though an omitted balancing amount can be multi-commodity.) -->
 <!-- (If you are writing scripts or working with hledger's internals, this is the `MixedAmount` type.) -->
 
-<a name="amount-display-style"></a>
-
-### Commodity display style
-
-For the amounts in each commodity, hledger chooses a consistent display style 
-(symbol placement, decimal mark and digit group marks, number of decimal digits)
-to use in most reports. This is inferred as follows:
-
-First, if there's a [`D` directive](#d-directive) declaring a default commodity,
-that commodity symbol and amount format is applied to all no-symbol amounts in the journal.
-
-Then each commodity's display style is determined from its
-[`commodity` directive](#commodity-directive). We recommend always
-declaring commodities with `commodity` directives, since they help
-ensure consistent display styles and precisions, and bring other
-benefits such as error checking for commodity symbols.
-Here's an example:
-
-```journal
-# Set display styles (and decimal marks, for parsing, if there is no decimal-mark directive)
-# for the $, EUR, INR and no-symbol commodities:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.00
-commodity 1 000 000.9455
-```
-
-But for convenience, if a `commodity` directive is not present,
-hledger infers a commodity's display styles from its amounts as they are written in the journal
-(excluding cost amounts and amounts in periodic transaction rules or auto posting rules).
-It uses
-
-- the symbol placement and decimal mark of the first amount seen
-- the digit group marks of the first amount with digit group marks
-- and the maximum number of decimal digits seen across all amounts.
-
-And as fallback if no applicable amounts are found, it would use a
-default style, like `$1000.00` (symbol on the left with no space,
-period as decimal mark, and two decimal digits).
-
-Finally, commodity styles can be [overridden](#commodity-styles) by
-the `-c/--commodity-style` command line option.
-
-### Rounding
-
-Amounts are stored internally as decimal numbers with up to 255 decimal places.
-They are displayed 
-with their original journal precisions by print and print-like reports,
-and rounded to their display precision (the number of decimal digits specified by the commodity display style)
-by other reports.
-When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
-(it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
+By default, the format of amounts in the journal influences how hledger displays them in output.
+This is explained in [Commodity display style](#commodity-display-style) below.
 
 <a name="transaction-prices"></a>
 
@@ -4521,14 +4470,68 @@ per:admin    ....
 
 # PART 3: REPORTING CONCEPTS
 
+# Amount formatting
 
-# Amount formatting, parseability
+<a name="amount-display-style"></a>
+
+## Commodity display style
+
+For the amounts in each commodity, hledger chooses a consistent display style 
+(symbol placement, decimal mark and digit group marks, number of decimal digits)
+to use in most reports. This is inferred as follows:
+
+First, if there's a [`D` directive](#d-directive) declaring a default commodity,
+that commodity symbol and amount format is applied to all no-symbol amounts in the journal.
+
+Then each commodity's display style is determined from its
+[`commodity` directive](#commodity-directive). We recommend always
+declaring commodities with `commodity` directives, since they help
+ensure consistent display styles and precisions, and bring other
+benefits such as error checking for commodity symbols.
+Here's an example:
+
+```journal
+# Set display styles (and decimal marks, for parsing, if there is no decimal-mark directive)
+# for the $, EUR, INR and no-symbol commodities:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.00
+commodity 1 000 000.9455
+```
+
+But for convenience, if a `commodity` directive is not present,
+hledger infers a commodity's display styles from its amounts as they are written in the journal
+(excluding cost amounts and amounts in periodic transaction rules or auto posting rules).
+It uses
+
+- the symbol placement and decimal mark of the first amount seen
+- the digit group marks of the first amount with digit group marks
+- and the maximum number of decimal digits seen across all amounts.
+
+And as fallback if no applicable amounts are found, it would use a
+default style, like `$1000.00` (symbol on the left with no space,
+period as decimal mark, and two decimal digits).
+
+Finally, commodity styles can be [overridden](#commodity-styles) by
+the `-c/--commodity-style` command line option.
+
+## Rounding
+
+Amounts are stored internally as decimal numbers with up to 255 decimal places.
+They are displayed 
+with their original journal precisions by print and print-like reports,
+and rounded to their display precision (the number of decimal digits specified by the commodity display style)
+by other reports.
+When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
+(it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
+
+## Trailing decimal marks
 
 If you're wondering why your [`print`](#print) report sometimes shows
 trailing decimal marks, with no decimal digits; it does this when
 showing amounts that have digit group marks but no decimal digits,
 to disambiguate them and allow them to be re-parsed reliably
-(see also [Decimal marks](#decimal-marks).
+(see [Decimal marks](#decimal-marks)).
 Eg:
 
 ```journal
@@ -4565,7 +4568,9 @@ $ hledger print -c '$1,000.00' --round=soft
 
 ```
 
-More generally: hledger output falls into three rough categories, which
+## Amount parseability
+
+More generally, hledger output falls into three rough categories, which
 format amounts a little bit differently to suit different consumers:
 
 **1. "hledger-readable output" - should be readable by hledger (and by humans)**
