@@ -35,6 +35,7 @@ balance can show..
 -   or value of balance changes (-V)
 -   or change of balance values (--valuechange)
 -   or unrealised capital gain/loss (--gain)
+-   or balance changes from sibling postings (--related/-r)
 -   or postings count (--count)
 
 ..in..
@@ -69,9 +70,6 @@ This command supports the output destination and output format options,
 with output formats txt, csv, tsv (Added in 1.32), json, and
 (multi-period reports only:) html. In txt output in a colour-supporting
 terminal, negative amounts are shown in red.
-
-The --related/-r flag shows the balance of the other postings in the
-transactions of the postings which would normally be shown.
 
 Simple balance report
 
@@ -343,7 +341,9 @@ Multi-period reports with many periods can be too wide for easy viewing
 in the terminal. Here are some ways to handle that:
 
 -   Hide the totals row with -N/--no-total
--   Convert to a single currency with -V
+-   Filter to a single currency with cur:
+-   Convert to a single currency with -V [--infer-market-price]
+-   Use a more compact layout like --layout=bare
 -   Maximize the terminal window
 -   Reduce the terminal's font size
 -   View with a pager like less, eg:
@@ -415,13 +415,13 @@ The basic calculation to perform for each table cell. It is one of:
 
 Accumulation type
 
-How amounts should accumulate across report periods. Another way to say
-it: which time period's postings should contribute to each cell's
-calculation. It is one of:
+How amounts should accumulate across a report's subperiods/columns.
+Another way to say it: which time period's postings should contribute to
+each cell's calculation. It is one of:
 
 -   --change : calculate with postings from column start to column end,
     ie "just this column". Typically used to see revenues/expenses.
-    (default for balance, incomestatement)
+    (default for balance, cashflow, incomestatement)
 
 -   --cumulative : calculate with postings from report start to column
     end, ie "previous columns plus this column". Typically used to show
@@ -431,7 +431,7 @@ calculation. It is one of:
     column end, ie "all postings from before report start date until
     this column's end". Typically used to see historical end balances of
     assets/liabilities/equity. (default for balancesheet,
-    balancesheetequity, cashflow)
+    balancesheetequity)
 
 Valuation type
 
@@ -659,35 +659,35 @@ defined in your journal.
 
 Budgeting vs forecasting
 
---budget and --forecast both use the periodic transaction rules in the
+--forecast and --budget both use the periodic transaction rules in the
 journal to generate temporary transactions for reporting purposes.
 However they are separate features - though you can use both at the same
 time if you want. Here are some differences between them:
 
-1.  --budget is a command-specific option; it selects the budget report.
+  -----------------------------------------------------------------------
+  --forecast                             --budget
+  -------------------------------------- --------------------------------
+  is a general option; it enables        is a balance command option; it
+  forecasting with all reports           selects the balance report's
+                                         budget mode
 
-    --forecast is a general option; forecasting works with all reports.
+  generates visible transactions which   generates invisible transactions
+  appear in reports                      which produce goal amounts
 
-2.  --budget uses all periodic rules; --budget=DESCPAT uses just the
-    rules matched by DESCPAT.
+  generates forecast transactions from   generates budget goal
+  after the last regular transaction, to transactions throughout the
+  the end of the report period; or with  report period, optionally
+  an argument --forecast=PERIODEXPR      restricted by periods specified
+  generates them throughout the          in the periodic transaction
+  specified period, both optionally      rules
+  restricted by periods specified in the 
+  periodic transaction rules             
 
-    --forecast uses all periodic rules.
-
-3.  --budget's budget goal transactions are invisible, except that they
-    produce goal amounts.
-
-    --forecast's forecast transactions are visible, and appear in
-    reports.
-
-4.  --budget generates budget goal transactions throughout the report
-    period, optionally restricted by periods specified in the periodic
-    transaction rules.
-
-    --forecast generates forecast transactions from after the last
-    regular transaction, to the end of the report period; while
-    --forecast=PERIODEXPR generates them throughout the specified
-    period; both optionally restricted by periods specified in the
-    periodic transaction rules.
+  uses all periodic rules                uses all periodic rules; or with
+                                         an argument --budget=DESCPAT
+                                         uses just the rules matched by
+                                         DESCPAT
+  -----------------------------------------------------------------------
 
 Balance report layout
 
@@ -704,8 +704,8 @@ four possible values:
 -   --layout=tidy: data is normalised to easily-consumed "tidy" form,
     with one row per data value
 
-Here are the --layout modes supported by each output format; note only
-CSV output supports all of them:
+Here are the --layout modes supported by each output format Only CSV
+output supports all of them:
 
   -      txt   csv   html   json   sql
   ------ ----- ----- ------ ------ -----
@@ -716,115 +716,122 @@ CSV output supports all of them:
 
 Examples:
 
--   Wide layout. With many commodities, reports can be very wide:
+Wide layout
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
-    Balance changes in 2012-01-01..2014-12-31:
+With many commodities, reports can be very wide:
 
-                      ||                                          2012                                                     2013                                             2014                                                      Total 
-    ==================++====================================================================================================================================================================================================================
-     Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
-    ------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                      || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+Balance changes in 2012-01-01..2014-12-31:
 
--   Limited wide layout. A width limit reduces the width, but some
-    commodities will be hidden:
+                  ||                                          2012                                                     2013                                             2014                                                      Total 
+==================++====================================================================================================================================================================================================================
+ Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
+------------------++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                  || 10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT  70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT  -11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT  70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT 
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
-    Balance changes in 2012-01-01..2014-12-31:
+A width limit reduces the width, but some commodities will be hidden:
 
-                      ||                             2012                             2013                   2014                            Total 
-    ==================++===========================================================================================================================
-     Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
-    ------------------++---------------------------------------------------------------------------------------------------------------------------
-                      || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
+Balance changes in 2012-01-01..2014-12-31:
 
--   Tall layout. Each commodity gets a new line (may be different in
-    each column), and account names are repeated:
+                  ||                             2012                             2013                   2014                            Total 
+==================++===========================================================================================================================
+ Assets:US:ETrade || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
+------------------++---------------------------------------------------------------------------------------------------------------------------
+                  || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more.. 
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
-    Balance changes in 2012-01-01..2014-12-31:
+Tall layout
 
-                      ||       2012        2013         2014        Total 
-    ==================++==================================================
-     Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
-     Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
-     Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
-     Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
-     Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
-    ------------------++--------------------------------------------------
-                      || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
-                      || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
-                      ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
-                      || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
-                      ||              18.00 VHT                294.00 VHT 
+Each commodity gets a new line (may be different in each column), and
+account names are repeated:
 
--   Bare layout. Commodity symbols are kept in one column, each
-    commodity gets its own report row, account names are repeated:
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+Balance changes in 2012-01-01..2014-12-31:
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
-    Balance changes in 2012-01-01..2014-12-31:
+                  ||       2012        2013         2014        Total 
+==================++==================================================
+ Assets:US:ETrade || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+ Assets:US:ETrade || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+ Assets:US:ETrade ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+ Assets:US:ETrade || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+ Assets:US:ETrade ||              18.00 VHT                294.00 VHT 
+------------------++--------------------------------------------------
+                  || 10.00 ITOT   70.00 GLD  -11.00 ITOT    70.00 GLD 
+                  || 337.18 USD  18.00 ITOT  4881.44 USD   17.00 ITOT 
+                  ||  12.00 VEA  -98.12 USD    14.00 VEA  5120.50 USD 
+                  || 106.00 VHT   10.00 VEA   170.00 VHT    36.00 VEA 
+                  ||              18.00 VHT                294.00 VHT 
 
-                      || Commodity    2012    2013     2014    Total 
-    ==================++=============================================
-     Assets:US:ETrade || GLD             0   70.00        0    70.00 
-     Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00 
-     Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50 
-     Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00 
-     Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00 
-    ------------------++---------------------------------------------
-                      || GLD             0   70.00        0    70.00 
-                      || ITOT        10.00   18.00   -11.00    17.00 
-                      || USD        337.18  -98.12  4881.44  5120.50 
-                      || VEA         12.00   10.00    14.00    36.00 
-                      || VHT        106.00   18.00   170.00   294.00 
+Bare layout
 
--   Bare layout also affects CSV output, which is useful for producing
-    data that is easier to consume, eg for making charts:
+Commodity symbols are kept in one column, each commodity has its own
+row, amounts are bare numbers, account names are repeated:
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
-    "account","commodity","balance"
-    "Assets:US:ETrade","GLD","70.00"
-    "Assets:US:ETrade","ITOT","17.00"
-    "Assets:US:ETrade","USD","5120.50"
-    "Assets:US:ETrade","VEA","36.00"
-    "Assets:US:ETrade","VHT","294.00"
-    "total","GLD","70.00"
-    "total","ITOT","17.00"
-    "total","USD","5120.50"
-    "total","VEA","36.00"
-    "total","VHT","294.00"
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
+Balance changes in 2012-01-01..2014-12-31:
 
--   Note: bare layout will sometimes display an extra row for the
-    no-symbol commodity, because of zero amounts (hledger treats zeroes
-    as commodity-less, usually). This can break hledger-bar confusingly
-    (workaround: add a cur: query to exclude the no-symbol row).
+                  || Commodity    2012    2013     2014    Total 
+==================++=============================================
+ Assets:US:ETrade || GLD             0   70.00        0    70.00 
+ Assets:US:ETrade || ITOT        10.00   18.00   -11.00    17.00 
+ Assets:US:ETrade || USD        337.18  -98.12  4881.44  5120.50 
+ Assets:US:ETrade || VEA         12.00   10.00    14.00    36.00 
+ Assets:US:ETrade || VHT        106.00   18.00   170.00   294.00 
+------------------++---------------------------------------------
+                  || GLD             0   70.00        0    70.00 
+                  || ITOT        10.00   18.00   -11.00    17.00 
+                  || USD        337.18  -98.12  4881.44  5120.50 
+                  || VEA         12.00   10.00    14.00    36.00 
+                  || VHT        106.00   18.00   170.00   294.00 
 
--   Tidy layout produces normalised "tidy data", where every variable
-    has its own column and each row represents a single data point. See
-    https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html
-    for more. This is the easiest kind of data for other software to
-    consume. Here's how it looks:
+Bare layout also affects CSV output, which is useful for producing data
+that is easier to consume, eg for making charts:
 
-    $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
-    "account","period","start_date","end_date","commodity","value"
-    "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
-    "Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
-    "Assets:US:ETrade","2012","2012-01-01","2012-12-31","USD","337.18"
-    "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VEA","12.00"
-    "Assets:US:ETrade","2012","2012-01-01","2012-12-31","VHT","106.00"
-    "Assets:US:ETrade","2013","2013-01-01","2013-12-31","GLD","70.00"
-    "Assets:US:ETrade","2013","2013-01-01","2013-12-31","ITOT","18.00"
-    "Assets:US:ETrade","2013","2013-01-01","2013-12-31","USD","-98.12"
-    "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VEA","10.00"
-    "Assets:US:ETrade","2013","2013-01-01","2013-12-31","VHT","18.00"
-    "Assets:US:ETrade","2014","2014-01-01","2014-12-31","GLD","0"
-    "Assets:US:ETrade","2014","2014-01-01","2014-12-31","ITOT","-11.00"
-    "Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
-    "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
-    "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
+"account","commodity","balance"
+"Assets:US:ETrade","GLD","70.00"
+"Assets:US:ETrade","ITOT","17.00"
+"Assets:US:ETrade","USD","5120.50"
+"Assets:US:ETrade","VEA","36.00"
+"Assets:US:ETrade","VHT","294.00"
+"total","GLD","70.00"
+"total","ITOT","17.00"
+"total","USD","5120.50"
+"total","VEA","36.00"
+"total","VHT","294.00"
 
-Useful balance reports
+Bare layout will sometimes display an extra row for the no-symbol
+commodity, because of zero amounts (hledger treats zeroes as
+commodity-less, usually). This can break hledger-bar confusingly
+(workaround: add a cur: query to exclude the no-symbol row).
+
+Tidy layout
+
+This produces normalised "tidy data" (see
+https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)
+where every variable has its own column and each row represents a single
+data point. This is the easiest kind of data for other software to
+consume:
+
+$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
+"account","period","start_date","end_date","commodity","value"
+"Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
+"Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
+"Assets:US:ETrade","2012","2012-01-01","2012-12-31","USD","337.18"
+"Assets:US:ETrade","2012","2012-01-01","2012-12-31","VEA","12.00"
+"Assets:US:ETrade","2012","2012-01-01","2012-12-31","VHT","106.00"
+"Assets:US:ETrade","2013","2013-01-01","2013-12-31","GLD","70.00"
+"Assets:US:ETrade","2013","2013-01-01","2013-12-31","ITOT","18.00"
+"Assets:US:ETrade","2013","2013-01-01","2013-12-31","USD","-98.12"
+"Assets:US:ETrade","2013","2013-01-01","2013-12-31","VEA","10.00"
+"Assets:US:ETrade","2013","2013-01-01","2013-12-31","VHT","18.00"
+"Assets:US:ETrade","2014","2014-01-01","2014-12-31","GLD","0"
+"Assets:US:ETrade","2014","2014-01-01","2014-12-31","ITOT","-11.00"
+"Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
+"Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
+"Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
+
+Some useful balance reports
 
 Some frequently used balance options/reports are:
 
