@@ -715,7 +715,7 @@ hledgerField rules record f = fmap
   (getEffectiveAssignment rules record f)
 
 -- | Look up the final value assigned to a hledger field, with csv field
--- references interpolated.
+-- references and regular expression match group references interpolated.
 hledgerFieldValue rules record f = (flip fmap) (getEffectiveAssignment rules record f)
   $ either (renderTemplate rules record)
   $ \cb -> let
@@ -730,9 +730,10 @@ maybeNegate :: MatcherPrefix -> Bool -> Bool
 maybeNegate Not origbool = not origbool
 maybeNegate _ origbool = origbool
 
--- | Given the conversion rules, a CSV record and a hledger field name, find
--- the value template ultimately assigned to this field, if any, by a field
--- assignment at top level or in a conditional block matching this record.
+-- | Given the conversion rules, a CSV record and a hledger field name, collect
+-- the value templates (and their parent Conditional Blocks where applicable)
+-- assigned to this field, if any, by top-level field assignments and
+-- conditional blocks matching this record.
 --
 -- Note conditional blocks' patterns are matched against an approximation of the
 -- CSV record: all the field values, without enclosing quotes, comma-separated.
@@ -748,7 +749,7 @@ getEffectiveAssignment rules record f = lastMay assignments
     assignments = dbg9 "csv assignments" $ toplevelassignments ++ conditionalassignments
     -- all top level field assignments
     toplevelassignments    = map (Left . snd) $ filter ((==f).fst) $ rassignments rules
-    -- all field assignments in conditional blocks assigning to field f and active for the current csv record
+    -- all conditional blocks assigning to field f and active for the current csv record
     conditionalassignments = map Right
                            $ filter (any (==f) . map fst . cbAssignments)
                            $ filter (isBlockActive rules record)
