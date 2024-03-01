@@ -5041,6 +5041,8 @@ This allows one to combine queries using `AND`, `OR`, and `NOT`.
 
   `expr:"expenses:food OR (tag:A expenses:drink)"`
 
+(But `OR` may not be reliable currently, [#2177](https://github.com/simonmichael/hledger/issues/2177).)
+
 ## Queries and command options
 
 Some queries can also be expressed as command-line options:
@@ -5049,25 +5051,16 @@ Some queries can also be expressed as command-line options:
 When you mix command options and query arguments, 
 generally the resulting query is their intersection.
 
+## Queries and account aliases
+
+When account names are [rewritten](#alias-directive) with `--alias` or `alias`,
+`acct:` will match either the old or the new account name.
+
 ## Queries and valuation
 
 When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
-`cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
-not the new ones
-(except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
-
-## Querying with account aliases
-
-When account names are [rewritten](#alias-directive) with `--alias` or `alias`,
-note that `acct:` will match either the old or the new account name.
-
-## Querying with cost or value
-
-When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
-note that `cur:` matches the new commodity symbol, and not the old one,
-and `amt:` matches the new quantity, and not the old one.
-Note: this changed in hledger 1.22, previously it was the reverse, 
-see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
+`cur:` and `amt:` match the old commodity symbol and the old amount quantity, not the new ones.
+(Except in hledger 1.22, [#1625](https://github.com/simonmichael/hledger/issues/1625).)
 
 # Pivoting
 
