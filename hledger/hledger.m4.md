@@ -1168,7 +1168,7 @@ Account names can be altered temporarily or permanently by [account aliases](#al
 ## Amounts
 
 After the account name, there is usually an amount.
-(Important: between account name and amount, there must be **two or more spaces**.)
+(Remember: between account name and amount, there must be two or more spaces.)
 
 hledger's amount format is flexible, supporting several international formats.
 Here are some examples.
