@@ -39,6 +39,7 @@ Many of these work with the higher-level commands as well.
 - or value of balance changes ([`-V`](#valuation-type))
 - or change of balance values ([`--valuechange`](#balance-report-types))
 - or unrealised capital gain/loss ([`--gain`](#balance-report-types))
+- or balance changes from sibling postings (`--related`/`-r`)
 - or postings count ([`--count`](#balance-report-types))
 
 ..in..
@@ -76,9 +77,6 @@ This command supports the
 [output format](#output-format) options,
 with output formats `txt`, `csv`, `tsv` (*Added in 1.32*), `json`, and (multi-period reports only:) `html`.
 In `txt` output in a colour-supporting terminal, negative amounts are shown in red.
-
-The `--related`/`-r` flag shows the balance of the *other* postings in the
-transactions of the postings which would normally be shown.
 
 ### Simple balance report
 
@@ -189,6 +187,7 @@ Some example formats:
 [valuation]: #valuation
 [valuation date(s)]: #valuation-date
 [valuation commodity]: #valuation-commodity
+
 ### Filtered balance report
 
 You can show fewer accounts, a different time period, totals from
