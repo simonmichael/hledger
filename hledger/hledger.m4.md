@@ -1631,6 +1631,34 @@ except they may contain [tags](#tags), which are not ignored.
     ; a second comment line for posting 2
 ```
 
+## Transaction balancing
+
+How exactly does hledger decide when a transaction is balanced ?
+The general goal is that if you look at the journal entry and calculate the amounts'
+sum perfectly with pencil and paper, hledger should agree with you.
+
+Real world transactions, especially for investments or cryptocurrencies,
+often involve imprecise costs, complex decimals, and/or infinitely-recurring decimals,
+which are difficult or inconvenient to handle on a computer.
+So to be a practical accounting system, hledger allows some imprecision when checking transaction balancedness.
+The question is, how much imprecision should be allowed ?
+
+hledger currently decides it based on the commodity display precisions inferred or declared for each commodity:
+if the postings' sum would appear to be zero when displayed with the standard display precisions, the transaction is considered balanced.
+
+Or equivalently: if the journal entry is displayed with amounts rounded to the 
+standard display precisions (with `hledger print --round=hard`), and a human with
+pencil and paper would agree that those displayed amounts add up to zero,
+the transaction is considered balanced.
+
+This has some advantages: it is general, usually intuitive, and configurable when needed.
+It means that transaction balancedness is somewhat dependent on commodity display precisions,
+so eg when using `-c/--commodity-style` to display things with more than usual precision,
+you could notice some of your journal entries need to adjusted (made more precise).
+
+Other PTA tools (Ledger, Beancount..) have their own ways of doing it.
+Possible improvements are discussed at [#1964](https://github.com/simonmichael/hledger/issues/1964).
+
 ## Tags
 
 <!-- same section name as Commands > tags, if reordering these update all #tags[-1] links -->
