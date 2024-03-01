@@ -1642,10 +1642,10 @@ standard display precisions (with `hledger print --round=hard`), and a human wit
 pencil and paper would agree that those displayed amounts add up to zero,
 the transaction is considered balanced.
 
-This has some advantages: it is general, usually intuitive, and configurable when needed.
-It means that transaction balancedness is somewhat dependent on commodity display precisions,
+This has some advantages: it is fairly intuitive, general not hard-coded, yet configurable when needed.
+On the downside it means that transaction balancedness is related to commodity display precisions,
 so eg when using `-c/--commodity-style` to display things with more than usual precision,
-you could notice some of your journal entries need to adjusted (made more precise).
+you might need to fix some of your journal entries (ie, add decimal digits to make them balance more precisely).
 
 Other PTA tools (Ledger, Beancount..) have their own ways of doing it.
 Possible improvements are discussed at [#1964](https://github.com/simonmichael/hledger/issues/1964).
