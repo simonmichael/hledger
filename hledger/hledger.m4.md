@@ -5687,38 +5687,6 @@ This means:
 
 Amounts for which no valuation commodity can be found are not converted.
 
-## Simple valuation examples
-
-Here are some quick examples of `-V`:
-
-```journal
-; one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
-
-; purchase some euros on nov 3
-2016/11/3
-    assets:euros        €100
-    assets:checking
-
-; the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
-```
-How many euros do I have ?
-```cli
-$ hledger -f t.j bal -N euros
-                €100  assets:euros
-```
-What are they worth at end of nov 3 ?
-```cli
-$ hledger -f t.j bal -N euros -V -e 2016/11/4
-             $110.00  assets:euros
-```
-What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```cli
-$ hledger -f t.j bal -N euros -V
-             $103.00  assets:euros
-```
-
 ## --value: Flexible valuation
 
 `-V` and `-X` are special cases of the more general `--value` option:
@@ -5755,7 +5723,38 @@ a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
 hledger will do its best to convert amounts to this commodity, deducing
 [market prices](#p-directive) as described above.
 
-## More valuation examples
+## Valuation examples
+
+Here are some quick examples of `-V`:
+
+```journal
+; one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+; purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+; the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+```
+How many euros do I have ?
+```cli
+$ hledger -f t.j bal -N euros
+                €100  assets:euros
+```
+What are they worth at end of nov 3 ?
+```cli
+$ hledger -f t.j bal -N euros -V -e 2016/11/4
+             $110.00  assets:euros
+```
+What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
+```cli
+$ hledger -f t.j bal -N euros -V
+             $103.00  assets:euros
+```
+
 
 Here are some examples showing the effect of `--value`, as seen with `print`:
 
@@ -5844,8 +5843,7 @@ $ hledger -f- print --value=2000-01-15
 
 ## Interaction of valuation and queries
 
-When matching postings based on queries in the presence of valuation, the
-following happens.
+When matching postings based on queries in the presence of valuation, the following happens:
 
 1. The query is separated into two parts:
     1. the currency (`cur:`) or amount (`amt:`).
@@ -5854,19 +5852,43 @@ following happens.
 3. Valuation is applied to the postings.
 4. The postings are matched to the other parts of the query based on post-valued amounts.
 
-See:
-[1625](https://github.com/simonmichael/hledger/issues/1625)
+Related:
+[#1625](https://github.com/simonmichael/hledger/issues/1625)
 
 
 ## Effect of valuation on reports
 
-Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
-(It's wide, you'll have to scroll sideways.)
+Here is a reference for how valuation is supposed to affect each part of hledger's reports.
+(It's wide, you may need to scroll sideways.)
 It may be useful when troubleshooting.
 If you find problems, please report them, ideally with a reproducible example.
 Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
+
+First, a quick glossary:
+
+*cost*
+: calculated using price(s) recorded in the transaction(s).
+
+*value*
+: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
+
+*report start*
+: the first day of the report period specified with -b or -p or date:, otherwise today.
+
+*report or journal start*
+: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
+
+*report end*
+: the last day of the report period specified with -e or -p or date:, otherwise today.
+
+*report or journal end*
+: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
+
+*report interval*
+: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
+
 
 | Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
 |-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
@@ -5897,30 +5919,6 @@ Related:
 | <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
 
 `--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
-
-**Glossary:**
-
-*cost*
-: calculated using price(s) recorded in the transaction(s).
-
-*value*
-: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
-
-*report start*
-: the first day of the report period specified with -b or -p or date:, otherwise today.
-
-*report or journal start*
-: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
-
-*report end*
-: the last day of the report period specified with -e or -p or date:, otherwise today.
-
-*report or journal end*
-: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
-
-*report interval*
-: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
-
 
 # PART 4: COMMANDS
 
