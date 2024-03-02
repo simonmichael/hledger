@@ -59,9 +59,9 @@ alias h := help
 @check:
     just --fmt --unstable --check
 
-# if this justfile is error free but in non-standard format, reformat and commit it
+# if this justfile is error free but in non-standard format, reformat it, and if it has changes, commit it
 @format:
-    just -q chk || just --fmt --unstable && git commit -m ';just: format' -- {{ justfile() }}
+    just -q chk || just -q --fmt --unstable && git diff --quiet || git commit -m ';just: format' -- {{ justfile() }}
 
 # rerun RECIPE when any watched-by-default file changes
 watch RECIPE *JOPTS:
