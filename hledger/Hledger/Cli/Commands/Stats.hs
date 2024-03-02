@@ -52,14 +52,15 @@ statsmode = hledgerCommandMode
 stats :: CliOpts -> Journal -> IO ()
 stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
   let today = _rsDay rspec
+      verbose = boolopt "verbose" rawopts
       q = _rsQuery rspec
       l = ledgerFromJournal q j
       intervalspans = snd $ reportSpanBothDates j rspec
+      ismultiperiod = length intervalspans > 1
       (ls, txncounts) = unzip $ map (showLedgerStats verbose l today) intervalspans
       numtxns = sum txncounts
-      b = unlinesB ls
-      verbose = boolopt "verbose" rawopts
-  writeOutputLazyText opts $ TL.init $ TB.toLazyText b
+      txt = (if ismultiperiod then id else TL.init) $ TB.toLazyText $ unlinesB ls
+  writeOutputLazyText opts txt
   t <- getPOSIXTime
   let dt = t - progstarttime_
   rtsStatsEnabled <- getRTSStatsEnabled
