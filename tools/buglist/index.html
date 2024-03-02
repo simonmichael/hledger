@@ -10,32 +10,32 @@
       th { white-space: nowrap; }
       tr { border-top:thin solid #eee; vertical-align:top; }
       td { padding:0 1em; }
-      .tag { color:white; text-shadow: 2px 2px 2px black; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
+      /* .tag { color:white; text-shadow: 2px 2px 2px black; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
+      .paletag { color:black; font-weight:bold; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; } */
+      .tag     { color:white; font-weight:bold; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
       .paletag { color:black; font-weight:bold; font-size:small; padding:2px 8px 4px 6px; border-radius:1em; }
     </style>
 </head>
 <body>
-    <h3 class="text-center">hledger open bugs</h3>
-    <p>
-      Currently our <a href="https://hledger.org/ISSUES.html#prioritising">user pain</a> score is
-      <i>Impact</i> (number of people affected, 1-5) <i>* Severity</i> (for those affected, 1-5) <i>/ 25</i>.
-      <br>
+    <h3 class="text-center">hledger open bugs by user pain (user joy when fixed)</h3>
+    <p align="center">
+      Our <a href="https://hledger.org/ISSUES.html#prioritising">user pain</a> score is
+      impact (number of people affected, 1-5) * severity (for those affected, 1-5) / 25 * 10. <br>
       The possible scores are:
-0.04
-0.08
-0.12
-0.16
-0.20
-0.24
-0.32
-0.36
-0.40
-0.48
-0.60
-0.64
-0.80
-1.00
-.
+ 0.4
+ 0.8
+ 1.2
+ 1.6
+ 2.0
+ 2.4
+ 3.2
+ 3.6
+ 4.0
+ 4.8
+ 6.0
+ 6.4
+ 8.0
+10.0
     </p>
     <table id="issues">
     </table>

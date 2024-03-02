@@ -696,7 +696,7 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
         _              -> Nothing
     -- If the requested span is open-ended, close it using the journal's start and end dates.
     -- This can still be the null (open) span if the journal is empty.
-    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanDefaultsFrom` (journalspan `spanUnion` pricespan)
+    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanDefaultsFrom` (journalspan `spanExtend` pricespan)
     -- The list of interval spans enclosing the requested span.
     -- This list can be empty if the journal was empty,
     -- or if hledger-ui has added its special date:-tomorrow to the query

@@ -63,6 +63,7 @@ module Hledger.Data.Dates (
   spanIntersect,
   spansIntersect,
   spanDefaultsFrom,
+  spanExtend,
   spanUnion,
   spansUnion,
   daysSpan,
@@ -314,8 +315,8 @@ groupByDateSpan showempty date colspans =
   where
     groupByCols []     _  = []
     groupByCols (c:cs) [] = if showempty then (c, []) : groupByCols cs [] else []
-    groupByCols (c:cs) ps = (c, map snd matches) : groupByCols cs later
-      where (matches, later) = span ((spanEnd c >) . Just . fst) ps
+    groupByCols (c:cs) ps = (c, map snd colps) : groupByCols cs laterps
+      where (colps, laterps) = span ((spanEnd c >) . Just . fst) ps
 
     beforeStart = maybe (const False) (>) $ spanStart =<< headMay colspans
 
@@ -324,40 +325,82 @@ spansIntersect [] = nulldatespan
 spansIntersect [d] = d
 spansIntersect (d:ds) = d `spanIntersect` (spansIntersect ds)
 
--- | Calculate the intersection of two datespans.
---
--- For non-intersecting spans, gives an empty span beginning on the second's start date:
--- >>> DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03) `spanIntersect` DateSpan (Just $ Flex $ fromGregorian 2018 01 03) (Just $ Flex $ fromGregorian 2018 01 05)
--- DateSpan 2018-01-03..2018-01-02
-spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
-    where
-      b = latest b1 b2
-      e = earliest e1 e2
-
--- | Fill any unspecified dates in the first span with the dates from
--- the second one. Sort of a one-way spanIntersect.
-spanDefaultsFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
-    where a = if isJust a1 then a1 else a2
-          b = if isJust b1 then b1 else b2
-
 -- | Calculate the union of a number of datespans.
 spansUnion [] = nulldatespan
 spansUnion [d] = d
 spansUnion (d:ds) = d `spanUnion` (spansUnion ds)
 
+-- | Calculate the intersection of two datespans.
+--
+-- For non-intersecting spans, gives an empty span beginning on the second's start date:
+-- >>> DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03) `spanIntersect` DateSpan (Just $ Flex $ fromGregorian 2018 01 03) (Just $ Flex $ fromGregorian 2018 01 05)
+-- DateSpan 2018-01-03..2018-01-02
+spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan (laterDefinite b1 b2) (earlierDefinite e1 e2)
+
+-- | Fill any unspecified dates in the first span with the dates from
+-- the second one (if specified there). Sort of a one-way spanIntersect.
+spanDefaultsFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
+    where a = if isJust a1 then a1 else a2
+          b = if isJust b1 then b1 else b2
+
 -- | Calculate the union of two datespans.
-spanUnion (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan b e
-    where
-      b = earliest b1 b2
-      e = latest e1 e2
+-- If either span is open-ended, the union will be too.
+--
+-- >>> ys2024 = fromGregorian 2024 01 01
+-- >>> ys2025 = fromGregorian 2025 01 01
+-- >>> to2024 = DateSpan Nothing               (Just $ Exact ys2024)
+-- >>> in2024 = DateSpan (Just $ Exact ys2024) (Just $ Exact ys2025)
+-- >>> spanUnion to2024 in2024
+-- DateSpan ..2024-12-31
+-- >>> spanUnion in2024 to2024
+-- DateSpan ..2024-12-31
+spanUnion (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan (earlier b1 b2) (later e1 e2)
 
-latest d Nothing = d
-latest Nothing d = d
-latest (Just d1) (Just d2) = Just $ max d1 d2
+-- | Extend the first span to include any definite end dates of the second.
+-- Unlike spanUnion, open ends in the second are ignored.
+-- If the first span was open-ended, it still will be after being extended.
+--
+-- >>> ys2024 = fromGregorian 2024 01 01
+-- >>> ys2025 = fromGregorian 2025 01 01
+-- >>> to2024 = DateSpan Nothing               (Just $ Exact ys2024)
+-- >>> all2024 = DateSpan (Just $ Exact ys2024) (Just $ Exact ys2025)
+-- >>> partof2024 = DateSpan (Just $ Exact $ fromGregorian 2024 03 01) (Just $ Exact $ fromGregorian 2024 09 01)
+-- >>> spanExtend to2024 all2024
+-- DateSpan 2024
+-- >>> spanExtend all2024 to2024
+-- DateSpan 2024
+-- >>> spanExtend partof2024 all2024
+-- DateSpan 2024
+-- >>> spanExtend all2024 partof2024
+-- DateSpan 2024
+--
+spanExtend (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan (earlierDefinite b1 b2) (laterDefinite e1 e2)
 
-earliest d Nothing = d
-earliest Nothing d = d
-earliest (Just d1) (Just d2) = Just $ min d1 d2
+-- | Pick the earlier of two DateSpan starts, treating Nothing as infinitely early.
+-- An Exact and Flex with the same date are considered equal; the first argument wins.
+earlier :: Maybe EFDay -> Maybe EFDay -> Maybe EFDay
+earlier = min
+
+-- | Pick the later of two DateSpan starts, treating Nothing as infinitely late.
+-- An Exact and Flex with the same date are considered equal; the second argument wins.
+later :: Maybe EFDay -> Maybe EFDay -> Maybe EFDay
+later _ Nothing = Nothing
+later Nothing _ = Nothing
+later d1 d2     = max d1 d2
+
+-- | Pick the earlier of two DateSpan ends that is a definite date (if any).
+-- An Exact and Flex with the same date are considered equal; the first argument wins.
+earlierDefinite :: Maybe EFDay -> Maybe EFDay -> Maybe EFDay
+earlierDefinite d1 Nothing = d1
+earlierDefinite Nothing d2 = d2
+earlierDefinite d1 d2      = min d1 d2
+
+-- | Pick the later of two DateSpan ends that is a definite date (if any).
+-- An Exact and Flex with the same date are considered equal; the second argument wins.
+laterDefinite :: Maybe EFDay -> Maybe EFDay -> Maybe EFDay
+laterDefinite d1 Nothing = d1
+laterDefinite Nothing d2 = d2
+laterDefinite d1 d2      = max d1 d2
 
 -- | Calculate the minimal DateSpan containing all of the given Days (in the
 -- usual exclusive-end-date sense: beginning on the earliest, and ending on

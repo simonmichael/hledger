@@ -107,7 +107,7 @@ reversePriceDirective pd@PriceDirective{pdcommodity=c, pdamount=a}
     where
       lbl = lbl_ "reversePriceDirective"
       a' =
-        amountSetFullPrecisionOr (Just defaultMaxPrecision) $
+        amountSetFullPrecisionUpTo (Just defaultMaxPrecision) $
         invertAmount a{acommodity=c}
         & dbg9With (lbl "calculated reverse price".showAmount)
         -- & dbg9With (lbl "precision of reverse price".show.amountDisplayPrecision)

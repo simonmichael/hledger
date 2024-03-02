@@ -1,5 +1,5 @@
 #!/usr/bin/env just
-# * Project scripts, using https://github.com/casey/just (last tested with 1.16.0)
+# * Project scripts, using https://github.com/casey/just (last tested with 1.24.0)
 # Usage: alias j=just, run j to list available scripts.
 #
 # After many years with make and plain shell and haskell for
@@ -22,7 +22,7 @@
 #   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
 #   ))
 #
-# This file is formatted by `just _fmt`, which currently eats blank lines a bit (and commits).
+# This file is formatted by `just format`, which currently eats blank lines a bit (and commits).
 #
 # 'set export' makes constants and arguments available as $VAR as well as {{ VAR }}.
 # $ makes just code more like shell code.
@@ -59,9 +59,9 @@ alias h := help
 @check:
     just --fmt --unstable --check
 
-# if this justfile is error free but in non-standard format, reformat and commit it
+# if this justfile is error free but in non-standard format, reformat it, and if it has changes, commit it
 @format:
-    just -q chk || just --fmt --unstable && git commit -m ';just: format' -- {{ justfile() }}
+    just -q chk || just -q --fmt --unstable && git diff --quiet || git commit -m ';just: format' -- {{ justfile() }}
 
 # rerun RECIPE when any watched-by-default file changes
 watch RECIPE *JOPTS:
@@ -87,13 +87,14 @@ _watchgitdbg *WOPTS:
 BROWSE := 'open'
 
 # XXX These often don't work well interpolated as $CMD or {{ CMD }}, not sure why
-
 # find GNU tools, eg on mac
-GDATE := `type -P gdate || echo date`
-GTAR  := `type -P gtar || echo tar`
-#GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 
+GDATE := `type -P gdate || echo date`
+GTAR := `type -P gtar || echo tar`
+
+#GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 # make ghc usable for scripting with -e
+
 GHC := 'ghc -ignore-dot-ghci -package-env -'
 GHCI := 'ghci'
 
@@ -204,8 +205,8 @@ DOCSOURCEFILES := '
     CONTRIBUTING.md
     ' + MANUALSOURCEFILES + COMMANDHELPFILES
 TESTFILES := `fd '\.test$' --exclude ledger-compat`
-# XXX it's fd-find on gnu/linux ?
 
+# XXX it's fd-find on gnu/linux ?
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE := 'hledger/Hledger/Cli/Version.hs'
 # Two or three-part version string, set as program version in builds made by this makefile.
@@ -246,55 +247,30 @@ BUILDFLAGS := '-rtsopts ' + WARNINGS + GHCLOWMEMFLAGS + CABALMACROSFLAGS + ' -DD
 TIME := "{{ shell date +'%Y%m%d%H%M' }}"
 MONTHYEAR := "{{ shell date +'%B %Y' }}"
 
-# ** ghci ------------------------------------------------------------
-GHCI:
+# ** Building ------------------------------------------------------------
+BUILDING:
 
-# run ghci on hledger-lib + hledger
-@ghci:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger/Hledger/Cli.hs
+# build the hledger package showing ghc codegen times/allocations
+@buildtimes:
+    time ($STACK build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
 
-# run ghci on hledger-lib + hledger with profiling/call stack information
-@ghci-prof:
-    stack build --profile hledger --only-dependencies
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
-
-# # run ghci on hledger-lib + hledger + dev.hs script
-# @ghci-dev:
-#     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
-
-# run ghci on hledger-lib + hledger + hledger-ui
-@ghci-ui:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-ui/Hledger/UI/Main.hs
-
-# run ghci on hledger-lib + hledger + hledger-web
-@ghci-web:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/app/main.hs
-
-# run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
-@ghci-web-test:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/test/test.hs
-
-# # better than stack exec ?
-# # XXX does not see changes to files
-# # run ghci on hledger-lib + test runner
-# ghci-lib-test:
-#     $STACKGHCI ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
-# run ghci on all the hledger
-# ghci-all:
-#     $STACK exec -- $GHCI $BUILDFLAGS \
-#         hledger-ui/Hledger/UI/Main.hs \
-#         hledger-web/app/main.hs \
-
-# run ghci on hledger-lib doctests
-@ghci-doctest:
-    cd hledger-lib; $STACKGHCI ghci hledger-lib:test:doctest
-
-# run ghci on Shake.hs
-@ghci-shake:
-    $STACK exec {{ SHAKEDEPS }} -- ghci Shake.hs
-
-# ** ghcid ------------------------------------------------------------
-GHCID:
+# # build an unoptimised hledger at bin/hledger.EXT.unopt (default: git describe)
+# build-unopt *EXT:
+#     #!/usr/bin/env bash
+#     ext={{ if EXT == '' { `git describe --tags` } else { EXT } }}
+#     exe="bin/hledger.$ext.unopt"
+#     $STACK --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
+#     mv bin/hledger "$exe"
+#     echo "$exe"
+# # build hledger with profiling enabled at bin/hledgerprof
+# hledgerprof:
+# # $STACK --verbosity=error install --local-bin-path=bin hledger
+#     $STACK build --profile hledger
+# # hledger-lib --ghc-options=-fprof-auto
+# #    @echo "to profile, use $STACK exec --profile -- hledger ..."
+# # build "bin/hledgercov" for coverage reports (with ghc)
+# hledgercov:
+#     $STACK ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $BUILDFLAGS
 
 # run ghcid on hledger-lib + hledger
 @ghcid:
@@ -349,7 +325,53 @@ SHAKEDEPS := '\
 ghcid-shake:
     stack exec {{ SHAKEDEPS }} -- ghcid Shake.hs
 
-# ** dev.hs script ------------------------------------------------------------
+# ** Testing ------------------------------------------------------------
+TESTING:
+
+# run ghci on hledger-lib + hledger
+@ghci:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger/Hledger/Cli.hs
+
+# run ghci on hledger-lib + hledger with profiling/call stack information
+@ghci-prof:
+    stack build --profile hledger --only-dependencies
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
+
+# # run ghci on hledger-lib + hledger + dev.hs script
+# @ghci-dev:
+#     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+
+# run ghci on hledger-lib + hledger + hledger-ui
+@ghci-ui:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-ui/Hledger/UI/Main.hs
+
+# run ghci on hledger-lib + hledger + hledger-web
+@ghci-web:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/app/main.hs
+
+# run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
+@ghci-web-test:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/test/test.hs
+
+# # better than stack exec ?
+# # XXX does not see changes to files
+# # run ghci on hledger-lib + test runner
+# ghci-lib-test:
+#     $STACKGHCI ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
+# run ghci on all the hledger
+# ghci-all:
+#     $STACK exec -- $GHCI $BUILDFLAGS \
+#         hledger-ui/Hledger/UI/Main.hs \
+#         hledger-web/app/main.hs \
+
+# run ghci on hledger-lib doctests
+@ghci-doctest:
+    cd hledger-lib; $STACKGHCI ghci hledger-lib:test:doctest
+
+# run ghci on Shake.hs
+@ghci-shake:
+    $STACK exec {{ SHAKEDEPS }} -- ghci Shake.hs
+
 # #    hledger-lib/Hledger/Read/TimeclockReaderPP.hs
 # # build the dev.hs script for quick experiments (with ghc)
 # dev:
@@ -371,34 +393,6 @@ ghcid-shake:
 # dev-heap-upload:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
-
-# ** Building ------------------------------------------------------------
-BUILDING:
-
-# build the hledger package showing ghc codegen times/allocations
-@buildtimes:
-    time ($STACK build hledger --force-dirty --ghc-options='-fforce-recomp -ddump-timings' 2>&1 | grep -E '\bCodeGen \[.*time=')
-
-# # build an unoptimised hledger at bin/hledger.EXT.unopt (default: git describe)
-# build-unopt *EXT:
-#     #!/usr/bin/env bash
-#     ext={{ if EXT == '' { `git describe --tags` } else { EXT } }}
-#     exe="bin/hledger.$ext.unopt"
-#     $STACK --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
-#     mv bin/hledger "$exe"
-#     echo "$exe"
-# # build hledger with profiling enabled at bin/hledgerprof
-# hledgerprof:
-# # $STACK --verbosity=error install --local-bin-path=bin hledger
-#     $STACK build --profile hledger
-# # hledger-lib --ghc-options=-fprof-auto
-# #    @echo "to profile, use $STACK exec --profile -- hledger ..."
-# # build "bin/hledgercov" for coverage reports (with ghc)
-# hledgercov:
-#     $STACK ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $BUILDFLAGS
-
-# ** Testing ------------------------------------------------------------
-TESTING:
 
 # run tests that are reasonably quick (files, unit, functional) and benchmarks
 test: filestest functest
@@ -492,6 +486,18 @@ ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
     mkdir hledger/test/addons/hledger-addondir
     chmod +x hledger/test/addons/hledger-*
 
+# compare hledger's and ledger's balance report
+compare-balance:
+    #!/usr/bin/env bash
+    for f in examples/1txns-1accts.journal \
+            examples/10txns-10accts.journal \
+            ; do \
+        (export f=$f; \
+        printf "\n-------------------------------------------------------------------------------\n"; \
+        echo "comparing hledger -f $f balance and ledger -f $f balance --flat"; \
+        difft --color=always --display side-by-side-show-both <(hledger -f $f balance) <(ledger -f $f balance --flat) ) | tail +2; \
+        done
+
 # generate a hlint report
 # hlinttest hlint:
 #     hlint --hint=hlint --report=hlint.html {{ SOURCEFILES }}
@@ -512,6 +518,53 @@ ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 # run hledger-install.sh not from inside a haskell project
 installtest:
     cd; {{ justfile_directory() }}/hledger-install/hledger-install.sh
+
+# ** Installing ------------------------------------------------------------
+INSTALLING:
+
+# # copy the current ~/.local/bin/hledger to bin/old/hledger-VER
+# @copy-as VER:
+#     cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
+
+# stack install, then copy the hledger executables to bin/old/hledger*-VER
+@installas VER:
+    $STACK install --local-bin-path bin/old
+    for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
+
+# # make must be GNU Make 4.3+
+# .PHONY: shellcompletions
+# # update shell completions in hledger package
+# shellcompletions:
+#     make -C hledger/shell-completion/ clean-all all
+
+# download a recent set of hledger versions from github releases to bin/hledger-VER
+get-binaries:
+    for V in 1.32.2 1.31 1.30 1.29.2 1.28 1.27.1; do just get-binary $OS x64 $V; done
+    just symlink-binaries
+
+# download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
+
+# On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
+get-binary OS ARCH VER:
+    #!/usr/bin/env bash
+    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - hledger --transform 's/$/-{{ VER }}/'
+
+# add easier symlinks for all the minor hledger releases downloaded by get-binaries.
+symlink-binaries:
+    just symlink-binary 1.32.2
+    just symlink-binary 1.29.2
+    just symlink-binary 1.27.1
+
+# add an easier symlink for this minor hledger release (hledger-1.29 -> hledger-1.29.2, etc.)
+@symlink-binary MINORVER:
+    cd bin && ln -sf hledger-$MINORVER hledger-`echo $MINORVER | sed -E 's/\.[0-9]+$//'`
+
+# sym-link some directories required by hledger-web dev builds
+symlink-web-dirs:
+    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
+    ln -sf hledger-web/messages
+    ln -sf hledger-web/static
+    ln -sf hledger-web/templates
 
 # ** Benchmarking ------------------------------------------------------------
 BENCHMARKING:
@@ -571,28 +624,8 @@ samplejournals:
 
 # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
 # can't use $GHC or {{GHC}} here for some reason
+
 OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
-
-# download a recent set of hledger versions from github releases to bin/hledger-VER
-get-binaries:
-    for V in 1.32.2 1.31 1.30 1.29.2 1.28 1.27.1; do just get-binary $OS x64 $V; done
-    just symlink-binaries
-
-# download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
-# On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
-get-binary OS ARCH VER:
-    #!/usr/bin/env bash
-    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - hledger --transform 's/$/-{{ VER }}/'
-
-# add easier symlinks for all the minor hledger releases downloaded by get-binaries.
-symlink-binaries:
-    just symlink-binary 1.32.2
-    just symlink-binary 1.29.2
-    just symlink-binary 1.27.1
-
-# add an easier symlink for this minor hledger release (hledger-1.29 -> hledger-1.29.2, etc.)
-@symlink-binary MINORVER:
-    cd bin && ln -sf hledger-$MINORVER hledger-`echo $MINORVER | sed -E 's/\.[0-9]+$//'`
 
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
@@ -602,20 +635,14 @@ symlink-binaries:
     printf "Running quick benchmarks (times are approximate, can be skewed):\n"
     which quickbench >/dev/null && quickbench {{ ARGS }} || echo "quickbench not installed (see bench.sh), skipping"
 
-@bench-quick8:
-    quickbench -w hledger-1.23,hledger-1.24,hledger-1.25,hledger-1.26,hledger-1.28,hledger-1.29,hledger-21ad,ledger
-
-@bench-quick3:
-    quickbench -w hledger-1.26,hledger-21ad,ledger '_ -f examples/10ktxns-1kaccts.journal print' '_ -f examples/10ktxns-1kaccts.journal register' '_ -f examples/10ktxns-1kaccts.journal balance'
-
-@bench-gtime:
-    for args in '-f examples/10ktxns-1kaccts.journal print' '-f examples/100ktxns-1kaccts.journal register' '-f examples/100ktxns-1kaccts.journal balance'; do \
-    echo; \
-    for app in hledger-1.26 hledger-21ad ledger; do \
-    echo; echo $app $args:; \
-    gtime $app $args >/dev/null; \
-    done; \
-    done
+# @bench-gtime:
+#     for args in '-f examples/10ktxns-1kaccts.journal print' '-f examples/100ktxns-1kaccts.journal register' '-f examples/100ktxns-1kaccts.journal balance'; do \
+#     echo; \
+#     for app in hledger-1.26 hledger-21ad ledger; do \
+#     echo; echo $app $args:; \
+#     gtime $app $args >/dev/null; \
+#     done; \
+#     done
 
 # show throughput at various data sizes with the given hledger executable (requires samplejournals)
 @bench-throughput EXE:
@@ -633,28 +660,15 @@ symlink-binaries:
     stack build hledger
     stack exec -- just throughput hledger
 
+# show throughput of recent hledger versions (requires samplejournals)
 @bench-throughput-recent:
-    for v in 1.25 1.28 1.29 1.32 21ad; do printf "\nhledger-$v:\n"; for i in `seq 1 3`; do hledger-$v -f examples/10ktxns-10kaccts.journal stats | grep throughput; done; done
+    for v in 1.25 1.28 1.29 1.32 1.32.3; do printf "\nhledger-$v:\n"; for i in `seq 1 3`; do hledger-$v -f examples/10ktxns-10kaccts.journal stats | grep throughput; done; done
 
-@bench-balance-many-accts:
-    quickbench -w hledger-1.26,hledger-21ad,ledger -f bench-many-accts.sh -N2
-    #quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
-
-@bench-balance-many-txns:
-    quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
-
-#            examples/100txns-100accts.journal \
-compare-balance:
-    #!/usr/bin/env bash
-    for f in examples/1txns-1accts.journal \
-            examples/10txns-10accts.journal \
-            ; do \
-        (export f=$f; \
-        printf "\n-------------------------------------------------------------------------------\n"; \
-        echo "comparing hledger -f $f balance and ledger -f $f balance --flat"; \
-        difft --color=always --display side-by-side-show-both <(hledger -f $f balance) <(ledger -f $f balance --flat) ) | tail +2; \
-        done
-
+# @bench-balance-many-accts:
+#     quickbench -w hledger-1.26,hledger-21ad,ledger -f bench-many-accts.sh -N2
+#     #quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
+# @bench-balance-many-txns:
+#     quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
@@ -674,7 +688,6 @@ compare-balance:
 # 	run progression benchmark tests and save graphical results\
 # 	)
 # 	tools/progressionbench -- -t png -k png
-
 # # prof: samplejournals \
 # # 	$(call def-help,prof,\
 # # 	generate and archive an execution profile\
@@ -744,12 +757,6 @@ DOCUMENTING:
 
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
-
-# optimise and commit RELEASING value map diagram
-@releasediag:
-    pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
-    git add doc/HledgerReleaseValueMap.png
-    git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
@@ -832,95 +839,20 @@ haddock-open:
 #     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
 #     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
-# ** Installing ------------------------------------------------------------
-INSTALLING:
-
-# # copy the current ~/.local/bin/hledger to bin/old/hledger-VER
-# @copy-as VER:
-#     cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
-
-# stack install, then copy the hledger executables to bin/old/hledger*-VER
-@installas VER:
-    $STACK install --local-bin-path bin/old
-    for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
-
-# # make must be GNU Make 4.3+
-# .PHONY: shellcompletions
-# # update shell completions in hledger package
-# shellcompletions:
-#     make -C hledger/shell-completion/ clean-all all
-
-# ** Releasing ------------------------------------------------------------
-RELEASING:
-
-# Symlink/copy important files temporarily in .relfiles/.
-relfiles:
-    #!/usr/bin/env bash
-    echo "linking/copying important release files in .relfiles/ for convenient access..."
-    mkdir -p .relfiles
-    cd .relfiles
-    for f in \
-        ../stack.yaml \
-        ../Shake.hs \
-        ../hledger-install/hledger-install.sh \
-        ../CHANGES.md \
-        ../hledger/CHANGES.md \
-        ../hledger-ui/CHANGES.md \
-        ../hledger-web/CHANGES.md \
-        ../hledger-lib/CHANGES.md \
-        ../doc/github-release.md \
-        ../doc/ANNOUNCE \
-        ../doc/ANNOUNCE.masto \
-        ../site/src/release-notes.md \
-        ../site/src/install.md \
-    ; do ln -sf $f .; done
-    cp ../doc/RELEASING.md ./RELEASING2.md   # temp copy which can be edited without disruption
-
-# Prepare to release today, creating/switching to release branch, updating versions, dates, manuals, changelogs etc.
-relprep VER:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    [[ -z {{ VER }} ]] && usage
-    BRANCH=$(just _versionReleaseBranch {{ VER }})
-    COMMIT="-c"
-    echo "Switching to $BRANCH, auto-creating it if needed..."
-    just _gitSwitchAutoCreate "$BRANCH"
-    echo "Bumping all version strings to {{ VER }} ..."
-    ./Shake setversion {{ VER }} $COMMIT
-    echo "Updating all command help texts for embedding..."
-    ./Shake cmdhelp $COMMIT
-    echo "Updating all dates in man pages..."
-    ./Shake mandates
-    echo "Generating all the manuals in all formats...."
-    ./Shake manuals $COMMIT
-    echo "Updating CHANGES.md files with latest commits..."
-    ./Shake changelogs $COMMIT
-
-# Push the current branch to github to generate release binaries.
-@relbin:
-    # assumes the github remote is named "github"
-    git push -f github HEAD:binaries
-
-# Show last release date (of hledger package).
-@reldate:
-    awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{print $3;exit}' hledger/CHANGES.md
-
-# Show last release date and version (of hledger package).
-@rel:
-    just rels | head -1
-
-# Show all release dates and versions (of hledger package).
-@rels:
-    awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
+# optimise and commit RELEASING value map diagram
+@releasediag:
+    pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
+    git add doc/HledgerReleaseValueMap.png
+    git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
 # Convert DATEARG to an ISO date. It can be an ISO date, number of recent days, or nothing (meaning last release date).
-@datearg *DATEARG:
+@_datearg *DATEARG:
     echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
 
 # Show activity since (mostly) this date or days ago or last release. Eg: just log > log.org
 log *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     printf "* Activity since $DATE:\n\n"
     printf "Last release: `just rel`\n\n"
     just chlog
@@ -954,7 +886,7 @@ GITLG := "git log --format='%ad %h %s' --date=short"
 # Show commits in the three repos since this date or days ago or last release, briefly.
 commitlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     printf "** hledger commits\n\n"
     {{ GITLG }} --since $DATE
     echo
@@ -1037,16 +969,79 @@ bloglog:
     echo "** pta.o:  https://plaintextaccounting.org/#`date +%Y`"
     echo
 
-# Some evil works against this..
-#     echo "open https://www.reddit.com/r/plaintextaccounting/new, copy links since $DAYS days ago ($DATE), paste into obsidian, select, cut, and paste here for cleaning (in emacs shell use C-c C-d, C-c C-r)"
-#     just redditclean > $$.tmp
-#     printf "\n\n\n\n\n"
-#     cat $$.tmp
-#     rm -f $$.tmp
-#
-# Clean links copied from old.reddit.com.
-@redditclean:
-    rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
+# # Some evil works against this..
+# #     echo "open https://www.reddit.com/r/plaintextaccounting/new, copy links since $DAYS days ago ($DATE), paste into obsidian, select, cut, and paste here for cleaning (in emacs shell use C-c C-d, C-c C-r)"
+# #     just redditclean > $$.tmp
+# #     printf "\n\n\n\n\n"
+# #     cat $$.tmp
+# #     rm -f $$.tmp
+# #
+# # Clean links copied from old.reddit.com.
+# @redditclean:
+#     rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
+
+# ** Releasing ------------------------------------------------------------
+RELEASING:
+
+# Symlink/copy important files temporarily in .relfiles/.
+relfiles:
+    #!/usr/bin/env bash
+    echo "linking/copying important release files in .relfiles/ for convenient access..."
+    mkdir -p .relfiles
+    cd .relfiles
+    for f in \
+        ../stack.yaml \
+        ../Shake.hs \
+        ../hledger-install/hledger-install.sh \
+        ../CHANGES.md \
+        ../hledger/CHANGES.md \
+        ../hledger-ui/CHANGES.md \
+        ../hledger-web/CHANGES.md \
+        ../hledger-lib/CHANGES.md \
+        ../doc/github-release.md \
+        ../doc/ANNOUNCE \
+        ../doc/ANNOUNCE.masto \
+        ../site/src/release-notes.md \
+        ../site/src/install.md \
+    ; do ln -sf $f .; done
+    cp ../doc/RELEASING.md ./RELEASING2.md   # temp copy which can be edited without disruption
+
+# Prepare to release today, creating/switching to release branch, updating versions, dates, manuals, changelogs etc.
+relprep VER:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    [[ -z {{ VER }} ]] && usage
+    BRANCH=$(just _versionReleaseBranch {{ VER }})
+    COMMIT="-c"
+    echo "Switching to $BRANCH, auto-creating it if needed..."
+    just _gitSwitchAutoCreate "$BRANCH"
+    echo "Bumping all version strings to {{ VER }} ..."
+    ./Shake setversion {{ VER }} $COMMIT
+    echo "Updating all command help texts for embedding..."
+    ./Shake cmdhelp $COMMIT
+    echo "Updating all dates in man pages..."
+    ./Shake mandates
+    echo "Generating all the manuals in all formats...."
+    ./Shake manuals $COMMIT
+    echo "Updating CHANGES.md files with latest commits..."
+    ./Shake changelogs $COMMIT
+
+# Push the current branch to github to generate release binaries.
+@relbin:
+    # assumes the github remote is named "github"
+    git push -f github HEAD:binaries
+
+# Show last release date (of hledger package).
+@reldate:
+    awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{print $3;exit}' hledger/CHANGES.md
+
+# Show last release date and version (of hledger package).
+@rel:
+    just rels | head -1
+
+# Show all release dates and versions (of hledger package).
+@rels:
+    awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
 
 # *** hledger version number helpers
 # (as hidden recipes, since just doesn't support global custom functions)
@@ -1288,9 +1283,9 @@ sccv:
 # ** Misc ------------------------------------------------------------
 MISC:
 
-# push to github CI, wait for tests to pass, then push to master
-@push:
-    tools/push
+# push to github CI, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to master.
+@push *INTERVAL:
+    tools/push {{ INTERVAL }}
 
 # run some tests to validate the development environment
 # check-setup:
@@ -1299,13 +1294,6 @@ MISC:
 #     @echo sanity-checking developer environment:
 #     @({{ SHELLTEST }} checks \
 #         && echo $@ PASSED) || echo $@ FAILED
-
-# sym-link some directories required by hledger-web dev builds
-mkwebdirs:
-    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
-    ln -sf hledger-web/messages
-    ln -sf hledger-web/static
-    ln -sf hledger-web/templates
 
 # Show activity over the last N days (eg 7), for This Week In Hledger.
 @_lastweek DAYS:

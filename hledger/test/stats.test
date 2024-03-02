@@ -7,6 +7,6 @@ $ hledger -f- stats
 <
 include a.j
 include b.j
-$  touch a.j b.j; hledger -f- stats; rm -f a.j b.j
+$  touch a.j b.j; hledger -f- stats -v; rm -f a.j b.j
 > /Included files.*\/a\.j
 .*\/b\.j/

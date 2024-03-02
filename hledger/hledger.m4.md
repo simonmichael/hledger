@@ -67,12 +67,14 @@ are some good choices (see <https://hledger.org/editors.html>).
 
 To get started, run `hledger add` and follow the prompts,
 or save some entries like the above in `$HOME/.hledger.journal`,
-then try commands like:\
-`hledger print -x`\
-`hledger aregister assets`\
-`hledger balance`\
-`hledger balancesheet`\
-`hledger incomestatement`.\
+then try commands like:
+```cli
+$ hledger print -x
+$ hledger aregister assets
+$ hledger balance
+$ hledger balancesheet
+$ hledger incomestatement
+```
 Run `hledger` to list the commands.
 See also the "Starting a journal file" and "Setting opening balances" sections
 in [PART 5: COMMON TASKS](#part-5-common-tasks).
@@ -589,7 +591,7 @@ Some notes about the various output formats:
 
 ### CSV output
 
-- In CSV output, [digit group marks](#decimal-marks-digit-group-marks) (such as thousands separators)
+- In CSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
   are disabled automatically.
 
 ### HTML output
@@ -664,9 +666,8 @@ This option can repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
 the [commodity directive](#commodity-directive).
 
-hledger will occasionally make some additional adjustments to number formatting,
-eg adding a trailing decimal mark to disambiguate numbers with digit group marks;
-for details, see [Amount formatting, parseability](#amount-formatting-parseability).
+In some cases hledger will adjust number formatting to improve their parseability
+(such as adding [trailing decimal marks](#trailing-decimal-marks) when needed).
 
 ## Colour
 
@@ -740,9 +741,73 @@ unless overridden by an explicit `--color/--colour` option.
 
 # Journal
 
-hledger's default file format, representing a General Journal.
-Here's a cheatsheet/mini-tutorial,
-or you can skip ahead to [About journal format](#about-journal-format).
+hledger's usual data source is a plain text file containing journal entries in hledger `journal` format.
+If you're looking for a quick reference, jump ahead to the
+[journal cheatsheet](#journal-cheatsheet) (or use the table of contents at <https://hledger.org/hledger.html>).
+
+This file represents an accounting [General Journal](http://en.wikipedia.org/wiki/General_journal).
+The `.journal` file extension is most often used, though not strictly required.
+The journal file contains a number of transaction entries,
+each describing a transfer of money (or any commodity) between two or more named accounts,
+in a simple format readable by both hledger and humans.
+
+hledger's journal format is compatible with most of 
+[Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
+The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
+With some care, and by avoiding incompatible features, you can keep your hledger journal
+readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
+against the other.
+
+You can use hledger without learning any more about this file; just
+use the [add](#add) or [web](#web) or [import](#import) commands to
+create and update it.
+
+Many users, though, edit the journal file with a text editor,
+and track changes with a version control system such as git.
+Editor addons such as
+ledger-mode or hledger-mode for Emacs,
+vim-ledger for Vim,
+and hledger-vscode for Visual Studio Code,
+make this easier, adding colour, formatting, tab completion, and useful commands.
+See [Editor configuration](/editors.html) at hledger.org for the full list.
+
+<!--
+Here's an example:
+
+```journal
+; A sample journal file. This is a comment.
+
+2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
+    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
+    income:salary        $-1  ;    followed by at least two spaces and an amount
+
+2008/06/01 gift
+    assets:bank:checking  $1  ; <- at least two postings in a transaction
+    income:gifts         $-1  ; <- their amounts must balance to 0
+
+2008/06/02 save
+    assets:bank:saving    $1
+    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
+
+2008/06/03 eat & shop         ; <- description can be anything
+    expenses:food         $1
+    expenses:supplies     $1  ; <- this transaction debits two expense accounts
+    assets:cash               ; <- $-2 inferred
+
+2008/10/01 take a loan
+    assets:bank:checking  $1
+    liabilities:debts    $-1
+
+2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
+    liabilities:debts     $1
+    assets:bank:checking
+```
+-->
+
+A hledger journal file can contain three kinds of thing:
+comment lines, transactions, and/or directives (including periodic transaction rules and auto posting rules).
+Understanding the journal file format will also give you a good understanding of hledger's data model.
+Here's a quick cheatsheet/overview, followed by detailed descriptions of each part.
 
 ## Journal cheatsheet
 
@@ -837,74 +902,6 @@ P 2022-01-01 AAAA $1.40
 12/31      also allowed (but consistent YYYY-MM-DD is recommended).
 ```
 
-## About journal format
-
-hledger's usual data source is a plain text file containing journal entries in hledger journal format.
-This file represents a standard accounting [general journal](http://en.wikipedia.org/wiki/General_journal).
-I use file names ending in `.journal`, but that's not required.
-The journal file contains a number of transaction entries,
-each describing a transfer of money (or any commodity) between two or more named accounts,
-in a simple format readable by both hledger and humans.
-
-hledger's journal format is compatible with most of 
-[Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
-The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
-With some care, and by avoiding incompatible features, you can keep your hledger journal
-readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
-against the other.
-
-You can use hledger without learning any more about this file; just
-use the [add](#add) or [web](#web) or [import](#import) commands to
-create and update it.
-
-Many users, though, edit the journal file with a text editor,
-and track changes with a version control system such as git.
-Editor addons such as
-ledger-mode or hledger-mode for Emacs,
-vim-ledger for Vim,
-and hledger-vscode for Visual Studio Code,
-make this easier, adding colour, formatting, tab completion, and useful commands.
-See [Editor configuration](/editors.html) at hledger.org for the full list.
-
-<!--
-Here's an example:
-
-```journal
-; A sample journal file. This is a comment.
-
-2008/01/01 income             ; <- transaction's first line starts in column 0, contains date and description
-    assets:bank:checking  $1  ; <- posting lines start with whitespace, each contains an account name
-    income:salary        $-1  ;    followed by at least two spaces and an amount
-
-2008/06/01 gift
-    assets:bank:checking  $1  ; <- at least two postings in a transaction
-    income:gifts         $-1  ; <- their amounts must balance to 0
-
-2008/06/02 save
-    assets:bank:saving    $1
-    assets:bank:checking      ; <- one amount may be omitted; here $-1 is inferred
-
-2008/06/03 eat & shop         ; <- description can be anything
-    expenses:food         $1
-    expenses:supplies     $1  ; <- this transaction debits two expense accounts
-    assets:cash               ; <- $-2 inferred
-
-2008/10/01 take a loan
-    assets:bank:checking  $1
-    liabilities:debts    $-1
-
-2008/12/31 * pay off          ; <- an optional * or ! after the date means "cleared" (or anything you want)
-    liabilities:debts     $1
-    assets:bank:checking
-```
--->
-
-Here's a description of each part of the file format (and hledger's data model).
-
-A hledger journal file can contain three kinds of thing:
-file comments, transactions, and/or directives
-(counting periodic transaction rules and auto posting rules as directives).
-
 ## Comments
 
 Lines in the journal will be ignored if they begin with a hash (`#`) or a semicolon (`;`). (See also [Other syntax](#other-syntax).)
@@ -932,8 +929,7 @@ See Transaction comments, Posting comments, and Account comments below.
 ## Transactions
 
 Transactions are the main unit of information in a journal file.
-They represent events, typically a movement of some quantity of
-commodities between two or more named accounts.
+They represent events, typically a movement of some quantity of commodities between two or more named accounts.
 
 Each transaction is recorded as a journal entry, beginning with a
 [simple date](#simple-dates) in column 0. This can be followed by any
@@ -1001,9 +997,9 @@ eg a `date:` tag with no value is not allowed.
 
 ## Status
 
-Transactions, or individual postings within a transaction,
+Transactions (or individual postings within a transaction)
 can have a status mark, which is a single character before
-the transaction description or posting account name,
+the transaction description (or posting account name),
 separated from it by a space, indicating one of three statuses:
 
 | mark   | status   |
@@ -1013,14 +1009,13 @@ separated from it by a space, indicating one of three statuses:
 | `*`    | cleared  |
 
 When reporting, you can filter by status with
-the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags;
-or the `status:`, `status:!`, and `status:*` [queries](#queries);
+the `-U/--unmarked`, `-P/--pending`, and `-C/--cleared` flags
+(and you can combine these, eg `-UP` to match all except cleared things).
+Or you can use the `status:`, `status:!`, and `status:*` [queries](#queries),
 or the U, P, C keys in hledger-ui.
 
-Note, in Ledger and in older versions of hledger, the "unmarked" state is called
-"uncleared". As of hledger 1.3 we have renamed it to unmarked for clarity.
-
-To replicate Ledger and old hledger's behaviour of also matching pending, combine -U and -P.
+(Note: in Ledger the "unmarked" state is called "uncleared";
+in hledger we renamed it to "unmarked" for semantic clarity.)
 
 Status marks are optional, but can be helpful eg for reconciling with real-world accounts.
 Some editor modes provide highlighting and shortcuts for working with status.
@@ -1101,16 +1096,31 @@ Each posting line begins with at least one space or tab (2 or 4 spaces is common
 
 - (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
 - (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
-- (optional) **two or more spaces** or tabs followed by an [amount](#amounts).
+- (optional) **two or more spaces** (or tabs) followed by an [amount](#amounts).
 
-Positive amounts are being added to the account, negative amounts are being removed.
+If the amount is positive, it is being added to the account;
+if negative, it is being removed from the account.
 
-The amounts within a transaction must always sum up to zero.
-As a convenience, one amount may be left blank; it will be inferred so as to balance the transaction.
+The posting amounts in a transaction must sum up to zero, indicating that the inflows and outflows are equal. We call this a balanced transaction.
+(You can read more about the nitty-gritty details of "sum up to zero" in [Transaction balancing](#transaction-balancing) below.)
 
-Be sure to note the unusual two-space delimiter between account name and amount.
-This makes it easy to write account names containing spaces.
-But if you accidentally leave only one space (or tab) before the amount, the amount will be considered part of the account name.
+As a convenience, you can optionally leave one amount blank; hledger will infer what it should be so as to balance the transaction.
+
+### Debits and credits
+
+The traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign, as described above.
+Positive and negative posting amounts represent debits and credits respectively.
+
+You don't need to remember that, but if you would like to - eg for helping newcomers or for talking with your accountant - here's a handy mnemonic:
+
+*`debit  / plus  / left  / short  words`*\
+*`credit / minus / right / longer words`*
+
+### The two space delimiter
+
+Be sure to notice the unusual separator between the account name and the following amount.
+Because hledger allows account names with spaces in them, you must separate the account name and amount (if any) by **two or more spaces** (or tabs).
+It's easy to forget at first. If you ever see the amount being treated as part of the account name, you'll know you probably need to add another space between them.
 
 ## Account names
 
@@ -1159,7 +1169,7 @@ Account names can be altered temporarily or permanently by [account aliases](#al
 ## Amounts
 
 After the account name, there is usually an amount.
-(Important: between account name and amount, there must be **two or more spaces**.)
+(Remember: between account name and amount, there must be two or more spaces.)
 
 hledger's amount format is flexible, supporting several international formats.
 Here are some examples.
@@ -1192,17 +1202,42 @@ Scientific E notation is allowed:
     1E-6
     EUR 1E3
 
-### Decimal marks, digit group marks
+<a name="decimal-marks-digit-group-marks"></a>
+
+### Decimal marks
 
 A *decimal mark* can be written as a period or a comma:
 
     1.23
     1,23
 
-In the integer part of the quantity (left of the decimal mark), groups
-of digits can optionally be separated by a *digit group mark* -
+Both of these are common in [international number formats][international number formats],
+so hledger is not biased towards one or the other.
+Because hledger also supports digit group marks (eg thousands separators),
+this means that a number like `1,000` or `1.000` containing just one period or comma is ambiguous.
+In such cases, hledger by default assumes it is a decimal mark, and will parse both of those as 1.
+
+[international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
+
+To help hledger parse such ambiguous numbers more accurately,
+if you use digit group marks, we recommend declaring the decimal mark explicitly.
+The best way is to add a [`decimal-mark`](#decimal-mark-directive) directive at the top of each data file, like this:
+```journal
+decimal-mark .
+```
+Or you can declare it per commodity with [`commodity`](#commodity-directive) directives, described below.
+
+hledger also accepts numbers like `10.` with no digits after the decimal mark
+(and will sometimes display numbers that way to disambiguate them - see
+[Trailing decimal marks](#trailing-decimal-marks)).
+
+### Digit group marks
+
+In the integer part of the amount quantity (left of the decimal mark),
+groups of digits can optionally be separated by a *digit group mark* -
 a comma or period (whichever is not used as decimal mark), 
-or a space (any of these Unicode space characters:
+or a space (several Unicode space variants, like no-break space, are also accepted).
+<!--
 space,
 no-break space,
 en space,
@@ -1211,24 +1246,14 @@ punctuation space,
 thin space,
 narrow no-break space,
 medium mathematical space).
+-->
+So these are all valid amounts in a journal file:
 
          $1,000,000.00
       EUR 2.000.000,00
     INR 9,99,99,999.00
-          1 000 000.00   <- ordinary space  
-          1 000 000.00   <- no-break space
-
-hledger is not biased towards [period or comma decimal marks][international number formats],
-so a number containing just one period or comma, like `1,000` or `1.000`, is ambiguous.
-In such cases hledger assumes it is a decimal mark, parsing both of these as 1.
-
-[international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
-
-To disambiguate these and ensure accurate number parsing, especially
-if you use digit group marks, we recommend declaring the decimal mark.
-You can declare it for each file with [`decimal-mark`](#decimal-mark-directive) directives,
-or for each commodity with [`commodity`](#commodity-directive) directives
-(described below).
+          1 000 000.00   ; <- ordinary space  
+          1 000 000.00   ; <- no-break space
 
 ### Commodity
 
@@ -1249,79 +1274,14 @@ the time. A multi-commodity amount could be, eg: `1 USD, 2 EUR, 3.456 TSLA`.
 In practice, you will only see multi-commodity amounts in hledger's
 output; you can't write them directly in the journal file. 
 <!-- (Though an omitted balancing amount can be multi-commodity.) -->
+<!-- (If you are writing scripts or working with hledger's internals, this is the `MixedAmount` type.) -->
 
-(If you are writing scripts or working with hledger's internals, these
-are the `Amount` and `MixedAmount` types.)
-
-### Directives influencing number parsing and display
-
-You can add `decimal-mark` and `commodity` directives to the journal,
-to declare and control these things more explicitly and precisely.
-These are described below, but here's a quick example:
-
-```journal
-# the decimal mark character used by all amounts in this file (all commodities)
-decimal-mark .
-
-# display styles for the $, EUR, INR and no-symbol commodities:
-commodity $1,000.00
-commodity EUR 1.000,00
-commodity INR 9,99,99,999.00
-commodity 1 000 000.9455
-```
-
-<a name="amount-display-style"></a>
-
-### Commodity display style
-
-For the amounts in each commodity, hledger chooses a consistent display style 
-(symbol placement, decimal mark and digit group marks, number of decimal digits)
-to use in most reports. This is inferred as follows:
-
-First, if there's a [`D` directive](#d-directive) declaring a default commodity,
-that commodity symbol and amount format is applied to all no-symbol amounts in the journal.
-
-Then each commodity's display style is determined from its
-[`commodity` directive](#commodity-directive). We recommend always
-declaring commodities with `commodity` directives, since they help
-ensure consistent display styles and precisions, and bring other
-benefits such as error checking for commodity symbols.
-
-But if a `commodity` directive is not present, hledger infers a
-commodity's display styles from its amounts as they are written in the
-journal (excluding cost amounts and amounts in periodic transaction
-rules or auto posting rules). It uses
-
-- the symbol placement and decimal mark of the first amount seen
-- the digit group marks of the first amount with digit group marks
-- and the maximum number of decimal digits seen across all amounts.
-
-And as fallback if no applicable amounts are found, it would use a
-default style, like `$1000.00` (symbol on the left with no space,
-period as decimal mark, and two decimal digits).
-
-Finally, commodity styles can be [overridden](#commodity-styles) by
-the `-c/--commodity-style` command line option.
-
-### Rounding
-
-Amounts are stored internally as decimal numbers with up to 255 decimal places.
-They are displayed 
-with their original journal precisions by print and print-like reports,
-and rounded to their display precision (the number of decimal digits specified by the commodity display style)
-by other reports.
-When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
-(it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
-
-### Number format
-
-hledger will occasionally make some additional adjustments to number formatting,
-eg adding a trailing decimal mark to disambiguate numbers with digit group marks;
-for details, see [Amount formatting, parseability](#amount-formatting-parseability).
+By default, the format of amounts in the journal influences how hledger displays them in output.
+This is explained in [Commodity display style](#commodity-display-style) below.
 
 <a name="transaction-prices"></a>
 
-## Costs
+### Costs
 
 After a posting amount, you can note its cost (when buying) or selling price (when selling) in another commodity,
 by writing either `@ UNITPRICE` or `@@ TOTALPRICE` after it.
@@ -1373,67 +1333,6 @@ this is discussed more in the [Cost reporting](#cost-reporting) section.
 Note that the cost normally should be a positive amount, though it's not required to be.
 This can be a little confusing, see discussion at 
 [--infer-market-prices: market prices from transactions](#--infer-market-prices-market-prices-from-transactions).
-
-### Other cost/lot notations
-
-A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
-
-- `@ UNITCOST` and `@@ TOTALCOST`
-  - expresses a conversion rate, as in hledger
-  - when buying, also creates a lot than can be selected at selling time
-
-- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
-  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
-
-Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
-
-- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
-  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
-
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
-  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
-  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
-
-- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
-  - when buying, attaches this acquisition date to the lot
-  - when selling, selects a lot by its acquisition date
-
-- `(SOME TEXT)` ([lot note][ledger: lot notes])
-  - when buying, attaches this note to the lot
-  - when selling, selects a lot by its note
-
-Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
-(This can break transaction balancing.)
-
-[ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
-[ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
-[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
-[ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
-[ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
-
-For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
-
-- `@ UNITCOST` and `@@ TOTALCOST`
-  - expresses a cost without creating a lot, as in hledger
-  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
-
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
-  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
-  - when selling (reducing),
-    - selects a lot by its cost basis
-    - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
-    - expresses the selling price for transaction balancing
-
-Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
-
-- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
-
-Currently, hledger rejects these.
-
-
-[beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
-[beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
-
 
 ## Balance assertions
 
@@ -1618,6 +1517,37 @@ except they may contain [tags](#tags), which are not ignored.
     ; a second comment line for posting 2
 ```
 
+## Transaction balancing
+
+How exactly does hledger decide when a transaction is balanced ?
+The general goal is that if you look at the journal entry and calculate the amounts'
+sum perfectly with pencil and paper, hledger should agree with you.
+
+Real world transactions, especially for investments or cryptocurrencies,
+often involve imprecise costs, complex decimals, and/or infinitely-recurring decimals,
+which are difficult or inconvenient to handle on a computer.
+So to be a practical accounting system, hledger allows some imprecision when checking transaction balancedness.
+The question is, how much imprecision should be allowed ?
+
+hledger currently decides it based on the [commodity display styles](#commodity-display-style):
+if the postings' sum would appear to be zero when displayed with the standard display precisions, the transaction is considered balanced.
+
+Or equivalently: if the journal entry is displayed with amounts rounded to the 
+standard display precisions (with `hledger print --round=hard`), and a human with
+pencil and paper would agree that those displayed amounts add up to zero,
+the transaction is considered balanced.
+
+This has some advantages: it is fairly intuitive, general not hard-coded, yet configurable when needed.
+On the downside it means that transaction balancedness is related to commodity display precisions,
+so eg when using `-c/--commodity-style` to display things with more than usual precision,
+you might need to fix some of your journal entries (ie, add decimal digits to make them balance more precisely).
+
+Other PTA tools (Ledger, Beancount..) have their own ways of doing it.
+Possible improvements are discussed at [#1964](https://github.com/simonmichael/hledger/issues/1964).
+
+Note: if you have multiple journal files, and are relying on commodity directives to make imprecise journal entries balance,
+the directives' placement might be important - see [`commodity` directive](#commodity-directive).
+
 ## Tags
 
 <!-- same section name as Commands > tags, if reordering these update all #tags[-1] links -->
@@ -1758,11 +1688,11 @@ Here are all hledger's directives, with their effects and scope summarised - nin
 | **[`account`]**               | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#declaring-account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                                                                                                                                              | N                   |
 | **[`alias`]**                 | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                                                                                                                                                                | Y                   |
 | **[`comment`]**               | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
-| **[`commodity`]**             | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the decimal mark for parsing amounts of this commodity, in the following entries until end of current file (if there is no `decimal-mark` directive) <br>3. and the display style for amounts of this commodity <br>4. which is also the precision to use for balanced-transaction checking in this commodity.<br> Takes precedence over `D`. <br>Subdirectives: `format` (Ledger-compatible syntax). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>Y,<br>N,<br>N |
+| **[`commodity`]**             | Declares up to four things: <br>1. a commodity symbol, for checking all amounts in all files <br>2. the display style for all amounts of this commodity <br>3. the decimal mark for parsing amounts of this commodity, in the rest of this file and its children, if there is no `decimal-mark` directive <br>4. the precision to use for balanced-transaction checking in this commodity, in this file and its children. <br> Takes precedence over `D`. <br>Subdirectives: `format` (ignored). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles)          | N,<br>N,<br>Y,<br>Y |
 | **[`decimal-mark`]**          | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Included files can override. Takes precedence over `commodity` and `D`.                                                                                                                                                                                                                                                                                                                                                                   | Y                   |
 | **[`include`]**               | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                                                                                                                                                           | N                   |
 | **[`payee`]**                 | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
-| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#value-reporting).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | N                   |
+| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#value-reporting).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | N                   |
 | **[`~`]** (tilde)             | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                                                                                                                                                                | N                   |
 | Other syntax:                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |                     |
 | **[`apply account`]**         | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                                                                                                                                                      | Y                   |
@@ -1956,7 +1886,7 @@ Here are some tips for working with account types.
   5. Otherwise, it will have no type.
 
 - For troubleshooting, you can list accounts and their types with:
-  ```
+  ```cli
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
 
@@ -2168,23 +2098,28 @@ The `commodity` directive performs several functions:
 
 1. It declares which commodity symbols may be used in the journal,
    enabling useful error checking with [strict mode] or the check command.
-   (See [Commodity error checking](#commodity-error-checking) below.)
+   See [Commodity error checking](#commodity-error-checking) below.
 
-2. It declares the precision with which this commodity's amounts
-   should be compared when checking for balanced transactions.
+2. It declares how all amounts in this commodity should be displayed, eg how many decimals to show.
+   See [Commodity display style](#commodity-display-style) above.
 
-3. It declares how this commodity's amounts should be displayed,
-   eg their symbol placement, digit group mark if any, digit group sizes,
-   decimal mark (period or comma), and the number of decimal places.
-   (See [Commodity display style](#commodity-display-style) above.)
+3. (If no `decimal-mark` directive is in effect:)
+   It sets the decimal mark to expect (period or comma) when parsing amounts in this commodity,
+   in this file and files it includes, from the directive until end of current file.
+   See [Decimal marks](#decimal-marks) above.
 
-4. It sets which decimal mark (period or comma) to expect when parsing subsequent amounts in this commodity
-   (if there is no `decimal-mark` directive in effect.
-   See [Decimal marks, digit group marks](hledger.md#decimal-marks-digit-group-marks) above.
-   For related dev discussion, see [#793](https://github.com/simonmichael/hledger/issues/793).)
+4. It declares the precision with which this commodity's amounts should be compared when checking for balanced transactions,
+   anywhere in this file and files it includes, until end of current file.
 
 Declaring commodities solves several common parsing/display problems, so we recommend it.
-Generally you should put `commodity` directives at the top of your journal file (because function 4 is position-sensitive).
+
+Note that effects 3 and 4 above end at the end of the directive's file,
+and will not affect sibling or parent files.
+So if you are relying on them (especially 4) and using multiple files,
+placing your commodity directives in a top-level parent file might be important.
+Or, keep your decimal marks unambiguous and your entries well balanced and precise.
+
+(Related: [#793](https://github.com/simonmichael/hledger/issues/793))
 
 ### Commodity directive syntax
 
@@ -2258,7 +2193,7 @@ or
 decimal-mark ,
 ```
 
-This prevents any [ambiguity](#decimal-marks-digit-group-marks) when
+This prevents any [ambiguity](#decimal-mark) when
 parsing numbers in the file, so we recommend it, especially if the
 file contains digit group marks (eg thousands separators).
 
@@ -2847,6 +2782,67 @@ value       EXPR
 
 See also <https://hledger.org/ledger.html> for a detailed hledger/Ledger syntax comparison.
 
+### Other cost/lot notations
+
+A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a conversion rate, as in hledger
+  - when buying, also creates a lot than can be selected at selling time
+
+- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
+  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
+
+Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
+
+- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
+  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
+  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
+  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
+
+- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
+  - when buying, attaches this acquisition date to the lot
+  - when selling, selects a lot by its acquisition date
+
+- `(SOME TEXT)` ([lot note][ledger: lot notes])
+  - when buying, attaches this note to the lot
+  - when selling, selects a lot by its note
+
+Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
+(This can break transaction balancing.)
+
+[ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
+[ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
+[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
+[ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
+[ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
+
+For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
+
+- `@ UNITCOST` and `@@ TOTALCOST`
+  - expresses a cost without creating a lot, as in hledger
+  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
+
+- `{UNITCOST}` and `{{{{TOTALCOST}}}}`
+  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
+  - when selling (reducing),
+    - selects a lot by its cost basis
+    - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
+    - expresses the selling price for transaction balancing
+
+Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
+
+- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
+
+Currently, hledger rejects these.
+
+
+[beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
+[beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
+
+
 <a name="csv-format"></a>
 
 # CSV
@@ -3183,14 +3179,14 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    you can optionally name the CSV columns for easy reference
    (since hledger doesn't yet automatically recognise column headings in a CSV file),
    by writing arbitrary names in a `fields` list, eg:
-   ```csv
+   ```rules
    fields When, What, Some_Id, Net, Total, Foo, Bar
    ```
 
 2. Special **hledger field names** (`HLEDGERFIELD` in these docs):
    you must set at least some of these to generate the hledger transaction from a CSV record,
    by writing them as the left hand side of a [field assignment](#field-assignment), eg:
-   ```csv
+   ```rules
    date        %When
    code        %Some_Id
    description %What
@@ -3198,7 +3194,7 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    amount1     $ %Total
    ```
    or directly in a [`fields` list](#fields-list):
-   ```csv
+   ```rules
    fields date, description, code, , amount1, Foo, Bar
    currency $
    comment  %Foo %Bar
@@ -4213,7 +4209,7 @@ some number of hours to an account. Or if the session spans more than
 one day, it is split into several transactions, one for each day. For
 the above time log, `hledger print` generates these journal entries:
 
-``` shell
+```cli
 $ hledger -f t.timeclock print
 2015-03-30 * optional description after 2 spaces   ; optional comment, tags:
     (some account)           0.33h
@@ -4243,7 +4239,7 @@ To generate time logs, ie to clock in and clock out, you could:
   and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
-    ```shell
+    ```cli
     alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
     alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
     ```
@@ -4393,7 +4389,7 @@ Letters:
 2023-11-01
 work:adm  ccecces
 ```
-```journal
+```cli
 $ hledger -f a.timedot print
 2023-11-01
     (work:adm)  1     ; t:c
@@ -4484,14 +4480,68 @@ per:admin    ....
 
 # PART 3: REPORTING CONCEPTS
 
+# Amount formatting
 
-# Amount formatting, parseability
+<a name="amount-display-style"></a>
+
+## Commodity display style
+
+For the amounts in each commodity, hledger chooses a consistent display style 
+(symbol placement, decimal mark and digit group marks, number of decimal digits)
+to use in most reports. This is inferred as follows:
+
+First, if there's a [`D` directive](#d-directive) declaring a default commodity,
+that commodity symbol and amount format is applied to all no-symbol amounts in the journal.
+
+Then each commodity's display style is determined from its
+[`commodity` directive](#commodity-directive). We recommend always
+declaring commodities with `commodity` directives, since they help
+ensure consistent display styles and precisions, and bring other
+benefits such as error checking for commodity symbols.
+Here's an example:
+
+```journal
+# Set display styles (and decimal marks, for parsing, if there is no decimal-mark directive)
+# for the $, EUR, INR and no-symbol commodities:
+commodity $1,000.00
+commodity EUR 1.000,00
+commodity INR 9,99,99,999.00
+commodity 1 000 000.9455
+```
+
+But for convenience, if a `commodity` directive is not present,
+hledger infers a commodity's display styles from its amounts as they are written in the journal
+(excluding cost amounts and amounts in periodic transaction rules or auto posting rules).
+It uses
+
+- the symbol placement and decimal mark of the first amount seen
+- the digit group marks of the first amount with digit group marks
+- and the maximum number of decimal digits seen across all amounts.
+
+And as fallback if no applicable amounts are found, it would use a
+default style, like `$1000.00` (symbol on the left with no space,
+period as decimal mark, and two decimal digits).
+
+Finally, commodity styles can be [overridden](#commodity-styles) by
+the `-c/--commodity-style` command line option.
+
+## Rounding
+
+Amounts are stored internally as decimal numbers with up to 255 decimal places.
+They are displayed 
+with their original journal precisions by print and print-like reports,
+and rounded to their display precision (the number of decimal digits specified by the commodity display style)
+by other reports.
+When rounding, hledger uses [banker's rounding](https://en.wikipedia.org/wiki/Bankers_rounding)
+(it rounds to the nearest even digit). So eg 0.5 displayed with zero decimal digits appears as "0".
+
+## Trailing decimal marks
 
 If you're wondering why your [`print`](#print) report sometimes shows
 trailing decimal marks, with no decimal digits; it does this when
 showing amounts that have digit group marks but no decimal digits,
 to disambiguate them and allow them to be re-parsed reliably
-(see also [Decimal marks, digit group marks](#decimal-marks-digit-group-marks).
+(see [Decimal marks](#decimal-marks)).
 Eg:
 
 ```journal
@@ -4528,7 +4578,9 @@ $ hledger print -c '$1,000.00' --round=soft
 
 ```
 
-More generally: hledger output falls into three rough categories, which
+## Amount parseability
+
+More generally, hledger output falls into three rough categories, which
 format amounts a little bit differently to suit different consumers:
 
 **1. "hledger-readable output" - should be readable by hledger (and by humans)**
@@ -5008,25 +5060,16 @@ Some queries can also be expressed as command-line options:
 When you mix command options and query arguments, 
 generally the resulting query is their intersection.
 
+## Queries and account aliases
+
+When account names are [rewritten](#alias-directive) with `--alias` or `alias`,
+`acct:` will match either the old or the new account name.
+
 ## Queries and valuation
 
 When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
-`cur:` and `amt:` match the old commodity symbol and the old amount quantity, 
-not the new ones
-(except in hledger 1.22.0 where it's reversed, see [#1625](https://github.com/simonmichael/hledger/issues/1625)).
-
-## Querying with account aliases
-
-When account names are [rewritten](#alias-directive) with `--alias` or `alias`,
-note that `acct:` will match either the old or the new account name.
-
-## Querying with cost or value
-
-When amounts are converted to other commodities in [cost](#cost-reporting) or [value](#value-reporting) reports,
-note that `cur:` matches the new commodity symbol, and not the old one,
-and `amt:` matches the new quantity, and not the old one.
-Note: this changed in hledger 1.22, previously it was the reverse, 
-see the discussion at [#1625](https://github.com/simonmichael/hledger/issues/1625).
+`cur:` and `amt:` match the old commodity symbol and the old amount quantity, not the new ones.
+(Except in hledger 1.22, [#1625](https://github.com/simonmichael/hledger/issues/1625).)
 
 # Pivoting
 
@@ -5140,7 +5183,7 @@ You can override it - eg to forecast farther into the future, or to force foreca
     assets:bank:checking
     expenses:rent           $1000
 ```
-```terminal
+```cli
 $ hledger print --forecast --today=2023/4/21
 2023-05-20 rent
     ; generated-transaction: ~ monthly from 2022-12-20
@@ -5175,7 +5218,7 @@ Here there are no ordinary transactions, so the forecasted transactions begin on
 
 Forecast transactions affect all reports, as you would expect. Eg:
 
-```terminal
+```cli
 $ hledger areg rent --forecast --today=2023/4/21
 Transactions in expenses:rent and subaccounts:
 2023-05-20 rent                 as:ba:checking               $1000         $1000
@@ -5185,7 +5228,7 @@ Transactions in expenses:rent and subaccounts:
 2023-09-20 rent                 as:ba:checking               $1000         $5000
 ```
 
-```terminal
+```cli
 $ hledger bal -M expenses --forecast --today=2023/4/21
 Balance changes in 2023-05-01..2023-09-30:
 
@@ -5653,38 +5696,6 @@ This means:
 
 Amounts for which no valuation commodity can be found are not converted.
 
-## Simple valuation examples
-
-Here are some quick examples of `-V`:
-
-```journal
-; one euro is worth this many dollars from nov 1
-P 2016/11/01 € $1.10
-
-; purchase some euros on nov 3
-2016/11/3
-    assets:euros        €100
-    assets:checking
-
-; the euro is worth fewer dollars by dec 21
-P 2016/12/21 € $1.03
-```
-How many euros do I have ?
-```cli
-$ hledger -f t.j bal -N euros
-                €100  assets:euros
-```
-What are they worth at end of nov 3 ?
-```cli
-$ hledger -f t.j bal -N euros -V -e 2016/11/4
-             $110.00  assets:euros
-```
-What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
-```cli
-$ hledger -f t.j bal -N euros -V
-             $103.00  assets:euros
-```
-
 ## --value: Flexible valuation
 
 `-V` and `-X` are special cases of the more general `--value` option:
@@ -5721,7 +5732,38 @@ a comma, then the target commodity's symbol. Eg: **`--value=now,EUR`**.
 hledger will do its best to convert amounts to this commodity, deducing
 [market prices](#p-directive) as described above.
 
-## More valuation examples
+## Valuation examples
+
+Here are some quick examples of `-V`:
+
+```journal
+; one euro is worth this many dollars from nov 1
+P 2016/11/01 € $1.10
+
+; purchase some euros on nov 3
+2016/11/3
+    assets:euros        €100
+    assets:checking
+
+; the euro is worth fewer dollars by dec 21
+P 2016/12/21 € $1.03
+```
+How many euros do I have ?
+```cli
+$ hledger -f t.j bal -N euros
+                €100  assets:euros
+```
+What are they worth at end of nov 3 ?
+```cli
+$ hledger -f t.j bal -N euros -V -e 2016/11/4
+             $110.00  assets:euros
+```
+What are they worth after 2016/12/21 ? (no report end date specified, defaults to today)
+```cli
+$ hledger -f t.j bal -N euros -V
+             $103.00  assets:euros
+```
+
 
 Here are some examples showing the effect of `--value`, as seen with `print`:
 
@@ -5810,8 +5852,7 @@ $ hledger -f- print --value=2000-01-15
 
 ## Interaction of valuation and queries
 
-When matching postings based on queries in the presence of valuation, the
-following happens.
+When matching postings based on queries in the presence of valuation, the following happens:
 
 1. The query is separated into two parts:
     1. the currency (`cur:`) or amount (`amt:`).
@@ -5820,19 +5861,43 @@ following happens.
 3. Valuation is applied to the postings.
 4. The postings are matched to the other parts of the query based on post-valued amounts.
 
-See:
-[1625](https://github.com/simonmichael/hledger/issues/1625)
+Related:
+[#1625](https://github.com/simonmichael/hledger/issues/1625)
 
 
 ## Effect of valuation on reports
 
-Here is a reference for how valuation is supposed to affect each part of hledger's reports (and a glossary).
-(It's wide, you'll have to scroll sideways.)
+Here is a reference for how valuation is supposed to affect each part of hledger's reports.
+(It's wide, you may need to scroll sideways.)
 It may be useful when troubleshooting.
 If you find problems, please report them, ideally with a reproducible example.
 Related:
 [#329](https://github.com/simonmichael/hledger/issues/329),
 [#1083](https://github.com/simonmichael/hledger/issues/1083).
+
+First, a quick glossary:
+
+*cost*
+: calculated using price(s) recorded in the transaction(s).
+
+*value*
+: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
+
+*report start*
+: the first day of the report period specified with -b or -p or date:, otherwise today.
+
+*report or journal start*
+: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
+
+*report end*
+: the last day of the report period specified with -e or -p or date:, otherwise today.
+
+*report or journal end*
+: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
+
+*report interval*
+: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
+
 
 | Report type                                         | `-B`, `--cost`                                                   | `-V`, `-X`                                                        | `--value=then`                                                                                 | `--value=end`                                                     | `--value=DATE`, `--value=now`           |
 |-----------------------------------------------------|------------------------------------------------------------------|-------------------------------------------------------------------|------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|-----------------------------------------|
@@ -5863,30 +5928,6 @@ Related:
 | <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
 
 `--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
-
-**Glossary:**
-
-*cost*
-: calculated using price(s) recorded in the transaction(s).
-
-*value*
-: market value using available market price declarations, or the unchanged amount if no conversion rate can be found.
-
-*report start*
-: the first day of the report period specified with -b or -p or date:, otherwise today.
-
-*report or journal start*
-: the first day of the report period specified with -b or -p or date:, otherwise the earliest transaction date in the journal, otherwise today.
-
-*report end*
-: the last day of the report period specified with -e or -p or date:, otherwise today.
-
-*report or journal end*
-: the last day of the report period specified with -e or -p or date:, otherwise the latest transaction date in the journal, otherwise today.
-
-*report interval*
-: a flag (-D/-W/-M/-Q/-Y) or period expression that activates the report's multi-period mode (whether showing one or many subperiods).
-
 
 # PART 4: COMMANDS
 

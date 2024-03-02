@@ -129,6 +129,12 @@ Query options and arguments may be used to set an initial filter,
 which although not shown in the UI, will restrict the data shown,
 in addition to any search query entered in the UI.
 
+Note that hledger-web shows accounts with zero balances by default, like `hledger-ui` (and unlike `hledger`).
+Using the `-E/--empty` flag at startup will hide them.
+
+If you see accounts which appear to have a zero balance, but cannot be hidden with `-E`:
+these have a mixed-cost balance which looks like zero when costs are hidden.
+Currently hledger-web does not show costs at all.
 
 ## General help options
 
