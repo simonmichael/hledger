@@ -17,9 +17,9 @@ $forall (acct, adisplay, aindent, abal) <- items
         $if hasSubAccounts acct
           <a href="@?{(registerR, [("q", replaceInacct qparam $ accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs
              title="Show transactions affecting this account but not subaccounts">only
-    <td>
+    <td .amount>
       ^{mixedAmountAsHtml abal}
 <tr .total>
   <td>
-  <td>
+  <td .amount>
     ^{mixedAmountAsHtml total}
