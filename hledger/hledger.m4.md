@@ -4389,7 +4389,7 @@ Letters:
 2023-11-01
 work:adm  ccecces
 ```
-```journal
+```cli
 $ hledger -f a.timedot print
 2023-11-01
     (work:adm)  1     ; t:c
