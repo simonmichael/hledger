@@ -731,10 +731,9 @@ maybeNegate :: MatcherPrefix -> Bool -> Bool
 maybeNegate Not origbool = not origbool
 maybeNegate _ origbool = origbool
 
--- | Given the conversion rules, a CSV record and a hledger field name, collect
--- the value templates (and their parent Conditional Blocks where applicable)
--- assigned to this field, if any, by top-level field assignments and
--- conditional blocks matching this record.
+-- | Given the conversion rules, a CSV record and a hledger field name, find
+-- either the last applicable `ConditionalBlock`, or the final value template
+-- assigned to this field by a top-level field assignment, if any exist.
 --
 -- Note conditional blocks' patterns are matched against an approximation of the
 -- CSV record: all the field values, without enclosing quotes, comma-separated.
