@@ -1,5 +1,5 @@
 #!/usr/bin/env just
-# * Project scripts, using https://github.com/casey/just (last tested with 1.16.0)
+# * Project scripts, using https://github.com/casey/just (last tested with 1.24.0)
 # Usage: alias j=just, run j to list available scripts.
 #
 # After many years with make and plain shell and haskell for
@@ -758,12 +758,6 @@ DOCUMENTING:
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
 
-# optimise and commit RELEASING value map diagram
-@releasediag:
-    pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
-    git add doc/HledgerReleaseValueMap.png
-    git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
-
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
     --haddock-arguments="--no-warnings" \
@@ -844,6 +838,12 @@ haddock-open:
 #     @make -s Shake
 #     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
 #     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+
+# optimise and commit RELEASING value map diagram
+@releasediag:
+    pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
+    git add doc/HledgerReleaseValueMap.png
+    git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
 # Convert DATEARG to an ISO date. It can be an ISO date, number of recent days, or nothing (meaning last release date).
 @_datearg *DATEARG:
