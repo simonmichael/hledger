@@ -881,23 +881,23 @@ chlog *CHANGELOG:
         awk '/^#+ /{p=1};/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{exit};p' $CHANGELOG
     fi
 
-GITLG := "git log --format='%ad %h %s' --date=short"
+GITSHORTFMT := "--format='%ad %h %s' --date=short"
 
 # Show commits in the three repos since this date or days ago or last release, briefly.
 commitlog *DATEARG:
     #!/usr/bin/env osh
     DATE=`just _datearg $DATEARG`
     printf "** hledger commits\n\n"
-    {{ GITLG }} --since $DATE
+    git log {{ GITSHORTFMT }} --since $DATE
     echo
     printf "** hledger_site commits\n\n"
-    {{ GITLG }} --since $DATE -C site
+    git -C site log {{ GITSHORTFMT }} --since $DATE
     echo
     printf "** hledger_finance commits\n\n"
-    {{ GITLG }} --since $DATE -C finance
+    git -C finance log {{ GITSHORTFMT }} --since $DATE
     echo
     printf "** plaintextaccounting.org commits\n\n"
-    (cd ../plaintextaccounting.org; {{ GITLG }} --since $DATE)
+    git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $DATE
     echo
 
 # Show hledger-related time logged since this date or days ago or last release
