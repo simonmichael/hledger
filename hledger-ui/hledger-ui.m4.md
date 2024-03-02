@@ -341,9 +341,11 @@ This is very useful when reconciling. A good workflow is to have
 your bank's online register open in a browser window, for reference;
 the journal file open in an editor window;
 and hledger-ui in watch mode in a terminal window, eg:
+
 ```cli
 $ hledger-ui --watch --register checking -C
 ```
+
 As you mark things cleared in the editor,
 you can see the effect immediately without having to context switch.
 This leaves more mental bandwidth for your accounting.

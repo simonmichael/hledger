@@ -67,12 +67,14 @@ are some good choices (see <https://hledger.org/editors.html>).
 
 To get started, run `hledger add` and follow the prompts,
 or save some entries like the above in `$HOME/.hledger.journal`,
-then try commands like:\
-`hledger print -x`\
-`hledger aregister assets`\
-`hledger balance`\
-`hledger balancesheet`\
-`hledger incomestatement`.\
+then try commands like:
+```cli
+$ hledger print -x
+$ hledger aregister assets
+$ hledger balance
+$ hledger balancesheet
+$ hledger incomestatement
+```
 Run `hledger` to list the commands.
 See also the "Starting a journal file" and "Setting opening balances" sections
 in [PART 5: COMMON TASKS](#part-5-common-tasks).
@@ -1884,7 +1886,7 @@ Here are some tips for working with account types.
   5. Otherwise, it will have no type.
 
 - For troubleshooting, you can list accounts and their types with:
-  ```
+  ```cli
   $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
   ```
 
@@ -3177,14 +3179,14 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    you can optionally name the CSV columns for easy reference
    (since hledger doesn't yet automatically recognise column headings in a CSV file),
    by writing arbitrary names in a `fields` list, eg:
-   ```csv
+   ```rules
    fields When, What, Some_Id, Net, Total, Foo, Bar
    ```
 
 2. Special **hledger field names** (`HLEDGERFIELD` in these docs):
    you must set at least some of these to generate the hledger transaction from a CSV record,
    by writing them as the left hand side of a [field assignment](#field-assignment), eg:
-   ```csv
+   ```rules
    date        %When
    code        %Some_Id
    description %What
@@ -3192,7 +3194,7 @@ Note the two kinds of field names mentioned here, and used only in hledger CSV r
    amount1     $ %Total
    ```
    or directly in a [`fields` list](#fields-list):
-   ```csv
+   ```rules
    fields date, description, code, , amount1, Foo, Bar
    currency $
    comment  %Foo %Bar
@@ -4207,7 +4209,7 @@ some number of hours to an account. Or if the session spans more than
 one day, it is split into several transactions, one for each day. For
 the above time log, `hledger print` generates these journal entries:
 
-``` shell
+```cli
 $ hledger -f t.timeclock print
 2015-03-30 * optional description after 2 spaces   ; optional comment, tags:
     (some account)           0.33h
@@ -5216,7 +5218,7 @@ Here there are no ordinary transactions, so the forecasted transactions begin on
 
 Forecast transactions affect all reports, as you would expect. Eg:
 
-```terminal
+```cli
 $ hledger areg rent --forecast --today=2023/4/21
 Transactions in expenses:rent and subaccounts:
 2023-05-20 rent                 as:ba:checking               $1000         $1000
@@ -5226,7 +5228,7 @@ Transactions in expenses:rent and subaccounts:
 2023-09-20 rent                 as:ba:checking               $1000         $5000
 ```
 
-```terminal
+```cli
 $ hledger bal -M expenses --forecast --today=2023/4/21
 Balance changes in 2023-05-01..2023-09-30:
 

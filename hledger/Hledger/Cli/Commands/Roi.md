@@ -72,7 +72,7 @@ contributions and which is due to the return on investment.
 assets, or otherwise converting between your investment commodity and
 any other commodity. Example:
 
-    ```
+    ```journal
     2019-01-01 Investing in Snake Oil
       assets:cash          -$100
       investment:snake oil
@@ -84,7 +84,7 @@ any other commodity. Example:
 
 - "Profit and loss" is change in the value of your investment:
 
-    ```
+    ```journal
     2019-06-01 Snake Oil falls in value
       investment:snake oil  = $57
       equity:unrealized profit or loss
@@ -98,7 +98,7 @@ investment return.
 Example: if you use `--inv snake --pnl equity:unrealized`, then
 postings in the example below would be classifed as:
 
-```
+```journal
 2019-01-01 Snake Oil #1
   assets:cash          -$100   ; cash flow posting
   investment:snake oil         ; investment posting
