@@ -1288,9 +1288,9 @@ sccv:
 # ** Misc ------------------------------------------------------------
 MISC:
 
-# push to github CI, wait for tests to pass, then push to master
-@push:
-    tools/push
+# push to github CI, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to master.
+@push *INTERVAL:
+    tools/push {{ INTERVAL }}
 
 # run some tests to validate the development environment
 # check-setup:
