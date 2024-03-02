@@ -146,3 +146,15 @@ $ hledger -f - print expr:"not (tag:transactiontag=B)"
     expenses:food
 
 >=
+
+# ** 11. Posting-based reports handle OR'd open-ended date periods properly. (#2177)
+<
+2023-12-26 2023
+  (2023)   2023
+
+2024-01-26 2024
+  (2024)   2024
+
+$ hledger -f- reg -w80 expr:'date:2023 or date:2024'
+2023-12-26 2023                 (2023)                        2023          2023
+2024-01-26 2024                 (2024)                        2024          4047

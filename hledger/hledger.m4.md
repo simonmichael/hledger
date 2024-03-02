@@ -5050,8 +5050,6 @@ This allows one to combine queries using `AND`, `OR`, and `NOT`.
 
   `expr:"expenses:food OR (tag:A expenses:drink)"`
 
-(But `OR` may not be reliable currently, [#2177](https://github.com/simonmichael/hledger/issues/2177).)
-
 ## Queries and command options
 
 Some queries can also be expressed as command-line options:
