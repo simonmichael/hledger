@@ -903,7 +903,7 @@ commitlog *DATEARG:
 # Show hledger-related time logged since this date or days ago or last release
 timelog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     printf "** Time log\n\n"
     hledger -f $TIMELOG print hledger -b $DATE | rg '^2|hledger'
     echo
@@ -919,7 +919,7 @@ WORKLOG := "../../notes/CLOUD/hledger.md"
 # Show hledger work logged since this date or days ago or last release
 worklog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     WORKDATE=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$DATE\") . (++[\"9999-99-99\"]) . lines"`
     printf "** Work log\n"
     awk "/^#### $WORKDATE/{p=1;print;next};/^## /{p=0};p" $WORKLOG
@@ -932,7 +932,7 @@ worklog *DATEARG:
 # Show matrix chat since this date or days ago or last release
 chatlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     JUMP="/jumptodate $DATE"
     just clip "$JUMP"
     echo "** matrix:    https://matrix.hledger.org, $JUMP"
@@ -941,7 +941,7 @@ chatlog *DATEARG:
 # Show mail list discussion since this date or days ago or last release
 maillog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     DATE2=`$GDATE -d $DATE +"%b %-d"`
     echo "** mail list: https://list.hledger.org, since $DATE2 ($DATE)"
     echo
@@ -949,7 +949,7 @@ maillog *DATEARG:
 # Show /r/plaintextaccounting posts since this date or days ago or last release
 redditlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     DAYS=`datediff $DATE now`
     echo "** reddit:    https://www.reddit.com/r/plaintextaccounting/new, since $DAYS days ago ($DATE)"
     echo
@@ -957,7 +957,7 @@ redditlog *DATEARG:
 # Show #hledger-tagged mastodon toots since this date or days ago or last release
 tootlog *DATEARG:
     #!/usr/bin/env osh
-    DATE=`just datearg $DATEARG`
+    DATE=`just _datearg $DATEARG`
     just clip "#hledger after:$DATE"
     echo "** mastodon:  https://fosstodon.org/search, #hledger after:$DATE , #plaintextaccounting after:$DATE"
     echo
@@ -965,7 +965,7 @@ tootlog *DATEARG:
 # Show recent PTA blog posts added on plaintextaccounting.org
 bloglog:
     #!/usr/bin/env osh
-    # DATE=`just datearg $DATEARG`
+    # DATE=`just _datearg $DATEARG`
     echo "** pta.o:  https://plaintextaccounting.org/#`date +%Y`"
     echo
 
