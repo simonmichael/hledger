@@ -4239,7 +4239,7 @@ To generate time logs, ie to clock in and clock out, you could:
   and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - at the command line, use these bash aliases:
-    ```shell
+    ```cli
     alias ti="echo i `date '+%Y-%m-%d %H:%M:%S'` \$* >>$TIMELOG"
     alias to="echo o `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
     ```
@@ -5183,7 +5183,7 @@ You can override it - eg to forecast farther into the future, or to force foreca
     assets:bank:checking
     expenses:rent           $1000
 ```
-```terminal
+```cli
 $ hledger print --forecast --today=2023/4/21
 2023-05-20 rent
     ; generated-transaction: ~ monthly from 2022-12-20
