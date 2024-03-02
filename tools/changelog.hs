@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver lts-18.18
+{- stack script --resolver lts-22.12
     --package data-default
     --package extra
     --package process
