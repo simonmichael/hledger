@@ -22,7 +22,7 @@
 #   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
 #   ))
 #
-# This file is formatted by `just _fmt`, which currently eats blank lines a bit (and commits).
+# This file is formatted by `just format`, which currently eats blank lines a bit (and commits).
 #
 # 'set export' makes constants and arguments available as $VAR as well as {{ VAR }}.
 # $ makes just code more like shell code.
@@ -87,13 +87,14 @@ _watchgitdbg *WOPTS:
 BROWSE := 'open'
 
 # XXX These often don't work well interpolated as $CMD or {{ CMD }}, not sure why
-
 # find GNU tools, eg on mac
-GDATE := `type -P gdate || echo date`
-GTAR  := `type -P gtar || echo tar`
-#GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 
+GDATE := `type -P gdate || echo date`
+GTAR := `type -P gtar || echo tar`
+
+#GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 # make ghc usable for scripting with -e
+
 GHC := 'ghc -ignore-dot-ghci -package-env -'
 GHCI := 'ghci'
 
@@ -204,8 +205,8 @@ DOCSOURCEFILES := '
     CONTRIBUTING.md
     ' + MANUALSOURCEFILES + COMMANDHELPFILES
 TESTFILES := `fd '\.test$' --exclude ledger-compat`
-# XXX it's fd-find on gnu/linux ?
 
+# XXX it's fd-find on gnu/linux ?
 # # file(s) which require recompilation for a build to have an up-to-date version string
 # VERSIONSOURCEFILE := 'hledger/Hledger/Cli/Version.hs'
 # Two or three-part version string, set as program version in builds made by this makefile.
@@ -542,6 +543,7 @@ get-binaries:
     just symlink-binaries
 
 # download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
+
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
 get-binary OS ARCH VER:
     #!/usr/bin/env bash
@@ -622,6 +624,7 @@ samplejournals:
 
 # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
 # can't use $GHC or {{GHC}} here for some reason
+
 OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
 
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
@@ -664,10 +667,8 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
 # @bench-balance-many-accts:
 #     quickbench -w hledger-1.26,hledger-21ad,ledger -f bench-many-accts.sh -N2
 #     #quickbench -w hledger-1.25,hledger-1.28,hledger-1.29,hledger-1.30,hledger-1.31,hledger-1.32,hledger-21ad,ledger -f bench-many-accts.sh -N2
-
 # @bench-balance-many-txns:
 #     quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
-
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
 # 	$(call def-help,bench,\
@@ -687,7 +688,6 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
 # 	run progression benchmark tests and save graphical results\
 # 	)
 # 	tools/progressionbench -- -t png -k png
-
 # # prof: samplejournals \
 # # 	$(call def-help,prof,\
 # # 	generate and archive an execution profile\
