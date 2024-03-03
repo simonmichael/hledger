@@ -815,91 +815,131 @@ Here's a quick cheatsheet/overview, followed by detailed descriptions of each pa
 ```journal
 # Here is the main syntax of hledger's journal format
 # (omitting extra Ledger compatibility syntax).
-# hledger journals contain comments, directives, and transactions, in any order:
 
 ###############################################################################
-# 1. Comment lines are for notes or temporarily disabling things.
-# They begin with #, ;, or a line containing the word "comment".
 
-# hash comment line
-; semicolon comment line
+# 1. These are comment lines, for notes or temporarily disabling things.
+; They begin with # or ;
+
 comment
-These lines
-are commented.
+Or, lines can be enclosed within "comment" / "end comment".
+This is a block of 
+commented lines.
 end comment
 
-# Some but not all hledger entries can have same-line comments attached to them,
-# from ; (semicolon) to end of line.
+# Some journal entries can have semicolon comments at end of line  ; like this
+# Some of them require 2 or more spaces before the semicolon.
 
 ###############################################################################
-# 2. Directives modify parsing or reports in some way.
-# They begin with a word or letter (or symbol).
 
-account actifs     ; type:A, declare an account that is an Asset. 2+ spaces before ;.
-account passifs    ; type:L, declare an account that is a Liability, and so on.. (ALERX)
-alias chkg = assets:checking
-commodity $0.00
-decimal-mark .
-include /dev/null
-payee Whole Foods
-P 2022-01-01 AAAA $1.40
-~ monthly    budget goals  ; <- 2+ spaces between period expression and description
-    expenses:food       $400
-    expenses:home      $1000
-    budgeted
+# 2. Directives customise processing or output in some way.
+# You don't need any directives to get started.
+# But they can add more error checking, or change how things are displayed.
+# They begin with a word, letter, or symbol. 
+# They are most often placed at the top, before transactions.
+
+account assets             ; Declare valid account names and display order.
+account assets:savings     ; A subaccount. This one represents a bank account.
+account assets:checking    ; Another. Note, 2+ spaces after the account name.
+account assets:receivable  ; Accounting type is inferred from english names,
+account passifs            ; or declared with a "type" tag, type:L
+account expenses           ; type:X
+                           ; A follow-on comment line, indented.
+account expenses:rent      ; Expense and revenue categories are also accounts.
+                           ; Subaccounts inherit their parent's type.
+
+commodity $0.00         ; Declare valid commodities and their display styles.
+commodity 1.000,00 EUR
+
+decimal-mark .          ; The decimal mark used in this file (if ambiguous).
+
+payee Whole Foods       ; Declare a valid payee name.
+
+tag trip                ; Declare a valid tag name.
+
+P 2024-03-01 AAPL $179  ; Declare a market price for AAPL in $ on this date.
+
+include other.journal   ; Include another journal file here.
+
+# Declare a recurring "periodic transaction", for budget/forecast reports
+~ monthly  set budget goals  ; <- Note, 2+ spaces before the description.
+    (expenses:rent)      $1000
+    (expenses:food)       $500
+
+# Declare an auto posting rule, to modify existing transactions in reports
+= revenues:consulting
+    liabilities:tax:2024:us          *0.25  ; Add a tax liability & expense
+    expenses:tax:2024:us            *-0.25  ; for 25% of the revenue.
 
 ###############################################################################
-# 3. Transactions are what it's all about; they are dated events,
-# usually describing movements of money.
-# They begin with a date.
 
-# DATE DESCRIPTION           ; This is a transaction comment.
-#   ACCOUNT NAME 1  AMOUNT1  ; <- posting 1. This is a posting comment.
-#   ACCOUNT NAME 2  AMOUNT2  ; <- posting 2. Postings must be indented.
-#               ; ^^ At least 2 spaces between account and amount.
-#   ...  ; Any number of postings is allowed. The amounts must balance (sum to 0).
+# 3. Transactions are what it's all about.
+# They are dated events, usually movements of money between 2 or more accounts.
+# They begin with a numeric date.
+# Here is their basic shape:
+#
+# DATE DESCRIPTION    ; The transaction's date and optional description.
+#   ACCOUNT1  AMOUNT  ; A posting of an amount to/from this account, indented.
+#   ACCOUNT2  AMOUNT  ; A second posting, balancing the first.
+#   ...               ; More if needed. Amounts must sum to zero.
+#                     ; Note, 2+ spaces between account names and amounts.
 
-2022-01-01 opening balances are declared this way
-    assets:checking          $1000  ; Account names can be anything. lower case is easy to type.
-    assets:savings           $1000  ; assets, liabilities, equity, revenues, expenses are common.
-    assets:cash:wallet        $100  ; : indicates subaccounts.
-    liabilities:credit card  $-200  ; liabilities, equity, revenues balances are usually negative.
-    equity                          ; One amount can be left blank; $-1900 is inferred here.
+2024-01-01 opening balances         ; At the start, declare pre-existing balances this way.
+    assets:savings          $10000  ; Account names can be anything. lower case is easy to type.
+    assets:checking          $1000  ; assets, liabilities, equity, revenues, expenses are common.
+    liabilities:credit card  $-500  ; liabilities, equity, revenues balances are usually negative.
+    equity:start                    ; One amount can be left blank. $-10500 is inferred here.
+                                    ; Some of these accounts we didn't declare above,
+                                    ; so -s/--strict would complain.
 
-2022-04-15 * (#12345) pay taxes
+2024-01-03 ! (12345) pay rent
+    ; Additional transaction comment lines, indented.
     ; There can be a ! or * after the date meaning "pending" or "cleared".
-    ; There can be a transaction code (text in parentheses) after the date/status.
-    ; Amounts' sign represents direction of flow, or credit/debit:
-    assets:checking          $-500  ; minus means removed from this account (credit)
-    expenses:tax:us:2021      $500  ; plus  means added to this account (debit)
-                                    ; revenue/expense categories are also "accounts"
+    ; There can be a parenthesised (code) after the date/status.
+                                    ; Amounts' sign shows direction of flow.
+    assets:checking          $-500  ; Minus means removed from this account (credit).
+    expenses:rent             $500  ; Plus means added to this account (debit).
 
-2022-01-01                          ; The description is optional.
-    ; Any currency/commodity symbols are allowed, on either side.
-    assets:cash:wallet     GBP -10
-    expenses:clothing       GBP 10
-    assets:gringotts           -10 gold
-    assets:pouch                10 gold
-    revenues:gifts              -2 "Liquorice Wands"  ; Complex symbols
-    assets:bag                   2 "Liquorice Wands"  ; must be double-quoted.
+; Keeping transactions in date order is optional (but helps error checking).
 
-2022-01-01 Cost in another commodity can be noted with @ or @@
-    assets:investments           2.0 AAAA @ $1.50  ; @  means per-unit cost
-    assets:investments           3.0 AAAA @@ $4    ; @@ means total cost
-    assets:checking            $-7.00
+2024-01-02 Gringott's Bank | withdrawal  ; Description can be PAYEE | NOTE
+    assets:bank:gold       -10 gold
+    assets:pouch            10 gold
 
-2022-01-02 assert balances
-    ; Balances can be asserted for extra error checking, in any transaction.
-    assets:investments           0 AAAA = 5.0 AAAA
-    assets:pouch                 0 gold = 10 gold
-    assets:savings              $0      = $1000
+2024-01-02 shopping
+    expenses:clothing        1 gold
+    expenses:wands           5 gold
+    assets:pouch            -6 gold
 
-1999-12-31 Ordering transactions by date is recommended but not required.
+2024-01-02 receive gift
+    revenues:gifts          -3 "Chocolate Frogs"  ; Complex commodity symbols
+    assets:pouch             3 "Chocolate Frogs"  ; must be in double quotes.
+
+2024-01-15 buy some shares, in two lots                 ; Cost can be noted.
+    assets:investments:2024-01-15     2.0 AAAA @ $1.50  ; @  means per-unit cost
+    assets:investments:2024-01-15-02  3.0 AAAA @@ $4    ; @@ means total cost
+                      ; ^ Per-lot subaccounts are sometimes useful.
+    assets:checking                 $-7
+
+2024-01-15 assert some account balances on this date
+    ; Balances can be asserted in any transaction, with =, for extra error checking.
+    ; Assertion txns like this one can be made with hledger close --assert --show-costs
+    ;
+    assets:savings                    $0                   = $10000
+    assets:checking                   $0                   =   $493
+    assets:bank:gold                   0 gold              =    -10 gold
+    assets:pouch                       0 gold              =      4 gold
+    assets:pouch                       0 "Chocolate Frogs" =      3 "Chocolate Frogs"
+    assets:investments:2024-01-15      0.0 AAAA            =      2.0 AAAA @  $1.50
+    assets:investments:2024-01-15-02   0.0 AAAA            =      3.0 AAAA @@ $4
+    liabilities:credit card           $0                   =  $-500
+
+2024-02-01 note some event, or a transaction not yet fully entered, on this date
     ; Postings are not required.
 
-2022.01.01 These date
-2022/1/1   formats are
-12/31      also allowed (but consistent YYYY-MM-DD is recommended).
+; Some other date formats are allowed (but, consistent YYYY-MM-DD is useful).
+2024.01.01
+2024/1/1
 ```
 
 ## Comments
