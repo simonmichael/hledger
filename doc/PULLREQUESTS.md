@@ -14,15 +14,16 @@ Here are some tips for contributing PRs to hledger.
 We aim to improve and sustain hledger's quality and maintainability over the long term.
 
 Many PRs, especially small ones, and even some big ones, can be merged quickly. 
-We love merging good PRs quickly.
+We love merging PRs quickly.
 
 Some bigger or more risky PRs can require substantial review, discussion, changes, or re-submission. 
 Sometimes this is a bigger task than the coding.
 Much valuable design, quality control, and knowledge sharing happens at this time. 
-Some PRs get rejected, but their discussion and exploration can still be a useful contribution.
+
+Some PRs ultimately get rejected, but their discussion and exploration can still be a useful contribution.
 We very much want to avoid wasted work, but it occasionally happens. 
 Our process is evolving and imperfect.
-All of this is normal.
+All of this is a normal part of software development.
 
 We hope you'll see it as a golden opportunity to collaborate with experts,
 share and receive knowledge, refine your design/documentation/code,

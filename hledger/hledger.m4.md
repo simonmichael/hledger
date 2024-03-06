@@ -2401,7 +2401,7 @@ these must be separated by **two or more spaces**.
 This helps hledger know where the period expression ends, so that descriptions
 can not accidentally alter their meaning, as in this example:
 
-```
+```journal
 ; 2 or more spaces needed here, so the period is not understood as "every 2 months in 2023"
 ;               ||
 ;               vv
@@ -2595,7 +2595,7 @@ will cause the calculated amount to have that cost attached:
 2019/1/1
   (a)             = $1 @ €2
 ```
-```
+```cli
 $ hledger print --explicit
 2019-01-01
     (a)         $1 @ €2 = $1 @ €2
