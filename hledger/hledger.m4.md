@@ -3482,6 +3482,7 @@ they can express many matchers and field assignments in a more compact tabular f
 if,HLEDGERFIELD1,HLEDGERFIELD2,...
 MATCHERA,VALUE1,VALUE2,...
 MATCHERB,VALUE1,VALUE2,...
+; Comment line that explains MATCHERC
 MATCHERC,VALUE1,VALUE2,...
 <empty line>
 ```
@@ -3493,13 +3494,15 @@ It should be a non-alphanumeric character like `,` or `|` that does not appear a
 
 Each line must contain the same number of separators; empty values are allowed.
 Whitespace can be used in the matcher lines for readability (but not in the if line, currently).
+You can use the comment lines in the table body.
 The table must be terminated by an empty line (or end of file).
 
 An if table like the above is interpreted as follows:
 try all of the matchers; 
 whenever a matcher succeeds, assign all of the values on that line to the corresponding hledger fields;
-later lines can overrider earlier ones.
-It is equivalent to this sequence of if blocks:
+If multiple lines match, later lines will override fields assigned by the earlier ones - just like the sequence of `if` blocks would behave.
+
+If table presented above is equivalent to this sequence of if blocks:
 
 ```rules
 if MATCHERA
@@ -3512,6 +3515,7 @@ if MATCHERB
   HLEDGERFIELD2 VALUE2
   ...
 
+; Comment line which explains MATCHERC
 if MATCHERC
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
@@ -3523,6 +3527,7 @@ Example:
 if,account2,comment
 atm transaction fee,expenses:business:banking,deductible? check it
 %description groceries,expenses:groceries,
+;; Comment line that desribes why this particular date is special
 2023/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call-out
 ```
 
