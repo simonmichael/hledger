@@ -600,8 +600,9 @@ conditionalblockp = do
   <?> "conditional block"
 
 -- A conditional table: "if" followed by separator, followed by some field names,
--- followed by many lines, each of which has:
--- one matchers, followed by field assignments (as many as there were fields)
+-- followed by many lines, each of which is either:
+-- a comment line, or ...
+-- one matcher, followed by field assignments (as many as there were fields in the header)
 conditionaltablep :: CsvRulesParser [ConditionalBlock]
 conditionaltablep = do
   lift $ dbgparse 8 "trying conditionaltablep"
@@ -610,18 +611,25 @@ conditionaltablep = do
   sep <- lift $ satisfy (\c -> not (isAlphaNum c || isSpace c))
   fields <- journalfieldnamep `sepBy1` (char sep)
   newline
-  body <- flip manyTill (lift eolof) $ do
-    off <- getOffset
-    m <- matcherp' $ void $ char sep
-    vs <- T.split (==sep) . T.pack <$> lift restofline
-    if (length vs /= length fields)
-      then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d" (length fields) (length vs)) :: String)
-      else return (m,vs)
+  body <- catMaybes <$> (flip manyTill (lift eolof) $
+          choice [ commentlinep >> return Nothing
+                 , fmap Just $ bodylinep sep fields
+                 ])
   when (null body) $
     customFailure $ parseErrorAt start $ "start of conditional table found, but no assignment rules afterward"
   return $ flip map body $ \(m,vs) ->
     CB{cbMatchers=[m], cbAssignments=zip fields vs}
   <?> "conditional table"
+  where
+    bodylinep :: Char -> [Text] -> CsvRulesParser (Matcher,[FieldTemplate])
+    bodylinep sep fields = do
+      off <- getOffset
+      m <- matcherp' $ void $ char sep
+      vs <- T.split (==sep) . T.pack <$> lift restofline
+      if (length vs /= length fields)
+        then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d" (length fields) (length vs)) :: String)
+        else return (m,vs)
+      
 
 -- A single matcher, on one line.
 matcherp' :: CsvRulesParser () -> CsvRulesParser Matcher

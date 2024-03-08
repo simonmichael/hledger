@@ -1144,6 +1144,33 @@ $  ./ssvtest.sh
 
 >=
 
+# ** 60. tabular rules with comments
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,150
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if|account2|comment
+; This rule is for Flubber
+%description Flubber|acct|
+; This rule is not for Flubber
+%amount 150|acct2|cmt2  
+; commented out: %description Flubber|acct3|
+$  ./csvtest.sh
+2009-09-10 Flubber Co
+    assets:myacct             $50
+    acct                     $-50
+
+2009-09-10 Blubber Co  ; cmt2
+    assets:myacct            $150
+    acct2                   $-150
+
+>=0
+
 # ** .
 #<
 #$  ./csvtest.sh
