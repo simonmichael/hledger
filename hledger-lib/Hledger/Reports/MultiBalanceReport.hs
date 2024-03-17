@@ -374,7 +374,7 @@ generateMultiBalanceReport rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle u
              $ buildReportRows ropts displaynames matrix
 
     -- Calculate column totals
-    totalsrow = dbg5 "totalsrow" $ calculateTotalsRow ropts rows
+    totalsrow = dbg5 "totalsrow" $ calculateTotalsRow ropts rows $ length colps
 
     -- Sorted report rows.
     sortedrows = dbg5 "sortedrows" $ sortRows ropts j rows
@@ -501,8 +501,8 @@ sortRows ropts j
 -- | Build the report totals row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-calculateTotalsRow :: ReportOpts -> [MultiBalanceReportRow] -> PeriodicReportRow () MixedAmount
-calculateTotalsRow ropts rows =
+calculateTotalsRow :: ReportOpts -> [MultiBalanceReportRow] -> Int -> PeriodicReportRow () MixedAmount
+calculateTotalsRow ropts rows colcount =
     PeriodicReportRow () coltotals grandtotal grandaverage
   where
     isTopRow row = flat_ ropts || not (any (`HM.member` rowMap) parents)
@@ -511,7 +511,9 @@ calculateTotalsRow ropts rows =
 
     colamts = transpose . map prrAmounts $ filter isTopRow rows
 
-    coltotals :: [MixedAmount] = dbg5 "coltotals" $ map maSum colamts
+    coltotals :: [MixedAmount] = dbg5 "coltotals" $ case colamts of
+      [] -> replicate colcount nullmixedamt
+      _ -> map maSum colamts
 
     -- Calculate the grand total and average. These are always the sum/average
     -- of the column totals.
