@@ -9546,31 +9546,36 @@ most common import source, and these docs focus on that case.
 
 * Menu:
 
-* "Deduplication"::
+* Skipping::
 * Import testing::
 * Importing balance assignments::
 * Commodity display styles::
 
 
-File: hledger.info,  Node: "Deduplication",  Next: Import testing,  Up: import
+File: hledger.info,  Node: Skipping,  Next: Import testing,  Up: import
 
-24.19.1 "Deduplication"
------------------------
+24.19.1 Skipping
+----------------
 
 'import' tries to import only the transactions which are new since the
-last import.  So if your bank's CSV includes the last three months of
-data, you can download and 'import' it every month (or week, or day) and
-only the new transactions will be imported each time.
+last import, "skipping over" any that it saw last time.  So if your
+bank's CSV includes the last three months of data, you can download and
+'import' it every month (or week, or day) and only the new transactions
+will be imported each time.
 
-   It works as follows.  For each imported 'FILE' (usually a CSV file):
-- It tries to find the latest date seen previously, by reading it from a
-hidden '.latest.FILE' in the same directory.  - Then it processes
-'FILE', ignoring any transactions on or before the "latest seen" date.
+   It works as follows.  For each imported 'FILE':
+
+   * It tries to find the latest date seen previously, by reading it
+     from a hidden '.latest.FILE' in the same directory.
+   * Then it processes 'FILE', ignoring any transactions on or before
+     the "latest seen" date.
 
    And after a successful import, it updates the '.latest.FILE'(s) for
 next time (unless '--dry-run' was used).
 
-   This is simple but fairly effective.  It assumes:
+   This is simple system that works fairly well for transaction data
+(usually CSV, but it could be any of hledger's input formats).  It
+assumes:
 
   1. new items always have the newest dates
   2. item dates are stable across successive CSV downloads
@@ -9583,11 +9588,15 @@ by importing more often (and in old transactions it doesn't matter).
 
    Note, 'import' avoids reprocessing the same dates across successive
 runs, but it does not detect transactions that are duplicated within a
-single run.  So eg if you downloaded but did not import 'bank.1.csv',
-and later downloaded 'bank.2.csv' with overlapping data, you should not
-import both of them in a single run ('hledger import bank.1.csv
-bank.2.csv'); instead, import them one at a time ('hledger import
-bank.1.csv', then 'hledger import bank.2.csv').
+single run.  I'll call these "skipping" and "deduplication".
+
+   So for example, say you downloaded but did not import 'bank.1.csv',
+and later downloaded 'bank.2.csv' with overlapping data.  Then you
+should not import both of them at once ('hledger import bank.1.csv
+bank.2.csv'), as the overlapping data would appear twice and not be
+deduplicated.  Instead, import them one at a time ('hledger import
+bank.1.csv; hledger import bank.2.csv'), and the second import will skip
+the overlapping data.
 
    Normally you can ignore the '.latest.*' files, but if needed, you can
 delete them (to make all transactions unseen), or construct/modify them
@@ -9597,12 +9606,12 @@ have seen transactions up to this date, and this many of them occurring
 on that date".
 
    ('hledger print --new' also uses and updates these '.latest.*' files,
-but it is not often used.)
+but it is less often used.)
 
    Related: CSV > Working with CSV > Deduplicating, importing.
 
 
-File: hledger.info,  Node: Import testing,  Next: Importing balance assignments,  Prev: "Deduplication",  Up: import
+File: hledger.info,  Node: Import testing,  Next: Importing balance assignments,  Prev: Skipping,  Up: import
 
 24.19.2 Import testing
 ----------------------
@@ -11717,84 +11726,84 @@ Node: help343889
 Ref: #help-1343998
 Node: import345371
 Ref: #import345494
-Node: "Deduplication"346604
-Ref: #deduplication346735
-Node: Import testing348911
-Ref: #import-testing349078
-Node: Importing balance assignments349921
-Ref: #importing-balance-assignments350127
-Node: Commodity display styles350776
-Ref: #commodity-display-styles350949
-Node: incomestatement351078
-Ref: #incomestatement351220
-Node: notes352551
-Ref: #notes352673
-Node: payees353035
-Ref: #payees353150
-Node: prices353669
-Ref: #prices353784
-Node: print354437
-Ref: #print354552
-Node: print explicitness355528
-Ref: #print-explicitness355671
-Node: print amount style356450
-Ref: #print-amount-style356620
-Node: print parseability357690
-Ref: #print-parseability357862
-Node: print other features358611
-Ref: #print-other-features358790
-Node: print output format359311
-Ref: #print-output-format359459
-Node: register362598
-Ref: #register362720
-Node: Custom register output367751
-Ref: #custom-register-output367882
-Node: rewrite369229
-Ref: #rewrite369347
-Node: Re-write rules in a file371245
-Ref: #re-write-rules-in-a-file371408
-Node: Diff output format372557
-Ref: #diff-output-format372740
-Node: rewrite vs print --auto373832
-Ref: #rewrite-vs.-print---auto373992
-Node: roi374548
-Ref: #roi374655
-Node: Spaces and special characters in --inv and --pnl376467
-Ref: #spaces-and-special-characters-in---inv-and---pnl376707
-Node: Semantics of --inv and --pnl377195
-Ref: #semantics-of---inv-and---pnl377434
-Node: IRR and TWR explained379284
-Ref: #irr-and-twr-explained379444
-Node: stats382697
-Ref: #stats382805
-Node: tags384319
-Ref: #tags-1384426
-Node: test385435
-Ref: #test385528
-Node: PART 5 COMMON TASKS386270
-Ref: #part-5-common-tasks386416
-Node: Getting help386714
-Ref: #getting-help386855
-Node: Constructing command lines387615
-Ref: #constructing-command-lines387816
-Node: Starting a journal file388473
-Ref: #starting-a-journal-file388675
-Node: Setting LEDGER_FILE389877
-Ref: #setting-ledger_file390069
-Node: Setting opening balances391026
-Ref: #setting-opening-balances391227
-Node: Recording transactions394368
-Ref: #recording-transactions394557
-Node: Reconciling395113
-Ref: #reconciling395265
-Node: Reporting397522
-Ref: #reporting397671
-Node: Migrating to a new file401656
-Ref: #migrating-to-a-new-file401813
-Node: BUGS402112
-Ref: #bugs402202
-Node: Troubleshooting403081
-Ref: #troubleshooting403181
+Node: Skipping346597
+Ref: #skipping346707
+Node: Import testing349191
+Ref: #import-testing349351
+Node: Importing balance assignments350194
+Ref: #importing-balance-assignments350400
+Node: Commodity display styles351049
+Ref: #commodity-display-styles351222
+Node: incomestatement351351
+Ref: #incomestatement351493
+Node: notes352824
+Ref: #notes352946
+Node: payees353308
+Ref: #payees353423
+Node: prices353942
+Ref: #prices354057
+Node: print354710
+Ref: #print354825
+Node: print explicitness355801
+Ref: #print-explicitness355944
+Node: print amount style356723
+Ref: #print-amount-style356893
+Node: print parseability357963
+Ref: #print-parseability358135
+Node: print other features358884
+Ref: #print-other-features359063
+Node: print output format359584
+Ref: #print-output-format359732
+Node: register362871
+Ref: #register362993
+Node: Custom register output368024
+Ref: #custom-register-output368155
+Node: rewrite369502
+Ref: #rewrite369620
+Node: Re-write rules in a file371518
+Ref: #re-write-rules-in-a-file371681
+Node: Diff output format372830
+Ref: #diff-output-format373013
+Node: rewrite vs print --auto374105
+Ref: #rewrite-vs.-print---auto374265
+Node: roi374821
+Ref: #roi374928
+Node: Spaces and special characters in --inv and --pnl376740
+Ref: #spaces-and-special-characters-in---inv-and---pnl376980
+Node: Semantics of --inv and --pnl377468
+Ref: #semantics-of---inv-and---pnl377707
+Node: IRR and TWR explained379557
+Ref: #irr-and-twr-explained379717
+Node: stats382970
+Ref: #stats383078
+Node: tags384592
+Ref: #tags-1384699
+Node: test385708
+Ref: #test385801
+Node: PART 5 COMMON TASKS386543
+Ref: #part-5-common-tasks386689
+Node: Getting help386987
+Ref: #getting-help387128
+Node: Constructing command lines387888
+Ref: #constructing-command-lines388089
+Node: Starting a journal file388746
+Ref: #starting-a-journal-file388948
+Node: Setting LEDGER_FILE390150
+Ref: #setting-ledger_file390342
+Node: Setting opening balances391299
+Ref: #setting-opening-balances391500
+Node: Recording transactions394641
+Ref: #recording-transactions394830
+Node: Reconciling395386
+Ref: #reconciling395538
+Node: Reporting397795
+Ref: #reporting397944
+Node: Migrating to a new file401929
+Ref: #migrating-to-a-new-file402086
+Node: BUGS402385
+Ref: #bugs402475
+Node: Troubleshooting403354
+Ref: #troubleshooting403454
 
 End Tag Table
 

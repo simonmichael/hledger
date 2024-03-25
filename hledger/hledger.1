@@ -9866,24 +9866,28 @@ files to your main journal, you will run
 .PP
 Note you can import from any file format, though CSV files are the most
 common import source, and these docs focus on that case.
-.SS \[dq]Deduplication\[dq]
+.SS Skipping
 \f[CR]import\f[R] tries to import only the transactions which are new
-since the last import.
+since the last import, \[dq]skipping over\[dq] any that it saw last
+time.
 So if your bank\[aq]s CSV includes the last three months of data, you
 can download and \f[CR]import\f[R] it every month (or week, or day) and
 only the new transactions will be imported each time.
 .PP
 It works as follows.
-For each imported \f[CR]FILE\f[R] (usually a CSV file): \- It tries to
-find the latest date seen previously, by reading it from a hidden
-\f[CR].latest.FILE\f[R] in the same directory.
-\- Then it processes \f[CR]FILE\f[R], ignoring any transactions on or
+For each imported \f[CR]FILE\f[R]:
+.IP \[bu] 2
+It tries to find the latest date seen previously, by reading it from a
+hidden \f[CR].latest.FILE\f[R] in the same directory.
+.IP \[bu] 2
+Then it processes \f[CR]FILE\f[R], ignoring any transactions on or
 before the \[dq]latest seen\[dq] date.
 .PP
 And after a successful import, it updates the \f[CR].latest.FILE\f[R](s)
 for next time (unless \f[CR]\-\-dry\-run\f[R] was used).
 .PP
-This is simple but fairly effective.
+This is simple system that works fairly well for transaction data
+(usually CSV, but it could be any of hledger\[aq]s input formats).
 It assumes:
 .IP "1." 3
 new items always have the newest dates
@@ -9901,12 +9905,17 @@ more often (and in old transactions it doesn\[aq]t matter).
 Note, \f[CR]import\f[R] avoids reprocessing the same dates across
 successive runs, but it does not detect transactions that are duplicated
 within a single run.
-So eg if you downloaded but did not import \f[CR]bank.1.csv\f[R], and
-later downloaded \f[CR]bank.2.csv\f[R] with overlapping data, you should
-not import both of them in a single run
-(\f[CR]hledger import bank.1.csv bank.2.csv\f[R]); instead, import them
-one at a time (\f[CR]hledger import bank.1.csv\f[R], then
-\f[CR]hledger import bank.2.csv\f[R]).
+I\[aq]ll call these \[dq]skipping\[dq] and \[dq]deduplication\[dq].
+.PP
+So for example, say you downloaded but did not import
+\f[CR]bank.1.csv\f[R], and later downloaded \f[CR]bank.2.csv\f[R] with
+overlapping data.
+Then you should not import both of them at once
+(\f[CR]hledger import bank.1.csv bank.2.csv\f[R]), as the overlapping
+data would appear twice and not be deduplicated.
+Instead, import them one at a time
+(\f[CR]hledger import bank.1.csv; hledger import bank.2.csv\f[R]), and
+the second import will skip the overlapping data.
 .PP
 Normally you can ignore the \f[CR].latest.*\f[R] files, but if needed,
 you can delete them (to make all transactions unseen), or
@@ -9917,7 +9926,7 @@ It means \[dq]I have seen transactions up to this date, and this many of
 them occurring on that date\[dq].
 .PP
 (\f[CR]hledger print \-\-new\f[R] also uses and updates these
-\f[CR].latest.*\f[R] files, but it is not often used.)
+\f[CR].latest.*\f[R] files, but it is less often used.)
 .PP
 Related: CSV > Working with CSV > Deduplicating, importing.
 .SS Import testing
