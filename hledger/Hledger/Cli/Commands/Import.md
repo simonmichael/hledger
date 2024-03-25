@@ -21,19 +21,21 @@ or perhaps `hledger import *.csv`.
 Note you can import from any file format, though CSV files are the
 most common import source, and these docs focus on that case.
 
-### "Deduplication"
+### Skipping
 
-`import` tries to import only the transactions which are new since the last import.
+`import` tries to import only the transactions which are new since the last import, "skipping over" any that it saw last time.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
-It works as follows. For each imported `FILE` (usually a CSV file): 
+It works as follows. For each imported `FILE`:
+
 - It tries to find the latest date seen previously, by reading it from a hidden `.latest.FILE` in the same directory.
 - Then it processes `FILE`, ignoring any transactions on or before the "latest seen" date.
 
 And after a successful import, it updates the `.latest.FILE`(s) for next time (unless `--dry-run` was used).
 
-This is simple but fairly effective. It assumes:
+This is simple system that works fairly well for transaction data (usually CSV, but it could be any of hledger's input formats).
+It assumes:
 
 1. new items always have the newest dates
 2. item dates are stable across successive CSV downloads
@@ -46,9 +48,11 @@ you can reduce the chance of this happening in new transactions by importing mor
 
 Note, `import` avoids reprocessing the same dates across successive runs,
 but it does not detect transactions that are duplicated within a single run.
-So eg if you downloaded but did not import `bank.1.csv`, and later downloaded `bank.2.csv` with overlapping data,
-you should not import both of them in a single run (`hledger import bank.1.csv bank.2.csv`);
-instead, import them one at a time (`hledger import bank.1.csv`, then `hledger import bank.2.csv`).
+I'll call these "skipping" and "deduplication".
+
+So for example, say you downloaded but did not import `bank.1.csv`, and later downloaded `bank.2.csv` with overlapping data.
+Then you should not import both of them at once (`hledger import bank.1.csv bank.2.csv`), as the overlapping data would appear twice and not be deduplicated.
+Instead, import them one at a time (`hledger import bank.1.csv; hledger import bank.2.csv`), and the second import will skip the overlapping data.
 
 Normally you can ignore the `.latest.*` files, 
 but if needed, you can delete them (to make all transactions unseen),
@@ -56,7 +60,7 @@ or construct/modify them (to catch up to a certain date).
 The format is just a single ISO-format date (`YYYY-MM-DD`), possibly repeated on multiple lines.
 It means "I have seen transactions up to this date, and this many of them occurring on that date".
 
-([`hledger print --new`](#print) also uses and updates these `.latest.*` files, but it is not often used.)
+([`hledger print --new`](#print) also uses and updates these `.latest.*` files, but it is less often used.)
 
 Related: [CSV > Working with CSV > Deduplicating, importing](#deduplicating-importing).
 
