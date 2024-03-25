@@ -21,47 +21,42 @@ or perhaps `hledger import *.csv`.
 Note you can import from any file format, though CSV files are the
 most common import source, and these docs focus on that case.
 
-### Deduplication
+### "Deduplication"
 
-`import` does *time-based deduplication*, to detect only the new
-transactions since the last successful import.
-(This does not mean "ignore transactions that look the same",
-but rather "ignore transactions that have been seen before".)
-This is intended for when you are periodically importing downloaded data,
-which may overlap with previous downloads.
-Eg if every week (or every day) you download a bank's last three months of CSV data,
-you can safely run `hledger import thebank.csv` each time and only new transactions will be imported.
+`import` tries to import only the transactions which are new since the last import.
+So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
+and only the new transactions will be imported each time.
 
-Since the items being read (CSV records, eg) often do not come with
-unique identifiers, hledger detects new transactions by date, assuming
-that:
+It works as follows. For each imported `FILE` (usually a CSV file): 
+- It tries to find the latest date seen previously, by reading it from a hidden `.latest.FILE` in the same directory.
+- Then it processes `FILE`, ignoring any transactions on or before the "latest seen" date.
+
+And after a successful import, it updates the `.latest.FILE`(s) for next time (unless `--dry-run` was used).
+
+This is simple but fairly effective. It assumes:
 
 1. new items always have the newest dates
-2. item dates do not change across reads
-3. and items with the same date remain in the same relative order across reads.
+2. item dates are stable across successive CSV downloads
+3. the order of same-date items is stable across CSV downloads
 
-These are often true of CSV files representing transactions, or true
-enough so that it works pretty well in practice. 1 is important, but
-violations of 2 and 3 amongst the old transactions won't matter (and
-if you import often, the new transactions will be few, so less likely
-to be the ones affected).
+These are true of most CSV files representing transactions, or true enough.
+If you have a bank whose CSV dates or ordering occasionally changes,
+you can reduce the chance of this happening in new transactions by importing more often
+(and in old transactions it doesn't matter).
 
-hledger remembers the latest date processed in each input file by
-saving a hidden ".latest.FILE" file in FILE's directory
-(after a succesful import).
+Note, `import` avoids reprocessing the same dates across successive runs,
+but it does not detect transactions that are duplicated within a single run.
+So eg if you downloaded but did not import `bank.1.csv`, and later downloaded `bank.2.csv` with overlapping data,
+you should not import both of them in a single run (`hledger import bank.1.csv bank.2.csv`);
+instead, import them one at a time (`hledger import bank.1.csv`, then `hledger import bank.2.csv`).
 
-Eg when reading `finance/bank.csv`, it will look for and update the
-`finance/.latest.bank.csv` state file.
-The format is simple: one or more lines containing the
-same ISO-format date (YYYY-MM-DD), meaning "I have processed
-transactions up to this date, and this many of them on that date."
-Normally you won't see or manipulate these state files yourself.
-But if needed, you can delete them to reset the state (making all
-transactions "new"), or you can construct them to "catch up" to a
-certain date. 
+Normally you can ignore the `.latest.*` files, 
+but if needed, you can delete them (to make all transactions unseen),
+or construct/modify them (to catch up to a certain date).
+The format is just a single ISO-format date (`YYYY-MM-DD`), possibly repeated on multiple lines.
+It means "I have seen transactions up to this date, and this many of them occurring on that date".
 
-Note deduplication (and updating of state files) can also be done by
-[`print --new`](#print), but this is less often used.
+([`hledger print --new`](#print) also uses and updates these `.latest.*` files, but it is not often used.)
 
 Related: [CSV > Working with CSV > Deduplicating, importing](#deduplicating-importing).
 
