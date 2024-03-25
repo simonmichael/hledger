@@ -27,14 +27,14 @@ most common import source, and these docs focus on that case.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
-It works as follows. For each imported `FILE`:
+It works as follows. For each imported `FILE` (usually CSV, but they could be any of hledger's input formats):
 
 - It tries to find the latest date seen previously, by reading it from a hidden `.latest.FILE` in the same directory.
 - Then it processes `FILE`, ignoring any transactions on or before the "latest seen" date.
 
 And after a successful import, it updates the `.latest.FILE`(s) for next time (unless `--dry-run` was used).
 
-This is simple system that works fairly well for transaction data (usually CSV, but it could be any of hledger's input formats).
+This is a simple system that works fairly well for transaction data.
 It assumes:
 
 1. new items always have the newest dates
@@ -48,7 +48,7 @@ you can reduce the chance of this happening in new transactions by importing mor
 
 Note, `import` avoids reprocessing the same dates across successive runs,
 but it does not detect transactions that are duplicated within a single run.
-I'll call these "skipping" and "deduplication".
+I'll call these "skipping" and "deduplication" respectively.
 
 So for example, say you downloaded but did not import `bank.1.csv`, and later downloaded `bank.2.csv` with overlapping data.
 Then you should not import both of them at once (`hledger import bank.1.csv bank.2.csv`), as the overlapping data would appear twice and not be deduplicated.
