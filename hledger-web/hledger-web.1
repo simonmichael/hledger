@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-WEB" "1" "February 2024" "hledger-web-1.32.99 " "hledger User Manuals"
+.TH "HLEDGER\-WEB" "1" "March 2024" "hledger-web-1.32.99 " "hledger User Manuals"
 
 
 
@@ -128,6 +128,15 @@ hledger\-web also supports many of hledger\[aq]s general options.
 Query options and arguments may be used to set an initial filter, which
 although not shown in the UI, will restrict the data shown, in addition
 to any search query entered in the UI.
+.PP
+Note that hledger\-web shows accounts with zero balances by default,
+like \f[CR]hledger\-ui\f[R] (and unlike \f[CR]hledger\f[R]).
+Using the \f[CR]\-E/\-\-empty\f[R] flag at startup will hide them.
+.PP
+If you see accounts which appear to have a zero balance, but cannot be
+hidden with \f[CR]\-E\f[R]: these have a mixed\-cost balance which looks
+like zero when costs are hidden.
+Currently hledger\-web does not show costs at all.
 .SS General help options
 .TP
 \f[CR]\-h \-\-help\f[R]

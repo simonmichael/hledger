@@ -142,6 +142,15 @@ options and arguments may be used to set an initial filter, which
 although not shown in the UI, will restrict the data shown, in addition
 to any search query entered in the UI.
 
+   Note that hledger-web shows accounts with zero balances by default,
+like 'hledger-ui' (and unlike 'hledger').  Using the '-E/--empty' flag
+at startup will hide them.
+
+   If you see accounts which appear to have a zero balance, but cannot
+be hidden with '-E': these have a mixed-cost balance which looks like
+zero when costs are hidden.  Currently hledger-web does not show costs
+at all.
+
 * Menu:
 
 * General help options::
@@ -631,28 +640,28 @@ Tag Table:
 Node: Top223
 Node: OPTIONS2578
 Ref: #options2683
-Node: General help options5257
-Ref: #general-help-options5407
-Node: General input options5689
-Ref: #general-input-options5875
-Node: General reporting options6532
-Ref: #general-reporting-options6697
-Node: PERMISSIONS10087
-Ref: #permissions10226
-Node: EDITING UPLOADING DOWNLOADING11438
-Ref: #editing-uploading-downloading11619
-Node: RELOADING12453
-Ref: #reloading12587
-Node: JSON API13020
-Ref: #json-api13135
-Node: DEBUG OUTPUT18623
-Ref: #debug-output18748
-Node: Debug output18775
-Ref: #debug-output-118876
-Node: ENVIRONMENT19293
-Ref: #environment19412
-Node: BUGS19529
-Ref: #bugs19613
+Node: General help options5648
+Ref: #general-help-options5798
+Node: General input options6080
+Ref: #general-input-options6266
+Node: General reporting options6923
+Ref: #general-reporting-options7088
+Node: PERMISSIONS10478
+Ref: #permissions10617
+Node: EDITING UPLOADING DOWNLOADING11829
+Ref: #editing-uploading-downloading12010
+Node: RELOADING12844
+Ref: #reloading12978
+Node: JSON API13411
+Ref: #json-api13526
+Node: DEBUG OUTPUT19014
+Ref: #debug-output19139
+Node: Debug output19166
+Ref: #debug-output-119267
+Node: ENVIRONMENT19684
+Ref: #environment19803
+Node: BUGS19920
+Ref: #bugs20004
 
 End Tag Table
 
