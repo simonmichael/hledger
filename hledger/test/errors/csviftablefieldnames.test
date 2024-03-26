@@ -1,10 +1,8 @@
-# * csviftablefieldnames error
-# ** 1. 
-$ hledger check -f  csviftablefieldnames.csv
->2 /hledger: Error: .*csviftablefieldnames.csv.rules:2:9:
+$$$ hledger check -f  csviftablefieldnames.csv
+>>>2 /hledger: Error: .*csviftablefieldnames.csv.rules:2:9:
   \|
 2 \| if,date,nosuchfield,description
   \|         \^\^\^\^\^\^\^\^\^\^\^\^
 unexpected "nosuchfield,"
 expecting "account1", "account10", "account11", "account12", "account13", "account14", "account15", "account16", "account17", "account18", "/
->= 1
+>>>= 1

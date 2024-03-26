@@ -1,6 +1,4 @@
-# * csvnoinclude error
-# ** 1. 
-$ hledger check -f  csvnoinclude.j
->2 /hledger: Error: sorry, CSV files can't be included yet
+$$$ hledger check -f  csvnoinclude.j
+>>>2 /hledger: Error: sorry, CSV files can't be included yet
 /
->= 1
+>>>= 1

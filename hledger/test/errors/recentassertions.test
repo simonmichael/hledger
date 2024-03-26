@@ -1,23 +1,11 @@
-# * check recentassertions errorsrecentassertions error
-# ** 1. The first posting more than 7 days after latest balance assertion causes this check to fail.
-$ hledger check recentassertions -f recentassertions.j
->2 /Error: .*recentassertions.j:11:
-   | 2022-01-09 bad1
-11 |     a               0
-   |    \^
-/
->= 1
-#
-#The recentassertions check is enabled, so accounts with balance assertions must
-#have a balance assertion within 7 days of their latest posting.
-#In account "a", the above posting is 8 days later
-#than the last balance assertion, which was on 2022-01-01.
-# 
-#Consider adding a more recent balance assertion for this account. Eg:
-#
-#....-..-..
-#    a    \$0 = \$0  ; \(adjust asserted amount\)
-#/
-#>= 1
-# XXX shelltestrunner: "ERROR: please avoid regexps larger than 300 characters, they trigger a memory leak in regex-tdfa".
-# Still true ?
+$$$ hledger check recentassertions -f recentassertions.j
+>>>2 /hledger: Error: .*recentassertions.j:11:
+   \| 2022-01-09 bad1
+11 \|     a               0
+   \|     \^
+
+The recentassertions check is enabled, so accounts with balance assertions must
+have a balance assertion within 7 days of their latest posting.
+In account "a", this posting is 8 days later
+than t/
+>>>= 1

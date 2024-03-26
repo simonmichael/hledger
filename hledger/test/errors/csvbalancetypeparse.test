@@ -1,11 +1,9 @@
-# * csvbalancetypeparse error
-# ** 1. 
-$ hledger check -f  csvbalancetypeparse.csv
->2 /hledger: Error: balance-type "badtype" is invalid. Use =, ==, =\* or ==\*.
+$$$ hledger check -f  csvbalancetypeparse.csv
+>>>2 /hledger: Error: balance-type "badtype" is invalid. Use =, ==, =\* or ==\*.
 CSV record: "2022-01-01","1"
 the balance rule is: %2
 the date rule is: %1
 
 
 /
->= 1
+>>>= 1

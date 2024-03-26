@@ -156,7 +156,7 @@ Click error names to see an example. The table headings mean:
 
 
 <!-- GENERATED: -->
-hledger 1.26.99-ge777ae46f-20220803 error messages:
+hledger 1.32.99-g4dbd417c9-20240326 error messages:
 
 ### accounts
 ```
@@ -181,15 +181,13 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./assertions.j:4:8:
 4 |     a               0 = 1
   |                       ^^^
 
-This balance assertion failed.
-In account:    a
-and commodity: 
-this balance was asserted:     1
-but the calculated balance is: 0
-
-To troubleshoot, you can view this account's running balance. Eg:
-
-hledger reg 'a$' cur: -I  # -f FILE
+Balance assertion failed in a
+In commodity "" at this point, excluding subaccounts, ignoring costs,
+the asserted balance is:        1
+but the calculated balance is:  0
+(difference: 1)
+To troubleshoot, check this account's running balance with assertions disabled, eg:
+hledger reg -I 'a$' cur:
 ```
 
 
@@ -207,8 +205,8 @@ Consider adjusting this entry's amounts, or adding missing postings.
 
 ### balanced
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:6-8:
-6 | 2022-01-01
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./balanced.j:5-7:
+5 | 2022-01-01
   |     a             1 A
   |     b            -1 B
 
@@ -259,7 +257,7 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-dates.j
 3 | 2022/1/32
   | ^^^^^^^^^
 
-This date is invalid, please correct it: 2022/1/32
+This is not a valid date, please fix it.
 ```
 
 
@@ -303,21 +301,20 @@ payee p
 
 ### recentassertions
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:5:8:
-  | 2022-01-01 *
-5 |     a               0 = 0
-  |                       ^^^
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:11:
+   | 2022-01-09 bad1
+11 |     a               0
+   |     ^
 
 The recentassertions check is enabled, so accounts with balance assertions must
-have a balance assertion no more than 7 days before their latest posting date.
-In account a,
-the last balance assertion (2022-01-01) was 8 days before
-the latest posting (2022-01-09).
+have a balance assertion within 7 days of their latest posting.
+In account "a", this posting is 8 days later
+than the last balance assertion, which was on 2022-01-01.
 
 Consider adding a more recent balance assertion for this account. Eg:
 
-2022-08-03 *
-    a    $0 = $0  ; <- adjust
+2024-03-26
+    a     0 =  0  ; (adjust asserted amount)
 ```
 
 

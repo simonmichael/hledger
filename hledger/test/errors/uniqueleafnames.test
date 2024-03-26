@@ -1,7 +1,5 @@
-# * uniqueleafnames error
-# ** 1. 
-$ hledger check uniqueleafnames -f uniqueleafnames.j
->2 /hledger: Error: .*uniqueleafnames.j:12:
+$$$ hledger check uniqueleafnames -f uniqueleafnames.j
+>>>2 /hledger: Error: .*uniqueleafnames.j:12:
   \| 2022-01-01 p
 9 \|     \(a:c\)               1
  ...
@@ -12,4 +10,4 @@ $ hledger check uniqueleafnames -f uniqueleafnames.j
 Checking for unique account leaf names is enabled, and
 account leaf name "c" is not unique.
 It appears in these account names, which a/
->= 1
+>>>= 1
