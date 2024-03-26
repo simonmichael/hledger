@@ -1,12 +1,10 @@
-# * parseable error
-# ** 1. 
-$ hledger check -f parseable-dates.j
->2 /hledger: Error: .*parseable-dates.j:3:1:
+$$$ hledger check -f parseable-dates.j
+>>>2 /hledger: Error: .*parseable-dates.j:3:1:
   \|
 3 \| 2022\/1\/32
   \| \^\^\^\^\^\^\^\^\^
 
-This date is invalid, please correct it: 2022\/1\/32
+This is not a valid date, please fix it.
 
 /
->= 1
+>>>= 1

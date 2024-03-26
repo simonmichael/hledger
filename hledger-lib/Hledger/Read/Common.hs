@@ -517,41 +517,39 @@ datep' mYear = do
     sep <- datesepchar <?> "date separator"
     d2 <- decimal <?> "month or day"
     case d1 of
-         Left y  -> fullDate startOffset y sep d2
-         Right m -> partialDate startOffset mYear m sep d2
+      Left y  -> fullDate startOffset y sep d2
+      Right m -> partialDate startOffset mYear m d2
     <?> "full or partial date"
   where
     fullDate :: Int -> Year -> Char -> Month -> TextParser m Day
-    fullDate startOffset year sep1 month = do
+    fullDate startOffset year sep month = do
       sep2 <- satisfy isDateSepChar <?> "date separator"
       day <- decimal <?> "day"
       endOffset <- getOffset
-      let dateStr = show year ++ [sep1] ++ show month ++ [sep2] ++ show day
-
-      when (sep1 /= sep2) $ customFailure $ parseErrorAtRegion startOffset endOffset $
-        "This date is malformed because the separators are different.\n"
-        ++"Please use consistent separators."
-
+      when (sep /= sep2) $ 
+        customFailure $ parseErrorAtRegion startOffset endOffset $
+          "This date has different separators, please use consistent separators."
       case fromGregorianValid year month day of
-        Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                     "This date is invalid, please correct it: " ++ dateStr
+        Nothing -> 
+          customFailure $ parseErrorAtRegion startOffset endOffset $
+            "This is not a valid date, please fix it."
         Just date -> pure $! date
 
-    partialDate :: Int -> Maybe Year -> Month -> Char -> MonthDay -> TextParser m Day
-    partialDate startOffset myr month sep day = do
+    partialDate :: Int -> Maybe Year -> Month -> MonthDay -> TextParser m Day
+    partialDate startOffset myr month day = do
       endOffset <- getOffset
       case myr of
         Just year ->
           case fromGregorianValid year month day of
-            Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-                        "This date is invalid, please correct it: " ++ dateStr
+            Nothing -> 
+              customFailure $ parseErrorAtRegion startOffset endOffset $
+                "This is not a valid date, please fix it."
             Just date -> pure $! date
-          where dateStr = show year ++ [sep] ++ show month ++ [sep] ++ show day
 
-        Nothing -> customFailure $ parseErrorAtRegion startOffset endOffset $
-          "The partial date "++dateStr++" can not be parsed because the current year is unknown.\n"
-          ++"Consider making it a full date, or add a default year directive.\n"
-          where dateStr = show month ++ [sep] ++ show day
+        Nothing ->
+          customFailure $ parseErrorAtRegion startOffset endOffset $
+            "This partial date can not be parsed because the current year is unknown.\n"
+            ++"Please make it a full date, or add a default year directive."
 
 {-# INLINABLE datep' #-}
 
