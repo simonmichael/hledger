@@ -23,7 +23,7 @@ most common import source, and these docs focus on that case.
 
 ### Deduplication
 
-`import` tries to import only the transactions which are new since the last import, "skipping over" any that it has seen in previous runs.
+`import` tries to import only the transactions which are new since the last import, ignoring any that it has seen in previous runs.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
