@@ -36,18 +36,17 @@ And after a successful import, it updates the `.latest.FILE`(s) for next time (u
 
 This is a limited kind of deduplication, let's call it "date skipping".
 Within each input file, it avoids reprocessing the same dates across successive runs.
-This is a simple system that works fairly well for transaction data.
-It assumes:
+This is a simple system that works for most real-world CSV files;
+it assumes these are true, or true enough:
 
 1. new items always have the newest dates
 2. item dates are stable across successive downloads
 3. the order of same-date items is stable across downloads
 4. the name of the input file is stable across downloads
 
-These are true of most CSV files representing transactions, or true enough.
-If you have a bank whose CSV dates or ordering change occasionally,
-you can reduce the chance of this happening in new transactions by importing more often
-(and in old transactions it doesn't matter).
+If you have a bank whose CSV dates or ordering occasionally change,
+you can reduce the chance of this happening in new transactions by importing more often,
+and in old transactions it doesn't matter.
 And remember you can use CSV rules files as input, which is one way to ensure a stable file name.
 
 `import` doesn't detect other kinds of duplication, such as duplicate transactions within a single run.
