@@ -103,6 +103,8 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 ## Text encoding
 
 Data files containing non-ascii characters must use UTF-8 encoding.
+An optional [byte order mark (BOM)](https://www.unicode.org/faq/utf_bom.html#BOM) is allowed, at the beginning of the file (only).
+
 Also, your system should be configured with a locale that can decode UTF-8 text.
 On some unix systems, you may need set the `LANG` environment variable, eg.
 You can read more about this in [Unicode characters](#unicode-characters), below.
