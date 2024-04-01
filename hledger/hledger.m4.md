@@ -2629,7 +2629,7 @@ Downsides: another syntax to learn, redundant with hledger's
 This directive sets a default commodity, to be used for any
 subsequent commodityless amounts (ie, plain numbers) seen while
 parsing the journal. This effect lasts until the next `D` directive,
-or the end of the journal.
+or the end of the current file.
 
 For compatibility/historical reasons, `D` also acts like a [`commodity` directive](#commodity-directive)
 (setting the commodity's decimal mark for parsing and [display style](#amount-display-format) for output).
