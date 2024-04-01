@@ -110,12 +110,12 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
           e = fromEFDay end
           cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue e d amt))
 
-          valueBefore =
+          valueBefore = dbg3 "valueBefore" $
             mixedAmountValue e b $
             total trans (And [ investmentsQuery
                              , Date (DateSpan Nothing (Just begin))])
 
-          valueAfter  =
+          valueAfter  = dbg3 "valueAfter" $
             mixedAmountValue e e $
             total trans (And [investmentsQuery
                              , Date (DateSpan Nothing (Just end))])
@@ -143,8 +143,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
         let smallIsZero x = if abs x < 0.01 then 0.0 else x
         return [ showDate b
                , showDate (addDays (-1) e)
-               , T.pack $ showMixedAmount $ styleAmounts styles $ valueBefore
-               , T.pack $ showMixedAmount $ styleAmounts styles $ cashFlowAmt
+               , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ valueBefore
+               , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ cashFlowAmt
                -- , T.pack $ showMixedAmount $
                --   -- dbg0With (lbl "cashflow after styling".showMixedAmountOneLine) $
                --   mapMixedAmount (amountSetFullPrecisionUpTo (Just defaultMaxPrecision)) $
@@ -152,8 +152,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                --                 -- & dbg0With (lbl "styles".show))
                --   cashFlowAmt
                --   -- & dbg0With (lbl "cashflow before styling".showMixedAmountOneLine)
-               , T.pack $ showMixedAmount $ styleAmounts styles $ valueAfter
-               , T.pack $ showMixedAmount $ styleAmounts styles $ (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
+               , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ valueAfter
+               , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ (valueAfter `maMinus` (valueBefore `maPlus` cashFlowAmt))
                , T.pack $ printf "%0.2f%%" $ smallIsZero irr
                , T.pack $ printf "%0.2f%%" $ smallIsZero periodTwr
                , T.pack $ printf "%0.2f%%" $ smallIsZero annualizedTwr ]
@@ -278,13 +278,13 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
        | val <- map showDecimal valuesOnDate
        | oldBalance <- map showDecimal (0:unitBalances)
        | balance <- map showDecimal unitBalances
-       | pnl' <- map (showMixedAmount . styleAmounts styles) pnls
-       | cashflow <- map (showMixedAmount . styleAmounts styles) cashflows
+       | pnl' <- map (showMixedAmountOneLineWithoutCost False . styleAmounts styles) pnls
+       | cashflow <- map (showMixedAmountOneLineWithoutCost False . styleAmounts styles) cashflows
        | prc <- map showDecimal unitPrices
        | udelta <- map showDecimal unitsBoughtOrSold ])
 
     printf "Final unit price: %s/%s units = %s\nTotal TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
-      (showMixedAmount $ styleAmounts styles valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitCost) (showDecimal totalTWR) years annualizedTWR
+      (showMixedAmountOneLineWithoutCost False $ styleAmounts styles valueAfter) (showDecimal finalUnitBalance) (showDecimal finalUnitCost) (showDecimal totalTWR) years annualizedTWR
 
   return ((realToFrac totalTWR) :: Double, annualizedTWR)
 
@@ -302,7 +302,7 @@ internalRateOfReturn styles showCashFlow prettyTables (OneSpan begin end valueBe
       (Table
        (Tab.Group Tab.NoLine (map (Header . showDate) dates))
        (Tab.Group Tab.SingleLine [Header "Amount"])
-       (map ((:[]) . T.pack . showMixedAmount . styleAmounts styles) amts))
+       (map ((:[]) . T.pack . showMixedAmountOneLineWithoutCost False . styleAmounts styles) amts))
 
   -- 0% is always a solution, so require at least something here
   case totalCF of
@@ -332,11 +332,11 @@ total trans query = sumPostings . filter (matchesPosting query) $ concatMap real
 
 unMix :: MixedAmount -> Quantity
 unMix a =
-  case (unifyMixedAmount $ mixedAmountCost a) of
+  case (unifyMixedAmount a) of
     Just a' -> aquantity a'
-    Nothing -> error' $ "Amounts could not be converted to a single cost basis: " ++ show (map showAmount $ amounts a) ++
+    Nothing -> error' $ "Amounts could not be converted to a single commodity: " ++ show (map showAmount $ amounts a) ++
                "\nConsider using --value to force all costs to be in a single commodity." ++
-               "\nFor example, \"--cost --value=end,<commodity> --infer-market-prices\", where commodity is the one that was used to pay for the investment."
+               "\nFor example, \"--value=end,<commodity> --infer-market-prices\", where commodity is the one that was used for investment valuations."
 
 -- Show Decimal rounded to two decimal places, unless it has less places already. This ensures that "2" won't be shown as "2.00"
 showDecimal :: Decimal -> String

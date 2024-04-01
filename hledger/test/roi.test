@@ -228,14 +228,18 @@ $ hledger -f- roi -p 2019-11
   Investment       10 B
 
 2019/11/02 Example
-  Investment        -10 B @@ 100 A
+  Assets:Checking  -100 C
+  Investment       100 C
+
+2019/11/02 Example
+  Investment        -9 B @@ 100 A
   Assets:Checking    101 A
   Unrealized PnL
 $ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL
 >2
-hledger: Error: Amounts could not be converted to a single cost basis: ["10 B","-10 B @@ 100 A"]
+hledger: Error: Amounts could not be converted to a single commodity: ["10 B","-9 B @@ 100 A","100 C"]
 Consider using --value to force all costs to be in a single commodity.
-For example, "--cost --value=end,<commodity> --infer-market-prices", where commodity is the one that was used to pay for the investment.
+For example, "--value=end,<commodity> --infer-market-prices", where commodity is the one that was used for investment valuations.
 >= 1
 
 # ** 10. Forcing valuation via --value
@@ -360,5 +364,26 @@ $ hledger -f - roi --inv stocks --pnl expenses --value=then,€ -Y
 +===++============+============++===============+==========+=============+======++=========++============+==========+
 | 1 || 2022-01-01 | 2022-12-31 ||             0 |    € 101 |       € 200 | € 99 || 410.31% ||     98.02% |   98.02% |
 +---++------------+------------++---------------+----------+-------------+------++---------++------------+----------+
+
+>= 0
+
+# ** 15. Correctly work with --value and complex valuation chains
+<
+P 2023-01-01 B 20A
+P 2023-01-01 C 1B
+
+2023-01-01
+ investment  1C @@ 20A
+ investment  4B @@ 80A
+ assets
+
+P 2023-12-31 C 2B
+
+$ hledger -f - roi --inv investment --pnl income --value='end,B' -b2023 -e2024
++---++------------+------------++---------------+----------+-------------+-----++--------++------------+----------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR || TWR/period | TWR/year |
++===++============+============++===============+==========+=============+=====++========++============+==========+
+| 1 || 2023-01-01 | 2023-12-31 ||             0 |       5B |          6B |  1B || 20.00% ||     20.00% |   20.00% |
++---++------------+------------++---------------+----------+-------------+-----++--------++------------+----------+
 
 >= 0
