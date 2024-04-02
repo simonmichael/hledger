@@ -74,7 +74,7 @@ To claim the bounty:
 | [#1642](https://github.com/simonmichael/hledger/issues/1642) | Simon Michael   | N/A                                                              |
 | **1.23** 2021-09-21                                          | -               | -                                                                |
 | [#1933](https://github.com/simonmichael/hledger/issues/1933) | Simon Michael   | [2022-09-14](https://opencollective.com/hledger/expenses/95068)  |
-| [#2071](https://github.com/simonmichael/hledger/issues/2071) | William Pierce  |                                                                  |
+| [#2071](https://github.com/simonmichael/hledger/issues/2071) | William Pierce  | [2024-04-02](https://opencollective.com/hledger/expenses/195768) |
 | **1.24** 2021-12-01                                          | -               | -                                                                |
 | [#1782](https://github.com/simonmichael/hledger/issues/1782) | Simon Michael   | N/A                                                              |
 | **1.25** 2022-03-04                                          | -               | -                                                                |
