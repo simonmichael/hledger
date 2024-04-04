@@ -413,13 +413,16 @@ is an incomplete attempt at automatically splitting infrequent/irregular transac
 [`hledger-move.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-move.hs)
 helps make subaccount/cost-preserving transfers.
 
-
-
 ### hledger-report1.hs
 
 [hledger-report1.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.hs)
 is a custom compound report done in haskell. See also hledger-report1.sh.
 
+### hledger-txnsbycat.hs
+
+[hledger-txnsbycat.hs](https://github.com/brianhv/hledger-scripts/blob/main/hledger-txnsbycat.hs)
+is a mixture of a balance report and a register report; it shows each account's transactions
+under the account's balance.
 
 ## HOW TO
 
