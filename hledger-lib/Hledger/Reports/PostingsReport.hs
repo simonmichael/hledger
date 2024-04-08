@@ -139,7 +139,7 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
 
     dateqtype = if queryIsDate2 dateq || (queryIsDate dateq && date2_ ropts) then Date2 else Date
       where
-        dateq = dbg4 "dateq" $ filterQuery queryIsDateOrDate2 $ dbg4 "q" q  -- XXX confused by multiple date:/date2: ?
+        dateq = dbg4 "matchedPostingsBeforeAndDuring dateq" $ filterQuery queryIsDateOrDate2 $ dbg4 "matchedPostingsBeforeAndDuring q" q  -- XXX confused by multiple date:/date2: ?
 
 -- | Generate postings report line items from a list of postings or (with
 -- non-Nothing periods attached) summary postings.
