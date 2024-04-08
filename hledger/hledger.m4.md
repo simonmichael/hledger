@@ -5082,22 +5082,31 @@ The [print](#print) command is a little different, showing transactions which:
 - match all the other terms.
 
 We also support more complex boolean queries with the `expr:` prefix.
-This allows one to combine queries using `AND`, `OR`, and `NOT`.
-(`NOT` is equivalent to the `not:` prefix.) Some examples:
+This allows one to combine query terms using `and`, `or`, `not` keywords (case insensitive),
+and to group them by enclosing in parentheses.
 
-- Match transactions with 'cool' in the description AND with the 'A' tag
+Some examples:
 
-  `expr:"desc:cool AND tag:A"`
+- Exclude account names containing 'food':
 
-- Match transactions NOT to the 'expenses:food' account OR with the 'A' tag
+  `expr:"not food"`  (`not:food` is equivalent)
 
-  `expr:"NOT expenses:food OR tag:A"`
+- Match things which have 'cool' in the description and the 'A' tag:
 
-- Match transactions NOT involving the 'expenses:food' account OR 
-  with the 'A' tag AND involving the 'expenses:drink' account.
-  (the AND is implicitly added by space-separation, following the rules above)
+  `expr:"desc:cool and tag:A"`  (`expr:"desc:cool tag:A"` is equivalent)
 
-  `expr:"expenses:food OR (tag:A expenses:drink)"`
+- Match things which either do not reference the 'expenses:food' account, or do have the 'A' tag:
+
+  `expr:"not expenses:food or tag:A"`
+
+- Match things which either do not reference the 'expenses:food' account,
+  or which reference the 'expenses:drink' account and also have the 'A' tag:
+
+  `expr:"expenses:food or (expenses:drink and tag:A)"`
+
+`expr:` has a restriction: `date:` queries may not be used inside `or` expressions.
+That would allow disjoint report periods or disjoint result sets, with unclear semantics for our reports.
+
 
 ## Queries and command options
 

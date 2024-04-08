@@ -147,14 +147,13 @@ $ hledger -f - print expr:"not (tag:transactiontag=B)"
 
 >=
 
-# ** 11. Posting-based reports handle OR'd open-ended date periods properly. (#2177)
-<
-2023-12-26 2023
-  (2023)   2023
+# ** 11. With expr:, it's possible for a query (with OR) to specify multiple different date periods. 
+# This is problematic for report semantics in several ways. For example,
+# expr:'(date:2023 AND drinks) OR (date:2024 AND food)' produces two disjoint result sets, and
+# expr:'date:feb or date:may or date:nov' produces three disjoint report periods with holes between them.
+# Can all of our reports handle holes properly, calculate historical starting balances properly, etc ?
+# For now the answer is no and therefore OR-ing of date periods must be disallowed. (#2178)
+$ hledger -f- reg expr:'date:2023 OR date:2024'
+>2 /using date: in OR expressions is not supported/
+>=1
 
-2024-01-26 2024
-  (2024)   2024
-
-$ hledger -f- reg -w80 expr:'date:2023 or date:2024'
-2023-12-26 2023                 (2023)                        2023          2023
-2024-01-26 2024                 (2024)                        2024          4047

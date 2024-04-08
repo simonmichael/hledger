@@ -324,10 +324,12 @@ parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 -- prefix-operator "NOT e" is always parsed before "e AND e", "e AND e" before "e OR e",
 -- and "e OR e" before "e e".
 --
--- The space-separation operator is left as it was the default before the introduction of
--- boolean operators. It takes the behaviour defined in the interpretQueryList function,
--- whereas the NOT, OR, and AND operators simply wrap a list of queries with the associated
---
+-- The "space" operator still works as it did before the introduction of boolean operators:
+-- it combines terms according to their types, using parseQueryList.
+-- Whereas the new NOT, OR, and AND operators work uniformly for all term types.
+-- There is an exception: queries being OR'd may not specify a date period,
+-- because that can produce multiple, possibly disjoint, report periods and result sets,
+-- and we don't have report semantics worked out for it yet. (#2178)
 --
 -- The result of this function is either an error encountered during parsing of the
 -- expression or the combined query and query options.
@@ -361,8 +363,14 @@ parseBooleanQuery d t =
               _      -> (simplifyQuery $ f qs, qoptss')
 
         -- Containing query expressions separated by "or".
+        -- If there's more than one, make sure none contains a "date:".
         orExprsP :: SimpleTextParser (Query, [QueryOpt])
-        orExprsP = combineWith Or <$> andExprsP `sepBy` (try $ skipNonNewlineSpaces >> string' "or" >> skipNonNewlineSpaces1)
+        orExprsP = do
+          exprs <- andExprsP `sepBy` (try $ skipNonNewlineSpaces >> string' "or" >> skipNonNewlineSpaces1)
+          if ( length exprs > 1
+            && (any (/=Any) $ map (filterQuery queryIsDateOrDate2 . fst) exprs))
+          then fail "sorry, using date: in OR expressions is not supported."
+          else return $ combineWith Or exprs
 
           where
             -- Containing query expressions separated by "and".
