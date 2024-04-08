@@ -201,11 +201,11 @@ parseQueryList :: Day -> [T.Text] -> Either String (Query, [QueryOpt])
 parseQueryList d termstrs = do
   eterms <- mapM (parseQueryTerm d) termstrs
   let (pats, optss) = unzip eterms
-      q = combineQueryList pats
+      q = combineQueriesByType pats
   Right (q, concat optss)
 
-combineQueryList :: [Query] -> Query
-combineQueryList pats = q
+combineQueriesByType :: [Query] -> Query
+combineQueriesByType pats = q
   where
     (descpats, pats') = partition queryIsDesc pats
     (acctpats, pats'') = partition queryIsAcct pats'
@@ -337,65 +337,83 @@ parseQueryTerm d s = parseQueryTerm d $ defaultprefix<>":"<>s
 --
 -- >>> parseBooleanQuery nulldate "expenses:dining AND desc:a OR desc:b"
 -- Right (Or [And [Acct (RegexpCI "expenses:dining"),Desc (RegexpCI "a")],Desc (RegexpCI "b")],[])
+--
 parseBooleanQuery :: Day -> T.Text -> Either String (Query,[QueryOpt])
-parseBooleanQuery d t = either (Left . ("failed to parse query:" <>) . customErrorBundlePretty) Right $ parsewith spacedQueriesP t
+parseBooleanQuery d t =
+  either (Left . ("failed to parse query:" <>) . customErrorBundlePretty) Right $
+    parsewith spacedExprsP t
 
   where
-    spacedQueriesP :: SimpleTextParser (Query, [QueryOpt])
-    spacedQueriesP = nArityOp combineQueryList <$> orQueriesP `sepBy` skipNonNewlineSpaces1
+    -- Our "boolean queries" are compound query expressions built with a hierarchy of combinators.
+    -- At the top level we have one or more query expressions separated by space.
+    -- These are combined in the default way according to their types (see combineQueriesByType).
+    spacedExprsP :: SimpleTextParser (Query, [QueryOpt])
+    spacedExprsP = combineWith combineQueriesByType <$> orExprsP `sepBy` skipNonNewlineSpaces1
 
       where
-        nArityOp :: ([Query] -> Query) -> [(Query, [QueryOpt])] -> (Query, [QueryOpt])
-        nArityOp f res =
+        combineWith :: ([Query] -> Query) -> [(Query, [QueryOpt])] -> (Query, [QueryOpt])
+        combineWith f res =
           let (qs, qoptss) = unzip res
               qoptss'      = concat qoptss
           in case qs of
-              []     -> (Any, qoptss')
-              (q:[]) -> (simplifyQuery q, qoptss')
+              []     -> (Any,                  qoptss')
+              (q:[]) -> (simplifyQuery q,      qoptss')
               _      -> (simplifyQuery $ f qs, qoptss')
 
-        orQueriesP :: SimpleTextParser (Query, [QueryOpt])
-        orQueriesP = nArityOp Or <$> andQueriesP `sepBy` (try $ skipNonNewlineSpaces >> string' "or" >> skipNonNewlineSpaces1)
+        -- Containing query expressions separated by "or".
+        orExprsP :: SimpleTextParser (Query, [QueryOpt])
+        orExprsP = combineWith Or <$> andExprsP `sepBy` (try $ skipNonNewlineSpaces >> string' "or" >> skipNonNewlineSpaces1)
 
           where
-            andQueriesP :: SimpleTextParser (Query, [QueryOpt])
-            andQueriesP = nArityOp And <$> notQueryP `sepBy` (try $ skipNonNewlineSpaces >> string' "and" >> skipNonNewlineSpaces1)
+            -- Containing query expressions separated by "and".
+            andExprsP :: SimpleTextParser (Query, [QueryOpt])
+            andExprsP = combineWith And <$> maybeNotExprP `sepBy` (try $ skipNonNewlineSpaces >> string' "and" >> skipNonNewlineSpaces1)
 
               where
-                notQueryP :: SimpleTextParser (Query, [QueryOpt])
-                notQueryP = (maybe id (\_ (q, qopts) -> (Not q, qopts)) <$>
-                  optional (try $ string' "not" >> notFollowedBy (char ':') >> skipNonNewlineSpaces1)) <*> parQueryP
+                -- Containing query expressions optionally preceded by "not".
+                maybeNotExprP :: SimpleTextParser (Query, [QueryOpt])
+                maybeNotExprP = (maybe id (\_ (q, qopts) -> (Not q, qopts)) <$>
+                  optional (try $ string' "not" >> notFollowedBy (char ':') >> skipNonNewlineSpaces1)) <*> termOrParenthesisedExprP
 
                   where
-                    parQueryP :: SimpleTextParser (Query, [QueryOpt])
-                    parQueryP = 
-                      between (char '(' >> skipNonNewlineSpaces) (try $ skipNonNewlineSpaces >> char ')') spacedQueriesP
+                    -- Each of which is a parenthesised query expression or a single query term.
+                    termOrParenthesisedExprP :: SimpleTextParser (Query, [QueryOpt])
+                    termOrParenthesisedExprP = 
+                      between (char '(' >> skipNonNewlineSpaces) (try $ skipNonNewlineSpaces >> char ')') spacedExprsP
                       <|> queryTermP
 
                       where
+                        -- A simple query term: foo, acct:foo, desc:foo, payee:foo etc.
                         queryTermP :: SimpleTextParser (Query, [QueryOpt])
                         queryTermP = do
                           prefix <- optional queryPrefixP
-                          queryRegex <- regexP
-                          case parseQueryTerm d (fromMaybe "" prefix <> queryRegex) of
+                          arg <- queryArgP
+                          case parseQueryTerm d (fromMaybe "" prefix <> arg) of
                             Right q  -> return q
                             Left err -> error' err
 
                           where
+                            -- One of the query prefixes: acct:, desc:, payee: etc (plus zero or more not: prefixes).
                             queryPrefixP :: SimpleTextParser T.Text
-                            queryPrefixP = (string "not:" <> (fromMaybe "" <$> optional queryPrefixP))
-                                      <|> choice' (string <$> queryprefixes)
-                                      <?> "query prefix"
+                            queryPrefixP =
+                              (string "not:" <> (fromMaybe "" <$> optional queryPrefixP))
+                              <|> choice' (string <$> queryprefixes)
+                              <?> "query prefix"
 
-                            regexP       :: SimpleTextParser T.Text
-                            regexP       = choice'
+                            -- A query term's argument, the part after the prefix:
+                            -- any text enclosed in single quotes or double quotes,
+                            -- or any text up to the next space, closing parenthesis, or end of line,
+                            -- if it is not one of the keywords "not", "and", "or".
+                            queryArgP :: SimpleTextParser T.Text
+                            queryArgP = choice'
                               [ stripquotes . T.pack <$> between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])),
                                 stripquotes . T.pack <$> between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])),
-                                T.pack <$> (notFollowedBy keywordSpaceP >> (many $ noneOf (") \n\r" :: [Char]))) ]
+                                T.pack <$> (notFollowedBy keywordP >> (many $ noneOf (") \n\r" :: [Char]))) ]
 
                               where
-                                keywordSpaceP :: SimpleTextParser T.Text
-                                keywordSpaceP = choice' (string' <$> ["not ", "and ", "or "])
+                                -- Any of the combinator keywords used above (not/and/or), terminated by a space.
+                                keywordP :: SimpleTextParser T.Text
+                                keywordP = choice' (string' <$> ["not ", "and ", "or "])
 
 -- | Parse the argument of an amt query term ([OP][SIGN]NUM), to an
 -- OrdPlus and a Quantity, or if parsing fails, an error message. OP
