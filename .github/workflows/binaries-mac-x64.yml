@@ -28,7 +28,8 @@ jobs:
         # - { ghc: "90" , stack: "stack --stack-yaml=stack9.0.yaml" }
         # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }
         # - { ghc: "94" , stack: "stack --stack-yaml=stack9.4.yaml" }
-        - { ghc: "96" , stack: "stack --stack-yaml=stack.yaml" }
+        # - { ghc: "96" , stack: "stack --stack-yaml=stack9.6.yaml" }
+        - { ghc: "98" , stack: "stack --stack-yaml=stack.yaml" }
 
     steps:
 

@@ -1,6 +1,6 @@
-# stack build plan using GHC 9.8.1
+# stack build plan using GHC 9.8.2
 
-resolver: nightly-2024-03-14
+resolver: nightly-2024-04-08
 
 packages:
 - hledger-lib
@@ -8,13 +8,8 @@ packages:
 - hledger-ui
 - hledger-web
 
-# XXX
 extra-deps:
 - base64-0.4.2.4            # hledger-web does not yet support base64-1
-- cassava-megaparsec-2.1.1  # to support current bytestring/vector; not yet in stackage
-- email-validate-2.3.2.20   # to support 9.8's template-haskell; not yet in stackage
-- yesod-1.6.2.1             # not yet in stackage
-- yesod-form-1.7.6          # not yet in stackage
 
 nix:
   pure: false
