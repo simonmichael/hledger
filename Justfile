@@ -330,7 +330,7 @@ TESTING:
 
 # run ghci on hledger-lib + hledger
 @ghci:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger/Hledger/Cli.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fobject-code hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof:
@@ -451,7 +451,7 @@ STACKTEST := STACK + ' test --fast'
 
 # run the doctests in hledger-lib module/function docs
 @doctest:
-    ($STACKTEST hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACKTEST --ghc-options=-f-object-code hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # # run the unit tests in hledger-lib
 # unittest:
