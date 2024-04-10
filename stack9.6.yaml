@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.6.4
 
-resolver: lts-22.12
+resolver: lts-22.16
 
 packages:
 - hledger-lib
@@ -9,6 +9,10 @@ packages:
 - hledger-web
 
 extra-deps:
+- process-1.6.19.0          # for HSEC-2024-0003
+- Cabal-3.10.1.0
+- haskeline-0.8.2.1
+
 - vty-windows-0.2.0.1   # not yet in stackage
 
 nix:

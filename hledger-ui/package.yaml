@@ -90,7 +90,7 @@ library:
   - microlens-platform >=0.2.3.1
   - megaparsec >=7.0.0 && <9.7
   - mtl >=2.2.1
-  - process >=1.2
+  - process >=1.6.19.0
   - safe >=0.3.20
   - split >=0.1
   - text >=1.2.4.1
