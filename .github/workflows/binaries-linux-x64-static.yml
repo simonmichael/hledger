@@ -34,7 +34,7 @@ jobs:
         tools/checkembeddedfiles
       if: env.CONTINUE
 
-    - name: Cache ghcup-installed tools
+    - name: Uncache ghcup-installed tools
       id:   ghcup
       uses: actions/cache@v3
       with:
@@ -43,7 +43,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
-    - name: Cache cabal-installed libs
+    - name: Uncache cabal-installed libs
       id:   cabal
       uses: actions/cache@v3
       with:

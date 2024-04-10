@@ -142,7 +142,7 @@ jobs:
 
     # things to be cached/restored:
 
-    - name: Cache stack global package db
+    - name: Uncache stack global package db
       id:   stack-global
       uses: actions/cache@v3
       with:
@@ -155,7 +155,7 @@ jobs:
              ${{ runner.os }}-stack-global-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache stack-installed programs in ~/.local/bin
+    - name: Uncache stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v3
       with:
@@ -165,7 +165,7 @@ jobs:
              ${{ runner.os }}-stack-programs-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache .stack-work
+    - name: Uncache .stack-work
       uses: actions/cache@v3
       with:
         path: .stack-work
@@ -174,7 +174,7 @@ jobs:
              ${{ runner.os }}-stack-work-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache hledger-lib/.stack-work
+    - name: Uncache hledger-lib/.stack-work
       uses: actions/cache@v3
       with:
         path: hledger-lib/.stack-work
@@ -183,7 +183,7 @@ jobs:
              ${{ runner.os }}-hledger-lib-stack-work-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache hledger/.stack-work
+    - name: Uncache hledger/.stack-work
       uses: actions/cache@v3
       with:
         path: hledger/.stack-work
@@ -192,7 +192,7 @@ jobs:
              ${{ runner.os }}-hledger-stack-work-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache hledger-ui/.stack-work
+    - name: Uncache hledger-ui/.stack-work
       uses: actions/cache@v3
       with:
         path: hledger-ui/.stack-work
@@ -201,7 +201,7 @@ jobs:
              ${{ runner.os }}-hledger-ui-stack-work-${{ matrix.plan.ghc }}
       if: env.CONTINUE
 
-    - name: Cache hledger-web/.stack-work
+    - name: Uncache hledger-web/.stack-work
       uses: actions/cache@v3
       with:
         path: hledger-web/.stack-work
