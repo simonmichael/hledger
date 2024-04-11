@@ -49,8 +49,8 @@ but with smarter account detection, and liabilities/equity displayed with
 their sign flipped.
 
 This report is the easiest way to see if the [accounting equation] (A+L+E = 0) is satisfied
-(after you have done a [`close --retain`](#close) to merge revenues and expenses with equity,
-and perhaps added `--infer-equity` to balance your commodity conversions).
+(after you have done a [`close --retain`](#close---retain) to merge revenues and expenses with equity,
+and perhaps added [`--infer-equity`](#inferring-equity-conversion-postings) to balance your commodity conversions).
 
 This command also supports the
 [output destination](hledger.html#output-destination) and
