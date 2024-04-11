@@ -47,7 +47,10 @@ and supports many of that command's features, such as multi-period reports.
 It is similar to `hledger balance -H assets liabilities equity`,
 but with smarter account detection, and liabilities/equity displayed with
 their sign flipped.
-It is the easiest way to see if the [accounting equation] is satisfied (A+L+E = 0).
+
+This report is the easiest way to see if the [accounting equation] (A+L+E = 0) is satisfied
+(after you have done a [`close --retain`](#close) to merge revenues and expenses with equity,
+and perhaps added `--infer-equity` to balance your commodity conversions).
 
 This command also supports the
 [output destination](hledger.html#output-destination) and
