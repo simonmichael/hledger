@@ -21,17 +21,18 @@ hledger import bank.csv or perhaps hledger import *.csv.
 Note you can import from any file format, though CSV files are the most
 common import source, and these docs focus on that case.
 
-Skipping
+Deduplication
 
 import tries to import only the transactions which are new since the
-last import, "skipping over" any that it saw last time. So if your
+last import, ignoring any that it has seen in previous runs. So if your
 bank's CSV includes the last three months of data, you can download and
 import it every month (or week, or day) and only the new transactions
 will be imported each time.
 
-It works as follows. For each imported FILE:
+It works as follows. For each imported FILE (usually CSV, but they could
+be any of hledger's input formats):
 
--   It tries to find the latest date seen previously, by reading it from
+-   It tries to recall the latest date seen previously, reading it from
     a hidden .latest.FILE in the same directory.
 -   Then it processes FILE, ignoring any transactions on or before the
     "latest seen" date.
@@ -39,30 +40,35 @@ It works as follows. For each imported FILE:
 And after a successful import, it updates the .latest.FILE(s) for next
 time (unless --dry-run was used).
 
-This is simple system that works fairly well for transaction data
-(usually CSV, but it could be any of hledger's input formats). It
-assumes:
+This is a limited kind of deduplication, let's call it "date skipping".
+Within each input file, it avoids reprocessing the same dates across
+successive runs. This is a simple system that works for most real-world
+CSV files; it assumes these are true, or true enough:
 
 1.  new items always have the newest dates
-2.  item dates are stable across successive CSV downloads
-3.  the order of same-date items is stable across CSV downloads
+2.  item dates are stable across successive downloads
+3.  the order of same-date items is stable across downloads
+4.  the name of the input file is stable across downloads
 
-These are true of most CSV files representing transactions, or true
-enough. If you have a bank whose CSV dates or ordering occasionally
-changes, you can reduce the chance of this happening in new transactions
-by importing more often (and in old transactions it doesn't matter).
+If you have a bank whose CSV dates or ordering occasionally change, you
+can reduce the chance of this happening in new transactions by importing
+more often, and in old transactions it doesn't matter. And remember you
+can use CSV rules files as input, which is one way to ensure a stable
+file name.
 
-Note, import avoids reprocessing the same dates across successive runs,
-but it does not detect transactions that are duplicated within a single
-run. I'll call these "skipping" and "deduplication".
+import doesn't detect other kinds of duplication, such as duplicate
+transactions within a single run. (In part, because legitimate duplicate
+transactions can easily occur in real-world data.) So, say you
+downloaded but forgot to import bank.1.csv, and a week later you
+downloaded bank.2.csv with overlapping data. Now you should not import
+both of these at once (hledger import bank.1.csv bank.2.csv); the
+overlapping transactions which appear twice would not be deduplicated
+since this is considered a single import. Instead, import these files
+one at a time, and also use the same filename each time for a common
+"latest seen" state:
 
-So for example, say you downloaded but did not import bank.1.csv, and
-later downloaded bank.2.csv with overlapping data. Then you should not
-import both of them at once (hledger import bank.1.csv bank.2.csv), as
-the overlapping data would appear twice and not be deduplicated.
-Instead, import them one at a time
-(hledger import bank.1.csv; hledger import bank.2.csv), and the second
-import will skip the overlapping data.
+$ mv bank.1.csv bank.csv; hledger import bank.csv
+$ mv bank.2.csv bank.csv; hledger import bank.csv
 
 Normally you can ignore the .latest.* files, but if needed, you can
 delete them (to make all transactions unseen), or construct/modify them
@@ -71,8 +77,8 @@ date (YYYY-MM-DD), possibly repeated on multiple lines. It means "I have
 seen transactions up to this date, and this many of them occurring on
 that date".
 
-(hledger print --new also uses and updates these .latest.* files, but it
-is less often used.)
+hledger print --new also uses and updates these .latest.* files, but it
+is less often used.
 
 Related: CSV > Working with CSV > Deduplicating, importing.
 
