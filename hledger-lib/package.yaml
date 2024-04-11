@@ -171,30 +171,33 @@ tests:
     dependencies:
     - hledger-lib
 
+  # Disable doctest for now because its dependence on ghc prevents reliable use of the
+  # newer security-fixed process-1.6.19.0.
+  #
   # Note when run by cabal, doctest requires a ghc environment file,
   # so we ensure this is generated, see cabal.project.
   # https://github.com/simonmichael/hledger/issues/1139
-  doctest:
-    source-dirs: test
-    main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
-    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    dependencies:
-    # prefer the latest doctest
-    - doctest >=0.18.1
-    - Glob >=0.7
+  # doctest:
+  #   source-dirs: test
+  #   main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
+  #   other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+  #   dependencies:
+  #   # prefer the latest doctest
+  #   - doctest >=0.18.1
+  #   - Glob >=0.7
 
-    when:
-    # disable doctest with GHC 9.0, https://github.com/sol/doctest/issues/301
-    - condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
-      buildable: false
+  #   when:
+  #   # disable doctest with GHC 9.0, https://github.com/sol/doctest/issues/301
+  #   - condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
+  #     buildable: false
 
-    # ghc 8.4+ on mac needs this workaround. See
-    # https://github.com/sol/doctest/issues/199
-    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 :
-    #  ~$ locate HSinteger-gmp-1.0.2.0.o
-    #  /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
-    #  ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
-    # Should probably disable it by default:
-    #when:
-    # - condition: os(darwin) && impl(ghc >= 8.4)
-    #   buildable: false
+  #   # ghc 8.4+ on mac needs this workaround. See
+  #   # https://github.com/sol/doctest/issues/199
+  #   # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 :
+  #   #  ~$ locate HSinteger-gmp-1.0.2.0.o
+  #   #  /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
+  #   #  ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
+  #   # Should probably disable it by default:
+  #   #when:
+  #   # - condition: os(darwin) && impl(ghc >= 8.4)
+  #   #   buildable: false
