@@ -17,28 +17,29 @@ Or if no such accounts are declared, it shows top-level accounts named
 Example:
 ```cli
 $ hledger balancesheetequity
-Balance Sheet With Equity
+Balance Sheet With Equity 2008-12-31
 
-Assets:
-                 $-2  assets
-                  $1    bank:saving
-                 $-3    cash
---------------------
-                 $-2
-
-Liabilities:
-                  $1  liabilities:debts
---------------------
-                  $1
-
-Equity:
-		  $1  equity:owner
---------------------
-		  $1
-
-Total:
---------------------
-                   0
+                    || 2008-12-31 
+====================++============
+ Assets             ||            
+--------------------++------------
+ assets:bank:saving ||         $1 
+ assets:cash        ||        $-2 
+--------------------++------------
+                    ||        $-1 
+====================++============
+ Liabilities        ||            
+--------------------++------------
+ liabilities:debts  ||        $-1 
+--------------------++------------
+                    ||        $-1 
+====================++============
+ Equity             ||            
+--------------------++------------
+--------------------++------------
+                    ||          0 
+====================++============
+ Net:               ||          0 
 ```
 
 This command is a higher-level variant of the [`balance`](#balance) command,
@@ -46,9 +47,12 @@ and supports many of that command's features, such as multi-period reports.
 It is similar to `hledger balance -H assets liabilities equity`,
 but with smarter account detection, and liabilities/equity displayed with
 their sign flipped.
+It is the easiest way to see if the [accounting equation] is satisfied (A+L+E = 0).
 
 This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
 The output formats supported are
 `txt`, `csv`, `tsv`, `html`, and `json`.
+
+[accounting equation]: https://plaintextaccounting.org/FAQ#what-is-the-accounting-equation

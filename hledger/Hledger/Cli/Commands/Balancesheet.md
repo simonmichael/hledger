@@ -19,24 +19,25 @@ Example:
 
 ```cli
 $ hledger balancesheet
-Balance Sheet
+Balance Sheet 2008-12-31
 
-Assets:
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
---------------------
-                 $-1
-
-Liabilities:
-                  $1  liabilities:debts
---------------------
-                  $1
-
-Total:
---------------------
-                   0
-```
+                    || 2008-12-31 
+====================++============
+ Assets             ||            
+--------------------++------------
+ assets:bank:saving ||         $1 
+ assets:cash        ||        $-2 
+--------------------++------------
+                    ||        $-1 
+====================++============
+ Liabilities        ||            
+--------------------++------------
+ liabilities:debts  ||        $-1 
+--------------------++------------
+                    ||        $-1 
+====================++============
+ Net:               ||          0 
+ ```
 
 This command is a higher-level variant of the [`balance`](#balance) command,
 and supports many of that command's features, such as multi-period reports.

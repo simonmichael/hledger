@@ -18,25 +18,25 @@ Or if no such accounts are declared, it shows top-level accounts named
 Example:
 ```cli
 $ hledger incomestatement
-Income Statement
+Income Statement 2008
 
-Revenues:
-                 $-2  income
-                 $-1    gifts
-                 $-1    salary
---------------------
-                 $-2
-
-Expenses:
-                  $2  expenses
-                  $1    food
-                  $1    supplies
---------------------
-                  $2
-
-Total:
---------------------
-                   0
+                   || 2008 
+===================++======
+ Revenues          ||      
+-------------------++------
+ income:gifts      ||   $1 
+ income:salary     ||   $1 
+-------------------++------
+                   ||   $2 
+===================++======
+ Expenses          ||      
+-------------------++------
+ expenses:food     ||   $1 
+ expenses:supplies ||   $1 
+-------------------++------
+                   ||   $2 
+===================++======
+ Net:              ||    0 
 ```
 
 This command is a higher-level variant of the [`balance`](#balance) command,

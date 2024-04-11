@@ -2,7 +2,7 @@
 
 (cf)
 
-This command displays a [cashflow statement](https://en.wikipedia.org/wiki/Cash_flow_statement), 
+This command displays a (simple) [cashflow statement](https://en.wikipedia.org/wiki/Cash_flow_statement), 
 showing the inflows and outflows affecting "cash" (ie, liquid, easily convertible) assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
@@ -25,18 +25,16 @@ and their subaccounts.
 An example cashflow report:
 ```cli
 $ hledger cashflow
-Cashflow Statement
+Cashflow Statement 2008
 
-Cash flows:
-                 $-1  assets
-                  $1    bank:saving
-                 $-2    cash
---------------------
-                 $-1
-
-Total:
---------------------
-                 $-1
+                    || 2008 
+====================++======
+ Cash flows         ||      
+--------------------++------
+ assets:bank:saving ||   $1 
+ assets:cash        ||  $-2 
+--------------------++------
+                    ||  $-1 
 ```
 
 This command is a higher-level variant of the [`balance`](#balance) command,
