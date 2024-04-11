@@ -2771,8 +2771,8 @@ hledger ignores these.
 
 ### Virtual postings
 
-A posting with parentheses around the account name (`(some:account)`) is called a *unbalanced virtual posting*.
-Such postings do not participate in transaction balancing.
+A posting with parentheses around the account name, like `(some:account)   10`, is called an *unbalanced virtual posting*.
+These postings do not participate in transaction balancing.
 (And if you write them without an amount, a zero amount is always inferred.)
 These can occasionally be convenient for special circumstances,
 but they violate double entry bookkeeping and make your data less portable across applications,
