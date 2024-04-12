@@ -1405,18 +1405,12 @@ troubleshooting or for reading Ledger files.
 
 ### Assertions and ordering
 
-hledger sorts an account's postings and assertions first by date and
-then (for postings on the same day) by parse order. Note this is
-different from Ledger, which sorts assertions only by parse
-order. (Also, Ledger assertions do not see the accumulated effect of
-repeated postings to the same account within a transaction.)
+hledger calculates and checks an account's balance assertions in date order
+(and when there are multiple assertions on the same day, in parse order). 
+Note this is different from Ledger, which checks assertions always in parse order, ignoring dates.
 
-So, hledger balance assertions keep working if you reorder
-differently-dated transactions within the journal. But if you reorder
-same-dated transactions or postings, assertions might break and require
-updating. This order dependence does bring an advantage: precise
-control over the order of postings and assertions within a day, so you
-can assert intra-day balances.
+This means in hledger you can freely reorder transactions, postings, or files, and balance assertions will usually keep working.
+The exception is when you reorder multiple postings on the same day, to the same account, which have balance assertions; those will likely need updating.
 
 ### Assertions and multiple included files
 
