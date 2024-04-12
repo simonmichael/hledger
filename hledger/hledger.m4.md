@@ -1387,12 +1387,12 @@ each posting:
 
 ```journal
 2013/1/1
-  a   $1  =$1
-  b       =$-1
+  a   $1 =  $1
+  b      = $-1
 
 2013/1/2
-  a   $1  =$2
-  b  $-1  =$-2
+  a   $1 =  $2
+  b  $-1 = $-2
 ```
 
 After reading a journal file, hledger will check all balance
@@ -1454,15 +1454,15 @@ besides the asserted one (or at least, that their balance is 0).
 ``` journal
 2013/1/1
   a   $1
-  a    1€
+  a   €1
   b  $-1
-  c   -1€
+  c  €-1
 
 2013/1/2  ; These assertions succeed
   a    0  =  $1
-  a    0  =   1€
+  a    0  =  €1
   b    0 == $-1
-  c    0 ==  -1€
+  c    0 == €-1
 
 2013/1/3  ; This assertion fails as 'a' also contains 1€
   a    0 ==  $1
@@ -1474,13 +1474,13 @@ One workaround is to isolate each commodity into its own subaccount:
 ``` journal
 2013/1/1
   a:usd   $1
-  a:euro   1€
+  a:euro  €1
   b
 
 2013/1/2
   a        0 ==  0
   a:usd    0 == $1
-  a:euro   0 ==  1€
+  a:euro   0 == €1
 ```
 
 ### Assertions and costs
