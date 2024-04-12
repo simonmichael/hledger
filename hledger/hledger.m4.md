@@ -1453,34 +1453,36 @@ besides the asserted one (or at least, that their balance is 0).
 
 ``` journal
 2013/1/1
-  a   $1
-  a   €1
-  b  $-1
-  c  €-1
+  usd   $-1
+  eur   €-1
+  both   $1
+  both   €1
 
 2013/1/2  ; These assertions succeed
-  a    0  =  $1
-  a    0  =  €1
-  b    0 == $-1
-  c    0 == €-1
+  usd     0 == $-1
+  eur     0 == €-1
+  both    0  =  $1
+  both    0  =  €1
 
-2013/1/3  ; This assertion fails as 'a' also contains 1€
-  a    0 ==  $1
+2013/1/3  ; This total assertion fails because 'both' contains $1 and €1
+  both    0 ==  $1
 ```
 
-It's not yet possible to make a complete assertion about a balance that has multiple commodities.
-One workaround is to isolate each commodity into its own subaccount:
+It's not yet possible to make a single total assertion about a multi-commodity balance.
+One workaround is to isolate each commodity in its own subaccount:
 
 ``` journal
 2013/1/1
-  a:usd   $1
-  a:euro  €1
-  b
+  usd       $-1
+  eur       €-1
+  both:usd   $1
+  both:eur   €1
 
-2013/1/2
-  a        0 ==  0
-  a:usd    0 == $1
-  a:euro   0 == €1
+2013/1/2  ; These assertions succeed
+  usd         0 == $-1
+  eur         0 == €-1
+  both:usd    0 ==  $1
+  both:eur    0 ==  €1
 ```
 
 ### Assertions and costs
