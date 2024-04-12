@@ -1435,56 +1435,6 @@ files.
 If you do want assertions to see balance from earlier files, use
 `include`, or concatenate the files temporarily.
 
-### Assertions and commodities
-
-The asserted balance must be a simple single-commodity amount, and in
-fact the assertion checks only this commodity's balance within the
-(possibly multi-commodity) account balance.
-This is how assertions work in Ledger also.
-We could call this a "partial" balance assertion.
-
-To assert the balance of more than one commodity in an account,
-you can write multiple postings, each asserting one commodity's balance.
-
-You can make a stronger "total" balance assertion by writing a
-double equals sign (`== EXPECTEDBALANCE`).
-This asserts that there are no other commodities in the account
-besides the asserted one (or at least, that their balance is 0).
-
-``` journal
-2013/1/1
-  usd   $-1
-  eur   €-1
-  both   $1
-  both   €1
-
-2013/1/2  ; These assertions succeed
-  usd     0 == $-1
-  eur     0 == €-1
-  both    0  =  $1
-  both    0  =  €1
-
-2013/1/3  ; This total assertion fails because 'both' contains $1 and €1
-  both    0 ==  $1
-```
-
-It's not yet possible to make a single total assertion about a multi-commodity balance.
-One workaround is to isolate each commodity in its own subaccount:
-
-``` journal
-2013/1/1
-  usd       $-1
-  eur       €-1
-  both:usd   $1
-  both:eur   €1
-
-2013/1/2  ; These assertions succeed
-  usd         0 == $-1
-  eur         0 == €-1
-  both:usd    0 ==  $1
-  both:eur    0 ==  €1
-```
-
 ### Assertions and costs
 
 Balance assertions ignore [costs](#costs),
@@ -1500,18 +1450,65 @@ but they don't affect whether the assertion passes or fails.
 This is for backward compatibility (hledger's [close](#close) command used to generate balance assertions with costs),
 and because [balance *assignments*](#balance-assignments) do use costs (see below).
 
+### Assertions and commodities
+
+The balance assertions described so far are "**single commodity balance assertions**":
+they assert and check the balance in one commodity, ignoring any others that may be present.
+This is how balance assertions work in Ledger also.
+
+If an account contains multiple commodities, you can assert their balances
+by writing multiple postings with balance assertions, one for each commodity:
+
+``` journal
+2013/1/1
+  usd   $-1
+  eur   €-1
+  both
+
+2013/1/2
+  both    0 = $1
+  both    0 = €1
+```
+
+In hledger you can make a stronger "**sole commodity balance assertion**" by writing two equals signs (`== EXPECTEDBALANCE`).
+This also asserts that there are no other commodities in the account besides the asserted one (or at least, that their current balance is zero):
+
+```
+2013/1/1
+  usd   $-1  == $-1  ; these sole commodity assertions succeed
+  eur   €-1  == €-1
+  both      ;==  $1  ; this one would fail because 'both' contains $ and €
+```
+
+It's less easy to make a "**sole commodities balance assertion**" (note the plural) -
+ie, asserting that an account contains two or more specified commodities and no others.
+It can be done by 
+
+1. isolating each commodity in a subaccount, and asserting those
+2. and also asserting there are no commodities in the parent account itself:
+
+``` journal
+2013/1/1
+  usd       $-1
+  eur       €-1
+  both        0 == 0   ; nothing up my sleeve
+  both:usd   $1 == $1  ; a dollar here
+  both:eur   €1 == €1  ; a euro there
+```
+
 ### Assertions and subaccounts
 
-The balance assertions above (`=` and `==`) do not count the balance
-from subaccounts; they check the account's exclusive balance only.
-You can assert the balance including subaccounts by writing `=*` or `==*`, eg:
+All of the balance assertions above (both `=` and `==`) are "**subaccount-exclusive balance assertions**";
+they ignore any balances that exist in deeper subaccounts.
+
+In hledger you can make "**subaccount-inclusive balance assertions**" by adding a star after the equals (`=*` or `==*`):
 
 ```journal
 2019/1/1
-  equity:opening balances
-  checking:a       5
-  checking:b       5
-  checking         1  ==* 11
+  equity:start
+  assets:checking    $10
+  assets:savings     $10
+  assets              $0 ==* $20  ; assets + subaccounts contains $20 (and nothing else)
 ```
 
 ### Assertions and virtual postings
