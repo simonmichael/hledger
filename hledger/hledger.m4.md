@@ -1506,9 +1506,9 @@ In hledger you can make "**subaccount-inclusive balance assertions**" by adding 
 ```journal
 2019/1/1
   equity:start
-  assets:checking    $10
-  assets:savings     $10
-  assets              $0 ==* $20  ; assets + subaccounts contains $20 (and nothing else)
+  assets:checking  $10
+  assets:savings   $10
+  assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 ```
 
 ### Assertions and virtual postings
