@@ -1,14 +1,21 @@
 # TODO
 
-Some bite-sized tasks that are awaiting volunteers,
-currently needed,
-and estimated as Small (~1 hour, the default), Medium (~0.5 day) or Large (~1 day).
+This pages lists bite-sized tasks that are 
+
+- awaiting volunteers
+- currently needed,
+- and estimated, as small (about an hour, the default) or medium (about half to one day).
+
 If you'd like to help, this is a great place to start.
+
+*2024: Nobody uses this page, so it's deprecated for now.*
+<!--
+
+
 Related:
-<http://issues.hledger.org> ([bugs](http://bugs.hledger.org), [wishes](http://wishes.hledger.org), [category links](https://hledger.org/ISSUES.html#open-issues)),
+<https://issues.hledger.org> ([bugs](https://bugs.hledger.org), [wishes](https://wishes.hledger.org), [category links](https://hledger.org/ISSUES.html#open-issues)),
 [BACKLOG](BACKLOG.md),
 [ROADMAP](ROADMAP.md),
-<http://projects.hledger.org>,
 [Mockups](mockups.md),
 [Developer docs](dev.md).
 
@@ -25,3 +32,4 @@ Related:
 ## Done
 Completed items from above, annotated with initials and date.
 
+-->
