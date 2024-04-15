@@ -8,9 +8,15 @@
 
 Ideas of where the hledger project should be going next.
 Being listed here suggests a bit of commitment, perhaps even a schedule.
-Related:
-<http://projects.hledger.org>,
-[TODO](TODO.md).
+Related: [TODO](TODO.md).
+
+## 2024
+
+**Targets:**
+- hledger 1.33, april
+- hledger 1.34, june ? TBD
+- hledger 1.35, september ?
+- hledger 1.36, december ?
 
 ## 2023
 
