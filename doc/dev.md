@@ -13,6 +13,7 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 - [ACHIEVEMENTS](ACHIEVEMENTS.md)
 - [BENCHMARKS](BENCHMARKS.md)
 - [CHANGELOGS](CHANGELOGS.md)
+- [CLIMATE](CLIMATE.md)
 - [CODE](CODE.md)
 - [COMMITS](COMMITS.md)
 - [CONTRIBUTING](CONTRIBUTING.md)
