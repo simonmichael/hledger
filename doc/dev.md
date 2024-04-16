@@ -124,8 +124,8 @@ versions:
 **Homebrew:**\
 [hledger](https://formulae.brew.sh/formula/hledger)\
 our 1-year rank among homebrew installs:\
-2023: [#1821 of 24k](https://formulae.brew.sh/analytics/install-on-request/365d)(top8%)\
-2020: [#1520 of 10k](https://formulae.brew.sh/analytics/install-on-request/365d)(top15%)\
+2023: [#1821 of 24k](https://formulae.brew.sh/analytics/install-on-request/365d) (top 8%)\
+2020: [#1520 of 10k](https://formulae.brew.sh/analytics/install-on-request/365d) (top 15%)\
 \
 **Debian:**\
 source packages:
