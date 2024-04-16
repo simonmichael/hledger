@@ -1,4 +1,4 @@
-# Mockups
+# MOCKUPS
 
 <div class=pagetoc>
 
