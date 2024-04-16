@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2024" "hledger-1.32.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "April 2024" "hledger-1.33 " "hledger User Manuals"
 
 
 
@@ -23,8 +23,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version
-1.32.99.
+This manual is for hledger\[aq]s command line interface, version 1.33.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -123,6 +122,9 @@ For more about how to do that on your system, see Common tasks > Setting
 LEDGER_FILE.
 .SS Text encoding
 Data files containing non\-ascii characters must use UTF\-8 encoding.
+An optional byte order mark (BOM) is allowed, at the beginning of the
+file (only).
+.PP
 Also, your system should be configured with a locale that can decode
 UTF\-8 text.
 On some unix systems, you may need set the \f[CR]LANG\f[R] environment
@@ -1805,12 +1807,12 @@ each posting:
 .IP
 .EX
 2013/1/1
-  a   $1  =$1
-  b       =$\-1
+  a   $1 =  $1
+  b      = $\-1
 
 2013/1/2
-  a   $1  =$2
-  b  $\-1  =$\-2
+  a   $1 =  $2
+  b  $\-1 = $\-2
 .EE
 .PP
 After reading a journal file, hledger will check all balance assertions
@@ -1823,20 +1825,17 @@ troubleshooting or for reading Ledger files.
 (Note: this flag currently does not disable balance assignments,
 described below).
 .SS Assertions and ordering
-hledger sorts an account\[aq]s postings and assertions first by date and
-then (for postings on the same day) by parse order.
-Note this is different from Ledger, which sorts assertions only by parse
-order.
-(Also, Ledger assertions do not see the accumulated effect of repeated
-postings to the same account within a transaction.)
+hledger calculates and checks an account\[aq]s balance assertions in
+date order (and when there are multiple assertions on the same day, in
+parse order).
+Note this is different from Ledger, which checks assertions always in
+parse order, ignoring dates.
 .PP
-So, hledger balance assertions keep working if you reorder
-differently\-dated transactions within the journal.
-But if you reorder same\-dated transactions or postings, assertions
-might break and require updating.
-This order dependence does bring an advantage: precise control over the
-order of postings and assertions within a day, so you can assert
-intra\-day balances.
+This means in hledger you can freely reorder transactions, postings, or
+files, and balance assertions will usually keep working.
+The exception is when you reorder multiple postings on the same day, to
+the same account, which have balance assertions; those will likely need
+updating.
 .SS Assertions and multiple included files
 Multiple files included with the \f[CR]include\f[R] directive are
 processed as if concatenated into one file, preserving their order and
@@ -1857,53 +1856,6 @@ disrupt valid assertions in later files.
 .PP
 If you do want assertions to see balance from earlier files, use
 \f[CR]include\f[R], or concatenate the files temporarily.
-.SS Assertions and commodities
-The asserted balance must be a simple single\-commodity amount, and in
-fact the assertion checks only this commodity\[aq]s balance within the
-(possibly multi\-commodity) account balance.
-This is how assertions work in Ledger also.
-We could call this a \[dq]partial\[dq] balance assertion.
-.PP
-To assert the balance of more than one commodity in an account, you can
-write multiple postings, each asserting one commodity\[aq]s balance.
-.PP
-You can make a stronger \[dq]total\[dq] balance assertion by writing a
-double equals sign (\f[CR]== EXPECTEDBALANCE\f[R]).
-This asserts that there are no other commodities in the account besides
-the asserted one (or at least, that their balance is 0).
-.IP
-.EX
-2013/1/1
-  a   $1
-  a    1€
-  b  $\-1
-  c   \-1€
-
-2013/1/2  ; These assertions succeed
-  a    0  =  $1
-  a    0  =   1€
-  b    0 == $\-1
-  c    0 ==  \-1€
-
-2013/1/3  ; This assertion fails as \[aq]a\[aq] also contains 1€
-  a    0 ==  $1
-.EE
-.PP
-It\[aq]s not yet possible to make a complete assertion about a balance
-that has multiple commodities.
-One workaround is to isolate each commodity into its own subaccount:
-.IP
-.EX
-2013/1/1
-  a:usd   $1
-  a:euro   1€
-  b
-
-2013/1/2
-  a        0 ==  0
-  a:usd    0 == $1
-  a:euro   0 ==  1€
-.EE
 .SS Assertions and costs
 Balance assertions ignore costs, and should normally be written without
 one:
@@ -1919,19 +1871,75 @@ passes or fails.
 This is for backward compatibility (hledger\[aq]s close command used to
 generate balance assertions with costs), and because balance
 \f[I]assignments\f[R] do use costs (see below).
+.SS Assertions and commodities
+The balance assertions described so far are \[dq]\f[B]single commodity
+balance assertions\f[R]\[dq]: they assert and check the balance in one
+commodity, ignoring any others that may be present.
+This is how balance assertions work in Ledger also.
+.PP
+If an account contains multiple commodities, you can assert their
+balances by writing multiple postings with balance assertions, one for
+each commodity:
+.IP
+.EX
+2013/1/1
+  usd   $\-1
+  eur   €\-1
+  both
+
+2013/1/2
+  both    0 = $1
+  both    0 = €1
+.EE
+.PP
+In hledger you can make a stronger \[dq]\f[B]sole commodity balance
+assertion\f[R]\[dq] by writing two equals signs
+(\f[CR]== EXPECTEDBALANCE\f[R]).
+This also asserts that there are no other commodities in the account
+besides the asserted one (or at least, that their current balance is
+zero):
+.IP
+.EX
+2013/1/1
+  usd   $\-1  == $\-1  ; these sole commodity assertions succeed
+  eur   €\-1  == €\-1
+  both      ;==  $1  ; this one would fail because \[aq]both\[aq] contains $ and €
+.EE
+.PP
+It\[aq]s less easy to make a \[dq]\f[B]sole commodities balance
+assertion\f[R]\[dq] (note the plural) \- ie, asserting that an account
+contains two or more specified commodities and no others.
+It can be done by
+.IP "1." 3
+isolating each commodity in a subaccount, and asserting those
+.IP "2." 3
+and also asserting there are no commodities in the parent account
+itself:
+.IP
+.EX
+2013/1/1
+  usd       $\-1
+  eur       €\-1
+  both        0 == 0   ; nothing up my sleeve
+  both:usd   $1 == $1  ; a dollar here
+  both:eur   €1 == €1  ; a euro there
+.EE
 .SS Assertions and subaccounts
-The balance assertions above (\f[CR]=\f[R] and \f[CR]==\f[R]) do not
-count the balance from subaccounts; they check the account\[aq]s
-exclusive balance only.
-You can assert the balance including subaccounts by writing
-\f[CR]=*\f[R] or \f[CR]==*\f[R], eg:
+All of the balance assertions above (both \f[CR]=\f[R] and
+\f[CR]==\f[R]) are \[dq]\f[B]subaccount\-exclusive balance
+assertions\f[R]\[dq]; they ignore any balances that exist in deeper
+subaccounts.
+.PP
+In hledger you can make \[dq]\f[B]subaccount\-inclusive balance
+assertions\f[R]\[dq] by adding a star after the equals (\f[CR]=*\f[R] or
+\f[CR]==*\f[R]):
 .IP
 .EX
 2019/1/1
-  equity:opening balances
-  checking:a       5
-  checking:b       5
-  checking         1  ==* 11
+  equity:start
+  assets:checking  $10
+  assets:savings   $10
+  assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 .EE
 .SS Assertions and virtual postings
 Balance assertions always consider both real and virtual postings; they
@@ -3362,7 +3370,7 @@ This directive sets a default commodity, to be used for any subsequent
 commodityless amounts (ie, plain numbers) seen while parsing the
 journal.
 This effect lasts until the next \f[CR]D\f[R] directive, or the end of
-the journal.
+the current file.
 .PP
 For compatibility/historical reasons, \f[CR]D\f[R] also acts like a
 \f[CR]commodity\f[R] directive (setting the commodity\[aq]s decimal mark
@@ -3509,10 +3517,10 @@ Ledger allows a valuation function or value to be written in double
 parentheses after an amount.
 hledger ignores these.
 .SS Virtual postings
-A posting with parentheses around the account name
-(\f[CR](some:account)\f[R]) is called a \f[I]unbalanced virtual
+A posting with parentheses around the account name, like
+\f[CR](some:account)   10\f[R], is called an \f[I]unbalanced virtual
 posting\f[R].
-Such postings do not participate in transaction balancing.
+These postings do not participate in transaction balancing.
 (And if you write them without an amount, a zero amount is always
 inferred.)
 These can occasionally be convenient for special circumstances, but they
@@ -6460,34 +6468,45 @@ match all the other terms.
 .PP
 We also support more complex boolean queries with the \f[CR]expr:\f[R]
 prefix.
-This allows one to combine queries using \f[CR]AND\f[R], \f[CR]OR\f[R],
-and \f[CR]NOT\f[R].
-(\f[CR]NOT\f[R] is equivalent to the \f[CR]not:\f[R] prefix.)
+This allows one to combine query terms using \f[CR]and\f[R],
+\f[CR]or\f[R], \f[CR]not\f[R] keywords (case insensitive), and to group
+them by enclosing in parentheses.
+.PP
 Some examples:
 .IP \[bu] 2
-Match transactions with \[aq]cool\[aq] in the description AND with the
-\[aq]A\[aq] tag
+Exclude account names containing \[aq]food\[aq]:
 .RS 2
 .PP
-\f[CR]expr:\[dq]desc:cool AND tag:A\[dq]\f[R]
+\f[CR]expr:\[dq]not food\[dq]\f[R] (\f[CR]not:food\f[R] is equivalent)
 .RE
 .IP \[bu] 2
-Match transactions NOT to the \[aq]expenses:food\[aq] account OR with
-the \[aq]A\[aq] tag
+Match things which have \[aq]cool\[aq] in the description and the
+\[aq]A\[aq] tag:
 .RS 2
 .PP
-\f[CR]expr:\[dq]NOT expenses:food OR tag:A\[dq]\f[R]
+\f[CR]expr:\[dq]desc:cool and tag:A\[dq]\f[R]
+(\f[CR]expr:\[dq]desc:cool tag:A\[dq]\f[R] is equivalent)
 .RE
 .IP \[bu] 2
-Match transactions NOT involving the \[aq]expenses:food\[aq] account OR
-with the \[aq]A\[aq] tag AND involving the \[aq]expenses:drink\[aq]
-account.
-(the AND is implicitly added by space\-separation, following the rules
-above)
+Match things which either do not reference the \[aq]expenses:food\[aq]
+account, or do have the \[aq]A\[aq] tag:
 .RS 2
 .PP
-\f[CR]expr:\[dq]expenses:food OR (tag:A expenses:drink)\[dq]\f[R]
+\f[CR]expr:\[dq]not expenses:food or tag:A\[dq]\f[R]
 .RE
+.IP \[bu] 2
+Match things which either do not reference the \[aq]expenses:food\[aq]
+account, or which reference the \[aq]expenses:drink\[aq] account and
+also have the \[aq]A\[aq] tag:
+.RS 2
+.PP
+\f[CR]expr:\[dq]expenses:food or (expenses:drink and tag:A)\[dq]\f[R]
+.RE
+.PP
+\f[CR]expr:\f[R] has a restriction: \f[CR]date:\f[R] queries may not be
+used inside \f[CR]or\f[R] expressions.
+That would allow disjoint report periods or disjoint result sets, with
+unclear semantics for our reports.
 .SS Queries and command options
 Some queries can also be expressed as command\-line options:
 \f[CR]depth:2\f[R] is equivalent to \f[CR]\-\-depth 2\f[R],
@@ -9226,23 +9245,24 @@ Example:
 .IP
 .EX
 $ hledger balancesheet
-Balance Sheet
+Balance Sheet 2008\-12\-31
 
-Assets:
-                 $\-1  assets
-                  $1    bank:saving
-                 $\-2    cash
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                 $\-1
-
-Liabilities:
-                  $1  liabilities:debts
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                  $1
-
-Total:
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                   0
+                    || 2008\-12\-31 
+====================++============
+ Assets             ||            
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+ assets:bank:saving ||         $1 
+ assets:cash        ||        $\-2 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+                    ||        $\-1 
+====================++============
+ Liabilities        ||            
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+ liabilities:debts  ||        $\-1 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+                    ||        $\-1 
+====================++============
+ Net:               ||          0 
 .EE
 .PP
 This command is a higher\-level variant of the \f[CR]balance\f[R]
@@ -9275,28 +9295,29 @@ Example:
 .IP
 .EX
 $ hledger balancesheetequity
-Balance Sheet With Equity
+Balance Sheet With Equity 2008\-12\-31
 
-Assets:
-                 $\-2  assets
-                  $1    bank:saving
-                 $\-3    cash
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                 $\-2
-
-Liabilities:
-                  $1  liabilities:debts
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                  $1
-
-Equity:
-          $1  equity:owner
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-          $1
-
-Total:
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                   0
+                    || 2008\-12\-31 
+====================++============
+ Assets             ||            
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+ assets:bank:saving ||         $1 
+ assets:cash        ||        $\-2 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+                    ||        $\-1 
+====================++============
+ Liabilities        ||            
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+ liabilities:debts  ||        $\-1 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+                    ||        $\-1 
+====================++============
+ Equity             ||            
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-
+                    ||          0 
+====================++============
+ Net:               ||          0 
 .EE
 .PP
 This command is a higher\-level variant of the \f[CR]balance\f[R]
@@ -9307,14 +9328,19 @@ It is similar to
 smarter account detection, and liabilities/equity displayed with their
 sign flipped.
 .PP
+This report is the easiest way to see if the accounting equation (A+L+E
+= 0) is satisfied (after you have done a \f[CR]close \-\-retain\f[R] to
+merge revenues and expenses with equity, and perhaps added
+\f[CR]\-\-infer\-equity\f[R] to balance your commodity conversions).
+.PP
 This command also supports the output destination and output format
 options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 \f[CR]tsv\f[R], \f[CR]html\f[R], and \f[CR]json\f[R].
 .SS cashflow
 (cf)
 .PP
-This command displays a cashflow statement, showing the inflows and
-outflows affecting \[dq]cash\[dq] (ie, liquid, easily convertible)
+This command displays a (simple) cashflow statement, showing the inflows
+and outflows affecting \[dq]cash\[dq] (ie, liquid, easily convertible)
 assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
@@ -9340,18 +9366,16 @@ An example cashflow report:
 .IP
 .EX
 $ hledger cashflow
-Cashflow Statement
+Cashflow Statement 2008
 
-Cash flows:
-                 $\-1  assets
-                  $1    bank:saving
-                 $\-2    cash
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                 $\-1
-
-Total:
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                 $\-1
+                    || 2008 
+====================++======
+ Cash flows         ||      
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+ assets:bank:saving ||   $1 
+ assets:cash        ||  $\-2 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+                    ||  $\-1 
 .EE
 .PP
 This command is a higher\-level variant of the \f[CR]balance\f[R]
@@ -9866,18 +9890,18 @@ files to your main journal, you will run
 .PP
 Note you can import from any file format, though CSV files are the most
 common import source, and these docs focus on that case.
-.SS Skipping
+.SS Deduplication
 \f[CR]import\f[R] tries to import only the transactions which are new
-since the last import, \[dq]skipping over\[dq] any that it saw last
-time.
+since the last import, ignoring any that it has seen in previous runs.
 So if your bank\[aq]s CSV includes the last three months of data, you
 can download and \f[CR]import\f[R] it every month (or week, or day) and
 only the new transactions will be imported each time.
 .PP
 It works as follows.
-For each imported \f[CR]FILE\f[R]:
+For each imported \f[CR]FILE\f[R] (usually CSV, but they could be any of
+hledger\[aq]s input formats):
 .IP \[bu] 2
-It tries to find the latest date seen previously, by reading it from a
+It tries to recall the latest date seen previously, reading it from a
 hidden \f[CR].latest.FILE\f[R] in the same directory.
 .IP \[bu] 2
 Then it processes \f[CR]FILE\f[R], ignoring any transactions on or
@@ -9886,36 +9910,44 @@ before the \[dq]latest seen\[dq] date.
 And after a successful import, it updates the \f[CR].latest.FILE\f[R](s)
 for next time (unless \f[CR]\-\-dry\-run\f[R] was used).
 .PP
-This is simple system that works fairly well for transaction data
-(usually CSV, but it could be any of hledger\[aq]s input formats).
-It assumes:
+This is a limited kind of deduplication, let\[aq]s call it \[dq]date
+skipping\[dq].
+Within each input file, it avoids reprocessing the same dates across
+successive runs.
+This is a simple system that works for most real\-world CSV files; it
+assumes these are true, or true enough:
 .IP "1." 3
 new items always have the newest dates
 .IP "2." 3
-item dates are stable across successive CSV downloads
+item dates are stable across successive downloads
 .IP "3." 3
-the order of same\-date items is stable across CSV downloads
+the order of same\-date items is stable across downloads
+.IP "4." 3
+the name of the input file is stable across downloads
 .PP
-These are true of most CSV files representing transactions, or true
-enough.
-If you have a bank whose CSV dates or ordering occasionally changes, you
+If you have a bank whose CSV dates or ordering occasionally change, you
 can reduce the chance of this happening in new transactions by importing
-more often (and in old transactions it doesn\[aq]t matter).
+more often, and in old transactions it doesn\[aq]t matter.
+And remember you can use CSV rules files as input, which is one way to
+ensure a stable file name.
 .PP
-Note, \f[CR]import\f[R] avoids reprocessing the same dates across
-successive runs, but it does not detect transactions that are duplicated
-within a single run.
-I\[aq]ll call these \[dq]skipping\[dq] and \[dq]deduplication\[dq].
-.PP
-So for example, say you downloaded but did not import
-\f[CR]bank.1.csv\f[R], and later downloaded \f[CR]bank.2.csv\f[R] with
-overlapping data.
-Then you should not import both of them at once
-(\f[CR]hledger import bank.1.csv bank.2.csv\f[R]), as the overlapping
-data would appear twice and not be deduplicated.
-Instead, import them one at a time
-(\f[CR]hledger import bank.1.csv; hledger import bank.2.csv\f[R]), and
-the second import will skip the overlapping data.
+\f[CR]import\f[R] doesn\[aq]t detect other kinds of duplication, such as
+duplicate transactions within a single run.
+(In part, because legitimate duplicate transactions can easily occur in
+real\-world data.)
+So, say you downloaded but forgot to import \f[CR]bank.1.csv\f[R], and a
+week later you downloaded \f[CR]bank.2.csv\f[R] with overlapping data.
+Now you should not import both of these at once
+(\f[CR]hledger import bank.1.csv bank.2.csv\f[R]); the overlapping
+transactions which appear twice would not be deduplicated since this is
+considered a single import.
+Instead, import these files one at a time, and also use the same
+filename each time for a common \[dq]latest seen\[dq] state:
+.IP
+.EX
+$ mv bank.1.csv bank.csv; hledger import bank.csv
+$ mv bank.2.csv bank.csv; hledger import bank.csv
+.EE
 .PP
 Normally you can ignore the \f[CR].latest.*\f[R] files, but if needed,
 you can delete them (to make all transactions unseen), or
@@ -9925,8 +9957,8 @@ possibly repeated on multiple lines.
 It means \[dq]I have seen transactions up to this date, and this many of
 them occurring on that date\[dq].
 .PP
-(\f[CR]hledger print \-\-new\f[R] also uses and updates these
-\f[CR].latest.*\f[R] files, but it is less often used.)
+\f[CR]hledger print \-\-new\f[R] also uses and updates these
+\f[CR].latest.*\f[R] files, but it is less often used.
 .PP
 Related: CSV > Working with CSV > Deduplicating, importing.
 .SS Import testing
@@ -9991,25 +10023,25 @@ Example:
 .IP
 .EX
 $ hledger incomestatement
-Income Statement
+Income Statement 2008
 
-Revenues:
-                 $\-2  income
-                 $\-1    gifts
-                 $\-1    salary
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                 $\-2
-
-Expenses:
-                  $2  expenses
-                  $1    food
-                  $1    supplies
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                  $2
-
-Total:
-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                   0
+                   || 2008 
+===================++======
+ Revenues          ||      
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+ income:gifts      ||   $1 
+ income:salary     ||   $1 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+                   ||   $2 
+===================++======
+ Expenses          ||      
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+ expenses:food     ||   $1 
+ expenses:supplies ||   $1 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-
+                   ||   $2 
+===================++======
+ Net:              ||    0 
 .EE
 .PP
 This command is a higher\-level variant of the \f[CR]balance\f[R]

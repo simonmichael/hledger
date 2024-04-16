@@ -16,8 +16,8 @@ hledger-web - robust, friendly plain text accounting (Web version)
    'hledger-web [--serve|--serve-api] [OPTS] [ARGS]'
 'hledger web -- [--serve|--serve-api] [OPTS] [ARGS]'
 
-   This manual is for hledger's web interface, version 1.32.99.  See
-also the hledger manual for common concepts and file formats.
+   This manual is for hledger's web interface, version 1.33.  See also
+the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -638,30 +638,30 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2578
-Ref: #options2683
-Node: General help options5648
-Ref: #general-help-options5798
-Node: General input options6080
-Ref: #general-input-options6266
-Node: General reporting options6923
-Ref: #general-reporting-options7088
-Node: PERMISSIONS10478
-Ref: #permissions10617
-Node: EDITING UPLOADING DOWNLOADING11829
-Ref: #editing-uploading-downloading12010
-Node: RELOADING12844
-Ref: #reloading12978
-Node: JSON API13411
-Ref: #json-api13526
-Node: DEBUG OUTPUT19014
-Ref: #debug-output19139
-Node: Debug output19166
-Ref: #debug-output-119267
-Node: ENVIRONMENT19684
-Ref: #environment19803
-Node: BUGS19920
-Ref: #bugs20004
+Node: OPTIONS2575
+Ref: #options2680
+Node: General help options5645
+Ref: #general-help-options5795
+Node: General input options6077
+Ref: #general-input-options6263
+Node: General reporting options6920
+Ref: #general-reporting-options7085
+Node: PERMISSIONS10475
+Ref: #permissions10614
+Node: EDITING UPLOADING DOWNLOADING11826
+Ref: #editing-uploading-downloading12007
+Node: RELOADING12841
+Ref: #reloading12975
+Node: JSON API13408
+Ref: #json-api13523
+Node: DEBUG OUTPUT19011
+Ref: #debug-output19136
+Node: Debug output19163
+Ref: #debug-output-119264
+Node: ENVIRONMENT19681
+Ref: #environment19800
+Node: BUGS19917
+Ref: #bugs20001
 
 End Tag Table
 
