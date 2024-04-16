@@ -42,7 +42,7 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 **Discussion:**
 <https://hledger.org/support>\
 \
-**Github:**
+**Github:**\
 <http://code.hledger.org>,
 <http://site.hledger.org>,
 <http://finance.hledger.org>\
@@ -115,12 +115,12 @@ versions:
 [hledger-web](https://www.stackage.org/package/hledger-web/snapshots)\
 [![](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg)](https://repology.org/metapackage/hledger)[![...](https://repology.org/badge/version-for-repo/stackage_nighly/hledger.svg)](https://repology.org/metapackage/hledger)\
 \
-**Repology:**
+**Repology:**\
 [quick hledger packaging status](https://repology.org/metapackage/hledger/badges),
 [detailed hledger packaging status](https://repology.org/project/hledger/versions),
 [all \*hledger\* packages](https://repology.org/metapackages/?search=hledger)\
 \
-**Homebrew:**
+**Homebrew:**\
 [hledger](https://formulae.brew.sh/formula/hledger)\
 our 1-year rank among homebrew installs:\
 2023: [#1821 of 24k](https://formulae.brew.sh/analytics/install-on-request/365d)(top8%)\
@@ -186,10 +186,10 @@ binary packages:
 **Fedora:**
 [hledger](https://apps.fedoraproject.org/packages/hledger),
 [\*hledger\*](https://apps.fedoraproject.org/packages/s/hledger),
-[hledger(packagedb)](https://admin.fedoraproject.org/pkgdb/package/hledger/),
-[HaskellSIG](https://fedoraproject.org/wiki/Haskell_SIG)\
+[hledger (package db)](https://admin.fedoraproject.org/pkgdb/package/hledger/),
+[Haskell SIG](https://fedoraproject.org/wiki/Haskell_SIG)\
 \
-**VoidLinux:** [package search](https://voidlinux.org/packages/)->hledger\
+**Void Linux:** [package search](https://voidlinux.org/packages/)->hledger\
 \
 **Nix:** [\*hledger\*](https://hydra.nixos.org/search?query=hledger)\
 \
