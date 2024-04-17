@@ -21,6 +21,10 @@ For package-specific changes, see the hledger package changelogs.
 
 # 1.33 2024-04-17
 
+Misc
+
+- Apple ARM binaries are now included in github releases.
+
 Docs
 
 - REGRESSIONS: we now split the bounty between finder and fixer

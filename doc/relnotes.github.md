@@ -275,6 +275,10 @@ Docs
 
 ### project changes 1.33
 
+Misc
+
+- Apple ARM binaries are now included in github releases.
+
 Docs
 
 - REGRESSIONS: we now split the bounty between finder and fixer
