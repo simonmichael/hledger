@@ -130,14 +130,15 @@ STACK := 'stack'
 # Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
 
 STACKGHCI := STACK
-
 #STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
-# PACKAGES := '
-#     hledger-lib
-#     hledger
-#     hledger-ui
-#     hledger-web
-#     '
+
+PACKAGES := '
+    hledger-lib
+    hledger
+    hledger-ui
+    hledger-web
+    '
+
 # BINARIES := '
 #     hledger
 #     hledger-ui
@@ -1279,6 +1280,18 @@ sccv:
 #     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
 # list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
 #     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
+
+# Make git release tags for the hledger packages and project, assuming a complete single-version release.
+@reltag:
+	for p in $PACKAGES; do just reltagpkg $p; done
+	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/relnotes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+	printf "If tagging a major release, please also review and run the following command.\nThis tag influences git describe and dev builds' version strings:\n"
+	printf "$ git tag -fs `cat .version`.99 master -m \"start of next release cycle\"\n"
+
+# Make a git release tag for the given hledger package.
+@reltagpkg PKG:
+	git tag -fs $PKG-`cat $PKG/.version` -m "Release $PKG-`cat $PKG/.version`"
+
 
 # ** Misc ------------------------------------------------------------
 MISC:
