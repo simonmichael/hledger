@@ -31,7 +31,7 @@ extra-deps:
 - vty-6.2
 - vty-crossplatform-0.4.0.0
 - vty-unix-0.2.0.0
-- vty-windows-0.2.0.1
+- vty-windows-0.2.0.2
 - text-zipper-0.13
 - fsnotify-0.4.1.0
 # for hledger-web:

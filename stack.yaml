@@ -13,6 +13,8 @@ extra-deps:
 - process-1.6.19.0          # for HSEC-2024-0003
 - haskeline-0.8.2.1
 
+- vty-windows-0.2.0.2       # not yet in stackage
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
