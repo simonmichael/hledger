@@ -115,17 +115,19 @@ jobs:
              ${{ runner.os }}-hledger-web-stack-work-from20220817
       if: env.CONTINUE
 
-    # actions:
-
-    - name: Install stack
-      # run: |
-      #   brew install haskell-stack
-      #   $stack --version
+    - name: Add .ghcup/bin to PATH for following steps
       run: |
-        mkdir -p ~/.local/bin
-        export PATH=~/.local/bin:$PATH        
-        # brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-arm64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-        if [[ ! -x ~/.local/bin/stack ]]; then brew install gnu-tar; curl -sL https://get.haskellstack.org/stable/osx-arm64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+
+    - name: Install stack with ghcup if needed
+      run: |
+        if [[ ! -x ~/.ghcup/bin/ghcup ]]; then
+          mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/aarch64-apple-darwin-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
+        fi
+        ghcup --version
+        if [[ ! -x ~/.ghcup/bin/stack ]]; then
+          ~/.ghcup/bin/ghcup install stack 2.15.5 && ~/.ghcup/bin/ghcup set stack 2.15.5
+        fi
         stack --version
       if: env.CONTINUE
 
@@ -141,13 +143,6 @@ jobs:
     #     mkdir -p ~/.ghcup/bin && curl -sL https://downloads.haskell.org/~ghcup/arm64-apple-darwin-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
     #     ~/.ghcup/bin/ghcup install --set ghc 9.2.4  # && ~/.ghcup/bin/ghcup install stack
     #     echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
-    #   if: env.CONTINUE
-
-    # - name: Install GHC (from haskell.org)
-    #   run: |
-    #     curl -sL https://downloads.haskell.org/~ghc/9.2.4/ghc-9.2.4-arm64-apple-darwin.tar.xz | tar xj && cd ghc-9.2.4-arm64-apple-darwin && ./configure && make install
-    #     ghc --version
-    #     mkdir -p ~/.stack && printf "system-ghc: true\ninstall-ghc: false\n" >>~/.stack/config.yaml
     #   if: env.CONTINUE
 
     - name: Install haskell deps
