@@ -184,6 +184,19 @@ Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases a
 - When releasing a package, also release all the packages that depend on it.
   Try to do full releases including all the hledger packages, not partial releases.
 
+- Try to avoid pre-announcing a hard release date. 
+  It will always take more time than you think,
+  if you go late you might miss your intended date in many timezones,
+  and there's no point adding unnecessary pressure.
+
+- The biggest potential time sinks are:
+
+  - reviewing/relearning the process/docs/infrastructure
+  - updating/improving the process/docs/infrastructure
+  - preparing changelogs
+  - building binaries for all platforms
+  - troubleshooting github workflow issues
+  - followup work due to release mistakes, bugs in new features, or regressions
 
 ## Release artifacts / value chain
 
@@ -198,21 +211,23 @@ Higher things depend on lower things; when doing a release, work upward from the
 Here's an overview of a happy-path hledger release.
 These steps can be interleaved/reordered a little if needed.
 
-### 1 Prep software
+### 1 Prep software & docs
 In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
 1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
-1. Cherry-pick changes from master: `magit l o REL-branch..master` (minor releases)
+1. If not the first release in this branch, cherry-pick changes from master: `magit l o REL-branch..master` (minor releases)
 1. Update install script: `hledger-install/hledger-install.sh`
 1. Update changelogs: `./Shake changelogs` & manually edit
+   (*TODO: fix Shake changelogs to not eat whitespace*)
+1. Update release notes: `doc/relnotes*`
+   (*TODO: automate release notes, github release notes production; auto-link issue numbers*)
 1. Update announcements: `doc/ANNOUNCE*` (major releases)
-1. Tag release locally: `make tag`
+1. Tag release locally: `just reltag`
 1. Test & build release binaries: `just relbin`
 
 ### 2 Prep website
 In site repo:
 1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
-1. Update release notes: `site/src/release-notes.md`
 1. Update install page: `site/src/install.md`
 
 ### 3 Release part 1 - hackage, github
@@ -222,18 +237,19 @@ In main repo, release branch:
 1. Push release branch:  `git push --tags`
 1. Create [github release](#github-release), upload release binaries
 
-### 4 Release part 2 - install script, website
+### 4 Release part 2 - install script, announcements
 In main repo, master:
 1. Cherry-pick changes from release branch to master, including hledger-install update: `magit l o LASTREL..REL-branch`
 1. [Bump version](#bump-master-to-next-version) in master (major releases)
 1. Push master: `just push`
 1. Push website: `git -C site push`
-1. Send announcements: matrix, mail list(s), mastodon (major releases, others if needed)
+1. Update hledger entry at https://plaintextaccounting.org/#pta-apps
+1. Send announcements: hledger matrix & irc chats, PTA forum, hledger mail list (& optionally haskell-cafe), mastodon (major releases, others if needed)
 
 ### 5 Post-release
 In main repo, master:
 1. Commit any process updates: `doc/RELEASING.md`
-1. Monitor packaging status (including stackage); update install page
+1. Monitor packaging status (including stackage); keep install page updated
 1. Monitor/respond to issues, especially regressions; keep doc/REGRESSIONS.md updated
 
 
@@ -317,7 +333,7 @@ Or, bump version of a subset of packages in an existing release branch (not idea
 - manually add release version/date headings (or fix `bake prep`)
 
 #### Release notes
-In site repo, update `src/release-notes.md`:
+In main repo, update `doc/relnotes.md`:
 - copy template from top comment
 - replace date and XX
 - add new content from changelogs, excluding hledger-lib
@@ -325,6 +341,11 @@ In site repo, update `src/release-notes.md`:
 - for a major release, add highlights
 - clean up
 - commit: `relnotes: NEW`
+
+#### Github release notes
+In main repo, update `doc/relnotes.github.md`:
+- replace all OLD version strings with NEW
+- copy latest from relnotes.md
 
 #### Release branch tests passing
 - `make test`
@@ -393,12 +414,7 @@ in main repo, release branch:
 - create new release, <https://github.com/simonmichael/hledger/releases/new>
 - choose release tag
 - title: VERSION
-- description:
-  - copy doc/github-release.md to emacs
-  - insert latest release notes (minus topmost heading) from site/src/release-notes.md
-  - replace all OLD version strings with NEW
-  - copy to github release
-  - preview, sanity check
+- description: doc/relnotes.github.md, preview & sanity check
 - upload platform binary zip files
 - Save draft
 - (and after successful hackage upload: Publish release)
