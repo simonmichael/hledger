@@ -1035,6 +1035,11 @@ relprep VER:
 @reldate:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{print $3;exit}' hledger/CHANGES.md
 
+# show commit author names since last release
+@relauthors:
+    echo "Commit authors since last release:"
+    git shortlog -sn `git tag --sort=-creatordate -l '[0-9]*' | head -1`..
+
 # Show last release date and version (of hledger package).
 @rel:
     just rels | head -1
@@ -1178,11 +1183,6 @@ _gitSwitchAutoCreate BRANCH:
 # show a precise git-describe version string
 @describe:
     git describe --tags --match 'hledger-[0-9]*' --dirty
-
-# show commit author names since last release
-@authors-release:
-    echo "Commit authors since last release:"
-    git shortlog -sn `git tag --sort=-creatordate -l '[0-9]*' | head -1`..
 
 # show all commit author names
 @authors:
