@@ -1006,7 +1006,7 @@ relfiles:
     ; do ln -sf $f .; done
     cp ../doc/RELEASING.md ./RELEASING2.md   # temp copy which can be edited without disruption
 
-# Prepare to release today, creating/switching to release branch, updating versions, dates, manuals, changelogs etc.
+# Prepare to release today, creating/switching to release branch and doing routine updates - versions, dates, manuals, command helps
 relprep VER:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -1023,8 +1023,8 @@ relprep VER:
     ./Shake mandates
     echo "Generating all the manuals in all formats...."
     ./Shake manuals $COMMIT
-    echo "Updating CHANGES.md files with latest commits..."
-    ./Shake changelogs $COMMIT
+    # echo "Updating CHANGES.md files with latest commits..."
+    # ./Shake changelogs $COMMIT
 
 # Push the current branch to github to generate release binaries.
 @relbin:
