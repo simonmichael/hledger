@@ -13,7 +13,7 @@ extra-deps:
 - Cabal-3.10.1.0
 - haskeline-0.8.2.1
 
-- vty-windows-0.2.0.1   # not yet in stackage
+- vty-windows-0.2.0.2       # not yet in stackage
 
 nix:
   pure: false
