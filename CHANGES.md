@@ -8,16 +8,26 @@
 
 Docs
 
-Examples
-
 Scripts/addons
 
-Infrastructure
+Infrastructure/Misc
 
 -->
 
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
+
+
+
+# 1.33 2024-04-17
+
+Docs
+
+- REGRESSIONS: we now split the bounty between finder and fixer
+- move Developer docs, MOCKUPS, investment-accounting-features to main repo
+- merge LINKS into dev docs page; cleanup
+- drop unused BACKLOG, TODO pages
+
 
 
 # 1.32.3 2024-01-28

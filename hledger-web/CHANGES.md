@@ -21,6 +21,33 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 1.33 2024-04-17
+
+Fixes
+
+- Exclude base64 >=1.0 to avoid compilation failure. [#2166]
+
+- Preserve line breaks when showing an error message. [#2163] (Martijn van der Ven)
+
+Improvements
+
+- Zero amounts are now shown with their commodity symbol.
+  This was mainly to make the sidebar more informative,
+  but also affects and hopefully helps amounts displayed elsewhere.
+  [#2140]
+
+- Amounts in the sidebar now also have the `amount` HTML class.
+
+- Allow building with GHC 9.8.
+
+- Require safe >=0.3.20.
+
+Docs
+
+- Mention the `-E/--empty` flag for hiding zeros,
+  the non-display of costs,
+  and non-zeros that look like zero because of hidden costs.
+
 # 1.32.3 2024-01-28
 
 - Use hledger-1.32.3

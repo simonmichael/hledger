@@ -21,6 +21,44 @@ Improvements
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+# 1.33 2024-04-17
+
+Breaking changes
+
+Fixes
+
+- Require process 1.6.19.0+ to avoid any vulnerabilities on Windows from
+  [HSEC-2024-0003](https://haskell.github.io/security-advisories/advisory/HSEC-2024-0003.html).
+  This has also required disabling this package's doctest test suite for the moment.
+
+- A potential Glob/filemanip package conflict in Hledger.Utils.IO now prevented,
+  avoiding build failures.
+
+
+Improvements
+
+- hledger can now be built with GHC 9.8.
+- hledger now requires safe >=0.3.20.
+- fix spanUnion with open-ended dates; add spanExtend [#2177]
+- move readFileStrictly from hledger to Hledger.Utils.IO
+- rename/improve amountSetFullPrecisionUpTo; add mixedAmountSetFullPrecisionUpTo
+- rename Amount's aprice -> acost
+- rename AmountPrice, UnitPrice, TotalPrice -> AmountCost, UnitCost, TotalCost
+- showAmountWithoutPrice             -> showAmountWithoutCost
+- mixedAmountStripPrices             -> mixedAmountStripCosts
+- showMixedAmountWithoutPrice        -> showMixedAmountWithoutCost
+- showMixedAmountOneLineWithoutPrice -> showMixedAmountOneLineWithoutCost
+- rename amountStripPrices           -> amountStripCost, etc
+- rename AmountDisplayOpts -> AmountFormat; add a new flag for symbol display
+- rename noColour          -> defaultFmt
+- rename noCost            -> noCostFmt
+- rename oneLine           -> oneLineFmt
+- rename csvDisplay        -> machineFmt
+- distinguish oneLineFmt and oneLineNoCostFmt; add fullZeroFmt
+- matchedPostingsBeforeAndDuring: improve debug output
+
+
+
 # 1.32.3 2024-01-28
 
 - Some API renames ended up in this release, including

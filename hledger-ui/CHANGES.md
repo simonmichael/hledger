@@ -21,6 +21,23 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.33 2024-04-17
+
+Fixes
+
+- Require process 1.6.19.0+ to avoid any vulnerabilities on Windows from
+  [HSEC-2024-0003](https://haskell.github.io/security-advisories/advisory/HSEC-2024-0003.html).
+
+Features
+
+- Add a `dark` theme. (Jonathan Dowland)
+
+Improvements
+
+- Allow building with GHC 9.8.
+
+- Require safe >=0.3.20.
+
 # 1.32.3 2024-01-28
 
 - Use hledger-1.32.3
