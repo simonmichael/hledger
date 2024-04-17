@@ -4,7 +4,7 @@ Jonathan Dowland, Ilja Kocken, Colin Dean, Dmitry Astapov, Vekhir,
 ShrykeWindgrace, Martijn van der Ven, Michael Rees, aragaer, and hamzashezad.
 
 Highlights: `close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support,
-and the usual improvements and fixes.
+Apple ARM binaries, and the usual improvements and fixes.
 
 - https://github.com/simonmichael/hledger/releases/1.33
 - https://hledger.org/release-notes.html#2024-04-17-hledger-133
