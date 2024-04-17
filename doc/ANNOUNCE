@@ -1,14 +1,13 @@
-I'm very pleased to announce hledger 1.32, including work from contributors
-Jonathan Dowland, S. Zeid, Charlie Ambrose, Jacob Weisz, Peter Sagerson, 
-Philipp Klocke, Stephen Morgan, and bobobo1618.
+I'm pleased to announce hledger 1.33!
+This release comes a bit later than usual, with help from contributors
+Jonathan Dowland, Ilja Kocken, Colin Dean, Dmitry Astapov, Vekhir,
+ShrykeWindgrace, Martijn van der Ven, Michael Rees, aragaer, and hamzashezad.
 
-Highlights: 
-More precision control, beancount output, TSV output, --summary-only,
-strict/idempotent import, CSV rule enhancements, timedot letters, fixes -
-it's a lot. Set aside some time to read the notes.
+Highlights: `close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support,
+and the usual improvements and fixes.
 
-- https://github.com/simonmichael/hledger/releases/1.32
-- https://hledger.org/release-notes.html#2023-12-01-hledger-132
+- https://github.com/simonmichael/hledger/releases/1.33
+- https://hledger.org/release-notes.html#2024-04-17-hledger-133
 - https://hledger.org/install
 
 What is hledger ?
@@ -24,6 +23,6 @@ and join our Matrix/IRC chat or mail list: https://hledger.org/support .
 Newcomers, experts, contributors, sponsors, feedback are welcome!
 For more about plain text accounting, see https://plaintextaccounting.org .
 
-May you be free from danger; may you have happy, peaceful, prosperous holidays.
+Wishing you peace and prosperity,
 
 -Simon

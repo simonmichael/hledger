@@ -1,15 +1,13 @@
-I'm very pleased to announce hledger 1.32, delivering the last 3 months' activity!
-Highlights:
-more precision control, beancount output, TSV output, --summary-only,
-strict/idempotent import, CSV rule enhancements, timedot letters, fixes -
-it's a lot.
+I'm pleased to announce #hledger 1.33!
+Highlights: `close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support,
+and the usual improvements and fixes.
 
-- https://github.com/simonmichael/hledger/releases/1.32
-- https://hledger.org/release-notes.html
+- https://github.com/simonmichael/hledger/releases/1.33
+- https://hledger.org/release-notes.html#2024-04-17-hledger-133
 - https://hledger.org/install
 
 #hledger is free, fast, reliable, multicurrency, double-entry,
 #PlainTextAccounting software for unix, mac, windows, and the web.
 For help, join our chat or mail list: https://hledger.org/support
 
-#haskell #FunctionalProgramming #PersonalFinance
+#PersonalFinance #haskell
