@@ -71,6 +71,11 @@ jobs:
         # the oldest supported ghc, to check backward compatibility
         # - { ghc: "810", stack: "stack --stack-yaml=stack8.10.yaml" }
         - { ghc: "944", stack: "stack --stack-yaml=stack9.4.yaml" }
+
+    # declare env.CONTINUE variable used below, to prevent "Context access might be invalid" warnings
+    env:
+      CONTINUE:
+
     steps:
 
     - name: Check out
