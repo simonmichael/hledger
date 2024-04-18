@@ -27,17 +27,12 @@ jobs:
     - name: Check out
       uses: actions/checkout@v4
       # have to fetch everything for git describe for --version
-      with: 
+      with:
         fetch-depth: 0  
-
-    # requires bash
-    # - name: Check embedded files
-    #   run: |
-    #     tools/checkembeddedfiles
 
     # things to be cached/restored:
 
-    - name: Uncache ghcup-installed tools
+    - name: process cache of ghcup-installed tools
       id:   ghcup
       uses: actions/cache@v4
       with:
@@ -46,7 +41,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
-    # - name: Uncache cabal-installed libs
+    # - name: process cache of cabal-installed libs
     #   id:   cabal
     #   uses: actions/cache@v4
     #   with:
@@ -55,7 +50,7 @@ jobs:
     #     restore-keys: |
     #          ${{ runner.os }}-cabal
 
-    - name: Uncache stack global package db
+    - name: process cache of stack global package db
       id:   stack-global
       uses: actions/cache@v4
       with:
@@ -64,7 +59,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-global-20240417
 
-    - name: Uncache stack-installed programs in ~/.local/bin
+    - name: process cache of stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -73,7 +68,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-programs-20240417
 
-    - name: Uncache .stack-work
+    - name: process cache of .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -81,7 +76,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-work-20240417
 
-    - name: Uncache hledger-lib/.stack-work
+    - name: process cache of hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -89,7 +84,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-20240417
 
-    - name: Uncache hledger/.stack-work
+    - name: process cache of hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -97,7 +92,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-20240417
 
-    - name: Uncache hledger-ui/.stack-work
+    - name: process cache of hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -105,7 +100,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-20240417
 
-    - name: Uncache hledger-web/.stack-work
+    - name: process cache of hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work

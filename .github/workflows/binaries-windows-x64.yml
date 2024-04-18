@@ -31,7 +31,7 @@ jobs:
 
     # things to be cached/restored:
 
-    - name: Uncache stack global package db
+    - name: process cache of stack global package db
       id:   stack-global-package-db
       uses: actions/cache@v4
       with:
@@ -40,7 +40,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-appdata-roaming-stack
 
-    - name: Uncache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
+    - name: process cache of stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
       uses: actions/cache@v4
       with:
@@ -51,7 +51,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
 
-    - name: Uncache .stack-work
+    - name: process cache of .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -59,7 +59,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-work
 
-    - name: Uncache hledger-lib/.stack-work
+    - name: process cache of hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -67,7 +67,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work
 
-    - name: Uncache hledger/.stack-work
+    - name: process cache of hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -75,7 +75,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work
 
-    - name: Uncache hledger-ui/.stack-work
+    - name: process cache of hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -83,7 +83,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work
 
-    - name: Uncache hledger-web/.stack-work
+    - name: process cache of hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
