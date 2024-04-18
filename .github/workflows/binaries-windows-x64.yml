@@ -27,10 +27,7 @@ jobs:
       uses: actions/checkout@v3
       # have to fetch everything for git describe for --version
       with: 
-        fetch-depth: 0        
-
-    - name: Confirm all remaining steps should run
-      run: echo "CONTINUE=true" >> $GITHUB_ENV
+        fetch-depth: 0
 
     # things to be cached/restored:
 
@@ -42,7 +39,6 @@ jobs:
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-appdata-roaming-stack
-      if: env.CONTINUE
 
     - name: Uncache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
@@ -54,7 +50,6 @@ jobs:
         key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
-      if: env.CONTINUE
 
     - name: Uncache .stack-work
       uses: actions/cache@v3
@@ -63,7 +58,6 @@ jobs:
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work
-      if: env.CONTINUE
 
     - name: Uncache hledger-lib/.stack-work
       uses: actions/cache@v3
@@ -72,7 +66,6 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work
-      if: env.CONTINUE
 
     - name: Uncache hledger/.stack-work
       uses: actions/cache@v3
@@ -81,7 +74,6 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work
-      if: env.CONTINUE
 
     - name: Uncache hledger-ui/.stack-work
       uses: actions/cache@v3
@@ -90,7 +82,6 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work
-      if: env.CONTINUE
 
     - name: Uncache hledger-web/.stack-work
       uses: actions/cache@v3
@@ -99,7 +90,6 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
-      if: env.CONTINUE
 
     # - name: showStuff
     #   run: |
@@ -130,14 +120,12 @@ jobs:
         printf "stack: "; stack --version
         which ./stack
         printf "./stack: "; ./stack --version
-      if: env.CONTINUE
 
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
         ./stack --no-terminal setup --install-ghc
-      if: env.CONTINUE
 
     # - name: Install shelltestrunner
     ## - export PATH=~/.local/bin:$PATH
@@ -148,7 +136,6 @@ jobs:
       run: |
         ./stack --no-terminal build --only-dependencies --dry-run
         ./stack --no-terminal build --only-dependencies
-      if: env.CONTINUE
 
     # use whichever GHC is in default stack.yaml
 
@@ -157,7 +144,6 @@ jobs:
         ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
-      if: env.CONTINUE
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     ## - export PATH=~/.local/bin:$PATH
@@ -175,7 +161,6 @@ jobs:
         strip hledger.exe
         strip hledger-ui.exe
         strip hledger-web.exe
-      if: env.CONTINUE
              
     - name: Create binaries artifact
       uses: actions/upload-artifact@v3
@@ -185,4 +170,3 @@ jobs:
           tmp/hledger.exe
           tmp/hledger-ui.exe
           tmp/hledger-web.exe
-      if: env.CONTINUE

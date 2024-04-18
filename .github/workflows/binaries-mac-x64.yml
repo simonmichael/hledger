@@ -39,14 +39,10 @@ jobs:
       with: 
         fetch-depth: 0        
 
-    - name: Confirm all remaining steps should run
-      run: echo "CONTINUE=true" >> $GITHUB_ENV
-
     - name: Check embedded files
       run: |
         brew install ripgrep
         tools/checkembeddedfiles
-      if: env.CONTINUE
 
     # things to be cached/restored:
 
@@ -58,7 +54,6 @@ jobs:
         key: ${{ runner.os }}-stack-global-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-from20220817
-      if: env.CONTINUE
 
     - name: Uncache stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -68,7 +63,6 @@ jobs:
         key: ${{ runner.os }}-stack-programs-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs-from20220817
-      if: env.CONTINUE
 
     - name: Uncache .stack-work
       uses: actions/cache@v3
@@ -77,7 +71,6 @@ jobs:
         key: ${{ runner.os }}-stack-work-from20220817-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work-from20220817
-      if: env.CONTINUE
 
     - name: Uncache hledger-lib/.stack-work
       uses: actions/cache@v3
@@ -86,7 +79,6 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-from20220817-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-from20220817
-      if: env.CONTINUE
 
     - name: Uncache hledger/.stack-work
       uses: actions/cache@v3
@@ -95,7 +87,6 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-from20220817-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-from20220817
-      if: env.CONTINUE
 
     - name: Uncache hledger-ui/.stack-work
       uses: actions/cache@v3
@@ -104,7 +95,6 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-from20220817-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-from20220817
-      if: env.CONTINUE
 
     - name: Uncache hledger-web/.stack-work
       uses: actions/cache@v3
@@ -113,7 +103,6 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-from20220817-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-from20220817
-      if: env.CONTINUE
 
     - name: Add .ghcup/bin to PATH for following steps
       run: |
@@ -124,21 +113,18 @@ jobs:
         if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-apple-darwin-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
         if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
         #if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;     fi; printf "ghc: "; ghc --version
-      if: env.CONTINUE
 
     - name: Install GHC with stack
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
         $stack setup --install-ghc
-      if: env.CONTINUE
 
     # - name: Install GHC (with ghcup)
     #   run: |
     #     mkdir -p ~/.ghcup/bin && curl -sL https://downloads.haskell.org/~ghcup/x86_64-apple-darwin-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
     #     ~/.ghcup/bin/ghcup install --set ghc 9.2.4  # && ~/.ghcup/bin/ghcup install stack
     #     echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
-    #   if: env.CONTINUE
 
     - name: Install haskell deps
       env:
@@ -146,7 +132,6 @@ jobs:
       run: |
         $stack build --test --only-dependencies --dry-run
         $stack build --test --only-dependencies
-      if: env.CONTINUE
 
     - name: Build hledger and test unit tests, doc tests
       env:
@@ -155,7 +140,6 @@ jobs:
         $stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
         # --ghc-options=-split-sections doesn't work on mac
         #  --pedantic
-      if: env.CONTINUE
 
     - name: Install shelltestrunner
       env:
@@ -164,7 +148,6 @@ jobs:
         export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
         shelltest --version
-      if: env.CONTINUE
 
     - name: Test functional tests (excluding addons)
       env:
@@ -172,7 +155,6 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected # bin
-      if: env.CONTINUE
 
     # # This is tested here rather than in the regular CI because it's slow,
     # # doesn't fail too often, and the cost of late detection and fixing is low.
@@ -184,7 +166,6 @@ jobs:
     #     time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
     #     # --no-haddock-hyperlink-source is 25% faster
     #     # --no-print-missing-docs is 600% quieter
-    #   if: env.CONTINUE
 
     # artifacts:
 
@@ -199,7 +180,6 @@ jobs:
         strip hledger-ui
         strip hledger-web
         tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web
-      if: env.CONTINUE
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
@@ -209,5 +189,4 @@ jobs:
       with:
         name: hledger-mac-x64
         path: tmp/hledger-mac-x64.tar
-      if: env.CONTINUE
 
