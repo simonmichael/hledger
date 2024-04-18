@@ -21,7 +21,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: alpine:edge
+    container: alpine:latest
     steps:
 
     - name: Check out
