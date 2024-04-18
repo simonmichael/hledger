@@ -81,7 +81,7 @@ jobs:
     steps:
 
     - name: Check out
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       # have to fetch everything for git describe for hledger's --version
       with: 
         fetch-depth: 0
