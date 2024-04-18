@@ -73,7 +73,7 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2024-04-17 hledger-1.33
+## 2024-04-18 hledger-1.33
 
 **`close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support, Apple ARM binaries**
 
