@@ -10,7 +10,7 @@
 <details>
 <summary>
 
-## Release notes (https://hledger.org/release-notes.html#2024-04-17-hledger-133)
+## Release notes (https://hledger.org/release-notes.html#2024-04-18-hledger-133)
 
 </summary>
 
