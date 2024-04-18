@@ -185,7 +185,7 @@ jobs:
       env:
         stack: ${{ matrix.plan.stack }}
       run: |
-        printf "haddock version: "; haddock --version
+        printf "haddock: "; stack exec -- haddock --version
         time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
         # --no-haddock-hyperlink-source is 25% faster
         # --no-print-missing-docs is 600% quieter
