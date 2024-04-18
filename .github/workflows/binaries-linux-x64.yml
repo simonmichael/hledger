@@ -122,6 +122,13 @@ jobs:
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
+    - name: Fix $HOME for following steps (workaround from https://github.com/actions/runner/issues/863)
+      run: |
+        apk --no-cache add sudo
+        echo "setting HOME=/root"
+        echo HOME=/root | sudo tee -a $GITHUB_ENV
+      # stack will also need --allow-different-user for some reason
+
     - name: Add .ghcup/bin to PATH for following steps
       run: |
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
@@ -161,16 +168,17 @@ jobs:
 
 
     # build with stack
+    # --allow-different-user is needed because of #863 above, or because we're in a docker container and stack didn't notice
 
     - name: Install GHC with stack
       run: |
-        stack setup --install-ghc
+        stack --allow-different-user setup --install-ghc
 
     - name: Build with stack
       run: |
-        stack build --ghc-options='-optl-static -optl-pthread' hledger      # || (echo "ERROR: building hledger failed"; false)
-        stack build --ghc-options='-optl-static -optl-pthread' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
-        stack build --ghc-options='-optl-static -optl-pthread' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -optl-pthread' hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -optl-pthread' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -optl-pthread' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Run built-in unit tests
       run: |
