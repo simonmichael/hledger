@@ -10,7 +10,9 @@
 <details>
 <summary>
 
-## Release notes (https://hledger.org/release-notes.html#2024-04-18-hledger-133)
+## Release notes
+
+https://hledger.org/release-notes.html#2024-04-18-hledger-133
 
 </summary>
 
@@ -308,18 +310,16 @@ hamzashezad.
 
 ## Install
 
-At <https://hledger.org/install>, binary packages should be available for this release within a few days (look for green badges). 
+This release may arrive in your local packaging system soon - look for green badges at <https://hledger.org/install>.
+Or, you could build it yourself from source, as described on that page.
+Or, if there are binaries for your OS and hardware at the bottom of this page, follow the instructions below.
 
-Or, you can build from source as described there, after cloning at tag `1.33`:
-`git clone https://github.com/simonmichael/hledger --depth 1 -b 1.33`
+<!-- (On linux and mac, the double tar + zip packing is a Github workaround to preserve file permissions.) -->
 
-Or, if under "Assets" below there are release binaries suitable for your OS and hardware, you can use those.
 <!--
-Note: release binaries have been updated:
+Updates to release binaries:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
-Here are platform-specific instructions for the release binaries.
-(You can copy & paste each block of commands as a unit to save time.):
 
 <details>
 <summary>
@@ -332,11 +332,10 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-linux-x64.zip   # can rerun if interrupted
-unzip hledger-linux-x64.zip; tar xvf hledger-linux-x64.tar; rm hledger-linux-x64.{zip,tar}        # github workaround, preserves permissions
-cd -
-hledger --version  # should show the new version
-touch $HOME/.hledger.journal   # ensure a default journal file exists
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-linux-x64.zip    # just rerun if interrupted
+unzip hledger-linux-x64.zip && tar xvf hledger-linux-x64.tar && rm -f hledger-linux-x64.{zip,tar}  # github workaround, preserves permissions
+cd
+hledger --version    # should show the new version
 ```
 
 </details>
@@ -344,21 +343,31 @@ touch $HOME/.hledger.journal   # ensure a default journal file exists
 <details>
 <summary>
 
-### Mac on 64-bit Intel
+### Mac on 64-bit ARM or Intel
 
 </summary>
 
-In a terminal window,
+In a terminal window, run these commands to download, unpack, authorise, and install the binaries in your command line PATH.
+(Don't use your web browser, it won't authorise the binaries.):
+<!--
+(Hopefully these commands are all installed by default; 
+if not, install [XCode Command Line Tools](https://mac.install.guide/commandlinetools/) 
+and/or [Homebrew](https://brew.sh), and let me know.)
+-->
 
 ```
 cd /usr/local/bin
+
+# for ARM macs:
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-mac-arm64.zip    # just rerun if interrupted
+unzip hledger-mac-arm64.zip && tar xvf hledger-mac-arm64.tar && rm -f hledger-mac-arm64.{zip,tar}  # github workaround, preserves permissions
+
+# or for Intel macs:
 curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-mac-x64.zip
-unzip hledger-mac-x64.zip; tar xvf hledger-mac-x64.tar; rm hledger-mac-x64.{zip,tar}              # github workaround, preserves permissions
-open .
-# for the hledger, hledger-ui, hledger-web icons: right-click, Open, confirm it's ok to run
-cd -
-hledger --version  # should show the new version
-touch $HOME/.hledger.journal   # ensure a default journal file exists
+unzip hledger-mac-x64.zip && tar xvf hledger-mac-x64.tar && rm -f hledger-mac-x64.{zip,tar}
+
+cd
+hledger --version    # should show the new version
 ```
 
 </details>
@@ -366,7 +375,7 @@ touch $HOME/.hledger.journal   # ensure a default journal file exists
 <details>
 <summary>
 
-### Windows 64-bit Intel (or ARM, using emulation)
+### Windows on 64-bit Intel (or ARM, using emulation)
 
 </summary>
 
@@ -382,11 +391,11 @@ $ENV:PATH += ";"+$HOME+"\bin"
 2. Download and install the release binaries:
 ```
 cd $HOME\bin
-curl https://github.com/simonmichael/hledger/releases/download/1.33/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+curl https://github.com/simonmichael/hledger/releases/download/1.33/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip     # just rerun if interrupted
 Expand-Archive hledger-windows-x64.zip -DestinationPath .
 rm hledger-windows-x64.zip
 cd $HOME
-hledger --version           # should show the new version
+hledger --version    # should show the new version
 ```
 
 3. Ensure a default journal file exists, and without a problematic encoding. 
