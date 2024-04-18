@@ -122,12 +122,12 @@ jobs:
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
+    # needed by stack, at least; do it here in case it matters for ghcup too
     - name: Fix $HOME for following steps (workaround from https://github.com/actions/runner/issues/863)
       run: |
         apk --no-cache add sudo
         echo "setting HOME=/root"
         echo HOME=/root | sudo tee -a $GITHUB_ENV
-      # stack will also need --allow-different-user for some reason
 
     - name: Add .ghcup/bin to PATH for following steps
       run: |
@@ -141,7 +141,7 @@ jobs:
         if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
 
 
-    # build with cabal
+    ## build with cabal
     # failing with:  lto1: fatal error: bytecode stream in file '/usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/../../../../lib/libgmp.a' generated with LTO version 13.0 instead of the expected 13.1
 
     # - name: Update cabal package index
@@ -166,9 +166,9 @@ jobs:
     #     strip hledger-web
     #     tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
 
-
-    # build with stack
+    ## build with stack
     # --allow-different-user is needed because of #863 above, or because we're in a docker container and stack didn't notice
+    # failing with: /usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/../../../../x86_64-alpine-linux-musl/bin/ld.gold: error: /usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/crtbeginT.o: requires dynamic R_X86_64_32 reloc against '__TMC_END__' which may overflow at runtime; recompile with -fPIC    
 
     - name: Install GHC with stack
       run: |
@@ -196,6 +196,7 @@ jobs:
         strip hledger-web
         tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web
 
+    ##
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
