@@ -186,7 +186,7 @@ jobs:
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
     # Unfortunately it means users must both unzip and untar.
     - name: Upload binaries artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: hledger-mac-arm64
         path: tmp/hledger-mac-arm64.tar
