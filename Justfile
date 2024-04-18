@@ -1285,12 +1285,19 @@ sccv:
 @reltag:
 	for p in $PACKAGES; do just reltagpkg $p; done
 	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/relnotes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
-	printf "If tagging a major release, please also review and run the following command.\nThis tag influences git describe and dev builds' version strings:\n"
-	printf "$ git tag -fs `cat .version`.99 master -m \"start of next release cycle\"\n"
 
 # Make a git release tag for the given hledger package.
 @reltagpkg PKG:
 	git tag -fs $PKG-`cat $PKG/.version` -m "Release $PKG-`cat $PKG/.version`"
+
+# After a major release, also tag master to indicate start of release cycle and influence git describe and dev builds' --version output.
+# XXX Run this only after .version has been updated to NEWVER
+# @reltagmaster:
+# 	git tag -fs `cat .version`.99 master -m "start of next release cycle"
+
+# Upload all packages to hackage (run from release branch).
+@hackageupload:
+    tools/hackageupload $PACKAGES
 
 
 # ** Misc ------------------------------------------------------------
