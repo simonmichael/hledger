@@ -198,6 +198,9 @@ Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases a
   - troubleshooting github workflow issues
   - followup work due to release mistakes, bugs in new features, or regressions
 
+- Hard/risky/intensive tasks should be early in the process;
+  during the final countdown, things should be easy.
+
 ## Release artifacts / value chain
 
 Higher things depend on lower things; when doing a release, work upward from the bottom.
@@ -216,41 +219,53 @@ In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
 1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
 1. If not the first release in this branch, cherry-pick changes from master: `magit l o REL-branch..master` (minor releases)
+1. (Could start building/testing/fixing release binaries/workflows/caches here, it takes time: `just relbin`)
 1. Update install script: `hledger-install/hledger-install.sh`
 1. Update changelogs: `./Shake changelogs` & manually edit
    (*TODO: fix Shake changelogs to not eat whitespace*)
 1. Update release notes: `doc/relnotes*`
    (*TODO: automate release notes, github release notes production; auto-link issue numbers*)
 1. Update announcements: `doc/ANNOUNCE*` (major releases)
-1. Tag release locally: `just reltag`
-1. Test & build release binaries: `just relbin`
+1. Build/test release binaries: `just relbin`. Troubleshoot/repeat as needed.
 
-### 2 Prep website
 In site repo:
 1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
 1. Update install page: `site/src/install.md`
 
-### 3 Release part 1 - hackage, github
+### 2 Prep release
 In main repo, release branch:
-1. Upload to hackage: `make hackageupload`
+1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
 1. Download release binaries
-1. Push release branch:  `git push --tags`
-1. Create [github release](#github-release), upload release binaries
+1. Push release branch & tags to github: `git push --tags`
+1. Create a draft [github release](#github-release), upload release binaries
 
-### 4 Release part 2 - install script, announcements
 In main repo, master:
-1. Cherry-pick changes from release branch to master, including hledger-install update: `magit l o LASTREL..REL-branch`
+1. Cherry-pick changes from release branch, including hledger-install: `magit l o LASTREL..REL-branch`
+1. Commit any process updates: `doc/RELEASING.md`
 1. [Bump version](#bump-master-to-next-version) in master (major releases)
+
+### 3 Release
+In main repo, release branch:
+1. Publish on hackage: `make hackageupload`
+1. Publish github release
+
+In main repo, master:
 1. Push master: `just push`
-1. Push website: `git -C site push`
+
+In site repo:
+1. Push website: `git push`
+
+### 4 Announce
+(major releases, others if needed)
 1. Update hledger entry at https://plaintextaccounting.org/#pta-apps
-1. Send announcements: hledger matrix & irc chats, PTA forum, hledger mail list (& optionally haskell-cafe), mastodon (major releases, others if needed)
+1. hledger matrix & irc chats
+1. PTA forum
+1. hledger mail list (& optionally haskell-cafe)
+1. mastodon with #hledger and #plaintextaccounting tags
 
 ### 5 Post-release
-In main repo, master:
-1. Commit any process updates: `doc/RELEASING.md`
-1. Monitor packaging status (including stackage); keep install page updated
-1. Monitor/respond to issues, especially regressions; keep doc/REGRESSIONS.md updated
+1. Monitor packaging status (stackage, brew, docker, linux, nix etc); keep install page updated
+1. Monitor, follow up on issues, especially regressions; keep doc/REGRESSIONS.md updated
 
 
 ## Detailed procedures
