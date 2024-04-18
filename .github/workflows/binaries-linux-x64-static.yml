@@ -1,6 +1,7 @@
 # Runs on any push to ci-linux-x64.
 # Produces optimised static x64 linux  binaries,
-# using the GHC version below and cabal.
+# using the GHC version below and (cabal or stack) 
+# and Alpine linux, which provides the statically-linkable musl.
 # Currently runs no tests.
 # Was using ghc 9.0 to avoid segfaults with the ghc 9.2 binaries on alpine, https://gitlab.haskell.org/ghc/ghc/-/issues/20266
 # Trying latest ghc 9.8 now.
@@ -43,60 +44,143 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
-    - name: Uncache cabal-installed libs
-      id:   cabal
+    # - name: Uncache cabal-installed libs
+    #   id:   cabal
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ~/.cabal
+    #     key: ${{ runner.os }}-cabal-${{ hashFiles('**.yaml') }}
+    #     restore-keys: |
+    #          ${{ runner.os }}-cabal
+
+    - name: Uncache stack global package db
+      id:   stack-global
       uses: actions/cache@v3
       with:
-        path: ~/.cabal
-        key: ${{ runner.os }}-cabal-${{ hashFiles('**.yaml') }}
+        path: ~/.stack
+        key: ${{ runner.os }}-stack-global-20240417-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-cabal
+             ${{ runner.os }}-stack-global-20240417
+      if: env.CONTINUE
+
+    - name: Uncache stack-installed programs in ~/.local/bin
+      id:   stack-programs
+      uses: actions/cache@v3
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-stack-programs-20240417-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-programs-20240417
+      if: env.CONTINUE
+
+    - name: Uncache .stack-work
+      uses: actions/cache@v3
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-20240417-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work-20240417
+      if: env.CONTINUE
+
+    - name: Uncache hledger-lib/.stack-work
+      uses: actions/cache@v3
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-20240417-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-lib-stack-work-20240417
+      if: env.CONTINUE
+
+    - name: Uncache hledger/.stack-work
+      uses: actions/cache@v3
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work-20240417-${{ hashFiles('hledger/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-stack-work-20240417
+      if: env.CONTINUE
+
+    - name: Uncache hledger-ui/.stack-work
+      uses: actions/cache@v3
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-20240417-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-ui-stack-work-20240417
+      if: env.CONTINUE
+
+    - name: Uncache hledger-web/.stack-work
+      uses: actions/cache@v3
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-20240417-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-web-stack-work-20240417
+      if: env.CONTINUE
 
     - name: Install general tools with system package manager
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
-    - name: Add .ghcup/bin to PATH for following steps
+    - name: Install haskell tools with ghcup if needed, and add .ghcup/bin to PATH
       run: |
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+        if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; ghcup --version
+        if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; ghc --version
+        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0; fi; cabal --version
+        if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; stack --version
 
-    - name: Install haskell tools with ghcup if needed
-      # originally based on fossas/haskell-static-alpine
-      run: |
-        if [[ ! -x ~/.ghcup/bin/ghcup ]]; then
-          mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup
-        fi
-        ghcup --version
-        if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then
-          ~/.ghcup/bin/ghcup install ghc 9.8.2 && ~/.ghcup/bin/ghcup set ghc 9.8.2
-        fi
-        ghc --version
-        if [[ ! -x ~/.ghcup/bin/cabal-3.10.3.0 ]]; then
-          ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0
-        fi
-        cabal --version
 
-    - name: Update cabal package index
-      run: |
-        cabal update
+    # build with cabal
+    # failing with:  lto1: fatal error: bytecode stream in file '/usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/../../../../lib/libgmp.a' generated with LTO version 13.0 instead of the expected 13.1
 
-    - name: Build on alpine
+    # - name: Update cabal package index
+    #   run: |
+    #     cabal update
+
+    # - name: Build with cabal
+    #   run: |
+    #     cabal build --enable-executable-static hledger || (echo "ERROR: building hledger failed"; false)
+    #     cabal build --enable-executable-static hledger-ui || (echo "ERROR: building hledger-ui failed"; false)
+    #     cabal build --enable-executable-static hledger-web || (echo "ERROR: building hledger-web failed"; false)
+
+    # - name: Gather binaries
+    #   run: |
+    #     mkdir tmp
+    #     cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger tmp
+    #     cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui tmp
+    #     cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web tmp
+    #     cd tmp
+    #     strip hledger
+    #     strip hledger-ui
+    #     strip hledger-web
+    #     tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
+
+
+    # build with stack
+
+    - name: Install GHC with stack
       run: |
-        cabal build --enable-executable-static hledger || (echo "ERROR: building hledger failed"; false)
-        cabal build --enable-executable-static hledger-ui || (echo "ERROR: building hledger failed"; false)
-        cabal build --enable-executable-static hledger-web || (echo "ERROR: building hledger-web failed"; false)
+        stack setup --install-ghc
+
+    - name: Build with stack
+      run: |
+        stack build --ghc-options='-optl-static -optl-pthread' hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack build --ghc-options='-optl-static -optl-pthread' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack build --ghc-options='-optl-static -optl-pthread' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web tmp
         cd tmp
+        cp ~/.local/bin/hledger .
+        cp ~/.local/bin/hledger-ui .
+        cp ~/.local/bin/hledger-web .
         strip hledger
         strip hledger-ui
         strip hledger-web
-        tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
+        tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web
+
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
