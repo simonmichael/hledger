@@ -1,4 +1,4 @@
-# Runs on any push to ci-linux-x64.
+# Runs on any push to binaries-linux-x64 or binaries.
 # Produces optimised static x64 linux  binaries,
 # using the GHC version below and (cabal or stack) 
 # and Alpine linux, which provides the statically-linkable musl.
@@ -34,6 +34,8 @@ jobs:
     # - name: Check embedded files
     #   run: |
     #     tools/checkembeddedfiles
+
+    # things to be cached/restored:
 
     - name: Uncache ghcup-installed tools
       id:   ghcup
@@ -110,6 +112,8 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-20240417-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-20240417
+
+    # actions:
 
     - name: Install general tools with system package manager
       run: |

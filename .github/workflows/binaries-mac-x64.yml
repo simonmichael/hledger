@@ -1,4 +1,4 @@
-# Runs on any push to ci-mac.
+# Runs on any push to binaries-mac-x64 or binaries.
 # Produces optimised mac x64 binaries and runs unit/doc/functional tests,
 # using the default stack.yaml's GHC version.
 
@@ -112,6 +112,8 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-from20220817
 
+    # actions:
+
     - name: Add .ghcup/bin to PATH for following steps
       run: |
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
@@ -153,17 +155,6 @@ jobs:
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected # bin
-
-    # # This is tested here rather than in the regular CI because it's slow,
-    # # doesn't fail too often, and the cost of late detection and fixing is low.
-    # - name: Test haddock generation
-    #   env:
-    #     stack: ${{ matrix.plan.stack }}
-    #   run: |
-    #     printf "haddock: "; stack exec -- haddock --version
-    #     time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
-    #     # --no-haddock-hyperlink-source is 25% faster
-    #     # --no-print-missing-docs is 600% quieter
 
     # artifacts:
 

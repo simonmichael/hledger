@@ -1,4 +1,4 @@
-# Runs on any push to ci-windows.
+# Runs on any push to binaries-windows-x64 or binaries.
 # Produces optimised windows binaries,
 # using the default stack.yaml's GHC version.
 # Currently runs no tests.

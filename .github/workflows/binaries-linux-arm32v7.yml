@@ -1,4 +1,4 @@
-# Runs on any push to ci-linux-arm32v7.
+# Runs on any push to binaries-linux-arm32v7.
 # Produces optimised static arm32v7 linux  binaries,
 # using GHC 8.10.4 and cabal.
 # Currently runs no tests.

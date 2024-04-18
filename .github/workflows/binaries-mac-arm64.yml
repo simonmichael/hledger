@@ -1,4 +1,4 @@
-# Runs on any push to ci-mac.
+# Runs on any push to binaries-mac-arm64 or binaries.
 # Produces optimised mac arm64 binaries and runs unit/doc/functional tests,
 # using the default stack.yaml's GHC version.
 
@@ -111,6 +111,8 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-from20220817-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-from20220817
+
+    # actions:
 
     - name: Add .ghcup/bin to PATH for following steps
       run: |
