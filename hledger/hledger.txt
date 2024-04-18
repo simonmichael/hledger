@@ -16,7 +16,7 @@ DESCRIPTION
        and largely compatible with  ledger(1),  and  largely  interconvertible
        with beancount(1).
 
-       This  manual  is for hledger's command line interface, version 1.32.99.
+       This  manual  is for hledger's command line interface, version 1.33.99.
        It also describes the common options, file formats and concepts used by
        all hledger programs.  It might accidentally teach you  some  bookkeep-
        ing/accounting  as  well!  You don't need to know everything in here to
@@ -96,46 +96,49 @@ Input
        Common tasks > Setting LEDGER_FILE.
 
    Text encoding
-       Data files containing non-ascii characters  must  use  UTF-8  encoding.
-       Also,  your  system  should be configured with a locale that can decode
-       UTF-8 text.  On some unix systems, you may need set the  LANG  environ-
+       Data files containing non-ascii characters must use UTF-8 encoding.  An
+       optional byte order mark (BOM) is allowed, at the beginning of the file
+       (only).
+
+       Also, your system should be configured with a locale  that  can  decode
+       UTF-8  text.   On some unix systems, you may need set the LANG environ-
        ment variable, eg.  You can read more about this in Unicode characters,
        below.
 
-       On  unix systems you can check a file's encoding with the file command.
+       On unix systems you can check a file's encoding with the file  command.
        If you need to import from a UTF-16-encoded CSV file, say, you can con-
        vert it to UTF-8 with the iconv command.
 
    Data formats
-       Usually the data file is in hledger's journal format, but it can be  in
+       Usually  the data file is in hledger's journal format, but it can be in
        any of the supported file formats, which currently are:
 
-       Reader:         Reads:                              Automatically  used for
+       Reader:         Reads:                              Automatically used  for
                                                            files with extensions:
        -----------------------------------------------------------------------------
-       journal         hledger journal  files  and  some   .journal   .j  .hledger
+       journal         hledger  journal  files  and some   .journal  .j   .hledger
                        Ledger journals, for transactions   .ledger
        timeclock       timeclock files, for precise time   .timeclock
                        logging
        timedot         timedot  files,  for  approximate   .timedot
                        time logging
-       csv             Comma  or  other  character sepa-   .csv
+       csv             Comma or  other  character  sepa-   .csv
                        rated values, for data import
        ssv             Semicolon separated values          .ssv
        tsv             Tab separated values                .tsv
-       rules           CSV/SSV/TSV/other separated  val-   .rules
+       rules           CSV/SSV/TSV/other  separated val-   .rules
                        ues, alternate way
 
        These formats are described in more detail below.
 
-       hledger  detects  the format automatically based on the file extensions
-       shown above.  If it can't recognise  the  file  extension,  it  assumes
-       journal  format.   So  for  non-journal  files, it's important to use a
+       hledger detects the format automatically based on the  file  extensions
+       shown  above.   If  it  can't  recognise the file extension, it assumes
+       journal format.  So for non-journal files,  it's  important  to  use  a
        recognised file extension, so as to either read successfully or to show
        relevant error messages.
 
-       You can also force a specific reader/format by prefixing the file  path
-       with  the  format  and a colon.  Eg, to read a .dat file containing tab
+       You  can also force a specific reader/format by prefixing the file path
+       with the format and a colon.  Eg, to read a .dat  file  containing  tab
        separated values:
 
               $ hledger -f tsv:/some/file.dat stats
@@ -151,23 +154,23 @@ Input
               $ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
 
    Multiple files
-       You can specify multiple -f options, to read multiple files as one  big
+       You  can specify multiple -f options, to read multiple files as one big
        journal.  When doing this, note that certain features (described below)
        will be affected:
 
-       o Balance  assertions will not see the effect of transactions in previ-
-         ous files.  (Usually this doesn't matter as each file  will  set  the
+       o Balance assertions will not see the effect of transactions in  previ-
+         ous  files.   (Usually  this doesn't matter as each file will set the
          corresponding opening balances.)
 
        o Some directives will not affect previous or subsequent files.
 
-       If  needed,  you  can  work  around these by using a single parent file
+       If needed, you can work around these by  using  a  single  parent  file
        which includes the others, or concatenating the files into one, eg: cat
        a.journal b.journal | hledger -f- CMD.
 
    Strict mode
        hledger checks input files for valid data.  By default, the most impor-
-       tant errors are detected, while  still  accepting  easy  journal  files
+       tant  errors  are  detected,  while  still accepting easy journal files
        without a lot of declarations:
 
        o Are the input files parseable, with valid syntax ?
@@ -178,7 +181,7 @@ Input
 
        With the -s/--strict flag, additional checks are performed:
 
-       o Are  all  accounts  posted  to,  declared with an account directive ?
+       o Are all accounts posted to, declared  with  an  account  directive  ?
          (Account error checking)
 
        o Are all commodities declared with a commodity directive ?  (Commodity
@@ -186,13 +189,13 @@ Input
 
        o Are all commodity conversions declared explicitly ?
 
-       You can use the check command to run  individual  checks  --  the  ones
+       You  can  use  the  check  command to run individual checks -- the ones
        listed above and some more.
 
 Commands
-       hledger  provides various subcommands for getting things done.  Most of
-       these commands do not change the journal file; they just  read  it  and
-       output  a report.  A few commands assist with adding data and file man-
+       hledger provides various subcommands for getting things done.  Most  of
+       these  commands  do  not change the journal file; they just read it and
+       output a report.  A few commands assist with adding data and file  man-
        agement.
 
        To show the commands list, run hledger with no arguments.  The commands
@@ -200,44 +203,44 @@ Commands
 
        To use a particular command, run hledger CMD [CMDOPTS] [CMDARGS],
 
-       o CMD is the full command name, or its standard abbreviation  shown  in
+       o CMD  is  the full command name, or its standard abbreviation shown in
          the commands list, or any unambiguous prefix of the name.
 
-       o CMDOPTS  are  command-specific options, if any.  Command-specific op-
+       o CMDOPTS are command-specific options, if any.   Command-specific  op-
          tions must be written after the command name.  Eg: hledger print -x.
 
-       o CMDARGS are additional  arguments  to  the  command,  if  any.   Most
-         hledger  commands accept arguments representing a query, to limit the
+       o CMDARGS  are  additional  arguments  to  the  command,  if any.  Most
+         hledger commands accept arguments representing a query, to limit  the
          data in some way.  Eg: hledger reg assets:checking.
 
        To list a command's options, arguments, and documentation in the termi-
        nal, run hledger CMD -h.  Eg: hledger bal -h.
 
    Add-on commands
-       In addition to the built-in commands, you can install add-on  commands:
-       programs  or  scripts named "hledger-SOMETHING", which will also appear
-       in hledger's commands list.  If you used  the  hledger-install  script,
-       you  will  have  several  add-ons  installed already.  Some more can be
-       found    in     hledger's     bin/     directory,     documented     at
+       In  addition to the built-in commands, you can install add-on commands:
+       programs or scripts named "hledger-SOMETHING", which will  also  appear
+       in  hledger's  commands  list.  If you used the hledger-install script,
+       you will have several add-ons installed  already.   Some  more  can  be
+       found     in     hledger's     bin/     directory,     documented    at
        https://hledger.org/scripts.html.
 
        More precisely, add-on commands are programs or scripts in your shell's
        PATH, whose name starts with "hledger-" and ends with no extension or a
-       recognised  extension  (".bat",  ".com",  ".exe", ".hs", ".js", ".lhs",
-       ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),  and  (on  unix
+       recognised extension (".bat", ".com",  ".exe",  ".hs",  ".js",  ".lhs",
+       ".lua",  ".php",  ".pl",  ".py", ".rb", ".rkt", or ".sh"), and (on unix
        and mac) which has executable permission for the current user.
 
        You can run add-on commands using hledger, much like built-in commands:
        hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS].  But note the double
-       hyphen  argument, required before add-on-specific options.  Eg: hledger
-       ui -- --watch or hledger web -- --serve.  If  this  causes  difficulty,
+       hyphen argument, required before add-on-specific options.  Eg:  hledger
+       ui  --  --watch  or hledger web -- --serve.  If this causes difficulty,
        you  can  always  run  the  add-on  directly,  without  using  hledger:
        hledger-ui --watch or hledger-web --serve.
 
 Options
-       Run hledger -h to see general command line help,  and  general  options
-       which  are common to most hledger commands.  These options can be writ-
-       ten anywhere on the command line.  They can be grouped into  help,  in-
+       Run  hledger  -h  to see general command line help, and general options
+       which are common to most hledger commands.  These options can be  writ-
+       ten  anywhere  on the command line.  They can be grouped into help, in-
        put, and reporting options:
 
    General help options
@@ -260,7 +263,7 @@ Options
               $LEDGER_FILE or $HOME/.hledger.journal)
 
        --rules-file=RULESFILE
-              Conversion  rules  file  to  use  when  reading  CSV   (default:
+              Conversion   rules  file  to  use  when  reading  CSV  (default:
               FILE.rules)
 
        --separator=CHAR
@@ -277,7 +280,7 @@ Options
               assignments)
 
        -s --strict
-              do  extra error checking (check that all posted accounts are de-
+              do extra error checking (check that all posted accounts are  de-
               clared)
 
    General reporting options
@@ -305,7 +308,7 @@ Options
               multiperiod/multicolumn report by year
 
        -p --period=PERIODEXP
-              set start date, end date, and/or reporting interval all at  once
+              set  start date, end date, and/or reporting interval all at once
               using period expressions syntax
 
        --date2
@@ -313,7 +316,7 @@ Options
               fects)
 
        --today=DATE
-              override   today's  date  (affects  relative  smart  dates,  for
+              override  today's  date  (affects  relative  smart  dates,   for
               tests/examples)
 
        -U --unmarked
@@ -332,21 +335,21 @@ Options
               hide/aggregate accounts or postings more than NUM levels deep
 
        -E --empty
-              show items with zero amount, normally hidden (and vice-versa  in
+              show  items with zero amount, normally hidden (and vice-versa in
               hledger-ui/hledger-web)
 
        -B --cost
               convert amounts to their cost/selling amount at transaction time
 
        -V --market
-              convert  amounts to their market value in default valuation com-
+              convert amounts to their market value in default valuation  com-
               modities
 
        -X --exchange=COMM
               convert amounts to their market value in commodity COMM
 
        --value
-              convert amounts to cost or  market  value,  more  flexibly  than
+              convert  amounts  to  cost  or  market value, more flexibly than
               -B/-V/-X
 
        --infer-equity
@@ -356,38 +359,38 @@ Options
               infer costs from conversion equity postings
 
        --infer-market-prices
-              use  costs as additional market prices, as if they were P direc-
+              use costs as additional market prices, as if they were P  direc-
               tives
 
        --forecast
-              generate transactions from periodic rules,  between  the  latest
-              recorded  txn  and  6 months from today, or during the specified
-              PERIOD (= is required).  Auto posting rules will be  applied  to
-              these  transactions  as  well.   Also,  in  hledger-ui  make fu-
+              generate  transactions  from  periodic rules, between the latest
+              recorded txn and 6 months from today, or  during  the  specified
+              PERIOD  (=  is required).  Auto posting rules will be applied to
+              these transactions  as  well.   Also,  in  hledger-ui  make  fu-
               ture-dated transactions visible.
 
-       --auto generate extra postings by applying auto posting  rules  to  all
+       --auto generate  extra  postings  by applying auto posting rules to all
               txns (not just forecast txns)
 
        --verbose-tags
-              add  visible tags indicating transactions or postings which have
+              add visible tags indicating transactions or postings which  have
               been generated/modified
 
        --commodity-style
-              Override the commodity style in the  output  for  the  specified
+              Override  the  commodity  style  in the output for the specified
               commodity.  For example 'EUR1.000,00'.
 
        --color=WHEN (or --colour=WHEN)
-              Should  color-supporting  commands  use ANSI color codes in text
+              Should color-supporting commands use ANSI color  codes  in  text
               output.   'auto'  (default):  whenever  stdout  seems  to  be  a
               color-supporting terminal.  'always' or 'yes': always, useful eg
-              when  piping  output into 'less -R'.  'never' or 'no': never.  A
+              when piping output into 'less -R'.  'never' or 'no':  never.   A
               NO_COLOR environment variable overrides this.
 
        --pretty[=WHEN]
-              Show prettier output, e.g.  using  unicode  box-drawing  charac-
-              ters.   Accepts 'yes' (the default) or 'no' ('y', 'n', 'always',
-              'never' also work).  If you provide an  argument  you  must  use
+              Show  prettier  output,  e.g.  using unicode box-drawing charac-
+              ters.  Accepts 'yes' (the default) or 'no' ('y', 'n',  'always',
+              'never'  also  work).   If  you provide an argument you must use
               '=', e.g.  '--pretty=yes'.
 
        When a reporting option appears more than once in the command line, the
@@ -396,19 +399,19 @@ Options
        Some reporting options can also be written as query arguments.
 
 Command line tips
-       Here  are  some  details useful to know about for hledger command lines
+       Here are some details useful to know about for  hledger  command  lines
        (and elsewhere).  Feel free to skip this section until you need it.
 
    Option repetition
-       If options are repeated in a command line, hledger will  generally  use
+       If  options  are repeated in a command line, hledger will generally use
        the last (right-most) occurence.
 
    Special characters
    Single escaping (shell metacharacters)
-       In  shell command lines, characters significant to your shell - such as
-       spaces, <, >, (, ), |, $ and \ - should be "shell-escaped" if you  want
-       hledger  to see them.  This is done by enclosing them in single or dou-
-       ble quotes, or by writing a backslash before them.  Eg to match an  ac-
+       In shell command lines, characters significant to your shell - such  as
+       spaces,  <, >, (, ), |, $ and \ - should be "shell-escaped" if you want
+       hledger to see them.  This is done by enclosing them in single or  dou-
+       ble  quotes, or by writing a backslash before them.  Eg to match an ac-
        count name containing a space:
 
               $ hledger register 'credit card'
@@ -417,17 +420,17 @@ Command line tips
 
               $ hledger register credit\ card
 
-       Windows  users  should  keep  in mind that cmd treats single quote as a
-       regular character, so you should be using  double  quotes  exclusively.
+       Windows users should keep in mind that cmd treats  single  quote  as  a
+       regular  character,  so  you should be using double quotes exclusively.
        PowerShell treats both single and double quotes as quotes.
 
    Double escaping (regular expression metacharacters)
-       Characters  significant in regular expressions (described below) - such
-       as ., ^, $, [, ], (, ), |, and \ - may need to  be  "regex-escaped"  if
-       you  don't  want them to be interpreted by hledger's regular expression
-       engine.  This is done by writing backslashes  before  them,  but  since
-       backslash  is typically also a shell metacharacter, both shell-escaping
-       and regex-escaping will be needed.  Eg to match a literal $ sign  while
+       Characters significant in regular expressions (described below) -  such
+       as  .,  ^,  $, [, ], (, ), |, and \ - may need to be "regex-escaped" if
+       you don't want them to be interpreted by hledger's  regular  expression
+       engine.   This  is  done  by writing backslashes before them, but since
+       backslash is typically also a shell metacharacter, both  shell-escaping
+       and  regex-escaping will be needed.  Eg to match a literal $ sign while
        using the bash shell:
 
               $ hledger balance cur:'\$'
@@ -437,10 +440,10 @@ Command line tips
               $ hledger balance cur:\\$
 
    Triple escaping (for add-on commands)
-       When  you  use hledger to run an external add-on command (described be-
+       When you use hledger to run an external add-on command  (described  be-
        low), one level of shell-escaping is lost from any options or arguments
-       intended for by the add-on command, so those need  an  extra  level  of
-       shell-escaping.   Eg  to  match  a  literal $ sign while using the bash
+       intended  for  by  the  add-on command, so those need an extra level of
+       shell-escaping.  Eg to match a literal $  sign  while  using  the  bash
        shell and running an add-on command (ui):
 
               $ hledger ui cur:'\\$'
@@ -456,14 +459,14 @@ Command line tips
        double-escaped:   \\$
        triple-escaped:   \\\\$
 
-       Or, you can avoid the extra escaping by running the  add-on  executable
+       Or,  you  can avoid the extra escaping by running the add-on executable
        directly:
 
               $ hledger-ui cur:\\$
 
    Less escaping
        Options and arguments are sometimes used in places other than the shell
-       command  line,  where shell-escaping is not needed, so there you should
+       command line, where shell-escaping is not needed, so there  you  should
        use one less level of escaping.  Those places include:
 
        o an @argumentfile
@@ -477,8 +480,8 @@ Command line tips
    Unicode characters
        hledger is expected to handle non-ascii characters correctly:
 
-       o they should be parsed correctly in input files  and  on  the  command
-         line,  by all hledger tools (add, iadd, hledger-web's search/add/edit
+       o they  should  be  parsed  correctly in input files and on the command
+         line, by all hledger tools (add, iadd, hledger-web's  search/add/edit
          forms, etc.)
 
        o they  should  be  displayed  correctly  by  all  hledger  tools,  and
@@ -486,39 +489,39 @@ Command line tips
 
        This requires a well-configured environment.  Here are some tips:
 
-       o A  system  locale must be configured, and it must be one that can de-
-         code the characters being used.  In bash, you can set a  locale  like
-         this:  export LANG=en_US.UTF-8.  There are some more details in Trou-
-         bleshooting.  This step is essential - without it, hledger will  quit
-         on  encountering a non-ascii character (as with all GHC-compiled pro-
+       o A system locale must be configured, and it must be one that  can  de-
+         code  the  characters being used.  In bash, you can set a locale like
+         this: export LANG=en_US.UTF-8.  There are some more details in  Trou-
+         bleshooting.   This step is essential - without it, hledger will quit
+         on encountering a non-ascii character (as with all GHC-compiled  pro-
          grams).
 
-       o your terminal software (eg  Terminal.app,  iTerm,  CMD.exe,  xterm..)
+       o your  terminal  software  (eg  Terminal.app, iTerm, CMD.exe, xterm..)
          must support unicode
 
        o the terminal must be using a font which includes the required unicode
          glyphs
 
-       o the  terminal should be configured to display wide characters as dou-
+       o the terminal should be configured to display wide characters as  dou-
          ble width (for report alignment)
 
-       o on Windows, for best results you should run hledger in the same  kind
-         of  environment in which it was built.  Eg hledger built in the stan-
-         dard CMD.EXE environment (like the binaries  on  our  download  page)
-         might  show  display  problems when run in a cygwin or msys terminal,
+       o on  Windows, for best results you should run hledger in the same kind
+         of environment in which it was built.  Eg hledger built in the  stan-
+         dard  CMD.EXE  environment  (like  the binaries on our download page)
+         might show display problems when run in a cygwin  or  msys  terminal,
          and vice versa.  (See eg #961).
 
    Regular expressions
-       A regular expression (regexp) is a small piece of  text  where  certain
-       characters  (like  .,  ^, $, +, *, (), |, [], \) have special meanings,
-       forming a tiny language for matching text precisely -  very  useful  in
-       hledger  and elsewhere.  To learn all about them, visit regular-expres-
+       A  regular  expression  (regexp) is a small piece of text where certain
+       characters (like ., ^, $, +, *, (), |, [], \)  have  special  meanings,
+       forming  a  tiny  language for matching text precisely - very useful in
+       hledger and elsewhere.  To learn all about them, visit  regular-expres-
        sions.info.
 
-       hledger supports regexps whenever you are entering a pattern  to  match
-       something,  eg  in  query  arguments,  account  aliases,  CSV if rules,
+       hledger  supports  regexps whenever you are entering a pattern to match
+       something, eg in  query  arguments,  account  aliases,  CSV  if  rules,
        hledger-web's search form, hledger-ui's / search, etc.  You may need to
-       wrap them in quotes, especially at the command line (see Special  char-
+       wrap  them in quotes, especially at the command line (see Special char-
        acters above).  Here are some examples:
 
        Account name queries (quoted for command line use):
@@ -574,49 +577,49 @@ Command line tips
               &  %date   (29|30|31|01|02|03)$
 
    hledger's regular expressions
-       hledger's  regular  expressions  come  from the regex-tdfa library.  If
-       they're not doing what you expect, it's important to know exactly  what
+       hledger's regular expressions come from  the  regex-tdfa  library.   If
+       they're  not doing what you expect, it's important to know exactly what
        they support:
 
        1. they are case insensitive
 
-       2. they  are infix matching (they do not need to match the entire thing
+       2. they are infix matching (they do not need to match the entire  thing
           being matched)
 
        3. they are POSIX ERE (extended regular expressions)
 
        4. they also support GNU word boundaries (\b, \B, \<, \>)
 
-       5. backreferences are supported when doing text replacement in  account
-          aliases  or  CSV  rules, where backreferences can be used in the re-
+       5. backreferences  are supported when doing text replacement in account
+          aliases or CSV rules, where backreferences can be used  in  the  re-
           placement string to reference capturing groups in the search regexp.
           Otherwise, if you write \1, it will match the digit 1.
 
-       6. they do not support mode modifiers ((?s)),  character  classes  (\w,
+       6. they  do  not  support mode modifiers ((?s)), character classes (\w,
           \d), or anything else not mentioned above.
 
        Some things to note:
 
-       o In  the  alias directive and --alias option, regular expressions must
-         be enclosed in forward  slashes  (/REGEX/).   Elsewhere  in  hledger,
+       o In the alias directive and --alias option, regular  expressions  must
+         be  enclosed  in  forward  slashes  (/REGEX/).  Elsewhere in hledger,
          these are not required.
 
-       o In  queries,  to match a regular expression metacharacter like $ as a
-         literal character, prepend a backslash.  Eg  to  search  for  amounts
+       o In queries, to match a regular expression metacharacter like $  as  a
+         literal  character,  prepend  a  backslash.  Eg to search for amounts
          with the dollar sign in hledger-web, write cur:\$.
 
-       o On  the command line, some metacharacters like $ have a special mean-
+       o On the command line, some metacharacters like $ have a special  mean-
          ing to the shell and so must be escaped at least once more.  See Spe-
          cial characters.
 
    Argument files
        You can save a set of command line options and arguments in a file, and
-       then reuse them by writing @FILENAME as a command line  argument.   Eg:
+       then  reuse  them by writing @FILENAME as a command line argument.  Eg:
        hledger bal @foo.args.
 
-       Inside  the  argument file, each line should contain just one option or
-       argument.  Don't use spaces except inside quotes (or you'll see a  con-
-       fusing  error);  write  = (or nothing) between a flag and its argument.
+       Inside the argument file, each line should contain just one  option  or
+       argument.   Don't use spaces except inside quotes (or you'll see a con-
+       fusing error); write = (or nothing) between a flag  and  its  argument.
        For the special characters mentioned above, use one less level of quot-
        ing than you would at the command prompt.
 
@@ -627,15 +630,15 @@ Output
 
               $ hledger print > foo.txt
 
-       Some commands (print, register, stats, the balance commands) also  pro-
-       vide  the  -o/--output-file  option,  which does the same thing without
+       Some  commands (print, register, stats, the balance commands) also pro-
+       vide the -o/--output-file option, which does  the  same  thing  without
        needing the shell.  Eg:
 
               $ hledger print -o foo.txt
               $ hledger print -o -        # write to stdout (the default)
 
    Output format
-       Some commands offer other kinds of output, not just text on the  termi-
+       Some  commands offer other kinds of output, not just text on the termi-
        nal.  Here are those commands and the formats currently supported:
 
        -                  txt               csv/tsv          html               json    sql
@@ -652,19 +655,19 @@ Output
 
        o 1 Also affected by the balance commands' --layout option.
 
-       o 2  balance  does not support html output without a report interval or
+       o 2 balance does not support html output without a report  interval  or
          with --budget.
 
        The output format is selected by the -O/--output-format=FMT option:
 
               $ hledger print -O csv    # print CSV on stdout
 
-       or by the filename extension of  an  output  file  specified  with  the
+       or  by  the  filename  extension  of  an output file specified with the
        -o/--output-file=FILE.FMT option:
 
               $ hledger balancesheet -o foo.csv    # write CSV to foo.csv
 
-       The  -O  option can be combined with -o to override the file extension,
+       The -O option can be combined with -o to override the  file  extension,
        if needed:
 
               $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
@@ -672,7 +675,7 @@ Output
        Some notes about the various output formats:
 
    CSV output
-       o In CSV output, digit group marks (such as thousands  separators)  are
+       o In  CSV  output, digit group marks (such as thousands separators) are
          disabled automatically.
 
    HTML output
@@ -682,82 +685,82 @@ Output
    JSON output
        o This is not yet much used; real-world feedback is welcome.
 
-       o Our  JSON  is rather large and verbose, since it is a faithful repre-
-         sentation of hledger's internal data types.  To understand the  JSON,
-         read   the   Haskell   type   definitions,   which   are   mostly  in
+       o Our JSON is rather large and verbose, since it is a  faithful  repre-
+         sentation  of hledger's internal data types.  To understand the JSON,
+         read  the   Haskell   type   definitions,   which   are   mostly   in
          https://github.com/simonmichael/hledger/blob/mas-
          ter/hledger-lib/Hledger/Data/Types.hs.
 
-       o hledger represents quantities as Decimal values  storing  up  to  255
-         significant  digits,  eg  for  repeating  decimals.  Such numbers can
+       o hledger  represents  quantities  as  Decimal values storing up to 255
+         significant digits, eg for  repeating  decimals.   Such  numbers  can
          arise in practice (from automatically-calculated transaction prices),
-         and would break most JSON consumers.  So in JSON, we show  quantities
+         and  would break most JSON consumers.  So in JSON, we show quantities
          as simple Numbers with at most 10 decimal places.  We don't limit the
-         number  of  integer  digits, but that part is under your control.  We
-         hope this approach will not cause problems in practice; if  you  find
+         number of integer digits, but that part is under  your  control.   We
+         hope  this  approach will not cause problems in practice; if you find
          otherwise, please let us know.  (Cf #1195)
 
    SQL output
        o This is not yet much used; real-world feedback is welcome.
 
-       o SQL  output is expected to work at least with SQLite, MySQL and Post-
+       o SQL output is expected to work at least with SQLite, MySQL and  Post-
          gres.
 
-       o For SQLite, it will be more useful if you  modify  the  generated  id
+       o For  SQLite,  it  will  be more useful if you modify the generated id
          field to be a PRIMARY KEY.  Eg:
 
                 $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
 
-       o SQL  output  is structured with the expectations that statements will
-         be executed in the empty database.  If you already have  tables  cre-
-         ated  via  SQL  output  of hledger, you would probably want to either
+       o SQL output is structured with the expectations that  statements  will
+         be  executed  in the empty database.  If you already have tables cre-
+         ated via SQL output of hledger, you would  probably  want  to  either
          clear tables of existing data (via delete or truncate SQL statements)
          or drop tables completely as otherwise your postings will be duped.
 
    Commodity styles
-       When displaying amounts, hledger infers a standard  display  style  for
+       When  displaying  amounts,  hledger infers a standard display style for
        each commodity/currency, as described below in Commodity display style.
 
        If needed, this can be overridden by a -c/--commodity-style option (ex-
        cept for cost amounts and amounts displayed by the print command, which
-       are  always  displayed with all decimal digits).  For example, the fol-
+       are always displayed with all decimal digits).  For example,  the  fol-
        lowing will force dollar amounts to be displayed as shown:
 
               $ hledger print -c '$1.000,0'
 
        This option can repeated to set the display style for multiple commodi-
-       ties/currencies.  Its argument is as described in the commodity  direc-
+       ties/currencies.   Its argument is as described in the commodity direc-
        tive.
 
-       In  some  cases  hledger will adjust number formatting to improve their
+       In some cases hledger will adjust number formatting  to  improve  their
        parseability (such as adding trailing decimal marks when needed).
 
    Colour
-       In terminal output, some commands can produce colour when the  terminal
+       In  terminal output, some commands can produce colour when the terminal
        supports it:
 
-       o if  the --color/--colour option is given a value of yes or always (or
+       o if the --color/--colour option is given a value of yes or always  (or
          no or never), colour will (or will not) be used;
 
-       o otherwise, if the NO_COLOR environment variable is set,  colour  will
+       o otherwise,  if  the NO_COLOR environment variable is set, colour will
          not be used;
 
-       o otherwise,  colour will be used if the output (terminal or file) sup-
+       o otherwise, colour will be used if the output (terminal or file)  sup-
          ports it.
 
    Box-drawing
-       In terminal output, you can enable unicode  box-drawing  characters  to
+       In  terminal  output,  you can enable unicode box-drawing characters to
        render prettier tables:
 
-       o if  the  --pretty  option is given a value of yes or always (or no or
+       o if the --pretty option is given a value of yes or always  (or  no  or
          never), unicode characters will (or will not) be used;
 
        o otherwise, unicode characters will not be used.
 
    Paging
-       When showing long output in the terminal, hledger will try to  use  the
-       pager  specified  by  the PAGER environment variable, or less, or more.
-       (A pager is a helper program that shows one page at a time rather  than
+       When  showing  long output in the terminal, hledger will try to use the
+       pager specified by the PAGER environment variable, or  less,  or  more.
+       (A  pager is a helper program that shows one page at a time rather than
        scrolling everything off screen).  Currently it does this only for help
        output, not for reports; specifically,
 
@@ -767,23 +770,23 @@ Output
 
        o when viewing manuals with hledger help or hledger --man.
 
-       Note  the pager is expected to handle ANSI codes, which hledger uses eg
+       Note the pager is expected to handle ANSI codes, which hledger uses  eg
        for bold emphasis.  For the common pager less (and its more compatibil-
-       ity mode), we add R to the LESS and MORE environment variables to  make
-       this  work.   If you use a different pager, you might need to configure
+       ity  mode), we add R to the LESS and MORE environment variables to make
+       this work.  If you use a different pager, you might need  to  configure
        it similarly, to avoid seeing junk on screen (let us know).  Otherwise,
-       you can set the NO_COLOR environment variable to 1 to disable all  ANSI
+       you  can set the NO_COLOR environment variable to 1 to disable all ANSI
        output (see Colour).
 
    Debug output
        We intend hledger to be relatively easy to troubleshoot, introspect and
-       develop.   You  can  add --debug[=N] to any hledger command line to see
-       additional debug output.  N ranges from 1 (least output,  the  default)
-       to  9  (maximum output).  Typically you would start with 1 and increase
-       until you are seeing enough.  Debug output goes to stderr, and  is  not
+       develop.  You can add --debug[=N] to any hledger command  line  to  see
+       additional  debug  output.  N ranges from 1 (least output, the default)
+       to 9 (maximum output).  Typically you would start with 1  and  increase
+       until  you  are seeing enough.  Debug output goes to stderr, and is not
        affected by -o/--output-file (unless you redirect stderr to stdout, eg:
-       2>&1).   It  will be interleaved with normal output, which can help re-
-       veal when parts of the code are evaluated.  To capture debug output  in
+       2>&1).  It will be interleaved with normal output, which can  help  re-
+       veal  when parts of the code are evaluated.  To capture debug output in
        a log file instead, you can usually redirect stderr, eg:
 
               hledger bal --debug=3 2>hledger.log
@@ -791,52 +794,52 @@ Output
 Environment
        These environment variables affect hledger:
 
-       COLUMNS  This  is  normally set by your terminal; some hledger commands
-       (register) will format their output to this width.  If  not  set,  they
+       COLUMNS This is normally set by your terminal;  some  hledger  commands
+       (register)  will  format  their output to this width.  If not set, they
        will try to use the available terminal width.
 
-       LEDGER_FILE  The  main  journal  file  to  use  when not specified with
+       LEDGER_FILE The main journal  file  to  use  when  not  specified  with
        -f/--file.  Default: $HOME/.hledger.journal.
 
-       NO_COLOR If this environment variable is set (with any value),  hledger
-       will  not use ANSI color codes in terminal output, unless overridden by
+       NO_COLOR  If this environment variable is set (with any value), hledger
+       will not use ANSI color codes in terminal output, unless overridden  by
        an explicit --color/--colour option.
 
 PART 2: DATA FORMATS
 Journal
        hledger's usual data source is a plain text file containing journal en-
-       tries in hledger journal format.  If you're looking for a quick  refer-
-       ence,  jump  ahead  to the journal cheatsheet (or use the table of con-
+       tries  in hledger journal format.  If you're looking for a quick refer-
+       ence, jump ahead to the journal cheatsheet (or use the  table  of  con-
        tents at https://hledger.org/hledger.html).
 
-       This file represents an accounting General Journal.  The .journal  file
-       extension  is most often used, though not strictly required.  The jour-
-       nal file contains a number of transaction entries,  each  describing  a
-       transfer  of  money  (or  any  commodity) between two or more named ac-
+       This  file represents an accounting General Journal.  The .journal file
+       extension is most often used, though not strictly required.  The  jour-
+       nal  file  contains  a number of transaction entries, each describing a
+       transfer of money (or any commodity) between  two  or  more  named  ac-
        counts, in a simple format readable by both hledger and humans.
 
-       hledger's journal format is compatible with most  of  Ledger's  journal
+       hledger's  journal  format  is compatible with most of Ledger's journal
        format, but not all of it.  The differences and interoperation tips are
-       described  at  hledger and Ledger.  With some care, and by avoiding in-
-       compatible features, you can keep  your  hledger  journal  readable  by
-       Ledger  and vice versa.  This can useful eg for comparing the behaviour
+       described at hledger and Ledger.  With some care, and by  avoiding  in-
+       compatible  features,  you  can  keep  your hledger journal readable by
+       Ledger and vice versa.  This can useful eg for comparing the  behaviour
        of one app against the other.
 
        You can use hledger without learning any more about this file; just use
        the add or web or import commands to create and update it.
 
        Many users, though, edit the journal file with a text editor, and track
-       changes with a version control system such as git.  Editor addons  such
-       as  ledger-mode  or  hledger-mode  for  Emacs,  vim-ledger for Vim, and
+       changes  with a version control system such as git.  Editor addons such
+       as ledger-mode or hledger-mode  for  Emacs,  vim-ledger  for  Vim,  and
        hledger-vscode for Visual Studio Code, make this easier, adding colour,
        formatting, tab completion, and useful commands.  See Editor configura-
        tion at hledger.org for the full list.
 
        A hledger journal file can contain three kinds of thing: comment lines,
-       transactions, and/or directives (including periodic  transaction  rules
-       and  auto  posting  rules).  Understanding the journal file format will
-       also give you a good understanding of hledger's data model.   Here's  a
-       quick  cheatsheet/overview,  followed  by detailed descriptions of each
+       transactions,  and/or  directives (including periodic transaction rules
+       and auto posting rules).  Understanding the journal  file  format  will
+       also  give  you a good understanding of hledger's data model.  Here's a
+       quick cheatsheet/overview, followed by detailed  descriptions  of  each
        part.
 
    Journal cheatsheet
@@ -970,7 +973,7 @@ Journal
 
    Comments
        Lines in the journal will be ignored if they begin with a hash (#) or a
-       semicolon (;).  (See also Other syntax.)  hledger will also ignore  re-
+       semicolon  (;).  (See also Other syntax.)  hledger will also ignore re-
        gions beginning with a comment line and ending with an end comment line
        (or file end).  Here's a suggestion for choosing between them:
 
@@ -992,15 +995,15 @@ Journal
               end comment
 
        Some hledger entries can have same-line comments attached to them, from
-       ;  (semicolon)  to end of line.  See Transaction comments, Posting com-
+       ; (semicolon) to end of line.  See Transaction comments,  Posting  com-
        ments, and Account comments below.
 
    Transactions
-       Transactions are the main unit of information in a journal file.   They
-       represent  events, typically a movement of some quantity of commodities
+       Transactions  are the main unit of information in a journal file.  They
+       represent events, typically a movement of some quantity of  commodities
        between two or more named accounts.
 
-       Each transaction is recorded as a journal entry, beginning with a  sim-
+       Each  transaction is recorded as a journal entry, beginning with a sim-
        ple date in column 0.  This can be followed by any of the following op-
        tional fields, separated by spaces:
 
@@ -1010,11 +1013,11 @@ Journal
 
        o a description (any remaining text until end of line or a semicolon)
 
-       o a  comment  (any  remaining  text  following a semicolon until end of
+       o a comment (any remaining text following  a  semicolon  until  end  of
          line, and any following indented lines beginning with a semicolon)
 
        o 0 or more indented posting lines, describing what was transferred and
-         the accounts involved (indented comment lines are also  allowed,  but
+         the  accounts  involved (indented comment lines are also allowed, but
          not blank lines or non-indented lines).
 
        Here's a simple journal file containing one transaction:
@@ -1025,22 +1028,22 @@ Journal
 
    Dates
    Simple dates
-       Dates  in  the  journal  file  use  simple  dates format: YYYY-MM-DD or
+       Dates in the journal  file  use  simple  dates  format:  YYYY-MM-DD  or
        YYYY/MM/DD or YYYY.MM.DD, with leading zeros optional.  The year may be
-       omitted, in which case it will be inferred from the context:  the  cur-
-       rent  transaction, the default year set with a Y directive, or the cur-
+       omitted,  in  which case it will be inferred from the context: the cur-
+       rent transaction, the default year set with a Y directive, or the  cur-
        rent  date  when  the  command  is  run.   Some  examples:  2010-01-31,
        2010/01/31, 2010.1.31, 1/31.
 
-       (The  UI  also accepts simple dates, as well as the more flexible smart
+       (The UI also accepts simple dates, as well as the more  flexible  smart
        dates documented in the hledger manual.)
 
    Posting dates
-       You can give individual postings a different  date  from  their  parent
-       transaction,  by  adding a posting comment containing a tag (see below)
+       You  can  give  individual  postings a different date from their parent
+       transaction, by adding a posting comment containing a tag  (see  below)
        like date:DATE.  This is probably the best way to control posting dates
-       precisely.  Eg in this example the expense should  appear  in  May  re-
-       ports,  and  the  deduction from checking should be reported on 6/1 for
+       precisely.   Eg  in  this  example the expense should appear in May re-
+       ports, and the deduction from checking should be reported  on  6/1  for
        easy bank reconciliation:
 
               2015/5/30
@@ -1053,15 +1056,15 @@ Journal
               $ hledger -f t.j register checking
               2015-06-01                      assets:checking               $-10          $-10
 
-       DATE should be a simple date; if the year is not specified it will  use
+       DATE  should be a simple date; if the year is not specified it will use
        the year of the transaction's date.
-       The  date: tag must have a valid simple date value if it is present, eg
+       The date: tag must have a valid simple date value if it is present,  eg
        a date: tag with no value is not allowed.
 
    Status
-       Transactions (or individual postings within a transaction) can  have  a
-       status  mark,  which  is  a single character before the transaction de-
-       scription (or posting account name), separated from it by a space,  in-
+       Transactions  (or  individual postings within a transaction) can have a
+       status mark, which is a single character  before  the  transaction  de-
+       scription  (or posting account name), separated from it by a space, in-
        dicating one of three statuses:
 
        mark     status
@@ -1070,20 +1073,20 @@ Journal
        !        pending
        *        cleared
 
-       When  reporting,  you  can  filter  by  status  with the -U/--unmarked,
+       When reporting, you  can  filter  by  status  with  the  -U/--unmarked,
        -P/--pending, and -C/--cleared flags (and you can combine these, eg -UP
-       to match all except cleared things).  Or you can use the status:,  sta-
+       to  match all except cleared things).  Or you can use the status:, sta-
        tus:!, and status:* queries, or the U, P, C keys in hledger-ui.
 
        (Note: in Ledger the "unmarked" state is called "uncleared"; in hledger
        we renamed it to "unmarked" for semantic clarity.)
 
-       Status  marks  are optional, but can be helpful eg for reconciling with
+       Status marks are optional, but can be helpful eg for  reconciling  with
        real-world accounts.  Some editor modes provide highlighting and short-
-       cuts for working with status.  Eg in Emacs ledger-mode, you can  toggle
+       cuts  for working with status.  Eg in Emacs ledger-mode, you can toggle
        transaction status with C-c C-e, or posting status with C-c C-c.
 
-       What  "uncleared", "pending", and "cleared" actually mean is up to you.
+       What "uncleared", "pending", and "cleared" actually mean is up to  you.
        Here's one suggestion:
 
        status       meaning
@@ -1094,55 +1097,55 @@ Journal
        cleared      complete, reconciled as far as possible, and considered cor-
                     rect
 
-       With this scheme, you would use -PC to see the current balance at  your
+       With  this scheme, you would use -PC to see the current balance at your
        bank, -U to see things which will probably hit your bank soon (like un-
-       cashed  checks),  and no flags to see the most up-to-date state of your
+       cashed checks), and no flags to see the most up-to-date state  of  your
        finances.
 
    Code
-       After the status mark, but before the description, you  can  optionally
-       write  a  transaction  "code", enclosed in parentheses.  This is a good
-       place to record a check number, or some other important transaction  id
+       After  the  status mark, but before the description, you can optionally
+       write a transaction "code", enclosed in parentheses.  This  is  a  good
+       place  to record a check number, or some other important transaction id
        or reference number.
 
    Description
-       After  the  date,  status mark and/or code fields, the rest of the line
-       (or until a comment is begun with ;) is the transaction's  description.
+       After the date, status mark and/or code fields, the rest  of  the  line
+       (or  until a comment is begun with ;) is the transaction's description.
        Here you can describe the transaction (called the "narration" in tradi-
-       tional  bookkeeping),  or you can record a payee/payer name, or you can
+       tional bookkeeping), or you can record a payee/payer name, or  you  can
        leave it empty.
 
-       Transaction descriptions show up in print output and  in  register  re-
+       Transaction  descriptions  show  up in print output and in register re-
        ports, and can be listed with the descriptions command.
 
-       You  can query by description with desc:DESCREGEX, or pivot on descrip-
+       You can query by description with desc:DESCREGEX, or pivot on  descrip-
        tion with --pivot desc.
 
    Payee and note
        Sometimes people want a dedicated payee/payer field that can be queried
-       and checked more strictly.  If you want that, you can write a |  (pipe)
-       character  in the description.  This divides it into a "payee" field on
+       and  checked more strictly.  If you want that, you can write a | (pipe)
+       character in the description.  This divides it into a "payee" field  on
        the left, and a "note" field on the right.  (Either can be empty.)
 
-       You can query these  with  payee:PAYEEREGEX  and  note:NOTEREGEX,  list
-       their  values  with the payees and notes commands, or pivot on payee or
+       You  can  query  these  with  payee:PAYEEREGEX and note:NOTEREGEX, list
+       their values with the payees and notes commands, or pivot on  payee  or
        note.
 
        Note: in transactions with no | character, description, payee, and note
        all have the same value.  Once a | is added, they become distinct.  (If
-       you'd like to change this behaviour, please  propose  it  on  the  mail
+       you'd  like  to  change  this  behaviour, please propose it on the mail
        list.)
 
        If you want more strict error checking, you can declare the valid payee
-       names  with payee directives, and then enforce these with hledger check
-       payees.  (Note: because of the above, for this you'll  need  to  ensure
-       every  transaction  description  contains a | and therefore a checkable
+       names with payee directives, and then enforce these with hledger  check
+       payees.   (Note:  because  of the above, for this you'll need to ensure
+       every transaction description contains a | and  therefore  a  checkable
        payee name, even if it's empty.)
 
    Transaction comments
-       Text following ;, after a transaction description, and/or  on  indented
-       lines  immediately  below it, form comments for that transaction.  They
-       are reproduced by print but otherwise ignored, except they may  contain
+       Text  following  ;, after a transaction description, and/or on indented
+       lines immediately below it, form comments for that  transaction.   They
+       are  reproduced by print but otherwise ignored, except they may contain
        tags, which are not ignored.
 
               2012-01-01 something  ; a transaction comment
@@ -1151,63 +1154,63 @@ Journal
                   assets
 
    Postings
-       A  posting  is an addition of some amount to, or removal of some amount
-       from, an account.  Each posting line begins with at least one space  or
+       A posting is an addition of some amount to, or removal of  some  amount
+       from,  an account.  Each posting line begins with at least one space or
        tab (2 or 4 spaces is common), followed by:
 
        o (optional) a status character (empty, !, or *), followed by a space
 
-       o (required)  an  account  name (any text, optionally containing single
+       o (required) an account name (any text,  optionally  containing  single
          spaces, until end of line or a double space)
 
        o (optional) two or more spaces (or tabs) followed by an amount.
 
-       If the amount is positive, it is being added to the account;  if  nega-
+       If  the  amount is positive, it is being added to the account; if nega-
        tive, it is being removed from the account.
 
-       The  posting  amounts  in a transaction must sum up to zero, indicating
-       that the inflows and outflows are  equal.   We  call  this  a  balanced
+       The posting amounts in a transaction must sum up  to  zero,  indicating
+       that  the  inflows  and  outflows  are  equal.  We call this a balanced
        transaction.  (You can read more about the nitty-gritty details of "sum
        up to zero" in Transaction balancing below.)
 
-       As  a  convenience,  you can optionally leave one amount blank; hledger
+       As a convenience, you can optionally leave one  amount  blank;  hledger
        will infer what it should be so as to balance the transaction.
 
    Debits and credits
        The traditional accounting concepts of debit and credit of course exist
-       in hledger, but we represent  them  with  numeric  sign,  as  described
-       above.   Positive  and  negative  posting  amounts represent debits and
+       in  hledger,  but  we  represent  them  with numeric sign, as described
+       above.  Positive and negative  posting  amounts  represent  debits  and
        credits respectively.
 
-       You don't need to remember that, but if you would  like  to  -  eg  for
-       helping  newcomers or for talking with your accountant - here's a handy
+       You  don't  need  to  remember  that, but if you would like to - eg for
+       helping newcomers or for talking with your accountant - here's a  handy
        mnemonic:
 
        debit  / plus  / left  / short  words
        credit / minus / right / longer words
 
    The two space delimiter
-       Be sure to notice the unusual separator between the  account  name  and
+       Be  sure  to  notice the unusual separator between the account name and
        the following amount.  Because hledger allows account names with spaces
-       in  them, you must separate the account name and amount (if any) by two
-       or more spaces (or tabs).  It's easy to forget at first.  If  you  ever
-       see  the  amount being treated as part of the account name, you'll know
+       in them, you must separate the account name and amount (if any) by  two
+       or  more  spaces (or tabs).  It's easy to forget at first.  If you ever
+       see the amount being treated as part of the account name,  you'll  know
        you probably need to add another space between them.
 
    Account names
-       Accounts are the main way of categorising things  in  hledger.   As  in
-       Double  Entry Bookkeeping, they can represent real world accounts (such
+       Accounts  are  the  main  way of categorising things in hledger.  As in
+       Double Entry Bookkeeping, they can represent real world accounts  (such
        as a bank account), or more abstract categories such as "money borrowed
        from Frank" or "money spent on electricity".
 
-       You can use any account names you like, but we usually start  with  the
+       You  can  use any account names you like, but we usually start with the
        traditional accounting categories, which in english are assets, liabil-
        ities, equity, revenues, expenses.  (You might see these referred to as
        A, L, E, R, X for short.)
 
-       For  more  precise  reporting, we usually divide the top level accounts
+       For more precise reporting, we usually divide the  top  level  accounts
        into more detailed subaccounts, by writing a full colon between account
-       name parts.  For example, from the account  names  assets:bank:checking
+       name  parts.   For example, from the account names assets:bank:checking
        and expenses:food, hledger will infer this hierarchy of five accounts:
 
               assets
@@ -1225,33 +1228,33 @@ Journal
                food
 
        hledger reports can summarise the account tree to any depth, so you can
-       go  as  deep  as  you like with subcategories, but keeping your account
+       go as deep as you like with subcategories,  but  keeping  your  account
        names relatively simple may be best when starting out.
 
        Account names may be capitalised or not; they may contain letters, num-
-       bers, symbols, or single spaces.  Note, when an  account  name  and  an
-       amount  are  written on the same line, they must be separated by two or
+       bers,  symbols,  or  single  spaces.  Note, when an account name and an
+       amount are written on the same line, they must be separated by  two  or
        more spaces (or tabs).
 
-       Parentheses or brackets enclosing the full account name  indicate  vir-
-       tual  postings,  described  below.  Parentheses or brackets internal to
+       Parentheses  or  brackets enclosing the full account name indicate vir-
+       tual postings, described below.  Parentheses or  brackets  internal  to
        the account name have no special meaning.
 
-       Account names can be altered  temporarily  or  permanently  by  account
+       Account  names  can  be  altered  temporarily or permanently by account
        aliases.
 
    Amounts
        After the account name, there is usually an amount.  (Remember: between
        account name and amount, there must be two or more spaces.)
 
-       hledger's  amount  format is flexible, supporting several international
-       formats.  Here are some examples.  Amounts have a  number  (the  "quan-
+       hledger's amount format is flexible, supporting  several  international
+       formats.   Here  are  some examples.  Amounts have a number (the "quan-
        tity"):
 
               1
 
        ..and usually a currency symbol or commodity name (more on this below),
-       to  the  left  or  right  of the quantity, with or without a separating
+       to the left or right of the quantity,  with  or  without  a  separating
        space:
 
               $1
@@ -1259,13 +1262,13 @@ Journal
               3 "green apples"
 
        Amounts can be preceded by a minus sign (or a plus sign, though plus is
-       the default), The sign can be written before or after a left-side  com-
+       the  default), The sign can be written before or after a left-side com-
        modity symbol:
 
               -$1
               $-1
 
-       One  or more spaces between the sign and the number are acceptable when
+       One or more spaces between the sign and the number are acceptable  when
        parsing (but they won't be displayed in output):
 
               + $1
@@ -1283,31 +1286,31 @@ Journal
               1,23
 
        Both of these are common in international number formats, so hledger is
-       not biased towards one or the other.   Because  hledger  also  supports
-       digit  group  marks (eg thousands separators), this means that a number
-       like 1,000 or 1.000 containing just one period or comma  is  ambiguous.
-       In  such  cases,  hledger  by default assumes it is a decimal mark, and
+       not  biased  towards  one  or the other.  Because hledger also supports
+       digit group marks (eg thousands separators), this means that  a  number
+       like  1,000  or 1.000 containing just one period or comma is ambiguous.
+       In such cases, hledger by default assumes it is  a  decimal  mark,  and
        will parse both of those as 1.
 
-       To help hledger parse such ambiguous numbers more  accurately,  if  you
-       use  digit group marks, we recommend declaring the decimal mark explic-
-       itly.  The best way is to add a decimal-mark directive at  the  top  of
+       To  help  hledger  parse such ambiguous numbers more accurately, if you
+       use digit group marks, we recommend declaring the decimal mark  explic-
+       itly.   The  best  way is to add a decimal-mark directive at the top of
        each data file, like this:
 
               decimal-mark .
 
-       Or  you  can  declare  it  per commodity with commodity directives, de-
+       Or you can declare it per  commodity  with  commodity  directives,  de-
        scribed below.
 
-       hledger also accepts numbers like 10. with no digits after the  decimal
-       mark  (and will sometimes display numbers that way to disambiguate them
+       hledger  also accepts numbers like 10. with no digits after the decimal
+       mark (and will sometimes display numbers that way to disambiguate  them
        - see Trailing decimal marks).
 
    Digit group marks
-       In the integer part of the amount quantity (left of the decimal  mark),
-       groups  of digits can optionally be separated by a digit group mark - a
-       comma or period (whichever is not used as decimal  mark),  or  a  space
-       (several  Unicode  space  variants,  like  no-break space, are also ac-
+       In  the integer part of the amount quantity (left of the decimal mark),
+       groups of digits can optionally be separated by a digit group mark -  a
+       comma  or  period  (whichever  is not used as decimal mark), or a space
+       (several Unicode space variants, like  no-break  space,  are  also  ac-
        cepted).   So these are all valid amounts in a journal file:
 
                    $1,000,000.00
@@ -1317,46 +1320,46 @@ Journal
                     1 000 000.00   ; <- no-break space
 
    Commodity
-       Amounts in hledger have both a "quantity", which is  a  signed  decimal
+       Amounts  in  hledger  have both a "quantity", which is a signed decimal
        number, and a "commodity", which is a currency symbol, stock ticker, or
        any word or phrase describing something you are tracking.
 
        If the commodity name contains non-letters (spaces, numbers, or punctu-
-       ation),  you must always write it inside double quotes ("green apples",
+       ation), you must always write it inside double quotes ("green  apples",
        "ABC123").
 
-       If you write just a bare number, that too will have a  commodity,  with
+       If  you  write just a bare number, that too will have a commodity, with
        name ""; we call that the "no-symbol commodity".
 
-       Actually,  hledger  combines  these  single-commodity amounts into more
-       powerful multi-commodity amounts, which are what it works with most  of
-       the  time.   A multi-commodity amount could be, eg: 1 USD, 2 EUR, 3.456
-       TSLA.  In practice,  you  will  only  see  multi-commodity  amounts  in
+       Actually, hledger combines these  single-commodity  amounts  into  more
+       powerful  multi-commodity amounts, which are what it works with most of
+       the time.  A multi-commodity amount could be, eg: 1 USD, 2  EUR,  3.456
+       TSLA.   In  practice,  you  will  only  see  multi-commodity amounts in
        hledger's output; you can't write them directly in the journal file.
 
        By default, the format of amounts in the journal influences how hledger
-       displays  them in output.  This is explained in Commodity display style
+       displays them in output.  This is explained in Commodity display  style
        below.
 
    Costs
-       After a posting amount, you can note its cost (when buying) or  selling
-       price  (when  selling)  in another commodity, by writing either @ UNIT-
-       PRICE or @@ TOTALPRICE after it.  This indicates a conversion  transac-
+       After  a posting amount, you can note its cost (when buying) or selling
+       price (when selling) in another commodity, by writing  either  @  UNIT-
+       PRICE  or @@ TOTALPRICE after it.  This indicates a conversion transac-
        tion, where one commodity is exchanged for another.
 
-       (You  might  also  see this called "transaction price" in hledger docs,
-       discussions, or code; that term was directionally neutral and  reminded
-       that  it  is a price specific to a transaction, but we now just call it
+       (You might also see this called "transaction price"  in  hledger  docs,
+       discussions,  or code; that term was directionally neutral and reminded
+       that it is a price specific to a transaction, but we now just  call  it
        "cost", with the understanding that the transaction could be a purchase
        or a sale.)
 
-       Costs are usually written explicitly with @ or @@, but can also be  in-
+       Costs  are usually written explicitly with @ or @@, but can also be in-
        ferred automatically for simple multi-commodity transactions.  Note, if
-       costs  are  inferred,  the  order of postings is significant; the first
+       costs are inferred, the order of postings  is  significant;  the  first
        posting will have a cost attached, in the commodity of the second.
 
-       As an example, here are several ways to record purchases of  a  foreign
-       currency  in  hledger, using the cost notation either explicitly or im-
+       As  an  example, here are several ways to record purchases of a foreign
+       currency in hledger, using the cost notation either explicitly  or  im-
        plicitly:
 
        1. Write the price per unit, as @ UNITPRICE after the amount:
@@ -1380,48 +1383,45 @@ Journal
                     assets:euros     100          ; one hundred euros purchased
                     assets:dollars  $-135          ; for $135
 
-       Amounts can be converted to cost at report  time  using  the  -B/--cost
+       Amounts  can  be  converted  to cost at report time using the -B/--cost
        flag; this is discussed more in the Cost reporting section.
 
-       Note  that  the  cost normally should be a positive amount, though it's
-       not required to be.  This can be a little confusing, see discussion  at
+       Note that the cost normally should be a positive  amount,  though  it's
+       not  required to be.  This can be a little confusing, see discussion at
        --infer-market-prices: market prices from transactions.
 
    Balance assertions
-       hledger  supports  Ledger-style  balance  assertions  in journal files.
-       These look like, for example, = EXPECTEDBALANCE following  a  posting's
-       amount.   Eg  here  we assert the expected dollar balance in accounts a
+       hledger supports Ledger-style  balance  assertions  in  journal  files.
+       These  look  like, for example, = EXPECTEDBALANCE following a posting's
+       amount.  Eg here we assert the expected dollar balance  in  accounts  a
        and b after each posting:
 
               2013/1/1
-                a   $1  =$1
-                b       =$-1
+                a   $1 =  $1
+                b      = $-1
 
               2013/1/2
-                a   $1  =$2
-                b  $-1  =$-2
+                a   $1 =  $2
+                b  $-1 = $-2
 
        After reading a journal file, hledger will check all balance assertions
-       and report an error if any of them fail.  Balance assertions  can  pro-
-       tect  you  from, eg, inadvertently disrupting reconciled balances while
-       cleaning up old entries.  You can disable  them  temporarily  with  the
+       and  report  an error if any of them fail.  Balance assertions can pro-
+       tect you from, eg, inadvertently disrupting reconciled  balances  while
+       cleaning  up  old  entries.   You can disable them temporarily with the
        -I/--ignore-assertions flag, which can be useful for troubleshooting or
-       for  reading Ledger files.  (Note: this flag currently does not disable
+       for reading Ledger files.  (Note: this flag currently does not  disable
        balance assignments, described below).
 
    Assertions and ordering
-       hledger sorts an account's postings and assertions first  by  date  and
-       then  (for postings on the same day) by parse order.  Note this is dif-
-       ferent from Ledger, which sorts assertions only by parse order.  (Also,
-       Ledger assertions do not see the accumulated effect of  repeated  post-
-       ings to the same account within a transaction.)
+       hledger  calculates  and checks an account's balance assertions in date
+       order (and when there are multiple assertions on the same day, in parse
+       order).  Note this is different from Ledger,  which  checks  assertions
+       always in parse order, ignoring dates.
 
-       So,  hledger  balance  assertions  keep  working if you reorder differ-
-       ently-dated transactions  within  the  journal.   But  if  you  reorder
-       same-dated transactions or postings, assertions might break and require
-       updating.   This order dependence does bring an advantage: precise con-
-       trol over the order of postings and assertions within a day, so you can
-       assert intra-day balances.
+       This means in hledger you can freely reorder transactions, postings, or
+       files, and balance assertions will usually keep working.  The exception
+       is  when you reorder multiple postings on the same day, to the same ac-
+       count, which have balance assertions; those will likely need updating.
 
    Assertions and multiple included files
        Multiple files included with the include directive are processed as  if
@@ -1443,49 +1443,6 @@ Journal
        If  you  do  want assertions to see balance from earlier files, use in-
        clude, or concatenate the files temporarily.
 
-   Assertions and commodities
-       The asserted balance must be a simple single-commodity amount,  and  in
-       fact  the  assertion  checks  only  this commodity's balance within the
-       (possibly multi-commodity) account balance.   This  is  how  assertions
-       work in Ledger also.  We could call this a "partial" balance assertion.
-
-       To assert the balance of more than one commodity in an account, you can
-       write multiple postings, each asserting one commodity's balance.
-
-       You  can  make a stronger "total" balance assertion by writing a double
-       equals sign (== EXPECTEDBALANCE).  This asserts that there are no other
-       commodities in the account besides the asserted one (or at least,  that
-       their balance is 0).
-
-              2013/1/1
-                a   $1
-                a    1
-                b  $-1
-                c   -1
-
-              2013/1/2  ; These assertions succeed
-                a    0  =  $1
-                a    0  =   1
-                b    0 == $-1
-                c    0 ==  -1
-
-              2013/1/3  ; This assertion fails as 'a' also contains 1
-                a    0 ==  $1
-
-       It's not yet possible to make a complete assertion about a balance that
-       has  multiple commodities.  One workaround is to isolate each commodity
-       into its own subaccount:
-
-              2013/1/1
-                a:usd   $1
-                a:euro   1
-                b
-
-              2013/1/2
-                a        0 ==  0
-                a:usd    0 == $1
-                a:euro   0 ==  1
-
    Assertions and costs
        Balance assertions ignore costs, and should normally be written without
        one:
@@ -1499,16 +1456,64 @@ Journal
        command  used  to  generate balance assertions with costs), and because
        balance assignments do use costs (see below).
 
+   Assertions and commodities
+       The balance assertions described so far are "single  commodity  balance
+       assertions": they assert and check the balance in one commodity, ignor-
+       ing  any  others  that  may be present.  This is how balance assertions
+       work in Ledger also.
+
+       If an account contains multiple commodities, you can assert their  bal-
+       ances  by  writing  multiple  postings with balance assertions, one for
+       each commodity:
+
+              2013/1/1
+                usd   $-1
+                eur   -1
+                both
+
+              2013/1/2
+                both    0 = $1
+                both    0 = 1
+
+       In hledger you can make a stronger "sole commodity  balance  assertion"
+       by  writing  two  equals signs (== EXPECTEDBALANCE).  This also asserts
+       that there are no other commodities in the account besides the asserted
+       one (or at least, that their current balance is zero):
+
+              2013/1/1
+                usd   $-1  == $-1  ; these sole commodity assertions succeed
+                eur   -1  == -1
+                both      ;==  $1  ; this one would fail because 'both' contains $ and
+
+       It's less easy to make a "sole commodities balance assertion" (note the
+       plural) - ie, asserting that an account contains two or more  specified
+       commodities and no others.  It can be done by
+
+       1. isolating each commodity in a subaccount, and asserting those
+
+       2. and  also  asserting  there are no commodities in the parent account
+          itself:
+
+          2013/1/1
+            usd       $-1
+            eur       -1
+            both        0 == 0   ; nothing up my sleeve
+            both:usd   $1 == $1  ; a dollar here
+            both:eur   1 == 1  ; a euro there
+
    Assertions and subaccounts
-       The balance assertions above (= and ==) do not count the  balance  from
-       subaccounts;  they check the account's exclusive balance only.  You can
-       assert the balance including subaccounts by writing =* or ==*, eg:
+       All of the balance assertions above (both = and ==) are "subaccount-ex-
+       clusive balance assertions"; they ignore any  balances  that  exist  in
+       deeper subaccounts.
+
+       In  hledger  you  can make "subaccount-inclusive balance assertions" by
+       adding a star after the equals (=* or ==*):
 
               2019/1/1
-                equity:opening balances
-                checking:a       5
-                checking:b       5
-                checking         1  ==* 11
+                equity:start
+                assets:checking  $10
+                assets:savings   $10
+                assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 
    Assertions and virtual postings
        Balance assertions always consider both real and virtual postings; they
@@ -2641,7 +2646,7 @@ Journal
        This  directive sets a default commodity, to be used for any subsequent
        commodityless amounts (ie, plain numbers) seen while parsing the  jour-
        nal.   This  effect lasts until the next D directive, or the end of the
-       journal.
+       current file.
 
        For compatibility/historical reasons, D also acts like a commodity  di-
        rective  (setting  the commodity's decimal mark for parsing and display
@@ -2770,18 +2775,18 @@ Journal
        parentheses after an amount.  hledger ignores these.
 
    Virtual postings
-       A posting with parentheses around the account name ((some:account))  is
-       called  a unbalanced virtual posting.  Such postings do not participate
-       in transaction balancing.  (And if you write them without an amount,  a
-       zero  amount is always inferred.)  These can occasionally be convenient
-       for special circumstances, but they violate  double  entry  bookkeeping
-       and  make  your  data less portable across applications, so many people
-       avoid using them at all.
+       A posting with parentheses around the account name, like (some:account)
+       10, is called an unbalanced virtual posting.   These  postings  do  not
+       participate  in  transaction balancing.  (And if you write them without
+       an amount, a zero amount is always inferred.)  These  can  occasionally
+       be  convenient for special circumstances, but they violate double entry
+       bookkeeping and make your data less portable  across  applications,  so
+       many people avoid using them at all.
 
-       A posting with brackets around the  account  name  ([some:account])  is
-       called  a balanced virtual posting.  The balanced virtual postings in a
+       A  posting  with  brackets  around the account name ([some:account]) is
+       called a balanced virtual posting.  The balanced virtual postings in  a
        transaction must add up to zero, just like ordinary postings, but sepa-
-       rately from them.  These are not part of double entry  bookkeeping  ei-
+       rately  from  them.  These are not part of double entry bookkeeping ei-
        ther, but they are at least balanced.  An example:
 
               2022-01-01 buy food with cash, update budget envelope subaccounts, & something else
@@ -2792,13 +2797,13 @@ Journal
                 [assets:checking:available]     $10  ;   <-
                 (something:else)                 $5  ;     <- this is not required to balance
 
-       Ordinary  postings,  whose  account names are neither parenthesised nor
-       bracketed, are called real postings.  You can exclude virtual  postings
+       Ordinary postings, whose account names are  neither  parenthesised  nor
+       bracketed,  are called real postings.  You can exclude virtual postings
        from reports with the -R/--real flag or a real:1 query.
 
    Other Ledger directives
        These other Ledger directives are currently accepted but ignored.  This
-       allows  hledger  to read more Ledger files, but be aware that hledger's
+       allows hledger to read more Ledger files, but be aware  that  hledger's
        reports may differ from Ledger's if you use these.
 
               apply fixed COMM AMT
@@ -2819,26 +2824,26 @@ Journal
               value       EXPR
               --command-line-flags
 
-       See also https://hledger.org/ledger.html for a detailed  hledger/Ledger
+       See  also https://hledger.org/ledger.html for a detailed hledger/Ledger
        syntax comparison.
 
    Other cost/lot notations
-       A  slight digression for Ledger and Beancount users.  Ledger has a num-
+       A slight digression for Ledger and Beancount users.  Ledger has a  num-
        ber of cost/lot-related notations:
 
        o @ UNITCOST and @@ TOTALCOST
 
          o expresses a conversion rate, as in hledger
 
-         o when buying, also creates a lot than can  be  selected  at  selling
+         o when  buying,  also  creates  a lot than can be selected at selling
            time
 
        o (@) UNITCOST and (@@) TOTALCOST (virtual cost)
 
-         o like  the  above,  but also means "this cost was exceptional, don't
+         o like the above, but also means "this cost  was  exceptional,  don't
            use it when inferring market prices".
 
-       Currently, hledger treats the above like @ and @@; the parentheses  are
+       Currently,  hledger treats the above like @ and @@; the parentheses are
        ignored.
 
        o {=FIXEDUNITCOST} and {{=FIXEDTOTALCOST}} (fixed price)
@@ -2848,10 +2853,10 @@ Journal
 
        o {UNITCOST} and {{TOTALCOST}} (lot price)
 
-         o can  be  used identically to @ UNITCOST and @@ TOTALCOST, also cre-
+         o can be used identically to @ UNITCOST and @@ TOTALCOST,  also  cre-
            ates a lot
 
-         o when selling, combined with @ ..., specifies an investment  lot  by
+         o when  selling,  combined with @ ..., specifies an investment lot by
            its cost basis; does not check if that lot is present
 
        o and related: [YYYY/MM/DD] (lot date)
@@ -2866,7 +2871,7 @@ Journal
 
          o when selling, selects a lot by its note
 
-       Currently,  hledger  accepts any or all of the above in any order after
+       Currently, hledger accepts any or all of the above in any  order  after
        the posting amount, but ignores them.  (This can break transaction bal-
        ancing.)
 
@@ -2877,12 +2882,12 @@ Journal
          o expresses a cost without creating a lot, as in hledger
 
          o when buying (augmenting) or selling (reducing) a lot, combined with
-           {...}: documents the cost/selling price (not used  for  transaction
+           {...}:  documents  the cost/selling price (not used for transaction
            balancing)
 
        o {UNITCOST} and {{TOTALCOST}}
 
-         o when  buying  (augmenting), expresses the cost for transaction bal-
+         o when buying (augmenting), expresses the cost for  transaction  bal-
            ancing, and also creates a lot with this cost basis attached
 
          o when selling (reducing),
@@ -2894,38 +2899,38 @@ Journal
 
            o expresses the selling price for transaction balancing
 
-       Currently, hledger accepts the  {UNITCOST}/{{TOTALCOST}}  notation  but
+       Currently,  hledger  accepts  the {UNITCOST}/{{TOTALCOST}} notation but
        ignores it.
 
-       o variations:  {}, {YYYY-MM-DD}, {"LABEL"}, {UNITCOST, "LABEL"}, {UNIT-
+       o variations: {}, {YYYY-MM-DD}, {"LABEL"}, {UNITCOST, "LABEL"},  {UNIT-
          COST, YYYY-MM-DD, "LABEL"} etc.
 
        Currently, hledger rejects these.
 
 CSV
-       hledger can read CSV files (Character Separated Value - usually  comma,
-       semicolon,  or  tab) containing dated records, automatically converting
+       hledger  can read CSV files (Character Separated Value - usually comma,
+       semicolon, or tab) containing dated records,  automatically  converting
        each record into a transaction.
 
        (To learn about writing CSV, see CSV output.)
 
-       For best error messages when reading CSV/TSV/SSV files, make sure  they
+       For  best error messages when reading CSV/TSV/SSV files, make sure they
        have a corresponding .csv, .tsv or .ssv file extension or use a hledger
        file prefix (see File Extension below).
 
        Each CSV file must be described by a corresponding rules file.
-       This  contains  rules describing the CSV data (header line, fields lay-
-       out, date format etc.), how to construct hledger transactions from  it,
-       and  how  to  categorise transactions based on description or other at-
+       This contains rules describing the CSV data (header line,  fields  lay-
+       out,  date format etc.), how to construct hledger transactions from it,
+       and how to categorise transactions based on description  or  other  at-
        tributes.
 
-       By default, hledger expects this rules file to be named  like  the  CSV
-       file,  with an extra .rules extension added, in the same directory.  Eg
-       when asked to read foo/FILE.csv, hledger looks for  foo/FILE.csv.rules.
+       By  default,  hledger  expects this rules file to be named like the CSV
+       file, with an extra .rules extension added, in the same directory.   Eg
+       when  asked to read foo/FILE.csv, hledger looks for foo/FILE.csv.rules.
        You can specify a different rules file with the --rules-file option.
 
-       At  minimum,  the  rules file must identify the date and amount fields,
-       and often it also specifies the date format and how many  header  lines
+       At minimum, the rules file must identify the date  and  amount  fields,
+       and  often  it also specifies the date format and how many header lines
        there are.  Here's a simple CSV file and a rules file for it:
 
               Date, Description, Id, Amount
@@ -2942,56 +2947,56 @@ CSV
                   income:unknown            -10.23
 
        There's an introductory Importing CSV data tutorial on hledger.org, and
-       more   CSV   rules   examples   below,   and  a  larger  collection  at
+       more  CSV  rules  examples  below,   and   a   larger   collection   at
        https://github.com/simonmichael/hledger/tree/master/examples/csv.
 
    CSV rules cheatsheet
        The following kinds of rule can appear in the rules file, in any order.
        (Blank lines and lines beginning with # or ; or * are ignored.)
 
-       source                     optionally declare which  file  to  read  data
+       source                     optionally  declare  which  file  to read data
                                   from
-       separator                  declare  the field separator, instead of rely-
+       separator                  declare the field separator, instead of  rely-
                                   ing on file extension
        skip                       skip one or more header lines at start of file
        date-format                declare how to parse CSV dates/date-times
-       timezone                   declare  the  time  zone  of   ambiguous   CSV
+       timezone                   declare   the   time  zone  of  ambiguous  CSV
                                   date-times
-       newest-first               improve  txn  order  when:  there are multiple
+       newest-first               improve txn order  when:  there  are  multiple
                                   records, newest first, all with the same date
-       intra-day-reversed         improve txn order when: same-day txns  are  in
+       intra-day-reversed         improve  txn  order when: same-day txns are in
                                   opposite order to the overall file
-       decimal-mark               declare  the decimal mark used in CSV amounts,
+       decimal-mark               declare the decimal mark used in CSV  amounts,
                                   when ambiguous
-       fields list                name CSV fields for easy  reference,  and  op-
+       fields list                name  CSV  fields  for easy reference, and op-
                                   tionally assign their values to hledger fields
-       Field assignment           assign  a CSV value or interpolated text value
+       Field assignment           assign a CSV value or interpolated text  value
                                   to a hledger field
        if block                   conditionally assign values to hledger fields,
                                   or skip a record or end (skip rest of file)
        if table                   conditionally assign values to hledger fields,
                                   using compact syntax
-       balance-type               select which type  of  balance  assertions/as-
+       balance-type               select  which  type  of balance assertions/as-
                                   signments to generate
        include                    inline another CSV rules file
 
-       Working  with  CSV tips can be found below, including How CSV rules are
+       Working with CSV tips can be found below, including How CSV  rules  are
        evaluated.
 
    source
-       If you tell hledger to read a csv file with -f foo.csv,  it  will  look
-       for  rules  in  foo.csv.rules.   Or,  you can tell it to read the rules
-       file, with -f foo.csv.rules, and it  will  look  for  data  in  foo.csv
+       If  you  tell  hledger to read a csv file with -f foo.csv, it will look
+       for rules in foo.csv.rules.  Or, you can tell  it  to  read  the  rules
+       file,  with  -f  foo.csv.rules,  and  it  will look for data in foo.csv
        (since 1.30).
 
-       These  are mostly equivalent, but the second method provides some extra
-       features.  For one, the data file can be missing,  without  causing  an
-       error;  it  is just considered empty.  And, you can specify a different
+       These are mostly equivalent, but the second method provides some  extra
+       features.   For  one,  the data file can be missing, without causing an
+       error; it is just considered empty.  And, you can specify  a  different
        data file by adding a "source" rule:
 
               source ./Checking1.csv
 
-       If you specify just a file name with no path, hledger will look for  it
+       If  you specify just a file name with no path, hledger will look for it
        in your system's downloads directory (~/Downloads, currently):
 
               source Checking1.csv
@@ -3004,9 +3009,9 @@ CSV
        See also "Working with CSV > Reading files specified by rule".
 
    separator
-       You  can  use the separator rule to read other kinds of character-sepa-
-       rated data.  The argument is any single  separator  character,  or  the
-       words  tab or space (case insensitive).  Eg, for comma-separated values
+       You can use the separator rule to read other kinds  of  character-sepa-
+       rated  data.   The  argument  is any single separator character, or the
+       words tab or space (case insensitive).  Eg, for comma-separated  values
        (CSV):
 
               separator ,
@@ -3019,32 +3024,32 @@ CSV
 
               separator TAB
 
-       If the input file has a .csv, .ssv or .tsv file extension (or  a  csv:,
+       If  the  input file has a .csv, .ssv or .tsv file extension (or a csv:,
        ssv:, tsv: prefix), the appropriate separator will be inferred automat-
        ically, and you won't need this rule.
 
    skip
               skip N
 
-       The  word  skip  followed  by  a number (or no number, meaning 1) tells
-       hledger to ignore this many non-empty lines at the start of  the  input
-       data.   You'll  need this whenever your CSV data contains header lines.
-       Note, empty and blank lines are skipped  automatically,  so  you  don't
+       The word skip followed by a number (or  no  number,  meaning  1)  tells
+       hledger  to  ignore this many non-empty lines at the start of the input
+       data.  You'll need this whenever your CSV data contains  header  lines.
+       Note,  empty  and  blank  lines are skipped automatically, so you don't
        need to count those.
 
-       skip  has  a second meaning: it can be used inside if blocks (described
-       below), to skip one or more records whenever  the  condition  is  true.
+       skip has a second meaning: it can be used inside if  blocks  (described
+       below),  to  skip  one  or more records whenever the condition is true.
        Records skipped in this way are ignored, except they are still required
        to be valid CSV.
 
    date-format
               date-format DATEFMT
 
-       This  is  a  helper for the date (and date2) fields.  If your CSV dates
-       are not formatted like YYYY-MM-DD,  YYYY/MM/DD  or  YYYY.MM.DD,  you'll
-       need  to  add  a date-format rule describing them with a strptime-style
-       date   parsing   pattern   -   see    https://hackage.haskell.org/pack-
-       age/time/docs/Data-Time-Format.html#v:formatTime.    The  pattern  must
+       This is a helper for the date (and date2) fields.  If  your  CSV  dates
+       are  not  formatted  like  YYYY-MM-DD, YYYY/MM/DD or YYYY.MM.DD, you'll
+       need to add a date-format rule describing them  with  a  strptime-style
+       date    parsing   pattern   -   see   https://hackage.haskell.org/pack-
+       age/time/docs/Data-Time-Format.html#v:formatTime.   The  pattern   must
        parse the CSV date value completely.  Some examples:
 
               # MM/DD/YY
@@ -3064,33 +3069,33 @@ CSV
    timezone
               timezone TIMEZONE
 
-       When CSV contains date-times that are  implicitly  in  some  time  zone
+       When  CSV  contains  date-times  that  are implicitly in some time zone
        other than yours, but containing no explicit time zone information, you
-       can  use  this  rule to declare the CSV's native time zone, which helps
+       can use this rule to declare the CSV's native time  zone,  which  helps
        prevent off-by-one dates.
 
-       When the CSV date-times do contain time  zone  information,  you  don't
-       need  this  rule;  instead, use %Z in date-format (or %z, %EZ, %Ez; see
+       When  the  CSV  date-times  do contain time zone information, you don't
+       need this rule; instead, use %Z in date-format (or %z,  %EZ,  %Ez;  see
        the formatTime link above).
 
        In either of these cases, hledger will do a time-zone-aware conversion,
        localising the CSV date-times to your current system time zone.  If you
        prefer to localise to some other time zone, eg for reproducibility, you
-       can (on unix at least) set the output timezone with the TZ  environment
+       can  (on unix at least) set the output timezone with the TZ environment
        variable, eg:
 
               $ TZ=-1000 hledger print -f foo.csv  # or TZ=-1000 hledger import foo.csv
 
-       timezone  currently  does  not understand timezone names, except "UTC",
-       "GMT", "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".   For
+       timezone currently does not understand timezone  names,  except  "UTC",
+       "GMT",  "EST", "EDT", "CST", "CDT", "MST", "MDT", "PST", or "PDT".  For
        others, use numeric format: +HHMM or -HHMM.
 
    newest-first
        hledger tries to ensure that the generated transactions will be ordered
        chronologically,  including  same-day  transactions.   Usually  it  can
-       auto-detect how the CSV records are ordered.  But if it encounters  CSV
+       auto-detect  how the CSV records are ordered.  But if it encounters CSV
        where all records are on the same date, it assumes that the records are
-       oldest  first.  If in fact the CSV's records are normally newest first,
+       oldest first.  If in fact the CSV's records are normally newest  first,
        like:
 
               2022-10-01, txn 3...
@@ -3104,9 +3109,9 @@ CSV
               newest-first
 
    intra-day-reversed
-       If CSV records within a single day are ordered opposite to the  overall
-       record  order,  you  can add the intra-day-reversed rule to improve the
-       order of journal entries.  Eg, here the overall record order is  newest
+       If  CSV records within a single day are ordered opposite to the overall
+       record order, you can add the intra-day-reversed rule  to  improve  the
+       order  of journal entries.  Eg, here the overall record order is newest
        first, but same-day records are oldest first:
 
               2022-10-02, txn 3...
@@ -3124,10 +3129,10 @@ CSV
 
               decimal-mark ,
 
-       hledger  automatically accepts either period or comma as a decimal mark
-       when parsing numbers (cf Amounts).  However if any numbers in  the  CSV
-       contain  digit  group  marks,  such  as thousand-separating commas, you
-       should declare the decimal mark explicitly with  this  rule,  to  avoid
+       hledger automatically accepts either period or comma as a decimal  mark
+       when  parsing  numbers (cf Amounts).  However if any numbers in the CSV
+       contain digit group marks,  such  as  thousand-separating  commas,  you
+       should  declare  the  decimal  mark explicitly with this rule, to avoid
        misparsed numbers.
 
    fields list
@@ -3136,17 +3141,17 @@ CSV
        A fields list (the word fields followed by comma-separated field names)
        is optional, but convenient.  It does two things:
 
-       1. It  names  the  CSV field in each column.  This can be convenient if
-          you are referencing them in other rules, so you can  say  %SomeField
+       1. It names the CSV field in each column.  This can  be  convenient  if
+          you  are  referencing them in other rules, so you can say %SomeField
           instead of remembering %13.
 
-       2. Whenever  you  use one of the special hledger field names (described
-          below), it assigns the CSV value in this position  to  that  hledger
-          field.   This  is  the quickest way to populate hledger's fields and
+       2. Whenever you use one of the special hledger field  names  (described
+          below),  it  assigns  the CSV value in this position to that hledger
+          field.  This is the quickest way to populate  hledger's  fields  and
           build a transaction.
 
-       Here's an example that says "use the 1st, 2nd and  4th  fields  as  the
-       transaction's  date,  description  and amount; name the last two fields
+       Here's  an  example  that  says "use the 1st, 2nd and 4th fields as the
+       transaction's date, description and amount; name the  last  two  fields
        for later reference; and ignore the others":
 
               fields date, description, , amount, , , somefield, anotherfield
@@ -3156,35 +3161,35 @@ CSV
 
        o There must be least two items in the list (at least one comma).
 
-       o Field names may not contain spaces.  Spaces before/after field  names
+       o Field  names may not contain spaces.  Spaces before/after field names
          are optional.
 
        o Field names may contain _ (underscore) or - (hyphen).
 
-       o Fields  you  don't  care  about can be given a dummy name or an empty
+       o Fields you don't care about can be given a dummy  name  or  an  empty
          name.
 
-       If the CSV contains column headings, it's convenient to use  these  for
-       your  field  names,  suitably  modified (eg lower-cased with spaces re-
+       If  the  CSV contains column headings, it's convenient to use these for
+       your field names, suitably modified (eg  lower-cased  with  spaces  re-
        placed by underscores).
 
-       Sometimes you may want to alter a CSV field name to avoid assigning  to
-       a  hledger field with the same name.  Eg you could call the CSV's "bal-
-       ance" field balance_ to avoid directly setting hledger's balance  field
+       Sometimes  you may want to alter a CSV field name to avoid assigning to
+       a hledger field with the same name.  Eg you could call the CSV's  "bal-
+       ance"  field balance_ to avoid directly setting hledger's balance field
        (and generating a balance assertion).
 
    Field assignment
               HLEDGERFIELD FIELDVALUE
 
-       Field  assignments  are  the  more flexible way to assign CSV values to
+       Field assignments are the more flexible way to  assign  CSV  values  to
        hledger fields.  They can be used instead of or in addition to a fields
        list (see above).
 
-       To assign a value to a hledger field, write the field name (any of  the
-       standard  hledger  field/pseudo-field  names,  defined below), a space,
-       followed by a text value on the same line.  This text value may  inter-
-       polate  CSV  fields, referenced either by their 1-based position in the
-       CSV record (%N) or by the name they  were  given  in  the  fields  list
+       To  assign a value to a hledger field, write the field name (any of the
+       standard hledger field/pseudo-field names,  defined  below),  a  space,
+       followed  by a text value on the same line.  This text value may inter-
+       polate CSV fields, referenced either by their 1-based position  in  the
+       CSV  record  (%N)  or  by  the  name they were given in the fields list
        (%CSVFIELD), and regular expression match groups (\N).
 
        Some examples:
@@ -3197,26 +3202,26 @@ CSV
 
        Tips:
 
-       o Interpolation  strips outer whitespace (so a CSV value like " 1 " be-
+       o Interpolation strips outer whitespace (so a CSV value like " 1 "  be-
          comes 1 when interpolated) (#1051).
 
-       o Interpolations always refer to a CSV field - you can't interpolate  a
+       o Interpolations  always refer to a CSV field - you can't interpolate a
          hledger field.  (See Referencing other fields below).
 
    Field names
-       Note  the  two  kinds  of  field names mentioned here, and used only in
+       Note the two kinds of field names mentioned  here,  and  used  only  in
        hledger CSV rules files:
 
-       1. CSV field names (CSVFIELD in these docs): you  can  optionally  name
-          the  CSV columns for easy reference (since hledger doesn't yet auto-
+       1. CSV  field  names  (CSVFIELD in these docs): you can optionally name
+          the CSV columns for easy reference (since hledger doesn't yet  auto-
           matically recognise column headings in a CSV file), by writing arbi-
           trary names in a fields list, eg:
 
                   fields When, What, Some_Id, Net, Total, Foo, Bar
 
-       2. Special hledger field names (HLEDGERFIELD in these docs):  you  must
-          set  at least some of these to generate the hledger transaction from
-          a CSV record, by writing them as the left hand side of a  field  as-
+       2. Special  hledger  field names (HLEDGERFIELD in these docs): you must
+          set at least some of these to generate the hledger transaction  from
+          a  CSV  record, by writing them as the left hand side of a field as-
           signment, eg:
 
                   date        %When
@@ -3231,7 +3236,7 @@ CSV
                   currency $
                   comment  %Foo %Bar
 
-       Here  are  all the special hledger field names available, and what hap-
+       Here are all the special hledger field names available, and  what  hap-
        pens when you assign values to them:
 
    date field
@@ -3254,7 +3259,7 @@ CSV
 
        commentN, where N is a number, sets the Nth posting's comment.
 
-       You can assign multi-line comments by writing literal \n in  the  code.
+       You  can  assign multi-line comments by writing literal \n in the code.
        A comment starting with \n will begin on a new line.
 
        Comments can contain tags, as usual.
@@ -3263,99 +3268,99 @@ CSV
        Assigning to accountN, where N is 1 to 99, sets the account name of the
        Nth posting, and causes that posting to be generated.
 
-       Most  often  there are two postings, so you'll want to set account1 and
-       account2.  Typically account1 is associated with the CSV file,  and  is
-       set  once  with  a top-level assignment, while account2 is set based on
+       Most often there are two postings, so you'll want to set  account1  and
+       account2.   Typically  account1 is associated with the CSV file, and is
+       set once with a top-level assignment, while account2 is  set  based  on
        each transaction's description, in conditional rules.
 
-       If a posting's account name is left unset but its amount  is  set  (see
-       below),  a default account name will be chosen (like "expenses:unknown"
+       If  a  posting's  account name is left unset but its amount is set (see
+       below), a default account name will be chosen (like  "expenses:unknown"
        or "income:unknown").
 
    amount field
-       There are several ways to set posting amounts from CSV, useful in  dif-
+       There  are several ways to set posting amounts from CSV, useful in dif-
        ferent situations.
 
-       1. amount  is  the  oldest  and  simplest.   Assigning to this sets the
+       1. amount is the oldest and  simplest.   Assigning  to  this  sets  the
           amount of the first and second postings.  In the second posting, the
-          amount will be negated; also, if it has a cost attached, it will  be
+          amount  will be negated; also, if it has a cost attached, it will be
           converted to cost.
 
-       2. amount-in  and amount-out work exactly like the above, but should be
-          used when the CSV  has  two  amount  fields  (such  as  "Debit"  and
+       2. amount-in and amount-out work exactly like the above, but should  be
+          used  when  the  CSV  has  two  amount  fields  (such as "Debit" and
           "Credit",  or  "Inflow"  and  "Outflow").   Whichever  field  has  a
-          non-zero value will be used as the amount of the  first  and  second
+          non-zero  value  will  be used as the amount of the first and second
           postings.  Here are some tips to avoid confusion:
 
-           o It's  not "amount-in for posting 1 and amount-out for posting 2",
-             it is "extract a single amount from the amount-in  or  amount-out
+           o It's not "amount-in for posting 1 and amount-out for posting  2",
+             it  is  "extract a single amount from the amount-in or amount-out
              field, and use that for posting 1 and (negated) for posting 2".
 
-           o Don't  use both amount and amount-in/amount-out in the same rules
+           o Don't use both amount and amount-in/amount-out in the same  rules
              file; choose based on whether the amount is in a single CSV field
              or spread across two fields.
 
-           o In each record, at most one of the two CSV fields should  contain
-             a  non-zero  amount; the other field must contain a zero or noth-
+           o In  each record, at most one of the two CSV fields should contain
+             a non-zero amount; the other field must contain a zero  or  noth-
              ing.
 
-           o hledger assumes both CSV fields contain unsigned numbers, and  it
+           o hledger  assumes both CSV fields contain unsigned numbers, and it
              automatically negates the amount-out values.
 
-           o If  the data doesn't fit these requirements, you'll probably need
+           o If the data doesn't fit these requirements, you'll probably  need
              an if rule (see below).
 
        3. amountN (where N is a number from 1 to 99) sets the amount of only a
-          single posting: the Nth posting in the transaction.  You'll  usually
-          need  at  least two such assignments to make a balanced transaction.
+          single  posting: the Nth posting in the transaction.  You'll usually
+          need at least two such assignments to make a  balanced  transaction.
           You can also generate more than two postings, to represent more com-
-          plex transactions.  The posting numbers don't have  to  be  consecu-
-          tive;  with if rules, higher posting numbers can be useful to ensure
+          plex  transactions.   The  posting numbers don't have to be consecu-
+          tive; with if rules, higher posting numbers can be useful to  ensure
           a certain order of postings.
 
-       4. amountN-in and amountN-out work exactly like the above,  but  should
-          be  used  when  the CSV has two amount fields.  This is analogous to
+       4. amountN-in  and  amountN-out work exactly like the above, but should
+          be used when the CSV has two amount fields.  This  is  analogous  to
           amount-in and amount-out, and those tips also apply here.
 
        5. Remember that a fields list can also do assignments.  So in a fields
-          list if you name a CSV field "amount", that counts as  assigning  to
-          amount.   (If  you  don't  want  that, call it something else in the
+          list  if  you name a CSV field "amount", that counts as assigning to
+          amount.  (If you don't want that, call  it  something  else  in  the
           fields list, like "amount_".)
 
-       6. The above don't handle every situation; if you need  more  flexibil-
+       6. The  above  don't handle every situation; if you need more flexibil-
           ity, use an if rule to set amounts conditionally.  See "Working with
-          CSV  > Setting amounts" below for more on this and on amount-setting
+          CSV > Setting amounts" below for more on this and on  amount-setting
           generally.
 
    currency field
-       currency sets a currency symbol,  to  be  prepended  to  all  postings'
-       amounts.   You  can  use this if the CSV amounts do not have a currency
+       currency  sets  a  currency  symbol,  to  be prepended to all postings'
+       amounts.  You can use this if the CSV amounts do not  have  a  currency
        symbol, eg if it is in a separate column.
 
        currencyN prepends a currency symbol to just the Nth posting's amount.
 
    balance field
-       balanceN sets a balance assertion amount (or if the posting  amount  is
+       balanceN  sets  a balance assertion amount (or if the posting amount is
        left empty, a balance assignment) on posting N.
 
        balance is a compatibility spelling for hledger <1.17; it is equivalent
        to balance1.
 
-       You  can  adjust the type of assertion/assignment with the balance-type
+       You can adjust the type of assertion/assignment with  the  balance-type
        rule (see below).
 
-       See the Working with CSV tips below for more about setting amounts  and
+       See  the Working with CSV tips below for more about setting amounts and
        currency.
 
    if block
-       Rules  can  be  applied conditionally, depending on patterns in the CSV
-       data.  This allows flexibility; in particular, it is how you can  cate-
-       gorise  transactions,  selecting  an  appropriate account name based on
-       their description (for example).  There are two ways  to  write  condi-
-       tional  rules:  "if blocks", described here, and "if tables", described
+       Rules can be applied conditionally, depending on patterns  in  the  CSV
+       data.   This allows flexibility; in particular, it is how you can cate-
+       gorise transactions, selecting an appropriate  account  name  based  on
+       their  description  (for  example).  There are two ways to write condi-
+       tional rules: "if blocks", described here, and "if  tables",  described
        below.
 
-       An if block is the word if and one or more "matcher"  expressions  (can
+       An  if  block is the word if and one or more "matcher" expressions (can
        be a word or phrase), one per line, starting either on the same or next
        line; followed by one or more indented rules.  Eg,
 
@@ -3371,11 +3376,11 @@ CSV
                RULE
                RULE
 
-       If  any of the matchers succeeds, all of the indented rules will be ap-
-       plied.  They are usually field assignments, but the  following  special
+       If any of the matchers succeeds, all of the indented rules will be  ap-
+       plied.   They  are usually field assignments, but the following special
        rules may also be used within an if block:
 
-       o skip  -  skips the matched CSV record (generating no transaction from
+       o skip - skips the matched CSV record (generating no  transaction  from
          it)
 
        o end - skips the rest of the current CSV file.
@@ -3401,27 +3406,27 @@ CSV
    Matchers
        There are two kinds:
 
-       1. A record matcher is a word or single-line text fragment  or  regular
-          expression  (REGEX),  which  hledger will try to match case-insensi-
+       1. A  record  matcher is a word or single-line text fragment or regular
+          expression (REGEX), which hledger will try  to  match  case-insensi-
           tively anywhere within the CSV record.
        Eg: whole foods
 
-       2. A field matcher is preceded with a percent sign and CSV  field  name
-          (%CSVFIELD  REGEX).  hledger will try to match these just within the
+       2. A  field  matcher is preceded with a percent sign and CSV field name
+          (%CSVFIELD REGEX).  hledger will try to match these just within  the
           named CSV field.
        Eg: %date 2023
 
-       The regular expression is (as usual in hledger) a POSIX extended  regu-
-       lar  expression,  that  also  supports GNU word boundaries (\b, \B, \<,
-       \>), and nothing else.  If you have trouble, see "Regular  expressions"
+       The  regular expression is (as usual in hledger) a POSIX extended regu-
+       lar expression, that also supports GNU word  boundaries  (\b,  \B,  \<,
+       \>),  and nothing else.  If you have trouble, see "Regular expressions"
        in the hledger manual (https://hledger.org/hledger.html#regular-expres-
        sions).
 
    What matchers match
        With record matchers, it's important to know that the record matched is
-       not  the  original  CSV  record, but a modified one: separators will be
-       converted to commas, and enclosing double  quotes  (but  not  enclosing
-       whitespace)  are removed.  So for example, when reading an SSV file, if
+       not the original CSV record, but a modified  one:  separators  will  be
+       converted  to  commas,  and  enclosing double quotes (but not enclosing
+       whitespace) are removed.  So for example, when reading an SSV file,  if
        the original record was:
 
               2023-01-01; "Acme, Inc.";  1,000
@@ -3436,10 +3441,10 @@ CSV
        o By default they are OR'd (any of them can match)
 
        o When a matcher is preceded by ampersand (&, at the start of the line)
-         it will be AND'ed with the previous matcher (all in the AND'ed  group
+         it  will be AND'ed with the previous matcher (all in the AND'ed group
          must match)
 
-       o Added  in 1.32 When a matcher is preceded by an exclamation mark (!),
+       o Added in 1.32 When a matcher is preceded by an exclamation mark  (!),
          it is negated (it must not match).
 
        Note currently there is a limitation: you can't use both & and ! on the
@@ -3449,13 +3454,13 @@ CSV
        Added in 1.32
 
        Matchers can define match groups: parenthesised portions of the regular
-       expression which are available  for  reference  in  field  assignments.
+       expression  which  are  available  for  reference in field assignments.
        Groups are enclosed in regular parentheses (( and )) and can be nested.
-       Each  group is available in field assignments using the token \N, where
-       N is an index into the match groups for this  conditional  block  (e.g.
+       Each group is available in field assignments using the token \N,  where
+       N  is  an  index into the match groups for this conditional block (e.g.
        \1, \2, etc.).
 
-       Example:  Warp  credit  card  payment  postings to the beginning of the
+       Example: Warp credit card payment postings  to  the  beginning  of  the
        billing period (Month start), to match how they are presented in state-
        ments, using posting dates:
 
@@ -3469,8 +3474,8 @@ CSV
                   account1 \1
 
    if table
-       "if tables" are an alternative to if  blocks;  they  can  express  many
-       matchers  and  field assignments in a more compact tabular format, like
+       "if  tables"  are  an  alternative  to if blocks; they can express many
+       matchers and field assignments in a more compact tabular  format,  like
        this:
 
               if,HLEDGERFIELD1,HLEDGERFIELD2,...
@@ -3481,21 +3486,21 @@ CSV
               <empty line>
 
        The first character after if is taken to be this if table's field sepa-
-       rator.  It is unrelated to the separator used  in  the  CSV  file.   It
+       rator.   It  is  unrelated  to  the separator used in the CSV file.  It
        should be a non-alphanumeric character like , or | that does not appear
-       anywhere  else  in  the  table (it should not be used in field names or
+       anywhere else in the table (it should not be used  in  field  names  or
        matchers or values, and it cannot be escaped with a backslash).
 
-       Each line must contain the same number of separators; empty values  are
-       allowed.   Whitespace  can be used in the matcher lines for readability
-       (but not in the if line, currently).  You can use the comment lines  in
-       the  table body.  The table must be terminated by an empty line (or end
+       Each  line must contain the same number of separators; empty values are
+       allowed.  Whitespace can be used in the matcher lines  for  readability
+       (but  not in the if line, currently).  You can use the comment lines in
+       the table body.  The table must be terminated by an empty line (or  end
        of file).
 
-       An if table like the above is interpreted as follows: try  all  of  the
+       An  if  table  like the above is interpreted as follows: try all of the
        matchers; whenever a matcher succeeds, assign all of the values on that
-       line  to  the  corresponding  hledger  fields; If multiple lines match,
-       later lines will override fields assigned by the earlier  ones  -  just
+       line to the corresponding hledger  fields;  If  multiple  lines  match,
+       later  lines  will  override fields assigned by the earlier ones - just
        like the sequence of if blocks would behave.
 
        If table presented above is equivalent to this sequence of if blocks:
@@ -3526,10 +3531,10 @@ CSV
 
    balance-type
        Balance assertions generated by assigning to balanceN are of the simple
-       =  type  by  default, which is a single-commodity, subaccount-excluding
+       = type by default, which is  a  single-commodity,  subaccount-excluding
        assertion.  You may find the subaccount-including variants more useful,
-       eg if you have created some virtual subaccounts  of  checking  to  help
-       with  budgeting.  You can select a different type of assertion with the
+       eg  if  you  have  created some virtual subaccounts of checking to help
+       with budgeting.  You can select a different type of assertion with  the
        balance-type rule:
 
               # balance assertions will consider all commodities and all subaccounts
@@ -3545,9 +3550,9 @@ CSV
    include
               include RULESFILE
 
-       This includes the contents of another CSV rules  file  at  this  point.
-       RULESFILE  is  an  absolute file path or a path relative to the current
-       file's directory.  This can be useful for sharing common rules  between
+       This  includes  the  contents  of another CSV rules file at this point.
+       RULESFILE is an absolute file path or a path relative  to  the  current
+       file's  directory.  This can be useful for sharing common rules between
        several rules files, eg:
 
               # someaccount.csv.rules
@@ -3564,42 +3569,42 @@ CSV
        Some tips:
 
    Rapid feedback
-       It's  a  good idea to get rapid feedback while creating/troubleshooting
+       It's a good idea to get rapid feedback  while  creating/troubleshooting
        CSV rules.  Here's a good way, using entr from eradman.com/entrproject:
 
               $ ls foo.csv* | entr bash -c 'echo ----; hledger -f foo.csv print desc:SOMEDESC'
 
-       A desc: query (eg) is used to select just one, or a  few,  transactions
-       of  interest.   "bash  -c"  is used to run multiple commands, so we can
-       echo a separator each time the command re-runs,  making  it  easier  to
+       A  desc:  query (eg) is used to select just one, or a few, transactions
+       of interest.  "bash -c" is used to run multiple  commands,  so  we  can
+       echo  a  separator  each  time the command re-runs, making it easier to
        read the output.
 
    Valid CSV
-       Note  that  hledger  will only accept valid CSV conforming to RFC 4180,
+       Note that hledger will only accept valid CSV conforming  to  RFC  4180,
        and equivalent SSV and TSV formats (like RFC 4180 but with semicolon or
        tab as separators).  This means, eg:
 
        o Values may be enclosed in double quotes, or not.  Enclosing in single
          quotes is not allowed.  (Eg 'A','B' is rejected.)
 
-       o When values are enclosed in double quotes, spaces outside the  quotes
+       o When  values are enclosed in double quotes, spaces outside the quotes
          are not allowed.  (Eg "A", "B" is rejected.)
 
-       o When  values  are not enclosed in quotes, they may not contain double
+       o When values are not enclosed in quotes, they may not  contain  double
          quotes.  (Eg A"A, B is rejected.)
 
-       If your CSV/SSV/TSV is not valid in this sense, you'll need  to  trans-
-       form  it before reading with hledger.  Try using sed, or a more permis-
+       If  your  CSV/SSV/TSV is not valid in this sense, you'll need to trans-
+       form it before reading with hledger.  Try using sed, or a more  permis-
        sive CSV parser like python's csv lib.
 
    File Extension
-       To help hledger choose the CSV file reader and  show  the  right  error
-       messages  (and  choose the right field separator character by default),
-       it's best if CSV/SSV/TSV files are named with  a  .csv,  .ssv  or  .tsv
+       To  help  hledger  choose  the CSV file reader and show the right error
+       messages (and choose the right field separator character  by  default),
+       it's  best  if  CSV/SSV/TSV  files  are named with a .csv, .ssv or .tsv
        filename extension.  (More about this at Data formats.)
 
-       When  reading  files with the "wrong" extension, you can ensure the CSV
-       reader (and the default field separator) by  prefixing  the  file  path
+       When reading files with the "wrong" extension, you can ensure  the  CSV
+       reader  (and  the  default  field separator) by prefixing the file path
        with csv:, ssv: or tsv:: Eg:
 
               $ hledger -f ssv:foo.dat print
@@ -3608,29 +3613,29 @@ CSV
        if needed.
 
    Reading CSV from standard input
-       You'll  need  the  file format prefix when reading CSV from stdin also,
+       You'll need the file format prefix when reading CSV  from  stdin  also,
        since hledger assumes journal format by default.  Eg:
 
               $ cat foo.dat | hledger -f ssv:- print
 
    Reading multiple CSV files
-       If you use multiple -f options to read  multiple  CSV  files  at  once,
-       hledger  will  look for a correspondingly-named rules file for each CSV
-       file.  But if you use the --rules-file option, that rules file will  be
+       If  you  use  multiple  -f  options to read multiple CSV files at once,
+       hledger will look for a correspondingly-named rules file for  each  CSV
+       file.   But if you use the --rules-file option, that rules file will be
        used for all the CSV files.
 
    Reading files specified by rule
        Instead of specifying a CSV file in the command line, you can specify a
-       rules  file,  as in hledger -f foo.csv.rules CMD.  By default this will
-       read data from foo.csv in the same directory, but you can add a  source
-       rule  to  specify  a  different  data file, perhaps located in your web
+       rules file, as in hledger -f foo.csv.rules CMD.  By default  this  will
+       read  data from foo.csv in the same directory, but you can add a source
+       rule to specify a different data file,  perhaps  located  in  your  web
        browser's download directory.
 
        This feature was added in hledger 1.30, so you won't see it in most CSV
-       rules examples.  But it helps remove some of the busywork  of  managing
+       rules  examples.   But it helps remove some of the busywork of managing
        CSV downloads.  Most of your financial institutions's default CSV file-
-       names  are  different  and can be recognised by a glob pattern.  So you
-       can put a rule like source  Checking1*.csv  in  foo-checking.csv.rules,
+       names are different and can be recognised by a glob  pattern.   So  you
+       can  put  a  rule like source Checking1*.csv in foo-checking.csv.rules,
        and then periodically follow a workflow like:
 
        1. Download CSV from Foo's website, using your browser's defaults
@@ -3638,45 +3643,45 @@ CSV
        2. Run hledger import foo-checking.csv.rules to import any new transac-
           tions
 
-       After  import,  you can: discard the CSV, or leave it where it is for a
-       while, or move it into your archives, as you prefer.  If you  do  noth-
-       ing,  next  time your browser will save something like Checking1-2.csv,
-       and hledger will use that because of the * wild card and because it  is
+       After import, you can: discard the CSV, or leave it where it is  for  a
+       while,  or  move it into your archives, as you prefer.  If you do noth-
+       ing, next time your browser will save something  like  Checking1-2.csv,
+       and  hledger will use that because of the * wild card and because it is
        the most recent.
 
    Valid transactions
        After reading a CSV file, hledger post-processes and validates the gen-
        erated journal entries as it would for a journal file - balancing them,
-       applying  balance  assignments,  and canonicalising amount styles.  Any
-       errors at this stage will be reported in the usual way, displaying  the
+       applying balance assignments, and canonicalising  amount  styles.   Any
+       errors  at this stage will be reported in the usual way, displaying the
        problem entry.
 
        There is one exception: balance assertions, if you have generated them,
-       will  not  be checked, since normally these will work only when the CSV
-       data is part of the main journal.  If you do need to check balance  as-
+       will not be checked, since normally these will work only when  the  CSV
+       data  is part of the main journal.  If you do need to check balance as-
        sertions generated from CSV right away, pipe into another hledger:
 
               $ hledger -f file.csv print | hledger -f- print
 
    Deduplicating, importing
-       When  you  download a CSV file periodically, eg to get your latest bank
-       transactions, the new file may overlap with  the  old  one,  containing
+       When you download a CSV file periodically, eg to get your  latest  bank
+       transactions,  the  new  file  may overlap with the old one, containing
        some of the same records.
 
        The import command will (a) detect the new transactions, and (b) append
        just those transactions to your main journal.  It is idempotent, so you
-       don't  have to remember how many times you ran it or with which version
-       of the CSV.  (It keeps state in a hidden .latest.FILE.csv file.)   This
+       don't have to remember how many times you ran it or with which  version
+       of  the CSV.  (It keeps state in a hidden .latest.FILE.csv file.)  This
        is the easiest way to import CSV data.  Eg:
 
               # download the latest CSV files, then run this command.
               # Note, no -f flags needed here.
               $ hledger import *.csv [--dry]
 
-       This  method  works  for  most CSV files.  (Where records have a stable
+       This method works for most CSV files.  (Where  records  have  a  stable
        chronological order, and new records appear only at the new end.)
 
-       A number of other tools and workflows, hledger-specific and  otherwise,
+       A  number of other tools and workflows, hledger-specific and otherwise,
        exist for converting, deduplicating, classifying and managing CSV data.
        See:
 
@@ -3685,16 +3690,16 @@ CSV
        o https://plaintextaccounting.org -> data import/conversion
 
    Setting amounts
-       Continuing  from amount field above, here are more tips for amount-set-
+       Continuing from amount field above, here are more tips for  amount-set-
        ting:
 
        1. If the amount is in a single CSV field:
            a. If its sign indicates direction of flow:
-           Assign it to amountN, to set the Nth posting's amount.  N  is  usu-
+           Assign  it  to amountN, to set the Nth posting's amount.  N is usu-
            ally 1 or 2 but can go up to 99.
 
            b. If another field indicates direction of flow:
-           Use  one  or  more  conditional rules to set the appropriate amount
+           Use one or more conditional rules to  set  the  appropriate  amount
            sign.  Eg:
 
                   # assume a withdrawal unless Type contains "deposit":
@@ -3702,15 +3707,15 @@ CSV
                   if %Type deposit
                     amount1  %Amount
 
-       2. If the amount is in two CSV fields (such as Debit and Credit, or  In
+       2. If  the amount is in two CSV fields (such as Debit and Credit, or In
           and Out):
            a. If both fields are unsigned:
-           Assign  one  field  to  amountN-in  and  the  other to amountN-out.
-           hledger will automatically negate the "out"  field,  and  will  use
+           Assign one field  to  amountN-in  and  the  other  to  amountN-out.
+           hledger  will  automatically  negate  the "out" field, and will use
            whichever field value is non-zero as posting N's amount.
 
            b. If either field is signed:
-           You  will  probably  need to override hledger's sign for one or the
+           You will probably need to override hledger's sign for  one  or  the
            other field, as in the following example:
 
                   # Negate the -out value, but only if it is not empty:
@@ -3718,12 +3723,12 @@ CSV
                   if %amount1-out [1-9]
                    amount1-out -%amount1-out
 
-           c. If both fields can contain a non-zero  value  (or  both  can  be
+           c. If  both  fields  can  contain  a non-zero value (or both can be
               empty):
-           The   -in/-out   rules   normally   choose   the   value  which  is
-           non-zero/non-empty.  Some value pairs can be ambiguous, such  as  1
+           The  -in/-out  rules   normally   choose   the   value   which   is
+           non-zero/non-empty.   Some  value pairs can be ambiguous, such as 1
            and none.  For such cases, use conditional rules to help select the
-           amount.   Eg,  to  handle the above you could select the value con-
+           amount.  Eg, to handle the above you could select  the  value  con-
            taining non-zero digits:
 
                   fields date, description, in, out
@@ -3736,8 +3741,8 @@ CSV
        Use the unnumbered amount (or amount-in and amount-out) syntax.
 
        4. If the CSV has only balance amounts, not transaction amounts:
-       Assign to balanceN, to set a balance assignment  on  the  Nth  posting,
-       causing  the  posting's amount to be calculated automatically.  balance
+       Assign  to  balanceN,  to  set a balance assignment on the Nth posting,
+       causing the posting's amount to be calculated  automatically.   balance
        with no number is equivalent to balance1.  In this situation hledger is
        more likely to guess the wrong default account name, so you may need to
        set that explicitly.
@@ -3753,20 +3758,20 @@ CSV
        o If an amount value is parenthesised:
        it will be de-parenthesised and sign-flipped: (AMT) becomes -AMT
 
-       o If an amount value has two minus signs (or two sets  of  parentheses,
+       o If  an  amount value has two minus signs (or two sets of parentheses,
          or a minus sign and parentheses):
        they cancel out and will be removed: --AMT or -(AMT) becomes AMT
 
-       o If  an  amount value contains just a sign (or just a set of parenthe-
+       o If an amount value contains just a sign (or just a set  of  parenthe-
          ses):
-       that is removed, making it an empty value.  "+" or "-" or "()"  becomes
+       that  is removed, making it an empty value.  "+" or "-" or "()" becomes
        "".
 
-       It's  not  possible (without preprocessing the CSV) to set an amount to
+       It's not possible (without preprocessing the CSV) to set an  amount  to
        its absolute value, ie discard its sign.
 
    Setting currency/commodity
-       If the currency/commodity  symbol  is  included  in  the  CSV's  amount
+       If  the  currency/commodity  symbol  is  included  in  the CSV's amount
        field(s):
 
               2023-01-01,foo,$123.00
@@ -3785,7 +3790,7 @@ CSV
               2023-01-01,foo,USD,123.00
 
        You can assign that to the currency pseudo-field, which has the special
-       effect  of prepending itself to every amount in the transaction (on the
+       effect of prepending itself to every amount in the transaction (on  the
        left, with no separating space):
 
               fields date,description,currency,amount
@@ -3794,7 +3799,7 @@ CSV
                   expenses:unknown       USD123.00
                   income:unknown        USD-123.00
 
-       Or, you can use a field assignment to construct  the  amount  yourself,
+       Or,  you  can  use a field assignment to construct the amount yourself,
        with more control.  Eg to put the symbol on the right, and separated by
        a space:
 
@@ -3805,7 +3810,7 @@ CSV
                   expenses:unknown        123.00 USD
                   income:unknown         -123.00 USD
 
-       Note  we  used a temporary field name (cur) that is not currency - that
+       Note we used a temporary field name (cur) that is not currency  -  that
        would trigger the prepending effect, which we don't want here.
 
    Amount decimal places
@@ -3813,13 +3818,13 @@ CSV
        amount1 influence commodity display styles, such as the number of deci-
        mal places displayed in reports.
 
-       The original amounts as written in the CSV file do not  affect  display
+       The  original  amounts as written in the CSV file do not affect display
        style (because we don't yet reliably know their commodity).
 
    Referencing other fields
-       In  field assignments, you can interpolate only CSV fields, not hledger
-       fields.  In the example below, there's both a CSV field and  a  hledger
-       field  named  amount1, but %amount1 always means the CSV field, not the
+       In field assignments, you can interpolate only CSV fields, not  hledger
+       fields.   In  the example below, there's both a CSV field and a hledger
+       field named amount1, but %amount1 always means the CSV field,  not  the
        hledger field:
 
               # Name the third CSV field "amount1"
@@ -3831,7 +3836,7 @@ CSV
               # Set comment to the CSV amount1 (not the amount1 assigned above)
               comment %amount1
 
-       Here, since there's no CSV amount1 field, %amount1 will produce a  lit-
+       Here,  since there's no CSV amount1 field, %amount1 will produce a lit-
        eral "amount1":
 
               fields date,description,csvamount
@@ -3839,7 +3844,7 @@ CSV
               # Can't interpolate amount1 here
               comment %amount1
 
-       When  there  are  multiple field assignments to the same hledger field,
+       When there are multiple field assignments to the  same  hledger  field,
        only the last one takes effect.  Here, comment's value will be be B, or
        C if "something" is matched, but never A:
 
@@ -3849,14 +3854,14 @@ CSV
                comment C
 
    How CSV rules are evaluated
-       Here's how to think of CSV rules being evaluated (if  you  really  need
+       Here's  how  to  think of CSV rules being evaluated (if you really need
        to).  First,
 
-       o include  - all includes are inlined, from top to bottom, depth first.
-         (At each include point the file is inlined and  scanned  for  further
+       o include - all includes are inlined, from top to bottom, depth  first.
+         (At  each  include  point the file is inlined and scanned for further
          includes, recursively, before proceeding.)
 
-       Then  "global"  rules  are  evaluated, top to bottom.  If a rule is re-
+       Then "global" rules are evaluated, top to bottom.  If  a  rule  is  re-
        peated, the last one wins:
 
        o skip (at top level)
@@ -3870,30 +3875,30 @@ CSV
 
        Then for each CSV record in turn:
 
-       o test all if blocks.  If any of them contain a end rule, skip all  re-
-         maining  CSV  records.  Otherwise if any of them contain a skip rule,
-         skip that many CSV records.   If  there  are  multiple  matched  skip
+       o test  all if blocks.  If any of them contain a end rule, skip all re-
+         maining CSV records.  Otherwise if any of them contain a  skip  rule,
+         skip  that  many  CSV  records.   If  there are multiple matched skip
          rules, the first one wins.
 
-       o collect  all field assignments at top level and in matched if blocks.
-         When there are multiple assignments for a field, keep only  the  last
+       o collect all field assignments at top level and in matched if  blocks.
+         When  there  are multiple assignments for a field, keep only the last
          one.
 
-       o compute  a value for each hledger field - either the one that was as-
+       o compute a value for each hledger field - either the one that was  as-
          signed to it (and interpolate the %CSVFIELD references), or a default
 
        o generate a hledger transaction (journal entry) from these values.
 
-       This is all part of the CSV reader, one of several readers hledger  can
-       use  to parse input files.  When all files have been read successfully,
-       the transactions are passed as input to whichever hledger  command  the
+       This  is all part of the CSV reader, one of several readers hledger can
+       use to parse input files.  When all files have been read  successfully,
+       the  transactions  are passed as input to whichever hledger command the
        user specified.
 
    Well factored rules
-       Some  things  than  can help reduce duplication and complexity in rules
+       Some things than can help reduce duplication and  complexity  in  rules
        files:
 
-       o Extracting common rules usable with multiple CSV files  into  a  com-
+       o Extracting  common  rules  usable with multiple CSV files into a com-
          mon.rules, and adding include common.rules to each CSV's rules file.
 
        o Splitting if blocks into smaller if blocks, extracting the frequently
@@ -3901,8 +3906,8 @@ CSV
 
    CSV rules examples
    Bank of Ireland
-       Here's  a  CSV with two amount fields (Debit and Credit), and a balance
-       field, which we can use to add balance assertions, which is not  neces-
+       Here's a CSV with two amount fields (Debit and Credit), and  a  balance
+       field,  which we can use to add balance assertions, which is not neces-
        sary but provides extra error checking:
 
               Date,Details,Debit,Credit,Balance
@@ -3944,13 +3949,13 @@ CSV
                   assets:bank:boi:checking         EUR-5.0 = EUR126.0
                   expenses:unknown                  EUR5.0
 
-       The  balance assertions don't raise an error above, because we're read-
-       ing directly from CSV, but they will be checked if  these  entries  are
+       The balance assertions don't raise an error above, because we're  read-
+       ing  directly  from  CSV, but they will be checked if these entries are
        imported into a journal file.
 
    Coinbase
-       A  simple  example  with  some  CSV  from  Coinbase.  The spot price is
-       recorded using cost notation.  The  legacy  amount  field  name  conve-
+       A simple example with some  CSV  from  Coinbase.   The  spot  price  is
+       recorded  using  cost  notation.   The  legacy amount field name conve-
        niently sets amount 2 (posting 2's amount) to the total cost.
 
               # Timestamp,Transaction Type,Asset,Quantity Transacted,Spot Price Currency,Spot Price at Transaction,Subtotal,Total (inclusive of fees and/or spread),Fees and/or Spread,Notes
@@ -3972,7 +3977,7 @@ CSV
 
    Amazon
        Here we convert amazon.com order history, and use an if block to gener-
-       ate  a third posting if there's a fee.  (In practice you'd probably get
+       ate a third posting if there's a fee.  (In practice you'd probably  get
        this data from your bank instead, but it's an example.)
 
               "Date","Type","To/From","Name","Status","Amount","Fees","Transaction ID"
@@ -4024,7 +4029,7 @@ CSV
                   expenses:fees           $1.00
 
    Paypal
-       Here's a real-world rules file for (customised) Paypal CSV,  with  some
+       Here's  a  real-world rules file for (customised) Paypal CSV, with some
        Paypal-specific rules, and a second rules file included:
 
               "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
@@ -4175,12 +4180,12 @@ CSV
 Timeclock
        The time logging format of timeclock.el, as read by hledger.
 
-       hledger  can read time logs in timeclock format.  As with Ledger, these
-       are (a  subset  of)  timeclock.el's  format,  containing  clock-in  and
-       clock-out  entries as in the example below.  The date is a simple date.
-       The time format is HH:MM[:SS][+-ZZZZ].  Seconds and  timezone  are  op-
-       tional.   The  timezone, if present, must be four digits and is ignored
-       (currently the time is always interpreted as a local time).  Lines  be-
+       hledger can read time logs in timeclock format.  As with Ledger,  these
+       are  (a  subset  of)  timeclock.el's  format,  containing  clock-in and
+       clock-out entries as in the example below.  The date is a simple  date.
+       The  time  format  is HH:MM[:SS][+-ZZZZ].  Seconds and timezone are op-
+       tional.  The timezone, if present, must be four digits and  is  ignored
+       (currently  the time is always interpreted as a local time).  Lines be-
        ginning with # or ; or *, and blank lines, are ignored.
 
               i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; optional comment, tags:
@@ -4188,9 +4193,9 @@ Timeclock
               i 2015/03/31 22:21:45 another:account
               o 2015/04/01 02:00:34
 
-       hledger  treats  each  clock-in/clock-out pair as a transaction posting
-       some number of hours to an account.  Or if the session spans more  than
-       one  day, it is split into several transactions, one for each day.  For
+       hledger treats each clock-in/clock-out pair as  a  transaction  posting
+       some  number of hours to an account.  Or if the session spans more than
+       one day, it is split into several transactions, one for each day.   For
        the above time log, hledger print generates these journal entries:
 
               $ hledger -f t.timeclock print
@@ -4211,21 +4216,21 @@ Timeclock
 
        To generate time logs, ie to clock in and clock out, you could:
 
-       o use emacs and  the  built-in  timeclock.el,  or  the  extended  time-
+       o use  emacs  and  the  built-in  timeclock.el,  or  the extended time-
          clock-x.el and perhaps the extras in ledgerutils.el
 
        o at the command line, use these bash aliases: cli     alias ti="echo i
-         `date  '+%Y-%m-%d  %H:%M:%S'`  \$*  >>$TIMELOG"      alias to="echo o
+         `date '+%Y-%m-%d %H:%M:%S'`  \$*  >>$TIMELOG"      alias  to="echo  o
          `date '+%Y-%m-%d %H:%M:%S'` >>$TIMELOG"
 
        o or use the old ti and to scripts in the ledger 2.x repository.  These
-         rely on a "timeclock" executable which I think is just the  ledger  2
+         rely  on  a "timeclock" executable which I think is just the ledger 2
          executable renamed.
 
 Timedot
-       timedot  format  is hledger's human-friendly time logging format.  Com-
-       pared to timeclock format, it is more convenient  for  quick,  approxi-
-       mate,  and  retroactive  time logging, and more human-readable (you can
+       timedot format is hledger's human-friendly time logging  format.   Com-
+       pared  to  timeclock  format, it is more convenient for quick, approxi-
+       mate, and retroactive time logging, and more  human-readable  (you  can
        see at a glance where time was spent).  A quick example:
 
               2023-05-01
@@ -4244,54 +4249,54 @@ Timedot
                   (per:admin:finance)                 0
 
        A timedot file contains a series of transactions (usually one per day).
-       Each begins with a simple date (Y-M-D, Y/M/D, or Y.M.D), optionally  be
+       Each  begins with a simple date (Y-M-D, Y/M/D, or Y.M.D), optionally be
        followed on the same line by a transaction description, and/or a trans-
        action comment following a semicolon.
 
        After the date line are zero or more time postings, consisting of:
 
-       o An  account  name  -  any  hledger-style account name, optionally in-
+       o An account name - any  hledger-style  account  name,  optionally  in-
          dented.
 
-       o Two or more spaces - required if there is an amount  (as  in  journal
+       o Two  or  more  spaces - required if there is an amount (as in journal
          format).
 
        o A timedot amount, which can be
 
          o empty (representing zero)
 
-         o a  number,  optionally  followed by a unit s, m, h, d, w, mo, or y,
-           representing a precise number  of  seconds,  minutes,  hours,  days
+         o a number, optionally followed by a unit s, m, h, d, w,  mo,  or  y,
+           representing  a  precise  number  of  seconds, minutes, hours, days
            weeks, months or years (hours is assumed by default), which will be
-           converted  to hours according to 60s = 1m, 60m = 1h, 24h = 1d, 7d =
+           converted to hours according to 60s = 1m, 60m = 1h, 24h = 1d, 7d  =
            1w, 30d = 1mo, 365d = 1y.
 
-         o one or more  dots  (period  characters),  each  representing  0.25.
-           These  are  the  dots  in "timedot".  Spaces are ignored and can be
+         o one  or  more  dots  (period  characters),  each representing 0.25.
+           These are the dots in "timedot".  Spaces are  ignored  and  can  be
            used for grouping/alignment.
 
-         o Added in 1.32 one or more letters.  These are like  dots  but  they
-           also  generate  a  tag t: (short for "type") with the letter as its
-           value, and a separate posting for each of the  values.   This  pro-
-           vides  a  second  dimension  of categorisation, viewable in reports
+         o Added  in  1.32  one or more letters.  These are like dots but they
+           also generate a tag t: (short for "type") with the  letter  as  its
+           value,  and  a  separate posting for each of the values.  This pro-
+           vides a second dimension of  categorisation,  viewable  in  reports
            with --pivot t.
 
-       o An optional comment following a semicolon  (a  hledger-style  posting
+       o An  optional  comment  following a semicolon (a hledger-style posting
          comment).
 
-       There  is some flexibility to help with keeping time log data and notes
+       There is some flexibility to help with keeping time log data and  notes
        in the same file:
 
        o Blank lines and lines beginning with # or ; are ignored.
 
-       o After the first date line, lines which do not contain a double  space
+       o After  the first date line, lines which do not contain a double space
          are parsed as postings with zero amount.  (hledger's register reports
          will show these if you add -E).
 
-       o Before  the first date line, lines beginning with * (eg org headings)
-         are ignored.  And from the first date line  onward,  Emacs  org  mode
+       o Before the first date line, lines beginning with * (eg org  headings)
+         are  ignored.   And  from  the first date line onward, Emacs org mode
          heading prefixes at the start of lines (one or more *'s followed by a
-         space)  will  be  ignored.  This means the time log can also be a org
+         space) will be ignored.  This means the time log can also  be  a  org
          outline.
 
    Timedot examples
@@ -4400,17 +4405,17 @@ PART 3: REPORTING CONCEPTS
 Amount formatting
    Commodity display style
        For the amounts in each commodity, hledger chooses a consistent display
-       style (symbol placement, decimal mark and digit group marks, number  of
+       style  (symbol placement, decimal mark and digit group marks, number of
        decimal digits) to use in most reports.  This is inferred as follows:
 
-       First,  if  there's  a  D directive declaring a default commodity, that
-       commodity symbol and amount format is applied to all no-symbol  amounts
+       First, if there's a D directive declaring  a  default  commodity,  that
+       commodity  symbol and amount format is applied to all no-symbol amounts
        in the journal.
 
-       Then  each  commodity's  display style is determined from its commodity
-       directive.  We recommend always declaring  commodities  with  commodity
+       Then each commodity's display style is determined  from  its  commodity
+       directive.   We  recommend  always declaring commodities with commodity
        directives, since they help ensure consistent display styles and preci-
-       sions,  and  bring  other benefits such as error checking for commodity
+       sions, and bring other benefits such as error  checking  for  commodity
        symbols.  Here's an example:
 
               # Set display styles (and decimal marks, for parsing, if there is no decimal-mark directive)
@@ -4420,9 +4425,9 @@ Amount formatting
               commodity INR 9,99,99,999.00
               commodity 1 000 000.9455
 
-       But for convenience, if a commodity directive is not  present,  hledger
-       infers  a commodity's display styles from its amounts as they are writ-
-       ten in the journal (excluding cost  amounts  and  amounts  in  periodic
+       But  for  convenience, if a commodity directive is not present, hledger
+       infers a commodity's display styles from its amounts as they are  writ-
+       ten  in  the  journal  (excluding  cost amounts and amounts in periodic
        transaction rules or auto posting rules).  It uses
 
        o the symbol placement and decimal mark of the first amount seen
@@ -4431,7 +4436,7 @@ Amount formatting
 
        o and the maximum number of decimal digits seen across all amounts.
 
-       And  as fallback if no applicable amounts are found, it would use a de-
+       And as fallback if no applicable amounts are found, it would use a  de-
        fault style, like $1000.00 (symbol on the left with no space, period as
        decimal mark, and two decimal digits).
 
@@ -4440,16 +4445,16 @@ Amount formatting
 
    Rounding
        Amounts are stored internally as decimal numbers with up to 255 decimal
-       places.  They are displayed with their original journal  precisions  by
-       print  and  print-like  reports, and rounded to their display precision
+       places.   They  are displayed with their original journal precisions by
+       print and print-like reports, and rounded to  their  display  precision
        (the number of decimal digits specified by the commodity display style)
-       by other reports.  When rounding, hledger uses  banker's  rounding  (it
+       by  other  reports.   When rounding, hledger uses banker's rounding (it
        rounds to the nearest even digit).  So eg 0.5 displayed with zero deci-
        mal digits appears as "0".
 
    Trailing decimal marks
        If you're wondering why your print report sometimes shows trailing dec-
-       imal  marks,  with no decimal digits; it does this when showing amounts
+       imal marks, with no decimal digits; it does this when  showing  amounts
        that have digit group marks but no decimal digits, to disambiguate them
        and allow them to be re-parsed reliably (see Decimal marks).  Eg:
 
@@ -4463,7 +4468,7 @@ Amount formatting
                   (a)        $1,000.
 
        If this is a problem (eg when exporting to Ledger), you can avoid it by
-       disabling digit group marks, eg with -c/--commodity (for each  affected
+       disabling  digit group marks, eg with -c/--commodity (for each affected
        commodity):
 
               $ hledger print -c '$1000.00'
@@ -4480,19 +4485,19 @@ Amount formatting
        More generally, hledger output falls into three rough categories, which
        format amounts a little bit differently to suit different consumers:
 
-       1.   "hledger-readable  output" - should be readable by hledger (and by
+       1.  "hledger-readable output" - should be readable by hledger  (and  by
        humans)
 
-       o This is produced by reports that show full  journal  entries:  print,
+       o This  is  produced  by reports that show full journal entries: print,
          import, close, rewrite etc.
 
-       o It  shows  amounts  with their original journal precisions, which may
+       o It shows amounts with their original journal  precisions,  which  may
          not be consistent.
 
-       o It adds a trailing decimal mark when needed to avoid showing  ambigu-
+       o It  adds a trailing decimal mark when needed to avoid showing ambigu-
          ous amounts.
 
-       o It  can be parsed reliably (by hledger and ledger2beancount at least,
+       o It can be parsed reliably (by hledger and ledger2beancount at  least,
          but perhaps not by Ledger..)
 
        2.  "human-readable output" - usually for humans
@@ -4504,13 +4509,13 @@ Amount formatting
 
        o It shows ambiguous amounts unmodified.
 
-       o It can be parsed reliably in the context of a known report (when  you
+       o It  can be parsed reliably in the context of a known report (when you
          know decimals are consistently not being shown, you can assume a sin-
          gle mark is a digit group mark).
 
        3.  "machine-readable output" - usually for other software
 
-       o This  is produced by all reports when an output format like csv, tsv,
+       o This is produced by all reports when an output format like csv,  tsv,
          json, or sql is selected.
 
        o It shows amounts as 1 or 2 do, but without digit group marks.
@@ -4521,39 +4526,39 @@ Amount formatting
 Time periods
    Report start & end date
        By default, most hledger reports will show the full span of time repre-
-       sented by the journal.  The report start  date  will  be  the  earliest
+       sented  by  the  journal.   The  report start date will be the earliest
        transaction or posting date, and the report end date will be the latest
        transaction, posting, or market price date.
 
-       Often  you  will  want  to see a shorter time span, such as the current
-       month.  You can specify a  start  and/or  end  date  using  -b/--begin,
+       Often you will want to see a shorter time span,  such  as  the  current
+       month.   You  can  specify  a  start  and/or end date using -b/--begin,
        -e/--end, -p/--period or a date: query (described below).  All of these
        accept the smart date syntax (below).
 
        Some notes:
 
-       o End  dates  are exclusive, as in Ledger, so you should write the date
+       o End dates are exclusive, as in Ledger, so you should write  the  date
          after the last day you want to see in the report.
 
-       o As noted in reporting options: among start/end dates  specified  with
+       o As  noted  in reporting options: among start/end dates specified with
          options, the last (i.e.  right-most) option takes precedence.
 
-       o The  effective report start and end dates are the intersection of the
-         start/end dates from options and that from date: queries.   That  is,
-         date:2019-01  date:2019  -p'2000  to  2030'  yields January 2019, the
+       o The effective report start and end dates are the intersection of  the
+         start/end  dates  from options and that from date: queries.  That is,
+         date:2019-01 date:2019 -p'2000 to  2030'  yields  January  2019,  the
          smallest common time span.
 
-       o In some cases a report interval will adjust start/end dates  to  fall
+       o In  some  cases a report interval will adjust start/end dates to fall
          on interval boundaries (see below).
 
        Examples:
 
        -b 2016/3/17       begin on St. Patrick's day 2016
-       -e 12/1            end  at  the  start  of  december  1st of the current year
+       -e 12/1            end at the start of  december  1st  of  the  current  year
                           (11/30 will be the last date included)
        -b thismonth       all transactions on or after the 1st of the current month
        -p thismonth       all transactions in the current month
-       date:2016/3/17..   the above written as queries instead (.. can also  be  re-
+       date:2016/3/17..   the  above  written as queries instead (.. can also be re-
                           placed with -)
        date:..12/1
        date:thismonth..
@@ -4561,11 +4566,11 @@ Time periods
 
    Smart dates
        hledger's user interfaces accept a "smart date" syntax for added conve-
-       nience.   Smart  dates  optionally  can be relative to today's date, be
-       written with english words, and  have  less-significant  parts  omitted
+       nience.  Smart dates optionally can be relative  to  today's  date,  be
+       written  with  english  words,  and have less-significant parts omitted
        (missing parts are inferred as 1).  Some examples:
 
-       2004/10/1,   2004-01-01,   exact date, several separators allowed.   Year
+       2004/10/1,   2004-01-01,   exact  date, several separators allowed.  Year
        2004.9.1                   is 4+ digits, month is 1-12, day is 1-31
        2004                       start of year
        2004/10                    start of month
@@ -4589,26 +4594,26 @@ Time periods
        20181201                   8 digit YYYYMMDD with valid year month and day
        201812                     6 digit YYYYMM with valid year and month
 
-       Some counterexamples - malformed digit sequences might give  surprising
+       Some  counterexamples - malformed digit sequences might give surprising
        results:
 
-       201813        6  digits  with  an  invalid  month  is  parsed as start of
+       201813        6 digits with an  invalid  month  is  parsed  as  start  of
                      6-digit year
-       20181301      8 digits with an  invalid  month  is  parsed  as  start  of
+       20181301      8  digits  with  an  invalid  month  is  parsed as start of
                      8-digit year
        20181232      8 digits with an invalid day gives an error
        201801012     9+ digits beginning with a valid YYYYMMDD gives an error
 
-       "Today's  date" can be overridden with the --today option, in case it's
+       "Today's date" can be overridden with the --today option, in case  it's
        needed for testing or for recreating old reports.  (Except for periodic
        transaction rules, which are not affected by --today.)
 
    Report intervals
-       A report interval can be specified so that reports like register,  bal-
+       A  report interval can be specified so that reports like register, bal-
        ance or activity become multi-period, showing each subperiod as a sepa-
        rate row or column.
 
-       The  following  standard  intervals  can  be  enabled with command-line
+       The following standard  intervals  can  be  enabled  with  command-line
        flags:
 
        o -D/--daily
@@ -4621,47 +4626,47 @@ Time periods
 
        o -Y/--yearly
 
-       More complex intervals can be specified  using  -p/--period,  described
+       More  complex  intervals  can be specified using -p/--period, described
        below.
 
    Date adjustment
-       When  there  is  a report interval (other than daily), report start/end
-       dates which have been inferred, eg from the journal, are  automatically
-       adjusted  to natural period boundaries.  This is convenient for produc-
+       When there is a report interval (other than  daily),  report  start/end
+       dates  which have been inferred, eg from the journal, are automatically
+       adjusted to natural period boundaries.  This is convenient for  produc-
        ing simple periodic reports.  More precisely:
 
-       o an inferred start date will be adjusted earlier if needed to fall  on
+       o an  inferred start date will be adjusted earlier if needed to fall on
          a natural period boundary
 
-       o an  inferred  end  date  will be adjusted later if needed to make the
+       o an inferred end date will be adjusted later if  needed  to  make  the
          last period the same length as the others.
 
        By contrast, start/end dates which have been specified explicitly, with
-       -b, -e, -p or date:, will not be adjusted (since hledger  1.29).   This
-       makes  it  possible to specify non-standard report periods, but it also
-       means that if you are specifying a start  date,  you  should  pick  one
-       that's  on  a  period  boundary if you want to see simple report period
+       -b,  -e,  -p or date:, will not be adjusted (since hledger 1.29).  This
+       makes it possible to specify non-standard report periods, but  it  also
+       means  that  if  you  are  specifying a start date, you should pick one
+       that's on a period boundary if you want to  see  simple  report  period
        headings.
 
    Period expressions
-       The -p/--period option specifies a period expression, which is  a  com-
+       The  -p/--period  option specifies a period expression, which is a com-
        pact way of expressing a start date, end date, and/or report interval.
 
-       Here's  a  period  expression with a start and end date (specifying the
+       Here's a period expression with a start and end  date  (specifying  the
        first quarter of 2009):
 
        -p "from 2009/1/1 to 2009/4/1"
 
-       Several keywords like "from" and "to" are  supported  for  readability;
-       these  are  optional.   "to"  can  also be written as ".." or "-".  The
-       spaces are also optional, as long as you don't run two dates  together.
+       Several  keywords  like  "from" and "to" are supported for readability;
+       these are optional.  "to" can also be written  as  ".."  or  "-".   The
+       spaces  are also optional, as long as you don't run two dates together.
        So the following are equivalent to the above:
 
        -p "2009/1/1 2009/4/1"
        -p2009/1/1to2009/4/1
        -p2009/1/1..2009/4/1
 
-       Dates  are  smart dates, so if the current year is 2009, these are also
+       Dates are smart dates, so if the current year is 2009, these  are  also
        equivalent to the above:
 
        -p "1/1 4/1"
@@ -4673,28 +4678,28 @@ Time periods
 
        -p "from 2009/1/1"   everything  after  january
                             1, 2009
-       -p "since 2009/1"    the  same, since is a syn-
+       -p "since 2009/1"    the same, since is a  syn-
                             onym
        -p "from 2009"       the same
-       -p "to 2009"         everything before  january
+       -p "to 2009"         everything  before january
                             1, 2009
 
        You can also specify a period by writing a single partial or full date:
 
        -p "2009"        the year 2009; equivalent to "2009/1/1 to 2010/1/1"
-       -p "2009/1"      the  month  of january 2009; equivalent to "2009/1/1 to
+       -p "2009/1"      the month of january 2009; equivalent to  "2009/1/1  to
                         2009/2/1"
-       -p "2009/1/1"    the first day  of  2009;  equivalent  to  "2009/1/1  to
+       -p "2009/1/1"    the  first  day  of  2009;  equivalent  to "2009/1/1 to
                         2009/1/2"
 
        or by using the "Q" quarter-year syntax (case insensitive):
 
-       -p "2009Q1"       first  quarter  of  2009,  equivalent  to  "2009/1/1 to
+       -p "2009Q1"       first quarter  of  2009,  equivalent  to  "2009/1/1  to
                          2009/4/1"
        -p "q4"           fourth quarter of the current year
 
    Period expressions with a report interval
-       A period expression can also begin with a  report  interval,  separated
+       A  period  expression  can also begin with a report interval, separated
        from the start/end dates (if any) by a space or the word in:
 
        -p "weekly from 2009/1/1 to 2009/4/1"
@@ -4717,10 +4722,10 @@ Time periods
 
        Weekly on a custom day:
 
-       o every  Nth  day of week (th, nd, rd, or st are all accepted after the
+       o every Nth day of week (th, nd, rd, or st are all accepted  after  the
          number)
 
-       o every WEEKDAYNAME (full or three-letter english  weekday  name,  case
+       o every  WEEKDAYNAME  (full  or three-letter english weekday name, case
          insensitive)
 
        Monthly on a custom day:
@@ -4733,7 +4738,7 @@ Time periods
 
        o every MM/DD [of year] (month number and day of month number)
 
-       o every  MONTHNAME  DDth  [of year] (full or three-letter english month
+       o every MONTHNAME DDth [of year] (full or  three-letter  english  month
          name, case insensitive, and day of month number)
 
        o every DDth MONTHNAME [of year] (equivalent to the above)
@@ -4746,21 +4751,21 @@ Time periods
        2009/03"
        -p "every 2nd day of week"    periods will go from Tue to Tue
        -p "every Tue"                same
-       -p "every 15th day"           period  boundaries  will be on 15th of each
+       -p "every 15th day"           period boundaries will be on 15th  of  each
                                      month
-       -p "every 2nd Monday"         period boundaries will be on second  Monday
+       -p "every 2nd Monday"         period  boundaries will be on second Monday
                                      of each month
-       -p "every 11/05"              yearly  periods  with  boundaries on 5th of
+       -p "every 11/05"              yearly periods with boundaries  on  5th  of
                                      November
        -p "every 5th November"       same
        -p "every Nov 5th"            same
 
-       Show historical balances at end of the 15th day of each month (N is  an
+       Show  historical balances at end of the 15th day of each month (N is an
        end date, exclusive as always):
 
               $ hledger balance -H -p "every 16th day"
 
-       Group  postings  from  the  start  of wednesday to end of the following
+       Group postings from the start of wednesday  to  end  of  the  following
        tuesday (N is both (inclusive) start date and (exclusive) end date):
 
               $ hledger register checking -p "every 3rd day of week"
@@ -4771,10 +4776,10 @@ Time periods
        o every WEEKDAYNAME,WEEKDAYNAME,... (full or three-letter english week-
          day names, case insensitive)
 
-       Also, weekday and weekendday are shorthand for mon,tue,wed,thu,fri  and
+       Also,  weekday and weekendday are shorthand for mon,tue,wed,thu,fri and
        sat,sun.
 
-       This  is  mainly intended for use with --forecast, to generate periodic
+       This is mainly intended for use with --forecast, to  generate  periodic
        transactions on arbitrary days of the week.  It may be less useful with
        -p, since it divides each week into subperiods of unequal length, which
        is unusual.  (Related: #1632)
@@ -4783,35 +4788,35 @@ Time periods
 
        -p          "every   dates  will  be  Mon,  Wed,  Fri;  periods  will  be
        mon,wed,fri"         Mon-Tue, Wed-Thu, Fri-Sun
-       -p "every weekday"   dates will be Mon, Tue, Wed, Thu, Fri; periods  will
+       -p "every weekday"   dates  will be Mon, Tue, Wed, Thu, Fri; periods will
                             be Mon, Tue, Wed, Thu, Fri-Sun
        -p "every weekend-   dates will be Sat, Sun; periods will be Sat, Sun-Fri
        day"
 
 Depth
-       With  the  --depth NUM option (short form: -NUM), reports will show ac-
-       counts only to the specified depth,  hiding  deeper  subaccounts.   Use
-       this  when you want a summary with less detail.  This flag has the same
+       With the --depth NUM option (short form: -NUM), reports will  show  ac-
+       counts  only  to  the  specified depth, hiding deeper subaccounts.  Use
+       this when you want a summary with less detail.  This flag has the  same
        effect as a depth: query argument: depth:2, --depth=2 or -2 are equiva-
        lent.
 
 Queries
        One of hledger's strengths is being able to quickly report on a precise
-       subset of your data.  Most hledger commands accept query arguments,  to
+       subset  of your data.  Most hledger commands accept query arguments, to
        restrict their scope.  Multiple query terms can be provided to build up
        a more complex query.
 
-       o By  default,  a  query term is interpreted as a case-insensitive sub-
+       o By default, a query term is interpreted as  a  case-insensitive  sub-
          string pattern for matching account names:
 
          car:fuel
          dining groceries
-       o Patterns containing spaces or other special characters  must  be  en-
+       o Patterns  containing  spaces  or other special characters must be en-
          closed in single or double quotes:
 
          'personal care'
-       o These  patterns are actually regular expressions, so you can add reg-
-         exp metacharacters for  more  precision  (see  "Regular  expressions"
+       o These patterns are actually regular expressions, so you can add  reg-
+         exp  metacharacters  for  more  precision  (see "Regular expressions"
          above for details):
 
          '^expenses\b'
@@ -4832,15 +4837,15 @@ Queries
          not:status:'*'
          not:desc:'opening|closing'
          not:cur:USD
-       o Terms  with  different types are AND-ed, terms with the same type are
-         OR-ed (mostly; see "Combining query  terms"  below).   The  following
+       o Terms with different types are AND-ed, terms with the same  type  are
+         OR-ed  (mostly;  see  "Combining  query terms" below).  The following
          query:
 
          date:2022 desc:amazon desc:amzn
 
          is interpreted as:
 
-         date  is  in  2022 AND ( transaction description contains "amazon" OR
+         date is in 2022 AND ( transaction description  contains  "amazon"  OR
          "amzn" )
 
    Query types
@@ -4848,15 +4853,15 @@ Queries
        prefixed with not: to convert them into a negative match.
 
        acct:REGEX or REGEX
-       Match account names containing this case  insensitive  regular  expres-
+       Match  account  names  containing this case insensitive regular expres-
        sion.  This is the default query type, so we usually don't bother writ-
        ing the "acct:" prefix.
 
        amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N
-       Match  postings  with a single-commodity amount equal to, less than, or
-       greater than N. (Postings with multi-commodity amounts are  not  tested
+       Match postings with a single-commodity amount equal to, less  than,  or
+       greater  than  N. (Postings with multi-commodity amounts are not tested
        and will always match.)  The comparison has two modes: if N is preceded
-       by  a + or - sign (or is 0), the two signed numbers are compared.  Oth-
+       by a + or - sign (or is 0), the two signed numbers are compared.   Oth-
        erwise, the absolute magnitudes are compared, ignoring sign.
 
        code:REGEX
@@ -4864,10 +4869,10 @@ Queries
 
        cur:REGEX
        Match  postings  or  transactions  including  any  amounts  whose  cur-
-       rency/commodity  symbol  is  fully  matched  by  REGEX.  (For a partial
-       match, use .*REGEX.*).  Note, to match  special  characters  which  are
-       regex-significant,  you need to escape them with \.  And for characters
-       which are significant to your shell you may need one more level of  es-
+       rency/commodity symbol is fully  matched  by  REGEX.   (For  a  partial
+       match,  use  .*REGEX.*).   Note,  to match special characters which are
+       regex-significant, you need to escape them with \.  And for  characters
+       which  are significant to your shell you may need one more level of es-
        caping.  So eg to match the dollar sign:
        hledger print cur:\\$.
 
@@ -4875,21 +4880,21 @@ Queries
        Match transaction descriptions.
 
        date:PERIODEXPR
-       Match  dates  (or  with  the  --date2 flag, secondary dates) within the
+       Match dates (or with the --date2  flag,  secondary  dates)  within  the
        specified period.  PERIODEXPR is a period expression with no report in-
        terval.  Examples:
        date:2016, date:thismonth, date:2/1-2/15, date:2021-07-27..nextquarter.
 
        date2:PERIODEXPR
-       Match secondary dates within the specified period (independent  of  the
+       Match  secondary  dates within the specified period (independent of the
        --date2 flag).
 
        depth:N
-       Match  (or  display,  depending  on  command) accounts at or above this
+       Match (or display, depending on command)  accounts  at  or  above  this
        depth.
 
        expr:"TERM AND NOT (TERM OR TERM)" (eg)
-       Match with a boolean combination of queries (which must be enclosed  in
+       Match  with a boolean combination of queries (which must be enclosed in
        quotes).  See Combining query terms below.
 
        note:REGEX
@@ -4897,7 +4902,7 @@ Queries
        whole description if there's no |).
 
        payee:REGEX
-       Match  transaction  payee/payer names (the part of the description left
+       Match transaction payee/payer names (the part of the  description  left
        of |, or the whole description if there's no |).
 
        real:, real:0
@@ -4907,11 +4912,11 @@ Queries
        Match unmarked, pending, or cleared transactions respectively.
 
        type:TYPECODES
-       Match by account type (see Declaring accounts > Account types).   TYPE-
-       CODES  is  one or more of the single-letter account type codes ALERXCV,
+       Match  by account type (see Declaring accounts > Account types).  TYPE-
+       CODES is one or more of the single-letter account type  codes  ALERXCV,
        case insensitive.  Note type:A and type:E will also match their respec-
-       tive subtypes C (Cash) and V (Conversion).  Certain  kinds  of  account
-       alias  can  disrupt account types, see Rewriting accounts > Aliases and
+       tive  subtypes  C  (Cash) and V (Conversion).  Certain kinds of account
+       alias can disrupt account types, see Rewriting accounts >  Aliases  and
        account types.
 
        tag:REGEX[=REGEX]
@@ -4927,11 +4932,11 @@ Queries
        o Transactions also acquire the tags of their postings.
 
        (inacct:ACCTNAME
-       A special query term used  automatically  in  hledger-web  only:  tells
+       A  special  query  term  used  automatically in hledger-web only: tells
        hledger-web to show the transaction register for an account.)
 
    Combining query terms
-       When  given  multiple space-separated query terms, most commands select
+       When given multiple space-separated query terms, most  commands  select
        things which match:
 
        o any of the description terms AND
@@ -4952,25 +4957,34 @@ Queries
 
        o match all the other terms.
 
-       We also support more complex boolean queries  with  the  expr:  prefix.
-       This  allows  one  to  combine queries using AND, OR, and NOT.  (NOT is
-       equivalent to the not: prefix.)  Some examples:
+       We  also  support  more  complex boolean queries with the expr: prefix.
+       This allows one to combine query terms  using  and,  or,  not  keywords
+       (case insensitive), and to group them by enclosing in parentheses.
 
-       o Match transactions with 'cool' in the description AND  with  the  'A'
-         tag
+       Some examples:
 
-         expr:"desc:cool AND tag:A"
+       o Exclude account names containing 'food':
 
-       o Match transactions NOT to the 'expenses:food' account OR with the 'A'
-         tag
+         expr:"not food" (not:food is equivalent)
 
-         expr:"NOT expenses:food OR tag:A"
+       o Match things which have 'cool' in the description and the 'A' tag:
 
-       o Match  transactions NOT involving the 'expenses:food' account OR with
-         the 'A' tag AND involving the 'expenses:drink' account.  (the AND  is
-         implicitly added by space-separation, following the rules above)
+         expr:"desc:cool and tag:A" (expr:"desc:cool tag:A" is equivalent)
 
-         expr:"expenses:food OR (tag:A expenses:drink)"
+       o Match  things  which  either do not reference the 'expenses:food' ac-
+         count, or do have the 'A' tag:
+
+         expr:"not expenses:food or tag:A"
+
+       o Match things which either do not reference  the  'expenses:food'  ac-
+         count,  or which reference the 'expenses:drink' account and also have
+         the 'A' tag:
+
+         expr:"expenses:food or (expenses:drink and tag:A)"
+
+       expr: has a restriction: date: queries may not be used  inside  or  ex-
+       pressions.  That would allow disjoint report periods or disjoint result
+       sets, with unclear semantics for our reports.
 
    Queries and command options
        Some  queries can also be expressed as command-line options: depth:2 is
@@ -7148,23 +7162,24 @@ PART 4: COMMANDS
        Example:
 
               $ hledger balancesheet
-              Balance Sheet
+              Balance Sheet 2008-12-31
 
-              Assets:
-                               $-1  assets
-                                $1    bank:saving
-                               $-2    cash
-              --------------------
-                               $-1
-
-              Liabilities:
-                                $1  liabilities:debts
-              --------------------
-                                $1
-
-              Total:
-              --------------------
-                                 0
+                                  || 2008-12-31
+              ====================++============
+               Assets             ||
+              --------------------++------------
+               assets:bank:saving ||         $1
+               assets:cash        ||        $-2
+              --------------------++------------
+                                  ||        $-1
+              ====================++============
+               Liabilities        ||
+              --------------------++------------
+               liabilities:debts  ||        $-1
+              --------------------++------------
+                                  ||        $-1
+              ====================++============
+               Net:               ||          0
 
        This command is a higher-level variant of the balance command, and sup-
        ports  many  of  that command's features, such as multi-period reports.
@@ -7191,28 +7206,29 @@ PART 4: COMMANDS
        Example:
 
               $ hledger balancesheetequity
-              Balance Sheet With Equity
+              Balance Sheet With Equity 2008-12-31
 
-              Assets:
-                               $-2  assets
-                                $1    bank:saving
-                               $-3    cash
-              --------------------
-                               $-2
-
-              Liabilities:
-                                $1  liabilities:debts
-              --------------------
-                                $1
-
-              Equity:
-                        $1  equity:owner
-              --------------------
-                        $1
-
-              Total:
-              --------------------
-                                 0
+                                  || 2008-12-31
+              ====================++============
+               Assets             ||
+              --------------------++------------
+               assets:bank:saving ||         $1
+               assets:cash        ||        $-2
+              --------------------++------------
+                                  ||        $-1
+              ====================++============
+               Liabilities        ||
+              --------------------++------------
+               liabilities:debts  ||        $-1
+              --------------------++------------
+                                  ||        $-1
+              ====================++============
+               Equity             ||
+              --------------------++------------
+              --------------------++------------
+                                  ||          0
+              ====================++============
+               Net:               ||          0
 
        This command is a higher-level variant of the balance command, and sup-
        ports many of that command's features, such  as  multi-period  reports.
@@ -7220,16 +7236,21 @@ PART 4: COMMANDS
        smarter  account detection, and liabilities/equity displayed with their
        sign flipped.
 
+       This report is the easiest way to see if the accounting equation (A+L+E
+       = 0) is satisfied (after you have done a close --retain to  merge  rev-
+       enues  and  expenses  with  equity, and perhaps added --infer-equity to
+       balance your commodity conversions).
+
        This command also supports the output destination and output format op-
        tions The output formats supported are txt, csv, tsv, html, and json.
 
    cashflow
        (cf)
 
-       This command displays a cashflow statement,  showing  the  inflows  and
-       outflows  affecting  "cash"  (ie,  liquid,  easily convertible) assets.
-       Amounts are shown with normal positive sign, as in conventional  finan-
-       cial statements.
+       This command displays a (simple) cashflow statement,  showing  the  in-
+       flows  and  outflows  affecting "cash" (ie, liquid, easily convertible)
+       assets.  Amounts are shown with normal positive  sign,  as  in  conven-
+       tional financial statements.
 
        This  report  shows  accounts  declared with the Cash type (see account
        types).  Or if no such accounts are declared, it shows accounts
@@ -7249,18 +7270,16 @@ PART 4: COMMANDS
        An example cashflow report:
 
               $ hledger cashflow
-              Cashflow Statement
+              Cashflow Statement 2008
 
-              Cash flows:
-                               $-1  assets
-                                $1    bank:saving
-                               $-2    cash
-              --------------------
-                               $-1
-
-              Total:
-              --------------------
-                               $-1
+                                  || 2008
+              ====================++======
+               Cash flows         ||
+              --------------------++------
+               assets:bank:saving ||   $1
+               assets:cash        ||  $-2
+              --------------------++------
+                                  ||  $-1
 
        This command is a higher-level variant of the balance command, and sup-
        ports  many  of  that command's features, such as multi-period reports.
@@ -7719,60 +7738,67 @@ PART 4: COMMANDS
        Note you can import from any file format, though CSV files are the most
        common import source, and these docs focus on that case.
 
-   Skipping
+   Deduplication
        import  tries  to  import only the transactions which are new since the
-       last import, "skipping over" any that it saw last  time.   So  if  your
-       bank's CSV includes the last three months of data, you can download and
-       import  it  every month (or week, or day) and only the new transactions
-       will be imported each time.
+       last import, ignoring any that it has seen in  previous  runs.   So  if
+       your  bank's  CSV includes the last three months of data, you can down-
+       load and import it every month (or week,  or  day)  and  only  the  new
+       transactions will be imported each time.
 
-       It works as follows.  For each imported FILE:
+       It  works  as  follows.   For each imported FILE (usually CSV, but they
+       could be any of hledger's input formats):
 
-       o It tries to find the latest date seen previously, by reading it  from
-         a hidden .latest.FILE in the same directory.
+       o It tries to recall the latest date seen previously, reading it from a
+         hidden .latest.FILE in the same directory.
 
-       o Then  it  processes  FILE, ignoring any transactions on or before the
+       o Then it processes FILE, ignoring any transactions on  or  before  the
          "latest seen" date.
 
-       And after a successful import, it updates the .latest.FILE(s) for  next
+       And  after a successful import, it updates the .latest.FILE(s) for next
        time (unless --dry-run was used).
 
-       This is simple system that works fairly well for transaction data (usu-
-       ally CSV, but it could be any of hledger's input formats).  It assumes:
+       This is a limited kind of deduplication, let's call it "date skipping".
+       Within each input file, it avoids reprocessing the  same  dates  across
+       successive  runs.   This  is  a  simple  system  that  works  for  most
+       real-world CSV files; it assumes these are true, or true enough:
 
        1. new items always have the newest dates
 
-       2. item dates are stable across successive CSV downloads
+       2. item dates are stable across successive downloads
 
-       3. the order of same-date items is stable across CSV downloads
+       3. the order of same-date items is stable across downloads
 
-       These  are  true  of  most CSV files representing transactions, or true
-       enough.  If you have a bank whose CSV dates  or  ordering  occasionally
-       changes,  you  can  reduce the chance of this happening in new transac-
-       tions by importing more often (and in old transactions it doesn't  mat-
-       ter).
+       4. the name of the input file is stable across downloads
 
-       Note, import avoids reprocessing the same dates across successive runs,
-       but it does not detect transactions that are duplicated within a single
-       run.  I'll call these "skipping" and "deduplication".
+       If you have a bank whose CSV dates or ordering occasionally change, you
+       can reduce the chance of this happening in new transactions by  import-
+       ing  more often, and in old transactions it doesn't matter.  And remem-
+       ber you can use CSV rules files as input, which is one way to ensure  a
+       stable file name.
 
-       So  for  example, say you downloaded but did not import bank.1.csv, and
-       later downloaded bank.2.csv with overlapping data.  Then you should not
-       import both of them at once (hledger import bank.1.csv bank.2.csv),  as
-       the  overlapping  data would appear twice and not be deduplicated.  In-
-       stead, import them one at a time (hledger  import  bank.1.csv;  hledger
-       import  bank.2.csv),  and  the  second import will skip the overlapping
-       data.
+       import  doesn't  detect  other  kinds of duplication, such as duplicate
+       transactions within a single run.  (In part, because legitimate  dupli-
+       cate  transactions  can  easily occur in real-world data.)  So, say you
+       downloaded but forgot to import bank.1.csv, and a week later you  down-
+       loaded  bank.2.csv  with  overlapping  data.  Now you should not import
+       both of these at once (hledger import bank.1.csv bank.2.csv); the over-
+       lapping transactions which appear twice would not be deduplicated since
+       this is considered a single import.  Instead, import these files one at
+       a time, and also use the same filename each time for a  common  "latest
+       seen" state:
 
-       Normally you can ignore the .latest.* files, but  if  needed,  you  can
+              $ mv bank.1.csv bank.csv; hledger import bank.csv
+              $ mv bank.2.csv bank.csv; hledger import bank.csv
+
+       Normally  you  can  ignore  the .latest.* files, but if needed, you can
        delete them (to make all transactions unseen), or construct/modify them
-       (to  catch up to a certain date).  The format is just a single ISO-for-
-       mat date (YYYY-MM-DD), possibly repeated on multiple lines.   It  means
+       (to catch up to a certain date).  The format is just a single  ISO-for-
+       mat  date  (YYYY-MM-DD), possibly repeated on multiple lines.  It means
        "I have seen transactions up to this date, and this many of them occur-
        ring on that date".
 
-       (hledger  print  --new also uses and updates these .latest.* files, but
-       it is less often used.)
+       hledger print --new also uses and updates these .latest.* files, but it
+       is less often used.
 
        Related: CSV > Working with CSV > Deduplicating, importing.
 
@@ -7828,25 +7854,25 @@ PART 4: COMMANDS
        Example:
 
               $ hledger incomestatement
-              Income Statement
+              Income Statement 2008
 
-              Revenues:
-                               $-2  income
-                               $-1    gifts
-                               $-1    salary
-              --------------------
-                               $-2
-
-              Expenses:
-                                $2  expenses
-                                $1    food
-                                $1    supplies
-              --------------------
-                                $2
-
-              Total:
-              --------------------
-                                 0
+                                 || 2008
+              ===================++======
+               Revenues          ||
+              -------------------++------
+               income:gifts      ||   $1
+               income:salary     ||   $1
+              -------------------++------
+                                 ||   $2
+              ===================++======
+               Expenses          ||
+              -------------------++------
+               expenses:food     ||   $1
+               expenses:supplies ||   $1
+              -------------------++------
+                                 ||   $2
+              ===================++======
+               Net:              ||    0
 
        This command is a higher-level variant of the balance command, and sup-
        ports  many  of  that command's features, such as multi-period reports.
@@ -9090,4 +9116,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-1.32.99                   March 2024                        HLEDGER(1)
+hledger-1.33.99                   April 2024                        HLEDGER(1)
