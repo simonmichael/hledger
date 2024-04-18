@@ -122,13 +122,16 @@ jobs:
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
-    - name: Install haskell tools with ghcup if needed, and add .ghcup/bin to PATH
+    - name: Add .ghcup/bin to PATH for following steps
       run: |
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
-        if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; ghc --version
-        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0; fi; cabal --version
-        if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; stack --version
+
+    - name: Install haskell tools with ghcup if needed
+      run: |
+        if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
+        # if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; printf "ghc: "; ghc --version
+        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0; fi; printf "cabal: "; cabal --version
+        if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
 
 
     # build with cabal
