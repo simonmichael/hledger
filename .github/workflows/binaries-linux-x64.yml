@@ -1,10 +1,7 @@
 # Runs on any push to binaries-linux-x64 or binaries.
 # Produces optimised static x64 linux  binaries,
-# using the GHC version below and (cabal or stack) 
-# and Alpine linux, which provides the statically-linkable musl.
-# Currently runs no tests.
-# Was using ghc 9.0 to avoid segfaults with the ghc 9.2 binaries on alpine, https://gitlab.haskell.org/ghc/ghc/-/issues/20266
-# Trying latest ghc 9.8 now.
+# using the GHC version below and (cabal or stack) and Alpine linux, 
+# which provides the statically-linkable musl.
 
 name: binaries-linux-x64
 
@@ -128,15 +125,12 @@ jobs:
     - name: Install haskell tools with ghcup if needed
       run: |
         if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/ghc-9.0.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.0.2      && ~/.ghcup/bin/ghcup set ghc 9.0.2;      fi; printf "ghc: "; ghc --version
-        # if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; printf "ghc: "; ghc --version
-        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.8.1.0 && ~/.ghcup/bin/ghcup set cabal 3.8.1.0; fi; printf "cabal: "; cabal --version
-        # if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0; fi; printf "cabal: "; cabal --version
+        if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; printf "ghc: "; ghc --version
+        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.10.3.0 && ~/.ghcup/bin/ghcup set cabal 3.10.3.0; fi; printf "cabal: "; cabal --version
         # if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
 
 
     ## build with cabal
-    # failing with:  lto1: fatal error: bytecode stream in file '/usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/../../../../lib/libgmp.a' generated with LTO version 13.0 instead of the expected 13.1
 
     - name: Update cabal package index
       run: |
@@ -161,8 +155,9 @@ jobs:
         tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
 
     ## build with stack
-    # --allow-different-user is needed because of #863 above, or because we're in a docker container and stack didn't notice
+    # --allow-different-user is needed because of #863 above, or because stack didn't notice we're in a docker container
     # failing with: /usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/../../../../x86_64-alpine-linux-musl/bin/ld.gold: error: /usr/lib/gcc/x86_64-alpine-linux-musl/13.2.1/crtbeginT.o: requires dynamic R_X86_64_32 reloc against '__TMC_END__' which may overflow at runtime; recompile with -fPIC    
+    # TODO: try again now with alpine:latest
 
     # - name: Install GHC with stack
     #   run: |
