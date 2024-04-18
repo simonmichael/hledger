@@ -172,6 +172,10 @@ jobs:
         stack build --ghc-options='-optl-static -optl-pthread' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
         stack build --ghc-options='-optl-static -optl-pthread' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
+    - name: Run built-in unit tests
+      run: |
+        stack exec --ghc-options='-optl-static -optl-pthread' -- hledger test
+
     - name: Gather binaries
       run: |
         mkdir tmp
