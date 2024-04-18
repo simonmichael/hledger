@@ -4,11 +4,11 @@
 # Currently runs no tests.
 # Slow, will probably time out.
 
-name: binaries-linux-arm32v7-static
+name: binaries-linux-arm32v7
 
 on:
   push:
-    branches: [ binaries-linux-arm32v7-static ]
+    branches: [ binaries-linux-arm32v7 ]
     #tags:
     #  - '[0-9]+.[0-9]+'
     #  - '[0-9]+.[0-9]+-*'
@@ -30,18 +30,18 @@ jobs:
         id: docker_build
         uses: docker/build-push-action@v2
         with:
-          file: ./docker-static-arm32v7/Dockerfile
+          file: ./docker-arm32v7/Dockerfile
           platforms: linux/arm
-          tags: hledger-linux-static-arm32v7:latest
+          tags: hledger-linux-arm32v7:latest
           load: true
 
       - name: Gather binaries from docker
         run: |
-          container_id=$(docker create hledger-linux-static-arm32v7:latest)
+          container_id=$(docker create hledger-linux-arm32v7:latest)
           docker cp $container_id:/root/hledger tmp
           docker rm -v $container_id
           cd tmp
-          tar cvf hledger-linux-static-arm32v7.tar hledger hledger-ui hledger-web
+          tar cvf hledger-linux-arm32v7.tar hledger hledger-ui hledger-web
 
       # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
       # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
@@ -49,5 +49,5 @@ jobs:
       - name: Upload binaries artifact
         uses: actions/upload-artifact@v3
         with:
-          name: hledger-linux-static-arm32v7
-          path: tmp/hledger-linux-static-arm32v7.tar
+          name: hledger-linux-arm32v7
+          path: tmp/hledger-linux-arm32v7.tar
