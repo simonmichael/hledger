@@ -163,7 +163,7 @@ jobs:
         strip hledger-web.exe
              
     - name: Create binaries artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: hledger-windows-x64
         path: |
