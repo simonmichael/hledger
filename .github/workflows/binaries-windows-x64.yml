@@ -33,7 +33,7 @@ jobs:
 
     - name: Uncache stack global package db
       id:   stack-global-package-db
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: C:\Users\runneradmin\AppData\Roaming\stack\
         key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
@@ -42,7 +42,7 @@ jobs:
 
     - name: Uncache stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: C:\Users\runneradmin\AppData\Local\Programs\stack\
         # which files signal a change in stack's global db ?
@@ -52,7 +52,7 @@ jobs:
              ${{ runner.os }}-appdata-local-programs-stack
 
     - name: Uncache .stack-work
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: .stack-work
         key: ${{ runner.os }}-stack-work-${{ hashFiles('**.yaml') }}
@@ -60,7 +60,7 @@ jobs:
              ${{ runner.os }}-stack-work
 
     - name: Uncache hledger-lib/.stack-work
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
@@ -68,7 +68,7 @@ jobs:
              ${{ runner.os }}-hledger-lib-stack-work
 
     - name: Uncache hledger/.stack-work
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
@@ -76,7 +76,7 @@ jobs:
              ${{ runner.os }}-hledger-stack-work
 
     - name: Uncache hledger-ui/.stack-work
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
@@ -84,7 +84,7 @@ jobs:
              ${{ runner.os }}-hledger-ui-stack-work
 
     - name: Uncache hledger-web/.stack-work
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
