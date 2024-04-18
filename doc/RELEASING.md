@@ -235,14 +235,17 @@ In site repo:
 ### 2 Prep release
 In main repo, release branch:
 1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
+  *(TODO: don't add the suggested sixth tag yet, it hinders pushing)*
 1. Download release binaries
+  *(In Safari: don't click the download button; use right-click, Download linked file)*
 1. Push release branch & tags to github: `git push --tags`
-1. Create a draft [github release](#github-release), upload release binaries
+1. Create a [github release draft](#github-release-draft)
 
 In main repo, master:
-1. Cherry-pick changes from release branch, including hledger-install: `magit l o LASTREL..REL-branch`
+1. Cherry-pick master-appropriate changes from release branch (including hledger-install): `magit l o LASTREL..REL-branch`
 1. Commit any process updates: `doc/RELEASING.md`
 1. [Bump version](#bump-master-to-next-version) in master (major releases)
+  *(TODO: use the sixth tag command suggested above)*
 
 ### 3 Release
 In main repo, release branch:
@@ -422,17 +425,15 @@ Sanity checks:
 in main repo, release branch:
 - `make hackageupload` (major/bugfix/fixup release)
 
-#### Github release
-- in main repo, release branch:
-  - `git push github MA.JOR-branch` or magit `P p`
-  - `git push --tags` or magit `P t github`
-- create new release, <https://github.com/simonmichael/hledger/releases/new>
-- choose release tag
-- title: VERSION
-- description: doc/relnotes.github.md, preview & sanity check
+#### Github release draft
+After pushing release tags:
+- <https://github.com/simonmichael/hledger/releases/new>
+- select VERSION release tag
 - upload platform binary zip files
+- title: VERSION
+- description: paste doc/relnotes.github.md
+- check preview
 - Save draft
-- (and after successful hackage upload: Publish release)
 
 #### Release manuals
 (major release)
