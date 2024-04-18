@@ -30,10 +30,10 @@ jobs:
       with: 
         fetch-depth: 0  
 
-    - name: Check embedded files
-      run: |
-        tools/checkembeddedfiles
-      if: env.CONTINUE
+    # requires bash
+    # - name: Check embedded files
+    #   run: |
+    #     tools/checkembeddedfiles
 
     - name: Uncache ghcup-installed tools
       id:   ghcup
@@ -61,7 +61,6 @@ jobs:
         key: ${{ runner.os }}-stack-global-20240417-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-20240417
-      if: env.CONTINUE
 
     - name: Uncache stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -71,7 +70,6 @@ jobs:
         key: ${{ runner.os }}-stack-programs-20240417-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs-20240417
-      if: env.CONTINUE
 
     - name: Uncache .stack-work
       uses: actions/cache@v3
@@ -80,7 +78,6 @@ jobs:
         key: ${{ runner.os }}-stack-work-20240417-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-work-20240417
-      if: env.CONTINUE
 
     - name: Uncache hledger-lib/.stack-work
       uses: actions/cache@v3
@@ -89,7 +86,6 @@ jobs:
         key: ${{ runner.os }}-hledger-lib-stack-work-20240417-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-20240417
-      if: env.CONTINUE
 
     - name: Uncache hledger/.stack-work
       uses: actions/cache@v3
@@ -98,7 +94,6 @@ jobs:
         key: ${{ runner.os }}-hledger-stack-work-20240417-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-20240417
-      if: env.CONTINUE
 
     - name: Uncache hledger-ui/.stack-work
       uses: actions/cache@v3
@@ -107,7 +102,6 @@ jobs:
         key: ${{ runner.os }}-hledger-ui-stack-work-20240417-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-20240417
-      if: env.CONTINUE
 
     - name: Uncache hledger-web/.stack-work
       uses: actions/cache@v3
@@ -116,7 +110,6 @@ jobs:
         key: ${{ runner.os }}-hledger-web-stack-work-20240417-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-20240417
-      if: env.CONTINUE
 
     - name: Install general tools with system package manager
       run: |
