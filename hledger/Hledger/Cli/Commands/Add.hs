@@ -249,7 +249,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
          retryMsg "Please enter y or n." $
           parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
           defaultTo' def $ nonEmpty $
-          line $ green $ printf "Save this transaction to the journal ?%s: " (showDefault def)
+          line $ green' $ printf "Save this transaction to the journal ?%s: " (showDefault def)
     case y of
       Just 'y' -> return t
       Just _   -> throw RestartTransactionException
@@ -265,7 +265,7 @@ dateAndCodeWizard PrevInput{..} EntryState{..} = do
    defaultTo' def $ nonEmpty $
    maybeExit $
    -- maybeShowHelp $
-   linePrewritten (green $ printf "Date%s: " (showDefault def)) (fromMaybe "" prevDateAndCode) ""
+   linePrewritten (green' $ printf "Date%s: " (showDefault def)) (fromMaybe "" prevDateAndCode) ""
     where
       parseSmartDateAndCode refdate s = if s == "<" then return Nothing else either (const Nothing) (\(d,c) -> return $ Just (fixSmartDate refdate d, c)) edc
           where
@@ -284,7 +284,7 @@ descriptionAndCommentWizard PrevInput{..} EntryState{..} = do
   let def = headDef "" esArgs
   s <- withCompletion (descriptionCompleter esJournal def) $
        defaultTo' def $ nonEmpty $
-       linePrewritten (green $ printf "Description%s: " (showDefault def)) (fromMaybe "" prevDescAndCmnt) ""
+       linePrewritten (green' $ printf "Description%s: " (showDefault def)) (fromMaybe "" prevDescAndCmnt) ""
   if s == "<"
     then return Nothing
     else do
@@ -307,7 +307,7 @@ accountWizard PrevInput{..} EntryState{..} = do
    parser (parseAccountOrDotOrNull def canfinish) $
    withCompletion (accountCompleter esJournal def) $
    defaultTo' def $ -- nonEmpty $
-   linePrewritten (green $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)) (fromMaybe "" $ prevAccount `atMay` length esPostings) ""
+   linePrewritten (green' $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)) (fromMaybe "" $ prevAccount `atMay` length esPostings) ""
     where
       canfinish = not (null esPostings) && postingsBalanced esPostings
       parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe (Maybe String)
@@ -344,7 +344,7 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
    withCompletion (amountCompleter def) $
    defaultTo' def $
    nonEmpty $
-   linePrewritten (green $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length esPostings) ""
+   linePrewritten (green' $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length esPostings) ""
     where
       parseAmountAndComment s = if s == "<" then return Nothing else either (const Nothing) (return . Just) $
                                 runParser
@@ -423,8 +423,6 @@ completer completions def = completeWord Nothing "" completionsFor
 defaultTo' = flip defaultTo
 
 withCompletion f = withSettings (setComplete f defaultSettings)
-
-green s = "\ESC[1;32m\STX"++s++"\ESC[0m\STX"
 
 showDefault "" = ""
 showDefault s = " [" ++ s ++ "]"
