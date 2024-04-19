@@ -10,7 +10,7 @@ on:
 jobs:
   build:
     # arm64
-    runs-on: macos-latest
+    runs-on: macos-14
     env:
       ghc:   98
       stack: stack
