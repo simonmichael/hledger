@@ -5,6 +5,8 @@
 <!-- toc -->
 </div>
 
+*Needs updating, eg make -> just*
+
 ## Get developer tools
 
 Ensure [`stack`](https://haskell-lang.org/get-started) is installed
