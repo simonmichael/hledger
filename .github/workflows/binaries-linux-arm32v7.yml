@@ -5,19 +5,12 @@
 # Slow, will probably time out.
 
 name: binaries-linux-arm32v7
-
 on:
   push:
     branches: [ binaries-linux-arm32v7 ]
-    #tags:
-    #  - '[0-9]+.[0-9]+'
-    #  - '[0-9]+.[0-9]+-*'
-    #  - '[0-9]+.[0-9]+.[0-9]+'
-    #  - '[0-9]+.[0-9]+.[0-9]+-*'
   workflow_dispatch:
-
 jobs:
-  docker:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU

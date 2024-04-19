@@ -1,0 +1,137 @@
+# Runs on any push to binaries-linux-x64-stack.
+# Like binaries-linux-x64.yml except it builds with stack instead of cabal.
+
+name: binaries-linux-x64-stack
+on:
+  push:
+    branches: [ binaries-linux-x64-stack ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: alpine:latest
+    steps:
+
+    - name: Check out
+      uses: actions/checkout@v4
+      # have to fetch everything for git describe for --version
+      with:
+        fetch-depth: 0  
+
+    # things to be cached/restored:
+
+    - name: process cache of stack global package db
+      id:   stack-global
+      uses: actions/cache@v4
+      with:
+        path: ~/.stack
+        key: ${{ runner.os }}-stack-global-20240417-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-global-20240417
+
+    - name: process cache of stack-installed programs in ~/.local/bin
+      id:   stack-programs
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-stack-programs-20240417-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-programs-20240417
+
+    - name: process cache of .stack-work
+      uses: actions/cache@v4
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-20240417-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work-20240417
+
+    - name: process cache of hledger-lib/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-20240417-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-lib-stack-work-20240417
+
+    - name: process cache of hledger/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work-20240417-${{ hashFiles('hledger/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-stack-work-20240417
+
+    - name: process cache of hledger-ui/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-20240417-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-ui-stack-work-20240417
+
+    - name: process cache of hledger-web/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-20240417-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-web-stack-work-20240417
+
+    # actions:
+
+    - name: Install general tools with system package manager
+      run: |
+        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
+
+    # needed by stack, at least; do it here in case it matters for ghcup too
+    - name: Fix $HOME for following steps (workaround from https://github.com/actions/runner/issues/863)
+      run: |
+        apk --no-cache add sudo
+        echo "setting HOME=/root"
+        echo HOME=/root | sudo tee -a $GITHUB_ENV
+
+    - name: Add .ghcup/bin to PATH for following steps
+      run: |
+        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+
+    - name: Install haskell tools with ghcup if needed
+      run: |
+        if [[ ! -x ~/.ghcup/bin/ghcup ]]; then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
+        if [[ ! -x ~/.ghcup/bin/stack ]]; then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
+
+    # --allow-different-user is needed because of #863 above (or because stack didn't notice we're in a docker container)
+    - name: Install GHC with stack
+      run: |
+        stack --allow-different-user setup --install-ghc
+
+    - name: Build with stack
+      run: |
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
+
+    - name: Run built-in unit tests
+      run: |
+        stack exec -- hledger test
+
+    - name: Gather binaries
+      run: |
+        mkdir tmp
+        cd tmp
+        cp ~/.local/bin/hledger .
+        cp ~/.local/bin/hledger-ui .
+        cp ~/.local/bin/hledger-web .
+        strip hledger
+        strip hledger-ui
+        strip hledger-web
+        tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web
+
+    # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+    # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
+    # Unfortunately it means users must both unzip and untar.
+    - name: Upload binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: hledger-linux-x64
+        path: tmp/hledger-linux-x64.tar

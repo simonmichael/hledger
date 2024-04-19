@@ -4,17 +4,10 @@
 # Currently runs no tests.
 
 name: binaries-windows-x64
-
 on:
-  # Avoid, because these run in all forks also.
-  # schedule:
-  # - cron: "0 07 * * 0"  # sunday midnight pacific
-
   push:
     branches: [ binaries-windows-x64, binaries ]
   workflow_dispatch:
-
-
 jobs:
   build:
     runs-on: windows-latest
