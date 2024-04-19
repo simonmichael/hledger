@@ -3,42 +3,17 @@
 # using the default stack.yaml's GHC version.
 
 name: binaries-mac-x64
-
 on:
-  # Avoid, because these run in all forks also.
-  # jobs:
-  #   job_id:
-  #     if: github.event.pull_request.head.repo.full_name == github.repository
-  # schedule:
-  # - cron: "0 07 * * 0"  # sunday midnight pacific
-
   push:
     branches: [ binaries-mac-x64, binaries ]
   workflow_dispatch:
-
 jobs:
   build:
     # x64
     runs-on: macos-13
-
-    # strategy:
-    #   fail-fast: false
-    #   matrix:
-    #     plan:
-    #     # - { ghc: "810" , stack: "stack --stack-yaml=stack8.10.yaml" }
-    #     # XXX func tests in bin should be run only with GHC 8.10 for now (see shelltest below) (?)
-    #     # - { ghc: "90" , stack: "stack --stack-yaml=stack9.0.yaml" }
-    #     # - { ghc: "92" , stack: "stack --stack-yaml=stack9.2.yaml" }
-    #     # - { ghc: "94" , stack: "stack --stack-yaml=stack9.4.yaml" }
-    #     # - { ghc: "96" , stack: "stack --stack-yaml=stack9.6.yaml" }
-    #     - { ghc: "98" , stack: "stack --stack-yaml=stack.yaml" }
-
     env:
       ghc:   944
       stack: stack --stack-yaml=stack9.4.yaml
-      # declare this to prevent "Context access might be invalid" warnings below
-      CONTINUE:
-
     steps:
 
     - name: Check out
