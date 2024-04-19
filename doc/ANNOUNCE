@@ -1,3 +1,5 @@
+Hi all,
+
 I'm pleased to announce hledger 1.33!
 This release comes a bit later than usual, with help from contributors
 Jonathan Dowland, Ilja Kocken, Colin Dean, Dmitry Astapov, Vekhir,
@@ -9,6 +11,11 @@ Apple ARM binaries, and the usual improvements and fixes.
 - https://github.com/simonmichael/hledger/releases/1.33
 - https://hledger.org/relnotes.html#2024-04-18-hledger-133
 - https://hledger.org/install
+
+Wishing you peace and prosperity,
+
+-Simon
+
 
 What is hledger ?
 Fast, reliable, free, multicurrency, double-entry, plain text accounting software 
@@ -22,7 +29,3 @@ For help getting started or more info, see https://hledger.org
 and join our Matrix/IRC chat or mail list: https://hledger.org/support .
 Newcomers, experts, contributors, sponsors, feedback are welcome!
 For more about plain text accounting, see https://plaintextaccounting.org .
-
-Wishing you peace and prosperity,
-
--Simon
