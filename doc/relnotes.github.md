@@ -313,13 +313,13 @@ hamzashezad.
 This release may arrive in your local packaging system soon - look for green badges at <https://hledger.org/install>.
 Or, you could build it yourself from source, as described on that page.
 Or, if there are binaries for your OS and hardware at the bottom of this page, follow the instructions below.
-
 <!-- (On linux and mac, the double tar + zip packing is a Github workaround to preserve file permissions.) -->
-
 <!--
-Updates to release binaries:
+Updates to binaries:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
+Once installed, run `hledger`, or perhaps read [hledger.org > Quick start](https://hledger.org/#quick-start).
+
 
 <details>
 <summary>
@@ -438,9 +438,3 @@ Problems:
 
 </details>
 
-## Next steps
-
-- https://hledger.org/#quick-start
-
-<!-- ## Updates -->
-<!-- 2022-06-08: windows-x64 binaries fixed. [#1869](https://github.com/simonmichael/hledger/issues/1869) -->
