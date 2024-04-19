@@ -3,7 +3,7 @@ Highlights: `close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support,
 Apple ARM binaries, and the usual improvements and fixes.
 
 - https://github.com/simonmichael/hledger/releases/1.33
-- https://hledger.org/release-notes.html#2024-04-18-hledger-133
+- https://hledger.org/relnotes.html#2024-04-18-hledger-133
 - https://hledger.org/install
 
 #hledger is free, fast, reliable, multicurrency, double-entry,
