@@ -12,7 +12,7 @@
 
 ## Release notes
 
-https://hledger.org/release-notes.html#2024-04-18-hledger-133
+https://hledger.org/relnotes.html#2024-04-18-hledger-133
 
 </summary>
 
