@@ -984,29 +984,6 @@ bloglog:
 # ** Releasing ------------------------------------------------------------
 RELEASING:
 
-# Symlink/copy important files temporarily in .relfiles/.
-relfiles:
-    #!/usr/bin/env bash
-    echo "linking/copying important release files in .relfiles/ for convenient access..."
-    mkdir -p .relfiles
-    cd .relfiles
-    for f in \
-        ../stack.yaml \
-        ../Shake.hs \
-        ../hledger-install/hledger-install.sh \
-        ../CHANGES.md \
-        ../hledger/CHANGES.md \
-        ../hledger-ui/CHANGES.md \
-        ../hledger-web/CHANGES.md \
-        ../hledger-lib/CHANGES.md \
-        ../doc/github-release.md \
-        ../doc/ANNOUNCE \
-        ../doc/ANNOUNCE.masto \
-        ../site/src/release-notes.md \
-        ../site/src/install.md \
-    ; do ln -sf $f .; done
-    cp ../doc/RELEASING.md ./RELEASING2.md   # temp copy which can be edited without disruption
-
 # Prepare to release today, creating/switching to release branch and doing routine updates - versions, dates, manuals, command helps
 relprep VER:
     #!/usr/bin/env bash
