@@ -538,23 +538,22 @@ INSTALLING:
 # shellcompletions:
 #     make -C hledger/shell-completion/ clean-all all
 
-# download a recent set of hledger versions from github releases to bin/hledger-VER
-get-binaries:
-    for V in 1.32.2 1.31 1.30 1.29.2 1.28 1.27.1; do just get-binary $OS x64 $V; done
-    just symlink-binaries
-
-# download hledger version VER for OS (linux, mac windows) and ARCH (x64) from github releases to bin/hledger-VER
-
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
-get-binary OS ARCH VER:
+# download hledger* version VER for OS (linux, mac windows) and ARCH (x64, arm64) from github release VER to bin/hledger*-VER
+get-binaries OS ARCH VER:
     #!/usr/bin/env bash
-    cd bin && curl -Ls https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - hledger --transform 's/$/-{{ VER }}/'
+    cd bin && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
 
-# add easier symlinks for all the minor hledger releases downloaded by get-binaries.
-symlink-binaries:
-    just symlink-binary 1.32.2
-    just symlink-binary 1.29.2
-    just symlink-binary 1.27.1
+# # download recent versions of the hledger executables from github to bin/hledger*-VER
+# get-recent-binaries:
+#     for V in 1.32.2 1.31 1.30 1.29.2 1.28 1.27.1; do just get-binaries $OS x64 $V; done
+#     just symlink-binaries
+
+# # add easier symlinks for all the minor hledger releases downloaded by get-binaries.
+# symlink-binaries:
+#     just symlink-binary 1.32.2
+#     just symlink-binary 1.29.2
+#     just symlink-binary 1.27.1
 
 # add an easier symlink for this minor hledger release (hledger-1.29 -> hledger-1.29.2, etc.)
 @symlink-binary MINORVER:
