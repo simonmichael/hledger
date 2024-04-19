@@ -16,6 +16,11 @@ jobs:
       stack: stack
     steps:
 
+    - name: Show platform info
+      run: |
+        arch
+        uname -a
+
     - name: Check out
       uses: actions/checkout@v4
       # have to fetch everything for git describe for --version
