@@ -231,13 +231,14 @@ In main repo, release branch:
 In site repo:
 1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
 1. Update install page: `site/src/install.md`
+1. Update config in `hledger.org.caddy` (@oldmanpath, @unversionedmanpath, any new redirects)
 
 ### 2 Prep release
 In main repo, release branch:
 1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
   *(TODO: don't add the suggested sixth tag yet, it hinders pushing)*
 1. Download release binaries
-  *(In Safari: don't click the download button; use right-click, Download linked file)*
+  *(In Safari: don't use the download button; use right-click, Download linked file)*
 1. Push release branch & tags to github: `git push --tags`
 1. Create a [github release draft](#github-release-draft)
 
@@ -249,14 +250,23 @@ In main repo, master:
 
 ### 3 Release
 In main repo, release branch:
-1. Publish on hackage: `make hackageupload`
+1. Publish on hackage: `just hackageupload`
 1. Publish github release
 
 In main repo, master:
 1. Push master: `just push`
 
 In site repo:
-1. Push website: `git push`
+1. Push to github: `git push github` or magit `P p`
+
+In hledger.org [cloudflare caching settings](https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration):
+1. Custom Purge `https://hledger.org/js/site.js`
+
+On hledger.org VPS:
+1. Restart caddy to enable new redirects
+1. Test https://hledger.org/hledger.html redirect
+1. Test manuals are displaying and highlighting the new version
+1. If needed, `make buildall`
 
 ### 4 Announce
 (major releases, others if needed)
@@ -466,27 +476,6 @@ In site repo:
   - Total count from `make functest`
   - preview
   - commit: `install: NEW`
-
-#### Update website
-- push to github: in site repo, `git push github` or magit `P p`
-- wait a few seconds for hledger.org repo to update automatically. Or if needed:
-  - on hledger.org, with both main and site repos on master branch:
-    - `git -C site pull && git pull && make site`
-    - (or to rebuild all pages, also run `make -C site all`)
-  - in /ssh:simon@hledger.org:/opt/hledger/site/hledger.org.caddy (hangs ?), or
-    hledgerorg emacs, open /opt/hledger/site/hledger.org.caddy:
-    - @oldmanpath: add `path` for NEW
-    - @unversionedmanpath: update to NEW
-  - `make caddy-restart`
-- check site in browser
-  - install page versions, badge colours
-  - manuals' versions list in browser. If not updating, try
-    - checking <https://hledger.org/js/site.js>
-    - another browser (not safari)
-    - shift-reload
-    - <https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration> > purge
-  - redirects
-    - hledger.org/hledger.html redirects to `https://hledger.org/NEW/hledger.html`
 
 ### LEVEL 7 - ANNOUNCED
 
