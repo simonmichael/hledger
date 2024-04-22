@@ -45,6 +45,8 @@ Scripts/addons
 
 - bin/hledger-simplebal: Fix shellcheck warnings. (Colin Dean)
 
+[#2159]: https://github.com/simonmichael/hledger/issues/2159
+
 # 1.32.2 2023-12-31
 
 Docs

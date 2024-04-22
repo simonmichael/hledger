@@ -57,6 +57,7 @@ Improvements
 - distinguish oneLineFmt and oneLineNoCostFmt; add fullZeroFmt
 - matchedPostingsBeforeAndDuring: improve debug output
 
+[#2177]: https://github.com/simonmichael/hledger/issues/2177
 
 
 # 1.32.3 2024-01-28
