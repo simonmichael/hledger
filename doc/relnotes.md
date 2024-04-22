@@ -73,13 +73,14 @@ Changes in hledger-install.sh are shown
 
 
 
+
 ## 2024-04-18 hledger-1.33
 
 **`close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support, Apple ARM binaries**
 
 
-
 ### hledger 1.33
+
 
 Breaking changes
 
@@ -274,23 +275,36 @@ Scripts/addons
 
 
 
-[#2191]: https://github.com/simonmichael/issue/2191
-[#2190]: https://github.com/simonmichael/issue/2190
-[#2189]: https://github.com/simonmichael/issue/2189
-[#2178]: https://github.com/simonmichael/issue/2178
-[#2177]: https://github.com/simonmichael/issue/2177
-[#2176]: https://github.com/simonmichael/issue/2176
-[#2164]: https://github.com/simonmichael/issue/2164
-[#2151]: https://github.com/simonmichael/issue/2151
-[#2135]: https://github.com/simonmichael/issue/2135
-[#2088]: https://github.com/simonmichael/issue/2088
-[#2071]: https://github.com/simonmichael/issue/2071
-[#1056]: https://github.com/simonmichael/issue/1056
-[#815]:  https://github.com/simonmichael/issue/815
+API
 
+- move readFileStrictly to hledger-lib:Hledger.Utils.IO
+
+
+
+[#815]:  https://github.com/simonmichael/hledger/issues/815
+[#1056]: https://github.com/simonmichael/hledger/issues/1056
+[#2071]: https://github.com/simonmichael/hledger/issues/2071
+[#2088]: https://github.com/simonmichael/hledger/issues/2088
+[#2119]: https://github.com/simonmichael/hledger/issues/2119
+[#2135]: https://github.com/simonmichael/hledger/issues/2135
+[#2135]: https://github.com/simonmichael/hledger/issues/2135
+[#2148]: https://github.com/simonmichael/hledger/issues/2148
+[#2151]: https://github.com/simonmichael/hledger/issues/2151
+[#2151]: https://github.com/simonmichael/hledger/issues/2151
+[#2158]: https://github.com/simonmichael/hledger/issues/2158
+[#2159]: https://github.com/simonmichael/hledger/issues/2159
+[#2164]: https://github.com/simonmichael/hledger/issues/2164
+[#2171]: https://github.com/simonmichael/hledger/issues/2171
+[#2176]: https://github.com/simonmichael/hledger/issues/2176
+[#2177]: https://github.com/simonmichael/hledger/issues/2177
+[#2178]: https://github.com/simonmichael/hledger/issues/2178
+[#2189]: https://github.com/simonmichael/hledger/issues/2189
+[#2190]: https://github.com/simonmichael/hledger/issues/2190
+[#2191]: https://github.com/simonmichael/hledger/issues/2191
 
 
 ### hledger-ui 1.33
+
 
 Fixes
 
@@ -308,8 +322,8 @@ Improvements
 - Require safe >=0.3.20.
 
 
-
 ### hledger-web 1.33
+
 
 Fixes
 
@@ -336,9 +350,13 @@ Docs
   the non-display of costs,
   and non-zeros that look like zero because of hidden costs.
 
+[#2140]: https://github.com/simonmichael/hledger/issues/2140
+[#2163]: https://github.com/simonmichael/hledger/issues/2163
+[#2166]: https://github.com/simonmichael/hledger/issues/2166
 
 
 ### project changes 1.33
+
 
 Misc
 
@@ -352,20 +370,21 @@ Docs
 - drop unused BACKLOG, TODO pages
 
 
-
 ### credits 1.33
 
+
 Simon Michael,
-Jonathan Dowland, 
-Ilja Kocken, 
-Colin Dean, 
-Dmitry Astapov, 
+Jonathan Dowland,
+Ilja Kocken,
+Colin Dean,
+Dmitry Astapov,
 Vekhir,
-ShrykeWindgrace, 
-Martijn van der Ven, 
-Michael Rees, 
-aragaer, 
+ShrykeWindgrace,
+Martijn van der Ven,
+Michael Rees,
+aragaer,
 hamzashezad.
+
 
 
 
@@ -8588,3 +8607,5 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
