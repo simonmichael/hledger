@@ -33,7 +33,7 @@
 <!-- TEMPLATE:
 
 
-## YYYY-MM-DD hledger-1.XX
+# # YYYY-MM-DD hledger-1.XX
 
 **HIGHLIGHTS**
 
