@@ -226,20 +226,26 @@ API
 
 
 
-[#2191]: https://github.com/simonmichael/issue/2191
-[#2190]: https://github.com/simonmichael/issue/2190
-[#2189]: https://github.com/simonmichael/issue/2189
-[#2178]: https://github.com/simonmichael/issue/2178
-[#2177]: https://github.com/simonmichael/issue/2177
-[#2176]: https://github.com/simonmichael/issue/2176
-[#2164]: https://github.com/simonmichael/issue/2164
-[#2151]: https://github.com/simonmichael/issue/2151
-[#2135]: https://github.com/simonmichael/issue/2135
-[#2088]: https://github.com/simonmichael/issue/2088
-[#2071]: https://github.com/simonmichael/issue/2071
-[#1056]: https://github.com/simonmichael/issue/1056
-[#815]:  https://github.com/simonmichael/issue/815
-
+[#815]:  https://github.com/simonmichael/hledger/issues/815
+[#1056]: https://github.com/simonmichael/hledger/issues/1056
+[#2071]: https://github.com/simonmichael/hledger/issues/2071
+[#2088]: https://github.com/simonmichael/hledger/issues/2088
+[#2119]: https://github.com/simonmichael/hledger/issues/2119
+[#2135]: https://github.com/simonmichael/hledger/issues/2135
+[#2135]: https://github.com/simonmichael/hledger/issues/2135
+[#2148]: https://github.com/simonmichael/hledger/issues/2148
+[#2151]: https://github.com/simonmichael/hledger/issues/2151
+[#2151]: https://github.com/simonmichael/hledger/issues/2151
+[#2158]: https://github.com/simonmichael/hledger/issues/2158
+[#2159]: https://github.com/simonmichael/hledger/issues/2159
+[#2164]: https://github.com/simonmichael/hledger/issues/2164
+[#2171]: https://github.com/simonmichael/hledger/issues/2171
+[#2176]: https://github.com/simonmichael/hledger/issues/2176
+[#2177]: https://github.com/simonmichael/hledger/issues/2177
+[#2178]: https://github.com/simonmichael/hledger/issues/2178
+[#2189]: https://github.com/simonmichael/hledger/issues/2189
+[#2190]: https://github.com/simonmichael/hledger/issues/2190
+[#2191]: https://github.com/simonmichael/hledger/issues/2191
 
 
 # 1.32.3 2024-01-28

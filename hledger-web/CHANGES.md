@@ -48,6 +48,10 @@ Docs
   the non-display of costs,
   and non-zeros that look like zero because of hidden costs.
 
+[#2140]: https://github.com/simonmichael/hledger/issues/2140
+[#2163]: https://github.com/simonmichael/hledger/issues/2163
+[#2166]: https://github.com/simonmichael/hledger/issues/2166
+
 # 1.32.3 2024-01-28
 
 - Use hledger-1.32.3
