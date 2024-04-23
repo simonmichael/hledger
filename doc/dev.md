@@ -119,6 +119,7 @@ versions:
 **Repology:**\
 [quick hledger packaging status](https://repology.org/metapackage/hledger/badges),
 [detailed hledger packaging status](https://repology.org/project/hledger/versions),
+[information for hledger](https://repology.org/project/hledger/information),
 [all \*hledger\* packages](https://repology.org/metapackages/?search=hledger)\
 \
 **Homebrew:**\
