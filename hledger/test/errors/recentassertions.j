@@ -1,5 +1,12 @@
 #!/usr/bin/env -S hledger check recentassertions -f
 
+account a
+commodity ""
+payee last balance assertion
+payee good
+payee bad1
+payee bad2
+
 2022-01-01 last balance assertion
   a  0 = 0
 
