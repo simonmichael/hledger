@@ -1,5 +1,5 @@
 #!/usr/bin/env just
-# * Project scripts, using https://github.com/casey/just (last tested with 1.24.0)
+# * Project scripts, using https://github.com/casey/just (last tested with 1.25)
 # Usage: alias j=just, run j to list available scripts.
 #
 # After many years with make and plain shell and haskell for
@@ -33,6 +33,15 @@
 # https://just.systems/man/en/chapter_31.html Functions
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
+#
+# Other tools used below include:
+# - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
+# - shelltestrunner (hackage, runs functional tests)
+# - quickbench (hackage/stackage, runs benchmarks)
+# - ghcid (hackage/stackage, recompiles and optionally runs tests on file change)
+# - hasktags (hackage, generates tag files for code navigation)
+# - profiterole (hackage/stackage, simplifies profiles)
+# - profiteur (hackage/stackage, renders profiles as html)
 
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
@@ -108,7 +117,7 @@ GHCI := 'ghci'
 # command to run during profiling (time and heap)
 # command to run when profiling
 
-PROFCMD := 'stack exec --profile -- hledger balance -f examples/10000x1000x10.journal >/dev/null'
+PROFCMD := 'bin/hledgerprof balance -f examples/10000x1000x10.journal >/dev/null'
 PROFRTSFLAGS := '-P'
 
 # # command to run when checking test coverage
@@ -263,12 +272,13 @@ BUILDING:
 #     $STACK --verbosity=error install --ghc-options=-O0 hledger --local-bin-path=bin
 #     mv bin/hledger "$exe"
 #     echo "$exe"
-# # build hledger with profiling enabled at bin/hledgerprof
-# hledgerprof:
-# # $STACK --verbosity=error install --local-bin-path=bin hledger
-#     $STACK build --profile hledger
-# # hledger-lib --ghc-options=-fprof-auto
-# #    @echo "to profile, use $STACK exec --profile -- hledger ..."
+
+# build hledger with profiling enabled at bin/hledgerprof
+hledgerprof:
+    @echo "building bin/hledgerprof..."
+    {{ STACK }} install --profile --local-bin-path=bin hledger
+    @echo "to profile, use $STACK exec --profile -- hledger ..."
+
 # # build "bin/hledgercov" for coverage reports (with ghc)
 # hledgercov:
 #     $STACK ghc {{ MAIN }} -fhpc -o bin/hledgercov -outputdir .hledgercovobjs $BUILDFLAGS
@@ -396,7 +406,7 @@ TESTING:
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 
 # run tests that are reasonably quick (files, unit, functional) and benchmarks
-test: filestest functest
+test: embedtest functest
 
 # For quieter tests add --silent. It may hide troubleshooting info.
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
@@ -408,7 +418,7 @@ STACKTEST := STACK + ' test --fast'
 # SKIPTESTSBENCHS := '--no-run-tests --no-run-benchmarks'
 
 # check all files embedded with file-embed are declared in extra-source-files
-@filestest:
+@embedtest:
     tools/checkembeddedfiles
 
 # # stack build --dry-run all hledger packages ensuring an install plan with default snapshot)
@@ -500,18 +510,22 @@ compare-balance:
         done
 
 # generate a hlint report
-# hlinttest hlint:
-#     hlint --hint=hlint --report=hlint.html {{ SOURCEFILES }}
-# # run haddock to make sure it can generate docs without dying
-# @haddocktest:
-#     (make --quiet haddock && echo $@ PASSED) || (echo $@ FAILED; false)
-# # run cabal check to test cabal file syntax
-# cabalfiletest:
-#     @(make --no-print-directory cabalcheck && echo $@ PASSED) || (echo $@ FAILED; false)
+hlinttest hlint:
+    hlint --hint=hlint --report=hlint.html {{ SOURCEFILES }}
+
+# check that haddock can generate docs without dying
+@haddocktest:
+    (just -q haddock && echo haddocktest PASSED) || (echo haddocktest FAILED; false)
+
+# check cabal files' syntax
+@cabalfilestest:
+    just cabalfiles
+    (for p in $PACKAGES; do (cd $p && printf "\nchecking $p.cabal:\n" && cabal check); done \
+      && echo $@ PASSED) || (echo $@ FAILED; false)
+
 # test-stack%yaml:
 #     $STACK --stack-yaml stack$*yaml clean
 #     $STACK --stack-yaml stack$*yaml build --ghc-options="{{ WARNINGS }} -Werror" --test --bench --haddock --no-haddock-deps
-# committest: hlinttest unittest doctest functest haddocktest buildtest quickcabaltest \
 #
 # releasetest: Clean unittest functest fullcabaltest haddocktest #buildtest doctest \
 #     {{ call def-help,releasetest,pre-release tests }}
@@ -565,6 +579,11 @@ symlink-web-dirs:
     ln -sf hledger-web/messages
     ln -sf hledger-web/static
     ln -sf hledger-web/templates
+
+# update shell completions in hledger package
+shell-completions:
+    make -C hledger/shell-completion/ clean-all all
+
 
 # ** Benchmarking ------------------------------------------------------------
 BENCHMARKING:
@@ -671,7 +690,7 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
 #     quickbench -w hledger-21ad,ledger -f bench-many-txns.sh -N2
 # samplejournals bench.sh
 # bench: samplejournals tests/bench.tests tools/simplebench \
-# 	$(call def-help,bench,\
+#   $(call def-help,bench,\
 # 	run simple performance benchmarks and archive results\
 # 	Requires some commands defined in tests/bench.tests and some BENCHEXES defined above.\
 # 	)
@@ -701,27 +720,28 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
 # # 	generate, archive, simplify and display an execution profile\
 # # 	)
 # # 	tools/simplifyprof.hs doc/profs/latest.prof
-# quickprof-%: hledgerprof samplejournals \
-# 		$(call def-help,quickprof-"CMD", run some command against a standard sample journal and display the execution profile )
-# 	$(STACK) exec --profile -- hledger +RTS $(PROFRTSFLAGS) -RTS $* -f examples/1000x1000x10.journal >/dev/null
-# 	profiterole hledger.prof
-# 	@echo
-# 	@head -20 hledger.prof
-# 	@echo ...
-# 	@echo
-# 	@head -20 hledger.profiterole.txt
-# 	@echo ...
-# 	@echo
-# 	@echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
-# # heap: samplejournals \
-# # 	$(call def-help,heap,\
-# # 	generate and archive a graphical heap profile\
-# # 	) #bin/hledgerprof
-# # 	@echo "Profiling heap with: $(PROFCMD)"
-# # 	$(PROFCMD) +RTS -hc -RTS
-# # 	mv hledgerprof.hp doc/profs/$(TIME).hp
-# # 	(cd doc/profs; rm -f latest.hp; ln -s $(TIME).hp latest.hp; \
-# # 		hp2ps $(TIME).hp; rm -f latest.ps; ln -s $(TIME).ps latest.ps; rm -f *.aux)
+
+# run a hledger CMD against a sample journal and display the execution profile
+@quickprof CMD: hledgerprof #samplejournals
+    {{ STACK }} exec --profile -- hledger +RTS {{ PROFRTSFLAGS }} -RTS "$CMD" -f examples/1000x1000x10.journal >/dev/null
+    profiterole hledger.prof
+    echo
+    head -20 hledger.prof
+    echo ...
+    echo
+    head -20 hledger.profiterole.txt
+    echo ...
+    echo
+    echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
+
+# generate and archive a graphical heap profile
+@heap: hledgerprof #samplejournals
+    echo "Profiling heap with: $PROFCMD"
+    {{ PROFCMD }} +RTS -hc -RTS
+    mv hledgerprof.hp doc/profs/$(TIME).hp
+    (cd doc/profs; rm -f latest.hp; ln -s {{ TIME }}.hp latest.hp; \
+        hp2ps {{ TIME }}.hp; rm -f latest.ps; ln -s {{ TIME }}.ps latest.ps; rm -f *.aux)
+
 # # viewheap: heap \
 # # 	$(call def-help,viewheap,\
 # # 	\
@@ -767,10 +787,14 @@ STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-g
 
 HADDOCKPKGS := 'hledger-lib'
 
-# regenerate haddock docs for the hledger packages and open them
+# regenerate haddock docs for the hledger packages
 haddock:
     {{ STACKHADDOCK }} {{ HADDOCKPKGS }}
-    just haddock-open   # --open shows all deps and packages
+
+# regenerate haddock docs for the hledger packages and open them
+@haddock-and-open:
+    just haddock
+    just haddock-open
 
 # # Rerenders all hledger packages. Run make haddock-open to open contents page.
 # haddock-watch1: \
@@ -819,25 +843,28 @@ haddock-open:
 # #     /etc/github-post-receive.conf
 # # 2. cron, nightly. Config: /etc/crontab
 # # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
-# .PHONY: site
-# # Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
-# # site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
-# #     @[ ! -x Shake ] \
-# #         && echo 'Please run "make Shake" first (manual compilation required for safety)' \
-# #         || ( \
-# #             echo; \
-# #             ./Shake -V site; \
-# #         ) 2>&1 | tee -a site.log
-# site: Shake \
-#     $(call def-help,site, update the hledger.org website (run on hledger.org, or run "make hledgerorg" elsewhere) )
-#     ./Shake -V site 2>&1 | tee -a site.log
-# BROWSE=open
-# BROWSEDELAY=5
-# LOCALSITEURL=http://localhost:3000/dev/hledger.html
-# site-watch: $(call def-help,site-watch, open a browser on the website (in ./site) and rerender when docs or web pages change )
-#     @make -s Shake
-#     @(printf "\nbrowser will open in $(BROWSEDELAY)s (adjust BROWSE in Makefile if needed)...\n\n"; sleep $(BROWSEDELAY); $(BROWSE) $(LOCALSITEURL)) &
-#     @$(WATCHEXEC) --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+
+# update the website (the live one if run on hledger.org)
+site: #Shake
+    ./Shake -V site 2>&1 | tee -a site.log
+
+# Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
+# site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
+#     @[ ! -x Shake ] \
+#         && echo 'Please run "make Shake" first (manual compilation required for safety)' \
+#         || ( \
+#             echo; \
+#             ./Shake -V site; \
+#         ) 2>&1 | tee -a site.log
+
+BROWSEDELAY := '5'
+#LOCALSITEURL := 'http://localhost:3000/dev/hledger.html'
+LOCALSITEURL := 'http://localhost:3000/index.html'
+
+# open a browser on the website (in ./site) and rerender when docs or web pages change
+@site-watch: #Shake
+    (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
+    $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
 # optimise and commit RELEASING value map diagram
 @releasediag:
@@ -856,9 +883,9 @@ log *DATEARG:
     printf "* Activity since $DATE:\n\n"
     printf "Last release: `just rel`\n\n"
     just chlog
-    just commitlog $DATEARG
     just timelog   $DATEARG
     just worklog   $DATEARG
+    just commitlog $DATEARG
     just chatlog   $DATEARG
     just maillog   $DATEARG
     just redditlog $DATEARG
@@ -1096,9 +1123,11 @@ _gitSwitchAutoCreate BRANCH:
 # # stop if the given file(s) have uncommitted changes
 # isclean-%:
 #     @$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
-# # update all cabal files based on latest package.yaml files using stack's built-in hpack
-# cabal: $(call def-help,cabal, regenerate cabal files from package.yaml files with stack )
-#     $(STACK) build --dry-run --silent
+
+# update all cabal files from latest package.yaml files using stack's built-in hpack
+cabalfiles:
+    {{ STACK }} build --dry-run --silent
+
 # # Update all cabal files based on latest package.yaml files using a specific hpack version.
 # # To avoid warnings, this should be the same version as stack's built-in hpack.
 # cabal-with-hpack-%:
@@ -1344,8 +1373,9 @@ MISC:
 installcommithook:
     ln -s ../../tools/commitlint .git/hooks/commit-msg
 
-# Shake: Shake.hs $(call def-help,Shake, ensure the Shake script is compiled )
-#     ./Shake.hs
+# ensure the Shake script is compiled
+Shake: # Shake.hs
+    ./Shake.hs
 
 # show some big directory sizes
 @usage:
