@@ -5,8 +5,6 @@
 <!-- toc -->
 </div>
 
-*Needs updating, eg make -> just*
-
 ## Get developer tools
 
 Ensure [`stack`](https://haskell-lang.org/get-started) is installed
@@ -16,8 +14,9 @@ Ensure [`git`](https://git-scm.com) is installed. On Windows, it comes with stac
 
 Here are some useful optional tools:
 
-- [GNU Make](https://www.gnu.org/software/make): to use the convenient [Make rules](#make).
-- [`entr`](https://www.entrproject.org/) runs arbitrary commands when files change.
+- [`just`](https://github.com/casey/just) for automating project tasks
+- [GNU Make](https://www.gnu.org/software/make) for automating tasks in a few subdirectories
+- [`watchexec`](https://watchexec.github.io) for re-running commands when files change
 - [`ghcid`](https://hackage.haskell.org/package/ghcid) gives real-time GHC feedback as you make code changes.
 - [`shelltestrunner`](https://hackage.haskell.org/package/shelltestrunner) runs hledger's functional tests.
 - [`quickbench`](https://hackage.haskell.org/package/quickbench) measures and reports time taken by commands.
@@ -87,33 +86,33 @@ Runs any performance reports defined by each hledger package.
 
 Times the end-user commands in `bench.sh` using quickbench.
 
-    make bench
+    just bench
 
 ## Run functional tests
 
 Runs the shelltestrunner tests defined in hledger/test/, which test the hledger CLI.
 
-    make functest
+    just functest
 
 ## Run haddock tests
 
 Checks for anything that would break haddock doc generation.
 
-    make haddocktest
+    just haddocktest
 
 Checks for the unit-tests embedded in documentation.
 
-    make doctest
+    just doctest
 
 ## Simulate Travis tests
 
 Locally runs tests similar to what we run on Travis CI.
 
-    make travistest
+    just travistest
 
 ## Test with all supported GHC versions/stackage snapshots
 
-    make allsnapshotstest
+    just allsnapshotstest
 
 ## Use GHCI
 
@@ -207,15 +206,15 @@ Most docs tasks are handled by [Shake](#shake).
 
 ## Use ghcid for watching GHC/GHCI
 
-[ghcid](https://hackage.haskell.org/package/ghcid) is the most reliable and fastest way to see GHC's feedback, and optionally run tests or a GHCI command, as you edit. We run it via make, for convenience and to watch multiple packages rather than just one. Run `make help-ghcid` to list related rules.
+[ghcid](https://hackage.haskell.org/package/ghcid) is the most reliable and fastest way to see GHC's feedback, and optionally run tests or a GHCI command, as you edit. We run it via just, for convenience and to watch multiple packages rather than just one. Run `just h ghcid` to list related rules.
 
 ### Watch for compile errors in hledger-lib and hledger:
 
-    make ghcid
+    just ghcid
 
 ### Watch compile errors and the output of some hledger command:
 
-    ghcid -c 'make ghci' -T ':main -f a.j bal --budget -N'
+    ghcid -c 'just ghci' -T ':main -f a.j bal --budget -N'
 
 ## Use --file-watch for watching stack
 

@@ -102,9 +102,6 @@ About testing in the hledger project, as of 201809.
     can always be run via the [test](https://hledger.org/hledger.html#test)
     command (`hledger test`).
 
-    Here\'s the quick way to run unit tests while developing:\
-    `make ghcid-test` or `make ghcid-test-Some.Module`.
-
 2.  Doc tests
 
     Like unit tests, but defined inside functions\' haddock
@@ -135,16 +132,8 @@ About testing in the hledger project, as of 201809.
 
 4.  Code tests
 
-    We have some tests aimed at testing eg code quality, generally
-    defined as make rules, such as:
-
-      --------------------- -------------------------------------------------------------------------------------
-      `make haddocktest`    can haddock process all code docs without error
-      `make buildtest`      does all code build warning free with the default GHC version & stackage snapshot
-      `make buildtestall`   does the code build warning free with all supported GHC versions/stackage snapshots
-      --------------------- -------------------------------------------------------------------------------------
-
-    See below for examples.
+    We have some tests aimed at testing eg code quality, generally runnable via just.
+    Eg `just haddocktest`, `just hlinttest`.
 
 5.  Package test suites
 
@@ -187,20 +176,20 @@ tests, at least. It would be useful to set this up for hledger.
 Run unit tests:
 
 ``` example
-$ make unittest
+$ just unittest
 ```
 
 Run doctests:
 
 ``` example
-$ make doctest
+$ just doctest
 ```
 
 Run functional tests (and unit tests, now):
 
 ``` example
 $ stack install shelltestrunner
-$ make functest
+$ just functest
 ```
 
 Run the package tests (unit tests, maybe doctests, but not functional
@@ -213,25 +202,13 @@ $ stack test [PKG]
 Run \"default tests: package plus functional tests\":
 
 ``` example
-$ make test
+$ just test
 ```
 
 Test generation of haddock docs:
 
 ``` example
-$ make haddocktest
-```
-
-Thorough test for build issues with current GHC:
-
-``` example
-$ make buildtest
-```
-
-Thorough test for build issues with all supported GHC versions:
-
-``` example
-$ make buildtestall
+$ just haddocktest
 ```
 
 Run built-in hledger/hledger-lib unit tests via hledger command:
@@ -251,22 +228,16 @@ test [TESTPATTERN] [SEED]
   seed for easytests.
 ```
 
-Rebuild and rerun hledger/hledger-lib unit tests via ghcid:
+Rebuild and rerun hledger/hledger-lib doc tests via ghcid:
 
 ``` example
-$ make ghcid-test
+$ just ghcid-doctest
 ```
 
-Rebuild and rerun only some tests via ghcid (see hledger test --help):
+See all test-related just rules:
 
 ``` example
-$ make ghcid-test-TESTPATTERN
-```
-
-See all test-related make rules:
-
-``` example
-$ make help-test
+$ just h test
 ```
 
 

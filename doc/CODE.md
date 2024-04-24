@@ -181,11 +181,11 @@ $ (cd hledger-web; stack ghci hledger-web)
 hledger-web> :main --serve   # restart: ctrl-c, :r, enter, ctrl-p, ctrl-p, enter
 ```
 
-- `make ghci-web`: runs the server in developer mode from GHCI, also
+- `just ghci-web`: runs the server in developer mode from GHCI, also
 interprets the hledger-lib and hledger packages so that :reload picks
 up changes in those packages too:
 ```cli
-$ make ghci-web
+$ just ghci-web
 ghci> :main --serve
 ```
 (This rule also creates symbolic links to hledger-web's `config`, `messages`, `static` and `templates`
@@ -195,12 +195,12 @@ directories, needed in developer mode, so it can run from the top directory. Thi
 
 Relevant tools include:
 
-- unit tests (HUnit, make unittest)
-- functional tests (shelltestrunner, make functest)
-- performance tests (simplebench, make bench)
-- documentation tests (make haddocktest + manual)
+- unit tests
+- functional tests
+- performance tests
+- documentation tests
 - ui tests (manual)
-- installation tests (manual)
+- installation tests
 - code reviews
 
 ## Code review

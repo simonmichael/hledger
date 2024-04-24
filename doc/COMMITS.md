@@ -57,7 +57,7 @@ Some possible prefixes:
 
 Before committing, pushing, or merging, run `tools/commitlint` to check recent commit messages.
 (See the script for more ways to select commits.) You can configure your local working copy
-to do this automatically, by running `make installcommithook`.
+to do this automatically, by running `just installcommithook`.
 
 commitlint also runs automatically on Github to check pull requests.
 

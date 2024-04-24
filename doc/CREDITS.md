@@ -28,7 +28,7 @@ and by the innumerable other benefactors making it all possible.
 11231 commits in 16 years by 155 people as of 2022-12-21:
 
 
-<!-- year-end: update stats, make showauthors, replace table preserving notes (eg emacs macro), maybe fix root commits -->
+<!-- year-end: update stats, just authors, replace table preserving notes (eg emacs macro), maybe fix root commits -->
 | Commits | Author                         | Notes ([chat](#footer) me with updates!)                                                                                                                                                      |
 |---------|--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 9749    | Simon Michael                  | founder, project leader, lead developer                                                                                                                                                       |

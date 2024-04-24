@@ -254,23 +254,26 @@ src/hledger/tools/
 
 ## Sh/makefiles
 
-Many developer tasks are automated with Make and/or Shake also.
-Run `make` or `./Shake` (after `make Shake`) to see help.
+Many developer tasks are automated via `Justfile` or `Shake.hs` also.
+Run `just` or `./Shake.hs` to see help.
 
-<!-- $ gtree '(^|/)((bsd)?m|sh)ake' -->
 <pre>
+$ gtree '(^|/)((bsd)?m|sh)ake|justfile'
 src/hledger/
+  Justfile
   Makefile
   Makefile.helpsys
   Shake.hs
+  bin/
+    justfile
   doc/
-    MAKE.md
-    SHAKE.md
     haskellerz/
       Makefile
   examples/
+    csv/
+      Makefile
     invoicing/
-      makefile/
+      pandoc-make-invoice/
         Makefile
     reports/
       Makefile

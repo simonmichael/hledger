@@ -75,7 +75,7 @@ The manuals and website are rendered from the top directory,
 primarily using Shake. First, build Shake:
 
 ```
-$ make Shake
+$ ./Shake.hs
 ```
 
 Then render the per-package manuals from markdown-m4 source files (*.m4.md) 

@@ -59,8 +59,8 @@ Current process:
   - `PKG/package.yaml` contains the cabal package version declaration,
     bounds on other hledger packages, and a CPP VERSION macro used in
     `hledger/Hledger/Cli/Version.hs`. Changes in package.yaml will be
-    propagated to `PKG/PKG.cabal` on the next stack or Shake build, or
-    by `make gencabal`.
+    propagated to `PKG/PKG.cabal` on the next stack build or --dry-run build
+    or with `just cabalfiles`.
 
   - `PKG/.version.m4` contains the _version_ macro used in  documentation source files (*.m4.md). It is updated by `./Shake setversion`.
 
