@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -11,6 +12,9 @@ module Hledger.Web.Widget.AddForm
   ) where
 
 import Control.Monad.State.Strict (evalStateT)
+#if MIN_VERSION_base64(1,0,0)
+import Data.Base64.Types (extractBase64)
+#endif
 import Data.Bifunctor (first)
 import Data.Foldable (toList)
 import Data.List (dropWhileEnd, unfoldr)
@@ -192,7 +196,11 @@ toBloodhoundJson ts =
     ]
   where
     -- decodeBase64EncodedText is defined in add-form.hamlet
-    b64wrap = ("decodeBase64EncodedText(\""<>) . (<>"\")") . encodeBase64
+    b64wrap = ("decodeBase64EncodedText(\""<>) . (<>"\")") .
+#if MIN_VERSION_base64(1,0,0)
+      extractBase64 .
+#endif
+      encodeBase64
 
 zipDefault :: a -> [a] -> [a] -> [(a, a)]
 zipDefault def (b:bs) (c:cs) = (b, c):(zipDefault def bs cs)

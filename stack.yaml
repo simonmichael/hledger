@@ -9,8 +9,6 @@ packages:
 - hledger-web
 
 extra-deps:
-- base64-0.4.2.4            # hledger-web does not yet support base64-1
-
 - process-1.6.19.0          # for HSEC-2024-0003
 - haskeline-0.8.2.1
 
