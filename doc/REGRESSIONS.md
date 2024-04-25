@@ -24,20 +24,18 @@ To claim the bounty:
 2. Report it in the [hledger bug tracker](http://bugs.hledger.org)
 3. Wait for the issue manager ([SM](https://joyful.com)) confirm it with the `regression` label
 4. And/or, fix a regression yourself.
-5. Send an expense reimbursement request to our Open Collective.
-   - Be aware this might reveal your real name, on opencollective.com and here on hledger.org
-   - [Submit Expense](https://opencollective.com/hledger/expenses/new)
-     (if you are logged in, it will be under the ACTIONS menu) 
+5. Send an expense reimbursement request to our Open Collective. 
+   Be aware this might reveal your real name, on opencollective.com and here on hledger.org.
+   Here's the suggested procedure for fastest processing:
+   - click [Submit Expense](https://opencollective.com/hledger/expenses/new)  (if you are logged in, it will be under the ACTIONS menu) 
    - choose Invoice
-   - choose a Payout method; Next
-   - Expense title: Regression bounty for #NNNN
-   - Description: "QA", and for fast processing also include
-     - the WORK DATE or WORK PERIOD
-     - the ISSUE URL
+   - choose a Payout method; click Next
+   - Expense title: "Regression finder bounty for #NNNN" (or "fixer" or "finder & fixer")
+   - Description: "Found ISSUEURL, WORKDATE(S)" (or "Fixed ...")
    - Date: today's date
-   - Amount: USD 50, or 100 if you reported and fixed.
-     Or if you choose to receive another currency, convert from USD with that day's conversion rate and mention the rate in Description.
-   - Next; Submit Expense
+   - Amount: USD 50 (or 100 if you found and fixed).
+     Or if you choose to receive another currency, convert from USD with that day's conversion rate, and mention the rate in Description.
+   - Next, Submit Expense
 5. Announce on the issue page or in chat that you've submitted (to help ensure it is not overlooked)
 6. Wait for the finance manager (SM) to approve it. This should not take more than a day or two.
 7. Then wait for Open Collective to pay it. Payouts happen twice a week.
