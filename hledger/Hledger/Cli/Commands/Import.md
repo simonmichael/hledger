@@ -27,9 +27,6 @@ most common import source, and these docs focus on that case.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
-This is a particular kind of "deduplication":
-within each input file, it avoids reprocessing the same dates across successive runs.
-
 It works as follows: for each imported `FILE`:
 
 - It tries to recall the latest date seen previously, reading it from a hidden `.latest.FILE` in the same directory.
@@ -50,12 +47,17 @@ you can reduce the chance of this happening in new transactions by importing mor
 and in old transactions it doesn't matter.
 And remember you can use CSV rules files as input, which is one way to ensure a stable file name.
 
-`import` doesn't detect other kinds of duplication, such as duplicate transactions within a single run.
-(In part, because legitimate duplicate transactions can easily occur in real-world data.)
-So, say you downloaded but forgot to import `bank.1.csv`, and a week later you downloaded `bank.2.csv` with overlapping data.
-Now you should not import both of these at once (`hledger import bank.1.csv bank.2.csv`);
-the overlapping transactions which appear twice would not be deduplicated since this is considered a single import.
-Instead, import these files one at a time, and also use the same filename each time for a common "latest seen" state:
+Note this is a particular kind of "deduplication":
+avoiding reprocessing the same dates across successive runs.
+`import` doesn't detect other kinds of duplication,
+such as the same transaction appearing multiple times within a single run.
+This is intentional, because legitimate "duplicates" are fairly common in real-world data.
+
+Here's a situation where you would need to run `import` the right way to deduplicate.
+Say you download but forget to import `bank.1.csv`, and a week later you download `bank.2.csv` with some overlapping data.
+Now you should not process both of these as a single import (`hledger import bank.1.csv bank.2.csv`),
+because the overlapping transactions would not be deduplicated.
+Instead you would import one file at a time, using the same filename each time, like so:
 
 ```cli
 $ mv bank.1.csv bank.csv; hledger import bank.csv
