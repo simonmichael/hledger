@@ -46,7 +46,9 @@ hledgerWebDev =
 
 -- Run normally.
 hledgerWebMain :: IO ()
-hledgerWebMain = do
+hledgerWebMain = withGhcDebug' $ do
+  when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
   -- try to encourage user's $PAGER to properly display ANSI (in command line help)
   when useColorOnStdout setupPager
 
@@ -62,6 +64,8 @@ hledgerWebMain = do
       -- remove --test and --, leaving other args for hspec
       (`withArgs` hledgerWebTest) . filter (`notElem` ["--test","--"]) =<< getArgs
     | otherwise                              -> withJournalDo copts (web wopts)
+
+  when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
 -- | The hledger web command.
 web :: WebOpts -> Journal -> IO ()

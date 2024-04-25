@@ -1,8 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-{-# HLINT ignore "Unused LANGUAGE pragma" #-}
-
 {-|
 
 This is the root module of the @hledger@ package,
@@ -69,9 +64,12 @@ etc.
 
 -}
 
+{-# LANGUAGE LambdaCase #-}
+
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Unused LANGUAGE pragma" #-}
+
 module Hledger.Cli (
-  prognameandversion,
-  versionString,
   main,
   mainmode,
   argsToCliOpts,
@@ -90,7 +88,9 @@ where
 import Control.Monad (when)
 import Data.List
 import qualified Data.List.NonEmpty as NE
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
+import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger-ui
 import qualified System.Console.CmdArgs.Explicit as C
 import System.Environment
 import System.Exit
@@ -98,36 +98,12 @@ import System.FilePath
 import System.Process
 import Text.Printf
 
-import Data.Time.Clock.POSIX (getPOSIXTime)
-
-
-import GitHash (tGitInfoCwdTry)
-import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger-ui
-
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
-
-
--- | The program name and version string for this build of the hledger tool,
--- including any git info available at build time.
-prognameandversion :: String
-prognameandversion = versionString progname packageversion
-
--- | A helper to generate the best version string we can from the given 
--- program name and package version strings, current os and architecture,
--- and any git info available at build time (commit hash, commit date, branch
--- name, patchlevel since latest release tag for that program's package).
--- Typically called for programs "hledger", "hledger-ui", or "hledger-web".
---
--- The git info changes whenever any file in the repository changes. 
--- Keeping this template haskell call here and not down in Hledger.Cli.Version
--- helps reduce the number of modules recompiled.
-versionString :: ProgramName -> PackageVersion -> String
-versionString = versionStringWith $$tGitInfoCwdTry
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -172,8 +148,11 @@ mainmode addons = defMode {
 
 -- | Let's go!
 main :: IO ()
-main = do
+main = withGhcDebug' $ do
+  when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
   starttime <- getPOSIXTime
+
   -- try to encourage user's $PAGER to properly display ANSI
   when useColorOnStdout setupPager
 
@@ -285,6 +264,8 @@ main = do
       | otherwise                = usageError ("could not understand the arguments "++show args) >> exitFailure
 
   runHledgerCommand
+
+  when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
 -- | Parse hledger CLI options from these command line arguments and
 -- add-on command names, or raise any error.

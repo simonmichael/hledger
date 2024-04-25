@@ -65,7 +65,6 @@ import Test.Tasty (defaultMain)
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Version
 import Hledger.Cli.Commands.Accounts
 import Hledger.Cli.Commands.Activity
 import Hledger.Cli.Commands.Add

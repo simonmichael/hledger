@@ -49,16 +49,20 @@ extra-source-files:
 flags:
   library-only:
     description: Build for use with "yesod devel"
-    manual: false
     default: false
+    manual:  false
   dev:
     description: Turn on development settings, like auto-reload templates.
-    manual: false
     default: false
+    manual:  false
   threaded:
     description: Build with support for multithreaded execution.
-    manual: false
     default: true
+    manual:  false
+  ghcdebug:
+    description: Build with support for attaching a ghc-debug client
+    default: false
+    manual:  true
 
 ghc-options:
 - -Wall
@@ -76,6 +80,10 @@ when:
 # 'ghc-options: -O0' is not needed. Use the --disable-optimization configure flag.
 - condition: flag(dev)
   ghc-options: -O0
+- condition: (flag(ghcdebug))
+  cpp-options: -DGHCDEBUG
+  dependencies:
+  - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
 - base >=4.14 && <4.20
@@ -109,6 +117,7 @@ library:
   - directory >=1.2.3.0
   - extra >=1.6.3
   - filepath
+  - githash >=0.1.6.2
   - hjsmin
   - http-conduit
   - http-client

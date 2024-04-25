@@ -80,13 +80,17 @@ extra-source-files:
 
 flags:
   terminfo:
-    description: On POSIX systems, build with the terminfo lib for detecting terminal width.
-    manual: false
+    description: On POSIX systems, build with the terminfo lib for detecting terminal width
     default: true
+    manual:  false
   threaded:
     description: Build with support for multithreaded execution
-    manual: false
     default: true
+    manual:  false
+  ghcdebug:
+    description: Build with support for attaching a ghc-debug client
+    default: false
+    manual:  true
 
 ghc-options:
 - -Wall
@@ -139,6 +143,10 @@ when:
 - condition: (!(os(windows))) && (flag(terminfo))
   dependencies:
   - terminfo
+- condition: (flag(ghcdebug))
+  cpp-options: -DGHCDEBUG
+  dependencies:
+  - ghc-debug-stub >=0.6.0.0 && <0.7
 
 library:
   cpp-options: -DVERSION="1.33.99"

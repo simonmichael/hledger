@@ -58,7 +58,9 @@ writeChan = BC.writeBChan
 
 
 hledgerUiMain :: IO ()
-hledgerUiMain = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+  when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
   traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"
   dbg1IO "args" progArgs
   dbg1IO "debugLevel" debugLevel
@@ -79,6 +81,8 @@ hledgerUiMain = withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournalDo copts' (runBrickUi opts)
+
+  when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
 runBrickUi :: UIOpts -> Journal -> IO ()
 runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =

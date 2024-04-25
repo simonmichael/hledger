@@ -15,6 +15,8 @@ related utilities used by hledger commands.
 {-# LANGUAGE TypeOperators       #-}
 
 module Hledger.Cli.CliOptions (
+  progname,
+  prognameandversion,
 
   -- * cmdargs flags & modes
   helpflags,
@@ -87,6 +89,7 @@ import Data.Maybe
 -- import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Void (Void)
+import GitHash (tGitInfoCwdTry)
 import Safe
 import String.ANSI
 import System.Console.CmdArgs hiding (Default,def)
@@ -109,6 +112,24 @@ import Hledger.Cli.Version
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.List (isPrefixOf, isSuffixOf)
 
+
+-- | The name of this program's executable.
+progname :: ProgramName
+progname = "hledger"
+
+-- | Generate the version string for this program.
+-- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
+prognameandversion :: String
+prognameandversion =
+  versionStringWith
+  $$tGitInfoCwdTry
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+  progname
+  packageversion
 
 -- common cmdargs flags
 -- keep synced with flag docs in doc/common.m4

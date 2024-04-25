@@ -12,6 +12,9 @@ extra-deps:
 - process-1.6.19.0          # for HSEC-2024-0003
 - haskeline-0.8.2.1
 
+- ghc-debug-convention-0.6.0.0
+- ghc-debug-stub-0.6.0.0
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]

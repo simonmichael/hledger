@@ -92,6 +92,8 @@ val
 -- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 -- https://hackage.haskell.org/package/debug
+
+{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Hledger.Utils.Debug (
@@ -161,7 +163,12 @@ module Hledger.Utils.Debug (
   ,dbg9With
 
   -- * Utilities
+  ,GhcDebugMode(..)
+  ,ghcDebugMode
+  ,withGhcDebug'
+  ,ghcDebugPause'
   ,lbl_
+  ,progName
 
   -- * Re-exports
   -- ,module Debug.Breakpoint
@@ -176,6 +183,9 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.List hiding (uncons)
 -- import Debug.Breakpoint
 import Debug.Trace (trace, traceIO, traceShowId)
+#ifdef GHCDEBUG
+import GHC.Debug.Stub (pause, withGhcDebug)
+#endif
 import Safe (readDef)
 import System.Environment (getProgName)
 import System.Exit (exitFailure)
@@ -211,6 +221,55 @@ debugLevel = case dropWhile (/="--debug") progArgs of
                  case take 1 $ filter ("--debug" `isPrefixOf`) progArgs of
                    ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
                    _                                   -> 0
+
+-- | Whether ghc-debug support is included in this build, and if so, how it will behave.
+-- When hledger is built with the ghcdebug cabal build flag (normally disabled),
+-- it can listen (on unix ?) for connections from ghc-debug clients like ghc-debug-brick,
+-- for pausing/resuming the program and inspecting memory usage and profile information.
+--
+-- This is enabled by running hledger with a negative --debug level, with three different modes:
+-- --debug=-1 - run normally (can be paused/resumed by a ghc-debug client),
+-- --debug=-2 - pause and await client commands at program start (not useful currently),
+-- --debug=-3 - pause and await client commands at program end.
+data GhcDebugMode =
+    GDNotSupported
+  | GDDisabled
+  | GDNoPause
+  | GDPauseAtStart
+  | GDPauseAtEnd
+  -- keep synced with ghcDebugMode
+  deriving (Eq,Ord)
+
+-- | Should the program open a socket allowing control by ghc-debug-brick or similar ghc-debug client ?
+-- See GhcDebugMode.
+ghcDebugMode :: GhcDebugMode
+ghcDebugMode =
+  case debugLevel of
+    -- keep synced with GhcDebugMode
+#ifdef GHCDEBUG
+    (-1) -> GDNoPause
+    (-2) -> GDPauseAtStart
+    (-3) -> GDPauseAtEnd
+#endif
+    _    -> GDDisabled
+
+-- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
+-- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.
+withGhcDebug' =
+#ifdef GHCDEBUG
+  if ghcDebugMode > GDDisabled then withGhcDebug else id
+#else
+  id
+#endif
+
+-- | When ghc-debug support has been built into the program, this calls ghc-debug's pause, otherwise it's a no-op.
+ghcDebugPause' :: IO ()
+ghcDebugPause' =
+#ifdef GHCDEBUG
+  pause
+#else
+  return ()
+#endif
 
 -- | Trace a value with the given show function before returning it.
 traceWith :: (a -> String) -> a -> a

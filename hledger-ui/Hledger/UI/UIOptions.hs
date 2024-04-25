@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 -}
@@ -10,6 +11,7 @@ import Data.Default (def)
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
+import GitHash (tGitInfoCwdTry)
 import Lens.Micro (set)
 import System.Environment (getArgs)
 
@@ -29,8 +31,20 @@ packageversion =
 progname :: ProgramName
 progname = "hledger-ui"
 
-prognameandversion :: VersionString
-prognameandversion = versionString progname packageversion
+-- | Generate the version string for this program.
+-- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
+prognameandversion :: String
+prognameandversion =
+  versionStringWith
+  $$tGitInfoCwdTry
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+  progname
+  packageversion
+
 
 uiflags = [
   -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"

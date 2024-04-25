@@ -1,5 +1,6 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Web.WebOptions where
 
@@ -9,6 +10,7 @@ import Data.ByteString.UTF8 (fromString)
 import Data.Default (Default(def))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
+import GitHash (tGitInfoCwdTry)
 import System.Environment (getArgs)
 import Network.Wai as WAI
 import Network.Wai.Middleware.Cors
@@ -29,12 +31,23 @@ packageversion =
   ""
 #endif
 
+-- | The name of this program's executable.
 progname :: ProgramName
 progname = "hledger-web"
 
-prognameandversion :: VersionString
-prognameandversion = versionString progname packageversion
-
+-- | Generate the version string for this program.
+-- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
+prognameandversion :: String
+prognameandversion =
+  versionStringWith
+  $$tGitInfoCwdTry
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+  progname
+  packageversion
 
 webflags :: [Flag RawOpts]
 webflags =

@@ -9,7 +9,6 @@ module Hledger.Cli.Version (
   VersionString,
   packageversion,
   packagemajorversion,
-  progname,
   versionStringWith,
 )
 where
@@ -39,10 +38,6 @@ packageversion =
 packagemajorversion :: PackageVersion
 packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
 
--- | The name of this package's main executable.
-progname :: ProgramName
-progname = "hledger"
-
 -- | Given possible git state info from the build directory (or an error message, which is ignored),
 -- the name of a program (executable) in the currently building package,
 -- and the package's version, make a complete version string. Here is the logic:
@@ -55,6 +50,7 @@ progname = "hledger"
 -- * (TODO, requires adding --match support to githash:
 --   If there are tags matching THISPKG-[0-9]*, the latest one is used to calculate patch level
 --   (number of commits since tag), and if non-zero, it and the branch name are shown.)
+-- * If the ghcdebug build flag was enabled, "ghc-debug support" is shown.
 --
 -- Some example outputs:
 --
@@ -65,9 +61,19 @@ progname = "hledger"
 -- This function requires git log to show the default (rfc2822-style) date format,
 -- so that must not be overridden by a log.date git config variable.
 --
-versionStringWith :: Either String GitInfo -> ProgramName -> PackageVersion -> VersionString
-versionStringWith egitinfo prognam packagever =
-  concat [ prognam , " " , version , ", " , os' , "-" , arch ]
+-- The GitInfo if any, fetched by template haskell, is passed down from
+-- a top-level module, reducing wasteful recompilation.
+-- The status of the ghcdebug build flag is also passed down, since it is
+-- specific to each hledger package.
+--
+-- This is used indirectly by at least hledger, hledger-ui, and hledger-web,
+-- so output should be suitable for all of those.
+--
+versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersion -> VersionString
+versionStringWith egitinfo ghcdebug progname packagever =
+  concat $
+    [ progname , " " , version , ", " , os' , "-" , arch ]
+    ++ [ " with ghc-debug support" | ghcdebug ]
   where
     os' | os == "darwin"  = "mac"
         | os == "mingw32" = "windows"
@@ -102,14 +108,3 @@ versionStringWith egitinfo prognam packagever =
                     dd = (if length day < 2 then ('0':) else id) day
           -- but could be overridden by a log.date config variable in repo or user git config
           _ -> packageversion
-
--- -- | Given a program name, return a precise platform-specific executable
--- -- name suitable for naming downloadable binaries.  Can raise an error if
--- -- the version and patch level was not defined correctly at build time.
--- binaryfilename :: String -> String
--- binaryfilename progname = concat
---     [progname, "-", buildversion, "-", os', "-", arch, suffix]
---   where
---     (os',suffix) | os == "darwin"  = ("mac","" :: String)
---                  | os == "mingw32" = ("windows",".exe")
---                  | otherwise       = (os,"")

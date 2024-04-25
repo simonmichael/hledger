@@ -35,8 +35,12 @@ extra-source-files:
 flags:
   threaded:
     description: Build with support for multithreaded execution
-    manual: false
     default: true
+    manual:  false
+  ghcdebug:
+    description: Build with support for attaching a ghc-debug client
+    default: false
+    manual:  true
 
 cpp-options: -DVERSION="1.33.99"
 
@@ -50,6 +54,12 @@ ghc-options:
 
 dependencies:
 - base >=4.14 && <4.20
+
+when:
+- condition: (flag(ghcdebug))
+  cpp-options: -DGHCDEBUG
+  dependencies:
+  - ghc-debug-stub >=0.6.0.0 && <0.7
 
  # curses is required to build terminfo for vty for hledger-ui.
  # On POSIX systems it might be not present.
@@ -86,6 +96,7 @@ library:
   - extra >=1.6.3
   - filepath
   - fsnotify >=0.4 && <0.5
+  - githash >=0.1.6.2
   - microlens >=0.4
   - microlens-platform >=0.2.3.1
   - megaparsec >=7.0.0 && <9.7
