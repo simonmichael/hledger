@@ -112,7 +112,8 @@ $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 (If you think import should leave amounts implicit like print does,
 please test it and send a pull request.)
 
-### Commodity display styles
+### Import and commodity display styles
 
-Imported amounts will be formatted according to the canonical [commodity styles](hledger.html#commodity-display-style)
-(declared or inferred) in the main journal file.
+Amounts in entries added by import will be formatted according to the journal's canonical [commodity styles](#commodity-display-style),
+as declared by [`commodity` directives](#commodity-directive) or inferred from the journal's amounts.
+See also [CSV: Amount decimal places](#amount-decimal-places).
