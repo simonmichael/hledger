@@ -1,7 +1,7 @@
 $$$ hledger check recentassertions -f recentassertions.j
->>>2 /hledger: Error: .*recentassertions.j:11:
+>>>2 /hledger: Error: .*recentassertions.j:18:
    \| 2022-01-09 bad1
-11 \|     a               0
+18 \|     a               0
    \|     \^
 
 The recentassertions check is enabled, so accounts with balance assertions must
