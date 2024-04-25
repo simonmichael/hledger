@@ -27,48 +27,48 @@ most common import source, and these docs focus on that case.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
-It works as follows: for each imported `FILE`:
+It works as follows: for each imported `FILE`,
 
-- It tries to recall the latest date seen previously, reading it from a hidden `.latest.FILE` in the same directory.
-- Then it processes `FILE`, ignoring any transactions on or before the "latest seen" date.
+- It tries to read the latest date previously seen, from `.latest.FILE` in the same directory
+- Then it processes `FILE`, ignoring transactions on or before that date
 
-And after a successful import, unless `--dry-run` was used, it updates the `.latest.FILE`(s) for next time
-
+And after a successful import, unless `--dry-run` was used, it updates the `.latest.FILE`(s) for next time.
 This is a simple system that works for most real-world CSV files;
-it assumes these are true, or true enough:
+it assumes the following are true, or true enough:
 
-1. new items always have the newest dates
-2. item dates are stable across successive downloads
-3. the order of same-date items is stable across downloads
-4. the name of the input file is stable across downloads
+1. the name of the input file is stable across successive downloads
+2. new items always have the newest dates
+3. item dates are stable across downloads
+4. the order of same-date items is stable across downloads.
 
-If you have a bank whose CSV dates or ordering occasionally change,
-you can reduce the chance of this happening in new transactions by importing more often,
-and in old transactions it doesn't matter.
-And remember you can use CSV rules files as input, which is one way to ensure a stable file name.
+Tips:
 
-Note this is a particular kind of "deduplication":
-avoiding reprocessing the same dates across successive runs.
-`import` doesn't detect other kinds of duplication,
-such as the same transaction appearing multiple times within a single run.
-This is intentional, because legitimate "duplicates" are fairly common in real-world data.
+- To help ensure a stable file name, remember you can use a CSV rules file as an input file.
 
-Here's a situation where you would need to run `import` the right way to deduplicate.
-Say you download but forget to import `bank.1.csv`, and a week later you download `bank.2.csv` with some overlapping data.
-Now you should not process both of these as a single import (`hledger import bank.1.csv bank.2.csv`),
+- If you have a bank whose CSV dates or ordering occasionally change,
+  you can reduce the chance of this happening in new transactions by importing more often.
+  (If it happens in old transactions, that's harmless.)
+
+Note this is just one kind of "deduplication": avoiding reprocessing the same dates across successive runs.
+`import` doesn't detect other kinds of duplication, such as the same transaction appearing multiple times within a single run.
+(Because that sometimes happens legitimately in real-world data.)
+
+Here's a situation where you need to run `import` with care:
+say you download but forget to import `bank.1.csv`, and a week later you download `bank.2.csv` with some overlapping data.
+You should not process both of these as a single import (`hledger import bank.1.csv bank.2.csv`),
 because the overlapping transactions would not be deduplicated.
-Instead you would import one file at a time, using the same filename each time, like so:
+Instead, import one file at a time, using the same filename each time:
 
 ```cli
 $ mv bank.1.csv bank.csv; hledger import bank.csv
 $ mv bank.2.csv bank.csv; hledger import bank.csv
 ```
 
-Normally you can ignore the `.latest.*` files, 
-but if needed, you can delete them (to make all transactions unseen),
-or construct/modify them (to catch up to a certain date).
-The format is just a single ISO-format date (`YYYY-MM-DD`), possibly repeated on multiple lines.
-It means "I have seen transactions up to this date, and this many of them occurring on that date".
+Normally you don't need to think about `.latest.*` files, 
+but you can create or modify them to catch up to a certain date,
+or delete them to mark all transactions as new.
+Their format is a single ISO-format `YYYY-MM-DD` date, optionally repeated on multiple lines,
+meaning "I have seen the transactions before this date, and this many of them on this date".
 
 [`hledger print --new`](#print) also uses and updates these `.latest.*` files, but it is less often used.
 
