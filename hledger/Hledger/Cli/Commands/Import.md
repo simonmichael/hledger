@@ -21,7 +21,7 @@ or perhaps `hledger import *.csv`.
 Note you can import from any file format, though CSV files are the
 most common import source, and these docs focus on that case.
 
-### Deduplication
+### Skipping
 
 `import` tries to import only the transactions which are new since the last import, ignoring any that it has seen in previous runs.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
@@ -112,8 +112,9 @@ $ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
 (If you think import should leave amounts implicit like print does,
 please test it and send a pull request.)
 
-### Import and commodity display styles
+### Import and commodity styles
 
 Amounts in entries added by import will be formatted according to the journal's canonical [commodity styles](#commodity-display-style),
 as declared by [`commodity` directives](#commodity-directive) or inferred from the journal's amounts.
-See also [CSV: Amount decimal places](#amount-decimal-places).
+
+Related: [CSV > Amount decimal places](#amount-decimal-places).
