@@ -3851,6 +3851,7 @@ So for each commodity - let's say it's EUR - `import` will choose:
 
 TLDR: if `import` is not generating the precisions or styles you want, add a `commodity` directive specifying them.
 
+
 ### Referencing other fields
 
 In field assignments, you can interpolate only CSV fields, not hledger
