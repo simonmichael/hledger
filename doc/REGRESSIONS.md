@@ -79,6 +79,7 @@ To claim the bounty:
 | [#1782](https://github.com/simonmichael/hledger/issues/1782) | Simon Michael   | N/A                                                              |
 | **1.25** 2022-03-04                                          | -               | -                                                                |
 | [#2032](https://github.com/simonmichael/hledger/issues/2032) | Simon Michael   | [2023-05-03](https://opencollective.com/hledger/expenses/137410) |
+| [#2196](https://github.com/simonmichael/hledger/issues/2196) | Pranesh Prakash |                                                                  |
 | **1.27** 2022-09-01                                          | -               | -                                                                |
 | [#1932](https://github.com/simonmichael/hledger/issues/1932) | Andras Fabian   | [2022-09-15](https://opencollective.com/hledger/expenses/95112)  |
 | [#2018](https://github.com/simonmichael/hledger/issues/2018) | Allan Odgaard   | [2023-03-28](https://opencollective.com/hledger/expenses/130591) |
