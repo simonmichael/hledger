@@ -49,9 +49,11 @@ Tips:
   you can reduce the chance of this happening in new transactions by importing more often.
   (If it happens in old transactions, that's harmless.)
 
-Note this is just one kind of "deduplication": avoiding reprocessing the same dates across successive runs.
-`import` doesn't detect other kinds of duplication, such as the same transaction appearing multiple times within a single run.
-(Because that sometimes happens legitimately in real-world data.)
+Note this is just one kind of "deduplication": not reprocessing the same dates across successive runs.
+`import` doesn't detect other kinds of duplication, such as 
+the same transaction appearing multiple times within a single run,
+or a new transaction that looks identical to a transaction already in the journal.
+(Because these can happen legitimately in real-world data.)
 
 Here's a situation where you need to run `import` with care:
 say you download but forget to import `bank.1.csv`, and a week later you download `bank.2.csv` with some overlapping data.
