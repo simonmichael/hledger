@@ -276,7 +276,7 @@ BUILDING:
 # build hledger with profiling enabled at bin/hledgerprof
 hledgerprof:
     @echo "building bin/hledgerprof..."
-    {{ STACK }} install --profile --local-bin-path=bin hledger
+    {{ STACK }} install --profile --local-bin-path=bin hledger && mv bin/hledger{,prof}
     @echo "to profile, use $STACK exec --profile -- hledger ..."
 
 # # build "bin/hledgercov" for coverage reports (with ghc)
@@ -721,18 +721,19 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
 # # 	)
 # # 	tools/simplifyprof.hs doc/profs/latest.prof
 
-# run a hledger CMD against a sample journal and display the execution profile
-@quickprof CMD: hledgerprof #samplejournals
-    {{ STACK }} exec --profile -- hledger +RTS {{ PROFRTSFLAGS }} -RTS "$CMD" -f examples/1000x1000x10.journal >/dev/null
-    profiterole hledger.prof
-    echo
-    head -20 hledger.prof
-    echo ...
-    echo
-    head -20 hledger.profiterole.txt
-    echo ...
-    echo
-    echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
+#{{ STACK }} exec --profile -- hledger +RTS {{ PROFRTSFLAGS }} -RTS -f examples/1000x1000x10.journal {{ CMD }} #>/dev/null
+# run a hledger CMD against a sample journal and display the execution profile (build hledgerprof first)
+quickprof CMD: #hledgerprof #samplejournals
+    hledgerprof +RTS {{ PROFRTSFLAGS }} -RTS -f examples/10ktxns-1kaccts.journal {{ CMD }} #>/dev/null
+    @profiterole hledger.prof
+    @echo
+    @head -20 hledger.prof
+    @echo ...
+    @echo
+    @head -20 hledger.profiterole.txt
+    @echo ...
+    @echo
+    @echo "See hledger.prof, hledger.profiterole.txt, hledger.profiterole.html for more."
 
 # generate and archive a graphical heap profile
 @heap: hledgerprof #samplejournals
