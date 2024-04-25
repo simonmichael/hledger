@@ -21,21 +21,22 @@ or perhaps `hledger import *.csv`.
 Note you can import from any file format, though CSV files are the
 most common import source, and these docs focus on that case.
 
-### Skipping
+### Date skipping
 
 `import` tries to import only the transactions which are new since the last import, ignoring any that it has seen in previous runs.
 So if your bank's CSV includes the last three months of data, you can download and `import` it every month (or week, or day) 
 and only the new transactions will be imported each time.
 
-It works as follows. For each imported `FILE` (usually CSV, but they could be any of hledger's input formats):
+This is a particular kind of "deduplication":
+within each input file, it avoids reprocessing the same dates across successive runs.
+
+It works as follows: for each imported `FILE`:
 
 - It tries to recall the latest date seen previously, reading it from a hidden `.latest.FILE` in the same directory.
 - Then it processes `FILE`, ignoring any transactions on or before the "latest seen" date.
 
-And after a successful import, it updates the `.latest.FILE`(s) for next time (unless `--dry-run` was used).
+And after a successful import, unless `--dry-run` was used, it updates the `.latest.FILE`(s) for next time
 
-This is a limited kind of deduplication, let's call it "date skipping".
-Within each input file, it avoids reprocessing the same dates across successive runs.
 This is a simple system that works for most real-world CSV files;
 it assumes these are true, or true enough:
 
