@@ -1,0 +1,9 @@
+# Balance reports' HTML output stopped showing digit group marks in 1.25. [#2196]
+<
+commodity A1,000.0
+
+2024-04-25
+   (revenues)    A 1000.12
+
+$ hledger -f- bal -YN -O html
+> />A1,000.1</

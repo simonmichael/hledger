@@ -545,11 +545,12 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
     allRows = case layout_ of
       LayoutTidy -> rows  -- tidy csv should not include totals or averages
       _ -> rows ++ totals
-    (rows, totals) = multiBalanceReportAsCsv' opts report
+    (rows, totals) = multiBalanceReportAsCsvOrHtml False opts report
     maybeTranspose = if transpose_ then transpose else id
 
-multiBalanceReportAsCsv' :: ReportOpts -> MultiBalanceReport -> (CSV, CSV)
-multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) =
+-- Helper used for both CSV and HTML rendering.
+multiBalanceReportAsCsvOrHtml :: Bool -> ReportOpts -> MultiBalanceReport -> (CSV, CSV)
+multiBalanceReportAsCsvOrHtml ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
     (headers : concatMap fullRowAsTexts items, totalrows)
   where
     headers = "account" : case layout_ of
@@ -558,11 +559,12 @@ multiBalanceReportAsCsv' opts@ReportOpts{..} (PeriodicReport colspans items tr) 
       _          -> dateHeaders
     dateHeaders = map showDateSpan colspans ++ ["total" | row_total_] ++ ["average" | average_]
 
-    fullRowAsTexts row = map (showName row :) $ multiBalanceRowAsCsvText opts colspans row
+    fullRowAsTexts row = map (showName row :) $ rowAsText opts colspans row
     showName = accountNameDrop drop_ . prrFullName
     totalrows
       | no_total_ = mempty
-      | otherwise = map ("total" :) $ multiBalanceRowAsCsvText opts colspans tr
+      | otherwise = map ("total" :) $ rowAsText opts colspans tr
+    rowAsText = if ishtml then multiBalanceRowAsHtmlText else multiBalanceRowAsCsvText
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
@@ -583,7 +585,7 @@ multiBalanceReportHtmlRows ropts mbr =
     -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
     (headingsrow:bodyrows, mtotalsrows)
       | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
-      | otherwise = multiBalanceReportAsCsv' ropts mbr
+      | otherwise = multiBalanceReportAsCsvOrHtml True ropts mbr
   in
     (multiBalanceReportHtmlHeadRow ropts headingsrow
     ,map (multiBalanceReportHtmlBodyRow ropts) bodyrows
@@ -777,8 +779,12 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
           m (x:xs) = x:xs
           m [] = [n]
 
+
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs machineFmt opts colspans
+
+multiBalanceRowAsHtmlText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
+multiBalanceRowAsHtmlText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs oneLineNoCostFmt opts colspans
 
 multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLineNoCostFmt{displayColour=color_ opts} opts []
