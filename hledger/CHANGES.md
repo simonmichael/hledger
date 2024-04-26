@@ -23,8 +23,37 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.33 2024-04-18
+# fbd26f67a
 
+Breaking changes
+
+Fixes
+
+- Balance commands's HTML output now includes digit group marks when
+  appropriate (this broke in 1.25).
+  [#2196]
+
+- The add command no longer shows ANSI escape codes in terminals that
+  don't support them.
+
+Features
+
+Improvements
+
+- Commands list cleanups; move the HELP and UIS sections to the top.
+
+Docs
+
+- import: Skipping -> Date skipping, discuss commodity styles more; edits
+- csv: Amount decimal places: expand, note import behaviour
+- examples: shared-finances/
+
+Scripts/addons
+
+API
+
+
+# 1.33 2024-04-18
 
 
 Breaking changes

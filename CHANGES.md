@@ -18,6 +18,22 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 060528aac
+
+Docs
+
+- move release notes from site repo to the main hledger repo
+- dev doc updates
+- examples: shared finances
+
+Scripts/addons
+
+Infrastructure/Misc
+
+- Fully replace the main Makefile with Justfile
+- md-issue-refs: markdown issue links helper
+- relnotes.hs: generate release notes from changelogs
+- CI workflow updates
 
 # 1.33 2024-04-18
 

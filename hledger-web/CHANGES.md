@@ -21,6 +21,23 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
+# 160bfff51
+
+Breaking changes
+
+Fixes
+
+Features
+
+Improvements
+
+- support base64 >=1.0
+
+Docs
+
+API
+
+
 # 1.33 2024-04-18
 
 Fixes
