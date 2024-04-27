@@ -91,6 +91,9 @@ A request to merge a development branch with master, and any related discussion.
 **continuous integration, CI**\
 Automated actions that run when new code is pushed to a shared repo, such as running tests or producing binaries. On Github this is called Github Actions and action scripts are called **workflows**.
 
+**release engineering**\
+<https://en.wikipedia.org/wiki/Release_engineering>
+
 ### hledger-specific
 
 **package**\
