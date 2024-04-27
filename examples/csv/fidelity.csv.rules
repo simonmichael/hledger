@@ -1,21 +1,18 @@
 # Fidelity account csv rules
-# Fidelity's CSV might be found at: All accounts > Activity & Orders > Download icon at top right
+# Fidelity's csv can be found at: All accounts > Activity & Orders > Download icon at top right
 
-# This CSV needs the leading spaces removed before parsing,
-# eg with sed 's/^ //'. Here's an example script automating that:
-#   echo "cleaning fidelity csv"
-#   for f in $(latestcsv ~/Downloads/History_for_Account_); do
-#     g=~/Downloads/$(basename $f csv)clean.csv
-#     sed -e 's/^ //' $f >$g
-#   done
+# This csv needs leading spaces removed before we convert it.
+# Eg: sed 's/^ //' History_for_Account_NNN.csv > History_for_Account_NNN.clean.csv
 
-source History_for_Account_Z12345678*.clean.csv
+# Read the cleaned copy
+source History_for_Account_Z30149175*.clean.csv
+
 newest-first
 intra-day-reversed
 
-if ^([a-z]|Brokerage|Run)
+# Skip undesirable lines: all but those beginning with a digit and having 12 comma-separated fields
+if ! ^[0-9]([^,]*,){11}
  skip
-#"
 
 # Run Date,Action,Symbol,Security Description,Security Type,Quantity,Price ($),Commission ($),Fees ($),Accrued Interest ($),Amount ($),Settlement Date
 # If you have multiple accounts there will also be an Account field after Run Date
@@ -30,14 +27,12 @@ currency $
 
 # Transactions come in various types, including:
 
-# 08/09/2000," Electronic Funds Transfer Received (Cash)",  ," No Description",Cash,0.000,,,,,1234,
 if %Action Transfer Received \(Cash\)
- account1 assets:bank:wf:bchecking
- account2 assets:brokerage:fi:money:qpctq
+ account1 assets:bank:wf:checking
+ account2 assets:brokerage:fi:qpctq
  amount   -%Amount_Usd
 
-# 08/31/2000," INTEREST EARNED FDIC INSURED DEPOSIT AT CITIBANK NOT... (QPCTQ) (Cash)", QPCTQ," FDIC INSURED DEPOSIT AT CITIBANK NOT CO",Cash,0.000,,,,,12.34,
 if %Action INTEREST EARNED
  account1 revenues:dividends:qpctq
- account2 assets:brokerage:fi:money:qpctq
+ account2 assets:brokerage:fi:qpctq
  amount   -%Amount_Usd

@@ -1,64 +1,123 @@
 # Vanguard account csv rules
-# Vanguard's CSV might be found at: Balances -> Download center
+# Vanguard's can might be found at: Balances -> Download center
 
 # No need for a wildcard here - repeated downloads keep the same name,
 # for me with safari at least, unlike with wells fargo csvs.
 source OfxDownload.csv
 
-# Vanguard transactions csv is two csvs concatenated:
+# The csv needs to be date-sorted before we convert it.
+# Use sort -t, +2 OfxDownload.csv >OfxDownload.clean.csv
 
-# 1. current holdings (and market price and value)
-# Account Number,Investment Name,Symbol,Shares,Share Price,Total Value,
-# Skip this part, which has six fields.
-# (We could generate balance assertions/assignments from it..)
+# Then we read the sorted copy
+source OfxDownload*.clean.csv
+
+# Vanguard's transactions csv has two sections:
+# 1. A list of accounts and balances, with 6 fields:
+#    Account Number,Investment Name,Symbol,Shares,Share Price,Total Value,
+# 2. A list of transactions, with 15 fields:
+#    Account Number,Trade Date,Settlement Date,Transaction Type,Transaction Description,Investment Name,Symbol,Shares,Share Price,Principal Amount,Commission Fees,Net Amount,Accrued Interest,Account Type,
+# After date sorting they are jumbled but we can still exclude unwanted lines:
+# Skip section 1's 6-field lines
 if ^([^,]*,){6}$
  skip
-
-# 2. transactions
-# Account Number,Trade Date,Settlement Date,Transaction Type,Transaction Description,Investment Name,Symbol,Shares,Share Price,Principal Amount,Commission Fees,Net Amount,Accrued Interest,Account Type,
-fields Account_Number,Trade_Date,Settlement_Date,Transaction_Type,Transaction_Description,Investment_Name,Symbol,Shares,Share_Price,Principal_Amount,Commission_Fees,Net_Amount,Accrued_Interest,Account_Type,
-# Skip the headings
+# Skip section 2's headings line
 if ^Account Number
  skip
 
-newest-first
-intra-day-reversed
-date %Settlement_Date
-#date-format %m/%d/%Y
+# That leaves just the transactions, in date order.
+# Sample rules, customise for your needs:
 
-account1 JS:assets:brokerage:vg:cash
+
+fields Account_Number,Trade_Date,Settlement_Date,Transaction_Type,Transaction_Description,Investment_Name,Symbol,Shares,Share_Price,Principal_Amount,Commission_Fees,Net_Amount,Accrued_Interest,Account_Type,
+
+date %Settlement_Date
+
+account1 assets:brokerage:vg:vmfxx
 currency $
 description vanguard | %Transaction_Description
 
-if
-%Transaction_Type Sweep
-%Transaction_Type Dividend
- skip
+# Transactions come in various types, including:
+
+## 1. Funds Received
 
 if %Transaction_Type Funds Received
- account2 JS:assets:bank:wf:bchecking
+ account2 assets:bank:wf:checking
  amount %Net_Amount
 
-if %Transaction_Type ^Buy$
- account2 JS:assets:brokerage:vg:bonds:%Symbol
+## 2. Sweep in
+
+if %Transaction_Type Sweep in
+ skip
+
+## 3. Sweep out
+
+if %Transaction_Type Sweep out
+ skip
+
+## 4. Buy
+
+# default buy rule, assume a bond
+if %Transaction_Type Buy
+ date %Trade_Date
+ account2 assets:brokerage:vg:%Symbol
  description vanguard | %Transaction_Description %Shares shares of %Investment_Name at $%Share_Price
  amount1 %Principal_Amount
- currency2 %Symbol
- amount2 %Shares
-
-# VANGUARD FEDERAL MONEY MARKET FUND dividend, end of each month
-if %Transaction_Type Reinvestment
-&  %Symbol ^$
- description vanguard | %Transaction_Description
- amount %Net_Amount
- account1 JS:revenues:dividends:VMFXX
- account2 JS:assets:brokerage:vg:cash
-
-# VANGUARD ESG U S CORP BD ETF dividend, first week of each month, or other times
-if %Transaction_Type Reinvestment
-&  %Symbol VCEB
- description vanguard | %Transaction_Description
- account1 JS:revenues:dividends:VCEB
- account2 JS:assets:brokerage:vg:bonds:VCEB
+ comment1 date:%Settlement_Date
  currency2
- amount2 %Symbol %Shares @ $%Share_Price
+ amount2 %Shares %Symbol @ $%Share_Price
+ comment2 date:%Settlement_Date
+
+# money market buy rule, recorded as $ for convenience
+if %Transaction_Type Buy
+& %Symbol VUSXX
+ date %Trade_Date
+ account2 assets:brokerage:vg:%Symbol
+ description vanguard | %Transaction_Description %Shares shares of %Investment_Name at $%Share_Price
+ amount1 %Principal_Amount
+ comment1 date:%Settlement_Date
+ currency2 $
+ amount2 -%Principal_Amount
+ comment2 date:%Settlement_Date
+
+## 5. Dividend
+# Where each dividend goes (reinvest, settlement fund, bank account..)
+# is configured for each holding, and can change over time. See
+# https://personal.vanguard.com/us/BrokerageDistributionController?HldId=851406218194320
+
+# vmfxx to settlement
+if %Transaction_Type Dividend
+&  %Symbol VMFXX
+ description vanguard | %Transaction_Description for %Symbol
+ amount -%Net_Amount
+ account1 revenues:dividends:vmfxx
+ account2 assets:brokerage:vg:vmfxx
+
+# vusxx reinvest
+if %Transaction_Type Dividend
+&  %Symbol VUSXX
+ description vanguard | %Transaction_Description for %Symbol
+ amount -%Net_Amount
+ account1 revenues:dividends:vusxx
+ account2 assets:brokerage:vg:vusxx
+
+# vceb to settlement
+if %Transaction_Type Dividend
+&  %Symbol VCEB
+ description vanguard | %Transaction_Description for %Symbol
+ amount -%Net_Amount
+ account1 revenues:dividends:vceb
+ account2 assets:brokerage:vg:vmfxx
+
+## 6. Reinvestment
+# Note: for reinvestment transactions,
+# Vanguard's transactions CSV doesn't include costs
+# and their online transactions report shows inaccurate costs;
+# use their online lot details report instead.
+
+if %Transaction_Type Reinvestment
+ skip
+
+## 7. Sell
+
+# if %Transaction_Type Sell
+#  ...
