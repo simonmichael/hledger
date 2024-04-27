@@ -1,11 +1,12 @@
-# check ordereddates succeeds when transaction dates are ordered
+# * check ordereddates
+# ** 1. check ordereddates succeeds when transaction dates are ordered
 <
 2020-01-01
 2020-01-01
 2020-01-02
 $ hledger -f- check ordereddates
 
-# and otherwise fails
+# ** 2. and otherwise fails
 <
 2020-01-01
 2020-01-02
@@ -15,18 +16,12 @@ $ hledger -f- check ordereddates
 >2 /date .*is out of order/
 >=1
 
-# With --date2, it checks secondary dates instead
+# ** 3. --date2 and secondary dates are ignored
 <
 2020-01-02
 2020-01-01=2020-01-03
 $ hledger -f- check ordereddates --date2
-
-# 
-<
-2020-01-01=2020-01-03
-2020-01-02
-$ hledger -f- check ordereddates --date2
->2 /date2 .*is out of order/
+>2 /date .*is out of order/
 >=1
 
 # XXX not supported: With a query, only matched transactions' dates are checked.

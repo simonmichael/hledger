@@ -107,7 +107,6 @@ module Hledger.Read (
   orDieTrying,
 
   -- * Misc
-  journalStrictChecks,
   saveLatestDates,
   saveLatestDatesForFiles,
 
@@ -159,7 +158,7 @@ import Hledger.Read.RulesReader (tests_RulesReader)
 -- import Hledger.Read.TimeclockReader (tests_TimeclockReader)
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
-import Hledger.Data.JournalChecks (journalCheckAccounts, journalCheckCommodities)
+import Hledger.Data.JournalChecks (journalStrictChecks)
 
 --- ** doctest setup
 -- $setup
@@ -306,13 +305,6 @@ readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT Str
 readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
   return (maybe def sconcat $ nonEmpty js, catMaybes lastdates)
-
--- | Run the extra -s/--strict checks on a journal,
--- returning the first error message if any of them fail.
-journalStrictChecks :: Journal -> Either String ()
-journalStrictChecks j = do
-  journalCheckAccounts j
-  journalCheckCommodities j
 
 -- | An easy version of 'readJournal' which assumes default options, and fails
 -- in the IO monad.

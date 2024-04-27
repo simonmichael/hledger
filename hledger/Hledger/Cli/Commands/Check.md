@@ -4,7 +4,7 @@ Check for various kinds of errors in your data.
 
 _FLAGS
 
-hledger provides a number of built-in error checks to help
+hledger provides a number of built-in correctness checks to help
 prevent problems in your data. 
 Some of these are run automatically; or,
 you can use this `check` command to run them on demand,
@@ -22,63 +22,64 @@ hledger check ordereddates payees  # basic + two other checks
 If you are an Emacs user, you can also configure flycheck-hledger to run these checks,
 providing instant feedback as you edit the journal.
 
-Here are the checks currently available:
+Here are the checks currently available.
+They are performed in the order they are shown here.
+(Eg, an `ordereddates` failure takes precedence over an `assertions` failure).
 
 ### Default checks
 
-These checks are run automatically by (almost) all hledger commands:
+These checks are always performed, by (almost) all hledger commands:
 
-- **parseable** - data files are in a supported [format](hledger.md#data-formats),
-  with no syntax errors and no invalid include directives.
+- **parseable** - data files are in a supported [format](#data-formats),
+  with no syntax errors and no invalid include directives
 
-- **autobalanced** - all transactions are [balanced](hledger.html#postings), after converting to cost.
-  Missing amounts and missing [costs] are inferred automatically where possible.
+- **autobalanced** - all transactions are [balanced](#postings),
+  after inferring missing amounts and conversion [costs] where possible,
+  and then converting to cost
 
-- **assertions** - all [balance assertions] in the journal are passing. 
+- **assertions** - all [balance assertions] in the journal are passing.
   (This check can be disabled with `-I`/`--ignore-assertions`.)
 
 ### Strict checks
 
-These additional checks are run when the `-s`/`--strict` ([strict mode]) flag is used.
-Or, they can be run by giving their names as arguments to `check`:
+These additional checks are run when the `-s`/`--strict` ([strict mode])
+flag is used with any command; or,
+when they are given as arguments to the `check` command:
 
-- **balanced** - all transactions are balanced after converting to cost,
-  without inferring missing costs.
-  If conversion costs are required, they must be explicit.
-
-- **accounts** - all account names used by transactions 
-  [have been declared](hledger.html#account-error-checking)
+- **balanced** - like `autobalanced`, but conversion costs will not be
+  inferred, and must be written explicitly
 
 - **commodities** - all commodity symbols used 
-  [have been declared](hledger.html#commodity-error-checking)
+  [have been declared](#commodity-error-checking)
+
+- **accounts** - all account names used
+  [have been declared](#account-error-checking)
 
 ### Other checks
 
-These checks can be run only by giving their names as arguments to `check`.
-They are more specialised and not desirable for everyone:
+These checks can be run by giving their names as arguments to `check`:
 
-- **ordereddates** - transactions are ordered by date within each file
+- **ordereddates** - within each file, transactions are ordered by date
 
 - **payees** - all payees used by transactions [have been declared](#payee-directive)
 
+- **tags** - all tags used by transactions [have been declared](#tag-directive)
+
 - **recentassertions** - all accounts with balance assertions have a
   balance assertion within 7 days of their latest posting
-
-- **tags** - all tags used by transactions [have been declared](#tag-directive)
 
 - **uniqueleafnames** - all account leaf names are unique
 
 ### Custom checks
 
-A few more checks are are available as separate [add-on commands],
-in <https://github.com/simonmichael/hledger/tree/master/bin>:
+You can build your own custom checks with [add-on command scripts].
+(See also [Cookbook > Scripting](scripting.html).)
+Here are some examples from [hledger/bin/](https://github.com/simonmichael/hledger/tree/master/bin):
 
 - **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
 
 - **hledger-check-fancyassertions** - more complex balance assertions are passing
 
-You could make similar scripts to perform your own custom checks.
-See: Cookbook -> [Scripting](scripting.html).
 
 ### More about specific checks
 
@@ -92,7 +93,7 @@ It assumes that adding a balance assertion requires/reminds you to check the rea
 in that case, I recommend to import transactions uncleared, 
 and when you manually review and clear them, also check the latest assertion against the real-world balance.)
 
-[add-on commands]:    #add-on-commands
+[add-on command scripts]:    #add-on-commands
 [balance assertions]: #balance-assertions
 [strict mode]:        #strict-mode
 [costs]: #costs

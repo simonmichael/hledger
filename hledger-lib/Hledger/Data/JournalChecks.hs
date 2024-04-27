@@ -8,6 +8,7 @@ others can be called only via the check command.
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Data.JournalChecks (
+  journalStrictChecks,
   journalCheckAccounts,
   journalCheckBalanceAssertions,
   journalCheckCommodities,
@@ -42,6 +43,15 @@ import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
 
+-- | Run the extra -s/--strict checks on a journal, in order of priority,
+-- returning the first error message if any of them fail.
+journalStrictChecks :: Journal -> Either String ()
+journalStrictChecks j = do
+  -- keep the order of checks here synced with Check.md and Hledger.Cli.Commands.Check.Check.
+  -- journalCheckOrdereddates j
+  -- journalCheckBalanceAssertions j
+  journalCheckCommodities j
+  journalCheckAccounts j
 
 -- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.

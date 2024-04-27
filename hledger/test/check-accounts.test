@@ -16,10 +16,12 @@ $ hledger -f- check accounts
 
 # ** 3. also fails for forecast accounts
 <
+commodity $
 account a
 ~ 2022-01-31
     a  $1
     b
+
 $ hledger -f- --today 2022-01-01 --forecast check accounts
 >2 /account "b" has not been declared/
 >=1
@@ -31,6 +33,7 @@ $ hledger -f- --today 2022-01-01 --forecast --strict bal
 
 # ** 5. also fails for auto accounts
 <
+commodity $
 account a
 
 = a
