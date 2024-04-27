@@ -9,34 +9,33 @@ import Text.Printf (printf)
 import qualified Data.Text as T (pack, unlines)
 
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
-import Hledger.Data.Transaction (transactionFile, transactionDateOrDate2)
+import Hledger.Data.Transaction (transactionFile)
 import Hledger.Data.Types
 import Hledger.Utils (textChomp)
 
-journalCheckOrdereddates :: WhichDate -> Journal -> Either String ()
-journalCheckOrdereddates whichdate j = do
+journalCheckOrdereddates :: Journal -> Either String ()
+journalCheckOrdereddates j = do
   let
     -- we check date ordering within each file, not across files
     -- note, relying on txns always being sorted by file here
     txnsbyfile = groupBy (\t1 t2 -> transactionFile t1 == transactionFile t2) $ jtxns j
-    getdate = transactionDateOrDate2 whichdate
-    compare' a b = getdate a <= getdate b
+    compare' a b = tdate a <= tdate b
   (const $ Right ()) =<< (forM txnsbyfile $ \ts ->
     case checkTransactions compare' ts of
       FoldAcc{fa_previous=Nothing} -> Right ()
       FoldAcc{fa_error=Nothing}    -> Right ()
       FoldAcc{fa_error=Just t, fa_previous=Just tprev} -> Left $ printf
         ("%s:%d:\n%s\nOrdered dates checking is enabled, and this transaction's\n"
-          ++ "date%s (%s) is out of order with the previous transaction.\n"
+          ++ "date (%s) is out of order with the previous transaction.\n"
           ++ "Consider moving this entry into date order, or adjusting its date.")
-        f l ex datenum (show $ getdate t)
+        f l ex (show $ tdate t)
         where
           (_,_,_,ex1) = makeTransactionErrorExcerpt tprev (const Nothing)
           (f,l,_,ex2) = makeTransactionErrorExcerpt t finderrcols
           -- separate the two excerpts by a space-beginning line to help flycheck-hledger parse them
           ex = T.unlines [textChomp ex1, T.pack " ", textChomp ex2]
           finderrcols _t = Just (1, Just 10)
-          datenum   = if whichdate==SecondaryDate then "2" else "")
+    )
 
 data FoldAcc a b = FoldAcc
  { fa_error    :: Maybe a
