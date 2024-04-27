@@ -188,8 +188,8 @@ uiCheckBalanceAssertions _d ui@UIState{ajournal=j}
   | ui^.ignore_assertions = ui
   | otherwise =
     case journalCheckBalanceAssertions j of
-      Nothing  -> ui
-      Just err ->
+      Right () -> ui
+      Left err ->
         case ui of
           UIState{aScreen=ES sst} -> ui{aScreen=ES sst{_essError=err}}
           _                        -> pushScreen (esNew err) ui

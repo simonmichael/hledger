@@ -20,7 +20,6 @@ module Hledger.Data.Balancing
 , balanceTransactionHelper
   -- * journal balancing
 , journalBalanceTransactions
-, journalCheckBalanceAssertions
   -- * tests
 , tests_Balancing
 )
@@ -375,11 +374,6 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
             _                          -> NaturalPrecision
         saturatedAdd a b = if maxBound - a < b then maxBound else a + b
 
-
--- | Check any balance assertions in the journal and return an error message
--- if any of them fail (or if the transaction balancing they require fails).
-journalCheckBalanceAssertions :: Journal -> Maybe String
-journalCheckBalanceAssertions = either Just (const Nothing) . journalBalanceTransactions defbalancingopts
 
 -- "Transaction balancing", including: inferring missing amounts,
 -- applying balance assignments, checking transaction balancedness,

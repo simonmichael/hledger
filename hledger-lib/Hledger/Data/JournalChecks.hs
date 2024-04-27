@@ -9,6 +9,7 @@ others can be called only via the check command.
 
 module Hledger.Data.JournalChecks (
   journalCheckAccounts,
+  journalCheckBalanceAssertions,
   journalCheckCommodities,
   journalCheckPayees,
   journalCheckPairedConversionPostings,
@@ -39,6 +40,8 @@ import Data.Time (Day, diffDays)
 import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
+import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
+
 
 -- | Check that all the journal's postings are to accounts  with
 -- account directives, returning an error message otherwise.
@@ -59,6 +62,12 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ]) f l ex (show a) a a
         where
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
+
+-- | Check all balance assertions in the journal and return an error message if any of them fail.
+-- (Technically, this also tries to balance the journal and can return balancing failure errors;
+-- ensure the journal is already balanced (with journalBalanceTransactions) to avoid this.)
+journalCheckBalanceAssertions :: Journal -> Either String ()
+journalCheckBalanceAssertions = fmap (const ()) . journalBalanceTransactions defbalancingopts
 
 -- | Check that all the commodities used in this journal's postings have been declared
 -- by commodity directives, returning an error message otherwise.
