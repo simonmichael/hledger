@@ -51,3 +51,22 @@ It will install executables to `~/.cabal/bin`:
 ```cli
 $ cabal install all:exes
 ```
+
+### How do I build/run hledger with ghc-debug support ?
+
+```cli
+$ stack build --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
+```
+You can check it in the --version output, which should mention "ghc-debug":
+```
+$ stack exec -- hledger --version
+```
+With such a build, you can enable the ghc-debug listener by running hledger with a negative --debug level. Eg:
+```cli
+$ hledger ... --debug=-1    # run normally, while also listening for ghc-debug commands
+$ hledger ... --debug=-2    # pause for ghc-debug commands at program start
+$ hledger ... --debug=-3    # pause for ghc-debug commands at program end
+```
+Then you can pause/resume hledger's execution and inspect memory and profile information
+with the interactive `ghc-debug-brick` client,
+or extract specific information with a custom ghc-debug script.
