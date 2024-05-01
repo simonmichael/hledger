@@ -84,8 +84,13 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
+flag ghcdebug
+  description: Build with support for attaching a ghc-debug client
+  manual: True
+  default: False
+
 flag terminfo
-  description: On POSIX systems, build with the terminfo lib for detecting terminal width.
+  description: On POSIX systems, build with the terminfo lib for detecting terminal width
   manual: False
   default: True
 
@@ -180,6 +185,10 @@ library
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
 
 executable hledger
   main-is: hledger-cli.hs
@@ -230,6 +239,10 @@ executable hledger
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(threaded)
     ghc-options: -threaded -with-rtsopts=-T
 
@@ -281,6 +294,10 @@ test-suite unittest
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
 
 benchmark bench
   type: exitcode-stdio-1.0
@@ -332,3 +349,7 @@ benchmark bench
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7

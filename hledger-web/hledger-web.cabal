@@ -117,6 +117,11 @@ flag dev
   manual: False
   default: False
 
+flag ghcdebug
+  description: Build with support for attaching a ghc-debug client
+  manual: True
+  default: False
+
 flag library-only
   description: Build for use with "yesod devel"
   manual: False
@@ -170,6 +175,7 @@ library
     , directory >=1.2.3.0
     , extra >=1.6.3
     , filepath
+    , githash >=0.1.6.2
     , hjsmin
     , hledger >=1.33.99 && <1.34
     , hledger-lib >=1.33.99 && <1.34
@@ -205,6 +211,10 @@ library
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
 
 executable hledger-web
   main-is: main.hs
@@ -222,6 +232,10 @@ executable hledger-web
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(library-only)
     buildable: False
   if flag(threaded)
@@ -242,3 +256,7 @@ test-suite test
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
