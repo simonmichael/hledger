@@ -4,7 +4,7 @@
 
 This is just getting started. It will absorb some of the other [Developer docs](dev.md).
 
-## Developing hledger
+<!-- ## Developing hledger -->
 
 ### How do I get/build the hledger source ?
 
@@ -36,7 +36,7 @@ Or after building with cabal,
 $ cabal exec -- hledger [ARGS]
 ```
 
-### How do I install a build in $PATH ?
+### How do I install a build in PATH ?
 
 ```cli
 $ stack install
@@ -52,7 +52,7 @@ It will install executables to `~/.cabal/bin`:
 $ cabal install all:exes
 ```
 
-### How do I build/run hledger with ghc-debug support ?
+### How do I build/run with ghc-debug support ?
 
 ```cli
 $ stack build --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
