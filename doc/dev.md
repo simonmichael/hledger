@@ -7,7 +7,9 @@ workflows of the hledger project - "the machine that makes the machine".
 These mostly are kept in doc/ in the main hledger repo,
 and then symlinked into the hledger_site repo for rendering on hledger.org.
 
-- [README](dev-README.md)
+- [Contributor Quick Start](CONTRIBUTING.md)
+- [Developer FAQ](DEVFAQ.md)
+- [Project README](dev-README.md)
 - [ROADMAP](ROADMAP.md)
 <!-- - [TODO](TODO.md) -->
 - [ACHIEVEMENTS](ACHIEVEMENTS.md)
@@ -16,7 +18,6 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 - [CLIMATE](CLIMATE.md)
 - [CODE](CODE.md)
 - [COMMITS](COMMITS.md)
-- [CONTRIBUTING](CONTRIBUTING.md)
 - [CREDITS](CREDITS.md)
 - [DECISIONS](DECISIONS.md)
 - [DEVWORKFLOWS](DEVWORKFLOWS.md)
