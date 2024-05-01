@@ -1,4 +1,4 @@
-# Just, make, and Shake
+# Just, Make, Shake
 
 After many years of relying on [GNU Make](https://www.gnu.org/software/make) for automating project tasks,
 we now primarily use [just](https://github.com/casey/just) instead.
