@@ -5,120 +5,119 @@
 <!-- toc -->
 </div>
 
-New contributors are always welcome in the hledger project. Jump in!
-Browse the ideas below, or say hello in the chat and we'll help find you a job.
+New contributors of all kinds are always welcome in the hledger project. 
+We invite you to jump in, and thank you!
 
-## First steps
+There are many ways to help. Browse the ideas below,
+and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 
-- Join the [#hledger chat](support.md), best place for quick help and feedback
-- Skim the [FAQs](faq.md)
+### Visitor / passer-by ?
 
-## Ideas for contributing as a ...
+- Give feedback on the site and your impressions of the project, small or large, good or bad. This is valuable.
 
-### Visitor
+### New user ?
 
-- Give feedback on the site and your impressions of the project
+- Report your new user experiences, small or large, good or bad. This is valuable.
 
-### New user
+### Tech supporter ?
 
-- Give feedback on your new user experience
+- Share what you've learned so far to help others. This is a quadruple win -
+  it helps them, improves your own understanding, builds community, and frees up maintainer time!
 
-### Developer
+### Funder ?
 
-- See the [Developer workflows](DEVWORKFLOWS.md) 
-- and other [Developer docs](dev.md)
-
-### Developer using the hledger libraries
-
-- Give feedback on your experience using the hledger packages
-- Suggest API improvements
-
-### Packager
-
-- Improve hledger's packaging on one or more platforms
-
-### Communicator
-
-Marketing and market understanding is vital.
-
-- clarify project goals, value proposition, brand, mission, story
-- monitor product-market fit
-- identify new opportunities
-- influence developer priorities
-- spread the word!
-
-### Funder
-
-Become a financial backer to
-sustain and grow this project,
-increase your influence,
-express gratitude,
-build prosperity consciousness,
-and help transform world finance!
-
-- Use the donate links on the [home page](https://hledger.org)
-- Configure a recurring donation
+- Become a financial backer: [Sponsor hledger](sponsor.md)
 - Contribute or pledge bounties on issues you care about
 - Ask your organization to contribute
-- Work on project sustainability, accountability, fundraising
+- Work on project [finance](FINANCE.md) - accounting, fundraising, sustainability..
 
-### Tester
+### Tester ?
 
 - Test installation on platforms you have access to
 - Test examples, advice, and links in the docs
 - Run the latest release or developer build in daily use
 - Run [tests](#run-package-tests)
 - Run [benchmarks](#run-package-benchmarks)
-- Report packaging, documentation, UX, functional, performance issues
-- Report and help analyse problems via irc/mail list/bug tracker
+- Report packaging, documentation, UX, functional, performance issues (<https://bugs.hledger.org/new>)
+- Test new releases, report regressions and collect regression finder bounties
+- Discuss and help analyse problems via chat/mail list/issue tracker
 
-When reporting bugs, don't forget to search the tracker for a similar bug report.
-Otherwise, open a new bug by clicking "New issue", or <http://bugs.hledger.org/new>.
+### Bug wrangler ?
 
-Enhancement requests are sometimes added to the tracker,but for these consider using
-the IRC channel and mail list (see [Getting help](index.md#getting-help)).
-Both are archived and linkable, so the idea won't be lost.
-There is also a collection of wishes at the old [trello board](http://trello.hledger.org).
+- Respond to issue reports when needed, especially if they are from new reporters
+- Add appropriate labels to issues to categorise them
+- Follow up on inactive/stalled issues, help move things forward
+- Link/merge related issues
+- Keep an overview of the issue tracker, report stats & trends
+- Improve issues urls & dashboard(s)
+- Help ensure a consistently good bug-reporting and PR-contributing experience
 
-### Bug wrangler
+### Bug fixer ?
 
-### Tech support provider
+- Get familiar with issue tracker, issue labels, shortcut urls, issue dashboards..
+- Review open bug reports
+- Try to fix or help fix some
+- Fix regressions and collect regression fixer bounties
 
-### Technical Writer
+### Developer ?
 
-- get familiar with the website and documentation online, review and test
-- get familiar with the site/doc source files (see [Shake.hs](#shake))
-- get the latest hledger source
-- send patches with names prefixed with "doc: " (or "site: ")
+- Give feedback on your experience using the hledger packages
+- Suggest API improvements
+- See the [Developer FAQ](DEVFAQ.md) and other [Developer docs](dev.md).
 
-### Graphics Designer
+### Technical writer ?
 
-- more/better logos & graphics
-- illustrations and diagrams
-- web design mockups for home page, site, hledger-web UI
+- Get familiar with the documentation, website and online presence; review and test
+- Get familiar with the doc/site source files and generation process (see [Just, Make, Shake](JUST-MAKE-SHAKE.md))
+- Help improve user, contributor, process docs
 
-<!-- ### Product Designer -->
+### Web designer / webmaster ?
 
-### Maintainer
+- Review and help improve our web presence
 
-#### Help with issue management
+### Graphic designer ?
 
-- watch tracker activity, report status
-- apply/update labels where needed
-- follow up on dormant issues
-- facilitate a consistently good bug-reporting & PR-contributing experience
+- Review and improve logos, graphics, design language
+- Contribute illustrations, diagrams, cartoons, mockups
 
-#### Help with packaging
+### Packager ?
 
-- package hledger for linux distros, macports, etc.
-- develop mac/windows installers
-- find and assist distro packagers/installer developers
+- Start/test/improve hledger's packaging on various platforms
+- Find/assist/take over from existing packagers
+- Improve packaging-related docs/links
+- Develop mac or windows installers
 
-#### Help with project management
+### Marketer / communicator ?
 
-- clarify/update goals and principles
-- monitor, report on project progress and performance
-- research, compare and report on successful projects, related projects
-- identify collaboration opportunities
-- marketing, communication, outreach
-- release management, roadmap planning
+- Clarify project goals, value proposition, brand, mission, story
+- Monitor product-market fit
+- Identify new opportunities
+- Influence developer priorities
+- Spread the word!
+
+### Product designer ?
+
+- Contribute design input to discussions in issue tracker and elsewhere
+- Develop your whole-system view of the hledger "product" (user software, docs, online presence, new user experience etc.)
+
+### Community builder/moderator ?
+
+- Participate in [support](support.md) channels
+- As a regular member or moderator, help to resolve/report incidents
+- Help uphold and improve our community structures and dynamics
+
+### Project manager ?
+
+- Monitor, report on project progress and performance
+- Research, compare and report on successful projects, related projects
+- Identify collaboration opportunities
+- Assist with marketing, communication, outreach
+- Assist with maintainer tasks
+
+### Maintainer / co-maintainer ?
+
+- Manage and ship releases
+- Manage the project roadmap
+- Clarify/update goals and principles
+- Resolve issues
+- Serve the community
