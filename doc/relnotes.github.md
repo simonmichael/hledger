@@ -63,8 +63,8 @@ Simon Michael.
 ## Install
 
 This release may arrive in your local packaging system soon - look for green badges at <https://hledger.org/install>.
-Or, you could build it yourself from source, as described on that page.
-Or, if there are binaries for your OS and hardware at the bottom of this page, follow the instructions below.
+Or you could build it yourself from source, as described there.
+Or if there are binaries for your OS and hardware at the bottom of this page, see instructions below.
 <!-- (On linux and mac, the double tar + zip packing is a Github workaround to preserve file permissions.) -->
 <!--
 Updates to binaries:

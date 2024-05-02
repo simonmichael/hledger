@@ -9,7 +9,7 @@ Best,
 -Simon
 
 
-hledger is free, fast, reliable, multicurrency, double-entry,
+hledger is free, fast, robust, multicurrency, double-entry,
 plain text accounting software for unix, mac, windows, and the web.
 Written in Haskell for reliability and longevity,
 it is built around human-readable, version-controllable plain text files,
