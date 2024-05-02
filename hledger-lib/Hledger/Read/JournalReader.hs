@@ -291,7 +291,7 @@ includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
   lift skipNonNewlineSpaces1
-  prefixedglob <- T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
+  prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
   parentoff <- getOffset
   parentpos <- getSourcePos
   let (mprefix,glb) = splitReaderPrefix prefixedglob
