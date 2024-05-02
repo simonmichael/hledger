@@ -54,26 +54,34 @@ $ cabal install all:exes
 
 ### How do I build/run with ghc-debug support ?
 
+You might need to stop background builders like HLS, to avoid a fight over the build flag
+(in VS Code, run the command "Haskell: Stop Haskell LSP server").
+Then build lib and executable(s) with the `ghcdebug` flag:
 ```cli
 $ stack build --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
 ```
-Use --flag to enable `ghcdebug` for hledger-lib and any of the executables you want to build, as above.
-You might need to stop background builders like HLS while you do this, to avoid a fight over the build flag
-(in VS Code, do Haskell: Stop Haskell LSP Server).
 
-Your --version output should now say "supports ghc-debug":
+When the build is right, --version should mention ghc-debug:
 ```
 $ stack exec -- hledger --version
+... with ghc debug support
 ```
 
-When a hledger executable supports ghc-debug, you can enable the ghc-debug listener by running with a negative --debug level. Eg:
+Now if you run at debug level -1, -2 or -3 the output should mention ghc-debug:
 ```cli
-$ hledger CMD --debug=-1    # run normally, while also listening for ghc-debug commands
+$ hledger CMD --debug=-1    # run normally, and listen for ghc-debug commands
 $ hledger CMD --debug=-2    # pause for ghc-debug commands at program start
 $ hledger CMD --debug=-3    # pause for ghc-debug commands at program end
+Starting ghc-debug on socket: ...
 ```
-You should see "Starting ghc-debug on socket: ..." output.
 
-Then in another window, run the interactive `ghc-debug-brick` client, select the running hledger process,
-and explore memory/profile information, resume/pause execution, etc.
-Or you can write a custom ghc-debug-client script to extract specific information.
+Then in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the running hledger process. Press enter to connect. This is not robust. Tips:
+- you might need to clear out stale sockets: `rm -f ~/.local/share/ghc-debug/debuggee/sockets/*`
+- you might need to kill stale hledger processes: `pkill -fl hledger`
+- it might still fail with this error, reasons unclear:\
+  `rts_resume: called from a different OS thread than rts_pause`
+- if it connects and the program is running, press `p` to pause it
+
+At this point, you can explore memory/profile information, save snapshots, resume execution, etc.
+
+Or, instead of ghc-debug-brick you can write a [ghc-debug-client](https://hackage.haskell.org/package/ghc-debug-client) script to extract specific information.
