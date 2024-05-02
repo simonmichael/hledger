@@ -74,6 +74,50 @@ Changes in hledger-install.sh are shown
 
 
 
+## 2024-04-18 hledger-1.33.1
+
+### hledger 1.33.1
+
+- process >=1.6.19.0 seems not strictly needed and is no longer required,
+  improving installability.
+  [#2149]
+
+- `print` and `close` now show a trailing decimal mark on cost amounts also,
+  when needed to disambiguate a digit group mark.
+
+- The balance commands' HTML output now includes digit group marks when
+  appropriate (fixes a regression in 1.25).
+  [#2196]
+
+- The add command no longer shows ANSI escape codes in terminals that
+  don't support them.
+
+- Doc updates:
+  - import: Skipping -> Date skipping, discuss commodity styles more
+  - csv: Amount decimal places: expand, note import behaviour
+
+### hledger-ui 1.33.1
+
+- Require vty-windows-0.2.0.2+ to avoid display problems in recent
+  MS Terminal on Windows.
+
+- process >=1.6.19.0 seems not strictly needed and is no longer required,
+  improving installability.
+  [#2149]
+
+### hledger-web 1.33.1
+
+- Support base64 >=1.0
+
+### credits 1.33.1
+
+Simon Michael.
+
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
+[#2196]: https://github.com/simonmichael/hledger/issues/2196
+
+
 ## 2024-04-18 hledger-1.33
 
 **`close` enhancements, hledger-ui 'dark' theme, GHC 9.8 support, Apple ARM binaries**
