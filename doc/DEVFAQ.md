@@ -79,9 +79,11 @@ Starting ghc-debug on socket: ...
 Now in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the hledger process (until it ends). Press enter to connect. This is not robust. Tips:
 - you might need to clear out stale sockets: `rm -f ~/.local/share/ghc-debug/debuggee/sockets/*`
 - you might need to kill stale hledger processes: `pkill -fl hledger`
-- it might still fail with this error, reasons unclear:\
-  `rts_resume: called from a different OS thread than rts_pause`
-- if it connects and the program is running, press `p` to pause it
+- with --debug=-2 or -3 it might fail with this error, reasons unclear:\
+  `rts_resume: called from a different OS thread than rts_pause`.\
+  To work around, use --debug=-1.
+  (This works best with hledger-ui or hledger-web; with hledger, you'll need to give it a big enough data file so that you can connect and pause it before it finishes.)
+- once connected, if the program is running, press `p` to pause it
 
 At this point, you can explore memory/profile information, save snapshots, resume execution, etc.
 
