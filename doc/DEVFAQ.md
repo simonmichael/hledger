@@ -56,6 +56,7 @@ $ cabal install all:exes
 
 You might need to stop background builders like HLS, to avoid a fight over the build flag
 (in VS Code, run the command "Haskell: Stop Haskell LSP server").
+
 Then build lib and executable(s) with the `ghcdebug` flag:
 ```cli
 $ stack build --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
@@ -67,7 +68,7 @@ $ stack exec -- hledger --version
 ... with ghc debug support
 ```
 
-Now if you run at debug level -1, -2 or -3 the output should mention ghc-debug:
+And when you run at debug level -1, -2 or -3 the output should mention ghc-debug:
 ```cli
 $ hledger CMD --debug=-1    # run normally, and listen for ghc-debug commands
 $ hledger CMD --debug=-2    # pause for ghc-debug commands at program start
@@ -75,7 +76,7 @@ $ hledger CMD --debug=-3    # pause for ghc-debug commands at program end
 Starting ghc-debug on socket: ...
 ```
 
-Then in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the running hledger process. Press enter to connect. This is not robust. Tips:
+Now in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the hledger process (until it ends). Press enter to connect. This is not robust. Tips:
 - you might need to clear out stale sockets: `rm -f ~/.local/share/ghc-debug/debuggee/sockets/*`
 - you might need to kill stale hledger processes: `pkill -fl hledger`
 - it might still fail with this error, reasons unclear:\
