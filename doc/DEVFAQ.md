@@ -59,7 +59,7 @@ You might need to stop background builders like HLS, to avoid a fight over the b
 
 Then build lib and executable(s) with the `ghcdebug` flag:
 ```cli
-$ stack build --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
+$ stack build --flag='*:ghcdebug'
 ```
 
 When the build is right, --version should mention ghc-debug:

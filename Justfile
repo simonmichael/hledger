@@ -547,8 +547,8 @@ INSTALLING:
     for e in hledger hledger-ui hledger-web ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
 
 # install the hledger executables with ghc-debug support to bin/hledger*-dbg
-@installdbg:
-    $STACK install --local-bin-path bin --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
+@installdbg *STACKARGS:
+    $STACK install --local-bin-path bin --flag '*:ghcdebug' {{ STACKARGS }}
     for e in hledger hledger-ui hledger-web ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
 # # make must be GNU Make 4.3+
