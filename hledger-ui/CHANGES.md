@@ -27,13 +27,6 @@ Breaking changes
 
 Fixes
 
-- Require vty-windows-0.2.0.2+ to avoid display problems in recent
-  MS Terminal on Windows.
-
-- We no longer require process >=1.6.19.0, as it hurt installability
-  and seems not strictly needed.
-  [#2149]
-
 Features
 
 Improvements
@@ -47,7 +40,18 @@ Docs
 
 API
 
+
+# 1.33.1 2024-05-02
+
+- Require vty-windows-0.2.0.2+ to avoid display problems in recent
+  MS Terminal on Windows.
+
+- We no longer require process >=1.6.19.0, as it hurt installability
+  and seems not strictly needed.
+  [#2149]
+
 [#2149]: https://github.com/simonmichael/hledger/issues/2149
+
 
 # 1.33 2024-04-18
 

@@ -36,11 +36,14 @@ Improvements
   ghc-debug-brick or a ghc-debug query script, for analysing
   memory/profile info.
 
-- support base64 >=1.0
-
 Docs
 
 API
+
+
+# 1.33.1 2024-05-02
+
+- Support base64 >=1.0
 
 
 # 1.33 2024-04-18

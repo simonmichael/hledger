@@ -25,7 +25,6 @@ Docs
 - move release notes from site repo to the main hledger repo
 - github release notes: improve windows install commands
 - dev doc updates; new Developer FAQ, Contributor Quick Start updates
-- examples: shared finances
 - examples: csv: vanguard, fidelity updates
 
 Scripts/addons

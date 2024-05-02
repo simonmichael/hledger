@@ -32,20 +32,6 @@ Breaking changes
 
 Fixes
 
-- We no longer require process >=1.6.19.0, as it hurt installability
-  and seems not strictly needed.
-  [#2149]
-
-- `print` and `close` now show a trailing decimal mark on cost amounts also,
-  when needed to disambiguate a digit group mark.
-
-- Balance commands's HTML output now includes digit group marks when
-  appropriate (this broke in 1.25).
-  [#2196]
-
-- The add command no longer shows ANSI escape codes in terminals that
-  don't support them.
-
 Features
 
 Improvements
@@ -62,13 +48,33 @@ Improvements
 
 Docs
 
-- import: Skipping -> Date skipping, discuss commodity styles more; edits
-- csv: Amount decimal places: expand, note import behaviour
-- examples: shared-finances/
-
 Scripts/addons
 
 API
+
+
+# 1.33.1 2024-05-02
+
+- process >=1.6.19.0 seems not strictly needed and is no longer required,
+  improving installability.
+  [#2149]
+
+- `print` and `close` now show a trailing decimal mark on cost amounts also,
+  when needed to disambiguate a digit group mark.
+
+- The balance commands' HTML output now includes digit group marks when
+  appropriate (fixes a regression in 1.25).
+  [#2196]
+
+- The add command no longer shows ANSI escape codes in terminals that
+  don't support them.
+
+- Doc updates:
+  - import: Skipping -> Date skipping, discuss commodity styles more
+  - csv: Amount decimal places: expand, note import behaviour
+
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
+[#2196]: https://github.com/simonmichael/hledger/issues/2196
 
 
 # 1.33 2024-04-18
@@ -245,6 +251,7 @@ Docs
 - examples: invoicing: cleanups, renames
 - examples: invoicing: pandoc-make-invoice: don't write to $LEDGER_FILE; remove the REMOVE THIS LINE line
 - examples: csv: daedalus-transactions: update for current daedalus [#2171]
+- examples: shared-finances/
 
 
 

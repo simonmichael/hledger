@@ -31,6 +31,12 @@ Improvements
 
 - moved journalCheckBalanceAssertions to JournalChecks
 
+
+# 1.33.1 2024-05-02
+
+- Updates for hledger 1.33.1
+
+
 # 1.33 2024-04-18
 
 Breaking changes
