@@ -85,11 +85,6 @@ dependencies:
 - extra >=1.6.3
 - Glob >= 0.9
 
-when:
-- condition: (!(os(windows)))
-  dependencies:
-  - pager >=0.1.1.0
-
 ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns
@@ -97,6 +92,21 @@ ghc-options:
 - -Wno-orphans
 - -Wno-type-defaults
 - -Wno-unused-do-bind
+
+flags:
+  ghcdebug:
+    description: Build with support for attaching a ghc-debug client
+    default: false
+    manual:  true
+
+when:
+- condition: (!(os(windows)))
+  dependencies:
+  - pager >=0.1.1.0
+- condition: (flag(ghcdebug))
+  cpp-options: -DGHCDEBUG
+  dependencies:
+  - ghc-debug-stub >=0.6.0.0 && <0.7
 
 source-dirs: 
 #- other/ledger-parse

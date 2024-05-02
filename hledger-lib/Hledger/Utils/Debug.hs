@@ -163,6 +163,7 @@ module Hledger.Utils.Debug (
   ,dbg9With
 
   -- * Utilities
+  ,ghcDebugSupportedInLib
   ,GhcDebugMode(..)
   ,ghcDebugMode
   ,withGhcDebug'
@@ -238,20 +239,28 @@ data GhcDebugMode =
   | GDPauseAtStart
   | GDPauseAtEnd
   -- keep synced with ghcDebugMode
-  deriving (Eq,Ord)
+  deriving (Eq,Ord,Show)
+
+-- | Is the hledger-lib package built with ghc-debug support ?
+ghcDebugSupportedInLib :: Bool
+ghcDebugSupportedInLib =
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
 
 -- | Should the program open a socket allowing control by ghc-debug-brick or similar ghc-debug client ?
 -- See GhcDebugMode.
 ghcDebugMode :: GhcDebugMode
 ghcDebugMode =
   case debugLevel of
-    -- keep synced with GhcDebugMode
-#ifdef GHCDEBUG
+    _ | not ghcDebugSupportedInLib -> GDNotSupported
     (-1) -> GDNoPause
     (-2) -> GDPauseAtStart
     (-3) -> GDPauseAtEnd
-#endif
     _    -> GDDisabled
+    -- keep synced with GhcDebugMode
 
 -- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
 -- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.

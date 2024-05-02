@@ -18,7 +18,7 @@ import System.Info (os, arch)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 
-import Hledger.Utils (splitAtElement)
+import Hledger.Utils (ghcDebugSupportedInLib, splitAtElement)
 
 type ProgramName    = String
 type PackageVersion = String
@@ -38,9 +38,9 @@ packageversion =
 packagemajorversion :: PackageVersion
 packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
 
--- | Given possible git state info from the build directory (or an error message, which is ignored),
--- the name of a program (executable) in the currently building package,
--- and the package's version, make a complete version string. Here is the logic:
+-- | Given possible git state info from the build directory (or a git error, which is ignored),
+-- and the ghcdebug build flag, executable name and package version for the package being built,
+-- make the best version string we can. Here is the logic:
 -- 
 -- * Program name, OS and architecture are always shown.
 -- * The package version is always shown.
@@ -50,7 +50,8 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 -- * (TODO, requires adding --match support to githash:
 --   If there are tags matching THISPKG-[0-9]*, the latest one is used to calculate patch level
 --   (number of commits since tag), and if non-zero, it and the branch name are shown.)
--- * If the ghcdebug build flag was enabled, "ghc-debug support" is shown.
+-- * If the ghcdebug build flag was enabled for the package being built, and for hledger-lib (both are needed),
+--   "ghc-debug support" is shown.
 --
 -- Some example outputs:
 --
@@ -70,10 +71,10 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 -- so output should be suitable for all of those.
 --
 versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersion -> VersionString
-versionStringWith egitinfo ghcdebug progname packagever =
+versionStringWith egitinfo ghcDebugSupportedInThisPackage progname packagever =
   concat $
     [ progname , " " , version , ", " , os' , "-" , arch ]
-    ++ [ " with ghc-debug support" | ghcdebug ]
+    ++ [ " with ghc-debug support" | ghcDebugSupportedInThisPackage && ghcDebugSupportedInLib ]
   where
     os' | os == "darwin"  = "mac"
         | os == "mingw32" = "windows"

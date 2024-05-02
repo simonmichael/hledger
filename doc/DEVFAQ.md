@@ -55,18 +55,25 @@ $ cabal install all:exes
 ### How do I build/run with ghc-debug support ?
 
 ```cli
-$ stack build --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
+$ stack build --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
 ```
-You can check it in the --version output, which should mention "ghc-debug":
+Use --flag to enable `ghcdebug` for hledger-lib and any of the executables you want to build, as above.
+You might need to stop background builders like HLS while you do this, to avoid a fight over the build flag
+(in VS Code, do Haskell: Stop Haskell LSP Server).
+
+Your --version output should now say "supports ghc-debug":
 ```
 $ stack exec -- hledger --version
 ```
-With such a build, you can enable the ghc-debug listener by running hledger with a negative --debug level. Eg:
+
+When a hledger executable supports ghc-debug, you can enable the ghc-debug listener by running with a negative --debug level. Eg:
 ```cli
-$ hledger ... --debug=-1    # run normally, while also listening for ghc-debug commands
-$ hledger ... --debug=-2    # pause for ghc-debug commands at program start
-$ hledger ... --debug=-3    # pause for ghc-debug commands at program end
+$ hledger CMD --debug=-1    # run normally, while also listening for ghc-debug commands
+$ hledger CMD --debug=-2    # pause for ghc-debug commands at program start
+$ hledger CMD --debug=-3    # pause for ghc-debug commands at program end
 ```
-Then you can pause/resume hledger's execution and inspect memory and profile information
-with the interactive `ghc-debug-brick` client,
-or extract specific information with a custom ghc-debug script.
+You should see "Starting ghc-debug on socket: ..." output.
+
+Then in another window, run the interactive `ghc-debug-brick` client, select the running hledger process,
+and explore memory/profile information, resume/pause execution, etc.
+Or you can write a custom ghc-debug-client script to extract specific information.
