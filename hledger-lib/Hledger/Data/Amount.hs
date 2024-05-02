@@ -87,7 +87,7 @@ module Hledger.Data.Amount (
   showAmount,
   showAmountWith,
   showAmountB,
-  showAmountsCostB,
+  showAmountCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
@@ -633,19 +633,6 @@ withDecimalPoint = flip setAmountDecimalPoint
 
 -- Amount rendering
 
--- Show an amount's cost as @ UNITCOST or @@ TOTALCOST (builder version).
-showAmountsCostB :: Amount -> WideBuilder
-showAmountsCostB amt = case acost amt of
-    Nothing              -> mempty
-    Just (UnitCost  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB defaultFmt{displayZeroCommodity=True} pa
-    Just (TotalCost pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB defaultFmt{displayZeroCommodity=True} (sign pa)
-  where sign = if aquantity amt < 0 then negate else id
-
-showAmountCostDebug :: Maybe AmountCost -> String
-showAmountCostDebug Nothing                = ""
-showAmountCostDebug (Just (UnitCost pa))  = " @ "  ++ showAmountDebug pa
-showAmountCostDebug (Just (TotalCost pa)) = " @@ " ++ showAmountDebug pa
-
 -- | Render an amount using its display style and the default amount format.
 -- Zero-equivalent amounts  are shown as just \"0\".
 -- The special "missing" amount is shown as the empty string.
@@ -662,7 +649,7 @@ showAmountWith fmt = wbUnpack . showAmountB fmt
 showAmountB :: AmountFormat -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
-  AmountFormat{displayCommodity, displayZeroCommodity, displayDigitGroups
+  afmt@AmountFormat{displayCommodity, displayZeroCommodity, displayDigitGroups
                    ,displayForceDecimalMark, displayCost, displayColour}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
@@ -676,7 +663,20 @@ showAmountB
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
       | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
-    cost = if displayCost then showAmountsCostB a else mempty
+    cost = if displayCost then showAmountCostB afmt a else mempty
+
+-- Show an amount's cost as @ UNITCOST or @@ TOTALCOST (builder version).
+showAmountCostB :: AmountFormat -> Amount -> WideBuilder
+showAmountCostB afmt amt = case acost amt of
+  Nothing              -> mempty
+  Just (UnitCost  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB afmt pa
+  Just (TotalCost pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB afmt (sign pa)
+  where sign = if aquantity amt < 0 then negate else id
+
+showAmountCostDebug :: Maybe AmountCost -> String
+showAmountCostDebug Nothing                = ""
+showAmountCostDebug (Just (UnitCost pa))  = " @ "  ++ showAmountDebug pa
+showAmountCostDebug (Just (TotalCost pa)) = " @@ " ++ showAmountDebug pa
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
