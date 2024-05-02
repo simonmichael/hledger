@@ -166,6 +166,71 @@ library
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
 
+test-suite doctest
+  type: exitcode-stdio-1.0
+  main-is: doctests.hs
+  hs-source-dirs:
+      ./
+      test
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
+  build-depends:
+      Decimal >=0.5.1
+    , Glob >=0.7
+    , aeson >=1 && <2.3
+    , aeson-pretty
+    , ansi-terminal >=0.9
+    , array
+    , base >=4.14 && <4.20
+    , base-compat
+    , blaze-markup >=0.5.1
+    , bytestring
+    , call-stack
+    , cassava
+    , cassava-megaparsec
+    , cmdargs >=0.10
+    , colour >=2.3.6
+    , containers >=0.5.9
+    , data-default >=0.5
+    , deepseq
+    , directory
+    , doclayout >=0.3 && <0.5
+    , doctest >=0.18.1
+    , extra >=1.6.3
+    , file-embed >=0.0.10
+    , filepath
+    , hashtables >=1.2.3.1
+    , megaparsec >=7.0.0 && <9.7
+    , microlens >=0.4
+    , microlens-th >=0.4
+    , mtl >=2.2.1
+    , parser-combinators >=0.4.0
+    , pretty-simple >4 && <5
+    , regex-tdfa
+    , safe >=0.3.20
+    , tabular >=0.2
+    , tasty >=1.2.3
+    , tasty-hunit >=0.10.0.2
+    , template-haskell
+    , terminal-size >=0.3.3
+    , text >=1.2.4.1
+    , text-ansi >=0.2.1
+    , time >=1.5
+    , timeit
+    , transformers >=0.2
+    , uglymemo
+    , unordered-containers >=0.2
+    , utf8-string >=0.3.5
+  default-language: Haskell2010
+  if (!(os(windows)))
+    build-depends:
+        pager >=0.1.1.0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
+  if impl(ghc >= 9.0) && impl(ghc < 9.2)
+    buildable: False
+
 test-suite unittest
   type: exitcode-stdio-1.0
   main-is: unittest.hs
