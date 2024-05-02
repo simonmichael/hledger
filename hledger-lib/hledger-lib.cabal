@@ -45,6 +45,11 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
+flag ghcdebug
+  description: Build with support for attaching a ghc-debug client
+  manual: True
+  default: False
+
 library
   exposed-modules:
       Hledger
@@ -156,6 +161,10 @@ library
   if (!(os(windows)))
     build-depends:
         pager >=0.1.1.0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
 
 test-suite unittest
   type: exitcode-stdio-1.0
@@ -216,3 +225,7 @@ test-suite unittest
   if (!(os(windows)))
     build-depends:
         pager >=0.1.1.0
+  if (flag(ghcdebug))
+    cpp-options: -DGHCDEBUG
+    build-depends:
+        ghc-debug-stub >=0.6.0.0 && <0.7
