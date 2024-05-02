@@ -74,7 +74,7 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2024-04-18 hledger-1.33.1
+## 2024-05-02 hledger-1.33.1
 
 ### hledger 1.33.1
 
