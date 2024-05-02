@@ -462,7 +462,7 @@ STACKTEST := STACK + ' test --fast'
 
 # run the doctests in hledger-lib module/function docs
 @doctest:
-    ($STACKTEST --ghc-options=-f-object-code hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACKTEST --ghc-options=-fobject-code hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # # run the unit tests in hledger-lib
 # unittest:
