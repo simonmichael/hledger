@@ -340,29 +340,29 @@ ghcid-shake:
 TESTING:
 
 # run ghci on hledger-lib + hledger
-@ghci:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fobject-code hledger/Hledger/Cli.hs
+@ghci *GHCIARGS:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fobject-code {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
-@ghci-prof:
+@ghci-prof *GHCIARGS:
     stack build --profile hledger --only-dependencies
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto hledger/Hledger/Cli.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
 #     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 # run ghci on hledger-lib + hledger + hledger-ui
-@ghci-ui:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-ui/Hledger/UI/Main.hs
+@ghci-ui *GHCIARGS:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web
-@ghci-web:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/app/main.hs
+@ghci-web *GHCIARGS:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/app/main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
-@ghci-web-test:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS hledger-web/test/test.hs
+@ghci-web-test *GHCIARGS:
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/test/test.hs
 
 # # better than stack exec ?
 # # XXX does not see changes to files
