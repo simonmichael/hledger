@@ -16,7 +16,7 @@ hledger-web - robust, friendly plain text accounting (Web version)
    'hledger-web [--serve|--serve-api] [OPTS] [ARGS]'
 'hledger web -- [--serve|--serve-api] [OPTS] [ARGS]'
 
-   This manual is for hledger's web interface, version 1.33.  See also
+   This manual is for hledger's web interface, version 1.33.1.  See also
 the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -638,30 +638,30 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2575
-Ref: #options2680
-Node: General help options5645
-Ref: #general-help-options5795
-Node: General input options6077
-Ref: #general-input-options6263
-Node: General reporting options6920
-Ref: #general-reporting-options7085
-Node: PERMISSIONS10475
-Ref: #permissions10614
-Node: EDITING UPLOADING DOWNLOADING11826
-Ref: #editing-uploading-downloading12007
-Node: RELOADING12841
-Ref: #reloading12975
-Node: JSON API13408
-Ref: #json-api13523
-Node: DEBUG OUTPUT19011
-Ref: #debug-output19136
-Node: Debug output19163
-Ref: #debug-output-119264
-Node: ENVIRONMENT19681
-Ref: #environment19800
-Node: BUGS19917
-Ref: #bugs20001
+Node: OPTIONS2577
+Ref: #options2682
+Node: General help options5647
+Ref: #general-help-options5797
+Node: General input options6079
+Ref: #general-input-options6265
+Node: General reporting options6922
+Ref: #general-reporting-options7087
+Node: PERMISSIONS10477
+Ref: #permissions10616
+Node: EDITING UPLOADING DOWNLOADING11828
+Ref: #editing-uploading-downloading12009
+Node: RELOADING12843
+Ref: #reloading12977
+Node: JSON API13410
+Ref: #json-api13525
+Node: DEBUG OUTPUT19013
+Ref: #debug-output19138
+Node: Debug output19165
+Ref: #debug-output-119266
+Node: ENVIRONMENT19683
+Ref: #environment19802
+Node: BUGS19919
+Ref: #bugs20003
 
 End Tag Table
 
