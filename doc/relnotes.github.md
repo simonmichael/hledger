@@ -12,7 +12,7 @@
 
 ## Release notes
 
-https://hledger.org/relnotes.html#2024-04-18-hledger-133
+https://hledger.org/relnotes.html#2024-05-02-hledger-1331
 
 </summary>
 
@@ -54,7 +54,6 @@ https://hledger.org/relnotes.html#2024-04-18-hledger-133
 
 Simon Michael.
 
-[#2149]: https://github.com/simonmichael/hledger/issues/2149
 [#2149]: https://github.com/simonmichael/hledger/issues/2149
 [#2196]: https://github.com/simonmichael/hledger/issues/2196
 
