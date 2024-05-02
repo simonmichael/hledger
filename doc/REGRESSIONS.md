@@ -42,6 +42,10 @@ To claim the bounty:
 
 ## Regressions reported
 
+- [Issue tracker: all regression reports](https://bugs.hledger.org/regressions)
+- [Opencollective: regression bounty requests](https://opencollective.com/hledger/expenses?amount=50-100)
+- [Opencollective: regression bounty payments](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-100)
+
 | hledger version, bug report  | Reporter        | Bounty paid on
 |------------------------------|-----------------|------------------------------------------------------------------|
 | **1.19** 2020-09-01          | -               | -
@@ -77,10 +81,12 @@ To claim the bounty:
 | [#1782]                      | Simon Michael   | N/A
 | **1.25** 2022-03-04          | -               | -
 | [#2032]                      | Simon Michael   | [2023-05-03](https://opencollective.com/hledger/expenses/137410)
-| [#2196]                      | Pranesh Prakash |
+| [#2196]                      | Pranesh Prakash | UNCLAIMED
+| **1.26** 2022-06-04          | -               | -
 | **1.27** 2022-09-01          | -               | -
 | [#1932]                      | Andras Fabian   | [2022-09-15](https://opencollective.com/hledger/expenses/95112)
 | [#2018]                      | Allan Odgaard   | [2023-03-28](https://opencollective.com/hledger/expenses/130591)
+| **1.28** 2022-12-01          | -               | -
 | **1.29** 2023-03-11          | -               | -
 | [#2012]                      | Simon Michael   | N/A
 | [#2020]                      | Pablo Mora      | [2023-03-31](https://opencollective.com/hledger/expenses/131350)
@@ -89,21 +95,17 @@ To claim the bounty:
 | [#2045]                      | Pranesh Prakash | [2023-10-17](https://opencollective.com/hledger/expenses/150171)
 | [#2153]                      | markokocic      | 2024-01-25, $50 donated
 | **1.30** 2023-06-01          | -               | -
-| [#2072], [#2137], [#2150]    | Simon Michael, usaAmch, ipvych |
+| [#2072]/[#2137]/[#2150]      | Simon Michael, usaAmch, ipvych |
 | **1.31** 2023-09-03          | -               | -
 | [#2091]                      | Petr Slansky    | [2023-10-16](https://opencollective.com/hledger/expenses/166632)
 | [#2115]                      | pepe_pecas      | 2023-12-15, $100 donated
 | **1.32** 2023-12-01          | -               | -
 | [#2125]                      | Simon Michael   | N/A
-| [#2127]                      | rajeevn1        |
+| [#2127]                      | rajeevn1        | UNCLAIMED
 | [#2130]                      | Simon Michael   | N/A
 | [#2134]                      | pepe_pecas      | 2023-12-15, $100 donated
-| [#2156]                      | ishmaelavila    |
+| [#2156]                      | ishmaelavila    | UNCLAIMED
 | **1.33** 2024-04-18          | -               | -
-
-- [all regression reports](https://bugs.hledger.org/regressions)
-- [regression bounty requests](https://opencollective.com/hledger/expenses?amount=50-100)
-- [regression bounty payments](https://opencollective.com/hledger/transactions?kind=EXPENSE&amount=50-100)
 
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
