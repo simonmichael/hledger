@@ -71,19 +71,18 @@ $ stack exec -- hledger --version
 And when you run at debug level -1, -2 or -3 the output should mention ghc-debug:
 ```cli
 $ hledger CMD --debug=-1    # run normally, and listen for ghc-debug commands
-$ hledger CMD --debug=-2    # pause for ghc-debug commands at program start
-$ hledger CMD --debug=-3    # pause for ghc-debug commands at program end
+$ hledger CMD --debug=-2    # pause for ghc-debug commands at program start (doesn't work)
+$ hledger CMD --debug=-3    # pause for ghc-debug commands at program end (doesn't work)
 Starting ghc-debug on socket: ...
 ```
 
-Now in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the hledger process (until it ends). Press enter to connect. This is not robust. Tips:
+Now in another window, you can run [ghc-debug-brick](https://hackage.haskell.org/package/ghc-debug-brick) and it will show the hledger process (until it ends). Press enter to connect. If it fails,
 - you might need to clear out stale sockets: `rm -f ~/.local/share/ghc-debug/debuggee/sockets/*`
 - you might need to kill stale hledger processes: `pkill -fl hledger`
-- with --debug=-2 or -3 it might fail with this error, reasons unclear:\
-  `rts_resume: called from a different OS thread than rts_pause`.\
-  To work around, use --debug=-1.
-  (This works best with hledger-ui or hledger-web; with hledger, you'll need to give it a big enough data file so that you can connect and pause it before it finishes.)
-- once connected, if the program is running, press `p` to pause it
+- with --debug=-2 or -3 it fails with `rts_resume: called from a different OS thread than rts_pause`, 
+  so use --debug=-1 instead. This works best with the long-running hledger-ui or hledger-web;
+  with hledger, you'll need a big enough data file so that you have time to connect before it finishes.
+  Once connected, press `p` to pause the program.
 
 At this point, you can explore memory/profile information, save snapshots, resume execution, etc.
 
