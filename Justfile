@@ -541,10 +541,15 @@ INSTALLING:
 # @copy-as VER:
 #     cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
 
-# stack install, then copy the hledger executables to bin/old/hledger*-VER
+# install the hledger executables to bin/old/hledger*-VER
 @installas VER:
     $STACK install --local-bin-path bin/old
-    for e in hledger hledger-ui hledger-web ; do cp bin/old/$e bin/old/$e-{{ VER }}; echo "bin/$e-{{ VER }}"; done
+    for e in hledger hledger-ui hledger-web ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
+
+# install the hledger executables with ghc-debug support to bin/hledger*-dbg
+@installdbg:
+    $STACK install --local-bin-path bin --flag hledger-lib:ghcdebug --flag hledger:ghcdebug --flag hledger-ui:ghcdebug --flag hledger-web:ghcdebug
+    for e in hledger hledger-ui hledger-web ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
 # # make must be GNU Make 4.3+
 # .PHONY: shellcompletions
@@ -553,10 +558,10 @@ INSTALLING:
 #     make -C hledger/shell-completion/ clean-all all
 
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
-# download hledger* version VER for OS (linux, mac windows) and ARCH (x64, arm64) from github release VER to bin/hledger*-VER
-get-binaries OS ARCH VER:
+# download github release VER binaries for OS (linux, mac, windows) and ARCH (x64, arm64) to bin/old/hledger*-VER
+@installrel VER OS ARCH:
     #!/usr/bin/env bash
-    cd bin && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
+    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
 
 # # download recent versions of the hledger executables from github to bin/hledger*-VER
 # get-recent-binaries:
