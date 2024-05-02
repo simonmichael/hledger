@@ -227,7 +227,6 @@ commandsList progversion othercmds =
   ,"+interest                 generate interest transactions"
   ,"+lots sell                generate a lot-selling transaction"
   ," rewrite                  generate auto postings, like print --auto"
-  ,"+stockquotes              download market prices from AlphaVantage"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "MANAGING DATA (error checking, version control..)"
