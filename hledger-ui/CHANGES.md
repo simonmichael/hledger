@@ -21,6 +21,18 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
+# 1.33.1 2024-05-02
+
+- Require vty-windows-0.2.0.2+ to avoid display problems in recent
+  MS Terminal on Windows.
+
+- process >=1.6.19.0 seems not strictly needed and is no longer required,
+  improving installability.
+  [#2149]
+
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
+
+
 # 1.33 2024-04-18
 
 Fixes
