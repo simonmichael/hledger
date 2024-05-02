@@ -13,9 +13,6 @@ packages:
 - hledger-web
 
 extra-deps:
-- process-1.6.19.0          # for HSEC-2024-0003
-- Cabal-3.4.1.0
-
 - megaparsec-9.3.0
 - safe-0.3.21
 # for hledger-lib:

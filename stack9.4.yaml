@@ -9,10 +9,6 @@ packages:
 - hledger-web
 
 extra-deps:
-- process-1.6.19.0          # for HSEC-2024-0003
-- Cabal-3.8.1.0
-- haskeline-0.8.2.1
-
 - safe-0.3.21
 - brick-2.3.1
 - vty-6.2

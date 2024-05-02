@@ -120,7 +120,7 @@ dependencies:
 - megaparsec >=7.0.0 && <9.7
 - microlens >=0.4
 - mtl >=2.2.1
-- process >=1.6.19.0
+- process
 - regex-tdfa
 - safe >=0.3.20
 - shakespeare >=2.0.2.2
