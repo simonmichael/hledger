@@ -221,20 +221,20 @@ These steps can be interleaved/reordered a little if needed.
 In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
 1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
-1. If not the first release in this branch, cherry-pick changes from master: `magit l o REL-branch..master` (minor releases)
+1. If not the first release in this branch, cherry-pick changes from master: `magit l o ..master` (minor releases)
 1. (Could start building/testing/fixing release binaries/workflows/caches here, it takes time: `just relbin`)
 1. Update install script: `hledger-install/hledger-install.sh`
 1. Update changelogs: `./Shake changelogs` & manually edit
-   (*TODO: fix Shake changelogs to not eat whitespace*)
+   (*TODO: fix Shake changelogs to not eat whitespace, add to Justfile*)
 1. Update release notes: `doc/relnotes*`
-   (*TODO: automate release notes, github release notes production; auto-link issue numbers*)
+   (*TODO: fix tools/relnotes.hs, fix md-issue-refs to uniquify, add to Justfile, automate github release notes*)
 1. Update announcements: `doc/ANNOUNCE*` (major releases)
 1. Build/test release binaries: `just relbin`. Troubleshoot/repeat as needed.
 
 In site repo:
 1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
+1. Update config in `hledger.org.caddy` (@oldmanpath, @unversionedmanpath, any new redirects) (major releases, usually)
 1. Update install page: `site/src/install.md`
-1. Update config in `hledger.org.caddy` (@oldmanpath, @unversionedmanpath, any new redirects)
 
 ### 2 Prep release
 In main repo, release branch:
@@ -263,9 +263,9 @@ In site repo:
 1. Push to github: `git push github` or magit `P p`
 
 In hledger.org [cloudflare caching settings](https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration):
-1. Custom Purge `https://hledger.org/js/site.js`
+1. Custom Purge `https://hledger.org/js/site.js`  (major release)
 
-On hledger.org VPS:
+On hledger.org VPS:  (major release, usually)
 1. Restart caddy to enable new redirects
 1. Test https://hledger.org/hledger.html redirect
 1. Test manuals are displaying and highlighting the new version
