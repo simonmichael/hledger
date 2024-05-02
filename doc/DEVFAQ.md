@@ -1,8 +1,8 @@
 # Developer FAQ
 
-<!-- toc -->
-
 This is just getting started. It will absorb some of the other [Developer docs](dev.md).
+
+<!-- toc -->
 
 <!-- ## Developing hledger -->
 

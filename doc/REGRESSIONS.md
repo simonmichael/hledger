@@ -99,6 +99,7 @@ To claim the bounty:
 | [#2130]                      | Simon Michael   | N/A                                                              |
 | [#2134]                      | pepe_pecas      | 2023-12-15, $100 donated                                         |
 | [#2156]                      | ishmaelavila    |                                                                  |
+| **1.33** 2024-04-18          | -               | -                                                                |
 
 - [all regression reports](https://bugs.hledger.org/regressions)
 - [regression bounty requests](https://opencollective.com/hledger/expenses?amount=50-100)
