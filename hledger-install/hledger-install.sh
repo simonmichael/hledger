@@ -12,7 +12,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240417
+HLEDGER_INSTALL_VERSION=20240502
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -40,12 +40,12 @@ pip \
 # Keep synced with the tools above. 
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.33
-HLEDGER_VERSION=1.33
-HLEDGER_UI_VERSION=1.33
-HLEDGER_WEB_VERSION=1.33
+HLEDGER_LIB_VERSION=1.33.1
+HLEDGER_VERSION=1.33.1
+HLEDGER_UI_VERSION=1.33.1
+HLEDGER_WEB_VERSION=1.33.1
 # Third-party:
-HLEDGER_IADD_VERSION=1.3.20
+HLEDGER_IADD_VERSION=1.3.21
 HLEDGER_INTEREST_VERSION=1.6.6
 HLEDGER_EDIT_VERSION=1.14.0
 HLEDGER_PLOT_VERSION=1.14.0
@@ -94,14 +94,14 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-22.17"
+STACK_RESOLVER="--resolver=lts-22.19"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
 # Be careful not to break interpolation in commands below, the format should be
 # STACK_EXTRA_DEPS="PKG1-VER1 PKG2-VER2 ..."
 # extra deps as in stack9.6.yaml:
-STACK_EXTRA_DEPS="process-1.6.19.0 Cabal-3.10.1.0 haskeline-0.8.2.1 vty-windows-0.2.0.1"
+STACK_EXTRA_DEPS="vty-windows-0.2.0.1"
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
