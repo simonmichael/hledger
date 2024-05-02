@@ -209,69 +209,75 @@ commandsList progversion othercmds =
   ," https://hledger.org              HTML manuals, tutorials, examples, support"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "UIS (other user interfaces)"
-  ,"+ui                       run terminal UI"
-  ,"+web                      run web UI"
+  ,bold' "USER INTERFACES (alternate UIs)"
+  ,"+ui                       run terminal UI"                                       -- hledger-ui
+  ,"+web                      run web UI"                                            -- hledger-web
+                                                                                     -- see also: MoLe, https://hledger.org/mobile.html
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "ENTERING DATA (add or edit transactions in the journal file)"
-  ," add                      add transactions using console prompts"
-  ,"+iadd                     add transactions using a TUI"
-  ," import                   add (new) transactions from other files, eg CSV files"
-  ,"+edit                     edit existing transactions"
+  ,bold' "ENTERING DATA (add or edit transactions)"
+  ," add                      add transactions using interactive prompts"
+  ,"+iadd                     add transactions using a TUI"                          -- hledger-iadd
+  ," import                   add new transactions from other files, eg CSV files"
+  ,"+edit                     edit existing transactions with $EDITOR"               -- hledger-utils
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "GENERATING DATA (generate entries to be added to the journal file)"
-  ,"+autosync                 download/deduplicate/convert OFX data"
-  ," close                    generate balance-zeroing/restoring transactions"
-  ,"+interest                 generate interest transactions"
-  ,"+lots sell                generate a lot-selling transaction"
-  ," rewrite                  generate auto postings, like print --auto"
+  ,bold' "BASIC REPORTS (simple lists)"
+  ," accounts                 show account names"
+  ," codes                    show transaction codes"
+  ," commodities              show commodity/currency symbols"
+  ," descriptions             show transaction descriptions"
+  ," files                    show data files in use"
+  ," notes                    show note part of transaction descriptions"
+  ," payees                   show payee part of transaction descriptions"
+  ," prices                   show historical market prices"
+  ," stats                    show journal statistics"
+  ," tags                     show tag names"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "MANAGING DATA (error checking, version control..)"
-  ," check                    check for various kinds of error in the data"
-  ,"+check-fancyassertions    check more powerful balance assertions"
-  ,"+check-tagfiles           check file paths in tag values exist"
-  ," diff                     compare account transactions in two journal files"
-  ,"+git                      simple version management with git"
-  ,"+pijul                    simple version management with pijul"
-  ,""
-    -----------------------------------------80-------------------------------------
-  ,bold' "FINANCIAL REPORTS (standard financial statements)"
-  ," aregister (areg)         show transactions in a particular account"
-  ," balancesheet (bs)        show assets, liabilities and net worth"
+  ,bold' "STANDARD REPORTS (the most useful financial reports)"
+  ," print                    show full transaction entries, or export journal data"
+  ," aregister (areg)         show transactions & running balance in one account"
+  ," register (reg)           show postings & running total in one or more accounts"
+  ," balancesheet (bs)        show assets and liabilities"
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "VERSATILE REPORTS (more complex/versatile reporting commands)"
-  ," activity                 show a simple bar chart of posting counts per period"
-  ," balance (bal)            show balance changes, end balances, budgets, gains.."
-  ,"+bar                      show a balance report as a simple bar chart"
-  ,"+lots                     show a commodity's lots"
-  ,"+plot                     create charts from balance reports, in terminal or GUI"
-  ," print                    show transactions or export journal data"
-  ," register (reg)           show postings in one or more accounts & running total"
+  ,bold' "CHARTS (bar charts, line graphs..)"
+  ," activity                 show posting counts as a terminal bar chart"
+  ,"+bar                      show balances or changes as a terminal bar chart"      -- hledger-bar
+  ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
+  ,""
+    -----------------------------------------80-------------------------------------
+  ,bold' "MORE REPORTS (more versatile/advanced reports)"
+  ," balance (bal)            show balance changes, end balances, gains, budgets.."
+  ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "BASIC REPORTS (lists and stats)"
-  ," accounts                 show account names"
-  ," codes                    show transaction codes"
-  ," commodities              show commodity/currency symbols"
-  ," descriptions             show full transaction descriptions (payee and note)"
-  ," files                    show data files in use"
-  ," notes                    show note part of transaction descriptions"
-  ," payees                   show payee names"
-  ," prices                   show historical market prices"
-  ," stats                    show journal statistics"
-  ," tags                     show tag names"
-  ," test [-- TASTYOPTS]      run a few self tests"
+  ,bold' "GENERATING DATA (generate or download journal entries; less common)"
+  ,"+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
+  ," close                    generate transactions to zero/restore/assert balances"
+  ,"+interest                 generate transactions transferring accrued interest"   -- hledger-interest
+  ,"+lots sell                generate a lot-selling transaction"                    -- hledger-lots
+  ,"+pricehist                download historical market prices"                     -- pricehist
+  ," rewrite                  add postings to transactions, like print --auto"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "OTHER (more hledger-* addon commands found in PATH)"
+  ,bold' "VALIDATING DATA (error checking, version control..)"
+  ," check                    run any of hledger's built-in correctness checks"
+  ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
+  ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
+  ," diff                     compare an account's transactions in two journals"
+  ,"+git                      save or view journal file history simply in git"       -- hledger-git
+  ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
+  ," test [-- TASTYOPTS]      run some self tests"
+  ,""
+    -----------------------------------------80-------------------------------------
+  ,bold' "OTHER ADDONS (more hledger-* commands found in PATH):"
+  ,""
   ]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ [""]
