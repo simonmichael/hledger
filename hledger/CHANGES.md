@@ -23,11 +23,21 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# fbd26f67a
+# 7525014c7
 
 Breaking changes
 
+- `check ordereddates` no longer supports `--date2`; it checks primary
+  dates only.
+
 Fixes
+
+- We no longer require process >=1.6.19.0, as it hurt installability
+  and seems not strictly needed.
+  [#2149]
+
+- `print` and `close` now show a trailing decimal mark on cost amounts also,
+  when needed to disambiguate a digit group mark.
 
 - Balance commands's HTML output now includes digit group marks when
   appropriate (this broke in 1.25).
@@ -39,6 +49,14 @@ Fixes
 Features
 
 Improvements
+
+- Correctness checks now run in a documented order.  Commodities are
+  now checked before accounts, and tags before recentassertions.
+
+- When built with the `ghcdebug` flag and started with `--debug=-1`,
+  hledger can be controlled by ghc-debug clients like
+  ghc-debug-brick or a ghc-debug query script, for analysing
+  memory/profile info.
 
 - Commands list cleanups; move the HELP and UIS sections to the top.
 

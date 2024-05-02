@@ -21,7 +21,7 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 160bfff51
+# 4c53ab419
 
 Breaking changes
 
@@ -30,6 +30,11 @@ Fixes
 Features
 
 Improvements
+
+- When built with the ghcdebug flag and started with --debug=-1,
+  hledger-web can be controlled by ghc-debug clients like
+  ghc-debug-brick or a ghc-debug query script, for analysing
+  memory/profile info.
 
 - support base64 >=1.0
 

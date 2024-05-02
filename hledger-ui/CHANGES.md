@@ -21,23 +21,33 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 4ae62a183
+# 7525014c7
 
 Breaking changes
 
 Fixes
 
+- Require vty-windows-0.2.0.2+ to avoid display problems in recent
+  MS Terminal on Windows.
+
+- We no longer require process >=1.6.19.0, as it hurt installability
+  and seems not strictly needed.
+  [#2149]
+
 Features
 
 Improvements
 
-- Require vty-windows-0.2.0.2+ to avoid display problems in recent
-  MS Terminal on Windows.
+- When built with the ghcdebug flag and started with --debug=-1,
+  hledger-ui can be controlled by ghc-debug clients like
+  ghc-debug-brick or a ghc-debug query script, for analysing
+  memory/profile info.
 
 Docs
 
 API
 
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
 
 # 1.33 2024-04-18
 
