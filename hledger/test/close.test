@@ -239,36 +239,38 @@ $ hledger -f- close -e 100000-01-01
 > /99999-12-31 closing balances/
 >=
 
-# ** 17. Not specific to close, but easy to reproduce with it: trailing decimal marks should be added
-# in balance assertion/assignment amounts also, like posting amounts. (#2076)
+# ** 17. close (and print) should add trailing decimal marks when needed to posting amounts and costs.
 <
+commodity $1,000.00
 2000-01-01
-    (assets:a)  $1,000.00
-    (assets:b)   $1000
+    (assets:a)  $1,000 @@ $1,000
 
-$ hledger -f- close --migrate -e 2001
+$ hledger -f- close --migrate --show-costs -e 2001
 2000-12-31 closing balances  ; start:
-    assets:a                             $-1,000.00 = $0.00
-    assets:b                               $-1,000. = $0
+    assets:a                           $-1,000. @@ $1,000. = $0
     equity:opening/closing balances
 
 2001-01-01 opening balances  ; start:
-    assets:a                              $1,000.00 = $1,000.00
-    assets:b                                $1,000. = $1,000.
+    assets:a                           $1,000. @@ $1,000. = $1,000.
     equity:opening/closing balances
 
 >=
 
-# ** 18. close supports --round, like print.
+# ** 18. And to balance assertion and balance assignment amounts and costs. (#2076)
+$ hledger -f- close --assert --show-costs -e 2001
+2000-12-31 assert balances  ; assert:
+    assets:a              $0 = $1,000. @@ $1,000.
+
+>=
+
+# ** 19. close supports --round, like print.
 $ hledger -f- close --migrate -e 2001 --round=hard -c '$1.0'
 2000-12-31 closing balances  ; start:
     assets:a                               $-1000.0 = $0.0
-    assets:b                               $-1000.0 = $0.0
     equity:opening/closing balances
 
 2001-01-01 opening balances  ; start:
     assets:a                                $1000.0 = $1000.0
-    assets:b                                $1000.0 = $1000.0
     equity:opening/closing balances
 
 >=
