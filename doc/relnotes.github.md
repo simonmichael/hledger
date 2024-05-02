@@ -393,7 +393,7 @@ hledger --version    # should show the new version
 <details>
 <summary>
 
-### Windows on 64-bit Intel (or ARM, using emulation)
+### Windows on 64-bit Intel or ARM
 
 </summary>
 
@@ -409,11 +409,15 @@ $ENV:PATH += ";"+$HOME+"\bin"
 2. Download and install the release binaries:
 ```
 cd $HOME\bin
-curl https://github.com/simonmichael/hledger/releases/download/1.33/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip     # just rerun if interrupted
-Expand-Archive hledger-windows-x64.zip -DestinationPath .
-rm hledger-windows-x64.zip
+cp hledger.exe hledger.old.exe            # keep a backup of the old executables, if you care
+cp hledger-ui.exe hledger-ui.old.exe
+cp hledger-web.exe hledger-web.old.exe
+curl https://github.com/simonmichael/hledger/releases/download/1.33/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+Expand-Archive hledger-windows-x64.zip -DestinationPath . -Force
 cd $HOME
-hledger --version    # should show the new version
+hledger --version      # should show the new version
+hledger-ui --version
+hledger-web --version
 ```
 
 3. Ensure a default journal file exists, and without a problematic encoding. 
