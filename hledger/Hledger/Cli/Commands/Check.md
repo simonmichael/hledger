@@ -37,22 +37,22 @@ These important checks are performed by default, by almost all hledger commands:
 
 - **assertions** - all [balance assertions] in the journal are passing.
   Balance assertions are like canaries in your journal, they catch many problems.
-  This check can sometimes get in the way, eg when you are troubleshooting bookkeeping errors,
-  or parsing a journal fragment, so it can be disabled temporarily with `-I`/`--ignore-assertions`.
+  This check sometimes gets in the way, eg when troubleshooting bookkeeping errors,
+  or parsing a journal fragment; you can disable it temporarily with `-I`/`--ignore-assertions`.
 
 ### Strict checks
 
-These additional checks are performed by any command when the `-s`/`--strict` flag is used (AKA [strict mode]). 
+These additional checks are performed by any command when the `-s`/`--strict` flag is used ([strict mode]). 
 They provide extra error-catching power when you are serious about keeping your data clean and free of typos:
 
 - **balanced** - like `autobalanced`, but in [conversion transactions](#recording-costs),
-  costs must be written explicitly. This ensures some redundancy in the entry, guarding against typos.
+  costs must be written explicitly. This ensures some redundancy in the entry, which helps prevent typos.
 
 - **commodities** - all commodity symbols used [must be declared](#commodity-error-checking).
-  This guards against forgetting or mistyping commodity symbols.
+  This guards against mistyping or omitting commodity symbols.
 
 - **accounts** - all account names used [must be declared](#account-error-checking).
-  This prevents the use of mistyped or outdated account names.
+  This prevents the use of mis-spelled or outdated account names.
 
 ### Other checks
 
