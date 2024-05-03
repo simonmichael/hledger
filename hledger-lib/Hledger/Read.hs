@@ -228,6 +228,7 @@ readJournal iopts@InputOpts{strict_} mpath txt = do
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
 -- with strict checks if enabled, or return an error message.
+-- (Note strict checks are disabled temporarily here when this is called by readJournalFiles).
 -- The file path can have a READER: prefix.
 --
 -- The reader (data format) to use is determined from (in priority order):

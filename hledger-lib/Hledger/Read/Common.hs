@@ -313,9 +313,11 @@ initialiseAndParseJournal parser iopts f txt =
 --
 -- - infer market prices from costs if enabled
 --
--- - check all accounts have been declared if in strict mode
---
--- - check all commodities have been declared if in strict mode
+-- One correctness check (parseable) has already passed when this function is called.
+-- Up to three more are performed here:
+--  - ordereddates (when enabled), done before balance assertions
+--  - autobalanced (and with --strict, balanced ?), in the journalBalanceTransactions step.
+-- Others (commodities, accounts) are done later by journalStrictChecks.
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts@InputOpts{..} f txt pj = do
@@ -342,7 +344,16 @@ journalFinalise iopts@InputOpts{..} f txt pj = do
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalAmountsDebug)
-      >>= journalBalanceTransactions balancingopts_      -- infer balance assignments and missing amounts and maybe check balance assertions.
+
+      -- Ensure ordereddates is checked before balance assertions.
+      -- Currently ordereddates is not part of strict mode and can only be enabled by the check command,
+      -- and that will not run for a while yet. So for now, this dirty hack (uses unsafePerformIO):
+      >>= (\j -> let args = progArgs in
+            if "check" `elem` args && "ordereddates" `elem` args
+            then journalCheckOrdereddates j <&> const j
+            else Right j)  -- the outer parentheses are needed
+
+      >>= journalBalanceTransactions balancingopts_      -- infer balance assignments and missing amounts and (unless disabled) check balance assertions.
       <&> dbg9With (lbl "amounts after transaction-balancing".showJournalAmountsDebug)
       -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalAmountsDebug)
       >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present

@@ -24,6 +24,30 @@ $ hledger -f- check ordereddates --date2
 >2 /date .*is out of order/
 >=1
 
+# ** 4. ordereddates is checked before balance assertions, when both are enabled
+<
+2024-01-02
+  (a)      1 = 9
+
+2024-01-01
+  (a)      1
+
+$ hledger -f - check assertions ordereddates
+>2 /date .*is out of order/
+>=1
+
+# ** 5. enabling the ordereddates check does not disable the balance assertions check
+<
+2024-01-01
+  (a)      1
+
+2024-01-02
+  (a)      1 = 9
+
+$ hledger -f - check assertions ordereddates
+>2 /Balance assertion failed/
+>=1
+
 # XXX not supported: With a query, only matched transactions' dates are checked.
 # <
 # 2020-01-01 a

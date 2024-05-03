@@ -61,6 +61,8 @@ These other checks are not wanted by everyone, but can be run using the `check` 
 - **ordereddates** - within each file, transactions are ordered by date.
   This is a simple and effective error catcher, and you should use it.
   Alas! not everyone wants it. If you do, use `hledger check -s ordereddates`.
+  Note, this check is performed early, before balance assertions
+  (because copy-pasted dates are often the root cause of balance assertion failures).
 
 - **payees** - all payees used by transactions [must be declared](#payee-directive).
   This will force you to always use known/declared payee names. 

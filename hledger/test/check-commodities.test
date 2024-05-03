@@ -30,3 +30,8 @@ $ hledger -f- check commodities
 $ hledger -f- check commodities
 >2 /commodity "\$" has not been declared/
 >=1
+
+# ** 5. The commodities check is enabled in strict mode, ahead of accounts.
+$ hledger -f- check -s
+>2 /commodity "\$" has not been declared/
+>=1

@@ -48,8 +48,7 @@ import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
 journalStrictChecks :: Journal -> Either String ()
 journalStrictChecks j = do
   -- keep the order of checks here synced with Check.md and Hledger.Cli.Commands.Check.Check.
-  -- journalCheckOrdereddates j
-  -- journalCheckBalanceAssertions j
+  -- balanced is checked earlier, in journalFinalise
   journalCheckCommodities j
   journalCheckAccounts j
 

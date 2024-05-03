@@ -96,12 +96,11 @@ runCheck _opts j (chck,_) = do
   d <- getCurrentDay
   let
     results = case chck of
-      -- these checks are assumed to have passed earlier during journal parsing:
+      -- these checks are assumed to have passed earlier during journal parsing (if enabled):
       Parseable       -> Right ()
       Autobalanced    -> Right ()
       Balanced        -> Right ()
       Assertions      -> Right ()
-
       Accounts        -> journalCheckAccounts j
       Commodities     -> journalCheckCommodities j
       Ordereddates    -> journalCheckOrdereddates j
