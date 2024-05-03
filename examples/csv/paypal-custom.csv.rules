@@ -1,0 +1,111 @@
+# paypal-custom.csv.rules
+
+# Tips:
+# Paypal is a large continually-changing maze, and there are personal and business accounts (and variations of those, probably).
+# I think the following was true of a personal account circa 2018 and is not too far off in 2024:
+# Export CSV from Activity -> Statements -> Custom -> Activity download  https://www.paypal.com/reports/dlog
+# Suggested transaction type: "Balance affecting"
+# The default fields in 2018 were:
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Shipping Address","Address Status","Item Title","Item ID","Shipping and Handling Amount","Insurance Amount","Sales Tax","Option 1 Name","Option 1 Value","Option 2 Name","Option 2 Value","Reference Txn ID","Invoice Number","Custom Number","Quantity","Receipt ID","Balance","Address Line 1","Address Line 2/District/Neighborhood","Town/City","State/Province/Region/County/Territory/Prefecture/Republic","Zip/Postal Code","Country","Contact Phone Number","Subject","Note","Country Code","Balance Impact"
+# This rules file assumes the following fields, configured in "Customize report fields":
+# "Date","Time","TimeZone","Name","Type","Status","Currency","Gross","Fee","Net","From Email Address","To Email Address","Transaction ID","Item Title","Item ID","Reference Txn ID","Receipt ID","Balance","Note"
+
+fields date, time, timezone, description_, type, status_, currency, grossamount, feeamount, netamount, fromemail, toemail, code, itemtitle, itemid, referencetxnid, receiptid, balance, note
+
+skip  1
+
+date-format  %-m/%-d/%Y
+
+# ignore some paypal events
+if
+In Progress
+Temporary Hold
+Update to 
+ skip
+
+# add more fields to the description
+description %description_ %itemtitle 
+
+# save some other fields as tags
+comment  itemid:%itemid, fromemail:%fromemail, toemail:%toemail, time:%time, type:%type, status:%status_
+
+# convert to short currency symbols
+if %currency USD
+ currency $
+if %currency EUR
+ currency E
+if %currency GBP
+ currency P
+
+# generate postings
+
+# the first posting will be the money leaving/entering my paypal account
+# (negative means leaving my account, in all amount fields)
+account1 assets:online:paypal
+amount1  %netamount
+
+# the second posting will be money sent to/received from other party
+# (account2 is set below)
+amount2  -%grossamount
+
+# if there's a fee, add a third posting for the money taken by paypal.
+if %feeamount [1-9]
+ account3 expenses:banking:paypal
+ amount3  -%feeamount
+ comment3 business:
+
+# choose an account for the second posting
+
+# override the default account names:
+# if the amount is positive, it's income (a debit)
+if %grossamount ^[^-]
+ account2 income:unknown
+# if negative, it's an expense (a credit)
+if %grossamount ^-
+ account2 expenses:unknown
+
+# apply common rules for setting account2 & other tweaks:
+
+#include common.rules
+#include paypal-custom-common.rules
+
+# inlined:
+
+if
+darcs
+noble benefactor
+ account2 revenues:foss donations:darcshub
+ comment2 business:
+
+if
+Calm Radio
+ account2 expenses:online:apps
+
+if
+electronic frontier foundation
+Patreon
+wikimedia
+Advent of Code
+ account2 expenses:dues
+
+if Google
+ account2 expenses:online:apps
+ description google | music
+
+#
+
+
+# overrides specific to this csv:
+
+# Transfers from/to bank. These are usually marked Pending, 
+# which can be disregarded in this case.
+if 
+Bank Account
+Bank Deposit to PP Account
+ description %type for %referencetxnid %itemtitle
+ account2 assets:bank:wf:pchecking
+ account1 assets:online:paypal
+
+# Currency conversions
+if Currency Conversion
+ account2 equity:currency conversion
