@@ -479,10 +479,10 @@ SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 
 # build hledger quickly and run functional tests, with any shelltest OPTS (requires mktestaddons)
 @functest *OPTS:
     $STACK build --fast hledger
-    ({{ SHELLTEST }} {{ if OPTS == '' { '' } else { OPTS } }} \
+    time (({{ SHELLTEST }} {{ if OPTS == '' { '' } else { OPTS } }} \
         hledger/test/ bin/ \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
-        && echo $@ PASSED) || (echo $@ FAILED; false)
+        && echo $@ PASSED) || (echo $@ FAILED; false))
 
 ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 
