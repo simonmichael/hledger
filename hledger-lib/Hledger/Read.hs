@@ -219,11 +219,11 @@ type PrefixedFilePath = FilePath
 -- we use the journal reader (for predictability).
 --
 readJournal :: InputOpts -> Maybe FilePath -> Text -> ExceptT String IO Journal
-readJournal iopts@InputOpts{strict_} mpath txt = do
+readJournal iopts@InputOpts{strict_, _defer} mpath txt = do
   let r :: Reader IO = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
   dbg6IO "readJournal: trying reader" (rFormat r)
   j <- rReadFn r iopts (fromMaybe "(string)" mpath) txt
-  when strict_ $ liftEither $ journalStrictChecks j
+  when (strict_ && not _defer) $ liftEither $ journalStrictChecks j
   return j
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
@@ -241,15 +241,14 @@ readJournal iopts@InputOpts{strict_} mpath txt = do
 -- generation, a rules file for converting CSV data, etc.
 --
 -- If using --new, and if latest-file writing is enabled in input options,
--- and after passing strict checks if enabled, a .latest.FILE file will be created/updated
--- (for the main file only, not for included files),
--- to remember the latest transaction date (and how many transactions on this date)
--- successfully read.
+-- and not deferred by readJournalFiles, and after passing strict checks if enabled,
+-- a .latest.FILE file will be created/updated (for the main file only, not for included files),
+-- to remember the latest transaction date processed.
 --
 readJournalFile :: InputOpts -> PrefixedFilePath -> ExceptT String IO Journal
-readJournalFile iopts@InputOpts{new_, new_save_} prefixedfile = do
+readJournalFile iopts@InputOpts{new_, new_save_, _defer} prefixedfile = do
   (j, mlatestdates) <- readJournalFileAndLatestDates iopts prefixedfile
-  when (new_ && new_save_) $ liftIO $
+  when (new_ && new_save_ && not _defer) $ liftIO $
     case mlatestdates of
       Nothing                        -> return ()
       Just (LatestDatesForFile f ds) -> saveLatestDates ds f
@@ -279,9 +278,6 @@ readJournalFileAndLatestDates iopts prefixedfile = do
 
 -- | Read a Journal from each specified file path (using @readJournalFile@) 
 -- and combine them into one; or return the first error message.
--- Strict checks, if enabled, are deferred till the end.
--- Writing .latest files, if enabled, is also deferred till the end,
--- and happens only if strict checks pass.
 --
 -- Combining Journals means concatenating them, basically.
 -- The parse state resets at the start of each file, which means that
@@ -289,9 +285,16 @@ readJournalFileAndLatestDates iopts prefixedfile = do
 -- They do affect included child files though.
 -- Also the final parse state saved in the Journal does span all files.
 --
+-- Strict checks, if enabled, are temporarily deferred until all files are read,
+-- to ensure they see the whole journal, and/or to avoid redundant work.
+-- (Some checks, like assertions and ordereddates, might still be doing redundant work ?)
+--
+-- Writing .latest files, if enabled, is also deferred till the end,
+-- and is done only if strict checks pass.
+--
 readJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
-readJournalFiles iopts@InputOpts{strict_,new_,new_save_} prefixedfiles = do
-  let iopts' = iopts{strict_=False, new_save_=False}
+readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
+  let iopts' = iopts{_defer=True}
   (j, latestdatesforfiles) <-
     traceOrLogAt 6 ("readJournalFiles: "++show prefixedfiles) $
     readJournalFilesAndLatestDates iopts' prefixedfiles

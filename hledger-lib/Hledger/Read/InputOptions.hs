@@ -29,18 +29,19 @@ data InputOpts = InputOpts {
                                                 --   by a filename prefix. Nothing means try all.
     ,mrules_file_       :: Maybe FilePath       -- ^ a conversion rules file to use (when reading CSV)
     ,aliases_           :: [String]             -- ^ account name aliases to apply
-    ,anon_              :: Bool                 -- ^ do light obfuscation of the data. Now corresponds to --obfuscate, not the old --anon flag.
-    ,new_               :: Bool                 -- ^ read only new transactions since this file was last read
-    ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time
+    ,anon_              :: Bool                 -- ^ do light obfuscation of the data ? Now corresponds to --obfuscate, not the old --anon flag.
+    ,new_               :: Bool                 -- ^ read only new transactions since this file was last read ?
+    ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time ?
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
     ,verbose_tags_      :: Bool                 -- ^ add user-visible tags when generating/modifying transactions & postings ?
     ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
-    ,auto_              :: Bool                 -- ^ generate automatic postings when journal is parsed ?
+    ,auto_              :: Bool                 -- ^ generate extra postings according to auto posting rules ?
     ,infer_equity_      :: Bool                 -- ^ infer equity conversion postings from costs ?
     ,infer_costs_       :: Bool                 -- ^ infer costs from equity conversion postings ? distinct from BalancingOpts{infer_balancing_costs_}
-    ,balancingopts_     :: BalancingOpts        -- ^ options for balancing transactions
-    ,strict_            :: Bool                 -- ^ do extra error checking (eg, all posted accounts are declared, no prices are inferred)
+    ,balancingopts_     :: BalancingOpts        -- ^ options for transaction balancing
+    ,strict_            :: Bool                 -- ^ do extra correctness checks ?
+    ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
  } deriving (Show)
 
@@ -61,6 +62,7 @@ definputopts = InputOpts
     , infer_costs_       = False
     , balancingopts_     = defbalancingopts
     , strict_            = False
+    , _defer             = False
     , _ioDay             = nulldate
     }
 
