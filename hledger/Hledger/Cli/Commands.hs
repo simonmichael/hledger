@@ -247,16 +247,16 @@ commandsList progversion othercmds =
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
+  ,bold' "ADVANCED REPORTS (more versatile/advanced reports)"
+  ," balance (bal)            show balance changes, end balances, gains, budgets.."
+  ,"+lots                     show a commodity's lots"                               -- hledger-lots
+  ," roi                      show return on investments"
+  ,""
+    -----------------------------------------80-------------------------------------
   ,bold' "CHARTS (bar charts, line graphs..)"
   ," activity                 show posting counts as a terminal bar chart"
   ,"+bar                      show balances or changes as a terminal bar chart"      -- hledger-bar
   ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
-  ,""
-    -----------------------------------------80-------------------------------------
-  ,bold' "MORE REPORTS (more versatile/advanced reports)"
-  ," balance (bal)            show balance changes, end balances, gains, budgets.."
-  ,"+lots                     show a commodity's lots"                               -- hledger-lots
-  ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "GENERATING DATA (generate or download journal entries; less common)"
