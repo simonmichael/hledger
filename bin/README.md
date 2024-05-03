@@ -29,6 +29,12 @@ hledger comes with many built-in commands, and you may want to get familiar with
 These scripts don't use hledger directly, but are complementary and might be useful to hledger users.
 ([plaintextaccounting.org](https://plaintextaccounting.org) has a longer list of PTA tools.)
 
+### hledger-pricehist
+
+[`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pricehist)
+is just an alias for the market price downloader [pricehist](https://pypi.org/project/pricehist),
+so that it shows up in the hledger commands list.
+
 ### paypaljson
 
 [`paypaljson`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson)
