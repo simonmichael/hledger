@@ -194,6 +194,8 @@ commandsList progversion othercmds =
   --  commands.m4
   --  hledger.m4.md -> Commands
   --  commandsFromCommandsList. Only commands should begin with space or plus.
+  -- IN PARTICULAR KEEP SYNCED WITH commandsListExtractCommands, 
+  -- it needs checking/updating after any wording/layout changes here
    "-------------------------------------------------------------------------------"
   ,progversion
   ,"Usage: hledger CMD [OPTS] [-- ADDONCMDOPTS]"
@@ -283,17 +285,18 @@ commandsList progversion othercmds =
   ++ [""]
 
 -- | Extract just the command names from the default commands list above,
--- (the first word of lines between "Usage:" and "HELP" beginning with a space or plus sign),
+-- (the first word of lines between "Usage:" and "OTHER" beginning with a space or plus sign),
 -- in the order they occur. With a true first argument, extracts only the addon command names.
--- Needs to be kept synced with commandsList.
 commandsListExtractCommands :: Bool -> [String] -> [String]
 commandsListExtractCommands addonsonly l =
-  [ w | c:ws@(d:_) <- takeWhile (not . isInfixOf "HELP") $ dropWhile (not . isInfixOf "Usage:") l
-  , c `elem` '+':[' '|not addonsonly]
-  , isAlphaNum d
-  , not $ "://" `isInfixOf` ws
-  , let w:_ = words ws
+  [ cmdname | prefixchar:line@(firstchar:_) <- 
+      takeWhile (not . isInfixOf "OTHER") $ dropWhile (not . isInfixOf "Usage:") l
+  , prefixchar `elem` '+':[' '|not addonsonly]
+  , isAlphaNum firstchar
+  , not $ "https://" `isInfixOf` line
+  , let cmdname:_ = words line
   ]
+  -- KEEP SYNCED WITH commandsList.
 
 -- | Canonical names of all commands which have a slot in the commands list, in alphabetical order.
 -- These include the builtin commands and the known addon commands.
