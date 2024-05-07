@@ -912,35 +912,40 @@ NEWS:
 @_tomorroworlastfriday *DATE:
     echo {{ if DATE == '' { `$GDATE -I -d 'last friday'` } else { `$GDATE -I -d tomorrow` } }}
 
-# Show activity between the last two fridays (suitable for TWIH), or since this date
-log *DATE:
+# Show a draft This Week In Hledger post, with activity between the last two fridays (by default)
+twih:  # *DATE:
     #!/usr/bin/env osh
-    printf "Last release: `just rel`\n\n"
     BEG=`just _dateortwofridaysago  $DATE`
     END=`just _todayorlastfriday $DATE`
-    just timelog   $DATE
-    if [[ $DATE == '' ]]; then printf "<https://hledger.org/news.html#this-week-in-hledger-$END>\n\n"; fi
-    just worklog   $DATE
+    cat <<END
+    ## This Week In Hledger $END
+    
+    **sm**
+    
+    END
+    printf "DRAFT:\n\n"
     just commitlog $DATE
-#    just chatlog   $DATE
-#    just maillog   $DATE
-#    just redditlog $DATE
-#    just tootlog   $DATE
-#    just bloglog
+    printf "last release: `just rel`\n\n"
+    just worklog   $DATE
+    just timelog   $DATE
+    cat <<END
+    
+    **Misc**
+    
+    - for recent discussions, see <https://hledger.org/support.html>.
+    
+    **Quotes**
+    
+    **
+    
+    **
+    
+    <https://hledger.org/news.html#this-week-in-hledger-$END>
+    
+    ---
+    END
 
-# Show hledger-related time logged between the last two fridays or since this date
-timelog *DATE:
-    #!/usr/bin/env osh
-    BEG=`just _dateortwofridaysago  $DATE`
-    END=`just _todayorlastfriday $DATE`
-    END1=`just _tomorroworlastfriday $DATE`
-    printf "** Time log in $BEG..$END\n\n"
-    hledger -f $TIMELOG print hledger -b $BEG -e $END1 | rg '^2|hledger'
-    echo
-    hledger -f $TIMELOG bal -S hledger -b $BEG -e $END1
-    echo
-
-GITSHORTFMT := "--format='%ad %h %s' --date=short"
+GITSHORTFMT := "--format='%ad %s' --date=short"
 
 # Show commits briefly in the three hledger repos between the last two fridays or since this date
 commitlog *DATE:
@@ -948,14 +953,14 @@ commitlog *DATE:
     BEG=`just _dateortwofridaysago  $DATE`
     END=`just _todayorlastfriday $DATE`
     printf "** commits in $BEG..$END\n"
-    printf "** hledger commits\n"
-    git log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
-    printf "** site commits\n"
-    git -C site log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
-    printf "** finance commits\n"
-    git -C finance log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
-    printf "** plaintextaccounting.org commits\n"
-    git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
+    printf "** hledger\n"
+    git log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
+    printf "** site\n"
+    git -C site log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
+    printf "** finance\n"
+    git -C finance log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
+    printf "** plaintextaccounting.org\n"
+    git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
     echo
 
 WORKLOG := "../../notes/CLOUD/hledger log.md"
@@ -976,6 +981,18 @@ worklog *DATE:
     # printf "** Work log in $BEGLOGGED..$ENDLOGGED\n"
     awk "/^#### $BEGLOGGED/{p=1;print;next}; /^## /{p=0}; p" "$WORKLOG"
     # awk "/^#### $BEGLOGGED/{p=1;print;next}; /#### $ENDLOGGED/{p=0}; /^## /{p=0}; p" "$WORKLOG"
+    echo
+
+# Show hledger-related time logged between the last two fridays or since this date
+timelog *DATE:
+    #!/usr/bin/env osh
+    BEG=`just _dateortwofridaysago  $DATE`
+    END=`just _todayorlastfriday $DATE`
+    END1=`just _tomorroworlastfriday $DATE`
+    printf "** Time log in $BEG..$END\n\n"
+    hledger -f $TIMELOG print hledger -b $BEG -e $END1 | rg '^2|hledger'
+    echo
+    hledger -f $TIMELOG bal -S --format '%-20(account) %12(total)' hledger -b $BEG -e $END1
     echo
 
 # Copy some text to the system clipboard if possible
