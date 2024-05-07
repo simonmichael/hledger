@@ -541,13 +541,23 @@ INSTALLING:
 # @copy-as VER:
 #     cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
 
-# install the hledger executables to bin/old/hledger*-VER
+# install hledger as bin/old/hledger-VER
 @installas VER:
+    $STACK install --local-bin-path bin/old hledger
+    for e in hledger ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
+
+# install all hledger executables as bin/old/hledger*-VER
+@installallas VER:
     $STACK install --local-bin-path bin/old
     for e in hledger hledger-ui hledger-web ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
 
-# install the hledger executables with ghc-debug support to bin/hledger*-dbg
-@installdbg *STACKARGS:
+# install hledger with ghc-debug support as bin/hledger*-dbg
+@installasdbg *STACKARGS:
+    $STACK install --local-bin-path bin --flag '*:ghcdebug' {{ STACKARGS }} hledger
+    for e in hledger ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
+
+# install all hledger executables with ghc-debug support as bin/hledger*-dbg
+@installallasdbg *STACKARGS:
     $STACK install --local-bin-path bin --flag '*:ghcdebug' {{ STACKARGS }}
     for e in hledger hledger-ui hledger-web ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
