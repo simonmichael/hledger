@@ -104,7 +104,7 @@ GTAR := `type -P gtar || echo tar`
 #GNUTAR := `which gtar >/dev/null && echo gtar || echo tar`
 # make ghc usable for scripting with -e
 
-GHC := 'ghc -ignore-dot-ghci -package-env -'
+GHC := 'ghc -package-env - -ignore-dot-ghci -Wno-x-partial'
 GHCI := 'ghci'
 
 # GHCPKG := 'ghc-pkg'
@@ -784,6 +784,28 @@ DOCUMENTING:
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
 
+# update the website (the live one if run on hledger.org)
+site: #Shake
+    ./Shake -V site 2>&1 | tee -a site.log
+
+# Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
+# site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
+#     @[ ! -x Shake ] \
+#         && echo 'Please run "make Shake" first (manual compilation required for safety)' \
+#         || ( \
+#             echo; \
+#             ./Shake -V site; \
+#         ) 2>&1 | tee -a site.log
+
+BROWSEDELAY := '5'
+#LOCALSITEURL := 'http://localhost:3000/dev/hledger.html'
+LOCALSITEURL := 'http://localhost:3000/index.html'
+
+# open a browser on the website (in ./site) and rerender when docs or web pages change
+@site-watch: #Shake
+    (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
+    $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
     --haddock-arguments="--no-warnings" \
@@ -850,155 +872,152 @@ haddock-open:
 # # 2. cron, nightly. Config: /etc/crontab
 # # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
 
-# update the website (the live one if run on hledger.org)
-site: #Shake
-    ./Shake -V site 2>&1 | tee -a site.log
-
-# Use the existing Shake executable without recompiling it, so as not to automatially run unreviewed code by hook ? I think this no longer applies.
-# site: $(call def-help,site-build, update the hledger.org website (run this on hledger.org, or run "make hledgerorg" elsewhere) )
-#     @[ ! -x Shake ] \
-#         && echo 'Please run "make Shake" first (manual compilation required for safety)' \
-#         || ( \
-#             echo; \
-#             ./Shake -V site; \
-#         ) 2>&1 | tee -a site.log
-
-BROWSEDELAY := '5'
-#LOCALSITEURL := 'http://localhost:3000/dev/hledger.html'
-LOCALSITEURL := 'http://localhost:3000/index.html'
-
-# open a browser on the website (in ./site) and rerender when docs or web pages change
-@site-watch: #Shake
-    (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
-    $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
-
 # optimise and commit RELEASING value map diagram
 @releasediag:
     pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
     git add doc/HledgerReleaseValueMap.png
     git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
 
-# Convert DATEARG to an ISO date. It can be an ISO date, number of recent days, or nothing (meaning last release date).
-@_datearg *DATEARG:
-    echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
-
-# Show activity since (mostly) this date or days ago or last release. Eg: just log > log.org
-log *DATEARG:
-    #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
-    printf "* Activity since $DATE:\n\n"
-    printf "Last release: `just rel`\n\n"
-    just chlog
-    just timelog   $DATEARG
-    just worklog   $DATEARG
-    just commitlog $DATEARG
-    just chatlog   $DATEARG
-    just maillog   $DATEARG
-    just redditlog $DATEARG
-    just tootlog   $DATEARG
-    just bloglog
-    echo "News url will be (if this is friday): https://hledger.org/news.html#this-week-in-hledger-"`date -I`
-
 CHANGELOGS := 'CHANGES.md hledger/CHANGES.md hledger-ui/CHANGES.md hledger-web/CHANGES.md hledger-lib/CHANGES.md'
 
 # Show changes since last release in the given CHANGES.md file or all of them. (Run after ./Shake changelogs.)
-chlog *CHANGELOG:
+unreleased *CHANGELOG:
     #!/usr/bin/env osh
     if [[ -z $CHANGELOG ]]; then
         for CHANGELOG in $CHANGELOGS; do
             printf "** $CHANGELOG\n\n"
-            just chlog $CHANGELOG
+            just unreleased $CHANGELOG
             echo
         done
     else
         awk '/^#+ /{p=1};/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{exit};p' $CHANGELOG
     fi
 
+# ** News ------------------------------------------------------------
+NEWS:
+
+# # Convert DATEARG to an ISO date. It can be an ISO date, number of recent days, or nothing (meaning last release date).
+# @_datearg *DATEARG:
+#     echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
+
+# If DATE is provided, return it, otherwise the date two fridays ago.
+@_dateortwofridaysago *DATE:
+    echo {{ if DATE == '' { `$GDATE -I -d 'last friday - 1 week'` } else { DATE } }}
+
+# If DATE is provided, return today's date, otherwise last friday's.
+@_todayorlastfriday *DATE:
+    echo {{ if DATE == '' { `$GDATE -I -d 'last friday'` } else { `$GDATE -I` } }}
+
+# If DATE is provided, return tomorrow's date, otherwise last friday's.
+@_tomorroworlastfriday *DATE:
+    echo {{ if DATE == '' { `$GDATE -I -d 'last friday'` } else { `$GDATE -I -d tomorrow` } }}
+
+# Show activity between the last two fridays (suitable for TWIH), or since this date
+log *DATE:
+    #!/usr/bin/env osh
+    printf "Last release: `just rel`\n\n"
+    BEG=`just _dateortwofridaysago  $DATE`
+    END=`just _todayorlastfriday $DATE`
+    just timelog   $DATE
+    if [[ $DATE == '' ]]; then printf "<https://hledger.org/news.html#this-week-in-hledger-$END>\n\n"; fi
+    just worklog   $DATE
+    just commitlog $DATE
+#    just chatlog   $DATE
+#    just maillog   $DATE
+#    just redditlog $DATE
+#    just tootlog   $DATE
+#    just bloglog
+
+# Show hledger-related time logged between the last two fridays or since this date
+timelog *DATE:
+    #!/usr/bin/env osh
+    BEG=`just _dateortwofridaysago  $DATE`
+    END=`just _todayorlastfriday $DATE`
+    END1=`just _tomorroworlastfriday $DATE`
+    printf "** Time log in $BEG..$END\n\n"
+    hledger -f $TIMELOG print hledger -b $BEG -e $END1 | rg '^2|hledger'
+    echo
+    hledger -f $TIMELOG bal -S hledger -b $BEG -e $END1
+    echo
+
 GITSHORTFMT := "--format='%ad %h %s' --date=short"
 
-# Show commits in the three repos since this date or days ago or last release, briefly.
-commitlog *DATEARG:
+# Show commits briefly in the three hledger repos between the last two fridays or since this date
+commitlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
-    printf "** hledger commits\n\n"
-    git log {{ GITSHORTFMT }} --since $DATE
-    echo
-    printf "** hledger_site commits\n\n"
-    git -C site log {{ GITSHORTFMT }} --since $DATE
-    echo
-    printf "** hledger_finance commits\n\n"
-    git -C finance log {{ GITSHORTFMT }} --since $DATE
-    echo
-    printf "** plaintextaccounting.org commits\n\n"
-    git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $DATE
+    BEG=`just _dateortwofridaysago  $DATE`
+    END=`just _todayorlastfriday $DATE`
+    printf "** commits in $BEG..$END\n"
+    printf "** hledger commits\n"
+    git log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
+    printf "** site commits\n"
+    git -C site log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
+    printf "** finance commits\n"
+    git -C finance log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
+    printf "** plaintextaccounting.org commits\n"
+    git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $BEG --until $END --reverse
     echo
 
-# Show hledger-related time logged since this date or days ago or last release
-timelog *DATEARG:
-    #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
-    printf "** Time log\n\n"
-    hledger -f $TIMELOG print hledger -b $DATE | rg '^2|hledger'
-    echo
-    hledger -f $TIMELOG bal -S hledger -b $DATE -e tomorrow
-    echo
-
-WORKLOG := "../../notes/CLOUD/hledger.md"
+WORKLOG := "../../notes/CLOUD/hledger log.md"
 
 # Show dates logged in hledger work log.
 @worklogdates:
-    awk "/^## Log/{p=1;next};/^## /{p=0};p" $WORKLOG | rg '^#### (\d{4}-\d{2}-\d{2})' -or '$1'
+    rg '^#+ (\d{4}-\d{2}-\d{2})' -or '$1' "$WORKLOG"
 
 # Show hledger work logged since this date or days ago or last release
-worklog *DATEARG:
+worklog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
-    WORKDATE=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$DATE\") . (++[\"9999-99-99\"]) . lines"`
-    printf "** Work log\n"
-    awk "/^#### $WORKDATE/{p=1;print;next};/^## /{p=0};p" $WORKLOG
+    BEG=`just _dateortwofridaysago  $DATE`
+    END=`just _todayorlastfriday $DATE`
+    # LOGGEDDATES=`just worklogdates`
+    BEGLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
+    # ENDLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . takeWhile (< \"$END\") . (++[\"9999-99-99\"]) . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
+    printf "** Work log in $BEG..\n"
+    # printf "** Work log in $BEGLOGGED..$ENDLOGGED\n"
+    awk "/^#### $BEGLOGGED/{p=1;print;next}; /^## /{p=0}; p" "$WORKLOG"
+    # awk "/^#### $BEGLOGGED/{p=1;print;next}; /#### $ENDLOGGED/{p=0}; /^## /{p=0}; p" "$WORKLOG"
     echo
 
 # Copy some text to the system clipboard if possible
-@clip TEXT:
+@_clip TEXT:
     type -P pbcopy >/dev/null && (printf "$TEXT" | pbcopy)
 
 # Show matrix chat since this date or days ago or last release
-chatlog *DATEARG:
+chatlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
+    DATE=`just _dateortwofridaysago $DATE`
     JUMP="/jumptodate $DATE"
-    just clip "$JUMP"
+    just _clip "$JUMP"
     echo "** matrix:    https://matrix.hledger.org, $JUMP"
     echo
 
 # Show mail list discussion since this date or days ago or last release
-maillog *DATEARG:
+maillog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
+    DATE=`just _dateortwofridaysago $DATE`
     DATE2=`$GDATE -d $DATE +"%b %-d"`
     echo "** mail list: https://list.hledger.org, since $DATE2 ($DATE)"
     echo
 
 # Show /r/plaintextaccounting posts since this date or days ago or last release
-redditlog *DATEARG:
+redditlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
+    DATE=`just _dateortwofridaysago $DATE`
     DAYS=`datediff $DATE now`
     echo "** reddit:    https://www.reddit.com/r/plaintextaccounting/new, since $DAYS days ago ($DATE)"
     echo
 
 # Show #hledger-tagged mastodon toots since this date or days ago or last release
-tootlog *DATEARG:
+tootlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _datearg $DATEARG`
-    just clip "#hledger after:$DATE"
+    DATE=`just _dateortwofridaysago $DATE`
+    just _clip "#hledger after:$DATE"
     echo "** mastodon:  https://fosstodon.org/search, #hledger after:$DATE , #plaintextaccounting after:$DATE"
     echo
 
 # Show recent PTA blog posts added on plaintextaccounting.org
 bloglog:
     #!/usr/bin/env osh
-    # DATE=`just _datearg $DATEARG`
     echo "** pta.o:  https://plaintextaccounting.org/#`date +%Y`"
     echo
 
