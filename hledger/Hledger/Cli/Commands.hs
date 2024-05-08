@@ -254,8 +254,8 @@ commandsList progversion othercmds =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "CHARTS (bar charts, line graphs..)"
-  ," activity                 show posting counts as a terminal bar chart"
-  ,"+bar                      show balances or changes as a terminal bar chart"      -- hledger-bar
+  ," activity                 show posting counts as a bar chart"
+  ,"+bar                      show balances or changes as a bar chart"               -- hledger-bar
   ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
   ,""
     -----------------------------------------80-------------------------------------
@@ -268,14 +268,14 @@ commandsList progversion othercmds =
   ," rewrite                  add postings to transactions, like print --auto"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "VALIDATING DATA (error checking, version control..)"
+  ,bold' "MAINTENANCE (error checking, data management..)"
   ," check                    run any of hledger's built-in correctness checks"
   ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
   ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
   ," diff                     compare an account's transactions in two journals"
   ,"+git                      save or view journal file history simply in git"       -- hledger-git
   ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
-  ," test [-- TASTYOPTS]      run some self tests"
+  ," test                     run some self tests"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "OTHER ADDONS (more hledger-* commands found in PATH):"
