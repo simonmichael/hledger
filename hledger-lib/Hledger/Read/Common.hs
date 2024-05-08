@@ -286,7 +286,8 @@ initialiseAndParseJournal parser iopts f txt =
                     <=< withExceptT (finalErrorBundlePretty . attachSource f txt)
 
 {- HLINT ignore journalFinalise "Redundant <&>" -} -- silence this warning, the code is clearer as is
--- NB activates TH, may slow compilation ? https://github.com/ndmitchell/hlint/blob/master/README.md#customizing-the-hints
+--  note this activates TH, may slow compilation ? https://github.com/ndmitchell/hlint/blob/master/README.md#customizing-the-hints
+--
 -- | Post-process a Journal that has just been parsed or generated, in this order:
 --
 -- - add misc info (file path, read time) 
@@ -295,29 +296,36 @@ initialiseAndParseJournal parser iopts f txt =
 --
 -- - apply canonical commodity styles
 --
--- - add tags from account directives to postings' tags
+-- - propagate account tags to postings
 --
--- - add forecast transactions if enabled
+-- - maybe add forecast transactions
 --
--- - add tags from account directives to postings' tags (again to affect forecast transactions)
+-- - propagate account tags to postings (again to affect forecast transactions)
 --
--- - add auto postings if enabled
+-- - maybe add auto postings
 --
--- - add tags from account directives to postings' tags (again to affect auto postings)
+-- - propagate account tags to postings (again to affect auto postings)
 --
 -- - evaluate balance assignments and balance each transaction
 --
--- - check balance assertions if enabled
+-- - maybe check balance assertions
 --
--- - infer equity postings in conversion transactions if enabled
+-- - maybe infer costs from equity postings
 --
--- - infer market prices from costs if enabled
+-- - maybe infer equity postings from costs
+--
+-- - manye infer market prices from costs
 --
 -- One correctness check (parseable) has already passed when this function is called.
--- Up to three more are performed here:
---  - ordereddates (when enabled), done before balance assertions
+-- Up to four more are performed here:
+--
+--  - ordereddates (when enabled)
+--
+--  - assertions (when enabled)
+--
 --  - autobalanced (and with --strict, balanced ?), in the journalBalanceTransactions step.
--- Others (commodities, accounts) are done later by journalStrictChecks.
+--
+-- Others (commodities, accounts..) are done later by journalStrictChecks.
 --
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
 journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,strict_,verbose_tags_,_ioDay} f txt pj = do
