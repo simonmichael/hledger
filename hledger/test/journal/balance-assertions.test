@@ -475,3 +475,21 @@ $ hledger -f- print -x date:2022-01-02
     e
 
 $ hledger -f - check
+
+# ** 30. -s overrides -I
+<
+2024-01-01
+  (a)      1 = 2
+
+$ hledger -f - check -I -s
+>2 /Balance assertion failed/
+>=1
+
+# ** 31. hledger check assertions overrides -I
+<
+2024-01-01
+  (a)      1 = 2
+
+$ hledger -f - check assertions -I
+>2 /Balance assertion failed/
+>=1

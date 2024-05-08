@@ -6,7 +6,7 @@ _FLAGS
 
 hledger provides a number of built-in correctness checks to help validate your data and prevent errors.
 Some are run automatically, some when you enable `--strict` mode;
-or you can run any of them on demand with this `check` command.
+or you can run any of them on demand by providing them as arguments to the `check` command.
 `check` produces no output and a zero exit code if all is well.
 Eg:
 
@@ -37,13 +37,14 @@ These important checks are performed by default, by almost all hledger commands:
 
 - **assertions** - all [balance assertions] in the journal are passing.
   Balance assertions are like canaries in your journal, they catch many problems.
-  This check sometimes gets in the way, eg when troubleshooting bookkeeping errors,
-  or parsing a journal fragment; you can disable it temporarily with `-I`/`--ignore-assertions`.
+  They can get in the way sometimes; you can disable them temporarily with `-I`/`--ignore-assertions`
+  (unless overridden with `-s`/`--strict` or `hledger check assertions`).
 
 ### Strict checks
 
 These additional checks are performed by any command when the `-s`/`--strict` flag is used ([strict mode]). 
-They provide extra error-catching power when you are serious about keeping your data clean and free of typos:
+Strict mode always enables the balance assertions check, also.
+These provide extra error-catching power when you are serious about keeping your data clean and free of typos:
 
 - **balanced** - like `autobalanced`, but in [conversion transactions](#recording-costs),
   costs must be written explicitly. This ensures some redundancy in the entry, which helps prevent typos.
