@@ -21,7 +21,7 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 4c53ab419
+# a7026d694
 
 Breaking changes
 
@@ -37,6 +37,9 @@ Improvements
   memory/profile info.
 
 Docs
+
+- A basic OpenAPI specification is provided for hledger-web's JSON-over-HTTP API.
+  (This is also applicable to `hledger print`'s JSON output format.)
 
 API
 

@@ -18,14 +18,14 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 8d62af8ae
+# 0fedc35a9
 
 Docs
 
 - move release notes from site repo to the main hledger repo
 - github release notes: improve windows install commands
 - dev doc updates; new Developer FAQ, Contributor Quick Start updates
-- examples: csv: vanguard, fidelity updates
+- examples: csv: vanguard, fidelity, paypal updates
 
 Scripts/addons
 

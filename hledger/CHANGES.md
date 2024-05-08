@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 7525014c7
+# b7e5c05da
 
 Breaking changes
 
@@ -32,23 +32,37 @@ Breaking changes
 
 Fixes
 
+- `include` directives with trailing whitespace are now parsed correctly.
+
 Features
 
 Improvements
 
-- Correctness checks now run in a documented order.  Commodities are
-  now checked before accounts, and tags before recentassertions.
+- The CLI commands list has been reorganised.
+
+- Correctness checks now run in a documented order.  `commodities` are
+  now checked before `accounts`, and `tags` before `recentassertions`.
+  When both `ordereddates` and `assertions` checks are enabled,
+  `ordereddates` now runs first, giving more useful error messages.
+
+- `-I`/`--ignore-assertions` is now overridden by `-s`/`--strict`
+  (or `check assertions`), enabling more flexible workflows.
+  Eg you can `alias hl="hledger -I"` to delay balance assertions
+  checking until you add `-s` to commands.
 
 - When built with the `ghcdebug` flag and started with `--debug=-1`,
   hledger can be controlled by ghc-debug clients like
   ghc-debug-brick or a ghc-debug query script, for analysing
-  memory/profile info.
-
-- Commands list cleanups; move the HELP and UIS sections to the top.
+  memory and profiling info.
 
 Docs
 
+- check: expand check descriptions
+
 Scripts/addons
+
+- Added `hledger-pricehist`, an alias for the `pricehist` market price
+  fetcher so that it can appear in hledger's commands list.
 
 API
 
