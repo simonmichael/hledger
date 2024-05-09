@@ -903,6 +903,10 @@ unreleased *CHANGELOG:
         awk '/^#+ /{p=1};/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{exit};p' $CHANGELOG
     fi
 
+# Commit and push FAQ edits.
+pushfaq:
+    (cd ~/src/hledger/site; git commit -m 'faq' src/faq.md; git push)
+
 # ** News ------------------------------------------------------------
 NEWS:
 
