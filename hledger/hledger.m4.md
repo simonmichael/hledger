@@ -6012,47 +6012,33 @@ First, a quick glossary:
 
 # PART 4: COMMANDS
 
-## Commands overview
 
-Here are the built-in [commands](#commands):
+<a name="commands-overview">
+<a name="addons"></a><a name="add-ons"></a> <!-- see also #add-on-commands. -->
+
+Here are the standard [commands](#commands), which you can list by running `hledger`.
+If you have installed more [add-on commands](../scripts.md), they also will be listed.
+
 <!-- keep commands & descriptions synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
 
-### DATA ENTRY
+**[HELP](#help-)**
 
-These data entry commands are the only ones which can modify your journal file.
- 
+- [help](#help)                                    - show the hledger manual with info/man/pager
+- [demo](#demo)                                    - show small hledger demos in the terminal
+
+**[USER INTERFACES](#user-interfaces-)**
+
+- [ui](hledger-ui.html)                            - (if installed) run hledger's terminal UI
+- [web](hledger-web.html)                          - (if installed) run hledger's web UI
+
+**[ENTERING DATA](#entering-data-)**
+
 - [add](#add)                                      - add transactions using terminal prompts
 - [import](#import)                                - add new transactions from other files, eg CSV files
 
-### DATA CREATION
-
-- [close](#close)                                  - generate balance-zeroing/restoring transactions
-- [rewrite](#rewrite)                              - generate auto postings, like print --auto
-
-### DATA MANAGEMENT
-
-- [check](#check)                                  - check for various kinds of error in the data
-- [diff](#diff)                                    - compare account transactions in two journal files
-
-### REPORTS, FINANCIAL
-
-- [aregister](#aregister) (areg)                   - show transactions in a particular account
-- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
-- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
-- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
-- [incomestatement](#incomestatement) (is)         - show revenues and expenses
-
-### REPORTS, VERSATILE
-
-- [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
-- [print](#print)                                  - show transactions or export journal data
-- [register](#register) (reg)                      - show postings in one or more accounts & running total
-- [roi](#roi)                                      - show return on investments
-
-### REPORTS, BASIC
+**[BASIC REPORTS](#basic-reports-)**
 
 - [accounts](#accounts)                            - show account names
-- [activity](#activity)                            - show bar charts of posting counts per period
 - [codes](#codes)                                  - show transaction codes
 - [commodities](#commodity-directive)              - show commodity/currency symbols
 - [descriptions](#descriptions)                    - show transaction descriptions
@@ -6062,28 +6048,37 @@ These data entry commands are the only ones which can modify your journal file.
 - [prices](#prices)                                - show market prices
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
+
+**[STANDARD REPORTS](#standard-reports-)**
+
+- [print](#print)                                  - show transactions or export journal data
+- [aregister](#aregister) (areg)                   - show transactions in a particular account
+- [register](#register) (reg)                      - show postings in one or more accounts & running total
+- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
+- [incomestatement](#incomestatement) (is)         - show revenues and expenses
+
+**[ADVANCED REPORTS](#advanced-reports-)**
+
+- [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
+- [roi](#roi)                                      - show return on investments
+
+**[CHARTS](#charts-)**
+
+- [activity](#activity)                            - show bar charts of posting counts per period
+
+**[GENERATING DATA](#generating-data-)**
+
+- [close](#close)                                  - generate balance-zeroing/restoring transactions
+- [rewrite](#rewrite)                              - generate auto postings, like print --auto
+
+**[MAINTENANCE](#maintenance-)**
+
+- [check](#check)                                  - check for various kinds of error in the data
+- [diff](#diff)                                    - compare account transactions in two journal files
 - [test](#test)                                    - run self tests
 
-### HELP
-
-- [help](#help)                                    - show the hledger manual with info/man/pager
-- [demo](#demo)                                    - show small hledger demos in the terminal
-
-<a name="addons"></a>
-<!-- #addons: the short explanation and list of common add-on commands. See also #add-on-commands. -->
-
-### ADD-ONS
-
-And here are some typical [add-on commands](#add-on-commands).
-Some of these are installed by the [hledger-install script](https://hledger.org/install.html#build-methods).
-If installed, they will appear in hledger's commands list:
-
-- [ui](hledger-ui.html)                                                   - run hledger's terminal UI
-- [web](hledger-web.html)                                                 - run hledger's web UI
-- [iadd](https://hackage.haskell.org/package/hledger-iadd)                - add transactions using a TUI (currently hard to build)
-- [interest](https://hackage.haskell.org/package/hledger-interest)        - generate interest transactions
-- [stockquotes](https://hackage.haskell.org/package/hledger-stockquotes)  - download market prices from AlphaVantage
-- [Scripts and add-ons](https://hledger.org/scripts.html)                 - check-fancyassertions, edit, fifo, git, move, pijul, plot, and more..
 
 m4_dnl XXX maybe later
 m4_dnl _man_({{
@@ -6092,7 +6087,7 @@ m4_dnl or the info or web format of this manual.
 m4_dnl }})
 m4_dnl _notman_({{
 
-Next, each command is described in detail, in alphabetical order.
+Next, these commands are described in detail.
 
 m4_dnl Include the command docs. Each starts with a level 2 heading.
 m4_dnl (To change that, see Hledger/Cli/Commands/{*.md,commands.m4})
