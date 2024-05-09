@@ -4660,82 +4660,104 @@ format amounts a little bit differently to suit different consumers:
 
 ## Report start & end date
 
-By default, most hledger reports will show the full span of time represented by the journal.
+Most hledger reports will by default show the full time period represented by the journal.
 The report start date will be the earliest transaction or posting date,
 and the report end date will be the latest transaction, posting, or market price date.
 
-Often you will want to see a shorter time span, such as the current month.
-You can specify a start and/or end date using
-[`-b/--begin`](#reporting-options),
-[`-e/--end`](#reporting-options),
-[`-p/--period`](#period-expressions)
-or a [`date:` query](#queries) (described below).
-All of these accept the [smart date](#smart-dates) syntax (below).
+Often you will want to see a shorter period, such as the current month.
+You can specify a start and/or end date with the
+[`-b/--begin`](#general-reporting-options),
+[`-e/--end`](#general-reporting-options),
+or
+[`-p/--period`](#period-expressions) options,
+or a [`date:`](#queries) query argument, described below.
+All of these accept the [smart date](#smart-dates) syntax, also described below.
 
-Some notes:
+End dates are exclusive; specify the day after the last day you want to see in the report.
 
-- End dates are exclusive, as in Ledger, so you should write the date *after*
-  the last day you want to see in the report.
-- As noted in [reporting options](#general-options):
-  among start/end dates specified with *options*, the last (i.e. right-most)
-  option takes precedence.
-- The effective report start and end dates are the intersection of the
-  start/end dates from options and that from `date:` queries.
-  That is, `date:2019-01 date:2019 -p'2000 to 2030'` yields January 2019, the
-  smallest common time span.
-- In some cases a [report interval](#report-intervals) will adjust start/end dates
-  to fall on interval boundaries (see below).
+When dates are specified by multiple options, the last (right-most) option wins.
+And when `date:` queries and date options are combined, the report period will be their intersection.
 
 Examples:
 
-|                    |                                                                                             |
-|--------------------|---------------------------------------------------------------------------------------------|
-| `-b 2016/3/17`     | begin on St. Patrick’s day 2016                                                             |
-| `-e 12/1`          | end at the start of december 1st of the current year (11/30 will be the last date included) |
-| `-b thismonth`     | all transactions on or after the 1st of the current month                                   |
-| `-p thismonth`     | all transactions in the current month                                                       |
-| `date:2016/3/17..` | the above written as queries instead (`..` can also be replaced with `-`)                   |
-| `date:..12/1`      |                                                                                             |
-| `date:thismonth..` |                                                                                             |
-| `date:thismonth`   |                                                                                             |
+`-b 2016/3/17`
+: beginning on St. Patrick’s day 2016
+
+`-e 12/1`
+: ending at the start of December 1st in the current year
+
+`-p 'this month'`
+: during the current month
+
+`-p thismonth`
+: same as above, spaces are optional
+
+`-b 2023`
+: beginning on the first day of 2023
+
+`date:2023..` or `date:2023-`
+: same as above
+
+`-b 2024 -e 2025 -p '2000 to 2030' date:2020-01 date:2020 `
+:\
+during January 2020 (the smallest common period, with the -p overriding -b and -e)
 
 ## Smart dates
 
-hledger's user interfaces accept a "smart date" syntax for added convenience.
-Smart dates optionally can
-be relative to today's date,
-be written with english words,
-and have less-significant parts omitted (missing parts are inferred as 1).
-Some examples:
+In hledger's user interfaces (though not in the journal file), you can optionally use "smart date" syntax.
+Smart dates can be written with english words, can be relative, and can have parts omitted.
+Missing parts are inferred as 1, when needed.
+Smart dates can be interpreted as dates or periods depending on context.
 
-|                                              |                                                                                       |
-|----------------------------------------------|---------------------------------------------------------------------------------------|
-| `2004/10/1`, `2004-01-01`, `2004.9.1`        | exact date, several separators allowed. Year is 4+ digits, month is 1-12, day is 1-31 |
-| `2004`                                       | start of year                                                                         |
-| `2004/10`                                    | start of month                                                                        |
-| `10/1`                                       | month and day in current year                                                         |
-| `21`                                         | day in current month                                                                  |
-| `october, oct`                               | start of month in current year                                                        |
-| `yesterday, today, tomorrow`                 | -1, 0, 1 days from today                                                              |
-| `last/this/next day/week/month/quarter/year` | -1, 0, 1 periods from the current period                                              |
-| `in n days/weeks/months/quarters/years`      | n periods from the current period                                                     |
-| `n days/weeks/months/quarters/years ahead`   | n periods from the current period                                                     |
-| `n days/weeks/months/quarters/years ago`     | -n periods from the current period                                                    |
-| `20181201`                                   | 8 digit YYYYMMDD with valid year month and day                                        |
-| `201812`                                     | 6 digit YYYYMM with valid year and month                                              |
+Examples:
 
-Some counterexamples - malformed digit sequences might give surprising results:
+`2004-01-01`, `2004/10/1`, `2004.9.1`, `20240504`
+:\
+Exact dates. The year must have at least four digits, the month must be 1-12, the day must be 1-31, the separator can be `-` or `/` or `.` or nothing.
 
-|             |                                                                   |
-|-------------|-------------------------------------------------------------------|
-| `201813`    | 6 digits with an invalid month is parsed as start of 6-digit year |
-| `20181301`  | 8 digits with an invalid month is parsed as start of 8-digit year |
-| `20181232`  | 8 digits with an invalid day gives an error                       |
-| `201801012` | 9+ digits beginning with a valid YYYYMMDD gives an error          |
+`2004-10`
+: start of month
 
-"Today's date" can be overridden with the `--today` option, in case
-it's needed for testing or for recreating old reports. (Except for
-periodic transaction rules, which are not affected by `--today`.)
+`2004`
+: start of year
+
+`10/1` or `oct` or `october`
+: October 1st in current year
+
+`21`
+: 21st day in current month
+
+`yesterday, today, tomorrow`
+: -1, 0, 1 days from today
+
+`last/this/next day/week/month/quarter/year`
+: -1, 0, 1 periods from the current period
+
+`in n days/weeks/months/quarters/years`
+: n periods from the current period
+
+`n days/weeks/months/quarters/years ahead`
+: n periods from the current period
+
+`n days/weeks/months/quarters/years ago`
+: -n periods from the current period
+
+`20181201`
+: 8 digit YYYYMMDD with valid year month and day
+
+`201812`
+: 6 digit YYYYMM with valid year and month
+
+
+Dates with no separators are allowed but might give surprising results if mistyped:
+
+- `20181301` (YYYYMMDD with an invalid month) is parsed as an eight-digit year
+- `20181232` (YYYYMMDD with an invalid day) gives a parse error
+- `201801012` (a valid YYYYMMDD followed by additional digits) gives a parse error
+
+The meaning of relative dates depends on today's date.
+If you need to test or reproduce old reports, you can use the `--today` option to override that.
+(Except for periodic transaction rules, which are not affected by `--today`.)
 
 ## Report intervals
 
