@@ -12,8 +12,8 @@ jobs:
     # x64
     runs-on: macos-13
     env:
-      ghc:   944
-      stack: stack --stack-yaml=stack9.4.yaml
+      ghc:   98
+      stack: stack
     steps:
 
     - name: Show platform info
