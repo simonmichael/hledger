@@ -11,10 +11,14 @@ _command_({{Demo}})
 
 ## USER INTERFACES :
 
-Alternate user interfaces like
-[hledger-ui](hledger-ui.md) and
-[hledger-web](hledger-web.md)
-appear in this section of the : list when installed.
+## ui
+
+Runs [hledger-ui](hledger-ui.md) (if installed).
+
+## web
+
+Runs [hledger-web](hledger-web.md) (if installed).
+
 
 ## ENTERING DATA :
 
