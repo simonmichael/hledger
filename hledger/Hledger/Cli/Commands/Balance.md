@@ -365,6 +365,9 @@ shown, unless `-E/--empty` is used.
 - The `--transpose` flag can be used to exchange rows and columns.
 - The `--pivot FIELD` option causes a different transaction field to be used as
   "account name". See [PIVOTING](#pivoting).
+- The `--summary-only` flag (`--summary` also works) hides all but the Total and Average columns
+  (those should be enabled with `--row-total` and `-A/--average`).
+
      
 Multi-period reports with many periods can be too wide for easy viewing in the terminal.
 Here are some ways to handle that:
