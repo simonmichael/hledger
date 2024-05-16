@@ -43,12 +43,19 @@ on:
     #   - '!**.txt'
 jobs:
   citest:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
-      ghc:   944
-      stack: stack --stack-yaml=stack9.4.yaml
-      # declare this to prevent "Context access might be invalid" warnings below
+      # This workflow uses github's preinstalled ghc & stack on ubuntu.
+      # Keep these synced with the latest ghc version athttps://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
+      #
+      # caching id for this ghc's build artifacts:
+      ghc: 982
+      # stack config for this ghc:
+      stack: stack --system-ghc
+
+      # flag for skipping later steps, declared here to prevent "Context access might be invalid" warnings
       do-all:
+
     steps:
 
     - name: Check out
@@ -190,19 +197,19 @@ jobs:
 
     # actions:
 
-    - name: Install stack
+    - name: Set up stack
       run: |
-        mkdir -p ~/.local/bin
-        export PATH=~/.local/bin:$PATH
+        # mkdir -p ~/.local/bin
+        # export PATH=~/.local/bin:$PATH
         # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-        if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         stack --version
       if: env.do-all
 
-    - name: Install GHC
-      run: |
-        $stack setup --install-ghc
-      if: env.do-all
+    # - name: Install GHC
+    #   run: |
+    #     $stack setup --install-ghc
+    #   if: env.do-all
 
     - name: Install haskell deps
       run: |
