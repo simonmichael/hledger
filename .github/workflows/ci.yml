@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-24.04
     env:
       # This workflow uses github's preinstalled ghc & stack on ubuntu.
-      # Keep these synced with the latest ghc version athttps://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
+      # Keep these synced with the latest ghc version at https://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
       #
       # caching id for this ghc's build artifacts:
       ghc: 982
@@ -119,9 +119,17 @@ jobs:
           && (grep -qE '^ *;' $$.gitlog || echo "do-all=true" >> $GITHUB_ENV)) \
           || ( echo "could not identify commit range, continuing CI steps"; echo "do-all=true" >> $GITHUB_ENV )
 
+    - name: Uncache extra tools (ripgrep) in /usr/bin
+      id:   extratools
+      uses: actions/cache@v4
+      with:
+        path: /usr/bin/rg
+        key: ${{ runner.os }}-extratools
+      if: env.do-all
+
     - name: Check embedded files
       run: |
-        sudo apt install -y ripgrep
+        if [[ ! -x /usr/bin/rg ]]; then sudo apt install -y ripgrep; fi
         tools/checkembeddedfiles
       if: env.do-all
 
