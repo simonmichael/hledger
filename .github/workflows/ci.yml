@@ -197,16 +197,16 @@ jobs:
 
     # actions:
 
-    - name: Set up stack
-      run: |
-        # mkdir -p ~/.local/bin
-        # export PATH=~/.local/bin:$PATH
-        # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-        # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-        stack --version
-      if: env.do-all
+    # - name: Set up stack
+    #   run: |
+    #     # mkdir -p ~/.local/bin
+    #     # export PATH=~/.local/bin:$PATH
+    #     # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
+    #     # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+    #     stack --version
+    #   if: env.do-all
 
-    # - name: Install GHC
+    # - name: Set up GHC
     #   run: |
     #     $stack setup --install-ghc
     #   if: env.do-all
