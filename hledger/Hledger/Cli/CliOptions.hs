@@ -82,7 +82,7 @@ import Data.Char
 import Data.Default
 import Data.Either (fromRight, isRight)
 import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
-import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, head, nonEmpty, singleton)
+import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, head, nonEmpty)
 import Data.List.Split (splitOn)
 import Data.Maybe
 --import Data.String.Here
@@ -639,7 +639,7 @@ journalFilePathFromOpts opts = do
   f <- defaultJournalPath
   d <- getCurrentDirectory
   maybe
-    (return $ NE.singleton f)
+    (return $ NE.fromList [f])
     (mapM (expandPathPreservingPrefix d))
     $ NE.nonEmpty $ file_ opts
 
