@@ -838,7 +838,7 @@ regexMatchValue rules record sgroup = let
                $ concatMap cbMatchers
                $ filter (isBlockActive rules record)
                $ rconditionalblocks rules
-               -- ^ XXX adjusted to not use memoized field as caller might be sending a subset of rules with just one CB (hacky)
+               -- XXX adjusted to not use memoized field as caller might be sending a subset of rules with just one CB (hacky)
   group = (read (T.unpack sgroup) :: Int) - 1 -- adjust to 0-indexing
   in atMay matchgroups group
 
