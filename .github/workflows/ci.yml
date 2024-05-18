@@ -1,10 +1,11 @@
-# The main hledger continuous integration test workflow.
+# The main hledger continuous integration tests.
 # Builds all packages expecting no warnings, runs lots of tests,
 # and on success, saves the binaries as an artifact.
 # Code must pass this successfully before it can be merged or pushed to master
 # (https://github.com/simonmichael/hledger/settings/branch_protection_rules/17386787).
 
 name: ci
+
 on:
   # When manually triggered in github ui, it runs in master.
   workflow_dispatch:
@@ -41,8 +42,9 @@ on:
     #   - '!**.5'
     #   - '!**.info'
     #   - '!**.txt'
+
 jobs:
-  citest:
+  ci:
     runs-on: ubuntu-24.04
     env:
       # This workflow uses github's preinstalled ghc & stack on ubuntu.
@@ -64,17 +66,19 @@ jobs:
       with: 
         fetch-depth: 0
 
-    - name: Print some context for troubleshooting
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: |
-        echo $GITHUB_CONTEXT
-      # echo "$GITHUB_SHA"
-      # echo "$GITHUB_REF"
-      # echo "$GITHUB_HEAD_REF"
-      # echo "$GITHUB_BASE_REF"
-      # git log "$GITHUB_BASE_REF"..
-      # tools/commitlint "$GITHUB_BASE_REF"..
+    # - name: Print some context for troubleshooting
+    #   env:
+    #     GITHUB_CONTEXT: ${{ toJson(github) }}
+    #   run: |
+    #     echo $GITHUB_CONTEXT
+    #   # echo "$GITHUB_SHA"
+    #   # echo "$GITHUB_REF"
+    #   # echo "$GITHUB_HEAD_REF"
+    #   # echo "$GITHUB_BASE_REF"
+    #   # git log "$GITHUB_BASE_REF"..
+    #   # tools/commitlint "$GITHUB_BASE_REF"..
+
+    # EARLY CHECKS
 
     - name: Check commit messages
       # keep this step synced in all workflows which do it
@@ -133,7 +137,7 @@ jobs:
         tools/checkembeddedfiles
       if: env.do-all
 
-    # things to be cached/restored:
+    # CACHES
 
     - name: Uncache stack global package db
       id:   stack-global
@@ -203,7 +207,8 @@ jobs:
              ${{ runner.os }}-hledger-web-stack-work-$ghc
       if: env.do-all
 
-    # actions:
+    # ACTIONS
+    # one step at a time for faster & more focussed failures
 
     # - name: Set up stack
     #   run: |
@@ -225,15 +230,26 @@ jobs:
         $stack build --test --bench --only-dependencies
       if: env.do-all
 
-    # Packages are built one at a time to fail faster on error.
-    # Takes ~2m on a 2023 github worker.
-    - name: Build all hledger modules fast, warning free, run unit/doc/bench tests
+    # These take ~2m on a 2023 github worker.
+
+    - name: Build/test hledger-lib
       run: |
         $stack install --fast --ghc-options=-Werror  --test --bench hledger-lib
+      if: env.do-all
+
+    - name: Build/test hledger
+      run: |
         $stack install --fast --ghc-options=-Werror  --test --bench hledger
+      if: env.do-all
+
+    - name: Build/test hledger-ui
+      run: |
         $stack install --fast --ghc-options=-Werror  --test --bench hledger-ui
+      if: env.do-all
+
+    - name: Build/test hledger-web
+      run: |
         $stack install --fast --ghc-options=-Werror  --test --bench hledger-web
-        #  --ghc-options=-split-sections --no-terminal
       if: env.do-all
 
     - name: Install shelltestrunner
@@ -264,6 +280,8 @@ jobs:
     #     # --no-print-missing-docs is 600% quieter
     #   if: env.do-all
 
+    # ARTIFACTS
+
     - name: Gather binaries
       id: exes
       run: |
@@ -281,7 +299,7 @@ jobs:
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
     # Unfortunately it means users must both unzip and untar.
-    - name: Upload binaries artifact
+    - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:
         name: hledger-linux-x64
@@ -290,7 +308,7 @@ jobs:
 
 
 
-    # snippets
+    # SNIPPETS
 
     # how to set a context variable, and an attempt to make a nice artifact version suffix:
     #   echo "::set-output name=version::$(git branch --show-current | sed 's/-.*//')-$(git rev-parse --short HEAD)"

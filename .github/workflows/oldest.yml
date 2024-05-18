@@ -1,0 +1,134 @@
+# Test that hledger still builds with the oldest supported GHC version.
+
+name: oldest
+
+on:
+  # When there's a push to the oldest branch, it runs in that branch.
+  push:
+    branches: [ oldest ]
+  # If manually triggered in github ui, it runs in master.
+  workflow_dispatch:
+
+jobs:
+  oldest:
+    runs-on: ubuntu-24.04
+    env:
+      # This workflow uses github's preinstalled ghc & stack on ubuntu.
+      # Keep these synced with the latest ghc version at https://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
+      #
+      # caching id for this ghc's build artifacts:
+      ghc: 8107
+      # stack config for this ghc:
+      stack: stack --stack-yaml=stack8.10.yaml
+
+    steps:
+
+    - name: Check out
+      uses: actions/checkout@v4
+      # have to fetch everything for git describe for hledger's --version
+      with: 
+        fetch-depth: 0
+
+    # CACHES
+
+    - name: Uncache stack global package db
+      id:   stack-global
+      uses: actions/cache@v4
+      with:
+        path: ~/.stack
+        # XXX if stack.yaml is a symlink, this fails with
+        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed. 
+        #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
+        key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-global-$ghc
+
+    - name: Uncache stack-installed programs in ~/.local/bin
+      id:   stack-programs
+      uses: actions/cache@v4
+      with:
+        path: ~/.local/bin
+        key: ${{ runner.os }}-stack-programs-$ghc-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-programs-$ghc
+
+    - name: Uncache .stack-work
+      uses: actions/cache@v4
+      with:
+        path: .stack-work
+        key: ${{ runner.os }}-stack-work-$ghc-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-stack-work-$ghc
+
+    - name: Uncache hledger-lib/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-lib/.stack-work
+        key: ${{ runner.os }}-hledger-lib-stack-work-$ghc-${{ hashFiles('hledger-lib/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-lib-stack-work-$ghc
+
+    - name: Uncache hledger/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger/.stack-work
+        key: ${{ runner.os }}-hledger-stack-work-$ghc-${{ hashFiles('hledger/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-stack-work-$ghc
+
+    - name: Uncache hledger-ui/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-ui/.stack-work
+        key: ${{ runner.os }}-hledger-ui-stack-work-$ghc-${{ hashFiles('hledger-ui/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-ui-stack-work-$ghc
+
+    - name: Uncache hledger-web/.stack-work
+      uses: actions/cache@v4
+      with:
+        path: hledger-web/.stack-work
+        key: ${{ runner.os }}-hledger-web-stack-work-$ghc-${{ hashFiles('hledger-web/package.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-hledger-web-stack-work-$ghc
+
+    # ACTIONS
+    # one step at a time for faster & more focussed failures
+
+    - name: Install old GHC
+      run: |
+        $stack setup --install-ghc
+
+    - name: Install haskell deps
+      run: |
+        $stack build --test --bench --only-dependencies
+
+    - name: Build/test hledger-lib
+      run: |
+        $stack install --fast --ghc-options=-Werror --test --bench hledger-lib
+
+    - name: Build/test hledger
+      run: |
+        $stack install --fast --ghc-options=-Werror --test --bench hledger
+
+    - name: Build/test hledger-ui
+      run: |
+        $stack install --fast --ghc-options=-Werror --test --bench hledger-ui
+
+    - name: Build/test hledger-webb
+      run: |
+        $stack install --fast --ghc-options=-Werror --test --bench hledger-web
+
+    - name: Install shelltestrunner
+      run: |
+        export PATH=~/.local/bin:$PATH
+        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
+        shelltest --version
+      if: env.do-all
+
+    - name: Test functional tests (excluding addons)
+      run: |
+        export PATH=~/.local/bin:$PATH
+        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+        # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
+      if: env.do-all
