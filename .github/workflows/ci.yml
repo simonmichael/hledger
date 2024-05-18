@@ -125,13 +125,16 @@ jobs:
           || ( echo "could not identify commit range, continuing CI steps"; echo "do-all=true" >> $GITHUB_ENV )
 
 
-    - name: Cache - extra tools (ripgrep) in /usr/bin
-      id:   extratools
-      uses: actions/cache@v4
-      with:
-        path: /usr/bin/rg
-        key: ${{ runner.os }}-extratools
-      if: env.do-all
+    # Can't uncache to /usr/bin:
+    #  /usr/bin/tar -xf /home/runner/work/_temp/5cef703c-9831-41db-adb3-470b839f8a0e/cache.tzst -P -C /home/runner/work/hledger/hledger --use-compress-program unzstd
+    #  /usr/bin/tar: ../../../../../usr/bin/rg: Cannot open: Permission denied
+    # - name: Cache - extra tools (ripgrep) in /usr/bin
+    #   id:   extratools
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: /usr/bin/rg
+    #     key: ${{ runner.os }}-extratools   # should have image version in there too
+    #   if: env.do-all
 
     - name: Check embedded files
       run: |
