@@ -63,7 +63,7 @@ jobs:
     - name: Check out
       uses: actions/checkout@v4
       # have to fetch everything for git describe for hledger's --version
-      with: 
+      with:
         fetch-depth: 0
 
     # - name: Print some context for troubleshooting
@@ -78,7 +78,8 @@ jobs:
     #   # git log "$GITHUB_BASE_REF"..
     #   # tools/commitlint "$GITHUB_BASE_REF"..
 
-    # EARLY CHECKS
+
+    # EARLY ACTIONS
 
     - name: Check commit messages
       # keep this step synced in all workflows which do it
@@ -123,7 +124,8 @@ jobs:
           && (grep -qE '^ *;' $$.gitlog || echo "do-all=true" >> $GITHUB_ENV)) \
           || ( echo "could not identify commit range, continuing CI steps"; echo "do-all=true" >> $GITHUB_ENV )
 
-    - name: Uncache extra tools (ripgrep) in /usr/bin
+
+    - name: Cache - extra tools (ripgrep) in /usr/bin
       id:   extratools
       uses: actions/cache@v4
       with:
@@ -137,22 +139,23 @@ jobs:
         tools/checkembeddedfiles
       if: env.do-all
 
+
     # CACHES
 
-    - name: Uncache stack global package db
+    - name: Cache - stack global package db
       id:   stack-global
       uses: actions/cache@v4
       with:
         path: ~/.stack
         # XXX if stack.yaml is a symlink, this fails with
-        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed. 
+        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed.
         #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
         key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-$ghc
       if: env.do-all
 
-    - name: Uncache stack-installed programs in ~/.local/bin
+    - name: Cache - stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -162,7 +165,7 @@ jobs:
              ${{ runner.os }}-stack-programs-$ghc
       if: env.do-all
 
-    - name: Uncache .stack-work
+    - name: Cache - .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -171,7 +174,7 @@ jobs:
              ${{ runner.os }}-stack-work-$ghc
       if: env.do-all
 
-    - name: Uncache hledger-lib/.stack-work
+    - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -180,7 +183,7 @@ jobs:
              ${{ runner.os }}-hledger-lib-stack-work-$ghc
       if: env.do-all
 
-    - name: Uncache hledger/.stack-work
+    - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -189,7 +192,7 @@ jobs:
              ${{ runner.os }}-hledger-stack-work-$ghc
       if: env.do-all
 
-    - name: Uncache hledger-ui/.stack-work
+    - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -198,7 +201,7 @@ jobs:
              ${{ runner.os }}-hledger-ui-stack-work-$ghc
       if: env.do-all
 
-    - name: Uncache hledger-web/.stack-work
+    - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
@@ -207,50 +210,50 @@ jobs:
              ${{ runner.os }}-hledger-web-stack-work-$ghc
       if: env.do-all
 
+
     # ACTIONS
-    # one step at a time for faster & more focussed failures
+    # in modular steps for faster & more focussed failures
 
-    # - name: Set up stack
-    #   run: |
-    #     # mkdir -p ~/.local/bin
-    #     # export PATH=~/.local/bin:$PATH
-    #     # curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack
-    #     # if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-    #     stack --version
-    #   if: env.do-all
-
-    # - name: Set up GHC
-    #   run: |
-    #     $stack setup --install-ghc
-    #   if: env.do-all
-
-    - name: Install haskell deps
+    - name: Install old GHC
       run: |
-        $stack build --test --bench --only-dependencies --dry-run
-        $stack build --test --bench --only-dependencies
-      if: env.do-all
+        $stack setup --install-ghc
 
-    # These take ~2m on a 2023 github worker.
+
+    - name: Install hledger-lib deps
+      run: |
+        $stack build --test --bench hledger-lib --only-dependencies
 
     - name: Build/test hledger-lib
       run: |
-        $stack install --fast --ghc-options=-Werror  --test --bench hledger-lib
-      if: env.do-all
+        $stack install --test --bench hledger-lib --fast --ghc-options=-Werror
+
+
+    - name: Install hledger deps
+      run: |
+        $stack build --test --bench hledger --only-dependencies
 
     - name: Build/test hledger
       run: |
-        $stack install --fast --ghc-options=-Werror  --test --bench hledger
-      if: env.do-all
+        $stack install --test --bench hledger --fast --ghc-options=-Werror
+
+
+    - name: Install hledger-ui deps
+      run: |
+        $stack build --test --bench hledger-ui --only-dependencies
 
     - name: Build/test hledger-ui
       run: |
-        $stack install --fast --ghc-options=-Werror  --test --bench hledger-ui
-      if: env.do-all
+        $stack install --test --bench hledger-ui --fast --ghc-options=-Werror
+
+
+    - name: Install hledger-web deps
+      run: |
+        $stack build --test --bench hledger-web --only-dependencies
 
     - name: Build/test hledger-web
       run: |
-        $stack install --fast --ghc-options=-Werror  --test --bench hledger-web
-      if: env.do-all
+        $stack install --test --bench hledger-web --fast --ghc-options=-Werror
+
 
     - name: Install shelltestrunner
       run: |

@@ -26,24 +26,25 @@ jobs:
     - name: Check out
       uses: actions/checkout@v4
       # have to fetch everything for git describe for hledger's --version
-      with: 
+      with:
         fetch-depth: 0
+
 
     # CACHES
 
-    - name: Uncache stack global package db
+    - name: Cache - stack global package db
       id:   stack-global
       uses: actions/cache@v4
       with:
         path: ~/.stack
         # XXX if stack.yaml is a symlink, this fails with
-        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed. 
+        #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed.
         #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
         key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-$ghc
 
-    - name: Uncache stack-installed programs in ~/.local/bin
+    - name: Cache - stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -52,7 +53,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-programs-$ghc
 
-    - name: Uncache .stack-work
+    - name: Cache - .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -60,7 +61,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-work-$ghc
 
-    - name: Uncache hledger-lib/.stack-work
+    - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -68,7 +69,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-$ghc
 
-    - name: Uncache hledger/.stack-work
+    - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -76,7 +77,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-$ghc
 
-    - name: Uncache hledger-ui/.stack-work
+    - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -84,7 +85,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-$ghc
 
-    - name: Uncache hledger-web/.stack-work
+    - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
@@ -92,32 +93,50 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-$ghc
 
+
     # ACTIONS
-    # one step at a time for faster & more focussed failures
+    # in modular steps for faster & more focussed failures
 
     - name: Install old GHC
       run: |
         $stack setup --install-ghc
 
-    - name: Install haskell deps
+
+    - name: Install hledger-lib deps
       run: |
-        $stack build --test --bench --only-dependencies
+        $stack build --test --bench hledger-lib --only-dependencies
 
     - name: Build/test hledger-lib
       run: |
-        $stack install --fast --ghc-options=-Werror --test --bench hledger-lib
+        $stack install --test --bench hledger-lib --fast --ghc-options=-Werror
+
+
+    - name: Install hledger deps
+      run: |
+        $stack build --test --bench hledger --only-dependencies
 
     - name: Build/test hledger
       run: |
-        $stack install --fast --ghc-options=-Werror --test --bench hledger
+        $stack install --test --bench hledger --fast --ghc-options=-Werror
+
+
+    - name: Install hledger-ui deps
+      run: |
+        $stack build --test --bench hledger-ui --only-dependencies
 
     - name: Build/test hledger-ui
       run: |
-        $stack install --fast --ghc-options=-Werror --test --bench hledger-ui
+        $stack install --test --bench hledger-ui --fast --ghc-options=-Werror
 
-    - name: Build/test hledger-webb
+
+    - name: Install hledger-web deps
       run: |
-        $stack install --fast --ghc-options=-Werror --test --bench hledger-web
+        $stack build --test --bench hledger-web --only-dependencies
+
+    - name: Build/test hledger-web
+      run: |
+        $stack install --test --bench hledger-web --fast --ghc-options=-Werror
+
 
     - name: Install shelltestrunner
       run: |
