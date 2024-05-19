@@ -1,14 +1,12 @@
-# WIP:
-# Run when a release tag is pushed,
-# creating the new release.
-# Expects that the binaries* workflows have been completed first.
+# Run when a release tag is pushed, creating/updating a draft release.
+# Expects that the main binaries* workflows have been completed first.
 
 name: release
 
 on:
   push:
     tags:
-      - '1*'
+      - '1.*'
   workflow_dispatch:
 
 jobs:
@@ -19,8 +17,7 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    # Get artifact from the latest binaries-linux-x64 run
-    - name: Get latest linux binaries artifact
+    - name: Get artifact from latest successful binaries-windows-x64 run
       uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
         # https://github.com/dawidd6/action-download-artifact v3.1.4, unverified so needs to be whitelisted in repo settings
       with:
@@ -30,7 +27,7 @@ jobs:
         # github_token: ${{secrets.GITHUB_TOKEN}}
         # Optional, workflow file name or ID
         # If not specified, will be inferred from run_id (if run_id is specified), or will be the current workflow
-        workflow: binaries-linux-x64.yml
+        workflow: binaries-windows-x64.yml
         # Optional, will use specified workflow run
         # use ${{ github.event.workflow_run.id }} when your action runs in a workflow_run event
         # and wants to download from the triggering workflow run
@@ -72,13 +69,14 @@ jobs:
         # Optional, check the workflow run to whether it has an artifact
         # then will get the last available artifact from the previous workflow
         # default false, just try to download from the last one
-        check_artifacts: false
+        # check_artifacts: false
         # Optional, search for the last workflow run whose stored an artifact named as in `name` input
         # default false
-        search_artifacts: false
+        # search_artifacts: false
         # Optional, choose to skip unpacking the downloaded artifact(s)
         # default false
-        skip_unpack: false
+        # windows artifact is just zipped, no need to repack
+        skip_unpack: true
         # Optional, choose how to exit the action if no artifact is found
         # can be one of:
         #  "fail", "warn", "ignore"
@@ -88,13 +86,87 @@ jobs:
         # default true
         allow_forks: false
 
-    - name: Inspect
+    - name: Get artifact from latest successful binaries-linux-x64 run
+      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
+      with:
+        workflow: binaries-linux-x64.yml
+        allow_forks: false
+        path: artifacts
+
+    - name: Get artifact from latest successful binaries-mac-x64 run
+      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
+      with:
+        workflow: binaries-mac-x64.yml
+        allow_forks: false
+        path: artifacts
+
+    - name: Get artifact from latest successful binaries-mac-arm64 run
+      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
+      with:
+        workflow: binaries-mac-arm64.yml
+        allow_forks: false
+        path: artifacts
+
+    - name: Inspect artifacts
       shell: bash
       run: |
-        echo .:
-        ls -lF
-        echo artifacts:
-        ls -lRF artifacts
+        ls -lRFh artifacts
+
+    # All artifacts are zip files because upload-artifact always zips.
+    # Here we can switch to more unix-standard gz.
+    - name: Repack unix artifacts with gz
+      shell: bash
+      run: |
+        cd artifacts
+        mv */*.tar .
+        gzip *.tar
+
+    - name: Inspect artifacts
+      shell: bash
+      run: |
+        ls -lRFh artifacts
+
+    - name: Create release
+      uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87  # https://github.com/softprops/action-gh-release 2.0.5
+      # permissions:
+      #   contents: write
+      with:
+        # https://github.com/softprops/action-gh-release?tab=readme-ov-file#-customizing
+        # body                     String   Text communicating notable changes in this release
+        # body_path                String   Path to load text communicating notable changes in this release
+        # draft                    Boolean  Indicator of whether or not this release is a draft
+        # prerelease               Boolean  Indicator of whether or not is a prerelease
+        # files                    String   Newline-delimited globs of paths to assets to upload for release
+        # name                     String   Name of the release. defaults to tag name
+        # tag_name                 String   Name of a tag. defaults to github.ref
+        # fail_on_unmatched_files  Boolean  Indicator of whether to fail if any of the files globs match nothing
+        # repository               String   Name of a target repository in <owner>/<repo> format. Defaults to GITHUB_REPOSITORY env variable
+        # target_commitish         String   Commitish value that determines where the Git tag is created from. Can be any branch or commit SHA. Defaults to repository default branch.
+        # token                    String   Secret GitHub Personal Access Token. Defaults to ${{ github.token }}
+        # discussion_category_name String   If specified, a discussion of the specified category is created and linked to the release. The value must be a category that already exists in the repository. For more information, see "Managing categories for discussions in your repository."
+        # generate_release_notes   Boolean  Whether to automatically generate the name and body for this release. If name is specified, the specified name will be used; otherwise, a name will be automatically generated. If body is specified, the body will be pre-pended to the automatically generated notes. See the GitHub docs for this feature for more information
+        # append_body              Boolean  Append to existing body instead of overwriting it
+        # make_latest              String   Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Can be true, false, or legacy. Uses GitHub api defaults if not provided
+        #
+        draft: true
+        body_path: ${{ github.workspace }}/doc/relnotes.github.md
+        fail_on_unmatched_files: true
+        files: |
+          artifacts/hledger-windows-x64.zip
+          artifacts/hledger-linux-x64.tar.gz
+          artifacts/hledger-mac-x64.tar.gz
+          artifacts/hledger-mac-arm64.tar.gz
+
+
+
+# snippets
+
+
+        # body: |
+        #   ${{ fromJSON(steps.<step-id>.outputs.assets)[0].browser_download_url }}
+
+# if you intend to run workflows on the release event (on: { release: { types: [published] } }),
+# you need to use a personal access token for this action, as the default secrets.GITHUB_TOKEN does not trigger another workflow.
 
     # - name: Make tarball
     #   shell: bash
@@ -113,31 +185,6 @@ jobs:
     #       tar czf "$staging.tar.gz" -C "$staging" .
     #       echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
     #     fi
-
-    # - name: Create release
-    #   uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87  # https://github.com/softprops/action-gh-release 2.0.5
-    #   # permissions:
-    #   #   contents: write
-    #   # https://github.com/softprops/action-gh-release?tab=readme-ov-file#-customizing
-    #   with:
-    #     draft: true
-    #     body_path: ${{ github.workspace }}/doc/relnotes.github.md
-    #     fail_on_unmatched_files: true
-    #   #   files: |
-    #   #     Release.txt
-    #   #     LICENSE
-
-
-
-# snippets
-
-
-        # body: |
-        #   ${{ fromJSON(steps.<step-id>.outputs.assets)[0].browser_download_url }}
-
-# if you intend to run workflows on the release event (on: { release: { types: [published] } }),
-# you need to use a personal access token for this action, as the default secrets.GITHUB_TOKEN does not trigger another workflow.
-
 
 
 # https://github.com/marketplace/actions/safe-download-workflow-artifact
