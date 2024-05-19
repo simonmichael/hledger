@@ -73,7 +73,7 @@ old
 hledger/test/addons/hledger-*
 tools/generatejournal
 tools/simplebench
-/examples/[1-9]0*.journal
+/examples/[1-9]*.journal
 *.webmanual.md
 *.m4-e
 stack*.yaml.lock
@@ -99,3 +99,13 @@ hledger-web/yesod-devel/
 /checks
 /headroom-templates
 .headroom.yaml
+*.prof
+/artifacts/
+/tools/docshelltest
+/hledger-lib/test/doctests
+/examples/edk-hledger-ui-mobile.gif
+/examples/tty-ui-1.gif
+/site
+/finance
+/examples/demo/
+/hledger-web/demo/
