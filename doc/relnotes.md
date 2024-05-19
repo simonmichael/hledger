@@ -111,9 +111,8 @@ Changes in hledger-install.sh are shown
 
 ### credits 1.33.1
 
-Simon Michael.
+- Simon Michael (@simonnmichael)
 
-[#2149]: https://github.com/simonmichael/hledger/issues/2149
 [#2149]: https://github.com/simonmichael/hledger/issues/2149
 [#2196]: https://github.com/simonmichael/hledger/issues/2196
 
