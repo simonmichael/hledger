@@ -127,6 +127,10 @@ jobs:
       run: |
         ls -lRFh artifacts
 
+    - name: Generate github release notes
+      run: |
+        doc/ghrelnotes ${{ github.ref }}   # ref should be the release's main tag name
+
     - name: Create release
       uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87  # https://github.com/softprops/action-gh-release 2.0.5
       # permissions:
@@ -149,7 +153,7 @@ jobs:
         # append_body              Boolean  Append to existing body instead of overwriting it
         # make_latest              String   Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Can be true, false, or legacy. Uses GitHub api defaults if not provided
         #
-        body_path: ${{ github.workspace }}/doc/relnotes.github.md
+        body_path: doc/ghrelnotes.md
         files: |
           artifacts/*.zip
           artifacts/*.tar.gz

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# getrelnotes REL - extract the release notes for REL from relnotes.md.
+# The main release heading is omitted.
+
+cd "$(dirname $0)"
+awk "/^## .*-${1//./'\.'}$/{p=1;next} /^## /{p=0} p" ../doc/relnotes.md 
