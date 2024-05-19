@@ -1,16 +1,15 @@
 #!/usr/bin/env bash
-# ghrelnotes REL - generate github release notes for REL, as ghrelnotes.md.   -*- markdown -*-
+# ghrelnotes REL - generate github release notes for REL.   -*- markdown -*-
 
 cd "$(dirname $0)"
-OUT=ghrelnotes.md
-cat >$OUT <<'END'
+cat <<'END'
 
 ## Release notes
 
 END
 export REL=$1
-../tools/getrelnotes $REL >>$OUT
-envsubst '$REL' >>$OUT <<'END'
+../tools/getrelnotes $REL
+envsubst '$REL' <<'END'
 
 <details>
 <summary>
