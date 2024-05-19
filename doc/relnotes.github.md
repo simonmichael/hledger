@@ -7,14 +7,8 @@
  |___/                                           
 
 -->
-<details>
-<summary>
 
 ## Release notes
-
-https://hledger.org/relnotes.html#2024-05-02-hledger-1331
-
-</summary>
 
 
 ### hledger 1.33.1
@@ -58,20 +52,20 @@ Simon Michael.
 [#2196]: https://github.com/simonmichael/hledger/issues/2196
 
 
-</details>
+<details>
+<summary>
 
-## Install
+## How to install
 
-This release may arrive in your local packaging system soon - look for green badges at <https://hledger.org/install>.
-Or you could build it yourself from source, as described there.
-Or if there are binaries for your OS and hardware at the bottom of this page, see instructions below.
-<!-- (On linux and mac, the double tar + zip packing is a Github workaround to preserve file permissions.) -->
+</summary>
+
+This release may arrive in your local packaging system soon - look for green badges at [hledger.org: Install](https://hledger.org/install.html).
+Or you can build it yourself from source, as described on that page.
+Or you can use the binaries below:
 <!--
 Updates to binaries:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
-Once installed, run `hledger`, or perhaps read [hledger.org > Quick start](https://hledger.org/#quick-start).
-
 
 <details>
 <summary>
@@ -90,8 +84,9 @@ cd
 hledger --version    # should show the new version
 ```
 
-</details>
+The tar + zip packaging is a workaround to preserve file permissions.
 
+</details>
 <details>
 <summary>
 
@@ -100,7 +95,7 @@ hledger --version    # should show the new version
 </summary>
 
 In a terminal window, run these commands to download, unpack, authorise, and install the binaries in your command line PATH.
-(Don't use your web browser, it won't authorise the binaries.):
+Don't use your web browser, it won't authorise the binaries.:
 <!--
 (Hopefully these commands are all installed by default; 
 if not, install [XCode Command Line Tools](https://mac.install.guide/commandlinetools/) 
@@ -122,8 +117,9 @@ cd
 hledger --version    # should show the new version
 ```
 
-</details>
+The tar + zip packaging is a workaround to preserve file permissions.
 
+</details>
 <details>
 <summary>
 
@@ -165,7 +161,6 @@ out-file -append -encoding ascii $HOME/.hledger.journal
 Once that journal file exists, you can start hledger-web by double-clicking on the icon if you wish.
 
 </details>
-
 <details>
 <summary>
 
@@ -194,3 +189,7 @@ Problems:
 
 </details>
 
+\
+Once installed, run `hledger`, and perhaps read [hledger.org: Quick start](https://hledger.org/#quick-start).
+
+</details>
