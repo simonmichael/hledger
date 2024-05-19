@@ -217,51 +217,51 @@ jobs:
     # ACTIONS
     # in modular steps for faster & more focussed failures
 
-    - name: Install old GHC
+    - name: Install GHC
       run: |
         $stack setup --install-ghc
       if: env.do-all
 
 
-    - name: Install hledger-lib deps
+    - name: Build deps of hledger-lib
       run: |
         $stack build --test --bench hledger-lib --only-dependencies
       if: env.do-all
 
-    - name: Build/test hledger-lib
+    - name: Build/test    hledger-lib
       run: |
         $stack install --test --bench hledger-lib --fast --ghc-options=-Werror
       if: env.do-all
 
 
-    - name: Install hledger deps
+    - name: Build deps of hledger
       run: |
         $stack build --test --bench hledger --only-dependencies
       if: env.do-all
 
-    - name: Build/test hledger
+    - name: Build/test    hledger
       run: |
         $stack install --test --bench hledger --fast --ghc-options=-Werror
       if: env.do-all
 
 
-    - name: Install hledger-ui deps
+    - name: Build deps of hledger-ui
       run: |
         $stack build --test --bench hledger-ui --only-dependencies
       if: env.do-all
 
-    - name: Build/test hledger-ui
+    - name: Build/test    hledger-ui
       run: |
         $stack install --test --bench hledger-ui --fast --ghc-options=-Werror
       if: env.do-all
 
 
-    - name: Install hledger-web deps
+    - name: Build deps of hledger-web
       run: |
         $stack build --test --bench hledger-web --only-dependencies
       if: env.do-all
 
-    - name: Build/test hledger-web
+    - name: Build/test    hledger-web
       run: |
         $stack install --test --bench hledger-web --fast --ghc-options=-Werror
       if: env.do-all

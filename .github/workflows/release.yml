@@ -21,6 +21,7 @@ jobs:
 
     # Get artifact from the latest binaries-linux-x64 run
     - name: Get latest linux binaries artifact
+      # XXX unverified, disallowed
       uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe  # https://github.com/dawidd6/action-download-artifact v3.1.4
       with:
         # Optional, GitHub token, a Personal Access Token with `public_repo` scope if needed
