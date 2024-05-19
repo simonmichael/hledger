@@ -1,0 +1,155 @@
+# WIP:
+# Run when a release tag is pushed,
+# creating the new release.
+# Expects that the binaries* workflows have been completed first.
+
+name: release
+
+on:
+  push:
+    tags:
+      - '1*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Get artifact from the latest binaries-linux-x64 run
+    - name: Get latest linux binaries artifact
+      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe  # https://github.com/dawidd6/action-download-artifact v3.1.4
+      with:
+        # Optional, GitHub token, a Personal Access Token with `public_repo` scope if needed
+        # Required, if the artifact is from a different repo
+        # Required, if the repo is private a Personal Access Token with `repo` scope is needed or GitHub token in a job where the permissions `action` scope set to `read`
+        # github_token: ${{secrets.GITHUB_TOKEN}}
+        # Optional, workflow file name or ID
+        # If not specified, will be inferred from run_id (if run_id is specified), or will be the current workflow
+        workflow: binaries-linux-x64.yml
+        # Optional, will use specified workflow run
+        # use ${{ github.event.workflow_run.id }} when your action runs in a workflow_run event
+        # and wants to download from the triggering workflow run
+        # run_id: 1122334455
+        # If no workflow is set and workflow_search set to true, then the most recent workflow matching
+        # all other criteria will be looked up instead of using the current workflow
+        workflow_search: false
+        # Optional, the status or conclusion of a completed workflow to search for
+        # Can be one of a workflow conclusion:
+        #   "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required"
+        # Or a workflow status:
+        #   "completed", "in_progress", "queued"
+        # Use the empty string ("") to ignore status or conclusion in the search
+        workflow_conclusion: success
+        # Optional, will get head commit SHA
+        # pr: ${{github.event.pull_request.number}}
+        # Optional, no need to specify if PR is
+        # commit: ${{github.event.pull_request.head.sha}}
+        # Optional, will use the specified branch. Defaults to all branches
+        branch: binaries-linux-x64
+        # Optional, defaults to all types
+        event: push
+        # Optional, run number from the workflow
+        # run_number: 34
+        # Optional, uploaded artifact name,
+        # will download all artifacts if not specified
+        # and extract them into respective subdirectories
+        # https://github.com/actions/download-artifact#download-all-artifacts
+        # is treated as a regular expression if input name_is_regexp is true
+        # will download only those artifacts with a name that matches this regular expression
+        # https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions
+        # name: artifact_name
+        # Optional, name is treated as a regular expression if set true
+        # name_is_regexp: true
+        # Optional, a directory where to extract artifact(s), defaults to the current directory
+        path: tmp
+        # Optional, defaults to current repo
+        # repo: ${{ github.repository }}
+        # Optional, check the workflow run to whether it has an artifact
+        # then will get the last available artifact from the previous workflow
+        # default false, just try to download from the last one
+        check_artifacts: false
+        # Optional, search for the last workflow run whose stored an artifact named as in `name` input
+        # default false
+        search_artifacts: false
+        # Optional, choose to skip unpacking the downloaded artifact(s)
+        # default false
+        skip_unpack: false
+        # Optional, choose how to exit the action if no artifact is found
+        # can be one of:
+        #  "fail", "warn", "ignore"
+        # default fail
+        # if_no_artifact_found: fail
+        # Optional, allow forks when searching for artifacts
+        # default false
+        # allow_forks: false
+
+    - name: Inspect
+      shell: bash
+      run: |
+        ls -lF
+        ls -lF tmp
+
+    # - name: Make tarball
+    #   shell: bash
+    #   run: |
+    #     outdir="target/${{ matrix.target }}/release"
+    #     staging="jj-${{ github.event.release.tag_name }}-${{ matrix.target }}"
+    #     mkdir "$staging"
+    #     cp {README.md,LICENSE} "$staging/"
+    #     if [ "${{ matrix.os }}" = "windows-2022" ]; then
+    #       cp "$outdir/jj.exe" "$staging/"
+    #       cd "$staging"
+    #       7z a "../$staging.zip" .
+    #       echo "ASSET=$staging.zip" >> $GITHUB_ENV
+    #     else
+    #       cp "$outdir/jj" "$staging/"
+    #       tar czf "$staging.tar.gz" -C "$staging" .
+    #       echo "ASSET=$staging.tar.gz" >> $GITHUB_ENV
+    #     fi
+
+    # - name: Create release
+    #   uses: softprops/action-gh-release@69320dbe05506a9a39fc8ae11030b214ec2d1f87  # https://github.com/softprops/action-gh-release 2.0.5
+    #   # permissions:
+    #   #   contents: write
+    #   # https://github.com/softprops/action-gh-release?tab=readme-ov-file#-customizing
+    #   with:
+    #     draft: true
+    #     body_path: ${{ github.workspace }}/doc/relnotes.github.md
+    #     fail_on_unmatched_files: true
+    #   #   files: |
+    #   #     Release.txt
+    #   #     LICENSE
+
+
+
+# snippets
+
+
+        # body: |
+        #   ${{ fromJSON(steps.<step-id>.outputs.assets)[0].browser_download_url }}
+
+# if you intend to run workflows on the release event (on: { release: { types: [published] } }),
+# you need to use a personal access token for this action, as the default secrets.GITHUB_TOKEN does not trigger another workflow.
+
+
+
+
+    # - name: version
+    #   run: echo "::set-output name=version::$(./bin/azblogfilter --version)"
+    #   id: version
+
+    # - name: release
+    #   uses: actions/create-release@v1
+    #   id: create_release
+    #   with:
+    #     draft: false
+    #     prerelease: false
+    #     release_name: ${{ steps.version.outputs.version }}
+    #     tag_name: ${{ github.ref }}
+    #     body_path: CHANGELOG.md
+    #   env:
+    #     GITHUB_TOKEN: ${{ github.token }}
