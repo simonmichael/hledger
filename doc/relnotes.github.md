@@ -46,7 +46,7 @@
 
 ### credits 1.33.1
 
-Simon Michael.
+- Simon Michael (@simonmichael)
 
 [#2149]: https://github.com/simonmichael/hledger/issues/2149
 [#2196]: https://github.com/simonmichael/hledger/issues/2196
