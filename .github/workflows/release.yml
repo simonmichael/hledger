@@ -119,6 +119,7 @@ jobs:
       run: |
         cd artifacts
         mv */*.tar .
+        rmdir `find . -type d -depth 1`
         gzip *.tar
 
     - name: Inspect artifacts
@@ -148,14 +149,12 @@ jobs:
         # append_body              Boolean  Append to existing body instead of overwriting it
         # make_latest              String   Specifies whether this release should be set as the latest release for the repository. Drafts and prereleases cannot be set as latest. Can be true, false, or legacy. Uses GitHub api defaults if not provided
         #
-        draft: true
         body_path: ${{ github.workspace }}/doc/relnotes.github.md
-        fail_on_unmatched_files: true
         files: |
-          artifacts/hledger-windows-x64.zip
-          artifacts/hledger-linux-x64.tar.gz
-          artifacts/hledger-mac-x64.tar.gz
-          artifacts/hledger-mac-arm64.tar.gz
+          artifacts/*.zip
+          artifacts/*.tar.gz
+        fail_on_unmatched_files: true
+        draft: true
 
 
 
