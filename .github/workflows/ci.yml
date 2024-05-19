@@ -220,42 +220,51 @@ jobs:
     - name: Install old GHC
       run: |
         $stack setup --install-ghc
+      if: env.do-all
 
 
     - name: Install hledger-lib deps
       run: |
         $stack build --test --bench hledger-lib --only-dependencies
+      if: env.do-all
 
     - name: Build/test hledger-lib
       run: |
         $stack install --test --bench hledger-lib --fast --ghc-options=-Werror
+      if: env.do-all
 
 
     - name: Install hledger deps
       run: |
         $stack build --test --bench hledger --only-dependencies
+      if: env.do-all
 
     - name: Build/test hledger
       run: |
         $stack install --test --bench hledger --fast --ghc-options=-Werror
+      if: env.do-all
 
 
     - name: Install hledger-ui deps
       run: |
         $stack build --test --bench hledger-ui --only-dependencies
+      if: env.do-all
 
     - name: Build/test hledger-ui
       run: |
         $stack install --test --bench hledger-ui --fast --ghc-options=-Werror
+      if: env.do-all
 
 
     - name: Install hledger-web deps
       run: |
         $stack build --test --bench hledger-web --only-dependencies
+      if: env.do-all
 
     - name: Build/test hledger-web
       run: |
         $stack install --test --bench hledger-web --fast --ghc-options=-Werror
+      if: env.do-all
 
 
     - name: Install shelltestrunner
