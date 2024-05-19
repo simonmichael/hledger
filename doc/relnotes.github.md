@@ -78,7 +78,7 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-linux-x64.zip    # just rerun if interrupted
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33.1/hledger-linux-x64.zip    # just rerun if interrupted
 unzip hledger-linux-x64.zip && tar xvf hledger-linux-x64.tar && rm -f hledger-linux-x64.{zip,tar}  # github workaround, preserves permissions
 cd
 hledger --version    # should show the new version
@@ -106,11 +106,11 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 cd /usr/local/bin
 
 # for ARM macs:
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-mac-arm64.zip    # just rerun if interrupted
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33.1/hledger-mac-arm64.zip    # just rerun if interrupted
 unzip hledger-mac-arm64.zip && tar xvf hledger-mac-arm64.tar && rm -f hledger-mac-arm64.{zip,tar}  # github workaround, preserves permissions
 
 # or for Intel macs:
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33/hledger-mac-x64.zip
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/1.33.1/hledger-mac-x64.zip
 unzip hledger-mac-x64.zip && tar xvf hledger-mac-x64.tar && rm -f hledger-mac-x64.{zip,tar}
 
 cd
@@ -142,7 +142,7 @@ cd $HOME\bin
 cp hledger.exe hledger.old.exe            # keep a backup of the old executables, if you care
 cp hledger-ui.exe hledger-ui.old.exe
 cp hledger-web.exe hledger-web.old.exe
-curl https://github.com/simonmichael/hledger/releases/download/1.33/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+curl https://github.com/simonmichael/hledger/releases/download/1.33.1/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
 Expand-Archive hledger-windows-x64.zip -DestinationPath . -Force
 cd $HOME
 hledger --version      # should show the new version
