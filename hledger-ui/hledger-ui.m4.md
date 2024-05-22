@@ -222,33 +222,33 @@ Or you can use `ESC` to return directly to the top menu screen.
 You can also use a command line flag to specific a different startup screen
 (`--cs`, `--bs`, `--is`, `--all`, or `--register=ACCT`).
 
-## Menu
+## Menu screen
 
 This is the top-most screen.
 From here you can navigate to several screens listing accounts of various types.
 Note some of these may not show anything until you have configured [account types](/hledger.html#account-types).
 
-## Cash accounts
+## Cash accounts screen
 
 This screen shows "cash" (ie, liquid asset) accounts (like `hledger balancesheet type:c`).
 It always shows balances (historical ending balances on the date shown in the title line).
 
-## Balance sheet accounts
+## Balance sheet accounts screen
 
 This screen shows asset, liability and equity accounts (like `hledger balancesheetequity`).
 It always shows balances.
 
-## Income statement accounts
+## Income statement accounts screen
 
 This screen shows revenue and expense accounts (like `hledger incomestatement`).
 It always shows changes (balance changes in the period shown in the title line).
 
-## All accounts
+## All accounts screen
 
 This screen shows all accounts in your journal (unless filtered by a query; like `hledger balance`).
 It shows balances by default; you can toggle showing changes with the `H` key.
 
-## Register
+## Register screen
 
 This screen shows the transactions affecting a particular account.
 Each line represents one transaction, and shows:
@@ -292,7 +292,7 @@ unlike command-line hledger).
 
 Press `RIGHT` to view the selected transaction in detail.
 
-## Transaction
+## Transaction screen
 
 This screen shows a single transaction, as a general journal entry,
 similar to hledger's print command and journal format (hledger_journal(5)).
@@ -321,7 +321,7 @@ So eg to see the effect of using the `E` key, currently you must:
 - press `g` to reload the file (or use `-w/--watch` mode)
 - press `LEFT` then `RIGHT` to exit and re-enter the transaction screen.
 
-## Error
+## Error screen
 
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload. Once you have fixed the problem,

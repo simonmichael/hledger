@@ -11,27 +11,27 @@ We invite you to jump in, and thank you!
 There are many ways to help. Browse the ideas below,
 and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 
-### Visitor / passer-by ?
+## Visitor / passer-by ?
 
 - Give feedback on the site and your impressions of the project, small or large, good or bad. This is valuable.
 
-### New user ?
+## New user ?
 
 - Report your new user experiences, small or large, good or bad. This is valuable.
 
-### Tech supporter ?
+## Tech supporter ?
 
 - Share what you've learned so far to help others. This is a quadruple win -
   it helps them, improves your own understanding, builds community, and frees up maintainer time!
 
-### Funder ?
+## Funder ?
 
 - Become a financial backer: [Sponsor hledger](sponsor.md)
 - Contribute or pledge bounties on issues you care about
 - Ask your organization to contribute
 - Work on project [finance](FINANCE.md) - accounting, fundraising, sustainability..
 
-### Tester ?
+## Tester ?
 
 - Test installation on platforms you have access to
 - Test examples, advice, and links in the docs
@@ -42,7 +42,7 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 - Test new releases, report regressions and collect regression finder bounties
 - Discuss and help analyse problems via chat/mail list/issue tracker
 
-### Bug wrangler ?
+## Bug wrangler ?
 
 - Respond to issue reports when needed, especially if they are from new reporters
 - Add appropriate labels to issues to categorise them
@@ -52,42 +52,42 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 - Improve issues urls & dashboard(s)
 - Help ensure a consistently good bug-reporting and PR-contributing experience
 
-### Bug fixer ?
+## Bug fixer ?
 
 - Get familiar with issue tracker, issue labels, shortcut urls, issue dashboards..
 - Review open bug reports
 - Try to fix or help fix some
 - Fix regressions and collect regression fixer bounties
 
-### Developer ?
+## Developer ?
 
 - Give feedback on your experience using the hledger packages
 - Suggest API improvements
 - See the [Developer FAQ](DEVFAQ.md) and other [Developer docs](dev.md).
 
-### Technical writer ?
+## Technical writer ?
 
 - Get familiar with the documentation, website and online presence; review and test
 - Get familiar with the doc/site source files and generation process (see [Just, Make, Shake](JUST-MAKE-SHAKE.md))
 - Help improve user, contributor, process docs
 
-### Web designer / webmaster ?
+## Web designer / webmaster ?
 
 - Review and help improve our web presence
 
-### Graphic designer ?
+## Graphic designer ?
 
 - Review and improve logos, graphics, design language
 - Contribute illustrations, diagrams, cartoons, mockups
 
-### Packager ?
+## Packager ?
 
 - Start/test/improve hledger's packaging on various platforms
 - Find/assist/take over from existing packagers
 - Improve packaging-related docs/links
 - Develop mac or windows installers
 
-### Marketer / communicator ?
+## Marketer / communicator ?
 
 - Clarify project goals, value proposition, brand, mission, story
 - Monitor product-market fit
@@ -95,18 +95,18 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 - Influence developer priorities
 - Spread the word!
 
-### Product designer ?
+## Product designer ?
 
 - Contribute design input to discussions in issue tracker and elsewhere
 - Develop your whole-system view of the hledger "product" (user software, docs, online presence, new user experience etc.)
 
-### Community builder/moderator ?
+## Community builder/moderator ?
 
 - Participate in [support](support.md) channels
 - As a regular member or moderator, help to resolve/report incidents
 - Help uphold and improve our community structures and dynamics
 
-### Project manager ?
+## Project manager ?
 
 - Monitor, report on project progress and performance
 - Research, compare and report on successful projects, related projects
@@ -114,7 +114,7 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 - Assist with marketing, communication, outreach
 - Assist with maintainer tasks
 
-### Maintainer / co-maintainer ?
+## Maintainer / co-maintainer ?
 
 - Manage and ship releases
 - Manage the project roadmap

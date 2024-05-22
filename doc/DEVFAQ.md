@@ -6,7 +6,7 @@ This is just getting started. It will absorb some of the other [Developer docs](
 
 <!-- ## Developing hledger -->
 
-### How do I get/build the hledger source ?
+## How do I get/build the hledger source ?
 
 ```cli
 $ git clone https://github.com/simonmichael/hledger
@@ -15,7 +15,7 @@ $ stack build
 You can specify `hledger`, `hledger-ui` or `hledger-web` as an argument to build just that executable.
 Please see [Install > Build from source](install.md#build-from-source) for more details and other build methods.
 
-### What other repos are there ?
+## What other repos are there ?
 
 There are three official repos:
 - <https://github.com/simonmichael/hledger> - the main hledger repo, for hledger, hledger-ui and hledger-web. Shortcut url: <https://code.hledger.org>
@@ -24,7 +24,7 @@ There are three official repos:
 
 And third-party add-ons and tools (hledger-iadd, hledger-utils, full fledged hledger, hledger-flow, etc.) have their own repos.
 
-### How do I run a build in place ?
+## How do I run a build in place ?
 
 After building with stack,
 ```cli
@@ -36,7 +36,7 @@ Or after building with cabal,
 $ cabal exec -- hledger [ARGS]
 ```
 
-### How do I install a build in PATH ?
+## How do I install a build in PATH ?
 
 ```cli
 $ stack install
@@ -52,7 +52,7 @@ It will install executables to `~/.cabal/bin`:
 $ cabal install all:exes
 ```
 
-### How do I build/run with ghc-debug support ?
+## How do I build/run with ghc-debug support ?
 
 You might need to stop background builders like HLS, to avoid a fight over the build flag
 (in VS Code, run the command "Haskell: Stop Haskell LSP server").

@@ -6021,22 +6021,22 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 
 <!-- keep commands & descriptions synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
 
-**[HELP](#help-)**
+**[Help commands](#help-commands)**
 
 - [help](#help)                                    - show the hledger manual with info/man/pager
 - [demo](#demo)                                    - show small hledger demos in the terminal
 
-**[USER INTERFACES](#user-interfaces-)**
+**[User interface commands](#user-interface-commands)**
 
 - [ui](hledger-ui.html)                            - (if installed) run hledger's terminal UI
 - [web](hledger-web.html)                          - (if installed) run hledger's web UI
 
-**[ENTERING DATA](#entering-data-)**
+**[Data entry commands](#data-entry-commands)**
 
 - [add](#add)                                      - add transactions using terminal prompts
 - [import](#import)                                - add new transactions from other files, eg CSV files
 
-**[BASIC REPORTS](#basic-reports-)**
+**[Basic report commands](#basic-report-commands)**
 
 - [accounts](#accounts)                            - show account names
 - [codes](#codes)                                  - show transaction codes
@@ -6049,7 +6049,7 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
 
-**[STANDARD REPORTS](#standard-reports-)**
+**[Standard report commands](#standard-report-commands)**
 
 - [print](#print)                                  - show transactions or export journal data
 - [aregister](#aregister) (areg)                   - show transactions in a particular account
@@ -6059,21 +6059,21 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 - [cashflow](#cashflow) (cf)                       - show changes in liquid assets
 - [incomestatement](#incomestatement) (is)         - show revenues and expenses
 
-**[ADVANCED REPORTS](#advanced-reports-)**
+**[Advanced report commands](#advanced-report-commands)**
 
 - [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
 - [roi](#roi)                                      - show return on investments
 
-**[CHARTS](#charts-)**
+**[Chart commands](#chart-commands)**
 
 - [activity](#activity)                            - show bar charts of posting counts per period
 
-**[GENERATING DATA](#generating-data-)**
+**[Data generation commands](#data-generation-commands)**
 
 - [close](#close)                                  - generate balance-zeroing/restoring transactions
 - [rewrite](#rewrite)                              - generate auto postings, like print --auto
 
-**[MAINTENANCE](#maintenance-)**
+**[Maintenance commands](#maintenance-commands)**
 
 - [check](#check)                                  - check for various kinds of error in the data
 - [diff](#diff)                                    - compare account transactions in two journal files
@@ -6099,7 +6099,7 @@ _commands_
 
 Here are some quick examples of how to do some basic tasks with hledger.
 
-## Getting help
+# Getting help
 
 Here's how to list commands and view options and command docs:
 
@@ -6120,7 +6120,7 @@ $ hledger help --help    # find out more about the help command
 To view manuals and introductory docs on the web, visit <https://hledger.org>.
 Chat and mail list support and discussion archives can be found at <https://hledger.org/support>.
 
-## Constructing command lines
+# Constructing command lines
 
 hledger has a flexible command line interface.
 We strive to keep it simple and ergonomic, but if you run into one of
@@ -6133,7 +6133,7 @@ here are some tips that might help:
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
 - to see how a misbehaving command line is being parsed, add `--debug=2`.
 
-## Starting a journal file
+# Starting a journal file
 
 hledger looks for your accounting data in a journal file, `$HOME/.hledger.journal` by default:
 ```cli
@@ -6168,7 +6168,7 @@ Commodities              : 0 ()
 Market prices            : 0 ()
 ```
 
-## Setting LEDGER_FILE
+# Setting LEDGER_FILE
 
 How to set `LEDGER_FILE` permanently depends on your setup:
 
@@ -6200,7 +6200,7 @@ or try running these commands in a powershell window
 > SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
 ```
 
-## Setting opening balances
+# Setting opening balances
 
 Pick a starting date for which you can look up the balances of some
 real-world assets (bank accounts, wallet..) and liabilities (credit cards..).
@@ -6276,7 +6276,7 @@ If you're using version control, this could be a good time to commit the journal
 $ git commit -m 'initial balances' 2023.journal
 ```
 
-## Recording transactions
+# Recording transactions
 
 As you spend or receive money, you can record these transactions
 using one of the methods above (text editor, hledger add)
@@ -6300,7 +6300,7 @@ and hledger.org for more ideas:
   assets:bank:checking    $1000
 ```
 
-## Reconciling
+# Reconciling
 
 Periodically you should reconcile - compare your hledger-reported balances
 against external sources of truth, like bank statements or your bank's website -
@@ -6352,7 +6352,7 @@ If you're using version control, this can be another good time to commit:
 $ git commit -m 'txns' 2023.journal
 ```
 
-## Reporting
+# Reporting
 
 Here are some basic reports.
 
@@ -6500,7 +6500,7 @@ $ hledger activity -W
 2023-01-06 ****
 2023-01-13 ****
 ```
-## Migrating to a new file
+# Migrating to a new file
 
 At the end of the year, you may want to continue your journal in a new file,
 so that old transactions don't slow down or clutter your reports,

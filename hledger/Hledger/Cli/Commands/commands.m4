@@ -4,12 +4,12 @@ m4_dnl Keep synced with Hledger.Cli.Commands.commandsList, hledger.m4.md.
 m4_dnl The spaced colons avoid anchor/link collisions with similarly-named sections.
 m4_define({{_commands_}}, 
 {{
-## HELP :
+# Help commands
 
 _command_({{Help}})
 _command_({{Demo}})
 
-## USER INTERFACES :
+# User interface commands
 
 ## ui
 
@@ -20,12 +20,12 @@ Runs [hledger-ui](hledger-ui.md) (if installed).
 Runs [hledger-web](hledger-web.md) (if installed).
 
 
-## ENTERING DATA :
+# Data entry commands
 
 _command_({{Add}})
 _command_({{Import}})
 
-## BASIC REPORTS :
+# Basic report commands
 
 _command_({{Accounts}})
 _command_({{Codes}})
@@ -38,7 +38,7 @@ _command_({{Prices}})
 _command_({{Stats}})
 _command_({{Tags}})
 
-## STANDARD REPORTS :
+# Standard report commands
 
 _command_({{Print}})
 _command_({{Aregister}})
@@ -48,21 +48,21 @@ _command_({{Balancesheetequity}})
 _command_({{Cashflow}})
 _command_({{Incomestatement}})
 
-## ADVANCED REPORTS :
+# Advanced report commands
 
 _command_({{Balance}})
 _command_({{Roi}})
 
-## CHARTS :
+# Chart commands
 
 _command_({{Activity}})
 
-## GENERATING DATA :
+# Data generation commands
 
 _command_({{Close}})
 _command_({{Rewrite}})
 
-## MAINTENANCE :
+# Maintenance commands
 
 _command_({{Check}})
 _command_({{Diff}})
