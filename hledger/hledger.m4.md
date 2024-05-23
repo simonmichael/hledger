@@ -4768,7 +4768,7 @@ Weekly on a custom day:
 
 Monthly on a custom day:
 
-- `every Nth day [of month]`
+- `every Nth day [of month]` (`31st day` will be adjusted to each month's last day)
 - `every Nth WEEKDAYNAME [of month]`
 
 Yearly on a custom day:
