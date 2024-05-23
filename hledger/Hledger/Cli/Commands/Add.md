@@ -33,37 +33,26 @@ Features:
 - If you make a mistake, enter `<` at any prompt to go one step backward.
 - Input prompts are displayed in a different colour when the terminal supports it.
 
-Example (see <https://hledger.org/add.html> for a detailed tutorial):
+Notes:
 
-```cli
-$ hledger add
-Adding transactions to journal file /src/hledger/examples/sample.journal
-Any command line arguments will be used as defaults.
-Use tab key to complete, readline keys to edit, enter to accept defaults.
-An optional (CODE) may follow transaction dates.
-An optional ; COMMENT may follow descriptions or amounts.
-If you make a mistake, enter < at any prompt to go one step backward.
-To end a transaction, enter . when prompted.
-To quit, enter . at a date prompt or press control-d or control-c.
-Date [2015/05/22]: 
-Description: supermarket
-Account 1: expenses:food
-Amount  1: $10
-Account 2: assets:checking
-Amount  2 [$-10.0]: 
-Account 3 (or . or enter to finish this transaction): .
-2015/05/22 supermarket
-    expenses:food             $10
-    assets:checking        $-10.0
+- If you enter a number with no commodity symbol,
+  and you have declared a default commodity with a `D` directive,
+  you might expect `add` to add this symbol for you.
+  It does not do this; we assume that if you are using a `D` directive
+  you prefer not to see the commodity symbol repeated on amounts in the journal.
 
-Save this transaction to the journal ? [y]: 
-Saved.
-Starting the next transaction (. or ctrl-D/ctrl-C to quit)
-Date [2015/05/22]: <CTRL-D> $
-```
+Examples:
 
-If you enter a number with no commodity symbol,
-and you have declared a default commodity with a `D` directive,
-you might expect `add` to add this symbol for you.
-It does not do this; we assume that if you are using a `D` directive
-you prefer not to see the commodity symbol repeated on amounts in the journal.
+- Record new transactions, saving to the default journal file:
+
+  `hledger add`
+
+- Add transactions to 2024.journal, but also load 2023.journal for completions:
+
+  `hledger add --file 2024.journal --file 2023.journal`
+
+- Provide answers for the first four prompts:
+
+  `hledger add today 'best buy' expenses:supplies '$20'`
+
+There is a detailed tutorial at <https://hledger.org/add.html>.
