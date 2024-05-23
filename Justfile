@@ -929,20 +929,33 @@ NEWS:
 # Show a draft This Week In Hledger post, with activity between the last two fridays (by default)
 twih:  # *DATE:
     #!/usr/bin/env osh
-    BEG=`just _dateortwofridaysago  $DATE`
+    # BEG=`just _dateortwofridaysago  $DATE`
     END=`just _todayorlastfriday $DATE`
-    cat <<END
+    cat <<EOS
+    == TWIH notes: ========================================
+
+    last release: `just rel`
+    
+    `cal`
+    `just timelog $DATE`
+
+    `just worklog $DATE`
+
+    recent issue activity:
+    https://github.com/simonmichael/hledger/issues?q=sort:updated-desc
+
+
+    == TWIH draft (in clipboard) : ========================
+
+    EOS
+    (cat <<EOS
+    ---
+
     ## This Week In Hledger $END
     
     **sm**
     
-    END
-    printf "DRAFT:\n\n"
-    just commitlog $DATE
-    printf "last release: `just rel`\n\n"
-    just worklog   $DATE
-    just timelog   $DATE
-    cat <<END
+    `just commitlog $DATE`
     
     **Misc**
     
@@ -955,9 +968,10 @@ twih:  # *DATE:
     **
     
     <https://hledger.org/news.html#this-week-in-hledger-$END>
+
     
-    ---
-    END
+    EOS
+    ) | tee /dev/tty | pbcopy
 
 GITSHORTFMT := "--format='%ad %s' --date=short"
 
@@ -991,8 +1005,8 @@ worklog *DATE:
     # LOGGEDDATES=`just worklogdates`
     BEGLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
     # ENDLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . takeWhile (< \"$END\") . (++[\"9999-99-99\"]) . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
-    printf "** Work log in $BEG..\n"
-    # printf "** Work log in $BEGLOGGED..$ENDLOGGED\n"
+    printf "hledger work log in $BEG..:\n"
+    # printf "hledger work log in $BEGLOGGED..$ENDLOGGED:\n"
     awk "/^#### $BEGLOGGED/{p=1;print;next}; /^## /{p=0}; p" "$WORKLOG"
     # awk "/^#### $BEGLOGGED/{p=1;print;next}; /#### $ENDLOGGED/{p=0}; /^## /{p=0}; p" "$WORKLOG"
     echo
@@ -1003,10 +1017,10 @@ timelog *DATE:
     BEG=`just _dateortwofridaysago  $DATE`
     END=`just _todayorlastfriday $DATE`
     END1=`just _tomorroworlastfriday $DATE`
-    printf "** Time log in $BEG..$END\n\n"
-    hledger -f $TIMELOG print hledger -b $BEG -e $END1 | rg '^2|hledger'
-    echo
+    printf "hledger time logged in $BEG..$END:\n\n"
     hledger -f $TIMELOG bal -S --format '%-20(account) %12(total)' hledger -b $BEG -e $END1
+    echo
+    hledger -f $TIMELOG print hledger -b $BEG -e $END1 | rg '^2|hledger'
     echo
 
 # Copy some text to the system clipboard if possible
