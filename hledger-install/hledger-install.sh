@@ -12,7 +12,7 @@ set -o pipefail
 HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240502
+HLEDGER_INSTALL_VERSION=20240524
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -94,14 +94,14 @@ STACK_MIN_VERSION=2.5.1
 # You can try specifying a different stackage version here, or 
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACK_RESOLVER="--resolver=lts-22.19"
+STACK_RESOLVER="--resolver=nightly-2024-05-16"
 
 # Dependencies we require that aren't in the above stackage snapshot.
 # (Also requested when using cabal, but that's harmless.)
 # Be careful not to break interpolation in commands below, the format should be
 # STACK_EXTRA_DEPS="PKG1-VER1 PKG2-VER2 ..."
 # extra deps as in stack9.6.yaml:
-STACK_EXTRA_DEPS="vty-windows-0.2.0.1"
+STACK_EXTRA_DEPS=""
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
