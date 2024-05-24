@@ -9,7 +9,7 @@ This directory has convenient symlinks for accessing the
 (if tldr is cloned as a sibling to the hledger project directory).
 
 The tldr pages are crafted first to suit tldr and its style rules,
-but we should try to reuse them elsewhere when there is not too much divergence/duplication.
+but we should try to reuse them elsewhere when it's practical.
 
 If you speak a language other than english, you could contribute translations!
 It is relatively easy:
