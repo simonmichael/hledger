@@ -13,6 +13,5 @@ but we should try to reuse them elsewhere when there is not too much divergence/
 
 If you speak a language other than english, you could contribute translations!
 It is relatively easy:
-<https://github.com/tldr/tldr/blob/main/CONTRIBUTING.md#translations>
-
-Here is where to [check translations status](https://lukwebsforge.github.io/tldri18n).
+<https://github.com/tldr/tldr/blob/main/CONTRIBUTING.md#translations>.
+Here is where to check [translations status](https://lukwebsforge.github.io/tldri18n).
