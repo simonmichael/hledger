@@ -42,6 +42,7 @@
 # - hasktags (hackage, generates tag files for code navigation)
 # - profiterole (hackage/stackage, simplifies profiles)
 # - profiteur (hackage/stackage, renders profiles as html)
+# - dateround (from dateutils)
 
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
@@ -915,28 +916,28 @@ NEWS:
 #     echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
 
 # If DATE is provided, return it, otherwise the date two fridays ago.
-@_dateortwofridaysago *DATE:
-    echo {{ if DATE == '' { `$GDATE -I -d 'last friday - 1 week'` } else { DATE } }}
+@_dateorsecondlatestfriday *DATE:
+    echo {{ if DATE == '' { `gdate -I -d "$(dateround today -n -- -fri) - 1 week"` } else { DATE } }}
 
-# If DATE is provided, return today's date, otherwise last friday's.
-@_todayorlastfriday *DATE:
-    echo {{ if DATE == '' { `$GDATE -I -d 'last friday'` } else { `$GDATE -I` } }}
+# If DATE is provided, return today's date, otherwise the most recent friday's (possibly today).
+@_todayorlatestfriday *DATE:
+    echo {{ if DATE == '' { `dateround today -n -- -fri` } else { `$GDATE -I` } }}
 
 # If DATE is provided, return tomorrow's date, otherwise last friday's.
-@_tomorroworlastfriday *DATE:
-    echo {{ if DATE == '' { `$GDATE -I -d 'last friday'` } else { `$GDATE -I -d tomorrow` } }}
+@_tomorroworlatestfriday *DATE:
+    echo {{ if DATE == '' { `dateround today -n -- -fri` } else { `$GDATE -I -d tomorrow` } }}
 
 # Show a draft This Week In Hledger post, with activity between the last two fridays (by default)
 twih:  # *DATE:
     #!/usr/bin/env osh
-    # BEG=`just _dateortwofridaysago  $DATE`
-    END=`just _todayorlastfriday $DATE`
+    #BEG=`just _dateorsecondlatestfriday  $DATE`
+    END=`just _todayorlatestfriday $DATE`
     cat <<EOS
     == TWIH notes: ========================================
 
     last release: `just rel`
     
-    `cal`
+    `gcal`
     `just timelog $DATE`
 
     `just worklog $DATE`
@@ -978,8 +979,8 @@ GITSHORTFMT := "--format='%ad %s' --date=short"
 # Show commits briefly in the three hledger repos between the last two fridays or since this date
 commitlog *DATE:
     #!/usr/bin/env osh
-    BEG=`just _dateortwofridaysago  $DATE`
-    END=`just _todayorlastfriday $DATE`
+    BEG=`just _dateorsecondlatestfriday $DATE`
+    END=`just _todayorlatestfriday $DATE`
     printf "** commits in $BEG..$END\n"
     printf "** hledger\n"
     git log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
@@ -1000,8 +1001,8 @@ WORKLOG := "../../notes/CLOUD/hledger log.md"
 # Show hledger work logged since this date or days ago or last release
 worklog *DATE:
     #!/usr/bin/env osh
-    BEG=`just _dateortwofridaysago  $DATE`
-    END=`just _todayorlastfriday $DATE`
+    BEG=`just _dateorsecondlatestfriday  $DATE`
+    END=`just _todayorlatestfriday $DATE`
     # LOGGEDDATES=`just worklogdates`
     BEGLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
     # ENDLOGGED=`just worklogdates | $GHC -e "getContents >>= putStrLn . head . takeWhile (< \"$END\") . (++[\"9999-99-99\"]) . dropWhile (< \"$BEG\") . (++[\"9999-99-99\"]) . lines"`
@@ -1014,9 +1015,9 @@ worklog *DATE:
 # Show hledger-related time logged between the last two fridays or since this date
 timelog *DATE:
     #!/usr/bin/env osh
-    BEG=`just _dateortwofridaysago  $DATE`
-    END=`just _todayorlastfriday $DATE`
-    END1=`just _tomorroworlastfriday $DATE`
+    BEG=`just _dateorsecondlatestfriday  $DATE`
+    END=`just _todayorlatestfriday $DATE`
+    END1=`just _tomorroworlatestfriday $DATE`
     printf "hledger time logged in $BEG..$END:\n\n"
     hledger -f $TIMELOG bal -S --format '%-20(account) %12(total)' hledger -b $BEG -e $END1
     echo
@@ -1030,7 +1031,7 @@ timelog *DATE:
 # Show matrix chat since this date or days ago or last release
 chatlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _dateortwofridaysago $DATE`
+    DATE=`just _dateorsecondlatestfriday $DATE`
     JUMP="/jumptodate $DATE"
     just _clip "$JUMP"
     echo "** matrix:    https://matrix.hledger.org, $JUMP"
@@ -1039,7 +1040,7 @@ chatlog *DATE:
 # Show mail list discussion since this date or days ago or last release
 maillog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _dateortwofridaysago $DATE`
+    DATE=`just _dateorsecondlatestfriday $DATE`
     DATE2=`$GDATE -d $DATE +"%b %-d"`
     echo "** mail list: https://list.hledger.org, since $DATE2 ($DATE)"
     echo
@@ -1047,7 +1048,7 @@ maillog *DATE:
 # Show /r/plaintextaccounting posts since this date or days ago or last release
 redditlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _dateortwofridaysago $DATE`
+    DATE=`just _dateorsecondlatestfriday $DATE`
     DAYS=`datediff $DATE now`
     echo "** reddit:    https://www.reddit.com/r/plaintextaccounting/new, since $DAYS days ago ($DATE)"
     echo
@@ -1055,7 +1056,7 @@ redditlog *DATE:
 # Show #hledger-tagged mastodon toots since this date or days ago or last release
 tootlog *DATE:
     #!/usr/bin/env osh
-    DATE=`just _dateortwofridaysago $DATE`
+    DATE=`just _dateorsecondlatestfriday $DATE`
     just _clip "#hledger after:$DATE"
     echo "** mastodon:  https://fosstodon.org/search, #hledger after:$DATE , #plaintextaccounting after:$DATE"
     echo
