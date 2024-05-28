@@ -373,13 +373,14 @@ This requires a well-configured environment. Here are some tips:
   This step is essential - without it, hledger will quit on encountering
   a non-ascii character (as with all GHC-compiled programs).
 
-- your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode
+- Your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode.
+  On Windows, you may need to use Windows Terminal and/or enable UTF-8 support.
 
-- the terminal must be using a font which includes the required unicode glyphs
+- The terminal must be using a font which includes the required unicode glyphs.
 
-- the terminal should be configured to display wide characters as double width (for report alignment)
+- The terminal should be configured to display wide characters as double width (for report alignment).
 
-- on Windows, for best results you should run hledger in the same kind of environment in which it was built.
+- On Windows, for best results you should run hledger in the same kind of environment in which it was built.
   Eg hledger built in the standard CMD.EXE environment (like the binaries on our download page)
   might show display problems when run in a cygwin or msys terminal, and vice versa.
   (See eg [#961](https://github.com/simonmichael/hledger/issues/961#issuecomment-471229644)).
