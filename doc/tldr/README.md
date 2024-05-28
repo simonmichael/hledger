@@ -11,7 +11,18 @@ This directory has convenient symlinks for accessing the
 The tldr pages are crafted first to suit tldr and its style rules,
 but we should try to reuse them elsewhere when it's practical.
 
-If you speak a language other than english, you could contribute translations!
+If you speak a language other than english, please consider making a few translations!
 It is relatively easy:
 <https://github.com/tldr/tldr/blob/main/CONTRIBUTING.md#translations>.
 Here is where to check [translations status](https://lukwebsforge.github.io/tldri18n).
+
+<https://tldr.inbrowser.app> is an online (& offline) tldr viewer,
+where you can search for [hledger command examples](https://tldr.inbrowser.app/search?query=hledger+).
+
+You can make a web browser keyword for it ([firefox & chrome][1]; [safari][2]),
+like `tldr CMD` = `https://tldr.inbrowser.app/search?query=CMD`.
+Then in your browser's address bar you can type
+`tldr`, `tldr hledger`, `tldr hledger-web`, `tldr hledger-balancesheet`, etc.
+
+[1]: https://karl-voit.at/browser-keywords
+[2]: http://safarikeywordsearch.aurlien.net
