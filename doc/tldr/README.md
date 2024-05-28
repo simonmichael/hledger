@@ -4,25 +4,34 @@ tldr pages are short but high value, and a great counterbalance to PTA's verbose
 So they are worth prioritising and maintaining.
 gutjuri made the first hledger tldr page in 2022, and sm added more in 2024.
 
-This directory has convenient symlinks for accessing the
-[hledger-related tldr pages](https://github.com/search?q=repo%3Atldr-pages%2Ftldr%20hledger&type=code)
+This directory has convenient symlinks for accessing the [hledger-related tldr pages](https://github.com/search?q=repo%3Atldr-pages%2Ftldr%20hledger&type=code)
 (if tldr is cloned as a sibling to the hledger project directory).
-
-The tldr pages are crafted first to suit tldr and its style rules,
-but we should try to reuse them elsewhere when it's practical.
-
-If you speak a language other than english, please consider making a few translations!
-It is relatively easy:
-<https://github.com/tldr/tldr/blob/main/CONTRIBUTING.md#translations>.
-Here is where to check [translations status](https://lukwebsforge.github.io/tldri18n).
+These docs are crafted first to suit tldr and its style rules, but we could also use them elsewhere when practical.
 
 <https://tldr.inbrowser.app> is an online (& offline) tldr viewer,
 where you can search for [hledger command examples](https://tldr.inbrowser.app/search?query=hledger+).
 
-You can make a web browser keyword for it ([firefox & chrome][1]; [safari][2]),
+You can also make a web browser keyword for it ([firefox & chrome][1]; [safari][2]),
 like `tldr CMD` = `https://tldr.inbrowser.app/search?query=CMD`.
 Then in your browser's address bar you can type
 `tldr`, `tldr hledger`, `tldr hledger-web`, `tldr hledger-balancesheet`, etc.
+
+In the search field's gear icon you can configure preferred languages.
+If you speak a language other than english, please consider making a few [translations](https://github.com/tldr-pages/tldr/blob/main/CONTRIBUTING.md#translations)!
+It is relatively easy. You can do it entirely in your web browser if you have a Github account:
+
+1. Starting with eg https://tldr.inbrowser.app/pages/common/hledger
+2. click "Find this page on GitHub"
+3. click the "Copy raw file" icon (two squares)
+4. navigate to eg https://github.com/tldr-pages/tldr/tree/main/pages.de/common
+5. click "Add file" > "Create new file"
+6. reuse the original file name, paste the original content
+7. translate the content
+8. commit
+9. send a pull request
+
+Here is the [tldr translations status](https://lukwebsforge.github.io/tldri18n).
+
 
 [1]: https://karl-voit.at/browser-keywords
 [2]: http://safarikeywordsearch.aurlien.net
