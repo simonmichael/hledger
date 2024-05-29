@@ -230,7 +230,7 @@ rawOptsToReportOpts d rawopts =
 
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
-        pretty = fromMaybe False $ alwaysneveropt "pretty" rawopts
+        pretty = fromMaybe False $ ynopt "pretty" rawopts
 
         format = case parseStringFormat <$> formatstring of
             Nothing         -> defaultBalanceLineFormat
@@ -329,8 +329,8 @@ balancecalcopt =
 balanceaccumopt :: RawOpts -> BalanceAccumulation
 balanceaccumopt = fromMaybe PerPeriod . balanceAccumulationOverride
 
-alwaysneveropt :: String -> RawOpts -> Maybe Bool
-alwaysneveropt opt rawopts = case maybestringopt opt rawopts of
+ynopt :: String -> RawOpts -> Maybe Bool
+ynopt opt rawopts = case maybestringopt opt rawopts of
     Just "always" -> Just True
     Just "yes"    -> Just True
     Just "y"      -> Just True

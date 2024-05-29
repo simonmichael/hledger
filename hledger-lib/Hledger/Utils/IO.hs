@@ -360,8 +360,8 @@ useColorOnHandle h = unsafePerformIO $ do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
   supports_color <- hSupportsANSIColor h
   let coloroption = colorOption
-  return $ coloroption `elem` ["always","yes"]
-       || (coloroption `notElem` ["never","no"] && not no_color && supports_color)
+  return $ coloroption `elem` ["always","yes","y"]
+       || (coloroption `notElem` ["never","no","n"] && not no_color && supports_color)
 
 -- | Wrap a string in ANSI codes to set and reset foreground colour.
 -- ColorIntensity is @Dull@ or @Vivid@ (ie normal and bold).
