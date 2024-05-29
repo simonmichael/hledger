@@ -136,17 +136,9 @@ If you see accounts which appear to have a zero balance, but cannot be hidden wi
 these have a mixed-cost balance which looks like zero when costs are hidden.
 Currently hledger-web does not show costs at all.
 
-## General help options
+## General options
 
-_helpoptions_
-
-## General input options
-
-_inputoptions_
-
-## General reporting options
-
-_reportingoptions_
+_generaloptions_
 
 # PERMISSIONS
 

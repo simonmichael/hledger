@@ -90,17 +90,9 @@ hledger-ui provides the following options:
 hledger-ui also supports many of hledger's general options
 (and the hledger manual's command line tips also apply here):
 
-## General help options
+## General options
 
-_helpoptions_
-
-## General input options
-
-_inputoptions_
-
-## General reporting options
-
-_reportingoptions_
+_generaloptions_
 
 # MOUSE
 

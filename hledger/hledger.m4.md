@@ -240,20 +240,9 @@ If this causes difficulty, you can always run the add-on directly, without using
 # Options
 
 Run `hledger -h` to see general command line help, and general options which are common
-to most hledger commands. These options can be written anywhere on the command line.
-They can be grouped into help, input, and reporting options:
+to most hledger commands. These options can be written anywhere on the command line:
 
-## General help options
-
-_helpoptions_
-
-## General input options
-
-_inputoptions_
-
-## General reporting options
-
-_reportingoptions_
+_generaloptions_
 
 # Command line tips
 
