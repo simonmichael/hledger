@@ -122,8 +122,8 @@ webhelpflags :: [Flag RawOpts]
 webhelpflags = [
   flagNone ["version"]  (setboolopt "version") "show version information"
  ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger-web manual with man"
  ,flagNone ["info"]     (setboolopt "info")    "show the hledger-web manual with info"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger-web manual with man"
  ]
 
 -- hledger-web options, used in hledger-web and above

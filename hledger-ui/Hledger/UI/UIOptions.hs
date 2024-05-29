@@ -91,8 +91,8 @@ uihelpflags :: [Flag RawOpts]
 uihelpflags = [
   flagNone ["version"]  (setboolopt "version") "show version information"
  ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger-ui manual with man"
  ,flagNone ["info"]     (setboolopt "info")    "show the hledger-ui manual with info"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger-ui manual with man"
  ]
 
 -- hledger-ui options, used in hledger-ui and above
