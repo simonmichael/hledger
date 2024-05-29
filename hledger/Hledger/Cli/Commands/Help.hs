@@ -32,13 +32,14 @@ import Safe (headMay)
 
 helpmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Help.txt")
-  [flagNone ["i"]  (setboolopt "info")  "show the manual with info"
-  ,flagNone ["m"]   (setboolopt "man")   "show the manual with man"
-  ,flagNone ["p"] (setboolopt "pager") "show the manual with $PAGER or less"
-  ,flagNone ["help","h"]  (setboolopt "help")  "show this help"
+  [flagNone ["i"] (setboolopt "info")  "show the manual with info"
+  ,flagNone ["m"] (setboolopt "man")   "show the manual with man"
+  ,flagNone ["p"] (setboolopt "pager") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
   ]
-  []
-  []
+  [(helpflagstitle, clihelpflags)]
+  [
+    flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
+  ]
   ([], Just $ argsFlag "[TOPIC]")
 
 -- | Display the hledger manual in various formats.

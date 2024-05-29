@@ -23,6 +23,7 @@ module Hledger.Cli.CliOptions (
   reportflags,
   clihelpflags,
   helpflags,
+  helpflagstitle,
   detailedversionflag,
   flattreeflags,
   hiddenflags,
