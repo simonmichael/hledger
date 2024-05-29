@@ -466,18 +466,20 @@ highlightHelp
   | not useColorOnStdout = id
   | otherwise = unlines . zipWith (curry f) [1..] . lines
   where
-    f (n,s)
-      | n==1 = bold s
-      | any (`isPrefixOf` s) [  -- keep synced with Hledger.Cli.mainmode
-           "General input flags"
-          ,"General reporting flags"
-          ,"General help flags"
-          ,"Flags"
-          ,"General flags"
-          ,"Examples"
-          ] = bold s
-      | otherwise = s
-
+    f (n,l)
+      | n==1 = bold l
+      | isHelpHeading l = bold l
+      | otherwise = l
+    -- keep synced with Hledger.Cli.mainmode:
+    isHelpHeading l = isAlphaNum (headDef ' ' l) && (lastDef ' ' l == ':')
+      -- any s (`isPrefixOf` s) [
+      --    "General input flags"
+      --   ,"General reporting flags"
+      --   ,"General help flags"
+      --   ,"Flags"
+      --   ,"General flags"
+      --   ,"Examples"
+      --   ]
 -- | Get the most appropriate documentation topic for a mode.
 -- Currently, that is either the hledger, hledger-ui or hledger-web
 -- manual.
