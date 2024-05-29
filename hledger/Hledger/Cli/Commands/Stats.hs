@@ -43,7 +43,7 @@ statsmode = hledgerCommandMode
   [ flagNone ["verbose","v"]    (setboolopt "verbose") "show more detailed output"
   ,flagReq  ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE."
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

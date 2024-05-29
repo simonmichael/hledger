@@ -29,7 +29,7 @@ rewritemode = hledgerCommandMode
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY] --add-posting \"ACCT  AMTEXPR\" ...")
 

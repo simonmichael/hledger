@@ -112,18 +112,19 @@ webmode =
   { modeGroupFlags =
       Group
       { groupUnnamed = webflags
-      , groupHidden =
-          hiddenflags 
-          -- ++
-          -- [ flagNone
-          --     ["binary-filename"]
-          --     (setboolopt "binary-filename")
-          --     "show the download filename for this executable, and exit"
-          -- ]
-      , groupNamed = [generalflagsgroup1]
+      , groupHidden = hiddenflags
+      , groupNamed = mkgeneralflagsgroups1 webhelpflags
       }
   , modeHelpSuffix = []
   }
+
+webhelpflags :: [Flag RawOpts]
+webhelpflags = [
+  flagNone ["version"]  (setboolopt "version") "show version information"
+ ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger-web manual with man"
+ ,flagNone ["info"]     (setboolopt "info")    "show the hledger-web manual with info"
+ ]
 
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts

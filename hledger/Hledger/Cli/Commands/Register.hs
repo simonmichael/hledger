@@ -62,7 +62,7 @@ registermode = hledgerCommandMode
   ,outputFormatFlag ["txt","csv","tsv","json"]
   ,outputFileFlag
   ])
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

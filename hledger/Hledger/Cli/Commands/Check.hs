@@ -22,7 +22,7 @@ checkmode :: Mode RawOpts
 checkmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Check.txt")
   []
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[CHECKS]")
 

@@ -19,7 +19,7 @@ import Hledger.Cli.CliOptions
 activitymode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Activity.txt")
   []
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

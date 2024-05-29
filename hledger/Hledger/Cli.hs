@@ -108,9 +108,9 @@ import Hledger.Cli.Version
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
 mainmode addons = defMode {
-  modeNames = [progname ++ " [CMD]"]
+  modeNames = [progname ++ " [COMMAND]"]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
- ,modeHelp = unlines ["hledger's main command line interface. Runs builtin commands and other hledger executables. Type \"hledger\" to list available commands."]
+ ,modeHelp = unlines ["hledger's main command line interface. Run with no ARGS to list commands."]
  ,modeGroupModes = Group {
     -- subcommands in the unnamed group, shown first:
     groupUnnamed = [
@@ -122,12 +122,8 @@ mainmode addons = defMode {
    ,groupHidden = map fst builtinCommands ++ map addonCommandMode addons
    }
  ,modeGroupFlags = Group {
-     -- flags in named groups:
-     groupNamed = [
-        (  "General input flags",     inputflags)
-       ,("\nGeneral reporting flags", reportflags)
-       ,("\nGeneral help flags",      helpflags)
-       ]
+     -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
+     groupNamed = cligeneralflagsgroups1
      -- flags in the unnamed group, shown last:
     ,groupUnnamed = []
      -- flags handled but not shown in the help:
@@ -135,15 +131,16 @@ mainmode addons = defMode {
         [detailedversionflag]
         -- ++ inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
- ,modeHelpSuffix = "Examples:" :
-    map (progname ++) [
-     "                         list commands"
-    ," CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
-    ,"-CMD [OPTS] [ARGS]       or run addon commands directly"
-    ," -h                      show general usage"
-    ," CMD -h                  show command usage"
-    ," help [MANUAL]           show any of the hledger manuals in various formats"
-    ]
+ ,modeHelpSuffix = []
+    -- "Examples:" :
+    -- map (progname ++) [
+    --  "                         list commands"
+    -- ," CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
+    -- ,"-CMD [OPTS] [ARGS]       or run addon commands directly"
+    -- ," -h                      show general usage"
+    -- ," CMD -h                  show command usage"
+    -- ," help [MANUAL]           show any of the hledger manuals in various formats"
+    -- ]
  }
 
 -- | Let's go!

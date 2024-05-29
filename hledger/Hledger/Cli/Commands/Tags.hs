@@ -21,7 +21,7 @@ tagsmode = hledgerCommandMode
   [flagNone ["values"] (setboolopt "values") "list tag values instead of tag names"
   ,flagNone ["parsed"] (setboolopt "parsed") "show tags/values in the order they were parsed, including duplicates"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[TAGREGEX [QUERY...]]")
 

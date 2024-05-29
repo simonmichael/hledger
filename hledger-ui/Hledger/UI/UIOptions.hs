@@ -69,22 +69,31 @@ uiflags = [
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
 
 --uimode :: Mode RawOpts
-uimode =  (mode "hledger-ui" (setopt "command" "ui" def)
-            "browse accounts, postings and entries in a full-window TUI"
-            (argsFlag "[--cash|--bs|--is|--all|--register=ACCT] [QUERY]") []){
-              modeGroupFlags = Group {
-                                groupUnnamed = uiflags
-                               ,groupHidden = hiddenflags
-                                 ++
-                                 [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
-                                 ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
-                                 ]
-                               ,groupNamed = [(generalflagsgroup1)]
-                               }
-             ,modeHelpSuffix=[
-                  -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."
-                 ]
-           }
+uimode =
+  (mode "hledger-ui" (setopt "command" "ui" def)
+    "browse accounts, postings and entries in a full-window TUI"
+    (argsFlag "[--cash|--bs|--is|--all|--register=ACCT] [QUERY]") [])
+  {modeGroupFlags = Group {
+       groupUnnamed = uiflags
+      ,groupHidden = hiddenflags
+        ++
+        [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
+        ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
+        ]
+      ,groupNamed = mkgeneralflagsgroups1 uihelpflags
+      }
+  ,modeHelpSuffix=[
+    -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."
+  ]
+  }
+
+uihelpflags :: [Flag RawOpts]
+uihelpflags = [
+  flagNone ["version"]  (setboolopt "version") "show version information"
+ ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger-ui manual with man"
+ ,flagNone ["info"]     (setboolopt "info")    "show the hledger-ui manual with info"
+ ]
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts

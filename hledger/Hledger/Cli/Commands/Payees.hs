@@ -28,7 +28,7 @@ payeesmode = hledgerCommandMode
   [flagNone ["declared"] (setboolopt "declared") "show payees declared with payee directives"
   ,flagNone ["used"] (setboolopt "used") "show payees referenced by transactions"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

@@ -83,7 +83,7 @@ $ hledger -f somefile
 
 # ** 6. with -h, and possibly other common flags present, show general usage
 $ hledger -h --version -f /dev/null
-> /^hledger \[CMD\]/
+> /^hledger \[COMMAND\]/
 
 # ** 7. with -h before a COMMAND, show command usage
 $ hledger -h balance --cost

@@ -61,7 +61,7 @@ aregistermode = hledgerCommandMode
   ,outputFormatFlag ["txt","html","csv","tsv","json"]
   ,outputFileFlag
   ])
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "ACCTPAT [QUERY]")
 

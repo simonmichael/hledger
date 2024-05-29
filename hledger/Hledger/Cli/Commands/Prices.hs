@@ -22,7 +22,7 @@ pricesmode = hledgerCommandMode
   [flagNone ["show-reverse"] (setboolopt "show-reverse")
     "also show the prices inferred by reversing known prices"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   (hiddenflags ++
   [flagNone ["costs"]                (setboolopt "infer-market-prices") "deprecated, use --infer-market-prices instead"
   ,flagNone ["inverted-costs"]       (setboolopt "show-reverse") "deprecated, use --show-reverse instead"

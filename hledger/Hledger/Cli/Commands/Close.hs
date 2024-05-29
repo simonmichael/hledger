@@ -53,7 +53,7 @@ closemode = hledgerCommandMode
   ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "set opening transaction's source account"
   ,roundFlag
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   (hiddenflags
     ++  -- keep supporting old flag names for compatibility
     [flagNone ["closing"]   (setboolopt "close")                                   "old spelling of --close"

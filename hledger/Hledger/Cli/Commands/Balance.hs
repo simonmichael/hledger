@@ -336,7 +336,7 @@ balancemode = hledgerCommandMode
     ,outputFileFlag
     ]
   )
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   (hiddenflags ++
     [ flagNone ["commodity-column"] (setboolopt "commodity-column")
       "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"

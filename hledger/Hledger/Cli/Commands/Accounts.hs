@@ -48,7 +48,7 @@ accountsmode = hledgerCommandMode
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"]
   )
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

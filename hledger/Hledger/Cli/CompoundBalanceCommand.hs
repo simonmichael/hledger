@@ -97,7 +97,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,outputFormatFlag ["txt","html","csv","tsv","json"]
     ,outputFileFlag
     ])
-    [generalflagsgroup1]
+    cligeneralflagsgroups1
     (hiddenflags ++
       [ flagNone ["commodity-column"] (setboolopt "commodity-column")
         "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"

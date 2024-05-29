@@ -51,7 +51,7 @@ printmode = hledgerCommandMode
   ,outputFormatFlag ["txt","beancount","csv","tsv","json","sql"]
   ,outputFileFlag
   ])
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

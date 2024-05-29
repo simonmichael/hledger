@@ -44,7 +44,7 @@ roimode = hledgerCommandMode
   ,flagReq ["profit-loss","pnl"] (\s opts -> Right $ setopt "pnl" s opts) "QUERY"
     "query to select profit-and-loss or appreciation/valuation transactions"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 

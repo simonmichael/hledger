@@ -24,7 +24,7 @@ importmode = hledgerCommandMode
   [flagNone ["catchup"] (setboolopt "catchup") "just mark all transactions as already imported"
   ,flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"
   ]
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "FILE [...]")
 
