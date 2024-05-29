@@ -22,7 +22,7 @@ module Hledger.Cli.DocFiles (
 
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe)
 import Data.String
 import System.IO
 import System.IO.Temp
@@ -85,45 +85,9 @@ printHelpForTopic :: Tool -> Maybe Topic -> IO ()
 printHelpForTopic tool _mtopic =
   BC.putStr (toolDocTxt tool)
 
--- | Display plain text help for this tool, scrolled to the given topic
--- if provided, using the given pager executable.
--- Note when a topic is provided we ignore the provided pager and
--- use the "less" executable in $PATH.
-runPagerForTopic :: Tool -> Maybe Topic -> IO ()
-runPagerForTopic tool mtopic = do
-  -- avoids a temp file but different from the others and not sure how to make it scroll
-  -- pager <- fromMaybe "less" <$> lookupEnv "PAGER"
-  -- (Just inp, _, _, ph) <- createProcess (proc pager []){
-  --   std_in=CreatePipe
-  --   }
-  -- BC.hPutStrLn inp (toolDocTxt tool)
-  -- _ <- waitForProcess ph
-  -- return ()
-  
-  withSystemTempFile ("hledger-"++tool++".txt") $ \f h -> do
-    BC.hPutStrLn h $ toolDocTxt tool
-    hClose h
-    let defpager = "less -is"
-    envpager <- fromMaybe defpager <$> lookupEnv "PAGER"
-    -- force the use of less if a topic is provided, since we know how to scroll it
-    let pager = if isNothing mtopic then envpager else defpager
-    callCommand $ dbg1 "pager command" $ 
-      pager ++ maybe "" (printf " +'/^(   )?%s'") mtopic ++ " " ++ f
-
--- | Display a man page for this tool, scrolled to the given topic if provided, 
--- using the "man" executable in $PATH. Note when a topic is provided we force 
--- man to use the "less" executable in $PATH, ignoring $MANPAGER and $PAGER.
-runManForTopic :: Tool -> Maybe Topic -> IO ()
-runManForTopic tool mtopic =
-  withSystemTempFile ("hledger-"++tool++".nroff") $ \f h -> do
-    BC.hPutStrLn h $ toolDocMan tool
-    hClose h
-    -- the temp file path will presumably have a slash in it, so man should read it
-    callCommand $ dbg1 "man command" $ 
-      "man " ++ f ++ maybe "" (printf " -P \"less -is +'/^(   )?%s'\"") mtopic
-
 -- | Display an info manual for this topic, opened at the given topic if provided,
 -- using the "info" executable in $PATH.
+-- Topic can be an exact heading or a heading prefix; info will favour an exact match.
 runInfoForTopic :: Tool -> Maybe Topic -> IO ()
 runInfoForTopic tool mtopic =
   withSystemTempFile ("hledger-"++tool++".info") $ \f h -> do
@@ -131,3 +95,38 @@ runInfoForTopic tool mtopic =
     hClose h
     callCommand $ dbg1 "info command" $
       "info -f " ++ f ++ maybe "" (printf " -n '%s'") mtopic
+
+-- less with any vertical whitespace squashed, case-insensitive searching, the $ regex metacharacter accessible as \$.
+less = "less -s -i --use-backslash"
+
+-- | Display plain text help for this tool, scrolled to the given topic if any, using the users $PAGER or "less".
+-- When a topic is provided we always use less, ignoring $PAGER.
+runPagerForTopic :: Tool -> Maybe Topic -> IO ()
+runPagerForTopic tool mtopic = do
+  withSystemTempFile ("hledger-"++tool++".txt") $ \f h -> do
+    BC.hPutStrLn h $ toolDocTxt tool
+    hClose h
+    envpager <- fromMaybe less <$> lookupEnv "PAGER"
+    let
+      exactmatch = True
+      (pager, searcharg) =
+        case mtopic of
+          Nothing -> (envpager, "")
+          Just t  -> (less, "-p'^(   )?" ++ t ++ if exactmatch then "\\$'" else "")
+    callCommand $ dbg1 "pager command" $ unwords [pager, searcharg, f]
+
+-- | Display a man page for this tool, scrolled to the given topic if provided, using "man".
+-- When a topic is provided we force man to use "less", ignoring $MANPAGER and $PAGER.
+runManForTopic :: Tool -> Maybe Topic -> IO ()
+runManForTopic tool mtopic =
+  -- This temp file path should have a slash in it, man requires at least one.
+  withSystemTempFile ("hledger-"++tool++".1") $ \f h -> do
+    BC.hPutStrLn h $ toolDocMan tool
+    hClose h
+    let
+      exactmatch = True
+      pagerarg =
+        case mtopic of
+          Nothing -> ""
+          Just t  -> "-P \"" ++ less ++ " -p'^(   )?" ++ t ++ (if exactmatch then "\\\\$" else "") ++ "'\""
+    callCommand $ dbg1 "man command" $ unwords ["man", pagerarg, f]
