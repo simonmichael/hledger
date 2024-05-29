@@ -55,10 +55,10 @@ hledgerWebMain = withGhcDebug' $ do
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
-    | boolopt "help"            rawopts_ -> pager (showModeUsage webmode) >> exitSuccess
+    | boolopt "help"            rawopts_ -> pager $ showModeUsage webmode ++ "\n"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
-    | boolopt "version"         rawopts_ -> putStrLn prognameandversion >> exitSuccess
+    | boolopt "version"         rawopts_ -> putStrLn prognameandversion
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
     | boolopt "test"            rawopts_ -> do
       -- remove --test and --, leaving other args for hspec
