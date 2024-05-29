@@ -19,18 +19,25 @@ module Hledger.Cli.CliOptions (
   prognameandversion,
 
   -- * cmdargs flags & modes
+  inputflags,
+  reportflags,
+  clihelpflags,
   helpflags,
   detailedversionflag,
   flattreeflags,
   hiddenflags,
-  inputflags,
-  reportflags,
   -- outputflags,
   outputFormatFlag,
   outputFileFlag,
   generalflagsgroup1,
   generalflagsgroup2,
   generalflagsgroup3,
+  mkgeneralflagsgroups1,
+  mkgeneralflagsgroups2,
+  mkgeneralflagsgroups3,
+  cligeneralflagsgroups1,
+  cligeneralflagsgroups2,
+  cligeneralflagsgroups3,
   defMode,
   defCommandMode,
   addonCommandMode,
@@ -134,86 +141,26 @@ prognameandversion =
 -- common cmdargs flags
 -- keep synced with flag docs in doc/common.m4
 
--- | Common help flags: --help, --debug, --version...
-helpflags :: [Flag RawOpts]
-helpflags = [
-  -- XXX why are these duplicated in defCommandMode below ?
-  flagNone ["help","h"] (setboolopt "help") "show general help (or after CMD, command help)"
- ,flagNone ["man"] (setboolopt "man") "show user manual with man"
- ,flagNone ["info"] (setboolopt "info") "show info manual with info"
- -- ,flagNone ["browse-args"] (setboolopt "browse-args") "use a web UI to select options and build up a command line"
- ,flagReq  ["debug"] (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
- ,flagNone ["version"] (setboolopt "version") "show version information"
- ]
-
--- | A hidden flag just for the hledger executable.
-detailedversionflag :: Flag RawOpts
-detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show version information with extra detail"
-
 -- | Common input-related flags: --file, --rules-file, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
-  flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "use a different input file. For stdin, use - (default: $LEDGER_FILE or $HOME/.hledger.journal)"
- ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RFILE" "CSV conversion rules file (default: FILE.rules)"
- ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "OLD=NEW" "rename accounts named OLD to NEW"
- ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use some other field/tag for account names"
- ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
- ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checks, incl. balance assertions"
- ]
+   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "Read data from FILE, or from stdin if -. Can be specified more than once. If not specified, reads from $LEDGER_FILE or $HOME/.hledger.journal."
+  ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RULEFILE" "Use conversion rules from this file for converting subsequent CSV/SSV/TSV files. If not specified, uses FILE.rules for each such FILE."
 
--- | Common report-related flags: --period, --cost, etc.
-reportflags :: [Flag RawOpts]
-reportflags = [
-
-  -- report period & interval
-  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/txns on or after this date (will be adjusted to preceding subperiod start when using a report interval)"
- ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/txns before this date (will be adjusted to following subperiod end when using a report interval)"
- ,flagNone ["daily","D"]     (setboolopt "daily") "multiperiod/multicolumn report by day"
- ,flagNone ["weekly","W"]    (setboolopt "weekly") "multiperiod/multicolumn report by week"
- ,flagNone ["monthly","M"]   (setboolopt "monthly") "multiperiod/multicolumn report by month"
- ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod/multicolumn report by quarter"
- ,flagNone ["yearly","Y"]    (setboolopt "yearly") "multiperiod/multicolumn report by year"
- ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set start date, end date, and/or report interval all at once"
- ,flagNone ["date2"]         (setboolopt "date2") "match the secondary date instead. See command help for other effects. (--effective, --aux-date also accepted)"  -- see also hiddenflags
- ,flagReq  ["today"]         (\s opts -> Right $ setopt "today" s opts) "DATE" "override today's date (affects relative smart dates, for tests/examples)"
- 
-  -- status/realness/depth/zero filters
- ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/txns (can combine with -P or -C)"
- ,flagNone ["pending","P"]   (setboolopt "pending") "include only pending postings/txns"
- ,flagNone ["cleared","C"]   (setboolopt "cleared") "include only cleared postings/txns"
- ,flagNone ["real","R"]      (setboolopt "real") "include only non-virtual postings"
- ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "(or -NUM): hide accounts/postings deeper than this"
- ,flagNone ["empty","E"]     (setboolopt "empty") "show items with zero amount, normally hidden (and vice-versa in hledger-ui/hledger-web)"
-
-  -- valuation, including https://hledger.org/dev/hledger.html#valuation-type :
- ,flagNone ["B","cost"]      (setboolopt "B")
-   "show amounts converted to their cost/selling amount, using the transaction price."
- ,flagNone ["V","market"]    (setboolopt "V")
-   (unwords
-     ["show amounts converted to period-end market value in their default valuation commodity."
-     ,"Equivalent to --value=end."
-     ])
- ,flagReq ["X","exchange"]   (\s opts -> Right $ setopt "X" s opts) "COMM"
-   (unwords
-     ["show amounts converted to current (single period reports)"
-     ,"or period-end (multiperiod reports) market value in the specified commodity."
-     ,"Equivalent to --value=end,COMM."
-     ])
- ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "TYPE[,COMM]"
-   (unlines
-     ["show amounts converted with valuation TYPE, and optionally to specified commodity COMM. TYPE can be:"
-     ,"'then': convert to contemporaneous market value, in default valuation commodity or COMM (print & register commands only)"
-     ,"'end':  convert to period-end market value, in default valuation commodity or COMM"
-     ,"'now':  convert to current market value, in default valuation commodity or COMM"
-     ,"YYYY-MM-DD: convert to market value on the given date, in default valuation commodity or COMM"
-     ])
-  ,flagNone ["infer-equity"] (setboolopt "infer-equity")
-    "infer conversion equity postings from costs"
-  ,flagNone ["infer-costs"] (setboolopt "infer-costs")
-    "infer costs from conversion equity postings"
+  ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "A=B|/RGX/=RPL" "transform account names from A to B, or by replacing regular expression matches"
+  ,flagNone ["auto"]          (setboolopt "auto") "generate extra postings by applying auto posting rules (\"=\") to all transactions"
+  ,flagOpt "" ["forecast"]    (\s opts -> Right $ setopt "forecast" s opts) "PERIOD" (unwords
+    [ "Generate extra transactions from periodic rules (\"~\"),"
+    , "from after the latest ordinary transaction until 6 months from now. Or, during the specified PERIOD (the equals is required)."
+    , "Auto posting rules will also be applied to these transactions."
+    , "In hledger-ui, also make future-dated transactions visible at startup."
+    ])
+  ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
+  ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
+  ,flagNone ["infer-equity"] (setboolopt "infer-equity") "infer costs from conversion equity postings"
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value
-  --  2021-02 --infer-market-price added, --infer-value deprecated 
+  --  2021-02 --infer-market-price added, --infer-value deprecated
   --  2021-09
   --   --infer-value hidden
   --   --infer-market-price renamed to --infer-market-prices, old spelling still works
@@ -221,40 +168,90 @@ reportflags = [
   --   some related prices command changes
   --    --costs deprecated and hidden, uses --infer-market-prices instead
   --    --inverted-costs renamed to --infer-reverse-prices
- ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") 
-    "use costs as additional market prices, as if they were P directives"
+  ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") "infer market prices from costs"
+  ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use a different field or tag as account names"
+  ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checks (and override -I)"
 
   -- generating transactions/postings
- ,flagOpt "" ["forecast"]    (\s opts -> Right $ setopt "forecast" s opts) "PERIOD" (unwords
-   [ "Generate transactions from periodic rules,"
-   , "between the latest recorded txn and 6 months from today,"
-   , "or during the specified PERIOD (= is required)."
-   , "Auto posting rules will be applied to these transactions as well."
-   , "Also, in hledger-ui make future-dated transactions visible."
-   ])
- ,flagNone ["auto"]          (setboolopt "auto") "Generate extra postings by applying auto posting rules to all txns (not just forecast txns)."
- ,flagNone ["verbose-tags"]  (setboolopt "verbose-tags") "Add visible tags indicating transactions or postings which have been generated/modified."
+  ,flagNone ["verbose-tags"]  (setboolopt "verbose-tags") "add tags indicating generated/modified data"
+  ]
+
+-- | Common report-related flags: --period, --cost, etc.
+reportflags :: [Flag RawOpts]
+reportflags = [
+
+  -- report period & interval
+  flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/transactions on/after this date"
+ ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/transactions before this date (with a report interval, will be adjusted to following subperiod end)"
+ ,flagNone ["daily","D"]     (setboolopt "daily")     "multiperiod report with 1 day interval"
+ ,flagNone ["weekly","W"]    (setboolopt "weekly")    "multiperiod report with 1 week interval"
+ ,flagNone ["monthly","M"]   (setboolopt "monthly")   "multiperiod report with 1 month interval"
+ ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod report with 1 quarter interval"
+ ,flagNone ["yearly","Y"]    (setboolopt "yearly")    "multiperiod report with 1 year interval"
+ ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set begin date, end date, and/or report interval, with more flexibility"
+ ,flagReq  ["today"]         (\s opts -> Right $ setopt "today" s opts) "DATE" "override today's date (affects relative dates)"
+ ,flagNone ["date2"]         (setboolopt "date2") "match/use secondary dates instead (deprecated)"  -- see also hiddenflags
+ 
+  -- status/realness/depth/zero filters
+ ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/transactions"
+ ,flagNone ["pending","P"]   (setboolopt "pending")  "include only pending postings/transactions"
+ ,flagNone ["cleared","C"]   (setboolopt "cleared")  "include only cleared postings/transactions\n(-U/-P/-C can be combined)"
+ ,flagNone ["real","R"]      (setboolopt "real")     "include only non-virtual postings"
+ ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "or -NUM: show only top NUM levels of accounts"
+ ,flagNone ["empty","E"]     (setboolopt "empty") "Show zero items, which are normally hidden.\nIn hledger-ui & hledger-web, do the opposite."
+
+  -- valuation
+ ,flagNone ["B","cost"]      (setboolopt "B") "show amounts converted to their cost/sale amount"
+ ,flagNone ["V","market"]    (setboolopt "V")
+    (unlines
+      ["Show amounts converted to their value at period end(s) in their default valuation commodity."
+      ,"Equivalent to --value=end."
+      ])
+ ,flagReq ["X","exchange"]   (\s opts -> Right $ setopt "X" s opts) "COMM"
+    (unlines
+      ["Show amounts converted to their value at period end(s) in the specified commodity."
+      ,"Equivalent to --value=end,COMM."
+      ])
+ ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "WHEN[,COMM]"
+    (unlines
+      ["show amounts converted to their value on the specified date(s) in their default valuation commodity or a specified commodity. WHEN can be:"
+      ,"'then':     value on transaction dates"
+      ,"'end':      value at period end(s)"
+      ,"'now':      value today"
+      ,"YYYY-MM-DD: value on given date"
+      ])
 
   -- general output-related
- ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "COMM"
-    "Override the commodity style in the output for the specified commodity. For example 'EUR1.000,00'."
-  
+ ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
+    "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"  
   -- This has special support in hledger-lib:colorOption, keep synced
- ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "WHEN"
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
    (unlines
-     ["Should color-supporting commands use ANSI color codes in text output."
-     ,"'auto' (default): whenever stdout seems to be a color-supporting terminal."
-     ,"'always' or 'yes': always, useful eg when piping output into 'less -R'."
-     ,"'never' or 'no': never."
-     ,"A NO_COLOR environment variable overrides this."
+     ["Use ANSI color codes in text output? Can be:"
+     ,"'yes' or 'always',"
+     ,"'no' or 'never' (a NO_COLOR env var forces this),"
+     ,"'auto' (the default: when using a color terminal)."
      ])
- ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "WHEN"
-   (unwords
-     ["Show prettier output, e.g. using unicode box-drawing characters."
-     ,"Accepts 'yes' (the default) or 'no'."
-     ,"If you provide an argument you must use '=', e.g. '--pretty=yes'."
-     ])
+ ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
+    "Use box-drawing characters in text output? Can be\n'yes' (the default argument for --pretty) or 'no'.\nIf YN is specified, the equals is required."
+ ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
  ]
+
+clihelpflags :: [Flag RawOpts]
+clihelpflags = [
+  flagNone ["version"]  (setboolopt "version") "show version information"
+ ,flagNone ["help","h"] (setboolopt "help")    "show general or COMMAND's command-line help"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger manual with man"
+ ,flagNone ["info"]     (setboolopt "info")    "show the hledger manual with info"
+ ]
+-- XXX why are these duplicated in defCommandMode below ?
+
+-- temp legacy alias
+helpflags = clihelpflags
+
+-- | A hidden flag just for the hledger executable.
+detailedversionflag :: Flag RawOpts
+detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show version information with extra detail"
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
 -- With a True argument, shows some extra help about inclusive/exclusive amounts.
@@ -271,11 +268,11 @@ flattreeflags showamounthelp = [
 -- such as --effective, --aux-date.
 hiddenflags :: [Flag RawOpts]
 hiddenflags = [
-   flagNone ["effective","aux-date"]  (setboolopt "date2") "Ledger-compatible aliases for --date2"
-  ,flagNone ["infer-value"]  (setboolopt "infer-market-prices") "legacy flag that was renamed"
-  ,flagNone ["pretty-tables"]  (setopt "pretty" "always") "legacy flag that was renamed"
-  ,flagNone ["anon"]  (setboolopt "anon") "deprecated, renamed to --obfuscate"  -- #2133, handled by anonymiseByOpts
-  ,flagNone ["obfuscate"]  (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
+   flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
+  ,flagNone ["infer-value"]          (setboolopt "infer-market-prices") "legacy flag that was renamed"
+  ,flagNone ["pretty-tables"]        (setopt "pretty" "always") "legacy flag that was renamed"
+  ,flagNone ["anon"]                 (setboolopt "anon") "deprecated, renamed to --obfuscate"  -- #2133, handled by anonymiseByOpts
+  ,flagNone ["obfuscate"]            (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
   ]
 
 -- | Common output-related flags: --output-file, --output-format...
@@ -299,10 +296,37 @@ argsFlag = flagArg (\s opts -> Right $ setopt "args" s opts)
 generalflagstitle :: String
 generalflagstitle = "\nGeneral flags"
 
+-- Several subsets of the standard general flags, as a single list. Old API used by some addons.
 generalflagsgroup1, generalflagsgroup2, generalflagsgroup3 :: (String, [Flag RawOpts])
 generalflagsgroup1 = (generalflagstitle, inputflags ++ reportflags ++ helpflags)
 generalflagsgroup2 = (generalflagstitle, inputflags ++ helpflags)
 generalflagsgroup3 = (generalflagstitle, helpflags)
+
+-- Helpers to make several subsets of the standard general flags, in separate groups. The help flags are parameterised. 2024.
+mkgeneralflagsgroups1, mkgeneralflagsgroups2, mkgeneralflagsgroups3 :: [Flag RawOpts] -> [(String, [Flag RawOpts])]
+mkgeneralflagsgroups1 helpflags' = [
+   (inputflagstitle,  inputflags)
+  ,(outputflagstitle, reportflags)
+  ,(helpflagstitle,   helpflags')
+  ]
+mkgeneralflagsgroups2 helpflags' = [
+   (inputflagstitle, inputflags)
+  ,(helpflagstitle, helpflags')
+  ]
+mkgeneralflagsgroups3 helpflags' = [
+   (helpflagstitle, helpflags')
+  ]
+
+inputflagstitle  = "\nGeneral input/data transformation flags"
+outputflagstitle = "\nGeneral output/reporting flags (supported by some commands)"
+helpflagstitle   = "\nGeneral help flags"
+
+-- Several subsets of the standard general flags plus CLI help flags, as separate groups.
+cligeneralflagsgroups1, cligeneralflagsgroups2, cligeneralflagsgroups3 :: [(String, [Flag RawOpts])]
+cligeneralflagsgroups1 = mkgeneralflagsgroups1 clihelpflags
+cligeneralflagsgroups2 = mkgeneralflagsgroups2 clihelpflags
+cligeneralflagsgroups3 = mkgeneralflagsgroups3 clihelpflags
+
 
 -- cmdargs mode constructors
 
@@ -337,10 +361,9 @@ defCommandMode names = defMode {
   ,modeGroupFlags  = Group {
      groupNamed   = []
     ,groupUnnamed = [
-        flagNone ["help"] (setboolopt "help") "Show command-line help"
-      -- ,flagNone ["help"] (setboolopt "help") "Show long help."
-       ,flagNone ["man"] (setboolopt "man") "Show user manual with man"
-       ,flagNone ["info"] (setboolopt "info") "Show info manual with info"
+        flagNone ["help"] (setboolopt "help") "show command-line help"
+       ,flagNone ["man"]  (setboolopt "man")  "show this program's user manual with man"
+       ,flagNone ["info"] (setboolopt "info") "show this program's user manual with info"
       ]
     ,groupHidden  = []             --  flags not displayed in the usage
     }
@@ -369,7 +392,7 @@ addonCommandMode nam = (defCommandMode [nam]) {
   ,modeGroupFlags = Group {
       groupUnnamed = []
      ,groupHidden  = hiddenflags
-     ,groupNamed   = [generalflagsgroup1]
+     ,groupNamed   = cligeneralflagsgroups1
      }
   }
 
@@ -444,13 +467,13 @@ highlightHelp
   where
     f (n,s)
       | n==1 = bold s
-      | s `elem` [
-           "General input flags:"
-          ,"General reporting flags:"
-          ,"General help flags:"
-          ,"Flags:"
-          ,"General flags:"
-          ,"Examples:"
+      | any (`isPrefixOf` s) [  -- keep synced with Hledger.Cli.mainmode
+           "General input flags"
+          ,"General reporting flags"
+          ,"General help flags"
+          ,"Flags"
+          ,"General flags"
+          ,"Examples"
           ] = bold s
       | otherwise = s
 
