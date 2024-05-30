@@ -7,7 +7,7 @@ $rg --version >/dev/null
 
 echo "Checking embedded file declarations:"
 status=0
-for f in $($rg -I '^ +\$\(embedFileRelative "([^"]+)"' -or '$1'); do
+for f in $($rg -I '\$\(embedFileRelative "([^"]+)"' -or '$1'); do
     if output=$($rg -l "$f" -- */package.yaml); then
         printf '%-40s\tdeclared in %s\n' "$f" "$output"
     else
@@ -15,5 +15,6 @@ for f in $($rg -I '^ +\$\(embedFileRelative "([^"]+)"' -or '$1'); do
         status=1
     fi;
 done
+
 if [[ $status != 0 ]]; then echo FAIL; else echo ok; fi
 exit $status
