@@ -235,7 +235,11 @@ reportflags = [
      ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? Can be\n'yes' (the default argument for --pretty) or 'no'.\nIf YN is specified, the equals is required."
- ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
+
+ -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL].
+ -- But because we handle --debug specially, flagReq also works, and it does not need =, removing a source of confusion.
+ -- ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "LVL" "show debug output (levels 1-9, default: 1)"
+ ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this level of debug output (default: 1)"
  ]
 
 clihelpflags :: [Flag RawOpts]
