@@ -121,14 +121,13 @@ General output/reporting flags (supported by some commands):
                             YYYY-MM-DD: value on given date
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '$1000.' or -c '1.000,00 EUR'
-     --color=YN --colour    Use ANSI color codes in text output? Can be:
-                            'yes' or 'always',
-                            'no' or 'never' (a NO_COLOR env var forces this),
-                            'auto' (the default: when using a color terminal).
+     --color=YN --colour    Use ANSI color codes in text output? Can be
+                            'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
+                            (A NO_COLOR environment variable overrides this.)
      --pretty[=YN]          Use box-drawing characters in text output? Can be
-                            'yes' (the default argument for --pretty) or 'no'.
+                            'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
-     --debug=[N]            show debug output (levels 1-9, default: 1)
+     --debug=[1-9]          show this level of debug output (default: 1)
 
 General help flags:
   -h --help                 show command line help

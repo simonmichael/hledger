@@ -228,13 +228,12 @@ reportflags = [
   -- This has special support in hledger-lib:colorOption, keep synced
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
    (unlines
-     ["Use ANSI color codes in text output? Can be:"
-     ,"'yes' or 'always',"
-     ,"'no' or 'never' (a NO_COLOR env var forces this),"
-     ,"'auto' (the default: when using a color terminal)."
+     ["Use ANSI color codes in text output? Can be"
+     ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
+     ,"(A NO_COLOR environment variable overrides this.)"
      ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
-    "Use box-drawing characters in text output? Can be\n'yes' (the default argument for --pretty) or 'no'.\nIf YN is specified, the equals is required."
+    "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."
 
  -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL].
  -- But because we handle --debug specially, flagReq also works, and it does not need =, removing a source of confusion.
