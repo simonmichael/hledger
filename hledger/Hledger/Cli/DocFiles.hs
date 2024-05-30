@@ -8,15 +8,11 @@ Embedded documentation files in various formats, and helpers for viewing them.
 module Hledger.Cli.DocFiles (
 
    Topic
-  -- ,toolDocs
-  -- ,toolDocNames
-  -- ,toolDocMan
-  -- ,toolDocTxt
-  -- ,toolDocInfo
   ,printHelpForTopic
   ,runManForTopic
   ,runInfoForTopic
   ,runPagerForTopic
+  ,runTldrForPage
 
   ) where
 
@@ -28,7 +24,7 @@ import System.IO
 import System.IO.Temp
 import System.Process
 
-import Hledger.Utils (first3, second3, third3, embedFileRelative)
+import Hledger.Utils (first3, second3, third3, embedFileRelative, error')
 import Text.Printf (printf)
 import System.Environment (lookupEnv)
 import Hledger.Utils.Debug
@@ -39,11 +35,30 @@ type Tool = String
 -- Any heading in the hledger user manual (and perhaps later the hledger-ui/hledger-web manuals).
 type Topic = String
 
+-- Any name of a hledger tldr page (hledger, hledger-ui, hledger-print etc.)
+type TldrPage = String
+
+-- | All hledger-related pages from the tldr-pages project.
+-- All are symlinked into the hledger package directory to allow embeddeding.
+tldrs :: [(TldrPage, ByteString)]
+tldrs = [
+   ("hledger-accounts",        $(embedFileRelative "embeddedfiles/hledger-accounts.md"))
+  ,("hledger-add",             $(embedFileRelative "embeddedfiles/hledger-add.md"))
+  ,("hledger-aregister",       $(embedFileRelative "embeddedfiles/hledger-aregister.md"))
+  ,("hledger-balance",         $(embedFileRelative "embeddedfiles/hledger-balance.md"))
+  ,("hledger-balancesheet",    $(embedFileRelative "embeddedfiles/hledger-balancesheet.md"))
+  ,("hledger-import",          $(embedFileRelative "embeddedfiles/hledger-import.md"))
+  ,("hledger-incomestatement", $(embedFileRelative "embeddedfiles/hledger-incomestatement.md"))
+  ,("hledger-print",           $(embedFileRelative "embeddedfiles/hledger-print.md"))
+  ,("hledger-ui",              $(embedFileRelative "embeddedfiles/hledger-ui.md"))
+  ,("hledger-web",             $(embedFileRelative "embeddedfiles/hledger-web.md"))
+  ,("hledger",                 $(embedFileRelative "embeddedfiles/hledger.md"))
+  ]
+
 -- | The main hledger manuals as source for man, info and as plain text.
--- Only files under the current package directory can be embedded,
--- so some of these are symlinked from the other package directories.
-toolDocs :: [(Tool, (ByteString, ByteString, ByteString))]
-toolDocs = [
+-- All are symlinked into the hledger package directory to allow embeddeding.
+manuals :: [(Tool, (ByteString, ByteString, ByteString))]
+manuals = [
    ("hledger",
     ($(embedFileRelative "embeddedfiles/hledger.1")
     ,$(embedFileRelative "embeddedfiles/hledger.txt")
@@ -61,29 +76,22 @@ toolDocs = [
     ))
   ]
 
--- toolNames :: [Tool]
--- toolNames = map fst toolDocs
-
 -- | Get the manual as plain text for this tool, or a not found message.
-toolDocTxt :: Tool -> ByteString
-toolDocTxt name =
-  maybe (fromString $ "No text manual found for tool: "++name) second3 $ lookup name toolDocs
+manualTxt :: Tool -> ByteString
+manualTxt name = maybe (fromString $ "No text manual found for tool: "++name) second3 $ lookup name manuals
 
 -- | Get the manual as man source (nroff) for this tool, or a not found message.
-toolDocMan :: Tool -> ByteString
-toolDocMan name =
-  maybe (fromString $ "No man page found for tool: "++name) first3 $ lookup name toolDocs
+manualMan :: Tool -> ByteString
+manualMan name = maybe (fromString $ "No man page found for tool: "++name) first3 $ lookup name manuals
 
 -- | Get the manual as info source (texinfo) for this tool, or a not found message.
-toolDocInfo :: Tool -> ByteString
-toolDocInfo name =
-  maybe (fromString $ "No info manual found for tool: "++name) third3 $ lookup name toolDocs
+manualInfo :: Tool -> ByteString
+manualInfo name = maybe (fromString $ "No info manual found for tool: "++name) third3 $ lookup name manuals
 
 -- | Print plain text help for this tool.
 -- Takes an optional topic argument for convenience but it is currently ignored.
 printHelpForTopic :: Tool -> Maybe Topic -> IO ()
-printHelpForTopic tool _mtopic =
-  BC.putStr (toolDocTxt tool)
+printHelpForTopic tool _mtopic = BC.putStr (manualTxt tool)
 
 -- | Display an info manual for this topic, opened at the given topic if provided,
 -- using the "info" executable in $PATH.
@@ -91,7 +99,7 @@ printHelpForTopic tool _mtopic =
 runInfoForTopic :: Tool -> Maybe Topic -> IO ()
 runInfoForTopic tool mtopic =
   withSystemTempFile ("hledger-"++tool++".info") $ \f h -> do
-    BC.hPutStrLn h $ toolDocInfo tool
+    BC.hPutStrLn h $ manualInfo tool
     hClose h
     callCommand $ dbg1 "info command" $
       "info -f " ++ f ++ maybe "" (printf " -n '%s'") mtopic
@@ -104,7 +112,7 @@ less = "less -s -i --use-backslash"
 runPagerForTopic :: Tool -> Maybe Topic -> IO ()
 runPagerForTopic tool mtopic = do
   withSystemTempFile ("hledger-"++tool++".txt") $ \f h -> do
-    BC.hPutStrLn h $ toolDocTxt tool
+    BC.hPutStrLn h $ manualTxt tool
     hClose h
     envpager <- fromMaybe less <$> lookupEnv "PAGER"
     let
@@ -121,7 +129,7 @@ runManForTopic :: Tool -> Maybe Topic -> IO ()
 runManForTopic tool mtopic =
   -- This temp file path should have a slash in it, man requires at least one.
   withSystemTempFile ("hledger-"++tool++".1") $ \f h -> do
-    BC.hPutStrLn h $ toolDocMan tool
+    BC.hPutStrLn h $ manualMan tool
     hClose h
     let
       exactmatch = True
@@ -130,3 +138,19 @@ runManForTopic tool mtopic =
           Nothing -> ""
           Just t  -> "-P \"" ++ less ++ " -p'^(   )?" ++ t ++ (if exactmatch then "\\\\$" else "") ++ "'\""
     callCommand $ dbg1 "man command" $ unwords ["man", pagerarg, f]
+
+-- | Get the named tldr page's source, if we know it.
+tldr :: TldrPage -> Maybe ByteString
+tldr name = lookup name tldrs
+
+-- | Display one of the hledger tldr pages, using "tldr".
+runTldrForPage :: TldrPage -> IO ()
+runTldrForPage name =
+  case tldr name of
+    Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
+    Just b -> do
+      withSystemTempFile (name++".md") $ \f h -> do
+        BC.hPutStrLn h b
+        hClose h
+        callCommand $ dbg1 "tldr command" $ unwords ["tldr", "-r", f]
+

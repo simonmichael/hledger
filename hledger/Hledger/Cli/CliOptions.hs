@@ -240,10 +240,11 @@ reportflags = [
 
 clihelpflags :: [Flag RawOpts]
 clihelpflags = [
-  flagNone ["version"]  (setboolopt "version") "show version information"
- ,flagNone ["help","h"] (setboolopt "help")    "show command-line help for hledger [or COMMAND]"
- ,flagNone ["info"]     (setboolopt "info")    "show the hledger manual [for COMMAND] with info"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger manual [for COMMAND] with man"
+  flagNone ["help","h"] (setboolopt "help")    "show command line help"
+ ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
+ ,flagNone ["info"]     (setboolopt "info")    "show the hledger manual with info"
+ ,flagNone ["man"]      (setboolopt "man")     "show the hledger manual with man"
+ ,flagNone ["version"]  (setboolopt "version") "show version information"
  ]
 -- XXX why are these duplicated in defCommandMode below ?
 

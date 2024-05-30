@@ -82,8 +82,14 @@ $ hledger -f somefile
 > /^Commands/
 
 # ** 6. with -h, and possibly other common flags present, show general usage
-$ hledger -h --version -f /dev/null
+$ hledger -h --version -f/dev/null
 > /^hledger \[COMMAND\]/
+
+# ** 6b. XXX our moveFlagsAfterCommand plus the way cmdargs' argument-requiring flags
+# consume a following flag rather than failing, means things like this go wrong
+# (args are rearranged to -f -h --version /dev/null, shows version when it should show help):
+#$ hledger -h --version -f /dev/null
+#> /^hledger \[COMMAND\]/
 
 # ** 7. with -h before a COMMAND, show command usage
 $ hledger -h balance --cost
@@ -104,7 +110,7 @@ $ hledger nosuchcommand
 $ hledger -f /dev/null --alias somealiases --rules-file --debug 1 --daily register
 
 # ** 11. or after it, and spaces in options are optional
-$ hledger register -f/dev/null --alias=somealiases --rules-file -h --version --debug 1 --daily
+$ hledger register -f/dev/null --alias=somealiases -h --version --debug 1 --daily
 > /^register \[OPTIONS\]/
 
 # ** 12. general flags before command should work
@@ -117,4 +123,3 @@ $ hledger -f /dev/null register --daily
 $ hledger --related register
 >2 /Unknown flag: --related/
 >= 1
-

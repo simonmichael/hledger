@@ -21,7 +21,7 @@ import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings
 import Network.Wai.Handler.Launch (runHostPortFullUrl)
 import System.Directory (removeFile)
 import System.Environment ( getArgs, withArgs )
-import System.Exit (exitSuccess, exitFailure)
+import System.Exit (exitFailure)
 import System.IO (hFlush, stdout)
 import System.PosixCompat.Files (getFileStatus, isSocket)
 import Text.Printf (printf)
@@ -56,6 +56,7 @@ hledgerWebMain = withGhcDebug' $ do
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
     | boolopt "help"            rawopts_ -> pager $ showModeUsage webmode ++ "\n"
+    | boolopt "tldr"            rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion

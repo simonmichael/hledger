@@ -89,10 +89,11 @@ uimode =
 
 uihelpflags :: [Flag RawOpts]
 uihelpflags = [
-  flagNone ["version"]  (setboolopt "version") "show version information"
- ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
+  flagNone ["help","h"] (setboolopt "help")    "show command line help"
+ ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
  ,flagNone ["info"]     (setboolopt "info")    "show the hledger-ui manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show the hledger-ui manual with man"
+ ,flagNone ["version"]  (setboolopt "version") "show version information"
  ]
 
 -- hledger-ui options, used in hledger-ui and above

@@ -188,23 +188,25 @@ main = withGhcDebug' $ do
   opts' <- argsToCliOpts args addons
   let opts = opts'{progstarttime_=starttime}
 
-  -- select an action and run it.
+  -- select an action and prepare to run it
   let
-    cmd                  = command_ opts -- the full matched internal or external command name, if any
-    isInternalCommand    = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
-    isExternalCommand    = not (null cmd) && cmd `elem` addons -- probably
-    isBadCommand         = not (null rawcmd) && null cmd
-    hasVersion           = ("--version" `elem`)
-    printUsage           = pager $ showModeUsage (mainmode addons) ++ "\n"
-    badCommandError      = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
-    hasHelpFlag args1     = any (`elem` args1) ["-h","--help"]
-    hasManFlag args1      = (`elem` args1) "--man"
-    hasInfoFlag args1     = (`elem` args1) "--info"
+    cmd               = command_ opts -- the full matched internal or external command name, if any
+    isInternalCommand = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
+    isExternalCommand = not (null cmd) && cmd `elem` addons -- probably
+    isBadCommand      = not (null rawcmd) && null cmd
+    printUsage        = pager $ showModeUsage (mainmode addons) ++ "\n"
+    badCommandError   = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
+    helpFlag       = boolopt "help"    $ rawopts_ opts
+    tldrFlag       = boolopt "tldr"    $ rawopts_ opts
+    infoFlag       = boolopt "info"    $ rawopts_ opts
+    manFlag        = boolopt "man"     $ rawopts_ opts
+    versionFlag    = boolopt "version" $ rawopts_ opts
     f `orShowHelp` mode1
-      | hasHelpFlag args = pager $ showModeUsage mode1 ++ "\n"
-      | hasInfoFlag args = runInfoForTopic "hledger" (headMay $ modeNames mode1)
-      | hasManFlag args  = runManForTopic "hledger" (headMay $ modeNames mode1)
-      | otherwise        = f
+      | helpFlag = pager $ showModeUsage mode1 ++ "\n"
+      | tldrFlag = runTldrForPage $ maybe "hledger" (("hledger-"<>)) $ headMay $ modeNames mode1
+      | infoFlag = runInfoForTopic "hledger" (headMay $ modeNames mode1)
+      | manFlag  = runManForTopic "hledger" (headMay $ modeNames mode1)
+      | otherwise   = f
       -- where
       --   lastdocflag
   dbgIO "processed opts" opts
@@ -217,29 +219,26 @@ main = withGhcDebug' $ do
   dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
   dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
   let
-    journallesserror = error $ cmd++" tried to read the journal but is not supposed to"
     runHledgerCommand
-      -- high priority flags and situations. -h, then --help, then --info are highest priority.
-      | isNullCommand && hasHelpFlag args = dbgIO "" "-h/--help with no command, showing general help" >> printUsage
-      | isNullCommand && hasInfoFlag args = dbgIO "" "--info with no command, showing general info manual" >> runInfoForTopic "hledger" Nothing
-      | isNullCommand && hasManFlag args  = dbgIO "" "--man with no command, showing general man page" >> runManForTopic "hledger" Nothing
-      | not (isExternalCommand || hasHelpFlag args || hasInfoFlag args || hasManFlag args)
-        && (hasVersion args) --  || (hasVersion argsaftercmd && isInternalCommand))
-                                 = putStrLn prognameandversion
-      -- \| (null externalcmd) && boolopt "binary-filename" rawopts = putStrLn $ binaryfilename progname
-      -- \| "--browse-args" `elem` args     = System.Console.CmdArgs.Helper.execute "cmdargs-browser" mainmode' args >>= (putStr . show)
-      | isNullCommand            = dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
-      | isBadCommand             = badCommandError
+      -- high priority flags and situations. -h, then --help, then --tldr, then --info, then --man are highest priority.
+      | isNullCommand && helpFlag = dbgIO "" "-h/--help with no command, showing general help" >> printUsage
+      | isNullCommand && tldrFlag = dbgIO "" "--tldr with no command, showing general tldr page" >> runTldrForPage "hledger"
+      | isNullCommand && infoFlag = dbgIO "" "--info with no command, showing general info manual" >> runInfoForTopic "hledger" Nothing
+      | isNullCommand && manFlag  = dbgIO "" "--man with no command, showing general man page" >> runManForTopic "hledger" Nothing
+      | versionFlag && not (isExternalCommand || helpFlag || tldrFlag || infoFlag || manFlag) = putStrLn prognameandversion
+      | isNullCommand             = dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
+      | isBadCommand              = badCommandError
 
       -- builtin commands
       | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd =
         (case True of
            -- these commands should not require or read the journal
-          _ | cmd `elem` ["demo","help","test"] -> cmdaction opts journallesserror
+          _ | cmd `elem` ["demo","help","test"] ->
+              cmdaction opts $ error' $ cmd++" tried to read the journal but is not supposed to"
           -- these commands should create the journal if missing
           _ | cmd `elem` ["add","import"] -> do
-            ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
-            withJournalDo opts (cmdaction opts)
+              ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
+              withJournalDo opts (cmdaction opts)
           -- other commands read the journal and should fail if it's missing
           _ -> withJournalDo opts (cmdaction opts)
         )
@@ -260,6 +259,7 @@ main = withGhcDebug' $ do
       -- shouldn't reach here
       | otherwise                = usageError ("could not understand the arguments "++show args) >> exitFailure
 
+  -- do it
   runHledgerCommand
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
@@ -317,8 +317,11 @@ isValue "-"     = True
 isValue ('-':_) = False
 isValue _       = True
 
-flagstomove = inputflags ++ reportflags ++ helpflags
-noargflagstomove  = concatMap flagNames $ filter ((==FlagNone).flagInfo) flagstomove
+flagstomove = inputflags ++ reportflags ++ clihelpflags
+noargflagstomove  = concatMap flagNames (filter ((==FlagNone).flagInfo) flagstomove)
+  -- silly special case: if someone is abbreviating --tldr, make sure it works right when written before COMMAND
+  -- (not needed for --info, --man, --version since their abbreviations are ambiguous)
+  ++ ["tl", "tld"]
 reqargflagstomove = -- filter (/= "debug") $
                     concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
 optargflagstomove = concatMap flagNames $ filter (isFlagOpt   .flagInfo) flagstomove

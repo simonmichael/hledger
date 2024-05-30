@@ -120,10 +120,11 @@ webmode =
 
 webhelpflags :: [Flag RawOpts]
 webhelpflags = [
-  flagNone ["version"]  (setboolopt "version") "show version information"
- ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
+  flagNone ["help","h"] (setboolopt "help")    "show command line help"
+ ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
  ,flagNone ["info"]     (setboolopt "info")    "show the hledger-web manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show the hledger-web manual with man"
+ ,flagNone ["version"]  (setboolopt "version") "show version information"
  ]
 
 -- hledger-web options, used in hledger-web and above
