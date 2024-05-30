@@ -11,7 +11,8 @@ File: hledger-web.info,  Node: Top,  Next: OPTIONS,  Up: (dir)
 hledger-web(1)
 **************
 
-hledger-web - robust, friendly plain text accounting (Web version)
+hledger-web - web interface and API for 'hledger', a robust, friendly
+plain text accounting app.
 
    'hledger-web [--serve|--serve-api] [OPTS] [ARGS]'
 'hledger web -- [--serve|--serve-api] [OPTS] [ARGS]'
@@ -547,26 +548,26 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2578
-Ref: #options2683
-Node: General options5587
-Ref: #general-options5692
-Node: PERMISSIONS10842
-Ref: #permissions10981
-Node: EDITING UPLOADING DOWNLOADING12193
-Ref: #editing-uploading-downloading12374
-Node: RELOADING13208
-Ref: #reloading13342
-Node: JSON API13775
-Ref: #json-api13890
-Node: DEBUG OUTPUT19378
-Ref: #debug-output19503
-Node: Debug output19530
-Ref: #debug-output-119631
-Node: ENVIRONMENT20048
-Ref: #environment20167
-Node: BUGS20284
-Ref: #bugs20368
+Node: OPTIONS2608
+Ref: #options2713
+Node: General options5617
+Ref: #general-options5722
+Node: PERMISSIONS10872
+Ref: #permissions11011
+Node: EDITING UPLOADING DOWNLOADING12223
+Ref: #editing-uploading-downloading12404
+Node: RELOADING13238
+Ref: #reloading13372
+Node: JSON API13805
+Ref: #json-api13920
+Node: DEBUG OUTPUT19408
+Ref: #debug-output19533
+Node: Debug output19560
+Ref: #debug-output-119661
+Node: ENVIRONMENT20078
+Ref: #environment20197
+Node: BUGS20314
+Ref: #bugs20398
 
 End Tag Table
 

@@ -5,7 +5,8 @@
 
 
 .SH NAME
-hledger \- robust, friendly plain text accounting (CLI version)
+hledger \- a robust, friendly plain text accounting app (command line
+version).
 .SH SYNOPSIS
 \f[CR]hledger\f[R]
 .PD 0
@@ -7837,8 +7838,7 @@ Runs hledger\-ui (if installed).
 Runs hledger\-web (if installed).
 .SH Data entry commands
 .SS add
-Prompt for transactions and add them to the journal.
-Any arguments will be used as default inputs for the first N prompts.
+Record new transactions with interactive prompting in the console.
 .PP
 Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
@@ -7914,21 +7914,21 @@ Provide answers for the first four prompts:
 .PP
 There is a detailed tutorial at https://hledger.org/add.html.
 .SS import
-Read new transactions added to each FILE provided as arguments since
-last run, and add them to the journal.
-Or with \-\-dry\-run, just print the transactions that would be added.
-Or with \-\-catchup, just mark all of the FILEs\[aq] current
-transactions as imported, without importing them.
+Import new transactions from one or more data files to the main journal.
 .PP
-This command may append new transactions to the main journal file (which
-should be in journal format).
-Existing transactions are not changed.
+This command detects new transactions in each FILE argument since it was
+last run, and appends them to the main journal.
+.PP
+Or with \f[CR]\-\-dry\-run\f[R], it just print the transactions that
+would be added.
+.PP
+Or with \f[CR]\-\-catchup\f[R], it just marks all of the FILEs\[aq]
+current transactions as already imported.
+.PP
 This is one of the few hledger commands that writes to the journal file
 (see also \f[CR]add\f[R]).
+It only appends; existing data will not be changed.
 .PP
-Unlike other hledger commands, with \f[CR]import\f[R] the journal file
-is an output file, and will be modified, though only by appending
-(existing data will not be changed).
 The input files are specified as arguments, so to import one or more CSV
 files to your main journal, you will run
 \f[CR]hledger import bank.csv\f[R] or perhaps
@@ -7936,6 +7936,7 @@ files to your main journal, you will run
 .PP
 Note you can import from any file format, though CSV files are the most
 common import source, and these docs focus on that case.
+The target file (main journal) should be in journal format.
 .SS Date skipping
 \f[CR]import\f[R] tries to import only the transactions which are new
 since the last import, ignoring any that it has seen in previous runs.
@@ -8057,7 +8058,7 @@ amounts.
 Related: CSV > Amount decimal places.
 .SH Basic report commands
 .SS accounts
-Show account names.
+List account names.
 .PP
 This command lists account names.
 By default it shows all known accounts, either used in transactions or
@@ -8319,7 +8320,7 @@ also acquire tags from their account and transaction, transactions also
 acquire tags from their postings.
 .SH Standard report commands
 .SS print
-Show transaction journal entries, sorted by date.
+Show full journal entries, representing transactions.
 .PP
 The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with \f[CR]\-\-date2\f[R], by secondary
@@ -8511,8 +8512,8 @@ negative amounts under credit and zero or greater amounts under debit.)
 .SS aregister
 (areg)
 .PP
-Show the transactions and running historical balance of a single
-account, with each transaction displayed as one line.
+Show the transactions and running balances in one account, with each
+transaction on one line.
 .PP
 \f[CR]aregister\f[R] shows the overall transactions affecting a
 particular account (and any subaccounts).
@@ -8753,14 +8754,16 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS balancesheet
 (bs)
 .PP
-This command displays a balance sheet, showing historical ending
-balances of asset and liability accounts.
-(To see equity as well, use the balancesheetequity command.)
+Show the end balances in asset and liability accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-This report shows accounts declared with the \f[CR]Asset\f[R],
-\f[CR]Cash\f[R] or \f[CR]Liability\f[R] type (see account types).
+This command displays a balance sheet, showing historical ending
+balances of asset and liability accounts.
+(To see equity as well, use the balancesheetequity command.)
+.PP
+Accounts declared with the \f[CR]Asset\f[R], \f[CR]Cash\f[R] or
+\f[CR]Liability\f[R] type are shown (see account types).
 Or if no such accounts are declared, it shows top\-level accounts named
 \f[CR]asset\f[R] or \f[CR]liability\f[R] (case insensitive, plurals
 allowed) and their subaccounts.
@@ -8916,12 +8919,14 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS incomestatement
 (is)
 .PP
-This command displays an income statement, showing revenues and expenses
-during one or more periods.
+Show revenue inflows and expense outflows during the report period.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .PP
-This report shows accounts declared with the \f[CR]Revenue\f[R] or
+This command displays an income statement, showing revenues and expenses
+during one or more periods.
+.PP
+It shows accounts declared with the \f[CR]Revenue\f[R] or
 \f[CR]Expense\f[R] type (see account types).
 Or if no such accounts are declared, it shows top\-level accounts named
 \f[CR]revenue\f[R] or \f[CR]income\f[R] or \f[CR]expense\f[R] (case
@@ -8968,7 +8973,10 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS balance
 (bal)
 .PP
-Show accounts and their balances.
+A flexible, general purpose \[dq]summing\[dq] report that shows accounts
+with some kind of numeric data.
+This can be balance changes per period, end balances, budget
+performance, unrealised capital gains, etc.
 .PP
 \f[CR]balance\f[R] is one of hledger\[aq]s oldest and most versatile
 commands, for listing account balances, balance changes, values, value
