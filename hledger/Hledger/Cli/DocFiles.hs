@@ -1,4 +1,4 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, PackageImports #-}
+{-# LANGUAGE TemplateHaskell, OverloadedStrings, PackageImports, ScopedTypeVariables #-}
 {-|
 
 Embedded documentation files in various formats, and helpers for viewing them.
@@ -16,6 +16,7 @@ module Hledger.Cli.DocFiles (
 
   ) where
 
+import Control.Exception
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import Data.Maybe (fromMaybe)
@@ -146,11 +147,15 @@ tldr name = lookup name tldrs
 -- | Display one of the hledger tldr pages, using "tldr".
 runTldrForPage :: TldrPage -> IO ()
 runTldrForPage name =
+  let tldrprog = "tldr" in
   case tldr name of
     Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
-    Just b -> do
+    Just b -> (do
       withSystemTempFile (name++".md") $ \f h -> do
         BC.hPutStrLn h b
         hClose h
-        callCommand $ dbg1 "tldr command" $ unwords ["tldr", "-r", f]
-
+        callCommand $ dbg1 "tldr command" $ unwords [tldrprog, "-r", f]
+      ) `catch` (\(_e::IOException) -> do
+        hPutStrLn stderr $ "Could not run " <> tldrprog <> ", using fallback viewer:\n"
+        BC.putStrLn b
+      )
