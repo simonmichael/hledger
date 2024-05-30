@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "April 2024" "hledger-ui-1.33.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "May 2024" "hledger-ui-1.33.99 " "hledger User Manuals"
 
 
 
@@ -81,163 +81,89 @@ show accounts as a tree
 .PP
 hledger\-ui also supports many of hledger\[aq]s general options (and the
 hledger manual\[aq]s command line tips also apply here):
-.SS General help options
-.TP
-\f[CR]\-h \-\-help\f[R]
-show general or COMMAND help
-.TP
-\f[CR]\-\-man\f[R]
-show general or COMMAND user manual with man
-.TP
-\f[CR]\-\-info\f[R]
-show general or COMMAND user manual with info
-.TP
-\f[CR]\-\-version\f[R]
-show general or ADDONCMD version
-.TP
-\f[CR]\-\-debug[=N]\f[R]
-show debug output (levels 1\-9, default: 1)
-.SS General input options
-.TP
-\f[CR]\-f FILE \-\-file=FILE\f[R]
-use a different input file.
-For stdin, use \- (default: \f[CR]$LEDGER_FILE\f[R] or
-\f[CR]$HOME/.hledger.journal\f[R])
-.TP
-\f[CR]\-\-rules\-file=RULESFILE\f[R]
-Conversion rules file to use when reading CSV (default: FILE.rules)
-.TP
-\f[CR]\-\-separator=CHAR\f[R]
-Field separator to expect when reading CSV (default: \[aq],\[aq])
-.TP
-\f[CR]\-\-alias=OLD=NEW\f[R]
-rename accounts named OLD to NEW
-.TP
-\f[CR]\-\-pivot FIELDNAME\f[R]
-use some other field or tag for the account name
-.TP
-\f[CR]\-I \-\-ignore\-assertions\f[R]
-disable balance assertion checks (note: does not disable balance
-assignments)
-.TP
-\f[CR]\-s \-\-strict\f[R]
-do extra error checking (check that all posted accounts are declared)
-.SS General reporting options
-.TP
-\f[CR]\-b \-\-begin=DATE\f[R]
-include postings/txns on or after this date (will be adjusted to
-preceding subperiod start when using a report interval)
-.TP
-\f[CR]\-e \-\-end=DATE\f[R]
-include postings/txns before this date (will be adjusted to following
-subperiod end when using a report interval)
-.TP
-\f[CR]\-D \-\-daily\f[R]
-multiperiod/multicolumn report by day
-.TP
-\f[CR]\-W \-\-weekly\f[R]
-multiperiod/multicolumn report by week
-.TP
-\f[CR]\-M \-\-monthly\f[R]
-multiperiod/multicolumn report by month
-.TP
-\f[CR]\-Q \-\-quarterly\f[R]
-multiperiod/multicolumn report by quarter
-.TP
-\f[CR]\-Y \-\-yearly\f[R]
-multiperiod/multicolumn report by year
-.TP
-\f[CR]\-p \-\-period=PERIODEXP\f[R]
-set start date, end date, and/or reporting interval all at once using
-period expressions syntax
-.TP
-\f[CR]\-\-date2\f[R]
-match the secondary date instead (see command help for other effects)
-.TP
-\f[CR]\-\-today=DATE\f[R]
-override today\[aq]s date (affects relative smart dates, for
-tests/examples)
-.TP
-\f[CR]\-U \-\-unmarked\f[R]
-include only unmarked postings/txns (can combine with \-P or \-C)
-.TP
-\f[CR]\-P \-\-pending\f[R]
-include only pending postings/txns
-.TP
-\f[CR]\-C \-\-cleared\f[R]
-include only cleared postings/txns
-.TP
-\f[CR]\-R \-\-real\f[R]
-include only non\-virtual postings
-.TP
-\f[CR]\-NUM \-\-depth=NUM\f[R]
-hide/aggregate accounts or postings more than NUM levels deep
-.TP
-\f[CR]\-E \-\-empty\f[R]
-show items with zero amount, normally hidden (and vice\-versa in
-hledger\-ui/hledger\-web)
-.TP
-\f[CR]\-B \-\-cost\f[R]
-convert amounts to their cost/selling amount at transaction time
-.TP
-\f[CR]\-V \-\-market\f[R]
-convert amounts to their market value in default valuation commodities
-.TP
-\f[CR]\-X \-\-exchange=COMM\f[R]
-convert amounts to their market value in commodity COMM
-.TP
-\f[CR]\-\-value\f[R]
-convert amounts to cost or market value, more flexibly than \-B/\-V/\-X
-.TP
-\f[CR]\-\-infer\-equity\f[R]
-infer conversion equity postings from costs
-.TP
-\f[CR]\-\-infer\-costs\f[R]
-infer costs from conversion equity postings
-.TP
-\f[CR]\-\-infer\-market\-prices\f[R]
-use costs as additional market prices, as if they were P directives
-.TP
-\f[CR]\-\-forecast\f[R]
-generate transactions from periodic rules,
-between the latest recorded txn and 6 months from today,
-or during the specified PERIOD (= is required).
-Auto posting rules will be applied to these transactions as well.
-Also, in hledger\-ui make future\-dated transactions visible.
-.TP
-\f[CR]\-\-auto\f[R]
-generate extra postings by applying auto posting rules to all txns (not
-just forecast txns)
-.TP
-\f[CR]\-\-verbose\-tags\f[R]
-add visible tags indicating transactions or postings which have been
-generated/modified
-.TP
-\f[CR]\-\-commodity\-style\f[R]
-Override the commodity style in the output for the specified commodity.
-For example \[aq]EUR1.000,00\[aq].
-.TP
-\f[CR]\-\-color=WHEN (or \-\-colour=WHEN)\f[R]
-Should color\-supporting commands use ANSI color codes in text output.
-\[aq]auto\[aq] (default): whenever stdout seems to be a
-color\-supporting terminal.
-\[aq]always\[aq] or \[aq]yes\[aq]: always, useful eg when piping output
-into \[aq]less \-R\[aq].
-\[aq]never\[aq] or \[aq]no\[aq]: never.
-A NO_COLOR environment variable overrides this.
-.TP
-\f[CR]\-\-pretty[=WHEN]\f[R]
-Show prettier output, e.g.
-using unicode box\-drawing characters.
-Accepts \[aq]yes\[aq] (the default) or \[aq]no\[aq] (\[aq]y\[aq],
-\[aq]n\[aq], \[aq]always\[aq], \[aq]never\[aq] also work).
-If you provide an argument you must use \[aq]=\[aq], e.g.
-\[aq]\-\-pretty=yes\[aq].
-.PP
-When a reporting option appears more than once in the command line, the
-last one takes precedence.
-.PP
-Some reporting options can also be written as query arguments.
+.SS General options
+.IP
+.EX
+General input/data transformation flags:
+  \-f \-\-file=FILE            Read data from FILE, or from stdin if \-. Can be
+                            specified more than once. If not specified, reads
+                            from $LEDGER_FILE or $HOME/.hledger.journal.
+     \-\-rules\-file=RULEFILE  Use conversion rules from this file for
+                            converting subsequent CSV/SSV/TSV files. If not
+                            specified, uses FILE.rules for each such FILE.
+     \-\-alias=A=B|/RGX/=RPL  transform account names from A to B, or by
+                            replacing regular expression matches
+     \-\-auto                 generate extra postings by applying auto posting
+                            rules (\[dq]=\[dq]) to all transactions
+     \-\-forecast[=PERIOD]    Generate extra transactions from periodic rules
+                            (\[dq]\[ti]\[dq]), from after the latest ordinary transaction
+                            until 6 months from now. Or, during the specified
+                            PERIOD (the equals is required). Auto posting rules
+                            will also be applied to these transactions. In
+                            hledger\-ui, also make future\-dated transactions
+                            visible at startup.
+  \-I \-\-ignore\-assertions    don\[aq]t check balance assertions by default
+     \-\-infer\-costs          infer conversion equity postings from costs
+     \-\-infer\-equity         infer costs from conversion equity postings
+     \-\-infer\-market\-prices  infer market prices from costs
+     \-\-pivot=TAGNAME        use a different field or tag as account names
+  \-s \-\-strict               do extra error checks (and override \-I)
+     \-\-verbose\-tags         add tags indicating generated/modified data
+
+General output/reporting flags (supported by some commands):
+  \-b \-\-begin=DATE           include postings/transactions on/after this date
+  \-e \-\-end=DATE             include postings/transactions before this date
+                            (with a report interval, will be adjusted to
+                            following subperiod end)
+  \-D \-\-daily                multiperiod report with 1 day interval
+  \-W \-\-weekly               multiperiod report with 1 week interval
+  \-M \-\-monthly              multiperiod report with 1 month interval
+  \-Q \-\-quarterly            multiperiod report with 1 quarter interval
+  \-Y \-\-yearly               multiperiod report with 1 year interval
+  \-p \-\-period=PERIODEXP     set begin date, end date, and/or report interval,
+                            with more flexibility
+     \-\-today=DATE           override today\[aq]s date (affects relative dates)
+     \-\-date2                match/use secondary dates instead (deprecated)
+  \-U \-\-unmarked             include only unmarked postings/transactions
+  \-P \-\-pending              include only pending postings/transactions
+  \-C \-\-cleared              include only cleared postings/transactions
+                            (\-U/\-P/\-C can be combined)
+  \-R \-\-real                 include only non\-virtual postings
+     \-\-depth=NUM            or \-NUM: show only top NUM levels of accounts
+  \-E \-\-empty                Show zero items, which are normally hidden.
+                            In hledger\-ui & hledger\-web, do the opposite.
+  \-B \-\-cost                 show amounts converted to their cost/sale amount
+  \-V \-\-market               Show amounts converted to their value at period
+                            end(s) in their default valuation commodity.
+                            Equivalent to \-\-value=end.
+  \-X \-\-exchange=COMM        Show amounts converted to their value at period
+                            end(s) in the specified commodity.
+                            Equivalent to \-\-value=end,COMM.
+     \-\-value=WHEN[,COMM]    show amounts converted to their value on the
+                            specified date(s) in their default valuation
+                            commodity or a specified commodity. WHEN can be:
+                            \[aq]then\[aq]:     value on transaction dates
+                            \[aq]end\[aq]:      value at period end(s)
+                            \[aq]now\[aq]:      value today
+                            YYYY\-MM\-DD: value on given date
+  \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
+                            Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
+     \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be:
+                            \[aq]yes\[aq] or \[aq]always\[aq],
+                            \[aq]no\[aq] or \[aq]never\[aq] (a NO_COLOR env var forces this),
+                            \[aq]auto\[aq] (the default: when using a color terminal).
+     \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
+                            \[aq]yes\[aq] (the default argument for \-\-pretty) or \[aq]no\[aq].
+                            If YN is specified, the equals is required.
+     \-\-debug=[N]            show debug output (levels 1\-9, default: 1)
+
+General help flags:
+  \-h \-\-help                 show command line help
+     \-\-tldr                 show command examples with tldr
+     \-\-info                 show the hledger manual with info
+     \-\-man                  show the hledger manual with man
+     \-\-version              show version information
+.EE
 .SH MOUSE
 In most modern terminals, you can navigate through the screens with a
 mouse or touchpad:
@@ -375,32 +301,32 @@ Or you can use \f[CR]ESC\f[R] to return directly to the top menu screen.
 You can also use a command line flag to specific a different startup
 screen (\f[CR]\-\-cs\f[R], \f[CR]\-\-bs\f[R], \f[CR]\-\-is\f[R],
 \f[CR]\-\-all\f[R], or \f[CR]\-\-register=ACCT\f[R]).
-.SS Menu
+.SS Menu screen
 This is the top\-most screen.
 From here you can navigate to several screens listing accounts of
 various types.
 Note some of these may not show anything until you have configured
 account types.
-.SS Cash accounts
+.SS Cash accounts screen
 This screen shows \[dq]cash\[dq] (ie, liquid asset) accounts (like
 \f[CR]hledger balancesheet type:c\f[R]).
 It always shows balances (historical ending balances on the date shown
 in the title line).
-.SS Balance sheet accounts
+.SS Balance sheet accounts screen
 This screen shows asset, liability and equity accounts (like
 \f[CR]hledger balancesheetequity\f[R]).
 It always shows balances.
-.SS Income statement accounts
+.SS Income statement accounts screen
 This screen shows revenue and expense accounts (like
 \f[CR]hledger incomestatement\f[R]).
 It always shows changes (balance changes in the period shown in the
 title line).
-.SS All accounts
+.SS All accounts screen
 This screen shows all accounts in your journal (unless filtered by a
 query; like \f[CR]hledger balance\f[R]).
 It shows balances by default; you can toggle showing changes with the
 \f[CR]H\f[R] key.
-.SS Register
+.SS Register screen
 This screen shows the transactions affecting a particular account.
 Each line represents one transaction, and shows:
 .IP \[bu] 2
@@ -454,7 +380,7 @@ nonzero change are shown (hledger\-ui shows zero items by default,
 unlike command\-line hledger).
 .PP
 Press \f[CR]RIGHT\f[R] to view the selected transaction in detail.
-.SS Transaction
+.SS Transaction screen
 This screen shows a single transaction, as a general journal entry,
 similar to hledger\[aq]s print command and journal format
 (hledger_journal(5)).
@@ -485,7 +411,7 @@ must: \- press \f[CR]E\f[R], edit and save the file, then exit the
 editor, returning to hledger\-ui \- press \f[CR]g\f[R] to reload the
 file (or use \f[CR]\-w/\-\-watch\f[R] mode) \- press \f[CR]LEFT\f[R]
 then \f[CR]RIGHT\f[R] to exit and re\-enter the transaction screen.
-.SS Error
+.SS Error screen
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.
 Once you have fixed the problem, press g again to reload and resume
