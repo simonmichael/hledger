@@ -1,25 +1,26 @@
 ## import
 
-Read new transactions added to each FILE provided as arguments since
-last run, and add them to the journal.
-Or with --dry-run, just print the transactions that would be added.
-Or with --catchup, just mark all of the FILEs' current transactions 
-as imported, without importing them.
+Import new transactions from one or more data files to the main journal.
 
 _FLAGS
 
-This command may append new transactions to the main journal file (which should be in journal format).
-Existing transactions are not changed.
-This is one of the few hledger commands that writes to the journal file (see also `add`).
+This command detects new transactions in each FILE argument since it was last run, 
+and appends them to the main journal.
 
-Unlike other hledger commands, with `import` the journal file is an output file,
-and will be modified, though only by appending (existing data will not be changed).
+Or with `--dry-run`, it just print the transactions that would be added.
+
+Or with `--catchup`, it just marks all of the FILEs' current transactions as already imported.
+
+This is one of the few hledger commands that writes to the journal file (see also `add`).
+It only appends; existing data will not be changed.
+
 The input files are specified as arguments, so to import one or more
 CSV files to your main journal, you will run `hledger import bank.csv`
 or perhaps `hledger import *.csv`.
 
 Note you can import from any file format, though CSV files are the
 most common import source, and these docs focus on that case.
+The target file (main journal) should be in journal format.
 
 ### Date skipping
 

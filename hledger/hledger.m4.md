@@ -8,7 +8,7 @@ _notinfo_({{
 # NAME
 }})
 
-hledger - robust, friendly plain text accounting (CLI version)
+hledger - a robust, friendly plain text accounting app (command line version).
 
 _notinfo_({{
 # SYNOPSIS

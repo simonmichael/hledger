@@ -6,7 +6,7 @@ _notinfo_({{
 # NAME
 }})
 
-hledger-web - robust, friendly plain text accounting (Web version)
+hledger-web - web interface and API for `hledger`, a robust, friendly plain text accounting app.
 
 _notinfo_({{
 # SYNOPSIS

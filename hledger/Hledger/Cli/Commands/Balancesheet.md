@@ -2,15 +2,16 @@
 
 (bs)
 
-This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
-showing historical ending balances of asset and liability accounts. 
-(To see equity as well, use the [balancesheetequity](#balancesheetequity) command.)
-Amounts are shown with normal positive sign, as in conventional
-financial statements.
+Show the end balances in asset and liability accounts.
+Amounts are shown with normal positive sign, as in conventional financial statements.
 
 _FLAGS
 
-This report shows accounts declared with the `Asset`, `Cash` or `Liability` type
+This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
+showing historical ending balances of asset and liability accounts. 
+(To see equity as well, use the [balancesheetequity](#balancesheetequity) command.)
+
+Accounts declared with the `Asset`, `Cash` or `Liability` type are shown
 (see [account types](https://hledger.org/hledger.html#account-types)).
 Or if no such accounts are declared, it shows top-level accounts named
 `asset` or `liability` (case insensitive, plurals allowed) and their subaccounts.

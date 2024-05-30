@@ -2,15 +2,15 @@
 
 (is)
 
-This command displays an
-[income statement](http://en.wikipedia.org/wiki/Income_statement), 
-showing revenues and expenses during one or more periods. 
-Amounts are shown with normal positive sign, as in conventional
-financial statements.
+Show revenue inflows and expense outflows during the report period.
+Amounts are shown with normal positive sign, as in conventional financial statements.
 
 _FLAGS
 
-This report shows accounts declared with the `Revenue` or `Expense` type
+This command displays an [income statement](http://en.wikipedia.org/wiki/Income_statement), 
+showing revenues and expenses during one or more periods. 
+
+It shows accounts declared with the `Revenue` or `Expense` type
 (see [account types](https://hledger.org/hledger.html#account-types)).
 Or if no such accounts are declared, it shows top-level accounts named
 `revenue` or `income` or `expense` (case insensitive, plurals allowed) and their subaccounts.

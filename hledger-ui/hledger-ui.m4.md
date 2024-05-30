@@ -6,7 +6,7 @@ _notinfo_({{
 # NAME
 }})
 
-hledger-ui - robust, friendly plain text accounting (TUI version)
+hledger-ui - terminal interface (TUI) for `hledger`, a robust, friendly plain text accounting app.
 
 _notinfo_({{
 # SYNOPSIS
