@@ -175,14 +175,13 @@ General output/reporting flags (supported by some commands):
                             YYYY-MM-DD: value on given date
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '.' or -c '1.000,00 EUR'
-     --color=YN --colour    Use ANSI color codes in text output? Can be:
-                            'yes' or 'always',
-                            'no' or 'never' (a NO_COLOR env var forces this),
-                            'auto' (the default: when using a color terminal).
+     --color=YN --colour    Use ANSI color codes in text output? Can be
+                            'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
+                            (A NO_COLOR environment variable overrides this.)
      --pretty[=YN]          Use box-drawing characters in text output? Can be
-                            'yes' (the default argument for --pretty) or 'no'.
+                            'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
-     --debug=[N]            show debug output (levels 1-9, default: 1)
+     --debug=[1-9]          show this level of debug output (default: 1)
 
 General help flags:
   -h --help                 show command line help
@@ -585,38 +584,38 @@ Node: OPTIONS1830
 Ref: #options1928
 Node: General options2895
 Ref: #general-options2999
-Node: MOUSE8226
-Ref: #mouse8321
-Node: KEYS8558
-Ref: #keys8651
-Node: SCREENS13306
-Ref: #screens13404
-Node: Menu screen14040
-Ref: #menu-screen14161
-Node: Cash accounts screen14356
-Ref: #cash-accounts-screen14533
-Node: Balance sheet accounts screen14717
-Ref: #balance-sheet-accounts-screen14933
-Node: Income statement accounts screen15053
-Ref: #income-statement-accounts-screen15274
-Node: All accounts screen15438
-Ref: #all-accounts-screen15619
-Node: Register screen15801
-Ref: #register-screen15960
-Node: Transaction screen18244
-Ref: #transaction-screen18402
-Node: Error screen19819
-Ref: #error-screen19941
-Node: TIPS20185
-Ref: #tips20284
-Node: Watch mode20326
-Ref: #watch-mode20433
-Node: Debug output21892
-Ref: #debug-output22003
-Node: ENVIRONMENT22215
-Ref: #environment22325
-Node: BUGS22516
-Ref: #bugs22599
+Node: MOUSE8149
+Ref: #mouse8244
+Node: KEYS8481
+Ref: #keys8574
+Node: SCREENS13229
+Ref: #screens13327
+Node: Menu screen13963
+Ref: #menu-screen14084
+Node: Cash accounts screen14279
+Ref: #cash-accounts-screen14456
+Node: Balance sheet accounts screen14640
+Ref: #balance-sheet-accounts-screen14856
+Node: Income statement accounts screen14976
+Ref: #income-statement-accounts-screen15197
+Node: All accounts screen15361
+Ref: #all-accounts-screen15542
+Node: Register screen15724
+Ref: #register-screen15883
+Node: Transaction screen18167
+Ref: #transaction-screen18325
+Node: Error screen19742
+Ref: #error-screen19864
+Node: TIPS20108
+Ref: #tips20207
+Node: Watch mode20249
+Ref: #watch-mode20356
+Node: Debug output21815
+Ref: #debug-output21926
+Node: ENVIRONMENT22138
+Ref: #environment22248
+Node: BUGS22439
+Ref: #bugs22522
 
 End Tag Table
 

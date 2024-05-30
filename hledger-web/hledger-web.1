@@ -204,14 +204,13 @@ General output/reporting flags (supported by some commands):
                             YYYY\-MM\-DD: value on given date
   \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
                             Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
-     \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be:
-                            \[aq]yes\[aq] or \[aq]always\[aq],
-                            \[aq]no\[aq] or \[aq]never\[aq] (a NO_COLOR env var forces this),
-                            \[aq]auto\[aq] (the default: when using a color terminal).
+     \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be
+                            \[aq]y\[aq]/\[aq]yes\[aq]/\[aq]always\[aq], \[aq]n\[aq]/\[aq]no\[aq]/\[aq]never\[aq] or \[aq]auto\[aq].
+                            (A NO_COLOR environment variable overrides this.)
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
-                            \[aq]yes\[aq] (the default argument for \-\-pretty) or \[aq]no\[aq].
+                            \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
                             If YN is specified, the equals is required.
-     \-\-debug=[N]            show debug output (levels 1\-9, default: 1)
+     \-\-debug=[1\-9]          show this level of debug output (default: 1)
 
 General help flags:
   \-h \-\-help                 show command line help
