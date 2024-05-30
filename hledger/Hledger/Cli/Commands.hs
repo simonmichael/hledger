@@ -198,17 +198,19 @@ commandsList progversion othercmds =
   -- it needs checking/updating after any wording/layout changes here
    "-------------------------------------------------------------------------------"
   ,progversion
-  ,"Usage: hledger CMD [OPTS] [-- ADDONCMDOPTS]"
+  ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONOPTIONS]"
   ,"Commands (builtins + addons):"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP (docs, demos..)"
-  ," hledger                          show this commands list"
-  ," hledger -h                       show general options"
-  ," hledger CMD -h                   show CMD's options and manual"
-  ," hledger help [-i|-m|-p] [TOPIC]  show the hledger manual"
-  ," hledger demo [DEMO] [-- ASCOPTS] show brief demos in the terminal"
-  ," https://hledger.org              HTML manuals, tutorials, examples, support"
+  ," (no arguments)           show this commands list"
+  ," -h [COMMAND]             show command line help"
+  ," --tldr [COMMAND]         show command examples with tldr"
+  ," --info [COMMAND]         show the hledger manual with info"
+  ," --man  [COMMAND]         show the hledger manual with man"
+  ," help [-i|-m|-p] [TOPIC]  show any topic in the hledger manual"
+  ," demo [DEMO]              show brief demos in the terminal"
+  ,"                          more help: https://hledger.org"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES (alternate UIs)"
@@ -279,7 +281,6 @@ commandsList progversion othercmds =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "OTHER ADDONS (more hledger-* commands found in PATH):"
-  ,""
   ]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ [""]
