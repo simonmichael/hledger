@@ -1,6 +1,6 @@
 accounts
 
-Show account names.
+List account names.
 
 _FLAGS
 

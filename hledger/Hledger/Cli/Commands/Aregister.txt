@@ -2,8 +2,8 @@ aregister
 
 (areg)
 
-Show the transactions and running historical balance of a single
-account, with each transaction displayed as one line.
+Show the transactions and running balances in one account, with each
+transaction on one line.
 
 _FLAGS
 

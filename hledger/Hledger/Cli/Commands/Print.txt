@@ -1,6 +1,6 @@
 print
 
-Show transaction journal entries, sorted by date.
+Show full journal entries, representing transactions.
 
 _FLAGS
 

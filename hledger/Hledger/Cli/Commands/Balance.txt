@@ -2,7 +2,9 @@ balance
 
 (bal)
 
-Show accounts and their balances.
+A flexible, general purpose "summing" report that shows accounts with
+some kind of numeric data. This can be balance changes per period, end
+balances, budget performance, unrealised capital gains, etc.
 
 _FLAGS
 

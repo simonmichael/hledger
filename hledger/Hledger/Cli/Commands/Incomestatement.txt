@@ -2,16 +2,19 @@ incomestatement
 
 (is)
 
-This command displays an income statement, showing revenues and expenses
-during one or more periods. Amounts are shown with normal positive sign,
-as in conventional financial statements.
+Show revenue inflows and expense outflows during the report period.
+Amounts are shown with normal positive sign, as in conventional
+financial statements.
 
 _FLAGS
 
-This report shows accounts declared with the Revenue or Expense type
-(see account types). Or if no such accounts are declared, it shows
-top-level accounts named revenue or income or expense (case insensitive,
-plurals allowed) and their subaccounts.
+This command displays an income statement, showing revenues and expenses
+during one or more periods.
+
+It shows accounts declared with the Revenue or Expense type (see account
+types). Or if no such accounts are declared, it shows top-level accounts
+named revenue or income or expense (case insensitive, plurals allowed)
+and their subaccounts.
 
 Example:
 
