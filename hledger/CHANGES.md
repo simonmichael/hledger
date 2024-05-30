@@ -7,11 +7,11 @@
 
 Breaking changes
 
-Fixes
-
 Features
 
 Improvements
+
+Fixes
 
 Docs
 
@@ -23,22 +23,35 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# b7e5c05da
+# 12eaee8dc
 
 Breaking changes
 
 - `check ordereddates` no longer supports `--date2`; it checks primary
   dates only.
 
-Fixes
-
-- `include` directives with trailing whitespace are now parsed correctly.
-
 Features
+
+- You can now get a quick list of example command lines for hledger or
+  its most useful subcommands by adding the `--tldr` flag (or just
+  `--tl`).  For best appearance you should install the [`tldr`][tldr] client,
+  though it's not required.
+
+  These short "tldr pages" are a great counterbalance to verbose PTA docs.
+  You can also use `tldr` without hledger to view the latest versions, or translations:\
+  `tldr hledger[-COMMAND]`.
+  Or you can [browse tldr pages online](https://tldr.inbrowser.app/search?query=hledger+).
+  Consider contributing translations!
+  More tips at <https://github.com/simonmichael/hledger/tree/master/doc/tldr>.
+
+[tldr]: https://tldr.sh
 
 Improvements
 
-- The CLI commands list has been reorganised.
+- The `hledger` commands list has been reorganised,
+  with commands listed roughly in the order you'll need them.
+
+- The general flags descriptions in `--help` have been updated and grouped.
 
 - Correctness checks now run in a documented order.  `commodities` are
   now checked before `accounts`, and `tags` before `recentassertions`.
@@ -50,22 +63,54 @@ Improvements
   Eg you can `alias hl="hledger -I"` to delay balance assertions
   checking until you add `-s` to commands.
 
+- `--color` and `--pretty` now also accept `y` or `n` as argument.
+
 - When built with the `ghcdebug` flag and started with `--debug=-1`,
-  hledger can be controlled by ghc-debug clients like
+  hledger can be controlled by [ghc-debug] clients like
   ghc-debug-brick or a ghc-debug query script, for analysing
-  memory and profiling info.
+  memory/profile info.
+
+[ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
+
+Fixes
+
+- `hledger COMMAND --man` and `hledger help TOPIC --man` now properly scroll
+  the man page to the TOPIC or COMMAND heading.
+  The exact/prefix matching behaviour has been clarified in `help --help`.
+
+- In journal files, `include` directives with trailing whitespace are now parsed correctly.
+
+- The help command's help flags are now consistent with other commands
+  (and it has `--debug` as a hidden flag).
+
+- Build errors with GHC 8.10 have been fixed. [#2198]
 
 Docs
 
+- The tables of contents on hledger.org pages are now flat lists of
+  top-level headings, rather than a two-level outline,
+  and the hledger manual's headings have been adjusted for this.
+  This makes the hledger manual on hledger.org more scannable and less scary.
+  (mdbook-toc doesn't support configuring this per page, so it has to be site wide.)
+  Once you click to a section and find a subsection of interest,
+  it's still easy to bookmark or share those by clicking their heading.
+- add: drop lengthy transcript, add simpler example commands (from tldr)
+- Amount formatting: move down, it's not the best first topic
+- balance: mention the `--summary-only` flag
 - check: expand check descriptions
+- examples: CSV rules: vanguard, fidelity, paypal updates
+- PART 4: COMMANDS: reorganise into groups, like the CLI commands list.
+- Period expressions: mention last day of month adjusting [#2005]
+- Time periods cleanup, simplify markup
+- Unicode characters: mention UTF-8 on windows
 
 Scripts/addons
 
 - Added `hledger-pricehist`, an alias for the `pricehist` market price
   fetcher so that it can appear in hledger's commands list.
 
-API
-
+[#2005]: https://github.com/simonmichael/hledger/issues/2005
+[#2198]: https://github.com/simonmichael/hledger/issues/2198
 
 # 1.33.1 2024-05-02
 

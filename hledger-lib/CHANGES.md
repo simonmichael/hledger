@@ -7,9 +7,9 @@
 
 Breaking changes
 
-Fixes
-
 Improvements
+
+Fixes
 
 
 
@@ -21,17 +21,13 @@ Improvements
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
-# b7e5c05da
 
-Breaking changes
-
-Fixes
+# 152b20413
 
 Improvements
 
 - InputOpts has a new `_defer` flag for internal use instead of overusing `strict_`
-
-- moved journalCheckBalanceAssertions to JournalChecks
+- journalCheckBalanceAssertions has moved to JournalChecks
 
 
 # 1.33.1 2024-05-02
