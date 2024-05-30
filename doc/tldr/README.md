@@ -4,9 +4,10 @@ tldr pages are short but high value, and a great counterbalance to PTA's verbose
 So they are worth prioritising and maintaining.
 gutjuri made the first hledger tldr page in 2022, and sm added more in 2024.
 
-This directory has convenient symlinks for accessing the [hledger-related tldr pages](https://github.com/search?q=repo%3Atldr-pages%2Ftldr%20hledger&type=code)
-(if tldr is cloned as a sibling to the hledger project directory).
-These docs are crafted first to suit tldr and its style rules, but we could also use them elsewhere when practical.
+This directory has local copies of all [hledger-related tldr pages](https://github.com/search?q=repo%3Atldr-pages%2Ftldr%20hledger&type=code)
+The tldr-pages repo has the master copies, so they should be copied here periodically (eg before release).
+These docs are crafted first to suit tldr and its style rules, but we'll reuse them where we can.
+Eg they are now embedded in the hledger tools and accessible with --tldr.
 
 <https://tldr.inbrowser.app> is an online (& offline) tldr viewer,
 where you can search for [hledger command examples](https://tldr.inbrowser.app/search?query=hledger+).
