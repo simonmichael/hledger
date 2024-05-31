@@ -1,25 +1,32 @@
 #!/usr/bin/env runhaskell
 {-
 Make/update hledger release notes from the latest release's changelogs.
+
 Run this in the root of the hledger repo, in a release branch.
 If you have switched branch recently you may have to kill an unhelpful
 ghc environment file first. Eg: rm -f .ghc.environment* && tools/relnotes.hs
 
-This reads the latest release's changes from the main CHANGES.md files,
-converts to release notes format, and inserts this into relnotes.md.
-If there already were release notes for this release (at top of relnotes),
-they will be replaced, except for a manually added "highlights" paragraph if any
-(after the release heading, beginning and ending with **), which is preserved.
+The changelogs should be release-ready, with the release version and date
+as their first heading. The release version is taken from the project's
+CHANGES.md's first heading. It is assumed that all the other changelogs'
+first header is for the same version, and that changelogs and relnotes
+are non-empty, with specific layout and heading formats.
 
-The release's version is taken from the the first h1 heading in the project CHANGES.md.
-It is assumed that all the other changelogs' first section is also for this version (XXX),
-and that changelogs and relnotes are non-empty with specific layout and heading formats.
+This reads the changes from each CHANGES.md file's first section,
+converts them to release notes format, and inserts them all as a new
+first section in relnotes.md.
+
+If relnotes.md's first section was already for this version, it will
+be replaced; except for a manually added "highlights" paragraph, if
+any, which is preserved (after the release heading, beginning and
+ending with **).
 
 In the end I wrote this in haskell because everything else was harder.
 -}
 
 import Data.Char
 import Data.List
+import Debug.Trace
 import System.IO
 import System.Process
 import Text.Printf
@@ -30,11 +37,10 @@ main = do
   (hledgerChangesHeading, hledgerChanges)       <- changelogFirstSection <$> readFile "hledger/CHANGES.md"
   (hledgerUiChangesHeading, hledgerUiChanges)   <- changelogFirstSection <$> readFile "hledger-ui/CHANGES.md"
   (hledgerWebChangesHeading, hledgerWebChanges) <- changelogFirstSection <$> readFile "hledger-web/CHANGES.md"
-  reltags <- lines <$> readProcess "git" ["tag", "--sort=-creatordate", "-l", "[0-9]*"] ""
+  prevver:_ <- dropWhile (".99" `isSuffixOf`) . lines <$> readProcess "git" ["tag", "--sort=-creatordate", "-l", "[0-9]*"] ""
   let
     [_, ver, date] = words projectChangesHeading
-    prevver:_ = drop 1 $ dropWhile (/=ver) reltags
-  relauthors <- map (unwords . drop 1 . words) . lines <$> readProcess "git" ["shortlog", "-sn", prevver<>".."<>ver] ""
+  relauthors <- map (unwords . drop 1 . words) . lines <$> readProcess "git" ["shortlog", "-sn", prevver<>".."{- <>ver -}] ""
 
   -- convert to release notes format
   let
