@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 12eaee8dc
+# 1.34 2024-06-01
 
 Breaking changes
 
@@ -87,13 +87,9 @@ Fixes
 
 Docs
 
-- The tables of contents on hledger.org pages are now flat lists of
-  top-level headings, rather than a two-level outline,
-  and the hledger manual's headings have been adjusted for this.
+- The tables of contents on hledger.org pages now just list top-level headings,
+  (and the hledger manual structure has been adjusted for this).
   This makes the hledger manual on hledger.org more scannable and less scary.
-  (mdbook-toc doesn't support configuring this per page, so it has to be site wide.)
-  Once you click to a section and find a subsection of interest,
-  it's still easy to bookmark or share those by clicking their heading.
 - add: drop lengthy transcript, add simpler example commands (from tldr)
 - Amount formatting: move down, it's not the best first topic
 - balance: mention the `--summary-only` flag
