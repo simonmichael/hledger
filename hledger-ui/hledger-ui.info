@@ -17,8 +17,8 @@ plain text accounting app.
    'hledger-ui [OPTS] [QUERYARGS]'
 'hledger ui -- [OPTS] [QUERYARGS]'
 
-   This manual is for hledger's terminal interface, version 1.33.99.
-See also the hledger manual for common concepts and file formats.
+   This manual is for hledger's terminal interface, version 1.34.  See
+also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -581,42 +581,42 @@ above).
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1863
-Ref: #options1961
-Node: General options2928
-Ref: #general-options3032
-Node: MOUSE8182
-Ref: #mouse8277
-Node: KEYS8514
-Ref: #keys8607
-Node: SCREENS13262
-Ref: #screens13360
-Node: Menu screen13996
-Ref: #menu-screen14117
-Node: Cash accounts screen14312
-Ref: #cash-accounts-screen14489
-Node: Balance sheet accounts screen14673
-Ref: #balance-sheet-accounts-screen14889
-Node: Income statement accounts screen15009
-Ref: #income-statement-accounts-screen15230
-Node: All accounts screen15394
-Ref: #all-accounts-screen15575
-Node: Register screen15757
-Ref: #register-screen15916
-Node: Transaction screen18200
-Ref: #transaction-screen18358
-Node: Error screen19775
-Ref: #error-screen19897
-Node: TIPS20141
-Ref: #tips20240
-Node: Watch mode20282
-Ref: #watch-mode20389
-Node: Debug output21848
-Ref: #debug-output21959
-Node: ENVIRONMENT22171
-Ref: #environment22281
-Node: BUGS22472
-Ref: #bugs22555
+Node: OPTIONS1861
+Ref: #options1959
+Node: General options2926
+Ref: #general-options3030
+Node: MOUSE8180
+Ref: #mouse8275
+Node: KEYS8512
+Ref: #keys8605
+Node: SCREENS13260
+Ref: #screens13358
+Node: Menu screen13994
+Ref: #menu-screen14115
+Node: Cash accounts screen14310
+Ref: #cash-accounts-screen14487
+Node: Balance sheet accounts screen14671
+Ref: #balance-sheet-accounts-screen14887
+Node: Income statement accounts screen15007
+Ref: #income-statement-accounts-screen15228
+Node: All accounts screen15392
+Ref: #all-accounts-screen15573
+Node: Register screen15755
+Ref: #register-screen15914
+Node: Transaction screen18198
+Ref: #transaction-screen18356
+Node: Error screen19773
+Ref: #error-screen19895
+Node: TIPS20139
+Ref: #tips20238
+Node: Watch mode20280
+Ref: #watch-mode20387
+Node: Debug output21846
+Ref: #debug-output21957
+Node: ENVIRONMENT22169
+Ref: #environment22279
+Node: BUGS22470
+Ref: #bugs22553
 
 End Tag Table
 
