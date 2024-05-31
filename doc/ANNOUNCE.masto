@@ -1,13 +1,13 @@
-I'm pleased to announce hledger 1.33.1, with several fixes,
-installability improvements, and doc updates.
+I'm pleased to announce hledger 1.34, with cli cleanups, tldr
+integration, and ghc-debug support.
 
-- https://github.com/simonmichael/hledger/releases/1.33.1
-- https://hledger.org/relnotes.html#2024-05-02-hledger-1331
+- https://github.com/simonmichael/hledger/releases/1.34
+- https://hledger.org/relnotes.html#2024-06-01-hledger-134
 - https://hledger.org/install
 
-#hledger is free, fast, robust, multicurrency, double-entry,
+#hledger is free, robust, friendly, multicurrency, double-entry,
 #PlainTextAccounting software for unix, mac, windows, and the web,
 written in #Haskell for reliability and longevity.
-For help, join our chat or mail list: https://hledger.org/support
+For help, join the chat, forum or mail list: https://hledger.org/support
 
 #PersonalFinance
