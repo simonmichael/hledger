@@ -12,8 +12,9 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-web    [--serve|--serve-api] [OPTS] [ARGS]`\
-`hledger web -- [--serve|--serve-api] [OPTS] [ARGS]`
+`hledger-web    [OPTS] [QUERY]`\
+or\
+`hledger web -- [OPTS] [QUERY]`
 
 _notinfo_({{
 # DESCRIPTION
@@ -64,48 +65,43 @@ In all cases hledger-web runs as a foreground process, logging requests to stdou
 
 hledger-web provides the following options:
 
-`--serve`
-: serve and log requests, don't browse or auto-exit after timeout
+```
+Flags:
+     --serve --server       serve and log requests, don't browse or auto-exit
+     --serve-api            like --serve, but serve only the JSON web API,
+                            not the web UI
+     --allow=view|add|edit  set the user's access level for changing data
+                            (default: `add`). It also accepts `sandstorm` for
+                            use on that platform (reads permissions from the
+                            `X-Sandstorm-Permissions` request header).
+     --cors=ORIGIN          allow cross-origin requests from the specified
+                            origin; setting ORIGIN to "*" allows requests from
+                            any origin
+     --host=IPADDR          listen on this IP address (default: 127.0.0.1)
+     --port=PORT            listen on this TCP port (default: 5000)
+     --socket=SOCKET        listen on the given unix socket instead of an IP
+                            address and port (unix only; implies --serve)
+     --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
+     --test                 run hledger-web's tests and exit. hspec test
+                            runner args may follow a --, eg: hledger-web --test
+                            -- --help
+```
 
-`--serve-api` 
-: like --serve, but serve only the JSON web API, not the web UI
+By default hledger-web listens only on IP address `127.0.0.1`,
+which be accessed only from the local machine.
 
-`--allow=view|add|edit`
-: set the user's access level for changing data (default: `add`).
-It also accepts `sandstorm` for use on that platform
-(reads permissions from the `X-Sandstorm-Permissions` request header).
-
-`--cors=ORIGIN`
-: allow cross-origin requests from the specified origin;
-setting ORIGIN to "*" allows requests from any origin
-
-`--host=IPADDR`
-: listen on this IP address (default: 127.0.0.1)
-
-By default the server listens on IP address `127.0.0.1`, 
-which is accessible only to requests from the local machine..
-You can use `--host` to listen on a different address configured on the machine,
-eg to allow access from other machines.
-The special address `0.0.0.0` causes it to listen on all addresses configured on the machine.
-
-`--port=PORT`
-: listen on this TCP port (default: 5000)
+To allow access from elsewhere, use `--host` to specify an externally accessible address configured on this machine,
+The special address `0.0.0.0` causes it to listen on all of this machine's addresses.
 
 Similarly, you can use `--port` to listen on a TCP port other than 5000.
 This is useful if you want to run multiple hledger-web instances on a machine.
-
-`--socket=SOCKETFILE`
-: listen on the given unix socket instead of an IP address and port (unix only; implies --serve)
 
 When `--socket` is used, hledger-web creates and communicates via a socket file instead of a TCP port.
 This can be more secure, respects unix file permissions, and makes certain use cases easier,
 such as running per-user instances behind an nginx reverse proxy. (Eg:
 `proxy_pass http://unix:/tmp/hledger/${remote_user}.socket;`.)
 
-`--base-url=URL`
-: set the base url (default: http://IPADDR:PORT).
-
-You can use `--base-url` to change the protocol, hostname, port and path that appear in 
+You can use `--base-url` to change the protocol, hostname, port and path that appear in
 hledger-web's hyperlinks. This is useful eg when integrating hledger-web within a larger website.
 The default is `http://HOST:PORT/` using the server's configured host address and TCP port
 (or `http://HOST` if PORT is 80).
@@ -121,24 +117,19 @@ eg for better caching or cookie-less serving on high performance websites,
 you can customise their urls with this.
 -->
 
-`--test`
-: run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help
-
-hledger-web also supports many of hledger's general options.
-Query options and arguments may be used to set an initial filter,
-which although not shown in the UI, will restrict the data shown,
-in addition to any search query entered in the UI.
-
-Note that hledger-web shows accounts with zero balances by default, like `hledger-ui` (and unlike `hledger`).
-Using the `-E/--empty` flag at startup will hide them.
-
-If you see accounts which appear to have a zero balance, but cannot be hidden with `-E`:
-these have a mixed-cost balance which looks like zero when costs are hidden.
-Currently hledger-web does not show costs at all.
-
-## General options
+hledger-web also supports many of hledger's [general options](hledger.md#options):
 
 _generaloptions_
+
+hledger-web shows accounts with zero balances by default (like `hledger-ui`, and unlike `hledger`).
+Using the `-E/--empty` flag will reverse this behaviour.
+If you see accounts which appear to have a zero balance, but cannot be hidden with `-E`,
+it's because they have a mixed-cost balance, which looks like zero when costs are hidden.
+(hledger-web does not show costs.)
+
+Reporting options and/or query arguments can be used to set an initial query,
+which although not shown in the UI, will restrict the data shown
+(in addition to any search query entered in the UI).
 
 # PERMISSIONS
 
