@@ -80,21 +80,12 @@ uimode =
         [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
         ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
         ]
-      ,groupNamed = mkgeneralflagsgroups1 uihelpflags
+      ,groupNamed = mkgeneralflagsgroups1 helpflags
       }
   ,modeHelpSuffix=[
     -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."
   ]
   }
-
-uihelpflags :: [Flag RawOpts]
-uihelpflags = [
-  flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
- ,flagNone ["info"]     (setboolopt "info")    "show the hledger-ui manual with info"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger-ui manual with man"
- ,flagNone ["version"]  (setboolopt "version") "show version information"
- ]
 
 -- hledger-ui options, used in hledger-ui and above
 data UIOpts = UIOpts

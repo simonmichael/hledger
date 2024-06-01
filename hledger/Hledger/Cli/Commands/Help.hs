@@ -36,7 +36,7 @@ helpmode = hledgerCommandMode
   ,flagNone ["m"] (setboolopt "man")   "show the manual with man"
   ,flagNone ["p"] (setboolopt "pager") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
   ]
-  [(helpflagstitle, clihelpflags)]
+  [(helpflagstitle, helpflags)]
   [
     flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
   ]

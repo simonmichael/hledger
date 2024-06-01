@@ -113,19 +113,10 @@ webmode =
       Group
       { groupUnnamed = webflags
       , groupHidden = hiddenflags
-      , groupNamed = mkgeneralflagsgroups1 webhelpflags
+      , groupNamed = mkgeneralflagsgroups1 helpflags
       }
   , modeHelpSuffix = []
   }
-
-webhelpflags :: [Flag RawOpts]
-webhelpflags = [
-  flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
- ,flagNone ["info"]     (setboolopt "info")    "show the hledger-web manual with info"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger-web manual with man"
- ,flagNone ["version"]  (setboolopt "version") "show version information"
- ]
 
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts

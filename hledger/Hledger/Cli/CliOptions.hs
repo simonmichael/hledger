@@ -21,7 +21,6 @@ module Hledger.Cli.CliOptions (
   -- * cmdargs flags & modes
   inputflags,
   reportflags,
-  clihelpflags,
   helpflags,
   helpflagstitle,
   detailedversionflag,
@@ -240,18 +239,15 @@ reportflags = [
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this level of debug output (default: 1)"
  ]
 
-clihelpflags :: [Flag RawOpts]
-clihelpflags = [
+helpflags :: [Flag RawOpts]
+helpflags = [
   flagNone ["help","h"] (setboolopt "help")    "show command line help"
  ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
- ,flagNone ["info"]     (setboolopt "info")    "show the hledger manual with info"
- ,flagNone ["man"]      (setboolopt "man")     "show the hledger manual with man"
+ ,flagNone ["info"]     (setboolopt "info")    "show the manual with info"
+ ,flagNone ["man"]      (setboolopt "man")     "show the manual with man"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
  ]
 -- XXX why are these duplicated in defCommandMode below ?
-
--- temp legacy alias
-helpflags = clihelpflags
 
 -- | A hidden flag just for the hledger executable.
 detailedversionflag :: Flag RawOpts
@@ -327,9 +323,9 @@ helpflagstitle   = "\nGeneral help flags"
 
 -- Several subsets of the standard general flags plus CLI help flags, as separate groups.
 cligeneralflagsgroups1, cligeneralflagsgroups2, cligeneralflagsgroups3 :: [(String, [Flag RawOpts])]
-cligeneralflagsgroups1 = mkgeneralflagsgroups1 clihelpflags
-cligeneralflagsgroups2 = mkgeneralflagsgroups2 clihelpflags
-cligeneralflagsgroups3 = mkgeneralflagsgroups3 clihelpflags
+cligeneralflagsgroups1 = mkgeneralflagsgroups1 helpflags
+cligeneralflagsgroups2 = mkgeneralflagsgroups2 helpflags
+cligeneralflagsgroups3 = mkgeneralflagsgroups3 helpflags
 
 
 -- cmdargs mode constructors

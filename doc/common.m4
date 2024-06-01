@@ -131,8 +131,8 @@ General output/reporting flags (supported by some commands):
 General help flags:
   -h --help                 show command line help
      --tldr                 show command examples with tldr
-     --info                 show the hledger manual with info
-     --man                  show the hledger manual with man
+     --info                 show the manual with info
+     --man                  show the manual with man
      --version              show version information
 ```
 }} )m4_dnl
