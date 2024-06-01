@@ -2728,21 +2728,28 @@ A missing Y directive makes reports dependent on today's date.
 
 ### Secondary dates
 
-A secondary date is written after the primary date, following an
-equals sign. If the year is omitted, the primary date's year is
-assumed. When running reports, the primary (left) date is used by
-default, but with the `--date2` flag (or `--aux-date` or
-`--effective`), the secondary (right) date will be used instead.
+A secondary date is written after the primary date, following an equals sign: `DATE1=DATE2`.
+If the year is omitted, the primary date's year is assumed.
+When running reports, the primary (left side) date is used by default,
+but with the `--date2` flag (`--aux-date` or`--effective` also work, for Ledger users),
+the secondary (right side) date will be used instead.
 
-The meaning of secondary dates is up to you, but it's best to follow a
-consistent rule.  Eg "primary = the bank's clearing date, secondary =
-date the transaction was initiated, if different".
+The meaning of secondary dates is up to you. Eg it could be
+"primary is the bank's clearing date, secondary is the date the transaction was initiated, if different".
 
-Downsides: makes your financial data more complicated, less portable,
-and less trustworthy in an audit. Keeping the meaning of the two dates
-consistent requires discipline, and you have to remember which
-reporting mode is appropriate for a given report.
-[Posting dates](#posting-dates) are simpler and better.
+In practice, this feature usually adds confusion:
+
+- You have to remember the primary and secondary dates' meaning, and follow that consistently.
+- It splits your bookkeeping into two modes, and you have to remember which mode is appropriate for a given report.
+- Usually your balance assertions will work with only one of these modes.
+- It makes your financial data more complicated, less portable, and less clear in an audit.
+- It interacts with every feature, creating an ongoing cost for implementors.
+- It distracts new users and supporters.
+- [Posting dates](#posting-dates) are simpler and work better.
+
+So secondary dates are officially deprecated in hledger,
+remaining only as a Ledger compatibility aid;
+we recommend using posting dates instead.
 
 ### Star comments
 
