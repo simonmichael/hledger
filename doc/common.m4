@@ -123,7 +123,6 @@ General output/reporting flags (supported by some commands):
                             Eg: -c '$1000.' or -c '1.000,00 EUR'
      --color=YN --colour    Use ANSI color codes in text output? Can be
                             'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
-                            (A NO_COLOR environment variable overrides this.)
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
