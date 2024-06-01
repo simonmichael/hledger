@@ -2747,7 +2747,9 @@ In fact this feature usually adds confusion:
 - It distracts new users and supporters.
 - [Posting dates](#posting-dates) are simpler and work better.
 
-So as of 2024, secondary dates are officially deprecated in hledger; we recommend posting dates instead.
+So secondary dates are officially deprecated in hledger,
+remaining only as a Ledger compatibility feature;
+we recommend using posting dates instead.
 
 ### Star comments
 
