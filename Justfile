@@ -955,18 +955,16 @@ twih:  # *DATE:
     ## This Week In Hledger $END
     
     **sm**
-    
     `just commitlog $DATE`
     
     **Misc**
-    
-    - for recent discussions, see <https://hledger.org/support.html>.
+    recent discussions: <https://hledger.org/support.html>
     
     **Quotes**
     
-    **
+    - **
     
-    **
+    - **
     
     <https://hledger.org/news.html#this-week-in-hledger-$END>
 
