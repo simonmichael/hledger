@@ -15,6 +15,7 @@ hledger-ui - terminal interface (TUI) for 'hledger', a robust, friendly
 plain text accounting app.
 
    'hledger-ui [OPTS] [QUERYARGS]'
+or
 'hledger ui -- [OPTS] [QUERYARGS]'
 
    This manual is for hledger's terminal interface, version 1.34.  See
@@ -49,7 +50,7 @@ enable "forecast mode".
 * MOUSE::
 * KEYS::
 * SCREENS::
-* TIPS::
+* WATCH MODE::
 * ENVIRONMENT::
 * BUGS::
 
@@ -59,58 +60,25 @@ File: hledger-ui.info,  Node: OPTIONS,  Next: MOUSE,  Prev: Top,  Up: Top
 1 OPTIONS
 *********
 
-Any QUERYARGS are interpreted as a hledger search query which filters
-the data.
+Any arguments are interpreted as a hledger query which filters the data.
+hledger-ui provides the following options:
 
-   hledger-ui provides the following options:
+Flags:
+  -w --watch                watch for data and date changes and reload
+                            automatically
+     --theme=THEME          use this custom display theme (default,
+                            greenterm, terminal, dark)
+     --cash                 start in the cash accounts screen
+     --bs                   start in the balance sheet accounts screen
+     --is                   start in the income statement accounts screen
+     --all                  start in the all accounts screen
+     --register=ACCTREGEX   start in the (first matched) account's register
+     --change               show period balances (changes) at startup instead
+                            of historical balances
+  -l --flat                 show accounts as a flat list (default)
+  -t --tree                 show accounts as a tree
 
-'-w --watch'
-
-     watch for data and date changes and reload automatically
-'--theme=default|terminal|greenterm|dark'
-
-     use this custom display theme
-'--menu'
-
-     start in the menu screen
-'--cash'
-
-     start in the cash accounts screen
-'--bs'
-
-     start in the balance sheet accounts screen
-'--is'
-
-     start in the income statement accounts screen
-'--all'
-
-     start in the all accounts screen
-'--register=ACCTREGEX'
-
-     start in the (first) matched account's register screen
-'--change'
-
-     show period balances (changes) at startup instead of historical
-     balances
-'-l --flat'
-
-     show accounts as a flat list (default)
-'-t --tree'
-
-     show accounts as a tree
-
-   hledger-ui also supports many of hledger's general options (and the
-hledger manual's command line tips also apply here):
-
-* Menu:
-
-* General options::
-
-
-File: hledger-ui.info,  Node: General options,  Up: OPTIONS
-
-1.1 General options
-===================
+   and also supports many of hledger's general options:
 
 General input/data transformation flags:
   -f --file=FILE            Read data from FILE, or from stdin if -. Can be
@@ -178,7 +146,6 @@ General output/reporting flags (supported by some commands):
                             Eg: -c '.' or -c '1.000,00 EUR'
      --color=YN --colour    Use ANSI color codes in text output? Can be
                             'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
-                            (A NO_COLOR environment variable overrides this.)
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
@@ -187,9 +154,12 @@ General output/reporting flags (supported by some commands):
 General help flags:
   -h --help                 show command line help
      --tldr                 show command examples with tldr
-     --info                 show the hledger manual with info
-     --man                  show the hledger manual with man
+     --info                 show the manual with info
+     --man                  show the manual with man
      --version              show version information
+
+   With hledger-ui, the '--debug' option sends debug output to a
+'hledger-ui.log' file in the current directory.
 
 
 File: hledger-ui.info,  Node: MOUSE,  Next: KEYS,  Prev: OPTIONS,  Up: Top
@@ -309,7 +279,7 @@ amount values.
    Additional screen-specific keys are described below.
 
 
-File: hledger-ui.info,  Node: SCREENS,  Next: TIPS,  Prev: KEYS,  Up: Top
+File: hledger-ui.info,  Node: SCREENS,  Next: WATCH MODE,  Prev: KEYS,  Up: Top
 
 4 SCREENS
 *********
@@ -485,21 +455,10 @@ again to reload and resume normal operation.  (Or, you can press escape
 to cancel the reload attempt.)
 
 
-File: hledger-ui.info,  Node: TIPS,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
+File: hledger-ui.info,  Node: WATCH MODE,  Next: ENVIRONMENT,  Prev: SCREENS,  Up: Top
 
-5 TIPS
-******
-
-* Menu:
-
-* Watch mode::
-* Debug output::
-
-
-File: hledger-ui.info,  Node: Watch mode,  Next: Debug output,  Up: TIPS
-
-5.1 Watch mode
-==============
+5 WATCH MODE
+************
 
 One of hledger-ui's best features is the auto-reloading '-w/--watch'
 mode.  With this flag, it will update the display automatically whenever
@@ -536,17 +495,7 @@ work around, press 'g' to reload manually, or try #1617's
 clocks on both machines should be roughly in agreement.
 
 
-File: hledger-ui.info,  Node: Debug output,  Prev: Watch mode,  Up: TIPS
-
-5.2 Debug output
-================
-
-You can add '--debug[=N]' to the command line to log debug output.  This
-will be logged to the file 'hledger-ui.log' in the current directory.  N
-ranges from 1 (least output, the default) to 9 (maximum output).
-
-
-File: hledger-ui.info,  Node: ENVIRONMENT,  Next: BUGS,  Prev: TIPS,  Up: Top
+File: hledger-ui.info,  Node: ENVIRONMENT,  Next: BUGS,  Prev: WATCH MODE,  Up: Top
 
 6 ENVIRONMENT
 *************
@@ -581,42 +530,36 @@ above).
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1861
-Ref: #options1959
-Node: General options2926
-Ref: #general-options3030
-Node: MOUSE8180
-Ref: #mouse8275
-Node: KEYS8512
-Ref: #keys8605
-Node: SCREENS13260
-Ref: #screens13358
-Node: Menu screen13994
-Ref: #menu-screen14115
-Node: Cash accounts screen14310
-Ref: #cash-accounts-screen14487
-Node: Balance sheet accounts screen14671
-Ref: #balance-sheet-accounts-screen14887
-Node: Income statement accounts screen15007
-Ref: #income-statement-accounts-screen15228
-Node: All accounts screen15392
-Ref: #all-accounts-screen15573
-Node: Register screen15755
-Ref: #register-screen15914
-Node: Transaction screen18198
-Ref: #transaction-screen18356
-Node: Error screen19773
-Ref: #error-screen19895
-Node: TIPS20139
-Ref: #tips20238
-Node: Watch mode20280
-Ref: #watch-mode20387
-Node: Debug output21846
-Ref: #debug-output21957
-Node: ENVIRONMENT22169
-Ref: #environment22279
-Node: BUGS22470
-Ref: #bugs22553
+Node: OPTIONS1870
+Ref: #options1968
+Node: MOUSE8148
+Ref: #mouse8243
+Node: KEYS8480
+Ref: #keys8573
+Node: SCREENS13228
+Ref: #screens13332
+Node: Menu screen13968
+Ref: #menu-screen14089
+Node: Cash accounts screen14284
+Ref: #cash-accounts-screen14461
+Node: Balance sheet accounts screen14645
+Ref: #balance-sheet-accounts-screen14861
+Node: Income statement accounts screen14981
+Ref: #income-statement-accounts-screen15202
+Node: All accounts screen15366
+Ref: #all-accounts-screen15547
+Node: Register screen15729
+Ref: #register-screen15888
+Node: Transaction screen18172
+Ref: #transaction-screen18330
+Node: Error screen19747
+Ref: #error-screen19869
+Node: WATCH MODE20113
+Ref: #watch-mode20230
+Node: ENVIRONMENT21689
+Ref: #environment21805
+Node: BUGS21996
+Ref: #bugs22079
 
 End Tag Table
 
