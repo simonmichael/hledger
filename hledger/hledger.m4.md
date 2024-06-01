@@ -2738,6 +2738,7 @@ The meaning of secondary dates is up to you.
 Eg it could be "primary = the bank's clearing date, secondary = date the transaction was initiated, if different".
 
 In fact this feature usually adds confusion:
+
 - You have to remember the primary and secondary dates' meaning, and follow that consistently.
 - It splits your bookkeeping into two modes, and you have to remember which mode is appropriate for a given report.
 - Usually your balance assertions will work with only one of these modes.
@@ -2746,7 +2747,7 @@ In fact this feature usually adds confusion:
 - It distracts new users and supporters.
 - [Posting dates](#posting-dates) are simpler and work better.
 
-So as of 2024, secondary dates are officially deprecated in hledger; consider using posting dates instead.
+So as of 2024, secondary dates are officially deprecated in hledger; we recommend posting dates instead.
 
 ### Star comments
 
