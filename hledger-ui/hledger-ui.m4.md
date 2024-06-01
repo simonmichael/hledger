@@ -13,6 +13,7 @@ _notinfo_({{
 }})
 
 `hledger-ui    [OPTS] [QUERYARGS]`\
+or\
 `hledger ui -- [OPTS] [QUERYARGS]`
 
 _notinfo_({{
@@ -50,49 +51,31 @@ by pressing the F key (or starting with --forecast) to enable "forecast mode".
 
 # OPTIONS
 
-Any QUERYARGS are interpreted as a hledger search query which filters the data.
-
+Any arguments are interpreted as a hledger [query](hledger.md#queries) which filters the data.
 hledger-ui provides the following options:
 
-`-w --watch`
-: watch for data and date changes and reload automatically
+```
+Flags:
+  -w --watch                watch for data and date changes and reload
+                            automatically
+     --theme=THEME          use this custom display theme (default,
+                            greenterm, terminal, dark)
+     --cash                 start in the cash accounts screen
+     --bs                   start in the balance sheet accounts screen
+     --is                   start in the income statement accounts screen
+     --all                  start in the all accounts screen
+     --register=ACCTREGEX   start in the (first matched) account's register
+     --change               show period balances (changes) at startup instead
+                            of historical balances
+  -l --flat                 show accounts as a flat list (default)
+  -t --tree                 show accounts as a tree
+```
 
-`--theme=default|terminal|greenterm|dark`
-: use this custom display theme
-
-`--menu`
-: start in the menu screen
-
-`--cash`
-: start in the cash accounts screen
-
-`--bs`
-: start in the balance sheet accounts screen
-
-`--is`
-: start in the income statement accounts screen
-
-`--all`
-: start in the all accounts screen
-
-`--register=ACCTREGEX`
-: start in the (first) matched account's register screen
-
-`--change`
-: show period balances (changes) at startup instead of historical balances
-
-`-l --flat`
-: show accounts as a flat list (default)
-
-`-t --tree`
-: show accounts as a tree
-
-hledger-ui also supports many of hledger's general options
-(and the hledger manual's command line tips also apply here):
-
-## General options
+and also supports many of hledger's [general options](hledger.md#options):
 
 _generaloptions_
+
+With hledger-ui, the `--debug` option sends debug output to a `hledger-ui.log` file in the current directory.
 
 # MOUSE
 
@@ -321,9 +304,7 @@ press g again to reload and resume normal operation.
 (Or, you can press escape to cancel the reload attempt.)
 
 
-# TIPS
-
-## Watch mode
+# WATCH MODE
 
 One of hledger-ui's best features is the auto-reloading `-w/--watch` mode.
 With this flag, it will update the display automatically whenever changes
@@ -361,12 +342,6 @@ or try [#1617](https://github.com/simonmichael/hledger/issues/1617)'s `fs.inotif
 
 If you are viewing files mounted from another machine, the system
 clocks on both machines should be roughly in agreement.
-
-## Debug output
-
-You can add `--debug[=N]` to the command line to log debug output.
-This will be logged to the file `hledger-ui.log` in the current directory.
-N ranges from 1 (least output, the default) to 9 (maximum output).
 
 # ENVIRONMENT
 

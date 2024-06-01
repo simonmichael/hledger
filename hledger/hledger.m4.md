@@ -15,8 +15,10 @@ _notinfo_({{
 }})
 
 `hledger`\
-`hledger COMMAND     [OPTS] [ARGS]`\
-`hledger ADDONCMD -- [OPTS] [ARGS]`
+or\
+`hledger COMMAND [OPTS] [ARGS]`\
+or\
+`hledger ADDONCMD [OPTS] -- [ADDONOPTS] [ADDONARGS]`
 
 _notinfo_({{
 # DESCRIPTION
@@ -149,7 +151,8 @@ The file name `-` means standard input:
 $ cat FILE | hledger -f- print
 ```
 
-If reading non-journal data in this way, you'll need to add a file format prefix, like:
+If reading non-journal data in this way, you'll need to write the format as a prefix,
+like `timeclock:` here:
 
 ```cli
 $ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
@@ -239,21 +242,22 @@ If this causes difficulty, you can always run the add-on directly, without using
 
 # Options
 
-Run `hledger -h` to see general command line help, and general options which are common
-to most hledger commands. These options can be written anywhere on the command line:
+Run `hledger -h` to see general command line help.
+The following general options are common to most hledger commands.
+General options can be written either before or after the command name.
 
 _generaloptions_
 
-Some reporting options can also be written as [query arguments](#queries).
+Usually hledger accepts any unambiguous flag prefix,
+eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
 
-# Command line tips
+If the same option appears more than once in a command, usually the last (right-most) wins.
 
-Here are some details useful to know about for hledger command lines (and elsewhere).
-Feel free to skip this section until you need it.
+With most commands, arguments are interpreted as a hledger [query](hledger.md#queries) which filter the data.
+Some queries can be expressed either with options or with arguments.
 
-## Option repetition
-
-If options are repeated in a command line, hledger will generally use the last (right-most) occurence.
+Below are more tips for using the command line interface -
+feel free to skip these until you need them.
 
 ## Special characters
 
