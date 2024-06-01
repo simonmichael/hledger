@@ -2734,16 +2734,19 @@ assumed. When running reports, the primary (left) date is used by
 default, but with the `--date2` flag (`--aux-date` or`--effective` also work, for Ledger users),
 the secondary (right) date will be used instead.
 
-The meaning of secondary dates is up to you, but it's best to follow a
-consistent rule.  Eg "primary = the bank's clearing date, secondary =
-date the transaction was initiated, if different".
+The meaning of secondary dates is up to you.
+Eg it could be "primary = the bank's clearing date, secondary = date the transaction was initiated, if different".
 
-In fact this feature usually adds confusion.
-It splits your reporting into two modes, and you have to remember which mode is appropriate for a given report.
-Usually only one mode will work with your balance assertions.
-It makes your financial data more complicated, less portable, and less clear in an audit.
-You should consider it deprecated in hledger,
-and use [posting dates](#posting-dates) instead; they are simpler and better.
+In fact this feature usually adds confusion:
+- You have to remember the primary and secondary dates' meaning, and follow that consistently.
+- It splits your bookkeeping into two modes, and you have to remember which mode is appropriate for a given report.
+- Usually your balance assertions will work with only one of these modes.
+- It makes your financial data more complicated, less portable, and less clear in an audit.
+- It interacts with every feature, creating an ongoing cost for implementors.
+- It distracts new users and supporters.
+- [Posting dates](#posting-dates) are simpler and work better.
+
+So as of 2024, secondary dates are officially deprecated in hledger; consider using posting dates instead.
 
 ### Star comments
 
