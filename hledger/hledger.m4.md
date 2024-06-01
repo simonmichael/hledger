@@ -2728,16 +2728,16 @@ A missing Y directive makes reports dependent on today's date.
 
 ### Secondary dates
 
-A secondary date is written after the primary date, following an
-equals sign. If the year is omitted, the primary date's year is
-assumed. When running reports, the primary (left) date is used by
-default, but with the `--date2` flag (`--aux-date` or`--effective` also work, for Ledger users),
-the secondary (right) date will be used instead.
+A secondary date is written after the primary date, following an equals sign: `DATE1=DATE2`.
+If the year is omitted, the primary date's year is assumed.
+When running reports, the primary (left side) date is used by default,
+but with the `--date2` flag (`--aux-date` or`--effective` also work, for Ledger users),
+the secondary (right side) date will be used instead.
 
-The meaning of secondary dates is up to you.
-Eg it could be "primary = the bank's clearing date, secondary = date the transaction was initiated, if different".
+The meaning of secondary dates is up to you. Eg it could be
+"primary is the bank's clearing date, secondary is the date the transaction was initiated, if different".
 
-In fact this feature usually adds confusion:
+In practice, this feature usually adds confusion:
 
 - You have to remember the primary and secondary dates' meaning, and follow that consistently.
 - It splits your bookkeeping into two modes, and you have to remember which mode is appropriate for a given report.
@@ -2748,7 +2748,7 @@ In fact this feature usually adds confusion:
 - [Posting dates](#posting-dates) are simpler and work better.
 
 So secondary dates are officially deprecated in hledger,
-remaining only as a Ledger compatibility feature;
+remaining only as a Ledger compatibility aid;
 we recommend using posting dates instead.
 
 ### Star comments
