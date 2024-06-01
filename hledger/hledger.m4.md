@@ -604,6 +604,7 @@ Some notes about the various output formats:
   representation of hledger's internal data types. To understand the
   JSON, read the Haskell type definitions, which are mostly in
   <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
+  [hledger-web's OpenAPI specification][openapi.yaml] may also be relevant.
 
 <!--
 - The JSON output from hledger commands is essentially the same as the
@@ -625,6 +626,8 @@ Some notes about the various output formats:
   We hope this approach will not cause problems in practice; if you
   find otherwise, please let us know. 
   (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
+
+[openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
 
 ### SQL output
 
