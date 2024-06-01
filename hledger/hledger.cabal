@@ -45,7 +45,6 @@ extra-source-files:
     embeddedfiles/hledger-balancesheet.md
     embeddedfiles/hledger-import.md
     embeddedfiles/hledger-incomestatement.md
-    embeddedfiles/hledger-journal.md
     embeddedfiles/hledger-print.md
     embeddedfiles/hledger-ui.md
     embeddedfiles/hledger-web.md
