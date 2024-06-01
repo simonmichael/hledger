@@ -83,8 +83,10 @@ Changes in hledger-install.sh are shown
 
 Breaking changes
 
-- `check ordereddates` no longer supports `--date2`; it checks primary
-  dates only.
+- `check ordereddates` no longer supports `--date2`.
+  Also (not a breaking change): `--date2` and secondary dates are now officially
+  [deprecated](https://hledger.org/1.34/hledger.html#secondary-dates) in hledger,
+  though kept for compatibility.
 
 Features
 
@@ -151,10 +153,15 @@ Docs
 - balance: mention the `--summary-only` flag
 - check: expand check descriptions
 - examples: CSV rules: vanguard, fidelity, paypal updates
+- Generating data: rewrite
+- manuals: synopsis, options cleanup/consistency
+- Options: correction, NO_COLOR does not override --color
 - PART 4: COMMANDS: reorganise into groups, like the CLI commands list.
 - Period expressions: mention last day of month adjusting [#2005]
+- Secondary dates: expand, and declare them deprecated.
 - Time periods cleanup, simplify markup
 - Unicode characters: mention UTF-8 on windows
+- web, json output: link to OpenAPI spec
 
 Scripts/addons
 
