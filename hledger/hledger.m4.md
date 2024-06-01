@@ -5084,37 +5084,28 @@ $ hledger balance Income:Dues --pivot kind:member
 
 # Generating data
 
-hledger has several features for generating data, such as:
+hledger can enrich the data provided to it, or generate new data, in a number of ways.
+Mostly, this is done only if you request it:
 
-- [Periodic transaction](#periodic-transactions) rules can generate
-  single or repeating transactions following a template. These are
-  usually dated in the future, eg to help with forecasting. They are
-  activated by the `--forecast` option.
-  
-- The balance command's `--budget` option uses these same periodic
-  rules to generate goals for the budget report.
+- Missing amounts or missing costs in transactions are inferred automatically when possible.
+- The `--infer-equity` flag infers missing conversion equity postings from @/@@ costs.
+- The `--infer-costs` flag infers missing costs from conversion equity postings.
+- The `--infer-market-prices` flag infers `P` price directives from costs.
+- The `--auto` flag adds extra postings to transactions matched by [auto posting rules](#auto-postings).
+- The `--forecast` option generates transactions from [periodic transaction rules](#periodic-transactions).
+- The `balance --budget` report infers budget goals from periodic transaction rules.
+- Commands like `close`, `rewrite`, and `hledger-interest` generate transactions or postings.
+- CSV data is converted to transactions by applying CSV conversion rules.. etc.
 
-- [Auto posting](#auto-postings) rules can generate extra postings on
-  certain matched transactions.  They are always applied to forecast
-  transactions; with the `--auto` flag they are applied to
-  transactions recorded in the journal as well.
+Such generated data is temporary, existing only at report time.
+You can convert it to permanent recorded data by, eg, capturing the output of `hledger print` and saving it in your journal file.
+This can sometimes be useful as a data entry aid.
 
-- The `--infer-equity` flag infers missing conversion equity postings
-  from @/@@ costs. And the inverse `--infer-costs` flag infers missing
-  @/@@ costs from conversion equity postings.
-
-Generated data of this kind is temporary, existing only at report
-time.  But you can see it in the output of `hledger print`, and you
-can save that to your journal, in effect converting it from temporary
-generated data to permanent recorded data. This could be useful as a
-data entry aid.
-
-If you are wondering what data is being generated and why, add the
-`--verbose-tags` flag. In `hledger print` output you will see extra
-tags like `generated-transaction`, `generated-posting`, and
-`modified` on generated/modified data. Also, even without `--verbose-tags`,
-generated data always has equivalen hidden tags (with an underscore prefix),
-so eg you could match generated transactions with `tag:_generated-transaction`.
+If you are curious what data is being generated and why, run `hledger print -x --verbose-tags`.
+`-x/--explicit` shows inferred amounts and `--verbose-tags` adds tags like 
+`generated-transaction` (from periodic rules) and `generated-posting`, `modified` (from auto posting rules).
+Similar hidden tags (with an underscore prefix) are always present, also,
+so you can always match such data with queries like `tag:generated` or `tag:modified`.
 
 # Forecasting
 
