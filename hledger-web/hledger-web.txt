@@ -6,11 +6,12 @@ NAME
        plain text accounting app.
 
 SYNOPSIS
-       hledger-web    [--serve|--serve-api] [OPTS] [ARGS]
-       hledger web -- [--serve|--serve-api] [OPTS] [ARGS]
+       hledger-web    [OPTS] [QUERY]
+       or
+       hledger web -- [OPTS] [QUERY]
 
 DESCRIPTION
-       This manual is for hledger's web interface, version 1.33.99.  See  also
+       This manual is for hledger's web interface, version 1.34.99.  See  also
        the hledger manual for common concepts and file formats.
 
        hledger  is a robust, user-friendly, cross-platform set of programs for
@@ -55,49 +56,42 @@ DESCRIPTION
 OPTIONS
        hledger-web provides the following options:
 
-       --serve
-              serve and log requests, don't browse or auto-exit after timeout
+              Flags:
+                   --serve --server       serve and log requests, don't browse or auto-exit
+                   --serve-api            like --serve, but serve only the JSON web API,
+                                          not the web UI
+                   --allow=view|add|edit  set the user's access level for changing data
+                                          (default: `add`). It also accepts `sandstorm` for
+                                          use on that platform (reads permissions from the
+                                          `X-Sandstorm-Permissions` request header).
+                   --cors=ORIGIN          allow cross-origin requests from the specified
+                                          origin; setting ORIGIN to "*" allows requests from
+                                          any origin
+                   --host=IPADDR          listen on this IP address (default: 127.0.0.1)
+                   --port=PORT            listen on this TCP port (default: 5000)
+                   --socket=SOCKET        listen on the given unix socket instead of an IP
+                                          address and port (unix only; implies --serve)
+                   --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
+                   --test                 run hledger-web's tests and exit. hspec test
+                                          runner args may follow a --, eg: hledger-web --test
+                                          -- --help
 
-       --serve-api
-              like --serve, but serve only the JSON web API, not the web UI
+       By  default  hledger-web listens only on IP address 127.0.0.1, which be
+       accessed only from the local machine.
 
-       --allow=view|add|edit
-              set  the  user's  access level for changing data (default: add).
-              It also accepts sandstorm for use on that platform  (reads  per-
-              missions from the X-Sandstorm-Permissions request header).
+       To allow access from elsewhere, use --host to specify an externally ac-
+       cessible address  configured  on  this  machine,  The  special  address
+       0.0.0.0 causes it to listen on all of this machine's addresses.
 
-       --cors=ORIGIN
-              allow  cross-origin  requests from the specified origin; setting
-              ORIGIN to "*" allows requests from any origin
-
-       --host=IPADDR
-              listen on this IP address (default: 127.0.0.1)
-
-       By default the server listens on IP address 127.0.0.1, which is  acces-
-       sible  only to requests from the local machine..  You can use --host to
-       listen on a different address configured on the machine,  eg  to  allow
-       access  from  other machines.  The special address 0.0.0.0 causes it to
-       listen on all addresses configured on the machine.
-
-       --port=PORT
-              listen on this TCP port (default: 5000)
-
-       Similarly, you can use --port to listen on a TCP port other than  5000.
-       This  is  useful if you want to run multiple hledger-web instances on a
+       Similarly,  you can use --port to listen on a TCP port other than 5000.
+       This is useful if you want to run multiple hledger-web instances  on  a
        machine.
-
-       --socket=SOCKETFILE
-              listen on the given unix socket instead of  an  IP  address  and
-              port (unix only; implies --serve)
 
        When  --socket  is  used,  hledger-web  creates  and communicates via a
        socket file instead of a TCP port.  This can be more  secure,  respects
        unix file permissions, and makes certain use cases easier, such as run-
        ning per-user instances behind an nginx reverse proxy.  (Eg: proxy_pass
        http://unix:/tmp/hledger/${remote_user}.socket;.)
-
-       --base-url=URL
-              set the base url (default: http://IPADDR:PORT).
 
        You  can use --base-url to change the protocol, hostname, port and path
        that appear in hledger-web's hyperlinks.  This is useful eg when  inte-
@@ -106,24 +100,8 @@ OPTIONS
        port  (or http://HOST if PORT is 80).  Note this affects url generation
        but not route parsing.
 
-       --test run hledger-web's tests and exit.  hspec test  runner  args  may
-              follow a --, eg: hledger-web --test -- --help
+       hledger-web also supports many of hledger's general options:
 
-       hledger-web also supports many of hledger's general options.  Query op-
-       tions  and  arguments  may  be used to set an initial filter, which al-
-       though not shown in the UI, will restrict the data shown,  in  addition
-       to any search query entered in the UI.
-
-       Note  that  hledger-web  shows  accounts with zero balances by default,
-       like hledger-ui (and unlike hledger).  Using  the  -E/--empty  flag  at
-       startup will hide them.
-
-       If  you see accounts which appear to have a zero balance, but cannot be
-       hidden with -E: these have a mixed-cost balance which looks  like  zero
-       when  costs  are  hidden.  Currently hledger-web does not show costs at
-       all.
-
-   General options
               General input/data transformation flags:
                 -f --file=FILE            Read data from FILE, or from stdin if -. Can be
                                           specified more than once. If not specified, reads
@@ -190,7 +168,6 @@ OPTIONS
                                           Eg: -c '.' or -c '1.000,00 EUR'
                    --color=YN --colour    Use ANSI color codes in text output? Can be
                                           'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
-                                          (A NO_COLOR environment variable overrides this.)
                    --pretty[=YN]          Use box-drawing characters in text output? Can be
                                           'y'/'yes' or 'n'/'no'.
                                           If YN is specified, the equals is required.
@@ -199,9 +176,20 @@ OPTIONS
               General help flags:
                 -h --help                 show command line help
                    --tldr                 show command examples with tldr
-                   --info                 show the hledger manual with info
-                   --man                  show the hledger manual with man
+                   --info                 show the manual with info
+                   --man                  show the manual with man
                    --version              show version information
+
+       hledger-web  shows  accounts  with  zero  balances  by  default   (like
+       hledger-ui,  and  unlike  hledger).  Using the -E/--empty flag will re-
+       verse this behaviour.  If you see accounts which appear to have a  zero
+       balance,  but  cannot  be  hidden  with  -E,  it's  because they have a
+       mixed-cost balance, which  looks  like  zero  when  costs  are  hidden.
+       (hledger-web does not show costs.)
+
+       Reporting  options and/or query arguments can be used to set an initial
+       query, which although not shown in the UI, will restrict the data shown
+       (in addition to any search query entered in the UI).
 
 PERMISSIONS
        By default, hledger-web allows anyone who can  reach  it  to  view  the
@@ -327,7 +315,8 @@ JSON API
        Most  of  the  JSON corresponds to hledger's data types; for details of
        what the fields mean, see the Hledger.Data.Json haddock docs and  click
        on  the various data types, eg Transaction.  And for a higher level un-
-       derstanding, see the journal docs.
+       derstanding, see the journal docs.  There is also a basic OpenAPI spec-
+       ification.
 
        In some cases there is outer JSON corresponding to a "Report" type.  To
        understand that, go to the Hledger.Web.Handler.MiscR haddock  and  look
@@ -484,4 +473,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-web-1.33.99                May 2024                     HLEDGER-WEB(1)
+hledger-web-1.34.99                June 2024                    HLEDGER-WEB(1)

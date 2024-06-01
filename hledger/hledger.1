@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "May 2024" "hledger-1.33.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2024" "hledger-1.34.99 " "hledger User Manuals"
 
 
 
@@ -12,11 +12,19 @@ version).
 .PD 0
 .P
 .PD
-\f[CR]hledger COMMAND     [OPTS] [ARGS]\f[R]
+or
 .PD 0
 .P
 .PD
-\f[CR]hledger ADDONCMD \-\- [OPTS] [ARGS]\f[R]
+\f[CR]hledger COMMAND [OPTS] [ARGS]\f[R]
+.PD 0
+.P
+.PD
+or
+.PD 0
+.P
+.PD
+\f[CR]hledger ADDONCMD [OPTS] \-\- [ADDONOPTS] [ADDONARGS]\f[R]
 .SH DESCRIPTION
 hledger is a robust, user\-friendly, cross\-platform set of programs for
 tracking money, time, or any other commodity, using double\-entry
@@ -25,7 +33,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.33.99.
+1.34.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -227,8 +235,8 @@ The file name \f[CR]\-\f[R] means standard input:
 $ cat FILE | hledger \-f\- print
 .EE
 .PP
-If reading non\-journal data in this way, you\[aq]ll need to add a file
-format prefix, like:
+If reading non\-journal data in this way, you\[aq]ll need to write the
+format as a prefix, like \f[CR]timeclock:\f[R] here:
 .IP
 .EX
 $ echo \[aq]i 2009/13/1 08:00:00\[aq] | hledger print \-f timeclock:\-
@@ -329,9 +337,9 @@ If this causes difficulty, you can always run the add\-on directly,
 without using \f[CR]hledger\f[R]: \f[CR]hledger\-ui \-\-watch\f[R] or
 \f[CR]hledger\-web \-\-serve\f[R].
 .SH Options
-Run \f[CR]hledger \-h\f[R] to see general command line help, and general
-options which are common to most hledger commands.
-These options can be written anywhere on the command line:
+Run \f[CR]hledger \-h\f[R] to see general command line help.
+The following general options are common to most hledger commands.
+General options can be written either before or after the command name.
 .IP
 .EX
 General input/data transformation flags:
@@ -400,7 +408,6 @@ General output/reporting flags (supported by some commands):
                             Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
      \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be
                             \[aq]y\[aq]/\[aq]yes\[aq]/\[aq]always\[aq], \[aq]n\[aq]/\[aq]no\[aq]/\[aq]never\[aq] or \[aq]auto\[aq].
-                            (A NO_COLOR environment variable overrides this.)
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
                             \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
                             If YN is specified, the equals is required.
@@ -409,19 +416,24 @@ General output/reporting flags (supported by some commands):
 General help flags:
   \-h \-\-help                 show command line help
      \-\-tldr                 show command examples with tldr
-     \-\-info                 show the hledger manual with info
-     \-\-man                  show the hledger manual with man
+     \-\-info                 show the manual with info
+     \-\-man                  show the manual with man
      \-\-version              show version information
 .EE
 .PP
-Some reporting options can also be written as query arguments.
-.SH Command line tips
-Here are some details useful to know about for hledger command lines
-(and elsewhere).
-Feel free to skip this section until you need it.
-.SS Option repetition
-If options are repeated in a command line, hledger will generally use
-the last (right\-most) occurence.
+Usually hledger accepts any unambiguous flag prefix, eg you can write
+\f[CR]\-\-tl\f[R] instead of \f[CR]\-\-tldr\f[R] or \f[CR]\-\-dry\f[R]
+instead of \f[CR]\-\-dry\-run\f[R].
+.PP
+If the same option appears more than once in a command, usually the last
+(right\-most) wins.
+.PP
+With most commands, arguments are interpreted as a hledger query which
+filter the data.
+Some queries can be expressed either with options or with arguments.
+.PP
+Below are more tips for using the command line interface \- feel free to
+skip these until you need them.
 .SS Special characters
 .SS Single escaping (shell metacharacters)
 In shell command lines, characters significant to your shell \- such as
@@ -886,6 +898,7 @@ representation of hledger\[aq]s internal data types.
 To understand the JSON, read the Haskell type definitions, which are
 mostly in
 https://github.com/simonmichael/hledger/blob/master/hledger\-lib/Hledger/Data/Types.hs.
+hledger\-web\[aq]s OpenAPI specification may also be relevant.
 .IP \[bu] 2
 hledger represents quantities as Decimal values storing up to 255
 significant digits, eg for repeating decimals.
@@ -1018,9 +1031,10 @@ If not set, they will try to use the available terminal width.
 with \f[CR]\-f/\-\-file\f[R].
 Default: \f[CR]$HOME/.hledger.journal\f[R].
 .PP
-\f[B]NO_COLOR\f[R] If this environment variable is set (with any value),
-hledger will not use ANSI color codes in terminal output, unless
-overridden by an explicit \f[CR]\-\-color/\-\-colour\f[R] option.
+\f[B]NO_COLOR\f[R] If this environment variable exists (with any value,
+including empty), hledger will not use ANSI color codes in terminal
+output, unless overridden by an explicit
+\f[CR]\-\-color=y\f[R]/\f[CR]\-\-colour=y\f[R] option.
 .SH PART 2: DATA FORMATS
 .SH Journal
 hledger\[aq]s usual data source is a plain text file containing journal
@@ -3411,24 +3425,39 @@ when evaluating a region of the journal in your editor.
 A missing Y directive makes reports dependent on today\[aq]s date.
 .SS Secondary dates
 A secondary date is written after the primary date, following an equals
-sign.
+sign: \f[CR]DATE1=DATE2\f[R].
 If the year is omitted, the primary date\[aq]s year is assumed.
-When running reports, the primary (left) date is used by default, but
-with the \f[CR]\-\-date2\f[R] flag (or \f[CR]\-\-aux\-date\f[R] or
-\f[CR]\-\-effective\f[R]), the secondary (right) date will be used
-instead.
+When running reports, the primary (left side) date is used by default,
+but with the \f[CR]\-\-date2\f[R] flag (\f[CR]\-\-aux\-date\f[R]
+or\f[CR]\-\-effective\f[R] also work, for Ledger users), the secondary
+(right side) date will be used instead.
 .PP
-The meaning of secondary dates is up to you, but it\[aq]s best to follow
-a consistent rule.
-Eg \[dq]primary = the bank\[aq]s clearing date, secondary = date the
-transaction was initiated, if different\[dq].
+The meaning of secondary dates is up to you.
+Eg it could be \[dq]primary is the bank\[aq]s clearing date, secondary
+is the date the transaction was initiated, if different\[dq].
 .PP
-Downsides: makes your financial data more complicated, less portable,
-and less trustworthy in an audit.
-Keeping the meaning of the two dates consistent requires discipline, and
-you have to remember which reporting mode is appropriate for a given
-report.
-Posting dates are simpler and better.
+In practice, this feature usually adds confusion:
+.IP \[bu] 2
+You have to remember the primary and secondary dates\[aq] meaning, and
+follow that consistently.
+.IP \[bu] 2
+It splits your bookkeeping into two modes, and you have to remember
+which mode is appropriate for a given report.
+.IP \[bu] 2
+Usually your balance assertions will work with only one of these modes.
+.IP \[bu] 2
+It makes your financial data more complicated, less portable, and less
+clear in an audit.
+.IP \[bu] 2
+It interacts with every feature, creating an ongoing cost for
+implementors.
+.IP \[bu] 2
+It distracts new users and supporters.
+.IP \[bu] 2
+Posting dates are simpler and work better.
+.PP
+So secondary dates are officially deprecated in hledger, remaining only
+as a Ledger compatibility aid; we recommend using posting dates instead.
 .SS Star comments
 Lines beginning with \f[CR]*\f[R] (star/asterisk) are also comment
 lines.
@@ -6335,42 +6364,52 @@ $ hledger balance Income:Dues \-\-pivot kind:member
               \-2 EUR
 .EE
 .SH Generating data
-hledger has several features for generating data, such as:
+hledger can enrich the data provided to it, or generate new data, in a
+number of ways.
+Mostly, this is done only if you request it:
 .IP \[bu] 2
-Periodic transaction rules can generate single or repeating transactions
-following a template.
-These are usually dated in the future, eg to help with forecasting.
-They are activated by the \f[CR]\-\-forecast\f[R] option.
-.IP \[bu] 2
-The balance command\[aq]s \f[CR]\-\-budget\f[R] option uses these same
-periodic rules to generate goals for the budget report.
-.IP \[bu] 2
-Auto posting rules can generate extra postings on certain matched
-transactions.
-They are always applied to forecast transactions; with the
-\f[CR]\-\-auto\f[R] flag they are applied to transactions recorded in
-the journal as well.
+Missing amounts or missing costs in transactions are inferred
+automatically when possible.
 .IP \[bu] 2
 The \f[CR]\-\-infer\-equity\f[R] flag infers missing conversion equity
 postings from \[at]/\[at]\[at] costs.
-And the inverse \f[CR]\-\-infer\-costs\f[R] flag infers missing
-\[at]/\[at]\[at] costs from conversion equity postings.
+.IP \[bu] 2
+The \f[CR]\-\-infer\-costs\f[R] flag infers missing costs from
+conversion equity postings.
+.IP \[bu] 2
+The \f[CR]\-\-infer\-market\-prices\f[R] flag infers \f[CR]P\f[R] price
+directives from costs.
+.IP \[bu] 2
+The \f[CR]\-\-auto\f[R] flag adds extra postings to transactions matched
+by auto posting rules.
+.IP \[bu] 2
+The \f[CR]\-\-forecast\f[R] option generates transactions from periodic
+transaction rules.
+.IP \[bu] 2
+The \f[CR]balance \-\-budget\f[R] report infers budget goals from
+periodic transaction rules.
+.IP \[bu] 2
+Commands like \f[CR]close\f[R], \f[CR]rewrite\f[R], and
+\f[CR]hledger\-interest\f[R] generate transactions or postings.
+.IP \[bu] 2
+CSV data is converted to transactions by applying CSV conversion rules..
+etc.
 .PP
-Generated data of this kind is temporary, existing only at report time.
-But you can see it in the output of \f[CR]hledger print\f[R], and you
-can save that to your journal, in effect converting it from temporary
-generated data to permanent recorded data.
-This could be useful as a data entry aid.
+Such generated data is temporary, existing only at report time.
+You can convert it to permanent recorded data by, eg, capturing the
+output of \f[CR]hledger print\f[R] and saving it in your journal file.
+This can sometimes be useful as a data entry aid.
 .PP
-If you are wondering what data is being generated and why, add the
-\f[CR]\-\-verbose\-tags\f[R] flag.
-In \f[CR]hledger print\f[R] output you will see extra tags like
-\f[CR]generated\-transaction\f[R], \f[CR]generated\-posting\f[R], and
-\f[CR]modified\f[R] on generated/modified data.
-Also, even without \f[CR]\-\-verbose\-tags\f[R], generated data always
-has equivalen hidden tags (with an underscore prefix), so eg you could
-match generated transactions with
-\f[CR]tag:_generated\-transaction\f[R].
+If you are curious what data is being generated and why, run
+\f[CR]hledger print \-x \-\-verbose\-tags\f[R].
+\f[CR]\-x/\-\-explicit\f[R] shows inferred amounts and
+\f[CR]\-\-verbose\-tags\f[R] adds tags like
+\f[CR]generated\-transaction\f[R] (from periodic rules) and
+\f[CR]generated\-posting\f[R], \f[CR]modified\f[R] (from auto posting
+rules).
+Similar hidden tags (with an underscore prefix) are always present,
+also, so you can always match such data with queries like
+\f[CR]tag:generated\f[R] or \f[CR]tag:modified\f[R].
 .SH Forecasting
 Forecasting, or speculative future reporting, can be useful for
 estimating future balances, or for exploring different future scenarios.

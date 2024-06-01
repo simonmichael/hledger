@@ -7,8 +7,10 @@ NAME
 
 SYNOPSIS
        hledger
-       hledger COMMAND     [OPTS] [ARGS]
-       hledger ADDONCMD -- [OPTS] [ARGS]
+       or
+       hledger COMMAND [OPTS] [ARGS]
+       or
+       hledger ADDONCMD [OPTS] -- [ADDONOPTS] [ADDONARGS]
 
 DESCRIPTION
        hledger is a robust, user-friendly, cross-platform set of programs  for
@@ -17,7 +19,7 @@ DESCRIPTION
        and  largely  compatible  with  ledger(1), and largely interconvertible
        with beancount(1).
 
-       This manual is for hledger's command line interface,  version  1.33.99.
+       This manual is for hledger's command line interface,  version  1.34.99.
        It also describes the common options, file formats and concepts used by
        all  hledger  programs.  It might accidentally teach you some bookkeep-
        ing/accounting as well!  You don't need to know everything in  here  to
@@ -149,29 +151,29 @@ Input
 
               $ cat FILE | hledger -f- print
 
-       If reading non-journal data in this way, you'll need to add a file for-
-       mat prefix, like:
+       If reading non-journal data in this way, you'll need to write the  for-
+       mat as a prefix, like timeclock: here:
 
               $ echo 'i 2009/13/1 08:00:00' | hledger print -f timeclock:-
 
    Multiple files
-       You can specify multiple -f options, to read multiple files as one  big
+       You  can specify multiple -f options, to read multiple files as one big
        journal.  When doing this, note that certain features (described below)
        will be affected:
 
-       o Balance  assertions will not see the effect of transactions in previ-
-         ous files.  (Usually this doesn't matter as each file  will  set  the
+       o Balance assertions will not see the effect of transactions in  previ-
+         ous  files.   (Usually  this doesn't matter as each file will set the
          corresponding opening balances.)
 
        o Some directives will not affect previous or subsequent files.
 
-       If  needed,  you  can  work  around these by using a single parent file
+       If needed, you can work around these by  using  a  single  parent  file
        which includes the others, or concatenating the files into one, eg: cat
        a.journal b.journal | hledger -f- CMD.
 
    Strict mode
        hledger checks input files for valid data.  By default, the most impor-
-       tant errors are detected, while  still  accepting  easy  journal  files
+       tant  errors  are  detected,  while  still accepting easy journal files
        without a lot of declarations:
 
        o Are the input files parseable, with valid syntax ?
@@ -182,7 +184,7 @@ Input
 
        With the -s/--strict flag, additional checks are performed:
 
-       o Are  all  accounts  posted  to,  declared with an account directive ?
+       o Are all accounts posted to, declared  with  an  account  directive  ?
          (Account error checking)
 
        o Are all commodities declared with a commodity directive ?  (Commodity
@@ -190,13 +192,13 @@ Input
 
        o Are all commodity conversions declared explicitly ?
 
-       You can use the check command to run  individual  checks  --  the  ones
+       You  can  use  the  check  command to run individual checks -- the ones
        listed above and some more.
 
 Commands
-       hledger  provides various subcommands for getting things done.  Most of
-       these commands do not change the journal file; they just  read  it  and
-       output  a report.  A few commands assist with adding data and file man-
+       hledger provides various subcommands for getting things done.  Most  of
+       these  commands  do  not change the journal file; they just read it and
+       output a report.  A few commands assist with adding data and file  man-
        agement.
 
        To show the commands list, run hledger with no arguments.  The commands
@@ -204,44 +206,44 @@ Commands
 
        To use a particular command, run hledger CMD [CMDOPTS] [CMDARGS],
 
-       o CMD is the full command name, or its standard abbreviation  shown  in
+       o CMD  is  the full command name, or its standard abbreviation shown in
          the commands list, or any unambiguous prefix of the name.
 
-       o CMDOPTS  are  command-specific options, if any.  Command-specific op-
+       o CMDOPTS are command-specific options, if any.   Command-specific  op-
          tions must be written after the command name.  Eg: hledger print -x.
 
-       o CMDARGS are additional  arguments  to  the  command,  if  any.   Most
-         hledger  commands accept arguments representing a query, to limit the
+       o CMDARGS  are  additional  arguments  to  the  command,  if any.  Most
+         hledger commands accept arguments representing a query, to limit  the
          data in some way.  Eg: hledger reg assets:checking.
 
        To list a command's options, arguments, and documentation in the termi-
        nal, run hledger CMD -h.  Eg: hledger bal -h.
 
    Add-on commands
-       In addition to the built-in commands, you can install add-on  commands:
-       programs  or  scripts named "hledger-SOMETHING", which will also appear
-       in hledger's commands list.  If you used  the  hledger-install  script,
-       you  will  have  several  add-ons  installed already.  Some more can be
-       found    in     hledger's     bin/     directory,     documented     at
+       In  addition to the built-in commands, you can install add-on commands:
+       programs or scripts named "hledger-SOMETHING", which will  also  appear
+       in  hledger's  commands  list.  If you used the hledger-install script,
+       you will have several add-ons installed  already.   Some  more  can  be
+       found     in     hledger's     bin/     directory,     documented    at
        https://hledger.org/scripts.html.
 
        More precisely, add-on commands are programs or scripts in your shell's
        PATH, whose name starts with "hledger-" and ends with no extension or a
-       recognised  extension  (".bat",  ".com",  ".exe", ".hs", ".js", ".lhs",
-       ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),  and  (on  unix
+       recognised extension (".bat", ".com",  ".exe",  ".hs",  ".js",  ".lhs",
+       ".lua",  ".php",  ".pl",  ".py", ".rb", ".rkt", or ".sh"), and (on unix
        and mac) which has executable permission for the current user.
 
        You can run add-on commands using hledger, much like built-in commands:
        hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS].  But note the double
-       hyphen  argument, required before add-on-specific options.  Eg: hledger
-       ui -- --watch or hledger web -- --serve.  If  this  causes  difficulty,
+       hyphen argument, required before add-on-specific options.  Eg:  hledger
+       ui  --  --watch  or hledger web -- --serve.  If this causes difficulty,
        you  can  always  run  the  add-on  directly,  without  using  hledger:
        hledger-ui --watch or hledger-web --serve.
 
 Options
-       Run hledger -h to see general command line help,  and  general  options
-       which  are common to most hledger commands.  These options can be writ-
-       ten anywhere on the command line:
+       Run hledger -h to see general command line help.  The following general
+       options  are  common  to most hledger commands.  General options can be
+       written either before or after the command name.
 
               General input/data transformation flags:
                 -f --file=FILE            Read data from FILE, or from stdin if -. Can be
@@ -309,7 +311,6 @@ Options
                                           Eg: -c '.' or -c '1.000,00 EUR'
                    --color=YN --colour    Use ANSI color codes in text output? Can be
                                           'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
-                                          (A NO_COLOR environment variable overrides this.)
                    --pretty[=YN]          Use box-drawing characters in text output? Can be
                                           'y'/'yes' or 'n'/'no'.
                                           If YN is specified, the equals is required.
@@ -318,19 +319,22 @@ Options
               General help flags:
                 -h --help                 show command line help
                    --tldr                 show command examples with tldr
-                   --info                 show the hledger manual with info
-                   --man                  show the hledger manual with man
+                   --info                 show the manual with info
+                   --man                  show the manual with man
                    --version              show version information
 
-       Some reporting options can also be written as query arguments.
+       Usually hledger accepts any unambiguous flag prefix, eg you  can  write
+       --tl instead of --tldr or --dry instead of --dry-run.
 
-Command line tips
-       Here are some details useful to know about for  hledger  command  lines
-       (and elsewhere).  Feel free to skip this section until you need it.
+       If  the  same  option  appears more than once in a command, usually the
+       last (right-most) wins.
 
-   Option repetition
-       If  options  are repeated in a command line, hledger will generally use
-       the last (right-most) occurence.
+       With most commands, arguments are interpreted as a hledger query  which
+       filter  the data.  Some queries can be expressed either with options or
+       with arguments.
+
+       Below are more tips for using the command line interface - feel free to
+       skip these until you need them.
 
    Special characters
    Single escaping (shell metacharacters)
@@ -616,78 +620,79 @@ Output
          sentation  of hledger's internal data types.  To understand the JSON,
          read  the   Haskell   type   definitions,   which   are   mostly   in
          https://github.com/simonmichael/hledger/blob/mas-
-         ter/hledger-lib/Hledger/Data/Types.hs.
+         ter/hledger-lib/Hledger/Data/Types.hs.   hledger-web's OpenAPI speci-
+         fication may also be relevant.
 
-       o hledger  represents  quantities  as  Decimal values storing up to 255
-         significant digits, eg for  repeating  decimals.   Such  numbers  can
+       o hledger represents quantities as Decimal values  storing  up  to  255
+         significant  digits,  eg  for  repeating  decimals.  Such numbers can
          arise in practice (from automatically-calculated transaction prices),
-         and  would break most JSON consumers.  So in JSON, we show quantities
+         and would break most JSON consumers.  So in JSON, we show  quantities
          as simple Numbers with at most 10 decimal places.  We don't limit the
-         number of integer digits, but that part is under  your  control.   We
-         hope  this  approach will not cause problems in practice; if you find
+         number  of  integer  digits, but that part is under your control.  We
+         hope this approach will not cause problems in practice; if  you  find
          otherwise, please let us know.  (Cf #1195)
 
    SQL output
        o This is not yet much used; real-world feedback is welcome.
 
-       o SQL output is expected to work at least with SQLite, MySQL and  Post-
+       o SQL  output is expected to work at least with SQLite, MySQL and Post-
          gres.
 
-       o For  SQLite,  it  will  be more useful if you modify the generated id
+       o For SQLite, it will be more useful if you  modify  the  generated  id
          field to be a PRIMARY KEY.  Eg:
 
                 $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
 
-       o SQL output is structured with the expectations that  statements  will
-         be  executed  in the empty database.  If you already have tables cre-
-         ated via SQL output of hledger, you would  probably  want  to  either
+       o SQL  output  is structured with the expectations that statements will
+         be executed in the empty database.  If you already have  tables  cre-
+         ated  via  SQL  output  of hledger, you would probably want to either
          clear tables of existing data (via delete or truncate SQL statements)
          or drop tables completely as otherwise your postings will be duped.
 
    Commodity styles
-       When  displaying  amounts,  hledger infers a standard display style for
+       When displaying amounts, hledger infers a standard  display  style  for
        each commodity/currency, as described below in Commodity display style.
 
        If needed, this can be overridden by a -c/--commodity-style option (ex-
        cept for cost amounts and amounts displayed by the print command, which
-       are always displayed with all decimal digits).  For example,  the  fol-
+       are  always  displayed with all decimal digits).  For example, the fol-
        lowing will force dollar amounts to be displayed as shown:
 
               $ hledger print -c '$1.000,0'
 
        This option can repeated to set the display style for multiple commodi-
-       ties/currencies.   Its argument is as described in the commodity direc-
+       ties/currencies.  Its argument is as described in the commodity  direc-
        tive.
 
-       In some cases hledger will adjust number formatting  to  improve  their
+       In  some  cases  hledger will adjust number formatting to improve their
        parseability (such as adding trailing decimal marks when needed).
 
    Colour
-       In  terminal output, some commands can produce colour when the terminal
+       In terminal output, some commands can produce colour when the  terminal
        supports it:
 
-       o if the --color/--colour option is given a value of yes or always  (or
+       o if  the --color/--colour option is given a value of yes or always (or
          no or never), colour will (or will not) be used;
 
-       o otherwise,  if  the NO_COLOR environment variable is set, colour will
+       o otherwise, if the NO_COLOR environment variable is set,  colour  will
          not be used;
 
-       o otherwise, colour will be used if the output (terminal or file)  sup-
+       o otherwise,  colour will be used if the output (terminal or file) sup-
          ports it.
 
    Box-drawing
-       In  terminal  output,  you can enable unicode box-drawing characters to
+       In terminal output, you can enable unicode  box-drawing  characters  to
        render prettier tables:
 
-       o if the --pretty option is given a value of yes or always  (or  no  or
+       o if  the  --pretty  option is given a value of yes or always (or no or
          never), unicode characters will (or will not) be used;
 
        o otherwise, unicode characters will not be used.
 
    Paging
-       When  showing  long output in the terminal, hledger will try to use the
-       pager specified by the PAGER environment variable, or  less,  or  more.
-       (A  pager is a helper program that shows one page at a time rather than
+       When showing long output in the terminal, hledger will try to  use  the
+       pager  specified  by  the PAGER environment variable, or less, or more.
+       (A pager is a helper program that shows one page at a time rather  than
        scrolling everything off screen).  Currently it does this only for help
        output, not for reports; specifically,
 
@@ -697,23 +702,23 @@ Output
 
        o when viewing manuals with hledger help or hledger --man.
 
-       Note the pager is expected to handle ANSI codes, which hledger uses  eg
+       Note  the pager is expected to handle ANSI codes, which hledger uses eg
        for bold emphasis.  For the common pager less (and its more compatibil-
-       ity  mode), we add R to the LESS and MORE environment variables to make
-       this work.  If you use a different pager, you might need  to  configure
+       ity mode), we add R to the LESS and MORE environment variables to  make
+       this  work.   If you use a different pager, you might need to configure
        it similarly, to avoid seeing junk on screen (let us know).  Otherwise,
-       you  can set the NO_COLOR environment variable to 1 to disable all ANSI
+       you can set the NO_COLOR environment variable to 1 to disable all  ANSI
        output (see Colour).
 
    Debug output
        We intend hledger to be relatively easy to troubleshoot, introspect and
-       develop.  You can add --debug[=N] to any hledger command  line  to  see
-       additional  debug  output.  N ranges from 1 (least output, the default)
-       to 9 (maximum output).  Typically you would start with 1  and  increase
-       until  you  are seeing enough.  Debug output goes to stderr, and is not
+       develop.   You  can  add --debug[=N] to any hledger command line to see
+       additional debug output.  N ranges from 1 (least output,  the  default)
+       to  9  (maximum output).  Typically you would start with 1 and increase
+       until you are seeing enough.  Debug output goes to stderr, and  is  not
        affected by -o/--output-file (unless you redirect stderr to stdout, eg:
-       2>&1).  It will be interleaved with normal output, which can  help  re-
-       veal  when parts of the code are evaluated.  To capture debug output in
+       2>&1).   It  will be interleaved with normal output, which can help re-
+       veal when parts of the code are evaluated.  To capture debug output  in
        a log file instead, you can usually redirect stderr, eg:
 
               hledger bal --debug=3 2>hledger.log
@@ -721,16 +726,16 @@ Output
 Environment
        These environment variables affect hledger:
 
-       COLUMNS This is normally set by your terminal;  some  hledger  commands
-       (register)  will  format  their output to this width.  If not set, they
+       COLUMNS  This  is  normally set by your terminal; some hledger commands
+       (register) will format their output to this width.  If  not  set,  they
        will try to use the available terminal width.
 
-       LEDGER_FILE The main journal  file  to  use  when  not  specified  with
+       LEDGER_FILE  The  main  journal  file  to  use  when not specified with
        -f/--file.  Default: $HOME/.hledger.journal.
 
-       NO_COLOR  If this environment variable is set (with any value), hledger
-       will not use ANSI color codes in terminal output, unless overridden  by
-       an explicit --color/--colour option.
+       NO_COLOR If this environment variable exists (with any value, including
+       empty), hledger will not use ANSI color codes in terminal  output,  un-
+       less overridden by an explicit --color=y/--colour=y option.
 
 PART 2: DATA FORMATS
 Journal
@@ -2670,20 +2675,40 @@ Journal
 
    Secondary dates
        A secondary date is written after the primary date, following an equals
-       sign.  If the year is omitted, the  primary  date's  year  is  assumed.
-       When  running  reports, the primary (left) date is used by default, but
-       with the --date2 flag (or --aux-date  or  --effective),  the  secondary
-       (right) date will be used instead.
+       sign: DATE1=DATE2.  If the year is omitted, the primary date's year  is
+       assumed.  When running reports, the primary (left side) date is used by
+       default, but with the --date2 flag (--aux-date or--effective also work,
+       for  Ledger  users),  the  secondary (right side) date will be used in-
+       stead.
 
-       The  meaning of secondary dates is up to you, but it's best to follow a
-       consistent rule.  Eg "primary = the bank's clearing date,  secondary  =
-       date the transaction was initiated, if different".
+       The meaning of secondary dates is up to you.  Eg it could  be  "primary
+       is  the bank's clearing date, secondary is the date the transaction was
+       initiated, if different".
 
-       Downsides:  makes  your financial data more complicated, less portable,
-       and less trustworthy in an audit.  Keeping the meaning of the two dates
-       consistent requires discipline, and you have to remember which  report-
-       ing  mode is appropriate for a given report.  Posting dates are simpler
-       and better.
+       In practice, this feature usually adds confusion:
+
+       o You have to remember the primary and secondary  dates'  meaning,  and
+         follow that consistently.
+
+       o It  splits  your bookkeeping into two modes, and you have to remember
+         which mode is appropriate for a given report.
+
+       o Usually your balance assertions will work  with  only  one  of  these
+         modes.
+
+       o It  makes  your  financial  data more complicated, less portable, and
+         less clear in an audit.
+
+       o It interacts with every feature, creating an ongoing cost for  imple-
+         mentors.
+
+       o It distracts new users and supporters.
+
+       o Posting dates are simpler and work better.
+
+       So secondary dates are officially deprecated in hledger, remaining only
+       as  a  Ledger  compatibility  aid; we recommend using posting dates in-
+       stead.
 
    Star comments
        Lines beginning with * (star/asterisk) are also  comment  lines.   This
@@ -4899,37 +4924,47 @@ Pivoting
                             -2 EUR
 
 Generating data
-       hledger has several features for generating data, such as:
+       hledger  can enrich the data provided to it, or generate new data, in a
+       number of ways.  Mostly, this is done only if you request it:
 
-       o Periodic  transaction rules can generate single or repeating transac-
-         tions following a template.  These are usually dated in  the  future,
-         eg  to  help  with forecasting.  They are activated by the --forecast
-         option.
-
-       o The balance command's --budget option uses these same periodic  rules
-         to generate goals for the budget report.
-
-       o Auto  posting  rules  can  generate extra postings on certain matched
-         transactions.  They are always applied to forecast transactions; with
-         the --auto flag they are applied  to  transactions  recorded  in  the
-         journal as well.
+       o Missing amounts or missing costs in transactions are  inferred  auto-
+         matically when possible.
 
        o The  --infer-equity  flag  infers  missing conversion equity postings
-         from @/@@ costs.  And the inverse --infer-costs flag  infers  missing
-         @/@@ costs from conversion equity postings.
+         from @/@@ costs.
 
-       Generated data of this kind is temporary, existing only at report time.
-       But  you  can  see  it in the output of hledger print, and you can save
-       that to your journal, in effect converting it from temporary  generated
-       data  to permanent recorded data.  This could be useful as a data entry
-       aid.
+       o The --infer-costs flag infers missing costs  from  conversion  equity
+         postings.
 
-       If you are wondering what data is being  generated  and  why,  add  the
-       --verbose-tags  flag.   In hledger print output you will see extra tags
-       like generated-transaction, generated-posting, and modified  on  gener-
-       ated/modified  data.  Also, even without --verbose-tags, generated data
-       always has equivalen hidden tags (with an underscore prefix), so eg you
-       could match generated transactions with tag:_generated-transaction.
+       o The --infer-market-prices flag infers P price directives from costs.
+
+       o The  --auto  flag adds extra postings to transactions matched by auto
+         posting rules.
+
+       o The --forecast option generates transactions from  periodic  transac-
+         tion rules.
+
+       o The  balance --budget report infers budget goals from periodic trans-
+         action rules.
+
+       o Commands like close, rewrite, and hledger-interest generate  transac-
+         tions or postings.
+
+       o CSV  data  is  converted  to  transactions by applying CSV conversion
+         rules..  etc.
+
+       Such generated data is temporary, existing only at  report  time.   You
+       can  convert it to permanent recorded data by, eg, capturing the output
+       of hledger print and saving it in your journal file.   This  can  some-
+       times be useful as a data entry aid.
+
+       If  you  are  curious what data is being generated and why, run hledger
+       print -x --verbose-tags.   -x/--explicit  shows  inferred  amounts  and
+       --verbose-tags  adds  tags  like  generated-transaction  (from periodic
+       rules) and generated-posting, modified (from auto posting rules).  Sim-
+       ilar hidden tags (with an underscore prefix) are always present,  also,
+       so  you  can  always match such data with queries like tag:generated or
+       tag:modified.
 
 Forecasting
        Forecasting, or speculative future reporting, can be useful  for  esti-
@@ -9112,4 +9147,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-1.33.99                    May 2024                         HLEDGER(1)
+hledger-1.34.99                    June 2024                        HLEDGER(1)
