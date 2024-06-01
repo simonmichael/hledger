@@ -230,7 +230,6 @@ reportflags = [
    (unlines
      ["Use ANSI color codes in text output? Can be"
      ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
-     ,"(A NO_COLOR environment variable overrides this.)"
      ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."

@@ -725,9 +725,9 @@ The main journal file to use when not specified with `-f/--file`.
 Default: `$HOME/.hledger.journal`.
 
 **NO_COLOR**
-If this environment variable is set (with any value),
+If this environment variable exists (with any value, including empty),
 hledger will not use ANSI color codes in terminal output,
-unless overridden by an explicit `--color/--colour` option.
+unless overridden by an explicit `--color=y`/`--colour=y` option.
 
 # PART 2: DATA FORMATS
 
