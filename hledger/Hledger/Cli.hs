@@ -317,7 +317,7 @@ isValue "-"     = True
 isValue ('-':_) = False
 isValue _       = True
 
-flagstomove = inputflags ++ reportflags ++ clihelpflags
+flagstomove = inputflags ++ reportflags ++ helpflags
 noargflagstomove  = concatMap flagNames (filter ((==FlagNone).flagInfo) flagstomove)
   -- silly special case: if someone is abbreviating --tldr, make sure it works right when written before COMMAND
   -- (not needed for --info, --man, --version since their abbreviations are ambiguous)
