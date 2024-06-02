@@ -4,6 +4,7 @@
 name: release
 
 on:
+  # XXX does not trigger; run manually. https://github.com/orgs/community/discussions/58681
   push:
     tags:
       - '1.*'
