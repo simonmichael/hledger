@@ -21,24 +21,26 @@ API
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 2a659e18d
 
-Breaking changes
-
-Fixes
+# 1.34 2024-06-01
 
 Features
 
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
+  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+
 Improvements
 
-- When built with the ghcdebug flag and started with --debug=-1,
-  hledger-ui can be controlled by ghc-debug clients like
+- The general flags in `--help` have been updated and grouped,
+  consistent with hledger.
+
+- When built with the `ghcdebug` flag and started with `--debug=-1`,
+  hledger-ui can be controlled by [ghc-debug] clients like
   ghc-debug-brick or a ghc-debug query script, for analysing
   memory/profile info.
 
-Docs
-
-API
+[tldr]: https://tldr.sh
+[ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
 
 
 # 1.33.1 2024-05-02

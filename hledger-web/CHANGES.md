@@ -21,27 +21,32 @@ API
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# a7026d694
 
-Breaking changes
-
-Fixes
+# 1.34 2024-06-01
 
 Features
 
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
+  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+
 Improvements
 
-- When built with the ghcdebug flag and started with --debug=-1,
-  hledger-web can be controlled by ghc-debug clients like
+- The general flags in `--help` have been updated and grouped,
+  consistent with hledger.
+
+- When built with the `ghcdebug` flag and started with `--debug=-1`,
+  hledger-web can be controlled by [ghc-debug] clients like
   ghc-debug-brick or a ghc-debug query script, for analysing
   memory/profile info.
 
 Docs
 
-- A basic OpenAPI specification is provided for hledger-web's JSON-over-HTTP API.
-  (This is also applicable to `hledger print`'s JSON output format.)
+- A basic [OpenAPI specification][openapi.yaml] is provided for hledger-web's JSON-over-HTTP API.
+  This is also applicable to `hledger print`'s JSON output format.
 
-API
+[ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
+[openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
+[tldr]: https://tldr.sh
 
 
 # 1.33.1 2024-05-02

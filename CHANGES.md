@@ -19,22 +19,31 @@ For package-specific changes, see the hledger package changelogs.
 
 
 # 0fedc35a9
+# 1.34 2024-06-01
 
 Docs
 
-- move release notes from site repo to the main hledger repo
+- move release notes from the hledger_site repo to the main hledger repo
+- github release notes: show the release notes, hide the install instructions by default
 - github release notes: improve windows install commands
-- dev doc updates; new Developer FAQ, Contributor Quick Start updates
-- examples: csv: vanguard, fidelity, paypal updates
+- github release notes: start mentioning github usernames, enabling the Contributors avatar list
+- dev docs: new Developer FAQ, Contributor Quick Start updates
 
 Scripts/addons
 
-Infrastructure/Misc
+- `hledger-install.sh` now uses stackage nightly, and a failure on non-Windows platforms has been fixed.
 
-- Fully replace the main Makefile with Justfile
-- md-issue-refs: markdown issue links helper
-- relnotes.hs: generate release notes from changelogs
-- CI workflow updates
+Infrastructure/misc
+
+- A new `release` workflow creates github releases, uploads release binaries and generates release notes.
+- There is a new `oldest` workflow for testing the oldest GHC we support (currently 8.10.7).
+- The `binaries-mac-x64` workflow has been bumped from GHC 9.4 to 9.8.
+- The master branch's `ci` workflow has been updated to Ubuntu 24.04
+  and uses the preinstalled GHC & stack, saving some work.
+- `md-issue-refs` helps generate markdown issue links.
+- `relnotes.hs` helps generate release notes from changelogs.
+- The project `Makefile` has now been fully replaced by `Justfile`.
+
 
 # 1.33 2024-04-18
 
