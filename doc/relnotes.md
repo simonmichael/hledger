@@ -153,6 +153,7 @@ Docs
 - check: expand check descriptions
 - examples: CSV rules: vanguard, fidelity, paypal updates
 - Generating data: rewrite
+- JSON output: link to OpenAPI spec
 - manuals: synopsis, options cleanup/consistency
 - Options: correction, NO_COLOR does not override --color
 - PART 4: COMMANDS: reorganise into groups, like the CLI commands list.
@@ -160,7 +161,6 @@ Docs
 - Secondary dates: expand, and declare them deprecated.
 - Time periods cleanup, simplify markup
 - Unicode characters: mention UTF-8 on windows
-- web, json output: link to OpenAPI spec
 
 Scripts/addons
 
@@ -239,7 +239,7 @@ Scripts/addons
 Infrastructure/misc
 
 - A new `release` workflow creates github releases, uploads release binaries and generates release notes.
-- Github release binaries for mac and linux are now in .tar.gz format (longer tarred and zipped). 
+- Github release binaries for mac and linux are now in .tar.gz format (no longer tarred and zipped). 
 - There is a new `oldest` workflow for testing the oldest GHC we support (currently 8.10.7).
 - The `binaries-mac-x64` workflow has been bumped from GHC 9.4 to 9.8.
 - The master branch's `ci` workflow has been updated to Ubuntu 24.04
