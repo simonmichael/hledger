@@ -22,6 +22,9 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# f4e024e9c
+
+
 # 1.34 2024-06-01
 
 Features
