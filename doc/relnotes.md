@@ -82,71 +82,45 @@ Changes in hledger-install.sh are shown
 
 Breaking changes
 
-- `check ordereddates` no longer supports `--date2`.
-  Also (not a breaking change): `--date2` and secondary dates are now officially
-  [deprecated](https://hledger.org/1.34/hledger.html#secondary-dates) in hledger,
-  though kept for compatibility.
+- `check ordereddates` no longer supports `--date2`. Also (not a breaking change): `--date2` and secondary dates are now officially [deprecated](https://hledger.org/1.34/hledger.html#secondary-dates) in hledger, though kept for compatibility.
 
 Features
 
-- You can now get a quick list of example command lines for hledger or
-  its most useful subcommands by adding the `--tldr` flag (or just
-  `--tl`).  For best appearance you should install the [`tldr`][tldr] client,
-  though it's not required.
+- You can now get a quick list of example command lines for hledger or its most useful subcommands by adding the `--tldr` flag (or just `--tl`).  For best appearance you should install the [`tldr`][tldr] client, though it's not required.
 
-  These short "tldr pages" are a great counterbalance to verbose PTA docs.
-  You can also use `tldr` without hledger to view the latest versions, or translations:\
-  `tldr hledger[-COMMAND]`.
-  Or you can [browse tldr pages online](https://tldr.inbrowser.app/search?query=hledger+).
-  Consider contributing translations!
-  More tips at <https://github.com/simonmichael/hledger/tree/master/doc/tldr>.
+  These short "tldr pages" are a great counterbalance to verbose PTA docs. You can also use `tldr` without hledger to view the latest versions, or translations: `tldr hledger[-COMMAND]`. Or you can [browse tldr pages online](https://tldr.inbrowser.app/search?query=hledger+). Consider contributing translations! More tips at <https://github.com/simonmichael/hledger/tree/master/doc/tldr>.
 
 [tldr]: https://tldr.sh
 
 Improvements
 
-- The `hledger` commands list has been reorganised,
-  with commands listed roughly in the order you'll need them.
+- The `hledger` commands list has been reorganised, with commands listed roughly in the order you'll need them.
 
 - The general flags descriptions in `--help` have been updated and grouped.
 
-- Correctness checks now run in a documented order.  `commodities` are
-  now checked before `accounts`, and `tags` before `recentassertions`.
-  When both `ordereddates` and `assertions` checks are enabled,
-  `ordereddates` now runs first, giving more useful error messages.
+- Correctness checks now run in a documented order.  `commodities` are now checked before `accounts`, and `tags` before `recentassertions`. When both `ordereddates` and `assertions` checks are enabled, `ordereddates` now runs first, giving more useful error messages.
 
-- `-I`/`--ignore-assertions` is now overridden by `-s`/`--strict`
-  (or `check assertions`), enabling more flexible workflows.
-  Eg you can `alias hl="hledger -I"` to delay balance assertions
-  checking until you add `-s` to commands.
+- `-I`/`--ignore-assertions` is now overridden by `-s`/`--strict` (or `check assertions`), enabling more flexible workflows. Eg you can `alias hl="hledger -I"` to delay balance assertions checking until you add `-s` to commands.
 
 - `--color` and `--pretty` now also accept `y` or `n` as argument.
 
-- When built with the `ghcdebug` flag and started with `--debug=-1`,
-  hledger can be controlled by [ghc-debug] clients like
-  ghc-debug-brick or a ghc-debug query script, for analysing
-  memory/profile info.
+- When built with the `ghcdebug` flag and started with `--debug=-1`, hledger can be controlled by [ghc-debug] clients like ghc-debug-brick or a ghc-debug query script, for analysing memory/profile info.
 
 [ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
 
 Fixes
 
-- `hledger COMMAND --man` and `hledger help TOPIC --man` now properly scroll
-  the man page to the TOPIC or COMMAND heading.
-  The exact/prefix matching behaviour has been clarified in `help --help`.
+- `hledger COMMAND --man` and `hledger help TOPIC --man` now properly scroll the man page to the TOPIC or COMMAND heading. The exact/prefix matching behaviour has been clarified in `help --help`.
 
 - In journal files, `include` directives with trailing whitespace are now parsed correctly.
 
-- The help command's help flags are now consistent with other commands
-  (and it has `--debug` as a hidden flag).
+- The help command's help flags are now consistent with other commands (and it has `--debug` as a hidden flag).
 
 - Build errors with GHC 8.10 have been fixed. [#2198]
 
 Docs
 
-- The tables of contents on hledger.org pages now just list top-level headings,
-  (and the hledger manual structure has been adjusted for this).
-  This makes the hledger manual on hledger.org more scannable and less scary.
+- The tables of contents on hledger.org pages now just list top-level headings, (and the hledger manual structure has been adjusted for this). This makes the hledger manual on hledger.org more scannable and less scary.
 - add: drop lengthy transcript, add simpler example commands (from tldr)
 - Amount formatting: move down, it's not the best first topic
 - balance: mention the `--summary-only` flag
@@ -164,8 +138,7 @@ Docs
 
 Scripts/addons
 
-- Added `hledger-pricehist`, an alias for the `pricehist` market price
-  fetcher so that it can appear in hledger's commands list.
+- Added `hledger-pricehist`, an alias for the `pricehist` market price fetcher so that it can appear in hledger's commands list.
 
 [#2005]: https://github.com/simonmichael/hledger/issues/2005
 [#2198]: https://github.com/simonmichael/hledger/issues/2198
@@ -176,18 +149,13 @@ Scripts/addons
 
 Features
 
-- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
-  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`). For best appearance, install the [`tldr`][tldr] client, though it's not required.
 
 Improvements
 
-- The general flags in `--help` have been updated and grouped,
-  consistent with hledger.
+- The general flags in `--help` have been updated and grouped, consistent with hledger.
 
-- When built with the `ghcdebug` flag and started with `--debug=-1`,
-  hledger-ui can be controlled by [ghc-debug] clients like
-  ghc-debug-brick or a ghc-debug query script, for analysing
-  memory/profile info.
+- When built with the `ghcdebug` flag and started with `--debug=-1`, hledger-ui can be controlled by [ghc-debug] clients like ghc-debug-brick or a ghc-debug query script, for analysing memory/profile info.
 
 [tldr]: https://tldr.sh
 [ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
@@ -198,23 +166,17 @@ Improvements
 
 Features
 
-- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
-  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`). For best appearance, install the [`tldr`][tldr] client, though it's not required.
 
 Improvements
 
-- The general flags in `--help` have been updated and grouped,
-  consistent with hledger.
+- The general flags in `--help` have been updated and grouped, consistent with hledger.
 
-- When built with the `ghcdebug` flag and started with `--debug=-1`,
-  hledger-web can be controlled by [ghc-debug] clients like
-  ghc-debug-brick or a ghc-debug query script, for analysing
-  memory/profile info.
+- When built with the `ghcdebug` flag and started with `--debug=-1`, hledger-web can be controlled by [ghc-debug] clients like ghc-debug-brick or a ghc-debug query script, for analysing memory/profile info.
 
 Docs
 
-- A basic [OpenAPI specification][openapi.yaml] is provided for hledger-web's JSON-over-HTTP API.
-  This is also applicable to `hledger print`'s JSON output format.
+- A basic [OpenAPI specification][openapi.yaml] is provided for hledger-web's JSON-over-HTTP API. This is also applicable to `hledger print`'s JSON output format.
 
 [ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
 [openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
@@ -242,8 +204,7 @@ Infrastructure/misc
 - Github release binaries for mac and linux are now in .tar.gz format (no longer tarred and zipped). 
 - There is a new `oldest` workflow for testing the oldest GHC we support (currently 8.10.7).
 - The `binaries-mac-x64` workflow has been bumped from GHC 9.4 to 9.8.
-- The master branch's `ci` workflow has been updated to Ubuntu 24.04
-  and uses the preinstalled GHC & stack, saving some work.
+- The master branch's `ci` workflow has been updated to Ubuntu 24.04 and uses the preinstalled GHC & stack, saving some work.
 - `md-issue-refs` helps generate markdown issue links.
 - `relnotes.hs` helps generate release notes from changelogs.
 - The project `Makefile` has now been fully replaced by `Justfile`.
