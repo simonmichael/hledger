@@ -120,7 +120,6 @@ jobs:
       run: |
         cd artifacts
         mv */*.tar .
-        rmdir `find . -type d -maxdepth 1`
         gzip *.tar
 
     - name: Inspect artifacts
