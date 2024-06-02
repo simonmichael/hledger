@@ -569,10 +569,15 @@ INSTALLING:
 #     make -C hledger/shell-completion/ clean-all all
 
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
-# download github release VER binaries for OS (linux, mac, windows) and ARCH (x64, arm64) to bin/old/hledger*-VER
+# linux / mac only for now, does not handle the windows zip file.
+# download github release VER binaries for OS (linux, mac) and ARCH (x64, arm64) to bin/old/hledger*-VER
 @installrel VER OS ARCH:
     #!/usr/bin/env bash
-    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
+    # if [[ "$OS" == "windows" ]]; then
+    #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
+    # else
+    # fi
+    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.tar.gz | `type -P gtar || echo tar` xzf - --transform 's/$/-{{ VER }}/'
 
 # # download recent versions of the hledger executables from github to bin/hledger*-VER
 # get-recent-binaries:
