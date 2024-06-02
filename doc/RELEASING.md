@@ -173,7 +173,7 @@ Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases a
 
 - When starting a release, save a copy of this file (RELEASING2.md) and update notes there until after release, to avoid obstructing git branch switching.
 
-- Use and update scripts. See `just` in the main repo -> RELEASING (and perhaps older stuff in `./Shake.hs` and `make`).
+- Use and update scripts, in `Justfile`, `Shake.hs`, `tools/` etc.
 
 - Do all releases from a release branch.
 
@@ -217,50 +217,48 @@ Higher things depend on lower things; when doing a release, work upward from the
 Here's an overview of a happy-path hledger release.
 These steps can be interleaved/reordered a little if needed.
 
-### 1 Prep software & docs
+### 1 Release prep
+
 In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
 1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
 1. If not the first release in this branch, cherry-pick changes from master: `magit l o ..master` (minor releases)
 1. (Could start building/testing/fixing release binaries/workflows/caches here, it takes time: `just relbin`)
 1. Update install script: `hledger-install/hledger-install.sh`
-1. Update changelogs: `./Shake changelogs` & manually edit
-   (*TODO: fix Shake changelogs to not eat whitespace, add to Justfile*)
-1. Update release notes: `doc/relnotes*`
-   (*TODO: fix tools/relnotes.hs, fix md-issue-refs to uniquify, add to Justfile, automate github release notes*)
-1. Update announcements: `doc/ANNOUNCE*` (major releases)
+1. Update changelogs (`**/CHANGES.md`): `./Shake changelogs`, manually edit, `./Shake changelogs -c`
+1. Update release notes (`doc/relnotes*`):
+  `tools/relnotes.hs`, select & transform with `md-issue-refs`, uniquify issue refs, add github nicks, commit
+   (*TODO: fix tools/relnotes.hs (unwrap long lines..), fix md-issue-refs to uniquify, add to Justfile*)
+1. Update announcements (`doc/ANNOUNCE*`) (major releases)
 1. Build/test release binaries: `just relbin`. Troubleshoot/repeat as needed.
 
 In site repo:
 1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
+   (*TODO: snapshot: don't switch to master, don't discard uncommitted changes, record git hash in commit message, clarify late update procedure*)
 1. Update config in `hledger.org.caddy` (@oldmanpath, @unversionedmanpath, any new redirects) (major releases, usually)
 1. Update install page: `site/src/install.md`
-
-### 2 Prep release
-In main repo, release branch:
-1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
-  *(TODO: don't add the suggested sixth tag yet, it hinders pushing)*
-1. Download release binaries
-  *(In Safari: don't use the download button; use right-click, Download linked file)*
-1. Push release branch & tags to github: `git push --tags`
-1. Create a [github release draft](#github-release-draft)
+1. Don't push yet. Keep in local branch if needed.
 
 In main repo, master:
-1. Cherry-pick master-appropriate changes from release branch (including hledger-install): `magit l o LASTREL..REL-branch`
-1. Commit any process updates: `doc/RELEASING.md`
+1. Cherry-pick the hledger-install update, and other finished useful updates, from the release branch (maybe not release docs yet): `magit l o LASTREL..REL-branch`
 1. [Bump version](#bump-master-to-next-version) in master (major releases)
-  *(TODO: use the sixth tag command suggested above)*
+1. Add a new dev tag (`REL.99`)
 
-### 3 Release
+### 2 Release
+
 In main repo, release branch:
-1. Publish on hackage: `just hackageupload`
+1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
+1. Push release branch & tags (not more than 5 tags), create draft github release:
+   `git push github HEAD 1.34 hledger-1.34 hledger-ui-1.34 hledger-web-1.34 hledger-lib-1.34`
+   (*TODO: release.yml: fix setting of tag, title, relnotes content*)
+1. Publish on hackage (final check): `just hackageupload`
 1. Publish github release
 
 In main repo, master:
 1. Push master: `just push`
 
 In site repo:
-1. Push to github: `git push github` or magit `P p`
+1. Push to github (& site): `git push github` or magit `P p`
 
 In hledger.org [cloudflare caching settings](https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration):
 1. Custom Purge `https://hledger.org/js/site.js`  (major release)
@@ -271,7 +269,8 @@ On hledger.org VPS:  (major release, usually)
 1. Test manuals are displaying and highlighting the new version
 1. If needed, `make buildall`
 
-### 4 Announce
+### 3 Announce
+
 (major releases, others if needed)
 1. Update hledger entry at https://plaintextaccounting.org/#pta-apps
 1. hledger matrix & irc chats
@@ -279,7 +278,10 @@ On hledger.org VPS:  (major release, usually)
 1. hledger mail list (& optionally haskell-cafe)
 1. mastodon with #hledger and #plaintextaccounting tags
 
-### 5 Post-release
+### 4 Release followup
+
+1. Cherry-pick any final useful updates from the release branch (eg release docs): `magit l o LASTREL..REL-branch`
+1. Add/commit any process updates: `doc/RELEASING.md`
 1. Monitor packaging status (stackage, brew, docker, linux, nix etc); keep install page updated
 1. Monitor, follow up on issues, especially regressions; keep doc/REGRESSIONS.md updated
 
