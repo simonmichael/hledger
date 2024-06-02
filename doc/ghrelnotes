@@ -37,8 +37,8 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.zip    # just rerun if interrupted
-unzip hledger-linux-x64.zip && tar xvf hledger-linux-x64.tar && rm -f hledger-linux-x64.{zip,tar}  # github workaround, preserves permissions
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.tar.gz
+tar xvf hledger-linux-x64.tar.gz && rm -f hledger-linux-x64.tar.gz
 cd
 hledger --version    # should show the new version
 ```
@@ -65,13 +65,12 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 cd /usr/local/bin
 
 # for ARM macs:
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.zip    # just rerun if interrupted
-unzip hledger-mac-arm64.zip && tar xvf hledger-mac-arm64.tar && rm -f hledger-mac-arm64.{zip,tar}  # github workaround, preserves permissions
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.tar.gz
+tar xvf hledger-mac-arm64.tar.gz && rm -f hledger-mac-arm64.tar.gz
 
 # or for Intel macs:
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-x64.zip
-unzip hledger-mac-x64.zip && tar xvf hledger-mac-x64.tar && rm -f hledger-mac-x64.{zip,tar}
-
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-x64.tar.gz
+tar xvf hledger-mac-x64.tar.gz && rm -f hledger-mac-x64.tar.gz
 cd
 hledger --version    # should show the new version
 ```
@@ -98,7 +97,7 @@ $ENV:PATH += ";"+$HOME+"\bin"
 2. Download and install the release binaries:
 ```
 cd $HOME\bin
-cp hledger.exe hledger.old.exe            # keep a backup of the old executables, if you care
+cp hledger.exe hledger.old.exe    # keep a backup of the old executables, if you like
 cp hledger-ui.exe hledger-ui.old.exe
 cp hledger-web.exe hledger-web.old.exe
 curl https://github.com/simonmichael/hledger/releases/download/$REL/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
