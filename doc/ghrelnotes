@@ -19,7 +19,7 @@ envsubst '$REL' <<'END'
 </summary>
 
 This release may arrive in your local packaging system soon - look for green badges at [hledger.org: Install](https://hledger.org/install.html).
-Or you can build it yourself from source, as described on that page.
+Or you can [build it from source](https://hledger.org/install.html#build-from-source), as described on that page.
 Or you can use the binaries below:
 <!--
 Updates to binaries:
