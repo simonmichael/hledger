@@ -2,7 +2,11 @@
 
 Show journal and performance statistics.
 
-_FLAGS
+```flags
+Flags:
+  -v --verbose              show more detailed output
+  -o --output-file=FILE     write output to FILE.
+```
 
 The stats command shows summary information for the whole journal, or
 a matched part of it. With a [reporting interval](#reporting-interval),

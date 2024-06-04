@@ -4,7 +4,12 @@ List the tags used in the journal, or their values.
 
 <!-- same section name as Journal > Tags, if reordering these update all #tags[-1] links -->
 
-_FLAGS
+```flags
+Flags:
+     --values               list tag values instead of tag names
+     --parsed               show tags/values in the order they were parsed,
+                            including duplicates
+```
 
 This command lists the tag names used in the journal,
 whether on transactions, postings, or account declarations.

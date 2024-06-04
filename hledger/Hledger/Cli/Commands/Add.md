@@ -2,7 +2,10 @@
 
 Record new transactions with interactive prompting in the console.
 
-_FLAGS
+```flags
+Flags:
+     --no-new-accounts      don't allow creating new accounts
+```
 
 Many hledger users edit their journals directly with a text editor, or generate them from CSV.
 For more interactive data entry, there is the `add` command, 

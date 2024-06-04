@@ -2,7 +2,10 @@
 
 List the unique notes that appear in transactions.
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 This command lists the unique notes that appear in transactions,
 in alphabetic order.

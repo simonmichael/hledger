@@ -2,7 +2,10 @@
 
 List the codes seen in transactions, in the order parsed.
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 This command prints the value of each transaction's code field, in the
 order transactions were parsed. The transaction code is an optional

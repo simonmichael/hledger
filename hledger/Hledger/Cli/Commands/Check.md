@@ -2,7 +2,10 @@
 
 Check for various kinds of errors in your data. 
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 hledger provides a number of built-in correctness checks to help validate your data and prevent errors.
 Some are run automatically, some when you enable `--strict` mode;

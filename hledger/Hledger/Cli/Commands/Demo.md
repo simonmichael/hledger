@@ -2,7 +2,11 @@
 
 Play demos of hledger usage in the terminal, if asciinema is installed.
 
-_FLAGS
+```flags
+Flags:
+  -s --speed=SPEED  playback speed (1 is original speed, .5 is half, 2 is
+                    double, etc (default: 2))
+```
 
 Run this command with no argument to list the demos.
 To play a demo, write its number or a prefix or substring of its title.

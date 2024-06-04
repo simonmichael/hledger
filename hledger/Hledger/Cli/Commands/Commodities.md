@@ -2,4 +2,8 @@
 
 List all commodity/currency symbols used or declared in the journal.
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
+

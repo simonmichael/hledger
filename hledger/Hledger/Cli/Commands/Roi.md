@@ -3,7 +3,14 @@
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return
 on your investments.
 
-_FLAGS
+```flags
+Flags:
+     --cashflow                 show all amounts that were used to compute
+                                returns
+     --investment=QUERY         query to select your investment transactions
+     --profit-loss=QUERY --pnl  query to select profit-and-loss or
+                                appreciation/valuation transactions
+```
 
 At a minimum, you need to supply a query (which could be just an
 account name) to select your investment(s) with `--inv`, and another

@@ -2,7 +2,11 @@
 
 List the unique payee/payer names that appear in transactions.
 
-_FLAGS
+```flags
+Flags:
+     --declared             show payees declared with payee directives
+     --used                 show payees referenced by transactions
+```
 
 This command lists unique payee/payer names which have been 
 declared with payee directives (--declared), 

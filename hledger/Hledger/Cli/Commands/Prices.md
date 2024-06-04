@@ -14,4 +14,8 @@ it will show the same prices used internally to calculate value reports.
 But if in doubt, you can inspect those directly by running the value report
 with --debug=2.
 
-_FLAGS
+```flags
+Flags:
+     --show-reverse         also show the prices inferred by reversing known
+                            prices
+```

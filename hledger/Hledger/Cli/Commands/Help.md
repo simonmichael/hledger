@@ -3,7 +3,13 @@
 Show the hledger user manual with `info`, `man`, or a pager.
 With a (case insensitive) TOPIC argument, try to open it at that section heading.
 
-_FLAGS
+```flags
+Flags:
+  -i            show the manual with info
+  -m            show the manual with man
+  -p            show the manual with $PAGER or less
+                (less is always used if TOPIC is specified)
+```
 
 This command shows the hledger manual built in to your hledger executable.
 It can be useful when offline, or when you prefer the terminal to a web browser,

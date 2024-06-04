@@ -16,7 +16,10 @@ from your bank (eg as CSV data). When hledger and your bank disagree
 about the account balance, you can compare the bank data with your
 journal to find out the cause. 
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 Examples:
 

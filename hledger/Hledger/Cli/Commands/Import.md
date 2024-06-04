@@ -2,7 +2,11 @@
 
 Import new transactions from one or more data files to the main journal.
 
-_FLAGS
+```flags
+Flags:
+     --catchup              just mark all transactions as already imported
+     --dry-run              just show the transactions to be imported
+```
 
 This command detects new transactions in each FILE argument since it was last run, 
 and appends them to the main journal.

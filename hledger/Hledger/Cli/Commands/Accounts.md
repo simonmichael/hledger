@@ -1,8 +1,23 @@
-## accounts
+## accounts 
 
 List account names.
 
-_FLAGS
+```flags
+Flags:
+  -u --used                 show only accounts used by transactions
+  -d --declared             show only accounts declared by account directive
+     --unused               show only accounts declared but not used
+     --undeclared           show only accounts used but not declared
+     --types                also show account types when known
+     --positions            also show where accounts were declared
+     --directives           show as account directives, for use in journals
+     --find                 find the first account matched by the first
+                            argument (a case-insensitive infix regexp or
+                            account name)
+  -l --flat                 show accounts as a flat list (default)
+  -t --tree                 show accounts as a tree
+     --drop=N               flat mode: omit N leading account name parts
+```
 
 This command lists account names.
 By default it shows all known accounts, either used in transactions or declared with account directives.

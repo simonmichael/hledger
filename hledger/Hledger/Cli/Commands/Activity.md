@@ -2,7 +2,10 @@
 
 Show an ascii barchart of posting counts per interval.
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 The activity command displays an ascii histogram showing transaction
 counts by day, week, month or other reporting interval (by day is the

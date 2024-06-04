@@ -7,7 +7,37 @@ migrating balances to a new journal file, retaining earnings into equity, consol
 Like `print`, it prints valid journal entries.
 You can append or copy these to your journal file(s) when you are happy with how they look.
 
-_FLAGS
+```flags
+Flags:
+     --migrate[=NEW]        show closing and opening transactions, for Asset
+                            and Liability accounts by default, tagged for easy
+                            matching. The tag's default value can be overridden
+                            by providing NEW.
+     --close[=NEW]          (default) show a closing transaction
+     --open[=NEW]           show an opening transaction
+     --assign[=NEW]         show opening balance assignments
+     --assert[=NEW]         show closing balance assertions
+     --retain[=NEW]         show a retain earnings transaction, for Revenue
+                            and Expense accounts by default
+  -x --explicit             show all amounts explicitly
+     --show-costs           show amounts with different costs separately
+     --interleaved          show source and destination postings together
+     --assertion-type=TYPE  =, ==, =* or ==*
+     --close-desc=DESC      set closing transaction's description
+     --close-acct=ACCT      set closing transaction's destination account
+     --open-desc=DESC       set opening transaction's description
+     --open-acct=ACCT       set opening transaction's source account
+     --round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none - show original decimal digits,
+                                   as in journal
+                            soft - just add or remove decimal zeros
+                                   to match precision (default)
+                            hard - round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  - also round cost amounts to precision
+                                   (can unbalance transactions)
+```
 
 `close` currently has six modes, selected by a single mode flag:
 

@@ -44,7 +44,7 @@ import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 -- it should be added to or subtracted from the grand total.
 --
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
-  cbcdoc      :: CommandDoc,                      -- ^ the command's name(s) and documentation
+  cbcdoc      :: CommandHelpStr,                  -- ^ the command's name(s) and documentation
   cbctitle    :: String,                          -- ^ overall report title
   cbcqueries  :: [CBCSubreportSpec DisplayName],  -- ^ subreport details
   cbcaccum    :: BalanceAccumulation              -- ^ how to accumulate balances (per-period, cumulative, historical)
@@ -64,7 +64,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["gain"] (setboolopt "gain")
       "show unrealised capital gain/loss (historical balance value minus cost basis)"
    ,flagNone ["budget"] (setboolopt "budget")
-      "show sum of posting amounts compared to budget goals defined by periodic transactions\n "
+      "show sum of posting amounts compared to budget goals defined by periodic transactions"
 
    ,flagNone ["change"] (setboolopt "change")
        ("accumulate amounts from column start to column end (in multicolumn reports)"
@@ -74,7 +74,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
            ++ defaultMarker Cumulative)
     ,flagNone ["historical","H"] (setboolopt "historical")
        ("accumulate amounts from journal start to column end (includes postings before report start date)"
-           ++ defaultMarker Historical ++ "\n ")
+           ++ defaultMarker Historical)
     ]
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"

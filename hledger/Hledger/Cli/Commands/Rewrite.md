@@ -3,7 +3,17 @@
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print --auto.
 
-_FLAGS
+```flags
+Flags:
+     --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
+                                    parenthesised. AMTEXPR is either a literal
+                                    amount, or *N which means the transaction's
+                                    first matched amount multiplied by N (a
+                                    decimal number). Two spaces separate ACCT
+                                    and AMTEXPR.
+     --diff                         generate diff suitable as an input for
+                                    patch tool
+```
 
 This is a start at a generic rewriter of transaction entries.
 It reads the default journal and prints the transactions, like print,

@@ -41,7 +41,7 @@ registermode = hledgerCommandMode
   ([flagNone ["cumulative"] (setboolopt "cumulative")
      "show running total from report start date (default)"
   ,flagNone ["historical","H"] (setboolopt "historical")
-     "show historical running total/balance (includes postings before report start date)\n "
+     "show historical running total/balance (includes postings before report start date)"
   ,flagNone ["average","A"] (setboolopt "average")
      "show running average of posting amounts instead of total (implies --empty)"
   ,let arg = "DESC" in

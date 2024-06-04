@@ -2,7 +2,30 @@
 
 Show full journal entries, representing transactions.
 
-_FLAGS
+```flags
+Flags:
+  -x --explicit             show all amounts explicitly
+     --show-costs           show transaction prices even with conversion
+                            postings
+     --round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none - show original decimal digits,
+                                   as in journal
+                            soft - just add or remove decimal zeros
+                                   to match precision (default)
+                            hard - round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  - also round cost amounts to precision
+                                   (can unbalance transactions)
+     --new                  show only newer-dated transactions added in each
+                            file since last run
+  -m --match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, beancount, csv, tsv, json, sql.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+```
 
 The print command displays full journal entries (transactions) 
 from the journal file, sorted by date

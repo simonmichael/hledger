@@ -2,7 +2,10 @@
 
 List the unique descriptions that appear in transactions.
 
-_FLAGS
+```flags
+Flags:
+no command-specific flags
+```
 
 This command lists the unique descriptions that appear in transactions,
 in alphabetic order.
