@@ -588,7 +588,7 @@ main = do
       -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
       phony "cmdhelp" $ do
         need commandtxts
-        when commit $ commitIfChanged ";doc: update command help" commandtxts
+        when commit $ commitIfChanged ";doc: update help" commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
