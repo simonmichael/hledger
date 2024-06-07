@@ -306,7 +306,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["cumulative"] (setboolopt "cumulative")
       "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
     ,flagNone ["historical","H"] (setboolopt "historical")
-      "accumulate amounts from journal start to column end (includes postings before report start date)\n "
+      "accumulate amounts from journal start to column end (includes postings before report start date)"
     ]
     -- other options specific to this command:
     ++ flattreeflags True ++
