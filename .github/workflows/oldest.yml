@@ -143,11 +143,9 @@ jobs:
         export PATH=~/.local/bin:$PATH
         if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
         shelltest --version
-      if: env.do-all
 
     - name: Test functional tests (excluding addons)
       run: |
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
         # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
-      if: env.do-all
