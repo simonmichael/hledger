@@ -311,8 +311,8 @@ Here's more detail of various steps.
 - if there are changes, `./Shake cabalfiles -c`
 
 #### Up-to-date help
-- `./Shake cmdhelp`
-- if there are changes, `./Shake cmdhelp -c`
+- `./Shake cmddocs`
+- if there are changes, `./Shake cmddocs -c`
 
 #### Up-to-date manuals
 - `./Shake mandates`
@@ -518,7 +518,7 @@ In release branch, update
 #### Bump master to next version
 (major release)
 - `./Shake setversion MA.JOR.99 -c`
-- `./Shake cmdhelp [-c]`  (might be empty)
+- `./Shake cmddocs [-c]`  (might be empty)
 - `./Shake mandates`
 - `./Shake manuals -c`
 

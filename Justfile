@@ -1096,7 +1096,7 @@ relprep VER:
     echo "Bumping all version strings to {{ VER }} ..."
     ./Shake setversion {{ VER }} $COMMIT
     echo "Updating all command help texts for embedding..."
-    ./Shake cmdhelp $COMMIT
+    ./Shake cmddocs $COMMIT
     echo "Updating all dates in man pages..."
     ./Shake mandates
     echo "Generating all the manuals in all formats...."

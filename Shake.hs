@@ -50,6 +50,7 @@ import "safe"         Safe
 import "shake"        Development.Shake
 import "shake"        Development.Shake.FilePath
 import "time"         Data.Time
+-- import Debug.Trace
 -- import "hledger-lib"  Hledger.Utils.Debug
 
 usage =
@@ -65,7 +66,10 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
-  ,"./Shake cmdhelp [-c]     update hledger CLI commands' help texts"
+  -- ,"./Shake flagdocs [-c]    update flags in hledger CLI command docs
+  -- ,"                         (run after changing command flags)"
+  ,"./Shake cmddocs [-c]     update hledger CLI command help and docs"
+  ,"                         (run after changing command flags or docs)"
   ,"./Shake mandates         update the date shown in some manual formats"
   ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
   -- ,"./Shake webmanuals       update just the web manuals"
@@ -141,9 +145,11 @@ main = do
   -- hledger manual also includes the markdown files from here:
   let commandsdir = "hledger/Hledger/Cli/Commands"
   commandmds <-
-    filter (not . ("README." `isPrefixOf`) . takeFileName) . filter (".md" `isSuffixOf`) . map (commandsdir </>)
+    sort . filter (not . ("README." `isPrefixOf`) . takeFileName) . filter (".md" `isSuffixOf`) . map (commandsdir </>)
     <$> S.getDirectoryContents commandsdir
-  let commandtxts = map (-<.> "txt") commandmds
+  let
+    commandmdsnew = map (<.> "new") commandmds
+    commandtxts = map (-<.> "txt") commandmds
 
   -- Run the shake rule selected by the first command line argument.
   -- Other arguments and some custom flags are set aside for the rule
@@ -585,14 +591,47 @@ main = do
           | pkg <- pkgs
           ]
 
-      -- regenerate Hledger/Cli/Commands/*.txt from the .md source files for CLI help
-      phony "cmdhelp" $ do
+      -- Update each Hledger/Cli/Commands/*.md, replacing the flags block with latest --help output,
+      -- or a placeholder if there are no command-specific flags.
+      -- For hledger manual and also for cmddocs below.
+      phony "flagdocs" $ do
+        need commandmdsnew
+        when commit $ commitIfChanged ";doc: update command flag docs" commandmds
+
+      -- hledger/Hledger/Cli/Commands/CMD.md.new: updates the command-specific flags help
+      -- within hledger/Hledger/Cli/Commands/CMD.md. Runs "stack exec -- hledger CMD -h".
+      phonys $ \out ->
+        if not $ ".md.new" `isSuffixOf` out
+        then Nothing
+        else Just $ do
+          let src = dropExtension out
+          need [src]
+          liftIO $ putStrLn ("running hledger, updating flags in " <> src)
+          srcls <- fmap lines $ liftIO $ readFileStrictly src
+          let
+            (pre,rest) = break (=="```flags") srcls
+            (_,post)   = span  (/="```")     rest
+          let cmdname = map toLower $ takeBaseName src
+          cmdhelp <- lines . fromStdout <$> (cmd Shell $ "stack exec -- hledger -h " <> cmdname :: Action (Stdout String))
+          let
+            cmdflagshelp = takeWhile (not.null) $ dropWhile (/="Flags:") cmdhelp
+            cmdflagshelp'
+              | null cmdflagshelp = ["Flags:","no command-specific flags"]
+              | otherwise         = cmdflagshelp
+          liftIO $ writeFile src $ unlines $ concat [pre, ["```flags"], cmdflagshelp', post]
+
+      -- Regenerate Hledger/Cli/Commands/*.txt, rendering the corresponding .md files as plain text.
+      -- Also updates cmddocs first.
+      -- For commands' --help output.
+      phony "cmddocs" $ do
         need commandtxts
         when commit $ commitIfChanged ";doc: update help" commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
-        need [src]
+        liftIO $ putStrLn ("generating " <> out)
+        need [src <.> "new"]  -- 1. update flags doc in src
+        need [src]            -- 2. depend on src
         cmd Shell
           pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
 
@@ -730,7 +769,7 @@ main = do
 
       -- Update all program-specific docs, eg after setversion.
       phony "docs" $ need [
-         "cmdhelp"
+         "cmddocs"
         ,"manuals"
         ,"changelogs"
         ]

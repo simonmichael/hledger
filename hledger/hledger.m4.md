@@ -6580,7 +6580,7 @@ See [hledger and Ledger](ledger.md) for full details.
 
 m4_dnl Some common markdown links.
 m4_dnl These are also usable in hledger/Hledger/Cli/Commands/*.md.
-m4_dnl Some are defined there also - don't remove, they are needed there for Shake cmdhelp eg.
+m4_dnl Some are defined there also - don't remove, they are needed there for Shake cmddocs eg.
 m4_dnl Duplicate definitions won't give warnings as long as the target is identical.
 m4_dnl Be wary of pandoc/mdbook handling [shortcut] link syntax differently ?
 
