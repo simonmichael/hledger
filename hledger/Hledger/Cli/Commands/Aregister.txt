@@ -5,7 +5,18 @@ aregister
 Show the transactions and running balances in one account, with each
 transaction on one line.
 
-_FLAGS
+Flags:
+     --txn-dates            filter strictly by transaction date, not posting
+                            date. Warning: this can show a wrong running
+                            balance.
+     --no-elide             don't show only 2 commodities per amount
+  -w --width=N              set output width (default: terminal width or
+                            $COLUMNS). -wN,M sets description width as well.
+     --align-all            guarantee alignment across all lines (slower)
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
 aregister shows the overall transactions affecting a particular account
 (and any subaccounts). Each report line represents one transaction in

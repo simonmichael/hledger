@@ -4,7 +4,24 @@ register
 
 Show postings and their running total.
 
-_FLAGS
+Flags:
+     --cumulative           show running total from report start date
+                            (default)
+  -H --historical           show historical running total/balance (includes
+                            postings before report start date)
+  -A --average              show running average of posting amounts instead
+                            of total (implies --empty)
+  -m --match=DESC           fuzzy search for one recent posting with
+                            description closest to DESC
+  -r --related              show postings' siblings instead
+     --invert               display all amounts with reversed sign
+  -w --width=N              set output width (default: terminal width or
+                            $COLUMNS). -wN,M sets description width as well.
+     --align-all            guarantee alignment across all lines (slower)
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
 The register command displays matched postings, across all accounts, in
 date order, with their running total or running historical balance. (See

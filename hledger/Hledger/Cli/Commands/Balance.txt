@@ -6,7 +6,62 @@ A flexible, general purpose "summing" report that shows accounts with
 some kind of numeric data. This can be balance changes per period, end
 balances, budget performance, unrealised capital gains, etc.
 
-_FLAGS
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --budget[=DESCPAT]     show sum of posting amounts together with budget
+                            goals defined by periodic
+                            transactions. With a DESCPAT argument (must be
+                            separated by = not space),
+                            use only periodic transactions with matching
+                            description
+                            (case insensitive substring match).
+     --valuechange          show total change of value of period-end
+                            historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --count                show the count of postings
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports, default)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               omit N leading account name parts (in flat mode)
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -r --related              show postings' siblings instead
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name (in
+                            flat mode). With multiple columns, sorts by the row
+                            total, or by row average if that is displayed.
+  -% --percent              express values in percentage of each column's
+                            total
+     --invert               display all amounts with reversed sign
+     --transpose            transpose rows and columns
+     --layout=ARG           how to lay out multi-commodity amounts and the
+                            overall table:
+                            'wide[,WIDTH]': commodities on one line
+                            'tall'        : commodities on separate lines
+                            'bare'        : commodity symbols in one column
+                            'tidy'        : every attribute in its own column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
 balance is one of hledger's oldest and most versatile commands, for
 listing account balances, balance changes, values, value changes and
