@@ -191,7 +191,7 @@ reportflags = [
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set begin date, end date, and/or report interval, with more flexibility"
  ,flagReq  ["today"]         (\s opts -> Right $ setopt "today" s opts) "DATE" "override today's date (affects relative dates)"
  ,flagNone ["date2"]         (setboolopt "date2") "match/use secondary dates instead (deprecated)"  -- see also hiddenflags
- 
+
   -- status/realness/depth/zero filters
  ,flagNone ["unmarked","U"]  (setboolopt "unmarked") "include only unmarked postings/transactions"
  ,flagNone ["pending","P"]   (setboolopt "pending")  "include only pending postings/transactions"
@@ -223,7 +223,7 @@ reportflags = [
 
   -- general output-related
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
-    "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"  
+    "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
   -- This has special support in hledger-lib:colorOption, keep synced
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
    (unlines
@@ -650,7 +650,7 @@ getHledgerCliOpts' mode' args0 = do
 getHledgerCliOpts :: Mode RawOpts -> IO CliOpts
 getHledgerCliOpts mode' = do
   args' <- getArgs >>= expandArgsAt
-  getHledgerCliOpts' mode' args' 
+  getHledgerCliOpts' mode' args'
 
 -- CliOpts accessors
 

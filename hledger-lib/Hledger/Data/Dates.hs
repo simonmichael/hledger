@@ -490,8 +490,7 @@ fixSmartDateStr d s =
 fixSmartDateStrEither :: Day -> Text -> Either HledgerParseErrors Text
 fixSmartDateStrEither d = fmap showEFDate . fixSmartDateStrEither' d
 
-fixSmartDateStrEither'
-  :: Day -> Text -> Either HledgerParseErrors EFDay
+fixSmartDateStrEither' :: Day -> Text -> Either HledgerParseErrors EFDay
 fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
                                Right sd -> Right $ fixSmartDate d sd
                                Left e -> Left e
