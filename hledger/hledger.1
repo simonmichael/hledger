@@ -7808,6 +7808,14 @@ Show the hledger user manual with \f[CR]info\f[R], \f[CR]man\f[R], or a
 pager.
 With a (case insensitive) TOPIC argument, try to open it at that section
 heading.
+.IP
+.EX
+Flags:
+  \-i            show the manual with info
+  \-m            show the manual with man
+  \-p            show the manual with $PAGER or less
+                (less is always used if TOPIC is specified)
+.EE
 .PP
 This command shows the hledger manual built in to your hledger
 executable.
@@ -7844,6 +7852,12 @@ $ hledger help \[aq]time periods\[aq] \-m  # use man, even if info is installed
 .EE
 .SS demo
 Play demos of hledger usage in the terminal, if asciinema is installed.
+.IP
+.EX
+Flags:
+  \-s \-\-speed=SPEED  playback speed (1 is original speed, .5 is half, 2 is
+                    double, etc (default: 2))
+.EE
 .PP
 Run this command with no argument to list the demos.
 To play a demo, write its number or a prefix or substring of its title.
@@ -7878,6 +7892,11 @@ Runs hledger\-web (if installed).
 .SH Data entry commands
 .SS add
 Record new transactions with interactive prompting in the console.
+.IP
+.EX
+Flags:
+     \-\-no\-new\-accounts      don\[aq]t allow creating new accounts
+.EE
 .PP
 Many hledger users edit their journals directly with a text editor, or
 generate them from CSV.
@@ -7954,6 +7973,12 @@ Provide answers for the first four prompts:
 There is a detailed tutorial at https://hledger.org/add.html.
 .SS import
 Import new transactions from one or more data files to the main journal.
+.IP
+.EX
+Flags:
+     \-\-catchup              just mark all transactions as already imported
+     \-\-dry\-run              just show the transactions to be imported
+.EE
 .PP
 This command detects new transactions in each FILE argument since it was
 last run, and appends them to the main journal.
@@ -8098,6 +8123,23 @@ Related: CSV > Amount decimal places.
 .SH Basic report commands
 .SS accounts
 List account names.
+.IP
+.EX
+Flags:
+  \-u \-\-used                 show only accounts used by transactions
+  \-d \-\-declared             show only accounts declared by account directive
+     \-\-unused               show only accounts declared but not used
+     \-\-undeclared           show only accounts used but not declared
+     \-\-types                also show account types when known
+     \-\-positions            also show where accounts were declared
+     \-\-directives           show as account directives, for use in journals
+     \-\-find                 find the first account matched by the first
+                            argument (a case\-insensitive infix regexp or
+                            account name)
+  \-l \-\-flat                 show accounts as a flat list (default)
+  \-t \-\-tree                 show accounts as a tree
+     \-\-drop=N               flat mode: omit N leading account name parts
+.EE
 .PP
 This command lists account names.
 By default it shows all known accounts, either used in transactions or
@@ -8161,6 +8203,11 @@ $ hledger check accounts
 .EE
 .SS codes
 List the codes seen in transactions, in the order parsed.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 This command prints the value of each transaction\[aq]s code field, in
 the order transactions were parsed.
@@ -8211,8 +8258,18 @@ $ hledger codes \-E
 .EE
 .SS commodities
 List all commodity/currency symbols used or declared in the journal.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .SS descriptions
 List the unique descriptions that appear in transactions.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 This command lists the unique descriptions that appear in transactions,
 in alphabetic order.
@@ -8230,8 +8287,18 @@ Person A
 List all files included in the journal.
 With a REGEX argument, only file names matching the regular expression
 (case sensitive) are shown.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .SS notes
 List the unique notes that appear in transactions.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 This command lists the unique notes that appear in transactions, in
 alphabetic order.
@@ -8248,6 +8315,12 @@ Snacks
 .EE
 .SS payees
 List the unique payee/payer names that appear in transactions.
+.IP
+.EX
+Flags:
+     \-\-declared             show payees declared with payee directives
+     \-\-used                 show payees referenced by transactions
+.EE
 .PP
 This command lists unique payee/payer names which have been declared
 with payee directives (\-\-declared), used in transaction descriptions
@@ -8273,6 +8346,12 @@ With \-\-infer\-market\-prices, also show any additional prices inferred
 from costs.
 With \-\-show\-reverse, also show additional prices inferred by
 reversing known prices.
+.IP
+.EX
+Flags:
+     \-\-show\-reverse         also show the prices inferred by reversing known
+                            prices
+.EE
 .PP
 Price amounts are always displayed with their full precision, except for
 reverse prices which are limited to 8 decimal digits.
@@ -8286,6 +8365,12 @@ But if in doubt, you can inspect those directly by running the value
 report with \-\-debug=2.
 .SS stats
 Show journal and performance statistics.
+.IP
+.EX
+Flags:
+  \-v \-\-verbose              show more detailed output
+  \-o \-\-output\-file=FILE     write output to FILE.
+.EE
 .PP
 The stats command shows summary information for the whole journal, or a
 matched part of it.
@@ -8334,6 +8419,13 @@ This command supports the \-o/\-\-output\-file option (but not
 \-O/\-\-output\-format).
 .SS tags
 List the tags used in the journal, or their values.
+.IP
+.EX
+Flags:
+     \-\-values               list tag values instead of tag names
+     \-\-parsed               show tags/values in the order they were parsed,
+                            including duplicates
+.EE
 .PP
 This command lists the tag names used in the journal, whether on
 transactions, postings, or account declarations.
@@ -8360,6 +8452,31 @@ acquire tags from their postings.
 .SH Standard report commands
 .SS print
 Show full journal entries, representing transactions.
+.IP
+.EX
+Flags:
+  \-x \-\-explicit             show all amounts explicitly
+     \-\-show\-costs           show transaction prices even with conversion
+                            postings
+     \-\-round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none \- show original decimal digits,
+                                   as in journal
+                            soft \- just add or remove decimal zeros
+                                   to match precision (default)
+                            hard \- round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  \- also round cost amounts to precision
+                                   (can unbalance transactions)
+     \-\-new                  show only newer\-dated transactions added in each
+                            file since last run
+  \-m \-\-match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, beancount, csv, tsv, json, sql.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with \f[CR]\-\-date2\f[R], by secondary
@@ -8553,6 +8670,21 @@ negative amounts under credit and zero or greater amounts under debit.)
 .PP
 Show the transactions and running balances in one account, with each
 transaction on one line.
+.IP
+.EX
+Flags:
+     \-\-txn\-dates            filter strictly by transaction date, not posting
+                            date. Warning: this can show a wrong running
+                            balance.
+     \-\-no\-elide             don\[aq]t show only 2 commodities per amount
+  \-w \-\-width=N              set output width (default: terminal width or
+                            $COLUMNS). \-wN,M sets description width as well.
+     \-\-align\-all            guarantee alignment across all lines (slower)
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 \f[CR]aregister\f[R] shows the overall transactions affecting a
 particular account (and any subaccounts).
@@ -8642,6 +8774,27 @@ This too can cause an inaccurate running balance.
 (reg)
 .PP
 Show postings and their running total.
+.IP
+.EX
+Flags:
+     \-\-cumulative           show running total from report start date
+                            (default)
+  \-H \-\-historical           show historical running total/balance (includes
+                            postings before report start date)
+  \-A \-\-average              show running average of posting amounts instead
+                            of total (implies \-\-empty)
+  \-m \-\-match=DESC           fuzzy search for one recent posting with
+                            description closest to DESC
+  \-r \-\-related              show postings\[aq] siblings instead
+     \-\-invert               display all amounts with reversed sign
+  \-w \-\-width=N              set output width (default: terminal width or
+                            $COLUMNS). \-wN,M sets description width as well.
+     \-\-align\-all            guarantee alignment across all lines (slower)
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 The register command displays matched postings, across all accounts, in
 date order, with their running total or running historical balance.
@@ -8796,6 +8949,53 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 Show the end balances in asset and liability accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
+.IP
+.EX
+Flags:
+     \-\-sum                  show sum of posting amounts (default)
+     \-\-valuechange          show total change of period\-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     \-\-budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     \-\-change               accumulate amounts from column start to column
+                            end (in multicolumn reports)
+     \-\-cumulative           accumulate amounts from report start (specified
+                            by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+                            (default)
+  \-l \-\-flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth\-clipped.
+  \-t \-\-tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-declared             include non\-parent declared accounts (best used
+                            with \-E)
+  \-A \-\-average              show a row average column (in multicolumn
+                            reports)
+  \-T \-\-row\-total            show a row total column (in multicolumn reports)
+     \-\-summary\-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  \-N \-\-no\-total             omit the final total row
+     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
+                            mode)
+     \-\-format=FORMATSTR     use this custom line format (in simple reports)
+  \-S \-\-sort\-amount          sort by amount instead of account code/name
+  \-% \-\-percent              express values in percentage of each column\[aq]s
+                            total
+     \-\-layout=ARG           how to show multi\-commodity amounts:
+                            \[aq]wide[,WIDTH]\[aq]: all commodities on one line
+                            \[aq]tall\[aq]        : each commodity on a new line
+                            \[aq]bare\[aq]        : bare numbers, symbols in a column
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 This command displays a balance sheet, showing historical ending
 balances of asset and liability accounts.
@@ -8849,6 +9049,53 @@ This command displays a balance sheet, showing historical ending
 balances of asset, liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
+.IP
+.EX
+Flags:
+     \-\-sum                  show sum of posting amounts (default)
+     \-\-valuechange          show total change of period\-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     \-\-budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     \-\-change               accumulate amounts from column start to column
+                            end (in multicolumn reports)
+     \-\-cumulative           accumulate amounts from report start (specified
+                            by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+                            (default)
+  \-l \-\-flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth\-clipped.
+  \-t \-\-tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-declared             include non\-parent declared accounts (best used
+                            with \-E)
+  \-A \-\-average              show a row average column (in multicolumn
+                            reports)
+  \-T \-\-row\-total            show a row total column (in multicolumn reports)
+     \-\-summary\-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  \-N \-\-no\-total             omit the final total row
+     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
+                            mode)
+     \-\-format=FORMATSTR     use this custom line format (in simple reports)
+  \-S \-\-sort\-amount          sort by amount instead of account code/name
+  \-% \-\-percent              express values in percentage of each column\[aq]s
+                            total
+     \-\-layout=ARG           how to show multi\-commodity amounts:
+                            \[aq]wide[,WIDTH]\[aq]: all commodities on one line
+                            \[aq]tall\[aq]        : each commodity on a new line
+                            \[aq]bare\[aq]        : bare numbers, symbols in a column
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 This report shows accounts declared with the \f[CR]Asset\f[R],
 \f[CR]Cash\f[R], \f[CR]Liability\f[R] or \f[CR]Equity\f[R] type (see
@@ -8910,6 +9157,52 @@ and outflows affecting \[dq]cash\[dq] (ie, liquid, easily convertible)
 assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
+.IP
+.EX
+Flags:
+     \-\-sum                  show sum of posting amounts (default)
+     \-\-valuechange          show total change of period\-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     \-\-budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     \-\-change               accumulate amounts from column start to column
+                            end (in multicolumn reports) (default)
+     \-\-cumulative           accumulate amounts from report start (specified
+                            by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  \-l \-\-flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth\-clipped.
+  \-t \-\-tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-declared             include non\-parent declared accounts (best used
+                            with \-E)
+  \-A \-\-average              show a row average column (in multicolumn
+                            reports)
+  \-T \-\-row\-total            show a row total column (in multicolumn reports)
+     \-\-summary\-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  \-N \-\-no\-total             omit the final total row
+     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
+                            mode)
+     \-\-format=FORMATSTR     use this custom line format (in simple reports)
+  \-S \-\-sort\-amount          sort by amount instead of account code/name
+  \-% \-\-percent              express values in percentage of each column\[aq]s
+                            total
+     \-\-layout=ARG           how to show multi\-commodity amounts:
+                            \[aq]wide[,WIDTH]\[aq]: all commodities on one line
+                            \[aq]tall\[aq]        : each commodity on a new line
+                            \[aq]bare\[aq]        : bare numbers, symbols in a column
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 This report shows accounts declared with the \f[CR]Cash\f[R] type (see
 account types).
@@ -8961,6 +9254,52 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 Show revenue inflows and expense outflows during the report period.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
+.IP
+.EX
+Flags:
+     \-\-sum                  show sum of posting amounts (default)
+     \-\-valuechange          show total change of period\-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     \-\-budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     \-\-change               accumulate amounts from column start to column
+                            end (in multicolumn reports) (default)
+     \-\-cumulative           accumulate amounts from report start (specified
+                            by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  \-l \-\-flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth\-clipped.
+  \-t \-\-tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-declared             include non\-parent declared accounts (best used
+                            with \-E)
+  \-A \-\-average              show a row average column (in multicolumn
+                            reports)
+  \-T \-\-row\-total            show a row total column (in multicolumn reports)
+     \-\-summary\-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  \-N \-\-no\-total             omit the final total row
+     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
+                            mode)
+     \-\-format=FORMATSTR     use this custom line format (in simple reports)
+  \-S \-\-sort\-amount          sort by amount instead of account code/name
+  \-% \-\-percent              express values in percentage of each column\[aq]s
+                            total
+     \-\-layout=ARG           how to show multi\-commodity amounts:
+                            \[aq]wide[,WIDTH]\[aq]: all commodities on one line
+                            \[aq]tall\[aq]        : each commodity on a new line
+                            \[aq]bare\[aq]        : bare numbers, symbols in a column
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 This command displays an income statement, showing revenues and expenses
 during one or more periods.
@@ -9016,6 +9355,65 @@ A flexible, general purpose \[dq]summing\[dq] report that shows accounts
 with some kind of numeric data.
 This can be balance changes per period, end balances, budget
 performance, unrealised capital gains, etc.
+.IP
+.EX
+Flags:
+     \-\-sum                  show sum of posting amounts (default)
+     \-\-budget[=DESCPAT]     show sum of posting amounts together with budget
+                            goals defined by periodic
+                            transactions. With a DESCPAT argument (must be
+                            separated by = not space),
+                            use only periodic transactions with matching
+                            description
+                            (case insensitive substring match).
+     \-\-valuechange          show total change of value of period\-end
+                            historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     \-\-count                show the count of postings
+     \-\-change               accumulate amounts from column start to column
+                            end (in multicolumn reports, default)
+     \-\-cumulative           accumulate amounts from report start (specified
+                            by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  \-l \-\-flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth\-clipped.
+  \-t \-\-tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     \-\-drop=N               omit N leading account name parts (in flat mode)
+     \-\-declared             include non\-parent declared accounts (best used
+                            with \-E)
+  \-A \-\-average              show a row average column (in multicolumn
+                            reports)
+  \-r \-\-related              show postings\[aq] siblings instead
+  \-T \-\-row\-total            show a row total column (in multicolumn reports)
+     \-\-summary\-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  \-N \-\-no\-total             omit the final total row
+     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
+                            mode)
+     \-\-format=FORMATSTR     use this custom line format (in simple reports)
+  \-S \-\-sort\-amount          sort by amount instead of account code/name (in
+                            flat mode). With multiple columns, sorts by the row
+                            total, or by row average if that is displayed.
+  \-% \-\-percent              express values in percentage of each column\[aq]s
+                            total
+     \-\-invert               display all amounts with reversed sign
+     \-\-transpose            transpose rows and columns
+     \-\-layout=ARG           how to lay out multi\-commodity amounts and the
+                            overall table:
+                            \[aq]wide[,WIDTH]\[aq]: commodities on one line
+                            \[aq]tall\[aq]        : commodities on separate lines
+                            \[aq]bare\[aq]        : commodity symbols in one column
+                            \[aq]tidy\[aq]        : every attribute in its own column
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+.EE
 .PP
 \f[CR]balance\f[R] is one of hledger\[aq]s oldest and most versatile
 commands, for listing account balances, balance changes, values, value
@@ -10110,6 +10508,15 @@ Show top gainers [or losers] last week
 .SS roi
 Shows the time\-weighted (TWR) and money\-weighted (IRR) rate of return
 on your investments.
+.IP
+.EX
+Flags:
+     \-\-cashflow                 show all amounts that were used to compute
+                                returns
+     \-\-investment=QUERY         query to select your investment transactions
+     \-\-profit\-loss=QUERY \-\-pnl  query to select profit\-and\-loss or
+                                appreciation/valuation transactions
+.EE
 .PP
 At a minimum, you need to supply a query (which could be just an account
 name) to select your investment(s) with \f[CR]\-\-inv\f[R], and another
@@ -10304,6 +10711,11 @@ both metrics
 .SH Chart commands
 .SS activity
 Show an ascii barchart of posting counts per interval.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 The activity command displays an ascii histogram showing transaction
 counts by day, week, month or other reporting interval (by day is the
@@ -10330,6 +10742,38 @@ equity, consolidating balances, or viewing lots.
 Like \f[CR]print\f[R], it prints valid journal entries.
 You can append or copy these to your journal file(s) when you are happy
 with how they look.
+.IP
+.EX
+Flags:
+     \-\-migrate[=NEW]        show closing and opening transactions, for Asset
+                            and Liability accounts by default, tagged for easy
+                            matching. The tag\[aq]s default value can be overridden
+                            by providing NEW.
+     \-\-close[=NEW]          (default) show a closing transaction
+     \-\-open[=NEW]           show an opening transaction
+     \-\-assign[=NEW]         show opening balance assignments
+     \-\-assert[=NEW]         show closing balance assertions
+     \-\-retain[=NEW]         show a retain earnings transaction, for Revenue
+                            and Expense accounts by default
+  \-x \-\-explicit             show all amounts explicitly
+     \-\-show\-costs           show amounts with different costs separately
+     \-\-interleaved          show source and destination postings together
+     \-\-assertion\-type=TYPE  =, ==, =* or ==*
+     \-\-close\-desc=DESC      set closing transaction\[aq]s description
+     \-\-close\-acct=ACCT      set closing transaction\[aq]s destination account
+     \-\-open\-desc=DESC       set opening transaction\[aq]s description
+     \-\-open\-acct=ACCT       set opening transaction\[aq]s source account
+     \-\-round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none \- show original decimal digits,
+                                   as in journal
+                            soft \- just add or remove decimal zeros
+                                   to match precision (default)
+                            hard \- round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  \- also round cost amounts to precision
+                                   (can unbalance transactions)
+.EE
 .PP
 \f[CR]close\f[R] currently has six modes, selected by a single mode
 flag:
@@ -10544,6 +10988,18 @@ See examples/multi\-year.
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
 \-\-auto.
+.IP
+.EX
+Flags:
+     \-\-add\-posting=\[aq]ACCT  AMTEXPR\[aq]  add a posting to ACCT, which may be
+                                    parenthesised. AMTEXPR is either a literal
+                                    amount, or *N which means the transaction\[aq]s
+                                    first matched amount multiplied by N (a
+                                    decimal number). Two spaces separate ACCT
+                                    and AMTEXPR.
+     \-\-diff                         generate diff suitable as an input for
+                                    patch tool
+.EE
 .PP
 This is a start at a generic rewriter of transaction entries.
 It reads the default journal and prints the transactions, like print,
@@ -10689,6 +11145,11 @@ print \-\-auto applies rules specified in the journal.
 .SH Maintenance commands
 .SS check
 Check for various kinds of errors in your data.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 hledger provides a number of built\-in correctness checks to help
 validate your data and prevent errors.
@@ -10800,18 +11261,25 @@ assertions are passing
 Compares a particular account\[aq]s transactions in two input files.
 It shows any transactions to this account which are in one file but not
 in the other.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
-More precisely, for each posting affecting this account in either file,
-it looks for a corresponding posting in the other file which posts the
-same amount to the same account (ignoring date, description, etc.)
-Since postings not transactions are compared, this also works when
+More precisely: for each posting affecting this account in either file,
+this command looks for a corresponding posting in the other file which
+posts the same amount to the same account (ignoring date, description,
+etc).
+.PP
+Since it compares postings, not transactions, this also works when
 multiple bank transactions have been combined into a single journal
 entry.
 .PP
-This is useful eg if you have downloaded an account\[aq]s transactions
-from your bank (eg as CSV data).
-When hledger and your bank disagree about the account balance, you can
-compare the bank data with your journal to find out the cause.
+This command is useful eg if you have downloaded an account\[aq]s
+transactions from your bank (eg as CSV data): when hledger and your bank
+disagree about the account balance, you can compare the bank data with
+your journal to find out the cause.
 .PP
 Examples:
 .IP
@@ -10828,6 +11296,11 @@ These transactions are in the second file only:
 .EE
 .SS test
 Run built\-in unit tests.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
 .PP
 This command runs the unit tests built in to hledger and hledger\-lib,
 printing the results on stdout.

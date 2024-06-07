@@ -7421,6 +7421,12 @@ Show the hledger user manual with 'info', 'man', or a pager.  With a
 (case insensitive) TOPIC argument, try to open it at that section
 heading.
 
+Flags:
+  -i            show the manual with info
+  -m            show the manual with man
+  -p            show the manual with $PAGER or less
+                (less is always used if TOPIC is specified)
+
    This command shows the hledger manual built in to your hledger
 executable.  It can be useful when offline, or when you prefer the
 terminal to a web browser, or when the appropriate hledger manual or
@@ -7454,6 +7460,10 @@ File: hledger.info,  Node: demo,  Prev: help,  Up: Help commands
 =========
 
 Play demos of hledger usage in the terminal, if asciinema is installed.
+
+Flags:
+  -s --speed=SPEED  playback speed (1 is original speed, .5 is half, 2 is
+                    double, etc (default: 2))
 
    Run this command with no argument to list the demos.  To play a demo,
 write its number or a prefix or substring of its title.  Tips:
@@ -7522,6 +7532,9 @@ File: hledger.info,  Node: add,  Next: import,  Up: Data entry commands
 
 Record new transactions with interactive prompting in the console.
 
+Flags:
+     --no-new-accounts      don't allow creating new accounts
+
    Many hledger users edit their journals directly with a text editor,
 or generate them from CSV. For more interactive data entry, there is the
 'add' command, which prompts interactively on the console for new
@@ -7585,6 +7598,10 @@ File: hledger.info,  Node: import,  Prev: add,  Up: Data entry commands
 ===========
 
 Import new transactions from one or more data files to the main journal.
+
+Flags:
+     --catchup              just mark all transactions as already imported
+     --dry-run              just show the transactions to be imported
 
    This command detects new transactions in each FILE argument since it
 was last run, and appends them to the main journal.
@@ -7766,6 +7783,21 @@ File: hledger.info,  Node: accounts,  Next: codes,  Up: Basic report commands
 
 List account names.
 
+Flags:
+  -u --used                 show only accounts used by transactions
+  -d --declared             show only accounts declared by account directive
+     --unused               show only accounts declared but not used
+     --undeclared           show only accounts used but not declared
+     --types                also show account types when known
+     --positions            also show where accounts were declared
+     --directives           show as account directives, for use in journals
+     --find                 find the first account matched by the first
+                            argument (a case-insensitive infix regexp or
+                            account name)
+  -l --flat                 show accounts as a flat list (default)
+  -t --tree                 show accounts as a tree
+     --drop=N               flat mode: omit N leading account name parts
+
    This command lists account names.  By default it shows all known
 accounts, either used in transactions or declared with account
 directives.
@@ -7823,6 +7855,9 @@ File: hledger.info,  Node: codes,  Next: commodities,  Prev: accounts,  Up: Basi
 
 List the codes seen in transactions, in the order parsed.
 
+Flags:
+no command-specific flags
+
    This command prints the value of each transaction's code field, in
 the order transactions were parsed.  The transaction code is an optional
 value written in parentheses between the date and description, often
@@ -7871,6 +7906,9 @@ File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: codes,  Up: 
 
 List all commodity/currency symbols used or declared in the journal.
 
+Flags:
+no command-specific flags
+
 
 File: hledger.info,  Node: descriptions,  Next: files,  Prev: commodities,  Up: Basic report commands
 
@@ -7878,6 +7916,9 @@ File: hledger.info,  Node: descriptions,  Next: files,  Prev: commodities,  Up: 
 =================
 
 List the unique descriptions that appear in transactions.
+
+Flags:
+no command-specific flags
 
    This command lists the unique descriptions that appear in
 transactions, in alphabetic order.  You can add a query to select a
@@ -7899,6 +7940,9 @@ File: hledger.info,  Node: files,  Next: notes,  Prev: descriptions,  Up: Basic 
 List all files included in the journal.  With a REGEX argument, only
 file names matching the regular expression (case sensitive) are shown.
 
+Flags:
+no command-specific flags
+
 
 File: hledger.info,  Node: notes,  Next: payees,  Prev: files,  Up: Basic report commands
 
@@ -7906,6 +7950,9 @@ File: hledger.info,  Node: notes,  Next: payees,  Prev: files,  Up: Basic report
 ==========
 
 List the unique notes that appear in transactions.
+
+Flags:
+no command-specific flags
 
    This command lists the unique notes that appear in transactions, in
 alphabetic order.  You can add a query to select a subset of
@@ -7925,6 +7972,10 @@ File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: Basic repor
 ===========
 
 List the unique payee/payer names that appear in transactions.
+
+Flags:
+     --declared             show payees declared with payee directives
+     --used                 show payees referenced by transactions
 
    This command lists unique payee/payer names which have been declared
 with payee directives (-declared), used in transaction descriptions
@@ -7954,6 +8005,10 @@ Print the market prices declared with P directives.  With
 costs.  With -show-reverse, also show additional prices inferred by
 reversing known prices.
 
+Flags:
+     --show-reverse         also show the prices inferred by reversing known
+                            prices
+
    Price amounts are always displayed with their full precision, except
 for reverse prices which are limited to 8 decimal digits.
 
@@ -7971,6 +8026,10 @@ File: hledger.info,  Node: stats,  Next: tags,  Prev: prices,  Up: Basic report 
 ==========
 
 Show journal and performance statistics.
+
+Flags:
+  -v --verbose              show more detailed output
+  -o --output-file=FILE     write output to FILE.
 
    The stats command shows summary information for the whole journal, or
 a matched part of it.  With a reporting interval, it shows a report for
@@ -8020,6 +8079,11 @@ File: hledger.info,  Node: tags,  Prev: stats,  Up: Basic report commands
 
 List the tags used in the journal, or their values.
 
+Flags:
+     --values               list tag values instead of tag names
+     --parsed               show tags/values in the order they were parsed,
+                            including duplicates
+
    This command lists the tag names used in the journal, whether on
 transactions, postings, or account declarations.
 
@@ -8065,6 +8129,29 @@ File: hledger.info,  Node: print,  Next: aregister,  Up: Standard report command
 ==========
 
 Show full journal entries, representing transactions.
+
+Flags:
+  -x --explicit             show all amounts explicitly
+     --show-costs           show transaction prices even with conversion
+                            postings
+     --round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none - show original decimal digits,
+                                   as in journal
+                            soft - just add or remove decimal zeros
+                                   to match precision (default)
+                            hard - round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  - also round cost amounts to precision
+                                   (can unbalance transactions)
+     --new                  show only newer-dated transactions added in each
+                            file since last run
+  -m --match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, beancount, csv, tsv, json, sql.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
    The print command displays full journal entries (transactions) from
 the journal file, sorted by date (or with '--date2', by secondary date).
@@ -8266,6 +8353,19 @@ File: hledger.info,  Node: aregister,  Next: register,  Prev: print,  Up: Standa
    Show the transactions and running balances in one account, with each
 transaction on one line.
 
+Flags:
+     --txn-dates            filter strictly by transaction date, not posting
+                            date. Warning: this can show a wrong running
+                            balance.
+     --no-elide             don't show only 2 commodities per amount
+  -w --width=N              set output width (default: terminal width or
+                            $COLUMNS). -wN,M sets description width as well.
+     --align-all            guarantee alignment across all lines (slower)
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+
    'aregister' shows the overall transactions affecting a particular
 account (and any subaccounts).  Each report line represents one
 transaction in this account.  Transactions before the report start date
@@ -8360,6 +8460,25 @@ File: hledger.info,  Node: register,  Next: balancesheet,  Prev: aregister,  Up:
 (reg)
 
    Show postings and their running total.
+
+Flags:
+     --cumulative           show running total from report start date
+                            (default)
+  -H --historical           show historical running total/balance (includes
+                            postings before report start date)
+  -A --average              show running average of posting amounts instead
+                            of total (implies --empty)
+  -m --match=DESC           fuzzy search for one recent posting with
+                            description closest to DESC
+  -r --related              show postings' siblings instead
+     --invert               display all amounts with reversed sign
+  -w --width=N              set output width (default: terminal width or
+                            $COLUMNS). -wN,M sets description width as well.
+     --align-all            guarantee alignment across all lines (slower)
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
    The register command displays matched postings, across all accounts,
 in date order, with their running total or running historical balance.
@@ -8505,6 +8624,51 @@ File: hledger.info,  Node: balancesheet,  Next: balancesheetequity,  Prev: regis
 shown with normal positive sign, as in conventional financial
 statements.
 
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --valuechange          show total change of period-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+                            (default)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               flat mode: omit N leading account name parts
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name
+  -% --percent              express values in percentage of each column's
+                            total
+     --layout=ARG           how to show multi-commodity amounts:
+                            'wide[,WIDTH]': all commodities on one line
+                            'tall'        : each commodity on a new line
+                            'bare'        : bare numbers, symbols in a column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+
    This command displays a balance sheet, showing historical ending
 balances of asset and liability accounts.  (To see equity as well, use
 the balancesheetequity command.)
@@ -8557,6 +8721,51 @@ File: hledger.info,  Node: balancesheetequity,  Next: cashflow,  Prev: balancesh
    This command displays a balance sheet, showing historical ending
 balances of asset, liability and equity accounts.  Amounts are shown
 with normal positive sign, as in conventional financial statements.
+
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --valuechange          show total change of period-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+                            (default)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               flat mode: omit N leading account name parts
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name
+  -% --percent              express values in percentage of each column's
+                            total
+     --layout=ARG           how to show multi-commodity amounts:
+                            'wide[,WIDTH]': all commodities on one line
+                            'tall'        : each commodity on a new line
+                            'bare'        : bare numbers, symbols in a column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
    This report shows accounts declared with the 'Asset', 'Cash',
 'Liability' or 'Equity' type (see account types).  Or if no such
@@ -8619,6 +8828,50 @@ inflows and outflows affecting "cash" (ie, liquid, easily convertible)
 assets.  Amounts are shown with normal positive sign, as in conventional
 financial statements.
 
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --valuechange          show total change of period-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports) (default)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               flat mode: omit N leading account name parts
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name
+  -% --percent              express values in percentage of each column's
+                            total
+     --layout=ARG           how to show multi-commodity amounts:
+                            'wide[,WIDTH]': all commodities on one line
+                            'tall'        : each commodity on a new line
+                            'bare'        : bare numbers, symbols in a column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+
    This report shows accounts declared with the 'Cash' type (see account
 types).  Or if no such accounts are declared, it shows accounts
 
@@ -8668,6 +8921,50 @@ File: hledger.info,  Node: incomestatement,  Prev: cashflow,  Up: Standard repor
    Show revenue inflows and expense outflows during the report period.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
+
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --valuechange          show total change of period-end historical
+                            balance value (caused by deposits, withdrawals,
+                            market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --budget               show sum of posting amounts compared to budget
+                            goals defined by periodic transactions
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports) (default)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               flat mode: omit N leading account name parts
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name
+  -% --percent              express values in percentage of each column's
+                            total
+     --layout=ARG           how to show multi-commodity amounts:
+                            'wide[,WIDTH]': all commodities on one line
+                            'tall'        : each commodity on a new line
+                            'bare'        : bare numbers, symbols in a column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
    This command displays an income statement, showing revenues and
 expenses during one or more periods.
@@ -8732,6 +9029,63 @@ File: hledger.info,  Node: balance,  Next: roi,  Up: Advanced report commands
    A flexible, general purpose "summing" report that shows accounts with
 some kind of numeric data.  This can be balance changes per period, end
 balances, budget performance, unrealised capital gains, etc.
+
+Flags:
+     --sum                  show sum of posting amounts (default)
+     --budget[=DESCPAT]     show sum of posting amounts together with budget
+                            goals defined by periodic
+                            transactions. With a DESCPAT argument (must be
+                            separated by = not space),
+                            use only periodic transactions with matching
+                            description
+                            (case insensitive substring match).
+     --valuechange          show total change of value of period-end
+                            historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
+     --count                show the count of postings
+     --change               accumulate amounts from column start to column
+                            end (in multicolumn reports, default)
+     --cumulative           accumulate amounts from report start (specified
+                            by e.g. -b/--begin) to column end
+  -H --historical           accumulate amounts from journal start to column
+                            end (includes postings before report start date)
+  -l --flat                 show accounts as a flat list (default). Amounts
+                            exclude subaccount amounts, except where the
+                            account is depth-clipped.
+  -t --tree                 show accounts as a tree. Amounts include
+                            subaccount amounts.
+     --drop=N               omit N leading account name parts (in flat mode)
+     --declared             include non-parent declared accounts (best used
+                            with -E)
+  -A --average              show a row average column (in multicolumn
+                            reports)
+  -r --related              show postings' siblings instead
+  -T --row-total            show a row total column (in multicolumn reports)
+     --summary-only         display only row summaries (e.g. row total,
+                            average) (in multicolumn reports)
+  -N --no-total             omit the final total row
+     --no-elide             don't squash boring parent accounts (in tree
+                            mode)
+     --format=FORMATSTR     use this custom line format (in simple reports)
+  -S --sort-amount          sort by amount instead of account code/name (in
+                            flat mode). With multiple columns, sorts by the row
+                            total, or by row average if that is displayed.
+  -% --percent              express values in percentage of each column's
+                            total
+     --invert               display all amounts with reversed sign
+     --transpose            transpose rows and columns
+     --layout=ARG           how to lay out multi-commodity amounts and the
+                            overall table:
+                            'wide[,WIDTH]': commodities on one line
+                            'tall'        : commodities on separate lines
+                            'bare'        : commodity symbols in one column
+                            'tidy'        : every attribute in its own column
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, html, csv, tsv, json.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 
    'balance' is one of hledger's oldest and most versatile commands, for
 listing account balances, balance changes, values, value changes and
@@ -9760,6 +10114,13 @@ File: hledger.info,  Node: roi,  Prev: balance,  Up: Advanced report commands
 Shows the time-weighted (TWR) and money-weighted (IRR) rate of return on
 your investments.
 
+Flags:
+     --cashflow                 show all amounts that were used to compute
+                                returns
+     --investment=QUERY         query to select your investment transactions
+     --profit-loss=QUERY --pnl  query to select profit-and-loss or
+                                appreciation/valuation transactions
+
    At a minimum, you need to supply a query (which could be just an
 account name) to select your investment(s) with '--inv', and another
 query to identify your profit and loss transactions with '--pnl'.
@@ -9961,6 +10322,9 @@ File: hledger.info,  Node: activity,  Up: Chart commands
 
 Show an ascii barchart of posting counts per interval.
 
+Flags:
+no command-specific flags
+
    The activity command displays an ascii histogram showing transaction
 counts by day, week, month or other reporting interval (by day is the
 default).  With query arguments, it counts only matched transactions.
@@ -9998,6 +10362,36 @@ to a new journal file, retaining earnings into equity, consolidating
 balances, or viewing lots.  Like 'print', it prints valid journal
 entries.  You can append or copy these to your journal file(s) when you
 are happy with how they look.
+
+Flags:
+     --migrate[=NEW]        show closing and opening transactions, for Asset
+                            and Liability accounts by default, tagged for easy
+                            matching. The tag's default value can be overridden
+                            by providing NEW.
+     --close[=NEW]          (default) show a closing transaction
+     --open[=NEW]           show an opening transaction
+     --assign[=NEW]         show opening balance assignments
+     --assert[=NEW]         show closing balance assertions
+     --retain[=NEW]         show a retain earnings transaction, for Revenue
+                            and Expense accounts by default
+  -x --explicit             show all amounts explicitly
+     --show-costs           show amounts with different costs separately
+     --interleaved          show source and destination postings together
+     --assertion-type=TYPE  =, ==, =* or ==*
+     --close-desc=DESC      set closing transaction's description
+     --close-acct=ACCT      set closing transaction's destination account
+     --open-desc=DESC       set opening transaction's description
+     --open-acct=ACCT       set opening transaction's source account
+     --round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none - show original decimal digits,
+                                   as in journal
+                            soft - just add or remove decimal zeros
+                                   to match precision (default)
+                            hard - round posting amounts to precision
+                                   (can unbalance transactions)
+                            all  - also round cost amounts to precision
+                                   (can unbalance transactions)
 
    'close' currently has six modes, selected by a single mode flag:
 
@@ -10270,6 +10664,16 @@ Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
 -auto.
 
+Flags:
+     --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
+                                    parenthesised. AMTEXPR is either a literal
+                                    amount, or *N which means the transaction's
+                                    first matched amount multiplied by N (a
+                                    decimal number). Two spaces separate ACCT
+                                    and AMTEXPR.
+     --diff                         generate diff suitable as an input for
+                                    patch tool
+
    This is a start at a generic rewriter of transaction entries.  It
 reads the default journal and prints the transactions, like print, but
 adds one or more specified postings to any transactions matching QUERY.
@@ -10432,6 +10836,9 @@ File: hledger.info,  Node: check,  Next: diff,  Up: Maintenance commands
 
 Check for various kinds of errors in your data.
 
+Flags:
+no command-specific flags
+
    hledger provides a number of built-in correctness checks to help
 validate your data and prevent errors.  Some are run automatically, some
 when you enable '--strict' mode; or you can run any of them on demand by
@@ -10566,17 +10973,22 @@ Compares a particular account's transactions in two input files.  It
 shows any transactions to this account which are in one file but not in
 the other.
 
-   More precisely, for each posting affecting this account in either
-file, it looks for a corresponding posting in the other file which posts
-the same amount to the same account (ignoring date, description, etc.)
-Since postings not transactions are compared, this also works when
+Flags:
+no command-specific flags
+
+   More precisely: for each posting affecting this account in either
+file, this command looks for a corresponding posting in the other file
+which posts the same amount to the same account (ignoring date,
+description, etc).
+
+   Since it compares postings, not transactions, this also works when
 multiple bank transactions have been combined into a single journal
 entry.
 
-   This is useful eg if you have downloaded an account's transactions
-from your bank (eg as CSV data).  When hledger and your bank disagree
-about the account balance, you can compare the bank data with your
-journal to find out the cause.
+   This command is useful eg if you have downloaded an account's
+transactions from your bank (eg as CSV data): when hledger and your bank
+disagree about the account balance, you can compare the bank data with
+your journal to find out the cause.
 
    Examples:
 
@@ -10597,6 +11009,9 @@ File: hledger.info,  Node: test,  Prev: diff,  Up: Maintenance commands
 =========
 
 Run built-in unit tests.
+
+Flags:
+no command-specific flags
 
    This command runs the unit tests built in to hledger and hledger-lib,
 printing the results on stdout.  If any test fails, the exit code will
@@ -11613,228 +12028,228 @@ Node: Help commands269915
 Ref: #help-commands270060
 Node: help270088
 Ref: #help270177
-Node: demo271546
-Ref: #demo271635
-Node: User interface commands272551
-Ref: #user-interface-commands272720
-Node: ui272745
-Ref: #ui272837
-Node: web272870
-Ref: #web272964
-Node: Data entry commands272998
-Ref: #data-entry-commands273167
-Node: add273196
-Ref: #add273290
-Node: import275681
-Ref: #import275781
-Node: Date skipping276789
-Ref: #date-skipping276912
-Node: Import testing279690
-Ref: #import-testing279853
-Node: Importing balance assignments280696
-Ref: #importing-balance-assignments280903
-Node: Import and commodity styles281552
-Ref: #import-and-commodity-styles281732
-Node: Basic report commands281961
-Ref: #basic-report-commands282135
-Node: accounts282262
-Ref: #accounts282372
-Node: codes284259
-Ref: #codes284383
-Node: commodities285247
-Ref: #commodities285387
-Node: descriptions285457
-Ref: #descriptions285599
-Node: files285890
-Ref: #files286012
-Node: notes286153
-Ref: #notes286269
-Node: payees286631
-Ref: #payees286750
-Node: prices287269
-Ref: #prices287388
-Node: stats288041
-Ref: #stats288156
-Node: tags289670
-Ref: #tags-1289770
-Node: Standard report commands290779
-Ref: #standard-report-commands290964
-Node: print291084
-Ref: #print291192
-Node: print explicitness292172
-Ref: #print-explicitness292313
-Node: print amount style293092
-Ref: #print-amount-style293260
-Node: print parseability294330
-Ref: #print-parseability294500
-Node: print other features295249
-Ref: #print-other-features295426
-Node: print output format295947
-Ref: #print-output-format296093
-Node: aregister299232
-Ref: #aregister299365
-Node: aregister and posting dates302246
-Ref: #aregister-and-posting-dates302391
-Node: register303147
-Ref: #register303285
-Node: Custom register output308316
-Ref: #custom-register-output308445
-Node: balancesheet309792
-Ref: #balancesheet309947
-Node: balancesheetequity311609
-Ref: #balancesheetequity311776
-Node: cashflow313796
-Ref: #cashflow313946
-Node: incomestatement315433
-Ref: #incomestatement315570
-Node: Advanced report commands317106
-Ref: #advanced-report-commands317284
-Node: balance317314
-Ref: #balance317422
-Node: balance features318581
-Ref: #balance-features318721
-Node: Simple balance report320631
-Ref: #simple-balance-report320816
-Node: Balance report line format322441
-Ref: #balance-report-line-format322643
-Node: Filtered balance report324801
-Ref: #filtered-balance-report324993
-Node: List or tree mode325320
-Ref: #list-or-tree-mode325488
-Node: Depth limiting326833
-Ref: #depth-limiting326999
-Node: Dropping top-level accounts327600
-Ref: #dropping-top-level-accounts327800
-Node: Showing declared accounts328110
-Ref: #showing-declared-accounts328309
-Node: Sorting by amount328840
-Ref: #sorting-by-amount329007
-Node: Percentages329677
-Ref: #percentages329836
-Node: Multi-period balance report330384
-Ref: #multi-period-balance-report330584
-Node: Balance change end balance333136
-Ref: #balance-change-end-balance333345
-Node: Balance report types334773
-Ref: #balance-report-types334954
-Node: Calculation type335452
-Ref: #calculation-type335607
-Node: Accumulation type336156
-Ref: #accumulation-type336336
-Node: Valuation type337257
-Ref: #valuation-type337445
-Node: Combining balance report types338446
-Ref: #combining-balance-report-types338640
-Node: Budget report340478
-Ref: #budget-report340640
-Node: Using the budget report342783
-Ref: #using-the-budget-report342956
-Node: Budget date surprises345059
-Ref: #budget-date-surprises345259
-Node: Selecting budget goals346423
-Ref: #selecting-budget-goals346626
-Node: Budgeting vs forecasting347371
-Ref: #budgeting-vs-forecasting347548
-Node: Balance report layout349048
-Ref: #balance-report-layout349233
-Node: Wide layout350186
-Ref: #wide-layout350321
-Node: Tall layout352591
-Ref: #tall-layout352746
-Node: Bare layout353897
-Ref: #bare-layout354052
-Node: Tidy layout355956
-Ref: #tidy-layout356091
-Node: Some useful balance reports357500
-Ref: #some-useful-balance-reports357675
-Node: roi358760
-Ref: #roi358860
-Node: Spaces and special characters in --inv and --pnl360672
-Ref: #spaces-and-special-characters-in---inv-and---pnl360910
-Node: Semantics of --inv and --pnl361398
-Ref: #semantics-of---inv-and---pnl361635
-Node: IRR and TWR explained363485
-Ref: #irr-and-twr-explained363643
-Node: Chart commands366896
-Ref: #chart-commands367054
-Node: activity367077
-Ref: #activity367166
-Node: Data generation commands367540
-Ref: #data-generation-commands367714
-Node: close367746
-Ref: #close367852
-Node: close --migrate368505
-Ref: #close---migrate368630
-Node: close --close370269
-Ref: #close---close370411
-Node: close --open370647
-Ref: #close---open370786
-Node: close --assert370896
-Ref: #close---assert371040
-Node: close --assign371261
-Ref: #close---assign371407
-Node: close --retain371933
-Ref: #close---retain372084
-Node: close customisation372829
-Ref: #close-customisation373006
-Node: close and balance assertions374473
-Ref: #close-and-balance-assertions374668
-Node: close examples375995
-Ref: #close-examples376134
-Node: Retain earnings376232
-Ref: #retain-earnings376389
-Node: Migrate balances to a new file376735
-Ref: #migrate-balances-to-a-new-file376959
-Node: More detailed close examples378087
-Ref: #more-detailed-close-examples378283
-Node: rewrite378309
-Ref: #rewrite378419
-Node: Re-write rules in a file380317
-Ref: #re-write-rules-in-a-file380478
-Node: Diff output format381627
-Ref: #diff-output-format381808
-Node: rewrite vs print --auto382900
-Ref: #rewrite-vs.-print---auto383058
-Node: Maintenance commands383614
-Ref: #maintenance-commands383785
-Node: check383823
-Ref: #check383922
-Node: Basic checks384871
-Ref: #basic-checks384989
-Node: Strict checks385824
-Ref: #strict-checks385965
-Node: Other checks386699
-Ref: #other-checks386839
-Node: Custom checks388554
-Ref: #custom-checks388674
-Node: diff389009
-Ref: #diff389119
-Node: test390161
-Ref: #test390257
-Node: PART 5 COMMON TASKS390999
-Ref: #part-5-common-tasks391158
-Node: Getting help391232
-Ref: #getting-help391381
-Node: Constructing command lines392141
-Ref: #constructing-command-lines392322
-Node: Starting a journal file392979
-Ref: #starting-a-journal-file393161
-Node: Setting LEDGER_FILE394363
-Ref: #setting-ledger_file394535
-Node: Setting opening balances395492
-Ref: #setting-opening-balances395673
-Node: Recording transactions398814
-Ref: #recording-transactions398983
-Node: Reconciling399539
-Ref: #reconciling399671
-Node: Reporting401928
-Ref: #reporting402057
-Node: Migrating to a new file406042
-Ref: #migrating-to-a-new-file406192
-Node: BUGS406491
-Ref: #bugs406585
-Node: Troubleshooting407464
-Ref: #troubleshooting407564
+Node: demo271749
+Ref: #demo271838
+Node: User interface commands272882
+Ref: #user-interface-commands273051
+Node: ui273076
+Ref: #ui273168
+Node: web273201
+Ref: #web273295
+Node: Data entry commands273329
+Ref: #data-entry-commands273498
+Node: add273527
+Ref: #add273621
+Node: import276082
+Ref: #import276182
+Node: Date skipping277343
+Ref: #date-skipping277466
+Node: Import testing280244
+Ref: #import-testing280407
+Node: Importing balance assignments281250
+Ref: #importing-balance-assignments281457
+Node: Import and commodity styles282106
+Ref: #import-and-commodity-styles282286
+Node: Basic report commands282515
+Ref: #basic-report-commands282689
+Node: accounts282816
+Ref: #accounts282926
+Node: codes285689
+Ref: #codes285813
+Node: commodities286711
+Ref: #commodities286851
+Node: descriptions286955
+Ref: #descriptions287097
+Node: files287422
+Ref: #files287544
+Node: notes287719
+Ref: #notes287835
+Node: payees288231
+Ref: #payees288350
+Node: prices289015
+Ref: #prices289134
+Node: stats289907
+Ref: #stats290022
+Node: tags291648
+Ref: #tags-1291748
+Node: Standard report commands292955
+Ref: #standard-report-commands293140
+Node: print293260
+Ref: #print293368
+Node: print explicitness295706
+Ref: #print-explicitness295847
+Node: print amount style296626
+Ref: #print-amount-style296794
+Node: print parseability297864
+Ref: #print-parseability298034
+Node: print other features298783
+Ref: #print-other-features298960
+Node: print output format299481
+Ref: #print-output-format299627
+Node: aregister302766
+Ref: #aregister302899
+Node: aregister and posting dates306546
+Ref: #aregister-and-posting-dates306691
+Node: register307447
+Ref: #register307585
+Node: Custom register output313750
+Ref: #custom-register-output313879
+Node: balancesheet315226
+Ref: #balancesheet315381
+Node: balancesheetequity319862
+Ref: #balancesheetequity320029
+Node: cashflow324868
+Ref: #cashflow325018
+Node: incomestatement329296
+Ref: #incomestatement329433
+Node: Advanced report commands333760
+Ref: #advanced-report-commands333938
+Node: balance333968
+Ref: #balance334076
+Node: balance features338851
+Ref: #balance-features338991
+Node: Simple balance report340901
+Ref: #simple-balance-report341086
+Node: Balance report line format342711
+Ref: #balance-report-line-format342913
+Node: Filtered balance report345071
+Ref: #filtered-balance-report345263
+Node: List or tree mode345590
+Ref: #list-or-tree-mode345758
+Node: Depth limiting347103
+Ref: #depth-limiting347269
+Node: Dropping top-level accounts347870
+Ref: #dropping-top-level-accounts348070
+Node: Showing declared accounts348380
+Ref: #showing-declared-accounts348579
+Node: Sorting by amount349110
+Ref: #sorting-by-amount349277
+Node: Percentages349947
+Ref: #percentages350106
+Node: Multi-period balance report350654
+Ref: #multi-period-balance-report350854
+Node: Balance change end balance353406
+Ref: #balance-change-end-balance353615
+Node: Balance report types355043
+Ref: #balance-report-types355224
+Node: Calculation type355722
+Ref: #calculation-type355877
+Node: Accumulation type356426
+Ref: #accumulation-type356606
+Node: Valuation type357527
+Ref: #valuation-type357715
+Node: Combining balance report types358716
+Ref: #combining-balance-report-types358910
+Node: Budget report360748
+Ref: #budget-report360910
+Node: Using the budget report363053
+Ref: #using-the-budget-report363226
+Node: Budget date surprises365329
+Ref: #budget-date-surprises365529
+Node: Selecting budget goals366693
+Ref: #selecting-budget-goals366896
+Node: Budgeting vs forecasting367641
+Ref: #budgeting-vs-forecasting367818
+Node: Balance report layout369318
+Ref: #balance-report-layout369503
+Node: Wide layout370456
+Ref: #wide-layout370591
+Node: Tall layout372861
+Ref: #tall-layout373016
+Node: Bare layout374167
+Ref: #bare-layout374322
+Node: Tidy layout376226
+Ref: #tidy-layout376361
+Node: Some useful balance reports377770
+Ref: #some-useful-balance-reports377945
+Node: roi379030
+Ref: #roi379130
+Node: Spaces and special characters in --inv and --pnl381277
+Ref: #spaces-and-special-characters-in---inv-and---pnl381515
+Node: Semantics of --inv and --pnl382003
+Ref: #semantics-of---inv-and---pnl382240
+Node: IRR and TWR explained384090
+Ref: #irr-and-twr-explained384248
+Node: Chart commands387501
+Ref: #chart-commands387659
+Node: activity387682
+Ref: #activity387771
+Node: Data generation commands388179
+Ref: #data-generation-commands388353
+Node: close388385
+Ref: #close388491
+Node: close --migrate390977
+Ref: #close---migrate391102
+Node: close --close392741
+Ref: #close---close392883
+Node: close --open393119
+Ref: #close---open393258
+Node: close --assert393368
+Ref: #close---assert393512
+Node: close --assign393733
+Ref: #close---assign393879
+Node: close --retain394405
+Ref: #close---retain394556
+Node: close customisation395301
+Ref: #close-customisation395478
+Node: close and balance assertions396945
+Ref: #close-and-balance-assertions397140
+Node: close examples398467
+Ref: #close-examples398606
+Node: Retain earnings398704
+Ref: #retain-earnings398861
+Node: Migrate balances to a new file399207
+Ref: #migrate-balances-to-a-new-file399431
+Node: More detailed close examples400559
+Ref: #more-detailed-close-examples400755
+Node: rewrite400781
+Ref: #rewrite400891
+Node: Re-write rules in a file403353
+Ref: #re-write-rules-in-a-file403514
+Node: Diff output format404663
+Ref: #diff-output-format404844
+Node: rewrite vs print --auto405936
+Ref: #rewrite-vs.-print---auto406094
+Node: Maintenance commands406650
+Ref: #maintenance-commands406821
+Node: check406859
+Ref: #check406958
+Node: Basic checks407941
+Ref: #basic-checks408059
+Node: Strict checks408894
+Ref: #strict-checks409035
+Node: Other checks409769
+Ref: #other-checks409909
+Node: Custom checks411624
+Ref: #custom-checks411744
+Node: diff412079
+Ref: #diff412189
+Node: test413286
+Ref: #test413382
+Node: PART 5 COMMON TASKS414158
+Ref: #part-5-common-tasks414317
+Node: Getting help414391
+Ref: #getting-help414540
+Node: Constructing command lines415300
+Ref: #constructing-command-lines415481
+Node: Starting a journal file416138
+Ref: #starting-a-journal-file416320
+Node: Setting LEDGER_FILE417522
+Ref: #setting-ledger_file417694
+Node: Setting opening balances418651
+Ref: #setting-opening-balances418832
+Node: Recording transactions421973
+Ref: #recording-transactions422142
+Node: Reconciling422698
+Ref: #reconciling422830
+Node: Reporting425087
+Ref: #reporting425216
+Node: Migrating to a new file429201
+Ref: #migrating-to-a-new-file429351
+Node: BUGS429650
+Ref: #bugs429744
+Node: Troubleshooting430623
+Ref: #troubleshooting430723
 
 End Tag Table
 

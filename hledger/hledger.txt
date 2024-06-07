@@ -6038,6 +6038,12 @@ Help commands
        Show  the hledger user manual with info, man, or a pager.  With a (case
        insensitive) TOPIC argument, try to open it at that section heading.
 
+              Flags:
+                -i            show the manual with info
+                -m            show the manual with man
+                -p            show the manual with $PAGER or less
+                              (less is always used if TOPIC is specified)
+
        This command shows the hledger manual built in  to  your  hledger  exe-
        cutable.   It can be useful when offline, or when you prefer the termi-
        nal to a web browser, or when the appropriate hledger manual or viewers
@@ -6066,6 +6072,10 @@ Help commands
 
    demo
        Play demos of hledger usage in the terminal, if asciinema is installed.
+
+              Flags:
+                -s --speed=SPEED  playback speed (1 is original speed, .5 is half, 2 is
+                                  double, etc (default: 2))
 
        Run  this  command with no argument to list the demos.  To play a demo,
        write its number or a prefix or substring of its title.  Tips:
@@ -6098,6 +6108,9 @@ User interface commands
 Data entry commands
    add
        Record new transactions with interactive prompting in the console.
+
+              Flags:
+                   --no-new-accounts      don't allow creating new accounts
 
        Many  hledger users edit their journals directly with a text editor, or
        generate them from CSV.  For more interactive data entry, there is  the
@@ -6165,6 +6178,10 @@ Data entry commands
    import
        Import  new  transactions from one or more data files to the main jour-
        nal.
+
+              Flags:
+                   --catchup              just mark all transactions as already imported
+                   --dry-run              just show the transactions to be imported
 
        This command detects new transactions in each FILE  argument  since  it
        was last run, and appends them to the main journal.
@@ -6295,6 +6312,21 @@ Basic report commands
    accounts
        List account names.
 
+              Flags:
+                -u --used                 show only accounts used by transactions
+                -d --declared             show only accounts declared by account directive
+                   --unused               show only accounts declared but not used
+                   --undeclared           show only accounts used but not declared
+                   --types                also show account types when known
+                   --positions            also show where accounts were declared
+                   --directives           show as account directives, for use in journals
+                   --find                 find the first account matched by the first
+                                          argument (a case-insensitive infix regexp or
+                                          account name)
+                -l --flat                 show accounts as a flat list (default)
+                -t --tree                 show accounts as a tree
+                   --drop=N               flat mode: omit N leading account name parts
+
        This command lists account names.  By default it shows  all  known  ac-
        counts,  either  used  in  transactions or declared with account direc-
        tives.
@@ -6347,6 +6379,9 @@ Basic report commands
    codes
        List the codes seen in transactions, in the order parsed.
 
+              Flags:
+              no command-specific flags
+
        This  command prints the value of each transaction's code field, in the
        order transactions were parsed.  The transaction code  is  an  optional
        value  written  in  parentheses between the date and description, often
@@ -6390,8 +6425,14 @@ Basic report commands
    commodities
        List all commodity/currency symbols used or declared in the journal.
 
+              Flags:
+              no command-specific flags
+
    descriptions
        List the unique descriptions that appear in transactions.
+
+              Flags:
+              no command-specific flags
 
        This command lists the unique descriptions that appear in transactions,
        in  alphabetic order.  You can add a query to select a subset of trans-
@@ -6408,8 +6449,14 @@ Basic report commands
        List all files included in the journal.  With a  REGEX  argument,  only
        file names matching the regular expression (case sensitive) are shown.
 
+              Flags:
+              no command-specific flags
+
    notes
        List the unique notes that appear in transactions.
+
+              Flags:
+              no command-specific flags
 
        This command lists the unique notes that appear in transactions, in al-
        phabetic  order.   You  can  add a query to select a subset of transac-
@@ -6424,6 +6471,10 @@ Basic report commands
 
    payees
        List the unique payee/payer names that appear in transactions.
+
+              Flags:
+                   --declared             show payees declared with payee directives
+                   --used                 show payees referenced by transactions
 
        This  command  lists  unique payee/payer names which have been declared
        with payee directives (--declared), used  in  transaction  descriptions
@@ -6448,6 +6499,10 @@ Basic report commands
        --show-reverse, also show additional prices inferred by reversing known
        prices.
 
+              Flags:
+                   --show-reverse         also show the prices inferred by reversing known
+                                          prices
+
        Price  amounts  are  always displayed with their full precision, except
        for reverse prices which are limited to 8 decimal digits.
 
@@ -6460,6 +6515,10 @@ Basic report commands
 
    stats
        Show journal and performance statistics.
+
+              Flags:
+                -v --verbose              show more detailed output
+                -o --output-file=FILE     write output to FILE.
 
        The stats command shows summary information for the whole journal, or a
        matched part of it.  With a reporting interval, it shows a  report  for
@@ -6505,6 +6564,11 @@ Basic report commands
    tags
        List the tags used in the journal, or their values.
 
+              Flags:
+                   --values               list tag values instead of tag names
+                   --parsed               show tags/values in the order they were parsed,
+                                          including duplicates
+
        This command lists the tag names used in the journal, whether on trans-
        actions, postings, or account declarations.
 
@@ -6530,6 +6594,29 @@ Basic report commands
 Standard report commands
    print
        Show full journal entries, representing transactions.
+
+              Flags:
+                -x --explicit             show all amounts explicitly
+                   --show-costs           show transaction prices even with conversion
+                                          postings
+                   --round=TYPE           how much rounding or padding should be done when
+                                          displaying amounts ?
+                                          none - show original decimal digits,
+                                                 as in journal
+                                          soft - just add or remove decimal zeros
+                                                 to match precision (default)
+                                          hard - round posting amounts to precision
+                                                 (can unbalance transactions)
+                                          all  - also round cost amounts to precision
+                                                 (can unbalance transactions)
+                   --new                  show only newer-dated transactions added in each
+                                          file since last run
+                -m --match=DESC           fuzzy search for one recent transaction with
+                                          description closest to DESC
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, beancount, csv, tsv, json, sql.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
 
        The print command displays full journal entries (transactions) from the
        journal file, sorted by date (or with --date2, by secondary date).
@@ -6709,6 +6796,19 @@ Standard report commands
        Show  the  transactions  and running balances in one account, with each
        transaction on one line.
 
+              Flags:
+                   --txn-dates            filter strictly by transaction date, not posting
+                                          date. Warning: this can show a wrong running
+                                          balance.
+                   --no-elide             don't show only 2 commodities per amount
+                -w --width=N              set output width (default: terminal width or
+                                          $COLUMNS). -wN,M sets description width as well.
+                   --align-all            guarantee alignment across all lines (slower)
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
+
        aregister shows the overall transactions affecting a particular account
        (and any subaccounts).  Each report line represents one transaction  in
        this account.  Transactions before the report start date are always in-
@@ -6787,6 +6887,25 @@ Standard report commands
        (reg)
 
        Show postings and their running total.
+
+              Flags:
+                   --cumulative           show running total from report start date
+                                          (default)
+                -H --historical           show historical running total/balance (includes
+                                          postings before report start date)
+                -A --average              show running average of posting amounts instead
+                                          of total (implies --empty)
+                -m --match=DESC           fuzzy search for one recent posting with
+                                          description closest to DESC
+                -r --related              show postings' siblings instead
+                   --invert               display all amounts with reversed sign
+                -w --width=N              set output width (default: terminal width or
+                                          $COLUMNS). -wN,M sets description width as well.
+                   --align-all            guarantee alignment across all lines (slower)
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
 
        The register command displays matched postings, across all accounts, in
        date order, with their running total  or  running  historical  balance.
@@ -6916,6 +7035,51 @@ Standard report commands
        shown with normal positive sign, as in  conventional  financial  state-
        ments.
 
+              Flags:
+                   --sum                  show sum of posting amounts (default)
+                   --valuechange          show total change of period-end historical
+                                          balance value (caused by deposits, withdrawals,
+                                          market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
+                   --budget               show sum of posting amounts compared to budget
+                                          goals defined by periodic transactions
+                   --change               accumulate amounts from column start to column
+                                          end (in multicolumn reports)
+                   --cumulative           accumulate amounts from report start (specified
+                                          by e.g. -b/--begin) to column end
+                -H --historical           accumulate amounts from journal start to column
+                                          end (includes postings before report start date)
+                                          (default)
+                -l --flat                 show accounts as a flat list (default). Amounts
+                                          exclude subaccount amounts, except where the
+                                          account is depth-clipped.
+                -t --tree                 show accounts as a tree. Amounts include
+                                          subaccount amounts.
+                   --drop=N               flat mode: omit N leading account name parts
+                   --declared             include non-parent declared accounts (best used
+                                          with -E)
+                -A --average              show a row average column (in multicolumn
+                                          reports)
+                -T --row-total            show a row total column (in multicolumn reports)
+                   --summary-only         display only row summaries (e.g. row total,
+                                          average) (in multicolumn reports)
+                -N --no-total             omit the final total row
+                   --no-elide             don't squash boring parent accounts (in tree
+                                          mode)
+                   --format=FORMATSTR     use this custom line format (in simple reports)
+                -S --sort-amount          sort by amount instead of account code/name
+                -% --percent              express values in percentage of each column's
+                                          total
+                   --layout=ARG           how to show multi-commodity amounts:
+                                          'wide[,WIDTH]': all commodities on one line
+                                          'tall'        : each commodity on a new line
+                                          'bare'        : bare numbers, symbols in a column
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
+
        This  command  displays a balance sheet, showing historical ending bal-
        ances of asset and liability accounts.  (To see equity as well, use the
        balancesheetequity command.)
@@ -6963,6 +7127,51 @@ Standard report commands
        This command displays a balance sheet, showing historical  ending  bal-
        ances  of asset, liability and equity accounts.  Amounts are shown with
        normal positive sign, as in conventional financial statements.
+
+              Flags:
+                   --sum                  show sum of posting amounts (default)
+                   --valuechange          show total change of period-end historical
+                                          balance value (caused by deposits, withdrawals,
+                                          market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
+                   --budget               show sum of posting amounts compared to budget
+                                          goals defined by periodic transactions
+                   --change               accumulate amounts from column start to column
+                                          end (in multicolumn reports)
+                   --cumulative           accumulate amounts from report start (specified
+                                          by e.g. -b/--begin) to column end
+                -H --historical           accumulate amounts from journal start to column
+                                          end (includes postings before report start date)
+                                          (default)
+                -l --flat                 show accounts as a flat list (default). Amounts
+                                          exclude subaccount amounts, except where the
+                                          account is depth-clipped.
+                -t --tree                 show accounts as a tree. Amounts include
+                                          subaccount amounts.
+                   --drop=N               flat mode: omit N leading account name parts
+                   --declared             include non-parent declared accounts (best used
+                                          with -E)
+                -A --average              show a row average column (in multicolumn
+                                          reports)
+                -T --row-total            show a row total column (in multicolumn reports)
+                   --summary-only         display only row summaries (e.g. row total,
+                                          average) (in multicolumn reports)
+                -N --no-total             omit the final total row
+                   --no-elide             don't squash boring parent accounts (in tree
+                                          mode)
+                   --format=FORMATSTR     use this custom line format (in simple reports)
+                -S --sort-amount          sort by amount instead of account code/name
+                -% --percent              express values in percentage of each column's
+                                          total
+                   --layout=ARG           how to show multi-commodity amounts:
+                                          'wide[,WIDTH]': all commodities on one line
+                                          'tall'        : each commodity on a new line
+                                          'bare'        : bare numbers, symbols in a column
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
 
        This report shows accounts declared with the Asset, Cash, Liability  or
        Equity  type (see account types).  Or if no such accounts are declared,
@@ -7018,6 +7227,50 @@ Standard report commands
        assets.   Amounts  are  shown  with normal positive sign, as in conven-
        tional financial statements.
 
+              Flags:
+                   --sum                  show sum of posting amounts (default)
+                   --valuechange          show total change of period-end historical
+                                          balance value (caused by deposits, withdrawals,
+                                          market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
+                   --budget               show sum of posting amounts compared to budget
+                                          goals defined by periodic transactions
+                   --change               accumulate amounts from column start to column
+                                          end (in multicolumn reports) (default)
+                   --cumulative           accumulate amounts from report start (specified
+                                          by e.g. -b/--begin) to column end
+                -H --historical           accumulate amounts from journal start to column
+                                          end (includes postings before report start date)
+                -l --flat                 show accounts as a flat list (default). Amounts
+                                          exclude subaccount amounts, except where the
+                                          account is depth-clipped.
+                -t --tree                 show accounts as a tree. Amounts include
+                                          subaccount amounts.
+                   --drop=N               flat mode: omit N leading account name parts
+                   --declared             include non-parent declared accounts (best used
+                                          with -E)
+                -A --average              show a row average column (in multicolumn
+                                          reports)
+                -T --row-total            show a row total column (in multicolumn reports)
+                   --summary-only         display only row summaries (e.g. row total,
+                                          average) (in multicolumn reports)
+                -N --no-total             omit the final total row
+                   --no-elide             don't squash boring parent accounts (in tree
+                                          mode)
+                   --format=FORMATSTR     use this custom line format (in simple reports)
+                -S --sort-amount          sort by amount instead of account code/name
+                -% --percent              express values in percentage of each column's
+                                          total
+                   --layout=ARG           how to show multi-commodity amounts:
+                                          'wide[,WIDTH]': all commodities on one line
+                                          'tall'        : each commodity on a new line
+                                          'bare'        : bare numbers, symbols in a column
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
+
        This report shows accounts declared with the  Cash  type  (see  account
        types).  Or if no such accounts are declared, it shows accounts
 
@@ -7062,6 +7315,50 @@ Standard report commands
        Show  revenue  inflows  and  expense outflows during the report period.
        Amounts are shown with normal positive sign, as in conventional  finan-
        cial statements.
+
+              Flags:
+                   --sum                  show sum of posting amounts (default)
+                   --valuechange          show total change of period-end historical
+                                          balance value (caused by deposits, withdrawals,
+                                          market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
+                   --budget               show sum of posting amounts compared to budget
+                                          goals defined by periodic transactions
+                   --change               accumulate amounts from column start to column
+                                          end (in multicolumn reports) (default)
+                   --cumulative           accumulate amounts from report start (specified
+                                          by e.g. -b/--begin) to column end
+                -H --historical           accumulate amounts from journal start to column
+                                          end (includes postings before report start date)
+                -l --flat                 show accounts as a flat list (default). Amounts
+                                          exclude subaccount amounts, except where the
+                                          account is depth-clipped.
+                -t --tree                 show accounts as a tree. Amounts include
+                                          subaccount amounts.
+                   --drop=N               flat mode: omit N leading account name parts
+                   --declared             include non-parent declared accounts (best used
+                                          with -E)
+                -A --average              show a row average column (in multicolumn
+                                          reports)
+                -T --row-total            show a row total column (in multicolumn reports)
+                   --summary-only         display only row summaries (e.g. row total,
+                                          average) (in multicolumn reports)
+                -N --no-total             omit the final total row
+                   --no-elide             don't squash boring parent accounts (in tree
+                                          mode)
+                   --format=FORMATSTR     use this custom line format (in simple reports)
+                -S --sort-amount          sort by amount instead of account code/name
+                -% --percent              express values in percentage of each column's
+                                          total
+                   --layout=ARG           how to show multi-commodity amounts:
+                                          'wide[,WIDTH]': all commodities on one line
+                                          'tall'        : each commodity on a new line
+                                          'bare'        : bare numbers, symbols in a column
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
 
        This  command  displays  an  income statement, showing revenues and ex-
        penses during one or more periods.
@@ -7111,6 +7408,63 @@ Advanced report commands
        A flexible, general purpose "summing" report that shows  accounts  with
        some kind of numeric data.  This can be balance changes per period, end
        balances, budget performance, unrealised capital gains, etc.
+
+              Flags:
+                   --sum                  show sum of posting amounts (default)
+                   --budget[=DESCPAT]     show sum of posting amounts together with budget
+                                          goals defined by periodic
+                                          transactions. With a DESCPAT argument (must be
+                                          separated by = not space),
+                                          use only periodic transactions with matching
+                                          description
+                                          (case insensitive substring match).
+                   --valuechange          show total change of value of period-end
+                                          historical balances (caused by deposits,
+                                          withdrawals, market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
+                   --count                show the count of postings
+                   --change               accumulate amounts from column start to column
+                                          end (in multicolumn reports, default)
+                   --cumulative           accumulate amounts from report start (specified
+                                          by e.g. -b/--begin) to column end
+                -H --historical           accumulate amounts from journal start to column
+                                          end (includes postings before report start date)
+                -l --flat                 show accounts as a flat list (default). Amounts
+                                          exclude subaccount amounts, except where the
+                                          account is depth-clipped.
+                -t --tree                 show accounts as a tree. Amounts include
+                                          subaccount amounts.
+                   --drop=N               omit N leading account name parts (in flat mode)
+                   --declared             include non-parent declared accounts (best used
+                                          with -E)
+                -A --average              show a row average column (in multicolumn
+                                          reports)
+                -r --related              show postings' siblings instead
+                -T --row-total            show a row total column (in multicolumn reports)
+                   --summary-only         display only row summaries (e.g. row total,
+                                          average) (in multicolumn reports)
+                -N --no-total             omit the final total row
+                   --no-elide             don't squash boring parent accounts (in tree
+                                          mode)
+                   --format=FORMATSTR     use this custom line format (in simple reports)
+                -S --sort-amount          sort by amount instead of account code/name (in
+                                          flat mode). With multiple columns, sorts by the row
+                                          total, or by row average if that is displayed.
+                -% --percent              express values in percentage of each column's
+                                          total
+                   --invert               display all amounts with reversed sign
+                   --transpose            transpose rows and columns
+                   --layout=ARG           how to lay out multi-commodity amounts and the
+                                          overall table:
+                                          'wide[,WIDTH]': commodities on one line
+                                          'tall'        : commodities on separate lines
+                                          'bare'        : commodity symbols in one column
+                                          'tidy'        : every attribute in its own column
+                -O --output-format=FMT    select the output format. Supported formats:
+                                          txt, html, csv, tsv, json.
+                -o --output-file=FILE     write output to FILE. A file extension matching
+                                          one of the above formats selects that format.
 
        balance  is  one  of  hledger's oldest and most versatile commands, for
        listing account balances, balance changes, values,  value  changes  and
@@ -8000,6 +8354,13 @@ Advanced report commands
        Shows the time-weighted (TWR) and money-weighted (IRR) rate  of  return
        on your investments.
 
+              Flags:
+                   --cashflow                 show all amounts that were used to compute
+                                              returns
+                   --investment=QUERY         query to select your investment transactions
+                   --profit-loss=QUERY --pnl  query to select profit-and-loss or
+                                              appreciation/valuation transactions
+
        At  a  minimum,  you need to supply a query (which could be just an ac-
        count name) to select your investment(s) with --inv, and another  query
        to identify your profit and loss transactions with --pnl.
@@ -8172,6 +8533,9 @@ Chart commands
    activity
        Show an ascii barchart of posting counts per interval.
 
+              Flags:
+              no command-specific flags
+
        The  activity  command  displays an ascii histogram showing transaction
        counts by day, week, month or other reporting interval (by day  is  the
        default).  With query arguments, it counts only matched transactions.
@@ -8194,6 +8558,36 @@ Data generation commands
        ances, or viewing lots.  Like print, it prints valid  journal  entries.
        You can append or copy these to your journal file(s) when you are happy
        with how they look.
+
+              Flags:
+                   --migrate[=NEW]        show closing and opening transactions, for Asset
+                                          and Liability accounts by default, tagged for easy
+                                          matching. The tag's default value can be overridden
+                                          by providing NEW.
+                   --close[=NEW]          (default) show a closing transaction
+                   --open[=NEW]           show an opening transaction
+                   --assign[=NEW]         show opening balance assignments
+                   --assert[=NEW]         show closing balance assertions
+                   --retain[=NEW]         show a retain earnings transaction, for Revenue
+                                          and Expense accounts by default
+                -x --explicit             show all amounts explicitly
+                   --show-costs           show amounts with different costs separately
+                   --interleaved          show source and destination postings together
+                   --assertion-type=TYPE  =, ==, =* or ==*
+                   --close-desc=DESC      set closing transaction's description
+                   --close-acct=ACCT      set closing transaction's destination account
+                   --open-desc=DESC       set opening transaction's description
+                   --open-acct=ACCT       set opening transaction's source account
+                   --round=TYPE           how much rounding or padding should be done when
+                                          displaying amounts ?
+                                          none - show original decimal digits,
+                                                 as in journal
+                                          soft - just add or remove decimal zeros
+                                                 to match precision (default)
+                                          hard - round posting amounts to precision
+                                                 (can unbalance transactions)
+                                          all  - also round cost amounts to precision
+                                                 (can unbalance transactions)
 
        close currently has six modes, selected by a single mode flag:
 
@@ -8385,6 +8779,16 @@ Data generation commands
        For now the only rewrite available is adding new postings,  like  print
        --auto.
 
+              Flags:
+                   --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
+                                                  parenthesised. AMTEXPR is either a literal
+                                                  amount, or *N which means the transaction's
+                                                  first matched amount multiplied by N (a
+                                                  decimal number). Two spaces separate ACCT
+                                                  and AMTEXPR.
+                   --diff                         generate diff suitable as an input for
+                                                  patch tool
+
        This is a start at a generic rewriter of transaction entries.  It reads
        the  default  journal and prints the transactions, like print, but adds
        one or more specified postings to any transactions matching QUERY.  The
@@ -8508,6 +8912,9 @@ Maintenance commands
    check
        Check for various kinds of errors in your data.
 
+              Flags:
+              no command-specific flags
+
        hledger provides a number of built-in correctness checks to help  vali-
        date  your  data  and prevent errors.  Some are run automatically, some
        when you enable --strict mode; or you can run any of them on demand  by
@@ -8608,16 +9015,21 @@ Maintenance commands
        shows any transactions to this account which are in one file but not in
        the other.
 
-       More precisely, for each posting affecting this account in either file,
-       it looks for a corresponding posting in the other file which posts  the
-       same  amount  to  the  same  account (ignoring date, description, etc.)
-       Since postings not transactions are compared, this also works when mul-
+              Flags:
+              no command-specific flags
+
+       More precisely: for each posting affecting this account in either file,
+       this command looks for a corresponding posting in the other file  which
+       posts  the same amount to the same account (ignoring date, description,
+       etc).
+
+       Since it compares postings, not transactions, this also works when mul-
        tiple bank transactions have been combined into a single journal entry.
 
-       This is useful eg if you have downloaded an account's transactions from
-       your bank (eg as CSV data).  When hledger and your bank disagree  about
-       the account balance, you can compare the bank data with your journal to
-       find out the cause.
+       This command is useful eg if you have downloaded an account's  transac-
+       tions  from your bank (eg as CSV data): when hledger and your bank dis-
+       agree about the account balance, you can compare  the  bank  data  with
+       your journal to find out the cause.
 
        Examples:
 
@@ -8633,6 +9045,9 @@ Maintenance commands
 
    test
        Run built-in unit tests.
+
+              Flags:
+              no command-specific flags
 
        This  command  runs the unit tests built in to hledger and hledger-lib,
        printing the results on stdout.  If any test fails, the exit code  will
