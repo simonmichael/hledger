@@ -161,6 +161,6 @@ runTldrForPage name =
         setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
         callCommand $ dbg1 "tldr command" $ "tldr --render " <> f
       ) `catch` (\(_e::IOException) -> do
-        hPutStrLn stderr $ "Warning: could not run tldr, using fallback viewer instead.\n"
+        hPutStrLn stderr $ "Warning: could not run tldr --render, using fallback viewer instead.\n"
         BC.putStrLn b
       )
