@@ -328,14 +328,14 @@ main = do
       "hledger*/.version.m4" %> \out -> do
         let versionfile = takeDirectory out </> ".version"
         need [versionfile]
-        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+        version <- ((headDef (error $ "failed to read " <> versionfile) . words) <$>) $ liftIO $ readFile versionfile
         cmd_ Shell sed "-i -e" ("'s/(_version_}}, *)\\{\\{[^}]+/\\1{{"++version++"/;'") out
 
       -- PKG/package.yaml <- PKG/.version, just updates version strings
       "hledger*/package.yaml" %> \out -> do
         let versionfile = takeDirectory out </> ".version"
         need [versionfile]
-        version <- ((head . words) <$>) $ liftIO $ readFile versionfile
+        version <- ((headDef (error $ "failed to read " <> versionfile) . words) <$>) $ liftIO $ readFile versionfile
         let ma:jor:_ = splitOn "." version
             nextmajorversion = intercalate "." [ma, show $ read jor+1]
 
