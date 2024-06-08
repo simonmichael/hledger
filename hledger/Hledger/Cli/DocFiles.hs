@@ -21,6 +21,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as BC
 import Data.Maybe (fromMaybe)
 import Data.String
+import System.Environment (setEnv)
 import System.IO
 import System.IO.Temp
 import System.Process
@@ -153,6 +154,11 @@ runTldrForPage name =
       withSystemTempFile (name++".md") $ \f h -> do
         BC.hPutStrLn h b
         hClose h
+        -- tldr clients tend to auto-update their data, try to discourage that here
+        -- tealdeer - doesn't auto-update by default
+        -- tlrc - ?
+        -- tldr-node-client - undocumented env var suggested in output
+        setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
         callCommand $ dbg1 "tldr command" $ "tldr --render " <> f
       ) `catch` (\(_e::IOException) -> do
         hPutStrLn stderr $ "Warning: could not run tldr, using fallback viewer instead.\n"
