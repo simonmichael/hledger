@@ -147,15 +147,14 @@ tldr name = lookup name tldrs
 -- | Display one of the hledger tldr pages, using "tldr".
 runTldrForPage :: TldrPage -> IO ()
 runTldrForPage name =
-  let tldrprog = "tldr" in
   case tldr name of
     Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
     Just b -> (do
       withSystemTempFile (name++".md") $ \f h -> do
         BC.hPutStrLn h b
         hClose h
-        callCommand $ dbg1 "tldr command" $ unwords [tldrprog, "-r", f]
+        callCommand $ dbg1 "tldr command" $ "tldr --render " <> f
       ) `catch` (\(_e::IOException) -> do
-        hPutStrLn stderr $ "Could not run " <> tldrprog <> ", using fallback viewer:\n"
+        hPutStrLn stderr $ "Warning: could not run tldr, using fallback viewer instead.\n"
         BC.putStrLn b
       )
