@@ -598,27 +598,38 @@ main = do
         need commandmdsnew
         when commit $ commitIfChanged ";doc: update command flag docs" commandmds
 
-      -- hledger/Hledger/Cli/Commands/CMD.md.new: updates the command-specific flags help
-      -- within hledger/Hledger/Cli/Commands/CMD.md. Runs "stack exec -- hledger CMD -h".
+      -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the flags doc
+      -- within hledger/Hledger/Cli/Commands/CMD.md. Runs "stack run -- hledger CMD -h" to get the latest.
+      -- If that fails, a warning is printed and it carries on, keeping the old flags doc.
       phonys $ \out ->
-        if not $ ".md.new" `isSuffixOf` out
+        if not $ "hledger/Hledger/Cli/Commands/" `isPrefixOf` out && ".md.new" `isSuffixOf` out
         then Nothing
         else Just $ do
           let src = dropExtension out
           need [src]
-          liftIO $ putStrLn ("running hledger, updating flags in " <> src)
           srcls <- fmap lines $ liftIO $ readFileStrictly src
           let
             (pre,rest) = break (=="```flags") srcls
             (_,post)   = span  (/="```")     rest
           let cmdname = map toLower $ takeBaseName src
-          cmdhelp <- lines . fromStdout <$> (cmd Shell $ "stack exec -- hledger -h " <> cmdname :: Action (Stdout String))
-          let
-            cmdflagshelp = takeWhile (not.null) $ dropWhile (/="Flags:") cmdhelp
-            cmdflagshelp'
-              | null cmdflagshelp = ["Flags:","no command-specific flags"]
-              | otherwise         = cmdflagshelp
-          liftIO $ writeFile src $ unlines $ concat [pre, ["```flags"], cmdflagshelp', post]
+          do
+            let shellcmd = "stack exec -- hledger -h " <> cmdname
+            liftIO $ putStrLn ("running " <> shellcmd <> " to update flags in " <> src)
+            cmdhelp <- lines . fromStdout <$> (cmd Shell shellcmd :: Action (Stdout String))
+            let
+              cmdflagshelp = takeWhile (not.null) $ dropWhile (/="Flags:") cmdhelp
+              cmdflagshelp'
+                | null cmdflagshelp = ["Flags:","no command-specific flags"]
+                | otherwise         = cmdflagshelp
+            liftIO $ writeFile src $ unlines $ concat [pre, ["```flags"], cmdflagshelp', post]
+          -- This is supposed to print the error but otherwise ignore it, making this action a no-op,
+          -- in case hledger is not yet built/runnable.
+          `actionCatch` \(e::C.IOException) -> return ()
+          -- XXX should somehow control the output and elide the verbose "not found on path" errors
+            -- let elide err
+            --       | "path: [" `isInfixOf` err = takeWhile (/='[') err <> "..."
+            --       | otherwise = err
+            -- in \(e::C.IOException) -> liftIO $ hPutStrLn stderr $ elide $ show e  -- not used
 
       -- Regenerate Hledger/Cli/Commands/*.txt, rendering the corresponding .md files as plain text.
       -- Also updates cmddocs first.
