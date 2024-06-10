@@ -21,6 +21,7 @@ module Hledger.Data.Journal (
   addTransactionModifier,
   addPeriodicTransaction,
   addTransaction,
+  journalDbg,
   journalInferMarketPricesFromTransactions,
   journalInferCommodityStyles,
   journalStyleAmounts,
@@ -182,17 +183,39 @@ instance Show Journal where
              -- ++ (show $ journalTransactions l)
              where accounts = filter (/= "root") $ flatten $ journalAccountNameTree j
 
--- showJournalDebug j = unlines [
---                       show j
---                      ,show (jtxns j)
---                      ,show (jtxnmodifiers j)
---                      ,show (jperiodictxns j)
---                      ,show $ jparsetimeclockentries j
---                      ,show $ jpricedirectives j
---                      ,show $ jfinalcommentlines j
---                      ,show $ jparsestate j
---                      ,show $ map fst $ jfiles j
---                      ]
+journalDbg j@Journal{..} = chomp $ unlines $
+  ("Journal " ++ takeFileName (journalFilePath j)++":") :  --  ++ " {"
+  map (" "<>) [
+   "jparsedefaultyear: "         <> shw jparsedefaultyear
+  ,"jparsedefaultcommodity: "    <> shw jparsedefaultcommodity
+  ,"jparsedecimalmark: "         <> shw jparsedecimalmark
+  ,"jparseparentaccounts: "      <> shw jparseparentaccounts
+  ,"jparsealiases: "             <> shw jparsealiases
+  -- ,"jparsetimeclockentries: " <> shw jparsetimeclockentries
+  ,"jincludefilestack: "         <> shw jincludefilestack
+  ,"jdeclaredpayees: "           <> shw jdeclaredpayees
+  ,"jdeclaredtags: "             <> shw jdeclaredtags
+  ,"jdeclaredaccounts: "         <> shw jdeclaredaccounts
+  ,"jdeclaredaccounttags: "      <> shw jdeclaredaccounttags
+  ,"jdeclaredaccounttypes: "     <> shw jdeclaredaccounttypes
+  ,"jaccounttypes: "             <> shw jaccounttypes
+  ,"jglobalcommoditystyles: "    <> shw jglobalcommoditystyles
+  ,"jcommodities: "              <> shw jcommodities
+  ,"jinferredcommodities: "      <> shw jinferredcommodities
+  ,"jpricedirectives: "          <> shw jpricedirectives
+  ,"jinferredmarketprices: "     <> shw jinferredmarketprices
+  ,"jtxnmodifiers: "             <> shw jtxnmodifiers
+  -- ,"jperiodictxns: "          <> shw jperiodictxns
+  ,"jtxns: "                     <> shw jtxns
+  ,"jfinalcommentlines: "        <> shw jfinalcommentlines
+  ,"jfiles: "                    <> shw jfiles
+  ,"jlastreadtime: "             <> shw jlastreadtime
+  ]
+  -- ++ ["}"]
+  where
+    shw :: Show a => a -> String
+    shw = show
+    -- shw = pshow
 
 -- The semigroup instance for Journal is useful for two situations.
 --
