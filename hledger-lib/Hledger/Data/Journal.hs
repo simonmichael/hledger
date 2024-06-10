@@ -256,11 +256,11 @@ journalConcat j1 j2 =
     ,jdeclaredtags              = jdeclaredtags              j1 <> jdeclaredtags              j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
     --
-    -- The next six fields are Maps, which need be merged carefully for correct semantics,
-    -- especially the first two, which have list values. These are not all fully tested.
+    -- The next six fields are Maps, which need to be merged carefully for correct semantics,
+    -- especially the first two, which have list values. There may still be room for improvement here.
     --
     -- ,jdeclaredaccounttags   :: M.Map AccountName [Tag]
-    -- jdeclaredaccounttags can have multiple duplicated/conflicting values for an account tag.
+    -- jdeclaredaccounttags can have multiple duplicated/conflicting values for an account's tag.
     ,jdeclaredaccounttags       = M.unionWith (<>) (jdeclaredaccounttags j1) (jdeclaredaccounttags j2)
     --
     -- ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]
@@ -268,7 +268,7 @@ journalConcat j1 j2 =
     ,jdeclaredaccounttypes      = M.unionWith (<>) (jdeclaredaccounttypes j1) (jdeclaredaccounttypes j2)
     --
     -- ,jaccounttypes          :: M.Map AccountName AccountType
-    -- jaccounttypes always has a single type for a given account. When there are multiple type declarations, it is the last/rightmost.
+    -- jaccounttypes has a single type for any given account. When it had multiple type declarations, the last/rightmost wins.
     ,jaccounttypes              = M.unionWith (const id) (jaccounttypes j1) (jaccounttypes j2)
     --
     -- ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle
