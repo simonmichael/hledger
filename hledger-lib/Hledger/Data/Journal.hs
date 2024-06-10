@@ -255,12 +255,32 @@ journalConcat j1 j2 =
     ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
     ,jdeclaredtags              = jdeclaredtags              j1 <> jdeclaredtags              j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
-    ,jdeclaredaccounttags       = jdeclaredaccounttags       j1 <> jdeclaredaccounttags       j2
-    ,jdeclaredaccounttypes      = jdeclaredaccounttypes      j1 <> jdeclaredaccounttypes      j2
-    ,jaccounttypes              = jaccounttypes              j1 <> jaccounttypes              j2
-    ,jglobalcommoditystyles     = jglobalcommoditystyles     j1 <> jglobalcommoditystyles     j2
-    ,jcommodities               = jcommodities               j1 <> jcommodities               j2
-    ,jinferredcommodities       = jinferredcommodities       j1 <> jinferredcommodities       j2
+    --
+    -- The next six fields are Maps, which need be merged carefully for correct semantics,
+    -- especially the first two, which have list values. These are not all fully tested.
+    --
+    -- ,jdeclaredaccounttags   :: M.Map AccountName [Tag]
+    -- jdeclaredaccounttags can have multiple duplicated/conflicting values for an account tag.
+    ,jdeclaredaccounttags       = M.unionWith (<>) (jdeclaredaccounttags j1) (jdeclaredaccounttags j2)
+    --
+    -- ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]
+    -- jdeclaredaccounttypes can have multiple duplicated/conflicting values for an account's type.
+    ,jdeclaredaccounttypes      = M.unionWith (<>) (jdeclaredaccounttypes j1) (jdeclaredaccounttypes j2)
+    --
+    -- ,jaccounttypes          :: M.Map AccountName AccountType
+    -- jaccounttypes always has a single type for a given account. When there are multiple type declarations, it is the last/rightmost.
+    ,jaccounttypes              = M.unionWith (const id) (jaccounttypes j1) (jaccounttypes j2)
+    --
+    -- ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle
+    ,jglobalcommoditystyles     = (<>) (jglobalcommoditystyles j1) (jglobalcommoditystyles j2)
+    --
+    -- ,jcommodities           :: M.Map CommoditySymbol Commodity
+    ,jcommodities               = (<>) (jcommodities j1) (jcommodities j2)
+    --
+    -- ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle
+    ,jinferredcommodities       = (<>) (jinferredcommodities j1) (jinferredcommodities j2)
+    --
+    --
     ,jpricedirectives           = jpricedirectives           j1 <> jpricedirectives           j2
     ,jinferredmarketprices      = jinferredmarketprices      j1 <> jinferredmarketprices      j2
     ,jtxnmodifiers              = jtxnmodifiers              j1 <> jtxnmodifiers              j2

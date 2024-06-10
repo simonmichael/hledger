@@ -58,3 +58,17 @@ $ hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.ti
 $ hledger -f a.j -f b.j reg
 2018-01-01 a1                   (a)                              1             1
 2018-01-01 b1                   (b)                              1             2
+
+# ** 5. Declaring another account with same type in a child file works properly. [#2202]
+$ hledger -f types1.j accounts --types
+A    ; type: C
+B    ; type: C
+
+# ** 6. With different account types declared for an account in different files, the last wins. [#2202]
+$ hledger -f types2.j -f types3.j accounts --types
+B    ; type: X
+
+# ** 7. With different account types declared for an account in different files, the last wins. [#2202]
+$ hledger -f types3.j -f types2.j accounts --types
+B    ; type: C
+
