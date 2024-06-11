@@ -19,11 +19,11 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
-import System.Console.CmdArgs.Explicit as C
+import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
 import Lucid as L hiding (value_)
 import Safe (tailDef)
-import Text.Tabular.AsciiWide as Tab hiding (render)
+import Text.Tabular.AsciiWide as Tabular hiding (render)
 
 import Hledger
 import Hledger.Cli.Commands.Balance
@@ -215,40 +215,60 @@ Balance Sheet
 
 -}
 compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
-compoundBalanceReportAsText ropts
-  (CompoundPeriodicReport title _colspans subreports netrow) =
-    TB.toLazyText $
-      TB.fromText title <> TB.fromText "\n\n" <>
-      balanceReportTableAsText ropts bigtable'
+compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subreports totalsrow) =
+  TB.toLazyText $
+    TB.fromText title <> TB.fromText "\n\n" <>
+    balanceReportTableAsText ropts bigtablewithtotalsrow
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
-        []   -> Tab.empty
-        r:rs -> foldl' (concatTables DoubleLine) r rs
-    bigtable'
-      | no_total_ ropts || length subreports == 1 =
-          bigtable
-      | otherwise =
-        let totalrows = multiBalanceRowAsTableText ropts netrow
-            rh = Tab.Group NoLine $ map Header ("Net:" : replicate (length totalrows - 1) "")
-            ch = Header [] -- ignored
-         in ((concatTables Tab.DoubleLine) bigtable $ Table rh ch totalrows)
+        []   -> Tabular.empty
+        r:rs -> foldl' (concatTables tableInterSubreportBorder) r rs
+    bigtablewithtotalsrow =
+      if no_total_ ropts || length subreports == 1
+      then bigtable
+      else concatTables tableGrandTotalsTopBorder bigtable totalstable
+        where
+          -- Append the report's grand column totals at the bottom of the table.
+          -- Note "row" is confusingly overloaded here; *Report rows, Table rows,
+          -- and visually apparent table rows are all distinct.
+          -- With multiple currencies, in some layout modes, the column totals (a single report row)
+          -- occupy multiple lines, which currently we put into multiple table rows,
+          -- for convenience I guess, borderless so they look like a single visual row.
+          --
+          -- multiBalanceRowAsTableText gets a matrix of each line of each column total rendered as text
+          -- (actually as WideBuilders), in line-major-order:
+          --  [
+          --   [COL1LINE1, COL2LINE1]
+          --   [COL1LINE2, COL2LINE2]
+          --  ]
+          coltotalslines = multiBalanceRowAsTableText ropts totalsrow
+          totalstable = Table 
+            (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
+            (Header [])     -- column headers, concatTables will discard these
+            coltotalslines  -- cell values         
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable ropts1 (title1, r, _) = t
+    subreportAsTable ropts1 (title1, r, _) = tablewithtitle
       where
-        -- convert to table
-        Table lefthdrs tophdrs cells = balanceReportAsTable ropts1 r
-        -- tweak the layout
-        t = Table (Tab.Group Tab.SingleLine [Tab.Header title1, lefthdrs]) tophdrs ([]:cells)
+        tablewithtitle = Table
+          (Group tableSubreportTitleBottomBorder [Header title1, lefthdrs])  -- row headers
+          tophdrs     -- column headers
+          ([]:cells)  -- cell values
+          where
+            Table lefthdrs tophdrs cells = balanceReportAsTable ropts1 r
+
+tableSubreportTitleBottomBorder = SingleLine
+tableInterSubreportBorder       = DoubleLine
+tableGrandTotalsTopBorder       = DoubleLine
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
-compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports netrow) =
+compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports totalrow) =
     addtotals $
       padRow title
       : ( "Account"
@@ -276,13 +296,13 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
             map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans netrow))
+      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans totalrow))
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
-    CompoundPeriodicReport title colspans subreports netrow = cbr
+    CompoundPeriodicReport title colspans subreports totalrow = cbr
     colspanattr = colspan_ $ T.pack $ show $ sum [
       1,
       length colspans,
@@ -318,7 +338,7 @@ compoundBalanceReportAsHtml ropts cbr =
         ++ [blankrow]
 
     totalrows | no_total_ ropts || length subreports == 1 = []
-      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts colspans netrow)
+      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts colspans totalrow)
   in do
     style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"
