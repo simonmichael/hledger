@@ -473,13 +473,13 @@ STACKTEST := STACK + ' test --fast'
 @unittest:
     ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --threads=64 --exclude=/_'
+SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
 
 #  --hide-successes
 
 # build hledger quickly and run functional tests, with any shelltest OPTS (requires mktestaddons)
 @functest *OPTS:
-    $STACK build --fast hledger
+    $STACK build hledger
     time (({{ SHELLTEST }} {{ if OPTS == '' { '' } else { OPTS } }} \
         hledger/test/ bin/ \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
