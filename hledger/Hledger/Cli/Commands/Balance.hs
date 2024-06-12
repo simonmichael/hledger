@@ -580,7 +580,8 @@ multiBalanceReportAsCsvHelper ishtml opts@ReportOpts{..} (PeriodicReport colspan
       where showName = accountNameDrop drop_ . prrFullName
     totalrows
       | no_total_ = mempty
-      | otherwise = map ("total" :) $ rowAsText opts colspans tr
+      | ishtml    = zipWith (:) ("total":repeat "") $ rowAsText opts colspans tr
+      | otherwise = map ("total" :)                 $ rowAsText opts colspans tr
     rowAsText = if ishtml then multiBalanceRowAsHtmlText else multiBalanceRowAsCsvText
 
 -- | Render a multi-column balance report as HTML.

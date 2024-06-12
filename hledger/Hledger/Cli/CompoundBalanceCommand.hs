@@ -29,6 +29,7 @@ import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
+import Data.Function ((&))
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -337,8 +338,13 @@ compoundBalanceReportAsHtml ropts cbr =
         ++ mtotalsrows
         ++ [blankrow]
 
-    totalrows | no_total_ ropts || length subreports == 1 = []
-      | otherwise = multiBalanceReportHtmlFootRow ropts <$> (("Net:" :) <$> multiBalanceRowAsCsvText ropts colspans totalrow)
+    totalrows =
+      if no_total_ ropts || length subreports == 1 then []
+      else
+        multiBalanceRowAsCsvText ropts colspans totalrow  -- make a table of rendered lines of the report totals row
+        & zipWith (:) ("Net:":repeat "")                  -- insert a headings column, with Net: on the first line only
+        & map (multiBalanceReportHtmlFootRow ropts)       -- convert to a list of HTML totals rows
+
   in do
     style_ (T.unlines [""
       ,"td { padding:0 0.5em; }"
