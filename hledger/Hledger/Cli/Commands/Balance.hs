@@ -247,7 +247,7 @@ module Hledger.Cli.Commands.Balance (
  ,balanceReportAsCsv
  ,balanceReportItemAsText
  ,multiBalanceRowAsCsvText
- ,multiBalanceRowAsTableText
+ ,multiBalanceRowAsText
  ,multiBalanceReportAsText
  ,multiBalanceReportAsCsv
  ,multiBalanceReportAsHtml
@@ -724,6 +724,27 @@ multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
         (CalcValueChange, Cumulative) -> True
         _                                     -> False
 
+-- | Given a table representing a multi-column balance report,
+-- render it in a format suitable for console output.
+-- Amounts with more than two commodities will be elided unless --no-elide is used.
+multiBalanceReportTableAsText :: ReportOpts -> Table T.Text T.Text WideBuilder -> TB.Builder
+multiBalanceReportTableAsText ReportOpts{..} = renderTableByRowsB tableopts renderCh renderRow
+  where
+    tableopts = def{tableBorders=multiColumnTableOuterBorder, prettyTable=pretty_}
+    multiColumnTableOuterBorder = pretty_
+
+    renderCh :: [Text] -> [Cell]
+    renderCh
+      | layout_ /= LayoutBare || transpose_ = fmap (textCell TopRight)
+      | otherwise = zipWith ($) (textCell TopLeft : repeat (textCell TopRight))
+
+    renderRow :: (Text, [WideBuilder]) -> (Cell, [Cell])
+    renderRow (rh, row)
+      | layout_ /= LayoutBare || transpose_ =
+          (textCell TopLeft rh, fmap (Cell TopRight . pure) row)
+      | otherwise =
+          (textCell TopLeft rh, zipWith ($) (Cell TopLeft : repeat (Cell TopRight)) (fmap pure row))
+
 -- | Build a 'Table' from a multi-column balance report.
 multiBalanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text WideBuilder
 multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanceaccum_}
@@ -731,7 +752,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
    maybetranspose $
    addtotalrow $
    Table
-     (Group multiColumnTableInterRowBorder $ map Header (concat accts))
+     (Group multiColumnTableInterRowBorder    $ map Header $ concat accts)
      (Group multiColumnTableInterColumnBorder $ map Header colheadings)
      (concat rows)
   where
@@ -741,7 +762,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
     fullRowAsTexts row =
-      let rs = multiBalanceRowAsTableText opts row
+      let rs = multiBalanceRowAsText opts row
        in (replicate (length rs) (renderacct row), rs)
     (accts, rows) = unzip $ fmap fullRowAsTexts items
     renderacct row =
@@ -749,8 +770,8 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
     addtotalrow
       | no_total_ opts = id
       | otherwise =
-        let totalrows = multiBalanceRowAsTableText opts tr
-            rowhdrs = Group NoLine . replicate (length totalrows) $ Header ""
+        let totalrows = multiBalanceRowAsText opts tr
+            rowhdrs = Group NoLine $ map Header $ "Total:" : replicate (length totalrows - 1) ""
             colhdrs = Header [] -- unused, concatTables will discard
         in (flip (concatTables SingleLine) $ Table rowhdrs colhdrs totalrows)
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
@@ -758,8 +779,8 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
     multiColumnTableInterRowBorder    = NoLine
     multiColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
-multiBalanceRowAsWbs :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
+multiBalanceRowAsTextBuilders :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsTextBuilders bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
       LayoutTall       -> paddedTranspose mempty
@@ -800,35 +821,14 @@ multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowto
           m [] = [n]
 
 
+multiBalanceRowAsText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
+multiBalanceRowAsText opts = multiBalanceRowAsTextBuilders oneLineNoCostFmt{displayColour=color_ opts} opts []
+
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs machineFmt opts colspans
+multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders machineFmt opts colspans
 
 multiBalanceRowAsHtmlText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsHtmlText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsWbs oneLineNoCostFmt opts colspans
-
-multiBalanceRowAsTableText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTableText opts = multiBalanceRowAsWbs oneLineNoCostFmt{displayColour=color_ opts} opts []
-
--- | Given a table representing a multi-column balance report, 
--- render it in a format suitable for console output.
--- Amounts with more than two commodities will be elided unless --no-elide is used.
-multiBalanceReportTableAsText :: ReportOpts -> Table T.Text T.Text WideBuilder -> TB.Builder
-multiBalanceReportTableAsText ReportOpts{..} = renderTableByRowsB tableopts renderCh renderRow
-  where
-    tableopts = def{tableBorders=multiColumnTableOuterBorder, prettyTable=pretty_}
-    multiColumnTableOuterBorder = pretty_
-
-    renderCh :: [Text] -> [Cell]
-    renderCh
-      | layout_ /= LayoutBare || transpose_ = fmap (textCell TopRight)
-      | otherwise = zipWith ($) (textCell TopLeft : repeat (textCell TopRight))
-
-    renderRow :: (Text, [WideBuilder]) -> (Cell, [Cell])
-    renderRow (rh, row)
-      | layout_ /= LayoutBare || transpose_ =
-          (textCell TopLeft rh, fmap (Cell TopRight . pure) row)
-      | otherwise =
-          (textCell TopLeft rh, zipWith ($) (Cell TopLeft : repeat (Cell TopRight)) (fmap pure row))
+multiBalanceRowAsHtmlText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders oneLineNoCostFmt opts colspans
 
 
 -- A BudgetCell's data values rendered for display - the actual change amount,

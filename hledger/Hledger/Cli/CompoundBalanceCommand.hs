@@ -237,13 +237,13 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
           -- occupy multiple lines, which currently we put into multiple table rows,
           -- for convenience I guess, borderless so they look like a single visual row.
           --
-          -- multiBalanceRowAsTableText gets a matrix of each line of each column total rendered as text
+          -- multiBalanceRowAsText gets a matrix of each line of each column total rendered as text
           -- (actually as WideBuilders), in line-major-order:
           --  [
           --   [COL1LINE1, COL2LINE1]
           --   [COL1LINE2, COL2LINE2]
           --  ]
-          coltotalslines = multiBalanceRowAsTableText ropts totalsrow
+          coltotalslines = multiBalanceRowAsText ropts totalsrow
           totalstable = Table
             (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
             (Header [])     -- column headers, concatTables will discard these
