@@ -313,9 +313,9 @@ $ hledger -f - balancesheet --tree --output-format=csv
 "Account","2020-03-25"
 "Assets",""
 "assets:a","$1"
-"total","$1"
+"Total:","$1"
 "Liabilities",""
-"total","0"
+"Total:","0"
 "Net:","$1"
 
 # ** 13. CSV output supports --drop.
@@ -324,9 +324,9 @@ $ hledger -f - balancesheet --tree --output-format=csv --drop 1
 "Account","2020-03-25"
 "Assets",""
 "a","$1"
-"total","$1"
+"Total:","$1"
 "Liabilities",""
-"total","0"
+"Total:","0"
 "Net:","$1"
 
 <
@@ -340,9 +340,9 @@ $ hledger -f - balancesheet --output-format=csv
 "Account","2020-03-01"
 "Assets",""
 "assets:a","$-10000.00"
-"total","$-10000.00"
+"Total:","$-10000.00"
 "Liabilities",""
-"total","0"
+"Total:","0"
 "Net:","$-10000.00"
 
 # ** 15. In compound reports like balancesheet, parent accounts might not have

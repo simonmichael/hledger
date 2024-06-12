@@ -10,7 +10,7 @@ Balance changes in 2012-12-01..2013-03-31:
  Average ||      0            0                3 |  3 
 
 $ hledger -f balance-multicol.journal balance -M -A -O csv --transpose
-"account","assets","assets:cash","assets:checking","total"
+"account","assets","assets:cash","assets:checking","Total:"
 "2012-12","0","0","10","10"
 "2013-01","0","0","0","0"
 "2013-02","1","1","0","2"

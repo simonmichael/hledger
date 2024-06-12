@@ -423,7 +423,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
-    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows "total" total
+    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows "Total:" total
   where
     headers = "account" : case layout_ opts of
       LayoutBare -> ["commodity", "balance"]
@@ -580,8 +580,8 @@ multiBalanceReportAsCsvHelper ishtml opts@ReportOpts{..} (PeriodicReport colspan
       where showName = accountNameDrop drop_ . prrFullName
     totalrows
       | no_total_ = mempty
-      | ishtml    = zipWith (:) ("total":repeat "") $ rowAsText opts colspans tr
-      | otherwise = map ("total" :)                 $ rowAsText opts colspans tr
+      | ishtml    = zipWith (:) ("Total:":repeat "") $ rowAsText opts colspans tr
+      | otherwise = map ("Total:" :)                 $ rowAsText opts colspans tr
     rowAsText = if ishtml then multiBalanceRowAsHtmlText else multiBalanceRowAsCsvText
 
 -- | Render a multi-column balance report as HTML.

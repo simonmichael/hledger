@@ -187,4 +187,4 @@ $ hledger -f - bal -O csv
 "a","1 JPY"
 "b","1 JPY"
 "c","1000 JPY"
-"total","1002 JPY"
+"Total:","1002 JPY"

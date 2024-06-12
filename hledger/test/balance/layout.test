@@ -6,13 +6,13 @@
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv
 "account","balance"
 "Assets:US:ETrade","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
-"total","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+"Total:","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 
 # ** 2.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O tsv
 account	balance
 Assets:US:ETrade	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
-total	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
+Total:	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
 
 # ** 3. Balance report csv output with one line per commodity (--layout=bare).
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --layout=bare
@@ -22,11 +22,11 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 -O csv --layout=bare
 "Assets:US:ETrade","USD","5120.50"
 "Assets:US:ETrade","VEA","36.00"
 "Assets:US:ETrade","VHT","294.00"
-"total","GLD","70.00"
-"total","ITOT","17.00"
-"total","USD","5120.50"
-"total","VEA","36.00"
-"total","VHT","294.00"
+"Total:","GLD","70.00"
+"Total:","ITOT","17.00"
+"Total:","USD","5120.50"
+"Total:","VEA","36.00"
+"Total:","VHT","294.00"
 
 # ** 4.
 $ hledger -f bcexample.hledger bal assets.*etrade -3 -O tsv --layout=bare
@@ -36,11 +36,11 @@ Assets:US:ETrade	ITOT	17.00
 Assets:US:ETrade	USD	5120.50
 Assets:US:ETrade	VEA	36.00
 Assets:US:ETrade	VHT	294.00
-total	GLD	70.00
-total	ITOT	17.00
-total	USD	5120.50
-total	VEA	36.00
-total	VHT	294.00
+Total:	GLD	70.00
+Total:	ITOT	17.00
+Total:	USD	5120.50
+Total:	VEA	36.00
+Total:	VHT	294.00
 
 # ** 5. Balance report output with no commodity column.
 $ hledger -f bcexample.hledger bal assets.*etrade -3
@@ -74,13 +74,13 @@ $ hledger -f bcexample.hledger bal assets.*etrade -3 --layout=bare
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv
 "account","2012","2013","2014","total"
 "Assets:US:ETrade","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
-"total","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
+"Total:","10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT","70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT","-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT","70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT"
 
 # ** 8.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O tsv
 account	2012	2013	2014	total
 Assets:US:ETrade	10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT	70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT	-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
-total	10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT	70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT	-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
+Total:	10.00 ITOT, 337.18 USD, 12.00 VEA, 106.00 VHT	70.00 GLD, 18.00 ITOT, -98.12 USD, 10.00 VEA, 18.00 VHT	-11.00 ITOT, 4881.44 USD, 14.00 VEA, 170.00 VHT	70.00 GLD, 17.00 ITOT, 5120.50 USD, 36.00 VEA, 294.00 VHT
 
 # ** 9. Multicolumn balance report csv output with --layout=bare.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --layout=bare
@@ -90,11 +90,11 @@ $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O csv --layout=bare
 "Assets:US:ETrade","USD","337.18","-98.12","4881.44","5120.50"
 "Assets:US:ETrade","VEA","12.00","10.00","14.00","36.00"
 "Assets:US:ETrade","VHT","106.00","18.00","170.00","294.00"
-"total","GLD","0","70.00","0","70.00"
-"total","ITOT","10.00","18.00","-11.00","17.00"
-"total","USD","337.18","-98.12","4881.44","5120.50"
-"total","VEA","12.00","10.00","14.00","36.00"
-"total","VHT","106.00","18.00","170.00","294.00"
+"Total:","GLD","0","70.00","0","70.00"
+"Total:","ITOT","10.00","18.00","-11.00","17.00"
+"Total:","USD","337.18","-98.12","4881.44","5120.50"
+"Total:","VEA","12.00","10.00","14.00","36.00"
+"Total:","VHT","106.00","18.00","170.00","294.00"
 
 # ** 10.
 $ hledger -f bcexample.hledger bal -T -Y assets.*etrade -3 -O tsv --layout=bare
@@ -104,11 +104,11 @@ Assets:US:ETrade	ITOT	10.00	18.00	-11.00	17.00
 Assets:US:ETrade	USD	337.18	-98.12	4881.44	5120.50
 Assets:US:ETrade	VEA	12.00	10.00	14.00	36.00
 Assets:US:ETrade	VHT	106.00	18.00	170.00	294.00
-total	GLD	0	70.00	0	70.00
-total	ITOT	10.00	18.00	-11.00	17.00
-total	USD	337.18	-98.12	4881.44	5120.50
-total	VEA	12.00	10.00	14.00	36.00
-total	VHT	106.00	18.00	170.00	294.00
+Total:	GLD	0	70.00	0	70.00
+Total:	ITOT	10.00	18.00	-11.00	17.00
+Total:	USD	337.18	-98.12	4881.44	5120.50
+Total:	VEA	12.00	10.00	14.00	36.00
+Total:	VHT	106.00	18.00	170.00	294.00
 
 # ** 11. Multicolumn balance report with --layout=bare.
 $ hledger -f bcexample.hledger bal -Y assets.*etrade -3 --average --layout=bare --no-total
