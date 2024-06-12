@@ -30,6 +30,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Data.Function ((&))
+import Control.Monad (when)
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -315,16 +316,14 @@ compoundBalanceReportAsHtml ropts cbr =
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
-      (tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title)
-      : [thRow $
-         "" : ["Commodity" | layout_ ropts == LayoutBare] ++
-         map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
-         ++ (if row_total_ ropts then ["Total"] else [])
-         ++ (if average_ ropts then ["Average"] else [])
-        ]
-
-    thRow :: [T.Text] -> Html ()
-    thRow = tr_ . mconcat . map (th_ . toHtml)
+      [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title
+      ,tr_ $ do
+          th_ ""
+          when (layout_ ropts == LayoutBare) $ th_ "Commodity"
+          mconcat $ map (th_ [style_ alignright] . toHtml . reportPeriodName (balanceaccum_ ropts) colspans) colspans
+          th_ $ if row_total_ ropts then "Total"   else ""
+          th_ $ if average_ ropts   then "Average" else ""
+      ]
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
@@ -333,7 +332,7 @@ compoundBalanceReportAsHtml ropts cbr =
       let
         (_,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
       in
-           [tr_ $ th_ [colspanattr, leftattr] $ toHtml subreporttitle]
+           [tr_ $ th_ [colspanattr, leftattr, class_ "account"] $ toHtml subreporttitle]
         ++ bodyrows
         ++ mtotalsrows
         ++ [blankrow]
@@ -343,15 +342,20 @@ compoundBalanceReportAsHtml ropts cbr =
       else
         multiBalanceRowAsCsvText ropts colspans totalrow  -- make a table of rendered lines of the report totals row
         & zipWith (:) ("Net:":repeat "")                  -- insert a headings column, with Net: on the first line only
-        & map (multiBalanceReportHtmlFootRow ropts)       -- convert to a list of HTML totals rows
+        & zipWith3                                        -- convert to a list of HTML totals rows, marking the first for special styling
+          (\f isfirstline r -> f isfirstline r)
+          (repeat (multiBalanceReportHtmlFootRow ropts))
+          (True : repeat False)
 
   in do
-    style_ (T.unlines [""
-      ,"td { padding:0 0.5em; }"
-      ,"td:nth-child(1) { white-space:nowrap; }"
-      ,"tr:nth-child(even) td { background-color:#eee; }"
-      ])
     link_ [rel_ "stylesheet", href_ "hledger.css"]
+    stylesheet_ [
+      ("table",collapse),
+      ("th, td",lpad),
+      ("th.account, td.account","padding-left:0;"),
+      ("td:nth-child(1)", "white-space:nowrap"),
+      ("tr:nth-child(even) td", "background-color:#eee")
+      ]
     table_ $ mconcat $
          titlerows
       ++ [blankrow]

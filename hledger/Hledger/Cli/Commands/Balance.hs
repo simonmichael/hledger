@@ -233,16 +233,19 @@ Currently, empty cells show 0.
 
 -}
 
-{-# LANGUAGE ExtendedDefaultRules #-}
-{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE OverloadedStrings    #-}
+{-# LANGUAGE ExtendedDefaultRules #-}  -- for lucid_
+{-# LANGUAGE FlexibleContexts #-}      -- for stylesheet_
+{-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
 
 module Hledger.Cli.Commands.Balance (
+  -- ** balance command
   balancemode
  ,balance
+  -- ** balance output rendering
  ,balanceReportAsText
  ,balanceReportAsCsv
  ,balanceReportItemAsText
@@ -255,6 +258,22 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportHtmlFootRow
  ,multiBalanceReportAsTable
  ,multiBalanceReportTableAsText
+  -- ** HTML output helpers
+ ,stylesheet_
+ ,styles_
+ ,bold
+ ,doubleborder
+ ,topdoubleborder
+ ,bottomdoubleborder
+ ,alignright
+ ,alignleft
+ ,aligncenter
+ ,collapse
+ ,lpad
+ ,rpad
+ ,hpad
+ ,vpad
+  -- ** Tests
  ,tests_Balance
 ) where
 
@@ -389,41 +408,22 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
     delimited   = fmt == "csv" || fmt == "tsv"
     fmt         = outputFormatFromOpts opts
 
--- XXX this allows rough HTML rendering of a flat BalanceReport, but it can't handle tree mode etc.
--- -- | Convert a BalanceReport to a MultiBalanceReport.
--- balanceReportAsMultiBalanceReport :: ReportOpts -> BalanceReport -> MultiBalanceReport 
--- balanceReportAsMultiBalanceReport _ropts (britems, brtotal) = 
---   let
---     mbrrows = 
---       [PeriodicReportRow{
---           prrName    = flatDisplayName brfullname
---         , prrAmounts = [bramt]
---         , prrTotal   = bramt
---         , prrAverage = bramt
---         }
---       | (brfullname, _, _, bramt) <- britems
---       ]
---   in
---     PeriodicReport{
---         prDates  = [nulldatespan]
---       , prRows   = mbrrows
---       , prTotals = PeriodicReportRow{
---            prrName=()
---           ,prrAmounts=[brtotal]
---           ,prrTotal=brtotal
---           ,prrAverage=brtotal
---           }
---       }
+-- Rendering
 
--- XXX should all the per-report, per-format rendering code live in the command module,
--- like the below, or in the report module, like budgetReportAsText/budgetReportAsCsv ?
+-- What to show as heading for the totals row in balance reports ?
+-- Currently nothing in terminal, Total: in html and xSV output.
+totalRowHeadingText       = ""
+totalRowHeadingBudgetText = ""
+totalRowHeadingHtml       = "Total:"
+totalRowHeadingCsv        = "Total:"
+totalRowHeadingBudgetCsv  = "Total:"
 
--- rendering single-column balance reports
+-- Single-column balance reports
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts (items, total) =
-    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows "Total:" total
+    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows totalRowHeadingCsv total
   where
     headers = "account" : case layout_ opts of
       LayoutBare -> ["commodity", "balance"]
@@ -552,7 +552,7 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   ,displayColour    = color_ opts
                   }
 
--- rendering multi-column balance reports
+-- Multi-column balance reports
 
 -- | Render a multi-column balance report as CSV.
 -- The CSV will always include the initial headings row,
@@ -580,16 +580,34 @@ multiBalanceReportAsCsvHelper ishtml opts@ReportOpts{..} (PeriodicReport colspan
       where showName = accountNameDrop drop_ . prrFullName
     totalrows
       | no_total_ = mempty
-      | ishtml    = zipWith (:) ("Total:":repeat "") $ rowAsText opts colspans tr
-      | otherwise = map ("Total:" :)                 $ rowAsText opts colspans tr
+      | ishtml    = zipWith (:) (totalRowHeadingHtml : repeat "") $ rowAsText opts colspans tr
+      | otherwise = map (totalRowHeadingCsv :)                    $ rowAsText opts colspans tr
     rowAsText = if ishtml then multiBalanceRowAsHtmlText else multiBalanceRowAsCsvText
+
+-- Helpers and CSS styles for HTML output.
+
+stylesheet_ elstyles = style_ $ T.unlines $ "" : [el<>" {"<>styles<>"}" | (el,styles) <- elstyles]
+styles_ = style_ . T.intercalate "; "
+bold = "font-weight:bold"
+doubleborder = "double black"
+topdoubleborder    = "border-top:"<>doubleborder
+bottomdoubleborder = "border-bottom:"<>doubleborder
+alignright  = "text-align:right"
+alignleft   = "text-align:left"
+aligncenter = "text-align:center"
+collapse = "border-collapse:collapse"
+lpad = "padding-left:1em"
+rpad = "padding-right:1em"
+hpad = "padding-left:1em; padding-right:1em"
+vpad = "padding-top:1em;  padding-bottom:1em"
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
   let
     (headingsrow,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
-  in
+  in do
+    stylesheet_ [("table",collapse), ("th, td",lpad), ("th.account, td.account","padding-left:0;")]
     table_ $ mconcat $
          [headingsrow]
       ++ bodyrows
@@ -607,7 +625,11 @@ multiBalanceReportHtmlRows ropts mbr =
   in
     (multiBalanceReportHtmlHeadRow ropts headingsrow
     ,map (multiBalanceReportHtmlBodyRow ropts) bodyrows
-    ,multiBalanceReportHtmlFootRow ropts <$> mtotalsrows -- TODO pad totals row with zeros when there are
+    ,zipWith3 ($)
+      (repeat (multiBalanceReportHtmlFootRow ropts))
+      (True : repeat False)  -- mark the first html table row for special styling
+      mtotalsrows
+      -- TODO pad totals row with zeros when there are
     )
 
 -- | Render one MultiBalanceReport heading row as a HTML table row.
@@ -615,7 +637,6 @@ multiBalanceReportHtmlHeadRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlHeadRow _ [] = mempty  -- shouldn't happen
 multiBalanceReportHtmlHeadRow ropts (acct:cells) =
   let
-    defstyle = style_ ""
     (amts,tot,avg)
       | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
       | row_total_ ropts                   = (ini1,  lst1,    [])
@@ -629,17 +650,16 @@ multiBalanceReportHtmlHeadRow ropts (acct:cells) =
 
   in
     tr_ $ mconcat $
-          td_ [class_ "account"]              (toHtml acct)
-       : [td_ [class_ "", defstyle]           (toHtml a) | a <- amts]
-      ++ [td_ [class_ "rowtotal", defstyle]   (toHtml a) | a <- tot]
-      ++ [td_ [class_ "rowaverage", defstyle] (toHtml a) | a <- avg]
+          th_ [styles_ [bottomdoubleborder,alignleft], class_ "account"]    (toHtml acct)
+       : [th_ [styles_ [bottomdoubleborder,alignright], class_ ""]           (toHtml a) | a <- amts]
+      ++ [th_ [styles_ [bottomdoubleborder,alignright], class_ "rowtotal"]   (toHtml a) | a <- tot]
+      ++ [th_ [styles_ [bottomdoubleborder,alignright], class_ "rowaverage"] (toHtml a) | a <- avg]
 
 -- | Render one MultiBalanceReport data row as a HTML table row.
 multiBalanceReportHtmlBodyRow :: ReportOpts -> [T.Text] -> Html ()
 multiBalanceReportHtmlBodyRow _ [] = mempty  -- shouldn't happen
 multiBalanceReportHtmlBodyRow ropts (label:cells) =
   let
-    defstyle = style_ "text-align:right"
     (amts,tot,avg)
       | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
       | row_total_ ropts                   = (ini1,  lst1,    [])
@@ -652,23 +672,22 @@ multiBalanceReportHtmlBodyRow ropts (label:cells) =
         (sndlst2,lst2) = splitAt 1 rest
   in
     tr_ $ mconcat $
-          td_ [class_ "account", style_ "text-align:left"]  (toHtml label)
-       : [td_ [class_ "amount", defstyle]            (toHtml a) | a <- amts]
-      ++ [td_ [class_ "amount rowtotal", defstyle]   (toHtml a) | a <- tot]
-      ++ [td_ [class_ "amount rowaverage", defstyle] (toHtml a) | a <- avg]
+          td_ [styles_ [],  class_ "account"]           (toHtml label)
+       : [td_ [styles_ [alignright], class_ "amount"]            (toHtml a) | a <- amts]
+      ++ [td_ [styles_ [alignright], class_ "amount rowtotal"]   (toHtml a) | a <- tot]
+      ++ [td_ [styles_ [alignright], class_ "amount rowaverage"] (toHtml a) | a <- avg]
 
 -- | Render one MultiBalanceReport totals row as a HTML table row.
-multiBalanceReportHtmlFootRow :: ReportOpts -> [T.Text] -> Html ()
-multiBalanceReportHtmlFootRow _ropts [] = mempty
+multiBalanceReportHtmlFootRow :: ReportOpts -> Bool -> [T.Text] -> Html ()
+multiBalanceReportHtmlFootRow _ _ [] = mempty
 -- TODO pad totals row with zeros when subreport is empty
 --  multiBalanceReportHtmlFootRow ropts $
 --     ""
 --   : repeat nullmixedamt zeros
 --  ++ (if row_total_ ropts then [nullmixedamt] else [])
 --  ++ (if average_ ropts   then [nullmixedamt]   else [])
-multiBalanceReportHtmlFootRow ropts (acct:cells) =
+multiBalanceReportHtmlFootRow ropts isfirstline (hdr:cells) =
   let
-    defstyle = style_ "text-align:right"
     (amts,tot,avg)
       | row_total_ ropts && average_ ropts = (ini2,  sndlst2, lst2)
       | row_total_ ropts                   = (ini1,  lst1,    [])
@@ -681,10 +700,10 @@ multiBalanceReportHtmlFootRow ropts (acct:cells) =
         (sndlst2,lst2) = splitAt 1 rest
   in
     tr_ $ mconcat $
-          th_ [style_ "text-align:left"]             (toHtml acct)
-       : [th_ [class_ "amount coltotal", defstyle]   (toHtml a) | a <- amts]
-      ++ [th_ [class_ "amount coltotal", defstyle]   (toHtml a) | a <- tot]
-      ++ [th_ [class_ "amount colaverage", defstyle] (toHtml a) | a <- avg]
+          td_ [styles_ $ [topdoubleborder | isfirstline] ++ [bold], class_ "account"]                 (toHtml hdr)
+       : [td_ [styles_ $ [topdoubleborder | isfirstline] ++ [alignright], class_ "amount coltotal"]   (toHtml a) | a <- amts]
+      ++ [td_ [styles_ $ [topdoubleborder | isfirstline] ++ [alignright], class_ "amount coltotal"]   (toHtml a) | a <- tot]
+      ++ [td_ [styles_ $ [topdoubleborder | isfirstline] ++ [alignright], class_ "amount colaverage"] (toHtml a) | a <- avg]
 
 --thRow :: [String] -> Html ()
 --thRow = tr_ . mconcat . map (th_ . toHtml)
@@ -771,7 +790,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
       | no_total_ opts = id
       | otherwise =
         let totalrows = multiBalanceRowAsText opts tr
-            rowhdrs = Group NoLine $ map Header $ "Total:" : replicate (length totalrows - 1) ""
+            rowhdrs = Group NoLine $ map Header $ totalRowHeadingText : replicate (length totalrows - 1) ""
             colhdrs = Header [] -- unused, concatTables will discard
         in (flip (concatTables SingleLine) $ Table rowhdrs colhdrs totalrows)
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
@@ -830,6 +849,7 @@ multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowA
 multiBalanceRowAsHtmlText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsHtmlText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders oneLineNoCostFmt opts colspans
 
+-- Budget reports
 
 -- A BudgetCell's data values rendered for display - the actual change amount,
 -- the budget goal amount if any, and the corresponding goal percentage if possible.
@@ -883,7 +903,7 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
       | no_total_ = id
       | otherwise =
         let 
-          rowhdrs = Group NoLine . replicate (length totalrows) $ Header ""
+          rowhdrs = Group NoLine $ map Header $ totalRowHeadingBudgetText : replicate (length totalrows - 1) ""
           colhdrs = Header [] -- ignored by concatTables
         in
           (flip (concatTables SingleLine) $ Table rowhdrs colhdrs totalrows)  -- XXX ?
@@ -1099,7 +1119,7 @@ budgetReportAsCsv
   concatMap (rowAsTexts prrFullName) items
 
   -- totals row
-  ++ concat [ rowAsTexts (const "Total:") totrow | not no_total_ ]
+  ++ concat [ rowAsTexts (const totalRowHeadingBudgetCsv) totrow | not no_total_ ]
 
   where
     flattentuples tups = concat [[a,b] | (a,b) <- tups]
