@@ -219,28 +219,31 @@ Balance Sheet 2017-12-31
 =============++=====================
  Net:        ||         $1       $1 
 
-# ** 9. --pretty=yes uses unicode chars for borders
+# ** 9. With --pretty, tables use box-drawing characters and more borders.
 <
 2016/1/1
   assets  1
   b
-$ hledger -f - balancesheet -M --pretty=yes
+
+$ hledger -f - balancesheet -M --pretty
 Balance Sheet 2016-01-31
 
-             ║ 2016-01-31 
-═════════════╬════════════
- Assets      ║            
-─────────────╫────────────
- assets      ║          1 
-─────────────╫────────────
-             ║          1 
-═════════════╬════════════
- Liabilities ║            
-─────────────╫────────────
-─────────────╫────────────
-             ║          0 
-═════════════╬════════════
- Net:        ║          1 
+┌─────────────╥────────────┐
+│             ║ 2016-01-31 │
+╞═════════════╬════════════╡
+│ Assets      ║            │
+├─────────────╫────────────┤
+│ assets      ║          1 │
+├─────────────╫────────────┤
+│             ║          1 │
+╞═════════════╬════════════╡
+│ Liabilities ║            │
+├─────────────╫────────────┤
+├─────────────╫────────────┤
+│             ║          0 │
+╞═════════════╬════════════╡
+│ Net:        ║          1 │
+└─────────────╨────────────┘
 
 # ** 10. Check that accounts brought to zero by subaccount balances
 # are not erased from balancesheet

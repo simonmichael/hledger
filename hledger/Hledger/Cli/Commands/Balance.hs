@@ -485,8 +485,8 @@ bareLayoutBalanceReportAsText opts ((items, total)) =
     sizes = fromMaybe 0 . maximumMay . map cellWidth <$>
         transpose ([totalline | not (no_total_ opts)] ++ ls)
     overline = Cell TopLeft . pure . wbFromText . flip T.replicate "-" . fromMaybe 0 $ headMay sizes
-    singleColumnTableOuterBorder       = False
-    singleColumnTableInterColumnBorder = NoLine
+    singleColumnTableOuterBorder       = pretty_ opts
+    singleColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
 {-
 :r
@@ -756,7 +756,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
     maybetranspose | transpose_ opts = \(Table rh ch vals) -> Table ch rh (transpose vals)
                    | otherwise       = id
     multiColumnTableInterRowBorder    = NoLine
-    multiColumnTableInterColumnBorder = NoLine
+    multiColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
 multiBalanceRowAsWbs :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsWbs bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
@@ -816,7 +816,7 @@ multiBalanceReportTableAsText :: ReportOpts -> Table T.Text T.Text WideBuilder -
 multiBalanceReportTableAsText ReportOpts{..} = renderTableByRowsB tableopts renderCh renderRow
   where
     tableopts = def{tableBorders=multiColumnTableOuterBorder, prettyTable=pretty_}
-    multiColumnTableOuterBorder = False
+    multiColumnTableOuterBorder = pretty_
 
     renderCh :: [Text] -> [Cell]
     renderCh
@@ -868,10 +868,13 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
   maybetransposetable $
   addtotalrow $
     Table
-      (Group NoLine $ map Header accts)
-      (Group NoLine $ map Header colheadings)
+      (Group budgetTableInterRowBorder    $ map Header accts)
+      (Group budgetTableInterColumnBorder $ map Header colheadings)
       rows
   where
+    budgetTableInterRowBorder    = NoLine
+    budgetTableInterColumnBorder = if pretty_ then SingleLine else NoLine
+
     maybetransposetable
       | transpose_ = \(Table rh ch vals) -> Table ch rh (transpose vals)
       | otherwise  = id
