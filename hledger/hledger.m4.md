@@ -683,11 +683,11 @@ In terminal output, some commands can produce colour when the terminal supports 
 
 ## Box-drawing
 
-In terminal (text) output, to minimise the risk of display problems for new users,
-table borders are drawn using only ascii characters.
+In terminal (text) output, to minimise the risk of display problems,
+table borders are drawn using only ascii characters by default.
 
-Add `--pretty` or `--pretty=yes` to draw tables with prettier unicode box-drawing characters.
-In pretty mode, tables will also have outer borders and inter-column borders.
+To see tables with prettier unicode box-drawing characters, add the `--pretty` flag.
+This will also show outer borders and inter-column borders.
 
 ## Paging
 
