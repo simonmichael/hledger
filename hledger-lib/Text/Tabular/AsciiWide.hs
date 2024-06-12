@@ -145,9 +145,7 @@ renderRow topts = toLazyText . renderRowB topts
 
 -- | A version of renderRow which returns the underlying Builder.
 renderRowB:: TableOpts -> Header Cell -> Builder
-renderRowB topts h = renderColumns topts is h
-  where is = map cellWidth $ headerContents h
-
+renderRowB topts h = renderColumns topts ws h where ws = map cellWidth $ headerContents h
 
 verticalBar :: Bool -> Char
 verticalBar pretty = if pretty then '│' else '|'

@@ -218,7 +218,7 @@ compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName 
 compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subreports totalsrow) =
   TB.toLazyText $
     TB.fromText title <> TB.fromText "\n\n" <>
-    balanceReportTableAsText ropts bigtablewithtotalsrow
+    multiBalanceReportTableAsText ropts bigtablewithtotalsrow
   where
     bigtable =
       case map (subreportAsTable ropts) subreports of
@@ -243,7 +243,7 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
           --   [COL1LINE2, COL2LINE2]
           --  ]
           coltotalslines = multiBalanceRowAsTableText ropts totalsrow
-          totalstable = Table 
+          totalstable = Table
             (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
             (Header [])     -- column headers, concatTables will discard these
             coltotalslines  -- cell values         
@@ -257,11 +257,11 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
           tophdrs     -- column headers
           ([]:cells)  -- cell values
           where
-            Table lefthdrs tophdrs cells = balanceReportAsTable ropts1 r
+            Table lefthdrs tophdrs cells = multiBalanceReportAsTable ropts1 r
 
-tableSubreportTitleBottomBorder = SingleLine
-tableInterSubreportBorder       = DoubleLine
-tableGrandTotalsTopBorder       = DoubleLine
+    tableSubreportTitleBottomBorder = SingleLine
+    tableInterSubreportBorder       = DoubleLine
+    tableGrandTotalsTopBorder       = DoubleLine
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
@@ -296,7 +296,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
             map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ fmap ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans totalrow))
+      | otherwise = (++ map ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans totalrow))
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()

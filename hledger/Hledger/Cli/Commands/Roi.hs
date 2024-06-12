@@ -325,10 +325,10 @@ interestSum referenceDay cf rate = sum $ map go cf
 
 calculateCashFlow :: WhichDate -> [Transaction] -> Query -> CashFlow
 calculateCashFlow wd trans query =
-  [ (postingDateOrDate2 wd p, pamount p) | p <- filter (matchesPosting query) (concatMap realPostings trans), maIsNonZero (pamount p) ]
+  [ (postingDateOrDate2 wd p, pamount p) | p <- concatMap (filter (matchesPosting query) . realPostings) trans, maIsNonZero (pamount p) ]
 
 total :: [Transaction] -> Query -> MixedAmount
-total trans query = sumPostings . filter (matchesPosting query) $ concatMap realPostings trans
+total trans query = sumPostings (concatMap (filter (matchesPosting query) . realPostings) trans)
 
 unMix :: MixedAmount -> Quantity
 unMix a =

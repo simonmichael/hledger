@@ -28,7 +28,6 @@ module Hledger.Reports.MultiBalanceReport (
   getPostings,
   startingPostings,
   generateMultiBalanceReport,
-  balanceReportTableAsText,
 
   -- -- * Tests
   tests_MultiBalanceReport
@@ -39,7 +38,7 @@ import Control.Monad (guard)
 import Data.Bifunctor (second)
 import Data.Foldable (toList)
 import Data.List (sortOn, transpose)
-import Data.List.NonEmpty (NonEmpty(..))
+import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.HashMap.Strict (HashMap)
 import qualified Data.HashMap.Strict as HM
 import Data.Map (Map)
@@ -51,11 +50,6 @@ import Data.Set (Set)
 import qualified Data.Set as Set
 import Data.Time.Calendar (fromGregorian)
 import Safe (lastDef, minimumMay)
-
-import Data.Default (def)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy.Builder as TB
-import qualified Text.Tabular.AsciiWide as Tab
 
 import Hledger.Data
 import Hledger.Query
@@ -594,33 +588,13 @@ periodChanges start amtmap =
 cumulativeSum :: Account -> Map DateSpan Account -> Map DateSpan Account
 cumulativeSum start = snd . M.mapAccum (\a b -> let s = sumAcct a b in (s, s)) start
 
--- | Given a table representing a multi-column balance report (for example,
--- made using 'balanceReportAsTable'), render it in a format suitable for
--- console output. Amounts with more than two commodities will be elided
--- unless --no-elide is used.
-balanceReportTableAsText :: ReportOpts -> Tab.Table T.Text T.Text WideBuilder -> TB.Builder
-balanceReportTableAsText ReportOpts{..} =
-    Tab.renderTableByRowsB def{Tab.tableBorders=False, Tab.prettyTable=pretty_} renderCh renderRow
-  where
-    renderCh
-      | layout_ /= LayoutBare || transpose_ = fmap (Tab.textCell Tab.TopRight)
-      | otherwise = zipWith ($) (Tab.textCell Tab.TopLeft : repeat (Tab.textCell Tab.TopRight))
-
-    renderRow (rh, row)
-      | layout_ /= LayoutBare || transpose_ =
-          (Tab.textCell Tab.TopLeft rh, fmap (Tab.Cell Tab.TopRight . pure) row)
-      | otherwise =
-          (Tab.textCell Tab.TopLeft rh, zipWith ($) (Tab.Cell Tab.TopLeft : repeat (Tab.Cell Tab.TopRight)) (fmap pure row))
-
-
-
 -- tests
 
 tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
 
   let
-    amt0 = Amount {acommodity="$", aquantity=0, acost=Nothing, 
-      astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing, 
+    amt0 = Amount {acommodity="$", aquantity=0, acost=Nothing,
+      astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing,
       asdecimalmark = Just '.', asprecision = Precision 2, asrounding = NoRounding}}
     (rspec,journal) `gives` r = do
       let rspec' = rspec{_rsQuery=And [queryFromFlags $ _rsReportOpts rspec, _rsQuery rspec]}
