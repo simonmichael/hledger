@@ -97,8 +97,10 @@ import           Control.Monad (when, forM)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
+import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust)
+import           Data.Ord (comparing, Down (Down))
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
@@ -115,6 +117,7 @@ import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime)
 import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
+import "Glob"    System.FilePath.Glob (glob)
 import           System.IO
   (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
    openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice)
@@ -127,15 +130,14 @@ import           Text.Pretty.Simple
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
-import "Glob" System.FilePath.Glob (glob)
-import Data.Functor ((<&>))
+
 
 -- Pretty showing/printing with pretty-simple
 
 -- https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#t:OutputOptions
 
 -- | pretty-simple options with colour enabled if allowed.
-prettyopts = 
+prettyopts =
   (if useColorOnStderr then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
     { outputOptionsIndentAmount = 2
     -- , outputOptionsCompact      = True  -- fills lines, but does not respect page width (https://github.com/cdepillabout/pretty-simple/issues/126)
@@ -225,7 +227,7 @@ progArgs = unsafePerformIO getArgs
 -- | Read the value of the -o/--output-file command line option provided at program startup,
 -- if any, using unsafePerformIO.
 outputFileOption :: Maybe String
-outputFileOption = 
+outputFileOption =
   -- keep synced with output-file flag definition in hledger:CliOptions.
   let args = progArgs in
   case dropWhile (not . ("-o" `isPrefixOf`)) args of
@@ -315,7 +317,7 @@ rgb' r g b  = ifAnsi (rgb r g b)
 -- | Read the value of the --color or --colour command line option provided at program startup
 -- using unsafePerformIO. If this option was not provided, returns the empty string.
 colorOption :: String
-colorOption = 
+colorOption =
   -- similar to debugLevel
   -- keep synced with color/colour flag definition in hledger:CliOptions
   let args = progArgs in
@@ -462,7 +464,7 @@ expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
 sortByModTime :: [FilePath] -> IO [FilePath]
 sortByModTime fs = do
   ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
-  return $ map snd $ reverse $ sort ftimes
+  return $ map snd $ sortBy (comparing Data.Ord.Down) ftimes
 
 -- | Like readFilePortably, but read all of the file before proceeding.
 readFileStrictly :: FilePath -> IO T.Text
@@ -515,4 +517,5 @@ getCurrentZonedTime = do
   t <- getCurrentTime
   tz <- getCurrentTimeZone
   return $ utcToZonedTime tz t
+
 
