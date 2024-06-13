@@ -164,6 +164,7 @@ library:
   cpp-options: -DVERSION="1.34.99"
   exposed-modules:
   - Hledger.Cli
+  - Hledger.Cli.Anon
   - Hledger.Cli.CliOptions
   - Hledger.Cli.Commands
   - Hledger.Cli.Commands.Accounts
@@ -195,7 +196,7 @@ library:
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand
-  - Hledger.Cli.Anon
+  - Hledger.Cli.Conf
   - Hledger.Cli.DocFiles
   - Hledger.Cli.Script
   - Hledger.Cli.Utils

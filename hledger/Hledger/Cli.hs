@@ -75,6 +75,7 @@ module Hledger.Cli (
   argsToCliOpts,
   -- * Re-exports
   module Hledger.Cli.CliOptions,
+  module Hledger.Cli.Conf,
   module Hledger.Cli.Commands,
   module Hledger.Cli.DocFiles,
   module Hledger.Cli.Utils,
@@ -91,7 +92,7 @@ import qualified Data.List.NonEmpty as NE
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
 import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger-ui
-import qualified System.Console.CmdArgs.Explicit as C
+import qualified System.Console.CmdArgs.Explicit as CmdArgs
 import System.Environment
 import System.Exit
 import System.FilePath
@@ -100,13 +101,18 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Conf
 import Hledger.Cli.Commands
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
+import Data.Bifunctor (second)
+import Data.Function ((&))
+import Data.Functor ((<&>))
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
+-- The names of known addons are provided so they too can be recognised as commands.
 mainmode addons = defMode {
   modeNames = [progname ++ " [COMMAND]"]
  ,modeArgs = ([], Just $ argsFlag "[ARGS]")
@@ -161,41 +167,53 @@ main = withGhcDebug' $ do
   -- command-line.test.
 
   -- some preliminary (imperfect) argument parsing to supplement cmdargs
-  args <- getArgs >>= expandArgsAt
+  rawcliargs <- getArgs >>= expandArgsAt
   let
-    args'                = moveFlagsAfterCommand $ replaceNumericFlags args
-    isFlag               = ("-" `isPrefixOf`)
-    isNonEmptyNonFlag s  = not (isFlag s) && not (null s)
-    rawcmd               = headDef "" $ takeWhile isNonEmptyNonFlag args'
-    isNullCommand        = null rawcmd
-    (argsbeforecmd, argsaftercmd') = break (==rawcmd) args
-    argsaftercmd         = drop 1 argsaftercmd'
-    dbgIO :: Show a => String -> a -> IO ()
+    cliargswithcmdfirst  = rawcliargs & replaceNumericFlags & moveFlagsAfterCommand
+    isNonEmptyNonFlag s  = not $ null s || "-" `isPrefixOf` s
+    clicmdarg            = headDef "" $ takeWhile isNonEmptyNonFlag cliargswithcmdfirst
+    isNullCommand        = null clicmdarg
+    (rawcliargsbeforecmd, rawcliargsaftercmd) = second (drop 1) $ break (==clicmdarg) rawcliargs
+    dbgIO :: Show a => String -> a -> IO ()  -- type signature needed
     dbgIO = ptraceAtIO 8
 
   dbgIO "running" prognameandversion
-  dbgIO "raw args" args
-  dbgIO "raw args rearranged for cmdargs" args'
-  dbgIO "raw command is probably" rawcmd
-  dbgIO "raw args before command" argsbeforecmd
-  dbgIO "raw args after command" argsaftercmd
+  dbgIO "raw cli args" rawcliargs
+  dbgIO "raw args before command" rawcliargsbeforecmd
+  dbgIO "raw args after command"  rawcliargsaftercmd
+  dbgIO "raw cli args rearranged for cmdargs" cliargswithcmdfirst
+  dbgIO "command argument is probably" clicmdarg
 
-  -- Search PATH for add-ons, excluding any that match built-in command names
-  addons' <- hledgerAddons
-  let addons = filter (not . (`elem` builtinCommandNames) . dropExtension) addons'
+  -- search PATH for addon commands, excluding any that match builtin command names
+  addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension) 
 
-  -- parse arguments with cmdargs
-  opts' <- argsToCliOpts args addons
+  -- do a preliminary parse with cmdargs to identify the full command name
+  let cmd = stringopt "command" $ parseArgsWithCmdargs cliargswithcmdfirst addons
+
+  -- get any extra args/opts declared in a config file, both general and command-specific
+  conf <- getConf
+  let
+    genargsfromconf = confArgsFor "general" conf
+    cmdargsfromconf = confArgsFor cmd       conf
+  dbgIO ("extra general args from config file")   genargsfromconf
+  dbgIO ("extra "<>cmd<>" args from config file") cmdargsfromconf
+
+  -- insert the config file args (before the others) and parse the lot with cmdargs
+  let
+    (clicmdarg',cliotherargs) = splitAt 1 cliargswithcmdfirst
+    allargswithcmdfirst = clicmdarg' <> genargsfromconf <> cmdargsfromconf <> cliotherargs & replaceNumericFlags
+  dbgIO "allargswithcmdfirst" allargswithcmdfirst
+  opts' <- argsToCliOpts allargswithcmdfirst addons
+  -- and save the start time
   let opts = opts'{progstarttime_=starttime}
 
   -- select an action and prepare to run it
   let
-    cmd               = command_ opts -- the full matched internal or external command name, if any
     isInternalCommand = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
     isExternalCommand = not (null cmd) && cmd `elem` addons -- probably
-    isBadCommand      = not (null rawcmd) && null cmd
+    isBadCommand      = not (null clicmdarg) && null cmd
     printUsage        = pager $ showModeUsage (mainmode addons) ++ "\n"
-    badCommandError   = error' ("command "++rawcmd++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
+    badCommandError   = error' ("command "++clicmdarg++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
     helpFlag       = boolopt "help"    $ rawopts_ opts
     tldrFlag       = boolopt "tldr"    $ rawopts_ opts
     infoFlag       = boolopt "info"    $ rawopts_ opts
@@ -246,7 +264,7 @@ main = withGhcDebug' $ do
 
       -- addon commands
       | isExternalCommand = do
-          let externalargs = argsbeforecmd ++ filter (/="--") argsaftercmd
+          let externalargs = rawcliargsbeforecmd ++ filter (/="--") rawcliargsaftercmd
           let shellcmd = printf "%s-%s %s" progname cmd (unwords' externalargs) :: String
           dbgIO "external command selected" cmd
           dbgIO "external command arguments" (map quoteIfNeeded externalargs)
@@ -254,24 +272,35 @@ main = withGhcDebug' $ do
           system shellcmd >>= exitWith
 
       -- deprecated commands
-      -- cmd == "convert"         = error' (modeHelp oldconvertmode) >> exitFailure
+      -- cmd == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
 
-      -- shouldn't reach here
-      | otherwise                = usageError ("could not understand the arguments "++show args) >> exitFailure
+      -- XXX shouldn't/doesn't reach here, but this output might be helpful
+      | otherwise = usageError $
+          "could not understand the arguments "++show allargswithcmdfirst
+          <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
+          <> if null cmdargsfromconf then "" else "\ncommand "<>cmd<>" arguments added from config file: "++show cmdargsfromconf
 
   -- do it
   runHledgerCommand
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
--- | Parse hledger CLI options from these command line arguments and
--- add-on command names, or raise any error.
+-- | Parse hledger CLI options from these command line arguments and add-on command names.
+-- Or if it fails, exit the program with usageError.
 argsToCliOpts :: [String] -> [String] -> IO CliOpts
-argsToCliOpts args addons = do
-  let
-    args'        = moveFlagsAfterCommand $ replaceNumericFlags args
-    cmdargsopts  = either usageError id $ C.process (mainmode addons) args'
-  rawOptsToCliOpts cmdargsopts
+argsToCliOpts rawargs addons = do
+  -- Try to ensure the command argument is first, and rewrite -NUM flags
+  -- which cmdargs doesn't support. This is already done in main but
+  -- perhaps there are other users of this function.
+  let args = moveFlagsAfterCommand $ replaceNumericFlags rawargs
+  rawOptsToCliOpts $ parseArgsWithCmdargs args addons
+
+-- | Parse these command line arguments/options with cmdargs using mainmode.
+-- The names of known addon commands are provided so they too can be recognised.
+-- If it fails, exit the program with usageError.
+parseArgsWithCmdargs :: [String] -> [String] -> RawOpts
+parseArgsWithCmdargs args addons =
+  either usageError id $ CmdArgs.process (mainmode addons) args
 
 -- | A hacky workaround for cmdargs not accepting flags before the
 -- subcommand name: try to detect and move such flags after the
