@@ -68,6 +68,7 @@ etc.
 
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Hledger.Cli (
   main,
@@ -109,6 +110,8 @@ import Hledger.Cli.Version
 import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.Functor ((<&>))
+import Control.Monad.Extra (unless)
+import Data.Char (isDigit)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -149,216 +152,257 @@ mainmode addons = defMode {
     -- ]
  }
 
--- | Let's go!
+------------------------------------------------------------------------------
+-- | hledger CLI's main procedure.
+--
+-- Here we will parse the command line, read any config file,
+-- and search for hledger-* addon executables in the user's PATH,
+-- then choose the appropriate builtin operation or addon operation to run,
+-- then run it in the right way, usually reading input data (eg a journal) first.
+--
+-- Making the CLI usable and robust with main command, builtin subcommands,
+-- and various kinds of addon commands, while balancing UX, environment, idioms,
+-- legacy, and a language and libraries with their own requirements and limitations,
+-- gets a bit complex. Try to keep this reasonably manageable/testable/clear.
+-- See also: Hledger.Cli.CliOptions, cli.test, and the debug output below.
+--
 main :: IO ()
 main = withGhcDebug' $ do
-  when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
+  -- let's go!
+  let
+    dbgIO :: Show a => String -> a -> IO ()  -- this signature is needed
+    dbgIO = ptraceAtIO 8
+  dbgIO "running" prognameandversion
 
   starttime <- getPOSIXTime
 
-  -- try to encourage user's $PAGER to properly display ANSI
+  -- give ghc-debug a chance to take control
+  when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
+  -- try to encourage user's $PAGER to display ANSI when supported
   when useColorOnStdout setupPager
 
-  -- Choose and run the appropriate internal or external command based
-  -- on the raw command-line arguments, cmdarg's interpretation of
-  -- same, and hledger-* executables in the user's PATH. A somewhat
-  -- complex mishmash of cmdargs and custom processing, hence all the
-  -- debugging support and tests. See also Hledger.Cli.CliOptions and
-  -- command-line.test.
-
-  -- some preliminary (imperfect) argument parsing to supplement cmdargs
-  rawcliargs <- getArgs >>= expandArgsAt
+  -- do some preliminary argument parsing to help cmdargs
+  cliargs <- getArgs
+    >>= expandArgsAt         -- interpolate @ARGFILEs
+    <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
   let
-    cliargswithcmdfirst  = rawcliargs & replaceNumericFlags & moveFlagsAfterCommand
+    cliargswithcmdfirst  = cliargs & moveFlagsAfterCommand
     isNonEmptyNonFlag s  = not $ null s || "-" `isPrefixOf` s
     clicmdarg            = headDef "" $ takeWhile isNonEmptyNonFlag cliargswithcmdfirst
-    isNullCommand        = null clicmdarg
-    (rawcliargsbeforecmd, rawcliargsaftercmd) = second (drop 1) $ break (==clicmdarg) rawcliargs
-    dbgIO :: Show a => String -> a -> IO ()  -- type signature needed
-    dbgIO = ptraceAtIO 8
+    nocmdprovided        = null clicmdarg
+    (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
 
-  dbgIO "running" prognameandversion
-  dbgIO "raw cli args" rawcliargs
-  dbgIO "raw args before command" rawcliargsbeforecmd
-  dbgIO "raw args after command"  rawcliargsaftercmd
-  dbgIO "raw cli args rearranged for cmdargs" cliargswithcmdfirst
-  dbgIO "command argument is probably" clicmdarg
+  dbgIO "cli args" cliargs
+  dbgIO "cli args with command argument first, if any" cliargswithcmdfirst
+  dbgIO "command argument found" clicmdarg
+  dbgIO "cli args before command" cliargsbeforecmd
+  dbgIO "cli args after command"  cliargsaftercmd
 
-  -- search PATH for addon commands, excluding any that match builtin command names
+  -- Search PATH for addon commands. Exclude any that match builtin command names.
   addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension) 
 
-  -- do a preliminary parse with cmdargs to identify the full command name
-  let cmd = stringopt "command" $ parseArgsWithCmdargs cliargswithcmdfirst addons
+  -- Now, so we can look for command-specific options in config files,
+  -- try to identify the command's full name (clicmdarg may be an abbreviation).
+  -- For this we do a preliminary parse of the user's arguments with cmdargs.
+  -- If no command was provided, or if the command line contains a bad flag
+  -- or a wrongly present/missing flag argument, cmd will be "".
+  let
+    cmd = parseArgsWithCmdargs cliargswithcmdfirst addons & either (const "") (stringopt "command")
+    badcmdprovided = null cmd && not nocmdprovided
+    isaddoncmd = not (null cmd) && cmd `elem` addons
+    -- isbuiltincmd = cmd `elem` builtinCommandNames
 
-  -- get any extra args/opts declared in a config file, both general and command-specific
+  dbgIO "nocmdprovided" nocmdprovided    
+  dbgIO "badcmdprovided" badcmdprovided
+  dbgIO "cmd found" cmd
+  dbgIO "isaddoncmd" isaddoncmd
+
+  -- Read any extra general args/opts, and any command-specific ones, from a config file.
+  -- And insert them before the user's args, with adjustments, to get the final args.
   conf <- getConf
   let
     genargsfromconf = confArgsFor "general" conf
-    cmdargsfromconf = confArgsFor cmd       conf
-  dbgIO ("extra general args from config file")   genargsfromconf
-  dbgIO ("extra "<>cmd<>" args from config file") cmdargsfromconf
+    cmdargsfromconf = if null cmd then [] else confArgsFor cmd conf
+    argsfromcli = drop 1 cliargswithcmdfirst
+    finalargs =  -- (avoid breaking vs code haskell highlighting..)
+      if null clicmdarg then [] else [clicmdarg] <> genargsfromconf <> cmdargsfromconf <> argsfromcli
+      & replaceNumericFlags                -- convert any -NUM opts from the config file
+  -- finalargs' <- expandArgsAt finalargs  -- expand any @ARGFILEs from the config file ? don't bother
 
-  -- insert the config file args (before the others) and parse the lot with cmdargs
-  let
-    (clicmdarg',cliotherargs) = splitAt 1 cliargswithcmdfirst
-    allargswithcmdfirst = clicmdarg' <> genargsfromconf <> cmdargsfromconf <> cliotherargs & replaceNumericFlags
-  dbgIO "allargswithcmdfirst" allargswithcmdfirst
-  opts' <- argsToCliOpts allargswithcmdfirst addons
-  -- and save the start time
-  let opts = opts'{progstarttime_=starttime}
+  unless (null genargsfromconf) $ dbgIO ("extra general args from config file")   genargsfromconf
+  unless (null cmdargsfromconf) $ dbgIO ("extra "<>cmd<>" args from config file") cmdargsfromconf
+  dbgIO "final args" finalargs
 
-  -- select an action and prepare to run it
-  let
-    isInternalCommand = cmd `elem` builtinCommandNames -- not (null cmd) && not (cmd `elem` addons)
-    isExternalCommand = not (null cmd) && cmd `elem` addons -- probably
-    isBadCommand      = not (null clicmdarg) && null cmd
-    printUsage        = pager $ showModeUsage (mainmode addons) ++ "\n"
-    badCommandError   = error' ("command "++clicmdarg++" is not recognized, run with no command to see a list") >> exitFailure  -- PARTIAL:
-    helpFlag       = boolopt "help"    $ rawopts_ opts
-    tldrFlag       = boolopt "tldr"    $ rawopts_ opts
-    infoFlag       = boolopt "info"    $ rawopts_ opts
-    manFlag        = boolopt "man"     $ rawopts_ opts
-    versionFlag    = boolopt "version" $ rawopts_ opts
-    f `orShowHelp` mode1
-      | helpFlag = pager $ showModeUsage mode1 ++ "\n"
-      | tldrFlag = runTldrForPage $ maybe "hledger" (("hledger-"<>)) $ headMay $ modeNames mode1
-      | infoFlag = runInfoForTopic "hledger" (headMay $ modeNames mode1)
-      | manFlag  = runManForTopic "hledger" (headMay $ modeNames mode1)
-      | otherwise   = f
-      -- where
-      --   lastdocflag
+  -- Now parse these in full, first to RawOpts with cmdargs, then to hledger CliOpts.
+  -- At this point a bad flag or flag argument will cause the program to exit with an error.
+  let rawopts = either usageError id $ parseArgsWithCmdargs finalargs addons
+  opts0 <- rawOptsToCliOpts rawopts
+  let opts = opts0{progstarttime_=starttime}
+
   dbgIO "processed opts" opts
-  dbgIO "command matched" cmd
-  dbgIO "isNullCommand" isNullCommand
-  dbgIO "isInternalCommand" isInternalCommand
-  dbgIO "isExternalCommand" isExternalCommand
-  dbgIO "isBadCommand" isBadCommand
   dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
   dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
   dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
+
+  -- Finally, select an action and run it.
+
+  -- Check for the help/doc/version flags first, since they are a high priority.
+  -- (A perfectionist might think they should be so high priority that adding -h
+  -- to an invalid command line would show help. But cmdargs tends to fail first,
+  -- preventing this, and trying to detect them without cmdargs, and always do the
+  -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
-    runHledgerCommand
-      -- high priority flags and situations. -h, then --help, then --tldr, then --info, then --man are highest priority.
-      | isNullCommand && helpFlag = dbgIO "" "-h/--help with no command, showing general help" >> printUsage
-      | isNullCommand && tldrFlag = dbgIO "" "--tldr with no command, showing general tldr page" >> runTldrForPage "hledger"
-      | isNullCommand && infoFlag = dbgIO "" "--info with no command, showing general info manual" >> runInfoForTopic "hledger" Nothing
-      | isNullCommand && manFlag  = dbgIO "" "--man with no command, showing general man page" >> runManForTopic "hledger" Nothing
-      | versionFlag && not (isExternalCommand || helpFlag || tldrFlag || infoFlag || manFlag) = putStrLn prognameandversion
-      | isNullCommand             = dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
-      | isBadCommand              = badCommandError
+    helpFlag    = boolopt "help"    $ rawopts_ opts
+    tldrFlag    = boolopt "tldr"    $ rawopts_ opts
+    infoFlag    = boolopt "info"    $ rawopts_ opts
+    manFlag     = boolopt "man"     $ rawopts_ opts
+    versionFlag = boolopt "version" $ rawopts_ opts
+  if
+    -- no command and a help/doc flag found - show general help/docs
+    | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
+    | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
+    | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
+    | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
 
-      -- builtin commands
-      | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd =
-        (case True of
-           -- these commands should not require or read the journal
-          _ | cmd `elem` ["demo","help","test"] ->
-              cmdaction opts $ error' $ cmd++" tried to read the journal but is not supposed to"
-          -- these commands should create the journal if missing
-          _ | cmd `elem` ["add","import"] -> do
-              ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
-              withJournalDo opts (cmdaction opts)
-          -- other commands read the journal and should fail if it's missing
-          _ -> withJournalDo opts (cmdaction opts)
-        )
-        `orShowHelp` cmdmode
+    -- --version flag found and none of these other conditions - show version
+    | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
 
-      -- addon commands
-      | isExternalCommand = do
-          let externalargs = rawcliargsbeforecmd ++ filter (/="--") rawcliargsaftercmd
-          let shellcmd = printf "%s-%s %s" progname cmd (unwords' externalargs) :: String
-          dbgIO "external command selected" cmd
-          dbgIO "external command arguments" (map quoteIfNeeded externalargs)
-          dbgIO "running shell command" shellcmd
-          system shellcmd >>= exitWith
+    -- there's a command argument, but it's bad - show error
+    | badcmdprovided -> error' $ "command "++clicmdarg++" is not recognized, run with no command to see a list"
 
-      -- deprecated commands
-      -- cmd == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
+    -- no command found, nothing else to do - show the commands list
+    | nocmdprovided     -> dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
 
-      -- XXX shouldn't/doesn't reach here, but this output might be helpful
-      | otherwise = usageError $
-          "could not understand the arguments "++show allargswithcmdfirst
-          <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
-          <> if null cmdargsfromconf then "" else "\ncommand "<>cmd<>" arguments added from config file: "++show cmdargsfromconf
+    -- builtin command found
+    | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd,
+      let mcmdname = headMay $ modeNames cmdmode,
+      let tldrpagename = maybe "hledger" (("hledger-"<>)) mcmdname ->
+      if
+        -- help/doc flag - show command help/docs
+        | helpFlag  -> pager $ showModeUsage cmdmode ++ "\n"
+        | tldrFlag  -> runTldrForPage tldrpagename
+        | infoFlag  -> runInfoForTopic "hledger" mcmdname
+        | manFlag   -> runManForTopic "hledger"  mcmdname
 
-  -- do it
-  runHledgerCommand
+        -- builtin command which should not require or read the journal - run it
+        | cmd `elem` ["demo","help","test"] ->
+          cmdaction opts $ error' $ cmd++" tried to read the journal but is not supposed to"
 
+        -- builtin command which should create the journal if missing - do that and run it
+        | cmd `elem` ["add","import"] -> do
+          ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
+          withJournalDo opts (cmdaction opts)
+
+        -- all other builtin commands - read the journal and if successful run the command with it
+        | otherwise -> withJournalDo opts (cmdaction opts)
+
+    -- addon command found - run it, passing along all arguments except the command name.
+    -- It will process args and read the journal itself as needed.
+    | isaddoncmd -> do
+        let addonargs = cliargsbeforecmd ++ filter (/="--") cliargsaftercmd
+        let shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
+        dbgIO "addon command selected" cmd
+        dbgIO "addon command arguments" (map quoteIfNeeded addonargs)
+        dbgIO "running shell command" shellcmd
+        system shellcmd >>= exitWith
+
+    -- deprecated command found
+    -- cmd == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
+
+    -- something else (shouldn't happen ?) - show an error 
+    | otherwise -> usageError $
+        "could not understand the arguments "++show finalargs
+        <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
+        <> if null cmdargsfromconf then "" else "\ncommand "<>cmd<>" arguments added from config file: "++show cmdargsfromconf
+
+  -- And we're done.
+  -- Give ghc-debug a final chance to take control.
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
--- | Parse hledger CLI options from these command line arguments and add-on command names.
--- Or if it fails, exit the program with usageError.
+------------------------------------------------------------------------------
+
+
+
+-- | A helper for addons/scripts: this parses hledger CliOpts from these
+-- command line arguments and add-on command names, roughly how hledger main does.
+-- If option parsing/validating fails, it exits the program with usageError.
+-- Unlike main, this does not read extra args from a config file
+-- or search for addons; to do those things, mimic the code in main for now.
 argsToCliOpts :: [String] -> [String] -> IO CliOpts
-argsToCliOpts rawargs addons = do
-  -- Try to ensure the command argument is first, and rewrite -NUM flags
-  -- which cmdargs doesn't support. This is already done in main but
-  -- perhaps there are other users of this function.
-  let args = moveFlagsAfterCommand $ replaceNumericFlags rawargs
-  rawOptsToCliOpts $ parseArgsWithCmdargs args addons
+argsToCliOpts args addons = do
+  let args' = args & moveFlagsAfterCommand & replaceNumericFlags
+  let rawopts = either usageError id $ parseArgsWithCmdargs args' addons
+  rawOptsToCliOpts rawopts
 
 -- | Parse these command line arguments/options with cmdargs using mainmode.
 -- The names of known addon commands are provided so they too can be recognised.
 -- If it fails, exit the program with usageError.
-parseArgsWithCmdargs :: [String] -> [String] -> RawOpts
-parseArgsWithCmdargs args addons =
-  either usageError id $ CmdArgs.process (mainmode addons) args
+parseArgsWithCmdargs :: [String] -> [String] -> Either String RawOpts
+parseArgsWithCmdargs args addons = CmdArgs.process (mainmode addons) args
 
--- | A hacky workaround for cmdargs not accepting flags before the
--- subcommand name: try to detect and move such flags after the
--- command.  This allows the user to put them in either position.
--- The order of options is not preserved, but that should be ok.
+-- | cmdargs does not allow flags to appear before the subcommand name.
+-- We would like to hide this restriction from the user, making the CLI more forgiving.
+-- So this tries to move flags, and their values, after the command name.
+-- It's tricky because flags can have an argument following a space, and flags can have optional arguments.
+-- We don't parse as precisely as cmdargs here, but we make a reasonable attempt like so:
 --
--- Since we're not parsing flags as precisely as cmdargs here, this is
--- imperfect. We make a decent effort to:
--- - move all no-argument help/input/report flags
--- - move all required-argument help/input/report flags along with their values, space-separated or not
--- - ensure --debug has an argument (because.. "or this all goes to hell")
--- - not confuse things further or cause misleading errors.
+-- - ensure the optional-argument --debug flag has an argument
+--   (XXX Now there are more optional-arg flags for which this should be done, like --forecast, but that's harder)
+--
+-- - move all no-argument input/report/help flags
+--
+-- - move all required-argument input/report/help flags and their values, whether space-separated or not
+--
+-- - try not to confuse things further or cause misleading errors.
+--
+-- Note this currently only moves general flags, not command flags.
+-- So the manual says only "General options can be written either before or after the command name".
+--
 moveFlagsAfterCommand :: [String] -> [String]
 moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
   where
+    ensureDebugHasArg as = case break (=="--debug") as of
+      (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+      (bs,["--debug"])                                    -> bs++["--debug=1"]
+      _                                                   -> as
+
     moveArgs args1 = insertFlagsAfterCommand $ moveArgs' (args1, [])
+
+    moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])  -- -f FILE ..., --alias ALIAS ...
+    moveArgs' ((fv:a:as), flags)  | isMovableFlagAndValue fv               = moveArgs' (a:as, flags ++ [fv])   -- -fFILE ..., --alias=ALIAS ...
+    moveArgs' ((f:a:as), flags)   | isMovableReqArgFlag f, not (isValue a) = moveArgs' (a:as, flags ++ [f])    -- -f(missing arg)
+    moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])    -- -h ..., --version ...
+    moveArgs' (as, flags) = (as, flags)  -- anything else
+
+    insertFlagsAfterCommand ([],             flags) = flags
+    insertFlagsAfterCommand (command1:args2, flags) = [command1] ++ flags ++ args2
+
+    movableflags = inputflags ++ reportflags ++ helpflags
+    noargmovableflags  = concatMap flagNames (filter ((==FlagNone).flagInfo) movableflags) ++ ["tl", "tld"]
+      -- include --tldr abbreviations (other help flags have no unambiguous abbreviations)
+    reqargmovableflags = concatMap flagNames $ filter ((==FlagReq ).flagInfo) movableflags
+    optargmovableflags = concatMap flagNames $ filter (isoptargflag.flagInfo) movableflags
       where
-        -- -f FILE ..., --alias ALIAS ...
-        moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])
-        -- -fFILE ..., --alias=ALIAS ...
-        moveArgs' ((fv:a:as), flags)  | isMovableArgFlagAndValue fv            = moveArgs' (a:as, flags ++ [fv])
-        -- -f(missing arg)
-        moveArgs' ((f:a:as), flags)   | isMovableReqArgFlag f, not (isValue a) = moveArgs' (a:as, flags ++ [f])
-        -- -h ..., --version ...
-        moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])
-        -- anything else
-        moveArgs' (as, flags) = (as, flags)
+        isoptargflag = \case
+          FlagOpt     _ -> True
+          FlagOptRare _ -> True
+          _             -> False
 
-        insertFlagsAfterCommand ([],           flags) = flags
-        insertFlagsAfterCommand (command1:args2, flags) = [command1] ++ flags ++ args2
+    isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` optargmovableflags ++ noargmovableflags
 
-isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` optargflagstomove ++ noargflagstomove
+    isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargmovableflags
 
-isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargflagstomove
+    isMovableFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of
+        (f:fs,_:_) -> (f:fs) `elem` optargmovableflags ++ reqargmovableflags
+        _          -> False
+    isMovableFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargmovableflags
+    isMovableFlagAndValue _ = False
 
-isMovableArgFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of
-    (f:fs,_:_) -> (f:fs) `elem` optargflagstomove ++ reqargflagstomove
-    _          -> False
-isMovableArgFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargflagstomove
-isMovableArgFlagAndValue _ = False
-
-isValue "-"     = True
-isValue ('-':_) = False
-isValue _       = True
-
-flagstomove = inputflags ++ reportflags ++ helpflags
-noargflagstomove  = concatMap flagNames (filter ((==FlagNone).flagInfo) flagstomove)
-  -- silly special case: if someone is abbreviating --tldr, make sure it works right when written before COMMAND
-  -- (not needed for --info, --man, --version since their abbreviations are ambiguous)
-  ++ ["tl", "tld"]
-reqargflagstomove = -- filter (/= "debug") $
-                    concatMap flagNames $ filter ((==FlagReq ).flagInfo) flagstomove
-optargflagstomove = concatMap flagNames $ filter (isFlagOpt   .flagInfo) flagstomove
-  where
-    isFlagOpt = \case
-      FlagOpt     _ -> True
-      FlagOptRare _ -> True
-      _             -> False
+    isValue "-"     = True
+    isValue ('-':_) = False
+    isValue _       = True
 
 
 -- unit tests (tests_Hledger_Cli) are defined in Hledger.Cli.Commands
