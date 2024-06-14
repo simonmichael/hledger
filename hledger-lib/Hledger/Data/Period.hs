@@ -15,7 +15,7 @@ module Hledger.Data.Period (
   ,isStandardPeriod
   ,periodTextWidth
   ,showPeriod
-  ,showPeriodMonthAbbrev
+  ,showPeriodAbbrev
   ,periodStart
   ,periodEnd
   ,periodNext
@@ -176,7 +176,7 @@ periodTextWidth = periodTextWidth' . simplifyPeriod
 -- "2016-07-25W30"
 showPeriod :: Period -> Text
 showPeriod (DayPeriod b)       = T.pack $ formatTime defaultTimeLocale "%F" b              -- DATE
-showPeriod (WeekPeriod b)      = T.pack $ formatTime defaultTimeLocale "%FW%V" b           -- STARTDATEWYEARWEEK
+showPeriod (WeekPeriod b)      = T.pack $ formatTime defaultTimeLocale "%0Y-W%V" b         -- YYYY-Www
 showPeriod (MonthPeriod y m)   = T.pack $ printf "%04d-%02d" y m                           -- YYYY-MM
 showPeriod (QuarterPeriod y q) = T.pack $ printf "%04dQ%d" y q                             -- YYYYQN
 showPeriod (YearPeriod y)      = T.pack $ printf "%04d" y                                  -- YYYY
@@ -186,13 +186,16 @@ showPeriod (PeriodFrom b)      = T.pack $ formatTime defaultTimeLocale "%F.." b 
 showPeriod (PeriodTo e)        = T.pack $ formatTime defaultTimeLocale "..%F" (addDays (-1) e)    -- ..INCLUSIVEENDDATE
 showPeriod PeriodAll           = ".."
 
--- | Like showPeriod, but if it's a month period show just
--- the 3 letter month name abbreviation for the current locale.
-showPeriodMonthAbbrev :: Period -> Text
-showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
+-- | Like showPeriod, but if it's a month or week period show
+-- an abbreviated form.
+-- >>> showPeriodAbbrev (WeekPeriod (fromGregorian 2016 7 25))
+-- "W30"
+showPeriodAbbrev :: Period -> Text
+showPeriodAbbrev (MonthPeriod _ m)                                              -- Jan
   | m > 0 && m <= length monthnames = T.pack . snd $ monthnames !! (m-1)
   where monthnames = months defaultTimeLocale
-showPeriodMonthAbbrev p = showPeriod p
+showPeriodAbbrev (WeekPeriod b) = T.pack $ formatTime defaultTimeLocale "W%V" b -- Www
+showPeriodAbbrev p = showPeriod p
 
 periodStart :: Period -> Maybe Day
 periodStart p = fromEFDay <$> mb
