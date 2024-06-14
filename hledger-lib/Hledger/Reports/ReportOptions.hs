@@ -766,7 +766,7 @@ reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPr
 reportPeriodName :: BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
 reportPeriodName balanceaccumulation spans =
   case balanceaccumulation of
-    PerPeriod -> if multiyear then showDateSpan else showDateSpanMonthAbbrev
+    PerPeriod -> if multiyear then showDateSpan else showDateSpanAbbrev
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd

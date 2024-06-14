@@ -43,7 +43,7 @@ module Hledger.Data.Dates (
   showEFDate,
   showDateSpan,
   showDateSpanDebug,
-  showDateSpanMonthAbbrev,
+  showDateSpanAbbrev,
   elapsedSeconds,
   prevday,
   periodexprp,
@@ -139,8 +139,8 @@ showDateSpanDebug (DateSpan b e)= "DateSpan (" <> show b <> ") (" <> show e <> "
 
 -- | Like showDateSpan, but show month spans as just the abbreviated month name
 -- in the current locale.
-showDateSpanMonthAbbrev :: DateSpan -> Text
-showDateSpanMonthAbbrev = showPeriodMonthAbbrev . dateSpanAsPeriod
+showDateSpanAbbrev :: DateSpan -> Text
+showDateSpanAbbrev = showPeriodAbbrev . dateSpanAsPeriod
 
 -- | Get the current local date.
 getCurrentDay :: IO Day
