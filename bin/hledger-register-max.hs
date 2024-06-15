@@ -1,5 +1,7 @@
 #!/usr/bin/env stack
--- stack script --compile --resolver lts-20.13 --verbosity error --package hledger-lib --package hledger --package text --package safe
+-- stack runghc
+-- (requires hledger > 1.34)
+-- -- stack script --compile --resolver nightly-2024-MM-DD --verbosity error --package hledger-lib --package hledger --package text --package safe
 
 -- hledger-register-max - runs "hledger register" and prints the posting with largest running total/balance.
 -- Usage:
@@ -25,9 +27,7 @@ import qualified "text" Data.Text as T
 import qualified Data.Text.IO as T
 import Safe
 import System.Environment
-import Hledger
-import Hledger.Cli
-import Hledger.Cli (argsToCliOpts)
+import Hledger.Cli.Script
 
 -- XXX needs --help, see hledger-addon-example.hs
 
@@ -37,8 +37,9 @@ main = do
   withJournalDo opts $ \j -> do
     let
       r = postingsReport (reportspec_ opts) j
-      maxbal = fifth5 $ maximumBy (comparing fifth5) r
-      is = filter ((== maxbal).fifth5) r
+      getamt = pamount.fourth5
+      maxbal = getamt $ maximumBy (comparing getamt) r
+      is = filter ((== maxbal).getamt) r
     mapM_ printItem is
 
 printItem (_, _, _, p, bal) = do
