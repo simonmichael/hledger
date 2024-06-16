@@ -186,7 +186,7 @@ checkWebOpts = id
 
 getHledgerWebOpts :: IO WebOpts
 getHledgerWebOpts = do
-  args <- fmap (replaceNumericFlags . ensureDebugHasArg) . expandArgsAt =<< getArgs
+  args <- fmap replaceNumericFlags . expandArgsAt =<< getArgs
   rawOptsToWebOpts . either usageError id $ process webmode args
 
 data Permission

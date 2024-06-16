@@ -245,8 +245,8 @@ If this causes difficulty, you can always run the add-on directly, without using
 # Options
 
 Run `hledger -h` to see general command line help.
+Options can be written either before or after the command name.
 The following general options are common to most hledger commands.
-General options can be written either before or after the command name.
 
 _generaloptions_
 

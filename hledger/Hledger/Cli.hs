@@ -69,6 +69,7 @@ etc.
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Cli (
   main,
@@ -111,7 +112,7 @@ import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Control.Monad.Extra (unless)
-import Data.Char (isDigit)
+import Data.List.Extra (nubSort)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -160,11 +161,12 @@ mainmode addons = defMode {
 -- then choose the appropriate builtin operation or addon operation to run,
 -- then run it in the right way, usually reading input data (eg a journal) first.
 --
--- Making the CLI usable and robust with main command, builtin subcommands,
+-- When making a CLI usable and robust with main command, builtin subcommands,
 -- and various kinds of addon commands, while balancing UX, environment, idioms,
--- legacy, and a language and libraries with their own requirements and limitations,
--- gets a bit complex. Try to keep this reasonably manageable/testable/clear.
--- See also: Hledger.Cli.CliOptions, cli.test, and the debug output below.
+-- legacy, and language and libraries and workarounds with their own requirements
+-- and limitations, things get complicated and bugs can easily creep in.
+-- So try to keep the processing below reasonably manageable, testable and clear.
+-- See also: Hledger.Cli.CliOptions, cli.test, and --debug=8.
 --
 main :: IO ()
 main = withGhcDebug' $ do
@@ -196,7 +198,7 @@ main = withGhcDebug' $ do
 
   dbgIO "cli args" cliargs
   dbgIO "cli args with command argument first, if any" cliargswithcmdfirst
-  dbgIO "command argument found" clicmdarg
+  dbgIO "command argument found"  clicmdarg
   dbgIO "cli args before command" cliargsbeforecmd
   dbgIO "cli args after command"  cliargsaftercmd
 
@@ -227,7 +229,7 @@ main = withGhcDebug' $ do
     cmdargsfromconf = if null cmd then [] else confArgsFor cmd conf
     argsfromcli = drop 1 cliargswithcmdfirst
     finalargs =  -- (avoid breaking vs code haskell highlighting..)
-      if null clicmdarg then [] else [clicmdarg] <> genargsfromconf <> cmdargsfromconf <> argsfromcli
+      (if null clicmdarg then [] else [clicmdarg]) <> genargsfromconf <> cmdargsfromconf <> argsfromcli
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand any @ARGFILEs from the config file ? don't bother
 
@@ -248,7 +250,7 @@ main = withGhcDebug' $ do
 
   -- Finally, select an action and run it.
 
-  -- Check for the help/doc/version flags first, since they are a high priority.
+  -- We check for the help/doc/version flags first, since they are a high priority.
   -- (A perfectionist might think they should be so high priority that adding -h
   -- to an invalid command line would show help. But cmdargs tends to fail first,
   -- preventing this, and trying to detect them without cmdargs, and always do the
@@ -259,6 +261,7 @@ main = withGhcDebug' $ do
     infoFlag    = boolopt "info"    $ rawopts_ opts
     manFlag     = boolopt "man"     $ rawopts_ opts
     versionFlag = boolopt "version" $ rawopts_ opts
+
   if
     -- no command and a help/doc flag found - show general help/docs
     | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
@@ -273,7 +276,7 @@ main = withGhcDebug' $ do
     | badcmdprovided -> error' $ "command "++clicmdarg++" is not recognized, run with no command to see a list"
 
     -- no command found, nothing else to do - show the commands list
-    | nocmdprovided     -> dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
+    | nocmdprovided -> dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
 
     -- builtin command found
     | Just (cmdmode, cmdaction) <- findBuiltinCommand cmd,
@@ -296,7 +299,7 @@ main = withGhcDebug' $ do
           withJournalDo opts (cmdaction opts)
 
         -- all other builtin commands - read the journal and if successful run the command with it
-        | otherwise -> withJournalDo opts (cmdaction opts)
+        | otherwise -> withJournalDo opts $ cmdaction opts
 
     -- addon command found - run it, passing along all arguments except the command name.
     -- It will process args and read the journal itself as needed.
@@ -311,7 +314,7 @@ main = withGhcDebug' $ do
     -- deprecated command found
     -- cmd == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
 
-    -- something else (shouldn't happen ?) - show an error 
+    -- something else (shouldn't happen) - show an error 
     | otherwise -> usageError $
         "could not understand the arguments "++show finalargs
         <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
@@ -342,67 +345,90 @@ argsToCliOpts args addons = do
 parseArgsWithCmdargs :: [String] -> [String] -> Either String RawOpts
 parseArgsWithCmdargs args addons = CmdArgs.process (mainmode addons) args
 
--- | cmdargs does not allow flags to appear before the subcommand name.
--- We would like to hide this restriction from the user, making the CLI more forgiving.
--- So this tries to move flags, and their values, after the command name.
--- It's tricky because flags can have an argument following a space, and flags can have optional arguments.
--- We don't parse as precisely as cmdargs here, but we make a reasonable attempt like so:
+-- | cmdargs does not allow flags (options) to appear before the subcommand name.
+-- We prefer to hide this restriction from the user, making the CLI more forgiving.
+-- So this tries to move flags, and their values if any, after the command name.
+-- This is tricky because of the flexibility of traditional flag syntax.
+-- Short flags can be joined together, some flags can have a value or no value,
+-- flags and values can be separated by =, a space, or nothing, etc.
 --
--- - ensure the optional-argument --debug flag has an argument
---   (XXX Now there are more optional-arg flags for which this should be done, like --forecast, but that's harder)
+-- We make a best-effort attempt like so:
+-- whether a flag argument (- or -- followed by a non-space character and zero or more others),
+-- and its following argument, are movable, falls into these cases, to be checked in this order:
 --
--- - move all no-argument input/report/help flags
+-- - it exactly matches a known short or long no-value flag; move it
+-- - it exactly matches a short or long requires-value flag; move it and the following argument
+-- - it exactly matches a short optional-value flag; assume these don't exist or we don't have any
+-- - it exactly matches a long optional-value flag; assume there's no value, move it
+-- - it begins with a short requires-value flag; the value is joined to it, move it
+-- - it begins with a long requires-value flag followed by =; likewise
+-- - it begins with a long optional-value flag followed by =; likewise
 --
--- - move all required-argument input/report/help flags and their values, whether space-separated or not
+-- Notes:
 --
--- - try not to confuse things further or cause misleading errors.
+-- - This hackery increases the risk of causing misleading errors, bugs, or confusion.
+--   But it should be fairly robust now, being aware of all builtin flags.
 --
--- Note this currently only moves general flags, not command flags.
--- So the manual says only "General options can be written either before or after the command name".
+-- - All general and builtin command flags (and their values) will be moved. It's clearer to
+--   write command flags after the command, but if not we'll handle it (for greater robustness).
+--
+-- - Unknown flags (from addons) are assumed to be valueless or have a joined value,
+--   and will be moved - but later rejected by cmdargs.
+--   Instead these should be written to the right of a "--" argument, which hides them.
+--   (We could perhaps automate this, but currently don't.)
 --
 moveFlagsAfterCommand :: [String] -> [String]
-moveFlagsAfterCommand args = moveArgs $ ensureDebugHasArg args
+moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
   where
-    ensureDebugHasArg as = case break (=="--debug") as of
-      (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
-      (bs,["--debug"])                                    -> bs++["--debug=1"]
-      _                                                   -> as
+    allbuiltinflags = modeAndSubmodeFlags $ mainmode []
+    flagsToArgs flags = nubSort [ if length f == 1 then "-"++f else "--"++f | f <- nubSort $ concatMap flagNames flags]
+    novalflagargs  = flagsToArgs $ filter ((==FlagNone).flagInfo) allbuiltinflags
+    reqvalflagargs = flagsToArgs $ filter ((==FlagReq).flagInfo)  allbuiltinflags
+    optvalflagargs = flagsToArgs $ filter isOptValFlag allbuiltinflags
+    isOptValFlag f = case flagInfo f of
+      FlagOpt     _ -> True
+      FlagOptRare _ -> True
+      _             -> False
+    isshort ('-':c:_) = c /= '-'
+    isshort _         = False
+    islong ('-':'-':_:_) = True
+    islong _             = False
+    isflag a = isshort a || islong a
+    shortreqvalflagargs = filter isshort reqvalflagargs
+    longreqvalflagargs_ = map (++"=") $ filter islong reqvalflagargs
+    longoptvalflagargs_ = map (++"=") $ filter islong optvalflagargs ++ ["--debug"]
 
-    moveArgs args1 = insertFlagsAfterCommand $ moveArgs' (args1, [])
+    -- Is this a short or long flag argument that should be moved,
+    -- and is its following argument a value that also should be moved ?
+    -- Returns:
+    -- 0 (not a flag)
+    -- 1 (single flag, maybe with joined argument; or multiple joined short flags)
+    -- 2 (flag with value in the next argument).
+    isMovableFlagArg :: String -> Int
+    isMovableFlagArg a
+      | a `elem` novalflagargs  = 1  -- short or long no-val flag
+      | a `elem` reqvalflagargs = 2  -- short or long req-val flag, value is in next argument
+      | a `elem` optvalflagargs = 1  -- long (or short ?) opt-val flag, assume no value
+      | any (`isPrefixOf` a) shortreqvalflagargs = 1  -- short req-val flag, value is joined
+      | any (`isPrefixOf` a) longreqvalflagargs_ = 1  -- long req-val flag, value is joined with =
+      | any (`isPrefixOf` a) longoptvalflagargs_ = 1  -- long opt-val flag, value is joined with =
+      | isflag a = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
+      | otherwise = 0   -- not a flag
 
-    moveArgs' ((f:v:a:as), flags) | isMovableReqArgFlag f, isValue v       = moveArgs' (a:as, flags ++ [f,v])  -- -f FILE ..., --alias ALIAS ...
-    moveArgs' ((fv:a:as), flags)  | isMovableFlagAndValue fv               = moveArgs' (a:as, flags ++ [fv])   -- -fFILE ..., --alias=ALIAS ...
-    moveArgs' ((f:a:as), flags)   | isMovableReqArgFlag f, not (isValue a) = moveArgs' (a:as, flags ++ [f])    -- -f(missing arg)
-    moveArgs' ((f:a:as), flags)   | isMovableNoArgFlag f                   = moveArgs' (a:as, flags ++ [f])    -- -h ..., --version ...
-    moveArgs' (as, flags) = (as, flags)  -- anything else
+    moveFlagArgs ((a:b:cs), moved)
+      | isMovableFlagArg a == 2 = moveFlagArgs (cs, moved++[a,b])
+      | isMovableFlagArg a == 1 = moveFlagArgs (b:cs, moved++[a])
+      | otherwise               = (a:b:cs, moved)
+    moveFlagArgs (as, moved)       = (as, moved)
 
     insertFlagsAfterCommand ([],             flags) = flags
     insertFlagsAfterCommand (command1:args2, flags) = [command1] ++ flags ++ args2
 
-    movableflags = inputflags ++ reportflags ++ helpflags
-    noargmovableflags  = concatMap flagNames (filter ((==FlagNone).flagInfo) movableflags) ++ ["tl", "tld"]
-      -- include --tldr abbreviations (other help flags have no unambiguous abbreviations)
-    reqargmovableflags = concatMap flagNames $ filter ((==FlagReq ).flagInfo) movableflags
-    optargmovableflags = concatMap flagNames $ filter (isoptargflag.flagInfo) movableflags
-      where
-        isoptargflag = \case
-          FlagOpt     _ -> True
-          FlagOptRare _ -> True
-          _             -> False
-
-    isMovableNoArgFlag a  = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` optargmovableflags ++ noargmovableflags
-
-    isMovableReqArgFlag a = "-" `isPrefixOf` a && dropWhile (=='-') a `elem` reqargmovableflags
-
-    isMovableFlagAndValue ('-':'-':a:as) = case break (== '=') (a:as) of
-        (f:fs,_:_) -> (f:fs) `elem` optargmovableflags ++ reqargmovableflags
-        _          -> False
-    isMovableFlagAndValue ('-':shortflag:_:_) = [shortflag] `elem` reqargmovableflags
-    isMovableFlagAndValue _ = False
-
-    isValue "-"     = True
-    isValue ('-':_) = False
-    isValue _       = True
+-- | Get all the flags defined in a mode or its immediate subcommands,
+-- whether in named, unnamed or hidden groups (does not recurse into subsubcommands).
+modeAndSubmodeFlags :: Mode a -> [Flag a]
+modeAndSubmodeFlags m@Mode{modeGroupModes=Group{..}} =
+  modeFlags m <> concatMap modeFlags (concatMap snd groupNamed <> groupUnnamed <> groupHidden)
 
 
 -- unit tests (tests_Hledger_Cli) are defined in Hledger.Cli.Commands

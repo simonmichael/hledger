@@ -107,19 +107,13 @@ $ hledger nosuchcommand
 # flag positions
 
 # ** 10. general flags can go before command
-$ hledger -f /dev/null --alias somealiases --rules-file --debug 1 --daily register
+$ hledger -f /dev/null --alias foo --daily register
 
-# ** 11. or after it, and spaces in options are optional
-$ hledger register -f/dev/null --alias=somealiases -h --version --debug 1 --daily
-> /^register \[OPTIONS\]/
+# ** 11. or after it. And flags & values joined by = or nothing also work.
+$ hledger register -f/dev/null --alias=foo --daily
 
-# ** 12. general flags before command should work
-$ hledger -f /dev/null --daily register
+# ** 12. command-specific flags (for builtin commands) can go after command
+$ hledger -f /dev/null print --explicit
 
-# ** 13. command-specific flags can go after command
-$ hledger -f /dev/null register --daily
-
-# ** 14. but not before it
-$ hledger --related register
->2 /Unknown flag: --related/
->= 1
+# ** 13. or before it
+$ hledger -f /dev/null --explicit print
