@@ -72,7 +72,6 @@ import qualified Data.ByteString.Lazy as BL
 import Data.Foldable (asum, toList)
 import Text.Megaparsec hiding (match, parse)
 import Text.Megaparsec.Char (char, newline, string, digitChar)
-import Text.Megaparsec.Custom (parseErrorAt)
 import Text.Printf (printf)
 
 import Hledger.Data

@@ -135,7 +135,6 @@ import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Tree (Tree(..), flatten)
 import Text.Printf (printf)
 import Text.Megaparsec (ParsecT)
-import Text.Megaparsec.Custom (FinalParseError)
 
 import Hledger.Utils
 import Hledger.Data.Types

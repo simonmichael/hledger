@@ -31,15 +31,15 @@ import Test.Tasty.HUnit
 -- import Test.Tasty.QuickCheck as QC
 -- import Test.Tasty.SmallCheck as SC
 import Text.Megaparsec
-import Text.Megaparsec.Custom
+
+import Hledger.Utils.IO (pshow)
+import Hledger.Utils.Parse
   ( HledgerParseErrorData,
     FinalParseError,
     attachSource,
     customErrorBundlePretty,
     finalErrorBundlePretty,
   )
-
-import Hledger.Utils.IO (pshow)
 
 -- * tasty helpers
 

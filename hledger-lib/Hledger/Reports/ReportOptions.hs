@@ -78,8 +78,6 @@ import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
 import Safe (headMay, lastDef, lastMay, maximumMay, readMay)
 
-import Text.Megaparsec.Custom
-
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils

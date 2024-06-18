@@ -91,7 +91,6 @@ import Data.Time.LocalTime
 import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
-import Text.Megaparsec.Custom
 import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)

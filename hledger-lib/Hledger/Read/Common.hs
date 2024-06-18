@@ -151,9 +151,6 @@ import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
-import Text.Megaparsec.Custom
-  (FinalParseError, attachSource, finalErrorBundlePretty, parseErrorAt, parseErrorAtRegion)
--- import Text.Megaparsec.Debug (dbg)  -- from megaparsec 9.3+
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
