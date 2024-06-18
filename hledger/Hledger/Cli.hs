@@ -113,6 +113,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Control.Monad.Extra (unless)
 import Data.List.Extra (nubSort)
+import Data.Char (isDigit)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -211,7 +212,8 @@ main = withGhcDebug' $ do
   -- If no command was provided, or if the command line contains a bad flag
   -- or a wrongly present/missing flag argument, cmd will be "".
   let
-    cmd = parseArgsWithCmdargs cliargswithcmdfirst addons & either (const "") (stringopt "command")
+    cmd = cmdargsParse cliargswithcmdfirst addons & stringopt "command"
+      -- XXX may need a better error message when cmdargs fails to parse (eg spaced/quoted/malformed flag values)
     badcmdprovided = null cmd && not nocmdprovided
     isaddoncmd = not (null cmd) && cmd `elem` addons
     -- isbuiltincmd = cmd `elem` builtinCommandNames
@@ -225,21 +227,21 @@ main = withGhcDebug' $ do
   -- And insert them before the user's args, with adjustments, to get the final args.
   conf <- getConf
   let
-    genargsfromconf = confArgsFor "general" conf
-    cmdargsfromconf = if null cmd then [] else confArgsFor cmd conf
+    genargsfromconf = confLookup "general" conf
+    cmdargsfromconf = if null cmd then [] else confLookup cmd conf
     argsfromcli = drop 1 cliargswithcmdfirst
     finalargs =  -- (avoid breaking vs code haskell highlighting..)
       (if null clicmdarg then [] else [clicmdarg]) <> genargsfromconf <> cmdargsfromconf <> argsfromcli
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand any @ARGFILEs from the config file ? don't bother
 
-  unless (null genargsfromconf) $ dbgIO ("extra general args from config file")   genargsfromconf
-  unless (null cmdargsfromconf) $ dbgIO ("extra "<>cmd<>" args from config file") cmdargsfromconf
+  unless (null genargsfromconf) $ dbgIO ("extra general args from config file") genargsfromconf
+  unless (null cmdargsfromconf) $ dbgIO ("extra command args from config file") cmdargsfromconf
   dbgIO "final args" finalargs
 
   -- Now parse these in full, first to RawOpts with cmdargs, then to hledger CliOpts.
   -- At this point a bad flag or flag argument will cause the program to exit with an error.
-  let rawopts = either usageError id $ parseArgsWithCmdargs finalargs addons
+  let rawopts = cmdargsParse finalargs addons
   opts0 <- rawOptsToCliOpts rawopts
   let opts = opts0{progstarttime_=starttime}
 
@@ -318,14 +320,13 @@ main = withGhcDebug' $ do
     | otherwise -> usageError $
         "could not understand the arguments "++show finalargs
         <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
-        <> if null cmdargsfromconf then "" else "\ncommand "<>cmd<>" arguments added from config file: "++show cmdargsfromconf
+        <> if null cmdargsfromconf then "" else "\ncommand arguments added from config file: "++show cmdargsfromconf
 
   -- And we're done.
   -- Give ghc-debug a final chance to take control.
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
 ------------------------------------------------------------------------------
-
 
 
 -- | A helper for addons/scripts: this parses hledger CliOpts from these
@@ -336,14 +337,31 @@ main = withGhcDebug' $ do
 argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
   let args' = args & moveFlagsAfterCommand & replaceNumericFlags
-  let rawopts = either usageError id $ parseArgsWithCmdargs args' addons
+  let rawopts = cmdargsParse args' addons
   rawOptsToCliOpts rawopts
 
 -- | Parse these command line arguments/options with cmdargs using mainmode.
--- The names of known addon commands are provided so they too can be recognised.
--- If it fails, exit the program with usageError.
-parseArgsWithCmdargs :: [String] -> [String] -> Either String RawOpts
-parseArgsWithCmdargs args addons = CmdArgs.process (mainmode addons) args
+-- If names of addon commands are provided, those too will be recognised.
+-- Also, convert a valueless --debug flag to one with a value.
+-- If parsing fails, exit the program with an informative error message.
+cmdargsParse :: [String] -> [String] -> RawOpts
+cmdargsParse args0 addons =
+  CmdArgs.process (mainmode addons) args & either
+    (\err -> error' $ unlines [
+       "cmdargs: " <> err
+      ,"while processing arguments:"
+      ,show args
+      ])
+    id
+  where args = ensureDebugHasVal args0
+
+-- Convert a valueless --debug flag to one with a value.
+-- See also the --debug flag definition in CliOptions.hs.
+-- This makes an equals sign unnecessary with this optional-value flag.
+ensureDebugHasVal as = case break (=="--debug") as of
+  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+  (bs,["--debug"])                                    -> bs++["--debug=1"]
+  _                                                   -> as
 
 -- | cmdargs does not allow flags (options) to appear before the subcommand name.
 -- We prefer to hide this restriction from the user, making the CLI more forgiving.

@@ -190,7 +190,7 @@ shellchars      = "<>(){}[]$7?#!~`"
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
 words' :: String -> [String]
 words' "" = []
-words' s  = map stripquotes $ fromparse $ parsewithString p s
+words' s  = map stripquotes $ fromparse $ parsewithString p s  -- PARTIAL
     where
       p = (singleQuotedPattern <|> doubleQuotedPattern <|> patterns) `sepBy` skipNonNewlineSpaces1
           -- eof

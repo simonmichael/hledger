@@ -1275,21 +1275,23 @@ emptyorcommentlinep = do
 
 {-# INLINABLE emptyorcommentlinep #-}
 
+dp :: String -> TextParser m ()
+dp = const $ return ()  -- no-op
+-- dp = dbgparse 1  -- trace parse state at this --debug level
+
 -- | A new comment line parser (from TimedotReader).
 -- Parse empty lines, all-blank lines, and lines beginning with any of
 -- the provided comment-beginning characters.
 emptyorcommentlinep' :: [Char] -> TextParser m ()
-emptyorcommentlinep' cs =
-  label ("empty line or comment line beginning with "++cs) $ do
-    -- traceparse "emptyorcommentlinep" -- XXX possible to combine label and traceparse ?
-    skipNonNewlineSpaces
-    void newline <|> void commentp
-    -- traceparse' "emptyorcommentlinep"
-    where
-      commentp = do
-        choice (map (some.char) cs)
-        void $ takeWhileP Nothing (/='\n')
-        void $ optional newline
+emptyorcommentlinep' cs = do
+  dp "emptyorcommentlinep'"
+  label ("empty line or comment line beginning with "++cs) $
+    void commentp <|> void (try $ skipNonNewlineSpaces >> newline)
+  where
+    commentp = do
+      choice (map (some.char) cs)
+      void $ takeWhileP Nothing (/='\n')
+      void $ optional newline
 
 {-# INLINABLE emptyorcommentlinep' #-}
 
