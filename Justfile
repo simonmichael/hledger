@@ -342,7 +342,7 @@ TESTING:
 
 # run ghci on hledger-lib + hledger
 @ghci *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fobject-code {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof *GHCIARGS:
