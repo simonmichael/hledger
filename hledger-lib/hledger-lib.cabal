@@ -105,7 +105,6 @@ library
       Hledger.Utils.Text
       Text.Tabular.AsciiWide
   other-modules:
-      Text.Megaparsec.Custom
       Text.WideString
       Paths_hledger_lib
   hs-source-dirs:
