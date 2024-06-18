@@ -114,7 +114,7 @@ timedotp = preamblep >> many dayp >> eof >> get
 preamblep :: JournalParser m ()
 preamblep = do
   lift $ traceparse "preamblep"
-  many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep "#;*")
+  many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep' "#;*")
   lift $ traceparse' "preamblep"
 
 -- | Parse timedot day entries to multi-posting time transactions for that day.
@@ -157,7 +157,7 @@ datelinep = do
 commentlinesp :: JournalParser m ()
 commentlinesp = do
   lift $ traceparse "commentlinesp"
-  void $ many $ try $ lift $ emptyorcommentlinep "#;"
+  void $ many $ try $ lift $ emptyorcommentlinep' "#;"
 
 -- orgnondatelinep :: JournalParser m ()
 -- orgnondatelinep = do
@@ -276,19 +276,4 @@ letterquantitiesp =
           | t@(c:_) <- group $ sort $ letter1:letters
           ]
     return groups
-
--- | XXX new comment line parser, move to Hledger.Read.Common.emptyorcommentlinep
--- Parse empty lines, all-blank lines, and lines beginning with any of the provided
--- comment-beginning characters.
-emptyorcommentlinep :: [Char] -> TextParser m ()
-emptyorcommentlinep cs =
-  label ("empty line or comment line beginning with "++cs) $ do
-    traceparse "emptyorcommentlinep" -- XXX possible to combine label and traceparse ?
-    skipNonNewlineSpaces
-    void newline <|> void commentp
-    traceparse' "emptyorcommentlinep"
-    where
-      commentp = do
-        choice (map (some.char) cs)
-        takeWhileP Nothing (/='\n') <* newline
 

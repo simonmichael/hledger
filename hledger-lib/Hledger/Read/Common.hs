@@ -96,6 +96,7 @@ module Hledger.Read.Common (
   isSameLineCommentStart,
   multilinecommentp,
   emptyorcommentlinep,
+  emptyorcommentlinep',
   followingcommentp,
   transactioncommentp,
   commenttagsp,
@@ -361,7 +362,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalAmountsDebug)
-      >>= (\j -> if checkordereddates then journalCheckOrdereddates j <&> const j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
+      >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
       >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments and missing amounts, and maybe check balance assertions.
       <&> dbg9With (lbl "amounts after transaction-balancing".showJournalAmountsDebug)
       -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalAmountsDebug)
@@ -1276,6 +1277,24 @@ emptyorcommentlinep = do
       pure ()
 
 {-# INLINABLE emptyorcommentlinep #-}
+
+-- | A new comment line parser (from TimedotReader).
+-- Parse empty lines, all-blank lines, and lines beginning with any of
+-- the provided comment-beginning characters.
+emptyorcommentlinep' :: [Char] -> TextParser m ()
+emptyorcommentlinep' cs =
+  label ("empty line or comment line beginning with "++cs) $ do
+    -- traceparse "emptyorcommentlinep" -- XXX possible to combine label and traceparse ?
+    skipNonNewlineSpaces
+    void newline <|> void commentp
+    -- traceparse' "emptyorcommentlinep"
+    where
+      commentp = do
+        choice (map (some.char) cs)
+        void $ takeWhileP Nothing (/='\n')
+        void $ optional newline
+
+{-# INLINABLE emptyorcommentlinep' #-}
 
 -- | Is this a character that, as the first non-whitespace on a line,
 -- starts a comment line ?
