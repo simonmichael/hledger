@@ -22,13 +22,17 @@
 # To see a command's options, run hledger CMD -h
 
 # help: prefer man pages, bypassing info
-[help] --man
+# [help] --man
 
 # print: show more info by default
 [print] --explicit --show-costs
 
-# balance: use these defaults
-[balance] --tree -p 'monthly from 3 months ago' --depth 3
+# balance commands: use these defaults
+[balance]            --tree -p 'monthly from 3 months ago' --depth 3
+[balancesheet]       --tree -p 'monthly from 3 months ago' --depth 3
+[balancesheetequity] --tree -p 'monthly from 3 months ago' --depth 3
+[cashflow]           --tree -p 'monthly from 3 months ago' --depth 3
+[incomestatement]    --tree -p 'monthly from 3 months ago' --depth 3
 
 # hledger-ui: reload on change (when started via `hledger ui`).
 # A -- is needed before addon-specific flags, as on command line.
