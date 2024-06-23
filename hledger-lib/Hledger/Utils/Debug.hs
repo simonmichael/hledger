@@ -53,7 +53,7 @@ In hledger, debug levels are used as follows:
 Debug level:  What to show:
 ------------  ---------------------------------------------------------
 0             normal command output only (no warnings, eg)
-1             useful warnings, most common troubleshooting info, eg valuation
+1             useful warnings, most common troubleshooting info (config file args, valuation..)
 2             common troubleshooting info, more detail
 3             report options selection
 4             report generation
