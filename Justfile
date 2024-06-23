@@ -920,17 +920,20 @@ NEWS:
 # @_datearg *DATEARG:
 #     echo {{ if DATEARG == '' { `just reldate` } else { if DATEARG =~ '^\d+$' { `dateadd $(date +%Y-%m-%d) -$DATEARG` } else { DATEARG } } }}
 
+#dateround := 'dateround -n'
+dateround := 'dateround'
+
 # If DATE is provided, return it, otherwise the date two fridays ago.
 @_dateorsecondlatestfriday *DATE:
-    echo {{ if DATE == '' { `gdate -I -d "$(dateround today -n -- -fri) - 1 week"` } else { DATE } }}
+    echo {{ if DATE == '' { `gdate -I -d "$($dateround today -- -fri) - 1 week"` } else { DATE } }}
 
 # If DATE is provided, return today's date, otherwise the most recent friday's (possibly today).
 @_todayorlatestfriday *DATE:
-    echo {{ if DATE == '' { `dateround today -n -- -fri` } else { `$GDATE -I` } }}
+    echo {{ if DATE == '' { `$dateround today -- -fri` } else { `$GDATE -I` } }}
 
 # If DATE is provided, return tomorrow's date, otherwise last friday's.
 @_tomorroworlatestfriday *DATE:
-    echo {{ if DATE == '' { `dateround today -n -- -fri` } else { `$GDATE -I -d tomorrow` } }}
+    echo {{ if DATE == '' { `$dateround today -- -fri` } else { `$GDATE -I -d tomorrow` } }}
 
 # Show a draft This Week In Hledger post, with activity between the last two fridays (by default)
 twih:  # *DATE:
