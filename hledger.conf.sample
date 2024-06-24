@@ -1,5 +1,7 @@
 # hledger.conf - extra options(/arguments) to be added to hledger commands.
-# This takes effect if found in the current directory when you run hledger.
+# hledger looks for this in the current directory (./hledger.conf)
+# or in your home directory with a dotted name    ($HOME/.hledger.conf)
+# or in your XDG config directory for hledger     ($HOME/.config/hledger/hledger.conf).
 
 # 1. This first, unnamed section is typically used for general options.
 # These affect all commands, or when not supported will be ignored.

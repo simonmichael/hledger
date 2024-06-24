@@ -4,6 +4,7 @@ Read extra CLI arguments from a hledger config file.
 
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TupleSections #-}
 
 module Hledger.Cli.Conf (
    getConf
@@ -11,22 +12,22 @@ module Hledger.Cli.Conf (
 )
 where
 
-import Control.Exception (IOException, catch, tryJust)
-import Control.Monad (guard, void)
+import Control.Monad (void)
 import Control.Monad.Identity (Identity)
+import Data.Functor ((<&>))
 import qualified Data.Map as M
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
-import System.IO.Error (isDoesNotExistError)
-import Text.Megaparsec -- hiding (parse)
+import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist)
+import System.FilePath ((</>))
+import Text.Megaparsec
 import Text.Megaparsec.Char
 
 import Hledger (error', strip, words')
 import Hledger.Read.Common
 import Hledger.Utils.Parse
+import Hledger.Utils.Debug
 
-
-localConfPath = "hledger.conf"
 
 -- | A hledger config file.
 data Conf = Conf {
@@ -67,16 +68,24 @@ confLookup cmd Conf{confSections} =
   M.lookup cmd $
   M.fromList [(csName,csArgs) | ConfSection{csName,csArgs} <- confSections]
 
--- | Try to read a hledger config file.
--- If none is found, this returns a null Conf.
--- Any other IO error will cause an exit.
+-- | Try to read a hledger config file from several places.
+-- If no config file is found, this returns a null Conf.
+-- Any other IO or parse failure will raise an error.
 getConf :: IO Conf
-getConf = (do
-  let f = localConfPath
-  es <- tryJust (guard . isDoesNotExistError) $ readFile f
-  case es of
-    Left _ -> return nullconf
-    Right s ->
+getConf = do
+  homedir      <- getHomeDirectory
+  xdgconfigdir <- getXdgDirectory XdgConfig "hledger"
+  let
+    localconf = "./hledger.conf"
+    homeconf  = homedir </> ".hledger.conf"
+    xdgconf   = xdgconfigdir </> "hledger.conf"
+    dd = (dbg1With (("config file: "<>).fst) <$>)
+  mlocalconf <- readConfFile localconf
+  mhomeconf  <- readConfFile homeconf
+  mxdgconf   <- readConfFile xdgconf
+  case dd mlocalconf <|> dd mhomeconf <|> dd mxdgconf of
+    Nothing -> return $ traceAt 1 "no config file found" $ nullconf
+    Just (f,s) ->
       case parseConf f (T.pack s) of
         Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
         Right ss -> return nullconf{
@@ -85,7 +94,13 @@ getConf = (do
           ,confFormat   = 1
           ,confSections = ss
           }
-  ) `catch` \(e :: IOException) -> error' $ show e
+
+-- | If the specified file exists, read it and return the contents and the path;
+-- if not, return Nothing. If there's any other IO error, exit the program.
+readConfFile :: FilePath -> IO (Maybe (FilePath, String))
+readConfFile f = do
+  exists <- doesFileExist f
+  if exists then readFile f <&> (Just.(f,)) else return Nothing
 
 -- config file parsing
 
