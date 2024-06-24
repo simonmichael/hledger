@@ -16,10 +16,12 @@ import Control.Monad (void)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
 import qualified Data.Map as M
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
-import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist)
-import System.FilePath ((</>))
+import Safe (headMay)
+import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist, getCurrentDirectory)
+import System.FilePath ((</>), takeDirectory)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -73,18 +75,9 @@ confLookup cmd Conf{confSections} =
 -- Any other IO or parse failure will raise an error.
 getConf :: IO Conf
 getConf = do
-  homedir      <- getHomeDirectory
-  xdgconfigdir <- getXdgDirectory XdgConfig "hledger"
-  let
-    localconf = "./hledger.conf"
-    homeconf  = homedir </> ".hledger.conf"
-    xdgconf   = xdgconfigdir </> "hledger.conf"
-    dd = (dbg1With (("config file: "<>).fst) <$>)
-  mlocalconf <- readConfFile localconf
-  mhomeconf  <- readConfFile homeconf
-  mxdgconf   <- readConfFile xdgconf
-  case dd mlocalconf <|> dd mhomeconf <|> dd mxdgconf of
-    Nothing -> return $ traceAt 1 "no config file found" $ nullconf
+  mconftxt <- confFilePaths >>= readFirstConfFile
+  case mconftxt of
+    Nothing -> return $ traceAt 1 "no config file found" nullconf
     Just (f,s) ->
       case parseConf f (T.pack s) of
         Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
@@ -95,8 +88,40 @@ getConf = do
           ,confSections = ss
           }
 
--- | If the specified file exists, read it and return the contents and the path;
--- if not, return Nothing. If there's any other IO error, exit the program.
+-- | Get the possible paths for a hledger config file, depending on the current directory.
+confFilePaths :: IO [FilePath]
+confFilePaths = do
+  ds   <- confDirs
+  home <- getHomeDirectory
+  return $ dbg1 "possible config files" $
+    flip map ds $ \d -> d </> if d==home then ".hledger.conf" else "hledger.conf"
+
+-- | Get the directories to check for a hledger config file.
+confDirs :: IO [FilePath]
+confDirs = do
+  dirs   <- getDirsUpToHomeOrRoot
+  xdgdir <- getXdgDirectory XdgConfig "hledger"
+  return $ dbg1 "conf dirs" $ dirs <> [xdgdir]
+
+-- | Get this directory and all of its parents up to ~ or /.
+getDirsUpToHomeOrRoot :: IO [FilePath]
+getDirsUpToHomeOrRoot = do
+  home <- getHomeDirectory
+  let
+    go d =
+      if d=="/" || d==home
+      then [d]
+      else d : go (takeDirectory d)
+  dbg1 "dirs up to home or root" .
+    go <$> getCurrentDirectory
+
+-- | Read the first of these files that exists.
+readFirstConfFile :: [FilePath] -> IO (Maybe (FilePath, String))
+readFirstConfFile fs = do
+  let dd = dbg1With (("config file found: "<>).fst)
+  mapM (fmap (fmap dd).readConfFile) fs <&> headMay . catMaybes
+
+-- | Read this file and return its path and contents, if it exists.
 readConfFile :: FilePath -> IO (Maybe (FilePath, String))
 readConfFile f = do
   exists <- doesFileExist f
