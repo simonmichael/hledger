@@ -433,7 +433,9 @@ moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
         isMovableFlagArg :: String -> Int
         isMovableFlagArg a1
           | a1 `elem` novalflagargs  = 1  -- short or long no-val flag
-          | a1 `elem` reqvalflagargs = 2  -- short or long req-val flag, value is in next argument
+          | a1 `elem` reqvalflagargs, not $ "--debug" `isPrefixOf` a1 = 2
+              -- short or long req-val flag, value is in next argument
+              -- --debug is really optional-value (see CliOptions), assume it has no value or joined value
           | a1 `elem` optvalflagargs = 1  -- long (or short ?) opt-val flag, assume no value
           | any (`isPrefixOf` a1) shortreqvalflagargs = 1  -- short req-val flag, value is joined
           | any (`isPrefixOf` a1) longreqvalflagargs_ = 1  -- long req-val flag, value is joined with =
