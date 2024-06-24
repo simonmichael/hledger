@@ -34,6 +34,7 @@
 [cashflow]           --tree -p 'monthly from 3 months ago' --depth 3
 [incomestatement]    --tree -p 'monthly from 3 months ago' --depth 3
 
-# hledger-ui: reload on change (when started via `hledger ui`).
-# A -- is needed before addon-specific flags, as on command line.
-[ui] -- --watch
+# hledger-ui (when started via `hledger ui`):
+# start in Cash accounts screen, limited to depth 3, and watch for changes.
+# The -- argument needed on the command line is not needed here.
+[ui] --cash -3 --watch

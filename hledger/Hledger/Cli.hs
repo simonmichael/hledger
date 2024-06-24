@@ -236,8 +236,8 @@ main = withGhcDebug' $ do
   ---------------------------------------------------------------
   -- Read extra options from a config file.
 
-  -- Read any extra general and command-specific args/opts from a config file,
-  -- ignoring any general opts not supported by the current command.
+  -- Read any extra general and command-specific args/opts from a config file.
+  -- Ignore any general opts not known to be supported by the command.
   conf <- getConf
   let
     genargsfromconf = confLookup "general" conf
@@ -245,7 +245,9 @@ main = withGhcDebug' $ do
       | isaddoncmd = []
       | otherwise  = dropUnsupportedOpts effectivemode genargsfromconf
     excludedgenargsfromconf = genargsfromconf \\ supportedgenargsfromconf
-    cmdargsfromconf = if null cmd then [] else confLookup cmd conf
+    cmdargsfromconf
+      | null cmd  = []
+      | otherwise = confLookup cmd conf & if isaddoncmd then ("--":) else id
   dbgIO1 "extra general args from config file" genargsfromconf
   dbgIO1 "excluded general args from config file, not supported by this command" excludedgenargsfromconf
   dbgIO1 "extra command args from config file" cmdargsfromconf
@@ -326,14 +328,19 @@ main = withGhcDebug' $ do
         -- all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
 
-    -- external addon command found - run it, passing
-    -- 1. any cli arguments written after the command name, except "--"
-    -- 2. and any command-specific opts from the config file.
+    -- external addon command found - run it,
+    -- passing any cli arguments written after the command name
+    -- and any command-specific opts from the config file.
+    -- Any "--" arguments, which sometimes must be used in the command line
+    -- to hide addon-specific opts from hledger's cmdargs parsing,
+    -- (and are also accepted in the config file, though not required there),
+    -- will be removed.
+    -- (hledger does not preserve -- arguments)
     -- Arguments written before the command name, and general opts from the config file,
     -- are not passed since we can't be sure they're supported.
     | isaddoncmd -> do
         let
-          addonargs = cmdargsfromconf <> filter (/="--") cliargsaftercmd
+          addonargs = filter (/="--") $ cmdargsfromconf <> cliargsaftercmd
           shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
         dbgIO "addon command selected" cmd
         dbgIO "addon command arguments" (map quoteIfNeeded addonargs)
@@ -414,7 +421,6 @@ cmdargsParse args0 addons =
 -- - Unknown flags (from addons) are assumed to be valueless or have a joined value,
 --   and will be moved - but later rejected by cmdargs.
 --   Instead these should be written to the right of a "--" argument, which hides them.
---   (We could perhaps automate this, but currently don't.)
 --
 moveFlagsAfterCommand :: [String] -> [String]
 moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
