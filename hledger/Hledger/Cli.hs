@@ -112,7 +112,6 @@ import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List.Extra (nubSort)
-import Data.Char (isDigit)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -381,15 +380,7 @@ cmdargsParse args0 addons =
       ,show args
       ])
     id
-  where args = ensureDebugHasVal args0
-
--- Convert a valueless --debug flag to one with a value.
--- See also the --debug flag definition in CliOptions.hs.
--- This makes an equals sign unnecessary with this optional-value flag.
-ensureDebugHasVal as = case break (=="--debug") as of
-  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
-  (bs,["--debug"])                                    -> bs++["--debug=1"]
-  _                                                   -> as
+  where args = ensureDebugFlagHasVal args0
 
 -- | cmdargs does not allow flags (options) to appear before the subcommand name.
 -- We prefer to hide this restriction from the user, making the CLI more forgiving.

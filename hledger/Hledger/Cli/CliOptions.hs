@@ -71,6 +71,7 @@ module Hledger.Cli.CliOptions (
   defaultWidth,
   -- widthFromOpts,
   replaceNumericFlags,
+  ensureDebugFlagHasVal,
   -- | For register:
   registerWidthsFromOpts,
 
@@ -570,6 +571,15 @@ replaceNumericFlags = map replace
   where
     replace ('-':ds) | not (null ds) && all isDigit ds = "--depth="++ds
     replace s = s
+
+-- Convert a valueless --debug flag to one with a value.
+-- See also the --debug flag definition in CliOptions.hs.
+-- This makes an equals sign unnecessary with this optional-value flag.
+ensureDebugFlagHasVal :: [String] -> [String]
+ensureDebugFlagHasVal as = case break (=="--debug") as of
+  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+  (bs,["--debug"])                                    -> bs++["--debug=1"]
+  _                                                   -> as
 
 -- | Parse raw option string values to the desired final data types.
 -- Any relative smart dates will be converted to fixed dates based on
