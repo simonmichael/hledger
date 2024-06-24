@@ -80,12 +80,10 @@ parse iopts fp t = initialiseAndParseJournal timedotp iopts fp t
 
 --- ** utilities
 
-traceparse, traceparse' :: String -> TextParser m ()
-traceparse  = const $ return ()
-traceparse' = const $ return ()
--- for debugging:
--- traceparse  s = traceParse (s++"?")
--- traceparse' s = trace s $ return ()
+-- Trace parser state above a certain --debug level ?
+tracelevel = 9
+dp :: String -> JournalParser m ()
+dp = if tracelevel >= 0 then lift . dbgparse tracelevel else const $ return ()
 
 --- ** parsers
 {-
@@ -113,9 +111,8 @@ timedotp = preamblep >> many dayp >> eof >> get
 
 preamblep :: JournalParser m ()
 preamblep = do
-  lift $ traceparse "preamblep"
-  many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep' "#;*")
-  lift $ traceparse' "preamblep"
+  dp "preamblep"
+  void $ many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep "#;*")
 
 -- | Parse timedot day entries to multi-posting time transactions for that day.
 -- @
@@ -126,11 +123,13 @@ preamblep = do
 -- @
 dayp :: JournalParser m ()
 dayp = label "timedot day entry" $ do
-  lift $ traceparse "dayp"
+  dp "dayp"
   pos <- getSourcePos
   (date,desc,comment,tags) <- datelinep
+  dp "dayp1"
   commentlinesp
-  ps <- (many $ timedotentryp <* commentlinesp) <&> concat
+  dp "dayp2"
+  ps <- (many $ dp "dayp3" >> timedotentryp <* commentlinesp) <&> concat
   endpos <- getSourcePos
   let t = txnTieKnot $ nulltransaction{
     tsourcepos   = (pos, endpos),
@@ -145,7 +144,7 @@ dayp = label "timedot day entry" $ do
 
 datelinep :: JournalParser m (Day,Text,Text,[Tag])
 datelinep = do
-  lift $ traceparse "datelinep"
+  dp "datelinep"
   lift $ optional orgheadingprefixp
   date <- datep
   desc <- T.strip <$> lift descriptionp
@@ -156,16 +155,15 @@ datelinep = do
 -- or org headlines which do not start a new day.
 commentlinesp :: JournalParser m ()
 commentlinesp = do
-  lift $ traceparse "commentlinesp"
-  void $ many $ try $ lift $ emptyorcommentlinep' "#;"
+  dp "commentlinesp"
+  void $ many $ try $ lift $ emptyorcommentlinep "#;"
 
 -- orgnondatelinep :: JournalParser m ()
 -- orgnondatelinep = do
---   lift $ traceparse "orgnondatelinep"
+--   dp "orgnondatelinep"
 --   lift orgheadingprefixp
 --   notFollowedBy datelinep
 --   void $ lift restofline
---   lift $ traceparse' "orgnondatelinep"
 
 orgheadingprefixp = skipSome (char '*') >> skipNonNewlineSpaces1
 
@@ -175,7 +173,7 @@ orgheadingprefixp = skipSome (char '*') >> skipNonNewlineSpaces1
 -- @
 timedotentryp :: JournalParser m [Posting]
 timedotentryp = do
-  lift $ traceparse "timedotentryp"
+  dp "timedotentryp"
   notFollowedBy datelinep
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
   a <- modifiedaccountnamep
@@ -225,7 +223,7 @@ durationsp =
 -- @
 numericquantityp :: TextParser m Hours
 numericquantityp = do
-  -- lift $ traceparse "numericquantityp"
+  -- dp "numericquantityp"
   (q, _, _, _) <- numberp Nothing
   msymbol <- optional $ choice $ map (string . fst) timeUnits
   skipNonNewlineSpaces
@@ -257,7 +255,7 @@ timeUnits =
 -- @
 dotquantityp :: TextParser m Hours
 dotquantityp = do
-  -- lift $ traceparse "dotquantityp"
+  -- dp "dotquantityp"
   char '.'
   dots <- many (oneOf ['.', ' ']) <&> filter (not.isSpace)
   return $ fromIntegral (1 + length dots) / 4
@@ -267,7 +265,7 @@ dotquantityp = do
 -- ignoring any interspersed spaces after the first letter.
 letterquantitiesp :: TextParser m [(Hours, TagValue)]
 letterquantitiesp =
-  -- dbg "letterquantitiesp" $ 
+  -- dp "letterquantitiesp"
   do
     letter1 <- letterChar
     letters <- many (letterChar <|> spacenonewline) <&> filter (not.isSpace)
@@ -276,4 +274,18 @@ letterquantitiesp =
           | t@(c:_) <- group $ sort $ letter1:letters
           ]
     return groups
+
+-- | XXX new comment line parser, move to Hledger.Read.Common.emptyorcommentlinep
+-- Parse empty lines, all-blank lines, and lines beginning with any of the provided
+-- comment-beginning characters.
+emptyorcommentlinep :: [Char] -> TextParser m ()
+emptyorcommentlinep cs =
+  label ("empty line or comment line beginning with "++cs) $ do
+    dbgparse tracelevel "emptyorcommentlinep"
+    skipNonNewlineSpaces
+    void newline <|> void commentp
+    where
+      commentp = do
+        choice (map (some.char) cs)
+        takeWhileP Nothing (/='\n') <* newline
 
