@@ -98,8 +98,8 @@ dp = const $ return ()  -- no-op
 
 whitespacep, commentlinesp, restoflinep :: TextParser Identity ()
 whitespacep   = void $ {- dp "whitespacep"   >> -} many spacenonewline
-commentlinesp = void $ {- dp "commentlinesp" >> -} many (emptyorcommentlinep' "#")
-restoflinep   = void $ {- dp "restoflinep"   >> -} whitespacep >> emptyorcommentlinep' "#"
+commentlinesp = void $ {- dp "commentlinesp" >> -} many (emptyorcommentlinep2 "#")
+restoflinep   = void $ {- dp "restoflinep"   >> -} whitespacep >> emptyorcommentlinep2 "#"
 
 confp :: TextParser Identity [ConfSection]  -- a monadic TextParser to allow reusing other hledger parsers
 confp = do

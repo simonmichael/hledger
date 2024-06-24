@@ -50,7 +50,7 @@ import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 
 import Hledger.Data
-import Hledger.Read.Common hiding (emptyorcommentlinep)
+import Hledger.Read.Common
 import Hledger.Utils
 import Data.Decimal (roundTo)
 import Data.Functor ((<&>))
@@ -112,7 +112,7 @@ timedotp = preamblep >> many dayp >> eof >> get
 preamblep :: JournalParser m ()
 preamblep = do
   dp "preamblep"
-  void $ many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep "#;*")
+  void $ many $ notFollowedBy datelinep >> (lift $ emptyorcommentlinep2 "#;*")
 
 -- | Parse timedot day entries to multi-posting time transactions for that day.
 -- @
@@ -156,7 +156,7 @@ datelinep = do
 commentlinesp :: JournalParser m ()
 commentlinesp = do
   dp "commentlinesp"
-  void $ many $ try $ lift $ emptyorcommentlinep "#;"
+  void $ many $ try $ lift $ emptyorcommentlinep2 "#;"
 
 -- orgnondatelinep :: JournalParser m ()
 -- orgnondatelinep = do
@@ -274,18 +274,3 @@ letterquantitiesp =
           | t@(c:_) <- group $ sort $ letter1:letters
           ]
     return groups
-
--- | XXX new comment line parser, move to Hledger.Read.Common.emptyorcommentlinep
--- Parse empty lines, all-blank lines, and lines beginning with any of the provided
--- comment-beginning characters.
-emptyorcommentlinep :: [Char] -> TextParser m ()
-emptyorcommentlinep cs =
-  label ("empty line or comment line beginning with "++cs) $ do
-    dbgparse tracelevel "emptyorcommentlinep"
-    skipNonNewlineSpaces
-    void newline <|> void commentp
-    where
-      commentp = do
-        choice (map (some.char) cs)
-        takeWhileP Nothing (/='\n') <* newline
-

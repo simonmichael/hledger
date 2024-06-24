@@ -79,3 +79,14 @@ $ hledger -ftimedot:- print
     (g)            0.25
 
 >=
+# ** 5. Lines can be commented by a leading # or ;, indented or not.
+<
+2024-01-01
+;a
+ ;b
+#c
+ #d
+e
+
+$ hledger -ftimedot:- accounts
+e

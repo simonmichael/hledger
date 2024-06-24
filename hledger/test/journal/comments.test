@@ -31,7 +31,7 @@ $ hledger -f - print
 
 >= 0
 
-# ** 2. transaction comments must use ;
+# ** 2. Same-line transaction comments start only with ;. The description can contain # or *.
 <
 2017/1/1 this # and * are not ; the comment
 $ hledger -f - print
@@ -39,16 +39,33 @@ $ hledger -f - print
 
 >= 0
 
-# ** 3. posting comments must use ;
+# ** 3. Same-line posting comments start only with ;.
 <
 2017/1/1
-  a  0  # hash & star not allowed for posting comments
+  a  0  # posting comments can't start with # or *
+
 $ hledger -f - print
 > //
 >2 //
 >= 1
 
-# ** 4. register does not show comments
+# ** 4. Postings can be commented by a ; or a non-indented # (indented # or * does not start a comment).
+# Account names can contain # or (not at start) *.
+<
+2024-01-01
+  #a   1  ; posting to #a account
+  b*  -1  ; posting to b* account
+  *c   0  ; posting to c account, with * status mark
+  ;d   0  ; a comment line attached to the c posting above, part of the transcction
+; e    0  ; top level comment line, not part of the transaction
+# f    0  ; top level comment line, not part of the transaction
+
+$ hledger -f - accounts
+#a
+b*
+c
+
+# ** 5. register does not show comments.
 <
 2010/1/1 x
     a  1 ; comment

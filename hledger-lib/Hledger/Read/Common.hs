@@ -96,7 +96,7 @@ module Hledger.Read.Common (
   isSameLineCommentStart,
   multilinecommentp,
   emptyorcommentlinep,
-  emptyorcommentlinep',
+  emptyorcommentlinep2,
   followingcommentp,
   transactioncommentp,
   commenttagsp,
@@ -406,6 +406,10 @@ setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
 
 getYear :: JournalParser m (Maybe Year)
 getYear = fmap jparsedefaultyear get
+
+dp :: String -> TextParser m ()
+dp = const $ return ()  -- no-op
+-- dp = dbgparse 1  -- trace parse state at this --debug level
 
 -- | Get the decimal mark that has been specified for parsing, if any
 -- (eg by the CSV decimal-mark rule, or possibly a future journal directive).
@@ -1260,9 +1264,10 @@ multilinecommentp = startComment *> anyLine `skipManyTill` endComment
 
 -- | A blank or comment line in journal format: a line that's empty or
 -- containing only whitespace or whose first non-whitespace character
--- is semicolon, hash, or star.
+-- is semicolon, hash, or star. See also emptyorcommentlinep2.
 emptyorcommentlinep :: TextParser m ()
 emptyorcommentlinep = do
+  dp "emptyorcommentlinep"
   skipNonNewlineSpaces
   skiplinecommentp <|> void newline
   where
@@ -1275,25 +1280,18 @@ emptyorcommentlinep = do
 
 {-# INLINABLE emptyorcommentlinep #-}
 
-dp :: String -> TextParser m ()
-dp = const $ return ()  -- no-op
--- dp = dbgparse 1  -- trace parse state at this --debug level
-
--- | A new comment line parser (from TimedotReader).
--- Parse empty lines, all-blank lines, and lines beginning with any of
--- the provided comment-beginning characters.
-emptyorcommentlinep' :: [Char] -> TextParser m ()
-emptyorcommentlinep' cs = do
-  dp "emptyorcommentlinep'"
-  label ("empty line or comment line beginning with "++cs) $
-    void commentp <|> void (try $ skipNonNewlineSpaces >> newline)
-  where
-    commentp = do
-      choice (map (some.char) cs)
-      void $ takeWhileP Nothing (/='\n')
-      void $ optional newline
-
-{-# INLINABLE emptyorcommentlinep' #-}
+-- | A newer comment line parser.
+-- Parses a line which is empty, all blanks, or whose first non-blank character is one of those provided.
+emptyorcommentlinep2 :: [Char] -> TextParser m ()
+emptyorcommentlinep2 cs =
+  label ("empty line or comment line beginning with "++cs) $ do
+    dp "emptyorcommentlinep2"
+    skipNonNewlineSpaces
+    void newline <|> void commentp
+    where
+      commentp = do
+        choice (map (some.char) cs)
+        takeWhileP Nothing (/='\n') <* newline
 
 -- | Is this a character that, as the first non-whitespace on a line,
 -- starts a comment line ?
