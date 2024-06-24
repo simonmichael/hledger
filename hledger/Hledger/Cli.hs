@@ -242,10 +242,13 @@ main = withGhcDebug' $ do
   conf <- getConf
   let
     genargsfromconf = confLookup "general" conf
-    supportedgenargsfromconf = dropUnsupportedOpts effectivemode genargsfromconf
+    supportedgenargsfromconf
+      | isaddoncmd = []
+      | otherwise  = dropUnsupportedOpts effectivemode genargsfromconf
+    excludedgenargsfromconf = genargsfromconf \\ supportedgenargsfromconf
     cmdargsfromconf = if null cmd then [] else confLookup cmd conf
   dbgIO1 "extra general args from config file" genargsfromconf
-  dbgIO1 "excluded general args from config file not supported by this command" $ genargsfromconf \\ supportedgenargsfromconf
+  dbgIO1 "excluded general args from config file, not supported by this command" excludedgenargsfromconf
   dbgIO1 "extra command args from config file" cmdargsfromconf
 
   ---------------------------------------------------------------
@@ -324,14 +327,18 @@ main = withGhcDebug' $ do
         -- all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
 
-    -- external addon command found - run it, passing all arguments except the command name.
-    -- It will do its own command line parsing and journal reading.
+    -- external addon command found - run it, passing
+    -- 1. any cli arguments written after the command name, except "--"
+    -- 2. and any command-specific opts from the config file.
+    -- Arguments written before the command name, and general opts from the config file,
+    -- are not passed since we can't be sure they're supported.
     | isaddoncmd -> do
-        let addonargs = cliargsbeforecmd ++ filter (/="--") cliargsaftercmd
-        let shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
+        let
+          addonargs = cmdargsfromconf <> filter (/="--") cliargsaftercmd
+          shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
         dbgIO "addon command selected" cmd
         dbgIO "addon command arguments" (map quoteIfNeeded addonargs)
-        dbgIO1 "running shell command" shellcmd
+        dbgIO1 "running" shellcmd
         system shellcmd >>= exitWith
 
     -- deprecated command found
