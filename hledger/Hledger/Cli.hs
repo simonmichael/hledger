@@ -186,7 +186,13 @@ main = withGhcDebug' $ do
   -- try to encourage user's $PAGER to display ANSI when supported
   when useColorOnStdout setupPager
 
-  -- do some preliminary argument parsing to help cmdargs
+  -- Search PATH for addon commands. Exclude any that match builtin command names.
+  addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
+
+  ---------------------------------------------------------------
+  -- Preliminary command line parsing.
+
+  -- Do some argument preprocessing to help cmdargs
   cliargs <- getArgs
     >>= expandArgsAt         -- interpolate @ARGFILEs
     <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
@@ -199,20 +205,16 @@ main = withGhcDebug' $ do
         ([],bs)   -> ("",bs)
     nocmdprovided        = null clicmdarg
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
-
   dbgIO "cli args" cliargs
-  dbgIO "cli args with command argument first, if any" cliargswithcmdfirst
+  dbgIO "cli args with command first, if any" cliargswithcmdfirst
   dbgIO "command argument found"   clicmdarg
   dbgIO "cli args without command" cliargswithoutcmd
   dbgIO "cli args before command"  cliargsbeforecmd
   dbgIO "cli args after command"   cliargsaftercmd
 
-  -- Search PATH for addon commands. Exclude any that match builtin command names.
-  addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension) 
-
-  -- Now, so we can look for command-specific options in config files,
-  -- try to identify the command's full name (clicmdarg may be an abbreviation).
-  -- For this we do a preliminary parse of the user's arguments with cmdargs.
+  -- Now try to identify the full subcommand name, so we can look for
+  -- command-specific options in config files (clicmdarg may be only an abbreviation).
+  -- For this we do a preliminary cmdargs parse of the command line arguments.
   -- If no command was provided, or if the command line contains a bad flag
   -- or a wrongly present/missing flag argument, cmd will be "".
   let
@@ -227,41 +229,38 @@ main = withGhcDebug' $ do
     -- isbuiltincmd = cmd `elem` builtinCommandNames
     mcmdmodeaction = findBuiltinCommand cmd
     effectivemode = maybe (mainmode []) fst mcmdmodeaction
+  dbgIO "no command provided" nocmdprovided
+  dbgIO "bad command provided" badcmdprovided
+  dbgIO1 "command found" cmd
+  dbgIO "is addon command" isaddoncmd
 
-  dbgIO "nocmdprovided" nocmdprovided    
-  dbgIO "badcmdprovided" badcmdprovided
-  dbgIO1 "cmd found" cmd
-  dbgIO "isaddoncmd" isaddoncmd
+  ---------------------------------------------------------------
+  -- Read extra options from a config file.
 
-  -- Read any extra general args/opts, and any command-specific ones, from a config file.
-  -- (Ignoring any general args not supported by the current command.)
-  -- And insert them before the user's args, with adjustments, to get the final args.
+  -- Read any extra general and command-specific args/opts from a config file,
+  -- ignoring any general opts not supported by the current command.
   conf <- getConf
   let
     genargsfromconf = confLookup "general" conf
     supportedgenargsfromconf = dropUnsupportedOpts effectivemode genargsfromconf
     cmdargsfromconf = if null cmd then [] else confLookup cmd conf
+  dbgIO1 "extra general args from config file" genargsfromconf
+  dbgIO1 "excluded general args from config file not supported by this command" $ genargsfromconf \\ supportedgenargsfromconf
+  dbgIO1 "extra command args from config file" cmdargsfromconf
+
+  ---------------------------------------------------------------
+  -- Combine cli and config file args and parse with cmdargs.
+  -- A bad flag or flag argument will cause the program to exit with an error here.
+
+  let
     finalargs =  -- (avoid breaking vs code haskell highlighting..)
       (if null clicmdarg then [] else [clicmdarg]) <> supportedgenargsfromconf <> cmdargsfromconf <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
-
-  dbgIO1 "extra general args from config file" genargsfromconf
-  dbgIO1 "excluded general args from config file not supported by this command" $ genargsfromconf \\ supportedgenargsfromconf
-  dbgIO1 "extra command args from config file" cmdargsfromconf
   dbgIO "final args to be parsed by cmdargs" finalargs
-
-  -- Now parse these in full, first to RawOpts with cmdargs, then to hledger CliOpts.
-  -- At this point a bad flag or flag argument will cause the program to exit with an error.
   let rawopts = cmdargsParse finalargs addons
-  opts0 <- rawOptsToCliOpts rawopts
-  let opts = opts0{progstarttime_=starttime}
 
-  dbgIO "processed opts" opts
-  dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
-  dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
-  dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
-
+  ---------------------------------------------------------------
   -- Finally, select an action and run it.
 
   -- We check for the help/doc/version flags first, since they are a high priority.
@@ -270,11 +269,11 @@ main = withGhcDebug' $ do
   -- preventing this, and trying to detect them without cmdargs, and always do the
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
-    helpFlag    = boolopt "help"    $ rawopts_ opts
-    tldrFlag    = boolopt "tldr"    $ rawopts_ opts
-    infoFlag    = boolopt "info"    $ rawopts_ opts
-    manFlag     = boolopt "man"     $ rawopts_ opts
-    versionFlag = boolopt "version" $ rawopts_ opts
+    helpFlag    = boolopt "help"    rawopts
+    tldrFlag    = boolopt "tldr"    rawopts
+    infoFlag    = boolopt "info"    rawopts
+    manFlag     = boolopt "man"     rawopts
+    versionFlag = boolopt "version" rawopts
 
   if
     -- no command and a help/doc flag found - show general help/docs
@@ -293,9 +292,19 @@ main = withGhcDebug' $ do
     | nocmdprovided -> dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
 
     -- builtin command found
-    | Just (cmdmode, cmdaction) <- mcmdmodeaction,
-      let mcmdname = headMay $ modeNames cmdmode,
-      let tldrpagename = maybe "hledger" (("hledger-"<>)) mcmdname ->
+    | Just (cmdmode, cmdaction) <- mcmdmodeaction -> do
+
+      -- validate opts/args more and convert to CliOpts
+      opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
+      dbgIO "processed opts" opts
+      dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
+      dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
+      dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
+      let
+        mcmdname = headMay $ modeNames cmdmode
+        tldrpagename = maybe "hledger" (("hledger-"<>)) mcmdname
+
+      -- run the builtin command according to its type
       if
         -- help/doc flag - show command help/docs
         | helpFlag  -> pager $ showModeUsage cmdmode ++ "\n"
@@ -315,14 +324,14 @@ main = withGhcDebug' $ do
         -- all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
 
-    -- addon command found - run it, passing along all arguments except the command name.
-    -- It will process args and read the journal itself as needed.
+    -- external addon command found - run it, passing all arguments except the command name.
+    -- It will do its own command line parsing and journal reading.
     | isaddoncmd -> do
         let addonargs = cliargsbeforecmd ++ filter (/="--") cliargsaftercmd
         let shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
         dbgIO "addon command selected" cmd
         dbgIO "addon command arguments" (map quoteIfNeeded addonargs)
-        dbgIO "running shell command" shellcmd
+        dbgIO1 "running shell command" shellcmd
         system shellcmd >>= exitWith
 
     -- deprecated command found
@@ -402,6 +411,8 @@ ensureDebugHasVal as = case break (=="--debug") as of
 -- - All general and builtin command flags (and their values) will be moved. It's clearer to
 --   write command flags after the command, but if not we'll handle it (for greater robustness).
 --
+-- - Long flags should be spelled in full; abbreviated long flags may not be moved.
+--
 -- - Unknown flags (from addons) are assumed to be valueless or have a joined value,
 --   and will be moved - but later rejected by cmdargs.
 --   Instead these should be written to the right of a "--" argument, which hides them.
@@ -429,6 +440,7 @@ moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
           | any (`isPrefixOf` a1) shortreqvalflagargs = 1  -- short req-val flag, value is joined
           | any (`isPrefixOf` a1) longreqvalflagargs_ = 1  -- long req-val flag, value is joined with =
           | any (`isPrefixOf` a1) longoptvalflagargs_ = 1  -- long opt-val flag, value is joined with =
+          -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longreqvalflagargs_ ... -- try to move abbreviated long flags ?
           | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
           | otherwise = 0    -- not a flag
     moveFlagArgs (as, moved)       = (as, moved)
