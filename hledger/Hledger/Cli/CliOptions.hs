@@ -577,7 +577,7 @@ replaceNumericFlags = map replace
 -- This makes an equals sign unnecessary with this optional-value flag.
 ensureDebugFlagHasVal :: [String] -> [String]
 ensureDebugFlagHasVal as = case break (=="--debug") as of
-  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1":c:cs
+  (bs,"--debug":c:cs) | null c || not (all isDigit c) -> bs++"--debug=1" : ensureDebugFlagHasVal (c:cs)
   (bs,["--debug"])                                    -> bs++["--debug=1"]
   _                                                   -> as
 
