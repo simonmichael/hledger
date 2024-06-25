@@ -521,22 +521,21 @@ Argument files are now superseded by..
 
 ## Config files
 
-hledger looks for a `hledger.conf` file (or `.hledger.conf` in your home directory)
-in the current directory, then parent directories, then your XDG config directory (`~/.config/hledger/`).
-Any command line options (or arguments) in this file will be added to your `hledger` commands,
-near the start of the command line (so you can override them when needed).
+hledger will read extra command line options from a `hledger.conf` config file.
+These will be inserted early in the command line, so your later options can override them if needed.
+The config file can contain general options (which will be used with all commands that support them), and command-specific options (or arguments).
+[hledger.conf.sample](https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample) is an example,
+which you can install as `./hledger.conf` or `$HOME/.hledger.conf`.
 
-Or you can specify a config file with the `--conf` option.
-Or you can add a `hledger --conf` shebang line to a config file and make it executable.
+To be precise, hledger looks for `hledger.conf` in the current directory or above,
+or in your home directory (with a dotted name, `~/.hledger.conf`),
+or finally in your XDG config directory (`~/.config/hledger/hledger.conf`).
+Or you can select a particular config file by using the `--conf` option,
+or by adding a `hledger --conf` shebang line to a config file and executing it like a script (see the example file).
+You can inspect the finding and processing of config files with `--debug` or `--debug=8`.
 
-A hledger config file contains command line options, to be used with all commands that support them,
-and optionally command-specific options in named sections.
-[hledger.conf.sample](https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample)
-is a sample demonstrating the syntax; you can install it as `./hledger.conf`
-or `$HOME/.hledger.conf` and customise it.
-
-You can disable config files entirely by running with the `-n/--no-conf` flag.
-This will ensure hledger runs with standard defaults, useful when troubleshooting or when sharing examples with others.
+If you want to run hledger without a config file, to ensure standard defaults and behaviour, use the `-n/--no-conf` flag.
+This is useful when troubleshooting problems or sharing examples.
 
 *(Added in 1.40; experimental)*
 
