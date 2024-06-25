@@ -88,7 +88,7 @@ module Hledger.Cli (
 )
 where
 
-import Control.Monad (when)
+import Control.Monad (when, unless)
 import Data.List
 import qualified Data.List.NonEmpty as NE
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -112,6 +112,7 @@ import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List.Extra (nubSort)
+import Data.Maybe (isJust)
 
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -134,7 +135,10 @@ mainmode addons = defMode {
      -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
      groupNamed = cligeneralflagsgroups1
      -- flags in the unnamed group, shown last:
-    ,groupUnnamed = []
+    ,groupUnnamed = [
+       flagReq  ["conf"]        (\s opts -> Right $ setopt "conf" s opts) "CONFFILE" "Use extra options defined in this config file. If not specified, searches upward and in XDG config dir for hledger.conf (or .hledger.conf in $HOME)."
+      ,flagNone ["no-conf","n"] (setboolopt "no-conf") "ignore any config file"
+    ]
      -- flags handled but not shown in the help:
     ,groupHidden =
         [detailedversionflag]
@@ -216,12 +220,14 @@ main = withGhcDebug' $ do
   -- For this we do a preliminary cmdargs parse of the command line arguments.
   -- If no command was provided, or if the command line contains a bad flag
   -- or a wrongly present/missing flag argument, cmd will be "".
+  -- (Also find any --conf-file/--no-conf options.)
   let
     -- cliargswithcmdfirst' = filter (/= "--debug") cliargswithcmdfirst
     -- XXX files --debug fails here, eg.
     -- How to parse the command name with cmdargs without passing unsupported flags that it will reject ?
     -- Is --debug the only flag like this ?
-    cmd = cmdargsParse cliargswithcmdfirst addons & stringopt "command"
+    rawopts0 = cmdargsParse cliargswithcmdfirst addons
+    cmd = stringopt "command" rawopts0
       -- XXX may need a better error message when cmdargs fails to parse (eg spaced/quoted/malformed flag values)
     badcmdprovided = null cmd && not nocmdprovided
     isaddoncmd = not (null cmd) && cmd `elem` addons
@@ -238,7 +244,7 @@ main = withGhcDebug' $ do
 
   -- Read any extra general and command-specific args/opts from a config file.
   -- Ignore any general opts not known to be supported by the command.
-  conf <- getConf
+  (conf, mconffile) <- getConf rawopts0
   let
     genargsfromconf = confLookup "general" conf
     supportedgenargsfromconf
@@ -248,9 +254,11 @@ main = withGhcDebug' $ do
     cmdargsfromconf
       | null cmd  = []
       | otherwise = confLookup cmd conf & if isaddoncmd then ("--":) else id
-  dbgIO1 "extra general args from config file" genargsfromconf
-  dbgIO1 "excluded general args from config file, not supported by this command" excludedgenargsfromconf
-  dbgIO1 "extra command args from config file" cmdargsfromconf
+  when (isJust mconffile) $ do
+    dbgIO1 "extra general args from config file" genargsfromconf
+    unless (null excludedgenargsfromconf) $
+      dbgIO1 "excluded general args from config file, not supported by this command" excludedgenargsfromconf
+    dbgIO1 "extra command args from config file" cmdargsfromconf
 
   ---------------------------------------------------------------
   -- Combine cli and config file args and parse with cmdargs.

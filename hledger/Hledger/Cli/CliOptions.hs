@@ -146,8 +146,8 @@ prognameandversion =
 -- | Common input-related flags: --file, --rules-file, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
-   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "FILE" "Read data from FILE, or from stdin if -. Can be specified more than once. If not specified, reads from $LEDGER_FILE or $HOME/.hledger.journal."
-  ,flagReq  ["rules-file"]    (\s opts -> Right $ setopt "rules-file" s opts) "RULEFILE" "Use conversion rules from this file for converting subsequent CSV/SSV/TSV files. If not specified, uses FILE.rules for each such FILE."
+   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "[FMT:]FILE" "Read data from FILE, or from stdin if FILE is -, inferring format from extension or a FMT: prefix. Can be specified more than once. If not specified, reads from $LEDGER_FILE or $HOME/.hledger.journal."
+  ,flagReq  ["rules"]         (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "Use rules defined in this rules file for converting subsequent CSV/SSV/TSV files. If not specified, uses FILE.csv.rules for each FILE.csv."  -- see also hiddenflags
 
   ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "A=B|/RGX/=RPL" "transform account names from A to B, or by replacing regular expression matches"
   ,flagNone ["auto"]          (setboolopt "auto") "generate extra postings by applying auto posting rules (\"=\") to all transactions"
