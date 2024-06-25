@@ -66,10 +66,10 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
-  -- ,"./Shake flagdocs [-c]    update flags in hledger CLI command docs
+  -- ,"./Shake flagdocs [-c]    update flags in hledger CLI command docs"
   -- ,"                         (run after changing command flags)"
-  ,"./Shake cmddocs [-c]     update hledger CLI command help and docs"
-  ,"                         (run after changing command flags or docs)"
+  ,"./Shake cmddocs [-c]     update hledger command help (including command flags,"
+  ,"                         but not main flags) after changing command flags/docs)"
   ,"./Shake mandates         update the date shown in some manual formats"
   ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
   -- ,"./Shake webmanuals       update just the web manuals"
