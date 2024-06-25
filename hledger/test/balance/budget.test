@@ -156,9 +156,9 @@ Budget performance in 2018-01-01..2018-01-03:
 
 # ** 6. Budget goals with higher frequency than the report get added up appropriately.
 $ hledger -f- bal --budget -W
-Budget performance in 2018-01-01W01:
+Budget performance in 2018-W01:
 
-   ||  2018-01-01W01 
+   ||            W01 
 ===++================
  a || 2 [3% of   70] 
  b || 2 [2% of  100] 

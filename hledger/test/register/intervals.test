@@ -106,8 +106,8 @@ $ hledger -f- register -p 'weekly in 2014-02' -E
 # ** 9. So to see simple monday-based week periods here, you must specify a start date
 # that is a monday.
 $ hledger -f- register -p 'weekly from 2014-01-27 to 2014-03' -E
-2014-01-27W05   explicit report period                          10            10
-2014-02-03W06                                                    0            10
-2014-02-10W07                                                    0            10
-2014-02-17W08                                                    0            10
-2014-02-24W09   expanded report period                         100           110
+2014-W05        explicit report period                          10            10
+2014-W06                                                         0            10
+2014-W07                                                         0            10
+2014-W08                                                         0            10
+2014-W09        expanded report period                         100           110
