@@ -141,7 +141,8 @@ mainmode addons = defMode {
     ]
      -- flags handled but not shown in the help:
     ,groupHidden =
-        [detailedversionflag]
+        detailedversionflag :
+        hiddenflags
         -- ++ inputflags -- included here so they'll not raise a confusing error if present with no COMMAND
     }
  ,modeHelpSuffix = []

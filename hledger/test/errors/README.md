@@ -523,7 +523,7 @@ expecting '!', '*', or end of input
 
 ### csvstdinrules
 ```
-hledger: Error: please use --rules-file when reading CSV from stdin
+hledger: Error: please use --rules when reading CSV from stdin
 ```
 
 
@@ -535,6 +535,6 @@ hledger: Error: CSV record ["b"] has less than two fields
 
 ### csvstdinrules
 ```
-hledger: Error: please use --rules-file when reading CSV from stdin
+hledger: Error: please use --rules when reading CSV from stdin
 ```
 

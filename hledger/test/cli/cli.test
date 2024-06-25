@@ -48,8 +48,8 @@
 # - an unrecognised command shows an error and gives non-zero exit status
 #
 # - usually the command must come first, followed by options and arguments in any order
-# - a few options may also go before the command: -f, --rules-file, --alias, --help, --version, --debug.
-# - option flags may be written in full or as a unique prefix, eg --rules for --rules-file
+# - a few options may also go before the command: -f, --rules, --alias, --help, --version, --debug.
+# - option flags may be written in full or as a unique prefix
 # - if the command is external, options and arguments after the command are handled by that executable, not hledger
 #
 # - the --help flag has highest priority

@@ -13,7 +13,7 @@
 
 - Import new transactions from all CSV files, using the same rules for all:
 
-`hledger import --rules-file {{common.rules}} *.csv`
+`hledger import --rules {{common.rules}} *.csv`
 
 - Show conversion errors or results while editing `bank.csv.rules`:
 

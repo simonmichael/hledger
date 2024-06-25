@@ -209,7 +209,7 @@ rawOptsToInputOpts day rawopts =
     in definputopts{
        -- files_             = listofstringopt "file" rawopts
        mformat_           = Nothing
-      ,mrules_file_       = maybestringopt "rules-file" rawopts
+      ,mrules_file_       = maybestringopt "rules" rawopts
       ,aliases_           = listofstringopt "alias" rawopts
       ,anon_              = boolopt "obfuscate" rawopts
       ,new_               = boolopt "new" rawopts

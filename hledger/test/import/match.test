@@ -1,6 +1,6 @@
 # Various match group interpolation tests. See the comments
 # in match.rules for specifics.
-$ hledger -f a.j import --rules-file match.rules --dry-run match.csv
+$ hledger -f a.j import --rules match.rules --dry-run match.csv
 ; would import 1 new transactions from match.csv:
 
 2022-12-15 Zettle_*Robert W. Bell

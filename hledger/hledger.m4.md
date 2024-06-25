@@ -2908,7 +2908,7 @@ attributes.
 By default, hledger expects this rules file to be named like the CSV file, 
 with an extra `.rules` extension added, in the same directory. 
 Eg when asked to read `foo/FILE.csv`, hledger looks for `foo/FILE.csv.rules`. 
-You can specify a different rules file with the `--rules-file` option. 
+You can specify a different rules file with the `--rules` option.
 
 At minimum, the rules file must identify the date and amount fields,
 and often it also specifies the date format and how many header lines
@@ -3634,9 +3634,8 @@ $ cat foo.dat | hledger -f ssv:- print
 ### Reading multiple CSV files
 
 If you use multiple `-f` options to read multiple CSV files at once,
-hledger will look for a correspondingly-named rules file for each CSV
-file. But if you use the `--rules-file` option, that rules file will
-be used for all the CSV files.
+hledger will look for a correspondingly-named rules file for each CSV file.
+But if you specify a rules file with `--rules`, that rules file will be used for all the CSV files.
 
 ### Reading files specified by rule
 

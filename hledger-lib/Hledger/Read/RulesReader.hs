@@ -112,7 +112,7 @@ getDownloadDir = do
 -- file's directory. When a glob pattern matches multiple files, the alphabetically
 -- last is used. (Eg in case of multiple numbered downloads, the highest-numbered
 -- will be used.)
--- The provided text, or a --rules-file option, are ignored by this reader.
+-- The provided text, or a --rules option, are ignored by this reader.
 -- Balance assertions are not checked.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts f _ = do
@@ -883,7 +883,7 @@ _CSV_READING__________________________________________ = undefined
 -- 4. Return the transactions as a Journal.
 --
 readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
-readJournalFromCsv Nothing "-" _ _ = throwError "please use --rules-file when reading CSV from stdin"
+readJournalFromCsv Nothing "-" _ _ = throwError "please use --rules when reading CSV from stdin"
 readJournalFromCsv merulesfile csvfile csvtext sep = do
     -- for now, correctness is the priority here, efficiency not so much
 

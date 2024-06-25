@@ -47,7 +47,6 @@ prognameandversion =
 
 
 uiflags = [
-  -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
   ,flagNone ["cash"] (setboolopt "cash") "start in the cash accounts screen"

@@ -143,7 +143,7 @@ prognameandversion =
 -- common cmdargs flags
 -- keep synced with flag docs in doc/common.m4
 
--- | Common input-related flags: --file, --rules-file, --alias...
+-- | Common input-related flags: --file, --rules, --conf, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
    flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "[FMT:]FILE" "Read data from FILE, or from stdin if FILE is -, inferring format from extension or a FMT: prefix. Can be specified more than once. If not specified, reads from $LEDGER_FILE or $HOME/.hledger.journal."
@@ -275,6 +275,7 @@ hiddenflags = [
   ,flagNone ["pretty-tables"]        (setopt "pretty" "always") "legacy flag that was renamed"
   ,flagNone ["anon"]                 (setboolopt "anon") "deprecated, renamed to --obfuscate"  -- #2133, handled by anonymiseByOpts
   ,flagNone ["obfuscate"]            (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
+  ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
 
 -- | Common output-related flags: --output-file, --output-format...
