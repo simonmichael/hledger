@@ -173,7 +173,7 @@ periodTextWidth = periodTextWidth' . simplifyPeriod
 -- | Render a period as a compact display string suitable for user output.
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
--- "2016-07-25W30"
+-- "2016-W30"
 showPeriod :: Period -> Text
 showPeriod (DayPeriod b)       = T.pack $ formatTime defaultTimeLocale "%F" b              -- DATE
 showPeriod (WeekPeriod b)      = T.pack $ formatTime defaultTimeLocale "%0Y-W%V" b         -- YYYY-Www

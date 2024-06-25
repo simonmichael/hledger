@@ -212,7 +212,7 @@ spansSpan spans = DateSpan (spanStartDate =<< headMay spans) (spanEndDate =<< la
 -- >>> t (Months 2) 2008 01 01 2008 04 01
 -- [DateSpan 2008-01-01..2008-02-29,DateSpan 2008-03-01..2008-04-30]
 -- >>> t (Weeks 1) 2008 01 01 2008 01 15
--- [DateSpan 2007-12-31W01,DateSpan 2008-01-07W02,DateSpan 2008-01-14W03]
+-- [DateSpan 2007-W01,DateSpan 2008-W02,DateSpan 2008-W03]
 -- >>> t (Weeks 2) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
 -- >>> t (DayOfMonth 2) 2008 01 01 2008 04 01
