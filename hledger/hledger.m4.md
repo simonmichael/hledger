@@ -246,7 +246,17 @@ If this causes difficulty, you can always run the add-on directly, without using
 
 Run `hledger -h` to see general command line help.
 Options can be written either before or after the command name.
-The following general options are common to most hledger commands.
+These options are specific to the `hledger` CLI:
+
+```
+Flags:
+     --conf=CONFFILE        Use extra options defined in this config file. If
+                            not specified, searches upward and in XDG config
+                            dir for hledger.conf (or .hledger.conf in $HOME).
+  -n --no-conf              ignore any config file
+```
+
+And the following general options are common to most hledger commands:
 
 _generaloptions_
 

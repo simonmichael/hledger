@@ -58,12 +58,13 @@ m4_dnl
 m4_define({{_generaloptions_}}, {{
 ```
 General input/data transformation flags:
-  -f --file=FILE            Read data from FILE, or from stdin if -. Can be
-                            specified more than once. If not specified, reads
-                            from $LEDGER_FILE or $HOME/.hledger.journal.
-     --rules-file=RULEFILE  Use conversion rules from this file for
+  -f --file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is -,
+                            inferring format from extension or a FMT: prefix.
+                            Can be specified more than once. If not specified,
+                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+     --rules=RULESFILE      Use rules defined in this rules file for
                             converting subsequent CSV/SSV/TSV files. If not
-                            specified, uses FILE.rules for each such FILE.
+                            specified, uses FILE.csv.rules for each FILE.csv.
      --alias=A=B|/RGX/=RPL  transform account names from A to B, or by
                             replacing regular expression matches
      --auto                 generate extra postings by applying auto posting
@@ -126,7 +127,6 @@ General output/reporting flags (supported by some commands):
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
-     --debug=[1-9]          show this level of debug output (default: 1)
 
 General help flags:
   -h --help                 show command line help
@@ -134,6 +134,7 @@ General help flags:
      --info                 show the manual with info
      --man                  show the manual with man
      --version              show version information
+     --debug=[1-9]          show this level of debug output (default: 1)
 ```
 }} )m4_dnl
 m4_dnl

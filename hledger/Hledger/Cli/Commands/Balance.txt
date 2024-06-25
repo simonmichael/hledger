@@ -854,11 +854,11 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=
 "Assets:US:ETrade","USD","5120.50"
 "Assets:US:ETrade","VEA","36.00"
 "Assets:US:ETrade","VHT","294.00"
-"total","GLD","70.00"
-"total","ITOT","17.00"
-"total","USD","5120.50"
-"total","VEA","36.00"
-"total","VHT","294.00"
+"Total:","GLD","70.00"
+"Total:","ITOT","17.00"
+"Total:","USD","5120.50"
+"Total:","VEA","36.00"
+"Total:","VHT","294.00"
 
 Bare layout will sometimes display an extra row for the no-symbol
 commodity, because of zero amounts (hledger treats zeroes as
