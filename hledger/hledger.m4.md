@@ -502,11 +502,33 @@ You can save a set of command line options and arguments in a file,
 and then reuse them by writing `@FILENAME` as a command line argument.
 Eg: `hledger bal @foo.args`.
 
-Inside the argument file, each line should contain just one option or argument.
-Don't use spaces except inside quotes (or you'll see a confusing error);
-write `=` (or nothing) between a flag and its argument.
+(Inside the argument file, each line should contain just one option or argument.
+Don't use spaces except inside quotes; write `=` or nothing between a flag and its argument.
 For the special characters mentioned above, use one less level of quoting than
-you would at the command prompt.
+you would at the command prompt.)
+
+Argument files are now superseded by..
+
+## Config files
+
+hledger looks for a `hledger.conf` file (or `.hledger.conf` in your home directory)
+in the current directory, then parent directories, then your XDG config directory (`~/.config/hledger/`).
+Any command line options (or arguments) in this file will be added to your `hledger` commands,
+near the start of the command line (so you can override them when needed).
+
+Or you can specify a config file with the `--conf` option.
+Or you can add a `hledger --conf` shebang line to a config file and make it executable.
+
+A hledger config file contains command line options, to be used with all commands that support them,
+and optionally command-specific options in named sections.
+[hledger.conf.sample](https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample)
+is a sample demonstrating the syntax; you can install it as `./hledger.conf`
+or `$HOME/.hledger.conf` and customise it.
+
+You can disable config files entirely by running with the `-n/--no-conf` flag.
+This will ensure hledger runs with standard defaults, useful when troubleshooting or when sharing examples with others.
+
+*(Added in 1.40; experimental)*
 
 # Output
 
