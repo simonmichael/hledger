@@ -43,12 +43,14 @@ should answer it.
 It is detailed, so do skip ahead or skim when needed.
 You can read it on hledger.org, or as an info manual or man page on your
 system.
-You can also get it from hledger itself with
+You can also open a built\-in copy, at a point of interest, by running
 .PD 0
 .P
 .PD
-\f[CR]hledger \-\-man\f[R], \f[CR]hledger \-\-info\f[R] or
+\f[CR]hledger \-\-man [CMD]\f[R], \f[CR]hledger \-\-info [CMD]\f[R] or
 \f[CR]hledger help [TOPIC]\f[R].
+.PP
+(And for shorter help, try \f[CR]hledger \-\-tldr [CMD]\f[R].)
 .PP
 The main function of the hledger CLI is to read plain text files
 describing financial transactions, crunch the numbers, and print a
@@ -338,17 +340,28 @@ without using \f[CR]hledger\f[R]: \f[CR]hledger\-ui \-\-watch\f[R] or
 \f[CR]hledger\-web \-\-serve\f[R].
 .SH Options
 Run \f[CR]hledger \-h\f[R] to see general command line help.
-The following general options are common to most hledger commands.
-General options can be written either before or after the command name.
+Options can be written either before or after the command name.
+These options are specific to the \f[CR]hledger\f[R] CLI:
+.IP
+.EX
+Flags:
+     \-\-conf=CONFFILE        Use extra options defined in this config file. If
+                            not specified, searches upward and in XDG config
+                            dir for hledger.conf (or .hledger.conf in $HOME).
+  \-n \-\-no\-conf              ignore any config file
+.EE
+.PP
+And the following general options are common to most hledger commands:
 .IP
 .EX
 General input/data transformation flags:
-  \-f \-\-file=FILE            Read data from FILE, or from stdin if \-. Can be
-                            specified more than once. If not specified, reads
-                            from $LEDGER_FILE or $HOME/.hledger.journal.
-     \-\-rules\-file=RULEFILE  Use conversion rules from this file for
+  \-f \-\-file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is \-,
+                            inferring format from extension or a FMT: prefix.
+                            Can be specified more than once. If not specified,
+                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+     \-\-rules=RULESFILE      Use rules defined in this rules file for
                             converting subsequent CSV/SSV/TSV files. If not
-                            specified, uses FILE.rules for each such FILE.
+                            specified, uses FILE.csv.rules for each FILE.csv.
      \-\-alias=A=B|/RGX/=RPL  transform account names from A to B, or by
                             replacing regular expression matches
      \-\-auto                 generate extra postings by applying auto posting
@@ -411,7 +424,6 @@ General output/reporting flags (supported by some commands):
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
                             \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
                             If YN is specified, the equals is required.
-     \-\-debug=[1\-9]          show this level of debug output (default: 1)
 
 General help flags:
   \-h \-\-help                 show command line help
@@ -419,6 +431,7 @@ General help flags:
      \-\-info                 show the manual with info
      \-\-man                  show the manual with man
      \-\-version              show version information
+     \-\-debug=[1\-9]          show this level of debug output (default: 1)
 .EE
 .PP
 Usually hledger accepts any unambiguous flag prefix, eg you can write
@@ -709,12 +722,40 @@ then reuse them by writing \f[CR]\[at]FILENAME\f[R] as a command line
 argument.
 Eg: \f[CR]hledger bal \[at]foo.args\f[R].
 .PP
-Inside the argument file, each line should contain just one option or
+(Inside the argument file, each line should contain just one option or
 argument.
-Don\[aq]t use spaces except inside quotes (or you\[aq]ll see a confusing
-error); write \f[CR]=\f[R] (or nothing) between a flag and its argument.
+Don\[aq]t use spaces except inside quotes; write \f[CR]=\f[R] or nothing
+between a flag and its argument.
 For the special characters mentioned above, use one less level of
-quoting than you would at the command prompt.
+quoting than you would at the command prompt.)
+.PP
+Argument files are now superseded by..
+.SS Config files
+hledger looks for a \f[CR]hledger.conf\f[R] file (or
+\f[CR].hledger.conf\f[R] in your home directory) in the current
+directory, then parent directories, then your XDG config directory
+(\f[CR]\[ti]/.config/hledger/\f[R]).
+Any command line options (or arguments) in this file will be added to
+your \f[CR]hledger\f[R] commands, near the start of the command line (so
+you can override them when needed).
+.PP
+Or you can specify a config file with the \f[CR]\-\-conf\f[R] option.
+Or you can add a \f[CR]hledger \-\-conf\f[R] shebang line to a config
+file and make it executable.
+.PP
+A hledger config file contains command line options, to be used with all
+commands that support them, and optionally command\-specific options in
+named sections.
+hledger.conf.sample is a sample demonstrating the syntax; you can
+install it as \f[CR]./hledger.conf\f[R] or
+\f[CR]$HOME/.hledger.conf\f[R] and customise it.
+.PP
+You can disable config files entirely by running with the
+\f[CR]\-n/\-\-no\-conf\f[R] flag.
+This will ensure hledger runs with standard defaults, useful when
+troubleshooting or when sharing examples with others.
+.PP
+\f[I](Added in 1.40; experimental)\f[R]
 .SH Output
 .SS Output destination
 hledger commands send their output to the terminal by default.
@@ -968,14 +1009,12 @@ colour will not be used;
 otherwise, colour will be used if the output (terminal or file) supports
 it.
 .SS Box\-drawing
-In terminal output, you can enable unicode box\-drawing characters to
-render prettier tables:
-.IP \[bu] 2
-if the \f[CR]\-\-pretty\f[R] option is given a value of \f[CR]yes\f[R]
-or \f[CR]always\f[R] (or \f[CR]no\f[R] or \f[CR]never\f[R]), unicode
-characters will (or will not) be used;
-.IP \[bu] 2
-otherwise, unicode characters will not be used.
+In terminal (text) output, to minimise the risk of display problems,
+table borders are drawn using only ascii characters by default.
+.PP
+To see tables with prettier unicode box\-drawing characters, add the
+\f[CR]\-\-pretty\f[R] flag.
+This will also show outer borders and inter\-column borders.
 .SS Paging
 When showing long output in the terminal, hledger will try to use the
 pager specified by the \f[CR]PAGER\f[R] environment variable, or
@@ -3659,8 +3698,8 @@ file, with an extra \f[CR].rules\f[R] extension added, in the same
 directory.
 Eg when asked to read \f[CR]foo/FILE.csv\f[R], hledger looks for
 \f[CR]foo/FILE.csv.rules\f[R].
-You can specify a different rules file with the
-\f[CR]\-\-rules\-file\f[R] option.
+You can specify a different rules file with the \f[CR]\-\-rules\f[R]
+option.
 .PP
 At minimum, the rules file must identify the date and amount fields, and
 often it also specifies the date format and how many header lines there
@@ -4548,8 +4587,8 @@ $ cat foo.dat | hledger \-f ssv:\- print
 If you use multiple \f[CR]\-f\f[R] options to read multiple CSV files at
 once, hledger will look for a correspondingly\-named rules file for each
 CSV file.
-But if you use the \f[CR]\-\-rules\-file\f[R] option, that rules file
-will be used for all the CSV files.
+But if you specify a rules file with \f[CR]\-\-rules\f[R], that rules
+file will be used for all the CSV files.
 .SS Reading files specified by rule
 Instead of specifying a CSV file in the command line, you can specify a
 rules file, as in \f[CR]hledger \-f foo.csv.rules CMD\f[R].
@@ -7811,10 +7850,10 @@ heading.
 .IP
 .EX
 Flags:
-  \-i            show the manual with info
-  \-m            show the manual with man
-  \-p            show the manual with $PAGER or less
-                (less is always used if TOPIC is specified)
+  \-i                show the manual with info
+  \-m                show the manual with man
+  \-p                show the manual with $PAGER or less
+                    (less is always used if TOPIC is specified)
 .EE
 .PP
 This command shows the hledger manual built in to your hledger
@@ -10410,11 +10449,11 @@ $ hledger \-f examples/bcexample.hledger bal assets:us:etrade \-3 \-O csv \-\-la
 \[dq]Assets:US:ETrade\[dq],\[dq]USD\[dq],\[dq]5120.50\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]VEA\[dq],\[dq]36.00\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
-\[dq]total\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
-\[dq]total\[dq],\[dq]ITOT\[dq],\[dq]17.00\[dq]
-\[dq]total\[dq],\[dq]USD\[dq],\[dq]5120.50\[dq]
-\[dq]total\[dq],\[dq]VEA\[dq],\[dq]36.00\[dq]
-\[dq]total\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
+\[dq]Total:\[dq],\[dq]GLD\[dq],\[dq]70.00\[dq]
+\[dq]Total:\[dq],\[dq]ITOT\[dq],\[dq]17.00\[dq]
+\[dq]Total:\[dq],\[dq]USD\[dq],\[dq]5120.50\[dq]
+\[dq]Total:\[dq],\[dq]VEA\[dq],\[dq]36.00\[dq]
+\[dq]Total:\[dq],\[dq]VHT\[dq],\[dq]294.00\[dq]
 .EE
 .PP
 Bare layout will sometimes display an extra row for the no\-symbol

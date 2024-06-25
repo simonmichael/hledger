@@ -81,12 +81,13 @@ Flags:
    and also supports many of hledger's general options:
 
 General input/data transformation flags:
-  -f --file=FILE            Read data from FILE, or from stdin if -. Can be
-                            specified more than once. If not specified, reads
-                            from $LEDGER_FILE or $HOME/.hledger.journal.
-     --rules-file=RULEFILE  Use conversion rules from this file for
+  -f --file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is -,
+                            inferring format from extension or a FMT: prefix.
+                            Can be specified more than once. If not specified,
+                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+     --rules=RULESFILE      Use rules defined in this rules file for
                             converting subsequent CSV/SSV/TSV files. If not
-                            specified, uses FILE.rules for each such FILE.
+                            specified, uses FILE.csv.rules for each FILE.csv.
      --alias=A=B|/RGX/=RPL  transform account names from A to B, or by
                             replacing regular expression matches
      --auto                 generate extra postings by applying auto posting
@@ -149,7 +150,6 @@ General output/reporting flags (supported by some commands):
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
-     --debug=[1-9]          show this level of debug output (default: 1)
 
 General help flags:
   -h --help                 show command line help
@@ -157,6 +157,7 @@ General help flags:
      --info                 show the manual with info
      --man                  show the manual with man
      --version              show version information
+     --debug=[1-9]          show this level of debug output (default: 1)
 
    With hledger-ui, the '--debug' option sends debug output to a
 'hledger-ui.log' file in the current directory.
@@ -532,34 +533,34 @@ Tag Table:
 Node: Top221
 Node: OPTIONS1872
 Ref: #options1970
-Node: MOUSE8150
-Ref: #mouse8245
-Node: KEYS8482
-Ref: #keys8575
-Node: SCREENS13230
-Ref: #screens13334
-Node: Menu screen13970
-Ref: #menu-screen14091
-Node: Cash accounts screen14286
-Ref: #cash-accounts-screen14463
-Node: Balance sheet accounts screen14647
-Ref: #balance-sheet-accounts-screen14863
-Node: Income statement accounts screen14983
-Ref: #income-statement-accounts-screen15204
-Node: All accounts screen15368
-Ref: #all-accounts-screen15549
-Node: Register screen15731
-Ref: #register-screen15890
-Node: Transaction screen18174
-Ref: #transaction-screen18332
-Node: Error screen19749
-Ref: #error-screen19871
-Node: WATCH MODE20115
-Ref: #watch-mode20232
-Node: ENVIRONMENT21691
-Ref: #environment21807
-Node: BUGS21998
-Ref: #bugs22081
+Node: MOUSE8240
+Ref: #mouse8335
+Node: KEYS8572
+Ref: #keys8665
+Node: SCREENS13320
+Ref: #screens13424
+Node: Menu screen14060
+Ref: #menu-screen14181
+Node: Cash accounts screen14376
+Ref: #cash-accounts-screen14553
+Node: Balance sheet accounts screen14737
+Ref: #balance-sheet-accounts-screen14953
+Node: Income statement accounts screen15073
+Ref: #income-statement-accounts-screen15294
+Node: All accounts screen15458
+Ref: #all-accounts-screen15639
+Node: Register screen15821
+Ref: #register-screen15980
+Node: Transaction screen18264
+Ref: #transaction-screen18422
+Node: Error screen19839
+Ref: #error-screen19961
+Node: WATCH MODE20205
+Ref: #watch-mode20322
+Node: ENVIRONMENT21781
+Ref: #environment21897
+Node: BUGS22088
+Ref: #bugs22171
 
 End Tag Table
 

@@ -126,12 +126,13 @@ but not route parsing.
    hledger-web also supports many of hledger's general options:
 
 General input/data transformation flags:
-  -f --file=FILE            Read data from FILE, or from stdin if -. Can be
-                            specified more than once. If not specified, reads
-                            from $LEDGER_FILE or $HOME/.hledger.journal.
-     --rules-file=RULEFILE  Use conversion rules from this file for
+  -f --file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is -,
+                            inferring format from extension or a FMT: prefix.
+                            Can be specified more than once. If not specified,
+                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+     --rules=RULESFILE      Use rules defined in this rules file for
                             converting subsequent CSV/SSV/TSV files. If not
-                            specified, uses FILE.rules for each such FILE.
+                            specified, uses FILE.csv.rules for each FILE.csv.
      --alias=A=B|/RGX/=RPL  transform account names from A to B, or by
                             replacing regular expression matches
      --auto                 generate extra postings by applying auto posting
@@ -194,7 +195,6 @@ General output/reporting flags (supported by some commands):
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
-     --debug=[1-9]          show this level of debug output (default: 1)
 
 General help flags:
   -h --help                 show command line help
@@ -202,6 +202,7 @@ General help flags:
      --info                 show the manual with info
      --man                  show the manual with man
      --version              show version information
+     --debug=[1-9]          show this level of debug output (default: 1)
 
    hledger-web shows accounts with zero balances by default (like
 'hledger-ui', and unlike 'hledger').  Using the '-E/--empty' flag will
@@ -524,22 +525,22 @@ Tag Table:
 Node: Top223
 Node: OPTIONS2569
 Ref: #options2674
-Node: PERMISSIONS10862
-Ref: #permissions11001
-Node: EDITING UPLOADING DOWNLOADING12213
-Ref: #editing-uploading-downloading12394
-Node: RELOADING13228
-Ref: #reloading13362
-Node: JSON API13795
-Ref: #json-api13910
-Node: DEBUG OUTPUT19444
-Ref: #debug-output19569
-Node: Debug output19596
-Ref: #debug-output-119697
-Node: ENVIRONMENT20114
-Ref: #environment20233
-Node: BUGS20350
-Ref: #bugs20434
+Node: PERMISSIONS10952
+Ref: #permissions11091
+Node: EDITING UPLOADING DOWNLOADING12303
+Ref: #editing-uploading-downloading12484
+Node: RELOADING13318
+Ref: #reloading13452
+Node: JSON API13885
+Ref: #json-api14000
+Node: DEBUG OUTPUT19534
+Ref: #debug-output19659
+Node: Debug output19686
+Ref: #debug-output-119787
+Node: ENVIRONMENT20204
+Ref: #environment20323
+Node: BUGS20440
+Ref: #bugs20524
 
 End Tag Table
 
