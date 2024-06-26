@@ -247,7 +247,7 @@ helpflags = [
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL].
   -- But because we handle --debug specially, flagReq also works, and it does not need =, removing a source of confusion.
   -- (This involves specially adding the flag value if missing in Cli.hs.)
- ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this level of debug output (default: 1)"
+ ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
  ]
 -- XXX why are these duplicated in defCommandMode below ?
 

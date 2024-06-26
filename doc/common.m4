@@ -134,7 +134,7 @@ General help flags:
      --info                 show the manual with info
      --man                  show the manual with man
      --version              show version information
-     --debug=[1-9]          show this level of debug output (default: 1)
+     --debug=[1-9]          show this much debug output (default: 1)
 ```
 }} )m4_dnl
 m4_dnl
