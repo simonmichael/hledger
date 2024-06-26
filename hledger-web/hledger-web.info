@@ -202,7 +202,7 @@ General help flags:
      --info                 show the manual with info
      --man                  show the manual with man
      --version              show version information
-     --debug=[1-9]          show this level of debug output (default: 1)
+     --debug=[1-9]          show this much debug output (default: 1)
 
    hledger-web shows accounts with zero balances by default (like
 'hledger-ui', and unlike 'hledger').  Using the '-E/--empty' flag will
@@ -525,22 +525,22 @@ Tag Table:
 Node: Top223
 Node: OPTIONS2569
 Ref: #options2674
-Node: PERMISSIONS10952
-Ref: #permissions11091
-Node: EDITING UPLOADING DOWNLOADING12303
-Ref: #editing-uploading-downloading12484
-Node: RELOADING13318
-Ref: #reloading13452
-Node: JSON API13885
-Ref: #json-api14000
-Node: DEBUG OUTPUT19534
-Ref: #debug-output19659
-Node: Debug output19686
-Ref: #debug-output-119787
-Node: ENVIRONMENT20204
-Ref: #environment20323
-Node: BUGS20440
-Ref: #bugs20524
+Node: PERMISSIONS10948
+Ref: #permissions11087
+Node: EDITING UPLOADING DOWNLOADING12299
+Ref: #editing-uploading-downloading12480
+Node: RELOADING13314
+Ref: #reloading13448
+Node: JSON API13881
+Ref: #json-api13996
+Node: DEBUG OUTPUT19530
+Ref: #debug-output19655
+Node: Debug output19682
+Ref: #debug-output-119783
+Node: ENVIRONMENT20200
+Ref: #environment20319
+Node: BUGS20436
+Ref: #bugs20520
 
 End Tag Table
 
