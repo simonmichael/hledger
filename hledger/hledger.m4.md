@@ -1913,7 +1913,6 @@ account equity:conversion  ; type: V
 ```
 
 [five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
-[accounting equation]: https://en.wikipedia.org/wiki/Accounting_equation
 [CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
 [account directive]:   #account
 
@@ -2522,20 +2521,20 @@ An alternative is to use auto postings in "one time" fashion -
 use them to help build a complex journal entry, view it with `hledger print --auto`,
 and then copy that output into the journal file to make it permanent.
 
-#### Auto postings and multiple files
+### Auto postings and multiple files
 
 An auto posting rule can affect any transaction in the current file,
 or in any parent file or child file. Note, currently it will not
 affect sibling files (when multiple `-f`/`--file` are used - see
 [#1212](https://github.com/simonmichael/hledger/issues/1212)).
 
-#### Auto postings and dates
+### Auto postings and dates
 
 A [posting date](#posting-dates) (or secondary date) in the matched posting,
 or (taking precedence) a posting date in the auto posting rule itself,
 will also be used in the generated posting.
 
-#### Auto postings and transaction balancing / inferred amounts / balance assertions
+### Auto postings and transaction balancing / inferred amounts / balance assertions
 
 Currently, auto postings are added:
 
@@ -2550,7 +2549,7 @@ background.
 This also means that you cannot have more than one auto-posting with a missing
 amount applied to a given transaction, as it will be unable to infer amounts.
 
-#### Auto posting tags
+### Auto posting tags
 
 Automated postings will have some extra [tags](#tags):
 
@@ -2564,7 +2563,7 @@ Also, any transaction that has been changed by auto posting rules will have thes
 - `modified:` - this transaction was modified
 - `_modified:` - a hidden tag not appearing in the comment; this transaction was modified "just now".
 
-#### Auto postings on forecast transactions only
+### Auto postings on forecast transactions only
 
 Tip: you can can make auto postings that will apply to forecast transactions
 but not recorded transactions, by adding `tag:_generated-transaction` to their QUERY.
