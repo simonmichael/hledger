@@ -157,6 +157,8 @@ mainmode addons = defMode {
     -- ]
  }
 
+verboseDebugLevel = 8
+
 ------------------------------------------------------------------------------
 -- | hledger CLI's main procedure.
 --
@@ -166,10 +168,12 @@ mainmode addons = defMode {
 -- then run it in the right way, usually reading input data (eg a journal) first.
 --
 -- When making a CLI usable and robust with main command, builtin subcommands,
--- and various kinds of addon commands, while balancing UX, environment, idioms,
--- legacy, and language and libraries and workarounds with their own requirements
--- and limitations, things get complicated and bugs can easily creep in.
--- So try to keep the processing below reasonably manageable, testable and clear.
+-- and various kinds of addon commands, while balancing circular dependencies,
+-- environment, idioms, legacy, and libraries with their own requirements and limitations:
+-- things get crazy, and there is a tradeoff against complexity and bug risk.
+-- We try to provide the most intuitive, expressive and robust CLI that's feasible
+-- while keeping the CLI processing below sufficiently comprehensible, troubleshootable,
+-- and tested. It's an ongoing quest.
 -- See also: Hledger.Cli.CliOptions, cli.test, and --debug=8.
 --
 main :: IO ()
@@ -178,7 +182,7 @@ main = withGhcDebug' $ do
   -- let's go!
   let
     dbgIO, dbgIO1 :: Show a => String -> a -> IO ()  -- this signature is needed
-    dbgIO  = ptraceAtIO 8
+    dbgIO  = ptraceAtIO verboseDebugLevel
     dbgIO1 = ptraceAtIO 1
   dbgIO "running" prognameandversion
 
@@ -201,54 +205,53 @@ main = withGhcDebug' $ do
     >>= expandArgsAt         -- interpolate @ARGFILEs
     <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
   let
-    cliargswithcmdfirst  = cliargs & moveFlagsAfterCommand
-    isNonEmptyNonFlag s  = not $ null s || "-" `isPrefixOf` s
-    (clicmdarg, cliargswithoutcmd) =
-      case span isNonEmptyNonFlag cliargswithcmdfirst of
-        (a:as,bs) -> (a,as++bs)
-        ([],bs)   -> ("",bs)
-    nocmdprovided        = null clicmdarg
+    (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
+    cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
   dbgIO "cli args" cliargs
   dbgIO "cli args with command first, if any" cliargswithcmdfirst
   dbgIO "command argument found"   clicmdarg
-  dbgIO "cli args without command" cliargswithoutcmd
   dbgIO "cli args before command"  cliargsbeforecmd
   dbgIO "cli args after command"   cliargsaftercmd
 
   -- Now try to identify the full subcommand name, so we can look for
   -- command-specific options in config files (clicmdarg may be only an abbreviation).
-  -- For this we do a preliminary cmdargs parse of the command line arguments.
+  -- For this we do a preliminary cmdargs parse of the command line arguments, with cli-specific options removed.
   -- If no command was provided, or if the command line contains a bad flag
   -- or a wrongly present/missing flag argument, cmd will be "".
-  -- (Also find any --conf-file/--no-conf options.)
   let
-    -- cliargswithcmdfirst' = filter (/= "--debug") cliargswithcmdfirst
-    -- XXX files --debug fails here, eg.
-    -- How to parse the command name with cmdargs without passing unsupported flags that it will reject ?
-    -- Is --debug the only flag like this ?
-    rawopts0 = cmdargsParse cliargswithcmdfirst addons
+    rawopts0 = cmdargsParse cliargswithcmdfirstwithoutclispecific addons
     cmd = stringopt "command" rawopts0
       -- XXX may need a better error message when cmdargs fails to parse (eg spaced/quoted/malformed flag values)
+    nocmdprovided  = null clicmdarg
     badcmdprovided = null cmd && not nocmdprovided
     isaddoncmd = not (null cmd) && cmd `elem` addons
     -- isbuiltincmd = cmd `elem` builtinCommandNames
     mcmdmodeaction = findBuiltinCommand cmd
     effectivemode = maybe (mainmode []) fst mcmdmodeaction
+  dbgIO "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
+  dbgIO1 "command found" cmd
   dbgIO "no command provided" nocmdprovided
   dbgIO "bad command provided" badcmdprovided
-  dbgIO1 "command found" cmd
   dbgIO "is addon command" isaddoncmd
 
   ---------------------------------------------------------------
   -- Read extra options from a config file.
 
+  -- Identify any --conf-file/--no-conf options.
+  -- For this we parse with cmdargs again, this time with cli-specific options but without a command name.
+  dbgIO "cli args without command" cliargswithoutcmd
+  let rawopts1 = cmdargsParse cliargswithoutcmd addons
+
   -- Read any extra general and command-specific args/opts from a config file.
-  -- Ignore any general opts not known to be supported by the command.
-  (conf, mconffile) <- getConf rawopts0
+  -- Ignore any general opts or cli-specific opts not known to be supported by the command.
+  (conf, mconffile) <- getConf rawopts1
   let
     genargsfromconf = confLookup "general" conf
+    addoncmdssupportinggenopts = ["ui", "web"]  -- addons known to support hledger general options
     supportedgenargsfromconf
+      | cmd `elem` addoncmdssupportinggenopts =
+          [a | a <- genargsfromconf, not $ any (`isPrefixOf` a) addoncmdssupportinggenopts]
       | isaddoncmd = []
       | otherwise  = dropUnsupportedOpts effectivemode genargsfromconf
     excludedgenargsfromconf = genargsfromconf \\ supportedgenargsfromconf
@@ -270,7 +273,6 @@ main = withGhcDebug' $ do
       (if null clicmdarg then [] else [clicmdarg]) <> supportedgenargsfromconf <> cmdargsfromconf <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
-  dbgIO "final args to be parsed by cmdargs" finalargs
   let rawopts = cmdargsParse finalargs addons
 
   ---------------------------------------------------------------
@@ -349,11 +351,12 @@ main = withGhcDebug' $ do
     -- are not passed since we can't be sure they're supported.
     | isaddoncmd -> do
         let
-          addonargs = filter (/="--") $ cmdargsfromconf <> cliargsaftercmd
+          addonargs0 = filter (/="--") $ supportedgenargsfromconf <> cmdargsfromconf <> cliargswithoutcmd
+          addonargs = dropCliSpecificOpts addonargs0
           shellcmd = printf "%s-%s %s" progname cmd (unwords' addonargs) :: String
         dbgIO "addon command selected" cmd
-        dbgIO "addon command arguments" (map quoteIfNeeded addonargs)
-        dbgIO1 "running" shellcmd
+        dbgIO "addon command arguments after removing cli-specific opts" (map quoteIfNeeded addonargs)
+        dbgIO1 "running addon" shellcmd
         system shellcmd >>= exitWith
 
     -- deprecated command found
@@ -379,8 +382,10 @@ main = withGhcDebug' $ do
 -- or search for addons; to do those things, mimic the code in main for now.
 argsToCliOpts :: [String] -> [String] -> IO CliOpts
 argsToCliOpts args addons = do
-  let args' = args & moveFlagsAfterCommand & replaceNumericFlags
-  let rawopts = cmdargsParse args' addons
+  let
+    (_, _, args0) = moveFlagsAfterCommand args
+    args1 = replaceNumericFlags args0
+    rawopts = cmdargsParse args1 addons
   rawOptsToCliOpts rawopts
 
 -- | Parse these command line arguments/options with cmdargs using mainmode.
@@ -390,18 +395,20 @@ argsToCliOpts args addons = do
 cmdargsParse :: [String] -> [String] -> RawOpts
 cmdargsParse args0 addons =
   CmdArgs.process (mainmode addons) args & either
-    (\err -> error' $ unlines [
-       "cmdargs: " <> err
-      ,"while processing arguments:"
-      ,show args
-      ])
+    (\err -> error' $ "cmdargs: " <> err)
     id
-  where args = ensureDebugFlagHasVal args0
+  where
+    args = ensureDebugFlagHasVal args0
+      & traceOrLogAtWith verboseDebugLevel (\as ->
+        "cmdargs: parsing with mainmode+subcommand modes+generic addon modes: " <> show as)
 
--- | cmdargs does not allow flags (options) to appear before the subcommand name.
+-- | cmdargs does not allow flags (options) to appear before the subcommand argument.
 -- We prefer to hide this restriction from the user, making the CLI more forgiving.
--- So this tries to move flags, and their values if any, after the command name.
--- This is tricky because of the flexibility of traditional flag syntax.
+-- So this tries to move flags, and their values if any, after the command argument.
+-- It also returns the (possibly empty) command argument and the other arguments,
+-- separately for convenience.
+--
+-- Detecting the command argument is tricky because of the flexibility of traditional flag syntax.
 -- Short flags can be joined together, some flags can have a value or no value,
 -- flags and values can be separated by =, a space, or nothing, etc.
 --
@@ -431,9 +438,13 @@ cmdargsParse args0 addons =
 --   and will be moved - but later rejected by cmdargs.
 --   Instead these should be written to the right of a "--" argument, which hides them.
 --
-moveFlagsAfterCommand :: [String] -> [String]
-moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
+moveFlagsAfterCommand :: [String] -> (String, [String], [String])
+moveFlagsAfterCommand args =
+  case moveFlagArgs (args, []) of
+    ([],as)                 -> ("",     as, as)
+    (cmdarg:unmoved, moved) -> (cmdarg, as, cmdarg:as) where as = unmoved<>moved
   where
+    moveFlagArgs :: ([String], [String]) -> ([String], [String])
     moveFlagArgs ((a:b:cs), moved)
       | isMovableFlagArg a == 2 = moveFlagArgs (cs, moved++[a,b])
       | isMovableFlagArg a == 1 = moveFlagArgs (b:cs, moved++[a])
@@ -459,9 +470,6 @@ moveFlagsAfterCommand args = insertFlagsAfterCommand $ moveFlagArgs (args, [])
           | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
           | otherwise = 0    -- not a flag
     moveFlagArgs (as, moved)       = (as, moved)
-
-    insertFlagsAfterCommand ([],             flags) = flags
-    insertFlagsAfterCommand (command1:args2, flags) = [command1] ++ flags ++ args2
 
 -- All Flags provided by hledger and its builtin comands.
 allbuiltinflags = modeAndSubmodeFlags $ mainmode []
@@ -501,6 +509,12 @@ longoptvalflagargs_ = map (++"=") $ filter isLongFlagArg optvalflagargs ++ ["--d
 -- Is this flag arg one that requires a value ?
 isReqValFlagArg a = a `elem` reqvalflagargs
 
+-- Drop any arguments which look like cli-specific options (--no-conf, --conf CONFFILE, etc.)
+dropCliSpecificOpts :: [String] -> [String]
+dropCliSpecificOpts = dropUnsupportedOpts mainmodegeneral
+  where
+    mainmodegeneral = (mainmode []){modeGroupFlags=(modeGroupFlags (mainmode [])){groupUnnamed=[]}}
+
 -- | Given a hledger cmdargs mode and a list of command line arguments, try to drop any of the
 -- arguments which seem to be flags not supported by this mode. Also drop their values if any.
 dropUnsupportedOpts :: Mode RawOpts -> [String] -> [String]
@@ -510,17 +524,11 @@ dropUnsupportedOpts m = \case
     | isLongFlagArg a,
       let f = takeWhile (/='=') a,
       let as' = if isReqValFlagArg f && '=' `notElem` a then drop 1 as else as
-      ->
-      if m `supportsFlag` f
-      then a : go as
-      else     go as'
+      -> if m `supportsFlag` f then a : go as else go as'
     | isShortFlagArg a,
       let f = take 2 a,
       let as' = if isReqValFlagArg f && length a == 2 then drop 1 as else as
-      ->
-      if m `supportsFlag` f
-      then a : go as
-      else     go as'
+      -> if m `supportsFlag` f then a : go as else go as'
     | otherwise -> a : dropUnsupportedOpts m as
     where
       go = dropUnsupportedOpts m
