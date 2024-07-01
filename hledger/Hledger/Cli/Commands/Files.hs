@@ -22,8 +22,8 @@ import Hledger.Cli.CliOptions
 filesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Files.txt")
   []
-  [generalflagsgroup2]
-  []
+  cligeneralflagsgroups2
+  hiddenflags
   ([], Just $ argsFlag "[REGEX]")
 
 -- | The files command.
