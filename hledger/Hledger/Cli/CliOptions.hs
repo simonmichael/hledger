@@ -26,6 +26,7 @@ module Hledger.Cli.CliOptions (
   helpflagstitle,
   detailedversionflag,
   flattreeflags,
+  confflags,
   hiddenflags,
   -- outputflags,
   outputFormatFlag,
@@ -266,6 +267,13 @@ flattreeflags showamounthelp = [
     ("show accounts as a tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
   ]
 
+-- | hledger CLI's --conf/--no-conf flags.
+confflags = [
+   flagReq ["conf"] (\s opts -> Right $ setopt "conf" s opts) "CONFFILE"
+      "Use extra options defined in this config file. If not specified, searches upward and in XDG config dir for hledger.conf (or .hledger.conf in $HOME)."
+  ,flagNone ["no-conf","n"] (setboolopt "no-conf") "ignore any config file"
+  ]
+
 -- | Common flags that are accepted but not shown in --help,
 -- such as --effective, --aux-date.
 hiddenflags :: [Flag RawOpts]
@@ -277,6 +285,7 @@ hiddenflags = [
   ,flagNone ["obfuscate"]            (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
   ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
+  ++ confflags -- repeated here so subcommands/addons won't error when parsing them
 
 -- | Common output-related flags: --output-file, --output-format...
 
