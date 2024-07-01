@@ -192,9 +192,10 @@ main = withGhcDebug' $ do
 
   -- let's go!
   let
-    dbgIO, dbgIO1 :: Show a => String -> a -> IO ()  -- this signature is needed
+    dbgIO, dbgIO1, dbgIO2 :: Show a => String -> a -> IO ()  -- this signature is needed
     dbgIO  = ptraceAtIO verboseDebugLevel
     dbgIO1 = ptraceAtIO 1
+    dbgIO2 = ptraceAtIO 2
   dbgIO "running" prognameandversion
 
   starttime <- getPOSIXTime
@@ -328,7 +329,7 @@ main = withGhcDebug' $ do
 
       -- validate opts/args more and convert to CliOpts
       opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
-      dbgIO "processed opts" opts
+      dbgIO2 "processed opts" opts
       dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
       dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
       dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
