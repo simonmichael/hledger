@@ -1,4 +1,5 @@
-# * command line interface
+# * command line interface tests
+# See also addons.test.
 #
 # Quick guide to terms used here:
 #
@@ -8,6 +9,8 @@
 #
 # - option: a command modifier. An option consists of a short flag, a
 #   long flag, or both, and possibly an optional or required value.
+#   On the command line, an option's value can be joined to the flag by
+#   = (long flags) or nothing (short flags), or it can be the next argument.
 #   Each option has some effect on program execution, and is described
 #   in the command line help.
 #
@@ -32,32 +35,23 @@
 #
 # - hledger command, subcommand: one of hledger's modes of operation,
 #   named and selected by the first parsed argument. There are two kinds:
-#   - internal or built-in commands are part of the main hledger executable.
-#   - external or add-on commands are provided by hledger-* executables in
-#     the PATH.
+#   - internal/builtin commands are part of the main hledger executable.
+#   - external/addon commands are provided by hledger-* executables in PATH.
 #
 # Description of existing/expected behaviour as of 2013/9/16:
 #
-# - general usage is hledger [COMMAND] [OPTIONS] [ARGS]
-#
-# - commands are internal (built in to the main hledger executable) or external (any hledger-* executables found in the PATH)
-# - some internal commands have aliases, which are displayed in the general help
-# - there are also a few hidden internal commands
-# - COMMAND is an exact command (balance), an alias (bal), or any unique command prefix (inc)
-# - when COMMAND is a non-unique prefix, all matched commands will be listed, including hidden ones (eg hledger c)
-# - an unrecognised command shows an error and gives non-zero exit status
-#
+# - general usage is hledger [CMD [OPTS] [ARGS] [-- ADDONOPTS]]
+# - (some?) general options may also go before the command: -f, --rules, --alias, --help, --version, --debug.
 # - usually the command must come first, followed by options and arguments in any order
-# - a few options may also go before the command: -f, --rules, --alias, --help, --version, --debug.
-# - option flags may be written in full or as a unique prefix
-# - if the command is external, options and arguments after the command are handled by that executable, not hledger
-#
-# - the --help flag has highest priority
-# - --help before the command (or no command) shows general help, including the commands list
-# - --help after an internal command shows command-specific help, including command and general flags
-# - there is no internal "help" command
-
-# version 
+# - options specific to an addon command, not supported by hledger cli, should be preceded by a -- argument
+# - CMD is an exact command (incomestatement), one of the aliases displayed in the commands list (is), or any unique command prefix (inc)
+# - there are also a few hidden builtin commands
+# - when CMD is a non-unique prefix, all matched commands will be listed, including hidden ones (eg hledger c)
+# - an unrecognised command shows an error and gives non-zero exit status
+# - flags may be written in full or as a unique prefix
+# - the help/documentation flags have highest priority
+# - --help before CMD (or with no command) shows general help, including general options
+# - --help after CMD shows command-specific help, including command and general options
 
 # ** 1. --version shows version
 $ hledger --version
@@ -67,13 +61,11 @@ $ hledger --version
 $ hledger balance --version
 > /^hledger [0-9]/
 
-# help
-
 # ** 3. with no command, show commands list
 $ hledger
 > /^Commands/
 
-# ** 4. no-command help still works if there are flags, at least the common ones
+# ** 4. commands list still works if there are flags, at least the common ones
 $ hledger -fsomefile
 > /^Commands/
 
@@ -81,7 +73,7 @@ $ hledger -fsomefile
 $ hledger -f somefile
 > /^Commands/
 
-# ** 6. with -h, and possibly other common flags present, show general usage
+# ** 6. with -h/--help, and possibly other common flags present, show general cli help
 $ hledger -h --version -f/dev/null
 > /^hledger \[COMMAND\]/
 
@@ -104,8 +96,6 @@ $ hledger nosuchcommand
 >2 /not recognized.*to see a list/
 >= 1
 
-# flag positions
-
 # ** 10. general flags can go before command
 $ hledger -f /dev/null --alias foo --daily register
 
@@ -117,3 +107,10 @@ $ hledger -f /dev/null print --explicit
 
 # ** 13. or before it
 $ hledger -f /dev/null --explicit print
+
+# ** 14. --no-conf works with builtin commands.
+$ hledger --no-conf check -f/dev/null
+
+# ** 15. --conf CONFFILE works with builtin commands.
+$ hledger --conf /dev/null check -f/dev/null
+

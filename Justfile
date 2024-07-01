@@ -486,17 +486,18 @@ SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --exclude=/_ 
         && echo $@ PASSED) || (echo $@ FAILED; false))
 
 ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
+ADDONSDIR := 'hledger/test/cli/addons'
 
 # generate dummy add-ons for testing the CLI
-@mktestaddons:
-    rm -rf hledger/test/addons/hledger-*
-    printf '#!/bin/sh\necho add-on: $0\necho args: $*\n' >hledger/test/addons/hledger-addon
-    for E in '' {{ ADDONEXTS }}; do \
-        cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-addon.$E; done
-    for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do \
-        cp hledger/test/addons/hledger-addon hledger/test/addons/hledger-$F; done
-    mkdir hledger/test/addons/hledger-addondir
-    chmod +x hledger/test/addons/hledger-*
+mktestaddons:
+    #!/usr/bin/env sh
+    rm -rf $ADDONSDIR
+    mkdir -p $ADDONSDIR $ADDONSDIR/hledger-addondir
+    cd $ADDONSDIR
+    printf '#!/bin/sh\necho add-on: $0\necho args: $@\n' > hledger-addon
+    for E in '' {{ ADDONEXTS }}; do cp hledger-addon hledger-addon.$E; done
+    for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do cp hledger-addon hledger-$F; done
+    chmod +x hledger-*
 
 # compare hledger's and ledger's balance report
 compare-balance:

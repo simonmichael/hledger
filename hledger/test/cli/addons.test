@@ -1,0 +1,60 @@
+# * addon command subsystem tests
+# See also cli.test. These need:
+# - "just mktestaddons" to be run first to set up dummy addon scripts
+# - shelltest --execdir
+#
+# Because of the PATH setting, these don't obey shelltest -w
+# (they always run the first hledger executable in PATH).
+
+# ** 1. flags after an add-command are handled by the addon
+$  PATH=$PATH:addons hledger addon --help
+> /hledger-addon/
+
+# ** 2. addon-specific flags which are not also defined in the main executable are not accepted
+$  PATH=$PATH:addons hledger addon --addonflag
+>2 /Unknown flag: --addonflag/
+>=1
+
+# ** 3. hledger main executable ignores anything after --, and hides the -- from the addon.
+$  PATH=$PATH:addons hledger addon --help -- --addonflag
+> /args: --help --addonflag/
+
+# ** 4. --no-conf is not passed to addon.
+$  PATH=$PATH:addons hledger --no-conf addon
+> /args:$/
+
+# ** 5. --conf CONFFILE is not passed to addon.
+$  PATH=$PATH:addons hledger --conf /dev/null addon
+> /args:$/
+
+
+
+#  ** 0. having no addons shouldn't break the commands list (how to test ?)
+# $  PATH= ~/.local/bin/stack exec -- hledger
+
+
+# These tests are commented out, as they are not working properly. See:
+#  https://github.com/simonmichael/hledger/issues/457
+#  https://github.com/simonmichael/hledger/pull/1140#issuecomment-562793255
+#
+# # 0. test for `>` in https://github.com/simonmichael/hledger/issues/457
+# # note a shelltest already provides one level of quoting, so amt:>0 not 'amt:>0'
+# #
+# $ hledger -f - ui amt:>0
+# >2 !/could not parse/
+# >=1
+#
+# # 0. test for `<` in https://github.com/simonmichael/hledger/issues/457
+# $ hledger -f - ui amt:<0
+# >2 !/could not parse/
+# >=1
+#
+# # 0. test for `>=` in https://github.com/simonmichael/hledger/issues/457
+# $ hledger -f - ui amt:>=0
+# >2 !/could not parse/
+# >=1
+#
+# # 0. test for `<=` in https://github.com/simonmichael/hledger/issues/457
+# $ hledger -f - ui amt:<=0
+# >2 !/could not parse/
+# >=1
