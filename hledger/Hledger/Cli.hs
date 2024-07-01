@@ -93,7 +93,7 @@ import Data.List
 import qualified Data.List.NonEmpty as NE
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
-import System.Console.CmdArgs.Explicit hiding (Name) -- don't clash with hledger-ui
+import System.Console.CmdArgs.Explicit hiding (Name)
 import qualified System.Console.CmdArgs.Explicit as CmdArgs
 import System.Environment
 import System.Exit
@@ -116,9 +116,6 @@ import Data.Maybe (isJust)
 
 
 verboseDebugLevel = 8
-
--- mainmodedesc = "main mode (+subcommands+generic addons)"
--- mainmodedesc = "main mode"
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
 -- The names of known addons are provided so they too can be recognised as commands.
@@ -257,11 +254,10 @@ main = withGhcDebug' $ do
   -- For this parse with cmdargs again, this time with just the args that look conf-related.
   let cliconfargs = dropUnsupportedOpts confflagsmode cliargswithoutcmd
   dbgIO "cli args without command" cliargswithoutcmd
-  dbgIO "cli conf args" cliconfargs
+  -- dbgIO "cli conf args" cliconfargs
   let rawopts1 = cmdargsParse "to get conf file" confflagsmode cliconfargs
 
   -- Read extra general and command-specific args/opts from the config file if found.
-  -- XXX should error if reading a --conf-specified file fails.
   -- Ignore any general opts or cli-specific opts not known to be supported by the command.
   (conf, mconffile) <- getConf rawopts1
   let
