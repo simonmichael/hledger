@@ -13,7 +13,7 @@ module Hledger.Cli.Conf (
 )
 where
 
-import Control.Monad (void)
+import Control.Monad (void, forM)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
 import qualified Data.Map as M
@@ -79,6 +79,10 @@ confLookup cmd Conf{confSections} =
 getConf :: RawOpts -> IO (Conf, Maybe FilePath)
 getConf rawopts = do
   defconfpaths <- confFilePaths
+  existingconfpaths <- fmap catMaybes $ forM defconfpaths $ \f -> do
+    x <- doesFileExist f
+    return $ if x then Just f else Nothing
+  dbg1IO "found config files" existingconfpaths
   let noconf = boolopt "no-conf" rawopts
   let mconffile0 = maybestringopt "conf" rawopts
   mconffile <- case mconffile0 of
