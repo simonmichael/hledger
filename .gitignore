@@ -70,7 +70,7 @@ old
 !/bin/*.sh
 !/bin/*.md
 /.latest.*
-hledger/test/addons/hledger-*
+hledger/test/cli/addons
 tools/generatejournal
 tools/simplebench
 /examples/[1-9]*.journal
