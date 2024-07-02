@@ -1,0 +1,77 @@
+# hledger rules for CSV from Tiller's "raw data" spreadsheet, circa 2022,
+# with columns rearranged as follows:
+# Date,"Short Description",Description,"Full Description",Amount,"Category Hint",Institution,Account,"Account #","Check Number",Month,Week,"Transaction ID","Date Added","Dup Score","Dup Match"
+
+skip        1
+fields      Date,Short_Description,Description,Full_Description,Amount,Category_Hint,Institution,Account,Account_No,Check_Number,Month,Week,Transaction_ID,Date_Added,Dup_Score,Dup_Match
+date-format %-m/%-d/%Y
+newest-first
+# status      *
+# code        %Check_Number
+description %Description
+if ,Not Available,
+ description %Description
+comment     %Full_Description
+
+
+## account1
+
+# generic
+account1    sm:assets:%Institution:%Account:%Account_No
+
+# more specific
+if ,Wells Fargo - Bank,Business Checking,
+ account1 JS:assets:bank:wf:bchecking
+if ,Wells Fargo - Bank,Business Savings,
+ account1 JS:assets:bank:wf:bsavings:capital
+if ,Wells Fargo - Bank,Checking,
+ account1 sm:assets:bank:wf:pchecking
+if ,Wells Fargo - Bank,Savings,
+ account1 sm:assets:bank:wf:psavings
+if ,PayPal Balance,,
+ account1 sm:assets:online:paypal
+if ,Bank of Ireland.*,Current Account,
+ account1 sm:assets:bank:bi:ichecking
+
+## account2, etc.
+
+# use Tiller's category hint as default
+account2 sm:expenses:unknown:%Category_Hint?
+
+# Try to recognise and categorise transfers between accounts.
+# The descriptions here will not always be right.
+# We don't deduplicate; one imported txn will need to be removed manually.
+
+if 
+TRANSFER FROM BUSINESS CHECKING
+ account2 JS:assets:bank:wf:bchecking
+
+if
+TRANSFER TO CHECKING
+ account2 sm:assets:bank:wf:pchecking
+# description personal savings
+
+if ATM WITHDRAWAL
+ account2 sm:assets:cash:wallet
+
+## generic paypal cleanups
+# not using Tiller for paypal, it's too lossy (missing important fields, not currency aware)
+#
+# if ,Paypal,
+#  description paypal transfer
+#
+# if ,Paypal,.*,Checking,
+#  account2 sm:assets:online:paypal
+#
+# if PAYPAL INST XFER
+#  account2 sm:assets:online:paypal
+#
+# # the bank will generate this same txn, but this paypal one shows up quicker
+# if Transfer from Bank Account.*,PayPal
+#  account2 sm:assets:bank:wf:pchecking
+
+#
+
+# common categorising rules
+include common.rules
+
