@@ -1,11 +1,25 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity error --package hledger
--- stack runghc --verbosity error --package hledger --package hledger-lib --package text --package safe 
--- stack script --compile --resolver lts-20.13 --verbosity error --package hledger --package text
--- stack script --compile --resolver lts-20.13 --verbosity error --package hledger --package hledger-lib --package text --package safe
--- The topmost stack command above is used to run this script.
--- stack script uses released hledger, stack runghc uses local hledger source.
--- This script currently requires local hledger source, for Hledger.Cli.Script.
+
+-- This script is run by the "stack runghc" command above.
+-- This command expects to be running in a copy of the hledger source code.
+-- Its advantage is that it uses that latest hledger source version.
+-- To show more progress output, change --verbosity to info.
+-- The main haskell package needed for scripting is "hledger".
+-- To make more packages available for import, add more --package options.
+--
+-- For more robustness, use the "stack script" command below instead.
+-- This uses a released version of hledger, and does not need the hledger source code.
+-- The version of hledger (and haskell libraries, and ghc) is determined by
+-- the stackage snapshot (lts-X.Y or nightly-YYYY-MM-DD).
+--
+-- stack script --snapshot lts-22.27 --verbosity error --package hledger --package text
+--  (https://www.stackage.org/lts-22.27 with hledger-1.32.3, ghc-9.6.5.)
+--
+-- stack script --snapshot nightly-2024-07-02 --verbosity error --package hledger --package hledger-lib --package text --compile
+--  (https://www.stackage.org/nightly-2024-07-02 with hledger-1.34, ghc-9.8.2.
+--   The --compile flag makes it compile the script to a faster binary.)
+--
 ------------------------------------78----------------------------------------
 
 {-# LANGUAGE OverloadedStrings, PackageImports #-}
