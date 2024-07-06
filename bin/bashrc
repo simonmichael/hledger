@@ -1,42 +1,67 @@
 # Some hledger/PTA-related bash scripts.
 
+alias hl='hledger'
+alias acc='hledger accounts'
+alias act='hledger activity'
+alias add='hledger add'
+alias areg='hledger aregister'
+alias bal='hledger balance'
+alias bar='hledger bar'
+alias bs='hledger balancesheet'
+alias bse='hledger balancesheetequity'
+alias budget='hledger balance --budget'
+alias cf='hledger cashflow'
+alias check='hledger check'
+alias close='hledger close'
+alias codes='hledger codes'
+alias comm='hledger commodities'
+alias desc='hledger descriptions'
+alias diff='hledger diff'
+alias files='hledger files'
+alias iadd='hledger-iadd'
+alias interest='hledger interest'
+alias import='hledger import'
+alias is='hledger incomestatement'
+alias lots='hledger lots'
+alias notes='hledger notes'
+alias payees='hledger payees'
+alias plot='hledger plot'
+alias prices='hledger prices'
+alias print='hledger print'
+alias reg='hledger register'
+alias rewrite='hledger rewrite'
+alias roi='hledger roi'
+alias stats='hledger stats'
+alias tags='hledger tags'
+alias ui='hledger ui'
+alias web='hledger web'
+
 export FINDIR=~/finance
-export LEDGER_FILE=$FINDIR/2022.journal
-
-fin() {  # fin [PAT] - list financial scripts in $FINDIR/bin/[bashrc] (default: ~/finance)
-    (cd ${FINDIR:-~/finance} || exit; bin "$@")
-}
-
-bin() {  # bin [PAT] - list aliases, functions, scripts in ./bin/[bashrc]
-    PAT="${1-.}"
-    BINDIR=./bin
-    BASHRC=$BINDIR/bashrc
-    ( [[ -e $BASHRC ]] && grep -E '^(alias|function|\w+\(\))' $BASHRC \
-	  | gnused -E -e 's/^alias *//' -e 's/^(function )?(\w+) *\(\) *\{/\2()/' -e 's/#/\t#/' \
-		   # -e "s/=('[^']+'|\"[^\"]+\"|\w+)/=/"   # uncomment to hide alias definitions
-      [[ -d $BINDIR ]] && for F in "$BINDIR"/*; do
-	  [[ -x $F ]] || continue
-	  printf '%s  ' "$(basename "$F")"
-	  (grep -IE '^(#|--) ' "$F" 2>/dev/null | gnused -E 's/(#|--)/\t#/'; echo) | head -1
-      done
-    ) | grep -iE "$PAT" \
-      #| sort -b -k2    # uncomment to sort by name
-}
-
-gnused() {  # GNU sed, called gsed on mac
-    if hash gsed 2>/dev/null; then gsed "$@"; else sed "$@"; fi
-}
-
-gnudate() {  # GNU date, called gdate on mac
-    if hash gdate 2>/dev/null; then gdate "$@"; else date "$@"; fi
-}
-
-
+export LEDGER_FILE=$FINDIR/2024/2024.journal
+alias f=$FINDIR/justfile
+alias all='hledger -f $FINDIR/all.journal'
+alias 2020='hledger -f $FINDIR/2020/2020.journal'
+alias 2021='hledger -f $FINDIR/2021/2021.journal'
+alias 2022='hledger -f $FINDIR/2022/2022.journal'
+alias 2023='hledger -f $FINDIR/2023/2023.journal'
+alias 2024='hledger -f $FINDIR/2024/2024.journal'
+alias jan="hledger -p jan"
+alias feb="hledger -p feb"
+alias mar="hledger -p mar"
+alias apr="hledger -p apr"
+alias may="hledger -p may"
+alias jun="hledger -p jun"
+alias jul="hledger -p jul"
+alias aug="hledger -p aug"
+alias sep="hledger -p sep"
+alias oct="hledger -p oct"
+alias nov="hledger -p nov"
+alias dec="hledger -p dec"
 
 # time
 
-# all in one big journal:
-#export TIMELOG=~/personal/time.journal
+#export TIMELOG=$FINDIR/time.journal
+export TIMELOG=$FINDIR/time/time-2024.journal
 
 alias hours="hledger -f $TIMELOG"
 alias today='hours -p today'
@@ -71,54 +96,6 @@ alias weeklyhours="hours -p 'weekly this year' register --empty"
 alias monthlyhours="hours -p 'monthly this year' register --empty"
 alias weeklybillablehours="weeklyhours jobs not:unbilled --depth 3"
 alias monthlybillablehours="monthlyhours jobs not:unbilled --depth 3"
-
-# money
-
-# one journal per year, included by current and all journals:
-#export LEDGER_FILE=~/personal/current.journal
-#export LEDGER_FILE=~/personal/all.journal
-
-alias jan="hledger -p jan"
-alias feb="hledger -p feb"
-alias mar="hledger -p mar"
-alias apr="hledger -p apr"
-alias may="hledger -p may"
-alias jun="hledger -p jun"
-alias jul="hledger -p jul"
-alias aug="hledger -p aug"
-alias sep="hledger -p sep"
-alias oct="hledger -p oct"
-alias nov="hledger -p nov"
-alias dec="hledger -p dec"
-alias 2006='hledger -f ~/personal/2006.journal'
-alias 2007='hledger -f ~/personal/2007.journal'
-alias 2008='hledger -f ~/personal/2008.journal'
-alias 2009='hledger -f ~/personal/2009.journal'
-alias 2010='hledger -f ~/personal/2010.journal'
-alias 2011='hledger -f ~/personal/2011.journal'
-alias 2012='hledger -f ~/personal/2012.journal'
-alias 2013='hledger -f ~/personal/2013.journal'
-alias 2014='hledger -f ~/personal/2014.journal'
-alias 2015='hledger -f ~/personal/2015.journal'
-alias all='hledger -f ~/personal/all.journal'
-alias household='hledger -f ~/personal/household.journal'
-alias add='hledger add'
-
-alias bankbalances='hledger bal assets:bank liabilities:credit -E'
-alias cashflow="hledger balance '^assets:(bank|cash)'"
-alias incexp="hledger balance '(^income|^expenses|^equity:draw)'"
-# show activity in these accounts this and last month
-alias cash="hledger -d 'd>=[last month]' reg 'assets:cash' -B"
-alias checking="hledger -d 'd>=[last month]' reg 'assets:bank:wells fargo:checking' -B"
-# show daily cleared checking balance - for reconciling with online bank statement
-alias checkingcleared="checking --cleared --period 'daily to tomorrow'"
-# show checking balance from today forward
-alias checkingfuture="checking -d 'd>=[yesterday]'"
-
-# generate a chart and view it in emacs
-chart () {
-  hledger chart $* && emacsclient -n hledger.png
-}
 
 # old ledger 2.6 scripts
 
