@@ -114,3 +114,9 @@ $ hledger --no-conf check -f/dev/null
 # ** 15. --conf CONFFILE works with builtin commands.
 $ hledger --conf /dev/null check -f/dev/null
 
+# ** 16. when moving options written before the command name:
+# if the flag name is used in general options and also one or more commands,
+# the general option's arity determines whether a value is expected.
+# Here -p is a help command flag taking no value, but also a general option requiring a value,
+# so the value ("today") is detected.
+$ hledger -p today check -f/dev/null

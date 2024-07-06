@@ -70,6 +70,7 @@ etc.
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 
 module Hledger.Cli (
   main,
@@ -84,7 +85,7 @@ module Hledger.Cli (
   module Hledger.Cli.Version,
   module Hledger,
   -- ** System.Console.CmdArgs.Explicit
-  module System.Console.CmdArgs.Explicit,
+  module CmdArgsWithoutName
 )
 where
 
@@ -93,8 +94,8 @@ import Data.List
 import qualified Data.List.NonEmpty as NE
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
-import System.Console.CmdArgs.Explicit hiding (Name)
-import qualified System.Console.CmdArgs.Explicit as CmdArgs
+import System.Console.CmdArgs.Explicit
+import System.Console.CmdArgs.Explicit as CmdArgsWithoutName hiding (Name)
 import System.Environment
 import System.Exit
 import System.FilePath
@@ -111,7 +112,6 @@ import Hledger.Cli.Version
 import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import Data.List.Extra (nubSort)
 import Data.Maybe (isJust)
 
 
@@ -139,7 +139,7 @@ mainmode addons = defMode {
      -- flags in the unnamed group, shown last:
     ,groupUnnamed = confflags   -- keep synced with dropUnsupportedOpts
      -- flags handled but not shown in the help:
-    ,groupHidden = detailedversionflag : hiddenflags
+    ,groupHidden = hiddenflags
     }
  ,modeHelpSuffix = []
     -- "Examples:" :
@@ -152,7 +152,6 @@ mainmode addons = defMode {
     -- ," help [MANUAL]           show any of the hledger manuals in various formats"
     -- ]
  }
-
 -- A dummy mode just for parsing --conf/--no-conf flags.
 confflagsmode = defMode{
    modeGroupFlags=Group [] confflags []
@@ -218,7 +217,7 @@ main = withGhcDebug' $ do
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
   dbgIO "cli args" cliargs
-  dbgIO "cli args with command first, if any" cliargswithcmdfirst
+  dbg1IO "cli args with command first, if any" cliargswithcmdfirst
   dbgIO "command argument found"   clicmdarg
   dbgIO "cli args before command"  cliargsbeforecmd
   dbgIO "cli args after command"   cliargsaftercmd
@@ -408,8 +407,7 @@ argsToCliOpts args addons = do
 -- (useful when cmdargsParse is called more than once).
 -- If parsing fails, exit the program with an informative error message.
 cmdargsParse :: String -> Mode RawOpts -> [String] -> RawOpts
-cmdargsParse desc m args0 =
-  CmdArgs.process m (ensureDebugFlagHasVal args0)
+cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
   & either
     (\e -> error' $ e <> " while parsing these args " <> desc <> ": " <> unwords (map quoteIfNeeded args0))
     (traceOrLogAt verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
@@ -471,24 +469,23 @@ moveFlagsAfterCommand args =
         -- 2 (flag with value in the next argument).
         isMovableFlagArg :: String -> Int
         isMovableFlagArg a1
-          | a1 `elem` novalflagargs  = 1  -- short or long no-val flag
-          | a1 `elem` reqvalflagargs, not $ "--debug" `isPrefixOf` a1 = 2
+          | a1 `elem` noValFlagArgs  = 1  -- short or long no-val flag
+          | a1 `elem` reqValFlagArgs, not $ "--debug" `isPrefixOf` a1 = 2
               -- short or long req-val flag, value is in next argument
               -- --debug is really optional-value (see CliOptions), assume it has no value or joined value
-          | a1 `elem` optvalflagargs = 1  -- long (or short ?) opt-val flag, assume no value
-          | any (`isPrefixOf` a1) shortreqvalflagargs = 1  -- short req-val flag, value is joined
-          | any (`isPrefixOf` a1) longreqvalflagargs_ = 1  -- long req-val flag, value is joined with =
-          | any (`isPrefixOf` a1) longoptvalflagargs_ = 1  -- long opt-val flag, value is joined with =
-          -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longreqvalflagargs_ ... -- try to move abbreviated long flags ?
+          | a1 `elem` optValFlagArgs = 1  -- long (or short ?) opt-val flag, assume no value
+          | any (`isPrefixOf` a1) shortReqValFlagArgs = 1  -- short req-val flag, value is joined
+          | any (`isPrefixOf` a1) longReqValFlagArgs_ = 1  -- long req-val flag, value is joined with =
+          | any (`isPrefixOf` a1) longOptValFlagArgs_ = 1  -- long opt-val flag, value is joined with =
+          -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longReqValFlagArgs_ ... -- try to move abbreviated long flags ?
           | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
           | otherwise = 0    -- not a flag
     moveFlagArgs (as, moved)       = (as, moved)
 
--- All Flags provided by hledger and its builtin comands.
-allbuiltinflags = modeAndSubmodeFlags $ mainmode []
-
 -- Flag arguments are command line arguments beginning with - or --
 -- (followed by a short of long flag name, and possibly joined short flags or a joined value).
+isFlagArg, isShortFlagArg, isLongFlagArg :: String -> Bool
+isFlagArg a = isShortFlagArg a || isLongFlagArg a
 
 isShortFlagArg ('-':c:_) = c /= '-'
 isShortFlagArg _         = False
@@ -496,31 +493,65 @@ isShortFlagArg _         = False
 isLongFlagArg ('-':'-':_:_) = True
 isLongFlagArg _             = False
 
-isFlagArg a = isShortFlagArg a || isLongFlagArg a
+-- | Add the leading hyphen(s) to a short or long flag name.
+toFlagArg :: Name -> String
+toFlagArg f = if length f == 1 then "-"++f else "--"++f
 
--- Given a list of Flags, return all of their supported short and long flag names as flag arguments
--- (a sorted list of the unique flag names with - or -- prefixes).
-flagsToArgs flags = nubSort [ if length f == 1 then "-"++f else "--"++f | f <- nubSort $ concatMap flagNames flags]
+-- | Flatten a possibly multi-named Flag to (name, FlagInfo) pairs.
+toFlagInfos :: Flag RawOpts -> [(Name, FlagInfo)]
+toFlagInfos f = [(n,i) | let i = flagInfo f, n <- flagNames f]
 
--- hledger flag args grouped by whether their flag expects no value, a required value, or an optional value.
-novalflagargs  = flagsToArgs $ filter ((==FlagNone).flagInfo) allbuiltinflags
-reqvalflagargs = flagsToArgs $ filter ((==FlagReq).flagInfo)  allbuiltinflags
-optvalflagargs = flagsToArgs $ filter isOptValFlag allbuiltinflags
+-- | Is this flag's value optional ?
+isOptVal :: FlagInfo -> Bool
+isOptVal = \case
+  FlagOpt _     -> True
+  FlagOptRare _ -> True
+  _             -> False
+
+-- | All the general flags defined in hledger's main mode.
+generalFlags :: [Flag RawOpts]
+generalFlags = concatMap snd groupNamed <> groupHidden <> groupUnnamed
+  where Group{..} = modeGroupFlags $ mainmode []  
+
+-- | All the general flag names.
+generalFlagNames :: [Name]
+generalFlagNames = concatMap flagNames generalFlags
+
+-- | All hledger's builtin subcommand-specific flags.
+commandFlags :: [Flag RawOpts]
+commandFlags = concatMap (groupUnnamed.modeGroupFlags) commandModes
   where
-    isOptValFlag f = case flagInfo f of
-      FlagOpt     _ -> True
-      FlagOptRare _ -> True
-      _             -> False
+    commandModes = concatMap snd groupNamed <> groupUnnamed <> groupHidden
+      where Group{..} = modeGroupModes $ mainmode []
+
+-- | The names of general options flags, grouped by whether they expect a value.
+-- There may be some overlaps with command flag names.
+noValGeneralFlagNames, reqValGeneralFlagNames, optValGeneralFlagNames :: [Name]
+noValGeneralFlagNames  = [f | (f,i) <- concatMap toFlagInfos generalFlags, i == FlagNone]
+reqValGeneralFlagNames = [f | (f,i) <- concatMap toFlagInfos generalFlags, i == FlagReq]
+optValGeneralFlagNames = [f | (f,i) <- concatMap toFlagInfos generalFlags, isOptVal i]
+
+-- | The names of builtin subcommand flags, grouped by whether they expect a value.
+-- There may be some overlaps with general flag names.
+noValCommandFlagNames, reqValCommandFlagNames, optValCommandFlagNames :: [Name]
+noValCommandFlagNames  = [f | (f,i) <- concatMap toFlagInfos commandFlags, i == FlagNone]
+reqValCommandFlagNames = [f | (f,i) <- concatMap toFlagInfos commandFlags, i == FlagReq]
+optValCommandFlagNames = [f | (f,i) <- concatMap toFlagInfos commandFlags, isOptVal i]
+
+-- All flag arguments understood by hledger cli and builtin commands, grouped by whether they expect a value.
+-- Any command flags which have the same name as a general flag are excluded.
+noValFlagArgs  = map toFlagArg $ noValGeneralFlagNames  `union` (noValCommandFlagNames  \\ generalFlagNames)
+reqValFlagArgs = map toFlagArg $ reqValGeneralFlagNames `union` (reqValCommandFlagNames \\ generalFlagNames)
+optValFlagArgs = map toFlagArg $ optValGeneralFlagNames `union` (optValCommandFlagNames \\ generalFlagNames)
 
 -- Short flag args that expect a required value.
-shortreqvalflagargs = filter isShortFlagArg reqvalflagargs
+shortReqValFlagArgs = filter isShortFlagArg reqValFlagArgs
 
--- Long flag args that expect a required value or optional value respectively, with = appended.
-longreqvalflagargs_ = map (++"=") $ filter isLongFlagArg reqvalflagargs
-longoptvalflagargs_ = map (++"=") $ filter isLongFlagArg optvalflagargs ++ ["--debug"]
+-- Long flag args that expect a required value, with = appended.
+longReqValFlagArgs_ = map (++"=") $ filter isLongFlagArg reqValFlagArgs
 
--- Is this flag arg one that requires a value ?
-isReqValFlagArg a = a `elem` reqvalflagargs
+-- Long flag args that expect an optional value, with = appended.
+longOptValFlagArgs_ = map (++"=") $ filter isLongFlagArg optValFlagArgs ++ ["--debug"]
 
 -- Drop any arguments which look like cli-specific options (--no-conf, --conf CONFFILE, etc.)
 -- Keep synced with mainmode's groupUnnamed.
@@ -550,13 +581,15 @@ dropUnsupportedOpts m = \case
     | otherwise -> a : dropUnsupportedOpts m as
     where
       go = dropUnsupportedOpts m
-      supportsFlag m1 flagarg = elem flagarg $ flagsToArgs $ modeAndSubmodeFlags m1
+      isReqValFlagArg = (`elem` reqValFlagArgs)
+      supportsFlag m1 flagarg = elem flagarg $ map toFlagArg $ concatMap flagNames $ modeAndSubmodeFlags m1
 
 -- | Get all the flags defined in a mode or its immediate subcommands,
--- whether in named, unnamed or hidden groups (does not recurse into subsubcommands).
+-- whether in named, unnamed or hidden groups.
+-- Does not recurse into subsubcommands,
+-- and does not deduplicate (general flags are repeated on all hledger subcommands).
 modeAndSubmodeFlags :: Mode a -> [Flag a]
 modeAndSubmodeFlags m@Mode{modeGroupModes=Group{..}} =
   modeFlags m <> concatMap modeFlags (concatMap snd groupNamed <> groupUnnamed <> groupHidden)
-
 
 -- unit tests (tests_Hledger_Cli) are defined in Hledger.Cli.Commands

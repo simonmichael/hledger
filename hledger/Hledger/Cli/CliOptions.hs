@@ -24,7 +24,6 @@ module Hledger.Cli.CliOptions (
   reportflags,
   helpflags,
   helpflagstitle,
-  detailedversionflag,
   flattreeflags,
   confflags,
   hiddenflags,
@@ -251,10 +250,6 @@ helpflags = [
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
  ]
 -- XXX why are these duplicated in defCommandMode below ?
-
--- | A hidden flag just for the hledger executable.
-detailedversionflag :: Flag RawOpts
-detailedversionflag = flagNone ["version+"] (setboolopt "version+") "show version information with extra detail"
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
 -- With a True argument, shows some extra help about inclusive/exclusive amounts.
