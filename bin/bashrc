@@ -1,4 +1,4 @@
-# Some hledger/PTA-related bash scripts.
+# Some hledger/PTA-related bash scripts. See also Justfile.
 
 alias hl='hledger'
 alias acc='hledger accounts'
@@ -84,18 +84,6 @@ alias sephours="hours -p sep"
 alias octhours="hours -p oct"
 alias novhours="hours -p nov"
 alias dechours="hours -p dec"
-alias 2008hours="hours -p 2008"
-alias 2009hours="hours -p 2009"
-alias 2010hours="hours -p 2010"
-alias 2011hours="hours -p 2011"
-alias 2012hours="hours -p 2012"
-alias 2013hours="hours -p 2013"
-alias 2014hours="hours -p 2014"
-alias 2015hours="hours -p 2015"
-alias weeklyhours="hours -p 'weekly this year' register --empty"
-alias monthlyhours="hours -p 'monthly this year' register --empty"
-alias weeklybillablehours="weeklyhours jobs not:unbilled --depth 3"
-alias monthlybillablehours="monthlyhours jobs not:unbilled --depth 3"
 
 # old ledger 2.6 scripts
 

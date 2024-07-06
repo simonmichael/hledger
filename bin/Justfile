@@ -1,6 +1,6 @@
 #!/usr/bin/env just -f
 # * financial reports/scripts, managed with https://github.com/casey/just
-# ** PUBLIC:  the scripts below can be shared in hledger's bin/justfile.
+# ** PUBLIC:  the scripts below can be shared in hledger's bin/Justfile.
 
 # *** PREAMBLE ------------------------------------------------------------
 
