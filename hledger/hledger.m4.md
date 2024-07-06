@@ -525,7 +525,7 @@ hledger will read extra command line options from a `hledger.conf` config file.
 These will be inserted early in the command line, so your later options can override them if needed.
 The config file can contain general options (which will be used with all commands that support them), and command-specific options (or arguments).
 [hledger.conf.sample](https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample) is an example,
-which you can install as `./hledger.conf` or `$HOME/.hledger.conf`.
+which you can install as, eg, `./hledger.conf` or `$HOME/.hledger.conf`.
 
 To be precise, hledger looks for `hledger.conf` in the current directory or above,
 or in your home directory (with a dotted name, `~/.hledger.conf`),
@@ -535,9 +535,9 @@ or by adding a `hledger --conf` shebang line to a config file and executing it l
 You can inspect the finding and processing of config files with `--debug` or `--debug=8`.
 
 If you want to run hledger without a config file, to ensure standard defaults and behaviour, use the `-n/--no-conf` flag.
-This is useful when troubleshooting problems or sharing examples.
+This is recommended when using hledger in scripts, and when troubleshooting problems.
 
-*(Added in 1.40; experimental)*
+*(in master, experimental)*
 
 # Output
 
