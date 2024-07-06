@@ -86,7 +86,7 @@ getConf rawopts
       Nothing -> return Nothing
     case (mspecifiedconf, defconffiles) of
       (Just f, _  ) -> readConfFile f
-      (Nothing,f:_) -> dbg1IO "found config files" defconffiles >> dbg1IO "using config file" f >> readConfFile f
+      (Nothing,f:_) -> dbg8IO "found config files" defconffiles >> dbg1IO "using config file" f >> readConfFile f
       (Nothing,[] ) -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
   where
     noconf = boolopt "no-conf" rawopts
@@ -122,7 +122,7 @@ confDirs = do
   dirs <- getDirsUpToRoot here
   let dirs2 = if home `elem` dirs then dirs else dirs <> [home]
   let dirs3 = if xdgc `elem` dirs2 then dirs2 else dirs2 <> [xdgc]
-  return $ dbg1 "searching config dirs" dirs3
+  return $ dbg8 "searching config dirs" dirs3
 
 -- | Get this directory and all of its parents up to /.
 getDirsUpToRoot :: FilePath -> IO [FilePath]
