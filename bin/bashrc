@@ -58,6 +58,82 @@ alias oct="hledger -p oct"
 alias nov="hledger -p nov"
 alias dec="hledger -p dec"
 
+# list likely hledger-readable files in current directory
+hledgerfiles() {
+    ls $@ *.{journal,j,timelog,csv,ledger,lgr,dat} 2>/dev/null
+}
+
+# helpers for working with yearly files
+
+FIRSTYEAR=2006
+
+# yearfiles [N] - print the paths of all or the last N yearly journals
+yearfiles() {
+    N="$1"; shift
+    YEAR=$(date +%Y)
+    if [[ -n "$N" ]]; then
+	START=$(( "$YEAR" - "$N" + 1))
+    else
+	START=$FIRSTYEAR
+    fi
+    for ((y="$START"; y<="$YEAR"; y++)); do echo "$FINDIR/$y/$y.journal"; done
+}
+
+# yearopts [N] - print -f options for all or the last N yearly journals
+yearopts() {
+    for y in $(yearfiles "$1"); do
+	echo -f"$y"
+    done
+}
+
+# years [N] CMD.. - run hledger CMD on all or just the last N yearly journals combined
+# eg:
+# years stats
+# years 2 stats
+years() {
+    N="$1"
+    if [[ "$N" =~ ^[0-9]+$ ]]; then
+	shift
+    else
+	N=
+    fi
+    # shellcheck disable=SC2046
+    hledger $(yearopts "$N" | xargs) "$@"
+}
+
+# eachyear [N] [n|p|P] "SHELLCMD" - run SHELLCMD with $LEDGER_FILE set,
+# for each or just the last N yearly journals,
+# optionally printing the file name with 0, 1 or 2 line breaks.
+# Accepts shell commands, extra quoting may be needed.
+# eg:
+# eachyear 10 hledger bal -0 -N cur:\\\\$
+# eachyear p files
+# eachyear P 'files | wc -l'
+# eachyear 5 P 5 'hledger stats | tail -1'
+# eachyear 7 p 'comm | rg ^...$'
+eachyear() {
+    N="$1"
+    if [[ "$N" =~ ^[0-9]+$ ]]; then
+	shift
+    else
+	N=
+    fi
+    P="$1"
+    if [[ "$P" =~ ^[npP]$ ]]; then
+	shift
+    else
+	P=
+    fi
+    for f in $(yearfiles "$N"); do
+	if [[ -n "$P" ]]; then
+            if [[ $P == P ]]; then echo; fi
+            printf "%s: " "$(basename "$f")"
+            if [[ $P != n ]]; then echo; fi
+        fi
+	bash -ic "(LEDGER_FILE=$f; $*)"  # XXX loses some quoting
+    done
+}
+
 # time
 
 #export TIMELOG=$FINDIR/time.journal
