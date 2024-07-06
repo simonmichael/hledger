@@ -6,7 +6,7 @@
 set -o pipefail
 
 VALUATION_COMMODITY="$"
-hledger bal -0 -N -X "${VALUATION_COMMODITY}" --infer-market-prices -c "${VALUATION_COMMODITY} 1000" --layout=bare "$@" | awk '{print $1}'
+hledger -n bal -0 -N -X "${VALUATION_COMMODITY}" --infer-market-prices -c "${VALUATION_COMMODITY} 1000" --layout=bare "$@" | awk '{print $1}'
 
 # Tired of complex financial reports ? This is a silly but fun and
 # occasionally useful script showing how to get "one number" semi-robustly
