@@ -36,6 +36,7 @@ import Hledger.UI.UIScreens
 import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
 import Hledger.UI.Editor (runIadd, runEditor, endPosition)
 import Brick.Widgets.Edit (getEditContents, handleEditorEvent)
+import Control.Arrow ((>>>))
 
 
 msDraw :: UIState -> [Widget Name]
@@ -113,6 +114,7 @@ msHandle ev = do
                     Nothing -> Nothing
         nonblanks = V.takeWhile (not . T.null . msItemScreenName) $ listElements $ _mssList sst
         lastnonblankidx = max 0 (length nonblanks - 1)
+        journalspan = journalDateSpan False j
       d <- liftIO getCurrentDay
 
       case mode of
@@ -192,6 +194,13 @@ msHandle ev = do
             -- VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
+
+            -- narrow/widen/move the period as on other screens, for consistency
+            VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
+            VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens j d)
+            VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens j d)
+            VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens j d)
+            VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens j d)
 
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
