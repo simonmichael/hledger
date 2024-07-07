@@ -121,7 +121,7 @@ future/forecasted transactions are shown.
 Pressing `SHIFT-DOWN` narrows the report period, and pressing `SHIFT-UP` expands it again.
 When narrowed, the current report period is displayed in the header line,
 pressing `SHIFT-LEFT` or `SHIFT-RIGHT` moves to the previous or next period,
-and pressing `T` moves to the period containing today.
+and pressing `T` sets the period to "today".
 If you are using `-w/--watch` and viewing a narrowed period containing today,
 the view will follow any changes in system date (moving to the period containing the new date).
 
