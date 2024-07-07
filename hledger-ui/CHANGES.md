@@ -295,6 +295,10 @@ Improvements
 
 - Require base >=4.11, prevent red squares on Hackage's build matrix.
 
+Fixes
+
+- Do not display a screen full of .. when there are no transactions. (#822)
+
 API changes
 
 - Lenses are now available for UIState etc., saving a lot of boilerplate. (Stephen Morgan)
