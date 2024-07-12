@@ -1,8 +1,8 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity error --package hledger
 -- stack runghc --verbosity error --package hledger --package hledger-lib --package text --package safe 
--- stack script --compile --resolver lts-20.13 --verbosity error --package hledger --package text
--- stack script --compile --resolver lts-20.13 --verbosity error --package hledger --package hledger-lib --package text --package safe
+-- stack script --compile --resolver nightly-2024-07-12 --verbosity error --package hledger --package text
+-- stack script --compile --resolver nightly-2024-07-12 --verbosity error --package hledger --package hledger-lib --package text --package safe
 -- The topmost stack command above is used to run this script.
 -- stack script uses released hledger, stack runghc uses local hledger source.
 -- This script currently requires local hledger source, for Hledger.Cli.Script.

@@ -11,7 +11,7 @@
 --
 -- You could make this a standalone script that runs from anywhere and
 -- recompiles itself when changed, by replacing "runghc" above with
--- "script --compile --resolver lts-16" (eg). However this uses the
+-- "script --compile --resolver lts-22" (eg). However this uses the
 -- hledger version from that stackage resolver, so in this case you
 -- should check out the corresponding release-tagged version of this
 -- script for compatibility (eg: git checkout 1.18.1).
