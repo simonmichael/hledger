@@ -27,6 +27,7 @@ module Hledger.Cli.CliOptions (
   flattreeflags,
   confflags,
   hiddenflags,
+  hiddenflagsformainmode,
   -- outputflags,
   outputFormatFlag,
   outputFileFlag,
@@ -267,10 +268,9 @@ confflags = [
   ,flagNone ["no-conf","n"] (setboolopt "no-conf") "ignore any config file"
   ]
 
--- | Common flags that are accepted but not shown in --help,
--- such as --effective, --aux-date.
-hiddenflags :: [Flag RawOpts]
-hiddenflags = [
+-- | Common legacy flags that are accepted but not shown in --help.
+hiddenflagsformainmode :: [Flag RawOpts]
+hiddenflagsformainmode = [
    flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
   ,flagNone ["infer-value"]          (setboolopt "infer-market-prices") "legacy flag that was renamed"
   ,flagNone ["pretty-tables"]        (setopt "pretty" "always") "legacy flag that was renamed"
@@ -278,7 +278,10 @@ hiddenflags = [
   ,flagNone ["obfuscate"]            (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
   ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
-  ++ confflags -- repeated here so subcommands/addons won't error when parsing them
+
+-- Subcommands/addons add the conf flags, so they won't error if those are present.
+hiddenflags :: [Flag RawOpts]
+hiddenflags = hiddenflagsformainmode ++ confflags
 
 -- | Common output-related flags: --output-file, --output-format...
 

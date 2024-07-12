@@ -140,10 +140,10 @@ mainmode addons = defMode {
  ,modeGroupFlags = Group {
      -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
      groupNamed = cligeneralflagsgroups1
-     -- flags in the unnamed group, shown last:
-    ,groupUnnamed = confflags   -- keep synced with dropUnsupportedOpts
-     -- flags handled but not shown in the help:
-    ,groupHidden = hiddenflags
+     -- flags in the unnamed group, shown last: (keep synced with dropUnsupportedOpts)
+    ,groupUnnamed = confflags
+     -- other flags handled but not shown in help:
+    ,groupHidden = hiddenflagsformainmode
     }
  ,modeHelpSuffix = []
     -- "Examples:" :
