@@ -188,10 +188,13 @@ main = withGhcDebug' $ do
 
   -- let's go!
   let
+    -- Trace helpers. These always trace to stderr, even when running `hledger ui`;
+    -- that's ok as conf is a hledger cli feature for now.
     dbgIO, dbgIO1, dbgIO2 :: Show a => String -> a -> IO ()  -- this signature is needed
     dbgIO  = ptraceAtIO verboseDebugLevel
     dbgIO1 = ptraceAtIO 1
     dbgIO2 = ptraceAtIO 2
+
   dbgIO "running" prognameandversion
 
   starttime <- getPOSIXTime

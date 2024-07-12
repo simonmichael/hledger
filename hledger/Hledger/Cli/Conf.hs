@@ -75,6 +75,8 @@ confLookup cmd Conf{confSections} =
 -- Otherwise this returns the parsed Conf, and the file path.
 getConf :: RawOpts -> IO (Conf, Maybe FilePath)
 getConf rawopts
+  -- As in Cli.hs, conf debug output always goes to stderr;
+  -- that's ok as conf is a hledger cli feature for now.
   | noconf = return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
   | otherwise = do
     defconfpaths <- confFilePaths
