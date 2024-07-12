@@ -70,7 +70,7 @@ $ fin        # list the scripts available
 
 [`ft`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
 is a way to organise your finance-related reports and scripts using standard bash.
-(See also [justfile](#justfile) below.)
+(See also [Justfile](#justfile) below.)
 
 ```cli
 $ alias f=~/src/hledger/bin/ft
@@ -138,22 +138,22 @@ OTHERCMD        [ARGS] run other hledger commands on $TIMELOG
 Add hledger options to customise reports.
 ```
 
-### justfile
+### Justfile
 
 <https://github.com/casey/just> is like [make](https://en.wikipedia.org/wiki/Make_(software)), but easier and more suitable for running commands.
 It is a nice tool for organising financial reports and scripts!
 More on [hledger and just](just.md).
 
-Here is a [justfile](https://github.com/simonmichael/hledger/blob/master/bin/justfile)
+Here is a [Justfile](https://github.com/simonmichael/hledger/blob/master/bin/Justfile)
 reimplementing the `ft` and `tt` scripts more simply:
 
 ```cli
 $ brew install just  # eg
 $ alias j=just
 $ cd ~/finance
-$ cp ~/src/hledger/bin/justfile .  # or start from scratch: just --init
+$ cp ~/src/hledger/bin/Justfile .  # or start from scratch: just --init
 $ j
-justfile commands:
+Justfile commands:
     watch CMD                      # rerun the given command with watchexec whenever local files change
     get-csv                        # download auto-downloadable CSVs (paypal)
     import-dry                     # import new downloaded transactions to the main journal, dry run
