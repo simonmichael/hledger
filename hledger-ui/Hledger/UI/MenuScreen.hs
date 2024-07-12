@@ -40,7 +40,7 @@ import Control.Arrow ((>>>))
 
 
 msDraw :: UIState -> [Widget Name]
-msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
+msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
               ,aScreen=MS sst
               ,aMode=mode
@@ -54,6 +54,7 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec}}
       where
         toplabel =
               withAttr (attrName "border" <> attrName "filename") files
+          <+> borderPeriodStr "" (period_ ropts)
           <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
                then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
                else str "")
@@ -179,7 +180,6 @@ msHandle ev = do
 --             VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
 
 --             -- display mode/query toggles
---             VtyEvent (EvKey (KChar 'H') []) -> modify' (regenerateScreens j d . toggleHistorical) >> msCenterAndContinue
 --             VtyEvent (EvKey (KChar 't') []) -> modify' (regenerateScreens j d . toggleTree) >> msCenterAndContinue
 --             VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (regenerateScreens j d . toggleEmpty) >> msCenterAndContinue
 --             VtyEvent (EvKey (KChar 'R') []) -> modify' (regenerateScreens j d . toggleReal) >> msCenterAndContinue
@@ -187,20 +187,17 @@ msHandle ev = do
 --             VtyEvent (EvKey (KChar 'P') []) -> modify' (regenerateScreens j d . togglePending) >> msCenterAndContinue
 --             VtyEvent (EvKey (KChar 'C') []) -> modify' (regenerateScreens j d . toggleCleared) >> msCenterAndContinue
 --             VtyEvent (EvKey (KChar 'F') []) -> modify' (regenerateScreens j d . toggleForecast d)
-
-            -- VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens j d $ shrinkReportPeriod d ui
-            -- VtyEvent (EvKey (KUp)       [MShift]) -> put' $ regenerateScreens j d $ growReportPeriod d ui
-            -- VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens j d $ nextReportPeriod journalspan ui
-            -- VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
-            VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
-            VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
+            -- VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical >>> regenerateScreens j d)
 
             -- narrow/widen/move the period as on other screens, for consistency
-            VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
             VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens j d)
             VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens j d)
             VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens j d)
             VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens j d)
+            VtyEvent (EvKey (KChar 'T') [])       -> modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
+
+            VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
+            VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
 
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
