@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -78,7 +78,7 @@ library
       ansi-terminal >=0.9
     , async
     , base >=4.14 && <4.20
-    , brick >=2.1.1 && <2.4
+    , brick >=2.1.1 && <2.5
     , cmdargs >=0.8
     , containers >=0.5.9
     , data-default
