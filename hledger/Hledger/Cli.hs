@@ -64,10 +64,9 @@ etc.
 
 -}
 
-{-# LANGUAGE LambdaCase #-}
-
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
@@ -90,8 +89,15 @@ module Hledger.Cli (
 where
 
 import Control.Monad (when, unless)
+import Data.Bifunctor (second)
+import Data.Char (isDigit)
+import Data.Either (isRight)
+import Data.Function ((&))
+import Data.Functor ((<&>))
 import Data.List
 import qualified Data.List.NonEmpty as NE
+import Data.Maybe (isJust)
+import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
 import System.Console.CmdArgs.Explicit
@@ -100,6 +106,8 @@ import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
+import Text.Megaparsec (optional, takeWhile1P)
+import Text.Megaparsec.Char (char)
 import Text.Printf
 
 import Hledger
@@ -109,10 +117,6 @@ import Hledger.Cli.Commands
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
 import Hledger.Cli.Version
-import Data.Bifunctor (second)
-import Data.Function ((&))
-import Data.Functor ((<&>))
-import Data.Maybe (isJust)
 
 
 verboseDebugLevel = 8
@@ -460,29 +464,33 @@ moveFlagsAfterCommand args =
   where
     moveFlagArgs :: ([String], [String]) -> ([String], [String])
     moveFlagArgs ((a:b:cs), moved)
-      | isMovableFlagArg a == 2 = moveFlagArgs (cs, moved++[a,b])
-      | isMovableFlagArg a == 1 = moveFlagArgs (b:cs, moved++[a])
-      | otherwise               = (a:b:cs, moved)
+      | isMovableFlagArg a b == 2 = moveFlagArgs (cs, moved++[a,b])
+      | isMovableFlagArg a b == 1 = moveFlagArgs (b:cs, moved++[a])
+      | otherwise                 = (a:b:cs, moved)
       where
         -- Is this a short or long flag argument that should be moved,
         -- and is its following argument a value that also should be moved ?
         -- Returns:
-        -- 0 (not a flag)
-        -- 1 (single flag, maybe with joined argument; or multiple joined short flags)
-        -- 2 (flag with value in the next argument).
-        isMovableFlagArg :: String -> Int
-        isMovableFlagArg a1
+        -- 0 (not a flag; don't move this argument)
+        -- 1 (a valueless flag, or a long flag with joined argument, or multiple joined valueless short flags; move this argument)
+        -- 2 (a short or long flag with a value in the next argument; move this and next argument).
+        isMovableFlagArg :: String -> String -> Int
+        isMovableFlagArg a1 a2
           | a1 `elem` noValFlagArgs  = 1  -- short or long no-val flag
-          | a1 `elem` reqValFlagArgs, not $ "--debug" `isPrefixOf` a1 = 2
-              -- short or long req-val flag, value is in next argument
-              -- --debug is really optional-value (see CliOptions), assume it has no value or joined value
+          | a1 == "--debug" && not (isDebugValue a2) = 1  --debug without a value
+          | a1 `elem` reqValFlagArgs = 2  -- short or long req-val flag (or --debug) with a separate value
           | a1 `elem` optValFlagArgs = 1  -- long (or short ?) opt-val flag, assume no value
-          | any (`isPrefixOf` a1) shortReqValFlagArgs = 1  -- short req-val flag, value is joined
-          | any (`isPrefixOf` a1) longReqValFlagArgs_ = 1  -- long req-val flag, value is joined with =
-          | any (`isPrefixOf` a1) longOptValFlagArgs_ = 1  -- long opt-val flag, value is joined with =
+          | any (`isPrefixOf` a1) shortReqValFlagArgs = 1  -- short req-val flag with a joined value
+               -- or possibly multiple joined valueless short flags, we won't move those correctly
+          | any (`isPrefixOf` a1) longReqValFlagArgs_ = 1  -- long req-val flag (or --debug) with a joined value
+          | any (`isPrefixOf` a1) longOptValFlagArgs_ = 1  -- long opt-val flag with a joined value
           -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longReqValFlagArgs_ ... -- try to move abbreviated long flags ?
           | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
           | otherwise = 0    -- not a flag
+          where
+            -- Is this string a valid --debug value ?
+            isDebugValue s = isRight $ parsewith isdebugvalp $ pack s
+              where isdebugvalp = optional (char '-') >> takeWhile1P Nothing isDigit :: TextParser m Text
     moveFlagArgs (as, moved)       = (as, moved)
 
 -- Flag arguments are command line arguments beginning with - or --

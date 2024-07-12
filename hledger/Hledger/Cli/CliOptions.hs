@@ -243,10 +243,8 @@ helpflags = [
  ,flagNone ["info"]     (setboolopt "info")    "show the manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show the manual with man"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
-  -- ,flagOpt "1" ["debug"] (\s opts -> Right $ setopt "debug" s opts) "LVL" "show debug output (levels 1-9, default: 1)"
-  -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL].
-  -- But because we handle --debug specially, flagReq also works, and it does not need =, removing a source of confusion.
-  -- (This involves specially adding the flag value if missing in Cli.hs.)
+  -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
+  -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
  ]
 -- XXX why are these duplicated in defCommandMode below ?

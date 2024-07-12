@@ -114,9 +114,25 @@ $ hledger --no-conf check -f/dev/null
 # ** 15. --conf CONFFILE works with builtin commands.
 $ hledger --conf /dev/null check -f/dev/null
 
-# ** 16. when moving options written before the command name:
+# ** 16. When moving options written before the command name:
 # if the flag name is used in general options and also one or more commands,
 # the general option's arity determines whether a value is expected.
 # Here -p is a help command flag taking no value, but also a general option requiring a value,
 # so the value ("today") is detected.
 $ hledger -p today check -f/dev/null
+
+# ** 17. The specially-handled --debug option is also moved properly, with no value:
+$ hledger --debug check -f/dev/null
+>2 //
+
+# ** 18. a joined value:
+$ hledger --debug=1 check -f/dev/null
+>2 //
+
+# ** 19. or a separate value:
+$ hledger --debug 1 check -f/dev/null
+>2 //
+
+# ** 20. A short flag with joined value, or multiple valueless short flags joined together, are moved properly.
+$ hledger -f/dev/null -BI check
+>2 //
