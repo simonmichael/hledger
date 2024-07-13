@@ -1202,10 +1202,6 @@ _gitSwitchAutoCreate BRANCH:
 # isclean-%:
 #     @$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
 
-# update all cabal files from latest package.yaml files using stack's built-in hpack
-cabalfiles:
-    {{ STACK }} build --dry-run --silent
-
 # # Update all cabal files based on latest package.yaml files using a specific hpack version.
 # # To avoid warnings, this should be the same version as stack's built-in hpack.
 # cabal-with-hpack-%:
