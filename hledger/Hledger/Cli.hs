@@ -19,7 +19,7 @@ See also:
 == About
 
 hledger - a fast, reliable, user-friendly plain text accounting tool.
-Copyright (c) 2007-2023 Simon Michael <simon@joyful.com> and contributors
+Copyright (c) 2007-2024 Simon Michael <simon@joyful.com> and contributors
 Released under GPL version 3 or later.
 
 hledger is a Haskell rewrite of John Wiegley's "ledger".  
@@ -106,7 +106,7 @@ import System.Environment
 import System.Exit
 import System.FilePath
 import System.Process
-import Text.Megaparsec (optional, takeWhile1P)
+import Text.Megaparsec (optional, takeWhile1P, eof)
 import Text.Megaparsec.Char (char)
 import Text.Printf
 
@@ -487,11 +487,11 @@ moveFlagsAfterCommand args =
           -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longReqValFlagArgs_ ... -- try to move abbreviated long flags ?
           | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
           | otherwise = 0    -- not a flag
-          where
-            -- Is this string a valid --debug value ?
-            isDebugValue s = isRight $ parsewith isdebugvalp $ pack s
-              where isdebugvalp = optional (char '-') >> takeWhile1P Nothing isDigit :: TextParser m Text
     moveFlagArgs (as, moved)       = (as, moved)
+
+-- Is this string a valid --debug value ?
+isDebugValue s = isRight $ parsewith isdebugvalp $ pack s
+  where isdebugvalp = optional (char '-') >> takeWhile1P Nothing isDigit <* eof :: TextParser m Text
 
 -- Flag arguments are command line arguments beginning with - or --
 -- (followed by a short of long flag name, and possibly joined short flags or a joined value).
@@ -577,9 +577,16 @@ dropCliSpecificOpts = \case
 
 -- | Given a hledger cmdargs mode and a list of command line arguments, try to drop any of the
 -- arguments which seem to be flags not supported by this mode. Also drop their values if any.
+--
+-- >>> dropUnsupportedOpts confflagsmode ["--debug","1","-f","file"]
+-- []
+-- >>> dropUnsupportedOpts confflagsmode ["--debug","-f","file"]
+-- []
 dropUnsupportedOpts :: Mode RawOpts -> [String] -> [String]
 dropUnsupportedOpts m = \case
   []   -> []
+  "--debug":a:as | not (m `supportsFlag` "debug") ->
+    go $ if isDebugValue a then as else a:as
   a:as -> if
     | isLongFlagArg a,
       let f = takeWhile (/='=') a,
@@ -590,10 +597,10 @@ dropUnsupportedOpts m = \case
       let as' = if isReqValFlagArg f && length a == 2 then drop 1 as else as
       -> if m `supportsFlag` f then a : go as else go as'
     | otherwise -> a : dropUnsupportedOpts m as
-    where
-      go = dropUnsupportedOpts m
-      isReqValFlagArg = (`elem` reqValFlagArgs)
-      supportsFlag m1 flagarg = elem flagarg $ map toFlagArg $ concatMap flagNames $ modeAndSubmodeFlags m1
+  where
+    go = dropUnsupportedOpts m
+    isReqValFlagArg = (`elem` reqValFlagArgs)
+    supportsFlag m1 flagarg = elem flagarg $ map toFlagArg $ concatMap flagNames $ modeAndSubmodeFlags m1
 
 -- | Get all the flags defined in a mode or its immediate subcommands,
 -- whether in named, unnamed or hidden groups.

@@ -537,6 +537,8 @@ You can inspect the finding and processing of config files with `--debug` or `--
 If you want to run hledger without a config file, to ensure standard defaults and behaviour, use the `-n/--no-conf` flag.
 This is recommended when using hledger in scripts, and when troubleshooting problems.
 
+When both `--conf` and `--no-conf` options are used, the last (right-most) wins.
+
 *(in master, experimental)*
 
 # Output

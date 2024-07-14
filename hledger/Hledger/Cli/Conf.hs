@@ -24,10 +24,12 @@ import System.FilePath ((</>), takeDirectory)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
-import Hledger (error', strip, words', RawOpts, boolopt, maybestringopt, expandPath)
+import Hledger (error', strip, words', RawOpts, expandPath)
 import Hledger.Read.Common
 import Hledger.Utils.Parse
 import Hledger.Utils.Debug
+import Safe (lastDef)
+import Hledger.Data.RawOptions (collectopts)
 
 
 -- | A hledger config file.
@@ -58,6 +60,22 @@ nullconf = Conf {
   ,confSections = []
 }
 
+-- | The --conf or --no-conf or default config file specified by command line options.
+data ConfFileSpec =
+    SomeConfFile FilePath  -- ^ use config file specified with --conf
+  | NoConfFile             -- ^ don't use any config file (--no-conf)
+  | AutoConfFile           -- ^ use the config file found by directory search (default)
+  deriving (Eq,Show)
+
+-- Get the conf file specification from options,
+-- considering the rightmost --conf or --no-conf option if any.
+confFileSpecFromRawOpts :: RawOpts -> ConfFileSpec
+confFileSpecFromRawOpts = lastDef AutoConfFile . collectopts cfsFromRawOpt
+  where
+    cfsFromRawOpt ("conf",f)    = Just $ SomeConfFile f
+    cfsFromRawOpt ("no-conf",_) = Just $ NoConfFile
+    cfsFromRawOpt _             = Nothing
+
 -- config reading
 
 -- | Fetch all the arguments/options defined in a section with this name, if it exists.
@@ -74,24 +92,18 @@ confLookup cmd Conf{confSections} =
 -- If a specified file, or the first file found, can not be read or parsed, this raises an error.
 -- Otherwise this returns the parsed Conf, and the file path.
 getConf :: RawOpts -> IO (Conf, Maybe FilePath)
-getConf rawopts
-  -- As in Cli.hs, conf debug output always goes to stderr;
-  -- that's ok as conf is a hledger cli feature for now.
-  | noconf = return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
-  | otherwise = do
-    defconfpaths <- confFilePaths
-    defconffiles <- fmap catMaybes $ forM defconfpaths $ \f -> do
-      exists <- doesFileExist f
-      return $ if exists then Just f else Nothing
-    mspecifiedconf <- case maybestringopt "conf" rawopts of
-      Just f  -> Just <$> (getCurrentDirectory >>= flip expandPath f)
-      Nothing -> return Nothing
-    case (mspecifiedconf, defconffiles) of
-      (Just f, _  ) -> readConfFile f
-      (Nothing,f:_) -> dbg8IO "found config files" defconffiles >> dbg1IO "using config file" f >> readConfFile f
-      (Nothing,[] ) -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
-  where
-    noconf = boolopt "no-conf" rawopts
+getConf rawopts = do
+  defconfpaths <- defaultConfFilePaths
+  defconffiles <- fmap catMaybes $ forM defconfpaths $ \f -> do
+    exists <- doesFileExist f
+    return $ if exists then Just f else Nothing
+  case (confFileSpecFromRawOpts rawopts, defconffiles) of
+    -- As in Cli.hs, conf debug output always goes to stderr;
+    -- that's ok as conf is a hledger cli feature for now.
+    (SomeConfFile f,   _) -> getCurrentDirectory >>= flip expandPath f >>= readConfFile
+    (NoConfFile, _)       -> return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
+    (AutoConfFile,f:_)    -> dbg8IO "found config files" defconffiles >> dbg1IO "using config file" f >> readConfFile f
+    (AutoConfFile,[] )    -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
 
 -- | Read this config file and parse its contents, or raise an error.
 readConfFile :: FilePath -> IO (Conf, Maybe FilePath)
@@ -100,7 +112,7 @@ readConfFile f = do
   case ecs of
     Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
     Right cs -> return (nullconf{
-        confFile     = f
+       confFile     = f
       ,confFormat   = 1
       ,confSections = cs
       },
@@ -108,8 +120,8 @@ readConfFile f = do
       )
 
 -- | Get the possible paths for a hledger config file, depending on the current directory.
-confFilePaths :: IO [FilePath]
-confFilePaths = do
+defaultConfFilePaths :: IO [FilePath]
+defaultConfFilePaths = do
   ds   <- confDirs
   home <- getHomeDirectory
   return $ dbg8 "possible config files" $

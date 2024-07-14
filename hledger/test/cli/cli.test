@@ -140,3 +140,11 @@ $ hledger --debug 1 check -f/dev/null
 # ** 21. A short flag with joined value, or multiple valueless short flags joined together, are moved properly.
 $ hledger -f/dev/null -BI check
 >2 //
+
+# ** 22. The rightmost --conf/--no-conf option wins.
+$ hledger -f /dev/null --conf nosuchfile --no-conf check
+
+# ** 23. The rightmost --conf/--no-conf option wins, 2.
+$ hledger -f /dev/null --no-conf --conf nosuchfile check
+>2 /nosuchfile.*No such file/
+>=1
