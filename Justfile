@@ -61,7 +61,7 @@ WATCHEXEC := 'watchexec --timings'
 
 # list this justfile's recipes, optionally filtered by REGEX
 @help *REGEX:
-    if [[ '{{ REGEX }}' =~ '' ]]; then just -lu; else just -lu | rg -i '{{ REGEX }}'; true; fi
+    if [[ '{{ REGEX }}' =~ '' ]]; then just -ul; else just -ul | rg -i '{{ REGEX }}'; true; fi
 
 alias h := help
 

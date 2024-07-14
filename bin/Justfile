@@ -9,7 +9,7 @@ TODAY := `date +%Y-%m-%d`
 
 # list the commands available
 @help:
-    {{ just }} -lu --list-heading=$'{{ file_name(justfile()) }} commands:\n\
+    {{ just }} -ul --list-heading=$'{{ file_name(justfile()) }} commands:\n\
     ARGS can be added to customise reports.\n\
     '
 # XXX we don't quote ARGS properly, so each one must be free of spaces
