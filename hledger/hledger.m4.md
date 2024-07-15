@@ -788,7 +788,7 @@ in a simple format readable by both hledger and humans.
 
 hledger's journal format is compatible with most of 
 [Ledger's journal format](http://ledger-cli.org/3.0/doc/ledger3.html#Journal-Format), but not all of it.
-The differences and interoperation tips are described at [hledger and Ledger](ledger.html).
+The differences and interoperation tips are described at [hledger and Ledger](/ledger.html).
 With some care, and by avoiding incompatible features, you can keep your hledger journal
 readable by Ledger and vice versa. This can useful eg for comparing the behaviour of one app
 against the other.
