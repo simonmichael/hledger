@@ -111,3 +111,28 @@ $ hledger -f- register -p 'weekly from 2014-01-27 to 2014-03' -E
 2014-W07                                                         0            10
 2014-W08                                                         0            10
 2014-W09        expanded report period                         100           110
+
+# ** 10. The last report interval option takes precedence.
+# Also, here the -p option specifies an explicit start date which is used,
+# and the end date is adjusted to contain a whole number of report intervals,
+# overriding the specified end date.
+<
+2019-01-01
+    (a)   2
+
+2019-02-01
+    (a)   1
+
+$ hledger -f- register -p 'weekly from 2019/2/1 to 2019/6/1' --monthly --yearly
+2019-02-01..2020-01-31   a                                       1             1
+
+# --monthly and -p 'monthly ...' are equivalent (#1008):
+# ** 11. --monthly
+$ hledger -f- register --monthly
+2019-01   a                                                      2             2
+2019-02   a                                                      1             3
+
+# ** 12. -p 'monthly'
+$ hledger -f- register -p monthly
+2019-01   a                                                      2             2
+2019-02   a                                                      1             3
