@@ -6,6 +6,7 @@ $$$ hledger check recentassertions -f recentassertions.j
 
 The recentassertions check is enabled, so accounts with balance assertions must
 have a balance assertion within 7 days of their latest posting.
-In account "a", this posting is 8 days later
-than t/
+
+In a,
+this posting is 8 days later than/
 >>>= 1

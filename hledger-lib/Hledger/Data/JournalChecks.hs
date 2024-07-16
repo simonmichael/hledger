@@ -289,18 +289,19 @@ findRecentAssertionError today ps = do
       "%s\n",
       "The recentassertions check is enabled, so accounts with balance assertions must",
       "have a balance assertion within %d days of their latest posting.",
-      "In account \"%s\", this posting is %d days later",
-      "than the last balance assertion, which was on %s.",
+      "",
+      "In %s,",
+      "this posting is %d days later than the balance assertion on %s.",
       "",
       "Consider adding a more recent balance assertion for this account. Eg:",
       "",
-      "%s\n    %s    %s0 = %s0  ; (adjust asserted amount)"
+      "%s\n    %s    %s0 = %sAMT"
       ])
     f
     l
     (textChomp ex)
     maxlag
-    acct
+    (bold' $ T.unpack acct)
     lag
     (showDate latestassertdate)
     (show today)
