@@ -49,6 +49,7 @@ registermode = hledgerCommandMode
     ("fuzzy search for one recent posting with description closest to "++arg)
   ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+  ,flagReq  ["sort"] (\s opts -> Right $ setopt "sort" s opts) "FlagHelp" "Help"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
@@ -85,7 +86,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
   | otherwise = writeOutputLazyText opts $ render $ styleAmounts styles rpt
   where
     styles = journalCommodityStylesWith HardRounding j
-    rpt = postingsReport rspec j
+    rpt = postingsReport rspec (Just (getSortSpec rawopts)) j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="tsv"  = printTSV . postingsReportAsCsv
@@ -260,7 +261,7 @@ tests_Register = testGroup "Register" [
     testCase "unicode in register layout" $ do
       j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec
-      (TL.unpack . postingsReportAsText defcliopts $ postingsReport rspec j)
+      (TL.unpack . postingsReportAsText defcliopts $ postingsReport rspec Nothing j)
         @?=
         unlines
         ["2009-01-01 медвежья шкура       расходы:покупки                100           100"
