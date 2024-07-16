@@ -4689,38 +4689,24 @@ The following standard intervals can be enabled with command-line flags:
 
 More complex intervals can be specified using `-p/--period`, described below.
 
-## Date adjustment
+## Start date adjustment
 
-When there is a report interval (other than daily), report start/end dates
-which have been inferred, eg from the journal, are automatically adjusted to
-natural period boundaries. This is convenient for producing simple periodic reports.
-More precisely:
+When there is a report interval (other than daily), a "soft" report start date -
+ie one which was not specified explicitly, but inferred, perhaps from the journal -
+will be adjusted earlier if needed to start on a natural period boundary.
 
-- an inferred start date will be adjusted earlier if needed to fall on a
-  natural period boundary
+A "hard" report date - one specified explicitly, eg by `-b` - will not be adjusted
+(since hledger 1.29).
+This makes it possible to start subperiods on any date.
+Note if you specify a start date, it's ideal to set it to a period boundary
+(eg a monday for weekly reports, a first day of month for monthly reports..),
+as this will generate simple period headings; otherwise they will be more verbose.
 
-- an inferred end date will be adjusted later if needed to make the last period
-  the same length as the others.
+## End date adjustment
 
-By contrast, start/end dates which have been specified explicitly,
-with `-b`, `-e`, `-p` or `date:`, will not be adjusted (since hledger 1.29).
-This makes it possible to specify non-standard report periods, but it also means
-that if you are specifying a start date, you should pick one that's on a period boundary
-if you want to see simple report period headings.
-
-<!--
-An example: with a journal whose first date is 2023-01-10 and last date is 2023-03-20:
-
-- `hledger bal -M -b 2023/1/15 -e 2023/3/10`\
-  The report periods will begin on the 15th day of each month, starting from 2023-01-15,
-  and the last period's last day will be 2023-03-09.
-  (Exact start and end dates, neither is adjusted.)
-
-- `hledger bal -M -b 2023-01 -e 2023-04` or  `hledger bal -M`\
-  The report periods will begin on the 1st of each month, starting from 2023-01-01,
-  and the last period's last day will be 2023-03-31.
-  (Flexible start and end dates, both are adjusted.)
--->
+The report end date (even if specified explicitly) will be adjusted later
+as needed to enclose a whole number of report intervals.
+Eg in a `--yearly` report, all subperiods will be one year long.
 
 ## Period expressions
 
