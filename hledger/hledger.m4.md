@@ -4689,23 +4689,23 @@ The following standard intervals can be enabled with command-line flags:
 
 More complex intervals can be specified using `-p/--period`, described below.
 
-## Start date adjustment
+## Date adjustments
 
-When there is a report interval (other than daily), a "soft" report start date -
+A report interval other than daily may cause the report's start and end date
+to be adjusted, as follows:
+
+A "soft" start date -
 ie one which was not specified explicitly, but inferred, perhaps from the journal -
-will be adjusted earlier if needed to start on a natural period boundary.
+will be adjusted earlier if needed to start on a natural subperiod boundary.
 
-A "hard" report date - one specified explicitly, eg by `-b` - will not be adjusted
-(since hledger 1.29).
-This makes it possible to start subperiods on any date.
-Note if you specify a start date, it's ideal to set it to a period boundary
+A "hard" start date - one specified explicitly, eg by `-b` - will not be adjusted (since hledger 1.29).
+This makes it possible to start the subperiods on any date.
+If you specify a start date, it's ideal to set it to a subperiod boundary
 (eg a monday for weekly reports, a first day of month for monthly reports..),
-as this will generate simple period headings; otherwise they will be more verbose.
+as this will generate simple subperiod headings; otherwise they will be more verbose.
 
-## End date adjustment
-
-The report end date (even if specified explicitly) will be adjusted later
-as needed to enclose a whole number of report intervals.
+The end date - even if specified explicitly, eg by `-e` -
+will be adjusted later as needed to enclose a whole number of report intervals.
 Eg in a `--yearly` report, all subperiods will be one year long.
 
 ## Period expressions
