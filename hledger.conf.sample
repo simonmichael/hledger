@@ -9,18 +9,18 @@
 # If a command is not working as expected, run with --debug to troubleshoot.
 # To avoid using any config file, you can run hledger with -n/--no-conf.
 #
-# You can also choose a config file with --conf, or add a shebang line (eg
+# You can also: choose a config file with --conf, or add a shebang line (eg
 # #!/usr/bin/env -S hledger --conf) to config files and run them like scripts.
 
 
 # 1. General options. These will be used with all commands which support them.
 
-# Show prettier tables in reports. Recommended unless your font doesn't
-# support box drawing characters.
+# Show prettier tables in reports.
+# Recommended unless your font doesn't support box drawing characters.
 --pretty
 
-# Maybe don't check balance assertions all the time ? When you're ready,
-# check them with -s or hledger check assertions.
+# Postpone balance assertions until you use -s or `hledger check assertions`.
+# Less need to write -I while fixing issues.
 --ignore-assertions
 
 # Always infer these things ? Why not.
