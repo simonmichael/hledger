@@ -39,7 +39,7 @@
 --man          # if you prefer man over info
 
 # Set your preferred options for the balance commands.
-# You can override config file options by adding more on the command line.
+# You can override these by adding more options on the command line.
 [balance]            --tree --depth 3 -b '3 months ago'
 [balancesheet]       --tree --depth 3 -b '3 months ago'
 [balancesheetequity] --tree --depth 3 -b '3 months ago'
