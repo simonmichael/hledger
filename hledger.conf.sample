@@ -3,7 +3,7 @@
 # Save as ~/.hledger.conf, or ~/.config/hledger/hledger.conf, or hledger.conf
 # in or above your current directory, and hledger will use it automatically.
 #
-# Be careful about what you put in your default config file.
+# If you use a config file, be careful about what you put in it.
 # It changes hledger's behaviour, so it's easy to confuse yourself,
 # disrupt reports, or break scripts/applications which use hledger.
 # If a command is not working as expected, add --debug to troubleshoot.
