@@ -1,38 +1,64 @@
-#!/usr/bin/env -S hledger --conf
-# hledger.conf - extra options(/arguments) to be added to hledger commands.
-# This can be placed in current dir or above, or ~/.hledger.conf, or ~/.config/hledger/,
-# or specified with --conf, or executed with a shebang line like the above.
+# An example hledger config file, for you to customise.
+# This declares extra options/arguments to be added to your hledger commands.
+# Save as ~/.hledger.conf, or ~/.config/hledger/hledger.conf, or hledger.conf
+# in or above your current directory, and hledger will use it automatically.
+#
+# Be careful about what you put in your default config file.
+# It changes hledger's behaviour, so it's easy to confuse yourself,
+# disrupt reports, or break scripts/applications which use hledger.
+# If a command is not working as expected, add --debug to troubleshoot.
+# To avoid using any config file, run hledger with -n/--no-conf.
+#
+# You can also choose a config file with --conf, or add a shebang line (eg
+# #!/usr/bin/env -S hledger --conf) to config files and run them like scripts.
 
-# Options/arguments for all commands (which support them):
 
-# don't check balance assertions by default (run with -s to check them)
+# 1. General options. These will be used with all commands which support them.
+
+# Show prettier tables in reports.
+--pretty
+
+# Don't check balance assertions by default. (When you're ready to check them,
+# run with -s, or run hledger check assertions.)
 --ignore-assertions
 
-# always infer these
+# Always infer these things:
 --infer-costs
 --infer-equity
 --infer-market-prices
 
-# always show prettier tables in terminal reports
---pretty
 
-
-# Options/arguments for specific commands:
+# 2. Command-specific options.
 
 [print]
 --explicit     # show missing amounts
 --show-costs   # show costs
 
-# [help] --man  # prefer man over info
+[help]
+--man          # if you prefer man over info
 
-# balance commands: use these defaults
-[balance]            --tree -p 'monthly from 3 months ago' --depth 3
-[balancesheet]       --tree -p 'monthly from 3 months ago' --depth 3
-[balancesheetequity] --tree -p 'monthly from 3 months ago' --depth 3
-[cashflow]           --tree -p 'monthly from 3 months ago' --depth 3
-[incomestatement]    --tree -p 'monthly from 3 months ago' --depth 3
+# Set your preferred options for the balance commands.
+# You can override config file options by adding more on the command line.
+[balance]            --tree --depth 3 -b '3 months ago'
+[balancesheet]       --tree --depth 3 -b '3 months ago'
+[balancesheetequity] --tree --depth 3 -b '3 months ago'
+[cashflow]           --tree --depth 3 -b '3 months ago'
+[incomestatement]    --tree --depth 3 -b '3 months ago'
 
-# hledger-ui (when started via `hledger ui`):
-# start in Cash accounts screen, limited to depth 3, and watch for changes.
-# The -- argument needed on the command line is not needed here.
-[ui] --cash -3 --watch
+# You can set options/arguments for addon commands too (when started by
+# `hledger CMD`). The -- argument needed at command line is not needed here.
+
+# Some defaults for hledger-ui: start in the Cash accounts screen,
+# watch for file changes, set a depth limit, hide zeros and equity accounts.
+[ui] --cash --watch -3 -E not:type:e
+
+[web] --port 5050 --allow edit
+
+[iadd] --date-format %Y-%m-%d
+
+#[interest]
+# --annual 0.05
+# --30-360
+# --source SRCACCT
+# --target DSTACCT
+# ACCT
