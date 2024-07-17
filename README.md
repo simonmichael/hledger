@@ -113,7 +113,7 @@ More examples and screenshots: <https://hledger.org/#how-to-get-started>
 
 hledger is brought to you by
 [Simon Michael](http://joyful.com),
-[140+ contributors](CREDITS.md),
+[140+ contributors](doc/CREDITS.md),
 and the generous financial sponsors below.
 
 After enjoying some personal or organisational success with hledger,
