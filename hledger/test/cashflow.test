@@ -95,7 +95,7 @@ Cashflow Statement 2016-10
 
 # ** 6. Multicolumn test
 $ hledger -f sample.journal cashflow -p 'monthly in 2008'
-Cashflow Statement 2008
+Monthly Cashflow Statement 2008
 
                       || Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec 
 ======================++============================================================
@@ -110,7 +110,7 @@ Cashflow Statement 2008
 
 # ** 7. Multicolumn test (historical)
 $ hledger -f sample.journal cashflow -p 'monthly in 2008' -A --historical
-Cashflow Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
+Monthly Cashflow Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
 
                       || 2008-01-31  2008-02-29  2008-03-31  2008-04-30  2008-05-31  2008-06-30  2008-07-31  2008-08-31  2008-09-30  2008-10-31  2008-11-30  2008-12-31  Average 
 ======================++=========================================================================================================================================================

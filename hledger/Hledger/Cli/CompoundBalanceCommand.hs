@@ -1,5 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE LambdaCase #-}
 {-|
 
 Common helpers for making multi-section balance report commands
@@ -124,7 +125,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
     ropts' = ropts{balanceaccum_=balanceaccumulation}
 
     title =
-      T.pack cbctitle
+         maybe "" (<>" ") mintervalstr
+      <> T.pack cbctitle
       <> " "
       <> titledatestr
       <> maybe "" (" "<>) mtitleclarification
@@ -142,6 +144,8 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
           where
             enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
             requestedspan = fst $ reportSpan j rspec
+
+        mintervalstr = showInterval interval_
 
         -- when user overrides, add an indication to the report title
         -- Do we need to deal with overridden BalanceCalculation?
@@ -185,6 +189,24 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
       "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
       "json" -> toJsonText
       x      -> error' $ unsupportedOutputFormatError x
+
+-- | Show a simplified description of an Interval.
+showInterval :: Interval -> Maybe T.Text
+showInterval = \case
+  NoInterval -> Nothing
+  Days 1     -> Just "Daily"
+  Weeks 1    -> Just "Weekly"
+  Weeks 2    -> Just "Biweekly"
+  Months 1   -> Just "Monthly"
+  Months 2   -> Just "Bimonthly"
+  Months 3   -> Just "Quarterly"
+  Months 6   -> Just "Half-yearly"
+  Months 12  -> Just "Yearly"
+  Quarters 1 -> Just "Quarterly"
+  Quarters 2 -> Just "Half-yearly"
+  Years 1    -> Just "Yearly"
+  Years 2    -> Just "Biannual"
+  _          -> Just "Periodic"
 
 -- | Summarise one or more (inclusive) end dates, in a way that's
 -- visually different from showDateSpan, suggesting discrete end dates

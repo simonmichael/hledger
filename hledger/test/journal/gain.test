@@ -81,7 +81,7 @@ Historical gain in 2000-01, valued at 2000-02-01:
 
 # ** 7. also works in balancesheet
 $ hledger -f- bs -M --gain --no-total
-Balance Sheet 1999-12-31..2000-02-29 (Historical Gain), valued at period ends
+Monthly Balance Sheet 1999-12-31..2000-02-29 (Historical Gain), valued at period ends
 
              || 1999-12-31  2000-01-31  2000-02-29 
 =============++====================================

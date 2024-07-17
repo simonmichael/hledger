@@ -59,7 +59,7 @@ Ending balances (historical) in 2000-01-01..2000-04-30, valued at period ends:
 # ** 4. Balance sheet also reports on value change, and --valuechange overrides
 # the historical period
 $ hledger -f- balancesheet -MN --valuechange -b 2000
-Balance Sheet 2000-01-01..2000-04-30 (Period-End Value Changes)
+Monthly Balance Sheet 2000-01-01..2000-04-30 (Period-End Value Changes)
 
              ||  Jan   Feb  Mar  Apr 
 =============++======================

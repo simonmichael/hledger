@@ -142,7 +142,7 @@ Balance changes in 2012-01-01..2014-12-31:
 
 # ** 13. Multicolumn income statement with --row-total, --average, and --summary-only
 $ hledger -f bcexample.hledger is -Y income expenses:food -3 --layout=bare --row-total --average --summary-only
-Income Statement 2012-01-01..2014-12-31
+Yearly Income Statement 2012-01-01..2014-12-31
 
                           || Commodity      Total    Average 
 ==========================++=================================

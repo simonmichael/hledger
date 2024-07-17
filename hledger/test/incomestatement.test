@@ -203,7 +203,7 @@ Income Statement 2016-10
 #  Total             ||     $-1        0        0        0        0       $1        0        0        0        0        0        0        0        0 
 #
 $ hledger -f sample.journal incomestatement -p 'monthly in 2008' -AT
-Income Statement 2008
+Monthly Income Statement 2008
 
                    || Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct  Nov  Dec    Total  Average 
 ===================++==============================================================================
@@ -246,7 +246,7 @@ Income Statement 2008
 #  Total             ||        $-1         $-1         $-1         $-1         $-1           0           0           0           0           0           0           0 
 #
 $ hledger -f sample.journal incomestatement -p 'monthly in 2008' --historical
-Income Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
+Monthly Income Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
 
                    || 2008-01-31  2008-02-29  2008-03-31  2008-04-30  2008-05-31  2008-06-30  2008-07-31  2008-08-31  2008-09-30  2008-10-31  2008-11-30  2008-12-31 
 ===================++================================================================================================================================================
@@ -268,7 +268,7 @@ Income Statement 2008-01-31..2008-12-31 (Historical Ending Balances)
 
 # ** 8. Percentage test
 $ hledger -f sample.journal incomestatement -p 'quarterly 2008' -T --average -% --no-total
-Income Statement 2008
+Quarterly Income Statement 2008
 
                    ||  2008Q1   2008Q2  2008Q3  2008Q4    Total  Average 
 ===================++====================================================
