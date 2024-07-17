@@ -6,8 +6,8 @@
 # If you use a config file, be careful about what you put in it.
 # It changes hledger's behaviour, so it's easy to confuse yourself,
 # disrupt reports, or break scripts/applications which use hledger.
-# If a command is not working as expected, add --debug to troubleshoot.
-# To avoid using any config file, run hledger with -n/--no-conf.
+# If a command is not working as expected, run with --debug to troubleshoot.
+# To avoid using any config file, you can run hledger with -n/--no-conf.
 #
 # You can also choose a config file with --conf, or add a shebang line (eg
 # #!/usr/bin/env -S hledger --conf) to config files and run them like scripts.
