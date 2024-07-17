@@ -22,7 +22,7 @@
 # run with -s, or run hledger check assertions.)
 --ignore-assertions
 
-# Always infer these things:
+# Always infer these things ? Why not.
 --infer-costs
 --infer-equity
 --infer-market-prices
