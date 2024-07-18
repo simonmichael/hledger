@@ -152,17 +152,18 @@ rawOptsToWebOpts :: RawOpts -> IO WebOpts
 rawOptsToWebOpts rawopts =
   checkWebOpts <$> do
     cliopts <- rawOptsToCliOpts rawopts
-    let h = fromMaybe defhost $ maybestringopt "host" rawopts
-        p = fromMaybe defport $ maybeposintopt "port" rawopts
-        b = maybe (defbaseurl h p) stripTrailingSlash $ maybestringopt "base-url" rawopts
-        sock = stripTrailingSlash <$> maybestringopt "socket" rawopts
-        access =
-          case lastMay $ listofstringopt "allow" rawopts of
-            Nothing -> AddAccess
-            Just t ->
-              case parseAccessLevel t of
-                Right al -> al
-                Left err -> error' ("Unknown access level: " ++ err)  -- PARTIAL:
+    let
+      h = fromMaybe defhost $ maybestringopt "host" rawopts
+      p = fromMaybe defport $ maybeposintopt "port" rawopts
+      b = maybe (defbaseurl h p) stripTrailingSlash $ maybestringopt "base-url" rawopts
+      sock = stripTrailingSlash <$> maybestringopt "socket" rawopts
+      access =
+        case lastMay $ listofstringopt "allow" rawopts of
+          Nothing -> AddAccess
+          Just t ->
+            case parseAccessLevel t of
+              Right al -> al
+              Left err -> error' ("Unknown access level: " ++ err)  -- PARTIAL:
     return
       defwebopts
       { serve_ = case sock of
