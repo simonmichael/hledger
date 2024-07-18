@@ -52,6 +52,7 @@ import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common (balanceReportAsHtml)
+import Data.List (isPrefixOf)
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -104,19 +105,16 @@ type Form a = Html -> MForm Handler (FormResult a, Widget)
 instance Yesod App where
 
   -- Configure the app root, AKA base url, which is prepended to relative hyperlinks.
-  -- Broadly, we'd like this:
-  -- 1. when --base-url has been specified, use that;
-  -- 2. otherwise, guess it from request headers, which helps us respond from the
-  --    same hostname/IP address when hledger-web is accessible at multiple IPs;
+  -- 1. when a --base-url was specified, use that
+  -- 2. otherwise, guess it from request headers, which helps us respond from the same hostname/IP address when accessible via multiple IPs
   -- 3. otherwise, leave it empty (relative links stay relative).
-  -- But it's hard to see how to achieve this.
-  -- For now we do (I believe) 1 or 3, with 2 unfortunately not supported.
-  -- Issues include: #2099, #2100, #2127
-  approot =
-    -- ApprootRelative
-    -- ApprootMaster $ appRoot . settings
-    -- guessApprootOr (ApprootMaster $ appRoot . settings)
-    ApprootMaster $ \(App{settings=AppConfig{appRoot=r}, appOpts=WebOpts{base_url_=bu}}) -> if null bu then r else T.pack bu
+  -- Past issues: #2099, #2100, #2127, #hledger-2024-07-18
+  approot
+    | hasbaseurl = ApprootMaster (T.pack . base_url_ . appOpts)
+    | otherwise  = guessApprootOr (ApprootMaster (appRoot . settings))
+    where
+      hasbaseurl = any ("--base-url" `isPrefixOf`) progArgs
+        -- needs unsafePerformIO; does not detect abbreviations like --base
 
   makeSessionBackend _ = do
     hledgerdata <- getXdgDirectory XdgCache "hledger"

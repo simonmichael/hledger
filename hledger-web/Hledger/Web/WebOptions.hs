@@ -157,6 +157,10 @@ rawOptsToWebOpts rawopts =
     let
       h = fromMaybe defhost $ maybestringopt "host" rawopts
       p = fromMaybe defport $ maybeposintopt "port" rawopts
+      -- Always set a base-url, constructing it from host and port if not specified.
+      -- This will be used when opening a web browser, eg.
+      -- App.hs approot will use it if it was specified by --base-url,
+      -- otherwise it will infer a better one from the request, which browsers prefer.
       b = maybe (defbaseurl h p) stripTrailingSlash $ maybestringopt "base-url" rawopts
       sock = stripTrailingSlash <$> maybestringopt "socket" rawopts
       access =
