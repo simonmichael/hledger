@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Web.WebOptions where
 
@@ -20,6 +21,7 @@ import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 import qualified Data.Text as T
 import Data.Char (toLower)
+import Data.List (isPrefixOf)
 
 -- cf Hledger.Cli.Version
 
@@ -183,7 +185,10 @@ rawOptsToWebOpts rawopts =
     stripTrailingSlash = reverse . dropWhile (== '/') . reverse -- yesod don't like it
 
 checkWebOpts :: WebOpts -> WebOpts
-checkWebOpts = id
+checkWebOpts wopts@WebOpts{..}
+  | not $ null base_url_ || "http://" `isPrefixOf` base_url_ || "https://" `isPrefixOf` base_url_ =
+      error' "please begin the --base-url value with http:// or https://"
+  | otherwise = wopts
 
 getHledgerWebOpts :: IO WebOpts
 getHledgerWebOpts = do
