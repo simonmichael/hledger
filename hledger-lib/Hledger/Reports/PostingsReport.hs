@@ -16,17 +16,15 @@ module Hledger.Reports.PostingsReport (
   postingsReport,
   mkpostingsReportItem,
   SortSpec,
-  getSortSpec,
 
   -- * Tests
   tests_PostingsReport
 )
 where
 
-import Data.List (nub, sortBy, sortOn, stripPrefix, isPrefixOf)
-import Data.List.Split (splitOn)
+import Data.List (nub, sortBy, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Maybe (isJust, isNothing, fromMaybe)
+import Data.Maybe (isJust, isNothing)
 import Data.Ord
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
@@ -65,44 +63,15 @@ instance HasAmounts PostingsReportItem where
 -- with a tuple.
 type SummaryPosting = (Posting, Period)
 
--- Possible value expressions taken by the --sort command
--- Each of these takes a bool, which shows if it has been inverted
--- (True -> has been inverted, reverse the order)
-data ValueExp
-    = Date' Bool
-    | Account' Bool
-    | Amount' Bool
-    deriving (Show)
-type SortSpec = [ValueExp]
-
--- Load a SortSpec from the argument given to --sort
--- If there is no spec given, then sort by [Date' False] by default
-getSortSpec :: RawOpts -> SortSpec
-getSortSpec opts = 
-    let opt = maybestringopt "sort" opts
-        optParser s = 
-          let terms = map strip $ splitOn "," s 
-              termParser t = case trimmed of
-                "date" -> Date' isNegated
-                "account" -> Account' isNegated
-                "amount" -> Amount' isNegated
-                _ -> error' $ "unsupported value expression '" ++ t ++ "' given to --sort"
-                where isNegated = isPrefixOf "-" t
-                      trimmed = fromMaybe t (stripPrefix "-" t)
-          in map termParser terms
-    in maybe [Date' False] optParser opt 
-
 -- | Select postings from the journal and add running balance and other
 -- information to make a postings report. Used by eg hledger's register command.
-postingsReport :: ReportSpec -> Maybe SortSpec -> Journal -> PostingsReport
-postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} sortspec j = items
+postingsReport :: ReportSpec -> Journal -> PostingsReport
+postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
     where
       (reportspan, colspans) = reportSpanBothDates j rspec
       whichdate   = whichDate ropts
       mdepth      = queryDepth $ _rsQuery rspec
       multiperiod = interval_ /= NoInterval
-      -- Sort by the date (or date2) field if nothing else is specified
-      sspec = fromMaybe [Date' False] sortspec
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
       (precedingps, reportps) = matchedPostingsBeforeAndDuring rspec j reportspan
@@ -115,7 +84,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} sortspec j =
           summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
           showempty = empty_ || average_
 
-      sortedps = sortPostings ropts sspec displayps
+      sortedps = sortPostings ropts sortspec_ displayps
 
       -- Posting report items ready for display.
       items =
@@ -273,11 +242,8 @@ negatePostingAmount = postingTransformAmount negate
 
 tests_PostingsReport = testGroup "PostingsReport" [
 
-   let sspec = Just [Date' False]
-   in
-
    testCase "postingsReport" $ do
-    let (query, journal) `gives` n = (length $ postingsReport defreportspec{_rsQuery=query} sspec journal) @?= n
+    let (query, journal) `gives` n = (length $ postingsReport defreportspec{_rsQuery=query} journal) @?= n
     -- with the query specified explicitly
     (Any, nulljournal) `gives` 0
     (Any, samplejournal) `gives` 13
@@ -286,10 +252,10 @@ tests_PostingsReport = testGroup "PostingsReport" [
     (And [Depth 1, StatusQ Cleared, Acct (toRegex' "expenses")], samplejournal) `gives` 2
     (And [And [Depth 1, StatusQ Cleared], Acct (toRegex' "expenses")], samplejournal) `gives` 2
     -- with query and/or command-line options
-    (length $ postingsReport defreportspec sspec samplejournal) @?= 13
-    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1}} sspec samplejournal) @?= 11
-    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1, empty_=True}} sspec samplejournal) @?= 20
-    (length $ postingsReport defreportspec{_rsQuery=Acct $ toRegex' "assets:bank:checking"} sspec samplejournal) @?= 5
+    (length $ postingsReport defreportspec samplejournal) @?= 13
+    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1}} samplejournal) @?= 11
+    (length $ postingsReport defreportspec{_rsReportOpts=defreportopts{interval_=Months 1, empty_=True}} samplejournal) @?= 20
+    (length $ postingsReport defreportspec{_rsQuery=Acct $ toRegex' "assets:bank:checking"} samplejournal) @?= 5
 
      -- (defreportopts, And [Acct "a a", Acct "'b"], samplejournal2) `gives` 0
      -- [(Just (fromGregorian 2008 01 01,"income"),assets:bank:checking             $1,$1)

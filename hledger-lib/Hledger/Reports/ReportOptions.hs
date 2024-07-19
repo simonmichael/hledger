@@ -21,6 +21,8 @@ module Hledger.Reports.ReportOptions (
   HasReportOpts(..),
   ReportSpec(..),
   HasReportSpec(..),
+  SortField(..),
+  SortSpec,
   overEither,
   setEither,
   BalanceCalculation(..),
@@ -71,7 +73,7 @@ import Data.Char (toLower)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
-import Data.List.Extra (find, isPrefixOf, nubSort)
+import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, addDays)
@@ -142,6 +144,8 @@ data ReportOpts = ReportOpts {
     ,average_          :: Bool
     -- for posting reports (register)
     ,related_          :: Bool
+    -- for sorting reports (register)
+    ,sortspec_             :: SortSpec
     -- for account transactions reports (aregister)
     ,txn_dates_        :: Bool
     -- for balance reports (bal, bs, cf, is)
@@ -197,6 +201,7 @@ defreportopts = ReportOpts
     , querystring_      = []
     , average_          = False
     , related_          = False
+    , sortspec_         = [Date' False]  -- by default, sort by date in ascending order
     , txn_dates_        = False
     , balancecalc_      = def
     , balanceaccum_     = def
@@ -251,6 +256,7 @@ rawOptsToReportOpts d rawopts =
           ,querystring_      = querystring
           ,average_          = boolopt "average" rawopts
           ,related_          = boolopt "related" rawopts
+          ,sortspec_         = getSortSpec rawopts
           ,txn_dates_        = boolopt "txn-dates" rawopts
           ,balancecalc_      = balancecalcopt rawopts
           ,balanceaccum_     = balanceaccumopt rawopts
@@ -662,6 +668,36 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
                ]
     consIf f b = if b then (f True:) else id
     consJust f = maybe id ((:) . f)
+
+-- Methods/types needed for --sort argument
+
+-- Possible arguments taken by the --sort command
+-- Each of these takes a bool, which shows if it has been inverted
+-- (True -> has been inverted, reverse the order)
+data SortField
+    = Date' Bool
+    | Account' Bool
+    | Amount' Bool
+    deriving (Show)
+type SortSpec = [SortField]
+
+-- Load a SortSpec from the argument given to --sort
+-- If there is no spec given, then sort by [Date' False] by default
+getSortSpec :: RawOpts -> SortSpec
+getSortSpec opts = 
+    let opt = maybestringopt "sort" opts
+        optParser s = 
+          let terms = map strip $ splitAtElement ',' s 
+              termParser t = case trimmed of
+                "date" -> Date' isNegated
+                "account" -> Account' isNegated
+                "amount" -> Amount' isNegated
+                _ -> error' $ "unsupported field '" ++ t ++ "' given to --sort"
+                where isNegated = isPrefixOf "-" t
+                      trimmed = fromMaybe t (stripPrefix "-" t)
+          in map termParser terms
+    in maybe [Date' False] optParser opt 
+
 
 -- Report dates.
 
