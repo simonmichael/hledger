@@ -460,7 +460,7 @@ ensureOneNewlineTerminated = (<>"\n") . T.dropWhileEnd (=='\n')
 registerFromString :: T.Text -> IO TL.Text
 registerFromString s = do
   j <- readJournal' s
-  return . postingsReportAsText opts $ postingsReport rspec Nothing j
+  return . postingsReportAsText opts $ postingsReport rspec j
       where
         ropts = defreportopts{empty_=True}
         rspec = defreportspec{_rsReportOpts=ropts}
