@@ -49,7 +49,8 @@ registermode = hledgerCommandMode
     ("fuzzy search for one recent posting with description closest to "++arg)
   ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-  ,flagReq  ["sort"] (\s opts -> Right $ setopt "sort" s opts) "FlagHelp" "Help"
+  ,flagReq  ["sort"] (\s opts -> Right $ setopt "sort" s opts) "FIELDS" 
+    "comma-separated list of fields used to sort transactions"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
