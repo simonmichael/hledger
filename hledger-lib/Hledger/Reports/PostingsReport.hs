@@ -85,7 +85,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
           summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
           showempty = empty_ || average_
 
-      sortedps = sortPostings ropts sortspec_ displayps
+      sortedps = if sortspec_ /= defsortspec then sortPostings ropts sortspec_ displayps else displayps
 
       -- Posting report items ready for display.
       items =
