@@ -282,6 +282,7 @@ import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.Function (on)
 import Data.List (find, transpose, foldl')
+import qualified Data.Map as Map
 import qualified Data.Set as S
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text (Text)
@@ -296,10 +297,13 @@ import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
     cellWidth, concatTables, renderColumns, renderRowB, renderTableByRowsB, textCell)
 
+import qualified System.IO as IO
+
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
 
 
 -- | Command line options for this command.
@@ -354,7 +358,7 @@ balancemode = hledgerCommandMode
         ,"'tidy'        : every attribute in its own column"
         ])
     -- output:
-    ,outputFormatFlag ["txt","html","csv","tsv","json"]
+    ,outputFormatFlag ["txt","html","csv","tsv","json","fods"]
     ,outputFileFlag
     ]
   )
@@ -398,6 +402,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
+              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsCsv ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where

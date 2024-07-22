@@ -86,6 +86,7 @@ library
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
       Hledger.Write.Csv
+      Hledger.Write.Ods
       Hledger.Reports
       Hledger.Reports.ReportOptions
       Hledger.Reports.ReportTypes
