@@ -21,7 +21,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
-import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Lucid as L hiding (value_)
 import Safe (tailDef)
 import Text.Tabular.AsciiWide as Tabular hiding (render)

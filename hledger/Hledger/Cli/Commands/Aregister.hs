@@ -29,7 +29,7 @@ import Lucid as L hiding (value_)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger
-import Hledger.Read.CsvUtils (CSV, CsvRecord, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, CsvRecord, printCSV, printTSV)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Text.Tabular.AsciiWide hiding (render)
