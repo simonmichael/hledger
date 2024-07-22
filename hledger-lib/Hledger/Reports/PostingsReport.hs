@@ -16,6 +16,7 @@ module Hledger.Reports.PostingsReport (
   postingsReport,
   mkpostingsReportItem,
   SortSpec,
+  defsortspec,
 
   -- * Tests
   tests_PostingsReport
@@ -89,7 +90,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems sortedps (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
+        postingsReportItems postings (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
@@ -104,6 +105,10 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
 
           runningcalc = registerRunningCalculationFn ropts
           startnum = if historical then length precedingps + 1 else 1
+          postings | historical = if sortspec_ /= defsortspec 
+                        then error "--historical and --sort should not be used together" 
+                        else sortedps
+                   | otherwise = sortedps
 
 -- | Based on the given report options, return a function that does the appropriate
 -- running calculation for the register report, ie a running average or running total.
