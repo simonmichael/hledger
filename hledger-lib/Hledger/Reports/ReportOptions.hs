@@ -33,6 +33,7 @@ module Hledger.Reports.ReportOptions (
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
+  defsortspec,
   setDefaultConversionOp,
   reportOptsToSpec,
   updateReportSpec,
@@ -678,8 +679,11 @@ data SortField
     = Date' Bool
     | Account' Bool
     | Amount' Bool
-    deriving (Show)
+    deriving (Show, Eq)
 type SortSpec = [SortField]
+
+defsortspec :: SortSpec
+defsortspec = [Date' False]
 
 -- Load a SortSpec from the argument given to --sort
 -- If there is no spec given, then sort by [Date' False] by default
@@ -696,7 +700,7 @@ getSortSpec opts =
                 where isNegated = isPrefixOf "-" t
                       trimmed = fromMaybe t (stripPrefix "-" t)
           in map termParser terms
-    in maybe [Date' False] optParser opt 
+    in maybe defsortspec optParser opt 
 
 
 -- Report dates.
