@@ -83,7 +83,8 @@ It's also useful to show postings on the checking account together with the
 related account:
 
 The `--sort=FIELDS` flag sorts by the fields given, which can be any of 
-`account`, `amount`, or `date`, optionally separated by commas.
+`account`, `amount`, `date`, or `desc`/`description`, optionally separated by
+commas.
 For example, `--sort account,amount` will group all transactions in each
 account, sorted by transaction amount.
 Each field can be negated by a preceding `-`, so `--sort -amount` will show
