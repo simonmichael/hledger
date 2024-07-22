@@ -16,6 +16,8 @@ Flags:
                             description closest to DESC
   -r --related              show postings' siblings instead
      --invert               display all amounts with reversed sign
+     --sort=FIELDS          comma-separated list of fields used to sort
+                            transactions
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
@@ -79,6 +81,13 @@ For example, it can be used on an income account where amounts are normally
 displayed as negative numbers.
 It's also useful to show postings on the checking account together with the
 related account:
+
+The `--sort=FIELDS` flag sorts by the fields given, which can be any of 
+`account`, `amount`, or `date`, optionally separated by commas.
+For example, `--sort account,amount` will group all transactions in each
+account, sorted by transaction amount.
+Each field can be negated by a preceding `-`, so `--sort -amount` will show
+transactions ordered from smallest amount to largest amount.
 
 ```cli
 $ hledger register --related --invert assets:checking
