@@ -202,7 +202,7 @@ defreportopts = ReportOpts
     , querystring_      = []
     , average_          = False
     , related_          = False
-    , sortspec_         = [Date' False]  -- by default, sort by date in ascending order
+    , sortspec_         = defsortspec 
     , txn_dates_        = False
     , balancecalc_      = def
     , balanceaccum_     = def
@@ -682,6 +682,7 @@ data SortField
     deriving (Show, Eq)
 type SortSpec = [SortField]
 
+-- By default, sort by date in ascending order
 defsortspec :: SortSpec
 defsortspec = [Date' False]
 
