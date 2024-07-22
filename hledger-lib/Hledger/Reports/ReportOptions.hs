@@ -676,9 +676,10 @@ queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
 -- Each of these takes a bool, which shows if it has been inverted
 -- (True -> has been inverted, reverse the order)
 data SortField
-    = Date' Bool
-    | Account' Bool
+    = Account' Bool
     | Amount' Bool
+    | Date' Bool
+    | Description' Bool
     deriving (Show, Eq)
 type SortSpec = [SortField]
 
@@ -697,6 +698,8 @@ getSortSpec opts =
                 "date" -> Date' isNegated
                 "account" -> Account' isNegated
                 "amount" -> Amount' isNegated
+                "desc" -> Description' isNegated
+                "description" -> Description' isNegated
                 _ -> error' $ "unsupported field '" ++ t ++ "' given to --sort"
                 where isNegated = isPrefixOf "-" t
                       trimmed = fromMaybe t (stripPrefix "-" t)

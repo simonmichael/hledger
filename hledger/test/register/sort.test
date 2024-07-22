@@ -74,3 +74,18 @@ $ hledger -f - register --sort -date
                                 a                               -1             0
 2024-01-01 Demo                 a                                1             1
                                 b                               -1             0
+
+# ** 6. --sort with description
+<
+2024-01-01 Other
+    a   1
+    b  
+
+2024-01-02 Demo
+    c   1
+    a
+$ hledger -f - register --sort desc
+2024-01-02 Demo                 c                                1             1
+                                a                               -1             0
+2024-01-01 Other                a                                1             1
+                                b                               -1             0

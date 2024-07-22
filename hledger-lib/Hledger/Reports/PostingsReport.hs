@@ -25,7 +25,7 @@ where
 
 import Data.List (nub, sortBy, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (isJust, isNothing, fromMaybe)
 import Data.Ord
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
@@ -123,13 +123,21 @@ registerRunningCalculationFn ropts
 comparePostings :: ReportOpts -> SortSpec -> (Posting, Maybe Period) -> (Posting, Maybe Period) -> Ordering
 comparePostings _ [] _ _ = EQ
 comparePostings ropts (ex:es) (a, pa) (b, pb) = 
-    let comparison = case ex of
+    let 
+    getDescription p = 
+        let tx = ptransaction p 
+            description = fmap (\t -> tdescription t) tx
+        -- If there's no transaction attached, then use empty text for the description
+        in fromMaybe "" description
+    comparison = case ex of
           Amount' False -> compare (pamount a) (pamount b)
           Account' False -> compare (paccount a) (paccount b)
           Date' False -> compare (postingDateOrDate2 (whichDate ropts) a) (postingDateOrDate2 (whichDate ropts) b)
+          Description' False -> compare (getDescription a) (getDescription b)
           Amount' True -> compare (Down (pamount a)) (Down (pamount b))
           Account' True -> compare (Down (paccount a)) (Down (paccount b))
           Date' True -> compare (Down (postingDateOrDate2 (whichDate ropts) a)) (Down (postingDateOrDate2 (whichDate ropts) b))
+          Description' True -> compare (Down (getDescription a)) (Down (getDescription b))
     in 
     if comparison == EQ then comparePostings ropts es (a, pa) (b, pb) else comparison
 
