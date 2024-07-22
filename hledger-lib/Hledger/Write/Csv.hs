@@ -10,7 +10,7 @@ CSV utilities.
 {-# LANGUAGE OverloadedStrings    #-}
 
 --- ** exports
-module Hledger.Read.CsvUtils (
+module Hledger.Write.Csv (
   CSV, CsvRecord, CsvValue,
   printCSV,
   printTSV,
@@ -37,12 +37,12 @@ type CSV       = [CsvRecord]
 type CsvRecord = [CsvValue]
 type CsvValue  = Text
 
-printCSV :: [CsvRecord] -> TL.Text
+printCSV :: CSV -> TL.Text
 printCSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = foldMap TB.fromText . intersperse "," . map printField
           printField = wrap "\"" "\"" . T.replace "\"" "\"\""
 
-printTSV :: [CsvRecord] -> TL.Text
+printTSV :: CSV -> TL.Text
 printTSV = TB.toLazyText . unlinesB . map printRecord
     where printRecord = foldMap TB.fromText . intersperse "\t" . map printField
           printField = T.map replaceWhitespace

@@ -299,7 +299,7 @@ import Text.Tabular.AsciiWide
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
 
 
 -- | Command line options for this command.

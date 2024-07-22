@@ -142,13 +142,13 @@ library:
   - Hledger.Read
   - Hledger.Read.Common
   - Hledger.Read.CsvReader
-  - Hledger.Read.CsvUtils
   - Hledger.Read.InputOptions
   - Hledger.Read.JournalReader
   - Hledger.Read.RulesReader
 #  - Hledger.Read.LedgerReader
   - Hledger.Read.TimedotReader
   - Hledger.Read.TimeclockReader
+  - Hledger.Write.Csv
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
   - Hledger.Reports.ReportTypes

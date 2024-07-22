@@ -77,7 +77,7 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, commenttagsp )
-import Hledger.Read.CsvUtils
+import Hledger.Write.Csv
 import System.Directory (doesFileExist, getHomeDirectory)
 import Data.Either (fromRight)
 
