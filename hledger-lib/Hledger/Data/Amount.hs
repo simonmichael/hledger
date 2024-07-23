@@ -764,7 +764,7 @@ instance Num MixedAmount where
     negate = maNegate
     (+)    = maPlus
     (*)    = error "error, mixed amounts do not support multiplication" -- PARTIAL:
-    abs    = error "error, mixed amounts do not support abs"
+    abs    = mapMixedAmount (\amt -> amt { aquantity = abs (aquantity amt)})
     signum = error "error, mixed amounts do not support signum"
 
 -- | Calculate the key used to store an Amount within a MixedAmount.
