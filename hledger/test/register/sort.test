@@ -89,3 +89,22 @@ $ hledger -f - register --sort desc
                                 a                               -1             0
 2024-01-01 Other                a                                1             1
                                 b                               -1             0
+
+# ** 7. --sort with absamount
+<
+2024-01-01 Demo
+    a   15
+    b   10
+    c  -25
+
+2024-01-02 Other
+    d   12
+    e  -48
+    f   36
+$ hledger -f - register --sort -absamount
+2024-01-02 Other                e                              -48           -48
+                                f                               36           -12
+2024-01-01 Demo                 c                              -25           -37
+                                a                               15           -22
+2024-01-02 Other                d                               12           -10
+2024-01-01 Demo                 b                               10             0
