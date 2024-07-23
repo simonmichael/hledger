@@ -129,11 +129,14 @@ comparePostings ropts (ex:es) (a, pa) (b, pb) =
             description = fmap (\t -> tdescription t) tx
         -- If there's no transaction attached, then use empty text for the description
         in fromMaybe "" description
+    absamount = mapMixedAmount (\amt -> amt { aquantity = abs (aquantity amt)})
     comparison = case ex of
+          AbsAmount' False -> compare (absamount (pamount a)) (absamount (pamount b))
           Amount' False -> compare (pamount a) (pamount b)
           Account' False -> compare (paccount a) (paccount b)
           Date' False -> compare (postingDateOrDate2 (whichDate ropts) a) (postingDateOrDate2 (whichDate ropts) b)
           Description' False -> compare (getDescription a) (getDescription b)
+          AbsAmount' True -> compare (Down (absamount (pamount a))) (Down (absamount (pamount b)))
           Amount' True -> compare (Down (pamount a)) (Down (pamount b))
           Account' True -> compare (Down (paccount a)) (Down (paccount b))
           Date' True -> compare (Down (postingDateOrDate2 (whichDate ropts) a)) (Down (postingDateOrDate2 (whichDate ropts) b))
