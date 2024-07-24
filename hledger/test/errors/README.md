@@ -268,7 +268,7 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./parseable-regexps
 3 | alias /(/ = a
   |        ^
 
-This regular expression is malformed, please correct it:
+This regular expression is invalid or unsupported, please correct it:
 (
 ```
 

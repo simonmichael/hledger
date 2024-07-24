@@ -817,7 +817,7 @@ makeHledgerClassyLenses ''ReportSpec
 -- >>> _rsQuery <$> setEither querystring ["assets"] defreportspec
 -- Right (Acct (RegexpCI "assets"))
 -- >>> _rsQuery <$> setEither querystring ["(assets"] defreportspec
--- Left "This regular expression is malformed, please correct it:\n(assets"
+-- Left "This regular expression is invalid or unsupported, please correct it:\n(assets"
 -- >>> _rsQuery $ set querystring ["assets"] defreportspec
 -- Acct (RegexpCI "assets")
 -- >>> _rsQuery $ set querystring ["(assets"] defreportspec

@@ -130,7 +130,7 @@ $ hledger -f - print expr:"not tag:transactiontag=B"
 # ** 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
 $ hledger -f - print expr:"not(tag:transactiontag=B)"
 >2
-hledger: Error: This regular expression is malformed, please correct it:
+hledger: Error: This regular expression is invalid or unsupported, please correct it:
 not(tag:transactiontag=B
 >=1
 

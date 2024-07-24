@@ -4,7 +4,7 @@ $$$ hledger check -f parseable-regexps.j
 3 \| alias \/\(\/ = a
   \|        \^
 
-This regular expression is malformed, please correct it:
+This regular expression is invalid or unsupported, please correct it:
 \(
 
 /
