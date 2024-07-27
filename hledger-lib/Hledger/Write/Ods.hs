@@ -213,6 +213,18 @@ formatCell cell =
 
     in
     printf "<table:table-cell%s %s>" style valueType :
-    printf "<text:p>%s</text:p>" (cellContent cell) :
+    printf "<text:p>%s</text:p>" (escape $ T.unpack $ cellContent cell) :
     "</table:table-cell>" :
     []
+
+escape :: String -> String
+escape =
+    concatMap $ \c ->
+        case c of
+            '\n' -> "&#10;"
+            '&' -> "&amp;"
+            '<' -> "&lt;"
+            '>' -> "&gt;"
+            '"' -> "&quot;"
+            '\'' -> "&apos;"
+            _ -> [c]
