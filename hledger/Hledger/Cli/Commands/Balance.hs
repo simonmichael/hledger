@@ -565,7 +565,7 @@ balanceReportAsFods opts (items, total) =
     headers :
     concatMap (\(a, _, _, b) -> rows a b) items ++
     if no_total_ opts then []
-      else map (map (\c -> c {Ods.cellStyle = Ods.Foot})) $
+      else map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total})) $
             rows totalRowHeadingCsv total
   where
     cell content = Ods.defaultCell { Ods.cellContent = content }

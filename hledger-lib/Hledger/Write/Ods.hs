@@ -33,7 +33,10 @@ data Type =
     | TypeMixedAmount
     deriving (Eq, Ord, Show)
 
-data Style = Ordinary | Head | Foot
+data Style = Body Emphasis | Head
+    deriving (Eq, Ord, Show)
+
+data Emphasis = Item | Total
     deriving (Eq, Ord, Show)
 
 data Cell =
@@ -47,7 +50,7 @@ defaultCell :: Cell
 defaultCell =
     Cell {
         cellType = TypeString,
-        cellStyle = Ordinary,
+        cellStyle = Body Item,
         cellContent = T.empty
     }
 
@@ -141,8 +144,10 @@ printFods encoding tables =
 
     in  TL.unlines $ map (TL.fromStrict . T.pack) $
         fileOpen
-          (numberConfig
-              =<< Set.toList (numberStyles (foldMap (concat.snd) tables))) ++
+          (let styles = cellStyles (foldMap (concat.snd) tables) in
+           (numberConfig =<< Set.toList (Set.map snd styles))
+           ++
+           (cellConfig =<< Set.toList styles)) ++
         tableConfig (fmap fst tables) ++
         (Map.toAscList tables >>= \(name,(_,table)) ->
             tableOpen name ++
@@ -155,12 +160,17 @@ printFods encoding tables =
         fileClose
 
 
-numberStyles :: [Cell] -> Set (CommoditySymbol, AmountPrecision)
-numberStyles =
+cellStyles :: [Cell] -> Set (Emphasis, (CommoditySymbol, AmountPrecision))
+cellStyles =
     Set.fromList .
     mapMaybe (\cell ->
         case cellType cell of
-            TypeAmount amt -> Just (acommodity amt, asprecision $ astyle amt)
+            TypeAmount amt ->
+                Just
+                    (case cellStyle cell of
+                        Body emph -> emph
+                        Head -> Total,
+                     (acommodity amt, asprecision $ astyle amt))
             _ -> Nothing)
 
 numberStyleName :: (CommoditySymbol, AmountPrecision) -> String
@@ -183,9 +193,30 @@ numberConfig (comm, prec) =
     printf "    <number:text>%s%s</number:text>"
       (if T.null comm then "" else " ") comm :
     "  </number:number-style>" :
-    "  <style:style style:family='table-cell'" :
-    printf "    style:name='%s' style:data-style-name='number-%s'/>" name name :
     []
+
+emphasisName :: Emphasis -> String
+emphasisName emph =
+    case emph of
+        Item -> "item"
+        Total -> "total"
+
+cellConfig :: (Emphasis, (CommoditySymbol, AmountPrecision)) -> [String]
+cellConfig (emph, numParam) =
+    let name = numberStyleName numParam in
+    let style :: String
+        style =
+            printf "style:name='%s-%s' style:data-style-name='number-%s'"
+                (emphasisName emph) name name in
+    case emph of
+        Item ->
+            printf "  <style:style style:family='table-cell' %s/>" style :
+            []
+        Total ->
+            printf "  <style:style style:family='table-cell' %s>" style :
+            "    <style:text-properties fo:font-weight='bold'/>" :
+            "  </style:style>" :
+            []
 
 
 formatCell :: Cell -> [String]
@@ -193,15 +224,16 @@ formatCell cell =
     let style, valueType :: String
         style =
           case (cellStyle cell, cellType cell) of
-            (Ordinary, TypeString) -> ""
-            (Ordinary, TypeMixedAmount) -> " table:style-name='amount'"
-            (Ordinary, TypeAmount amt) -> numberStyle amt
-            (Foot, TypeString) -> " table:style-name='foot'"
-            (Foot, _) -> " table:style-name='total-amount'"
+            (Body emph, TypeAmount amt) -> numberStyle emph amt
+            (Body Item, TypeString) -> ""
+            (Body Item, TypeMixedAmount) -> " table:style-name='amount'"
+            (Body Total, TypeString) -> " table:style-name='foot'"
+            (Body Total, TypeMixedAmount) -> " table:style-name='total-amount'"
             (Head, _) -> " table:style-name='head'"
 
-        numberStyle amt =
-            printf " table:style-name='%s'"
+        numberStyle emph amt =
+            printf " table:style-name='%s-%s'"
+                (emphasisName emph)
                 (numberStyleName (acommodity amt, asprecision $ astyle amt))
         valueType =
             case cellType cell of
