@@ -9,19 +9,28 @@ This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/
 -}
 module Hledger.Write.Ods where
 
+import Hledger.Data.Types (CommoditySymbol, Amount, AmountPrecision(..))
+import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
+
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import Data.Text (Text)
 
 import qualified Data.Map as Map
+import qualified Data.Set as Set
 import Data.Foldable (fold)
 import Data.Map (Map)
+import Data.Set (Set)
+import Data.Maybe (mapMaybe)
 
 import qualified System.IO as IO
 import Text.Printf (printf)
 
 
-data Type = TypeString | TypeAmount
+data Type =
+      TypeString
+    | TypeAmount !Amount
+    | TypeMixedAmount
     deriving (Eq, Ord, Show)
 
 data Style = Ordinary | Head | Foot
@@ -46,7 +55,7 @@ defaultCell =
 printFods ::
     IO.TextEncoding -> Map Text ((Maybe Int, Maybe Int), [[Cell]]) -> TL.Text
 printFods encoding tables =
-    let fileOpen =
+    let fileOpen customStyles =
           map (map (\c -> case c of '\'' -> '"'; _ -> c)) $
           printf "<?xml version='1.0' encoding='%s'?>" (show encoding) :
           "<office:document" :
@@ -82,6 +91,7 @@ printFods encoding tables =
           "    <style:paragraph-properties fo:text-align='end'/>" :
           "    <style:text-properties fo:font-weight='bold'/>" :
           "  </style:style>" :
+          customStyles ++
           "</office:styles>" :
           []
 
@@ -130,7 +140,9 @@ printFods encoding tables =
           []
 
     in  TL.unlines $ map (TL.fromStrict . T.pack) $
-        fileOpen ++
+        fileOpen
+          (numberConfig
+              =<< Set.toList (numberStyles (foldMap (concat.snd) tables))) ++
         tableConfig (fmap fst tables) ++
         (Map.toAscList tables >>= \(name,(_,table)) ->
             tableOpen name ++
@@ -142,18 +154,65 @@ printFods encoding tables =
             tableClose) ++
         fileClose
 
+
+numberStyles :: [Cell] -> Set (CommoditySymbol, AmountPrecision)
+numberStyles =
+    Set.fromList .
+    mapMaybe (\cell ->
+        case cellType cell of
+            TypeAmount amt -> Just (acommodity amt, asprecision $ astyle amt)
+            _ -> Nothing)
+
+numberStyleName :: (CommoditySymbol, AmountPrecision) -> String
+numberStyleName (comm, prec) =
+    printf "%s-%s" comm $
+    case prec of
+        NaturalPrecision -> "natural"
+        Precision k -> show k
+
+numberConfig :: (CommoditySymbol, AmountPrecision) -> [String]
+numberConfig (comm, prec) =
+    let precStr =
+            case prec of
+                NaturalPrecision -> ""
+                Precision k -> printf " number:decimal-places='%d'" k
+        name = numberStyleName (comm, prec)
+    in
+    printf "  <number:number-style style:name='number-%s'>" name :
+    printf "    <number:number number:min-integer-digits='1'%s/>" precStr :
+    printf "    <number:text>%s%s</number:text>"
+      (if T.null comm then "" else " ") comm :
+    "  </number:number-style>" :
+    "  <style:style style:family='table-cell'" :
+    printf "    style:name='%s' style:data-style-name='number-%s'/>" name name :
+    []
+
+
 formatCell :: Cell -> [String]
 formatCell cell =
-    let style :: String
+    let style, valueType :: String
         style =
           case (cellStyle cell, cellType cell) of
             (Ordinary, TypeString) -> ""
-            (Ordinary, TypeAmount) -> " table:style-name='amount'"
+            (Ordinary, TypeMixedAmount) -> " table:style-name='amount'"
+            (Ordinary, TypeAmount amt) -> numberStyle amt
             (Foot, TypeString) -> " table:style-name='foot'"
-            (Foot, TypeAmount) -> " table:style-name='total-amount'"
+            (Foot, _) -> " table:style-name='total-amount'"
             (Head, _) -> " table:style-name='head'"
+
+        numberStyle amt =
+            printf " table:style-name='%s'"
+                (numberStyleName (acommodity amt, asprecision $ astyle amt))
+        valueType =
+            case cellType cell of
+                TypeAmount amt ->
+                    printf
+                        "office:value-type='float' office:value='%s'"
+                        (show $ aquantity amt)
+                _ -> "office:value-type='string'"
+
     in
-    printf "<table:table-cell%s office:value-type='string'>" style :
+    printf "<table:table-cell%s %s>" style valueType :
     printf "<text:p>%s</text:p>" (cellContent cell) :
     "</table:table-cell>" :
     []

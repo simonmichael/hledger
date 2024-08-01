@@ -585,14 +585,21 @@ balanceReportAsFods opts (items, total) =
       _ -> [[showName name, renderAmount ma]]
 
     showName = cell . accountNameDrop (drop_ opts)
-    renderAmount amt =
-      (cell $ wbToText $ showMixedAmountB bopts amt) {
-        Ods.cellType = Ods.TypeAmount
+    renderAmount mixedAmt =
+      (cell $ wbToText $ showMixedAmountB bopts mixedAmt) {
+        Ods.cellType =
+          case unifyMixedAmount mixedAmt of
+            Just amt ->
+              Ods.TypeAmount $
+              if showcomm
+                then amt
+                else amt {acommodity = T.empty}
+            Nothing -> Ods.TypeMixedAmount
       }
       where
         bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
         (showcomm, commorder)
-          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities amt)
+          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
           | otherwise                  = (True, Nothing)
 
 -- Multi-column balance reports
