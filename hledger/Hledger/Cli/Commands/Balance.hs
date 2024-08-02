@@ -248,7 +248,7 @@ module Hledger.Cli.Commands.Balance (
   -- ** balance output rendering
  ,balanceReportAsText
  ,balanceReportAsCsv
- ,balanceReportAsFods
+ ,balanceReportAsSpreadsheet
  ,balanceReportItemAsText
  ,multiBalanceRowAsCsvText
  ,multiBalanceRowAsText
@@ -305,7 +305,8 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import qualified Hledger.Write.Ods as Ods
+import Hledger.Write.Html (printHtml)
+import qualified Hledger.Write.Spreadsheet as Ods
 
 
 -- | Command line options for this command.
@@ -402,9 +403,9 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
-              -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
+              "html" -> \ropts1 -> printHtml . balanceReportAsSpreadsheet ropts1
               "json" -> const $ (<>"\n") . toJsonText
-              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsFods ropts1
+              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
@@ -560,8 +561,8 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 -- | Render a single-column balance report as FODS.
-balanceReportAsFods :: ReportOpts -> BalanceReport -> [[Ods.Cell]]
-balanceReportAsFods opts (items, total) =
+balanceReportAsSpreadsheet :: ReportOpts -> BalanceReport -> [[Ods.Cell]]
+balanceReportAsSpreadsheet opts (items, total) =
     headers :
     concatMap (\(a, _, _, b) -> rows a b) items ++
     if no_total_ opts then []

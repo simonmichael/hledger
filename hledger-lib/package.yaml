@@ -150,6 +150,8 @@ library:
   - Hledger.Read.TimeclockReader
   - Hledger.Write.Csv
   - Hledger.Write.Ods
+  - Hledger.Write.Html
+  - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
   - Hledger.Reports.ReportTypes
