@@ -6,10 +6,14 @@ number formatting, text styles, merged cells, formulas, hyperlinks.
 Currently we support Flat ODS, a plain uncompressed XML format.
 
 This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/src/src/Spreadsheet/Format.hs>
--}
-module Hledger.Write.Ods where
 
-import Hledger.Data.Types (CommoditySymbol, Amount, AmountPrecision(..))
+-}
+module Hledger.Write.Ods (
+    printFods,
+    ) where
+
+import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
+import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
 import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
 
 import qualified Data.Text.Lazy as TL
@@ -25,34 +29,6 @@ import Data.Maybe (mapMaybe)
 
 import qualified System.IO as IO
 import Text.Printf (printf)
-
-
-data Type =
-      TypeString
-    | TypeAmount !Amount
-    | TypeMixedAmount
-    deriving (Eq, Ord, Show)
-
-data Style = Body Emphasis | Head
-    deriving (Eq, Ord, Show)
-
-data Emphasis = Item | Total
-    deriving (Eq, Ord, Show)
-
-data Cell =
-    Cell {
-        cellType :: Type,
-        cellStyle :: Style,
-        cellContent :: Text
-    }
-
-defaultCell :: Cell
-defaultCell =
-    Cell {
-        cellType = TypeString,
-        cellStyle = Body Item,
-        cellContent = T.empty
-    }
 
 
 printFods ::
