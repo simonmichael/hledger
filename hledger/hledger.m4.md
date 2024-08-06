@@ -4322,16 +4322,16 @@ $ hledger -f sample.timeclock register -p weekly --depth 1 --empty  # time summa
 
 To generate time logs, ie to clock in and clock out, you could:
 
-- use emacs and the built-in timeclock.el, or
-  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el)
-  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
-
-- at the command line, use these bash aliases:
+- use these shell aliases at the command line:
 
     ```cli
     alias ti='echo i `date "+%Y-%m-%d %H:%M:%S"` $* >>$TIMELOG'
     alias to='echo o `date "+%Y-%m-%d %H:%M:%S"` >>$TIMELOG'
     ```
+
+- or Emacs's built-in timeclock.el, or
+  the extended [timeclock-x.el](http://www.emacswiki.org/emacs/timeclock-x.el),
+  and perhaps the extras in [ledgerutils.el](http://hub.darcs.net/simon/ledgertools/ledgerutils.el)
 
 - or use the old `ti` and `to` scripts in the [ledger 2.x repository](https://github.com/ledger/ledger/tree/maint/scripts).
   These rely on a "timeclock" executable which I think is just the ledger 2 executable renamed.
