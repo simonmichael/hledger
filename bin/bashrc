@@ -38,6 +38,7 @@ alias web='hledger web'
 export FINDIR=~/finance
 export LEDGER_FILE=$FINDIR/2024/2024.journal
 alias f=$FINDIR/justfile
+alias bser='hledger -f $LEDGER_FILE -f <(hledger close --retain) bse'
 alias all='hledger -f $FINDIR/all.journal'
 alias 2020='hledger -f $FINDIR/2020/2020.journal'
 alias 2021='hledger -f $FINDIR/2021/2021.journal'
@@ -56,6 +57,11 @@ alias sep="hledger -p sep"
 alias oct="hledger -p oct"
 alias nov="hledger -p nov"
 alias dec="hledger -p dec"
+
+# query hledger with sqlite
+hq() {
+    (hledger print -O sql; echo "$1") | sqlite3 -column -header;
+}
 
 # list likely hledger-readable files in current directory
 hledgerfiles() {
