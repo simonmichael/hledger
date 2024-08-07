@@ -15,15 +15,18 @@ module Hledger.Reports.PostingsReport (
   PostingsReportItem,
   postingsReport,
   mkpostingsReportItem,
+  SortSpec,
+  defsortspec,
 
   -- * Tests
   tests_PostingsReport
 )
 where
 
-import Data.List (nub, sortOn)
+import Data.List (nub, sortBy, sortOn)
 import Data.List.Extra (nubSort)
-import Data.Maybe (isJust, isNothing)
+import Data.Maybe (isJust, isNothing, fromMaybe)
+import Data.Ord
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
 import Safe (headMay)
@@ -82,10 +85,12 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
           summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
           showempty = empty_ || average_
 
+      sortedps = if sortspec_ /= defsortspec then sortPostings ropts sortspec_ displayps else displayps
+
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems displayps (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
+        postingsReportItems postings (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
@@ -100,6 +105,10 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
 
           runningcalc = registerRunningCalculationFn ropts
           startnum = if historical then length precedingps + 1 else 1
+          postings | historical = if sortspec_ /= defsortspec 
+                        then error "--historical and --sort should not be used together" 
+                        else sortedps
+                   | otherwise = sortedps
 
 -- | Based on the given report options, return a function that does the appropriate
 -- running calculation for the register report, ie a running average or running total.
@@ -109,6 +118,34 @@ registerRunningCalculationFn :: ReportOpts -> (Int -> MixedAmount -> MixedAmount
 registerRunningCalculationFn ropts
   | average_ ropts = \i avg amt -> avg `maPlus` divideMixedAmount (fromIntegral i) (amt `maMinus` avg)
   | otherwise      = \_ bal amt -> bal `maPlus` amt
+
+-- | Sort two postings by the current list of value expressions (given in SortSpec).
+comparePostings :: ReportOpts -> SortSpec -> (Posting, Maybe Period) -> (Posting, Maybe Period) -> Ordering
+comparePostings _ [] _ _ = EQ
+comparePostings ropts (ex:es) (a, pa) (b, pb) = 
+    let 
+    getDescription p = 
+        let tx = ptransaction p 
+            description = fmap (\t -> tdescription t) tx
+        -- If there's no transaction attached, then use empty text for the description
+        in fromMaybe "" description
+    comparison = case ex of
+          AbsAmount' False -> compare (abs (pamount a)) (abs (pamount b))
+          Amount' False -> compare (pamount a) (pamount b)
+          Account' False -> compare (paccount a) (paccount b)
+          Date' False -> compare (postingDateOrDate2 (whichDate ropts) a) (postingDateOrDate2 (whichDate ropts) b)
+          Description' False -> compare (getDescription a) (getDescription b)
+          AbsAmount' True -> compare (Down (abs (pamount a))) (Down (abs (pamount b)))
+          Amount' True -> compare (Down (pamount a)) (Down (pamount b))
+          Account' True -> compare (Down (paccount a)) (Down (paccount b))
+          Date' True -> compare (Down (postingDateOrDate2 (whichDate ropts) a)) (Down (postingDateOrDate2 (whichDate ropts) b))
+          Description' True -> compare (Down (getDescription a)) (Down (getDescription b))
+    in 
+    if comparison == EQ then comparePostings ropts es (a, pa) (b, pb) else comparison
+
+-- | Sort postings by the current SortSpec.
+sortPostings :: ReportOpts -> SortSpec -> [(Posting, Maybe Period)] -> [(Posting, Maybe Period)]
+sortPostings ropts sspec = sortBy (comparePostings ropts sspec)
 
 -- | Find postings matching a given query, within a given date span,
 -- and also any similarly-matched postings before that date span.

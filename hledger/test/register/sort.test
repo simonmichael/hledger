@@ -1,0 +1,110 @@
+# * register command with --sort flag
+
+# ** 1. --sort with non-date sorts by the correct account
+<
+2024-01-01 Demo
+    a   1
+    b  
+
+2024-01-02 Other
+    c   1
+    a
+$ hledger -f - register --sort account
+2024-01-01 Demo                 a                                1             1
+2024-01-02 Other                a                               -1             0
+2024-01-01 Demo                 b                               -1            -1
+2024-01-02 Other                c                                1             0
+
+# ** 2. --sort with two expressions sorts correctly
+<
+2024-01-01 Demo
+    a   1
+    b  
+
+2024-01-02 Other
+    c   1
+    a
+$ hledger -f - register --sort account,amount
+2024-01-02 Other                a                               -1            -1
+2024-01-01 Demo                 a                                1             0
+                                b                               -1            -1
+2024-01-02 Other                c                                1             0
+
+# ** 3. --sort with negation reverses
+<
+2024-01-01 Demo
+    a   1
+    b  
+
+2024-01-02 Other
+    c   1
+    a
+$ hledger -f - register --sort -account
+2024-01-02 Other                c                                1             1
+2024-01-01 Demo                 b                               -1             0
+                                a                                1             1
+2024-01-02 Other                a                               -1             0
+
+# ** 4. --sort with negation and multiple accounts
+<
+2024-01-01 Demo
+    a   1
+    b  
+
+2024-01-02 Other
+    c   1
+    a
+$ hledger -f - register --sort amount,-account
+2024-01-01 Demo                 b                               -1            -1
+2024-01-02 Other                a                               -1            -2
+                                c                                1            -1
+2024-01-01 Demo                 a                                1             0
+
+# ** 5. --sort with date, reversed
+<
+2024-01-01 Demo
+    a   1
+    b  
+
+2024-01-02 Other
+    c   1
+    a
+$ hledger -f - register --sort -date
+2024-01-02 Other                c                                1             1
+                                a                               -1             0
+2024-01-01 Demo                 a                                1             1
+                                b                               -1             0
+
+# ** 6. --sort with description
+<
+2024-01-01 Other
+    a   1
+    b  
+
+2024-01-02 Demo
+    c   1
+    a
+$ hledger -f - register --sort desc
+2024-01-02 Demo                 c                                1             1
+                                a                               -1             0
+2024-01-01 Other                a                                1             1
+                                b                               -1             0
+
+# ** 7. --sort with absamount
+<
+2024-01-01 Demo
+    a   15
+    b   10
+    c  -25
+
+2024-01-02 Other
+    d   12
+    e  -48
+    f   36
+$ hledger -f - register --sort -absamount
+2024-01-02 Other                e                              -48           -48
+                                f                               36           -12
+2024-01-01 Demo                 c                              -25           -37
+                                a                               15           -22
+2024-01-02 Other                d                               12           -10
+2024-01-01 Demo                 b                               10             0
