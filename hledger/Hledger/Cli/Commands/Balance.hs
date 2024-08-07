@@ -248,6 +248,7 @@ module Hledger.Cli.Commands.Balance (
   -- ** balance output rendering
  ,balanceReportAsText
  ,balanceReportAsCsv
+ ,balanceReportAsSpreadsheet
  ,balanceReportItemAsText
  ,multiBalanceRowAsCsvText
  ,multiBalanceRowAsText
@@ -282,6 +283,7 @@ import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.Function (on)
 import Data.List (find, transpose, foldl')
+import qualified Data.Map as Map
 import qualified Data.Set as S
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text (Text)
@@ -296,10 +298,15 @@ import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
     cellWidth, concatTables, renderColumns, renderRowB, renderTableByRowsB, textCell)
 
+import qualified System.IO as IO
+
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Read.CsvUtils (CSV, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import Hledger.Write.Html (printHtml)
+import qualified Hledger.Write.Spreadsheet as Ods
 
 
 -- | Command line options for this command.
@@ -354,7 +361,7 @@ balancemode = hledgerCommandMode
         ,"'tidy'        : every attribute in its own column"
         ])
     -- output:
-    ,outputFormatFlag ["txt","html","csv","tsv","json"]
+    ,outputFormatFlag ["txt","html","csv","tsv","json","fods"]
     ,outputFileFlag
     ]
   )
@@ -396,8 +403,9 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
-              -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
+              "html" -> \ropts1 -> printHtml . balanceReportAsSpreadsheet ropts1
               "json" -> const $ (<>"\n") . toJsonText
+              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
@@ -551,6 +559,49 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   ,displayMaxWidth  = mmax
                   ,displayColour    = color_ opts
                   }
+
+-- | Render a single-column balance report as FODS.
+balanceReportAsSpreadsheet :: ReportOpts -> BalanceReport -> [[Ods.Cell]]
+balanceReportAsSpreadsheet opts (items, total) =
+    headers :
+    concatMap (\(a, _, _, b) -> rows a b) items ++
+    if no_total_ opts then []
+      else map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total})) $
+            rows totalRowHeadingCsv total
+  where
+    cell content = Ods.defaultCell { Ods.cellContent = content }
+    headers =
+      map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+      "account" : case layout_ opts of
+        LayoutBare -> ["commodity", "balance"]
+        _          -> ["balance"]
+    rows :: AccountName -> MixedAmount -> [[Ods.Cell]]
+    rows name ma = case layout_ opts of
+      LayoutBare ->
+          map (\a ->
+                [showName name,
+                 cell $ acommodity a,
+                 renderAmount $ mixedAmount a])
+          . amounts $ mixedAmountStripCosts ma
+      _ -> [[showName name, renderAmount ma]]
+
+    showName = cell . accountNameDrop (drop_ opts)
+    renderAmount mixedAmt =
+      (cell $ wbToText $ showMixedAmountB bopts mixedAmt) {
+        Ods.cellType =
+          case unifyMixedAmount mixedAmt of
+            Just amt ->
+              Ods.TypeAmount $
+              if showcomm
+                then amt
+                else amt {acommodity = T.empty}
+            Nothing -> Ods.TypeMixedAmount
+      }
+      where
+        bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
+        (showcomm, commorder)
+          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
+          | otherwise                  = (True, Nothing)
 
 -- Multi-column balance reports
 
