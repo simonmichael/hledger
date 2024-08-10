@@ -1,18 +1,36 @@
 #!/bin/bash
 # Easy hledger installation script for POSIX systems, requiring bash and some other POSIX tools.
-# This is based on a snapshot of get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
-
-# This was disabled as a workaround for https://github.com/simonmichael/hledger/issues/714
-# It has been left off so that one uninstallable tool doesn't block the others.
-# (XXX though, try_install is supposed to continue on failure)
-#set -e
-set -o pipefail
-
-# This install script's name (can't use $0 when it's piped into bash).
-HLEDGER_INSTALL_TOOL=hledger-install.sh
+# This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240601
+HLEDGER_INSTALL_VERSION=20240810
+
+# Package versions to be installed by this install script.
+# Keep synced with the tools above.
+# When changing remember to also bump HLEDGER_INSTALL_VERSION.
+# Official:
+HLEDGER_LIB_VERSION=1.34
+HLEDGER_VERSION=1.34
+HLEDGER_UI_VERSION=1.34
+HLEDGER_WEB_VERSION=1.34
+# Third-party:
+HLEDGER_IADD_VERSION=1.3.21
+HLEDGER_INTEREST_VERSION=1.6.6
+HLEDGER_EDIT_VERSION=1.14.0
+HLEDGER_PLOT_VERSION=1.14.0
+HLEDGER_LOTS_VERSION=0.4.2
+PRICEHIST_VERSION=1.4.6
+
+# stackage snapshot to use when installing with stack.
+# You can try specifying a different stackage version here, or
+# commenting out this line to use your current global resolver,
+# to avoid unnecessary building.
+STACKAGE_SNAPSHOT=nightly-2024-08-08
+
+# If nny required haskell dependencies aren't in the above stackage snapshot,
+# list them here in this format: "PKG1-VER1 PKG2-VER2.."
+# (one line, don't break interpolation in commands below).
+STACK_EXTRA_DEPS=""
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
@@ -36,21 +54,16 @@ cabal \
 pip \
 "
 
-# Package versions to be installed by this install script.
-# Keep synced with the tools above. 
-# When changing remember to also bump HLEDGER_INSTALL_VERSION.
-# Official:
-HLEDGER_LIB_VERSION=1.34
-HLEDGER_VERSION=1.34
-HLEDGER_UI_VERSION=1.34
-HLEDGER_WEB_VERSION=1.34
-# Third-party:
-HLEDGER_IADD_VERSION=1.3.21
-HLEDGER_INTEREST_VERSION=1.6.6
-HLEDGER_EDIT_VERSION=1.14.0
-HLEDGER_PLOT_VERSION=1.14.0
-HLEDGER_LOTS_VERSION=0.4.2
-PRICEHIST_VERSION=1.4.6
+##############################################################################
+
+# This was disabled as a workaround for https://github.com/simonmichael/hledger/issues/714
+# It has been left off so that one uninstallable tool doesn't block the others.
+# (XXX though, try_install is supposed to continue on failure)
+#set -e
+set -o pipefail
+
+# This install script's name (can't use $0 when it's piped into bash).
+HLEDGER_INSTALL_TOOL=hledger-install.sh
 
 # this script's one-line description
 HLEDGER_INSTALL_DESC="$HLEDGER_INSTALL_TOOL version $HLEDGER_INSTALL_VERSION to install hledger $HLEDGER_VERSION and related tools"
@@ -89,19 +102,6 @@ HERE
 
 # the oldest version of stack that might possibly work: perhaps 2.5.1
 STACK_MIN_VERSION=2.5.1
-
-# stackage snapshot to use when installing with stack.
-# You can try specifying a different stackage version here, or 
-# commenting out this line to use your current global resolver,
-# to avoid unnecessary building.
-STACK_RESOLVER="--resolver=nightly-2024-05-16"
-
-# Dependencies we require that aren't in the above stackage snapshot.
-# (Also requested when using cabal, but that's harmless.)
-# Be careful not to break interpolation in commands below, the format should be
-# STACK_EXTRA_DEPS="PKG1-VER1 PKG2-VER2 ..."
-# extra deps as in stack9.6.yaml:
-STACK_EXTRA_DEPS=""
 
 #TODO? https://github.com/commercialhaskell/stack/issues/3055 https://github.com/haskell/hackage-security/issues/187
 #Updating package index Hackage (mirrored at https://s3.amazonaws.com/hackage.fpcomplete.com/) ...
