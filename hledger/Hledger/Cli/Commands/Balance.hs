@@ -248,6 +248,7 @@ module Hledger.Cli.Commands.Balance (
   -- ** balance output rendering
  ,balanceReportAsText
  ,balanceReportAsCsv
+ ,balanceReportAsFods
  ,balanceReportItemAsText
  ,multiBalanceRowAsCsvText
  ,multiBalanceRowAsText
@@ -304,6 +305,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
+import qualified Hledger.Write.Ods as Ods
 
 
 -- | Command line options for this command.
@@ -402,7 +404,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
               -- "html" -> \ropts -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts . balanceReportAsMultiBalanceReport ropts
               "json" -> const $ (<>"\n") . toJsonText
-              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsCsv ropts1
+              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsFods ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render ropts report
   where
@@ -556,6 +558,42 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   ,displayMaxWidth  = mmax
                   ,displayColour    = color_ opts
                   }
+
+-- | Render a single-column balance report as FODS.
+balanceReportAsFods :: ReportOpts -> BalanceReport -> [[Ods.Cell]]
+balanceReportAsFods opts (items, total) =
+    headers :
+    concatMap (\(a, _, _, b) -> rows a b) items ++
+    if no_total_ opts then []
+      else map (map (\c -> c {Ods.cellStyle = Ods.Foot})) $
+            rows totalRowHeadingCsv total
+  where
+    cell content = Ods.defaultCell { Ods.cellContent = content }
+    headers =
+      map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+      "account" : case layout_ opts of
+        LayoutBare -> ["commodity", "balance"]
+        _          -> ["balance"]
+    rows :: AccountName -> MixedAmount -> [[Ods.Cell]]
+    rows name ma = case layout_ opts of
+      LayoutBare ->
+          map (\a ->
+                [showName name,
+                 cell $ acommodity a,
+                 renderAmount $ mixedAmount a])
+          . amounts $ mixedAmountStripCosts ma
+      _ -> [[showName name, renderAmount ma]]
+
+    showName = cell . accountNameDrop (drop_ opts)
+    renderAmount amt =
+      (cell $ wbToText $ showMixedAmountB bopts amt) {
+        Ods.cellType = Ods.TypeAmount
+      }
+      where
+        bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
+        (showcomm, commorder)
+          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities amt)
+          | otherwise                  = (True, Nothing)
 
 -- Multi-column balance reports
 

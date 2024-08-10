@@ -21,8 +21,30 @@ import qualified System.IO as IO
 import Text.Printf (printf)
 
 
+data Type = TypeString | TypeAmount
+    deriving (Eq, Ord, Show)
+
+data Style = Ordinary | Head | Foot
+    deriving (Eq, Ord, Show)
+
+data Cell =
+    Cell {
+        cellType :: Type,
+        cellStyle :: Style,
+        cellContent :: Text
+    }
+
+defaultCell :: Cell
+defaultCell =
+    Cell {
+        cellType = TypeString,
+        cellStyle = Ordinary,
+        cellContent = T.empty
+    }
+
+
 printFods ::
-    IO.TextEncoding -> Map Text ((Maybe Int, Maybe Int), [[Text]]) -> TL.Text
+    IO.TextEncoding -> Map Text ((Maybe Int, Maybe Int), [[Cell]]) -> TL.Text
 printFods encoding tables =
     let fileOpen =
           map (map (\c -> case c of '\'' -> '"'; _ -> c)) $
@@ -45,6 +67,22 @@ printFods encoding tables =
           "  xmlns:of='urn:oasis:names:tc:opendocument:xmlns:of:1.2'" :
           "  xmlns:field='urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0'" :
           "  xmlns:form='urn:oasis:names:tc:opendocument:xmlns:form:1.0'>" :
+          "<office:styles>" :
+          "  <style:style style:name='head' style:family='table-cell'>" :
+          "    <style:paragraph-properties fo:text-align='center'/>" :
+          "    <style:text-properties fo:font-weight='bold'/>" :
+          "  </style:style>" :
+          "  <style:style style:name='foot' style:family='table-cell'>" :
+          "    <style:text-properties fo:font-weight='bold'/>" :
+          "  </style:style>" :
+          "  <style:style style:name='amount' style:family='table-cell'>" :
+          "    <style:paragraph-properties fo:text-align='end'/>" :
+          "  </style:style>" :
+          "  <style:style style:name='total-amount' style:family='table-cell'>" :
+          "    <style:paragraph-properties fo:text-align='end'/>" :
+          "    <style:text-properties fo:font-weight='bold'/>" :
+          "  </style:style>" :
+          "</office:styles>" :
           []
 
         fileClose =
@@ -98,12 +136,24 @@ printFods encoding tables =
             tableOpen name ++
             (table >>= \row ->
                 "<table:table-row>" :
-                (row >>= \cell ->
-                    "<table:table-cell office:value-type='string'>" :
-                    printf "<text:p>%s</text:p>" cell :
-                    "</table:table-cell>" :
-                    []) ++
+                (row >>= formatCell) ++
                 "</table:table-row>" :
                 []) ++
             tableClose) ++
         fileClose
+
+formatCell :: Cell -> [String]
+formatCell cell =
+    let style :: String
+        style =
+          case (cellStyle cell, cellType cell) of
+            (Ordinary, TypeString) -> ""
+            (Ordinary, TypeAmount) -> " table:style-name='amount'"
+            (Foot, TypeString) -> " table:style-name='foot'"
+            (Foot, TypeAmount) -> " table:style-name='total-amount'"
+            (Head, _) -> " table:style-name='head'"
+    in
+    printf "<table:table-cell%s office:value-type='string'>" style :
+    printf "<text:p>%s</text:p>" (cellContent cell) :
+    "</table:table-cell>" :
+    []
