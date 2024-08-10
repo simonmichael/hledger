@@ -898,7 +898,7 @@ quietly_run() {
 try_install() {
   cd  # ensure we install at user level, not in some project's stack/cabal setup
   if has_cmd stack ; then
-    try_info stack install --install-ghc $STACK_RESOLVER "$@" --verbosity="$STACK_VERBOSITY" || echo "Failed to install $@"
+    try_info stack install --install-ghc --resolver $STACKAGE_SNAPSHOT "$@" --verbosity="$STACK_VERBOSITY" || echo "Failed to install $@"
   elif has_cmd cabal ; then
     try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" || echo "Failed to install $@"
   else
@@ -1015,7 +1015,7 @@ echo "Ensuring a Haskell build tool:"
 # if stack is installed, use stack
 # || [[ "$FORCE_INSTALL_STACK" == "true" ]]  #--force-install-stack
 if has_stack ; then
-  echo "stack $(cmd_version stack) is installed, using stack to install hledger in $HOME/.local/bin"
+  echo "stack $(cmd_version stack) is installed, and will be used to install hledger."
   # if it's too old, explain that we'll be installing the latest
   if ! has_good_stack ; then
     echo "Note: stack $(cmd_version stack) is too old, a newer version will be installed"
@@ -1026,13 +1026,13 @@ if has_stack ; then
   try_info stack update --verbosity=error
 # else if cabal is installed, use cabal
 elif has_cmd cabal ; then
-  echo "no stack installed, cabal $(cabal --numeric-version) installed; using cabal to install hledger in $HOME/.cabal/bin"
+  echo "stack is not installed, but cabal $(cabal --numeric-version) is installed, and will be used to install hledger."
   echo Using $(cabal --version)  # unquoted to squash cabal version to one line
   # run cabal update to make sure it knows about latest packages
   try_info cabal update -v0
 # else use stack
 else
-  echo "no stack or cabal installed; stack will be installed and used to install hledger in $HOME/.local/bin"
+  echo "Neither stack nor cabal is installed. stack will be installed and used to install hledger."
     # install stack now
   ensure_stack
 fi
