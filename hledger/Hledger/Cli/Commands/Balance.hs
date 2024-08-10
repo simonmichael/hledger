@@ -430,26 +430,8 @@ totalRowHeadingBudgetCsv  = "Total:"
 
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
-balanceReportAsCsv opts (items, total) =
-    headers : concatMap (\(a, _, _, b) -> rows a b) items ++ if no_total_ opts then [] else rows totalRowHeadingCsv total
-  where
-    headers = "account" : case layout_ opts of
-      LayoutBare -> ["commodity", "balance"]
-      _          -> ["balance"]
-    rows :: AccountName -> MixedAmount -> [[T.Text]]
-    rows name ma = case layout_ opts of
-      LayoutBare ->
-          map (\a -> [showName name, acommodity a, renderAmount $ mixedAmount a])
-          . amounts $ mixedAmountStripCosts ma
-      _ -> [[showName name, renderAmount ma]]
-
-    showName = accountNameDrop (drop_ opts)
-    renderAmount amt = wbToText $ showMixedAmountB bopts amt
-      where
-        bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
-        (showcomm, commorder)
-          | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities amt)
-          | otherwise                  = (True, Nothing)
+balanceReportAsCsv opts =
+    map (map Ods.cellContent) . balanceReportAsSpreadsheet opts
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
