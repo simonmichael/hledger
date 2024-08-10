@@ -403,7 +403,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
-              "html" -> \ropts1 -> printHtml . balanceReportAsSpreadsheet ropts1
+              "html" -> \ropts1 -> (<>"\n") . L.renderText .
+                                   printHtml . balanceReportAsSpreadsheet ropts1
               "json" -> const $ (<>"\n") . toJsonText
               "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:

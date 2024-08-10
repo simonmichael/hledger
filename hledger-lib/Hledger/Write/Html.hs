@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {- |
 Export spreadsheet table data as HTML table.
 
@@ -9,50 +10,29 @@ module Hledger.Write.Html (
 
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
+import qualified Lucid.Base as LucidBase
+import qualified Lucid
+import Data.Foldable (for_)
 
-import Text.Printf (printf)
 
-
-printHtml :: [[Cell]] -> TL.Text
+printHtml :: [[Cell]] -> Lucid.Html ()
 printHtml table =
-    TL.unlines $ map (TL.fromStrict . T.pack) $
-    "<table>" :
-    (table >>= \row ->
-        "<tr>" :
-        (row >>= formatCell) ++
-        "</tr>" :
-        []) ++
-    "</table>" :
-    []
+    Lucid.table_ $ for_ table $ \row ->
+    Lucid.tr_ $ for_ row $ \cell ->
+    formatCell cell
 
-formatCell :: Cell -> [String]
+formatCell :: Cell -> Lucid.Html ()
 formatCell cell =
-    (let str = escape $ T.unpack $ cellContent cell in
-     case cellStyle cell of
-        Head -> printf "<th>%s</th>" str
+    let str = Lucid.toHtml $ cellContent cell in
+    case cellStyle cell of
+        Head -> Lucid.th_ str
         Body emph ->
             let align =
                     case cellType cell of
-                        TypeString -> ""
-                        _ -> " align=right"
-                (emphOpen, emphClose) =
+                        TypeString -> []
+                        _ -> [LucidBase.makeAttribute "align" "right"]
+                withEmph =
                     case emph of
-                        Item -> ("", "")
-                        Total -> ("<b>", "</b>")
-            in  printf "<td%s>%s%s%s</td>" align emphOpen str emphClose) :
-    []
-
-
-escape :: String -> String
-escape =
-    concatMap $ \c ->
-        case c of
-            '\n' -> "<br>"
-            '&' -> "&amp;"
-            '<' -> "&lt;"
-            '>' -> "&gt;"
-            '"' -> "&quot;"
-            '\'' -> "&apos;"
-            _ -> [c]
+                        Item -> id
+                        Total -> Lucid.b_
+            in  Lucid.td_ align $ withEmph str
