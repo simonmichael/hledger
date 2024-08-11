@@ -30,6 +30,7 @@ formatCell cell =
             let align =
                     case cellType cell of
                         TypeString -> []
+                        TypeDate -> []
                         _ -> [LucidBase.makeAttribute "align" "right"]
                 withEmph =
                     case emph of

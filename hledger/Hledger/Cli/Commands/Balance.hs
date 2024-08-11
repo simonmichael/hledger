@@ -900,14 +900,15 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans (PeriodicReportRow _
                                  -- complicates the data representation and can be easily calculated
   where
     wbCell = Ods.defaultCell . wbFromText
+    wbDate content = (wbCell content) {Ods.cellType = Ods.TypeDate}
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = (if not summary_only_ then as else []) ++
                 [rowtot | totalscolumn && not (null as)] ++
                 [rowavg | average_ && not (null as)]
     addDateColumns spn@(DateSpan s e) = (wbCell (showDateSpan spn) :)
-                                       . (wbCell (maybe "" showEFDate s) :)
-                                       . (wbCell (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
+                                       . (wbDate (maybe "" showEFDate s) :)
+                                       . (wbDate (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]

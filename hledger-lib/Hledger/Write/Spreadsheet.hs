@@ -18,6 +18,7 @@ data Type =
       TypeString
     | TypeAmount !Amount
     | TypeMixedAmount
+    | TypeDate
     deriving (Eq, Ord, Show)
 
 data Style = Body Emphasis | Head

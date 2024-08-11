@@ -71,6 +71,19 @@ printFods encoding tables =
           "    <style:paragraph-properties fo:text-align='end'/>" :
           "    <style:text-properties fo:font-weight='bold'/>" :
           "  </style:style>" :
+          "  <number:date-style style:name='iso-date'>" :
+          "    <number:year number:style='long'/>" :
+          "    <number:text>-</number:text>" :
+          "    <number:month number:style='long'/>" :
+          "    <number:text>-</number:text>" :
+          "    <number:day number:style='long'/>" :
+          "  </number:date-style>" :
+          "  <style:style style:name='date' style:family='table-cell'" :
+          "      style:data-style-name='iso-date'/>" :
+          "  <style:style style:name='foot-date' style:family='table-cell'" :
+          "      style:data-style-name='iso-date'>" :
+          "    <style:text-properties fo:font-weight='bold'/>" :
+          "  </style:style>" :
           customStyles ++
           "</office:styles>" :
           []
@@ -201,23 +214,30 @@ formatCell cell =
     let style, valueType :: String
         style =
           case (cellStyle cell, cellType cell) of
-            (Body emph, TypeAmount amt) -> numberStyle emph amt
+            (Body emph, TypeAmount amt) -> tableStyle $ numberStyle emph amt
             (Body Item, TypeString) -> ""
-            (Body Item, TypeMixedAmount) -> " table:style-name='amount'"
-            (Body Total, TypeString) -> " table:style-name='foot'"
-            (Body Total, TypeMixedAmount) -> " table:style-name='total-amount'"
-            (Head, _) -> " table:style-name='head'"
-
+            (Body Item, TypeMixedAmount) -> tableStyle "amount"
+            (Body Item, TypeDate) -> tableStyle "date"
+            (Body Total, TypeString) -> tableStyle "foot"
+            (Body Total, TypeMixedAmount) -> tableStyle "total-amount"
+            (Body Total, TypeDate) -> tableStyle "foot-date"
+            (Head, _) -> tableStyle "head"
         numberStyle emph amt =
-            printf " table:style-name='%s-%s'"
+            printf "%s-%s"
                 (emphasisName emph)
                 (numberStyleName (acommodity amt, asprecision $ astyle amt))
+        tableStyle = printf " table:style-name='%s'"
+
         valueType =
             case cellType cell of
                 TypeAmount amt ->
                     printf
                         "office:value-type='float' office:value='%s'"
                         (show $ aquantity amt)
+                TypeDate ->
+                    printf
+                        "office:value-type='date' office:date-value='%s'"
+                        (cellContent cell)
                 _ -> "office:value-type='string'"
 
     in
