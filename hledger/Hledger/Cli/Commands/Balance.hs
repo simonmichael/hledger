@@ -384,6 +384,10 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
             "json" -> (<>"\n") . toJsonText
             "csv"  -> printCSV . budgetReportAsCsv ropts
             "tsv"  -> printTSV . budgetReportAsCsv ropts
+            "html" -> (<>"\n") . L.renderText .
+                      printHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
+            "fods" -> printFods IO.localeEncoding .
+                      Map.singleton "Hledger" . (,) (Just 1, Nothing) . budgetReportAsSpreadsheet ropts
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
@@ -1184,13 +1188,27 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
 -- | Render a budget report as CSV. Like multiBalanceReportAsCsv,
 -- but includes alternating actual and budget amount columns.
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
-budgetReportAsCsv
+budgetReportAsCsv ropts report
+  = (if transpose_ ropts then transpose else id) $
+    map (map Ods.cellContent) $
+    budgetReportAsSpreadsheetHelper ropts report
+
+budgetReportAsSpreadsheet :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
+budgetReportAsSpreadsheet ropts report
+  = (if transpose_ ropts
+      then error' "Sorry, --transpose with FODS or HTML output is not yet supported"  -- PARTIAL:
+      else id)
+    budgetReportAsSpreadsheetHelper ropts report
+
+budgetReportAsSpreadsheetHelper :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
+budgetReportAsSpreadsheetHelper
   ReportOpts{..}
   (PeriodicReport colspans items totrow)
   = (if transpose_ then transpose else id) $
 
   -- heading row
-  ("Account" :
+  (map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+  "Account" :
   ["Commodity" | layout_ == LayoutBare ]
    ++ concatMap (\spn -> [showDateSpan spn, "budget"]) colspans
    ++ concat [["Total"  ,"budget"] | row_total_]
@@ -1201,30 +1219,32 @@ budgetReportAsCsv
   concatMap (rowAsTexts prrFullName) items
 
   -- totals row
-  ++ concat [ rowAsTexts (const totalRowHeadingBudgetCsv) totrow | not no_total_ ]
+  ++ map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total}))
+        (concat [ rowAsTexts (const totalRowHeadingBudgetCsv) totrow | not no_total_ ])
 
   where
+    cell = Ods.defaultCell
     flattentuples tups = concat [[a,b] | (a,b) <- tups]
-    showNorm = maybe "" (wbToText . showMixedAmountB oneLineNoCostFmt)
+    showNorm = maybe Ods.emptyCell (fmap wbToText . cellFromMixedAmount oneLineNoCostFmt)
 
     rowAsTexts :: (PeriodicReportRow a BudgetCell -> Text)
                -> PeriodicReportRow a BudgetCell
-               -> [[Text]]
+               -> [[Ods.Cell Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | layout_ /= LayoutBare = [render row : map showNorm vals]
+      | layout_ /= LayoutBare = [cell (render row) : map showNorm vals]
       | otherwise =
-            joinNames . zipWith (:) cs  -- add symbols and names
+            joinNames . zipWith (:) (map cell cs)  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
-          . map (map wbToText . showMixedAmountLinesB dopts . fromMaybe nullmixedamt)
+          . map (map (fmap wbToText) . cellsFromMixedAmount dopts . fromMaybe nullmixedamt)
           $ vals
       where
-        cs = S.toList . foldl' S.union mempty . map maCommodities $ catMaybes vals
+        cs = S.toList . mconcat . map maCommodities $ catMaybes vals
         dopts = oneLineNoCostFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
         vals = flattentuples as
             ++ concat [[rowtot, budgettot] | row_total_]
             ++ concat [[rowavg, budgetavg] | average_]
 
-        joinNames = map (render row :)
+        joinNames = map (cell (render row) :)
 
 
 -- tests
