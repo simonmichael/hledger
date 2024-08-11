@@ -404,7 +404,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
               "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
               "html" -> \ropts1 -> (<>"\n") . L.renderText .
-                                   printHtml . balanceReportAsSpreadsheet ropts1
+                                   printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts1
               "json" -> const $ (<>"\n") . toJsonText
               "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts1
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -544,7 +544,7 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 -- | Render a single-column balance report as FODS.
-balanceReportAsSpreadsheet :: ReportOpts -> BalanceReport -> [[Ods.Cell]]
+balanceReportAsSpreadsheet :: ReportOpts -> BalanceReport -> [[Ods.Cell Text]]
 balanceReportAsSpreadsheet opts (items, total) =
     headers :
     concatMap (\(a, _, _, b) -> rows a b) items ++
@@ -552,13 +552,13 @@ balanceReportAsSpreadsheet opts (items, total) =
       else map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total})) $
             rows totalRowHeadingCsv total
   where
-    cell content = Ods.defaultCell { Ods.cellContent = content }
+    cell = Ods.defaultCell
     headers =
       map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
       "account" : case layout_ opts of
         LayoutBare -> ["commodity", "balance"]
         _          -> ["balance"]
-    rows :: AccountName -> MixedAmount -> [[Ods.Cell]]
+    rows :: AccountName -> MixedAmount -> [[Ods.Cell Text]]
     rows name ma = case layout_ opts of
       LayoutBare ->
           map (\a ->

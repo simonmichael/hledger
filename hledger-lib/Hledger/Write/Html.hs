@@ -15,15 +15,15 @@ import qualified Lucid
 import Data.Foldable (for_)
 
 
-printHtml :: [[Cell]] -> Lucid.Html ()
+printHtml :: [[Cell (Lucid.Html ())]] -> Lucid.Html ()
 printHtml table =
     Lucid.table_ $ for_ table $ \row ->
     Lucid.tr_ $ for_ row $ \cell ->
     formatCell cell
 
-formatCell :: Cell -> Lucid.Html ()
+formatCell :: Cell (Lucid.Html ()) -> Lucid.Html ()
 formatCell cell =
-    let str = Lucid.toHtml $ cellContent cell in
+    let str = cellContent cell in
     case cellStyle cell of
         Head -> Lucid.th_ str
         Body emph ->

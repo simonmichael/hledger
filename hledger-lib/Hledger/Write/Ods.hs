@@ -32,7 +32,8 @@ import Text.Printf (printf)
 
 
 printFods ::
-    IO.TextEncoding -> Map Text ((Maybe Int, Maybe Int), [[Cell]]) -> TL.Text
+    IO.TextEncoding ->
+    Map Text ((Maybe Int, Maybe Int), [[Cell Text]]) -> TL.Text
 printFods encoding tables =
     let fileOpen customStyles =
           map (map (\c -> case c of '\'' -> '"'; _ -> c)) $
@@ -136,7 +137,7 @@ printFods encoding tables =
         fileClose
 
 
-cellStyles :: [Cell] -> Set (Emphasis, (CommoditySymbol, AmountPrecision))
+cellStyles :: [Cell Text] -> Set (Emphasis, (CommoditySymbol, AmountPrecision))
 cellStyles =
     Set.fromList .
     mapMaybe (\cell ->
@@ -195,7 +196,7 @@ cellConfig (emph, numParam) =
             []
 
 
-formatCell :: Cell -> [String]
+formatCell :: Cell Text -> [String]
 formatCell cell =
     let style, valueType :: String
         style =

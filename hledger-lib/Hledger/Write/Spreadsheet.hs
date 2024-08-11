@@ -8,12 +8,10 @@ module Hledger.Write.Spreadsheet (
     Emphasis(..),
     Cell(..),
     defaultCell,
+    emptyCell,
     ) where
 
 import Hledger.Data.Types (Amount)
-
-import qualified Data.Text as T
-import Data.Text (Text)
 
 
 data Type =
@@ -28,17 +26,23 @@ data Style = Body Emphasis | Head
 data Emphasis = Item | Total
     deriving (Eq, Ord, Show)
 
-data Cell =
+data Cell text =
     Cell {
         cellType :: Type,
         cellStyle :: Style,
-        cellContent :: Text
+        cellContent :: text
     }
 
-defaultCell :: Cell
-defaultCell =
+instance Functor Cell where
+    fmap f (Cell typ style content) = Cell typ style $ f content
+
+defaultCell :: text -> Cell text
+defaultCell text =
     Cell {
         cellType = TypeString,
         cellStyle = Body Item,
-        cellContent = T.empty
+        cellContent = text
     }
+
+emptyCell :: (Monoid text) => Cell text
+emptyCell = defaultCell mempty
