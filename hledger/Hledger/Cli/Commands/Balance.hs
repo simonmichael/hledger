@@ -259,6 +259,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportHtmlFootRow
  ,multiBalanceReportAsTable
  ,multiBalanceReportTableAsText
+ ,multiBalanceReportAsSpreadsheet
   -- ** HTML output helpers
  ,stylesheet_
  ,styles_
@@ -394,6 +395,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
               "tsv"  -> printTSV . multiBalanceReportAsCsv ropts
               "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
+              "fods" -> printFods IO.localeEncoding .
+                        Map.singleton "Hledger" . multiBalanceReportAsSpreadsheet ropts
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
 
@@ -569,22 +572,37 @@ balanceReportAsSpreadsheet opts (items, total) =
       _ -> [[showName name, renderAmount ma]]
 
     showName = cell . accountNameDrop (drop_ opts)
-    renderAmount mixedAmt =
-      (cell $ wbToText $ showMixedAmountB bopts mixedAmt) {
-        Ods.cellType =
-          case unifyMixedAmount mixedAmt of
-            Just amt ->
-              Ods.TypeAmount $
-              if showcomm
-                then amt
-                else amt {acommodity = T.empty}
-            Nothing -> Ods.TypeMixedAmount
-      }
+    renderAmount mixedAmt = wbToText <$> cellFromMixedAmount bopts mixedAmt
       where
         bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
         (showcomm, commorder)
           | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
           | otherwise                  = (True, Nothing)
+
+cellFromMixedAmount :: AmountFormat -> MixedAmount -> Ods.Cell WideBuilder
+cellFromMixedAmount bopts mixedAmt =
+    (Ods.defaultCell $ showMixedAmountB bopts mixedAmt) {
+        Ods.cellType =
+          case unifyMixedAmount mixedAmt of
+            Just amt -> amountType bopts amt
+            Nothing -> Ods.TypeMixedAmount
+    }
+
+cellsFromMixedAmount :: AmountFormat -> MixedAmount -> [Ods.Cell WideBuilder]
+cellsFromMixedAmount bopts mixedAmt =
+    map
+        (\(str,amt) ->
+            (Ods.defaultCell str) {Ods.cellType = amountType bopts amt})
+        (showMixedAmountLinesPartsB bopts mixedAmt)
+
+amountType :: AmountFormat -> Amount -> Ods.Type
+amountType bopts amt =
+    Ods.TypeAmount $
+    if displayCommodity bopts
+      then amt
+      else amt {acommodity = T.empty}
+
+
 
 -- Multi-column balance reports
 
@@ -602,21 +620,35 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
 
 -- Helper for CSV (and HTML) rendering.
 multiBalanceReportAsCsvHelper :: Bool -> ReportOpts -> MultiBalanceReport -> (CSV, CSV)
-multiBalanceReportAsCsvHelper ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
-    (headers : concatMap fullRowAsTexts items, totalrows)
+multiBalanceReportAsCsvHelper ishtml opts =
+    (map (map Ods.cellContent) *** map (map Ods.cellContent)) .
+    multiBalanceReportAsSpreadsheetHelper ishtml opts
+
+-- Helper for CSV and ODS and HTML rendering.
+multiBalanceReportAsSpreadsheetHelper ::
+    Bool -> ReportOpts -> MultiBalanceReport -> ([[Ods.Cell Text]], [[Ods.Cell Text]])
+multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
+    (headers : concatMap fullRowAsTexts items,
+        map (map (\c -> c{Ods.cellStyle = Ods.Body Ods.Total})) totalrows)
   where
-    headers = "account" : case layout_ of
+    cell = Ods.defaultCell
+    headers =
+      map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+      "account" :
+      case layout_ of
       LayoutTidy -> ["period", "start_date", "end_date", "commodity", "value"]
       LayoutBare -> "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders = map showDateSpan colspans ++ ["total" | row_total_] ++ ["average" | average_]
-    fullRowAsTexts row = map (showName row :) $ rowAsText opts colspans row
+    fullRowAsTexts row = map (cell (showName row) :) $ rowAsText row
       where showName = accountNameDrop drop_ . prrFullName
     totalrows
-      | no_total_ = mempty
-      | ishtml    = zipWith (:) (totalRowHeadingHtml : repeat "") $ rowAsText opts colspans tr
-      | otherwise = map (totalRowHeadingCsv :)                    $ rowAsText opts colspans tr
-    rowAsText = if ishtml then multiBalanceRowAsHtmlText else multiBalanceRowAsCsvText
+      | no_total_ = []
+      | ishtml    = zipWith (:) (cell totalRowHeadingHtml : repeat Ods.emptyCell) $ rowAsText tr
+      | otherwise = map (cell totalRowHeadingCsv :) $ rowAsText tr
+    rowAsText =
+        let fmt = if ishtml then oneLineNoCostFmt else machineFmt
+        in  map (map (fmap wbToText)) . multiBalanceRowAsCellBuilders fmt opts colspans
 
 -- Helpers and CSS styles for HTML output.
 
@@ -742,6 +774,17 @@ multiBalanceReportHtmlFootRow ropts isfirstline (hdr:cells) =
 --thRow :: [String] -> Html ()
 --thRow = tr_ . mconcat . map (th_ . toHtml)
 
+
+-- | Render the ODS table rows for a MultiBalanceReport.
+-- Returns the heading row, 0 or more body rows, and the totals row if enabled.
+multiBalanceReportAsSpreadsheet ::
+  ReportOpts -> MultiBalanceReport -> ((Maybe Int, Maybe Int), [[Ods.Cell Text]])
+multiBalanceReportAsSpreadsheet ropts mbr =
+  let (upper,lower) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
+  in  ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
+            upper ++ lower)
+
+
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> TL.Text
 multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
@@ -833,31 +876,38 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
     multiColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
 multiBalanceRowAsTextBuilders :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTextBuilders bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
+multiBalanceRowAsTextBuilders bopts ropts colspans row =
+    map (map Ods.cellContent) $
+    multiBalanceRowAsCellBuilders bopts ropts colspans row
+
+multiBalanceRowAsCellBuilders ::
+    AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[Ods.Cell WideBuilder]]
+multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
-      LayoutWide width -> [fmap (showMixedAmountB bopts{displayMaxWidth=width}) allamts]
-      LayoutTall       -> paddedTranspose mempty
-                           . fmap (showMixedAmountLinesB bopts{displayMaxWidth=Nothing})
+      LayoutWide width -> [fmap (cellFromMixedAmount bopts{displayMaxWidth=width}) allamts]
+      LayoutTall       -> paddedTranspose Ods.emptyCell
+                           . fmap (cellsFromMixedAmount bopts{displayMaxWidth=Nothing})
                            $ allamts
-      LayoutBare       -> zipWith (:) (fmap wbFromText cs)  -- add symbols
+      LayoutBare       -> zipWith (:) (map wbCell cs)  -- add symbols
                            . transpose                         -- each row becomes a list of Text quantities
-                           . fmap (showMixedAmountLinesB bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
+                           . fmap (cellsFromMixedAmount bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
                            $ allamts
       LayoutTidy       -> concat
                            . zipWith (map . addDateColumns) colspans
-                           . fmap ( zipWith (\c a -> [wbFromText c, a]) cs
-                                  . showMixedAmountLinesB bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
+                           . fmap ( zipWith (\c a -> [wbCell c, a]) cs
+                                  . cellsFromMixedAmount bopts{displayCommodity=False, displayCommodityOrder=Just cs, displayMinWidth=Nothing})
                            $ as  -- Do not include totals column or average for tidy output, as this
                                  -- complicates the data representation and can be easily calculated
   where
+    wbCell = Ods.defaultCell . wbFromText
     totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     allamts = (if not summary_only_ then as else []) ++
                 [rowtot | totalscolumn && not (null as)] ++
                 [rowavg | average_ && not (null as)]
-    addDateColumns spn@(DateSpan s e) = (wbFromText (showDateSpan spn) :)
-                                       . (wbFromText (maybe "" showEFDate s) :)
-                                       . (wbFromText (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
+    addDateColumns spn@(DateSpan s e) = (wbCell (showDateSpan spn) :)
+                                       . (wbCell (maybe "" showEFDate s) :)
+                                       . (wbCell (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
@@ -879,9 +929,6 @@ multiBalanceRowAsText opts = multiBalanceRowAsTextBuilders oneLineNoCostFmt{disp
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders machineFmt opts colspans
-
-multiBalanceRowAsHtmlText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsHtmlText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders oneLineNoCostFmt opts colspans
 
 -- Budget reports
 

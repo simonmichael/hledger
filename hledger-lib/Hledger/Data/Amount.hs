@@ -155,6 +155,7 @@ module Hledger.Data.Amount (
   showMixedAmountWithZeroCommodity,
   showMixedAmountB,
   showMixedAmountLinesB,
+  showMixedAmountLinesPartsB,
   wbToText,
   wbUnpack,
   mixedAmountSetPrecision,
@@ -1120,10 +1121,17 @@ showMixedAmountB opts ma
 -- This returns the list of WideBuilders: one for each Amount, and padded/elided to the appropriate width.
 -- This does not honour displayOneLine; all amounts will be displayed as if displayOneLine were False.
 showMixedAmountLinesB :: AmountFormat -> MixedAmount -> [WideBuilder]
-showMixedAmountLinesB opts@AmountFormat{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
-    map (adBuilder . pad) elided
+showMixedAmountLinesB opts ma =
+    map fst $ showMixedAmountLinesPartsB opts ma
+
+-- | Like 'showMixedAmountLinesB' but also returns
+-- the amounts associated with each text builder.
+showMixedAmountLinesPartsB :: AmountFormat -> MixedAmount -> [(WideBuilder, Amount)]
+showMixedAmountLinesPartsB opts@AmountFormat{displayMaxWidth=mmax,displayMinWidth=mmin} ma =
+    zip (map (adBuilder . pad) elided) amts
   where
-    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) . orderedAmounts opts $
+    astrs = amtDisplayList (wbWidth sep) (showAmountB opts) amts
+    amts = orderedAmounts opts $
               if displayCost opts then ma else mixedAmountStripCosts ma
     sep   = WideBuilder (TB.singleton '\n') 0
     width = maximum $ map (wbWidth . adBuilder) elided
