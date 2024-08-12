@@ -38,11 +38,11 @@ Here are some scripts which don't use hledger directly, but might be useful to h
 (For more, see also: [plaintextaccounting.org > Software](https://plaintextaccounting.org#software)).
 
 
-### hledger-pricehist
+### pricehist
 
-[`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pricehist)
-is just an alias for the useful market price downloader [pricehist](https://pypi.org/project/pricehist),
-to make it show up in the hledger commands list.
+[pricehist](https://pypi.org/project/pricehist) is useful for downloading market prices / conversion rates; recommended.
+And [`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pricehist)
+is a small script to make it show up in the hledger commands list.
 
 ### paypaljson
 
