@@ -32,10 +32,11 @@ Note, you don't need any of these extras if you are new to hledger -
 except possibly hledger-ui and hledger-web, which can be nice to have at the start.
 
 
-## Complementary scripts
+## Related scripts
 
-These scripts don't use hledger directly, but might be useful to hledger users.
-(See also [plaintextaccounting.org](https://plaintextaccounting.org) for a longer list of PTA tools.)
+Here are some scripts which don't use hledger directly, but might be useful to hledger users.
+(For more, see also: [plaintextaccounting.org > Software](https://plaintextaccounting.org#software)).
+
 
 ### hledger-pricehist
 
@@ -56,11 +57,7 @@ converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-
 
 ## hledger command line scripts
 
-These scripts use hledger's command line interface.
-They might also consume its text or CSV or JSON output.
-They can be
-small shell aliases or functions (typically defined in shell startup files like ~/.bashrc)
-or individual script files written in shell or another language (typically kept in ~/bin/ or elsewhere in $PATH).
+These scripts use hledger's command line interface, or process one of its output formats.
 
 ### bashrc
 
@@ -147,9 +144,9 @@ Add hledger options to customise reports.
 
 ### Justfile
 
-<https://github.com/casey/just> is like [make](https://en.wikipedia.org/wiki/Make_(software)), but easier and more suitable for running commands.
-It is a nice tool for organising financial reports and scripts!
-More on [hledger and just](just.md).
+<https://github.com/casey/just> is a nice tool for organising financial reports and scripts,
+similar to `make`, but more robust for this use case. I can recommend it.
+See also [hledger and just](just.md).
 
 Here is a [Justfile](https://github.com/simonmichael/hledger/blob/master/bin/Justfile)
 reimplementing the `ft` and `tt` scripts more simply:
