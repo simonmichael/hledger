@@ -68,12 +68,12 @@ hledgerfiles() {
     ls $@ *.{journal,j,timelog,csv,ledger,lgr,dat} 2>/dev/null
 }
 
-# helpers for working with yearly files
+# helpers for working with yearly files.
 
-FIRSTYEAR=2006
-
-# yearfiles [N] - print the paths of all or the last N yearly journals
+# yearfiles [N] - print the paths of all or the last N yearly journals.
+# Adjust to suit your files.
 yearfiles() {
+    FIRSTYEAR=2006
     N="$1"; shift
     YEAR=$(date +%Y)
     if [[ -n "$N" ]]; then
@@ -105,6 +105,11 @@ years() {
     # shellcheck disable=SC2046
     hledger $(yearopts "$N" | xargs) "$@"
 }
+
+alias 10y='years 10'
+alias 9y='years 9'
+alias 5y='years 5'
+alias 2y='years 2'
 
 # eachyear [N] [n|p|P] "SHELLCMD" - run SHELLCMD with $LEDGER_FILE set,
 # for each or just the last N yearly journals,
