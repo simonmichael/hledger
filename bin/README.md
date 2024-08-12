@@ -473,7 +473,7 @@ To use these bin scripts you must ensure they are in your $PATH and runnable:
 
 - Shell scripts: you may need [bash](https://www.gnu.org/software/bash), or to adapt the scripts for your shell.
 - Python scripts: you'll need python 3 and pip. 
-- Haskell scripts: you'll need stack (<https://www.haskell.org/get-started>).
+- Haskell scripts: you'll need [stack](http://haskellstack.org).
 Or if you know how, you can make them cabal scripts, or install their dependencies manually and use runghc/ghc.
 
 Here's a suggested install procedure:
