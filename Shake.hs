@@ -22,7 +22,7 @@ Also uses tools like:
 - pandoc, groff, m4, makeinfo, sed, mv, cat, rm
 
 Some things that may be useful when working on this:
-- https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
+- https://docs.haskellstack.org/en/stable/topics/scripts
 - watch Shake.hs for compile errors: make ghcid-shake
 - load Shake.hs in GHCI: make ghci-shake
 - rebuild things when files change with entr (file watcher), eg:

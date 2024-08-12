@@ -338,7 +338,7 @@ is a custom compound report done in shell. See also hledger-report1.hs.
 ## hledger haskell scripts
 
 These scripts are written in Haskell and use hledger's haskell API (by importing the `hledger` or `hledger-lib` haskell libraries).
-They are often [stack scripts].
+They are often [stack scripts](https://docs.haskellstack.org/en/stable/topics/scripts).
 They can do anything hledger's builtin commands can do, and are usually more robust than command line scripts.
 Some builtin commands were first developed as standalone haskell scripts.
 
@@ -471,7 +471,7 @@ These are some official and third-party add-ons you can install as compiled prog
 
 To use these bin scripts you must ensure they are in your $PATH and runnable:
 
-- Shell scripts: you may need [bash], or to adapt the scripts for your shell.
+- Shell scripts: you may need [bash](https://www.gnu.org/software/bash), or to adapt the scripts for your shell.
 - Python scripts: you'll need python 3 and pip. 
 - Haskell scripts: you'll need stack (<https://www.haskell.org/get-started>).
 Or if you know how, you can make them cabal scripts, or install their dependencies manually and use runghc/ghc.
@@ -505,16 +505,7 @@ $ pip install -U hledger-lots
 # Check that hledger's command list now includes the bin scripts.
 # Eg "check-fancyassertions" and "swap-dates" should be listed:
 $ hledger
-
-
 ```
-
-[bash]: https://www.gnu.org/software/bash
-[stack]: https://haskellstack.org
-[stack]: https://www.fpcomplete.com/haskell/get-started
-[stack scripts]: https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
-[add-on commands]: https://hledger.org/dev/hledger.html#add-on-commands
-[cabal]: https://www.haskell.org/cabal
 
 ### Create a new script
 

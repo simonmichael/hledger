@@ -96,6 +96,6 @@ exec ghcid         - watch for compile errors
 
 4. Declare which package each import is from, keep synced with --package; might as well be clear
 
-5. Doc: https://docs.haskellstack.org/en/stable/GUIDE/#script-interpreter
+5. Doc: https://docs.haskellstack.org/en/stable/topics/scripts
 
 -}
