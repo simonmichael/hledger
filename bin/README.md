@@ -5,8 +5,8 @@
 <!-- toc -->
 </div>
 
-(This document is the README in the hledger repo's `bin/` directory,
-and it is also published as the [Scripts and add-ons] page on hledger.org.)
+(This is the README in the hledger repo's `bin/` directory,
+also published as the [Scripts and add-ons] page on hledger.org.)
 
 <!-- This page can be viewed on github or hledger.org, so use absolute urls here: -->
 [Scripts and add-ons]: https://hledger.org/scripts.html
@@ -16,7 +16,7 @@ and it is also published as the [Scripts and add-ons] page on hledger.org.)
 A *script* is a program you can run immediately without needing to compile it first.
 They are often small and defined in a single file or shell alias or shell function.
 You can create your own simple or complex scripts which enhance hledger,
-eg by reducing typing, or automating a complicated report so you don't have to remember the detailed command(s).
+eg to automate a complicated report so you don't have to remember the detailed command(s).
 
 A hledger *add-on command* is any program whose name begins with "hledger-".
 Add-on commands found in PATH will appear in the commands list (shown when you run `hledger` with no arguments).
@@ -301,6 +301,7 @@ EDITOR='perl -pi -e "s|Cost:Food|Cost:Food:Fast Food|g"' hledger edit tag:locati
 [![asciicast](https://asciinema.org/a/549559.svg)](https://asciinema.org/a/549559)
 
 ### hledger-plot
+
 The [hledger-utils python package](https://pypi.org/project/hledger-utils/) provides
 a `hledger-plot` command for generating charts with matplotlib.
 
