@@ -15,8 +15,8 @@ also published as the [Scripts and add-ons] page on hledger.org.)
 
 A *script* is a program you can run immediately without needing to compile it first.
 They are often small and defined in a single file or shell alias or shell function.
-You can create your own simple or complex scripts which enhance hledger,
-eg to automate a complicated report so you don't have to remember the detailed command(s).
+You can create your own simple or complex scripts which enhance hledger.
+Eg you might script a complicated report so you don't have to remember the detailed command(s).
 
 A hledger *add-on command* is any program whose name begins with "hledger-".
 Add-on commands found in PATH will appear in the commands list (shown when you run `hledger` with no arguments).
@@ -468,7 +468,7 @@ These are some official and third-party add-ons you can install as compiled prog
 
 
 
-## HOW TO
+## How to...
 
 ### Install scripts
 
