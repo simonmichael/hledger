@@ -8,7 +8,7 @@
 hledger is a suite of applications, tools and libraries.
 The main hledger code repository is [github.com/simonmichael/hledger](https://github.com/simonmichael/hledger)
 (shortcut url `code.hledger.org`).
-There are also various hledger addons maintained as separate projects with their own repos.
+There are also various hledger add-ons maintained as separate projects with their own repos.
 
 ## hledger packages
 

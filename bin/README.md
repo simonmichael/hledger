@@ -5,35 +5,43 @@
 <!-- toc -->
 </div>
 
-This document is the README in the hledger repo's [bin] directory, 
-and is also published as [Scripts and add-ons] on hledger.org.
+(This document is the README in the hledger repo's `bin/` directory,
+and it is also published as the [Scripts and add-ons] page on hledger.org.)
 
-[Add-on commands](hledger.html#add-on-commands) are executable script files or compiled programs
-named `hledger-*`, which show up in hledger's commands list.
-Some notable add-ons are listed [in the hledger manual](https://hledger.org/dev/hledger.html#add-ons). <!--  > PART 4. COMMANDS > ADD-ONS -->
-
-The rest of this page lists smaller scripts and add-ons which are collected in bin/,
-grouped by how closely they work with hledger:
-
-To be clear: you don't need any of these when starting out with hledger.
-hledger comes with many built-in commands, and you may want to get familiar with those first.
-
-
-<!-- This page can be viewed on github or hledger.org, so use absolute urls. -->
-[bin]:                https://github.com/simonmichael/hledger/tree/master/bin
+<!-- This page can be viewed on github or hledger.org, so use absolute urls here: -->
 [Scripts and add-ons]: https://hledger.org/scripts.html
-[Scripting hledger]:  https://hledger.org/scripting.html
+[Scripting hledger]:   https://hledger.org/scripting.html
+[bin]:                 https://github.com/simonmichael/hledger/tree/master/bin
 
-## HLEDGER-RELATED
+A *script* is a program you can run immediately without needing to compile it first.
+They are often small and defined in a single file or shell alias or shell function.
+You can create your own simple or complex scripts which enhance hledger,
+eg by reducing typing, or automating a complicated report so you don't have to remember the detailed command(s).
 
-These scripts don't use hledger directly, but are complementary and might be useful to hledger users.
-([plaintextaccounting.org](https://plaintextaccounting.org) has a longer list of PTA tools.)
+A hledger *add-on command* is any program whose name begins with "hledger-".
+Add-on commands found in PATH will appear in the commands list (shown when you run `hledger` with no arguments).
+Some of the scripts below are add-ons.
+Some add-ons are written in Haskell and can use hledger's full power, like builtin commands.
+
+Below are some existing scripts you can use or learn from.
+Most of these are collected in [hledger's bin/ directory][bin],
+which you can get by [cloning](https://hledger.org/scripts.html#install-scripts) the hledger source.
+Compiled add-ons are also listed below, in their own section.
+
+Note, you don't need any of these extras if you are new to hledger -
+except possibly hledger-ui and hledger-web, which can be nice to have at the start.
+
+
+## Complementary scripts
+
+These scripts don't use hledger directly, but might be useful to hledger users.
+(See also [plaintextaccounting.org](https://plaintextaccounting.org) for a longer list of PTA tools.)
 
 ### hledger-pricehist
 
 [`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pricehist)
-is just an alias for the market price downloader [pricehist](https://pypi.org/project/pricehist),
-so that it shows up in the hledger commands list.
+is just an alias for the useful market price downloader [pricehist](https://pypi.org/project/pricehist),
+to make it show up in the hledger commands list.
 
 ### paypaljson
 
@@ -46,10 +54,9 @@ downloads the last 30 days of Paypal transactions (requires a free developer acc
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 
-## HLEDGER-RUNNING
+## hledger command line scripts
 
-These scripts run hledger via its CLI,
-eg to help you produce a particular report without needing to remember a complicated command line. 
+These scripts use hledger's command line interface.
 They might also consume its text or CSV or JSON output.
 They can be
 small shell aliases or functions (typically defined in shell startup files like ~/.bashrc)
@@ -330,10 +337,12 @@ $ hledger lots list
 is a custom compound report done in shell. See also hledger-report1.hs.
 
 
-## HLEDGER-INTEGRATED
+## hledger haskell scripts
 
-These Haskell scripts use the hledger-lib API for maximum power and robustness;
-they can do anything hledger's built-in commands can do.
+These scripts are written in Haskell and use hledger's haskell API (by importing the `hledger` or `hledger-lib` haskell libraries).
+They are often [stack scripts].
+They can do anything hledger's builtin commands can do, and are usually more robust than command line scripts.
+Some builtin commands were first developed as standalone haskell scripts.
 
 ### hledger-script-example
 
@@ -429,6 +438,34 @@ is a custom compound report done in haskell. See also hledger-report1.sh.
 [hledger-txnsbycat.hs](https://github.com/brianhv/hledger-scripts/blob/main/hledger-txnsbycat.hs)
 is a mixture of a balance report and a register report; it shows each account's transactions
 under the account's balance.
+
+## Add-ons
+
+These are some official and third-party add-ons you can install as compiled programs:
+
+### hledger-ui
+
+[hledger-ui](hledger-ui.html) is hledger's official terminal UI. It allows faster browsing of your accounts and transactions.
+
+### hledger-web
+
+[hledger-web](hledger-web.html) is hledger's official web UI. It allows data entry and simple reports in a web browser. It's good for non-command-line users.
+
+### hledger-iadd
+
+[hledger-iadd](https://hackage.haskell.org/package/hledger-iadd) is a popular alternative to the builtin `add` command.
+
+### hledger-interest
+
+[hledger-interest](https://hackage.haskell.org/package/hledger-interest) generates interest transactions.
+
+
+### Other
+
+- [hledger-stockquotes](https://hackage.haskell.org/package/hledger-stockquotes) fetches market prices. Not widely used, consider pricehist instead.
+- [hledger-diff](https://hackage.haskell.org/package/hledger-diff) compares two journal files. It's now built in to hledger, so you don't need it.
+
+
 
 ## HOW TO
 

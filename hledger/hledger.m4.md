@@ -230,7 +230,7 @@ and ends with no extension or a recognised extension
 (".bat", ".com", ".exe", ".hs", ".js", ".lhs", ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),
 and (on unix and mac) which has executable permission for the current user.
 
-m4_dnl Addons can be written in any language, but Haskell scripts or programs can 
+m4_dnl Add-ons can be written in any language, but Haskell scripts or programs can
 m4_dnl call hledger's code directly, which means they can do anything built-in commands can.
 m4_dnl Scripts/programs in other languages can't do this, but they can use hledger's
 m4_dnl command-line interface, or output formats like CSV or JSON.
@@ -799,7 +799,7 @@ create and update it.
 
 Many users, though, edit the journal file with a text editor,
 and track changes with a version control system such as git.
-Editor addons such as
+Editor add-ons such as
 ledger-mode or hledger-mode for Emacs,
 vim-ledger for Vim,
 and hledger-vscode for Visual Studio Code,
@@ -6031,7 +6031,6 @@ First, a quick glossary:
 
 
 <a name="commands-overview">
-<a name="addons"></a><a name="add-ons"></a> <!-- see also #add-on-commands. -->
 
 Here are the standard [commands](#commands), which you can list by running `hledger`.
 If you have installed more [add-on commands](../scripts.md), they also will be listed.
