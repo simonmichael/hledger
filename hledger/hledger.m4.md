@@ -90,7 +90,7 @@ in [PART 5: COMMON TASKS](#part-5-common-tasks).
 hledger reads one or more data files, each time you run it. 
 You can specify a file with `-f`, like so
 ```cli
-$ hledger -f FILE print
+$ hledger -f FILE [-f FILE2 ...] print
 ```
 
 Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
