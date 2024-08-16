@@ -61,6 +61,7 @@ dependencies:
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
+- lucid
 - megaparsec >=7.0.0 && <9.7
 - microlens >=0.4
 - microlens-th >=0.4
@@ -142,13 +143,16 @@ library:
   - Hledger.Read
   - Hledger.Read.Common
   - Hledger.Read.CsvReader
-  - Hledger.Read.CsvUtils
   - Hledger.Read.InputOptions
   - Hledger.Read.JournalReader
   - Hledger.Read.RulesReader
 #  - Hledger.Read.LedgerReader
   - Hledger.Read.TimedotReader
   - Hledger.Read.TimeclockReader
+  - Hledger.Write.Csv
+  - Hledger.Write.Ods
+  - Hledger.Write.Html
+  - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
   - Hledger.Reports.ReportTypes
