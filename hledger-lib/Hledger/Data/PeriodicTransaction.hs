@@ -229,8 +229,9 @@ runPeriodicTransaction verbosetags PeriodicTransaction{..} requestedspan =
           ,tpostings    = ptpostings
           }
     period = "~ " <> ptperiodexpr
-    -- All the date spans described by this periodic transaction rule.
-    alltxnspans = splitSpan adjust ptinterval span'
+    -- All the date spans described by this periodic transaction rule. As splitSpan could extend span' start date backward,
+    -- we filter and reject and the subspans that begin before the PT start date
+    alltxnspans = [ spn | spn <- splitSpan adjust ptinterval span', spanStart spn >= spanStart span' ]
       where
         -- If the PT does not specify  start or end dates, we take them from the requestedspan.
         span' = ptspan `spanDefaultsFrom` requestedspan
