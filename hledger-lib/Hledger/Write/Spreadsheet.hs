@@ -13,9 +13,13 @@ module Hledger.Write.Spreadsheet (
     noBorder,
     defaultCell,
     emptyCell,
+    transposeCell,
+    transpose,
     ) where
 
 import Hledger.Data.Types (Amount)
+
+import qualified Data.List as List
 
 
 data Type =
@@ -66,6 +70,10 @@ instance Foldable Border where
 noBorder :: (Lines border) => Border border
 noBorder = pure noLine
 
+transposeBorder :: Border lines -> Border lines
+transposeBorder (Border left right top bottom) =
+    Border top bottom left right
+
 
 data Cell border text =
     Cell {
@@ -90,3 +98,10 @@ defaultCell text =
 
 emptyCell :: (Lines border, Monoid text) => Cell border text
 emptyCell = defaultCell mempty
+
+transposeCell :: Cell border text -> Cell border text
+transposeCell cell =
+    cell {cellBorder = transposeBorder $ cellBorder cell}
+
+transpose :: [[Cell border text]] -> [[Cell border text]]
+transpose = List.transpose . map (map transposeCell)
