@@ -1189,16 +1189,12 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
 -- but includes alternating actual and budget amount columns.
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
 budgetReportAsCsv ropts report
-  = (if transpose_ ropts then transpose else id) $
-    map (map Ods.cellContent) $
+  = map (map Ods.cellContent) $
     budgetReportAsSpreadsheetHelper ropts report
 
 budgetReportAsSpreadsheet :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
 budgetReportAsSpreadsheet ropts report
-  = (if transpose_ ropts
-      then error' "Sorry, --transpose with FODS or HTML output is not yet supported"  -- PARTIAL:
-      else id)
-    budgetReportAsSpreadsheetHelper ropts report
+  = budgetReportAsSpreadsheetHelper ropts report
 
 budgetReportAsSpreadsheetHelper :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
 budgetReportAsSpreadsheetHelper
