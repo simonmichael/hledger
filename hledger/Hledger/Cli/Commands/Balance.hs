@@ -1223,7 +1223,7 @@ budgetReportAsSpreadsheet ::
 budgetReportAsSpreadsheet
   ReportOpts{..}
   (PeriodicReport colspans items totrow)
-  = (if transpose_ then transpose else id) $
+  = (if transpose_ then Ods.transpose else id) $
 
   -- heading row
   (map headerCell $
