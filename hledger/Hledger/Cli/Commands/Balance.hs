@@ -550,22 +550,42 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   ,displayColour    = color_ opts
                   }
 
+
+headerCell :: Text -> Ods.Cell Ods.NumLines Text
+headerCell text =
+    let deflt = Ods.defaultCell text
+    in
+    deflt {
+        Ods.cellStyle = Ods.Head,
+        Ods.cellBorder =
+            (Ods.cellBorder deflt) {Ods.borderBottom = Ods.DoubleLine}
+    }
+
+addTotalBorders :: [[Ods.Cell border text]] -> [[Ods.Cell Ods.NumLines text]]
+addTotalBorders =
+    zipWith
+        (\border ->
+            map (\c -> c {
+                    Ods.cellStyle = Ods.Body Ods.Total,
+                    Ods.cellBorder = Ods.noBorder {Ods.borderTop = border}}))
+        (Ods.DoubleLine : repeat Ods.NoLine)
+
 -- | Render a single-column balance report as FODS.
-balanceReportAsSpreadsheet :: ReportOpts -> BalanceReport -> [[Ods.Cell Text]]
+balanceReportAsSpreadsheet ::
+    ReportOpts -> BalanceReport -> [[Ods.Cell Ods.NumLines Text]]
 balanceReportAsSpreadsheet opts (items, total) =
     headers :
     concatMap (\(a, _, _, b) -> rows a b) items ++
     if no_total_ opts then []
-      else map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total})) $
-            rows totalRowHeadingCsv total
+      else addTotalBorders $ rows totalRowHeadingCsv total
   where
     cell = Ods.defaultCell
     headers =
-      map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+      map headerCell $
       "account" : case layout_ opts of
         LayoutBare -> ["commodity", "balance"]
         _          -> ["balance"]
-    rows :: AccountName -> MixedAmount -> [[Ods.Cell Text]]
+    rows :: AccountName -> MixedAmount -> [[Ods.Cell Ods.NumLines Text]]
     rows name ma = case layout_ opts of
       LayoutBare ->
           map (\a ->
@@ -583,7 +603,9 @@ balanceReportAsSpreadsheet opts (items, total) =
           | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
           | otherwise                  = (True, Nothing)
 
-cellFromMixedAmount :: AmountFormat -> MixedAmount -> Ods.Cell WideBuilder
+cellFromMixedAmount ::
+    (Ods.Lines border) =>
+    AmountFormat -> MixedAmount -> Ods.Cell border WideBuilder
 cellFromMixedAmount bopts mixedAmt =
     (Ods.defaultCell $ showMixedAmountB bopts mixedAmt) {
         Ods.cellType =
@@ -592,7 +614,9 @@ cellFromMixedAmount bopts mixedAmt =
             Nothing -> Ods.TypeMixedAmount
     }
 
-cellsFromMixedAmount :: AmountFormat -> MixedAmount -> [Ods.Cell WideBuilder]
+cellsFromMixedAmount ::
+    (Ods.Lines border) =>
+    AmountFormat -> MixedAmount -> [Ods.Cell border WideBuilder]
 cellsFromMixedAmount bopts mixedAmt =
     map
         (\(str,amt) ->
@@ -630,14 +654,14 @@ multiBalanceReportAsCsvHelper ishtml opts =
 
 -- Helper for CSV and ODS and HTML rendering.
 multiBalanceReportAsSpreadsheetHelper ::
-    Bool -> ReportOpts -> MultiBalanceReport -> ([[Ods.Cell Text]], [[Ods.Cell Text]])
+    Bool -> ReportOpts -> MultiBalanceReport ->
+    ([[Ods.Cell Ods.NumLines Text]], [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
-    (headers : concatMap fullRowAsTexts items,
-        map (map (\c -> c{Ods.cellStyle = Ods.Body Ods.Total})) totalrows)
+    (headers : concatMap fullRowAsTexts items, addTotalBorders totalrows)
   where
     cell = Ods.defaultCell
     headers =
-      map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+      map headerCell $
       "account" :
       case layout_ of
       LayoutTidy -> ["period", "start_date", "end_date", "commodity", "value"]
@@ -782,7 +806,8 @@ multiBalanceReportHtmlFootRow ropts isfirstline (hdr:cells) =
 -- | Render the ODS table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
 multiBalanceReportAsSpreadsheet ::
-  ReportOpts -> MultiBalanceReport -> ((Maybe Int, Maybe Int), [[Ods.Cell Text]])
+  ReportOpts -> MultiBalanceReport ->
+  ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
   let (upper,lower) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
   in  ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
@@ -885,7 +910,8 @@ multiBalanceRowAsTextBuilders bopts ropts colspans row =
     multiBalanceRowAsCellBuilders bopts ropts colspans row
 
 multiBalanceRowAsCellBuilders ::
-    AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[Ods.Cell WideBuilder]]
+    AmountFormat -> ReportOpts -> [DateSpan] ->
+    PeriodicReportRow a MixedAmount -> [[Ods.Cell Ods.NumLines WideBuilder]]
 multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans (PeriodicReportRow _ as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (cellFromMixedAmount bopts{displayMaxWidth=width}) allamts]
@@ -1192,14 +1218,15 @@ budgetReportAsCsv ropts report
   = map (map Ods.cellContent) $
     budgetReportAsSpreadsheet ropts report
 
-budgetReportAsSpreadsheet :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
+budgetReportAsSpreadsheet ::
+  ReportOpts -> BudgetReport -> [[Ods.Cell Ods.NumLines Text]]
 budgetReportAsSpreadsheet
   ReportOpts{..}
   (PeriodicReport colspans items totrow)
   = (if transpose_ then transpose else id) $
 
   -- heading row
-  (map (\content -> (cell content) {Ods.cellStyle = Ods.Head}) $
+  (map headerCell $
   "Account" :
   ["Commodity" | layout_ == LayoutBare ]
    ++ concatMap (\spn -> [showDateSpan spn, "budget"]) colspans
@@ -1211,7 +1238,7 @@ budgetReportAsSpreadsheet
   concatMap (rowAsTexts prrFullName) items
 
   -- totals row
-  ++ map (map (\c -> c {Ods.cellStyle = Ods.Body Ods.Total}))
+  ++ addTotalBorders
         (concat [ rowAsTexts (const totalRowHeadingBudgetCsv) totrow | not no_total_ ])
 
   where
@@ -1221,7 +1248,7 @@ budgetReportAsSpreadsheet
 
     rowAsTexts :: (PeriodicReportRow a BudgetCell -> Text)
                -> PeriodicReportRow a BudgetCell
-               -> [[Ods.Cell Text]]
+               -> [[Ods.Cell Ods.NumLines Text]]
     rowAsTexts render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
       | layout_ /= LayoutBare = [cell (render row) : map showNorm vals]
       | otherwise =
