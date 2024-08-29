@@ -422,7 +422,7 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 20. Test for #1001 - empty assignment to amount show not eat next line 
+# ** 20. Test for #1001 - empty assignment to amount show not eat next line
 <
 2018-10-15,1
 
