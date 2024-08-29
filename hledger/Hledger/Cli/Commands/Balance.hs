@@ -1190,14 +1190,10 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
 budgetReportAsCsv ropts report
   = map (map Ods.cellContent) $
-    budgetReportAsSpreadsheetHelper ropts report
+    budgetReportAsSpreadsheet ropts report
 
 budgetReportAsSpreadsheet :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
-budgetReportAsSpreadsheet ropts report
-  = budgetReportAsSpreadsheetHelper ropts report
-
-budgetReportAsSpreadsheetHelper :: ReportOpts -> BudgetReport -> [[Ods.Cell Text]]
-budgetReportAsSpreadsheetHelper
+budgetReportAsSpreadsheet
   ReportOpts{..}
   (PeriodicReport colspans items totrow)
   = (if transpose_ then transpose else id) $
