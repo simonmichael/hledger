@@ -1653,10 +1653,9 @@ Features
 
 - Periodic transactions and multi-period reports can now start on any date.
   To enable this while still maintaining pretty good backward compatibility,
-  hledger now treats inferred dates, and dates where the day is unspecified,
-  as "flexible" (which can be automatically adjusted to interval boundaries),
-  and dates specified to the day as "exact" (which can not).
-  Eg:
+  hledger now keeps explicitly specified start dates as they are,
+  but still automatically adjusts inferred start dates to interval boundaries.
+  This means, eg:
   
   - A periodic rule like `~ monthly from 2023-01-15` now works as
     you'd expect instead of raising an error. This also improves
@@ -1665,13 +1664,10 @@ Features
   - Period options like `-p 'monthly from 2023/1/15'` or `-M -b 2023/1/15`
     now start the report on exactly 1/15 instead of being adjusted to 1/1.
   
-  Note: periods using `in` may look partial but are considered to specify exact dates.
-  So weekly reports such as `-p 'weekly in 2023-01'`, which previously
-  were adjusted to start on a monday, will now start exactly on 2023-01-01.
-  This can also cause more verbose column headings.
-	To guarantee simple week headings, you must now start such reports
-  exactly on a monday, eg `-p 'weekly from 2022-12-26 to 2023-02'`.
-  ([#1982])
+  - `-p 'weekly in 2023-01'`, which previously was adjusted to start on a monday,
+    now starts exactly on 2023-01-01. This can cause more verbose report headings.
+	To ensure simple week headings, now weekly reports must start on a monday,
+    eg `-p 'weekly from 2022-12-26 to 2023-02'`. ([#1982])
 
 - You can now freely combine @/@@ notation and conversion postings
   in a single transaction. This can help readability, and also allows
