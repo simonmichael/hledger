@@ -4692,22 +4692,48 @@ More complex intervals can be specified using `-p/--period`, described below.
 
 ## Date adjustments
 
-A report interval other than daily may cause the report's start and end date
-to be adjusted, as follows:
+### Start date adjustment
 
-A "soft" start date -
-ie one which was not specified explicitly, but inferred, perhaps from the journal -
-will be adjusted earlier if needed to start on a natural subperiod boundary.
+If you let hledger infer a report's start date, it will adjust the date to the previous natural boundary of the report interval,
+for convenient periodic reports. (If you don't want that, specify a start date.)
 
-A "hard" start date - one specified explicitly, eg by `-b` - will not be adjusted (since hledger 1.29).
-This makes it possible to start the subperiods on any date.
-If you specify a start date, it's ideal to set it to a subperiod boundary
-(eg a monday for weekly reports, a first day of month for monthly reports..),
-as this will generate simple subperiod headings; otherwise they will be more verbose.
+For example, if the journal's first transaction is on january 10th,
 
-The end date - even if specified explicitly, eg by `-e` -
-will be adjusted later as needed to enclose a whole number of report intervals.
-Eg in a `--yearly` report, all subperiods will be one year long.
+- `hledger register` (no report interval) will start the report on january 10th.
+- `hledger register --monthly` will start the report on the previous month boundary, january 1st.
+- `hledger register --monthly --begin 1/5` will start the report on january 5th [1].
+
+Also if you are generating transactions or budget goals with [periodic transaction rules](#periodic-transactions),
+their start date may be adjusted in a similar way (in certain situations). <!-- TBD -->
+
+### End date adjustment
+
+A report's end date is always adjusted to include a whole number of intervals,
+so that the last subperiod has the same length as the others.
+
+For example, if the journal's last transaction is on february 20th,
+
+- `hledger register` will end the report on february 20th.
+- `hledger register --monthly` will end the report at the end of february.
+- `hledger register --monthly --end 2/14` also will end the report at the end of february.
+- `hledger register --monthly --begin 1/5 --end 2/14` will end the report on march 4th [1].
+
+[1] Since hledger 1.29.
+
+## Period headings
+
+With non-standard subperiods, hledger will show "STARTDATE..ENDDATE" headings.
+With standard subperiods (ie, starting on a natural interval boundary), you'll see more compact headings, which are usually preferable.
+(Though month names will be in english, currently.)
+
+So if you are specifying a start date and you want compact headings:
+choose a start of year for yearly reports,
+a start of quarter for quarterly reports,
+a start of month for monthly reports, etc.
+(Remember, you can write eg `-b 2024` or `1/1` as a shortcut for a start of year,
+or `2024-04` or `202404` or `Apr` for a start of month or quarter.)
+For weekly reports, choose a date that's a Monday.
+(You can try different dates until you see the short headings, or write eg `-b '3 weeks ago'`.)
 
 ## Period expressions
 
