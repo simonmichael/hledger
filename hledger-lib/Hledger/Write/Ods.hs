@@ -12,6 +12,7 @@ module Hledger.Write.Ods (
     printFods,
     ) where
 
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
 import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
@@ -20,12 +21,14 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import Data.Text (Text)
 
+import qualified Data.Foldable as Fold
+import qualified Data.List as List
 import qualified Data.Map as Map
 import qualified Data.Set as Set
 import Data.Foldable (fold)
 import Data.Map (Map)
 import Data.Set (Set)
-import Data.Maybe (mapMaybe)
+import Data.Maybe (catMaybes)
 
 import qualified System.IO as IO
 import Text.Printf (printf)
@@ -33,7 +36,7 @@ import Text.Printf (printf)
 
 printFods ::
     IO.TextEncoding ->
-    Map Text ((Maybe Int, Maybe Int), [[Cell Text]]) -> TL.Text
+    Map Text ((Maybe Int, Maybe Int), [[Cell Spr.NumLines Text]]) -> TL.Text
 printFods encoding tables =
     let fileOpen customStyles =
           map (map (\c -> case c of '\'' -> '"'; _ -> c)) $
@@ -57,20 +60,6 @@ printFods encoding tables =
           "  xmlns:field='urn:openoffice:names:experimental:ooo-ms-interop:xmlns:field:1.0'" :
           "  xmlns:form='urn:oasis:names:tc:opendocument:xmlns:form:1.0'>" :
           "<office:styles>" :
-          "  <style:style style:name='head' style:family='table-cell'>" :
-          "    <style:paragraph-properties fo:text-align='center'/>" :
-          "    <style:text-properties fo:font-weight='bold'/>" :
-          "  </style:style>" :
-          "  <style:style style:name='foot' style:family='table-cell'>" :
-          "    <style:text-properties fo:font-weight='bold'/>" :
-          "  </style:style>" :
-          "  <style:style style:name='amount' style:family='table-cell'>" :
-          "    <style:paragraph-properties fo:text-align='end'/>" :
-          "  </style:style>" :
-          "  <style:style style:name='total-amount' style:family='table-cell'>" :
-          "    <style:paragraph-properties fo:text-align='end'/>" :
-          "    <style:text-properties fo:font-weight='bold'/>" :
-          "  </style:style>" :
           "  <number:date-style style:name='iso-date'>" :
           "    <number:year number:style='long'/>" :
           "    <number:text>-</number:text>" :
@@ -78,12 +67,6 @@ printFods encoding tables =
           "    <number:text>-</number:text>" :
           "    <number:day number:style='long'/>" :
           "  </number:date-style>" :
-          "  <style:style style:name='date' style:family='table-cell'" :
-          "      style:data-style-name='iso-date'/>" :
-          "  <style:style style:name='foot-date' style:family='table-cell'" :
-          "      style:data-style-name='iso-date'>" :
-          "    <style:text-properties fo:font-weight='bold'/>" :
-          "  </style:style>" :
           customStyles ++
           "</office:styles>" :
           []
@@ -135,7 +118,7 @@ printFods encoding tables =
     in  TL.unlines $ map (TL.fromStrict . T.pack) $
         fileOpen
           (let styles = cellStyles (foldMap (concat.snd) tables) in
-           (numberConfig =<< Set.toList (Set.map snd styles))
+           (numberConfig =<< Set.toList (foldMap (numberParams.snd) styles))
            ++
            (cellConfig =<< Set.toList styles)) ++
         tableConfig (fmap fst tables) ++
@@ -150,18 +133,23 @@ printFods encoding tables =
         fileClose
 
 
-cellStyles :: [Cell Text] -> Set (Emphasis, (CommoditySymbol, AmountPrecision))
+dataStyleFromType :: Type -> DataStyle
+dataStyleFromType typ =
+    case typ of
+        TypeString -> DataString
+        TypeDate -> DataDate
+        TypeAmount amt -> DataAmount (acommodity amt) (asprecision $ astyle amt)
+        TypeMixedAmount -> DataMixedAmount
+
+cellStyles ::
+    (Ord border) =>
+    [Cell border Text] ->
+    Set ((Spr.Border border, Style), DataStyle)
 cellStyles =
     Set.fromList .
-    mapMaybe (\cell ->
-        case cellType cell of
-            TypeAmount amt ->
-                Just
-                    (case cellStyle cell of
-                        Body emph -> emph
-                        Head -> Total,
-                     (acommodity amt, asprecision $ astyle amt))
-            _ -> Nothing)
+    map (\cell ->
+            ((cellBorder cell, cellStyle cell),
+             dataStyleFromType $ cellType cell))
 
 numberStyleName :: (CommoditySymbol, AmountPrecision) -> String
 numberStyleName (comm, prec) =
@@ -169,6 +157,10 @@ numberStyleName (comm, prec) =
     case prec of
         NaturalPrecision -> "natural"
         Precision k -> show k
+
+numberParams :: DataStyle -> Set (CommoditySymbol, AmountPrecision)
+numberParams (DataAmount comm prec) = Set.singleton (comm, prec)
+numberParams _ = Set.empty
 
 numberConfig :: (CommoditySymbol, AmountPrecision) -> [String]
 numberConfig (comm, prec) =
@@ -191,41 +183,123 @@ emphasisName emph =
         Item -> "item"
         Total -> "total"
 
-cellConfig :: (Emphasis, (CommoditySymbol, AmountPrecision)) -> [String]
-cellConfig (emph, numParam) =
-    let name = numberStyleName numParam in
-    let style :: String
+cellStyleName :: Style -> String
+cellStyleName style =
+    case style of
+        Head -> "head"
+        Body emph -> emphasisName emph
+
+linesName :: Spr.NumLines -> Maybe String
+linesName prop =
+    case prop of
+        Spr.NoLine -> Nothing
+        Spr.SingleLine -> Just "single"
+        Spr.DoubleLine -> Just "double"
+
+linesStyle :: Spr.NumLines -> String
+linesStyle prop =
+    case prop of
+        Spr.NoLine -> "none"
+        Spr.SingleLine -> "1.5pt solid #000000"
+        Spr.DoubleLine -> "1.5pt double-thin #000000"
+
+borderLabels :: Spr.Border String
+borderLabels = Spr.Border "left" "right" "top" "bottom"
+
+borderName :: Spr.Border Spr.NumLines -> String
+borderName border =
+    (\bs ->
+        case bs of
+            [] -> "noborder"
+            _ ->
+                ("border="++) $ List.intercalate "," $
+                map (\(name,num) -> name ++ ':' : num) bs) $
+    catMaybes $ Fold.toList $
+    liftA2
+        (\name numLines -> (,) name <$> linesName numLines)
+        borderLabels
+        border
+
+borderStyle :: Spr.Border Spr.NumLines -> [String]
+borderStyle border =
+    if border == Spr.noBorder
+        then []
+        else (:[]) $
+            printf "    <style:table-cell-properties%s/>" $
+            (id :: String -> String) $ fold $
+            liftA2 (printf " fo:border-%s='%s'") borderLabels $
+            fmap linesStyle border
+
+data DataStyle =
+      DataString
+    | DataDate
+    | DataAmount CommoditySymbol AmountPrecision
+    | DataMixedAmount
+    deriving (Eq, Ord, Show)
+
+cellConfig :: ((Spr.Border Spr.NumLines, Style), DataStyle) -> [String]
+cellConfig ((border, cstyle), dataStyle) =
+    let moreStyles =
+            borderStyle border
+            ++
+            (
+            case cstyle of
+                Body Item -> []
+                Body Total ->
+                    ["    <style:text-properties fo:font-weight='bold'/>"]
+                Head ->
+                    "    <style:paragraph-properties fo:text-align='center'/>" :
+                    "    <style:text-properties fo:font-weight='bold'/>" :
+                    []
+            )
+            ++
+            (
+            case dataStyle of
+                DataMixedAmount ->
+                    ["    <style:paragraph-properties fo:text-align='end'/>"]
+                _ -> []
+            )
+        cstyleName = cellStyleName cstyle
+        bordName = borderName border
+        style :: String
         style =
-            printf "style:name='%s-%s' style:data-style-name='number-%s'"
-                (emphasisName emph) name name in
-    case emph of
-        Item ->
+            case dataStyle of
+                DataDate ->
+                    printf
+                      "style:name='%s-%s-date' style:data-style-name='iso-date'"
+                      cstyleName bordName
+                DataAmount comm prec ->
+                    let name = numberStyleName (comm, prec) in
+                    printf
+                      "style:name='%s-%s-%s' style:data-style-name='number-%s'"
+                      cstyleName bordName name name
+                _ -> printf "style:name='%s-%s'" cstyleName bordName
+    in
+    case moreStyles of
+        [] ->
             printf "  <style:style style:family='table-cell' %s/>" style :
             []
-        Total ->
+        _ ->
             printf "  <style:style style:family='table-cell' %s>" style :
-            "    <style:text-properties fo:font-weight='bold'/>" :
+            moreStyles ++
             "  </style:style>" :
             []
 
 
-formatCell :: Cell Text -> [String]
+formatCell :: Cell Spr.NumLines Text -> [String]
 formatCell cell =
     let style, valueType :: String
-        style =
-          case (cellStyle cell, cellType cell) of
-            (Body emph, TypeAmount amt) -> tableStyle $ numberStyle emph amt
-            (Body Item, TypeString) -> ""
-            (Body Item, TypeMixedAmount) -> tableStyle "amount"
-            (Body Item, TypeDate) -> tableStyle "date"
-            (Body Total, TypeString) -> tableStyle "foot"
-            (Body Total, TypeMixedAmount) -> tableStyle "total-amount"
-            (Body Total, TypeDate) -> tableStyle "foot-date"
-            (Head, _) -> tableStyle "head"
-        numberStyle emph amt =
-            printf "%s-%s"
-                (emphasisName emph)
-                (numberStyleName (acommodity amt, asprecision $ astyle amt))
+        style = tableStyle styleName
+        cstyleName = cellStyleName $ cellStyle cell
+        bordName = borderName $ cellBorder cell
+        styleName :: String
+        styleName =
+            case dataStyleFromType $ cellType cell of
+                DataDate -> printf "%s-%s-date" cstyleName bordName
+                DataAmount comm prec ->
+                    let name = numberStyleName (comm, prec) in
+                    printf "%s-%s-%s" cstyleName bordName name
+                _ -> printf "%s-%s" cstyleName bordName
         tableStyle = printf " table:style-name='%s'"
 
         valueType =
