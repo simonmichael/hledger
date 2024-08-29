@@ -216,7 +216,7 @@ spansSpan spans = DateSpan (spanStartDate =<< headMay spans) (spanEndDate =<< la
 -- >>> t (Weeks 2) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
 -- >>> t (DayOfMonth 2) 2008 01 01 2008 04 01
--- [DateSpan 2007-12-02..2008-01-01,DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
+-- [DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
 -- >>> t (WeekdayOfMonth 2 4) 2011 01 01 2011 02 15
 -- [DateSpan 2010-12-09..2011-01-12,DateSpan 2011-01-13..2011-02-09,DateSpan 2011-02-10..2011-03-09]
 -- >>> t (DaysOfWeek [2]) 2011 01 01 2011 01 15
@@ -236,7 +236,7 @@ splitSpan adjust (Weeks n)    ds = splitspan (if adjust then startofweek    else
 splitSpan adjust (Months n)   ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip n     ds
 splitSpan adjust (Quarters n) ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip (3*n) ds
 splitSpan adjust (Years n)    ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip n      ds
-splitSpan _ (DayOfMonth dom)  ds = splitspan (nthdayofmonthcontaining dom) (addGregorianMonthsToMonthday dom) 1 ds
+splitSpan _ (DayOfMonth dom)  ds = splitspan (nextnthdayofmonth dom) (addGregorianMonthsToMonthday dom) 1 ds
 splitSpan _ (DayOfYear m n)   ds = splitspan (nthdayofyearcontaining m n) (addGregorianYearsClip) 1 ds
 splitSpan _ (WeekdayOfMonth n wd) ds = splitspan (nthweekdayofmonthcontaining n wd) advancemonths 1 ds
   where
@@ -263,8 +263,8 @@ addGregorianMonthsToMonthday dom n d =
 -- 1. The start function is applied to the span's start date to get the first sub-span's start date.
 -- 2. The addInterval function is used to calculate the subsequent spans' start dates,
 -- possibly with stride increased by the mult multiplier.
--- It should adapt to spans of varying length, eg if splitting on "every 31st of month"
--- addInterval should adjust to 28/29/30 in short months but return to 31 in the long months.
+-- It should handle spans of varying length, eg when splitting on "every 31st of month",
+-- it adjusts to 28/29/30 in short months but returns to 31 in the long months.
 splitspan :: (Day -> Day) -> (Integer -> Day -> Day) -> Int -> DateSpan -> [DateSpan]
 splitspan start addInterval mult ds = spansFromBoundaries e bdrys
   where
@@ -664,33 +664,26 @@ nthdayofyearcontaining m mdy date
         mmddOfPrevYear = addDays (toInteger mdy-1) $ applyN (m-1) nextmonth $ prevyear s
         s = startofyear date
 
--- | For a given date d find the month-long period that starts on day n of a month
--- that includes d. (It will begin on day n or either d's month or the previous month.)
--- The given day of month should be in the range 1-31, or an error will be raised.
+-- | Find the next occurence of the specified "nth day of month" that occurs on or after the given date.
+-- The nth day of month should be in the range 1-31, or an error will be raised.
 --
--- Examples: lets take 2017-11-22. Month-long intervals covering it that
--- start on 1st-22nd of month will start in Nov. However
--- intervals that start on 23rd-30th of month should start in Oct:
 -- >>> let wed22nd = fromGregorian 2017 11 22
--- >>> nthdayofmonthcontaining 1 wed22nd
--- 2017-11-01
--- >>> nthdayofmonthcontaining 12 wed22nd
--- 2017-11-12
--- >>> nthdayofmonthcontaining 22 wed22nd
+-- >>> nextnthdayofmonth 21 wed22nd
+-- 2017-12-21
+-- >>> nextnthdayofmonth 22 wed22nd
 -- 2017-11-22
--- >>> nthdayofmonthcontaining 23 wed22nd
--- 2017-10-23
--- >>> nthdayofmonthcontaining 30 wed22nd
--- 2017-10-30
-nthdayofmonthcontaining :: MonthDay -> Day -> Day
-nthdayofmonthcontaining mdy date
+-- >>> nextnthdayofmonth 23 wed22nd
+-- 2017-11-23
+nextnthdayofmonth :: MonthDay -> Day -> Day
+nextnthdayofmonth n date
   -- PARTIAL:
-  | not (validDay mdy) = error' $ "nthdayofmonthcontaining: invalid day "  ++show mdy
-  | nthOfSameMonth <= date = nthOfSameMonth
-  | otherwise = nthOfPrevMonth
-  where nthOfSameMonth = nthdayofmonth mdy s
-        nthOfPrevMonth = nthdayofmonth mdy $ prevmonth s
-        s = startofmonth date
+  | not (validDay n)       = error' $ "nextnthdayofmonth: day should be 1..31, not "  ++show n
+  | nthofthismonth >= date = nthofthismonth
+  | otherwise              = nthofnextmonth
+  where
+    s = startofmonth date
+    nthofthismonth = nthdayofmonth n s
+    nthofnextmonth = nthdayofmonth n $ nextmonth s
 
 -- | For given date d find week-long interval that starts on nth day of week
 -- and covers it.
