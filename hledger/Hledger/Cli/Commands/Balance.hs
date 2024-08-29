@@ -287,6 +287,7 @@ import Data.List (find, transpose, foldl')
 import qualified Data.Map as Map
 import qualified Data.Set as S
 import Data.Maybe (catMaybes, fromMaybe)
+import Data.Tuple (swap)
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -574,6 +575,7 @@ addTotalBorders =
 balanceReportAsSpreadsheet ::
     ReportOpts -> BalanceReport -> [[Ods.Cell Ods.NumLines Text]]
 balanceReportAsSpreadsheet opts (items, total) =
+    (if transpose_ opts then Ods.transpose else id) $
     headers :
     concatMap (\(a, _, _, b) -> rows a b) items ++
     if no_total_ opts then []
@@ -810,7 +812,8 @@ multiBalanceReportAsSpreadsheet ::
   ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
   let (upper,lower) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
-  in  ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
+  in  (if transpose_ ropts then swap *** Ods.transpose else id) $
+      ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
             upper ++ lower)
 
 
