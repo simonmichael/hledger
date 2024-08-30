@@ -440,7 +440,7 @@ totalRowHeadingBudgetCsv  = "Total:"
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts =
-    map (map Ods.cellContent) . balanceReportAsSpreadsheet opts
+    rawTableContent . balanceReportAsSpreadsheet opts
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -571,6 +571,10 @@ addTotalBorders =
                     Ods.cellBorder = Ods.noBorder {Ods.borderTop = border}}))
         (Ods.DoubleLine : repeat Ods.NoLine)
 
+rawTableContent :: [[Ods.Cell border text]] -> [[text]]
+rawTableContent = map (map Ods.cellContent)
+
+
 -- | Render a single-column balance report as FODS.
 balanceReportAsSpreadsheet ::
     ReportOpts -> BalanceReport -> [[Ods.Cell Ods.NumLines Text]]
@@ -651,7 +655,7 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
 -- Helper for CSV (and HTML) rendering.
 multiBalanceReportAsCsvHelper :: Bool -> ReportOpts -> MultiBalanceReport -> (CSV, CSV)
 multiBalanceReportAsCsvHelper ishtml opts =
-    (map (map Ods.cellContent) *** map (map Ods.cellContent)) .
+    (rawTableContent *** rawTableContent) .
     multiBalanceReportAsSpreadsheetHelper ishtml opts
 
 -- Helper for CSV and ODS and HTML rendering.
@@ -909,7 +913,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
 
 multiBalanceRowAsTextBuilders :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsTextBuilders bopts ropts colspans row =
-    map (map Ods.cellContent) $
+    rawTableContent $
     multiBalanceRowAsCellBuilders bopts ropts colspans row
 
 multiBalanceRowAsCellBuilders ::
@@ -1218,7 +1222,7 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
 -- but includes alternating actual and budget amount columns.
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
 budgetReportAsCsv ropts report
-  = map (map Ods.cellContent) $
+  = rawTableContent $
     budgetReportAsSpreadsheet ropts report
 
 budgetReportAsSpreadsheet ::
