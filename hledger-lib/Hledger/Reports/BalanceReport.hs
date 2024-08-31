@@ -86,6 +86,7 @@ Right samplejournal2 =
         txnTieKnot Transaction{
           tindex=0,
           tsourcepos=nullsourcepos,
+          tdatetime=Nothing,
           tdate=fromGregorian 2008 01 01,
           tdate2=Just $ fromGregorian 2009 01 01,
           tstatus=Unmarked,

@@ -66,6 +66,7 @@ module Hledger.Read.Common (
   -- ** dates
   datep,
   datetimep,
+  timestampp,
   secondarydatep,
 
   -- ** account names
@@ -143,10 +144,12 @@ import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text, stripEnd)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
+import Data.Time.Calendar (Day, fromGregorianValid, fromGregorian, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Data.Time.Clock (UTCTime(UTCTime), picosecondsToDiffTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
+import GHC.Float (floorDouble)
 import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
@@ -351,6 +354,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
       >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them.
                                                          -- (Later, journalInferEquityFromCosts will do a similar pass, adding missing equity postings.)
+      >>= journalSetTransactionDatetimes -- Compute and set tdatetime's based on surrounding transactions
 
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
@@ -522,6 +526,78 @@ descriptionp :: TextParser m Text
 descriptionp = noncommenttextp <?> "description"
 
 --- *** dates
+
+-- | Parse a transaction timestamp.
+-- This function is effectively an extension of `datep`, where
+-- all dates accepted by `datep` are accepted, but we also support
+-- specifying the time of day (up to millisecond precision)
+-- along with a timezone offset. In other words, this function parses one of:
+-- - YYYY-MM-DD (e.g. 2024-01-01)
+-- - YYYY-MM-DD hh:mm:ss.Z (e.g. 2024-01-01 12:34:56.789+02:00)
+--
+-- If the time of day is omitted, we assume 00:00:00 as default.
+-- If the timezone offset is omitted, we assume +00:00 (UTC) as default.
+timestampp :: JournalParser m UTCTime
+timestampp = do
+  date <- datep
+  (hour, minute, second, tzOffsetH, tzOffsetM) <- hourAndRestp
+  let pico = 1000000000000
+      picoHour = hour * 3600 * pico
+      picoMinute = minute * 60 * pico
+      picoSecond = floorDouble $ second * (fromIntegral pico)
+      picoTotal = picoHour + picoMinute + picoSecond
+      picoOffset = tzOffsetH * 3600 * pico + tzOffsetM * 60 * pico
+      tod = picosecondsToDiffTime picoTotal
+      adjustedTod = tod - (picosecondsToDiffTime picoOffset)
+
+  return $ UTCTime date adjustedTod
+  where
+    hourAndRestp :: JournalParser m (Integer, Integer, Double, Integer, Integer)
+    hourAndRestp = do
+      hour <- optional . try $ do
+        char ' '
+        decimal
+      case hour of
+        Nothing -> return (0, 0, 0.0, 0, 0)
+        Just h -> do
+          (m, s, tzH, tzM) <- minuteAndRestp
+          return (h, m, s, tzH, tzM)
+    minuteAndRestp :: JournalParser m (Integer, Double, Integer, Integer)
+    minuteAndRestp = do
+      minute <- optional . try $ do
+        char ':'
+        decimal
+      case minute of
+        Nothing -> return (0, 0.0, 0, 0)
+        Just m -> do
+          (s, tzH, tzM) <- secondAndRestp
+          return (m, s, tzH, tzM)
+    secondAndRestp :: JournalParser m (Double, Integer, Integer)
+    secondAndRestp = do
+      sec <- optional . try $ do
+        char ':'
+        fromIntegral <$> decimal
+      case sec of
+        Nothing -> return (0.0, 0, 0)
+        Just s -> do
+          (tzH, tzM) <- tzHourAndRestp
+          return (s, tzH, tzM)
+    tzHourAndRestp :: JournalParser m (Integer, Integer)
+    tzHourAndRestp = do
+      hour <- optional . try $ do
+        char '+'
+        decimal
+      case hour of
+        Nothing -> return (0, 0)
+        Just h -> do
+          m <- tzMinutep
+          return (h, m)
+    tzMinutep :: JournalParser m Integer
+    tzMinutep = do
+      minute <- optional . try $ do
+        char ':'
+        decimal
+      return $ fromMaybe 0 minute
 
 -- | Parse a date in YYYY-MM-DD format.
 -- Slash (/) and period (.) are also allowed as separators.
@@ -1687,6 +1763,15 @@ tests_Common = testGroup "Common" [
     -- ,testCase "just space" $ assertParseEq spaceandamountormissingp " " missingmixedamt  -- XXX should it ?
     -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
+
+  , let pico = 1000000000000 in testGroup "timestampp" [
+    testCase "2024-01-01" $ assertParseEq timestampp "2024-01-01" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime 0)),
+    testCase "2024/01/01" $ assertParseEq timestampp "2024/01/01" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime 0)),
+    testCase "2024-01-01 12" $ assertParseEq timestampp "2024-01-01 12" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ 12 * 3600 * pico)),
+    testCase "2024-01-01 12:34" $ assertParseEq timestampp "2024-01-01 12:34" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60) * pico)),
+    testCase "2024-01-01 12:34:56" $ assertParseEq timestampp "2024-01-01 12:34:56" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60 + 56) * pico)),
+    testCase "2024-01-01 12:34:56+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56+07:08" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico))
+  ]
 
   ]
 

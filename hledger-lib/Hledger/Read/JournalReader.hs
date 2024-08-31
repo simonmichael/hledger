@@ -58,6 +58,7 @@ module Hledger.Read.JournalReader (
   marketpricedirectivep,
   datetimep,
   datep,
+  timestampp,
   modifiedaccountnamep,
   tmpostingrulep,
   statusp,
@@ -88,6 +89,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Time.Clock(utctDay, picosecondsToDiffTime, UTCTime(UTCTime))
 import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
@@ -795,7 +797,8 @@ transactionp :: JournalParser m Transaction
 transactionp = do
   -- dbgparse 0 "transactionp"
   startpos <- getSourcePos
-  date <- datep <?> "transaction"
+  timestamp <- timestampp <?> "transaction"
+  let date = utctDay timestamp
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
@@ -806,7 +809,7 @@ transactionp = do
   postings <- postingsp (Just year)
   endpos <- getSourcePos
   let sourcepos = (startpos, endpos)
-  return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
+  return $ txnTieKnot $ Transaction 0 "" sourcepos (Just timestamp) date edate status code description comment tags postings
 
 --- *** postings
 
@@ -1021,7 +1024,10 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testGroup "transactionp" [
 
-     testCase "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
+     testCase "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{
+      tdate=fromGregorian 2015 1 1
+      ,tdatetime=Just $ UTCTime (fromGregorian 2015 1 1) (picosecondsToDiffTime 0)
+     }
 
     ,testCase "more complex" $ assertParseEq transactionp
       (T.unlines [
@@ -1037,6 +1043,7 @@ tests_JournalReader = testGroup "JournalReader" [
         tsourcepos=(SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 8) (mkPos 1)),  -- 8 because there are 7 lines
         tprecedingcomment="",
         tdate=fromGregorian 2012 5 14,
+        tdatetime=Just $ UTCTime (fromGregorian 2012 5 14) (picosecondsToDiffTime 0),
         tdate2=Just $ fromGregorian 2012 5 15,
         tstatus=Unmarked,
         tcode="code",

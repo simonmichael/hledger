@@ -793,6 +793,7 @@ tests_Balancing =
                   0
                   ""
                   nullsourcepos
+                  Nothing
                   (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
@@ -808,6 +809,7 @@ tests_Balancing =
                   0
                   ""
                   nullsourcepos
+                  Nothing
                   (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
@@ -825,6 +827,7 @@ tests_Balancing =
                 0
                 ""
                 nullsourcepos
+                Nothing
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -841,6 +844,7 @@ tests_Balancing =
                 0
                 ""
                 nullsourcepos
+                Nothing
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -859,6 +863,7 @@ tests_Balancing =
                0
                ""
                nullsourcepos
+               Nothing
                (fromGregorian 2011 01 01)
                Nothing
                Unmarked
@@ -876,6 +881,7 @@ tests_Balancing =
                0
                ""
                nullsourcepos
+               Nothing
                (fromGregorian 2011 01 01)
                Nothing
                Unmarked
@@ -895,6 +901,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -913,6 +920,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -931,6 +939,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -946,6 +955,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -961,6 +971,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -980,6 +991,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -998,6 +1010,7 @@ tests_Balancing =
             0
             ""
             nullsourcepos
+            Nothing
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
