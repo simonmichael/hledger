@@ -14,17 +14,20 @@
 # is needed for efficiency, or when more powerful code is needed, use
 # Shake.hs instead of just.
 #
+#
 # Lines beginning with "# * ", "# ** ", etc are section headings,
-# foldable in Emacs outshine-mode. Some extra Emacs highlighting:
+# foldable in Emacs outshine-mode. Here's some more highlighting you can add
+# for readability:
 # (add-hook 'just-mode-hook (lambda ()
 #   (display-line-numbers-mode 1)
 #   (highlight-lines-matching-regexp "^# \\*\\*? " 'hi-yellow)  ; level 1-2 outshine headings
 #   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
 #   ))
 #
-# This file is formatted by `just format`, which currently eats blank lines a bit (and commits).
+# This file is formatted by `just format`, which currently eats blank lines a bit.
+# (It also commits.)
 #
-# 'set export' makes constants and arguments available as $VAR as well as {{ VAR }}.
+# 'set export' below makes constants and arguments available as $VAR as well as {{ VAR }}.
 # $ makes just code more like shell code.
 # {{ }} handles multi-word values better and is fully evaluated in -n/--dry-run output.
 #
