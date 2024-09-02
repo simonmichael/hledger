@@ -148,6 +148,7 @@ eachyear() {
 
 #export TIMELOG=$FINDIR/time.journal
 export TIMELOG=$FINDIR/time/time-2024.journal
+export TIMEDOT=$FINDIR/time/time-2024.timedot
 
 alias hours="hledger -f $TIMELOG"
 alias today='hours -p today'
