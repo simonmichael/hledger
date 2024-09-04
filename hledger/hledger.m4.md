@@ -4732,6 +4732,7 @@ a start of quarter for quarterly reports,
 a start of month for monthly reports, etc.
 (Remember, you can write eg `-b 2024` or `1/1` as a shortcut for a start of year,
 or `2024-04` or `202404` or `Apr` for a start of month or quarter.)
+
 For weekly reports, choose a date that's a Monday.
 (You can try different dates until you see the short headings, or write eg `-b '3 weeks ago'`.)
 
