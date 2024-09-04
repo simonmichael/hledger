@@ -221,33 +221,35 @@ spansSpan spans = DateSpan (spanStartDate =<< headMay spans) (spanEndDate =<< la
 -- [DateSpan 2007-W01,DateSpan 2008-W02,DateSpan 2008-W03]
 -- >>> t (Weeks 2) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
--- >>> t (DayOfMonth 2) 2008 01 01 2008 04 01
+-- >>> t (MonthDay 2) 2008 01 01 2008   04 01
 -- [DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
--- >>> t (WeekdayOfMonth 2 4) 2011 01 01 2011 02 15
+-- >>> t (NthWeekdayOfMonth 2 4) 2011 01 01 2011 02 15
 -- [DateSpan 2010-12-09..2011-01-12,DateSpan 2011-01-13..2011-02-09,DateSpan 2011-02-10..2011-03-09]
 -- >>> t (DaysOfWeek [2]) 2011 01 01 2011 01 15
 -- [DateSpan 2010-12-28..2011-01-03,DateSpan 2011-01-04..2011-01-10,DateSpan 2011-01-11..2011-01-17]
--- >>> t (DayOfYear 11 29) 2012 10 01 2013 10 15
+-- >>> t (MonthAndDay 11 29) 2012 10 01 2013 10 15
 -- [DateSpan 2012-11-29..2013-11-28]
 --
 splitSpan :: Bool -> Interval -> DateSpan -> [DateSpan]
-splitSpan _      _                     (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
-splitSpan _      _                     ds | isEmptySpan ds = []
-splitSpan _      _                     ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
-splitSpan _      NoInterval            ds = [ds]
-splitSpan _      (Days n)              ds = splitspan id addDays n ds
-splitSpan adjust (Weeks n)             ds = splitspan (if adjust then startofweek    else id) addDays                 (7*n) ds
-splitSpan adjust (Months n)            ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip  n     ds
-splitSpan adjust (Quarters n)          ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip  (3*n) ds
-splitSpan adjust (Years n)             ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip   n     ds
-splitSpan _      (DayOfMonth dom)      ds = splitspan (nextnthdayofmonth dom)      (addGregorianMonthsToMonthday dom) 1     ds
-splitSpan _      (DayOfYear m n)       ds = splitspan (nextmonthandday m n)        (addGregorianYearsClip)            1     ds
-splitSpan adjust (WeekdayOfMonth n wd) ds = splitspan (if adjust then prevNthWeekdayOfMonth n wd else nextNthWeekdayOfMonth n wd) advancemonths 1 ds
+splitSpan _      _                        (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
+splitSpan _      _                        ds | isEmptySpan ds = []
+splitSpan _      _                        ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
+splitSpan _      NoInterval               ds = [ds]
+splitSpan _      (Days n)                 ds = splitspan id addDays n ds
+splitSpan adjust (Weeks n)                ds = splitspan (if adjust then startofweek    else id) addDays                 (7*n) ds
+splitSpan adjust (Months n)               ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip  n     ds
+splitSpan adjust (Quarters n)             ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip  (3*n) ds
+splitSpan adjust (Years n)                ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip   n     ds
+splitSpan adjust (NthWeekdayOfMonth n wd) ds = splitspan (if adjust then prevstart else nextstart) advancemonths          1     ds
   where
+    prevstart = prevNthWeekdayOfMonth n wd
+    nextstart = nextNthWeekdayOfMonth n wd
     advancemonths 0 = id
     advancemonths m = advanceToNthWeekday n wd . startofmonth . addGregorianMonthsClip m
-splitSpan _ (DaysOfWeek [])         ds = [ds]
-splitSpan _ (DaysOfWeek days@(n:_)) ds = spansFromBoundaries e bdrys
+splitSpan _      (MonthDay dom)           ds = splitspan (nextnthdayofmonth dom) (addGregorianMonthsToMonthday dom) 1 ds
+splitSpan _      (MonthAndDay m d)        ds = splitspan (nextmonthandday m d)   (addGregorianYearsClip)            1 ds
+splitSpan _      (DaysOfWeek [])          ds = [ds]
+splitSpan _      (DaysOfWeek days@(n:_))  ds = spansFromBoundaries e bdrys
   where
     (s, e) = dateSpanSplitLimits (nthdayofweekcontaining n) nextday ds
     bdrys = concatMap (flip map starts . addDays) [0,7..]
@@ -985,41 +987,41 @@ weekdaysp = fmap headErr . group . sort <$> sepBy1 weekday (string' ",")  -- PAR
 -- >>> p "every week to 2009"
 -- Right (Weeks 1,DateSpan ..2008-12-31)
 -- >>> p "every 2nd day of month"
--- Right (DayOfMonth 2,DateSpan ..)
+-- Right (MonthDay 2,DateSpan ..)
 -- >>> p "every 2nd day"
--- Right (DayOfMonth 2,DateSpan ..)
+-- Right (MonthDay 2,DateSpan ..)
 -- >>> p "every 2nd day 2009.."
--- Right (DayOfMonth 2,DateSpan 2009-01-01..)
+-- Right (MonthDay 2,DateSpan 2009-01-01..)
 -- >>> p "every 2nd day 2009-"
--- Right (DayOfMonth 2,DateSpan 2009-01-01..)
+-- Right (MonthDay 2,DateSpan 2009-01-01..)
 -- >>> p "every 29th Nov"
--- Right (DayOfYear 11 29,DateSpan ..)
+-- Right (MonthAndDay 11 29,DateSpan ..)
 -- >>> p "every 29th nov ..2009"
--- Right (DayOfYear 11 29,DateSpan ..2008-12-31)
+-- Right (MonthAndDay 11 29,DateSpan ..2008-12-31)
 -- >>> p "every nov 29th"
--- Right (DayOfYear 11 29,DateSpan ..)
+-- Right (MonthAndDay 11 29,DateSpan ..)
 -- >>> p "every Nov 29th 2009.."
--- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
+-- Right (MonthAndDay 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 11/29 from 2009"
--- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
+-- Right (MonthAndDay 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 11/29 since 2009"
--- Right (DayOfYear 11 29,DateSpan 2009-01-01..)
+-- Right (MonthAndDay 11 29,DateSpan 2009-01-01..)
 -- >>> p "every 2nd Thursday of month to 2009"
--- Right (WeekdayOfMonth 2 4,DateSpan ..2008-12-31)
+-- Right (NthWeekdayOfMonth 2 4,DateSpan ..2008-12-31)
 -- >>> p "every 1st monday of month to 2009"
--- Right (WeekdayOfMonth 1 1,DateSpan ..2008-12-31)
+-- Right (NthWeekdayOfMonth 1 1,DateSpan ..2008-12-31)
 -- >>> p "every tue"
 -- Right (DaysOfWeek [2],DateSpan ..)
 -- >>> p "every 2nd day of week"
 -- Right (DaysOfWeek [2],DateSpan ..)
 -- >>> p "every 2nd day of month"
--- Right (DayOfMonth 2,DateSpan ..)
+-- Right (MonthDay 2,DateSpan ..)
 -- >>> p "every 2nd day"
--- Right (DayOfMonth 2,DateSpan ..)
+-- Right (MonthDay 2,DateSpan ..)
 -- >>> p "every 2nd day 2009.."
--- Right (DayOfMonth 2,DateSpan 2009-01-01..)
+-- Right (MonthDay 2,DateSpan 2009-01-01..)
 -- >>> p "every 2nd day of month 2009.."
--- Right (DayOfMonth 2,DateSpan 2009-01-01..)
+-- Right (MonthDay 2,DateSpan 2009-01-01..)
 periodexprp :: Day -> TextParser m (Interval, DateSpan)
 periodexprp rdate = do
   skipNonNewlineSpaces
@@ -1048,9 +1050,9 @@ reportingintervalp = choice'
     , Months 2 <$ string' "bimonthly"
     , string' "every" *> skipNonNewlineSpaces *> choice'
         [ DaysOfWeek . pure <$> (nth <* skipNonNewlineSpaces <* string' "day" <* of_ "week")
-        , DayOfMonth <$> (nth <* skipNonNewlineSpaces <* string' "day" <* optOf_ "month")
-        , liftA2 WeekdayOfMonth nth $ skipNonNewlineSpaces *> weekday <* optOf_ "month"
-        , uncurry DayOfYear <$> (md <* optOf_ "year")
+        , MonthDay <$> (nth <* skipNonNewlineSpaces <* string' "day" <* optOf_ "month")
+        , liftA2 NthWeekdayOfMonth nth $ skipNonNewlineSpaces *> weekday <* optOf_ "month"
+        , uncurry MonthAndDay <$> (md <* optOf_ "year")
         , DaysOfWeek <$> weekdaysp
         , DaysOfWeek [1..5] <$ string' "weekday"
         , DaysOfWeek [6..7] <$ string' "weekendday"
@@ -1069,8 +1071,8 @@ reportingintervalp = choice'
     optOf_ period = optional . try $ of_ period
 
     nth = decimal <* choice (map string' ["st","nd","rd","th"])
-    d_o_y = runPermutation $ liftA2 DayOfYear (toPermutation $ (month <|> mon) <* skipNonNewlineSpaces)
-                                              (toPermutation $ nth <* skipNonNewlineSpaces)
+    d_o_y = runPermutation $ liftA2 MonthAndDay (toPermutation $ (month <|> mon) <* skipNonNewlineSpaces)
+                                                (toPermutation $ nth <* skipNonNewlineSpaces)
 
     -- Parse any of several variants of a basic interval, eg "daily", "every day", "every N days".
     tryinterval :: Text -> Text -> (Int -> Interval) -> TextParser m Interval
