@@ -116,7 +116,7 @@ data DateSpan = DateSpan (Maybe EFDay) (Maybe EFDay) deriving (Eq,Ord,Generic)
 
 instance Default DateSpan where def = DateSpan Nothing Nothing
 
--- Typical report periods (spans of time), both finite and open-ended.
+-- Some common report subperiods, both finite and open-ended.
 -- A higher-level abstraction than DateSpan.
 data Period =
     DayPeriod Day
@@ -132,16 +132,8 @@ data Period =
 
 instance Default Period where def = PeriodAll
 
----- Typical report period/subperiod durations, from a day to a year.
---data Duration =
---    DayLong
---   WeekLong
---   MonthLong
---   QuarterLong
---   YearLong
---  deriving (Eq,Ord,Show,Generic)
-
--- Ways in which a period can be divided into subperiods.
+-- All the kinds of report interval allowed in a period expression
+-- (to generate periodic reports or periodic transactions).
 data Interval =
     NoInterval
   | Days Int
@@ -149,13 +141,10 @@ data Interval =
   | Months Int
   | Quarters Int
   | Years Int
-  | DayOfMonth Int
-  | WeekdayOfMonth Int Int
-  | DaysOfWeek [Int]
-  | DayOfYear Int Int -- Month, Day
-  -- WeekOfYear Int
-  -- MonthOfYear Int
-  -- QuarterOfYear Int
+  | NthWeekdayOfMonth Int Int  -- n,              weekday 1-7
+  | MonthDay Int               -- 1-31
+  | MonthAndDay Int Int        -- month 1-12,     monthday 1-31
+  | DaysOfWeek [Int]           -- [weekday 1-7]
   deriving (Eq,Show,Ord,Generic)
 
 instance Default Interval where def = NoInterval
