@@ -4822,7 +4822,7 @@ Monthly on a custom day:
 - `every Nth day [of month]` (`31st day` will be adjusted to each month's last day)
 - `every Nth WEEKDAYNAME [of month]`
 
-Yearly on a custom day:
+Yearly on a custom month and day:
 
 - `every MM/DD [of year]` (month number and day of month number)
 - `every MONTHNAME DDth [of year]` (full or three-letter english month name, case insensitive, and day of month number)
@@ -5210,7 +5210,7 @@ $ hledger print --forecast --today=2023/4/21
     expenses:rent                  $1000
 ```
 
-Here there are no ordinary transactions, so the forecasted transactions begin on the first occurence after today's date.
+Here there are no ordinary transactions, so the forecasted transactions begin on the first occurrence after today's date.
 (You won't normally use `--today`; it's just to make these examples reproducible.)
 
 ## Forecast reports

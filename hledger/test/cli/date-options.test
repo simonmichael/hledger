@@ -78,7 +78,7 @@ $ hledger -f- reg date:2019-01-01-2019-02-01
 $ hledger -f- reg date:2019-01-2019-02
 2019-01-01                      (a)                              2             2
 
-# ** 0. A "every Nth day (of month)" periodic rule will generate occurences only after the start date. (#2218)
+# ** 0. A "every Nth day (of month)" periodic rule will generate occurrences only after the start date. (#2218)
 <
 ~ every 31st day from 2024-07 to 2024-09
   (a)  1
