@@ -204,7 +204,7 @@ $ hledger -f- reg yearly --forecast=2022-2027
 
 
 # ** 17. every Nth WEEKDAY, inferred start date.
-# The start date is adjusted to 2023/12/11, encompassing the 2024/1/1 posting.
+# The 2024/1/1 inferred start date is adjusted to 2023/12/11 (previous 2nd monday).
 <
 2024-01-01
   (mondays2024/01/01)  1
