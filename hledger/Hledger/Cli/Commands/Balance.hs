@@ -694,15 +694,19 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
       case layout_ of
       LayoutTidy -> rows  -- tidy csv should not include totals or averages
       _ -> rows ++ totals
-    (rows, totals) = multiBalanceReportAsSpreadsheetHelper False opts report
+    rows = header:body
+    (header, body, totals) =
+        multiBalanceReportAsSpreadsheetHelper False opts report
     maybeTranspose = if transpose_ then transpose else id
 
 -- Helper for CSV and ODS and HTML rendering.
 multiBalanceReportAsSpreadsheetHelper ::
     Bool -> ReportOpts -> MultiBalanceReport ->
-    ([[Ods.Cell Ods.NumLines Text]], [[Ods.Cell Ods.NumLines Text]])
+    ([Ods.Cell Ods.NumLines Text],
+     [[Ods.Cell Ods.NumLines Text]],
+     [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
-    (headers : concatMap fullRowAsTexts items, addTotalBorders totalrows)
+    (headers, concatMap fullRowAsTexts items, addTotalBorders totalrows)
   where
     accountCell label =
         (Ods.defaultCell label) {Ods.cellClass = Ods.Class "account"}
@@ -767,7 +771,7 @@ multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Htm
 multiBalanceReportHtmlRows ropts mbr =
   let
     -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
-    (headingsrow:bodyrows, mtotalsrows)
+    (headingsrow, bodyrows, mtotalsrows)
       | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
       | otherwise = multiBalanceReportAsSpreadsheetHelper True ropts mbr
     formatRow = Html.formatRow . map (fmap L.toHtml)
@@ -792,10 +796,10 @@ multiBalanceReportAsSpreadsheet ::
   ReportOpts -> MultiBalanceReport ->
   ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
-  let (upper,lower) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
+  let (header,body,total) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
   in  (if transpose_ ropts then swap *** Ods.transpose else id) $
       ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
-            upper ++ lower)
+            header : body ++ total)
 
 
 -- | Render a multi-column balance report as plain text suitable for console output.
