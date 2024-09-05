@@ -7,6 +7,7 @@ module Hledger.Write.Spreadsheet (
     Style(..),
     Emphasis(..),
     Cell(..),
+    Class(Class), textFromClass,
     Border(..),
     Lines(..),
     NumLines(..),
@@ -20,6 +21,7 @@ module Hledger.Write.Spreadsheet (
 import Hledger.Data.Types (Amount)
 
 import qualified Data.List as List
+import Data.Text (Text)
 
 
 data Type =
@@ -75,17 +77,23 @@ transposeBorder (Border left right top bottom) =
     Border top bottom left right
 
 
+newtype Class = Class Text
+
+textFromClass :: Class -> Text
+textFromClass (Class cls) = cls
+
 data Cell border text =
     Cell {
         cellType :: Type,
         cellBorder :: Border border,
         cellStyle :: Style,
+        cellClass :: Class,
         cellContent :: text
     }
 
 instance Functor (Cell border) where
-    fmap f (Cell typ border style content) =
-        Cell typ border style $ f content
+    fmap f (Cell typ border style class_ content) =
+        Cell typ border style class_ $ f content
 
 defaultCell :: (Lines border) => text -> Cell border text
 defaultCell text =
@@ -93,6 +101,7 @@ defaultCell text =
         cellType = TypeString,
         cellBorder = noBorder,
         cellStyle = Body Item,
+        cellClass = Class mempty,
         cellContent = text
     }
 

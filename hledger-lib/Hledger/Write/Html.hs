@@ -6,6 +6,8 @@ This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/
 -}
 module Hledger.Write.Html (
     printHtml,
+    formatRow,
+    formatCell,
     ) where
 
 import qualified Hledger.Write.Spreadsheet as Spr
@@ -15,7 +17,7 @@ import qualified Data.Text as Text
 import qualified Lucid.Base as LucidBase
 import qualified Lucid
 import Data.Text (Text)
-import Data.Foldable (for_)
+import Data.Foldable (traverse_)
 
 
 printHtml :: (Lines border) => [[Cell border (Lucid.Html ())]] -> Lucid.Html ()
@@ -26,9 +28,10 @@ printHtml table = do
         "th, td {padding-left:1em}" :
         "th.account, td.account {padding-left:0;}" :
         []
-    Lucid.table_ $ for_ table $ \row ->
-        Lucid.tr_ $ for_ row $ \cell ->
-        formatCell cell
+    Lucid.table_ $ traverse_ formatRow table
+
+formatRow:: (Lines border) => [Cell border (Lucid.Html ())] -> Lucid.Html ()
+formatRow = Lucid.tr_ . traverse_ formatCell
 
 formatCell :: (Lines border) => Cell border (Lucid.Html ()) -> Lucid.Html ()
 formatCell cell =
@@ -43,8 +46,11 @@ formatCell cell =
             case leftBorder++rightBorder++topBorder++bottomBorder of
                 [] -> []
                 ss -> [Lucid.style_ $ Text.intercalate "; " ss] in
+    let class_ =
+            map Lucid.class_ $
+            filter (not . Text.null) [Spr.textFromClass $ cellClass cell] in
     case cellStyle cell of
-        Head -> Lucid.th_ style str
+        Head -> Lucid.th_ (style++class_) str
         Body emph ->
             let align =
                     case cellType cell of
@@ -55,7 +61,7 @@ formatCell cell =
                     case emph of
                         Item -> id
                         Total -> Lucid.b_
-            in  Lucid.td_ (style++align) $ withEmph str
+            in  Lucid.td_ (style++align++class_) $ withEmph str
 
 
 class (Spr.Lines border) => Lines border where

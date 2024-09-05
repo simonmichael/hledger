@@ -22,6 +22,8 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import qualified Hledger.Write.Html as Html
+import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
 import Safe (tailDef)
 import Text.Tabular.AsciiWide as Tabular hiding (render)
@@ -362,12 +364,14 @@ compoundBalanceReportAsHtml ropts cbr =
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
       else
-        multiBalanceRowAsCsvText ropts colspans totalrow  -- make a table of rendered lines of the report totals row
-        & zipWith (:) ("Net:":repeat "")                  -- insert a headings column, with Net: on the first line only
-        & zipWith3                                        -- convert to a list of HTML totals rows, marking the first for special styling
-          (\f isfirstline r -> f isfirstline r)
-          (repeat (multiBalanceReportHtmlFootRow ropts))
-          (True : repeat False)
+        multiBalanceRowAsCellBuilders machineFmt ropts colspans Total totalrow
+                             -- make a table of rendered lines of the report totals row
+        & map (map (fmap wbToText))
+        & zipWith (:) (Spr.defaultCell "Net:" : repeat Spr.emptyCell)
+                             -- insert a headings column, with Net: on the first line only
+        & addTotalBorders    -- marking the first for special styling
+        & map (Html.formatRow . map (fmap L.toHtml))
+                             -- convert to a list of HTML totals rows
 
   in do
     link_ [rel_ "stylesheet", href_ "hledger.css"]
