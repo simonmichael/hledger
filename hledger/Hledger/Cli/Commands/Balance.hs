@@ -689,17 +689,13 @@ amountType bopts amt =
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
 multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
   where
-    allRows = case layout_ of
+    allRows =
+      rawTableContent $
+      case layout_ of
       LayoutTidy -> rows  -- tidy csv should not include totals or averages
       _ -> rows ++ totals
-    (rows, totals) = multiBalanceReportAsCsvHelper False opts report
+    (rows, totals) = multiBalanceReportAsSpreadsheetHelper False opts report
     maybeTranspose = if transpose_ then transpose else id
-
--- Helper for CSV (and HTML) rendering.
-multiBalanceReportAsCsvHelper :: Bool -> ReportOpts -> MultiBalanceReport -> (CSV, CSV)
-multiBalanceReportAsCsvHelper ishtml opts =
-    (rawTableContent *** rawTableContent) .
-    multiBalanceReportAsSpreadsheetHelper ishtml opts
 
 -- Helper for CSV and ODS and HTML rendering.
 multiBalanceReportAsSpreadsheetHelper ::
@@ -892,11 +888,6 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
     multiColumnTableInterRowBorder    = NoLine
     multiColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
-multiBalanceRowAsTextBuilders :: AmountFormat -> ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsTextBuilders bopts ropts colspans =
-    rawTableContent .
-    multiBalanceRowAsCellBuilders bopts ropts colspans Value
-
 multiBalanceRowAsCellBuilders ::
     AmountFormat -> ReportOpts -> [DateSpan] ->
     RowClass -> PeriodicReportRow a MixedAmount ->
@@ -949,10 +940,15 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
 
 
 multiBalanceRowAsText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
-multiBalanceRowAsText opts = multiBalanceRowAsTextBuilders oneLineNoCostFmt{displayColour=color_ opts} opts []
+multiBalanceRowAsText opts =
+    rawTableContent .
+    multiBalanceRowAsCellBuilders oneLineNoCostFmt{displayColour=color_ opts} opts [] Value
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
-multiBalanceRowAsCsvText opts colspans = fmap (fmap wbToText) . multiBalanceRowAsTextBuilders machineFmt opts colspans
+multiBalanceRowAsCsvText opts colspans =
+    map (map (wbToText . Ods.cellContent)) .
+    multiBalanceRowAsCellBuilders machineFmt opts colspans Value
+
 
 -- Budget reports
 
