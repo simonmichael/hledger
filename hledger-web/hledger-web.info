@@ -18,8 +18,8 @@ plain text accounting app.
 or
 'hledger web -- [OPTS] [QUERY]'
 
-   This manual is for hledger's web interface, version 1.34.99.  See
-also the hledger manual for common concepts and file formats.
+   This manual is for hledger's web interface, version 1.40.  See also
+the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -523,24 +523,24 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2569
-Ref: #options2674
-Node: PERMISSIONS10948
-Ref: #permissions11087
-Node: EDITING UPLOADING DOWNLOADING12299
-Ref: #editing-uploading-downloading12480
-Node: RELOADING13314
-Ref: #reloading13448
-Node: JSON API13881
-Ref: #json-api13996
-Node: DEBUG OUTPUT19530
-Ref: #debug-output19655
-Node: Debug output19682
-Ref: #debug-output-119783
-Node: ENVIRONMENT20200
-Ref: #environment20319
-Node: BUGS20436
-Ref: #bugs20520
+Node: OPTIONS2566
+Ref: #options2671
+Node: PERMISSIONS10945
+Ref: #permissions11084
+Node: EDITING UPLOADING DOWNLOADING12296
+Ref: #editing-uploading-downloading12477
+Node: RELOADING13311
+Ref: #reloading13445
+Node: JSON API13878
+Ref: #json-api13993
+Node: DEBUG OUTPUT19527
+Ref: #debug-output19652
+Node: Debug output19679
+Ref: #debug-output-119780
+Node: ENVIRONMENT20197
+Ref: #environment20316
+Node: BUGS20433
+Ref: #bugs20517
 
 End Tag Table
 
