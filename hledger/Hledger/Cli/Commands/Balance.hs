@@ -265,6 +265,7 @@ module Hledger.Cli.Commands.Balance (
 ) where
 
 import Control.Arrow (second, (***))
+import Control.Monad (guard)
 import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.Function (on)
@@ -337,6 +338,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
+    ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "add anchors to table cells with resepct to this base URL"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
@@ -593,6 +595,15 @@ addTotalBorders =
 rawTableContent :: [[Ods.Cell border text]] -> [[text]]
 rawTableContent = map (map Ods.cellContent)
 
+setAccountAnchor ::
+    Maybe Text -> Text -> Ods.Cell border text -> Ods.Cell border text
+setAccountAnchor base acct cell =
+    cell
+    {Ods.cellAnchor =
+        foldMap
+            (\url -> url <> "register?q=inacct:" <> quoteIfSpaced acct)
+            base}
+
 
 -- | Render a single-column balance report as FODS.
 balanceReportAsSpreadsheet ::
@@ -613,16 +624,20 @@ balanceReportAsSpreadsheet opts (items, total) =
     rows ::
         RowClass -> AccountName ->
         MixedAmount -> [[Ods.Cell Ods.NumLines Text]]
-    rows rc name ma = case layout_ opts of
+    rows rc name ma =
+      let accountCell =
+              setAccountAnchor
+                  (guard (rc==Value) >> balance_base_url_ opts) name $
+              cell $ accountNameDrop (drop_ opts) name in
+      case layout_ opts of
       LayoutBare ->
           map (\a ->
-                [showName name,
+                [accountCell,
                  cell $ acommodity a,
                  renderAmount rc $ mixedAmount a])
           . amounts $ mixedAmountStripCosts ma
-      _ -> [[showName name, renderAmount rc ma]]
+      _ -> [[accountCell, renderAmount rc ma]]
 
-    showName = cell . accountNameDrop (drop_ opts)
     renderAmount rc mixedAmt =
         wbToText <$> cellFromMixedAmount bopts (amountClass rc, mixedAmt)
       where
@@ -706,9 +721,11 @@ multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport
       map (headerCell . showDateSpan) colspans ++
       [hCell "rowtotal" "total" | row_total_] ++
       [hCell "rowaverage" "average" | average_]
-    fullRowAsTexts row =
-        map (accountCell (showName row) :) $ rowAsText Value row
-      where showName = accountNameDrop drop_ . prrFullName
+    fullRowAsTexts row = map (anchorCell:) $ rowAsText Value row
+      where anchorCell =
+              let name = prrFullName row in
+              setAccountAnchor balance_base_url_ name $
+              accountCell $ accountNameDrop drop_ name
     totalrows
       | no_total_ = []
       | ishtml    = zipWith (:) (accountCell totalRowHeadingHtml : repeat Ods.emptyCell) $ rowAsText Total tr
@@ -1207,7 +1224,7 @@ budgetReportAsSpreadsheet
                -> PeriodicReportRow a BudgetCell
                -> [[Ods.Cell Ods.NumLines Text]]
     rowAsTexts rc render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | layout_ /= LayoutBare = [cell (render row) : map showNorm vals]
+      | layout_ /= LayoutBare = [accountCell : map showNorm vals]
       | otherwise =
             joinNames . zipWith (:) (map cell cs)  -- add symbols and names
           . transpose                   -- each row becomes a list of Text quantities
@@ -1224,7 +1241,11 @@ budgetReportAsSpreadsheet
                         (budgetAverageClass rc, budgetavg)]
                             | average_]
 
-        joinNames = map (cell (render row) :)
+        joinNames = map (accountCell :)
+        accountCell =
+            let name = render row in
+            setAccountAnchor (guard (rc==Value) >> balance_base_url_) name $
+                cell name
 
 
 -- tests

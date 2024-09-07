@@ -87,13 +87,14 @@ data Cell border text =
         cellType :: Type,
         cellBorder :: Border border,
         cellStyle :: Style,
+        cellAnchor :: Text,
         cellClass :: Class,
         cellContent :: text
     }
 
 instance Functor (Cell border) where
-    fmap f (Cell typ border style class_ content) =
-        Cell typ border style class_ $ f content
+    fmap f (Cell typ border style anchor class_ content) =
+        Cell typ border style anchor class_ $ f content
 
 defaultCell :: (Lines border) => text -> Cell border text
 defaultCell text =
@@ -101,6 +102,7 @@ defaultCell text =
         cellType = TypeString,
         cellBorder = noBorder,
         cellStyle = Body Item,
+        cellAnchor = mempty,
         cellClass = Class mempty,
         cellContent = text
     }
