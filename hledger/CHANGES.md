@@ -23,7 +23,110 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# f4e024e9c
+# 1.40 2024-09-07
+
+Fixes
+
+- Account tags (and type declarations) declared in multiple files are now combined correctly. [#2202]
+
+- Several kinds of report interval now choose a better start date:
+  - `every Nth day of month from DATE` with periodic transactions [#2218]
+  - `every M/D from DATE`
+  - `every Nth WEEKDAY from DATE`
+
+- The balance commands' html output no longer repeats the "Total" and
+  "Net" headings when the totals row has multiple lines.
+  And the layout has been improved and made more consistent with the
+  text output.
+
+- The `--tldr` flag now also works with the `tealdeer` tldr client.
+
+Features
+
+- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-files),
+  to be added to your hledger commands either on demand or automatically.
+  (This supersedes the older arguments files feature.)
+
+  This much-requested new feature has pros and cons, and is experimental;
+  your testing and feedback is welcome.
+  It changes the nature of hledger somewhat, which I have marked by
+  giving this release a more memorable version number (1.40).
+
+- The balance commands can now output in FODS format, an XML spreadsheet
+  file format readable by LibreOffice. (Henning Thielemann)
+
+Improvements
+
+- Command line processing has been overhauled and should be more robust
+  in certain cases, with tweaked error messages and debug output.
+  Command-specific flags can now optionally appear before the command name.
+  (Though writing them afterward is usually more readable.
+   Addon-specific flags must still come last, after `--`.)
+
+- The `--rules-file` option has been renamed to `--rules`.
+  The old spelling is still supported as a hidden option.
+
+- Weekly reports' week headings are now more compact, especially in
+  single-year balance reports. ([#2204], Victor Mihalache)
+
+- The `balance` command with no report interval, and also `balance --budget`,
+  now support html output. (Henning Thielemann)
+
+- In balance commands' html and csv output, "Total:" and "Net:" headings
+  are now capitalised consistently.
+
+- `bs`/`cf`/`is` reports now show the report interval in their title.
+
+- The balance commands' text output with the `--pretty` flag now shows
+  an outer table border and inter-column borders.
+
+- The `check recentassertions` error message is now more readable.
+
+- Timedot format now allows comment lines to be indented.
+
+- When running the `tldr-node-client` client, auto-update of the tldr
+  database is now suppressed.
+
+- When running a tldr client fails, the warning now mentions the required
+  `--render` flag. [#2201]
+
+- The error message for unsupported regular expressions like `(?:foo)` has
+  been improved.
+
+- `--debug` has moved to "General help flags", making it available in
+  more situations.
+
+- Some verbose debug output from command line processing has been demoted to level 2.
+
+- Parsing timedot files now gives debug output at level 9.
+
+Docs
+
+- The hledger/hledger-ui/hledger-web manuals now list all command options as shown by `--help`.
+- Added an example config file, `hledger.conf.sample`.
+- The `diff` and `prices` commands' help layout has been improved.
+- `add`'s doc described the effect of `D` wrongly, now fixed.
+- Date adjustments: rewrites and corrections
+- Period headings: added
+- Input: clarify that multiple -f options are allowed
+- Scripts and add-ons: edits, list add-ons again
+- Timeclock: edits, fix `ti`/`to` scripts
+- Fixed "hledger and Ledger" links [hledger_site#112]
+- examples/csv: Nordea CSV rules added (Arto Jonsson)
+- examples/csv: Tiller CSV rules added
+
+
+
+Scripts/addons
+
+- `bin/bashrc` updates; add years, eachyear scripts
+- `bin/hledger-simplebal`: ignore config files
+- `bin/hledger-script-example`: explain shebang commands better
+- `bin/hledger-register-max`: update/fix
+
+
+
+API
 
 
 # 1.34 2024-06-01

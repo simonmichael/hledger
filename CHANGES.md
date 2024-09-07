@@ -7,6 +7,7 @@
 |_|           |__/
 
 Docs
+(some overlap with hledger changelog; doc updates are mostly mentioned in that one since it's more visible)
 
 Scripts/addons
 
@@ -18,7 +19,33 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# f4e024e9c
+# 1.40 2024-09-07
+
+Docs
+
+- In the hledger 1.29 release notes, Date adjustments has had some corrections.
+- Github release notes template cleanups; fix mac, linux install commands.
+- README: fixed contributors link.
+- RELEASING: updates
+
+Scripts/addons
+
+- hledger-install: cleanups, bump versions, perhaps fix hledger-interest install
+- hledger-install: clarify some stack/cabal setup messages
+
+Infrastructure/Misc
+
+- Shake.hs: fix partial warnings
+- Shake cmdhelp: renamed to cmddocs, and it now also updates the options
+  listed in the manuals, and shows progress output.  It should be run (at
+  some point) after changing commands' docs or options.
+- Shake txtmanuals: silence all but wide table warnings
+- just file cleanups; update to support just 1.28+
+- just twih: date fixes
+- just ghci: -fobject-code was a mistake, keep everything interpreted
+- just functest: try again to reduce rebuilding/slowdowns when testing
+- just installrel: update for .tar.gz
+- ci scripts: cleanup, fix a macos-ism
 
 
 # 1.34 2024-06-01

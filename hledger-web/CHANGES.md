@@ -22,7 +22,19 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# f4e024e9c
+# 1.40 2024-09-07
+
+Improvements
+
+- We now guess a more robust base url when `--base-url` is not specified.
+  Now relative links to js/css resources will use the same hostname etc.
+  that the main page was requested from, making them work better
+  when accessed via multiple IP addresses/hostnames
+  without an explicit `--base-url` setting.
+  A followup to [#2099], [#2100] and [#2127]. 
+
+- We now require a http[s] scheme in `--base-url`'s value.
+  Previously it accepted just a hostname, and generated bad links.
 
 
 # 1.34 2024-06-01
