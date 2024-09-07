@@ -22,7 +22,19 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# f4e024e9c
+# 1.40 2024-09-07
+
+Improvements
+
+- The menu screen now supports the shift arrow and shift T keys,
+  and its header shows any narrowed time period in effect, like other screens.
+
+- Support brick 2.4.
+
+Docs
+
+- The description of the shift-T key (set period to today) has been fixed.
+- The shift arrow keys and period narrowing have been clarified
 
 
 # 1.34 2024-06-01
