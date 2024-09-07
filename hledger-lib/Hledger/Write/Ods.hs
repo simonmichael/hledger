@@ -314,9 +314,16 @@ formatCell cell =
                         (cellContent cell)
                 _ -> "office:value-type='string'"
 
+        anchor text =
+            if T.null $ Spr.cellAnchor cell
+                then text
+                else printf "<text:a xlink:href='%s'>%s</text:a>"
+                        (escape $ T.unpack $ Spr.cellAnchor cell) text
+
     in
     printf "<table:table-cell%s %s>" style valueType :
-    printf "<text:p>%s</text:p>" (escape $ T.unpack $ cellContent cell) :
+    printf "<text:p>%s</text:p>"
+        (anchor $ escape $ T.unpack $ cellContent cell) :
     "</table:table-cell>" :
     []
 
