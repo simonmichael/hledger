@@ -1,16 +1,16 @@
-# An example hledger config file, for you to customise.
+# An example hledger config file for you to customise.
 # This declares extra options/arguments to be added to your hledger commands.
 # Save as ~/.hledger.conf, or ~/.config/hledger/hledger.conf, or hledger.conf
 # in or above your current directory, and hledger will use it automatically.
+# Or you can choose a config file with --conf.
+# Or you can turn a config file like this one into a script, by adding
+# a shebang line like `#!/usr/bin/env -S hledger --conf` at the top.
 #
-# If you use a config file, be careful about what you put in it.
-# It changes hledger's behaviour, so it's easy to confuse yourself,
-# disrupt reports, or break scripts/applications which use hledger.
-# If a command is not working as expected, run with --debug to troubleshoot.
-# To avoid using any config file, you can run hledger with -n/--no-conf.
-#
-# You can also: choose a config file with --conf, or add a shebang line (eg
-# #!/usr/bin/env -S hledger --conf) to config files and run them like scripts.
+# Automatic config files are convenient, but have a cost: it's easy to confuse
+# yourself, disrupt reports, or break scripts/applications which use hledger.
+# If you choose to use one, be careful about what you put in it.
+# If a command is not working as expected, run it with `--debug` to troubleshoot.
+# To avoid using a config file, run with `-n` (short for `--no-conf`).
 
 
 # 1. General options. These will be used with all commands which support them.
@@ -20,40 +20,45 @@
 --pretty
 
 # Postpone balance assertions until you use -s or `hledger check assertions`.
-# Less need to write -I while fixing issues.
+# This means there's less need to add -I while piping or fixing problems.
 --ignore-assertions
 
 # Always infer these things ? Why not.
 --infer-costs
---infer-equity
 --infer-market-prices
+#--infer-equity
 
 
 # 2. Command-specific options.
 
 [print]
---explicit     # show missing amounts
---show-costs   # show costs
+--explicit     # show inferred amounts
+--show-costs   # show inferred costs
 
 [help]
---man          # if you prefer man over info
+#--man          # if you prefer man over info
 
 # Set your preferred options for the balance commands.
 # You can override these by adding more options on the command line.
-[balance]            --tree --depth 3 -b '3 months ago'
-[balancesheet]       --tree --depth 3 -b '3 months ago'
-[balancesheetequity] --tree --depth 3 -b '3 months ago'
-[cashflow]           --tree --depth 3 -b '3 months ago'
-[incomestatement]    --tree --depth 3 -b '3 months ago'
+# [balance]            --tree --depth 3 --layout=bare
+# [balancesheet]       --tree --depth 3 --layout=bare
+# [balancesheetequity] --tree --depth 3 --layout=bare
+# [cashflow]           --tree --depth 3 --layout=bare
+# [incomestatement]    --tree --depth 3 --layout=bare
 
-# You can set options/arguments for addon commands too (when started by
-# `hledger CMD`). The -- argument needed at command line is not needed here.
+
+# You can also set options for add-on commands (run by `hledger ADDONCMD`).
+# The -- argument needed at command line is not needed here.
 
 # Some defaults for hledger-ui: start in the Cash accounts screen,
 # watch for file changes, set a depth limit, hide zeros and equity accounts.
 [ui] --cash --watch -3 -E not:type:e
+# need to repeat this here
+--ignore-assertions
 
 [web] --port 5050 --allow edit
+# and here
+--ignore-assertions
 
 [iadd] --date-format %Y-%m-%d
 
