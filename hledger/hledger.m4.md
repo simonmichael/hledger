@@ -521,25 +521,46 @@ Argument files are now superseded by..
 
 ## Config files
 
-hledger will read extra command line options from a `hledger.conf` config file.
-These will be inserted early in the command line, so your later options can override them if needed.
-The config file can contain general options (which will be used with all commands that support them), and command-specific options (or arguments).
-[hledger.conf.sample](https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample) is an example,
-which you can install as, eg, `./hledger.conf` or `$HOME/.hledger.conf`.
+As of hledger 1.40, you can optionally save command line options (or arguments)
+to be used when running hledger commands, in a config file. Here's a small example:
 
-To be precise, hledger looks for `hledger.conf` in the current directory or above,
-or in your home directory (with a dotted name, `~/.hledger.conf`),
-or finally in your XDG config directory (`~/.config/hledger/hledger.conf`).
-Or you can select a particular config file by using the `--conf` option,
-or by adding a `hledger --conf` shebang line to a config file and executing it like a script (see the example file).
-You can inspect the finding and processing of config files with `--debug` or `--debug=8`.
+```conf
+# General options are listed first, one or more per line.
+# These will be used with all hledger commands that support them.
+--pretty
 
-If you want to run hledger without a config file, to ensure standard defaults and behaviour, use the `-n/--no-conf` flag.
-This is recommended when using hledger in scripts, and when troubleshooting problems.
+# Options following a `[COMMANDNAME]` heading are used with that hledger command only.
+[print]
+--explicit --show-costs
+```
 
-When both `--conf` and `--no-conf` options are used, the last (right-most) wins.
+To use a config file, specify it with the `--conf` option.
+Its options will be inserted near the start of your command line (so you can override them if needed).
+Or, you can add a `hledger --conf` shebang line to a config file and execute it like a script.
 
-*(in master, experimental)*
+Or, you can set up an automatic config file that is used whenever you run hledger.
+This can be `hledger.conf` in the current directory or above,
+or `.hledger.conf` in your home directory (`~/.hledger.conf`),
+or `hledger.conf` in your XDG config directory (`~/.config/hledger/hledger.conf`).
+
+You can ignore config files by adding the `-n/--no-conf` flag.
+This is useful when using hledger in scripts, or when troubleshooting.
+(When both `--conf` and `--no-conf` options are used, the right-most wins.)
+To inspect the processing of config files, use `--debug` or `--debug=8`.
+
+Here is another example config file you could start with:
+<https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample>
+
+Automatic config files are convenient, but have a cost: it's easy to change a report's behaviour,
+or break scripts/applications which use hledger, in unintended ways that will surprise you later.
+They change the nature of hledger somewhat, making it less transparent and predictable.
+If you decide to use one, here are some tips:
+
+- Be conservative about what you put in it. Try to consider the effect on all your reports.
+- Whenever a hledger command does not work as expected, try it again with `-n`.
+- If that helps, you can run it with `--debug` to see how a config file affected it.
+
+This feature has been added in hledger 1.40 and is considered *experimental*.
 
 # Output
 
