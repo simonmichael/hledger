@@ -59,7 +59,7 @@ Flags:
                             'bare'        : commodity symbols in one column
                             'tidy'        : every attribute in its own column
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, html, csv, tsv, json.
+                            txt, html, csv, tsv, json, fods.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 
@@ -125,8 +125,8 @@ balance can show..
 
 This command supports the output destination and output format options,
 with output formats txt, csv, tsv (Added in 1.32), json, and
-(multi-period reports only:) html. In txt output in a colour-supporting
-terminal, negative amounts are shown in red.
+(multi-period reports only:) html, fods (Added in 1.40). In txt output
+in a colour-supporting terminal, negative amounts are shown in red.
 
 Simple balance report
 
