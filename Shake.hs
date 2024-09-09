@@ -586,8 +586,9 @@ main = do
       -- This may also update .cabal files from package.yaml files, and/or install haskell deps.
       phony "build" $ do
         let
-          pkgs | null args = packages
-               | otherwise = args
+          args' = drop 1 args
+          pkgs | null args' = packages
+               | otherwise = args'
         sequence_ [ do
           need $ fromMaybe [] $ lookup pkg embeddedFiles
           cmd Shell "stack build " pkg :: Action ()
