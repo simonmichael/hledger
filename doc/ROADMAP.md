@@ -13,10 +13,10 @@ Related: [TODO](TODO.md).
 ## 2024
 
 **Targets:**
+- hledger 1.41, december
+- hledger 1.40, september
+- hledger 1.34, june
 - hledger 1.33, april
-- hledger 1.34, june ? TBD
-- hledger 1.35, september ?
-- hledger 1.36, december ?
 
 ## 2023
 
