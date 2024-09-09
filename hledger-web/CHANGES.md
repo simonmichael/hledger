@@ -22,7 +22,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 1.40 2024-09-07
+# 1.40 2024-09-09
 
 Improvements
 

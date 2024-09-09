@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 1.40 2024-09-07
+# 1.40 2024-09-09
 
 Fixes
 
@@ -54,6 +54,9 @@ Features
 
 - The balance commands can now output in FODS format, an XML spreadsheet
   file format readable by LibreOffice. (Henning Thielemann)
+
+- The `register` report can now be sorted by date, account, amount,
+  absolute amount, description, or a combination of these. (Michael Rees, [#2211])
 
 Improvements
 
@@ -100,6 +103,8 @@ Improvements
 
 - Parsing timedot files now gives debug output at level 9.
 
+- Allow doclayout 0.5.
+
 Docs
 
 - The hledger/hledger-ui/hledger-web manuals now list all command options as shown by `--help`.
@@ -112,10 +117,9 @@ Docs
 - Scripts and add-ons: edits, list add-ons again
 - Timeclock: edits, fix `ti`/`to` scripts
 - Fixed "hledger and Ledger" links [hledger_site#112]
-- examples/csv: Nordea CSV rules added (Arto Jonsson)
+- examples/csv: Monzo CSV rules added
 - examples/csv: Tiller CSV rules added
-
-
+- examples/csv: Nordea CSV rules added (Arto Jonsson)
 
 Scripts/addons
 

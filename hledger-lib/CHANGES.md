@@ -22,7 +22,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 1.40 2024-09-07
+# 1.40 2024-09-09
 
 Breaking changes
 
@@ -34,6 +34,7 @@ Improvements
 
 - Added `journalDbg` debug output helper.
 
+- Allow doclayout 0.5.
 
 # 1.34 2024-06-01
 
