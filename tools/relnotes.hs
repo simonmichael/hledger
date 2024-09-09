@@ -18,11 +18,19 @@ and that changelogs and relnotes are non-empty with specific layout and heading 
 In the end I wrote this in haskell because everything else was harder.
 -}
 
+{-# OPTIONS_GHC -Wno-x-partial #-}
+
+import Control.Monad
 import Data.Char
 import Data.List
+import Data.List.Split
+import System.Exit
 import System.IO
 import System.Process
 import Text.Printf
+
+strToVer = splitOn "."
+verToStr = intercalate "."
 
 main = do
   -- gather latest release changes & info
@@ -31,10 +39,23 @@ main = do
   (hledgerUiChangesHeading, hledgerUiChanges)   <- changelogFirstSection <$> readFile "hledger-ui/CHANGES.md"
   (hledgerWebChangesHeading, hledgerWebChanges) <- changelogFirstSection <$> readFile "hledger-web/CHANGES.md"
   reltags <- lines <$> readProcess "git" ["tag", "--sort=-creatordate", "-l", "[0-9]*"] ""
+  printf $ "previous release tags: " <> unwords (take 5 reltags) <> " ...\n"
   let
     [_, ver, date] = words projectChangesHeading
-    prevver:_ = drop 1 $ dropWhile (/=ver) reltags
-  relauthors <- map (unwords . drop 1 . words) . lines <$> readProcess "git" ["shortlog", "-sn", prevver<>".."<>ver] ""
+    verexists = ver `elem` reltags
+  printf $ "project CHANGES.md's top heading: " <> projectChangesHeading
+  printf $ "inferred latest release version and date: " <> intercalate ", " [ver, date] <> "\n"
+  printf $ "a tag for this release " <> (if verexists then "exists" else "does not yet exist") <> "\n"
+  let prevvers =
+        map verToStr $ dropWhile (>=strToVer ver) $ map strToVer $ reltags
+  printf $ "releases before this one: " <> unwords (take 5 prevvers) <> " ...\n"
+  when (null prevvers) $ do
+    printf $ "error: no previous releases found. This expects to run before new release headings are added to changelogs\n"
+    exitFailure
+  let prevver = head prevvers
+  printf $ "previous release: " <> prevver <> "\n"
+  relauthors <- map (unwords . drop 1 . words) . lines <$> readProcess "git" ["shortlog", "-sn", prevver<>".."<>if verexists then ver else ""] ""
+  printf $ "this release's authors: " <> intercalate ", " relauthors <> "\n"
 
   -- convert to release notes format
   let
