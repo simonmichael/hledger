@@ -1,5 +1,5 @@
 name        : hledger-ui
-version     : 1.34.99
+version     : 1.40.99
 synopsis    : Terminal interface for the hledger accounting system
 description : |
   A simple terminal user interface for the hledger accounting system.
@@ -42,7 +42,7 @@ flags:
     default: false
     manual:  true
 
-cpp-options: -DVERSION="1.34.99"
+cpp-options: -DVERSION="1.40.99"
 
 ghc-options:
 - -Wall
@@ -77,15 +77,15 @@ when:
 
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.34.99"
+  cpp-options: -DVERSION="1.40.99"
   exposed-modules:
   - Hledger.UI
   - Hledger.UI.Main
   - Hledger.UI.Theme
   - Hledger.UI.UIOptions
   dependencies:
-  - hledger-lib >=1.34.99 && <1.35
-  - hledger >=1.34.99 && <1.35
+  - hledger-lib >=1.40.99 && <1.41
+  - hledger >=1.40.99 && <1.41
   - ansi-terminal >=0.9
   - async
   - cmdargs >=0.8
