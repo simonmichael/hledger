@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "June 2024" "hledger-1.34.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "September 2024" "hledger-1.40.99 " "hledger User Manuals"
 
 
 
@@ -33,7 +33,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.34.99.
+1.40.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -112,7 +112,7 @@ hledger reads one or more data files, each time you run it.
 You can specify a file with \f[CR]\-f\f[R], like so
 .IP
 .EX
-$ hledger \-f FILE print
+$ hledger \-f FILE [\-f FILE2 ...] print
 .EE
 .PP
 Files are most often in hledger\[aq]s journal format, with the
@@ -731,32 +731,62 @@ quoting than you would at the command prompt.)
 .PP
 Argument files are now superseded by..
 .SS Config files
-hledger will read extra command line options from a
-\f[CR]hledger.conf\f[R] config file.
-These will be inserted early in the command line, so your later options
-can override them if needed.
-The config file can contain general options (which will be used with all
-commands that support them), and command\-specific options (or
-arguments).
-hledger.conf.sample is an example, which you can install as
-\f[CR]./hledger.conf\f[R] or \f[CR]$HOME/.hledger.conf\f[R].
+As of hledger 1.40, you can optionally save command line options (or
+arguments) to be used when running hledger commands, in a config file.
+Here\[aq]s a small example:
+.IP
+.EX
+\f[I]# General options are listed first, one or more per line.\f[R]
+\f[I]# These will be used with all hledger commands that support them.\f[R]
+\-\-pretty
+
+\f[I]# Options following a \[ga][COMMANDNAME]\[ga] heading are used with that hledger command only.\f[R]
+\f[B][print]\f[R]
+\-\-explicit \-\-show\-costs
+.EE
 .PP
-To be precise, hledger looks for \f[CR]hledger.conf\f[R] in the current
-directory or above, or in your home directory (with a dotted name,
-\f[CR]\[ti]/.hledger.conf\f[R]), or finally in your XDG config directory
-(\f[CR]\[ti]/.config/hledger/hledger.conf\f[R]).
-Or you can select a particular config file by using the
-\f[CR]\-\-conf\f[R] option, or by adding a \f[CR]hledger \-\-conf\f[R]
-shebang line to a config file and executing it like a script (see the
-example file).
-You can inspect the finding and processing of config files with
-\f[CR]\-\-debug\f[R] or \f[CR]\-\-debug=8\f[R].
+To use a config file, specify it with the \f[CR]\-\-conf\f[R] option.
+Its options will be inserted near the start of your command line (so you
+can override them if needed).
+Or, you can add a \f[CR]hledger \-\-conf\f[R] shebang line to a config
+file and execute it like a script.
 .PP
-If you want to run hledger without a config file, to ensure standard
-defaults and behaviour, use the \f[CR]\-n/\-\-no\-conf\f[R] flag.
-This is useful when troubleshooting problems or sharing examples.
+Or, you can set up an automatic config file that is used whenever you
+run hledger.
+This can be \f[CR]hledger.conf\f[R] in the current directory or above,
+or \f[CR].hledger.conf\f[R] in your home directory
+(\f[CR]\[ti]/.hledger.conf\f[R]), or \f[CR]hledger.conf\f[R] in your XDG
+config directory (\f[CR]\[ti]/.config/hledger/hledger.conf\f[R]).
 .PP
-\f[I](Added in 1.40; experimental)\f[R]
+You can ignore config files by adding the \f[CR]\-n/\-\-no\-conf\f[R]
+flag.
+This is useful when using hledger in scripts, or when troubleshooting.
+(When both \f[CR]\-\-conf\f[R] and \f[CR]\-\-no\-conf\f[R] options are
+used, the right\-most wins.)
+To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
+\f[CR]\-\-debug=8\f[R].
+.PP
+Here is another example config file you could start with:
+https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample
+.PP
+Automatic config files are convenient, but have a cost: it\[aq]s easy to
+change a report\[aq]s behaviour, or break scripts/applications which use
+hledger, in unintended ways that will surprise you later.
+They change the nature of hledger somewhat, making it less transparent
+and predictable.
+If you decide to use one, here are some tips:
+.IP \[bu] 2
+Be conservative about what you put in it.
+Try to consider the effect on all your reports.
+.IP \[bu] 2
+Whenever a hledger command does not work as expected, try it again with
+\f[CR]\-n\f[R].
+.IP \[bu] 2
+If that helps, you can run it with \f[CR]\-\-debug\f[R] to see how a
+config file affected it.
+.PP
+This feature has been added in hledger 1.40 and is considered
+\f[I]experimental\f[R].
 .SH Output
 .SS Output destination
 hledger commands send their output to the terminal by default.
@@ -783,7 +813,7 @@ Here are those commands and the formats currently supported:
 .PP
 .TS
 tab(@);
-lw(16.1n) lw(14.5n) lw(14.5n) lw(16.1n) lw(4.8n) lw(4.0n).
+lw(13.6n) lw(12.2n) lw(12.2n) lw(12.2n) lw(12.2n) lw(4.1n) lw(3.4n).
 T{
 \-
 T}@T{
@@ -792,6 +822,8 @@ T}@T{
 csv/tsv
 T}@T{
 html
+T}@T{
+fods
 T}@T{
 json
 T}@T{
@@ -807,6 +839,7 @@ Y
 T}@T{
 Y
 T}@T{
+T}@T{
 Y
 T}@T{
 T}
@@ -817,7 +850,9 @@ Y \f[I]1\f[R]
 T}@T{
 Y \f[I]1\f[R]
 T}@T{
-Y \f[I]1,2\f[R]
+Y \f[I]1\f[R]
+T}@T{
+Y \f[I]1\f[R]
 T}@T{
 Y
 T}@T{
@@ -831,6 +866,7 @@ Y \f[I]1\f[R]
 T}@T{
 Y \f[I]1\f[R]
 T}@T{
+T}@T{
 Y
 T}@T{
 T}
@@ -842,6 +878,7 @@ T}@T{
 Y \f[I]1\f[R]
 T}@T{
 Y \f[I]1\f[R]
+T}@T{
 T}@T{
 Y
 T}@T{
@@ -855,6 +892,7 @@ Y \f[I]1\f[R]
 T}@T{
 Y \f[I]1\f[R]
 T}@T{
+T}@T{
 Y
 T}@T{
 T}
@@ -867,6 +905,7 @@ Y \f[I]1\f[R]
 T}@T{
 Y \f[I]1\f[R]
 T}@T{
+T}@T{
 Y
 T}@T{
 T}
@@ -876,6 +915,7 @@ T}@T{
 Y
 T}@T{
 Y
+T}@T{
 T}@T{
 T}@T{
 Y
@@ -890,6 +930,7 @@ T}@T{
 Y
 T}@T{
 T}@T{
+T}@T{
 Y
 T}@T{
 T}
@@ -897,9 +938,6 @@ T}
 .IP \[bu] 2
 \f[I]1 Also affected by the balance commands\[aq] \f[CI]\-\-layout\f[I]
 option.\f[R]
-.IP \[bu] 2
-\f[I]2 \f[CI]balance\f[I] does not support html output without a report
-interval or with \f[CI]\-\-budget\f[I].\f[R]
 .PP
 The output format is selected by the
 \f[CR]\-O/\-\-output\-format=FMT\f[R] option:
@@ -1104,7 +1142,7 @@ the add or web or import commands to create and update it.
 .PP
 Many users, though, edit the journal file with a text editor, and track
 changes with a version control system such as git.
-Editor addons such as ledger\-mode or hledger\-mode for Emacs,
+Editor add\-ons such as ledger\-mode or hledger\-mode for Emacs,
 vim\-ledger for Vim, and hledger\-vscode for Visual Studio Code, make
 this easier, adding colour, formatting, tab completion, and useful
 commands.
@@ -5329,11 +5367,17 @@ $ hledger \-f sample.timeclock register \-p weekly \-\-depth 1 \-\-empty  # time
 .PP
 To generate time logs, ie to clock in and clock out, you could:
 .IP \[bu] 2
-use emacs and the built\-in timeclock.el, or the extended
-timeclock\-x.el and perhaps the extras in ledgerutils.el
+use these shell aliases at the command line:
+.RS 2
+.IP
+.EX
+alias ti=\[aq]echo i \[ga]date \[dq]+%Y\-%m\-%d %H:%M:%S\[dq]\[ga] $* >>$TIMELOG\[aq]
+alias to=\[aq]echo o \[ga]date \[dq]+%Y\-%m\-%d %H:%M:%S\[dq]\[ga] >>$TIMELOG\[aq]
+.EE
+.RE
 .IP \[bu] 2
-at the command line, use these bash aliases:
-\f[CR]cli     alias ti=\[dq]echo i \[ga]date \[aq]+%Y\-%m\-%d %H:%M:%S\[aq]\[ga] \[rs]$* >>$TIMELOG\[dq]     alias to=\[dq]echo o \[ga]date \[aq]+%Y\-%m\-%d %H:%M:%S\[aq]\[ga] >>$TIMELOG\[dq]\f[R]
+or Emacs\[aq]s built\-in timeclock.el, or the extended timeclock\-x.el,
+and perhaps the extras in ledgerutils.el
 .IP \[bu] 2
 or use the old \f[CR]ti\f[R] and \f[CR]to\f[R] scripts in the ledger 2.x
 repository.
@@ -5687,26 +5731,62 @@ flags:
 .PP
 More complex intervals can be specified using \f[CR]\-p/\-\-period\f[R],
 described below.
-.SS Date adjustment
-When there is a report interval (other than daily), report start/end
-dates which have been inferred, eg from the journal, are automatically
-adjusted to natural period boundaries.
-This is convenient for producing simple periodic reports.
-More precisely:
-.IP \[bu] 2
-an inferred start date will be adjusted earlier if needed to fall on a
-natural period boundary
-.IP \[bu] 2
-an inferred end date will be adjusted later if needed to make the last
-period the same length as the others.
+.SS Date adjustments
+.SS Start date adjustment
+If you let hledger infer a report\[aq]s start date, it will adjust the
+date to the previous natural boundary of the report interval, for
+convenient periodic reports.
+(If you don\[aq]t want that, specify a start date.)
 .PP
-By contrast, start/end dates which have been specified explicitly, with
-\f[CR]\-b\f[R], \f[CR]\-e\f[R], \f[CR]\-p\f[R] or \f[CR]date:\f[R], will
-not be adjusted (since hledger 1.29).
-This makes it possible to specify non\-standard report periods, but it
-also means that if you are specifying a start date, you should pick one
-that\[aq]s on a period boundary if you want to see simple report period
-headings.
+For example, if the journal\[aq]s first transaction is on january 10th,
+.IP \[bu] 2
+\f[CR]hledger register\f[R] (no report interval) will start the report
+on january 10th.
+.IP \[bu] 2
+\f[CR]hledger register \-\-monthly\f[R] will start the report on the
+previous month boundary, january 1st.
+.IP \[bu] 2
+\f[CR]hledger register \-\-monthly \-\-begin 1/5\f[R] will start the
+report on january 5th [1].
+.PP
+Also if you are generating transactions or budget goals with periodic
+transaction rules, their start date may be adjusted in a similar way (in
+certain situations).
+.SS End date adjustment
+A report\[aq]s end date is always adjusted to include a whole number of
+intervals, so that the last subperiod has the same length as the others.
+.PP
+For example, if the journal\[aq]s last transaction is on february 20th,
+.IP \[bu] 2
+\f[CR]hledger register\f[R] will end the report on february 20th.
+.IP \[bu] 2
+\f[CR]hledger register \-\-monthly\f[R] will end the report at the end
+of february.
+.IP \[bu] 2
+\f[CR]hledger register \-\-monthly \-\-end 2/14\f[R] also will end the
+report at the end of february.
+.IP \[bu] 2
+\f[CR]hledger register \-\-monthly \-\-begin 1/5 \-\-end 2/14\f[R] will
+end the report on march 4th [1].
+.PP
+[1] Since hledger 1.29.
+.SS Period headings
+With non\-standard subperiods, hledger will show
+\[dq]STARTDATE..ENDDATE\[dq] headings.
+With standard subperiods (ie, starting on a natural interval boundary),
+you\[aq]ll see more compact headings, which are usually preferable.
+(Though month names will be in english, currently.)
+.PP
+So if you are specifying a start date and you want compact headings:
+choose a start of year for yearly reports, a start of quarter for
+quarterly reports, a start of month for monthly reports, etc.
+(Remember, you can write eg \f[CR]\-b 2024\f[R] or \f[CR]1/1\f[R] as a
+shortcut for a start of year, or \f[CR]2024\-04\f[R] or
+\f[CR]202404\f[R] or \f[CR]Apr\f[R] for a start of month or quarter.)
+.PP
+For weekly reports, choose a date that\[aq]s a Monday.
+(You can try different dates until you see the short headings, or write
+eg \f[CR]\-b \[aq]3 weeks ago\[aq]\f[R].)
 .SS Period expressions
 The \f[CR]\-p/\-\-period\f[R] option specifies a period expression,
 which is a compact way of expressing a start date, end date, and/or
@@ -5873,7 +5953,7 @@ adjusted to each month\[aq]s last day)
 .IP \[bu] 2
 \f[CR]every Nth WEEKDAYNAME [of month]\f[R]
 .PP
-Yearly on a custom day:
+Yearly on a custom month and day:
 .IP \[bu] 2
 \f[CR]every MM/DD [of year]\f[R] (month number and day of month number)
 .IP \[bu] 2
@@ -6519,7 +6599,7 @@ $ hledger print \-\-forecast \-\-today=2023/4/21
 .EE
 .PP
 Here there are no ordinary transactions, so the forecasted transactions
-begin on the first occurence after today\[aq]s date.
+begin on the first occurrence after today\[aq]s date.
 (You won\[aq]t normally use \f[CR]\-\-today\f[R]; it\[aq]s just to make
 these examples reproducible.)
 .SS Forecast reports
@@ -7755,7 +7835,6 @@ T}
 \f[CR]\-\-cumulative\f[R] is omitted to save space, it works like
 \f[CR]\-H\f[R] but with a zero starting balance.
 .SH PART 4: COMMANDS
-\ 
 .PP
 Here are the standard commands, which you can list by running
 \f[CR]hledger\f[R].
@@ -7966,9 +8045,6 @@ The tab key will auto\-complete whenever possible \- accounts,
 payees/descriptions, dates (\f[CR]yesterday\f[R], \f[CR]today\f[R],
 \f[CR]tomorrow\f[R]).
 If the input area is empty, it will insert the default value.
-.IP \[bu] 2
-If the journal defines a default commodity, it will be added to any bare
-numbers entered.
 .IP \[bu] 2
 A parenthesised transaction code may be entered following a date.
 .IP \[bu] 2
@@ -8827,6 +8903,9 @@ Flags:
                             description closest to DESC
   \-r \-\-related              show postings\[aq] siblings instead
      \-\-invert               display all amounts with reversed sign
+     \-\-sort=FIELDS          sort by: date, desc, account, amount, absamount,
+                            or a comma\-separated combination of these. For a
+                            descending sort, prefix with \-. (Default: date)
   \-w \-\-width=N              set output width (default: terminal width or
                             $COLUMNS). \-wN,M sets description width as well.
      \-\-align\-all            guarantee alignment across all lines (slower)
@@ -8894,6 +8973,16 @@ For example, it can be used on an income account where amounts are
 normally displayed as negative numbers.
 It\[aq]s also useful to show postings on the checking account together
 with the related account:
+.PP
+The \f[CR]\-\-sort=FIELDS\f[R] flag sorts by the fields given, which can
+be any of \f[CR]account\f[R], \f[CR]amount\f[R], \f[CR]absamount\f[R],
+\f[CR]date\f[R], or \f[CR]desc\f[R]/\f[CR]description\f[R], optionally
+separated by commas.
+For example, \f[CR]\-\-sort account,amount\f[R] will group all
+transactions in each account, sorted by transaction amount.
+Each field can be negated by a preceding \f[CR]\-\f[R], so
+\f[CR]\-\-sort \-amount\f[R] will show transactions ordered from
+smallest amount to largest amount.
 .IP
 .EX
 $ hledger register \-\-related \-\-invert assets:checking
@@ -9450,7 +9539,7 @@ Flags:
                             \[aq]bare\[aq]        : commodity symbols in one column
                             \[aq]tidy\[aq]        : every attribute in its own column
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
-                            txt, html, csv, tsv, json.
+                            txt, html, csv, tsv, json, fods.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 .EE
@@ -9543,7 +9632,7 @@ commodities displayed on the same line or multiple lines
 This command supports the output destination and output format options,
 with output formats \f[CR]txt\f[R], \f[CR]csv\f[R], \f[CR]tsv\f[R]
 (\f[I]Added in 1.32\f[R]), \f[CR]json\f[R], and (multi\-period reports
-only:) \f[CR]html\f[R].
+only:) \f[CR]html\f[R], \f[CR]fods\f[R] (\f[I]Added in 1.40\f[R]).
 In \f[CR]txt\f[R] output in a colour\-supporting terminal, negative
 amounts are shown in red.
 .SS Simple balance report
