@@ -74,10 +74,151 @@ Changes in hledger-install.sh are shown
 
 
 
+
+
+## 2024-09-09 hledger-1.40
+
+
+**Config file support, sortable register, FODS output, prettier tables, show options in manuals**
+
+
+### hledger 1.40
+
+
+Fixes
+
+- Account tags (and type declarations) declared in multiple files are now combined correctly. [#2202]
+- Several kinds of report interval now choose a better start date:
+  - `every Nth day of month from DATE` with periodic transactions [#2218]
+  - `every M/D from DATE`
+  - `every Nth WEEKDAY from DATE`
+- The balance commands' html output no longer repeats the "Total" and "Net" headings when the totals row has multiple lines. And the layout has been improved and made more consistent with the text output.
+- The `--tldr` flag now also works with the `tealdeer` tldr client.
+
+Features
+
+- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-files), to be added to your hledger commands either on demand or automatically. (This supersedes the older arguments files feature.) This has been a popular feature request. It has pros and cons, and is experimental; your testing and feedback is welcome. It changes the nature of hledger somewhat, which I have marked by giving this release a more memorable version number (1.40).
+- The balance commands can now output in FODS format, an XML spreadsheet file format readable by LibreOffice. (Henning Thielemann)
+- The `register` report can now be sorted by date, description, account, amount, absolute amount, or a combination of these. (Michael Rees, [#2211])
+
+Improvements
+
+- Command line processing has been overhauled and should be more robust in certain cases, with tweaked error messages and debug output. Command-specific flags can now optionally appear before the command name. (Though writing them afterward is usually more readable. Addon-specific flags must still come last, after `--`.)
+- The `--rules-file` option has been renamed to `--rules`. The old spelling is still supported as a hidden option.
+- Weekly reports' week headings are now more compact, especially in single-year balance reports. ([#2204], Victor Mihalache)
+- The `balance` command with no report interval, and also `balance --budget`, now support html output. (Henning Thielemann)
+- In balance commands' html and csv output, "Total:" and "Net:" headings are now capitalised consistently.
+- `bs`/`cf`/`is` reports now show the report interval in their title.
+- The balance commands' text output with the `--pretty` flag now shows an outer table border and inter-column borders.
+- The `check recentassertions` error message is now more readable.
+- Timedot format now allows comment lines to be indented.
+- When running the `tldr-node-client` client, auto-update of the tldr database is now suppressed.
+- When running a tldr client fails, the warning now mentions the required `--render` flag. [#2201]
+- The error message for unsupported regular expressions like `(?:foo)` has been improved.
+- `--debug` has moved to "General help flags", making it available in more situations.
+- Some verbose debug output from command line processing has been demoted to level 2.
+- Parsing timedot files now gives debug output at level 9.
+- Allow doclayout 0.5.
+
+Docs
+
+- The hledger/hledger-ui/hledger-web manuals now list all command options as shown by `--help`.
+- Added an example config file, `hledger.conf.sample`.
+- The `diff` and `prices` commands' help layout has been improved.
+- `add`'s doc described the effect of `D` wrongly, now fixed.
+- Date adjustments: rewrites and corrections
+- Period headings: added
+- Input: clarify that multiple -f options are allowed
+- Scripts and add-ons: edits, list add-ons again
+- Timeclock: edits, fix `ti`/`to` scripts
+- Fixed "hledger and Ledger" links [hledger_site#112]
+- examples/csv: Monzo CSV rules added
+- examples/csv: Tiller CSV rules added
+- examples/csv: Nordea CSV rules added (Arto Jonsson)
+
+Scripts/addons
+
+- `bin/bashrc` updates; add years, eachyear scripts
+- `bin/hledger-simplebal`: ignore config files
+- `bin/hledger-script-example`: explain shebang commands better
+- `bin/hledger-register-max`: update/fix
+
+
+### hledger-ui 1.40
+
+
+Improvements
+
+- The menu screen now supports the shift arrow and shift T keys, and its header shows any narrowed time period in effect, like other screens.
+- Support brick 2.4.
+
+Docs
+
+- The description of the shift-T key (set period to today) has been fixed.
+- The shift arrow keys and period narrowing have been clarified
+
+
+### hledger-web 1.40
+
+
+Improvements
+
+- We now guess a more robust base url when `--base-url` is not specified. Now relative links to js/css resources will use the same hostname etc. that the main page was requested from, making them work better when accessed via multiple IP addresses/hostnames without an explicit `--base-url` setting. (A followup to [#2099], [#2100] and [#2127].)
+- We now require a http[s] scheme in `--base-url`'s value. Previously it accepted just a hostname, and generated bad links.
+
+
+### project changes 1.40
+
+
+Docs
+
+- In the hledger 1.29 release notes, Date adjustments has had some corrections.
+- Github release notes template cleanups; fix mac, linux install commands.
+- README: fixed contributors link.
+- RELEASING: updates
+
+Scripts/addons
+
+- hledger-install: cleanups, bump versions, perhaps fix hledger-interest install
+- hledger-install: clarify some stack/cabal setup messages
+
+Infrastructure/Misc
+
+- Shake.hs: fix partial warnings
+- Shake cmdhelp: renamed to cmddocs, and it now also updates the options listed in the manuals, and shows progress output.  It should be run (at some point) after changing commands' docs or options.
+- Shake txtmanuals: silence all but wide table warnings
+- just file cleanups; update to support just 1.28+
+- just twih: date fixes
+- just ghci: -fobject-code was a mistake, keep everything interpreted
+- just functest: try again to reduce rebuilding/slowdowns when testing
+- just installrel: update for .tar.gz
+- ci scripts: cleanup, fix a macos-ism
+
+
+### credits 1.40
+
+Simon Michael (@simonmichael),
+Henning Thielemann (@thielema),
+Michael Rees (@reesmichael1),
+Arto Jonsson (@artoj),
+Victor Mihalache (@victormihalache).
+
+
+[#2099]: https://github.com/simonmichael/hledger/issues/2099
+[#2100]: https://github.com/simonmichael/hledger/issues/2100
+[#2127]: https://github.com/simonmichael/hledger/issues/2127
+[#2201]: https://github.com/simonmichael/hledger/issues/2201
+[#2202]: https://github.com/simonmichael/hledger/issues/2202
+[#2204]: https://github.com/simonmichael/hledger/issues/2204
+[#2211]: https://github.com/simonmichael/hledger/issues/2211
+[#2218]: https://github.com/simonmichael/hledger/issues/2218
+
+
+
 ## 2024-06-01 hledger-1.34
-
-
 ### hledger 1.34
+
+**--tldr (short command examples), reorganised commands list, ghc-debug support**
 
 
 Breaking changes
