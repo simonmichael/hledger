@@ -3,7 +3,7 @@
 # This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240906
+HLEDGER_INSTALL_VERSION=20240909
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
