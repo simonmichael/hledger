@@ -130,9 +130,6 @@ Scripts/addons
 
 
 
-API
-
-
 # 1.34 2024-06-01
 
 Breaking changes
