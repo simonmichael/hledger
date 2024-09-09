@@ -57,7 +57,7 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["Shake: heavy project scripting. See also: justfile, Makefile"
+  ["Shake: for heavy project scripting. See also: Justfile"
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
@@ -66,10 +66,9 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
-  -- ,"./Shake flagdocs [-c]    update flags in hledger CLI command docs"
-  -- ,"                         (run after changing command flags)"
-  ,"./Shake cmddocs [-c]     update hledger command help (including command flags,"
-  ,"                         but not main flags) after changing command flags/docs)"
+  -- ,"./Shake optdocs [-c]  update options in hledger CLI command docs"
+  -- ,"                      (run after changing command flags)"
+  ,"./Shake cmddocs [-c]     update hledger command help after changing opts/docs"
   ,"./Shake mandates         update the date shown in some manual formats"
   ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
   -- ,"./Shake webmanuals       update just the web manuals"
@@ -595,16 +594,28 @@ main = do
           | pkg <- pkgs
           ]
 
-      -- Update each Hledger/Cli/Commands/*.md, replacing the flags block with latest --help output,
-      -- or a placeholder if there are no command-specific flags.
-      -- For hledger manual and also for cmddocs below.
-      phony "flagdocs" $ do
-        need commandmdsnew
-        when commit $ commitIfChanged ";doc: update command flag docs" commandmds
+      -- Regenerate Hledger/Cli/Commands/*.txt, rendering the corresponding .md files as plain text.
+      -- Also updates cmddocs first.
+      -- For commands' --help output.
+      -- NB this assumes the hledger executables are up to date. XXX
+      phony "cmddocs" $ do
+        -- need ["build"]  -- XXX circular dep, how would this work ?
+        liftIO $ putStrLn "please ensure the hledger build is up to date"  -- XXX never printed, why ?
+        need commandtxts
+        when commit $ commitIfChanged ";doc: update help" commandtxts
+
+      -- -- Update each Hledger/Cli/Commands/*.md, replacing the flags block with latest --help output,
+      -- -- or a placeholder if there are no command-specific flags.
+      -- -- For hledger manual and also for cmddocs below.
+      -- -- NB hledger executables should be up to date, see cmddocs
+      -- phony "optdocs" $ do
+      --   need commandmdsnew
+      --   when commit $ commitIfChanged ";doc: update command flag docs" commandmds
 
       -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the flags doc
       -- within hledger/Hledger/Cli/Commands/CMD.md. Runs "stack run -- hledger CMD -h" to get the latest.
       -- If that fails, a warning is printed and it carries on, keeping the old flags doc.
+      -- NB this needs the hledger build to be up to date, see cmddocs.
       phonys $ \out ->
         if not $ "hledger/Hledger/Cli/Commands/" `isPrefixOf` out && ".md.new" `isSuffixOf` out
         then Nothing
@@ -618,7 +629,7 @@ main = do
           let cmdname = map toLower $ takeBaseName src
           do
             let shellcmd = "stack exec -- hledger -h " <> cmdname
-            liftIO $ putStrLn ("running " <> shellcmd <> " to update flags in " <> src)
+            liftIO $ putStrLn $ "running " <> shellcmd <> " to get options help"
             cmdhelp <- lines . fromStdout <$> (cmd Shell shellcmd :: Action (Stdout String))
             let
               cmdflagshelp = takeWhile (not.null) $ dropWhile (/="Flags:") cmdhelp
@@ -634,13 +645,6 @@ main = do
             --       | "path: [" `isInfixOf` err = takeWhile (/='[') err <> "..."
             --       | otherwise = err
             -- in \(e::C.IOException) -> liftIO $ hPutStrLn stderr $ elide $ show e  -- not used
-
-      -- Regenerate Hledger/Cli/Commands/*.txt, rendering the corresponding .md files as plain text.
-      -- Also updates cmddocs first.
-      -- For commands' --help output.
-      phony "cmddocs" $ do
-        need commandtxts
-        when commit $ commitIfChanged ";doc: update help" commandtxts
 
       commandtxts |%> \out -> do
         let src = out -<.> "md"
