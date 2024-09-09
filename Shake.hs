@@ -602,7 +602,7 @@ main = do
         -- need ["build"]  -- XXX circular dep, how would this work ?
         liftIO $ putStrLn "please ensure the hledger build is up to date"  -- XXX never printed, why ?
         need commandtxts
-        when commit $ commitIfChanged ";doc: update help" commandtxts
+        when commit $ commitIfChanged ";doc: update help" $ commandmds <> commandtxts
 
       -- -- Update each Hledger/Cli/Commands/*.md, replacing the flags block with latest --help output,
       -- -- or a placeholder if there are no command-specific flags.
