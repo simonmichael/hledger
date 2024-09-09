@@ -23,6 +23,7 @@ module Hledger.Reports.ReportOptions (
   HasReportSpec(..),
   SortField(..),
   SortSpec,
+  sortKeysDescription,
   overEither,
   setEither,
   BalanceCalculation(..),
@@ -696,18 +697,20 @@ getSortSpec opts =
         optParser s = 
           let terms = map strip $ splitAtElement ',' s 
               termParser t = case trimmed of
-                "date" -> Date' isNegated
-                "account" -> Account' isNegated
-                "amount" -> Amount' isNegated
-                "desc" -> Description' isNegated
+                "date"        -> Date'        isNegated
+                "desc"        -> Description' isNegated
                 "description" -> Description' isNegated
-                "absamount" -> AbsAmount' isNegated
-                _ -> error' $ "unsupported field '" ++ t ++ "' given to --sort"
+                "account"     -> Account'     isNegated
+                "amount"      -> Amount'      isNegated
+                "absamount"   -> AbsAmount'   isNegated
+                _ -> error' $ "unknown --sort key " ++ t ++ ". Supported keys are: " <> sortKeysDescription <> "."
                 where isNegated = isPrefixOf "-" t
                       trimmed = fromMaybe t (stripPrefix "-" t)
           in map termParser terms
     in maybe defsortspec optParser opt 
 
+-- for option's help and parse error message
+sortKeysDescription = "date, desc, account, amount, absamount"  -- 'description' is also accepted
 
 -- Report dates.
 
