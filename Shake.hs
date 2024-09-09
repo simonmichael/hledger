@@ -412,7 +412,7 @@ main = do
               ]
         when commit $
           commitIfChanged ";doc: update manuals" $
-            concat [packagemandatem4s, nroffmanuals, infomanuals, infodirentries, txtmanuals]  -- infodir
+            concat [commandmds, packagemandatem4s, nroffmanuals, infomanuals, infodirentries, txtmanuals]  -- infodir
 
       -- Update the dates to show in man pages, to the current month and year.
       -- Currently must be run manually when needed.
