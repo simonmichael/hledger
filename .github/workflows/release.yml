@@ -4,7 +4,8 @@
 name: release
 
 on:
-  # XXX does not trigger; run manually. https://github.com/orgs/community/discussions/58681
+  # XXX does not trigger ? seems fixed, https://github.com/orgs/community/discussions/58681
+  # XXX triggers too much, on pushing VER.99 dev tags, that draft release must be deleted manually
   push:
     tags:
       - '1.*'
@@ -128,7 +129,8 @@ jobs:
         ls -lRFh artifacts
 
     - name: Generate github release notes
-      # ref should be the release's main tag name
+      # ghrelnotes's argument should be the release's main tag name, eg "1.40".
+      # XXX instead, it is more like "refs/tags/hledger-1.40.99", requiring manual fixup.
       run: |
         doc/ghrelnotes ${{ github.ref }} >ghrelnotes.md
 
