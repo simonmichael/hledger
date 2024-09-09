@@ -57,7 +57,7 @@ dependencies:
 - deepseq
 - Decimal >=0.5.1
 - directory
-- doclayout >=0.3 && <0.5
+- doclayout >=0.3 && <0.6
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
