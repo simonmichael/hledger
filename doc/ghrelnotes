@@ -52,7 +52,7 @@ hledger --version    # should show $REL
 </summary>
 
 In a terminal window, run these commands to download, unpack, authorise, and install the binaries in your command line PATH.
-Don't use your web browser, it won't authorise the binaries.:
+Note, don't use your web browser; it won't authorise the binaries.
 <!--
 (Hopefully these commands are all installed by default; 
 if not, install [XCode Command Line Tools](https://mac.install.guide/commandlinetools/) 
