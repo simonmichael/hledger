@@ -83,7 +83,7 @@ library
     , containers >=0.5.9
     , data-default
     , directory
-    , doclayout >=0.3 && <0.5
+    , doclayout >=0.3 && <0.6
     , extra >=1.6.3
     , filepath
     , fsnotify ==0.4.*
