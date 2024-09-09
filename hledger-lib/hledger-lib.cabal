@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version:        1.34.99
+version:        1.40.99
 synopsis:       A library providing the core functionality of hledger
 description:    This library contains hledger's core functionality.
                 It is used by most hledger* packages so that they support the same
