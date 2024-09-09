@@ -16,8 +16,9 @@ Flags:
                             description closest to DESC
   -r --related              show postings' siblings instead
      --invert               display all amounts with reversed sign
-     --sort=FIELDS          comma-separated list of fields used to sort
-                            transactions
+     --sort=FIELDS          sort by: date, desc, account, amount, absamount,
+                            or a comma-separated combination of these. For a
+                            descending sort, prefix with -. (Default: date)
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
