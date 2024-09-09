@@ -1,0 +1,21 @@
+# Transaction ID,Date,Time,Type,Name,Emoji,Category,Amount,Currency,Local amount,Local currency,Notes and #tags,Address,Receipt,Description,Category split,Money Out,Money In,Balance,Balance currency
+# mm_0000AkoAEwpjaVPg6gKkT3,10/08/2024,01:09:44,Card payment,Berry Farm's Gosq.,,Personal Expenses,-13.75,GBP,-24.00,CAD,,Rr 1,,SQ *BERRY FARM'S GOSQ. BLACKFALDS    CAN,,-13.75,,569.97,GBP
+
+skip 1
+fields Transaction_ID,Date,Time,Type,Name,Emoji,Category,Amount,Currency,Local_amount,Local_currency,Notes_and_tags,Address,Receipt,Description,Category_split,Money_Out,Money_In,Balance,Balance_currency
+date-format %d/%m/%Y
+description %Name | %Type %Emoji %Description %Notes_and_tags
+comment \naddress: %Address
+account1 assets:monzo
+account2 %Category
+currency %Currency 
+
+if %category personal expenses
+ account2 expenses:personal
+
+if %category income
+ account2 revenues
+
+if %category travel
+ account2 expenses:travel
+
