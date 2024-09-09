@@ -50,7 +50,8 @@ registermode = hledgerCommandMode
   ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagReq  ["sort"] (\s opts -> Right $ setopt "sort" s opts) "FIELDS" 
-    "comma-separated list of fields used to sort transactions"
+    ("sort by: " <> sortKeysDescription
+    <> ", or a comma-separated combination of these. For a descending sort, prefix with -. (Default: date)")
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
