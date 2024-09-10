@@ -72,11 +72,12 @@ jobs:
         cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger tmp
         cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui tmp
         cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
         cd tmp
         strip hledger
         strip hledger-ui
         strip hledger-web
-        tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web
+        tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web hledger-completion.bash
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
