@@ -155,6 +155,7 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
         cd tmp
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
@@ -162,7 +163,7 @@ jobs:
         strip hledger
         strip hledger-ui
         strip hledger-web
-        tar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web
+        tar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web hledger-completion.bash
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
