@@ -79,7 +79,7 @@ Changes in hledger-install.sh are shown
 ## 2024-09-09 hledger-1.40
 
 
-**Config file support, sortable register, FODS output, prettier tables, show options in manuals**
+**Config file support, sortable register, FODS output, prettier tables.**
 
 
 ### hledger 1.40
