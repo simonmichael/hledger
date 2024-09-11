@@ -524,7 +524,6 @@ bareLayoutBalanceReportAsText opts ((items, total)) =
     singleColumnTableInterColumnBorder = if pretty_ opts then SingleLine else NoLine
 
 {-
-:r
 This implementation turned out to be a bit convoluted but implements the following algorithm for formatting:
 
 - If there is a single amount, print it with the account name directly:
