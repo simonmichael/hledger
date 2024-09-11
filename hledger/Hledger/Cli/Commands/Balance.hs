@@ -779,16 +779,7 @@ multiBalanceReportHtmlRows ropts mbr =
     (formatRow headingsrow
     ,map formatRow bodyrows
     ,map formatRow mtotalsrows
-      -- TODO pad totals row with zeros when there are
     )
-
--- TODO pad totals row with zeros when subreport is empty
---  multiBalanceReportHtmlFootRow ropts $
---     ""
---   : repeat nullmixedamt zeros
---  ++ (if row_total_ ropts then [nullmixedamt] else [])
---  ++ (if average_ ropts   then [nullmixedamt]   else [])
-
 
 -- | Render the ODS table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
