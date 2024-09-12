@@ -345,8 +345,8 @@ compoundBalanceReportAsHtml ropts cbr =
           th_ ""
           when (layout_ ropts == LayoutBare) $ th_ "Commodity"
           mconcat $ map (th_ [style_ alignright] . toHtml . reportPeriodName (balanceaccum_ ropts) colspans) colspans
-          th_ $ if row_total_ ropts then "Total"   else ""
-          th_ $ if average_ ropts   then "Average" else ""
+          when (row_total_ ropts) $ th_ "Total"
+          when (average_   ropts) $ th_ "Average"
       ]
 
     -- Make rows for a subreport: its title row, not the headings row,
