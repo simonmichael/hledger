@@ -3,7 +3,7 @@
 # This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240909
+HLEDGER_INSTALL_VERSION=20240912
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
@@ -30,7 +30,7 @@ STACKAGE_SNAPSHOT=nightly-2024-09-04
 # If nny required haskell dependencies aren't in the above stackage snapshot,
 # list them here in this format: "PKG1-VER1 PKG2-VER2.."
 # (one line, don't break interpolation in commands below).
-STACK_EXTRA_DEPS=""
+STACK_EXTRA_DEPS="brick-1.40"
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
