@@ -30,7 +30,7 @@ STACKAGE_SNAPSHOT=nightly-2024-09-04
 # If nny required haskell dependencies aren't in the above stackage snapshot,
 # list them here in this format: "PKG1-VER1 PKG2-VER2.."
 # (one line, don't break interpolation in commands below).
-STACK_EXTRA_DEPS="brick-1.40"
+STACK_EXTRA_DEPS="brick-2.4"
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
