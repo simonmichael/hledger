@@ -536,7 +536,6 @@ to be used when running hledger commands, in a config file. Here's a small examp
 
 To use a config file, specify it with the `--conf` option.
 Its options will be inserted near the start of your command line (so you can override them if needed).
-Or, you can add a `hledger --conf` shebang line to a config file and execute it like a script.
 
 Or, you can set up an automatic config file that is used whenever you run hledger.
 This can be `hledger.conf` in the current directory or above,
@@ -562,12 +561,21 @@ If you decide to use one:
 - Whenever a hledger command does not work as expected, try it again with `-n`.
 - If that helps, you can run it with `--debug` to see how a config file affected it.
 
+On unix machines, you can add a shebang line at the top of a config file, set executable permission on the file, and use it like a script.
+Eg (some operating systems need the `-S`, some don't):
+```
+#!/usr/bin/env -S hledger --conf
+```
+
 You can put not only options, but also arguments in a config file.
 This is probably more useful in special-purpose config files, not an automatic one.
 
-There's an exception to this: currently you can't specify the command argument in a config file's general section.
-You can do it in the shebang line at the top of a config file, instead.
-See [#2231](https://github.com/simonmichael/hledger/issues/2231).
+There's an exception to this: a config file can't provide the command argument, currently
+([#2231](https://github.com/simonmichael/hledger/issues/2231)).
+If you need that, you can do it in the shebang line instead. Eg:
+```
+#!/usr/bin/env -S hledger balance --conf
+```
 
 The config file feature has been added in hledger 1.40 and is considered *experimental*.
 
