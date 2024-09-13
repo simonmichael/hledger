@@ -9,9 +9,9 @@
 
 module Hledger.Web.Handler.RegisterR where
 
+import qualified Data.List.NonEmpty as NonEmpty
 import Data.List (intersperse, nub, partition)
 import qualified Data.Text as T
-import Safe (tailDef)
 import Text.Hamlet (hamletFile)
 
 import Hledger
@@ -42,10 +42,11 @@ getRegisterR = do
           map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
           addCommas . preferReal . otherTransactionAccounts q acctQuery
+      snoc xs x = NonEmpty.prependList xs $ NonEmpty.singleton x
       addCommas xs =
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
-          tailDef [""] $ (", "<$xs)
+          NonEmpty.tail $ snoc (", "<$xs) ""
       items =
         styleAmounts (journalCommodityStylesWith HardRounding j) $
         accountTransactionsReport rspec{_rsQuery=q} j acctQuery
