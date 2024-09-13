@@ -551,16 +551,25 @@ To inspect the processing of config files, use `--debug` or `--debug=8`.
 Here is another example config file you could start with:
 <https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample>
 
+Tips:
+
 Automatic config files are convenient, but have a cost: it's easy to change a report's behaviour,
 or break scripts/applications which use hledger, in unintended ways that will surprise you later.
 They change the nature of hledger somewhat, making it less transparent and predictable.
-If you decide to use one, here are some tips:
+If you decide to use one:
 
 - Be conservative about what you put in it. Try to consider the effect on all your reports.
 - Whenever a hledger command does not work as expected, try it again with `-n`.
 - If that helps, you can run it with `--debug` to see how a config file affected it.
 
-This feature has been added in hledger 1.40 and is considered *experimental*.
+You can put not only options, but also arguments in a config file.
+This is probably more useful in special-purpose config files, not an automatic one.
+
+There's an exception to this: currently you can't specify the command argument in a config file's general section.
+You can do it in the shebang line at the top of a config file, instead.
+See [#2231](https://github.com/simonmichael/hledger/issues/2231).
+
+The config file feature has been added in hledger 1.40 and is considered *experimental*.
 
 # Output
 
