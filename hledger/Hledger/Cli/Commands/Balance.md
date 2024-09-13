@@ -385,6 +385,19 @@ $ hledger bal -% cur:\\$
 $ hledger bal -% cur:€
 ```
 
+### Hyperlinks
+
+The HTML and FODS output formats support hyperlinks to `hledger-web`'s
+Register pages for every account and period.
+E.g. if your `hledger-web` server is reachable
+under the URL `http://localhost:5000/`
+then you might run the `balance` command
+with the extra option `--base-url=http://localhost:5000/`.
+The export function will not add any slash
+in order to support relative hyperreferences.
+Thus it is important that you add the trailing slash to the URL yourselves,
+where needed.
+
 ### Multi-period balance report
 
 With a [report interval](#report-intervals) (set by the `-D/--daily`,
