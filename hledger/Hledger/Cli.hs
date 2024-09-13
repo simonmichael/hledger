@@ -444,12 +444,13 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- Notes:
 --
 -- - This hackery increases the risk of misleading errors, bugs, and confusion.
---   But it should be fairly robust now, being aware of all builtin flags.
+--   It should be fairly robust now, being aware of all builtin flags.
+--   The main tests are in hledger/test/cli/cli.test, but they are not exhaustive.
 --
 -- - All general and builtin command flags (and their values) will be moved. It's clearer to
 --   write command flags after the command, but if not we'll handle it (for greater robustness).
 --
--- - Long flags should be spelled in full; abbreviated long flags may not be moved.
+-- - Long flags should be spelled in full; abbreviated long flags might not get moved.
 --
 -- - Unknown flags (from addons) are assumed to be valueless or have a joined value,
 --   and will be moved - but later rejected by cmdargs.
