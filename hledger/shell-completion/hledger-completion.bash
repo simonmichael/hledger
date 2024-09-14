@@ -424,6 +424,7 @@ check
 close
 codes
 commodities
+demo
 descriptions
 diff
 files
@@ -435,17 +436,13 @@ notes
 payees
 prices
 print
-print-unique
 reg
 register
-register-match
 rewrite
 roi
 stats
 tags
 test
-ui
-web
 __TEXT__
 
 read -r -d "" _hledger_complist_query_filters <<"__TEXT__"
@@ -468,12 +465,12 @@ __TEXT__
 
 read -r -d "" _hledger_complist_generic_options <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
 --color=
 --commodity-style=
+--conf=
 --cost
 --daily
 --date2
@@ -486,23 +483,27 @@ read -r -d "" _hledger_complist_generic_options <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --man
 --market
 --monthly
+--no-conf
 --pending
 --period=
 --pivot=
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -513,7 +514,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -525,15 +525,18 @@ read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --debug=
 --declared
 --depth=
+--directives
 --drop=
 --empty
 --end=
 --exchange=
 --file=
+--find
 --flat
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -543,17 +546,22 @@ read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --pending
 --period=
 --pivot=
+--positions
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --tree
 --types
+--undeclared
 --unmarked
+--unused
 --used
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -561,7 +569,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_activity <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -579,6 +586,7 @@ read -r -d "" _hledger_complist_options_activity <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -591,11 +599,13 @@ read -r -d "" _hledger_complist_options_activity <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -603,24 +613,29 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_add <<"__TEXT__"
 --alias=
---anon
+--auto
 --debug=
 --file=
+--forecast
 --help
 --ignore-assertions
+--infer-costs
+--infer-equity
+--infer-market-prices
 --info
 --man
 --no-new-accounts
 --pivot=
---rules-file=
+--rules=
 --strict
+--tldr
+--verbose-tags
 --version
 __TEXT__
 
 read -r -d "" _hledger_complist_options_areg <<"__TEXT__"
 --alias=
 --align-all
---anon
 --auto
 --begin=
 --cleared
@@ -638,6 +653,7 @@ read -r -d "" _hledger_complist_options_areg <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -653,12 +669,14 @@ read -r -d "" _hledger_complist_options_areg <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --txn-dates
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --width=
@@ -668,7 +686,6 @@ __TEXT__
 read -r -d "" _hledger_complist_options_aregister <<"__TEXT__"
 --alias=
 --align-all
---anon
 --auto
 --begin=
 --cleared
@@ -686,6 +703,7 @@ read -r -d "" _hledger_complist_options_aregister <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -701,12 +719,14 @@ read -r -d "" _hledger_complist_options_aregister <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --txn-dates
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --width=
@@ -715,7 +735,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -725,6 +744,7 @@ read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --color=
 --commodity-style=
 --cost
+--count
 --cumulative
 --daily
 --date2
@@ -743,10 +763,12 @@ read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --invert
+--layout
 --layout=
 --man
 --market
@@ -764,16 +786,19 @@ read -r -d "" _hledger_complist_options_bal <<"__TEXT__"
 --real
 --related
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --transpose
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -781,7 +806,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -791,6 +815,7 @@ read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --color=
 --commodity-style=
 --cost
+--count
 --cumulative
 --daily
 --date2
@@ -809,10 +834,12 @@ read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --invert
+--layout
 --layout=
 --man
 --market
@@ -830,16 +857,19 @@ read -r -d "" _hledger_complist_options_balance <<"__TEXT__"
 --real
 --related
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --transpose
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -847,7 +877,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -875,6 +904,7 @@ read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -894,15 +924,18 @@ read -r -d "" _hledger_complist_options_balancesheet <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -910,7 +943,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -938,6 +970,7 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -957,15 +990,18 @@ read -r -d "" _hledger_complist_options_balancesheetequity <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -973,7 +1009,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1001,6 +1036,7 @@ read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1020,15 +1056,18 @@ read -r -d "" _hledger_complist_options_bs <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1036,7 +1075,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1064,6 +1102,7 @@ read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1083,15 +1122,18 @@ read -r -d "" _hledger_complist_options_bse <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1099,7 +1141,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1127,6 +1168,7 @@ read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1146,15 +1188,18 @@ read -r -d "" _hledger_complist_options_cashflow <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1162,7 +1207,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1190,6 +1234,7 @@ read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1209,15 +1254,18 @@ read -r -d "" _hledger_complist_options_cf <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1225,7 +1273,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_check <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1243,6 +1290,7 @@ read -r -d "" _hledger_complist_options_check <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1255,11 +1303,13 @@ read -r -d "" _hledger_complist_options_check <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1267,7 +1317,9 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_close <<"__TEXT__"
 --alias=
---anon
+--assert
+--assertion-type=
+--assign
 --auto
 --begin=
 --cleared
@@ -1289,12 +1341,14 @@ read -r -d "" _hledger_complist_options_close <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --interleaved
 --man
 --market
+--migrate
 --monthly
 --open
 --open-acct=
@@ -1305,12 +1359,16 @@ read -r -d "" _hledger_complist_options_close <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--retain
+--round=
+--rules=
 --show-costs
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1318,7 +1376,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_codes <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1336,6 +1393,7 @@ read -r -d "" _hledger_complist_options_codes <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1348,11 +1406,13 @@ read -r -d "" _hledger_complist_options_codes <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1360,22 +1420,37 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_commodities <<"__TEXT__"
 --alias=
---anon
+--auto
 --debug=
 --file=
+--forecast
 --help
 --ignore-assertions
+--infer-costs
+--infer-equity
+--infer-market-prices
 --info
 --man
 --pivot=
---rules-file=
+--rules=
 --strict
+--tldr
+--verbose-tags
+--version
+__TEXT__
+
+read -r -d "" _hledger_complist_options_demo <<"__TEXT__"
+--debug=
+--help
+--info
+--man
+--speed=
+--tldr
 --version
 __TEXT__
 
 read -r -d "" _hledger_complist_options_descriptions <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1393,6 +1468,7 @@ read -r -d "" _hledger_complist_options_descriptions <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1405,11 +1481,13 @@ read -r -d "" _hledger_complist_options_descriptions <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1417,41 +1495,57 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_diff <<"__TEXT__"
 --alias=
---anon
+--auto
 --debug=
 --file=
+--forecast
 --help
 --ignore-assertions
+--infer-costs
+--infer-equity
+--infer-market-prices
 --info
 --man
 --pivot=
---rules-file=
+--rules=
 --strict
+--tldr
+--verbose-tags
 --version
 __TEXT__
 
 read -r -d "" _hledger_complist_options_files <<"__TEXT__"
 --alias=
---anon
+--auto
 --debug=
 --file=
+--forecast
 --help
 --ignore-assertions
+--infer-costs
+--infer-equity
+--infer-market-prices
 --info
 --man
 --pivot=
---rules-file=
+--rules=
 --strict
+--tldr
+--verbose-tags
 --version
 __TEXT__
 
 read -r -d "" _hledger_complist_options_help <<"__TEXT__"
+--debug=
 --help
+--info
+--man
+--tldr
+--version
 __TEXT__
 
 read -r -d "" _hledger_complist_options_import <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --catchup
@@ -1471,6 +1565,7 @@ read -r -d "" _hledger_complist_options_import <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1483,11 +1578,13 @@ read -r -d "" _hledger_complist_options_import <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1495,7 +1592,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1523,6 +1619,7 @@ read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1542,15 +1639,18 @@ read -r -d "" _hledger_complist_options_incomestatement <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1558,7 +1658,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --alias=
---anon
 --auto
 --average
 --begin=
@@ -1586,6 +1685,7 @@ read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1605,15 +1705,18 @@ read -r -d "" _hledger_complist_options_is <<"__TEXT__"
 --quarterly
 --real
 --row-total
---rules-file=
+--rules=
 --sort-amount
 --strict
 --sum
+--summary-only
+--tldr
 --today=
 --tree
 --unmarked
 --value=
 --valuechange
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1621,7 +1724,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_notes <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1639,6 +1741,7 @@ read -r -d "" _hledger_complist_options_notes <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1651,11 +1754,13 @@ read -r -d "" _hledger_complist_options_notes <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1663,7 +1768,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_payees <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1682,6 +1786,7 @@ read -r -d "" _hledger_complist_options_payees <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1694,12 +1799,14 @@ read -r -d "" _hledger_complist_options_payees <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --used
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1707,7 +1814,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1725,9 +1831,9 @@ read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
---infer-reverse-prices
 --info
 --man
 --market
@@ -1738,11 +1844,14 @@ read -r -d "" _hledger_complist_options_prices <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
+--show-reverse
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1750,7 +1859,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_print <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -1769,6 +1877,7 @@ read -r -d "" _hledger_complist_options_print <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -1785,54 +1894,15 @@ read -r -d "" _hledger_complist_options_print <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--round=
+--rules=
 --show-costs
 --strict
+--tldr
 --today=
 --unmarked
 --value=
---version
---weekly
---yearly
-__TEXT__
-
-read -r -d "" _hledger_complist_options_print_unique <<"__TEXT__"
---alias=
---anon
---auto
---begin=
---cleared
---color=
---commodity-style=
---cost
---daily
---date2
---debug=
---depth=
---empty
---end=
---exchange=
---file=
---forecast
---help
---ignore-assertions
---infer-equity
---infer-market-prices
---info
---man
---market
---monthly
---pending
---period=
---pivot=
---pretty
---quarterly
---real
---rules-file=
---strict
---today=
---unmarked
---value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -1841,7 +1911,6 @@ __TEXT__
 read -r -d "" _hledger_complist_options_reg <<"__TEXT__"
 --alias=
 --align-all
---anon
 --auto
 --average
 --begin=
@@ -1862,12 +1931,14 @@ read -r -d "" _hledger_complist_options_reg <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --invert
 --man
 --market
+--match=
 --monthly
 --output-file=
 --output-format=
@@ -1878,11 +1949,14 @@ read -r -d "" _hledger_complist_options_reg <<"__TEXT__"
 --quarterly
 --real
 --related
---rules-file=
+--rules=
+--sort=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --width=
@@ -1892,7 +1966,6 @@ __TEXT__
 read -r -d "" _hledger_complist_options_register <<"__TEXT__"
 --alias=
 --align-all
---anon
 --auto
 --average
 --begin=
@@ -1913,12 +1986,14 @@ read -r -d "" _hledger_complist_options_register <<"__TEXT__"
 --help
 --historical
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
 --invert
 --man
 --market
+--match=
 --monthly
 --output-file=
 --output-format=
@@ -1929,63 +2004,23 @@ read -r -d "" _hledger_complist_options_register <<"__TEXT__"
 --quarterly
 --real
 --related
---rules-file=
+--rules=
+--sort=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --width=
 --yearly
 __TEXT__
 
-read -r -d "" _hledger_complist_options_register_match <<"__TEXT__"
---alias=
---anon
---auto
---begin=
---cleared
---color=
---commodity-style=
---cost
---daily
---date2
---debug=
---depth=
---empty
---end=
---exchange=
---file=
---forecast
---help
---ignore-assertions
---infer-equity
---infer-market-prices
---info
---man
---market
---monthly
---pending
---period=
---pivot=
---pretty
---quarterly
---real
---rules-file=
---strict
---today=
---unmarked
---value=
---version
---weekly
---yearly
-__TEXT__
-
 read -r -d "" _hledger_complist_options_rewrite <<"__TEXT__"
 --add-posting=
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -2004,6 +2039,7 @@ read -r -d "" _hledger_complist_options_rewrite <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -2016,11 +2052,13 @@ read -r -d "" _hledger_complist_options_rewrite <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -2028,7 +2066,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_roi <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cashflow
@@ -2047,6 +2084,7 @@ read -r -d "" _hledger_complist_options_roi <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -2061,11 +2099,13 @@ read -r -d "" _hledger_complist_options_roi <<"__TEXT__"
 --profit-loss=
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -2073,7 +2113,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_stats <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -2091,6 +2130,7 @@ read -r -d "" _hledger_complist_options_stats <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -2104,11 +2144,14 @@ read -r -d "" _hledger_complist_options_stats <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
+--verbose
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -2116,7 +2159,6 @@ __TEXT__
 
 read -r -d "" _hledger_complist_options_tags <<"__TEXT__"
 --alias=
---anon
 --auto
 --begin=
 --cleared
@@ -2134,6 +2176,7 @@ read -r -d "" _hledger_complist_options_tags <<"__TEXT__"
 --forecast
 --help
 --ignore-assertions
+--infer-costs
 --infer-equity
 --infer-market-prices
 --info
@@ -2147,12 +2190,14 @@ read -r -d "" _hledger_complist_options_tags <<"__TEXT__"
 --pretty
 --quarterly
 --real
---rules-file=
+--rules=
 --strict
+--tldr
 --today=
 --unmarked
 --value=
 --values
+--verbose-tags
 --version
 --weekly
 --yearly
@@ -2163,108 +2208,8 @@ read -r -d "" _hledger_complist_options_test <<"__TEXT__"
 --help
 --info
 --man
+--tldr
 --version
-__TEXT__
-
-read -r -d "" _hledger_complist_options_ui <<"__TEXT__"
---alias=
---anon
---auto
---begin=
---change
---cleared
---color=
---commodity-style=
---cost
---daily
---date2
---debug=
---depth=
---empty
---end=
---exchange=
---file=
---flat
---forecast
---help
---ignore-assertions
---infer-equity
---infer-market-prices
---info
---man
---market
---monthly
---pending
---period=
---pivot=
---pretty
---quarterly
---real
---register=
---rules-file=
---strict
---theme=
---today=
---tree
---unmarked
---value=
---version
---watch
---weekly
---yearly
-__TEXT__
-
-read -r -d "" _hledger_complist_options_web <<"__TEXT__"
---alias=
---anon
---auto
---base-url=
---begin=
---capabilities-header=
---capabilities=
---cleared
---color=
---commodity-style=
---cors=
---cost
---daily
---date2
---debug=
---depth=
---empty
---end=
---exchange=
---file-url=
---file=
---forecast
---help
---host=
---ignore-assertions
---infer-equity
---infer-market-prices
---info
---man
---market
---monthly
---pending
---period=
---pivot=
---port=
---pretty
---quarterly
---real
---rules-file=
---serve
---serve-api
---socket=
---strict
---test
---today=
---unmarked
---value=
---version
---weekly
---yearly
 __TEXT__
 
 return 0
