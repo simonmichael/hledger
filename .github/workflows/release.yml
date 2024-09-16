@@ -1,11 +1,10 @@
-# Run when a release tag is pushed, creating/updating a draft release.
+# Create/update a draft release when a release tag is pushed.
 # Expects that the main binaries* workflows have been completed first.
+# XXX Triggers too much, eg on pushing VER.99 dev tags; those releases must be deleted manually.
 
 name: release
 
 on:
-  # XXX does not trigger ? seems fixed, https://github.com/orgs/community/discussions/58681
-  # XXX triggers too much, on pushing VER.99 dev tags, that draft release must be deleted manually
   push:
     tags:
       - '1.*'
@@ -23,6 +22,8 @@ jobs:
       uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
         # https://github.com/dawidd6/action-download-artifact v3.1.4, unverified so needs to be whitelisted in repo settings
       with:
+        # all the settings, for reference. The other steps below will be more concise.
+        #
         # Optional, GitHub token, a Personal Access Token with `public_repo` scope if needed
         # Required, if the artifact is from a different repo
         # Required, if the repo is private a Personal Access Token with `repo` scope is needed or GitHub token in a job where the permissions `action` scope set to `read`
@@ -114,7 +115,7 @@ jobs:
       run: |
         ls -lRFh artifacts
 
-    # All artifacts are zip files because upload-artifact always zips.
+    # Artifacts are zip files because upload-artifact always zips.
     # Here we can switch to more unix-standard gz.
     - name: Repack unix artifacts with gz
       shell: bash
@@ -130,7 +131,7 @@ jobs:
 
     - name: Generate github release notes
       # ghrelnotes's argument should be the release's main tag name, eg "1.40".
-      # XXX instead, it is more like "refs/tags/hledger-1.40.99", requiring manual fixup.
+      # XXX Currently it is actually like "refs/tags/hledger-1.40.99", requiring manual fixup.
       run: |
         doc/ghrelnotes ${{ github.ref }} >ghrelnotes.md
 
