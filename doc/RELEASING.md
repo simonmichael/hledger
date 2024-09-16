@@ -223,34 +223,37 @@ In main repo, release branch:
 1. Check [release readiness](#check-dev-readiness)
 1. Create/switch to release branch, update versions/dates/docs: `just relprep NEW` (single-version releases; for mixed-version releases, take more care)
 1. If not the first release in this branch, cherry-pick changes from master: `magit l o ..master` (minor releases)
+1. Update shell completions: `make -C hledger/shell-completion`
 1. (Could start building/testing/fixing release binaries/workflows/caches here, it takes time: `just relbin`)
 1. Update install script: `hledger-install/hledger-install.sh`
 1. Update changelogs (`**/CHANGES.md`): `./Shake changelogs`, manually edit, `./Shake changelogs -c`
-1. Update release notes (`doc/relnotes*`):
-  `tools/relnotes.hs`, select & transform with `md-issue-refs`, uniquify issue refs, add github nicks, commit
-   (*TODO: fix tools/relnotes.hs (unwrap long lines..), fix md-issue-refs to uniquify, add to Justfile*)
+1. Update release notes (`doc/relnotes*`): `tools/relnotes.hs`, select & transform with `md-issue-refs`, uniquify issue refs, add github nicks to authors, commit\
+   *TODO: fix tools/relnotes.hs (unwrap long lines..), fix md-issue-refs to uniquify, add to Justfile*
 1. Update announcements (`doc/ANNOUNCE*`) (major releases)
 1. Build/test release binaries: `just relbin`. Troubleshoot/repeat as needed.
 
 In site repo:
-1. [Update online manuals](#release-manuals): `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
-   (*TODO: snapshot: don't switch to master, don't discard uncommitted changes, record git hash in commit message, clarify late update procedure*)
 1. Update config in `hledger.org.caddy` (@oldmanpath, @unversionedmanpath, any new redirects) (major releases, usually)
+1. [Update online manuals](#release-manuals): bump versions in `site/Makefile`, `site/js/site.js`, `make -C site snapshot-NEW` (major releases)
+   *TODO: snapshot: don't switch to master, don't discard uncommitted changes, record git hash in commit message, clarify late update procedure*
 1. Update install page: `site/src/install.md`
 1. Don't push yet. Keep in local branch if needed.
 
 In main repo, master:
 1. Cherry-pick the hledger-install update, and other finished useful updates, from the release branch (maybe not release docs yet): `magit l o LASTREL..REL-branch`
 1. [Bump version](#bump-master-to-next-version) in master (major releases)
-1. Add a new dev tag (`REL.99`)
+1. Add a new dev tag on the "bump version to ..." commit (magit `t t REL.99`)
 
 ### 2 Release
 
 In main repo, release branch:
 1. Build final release binaries (`just relbin`) and tag the release (`just reltag`)
-1. Push release branch & tags (not more than 5 tags), create draft github release:
-   `git push github HEAD 1.34 hledger-1.34 hledger-ui-1.34 hledger-web-1.34 hledger-lib-1.34`
-   (*TODO: release.yml: fix setting of tag, title, relnotes content*)
+1. Push release branch & tags (not more than 5 tags at once):\
+   `git push github HEAD REL hledger-REL hledger-lib-REL`\
+   `git push github HEAD hledger-ui-REL hledger-web-REL`\
+   Don't push all tags (don't push the dev tag; if you do, manually delete the corresponding draft release.)\
+1. release.yml creates a draft release when the REL tag is pushed. Check/fix its content.
+   *TODO: fix release.yml*
 1. Publish on hackage (final check): `just hackageupload`
 1. Publish github release
 
