@@ -144,7 +144,7 @@ import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text, stripEnd)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, fromGregorianValid, fromGregorian, toGregorian)
+import Data.Time.Calendar (Day, fromGregorianValid, fromGregorian, toGregorian, addDays)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.Clock (UTCTime(UTCTime), picosecondsToDiffTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
@@ -153,7 +153,7 @@ import GHC.Float (floorDouble)
 import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
-import Text.Megaparsec.Char.Lexer (decimal)
+import Text.Megaparsec.Char.Lexer (decimal, float)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -537,67 +537,44 @@ descriptionp = noncommenttextp <?> "description"
 --
 -- If the time of day is omitted, we assume 00:00:00 as default.
 -- If the timezone offset is omitted, we assume +00:00 (UTC) as default.
-timestampp :: JournalParser m UTCTime
+timestampp :: JournalParser m (Day, Maybe UTCTime)
 timestampp = do
   date <- datep
-  (hour, minute, second, tzOffsetH, tzOffsetM) <- hourAndRestp
-  let pico = 1000000000000
-      picoHour = hour * 3600 * pico
-      picoMinute = minute * 60 * pico
-      picoSecond = floorDouble $ second * (fromIntegral pico)
-      picoTotal = picoHour + picoMinute + picoSecond
-      picoOffset = tzOffsetH * 3600 * pico + tzOffsetM * 60 * pico
-      tod = picosecondsToDiffTime picoTotal
-      adjustedTod = tod - (picosecondsToDiffTime picoOffset)
-
-  return $ UTCTime date adjustedTod
+  time <- optional . try $ timeAndOffsetp
+  return $ case time of
+    Nothing -> (date, Nothing)
+    Just (t, dateOffset) -> (date, Just $ UTCTime (addDays dateOffset date) (picosecondsToDiffTime t))
   where
-    hourAndRestp :: JournalParser m (Integer, Integer, Double, Integer, Integer)
-    hourAndRestp = do
-      hour <- optional . try $ do
-        char ' '
-        decimal
-      case hour of
-        Nothing -> return (0, 0, 0.0, 0, 0)
-        Just h -> do
-          (m, s, tzH, tzM) <- minuteAndRestp
-          return (h, m, s, tzH, tzM)
-    minuteAndRestp :: JournalParser m (Integer, Double, Integer, Integer)
-    minuteAndRestp = do
-      minute <- optional . try $ do
+    pico :: Integer
+    pico = 1000000000000
+    timeAndOffsetp :: JournalParser m (Integer, Integer)
+    timeAndOffsetp = do
+      let oneDay = 24 * 3600 * pico
+      t <- timep
+      return $ case () of _
+                            | t < 0 -> (t + oneDay, -1)
+                            | t > oneDay -> (t - oneDay, 1)
+                            | otherwise -> (t, 0)
+    timep :: JournalParser m Integer
+    timep = do
+      char ' '
+      h <- ((pico * 3600) *) <$> decimal
+      char ':'
+      m <- ((pico * 60) *) <$> decimal
+      s <- optional . try $ do
         char ':'
-        decimal
-      case minute of
-        Nothing -> return (0, 0.0, 0, 0)
-        Just m -> do
-          (s, tzH, tzM) <- secondAndRestp
-          return (m, s, tzH, tzM)
-    secondAndRestp :: JournalParser m (Double, Integer, Integer)
-    secondAndRestp = do
-      sec <- optional . try $ do
+        value::Double <- (try float <|> (fromIntegral <$> decimal))
+        return . floorDouble $ (fromIntegral pico) * value
+      tz <- optional . try $ do
+        sign <- oneOf ['+', '-']
+        tzH <- ((pico * 3600) *) <$> decimal
         char ':'
-        fromIntegral <$> decimal
-      case sec of
-        Nothing -> return (0.0, 0, 0)
-        Just s -> do
-          (tzH, tzM) <- tzHourAndRestp
-          return (s, tzH, tzM)
-    tzHourAndRestp :: JournalParser m (Integer, Integer)
-    tzHourAndRestp = do
-      hour <- optional . try $ do
-        char '+'
-        decimal
-      case hour of
-        Nothing -> return (0, 0)
-        Just h -> do
-          m <- tzMinutep
-          return (h, m)
-    tzMinutep :: JournalParser m Integer
-    tzMinutep = do
-      minute <- optional . try $ do
-        char ':'
-        decimal
-      return $ fromMaybe 0 minute
+        tzM <- ((pico * 60) *) <$> decimal
+        return $ (tzH + tzM) * case sign of
+          '+' -> -1
+          '-' -> 1
+          _ -> 0 -- this should never happen
+      return $ h + m + (fromMaybe 0 s) + (fromMaybe 0 tz)
 
 -- | Parse a date in YYYY-MM-DD format.
 -- Slash (/) and period (.) are also allowed as separators.
@@ -1764,15 +1741,16 @@ tests_Common = testGroup "Common" [
     -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 
-  , let pico = 1000000000000 in testGroup "timestampp" [
-    testCase "2024-01-01" $ assertParseEq timestampp "2024-01-01" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime 0)),
-    testCase "2024/01/01" $ assertParseEq timestampp "2024/01/01" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime 0)),
-    testCase "2024-01-01 12" $ assertParseEq timestampp "2024-01-01 12" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ 12 * 3600 * pico)),
-    testCase "2024-01-01 12:34" $ assertParseEq timestampp "2024-01-01 12:34" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60) * pico)),
-    testCase "2024-01-01 12:34:56" $ assertParseEq timestampp "2024-01-01 12:34:56" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60 + 56) * pico)),
-    testCase "2024-01-01 12:34:56+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56+07:08" (UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico))
-  ]
+  , let pico = 1000000000000
+        date = fromGregorian 2024 1 1
+    in testGroup "timestampp" [
+      testCase "2024-01-01" $ assertParseEq timestampp "2024-01-01" (date, Nothing),
+      testCase "2024-01-01 12:34" $ assertParseEq timestampp "2024-01-01 12:34" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60) * pico)),
+      testCase "2024-01-01 12:34+05:06" $ assertParseEq timestampp "2024-01-01 12:34+05:06" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 5) * 3600 + (34 - 6) * 60) * pico)),
+      testCase "2024-01-01 12:34:56" $ assertParseEq timestampp "2024-01-01 12:34:56" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60 + 56) * pico)),
+      testCase "2024-01-01 12:34:56+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56+07:08" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico)),
+      testCase "2024-01-01 12:34:56.000+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56.000+07:08" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico))
+    ]
 
   ]
-
 
