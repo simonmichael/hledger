@@ -77,6 +77,9 @@ _generaloptions_
 
 With hledger-ui, the `--debug` option sends debug output to a `hledger-ui.log` file in the current directory.
 
+If you use the bash shell, you can auto-complete flags by pressing TAB in the command line.
+If this is not working see [Install > Shell completions](install.html#shell-completions).
+
 # MOUSE
 
 In most modern terminals, you can navigate through the screens with a

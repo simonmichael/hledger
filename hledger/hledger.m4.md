@@ -579,6 +579,14 @@ If you need that, you can do it in the shebang line instead. Eg:
 
 The config file feature has been added in hledger 1.40 and is considered *experimental*.
 
+## Shell completions
+
+If you use the bash shell, you can optionally set up context-sensitive autocompletions when you press TAB in a hledger command line.
+At a bash shell prompt, try pressing
+`hledger<SPACE><TAB><TAB>` (should list all hledger commands)
+or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
+If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
+
 # Output
 
 ## Output destination

@@ -131,6 +131,9 @@ Reporting options and/or query arguments can be used to set an initial query,
 which although not shown in the UI, will restrict the data shown
 (in addition to any search query entered in the UI).
 
+If you use the bash shell, you can auto-complete flags by pressing TAB in the command line.
+If this is not working see [Install > Shell completions](install.html#shell-completions).
+
 # PERMISSIONS
 
 By default, hledger-web allows anyone who can reach it to view the journal
