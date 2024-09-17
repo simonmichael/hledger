@@ -22,6 +22,30 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# ff0fe62fa
+
+
+Breaking changes
+
+Fixes
+
+- Bring bash shell completions up to date.
+  [#986]
+
+Features
+
+Improvements
+
+- Avoid brick 2.3.2 which doesn't build on windows.
+
+Docs
+
+- Install, manual: new shell completions doc. [#986]
+
+API
+
+
+
 # 1.40 2024-09-09
 
 Improvements

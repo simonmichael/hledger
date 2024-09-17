@@ -23,6 +23,50 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# ff0fe62fa
+
+- cli: Commands.Balance.multiBalanceReportAsSpreadsheetHelper: return header separately (Henning Thielemann)
+
+- cli: Commands.Balance.multiBalanceRowAsTextBuilders, multiBalanceReportAsCsvHelper: helper functions removed (Henning Thielemann)
+
+- lib: Write.Spreadsheet.Cell: add cellClass field for HTML style class (Henning Thielemann)
+  cmd: Commands.Balance.multiBalanceRowAsCellBuilders: add HTML style class attributes here
+  This way we do not need to dissect table rows in
+  multiBalanceReportHtmlHeadRow, multiBalanceReportHtmlBodyRow, multiBalanceReportHtmlFootRow
+  Eventually removed these three functions.
+
+- cli: Commands.Cli.Balance.rawTableContent: helper function for extracting CSV from Spreadsheet cells (Henning Thielemann)
+
+- cli: Commands.Balance.balanceReportAsSpreadsheet, multiBalanceReportAsSpreadsheet: support for transposition (Henning Thielemann)
+
+- cli: Commands.Balance.budgetReportAsSpreadsheet: also transpose border (Henning Thielemann)
+
+- lib: Write.Spreadsheet: support for borders like in existing HTML export (Henning Thielemann)
+  cli: Commands.Balance: use for FODS export and balance and budget export to HTML
+
+Breaking changes
+
+Fixes
+
+- Bring bash shell completions up to date.
+  [#986]
+
+Features
+
+Improvements
+
+Docs
+
+- Install, manual: new shell completions doc. [#986]
+- Config files: rewrite [#2231]
+
+
+Scripts/addons
+
+API
+
+
+
 # 1.40 2024-09-09
 
 Fixes

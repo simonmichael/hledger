@@ -19,6 +19,23 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 69da3c0a1
+
+Docs
+
+- CODE: notes on the use of haddock [#2222]
+- Simplify github bug report template
+- Add man pages and info manuals to the release bindists on github
+
+Scripts/addons
+
+- hledger-install: fix installation of hledger-ui
+
+Infrastructure/Misc
+
+- Add bash shell completion script to the release bindists ([#2223], gesh/hseg, Simon Michael)
+
+
 # 1.40 2024-09-09
 
 Docs
