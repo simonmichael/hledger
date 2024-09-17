@@ -147,7 +147,7 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp hledger/shell-completion/hledger-completion.bash tmp
+        cp hledger/shell-completion/hledger-completion.bash hledger/embeddedfiles/*.{1,info} tmp
         cd tmp
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-ui.exe  .

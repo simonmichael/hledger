@@ -155,7 +155,7 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp hledger/shell-completion/hledger-completion.bash tmp
+        cp hledger/shell-completion/hledger-completion.bash hledger/embeddedfiles/*.{1,info} tmp
         cd tmp
         cp ~/.local/bin/hledger .
         cp ~/.local/bin/hledger-ui .
