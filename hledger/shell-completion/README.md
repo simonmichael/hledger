@@ -12,9 +12,9 @@ To use hledger's bash shell completions, these must be installed on your system:
 - hledger's bash completion script
 - hledger, hledger-ui, and/or hledger-web
 
-For full setup instructions, see [Install > Shell completions](https://hledger.org/install.html#shell-completions).
+For user setup and usage instructions, please see [Install > Shell completions](https://hledger.org/install.html#shell-completions).
 
-To test your setup: at a bash shell prompt, try typing
+To test the bash completions, at a bash shell prompt, type
 `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 
@@ -29,7 +29,7 @@ The bash completion script can handle:
 - appropriate data from the journal, after these query prefixes: `acct:`, `code:`, `cur:`, `desc:`, `note:`, `payee:`, `real:`, `status:`, `tag:`
 - amount comparison operators, after `amt:`.
 
-## Generating the shell completion script
+## Generating hledger shell completions
 
 In the main hledger repo,
 first build and install an up-to-date version of hledger in PATH,
@@ -49,7 +49,7 @@ You can add `-jNUMPROCS` to make it run faster.
 Data from the journal (account names, payee names etc.) is not gathered here;
 the script detects those dynamically at completion time.
 
-## Installing the generated shell completion script
+## Installing the generated shell completions
 
 (If you want a released version of the completion script, use the Install page link above instead.)
 
@@ -63,6 +63,24 @@ bash will use it when completing command lines beginning with "hledger" or "hled
 
 You can also just source the script it in your shell startup; this will load completions eagerly, adding a delay to your shell start up time.
 Or you can source it in your current bash session for testing.
+
+## Packaging hledger shell completions
+
+It's great when hledger packagers can make shell completions just work for users.
+
+Currently there is one completion script: `hledger-completion.bash`.
+It is included in the hledger package's tarball on Hackage.
+
+For hledger version 1.40, the up-to-date script is at 
+https://github.com/simonmichael/hledger/blob/39dfe5702e1b401f1883d814907d242958eec9c1/hledger/shell-completion/hledger-completion.bash.
+
+From releases after 1.40, it will be included in the bindists provided in Github releases,
+and available at urls like 
+https://github.com/simonmichael/hledger/blob/1.40/hledger/shell-completion/hledger-completion.bash
+
+After it has been loaded, this script will provide completions for hledger, hledger-ui and hledger-web.
+Note if it is installed only as `hledger`, bash-completion will not load it until the user types `hledger<SPACE><TAB>`.
+Consider also symbolic-linking it as `hledger-ui` and `hledger-web`, so that `hledger-ui<SPACE><TAB>` and `hledger-web<SPACE><TAB>` will also load it.
 
 ## Completion scripts for other shells
 
