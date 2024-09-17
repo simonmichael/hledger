@@ -82,6 +82,12 @@ After it has been loaded, this script will provide completions for hledger, hled
 Note if it is installed only as `hledger`, bash-completion will not load it until the user types `hledger<SPACE><TAB>`.
 Consider also symbolic-linking it as `hledger-ui` and `hledger-web`, so that `hledger-ui<SPACE><TAB>` and `hledger-web<SPACE><TAB>` will also load it.
 
+Here is a place to track the status of shell completions in hledger packages. As of 1.40:
+
+- Homebrew: includes slightly stale completions, installed as `hledger` only
+- Arch Linux AUR: packaging in progress
+- Others: unknown
+
 ## Completion scripts for other shells
 
 You're welcome to add completion scripts for other shells. It should not be too
