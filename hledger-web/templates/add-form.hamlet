@@ -1,23 +1,28 @@
 <script>
+
   jQuery(document).ready(function() {
-    descriptionsSuggester = new Bloodhound({
+
+    // Set up global completers which can be attached to appropriate inputs when needed
+
+    globalThis.descriptionsCompleter = new Bloodhound({
       local:#{toBloodhoundJson (toList descriptions)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
     });
-    descriptionsSuggester.initialize();
+    globalThis.descriptionsCompleter.initialize();
 
-    accountsSuggester = new Bloodhound({
+    globalThis.accountsCompleter = new Bloodhound({
       local:#{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
     });
-    accountsSuggester.initialize();
+    globalThis.accountsCompleter.initialize();
 
-    jQuery('input[name=description]').typeahead({ highlight: true }, { source: descriptionsSuggester.ttAdapter() });
-    jQuery('input[name=account]').typeahead({ highlight: true }, { source: accountsSuggester.ttAdapter() });
+    // Attach the completers to the initial form inputs.
+    jQuery('input[name=description]').typeahead({ highlight: true }, { source: globalThis.descriptionsCompleter.ttAdapter() });
+    jQuery('input[name=account]'    ).typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
   });
 
   const utf8textdecoder = new TextDecoder();
