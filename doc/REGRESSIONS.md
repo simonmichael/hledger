@@ -108,7 +108,7 @@ To claim the bounty:
 | **1.33** 2024-04-18                              | -                                                                                                |                                                                     |
 | **1.34** 2024-06-01                              | -                                                                                                |                                                                     |
 | **1.40** 2024-09-09                              | -                                                                                                |                                                                     |
-| [#2225]                                          | Bas van Dijk    : **unclaimed**                                                                  | Henning Thielemann : **unclaimed**                                  |
+| [#2225]                                          | Bas van Dijk    : donated 2024-09-22                                                             | Henning Thielemann : **unclaimed**                                  |
 
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
