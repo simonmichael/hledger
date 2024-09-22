@@ -163,8 +163,8 @@ function addformReset(showmsg) {
 // Set the add-new-row-on-keypress handler on the add form's current last amount field, only.
 // (NB: removes all other keypress handlers from all amount fields).
 function addformLastAmountBindKey() {
-  $('.amount-input').off('keypress');
-  $('.amount-input:last').keypress(addformAddPosting);
+  $('input[name=amount]').off('keypress');
+  $('input[name=amount]:last').keypress(addformAddPosting);
 }
 
 // Pre-fill today's date and focus the description field in the add form.
@@ -193,8 +193,8 @@ function addformAddPosting() {
   $('#addform .account-postings').append( $('#addform .account-group:last').clone().addClass('added-row') );
   // renumber and clear the new last account and amount fields
   var n = $('#addform .account-group').length;
-  $('.account-input:last').prop('placeholder', 'Account '+n).val('');
-  $('.amount-input:last').prop('placeholder','Amount '+n).val('');  // XXX Enable typehead on dynamically created inputs
+  $('input[name=account]:last').prop('placeholder', 'Account '+n).val('');
+  $('input[name=amount]:last' ).prop('placeholder', 'Amount ' +n).val('');  // XXX Enable typehead on dynamically created inputs
   // and move the keypress handler to the new last amount field
   addformLastAmountBindKey();
 }
