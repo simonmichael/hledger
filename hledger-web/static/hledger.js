@@ -186,16 +186,29 @@ function focus($el) {
 
 // Insert another posting row in the add form.
 function addformAddPosting() {
-  if (!$('#addform').is(':visible')) {
-    return;
-  }
-  // Clone the old last row to make a new last row
-  $('#addform .account-postings').append( $('#addform .account-group:last').clone().addClass('added-row') );
-  // renumber and clear the new last account and amount fields
-  var n = $('#addform .account-group').length;
-  $('input[name=account]:last').prop('placeholder', 'Account '+n).val('');
-  $('input[name=amount]:last' ).prop('placeholder', 'Amount ' +n).val('');  // XXX Enable typehead on dynamically created inputs
-  // and move the keypress handler to the new last amount field
+  if (!$('#addform').is(':visible')) { return; }
+
+  // Clone the last row.
+  var newrow = $('#addform .account-group:last').clone().addClass('added-row');
+  var newnum = $('#addform .account-group').length + 1;
+
+  // Clear the new account and amount fields and update their placeholder text.
+  var accountfield = newrow.find('input[name=account]');
+  var amountfield  = newrow.find('input[name=amount]');
+  accountfield.val('').prop('placeholder', 'Account '+newnum);
+  amountfield.val('').prop('placeholder', 'Amount '+newnum);
+
+  // Enable autocomplete in the new account field.
+  // We must first remove these typehead helper elements cloned from the old row,
+  // or it will recursively add helper elements for those, causing confusion (#2215).
+  newrow.find('.tt-hint').remove();
+  newrow.find('.tt-input').removeClass('tt-input');
+  accountfield.typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
+
+  // Add the new row to the page.
+  $('#addform .account-postings').append(newrow);
+
+  // And move the keypress handler to the new last amount field.
   addformLastAmountBindKey();
 }
 
