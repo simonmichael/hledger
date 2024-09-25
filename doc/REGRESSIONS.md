@@ -95,7 +95,7 @@ To claim the bounty:
 | [#2045]                                          | Pranesh Prakash : [paid 2023-10-17](https://opencollective.com/hledger/expenses/150171)          |                                                                     |
 | [#2153]                                          | markokocic      : donated 2024-01-25                                                             |                                                                     |
 | **1.30** 2023-06-01                              | -                                                                                                |                                                                     |
-| [#2072]                                          | Simon Michael   : **unclaimed**, <br>usaAmch [#2137] : donated 2024-09-18, <br>ipvych [#2150] : **unclaimed** | Simon Michael : **unclaimed**                                       |
+| [#2072]                                          | Simon Michael   : **unclaimed**, <br>usaAmch [#2137] : donated 2024-09-18, <br>ipvych [#2150] : **unclaimed** | Simon Michael : **unclaimed**                          |
 | **1.31** 2023-09-03                              | -                                                                                                |                                                                     |
 | [#2091]                                          | Petr Slansky    : [paid 2023-10-16](https://opencollective.com/hledger/expenses/166632)          |                                                                     |
 | [#2115]                                          | pepe_pecas      : donated 2023-12-15                                                             |                                                                     |
@@ -106,6 +106,7 @@ To claim the bounty:
 | [#2134]                                          | pepe_pecas      : donated 2023-12-15                                                             |                                                                     |
 | [#2156]                                          | ishmaelavila    : **unclaimed**                                                                  |                                                                     |
 | **1.33** 2024-04-18                              | -                                                                                                |                                                                     |
+| [#2227]                                          | Henning Thielemann : **unclaimed**                                                               | Henning Thielemann : **unclaimed**                                  |
 | **1.34** 2024-06-01                              | -                                                                                                |                                                                     |
 | **1.40** 2024-09-09                              | -                                                                                                |                                                                     |
 | [#2225]                                          | Bas van Dijk    : donated 2024-09-22                                                             | Henning Thielemann : **unclaimed**                                  |
@@ -156,3 +157,4 @@ To claim the bounty:
 [#2196]: https://github.com/simonmichael/hledger/issues/2196
 [#2224]: https://github.com/simonmichael/hledger/issues/2224
 [#2225]: https://github.com/simonmichael/hledger/issues/2225
+[#2227]: https://github.com/simonmichael/hledger/issues/2227
