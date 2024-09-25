@@ -93,23 +93,24 @@ To claim the bounty:
 | [#2023]                                          | Simon Michael   : [paid 2023-04-06](https://opencollective.com/hledger/expenses/132635)          |                                                                     |
 | [#2034]                                          | Simon Michael   : N/A                                                                            |                                                                     |
 | [#2045]                                          | Pranesh Prakash : [paid 2023-10-17](https://opencollective.com/hledger/expenses/150171)          |                                                                     |
-| [#2153]                                          | markokocic      : donated 2024-01-25                                                             |                                                                     |
+| [#2153]                                          | markokocic      : donated 2024-01-25                                                             | Simon Michael : N/A                                                 |
 | **1.30** 2023-06-01                              | -                                                                                                |                                                                     |
 | [#2072]                                          | Simon Michael   : **unclaimed**, <br>usaAmch [#2137] : donated 2024-09-18, <br>ipvych [#2150] : **unclaimed** | Simon Michael : **unclaimed**                          |
 | **1.31** 2023-09-03                              | -                                                                                                |                                                                     |
-| [#2091]                                          | Petr Slansky    : [paid 2023-10-16](https://opencollective.com/hledger/expenses/166632)          |                                                                     |
-| [#2115]                                          | pepe_pecas      : donated 2023-12-15                                                             |                                                                     |
+| [#2091]                                          | Petr Slansky    : [paid 2023-10-16](https://opencollective.com/hledger/expenses/166632)          | Simon Michael : N/A                                                 |
+| [#2115]                                          | usaAmch         : **unclaimed**                                                                  | Simon Michael : N/A                                                 |
 | **1.32** 2023-12-01                              | -                                                                                                |                                                                     |
-| [#2125]                                          | Simon Michael   : N/A                                                                            |                                                                     |
-| [#2127]                                          | rajeevn1        : **unclaimed**                                                                  |                                                                     |
-| [#2130]                                          | Simon Michael   : N/A                                                                            |                                                                     |
-| [#2134]                                          | pepe_pecas      : donated 2023-12-15                                                             |                                                                     |
-| [#2156]                                          | ishmaelavila    : **unclaimed**                                                                  |                                                                     |
+| [#2125]                                          | Simon Michael   : N/A                                                                            | Simon Michael : N/A                                                 |
+| [#2127]                                          | Rajeev N        : [paid 2023-12-15](https://opencollective.com/hledger/expenses/177761)          | Simon Michael : **unclaimed**                                       |
+| [#2130]                                          | Simon Michael   : N/A                                                                            | Simon Michael : N/A                                                 |
+| [#2134]                                          | pepe_pecas      : donated 2023-12-15                                                             | Simon Michael : N/A                                                 |
+| [#2156]                                          | ishmaelavila    : **unclaimed**                                                                  | Simon Michael : **unclaimed**                                       |
 | **1.33** 2024-04-18                              | -                                                                                                |                                                                     |
 | [#2227]                                          | Henning Thielemann : **unclaimed**                                                               | Henning Thielemann : **unclaimed**                                  |
 | **1.34** 2024-06-01                              | -                                                                                                |                                                                     |
 | **1.40** 2024-09-09                              | -                                                                                                |                                                                     |
 | [#2225]                                          | Bas van Dijk    : donated 2024-09-22                                                             | Henning Thielemann : **unclaimed**                                  |
+
 
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
