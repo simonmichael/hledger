@@ -22,6 +22,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad, alignright)
 import qualified Hledger.Write.Html as Html
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
