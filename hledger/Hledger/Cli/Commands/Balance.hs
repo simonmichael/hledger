@@ -234,8 +234,6 @@ Currently, empty cells show 0.
 -}
 
 {-# LANGUAGE OverloadedStrings    #-}
-{-# LANGUAGE ExtendedDefaultRules #-}  -- for lucid_
-{-# LANGUAGE FlexibleContexts #-}      -- for stylesheet_
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
@@ -262,21 +260,6 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsSpreadsheet
  ,addTotalBorders
  ,RowClass(..)
-  -- ** HTML output helpers
- ,stylesheet_
- ,styles_
- ,bold
- ,doubleborder
- ,topdoubleborder
- ,bottomdoubleborder
- ,alignright
- ,alignleft
- ,aligncenter
- ,collapse
- ,lpad
- ,rpad
- ,hpad
- ,vpad
   -- ** Tests
  ,tests_Balance
 ) where
@@ -310,6 +293,7 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html (printHtml)
+import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad)
 import qualified Hledger.Write.Html as Html
 import qualified Hledger.Write.Spreadsheet as Ods
 
@@ -733,24 +717,6 @@ multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport
         let fmt = if ishtml then oneLineNoCostFmt else machineFmt
         in  map (map (fmap wbToText)) . multiBalanceRowAsCellBuilders fmt opts colspans rc
 
--- Helpers and CSS styles for HTML output.
-
-stylesheet_ elstyles = style_ $ T.unlines $ "" : [el<>" {"<>styles<>"}" | (el,styles) <- elstyles]
-styles_ :: [Text] -> L.Attribute
-styles_ = style_ . T.intercalate "; "
-bold = "font-weight:bold"
-doubleborder = "double black"
-topdoubleborder    = "border-top:"<>doubleborder
-bottomdoubleborder = "border-bottom:"<>doubleborder
-alignright, alignleft, aligncenter :: Text
-alignright  = "text-align:right"
-alignleft   = "text-align:left"
-aligncenter = "text-align:center"
-collapse = "border-collapse:collapse"
-lpad = "padding-left:1em"
-rpad = "padding-right:1em"
-hpad = "padding-left:1em; padding-right:1em"
-vpad = "padding-top:1em;  padding-bottom:1em"
 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()

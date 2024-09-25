@@ -10,6 +10,7 @@ module Hledger.Write.Html (
     formatCell,
     ) where
 
+import qualified Hledger.Write.Html.Attribute as Attr
 import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 
@@ -45,7 +46,7 @@ formatCell cell =
     let style =
             case leftBorder++rightBorder++topBorder++bottomBorder of
                 [] -> []
-                ss -> [Lucid.style_ $ Text.intercalate "; " ss] in
+                ss -> [Attr.styles_ ss] in
     let class_ =
             map Lucid.class_ $
             filter (not . Text.null) [Spr.textFromClass $ cellClass cell] in

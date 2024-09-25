@@ -152,6 +152,7 @@ library:
   - Hledger.Write.Csv
   - Hledger.Write.Ods
   - Hledger.Write.Html
+  - Hledger.Write.Html.Attribute
   - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
