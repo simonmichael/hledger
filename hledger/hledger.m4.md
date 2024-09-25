@@ -4386,7 +4386,6 @@ To generate time logs, ie to clock in and clock out, you could:
 
 # Timedot
 
-
 `timedot` format is hledger's human-friendly time logging format.
 Compared to [`timeclock` format](#timeclock), it is
 more convenient for quick, approximate, and retroactive time logging,
@@ -4403,7 +4402,6 @@ per:admin:finance               ; no time spent yet
 hledger reads this as a transaction on this day with three
 (unbalanced) postings, where each dot represents "0.25".
 No commodity symbol is assumed, but we typically interpret it as hours.
-
 
 ```cli
 $ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is required
@@ -4462,6 +4460,11 @@ There is some flexibility to help with keeping time log data and notes in the sa
   And from the first date line onward, Emacs org mode heading prefixes at the start of lines
   (one or more `*`'s followed by a space) will be ignored.
   This means the time log can also be a org outline.
+
+Timedot files don't support directives like journal files.
+So a common pattern is to have a main journal file (eg `time.journal`)
+that contains any needed directives,
+and then [includes](#include-directive) the timedot file (`include time.timedot`).
 
 ## Timedot examples
 
