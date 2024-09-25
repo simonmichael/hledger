@@ -366,7 +366,8 @@ compoundBalanceReportAsHtml ropts cbr =
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
       else
-        multiBalanceRowAsCellBuilders oneLineNoCostFmt ropts colspans Total totalrow
+        multiBalanceRowAsCellBuilders oneLineNoCostFmt ropts colspans
+            Total simpleDateSpanCell totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
         & zipWith (:) (Spr.defaultCell "Net:" : repeat Spr.emptyCell)

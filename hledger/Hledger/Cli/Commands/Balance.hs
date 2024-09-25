@@ -259,6 +259,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportTableAsText
  ,multiBalanceReportAsSpreadsheet
  ,addTotalBorders
+ ,simpleDateSpanCell
  ,RowClass(..)
   -- ** Tests
  ,tests_Balance
@@ -583,6 +584,30 @@ headerCell text =
             (Ods.cellBorder deflt) {Ods.borderBottom = Ods.DoubleLine}
     }
 
+headerDateSpanCell :: Maybe Text -> DateSpan -> Ods.Cell Ods.NumLines Text
+headerDateSpanCell base spn =
+    let prd = showDateSpan spn in
+    (headerCell prd) {
+        Ods.cellAnchor =
+            foldMap (\url -> url <> "register?q=date:" <> prd) base
+    }
+
+simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
+simpleDateSpanCell = Ods.defaultCell . showDateSpan
+
+dateSpanCell ::
+    (Ods.Lines border) => Maybe Text -> Text -> DateSpan -> Ods.Cell border Text
+dateSpanCell base acct spn =
+    let prd = showDateSpan spn in
+    (Ods.defaultCell prd) {
+        Ods.cellAnchor =
+            foldMap
+                (\url -> url <>
+                    "register?q=inacct:" <> quoteIfSpaced acct <>
+                    " date:" <> prd)
+                base
+    }
+
 addTotalBorders :: [[Ods.Cell border text]] -> [[Ods.Cell Ods.NumLines text]]
 addTotalBorders =
     zipWith
@@ -718,21 +743,26 @@ multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport
       LayoutBare -> headerCell "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders =
-      map (headerCell . showDateSpan) colspans ++
+      map (headerDateSpanCell balance_base_url_) colspans ++
       [hCell "rowtotal" "total" | row_total_] ++
       [hCell "rowaverage" "average" | average_]
-    fullRowAsTexts row = map (anchorCell:) $ rowAsText Value row
-      where anchorCell =
-              let name = prrFullName row in
-              setAccountAnchor balance_base_url_ name $
-              accountCell $ accountNameDrop drop_ name
+    fullRowAsTexts row =
+        map (anchorCell:) $
+        rowAsText Value (dateSpanCell balance_base_url_ acctName) row
+      where acctName = prrFullName row
+            anchorCell =
+              setAccountAnchor balance_base_url_ acctName $
+              accountCell $ accountNameDrop drop_ acctName
     totalrows
       | no_total_ = []
-      | ishtml    = zipWith (:) (accountCell totalRowHeadingHtml : repeat Ods.emptyCell) $ rowAsText Total tr
-      | otherwise = map (accountCell totalRowHeadingCsv :) $ rowAsText Total tr
-    rowAsText rc =
+      | ishtml    = zipWith (:) (accountCell totalRowHeadingHtml : repeat Ods.emptyCell) $
+                    rowAsText Total simpleDateSpanCell tr
+      | otherwise = map (accountCell totalRowHeadingCsv :) $
+                    rowAsText Total simpleDateSpanCell tr
+    rowAsText rc dsCell =
         let fmt = if ishtml then oneLineNoCostFmt else machineFmt
-        in  map (map (fmap wbToText)) . multiBalanceRowAsCellBuilders fmt opts colspans rc
+        in  map (map (fmap wbToText)) .
+            multiBalanceRowAsCellBuilders fmt opts colspans rc dsCell
 
 
 -- | Render a multi-column balance report as HTML.
@@ -867,10 +897,11 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
 
 multiBalanceRowAsCellBuilders ::
     AmountFormat -> ReportOpts -> [DateSpan] ->
-    RowClass -> PeriodicReportRow a MixedAmount ->
+    RowClass -> (DateSpan -> Ods.Cell Ods.NumLines Text) ->
+    PeriodicReportRow a MixedAmount ->
     [[Ods.Cell Ods.NumLines WideBuilder]]
 multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
-      rc (PeriodicReportRow _ as rowtot rowavg) =
+      rc renderDateSpanCell (PeriodicReportRow _acct as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (cellFromMixedAmount bopts{displayMaxWidth=width}) clsamts]
       LayoutTall       -> paddedTranspose Ods.emptyCell
@@ -897,9 +928,11 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
     clsamts = (if not summary_only_ then classified else []) ++
                 [(rowTotalClass rc, rowtot) | totalscolumn && not (null as)] ++
                 [(rowAverageClass rc, rowavg) | average_ && not (null as)]
-    addDateColumns spn@(DateSpan s e) = (wbCell (showDateSpan spn) :)
-                                       . (wbDate (maybe "" showEFDate s) :)
-                                       . (wbDate (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :)
+    addDateColumns spn@(DateSpan s e) remCols =
+        (wbFromText <$> renderDateSpanCell spn) :
+        wbDate (maybe "" showEFDate s) :
+        wbDate (maybe "" (showEFDate . modifyEFDay (addDays (-1))) e) :
+        remCols
 
     paddedTranspose :: a -> [[a]] -> [[a]]
     paddedTranspose _ [] = [[]]
@@ -919,12 +952,14 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
 multiBalanceRowAsText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsText opts =
     rawTableContent .
-    multiBalanceRowAsCellBuilders oneLineNoCostFmt{displayColour=color_ opts} opts [] Value
+    multiBalanceRowAsCellBuilders oneLineNoCostFmt{displayColour=color_ opts} opts []
+        Value simpleDateSpanCell
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsCsvText opts colspans =
     map (map (wbToText . Ods.cellContent)) .
-    multiBalanceRowAsCellBuilders machineFmt opts colspans Value
+    multiBalanceRowAsCellBuilders machineFmt opts colspans
+        Value simpleDateSpanCell
 
 
 -- Budget reports
