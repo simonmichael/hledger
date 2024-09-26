@@ -22,7 +22,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad, alignright)
+import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad, alignleft, alignright)
 import qualified Hledger.Write.Html as Html
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
@@ -337,7 +337,7 @@ compoundBalanceReportAsHtml ropts cbr =
       if average_ ropts then 1 else 0,
       if layout_ ropts == LayoutBare then 1 else 0
       ]
-    leftattr = style_ "text-align:left"
+    leftattr = style_ alignleft
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
