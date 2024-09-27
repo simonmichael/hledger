@@ -22,7 +22,7 @@ Notes for hledger release managers and maintainers.
 
 ## Release types
 
-hledger major releases happen each quarter, normally at the start of the third month.
+hledger major releases happen each quarter, normally at the start of the third month (see [past releases](relnotes.md)).
 Bugfix releases follow when needed.
 Preview releases may happen in the other months if wanted.
 
