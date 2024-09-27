@@ -196,8 +196,8 @@ hledger provides various subcommands for getting things done.
 Most of these commands do not change the journal file; they just read it and output a report.
 A few commands assist with adding data and file management.
 
-To show the commands list, run `hledger` with no arguments.
-The commands are described in detail in [PART 4: COMMANDS](#part-4-commands), below.
+To show a summary of commands, run `hledger` with no arguments.
+You can see the same commands summary at the start of [PART 4: COMMANDS](#part-4-commands) below.
 
 To use a particular command, run `hledger CMD [CMDOPTS] [CMDARGS]`,
 
