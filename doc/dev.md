@@ -63,7 +63,7 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund)\
 [projects.hledger.org](http://projects.hledger.org)\
 [stars.hledger.org](http://stars.hledger.org) our rank among starred haskell projects:\
-2024:#36\
+2024:#35\
 2023:#32\
 2022:#34\
 2020:#36\
