@@ -1,6 +1,6 @@
 ## demo
 
-Play demos of hledger usage in the terminal, if asciinema is installed.
+Play demos of hledger usage in the terminal, if [asciinema](https://asciinema.org) is installed.
 
 ```flags
 Flags:
