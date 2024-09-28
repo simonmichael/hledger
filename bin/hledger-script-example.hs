@@ -14,11 +14,10 @@
 -- the stackage snapshot (lts-X.Y or nightly-YYYY-MM-DD).
 --
 -- stack script --snapshot lts-22.27 --verbosity error --package hledger --package text
---  (https://www.stackage.org/lts-22.27 with hledger-1.32.3, ghc-9.6.5.)
+--  (Uses the specified snapshot with its hledger and ghc, https://www.stackage.org/lts-22.27)
 --
--- stack script --snapshot nightly-2024-09-04 --verbosity error --package hledger --package hledger-lib --package text --compile
---  (https://www.stackage.org/nightly-2024-09-04 with hledger-1.34, ghc-9.8.2.
---   The --compile flag makes it compile the script to a faster binary.)
+-- stack script --snapshot nightly-2024-09-26 --verbosity error --package hledger --package hledger-lib --package text --compile
+--  (Uses a newer snapshot, hledger and ghc. The --compile flag compiles the script to a faster binary.)
 --
 ------------------------------------78----------------------------------------
 
