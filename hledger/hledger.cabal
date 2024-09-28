@@ -172,6 +172,7 @@ library
     , math-functions >=0.3.3.0
     , megaparsec >=7.0.0 && <9.7
     , microlens >=0.4
+    , modern-uri >=0.3
     , mtl >=2.2.1
     , process
     , regex-tdfa

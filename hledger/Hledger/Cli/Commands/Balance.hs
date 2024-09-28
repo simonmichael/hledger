@@ -238,6 +238,7 @@ Currently, empty cells show 0.
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
+{-# LANGUAGE QuasiQuotes          #-}
 
 module Hledger.Cli.Commands.Balance (
   -- ** balance command
@@ -283,6 +284,8 @@ import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C (flagNone, flagReq, flagOpt)
 import Lucid as L hiding (value_)
 import Safe (headMay, maximumMay)
+import qualified Text.URI as Uri
+import qualified Text.URI.QQ as UriQQ
 import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
     cellWidth, concatTables, renderColumns, renderRowB, renderTableByRowsB, textCell)
@@ -586,8 +589,14 @@ headerCell text =
 
 registerQueryUrl :: [Text] -> Text
 registerQueryUrl query =
-    "register?q=" <>
-    T.intercalate "+" (map quoteIfSpaced $ filter (not . T.null) query)
+    Uri.render $
+    [UriQQ.uri|register|] {
+        Uri.uriQuery =
+            [Uri.QueryParam [UriQQ.queryKey|q|] $
+             fromMaybe (error "register URI query construction failed") $
+             Uri.mkQueryValue $ T.unwords $
+             map quoteIfSpaced $ filter (not . T.null) query]
+    }
 
 -- cf. Web.Widget.Common
 removeDates :: [Text] -> [Text]
