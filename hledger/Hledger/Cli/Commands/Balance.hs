@@ -584,27 +584,41 @@ headerCell text =
             (Ods.cellBorder deflt) {Ods.borderBottom = Ods.DoubleLine}
     }
 
-headerDateSpanCell :: Maybe Text -> DateSpan -> Ods.Cell Ods.NumLines Text
-headerDateSpanCell base spn =
+registerQueryUrl :: [Text] -> Text
+registerQueryUrl query =
+    "register?q=" <>
+    T.intercalate "+" (map quoteIfSpaced $ filter (not . T.null) query)
+
+-- cf. Web.Widget.Common
+removeDates :: [Text] -> [Text]
+removeDates =
+    filter (\term_ ->
+        not $ T.isPrefixOf "date:" term_ || T.isPrefixOf "date2:" term_)
+
+replaceDate :: Text -> [Text] -> [Text]
+replaceDate prd query = "date:"<>prd : removeDates query
+
+headerDateSpanCell ::
+    Maybe Text -> [Text] -> DateSpan -> Ods.Cell Ods.NumLines Text
+headerDateSpanCell base query spn =
     let prd = showDateSpan spn in
     (headerCell prd) {
         Ods.cellAnchor =
-            foldMap (\url -> url <> "register?q=date:" <> prd) base
+            foldMap (<> registerQueryUrl (replaceDate prd query)) base
     }
 
 simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
 simpleDateSpanCell = Ods.defaultCell . showDateSpan
 
 dateSpanCell ::
-    (Ods.Lines border) => Maybe Text -> Text -> DateSpan -> Ods.Cell border Text
-dateSpanCell base acct spn =
+    (Ods.Lines border) =>
+    Maybe Text -> [Text] -> Text -> DateSpan -> Ods.Cell border Text
+dateSpanCell base query acct spn =
     let prd = showDateSpan spn in
     (Ods.defaultCell prd) {
         Ods.cellAnchor =
             foldMap
-                (\url -> url <>
-                    "register?q=inacct:" <> quoteIfSpaced acct <>
-                    " date:" <> prd)
+                (<> registerQueryUrl ("inacct:"<>acct : replaceDate prd query))
                 base
     }
 
@@ -621,13 +635,11 @@ rawTableContent :: [[Ods.Cell border text]] -> [[text]]
 rawTableContent = map (map Ods.cellContent)
 
 setAccountAnchor ::
-    Maybe Text -> Text -> Ods.Cell border text -> Ods.Cell border text
-setAccountAnchor base acct cell =
+    Maybe Text -> [Text] -> Text -> Ods.Cell border text -> Ods.Cell border text
+setAccountAnchor base query acct cell =
     cell
     {Ods.cellAnchor =
-        foldMap
-            (\url -> url <> "register?q=inacct:" <> quoteIfSpaced acct)
-            base}
+        foldMap (<> registerQueryUrl ("inacct:"<>acct : query)) base}
 
 
 -- | Render a single-column balance report as FODS.
@@ -652,7 +664,8 @@ balanceReportAsSpreadsheet opts (items, total) =
     rows rc name ma =
       let accountCell =
               setAccountAnchor
-                  (guard (rc==Value) >> balance_base_url_ opts) name $
+                  (guard (rc==Value) >> balance_base_url_ opts)
+                  (querystring_ opts) name $
               cell $ accountNameDrop (drop_ opts) name in
       case layout_ opts of
       LayoutBare ->
@@ -743,15 +756,15 @@ multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport
       LayoutBare -> headerCell "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders =
-      map (headerDateSpanCell balance_base_url_) colspans ++
+      map (headerDateSpanCell balance_base_url_ querystring_) colspans ++
       [hCell "rowtotal" "total" | row_total_] ++
       [hCell "rowaverage" "average" | average_]
     fullRowAsTexts row =
         map (anchorCell:) $
-        rowAsText Value (dateSpanCell balance_base_url_ acctName) row
+        rowAsText Value (dateSpanCell balance_base_url_ querystring_ acctName) row
       where acctName = prrFullName row
             anchorCell =
-              setAccountAnchor balance_base_url_ acctName $
+              setAccountAnchor balance_base_url_ querystring_ acctName $
               accountCell $ accountNameDrop drop_ acctName
     totalrows
       | no_total_ = []
@@ -1279,8 +1292,8 @@ budgetReportAsSpreadsheet
         joinNames = map (accountCell :)
         accountCell =
             let name = render row in
-            setAccountAnchor (guard (rc==Value) >> balance_base_url_) name $
-                cell name
+            setAccountAnchor (guard (rc==Value) >> balance_base_url_)
+                querystring_ name (cell name)
 
 
 -- tests
