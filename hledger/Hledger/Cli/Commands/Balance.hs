@@ -298,7 +298,7 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html (printHtml)
-import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad)
+import Hledger.Write.Html.Attribute (tableStylesheet)
 import qualified Hledger.Write.Html as Html
 import qualified Hledger.Write.Spreadsheet as Ods
 
@@ -811,7 +811,7 @@ multiBalanceReportAsHtml ropts mbr =
   let
     (headingsrow,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
   in do
-    stylesheet_ [("table",collapse), ("th, td",lpad), ("th.account, td.account","padding-left:0;")]
+    style_ tableStylesheet
     table_ $ mconcat $
          [headingsrow]
       ++ bodyrows

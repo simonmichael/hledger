@@ -23,12 +23,7 @@ import Data.Foldable (traverse_)
 
 printHtml :: (Lines border) => [[Cell border (Lucid.Html ())]] -> Lucid.Html ()
 printHtml table = do
-    Lucid.style_ $ Text.unlines $
-        "" :
-        "table {border-collapse:collapse}" :
-        "th, td {padding-left:1em}" :
-        "th.account, td.account {padding-left:0;}" :
-        []
+    Lucid.style_ Attr.tableStylesheet
     Lucid.table_ $ traverse_ formatRow table
 
 formatRow:: (Lines border) => [Cell border (Lucid.Html ())] -> Lucid.Html ()
@@ -50,7 +45,7 @@ formatCell cell =
     let style =
             case leftBorder++rightBorder++topBorder++bottomBorder of
                 [] -> []
-                ss -> [Attr.styles_ ss] in
+                ss -> [Lucid.style_ $ Attr.concatStyles ss] in
     let class_ =
             map Lucid.class_ $
             filter (not . Text.null) [Spr.textFromClass $ cellClass cell] in
