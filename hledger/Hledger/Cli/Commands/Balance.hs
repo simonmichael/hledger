@@ -345,9 +345,9 @@ balancemode = hledgerCommandMode
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-    ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
+    ,flagNone ["related","r"] (setboolopt "related") "show the other accounts transacted with, instead"
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+    ,flagNone ["transpose"] (setboolopt "transpose") "switch rows and columns (use vertical time axis)"
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
         ["how to lay out multi-commodity amounts and the overall table:"
@@ -356,7 +356,7 @@ balancemode = hledgerCommandMode
         ,"'bare'        : commodity symbols in one column"
         ,"'tidy'        : every attribute in its own column"
         ])
-     ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate hyperlinks to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+     ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
 
     -- output:
     ,outputFormatFlag ["txt","html","csv","tsv","json","fods"]
