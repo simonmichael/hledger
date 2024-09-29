@@ -99,7 +99,7 @@ module Hledger.Read.Common (
   emptyorcommentlinep2,
   followingcommentp,
   transactioncommentp,
-  commenttagsp,
+  commentlinetagsp,
   postingcommentp,
 
   -- ** bracketed dates
@@ -1307,25 +1307,44 @@ isSameLineCommentStart :: Char -> Bool
 isSameLineCommentStart ';' = True
 isSameLineCommentStart _   = False
 
--- A parser for (possibly multiline) comments following a journal item.
+-- | Parse a comment following a journal item, possibly continued on multiple lines,
+-- and return the comment text.
 --
--- Comments following a journal item begin with a semicolon and extend to
--- the end of the line. They may span multiple lines; any comment lines 
--- not on the same line as the journal item must be indented (preceded by
--- leading whitespace).
+-- >>> rtp followingcommentp ""   -- no comment
+-- Right ""
+-- >>> rtp followingcommentp ";"    -- just a (empty) same-line comment. newline is added
+-- Right "\n"
+-- >>> rtp followingcommentp ";  \n"
+-- Right "\n"
+-- >>> rtp followingcommentp ";\n ;\n"  -- a same-line and a next-line comment
+-- Right "\n\n"
+-- >>> rtp followingcommentp "\n ;\n"  -- just a next-line comment. Insert an empty same-line comment so the next-line comment doesn't become a same-line comment.
+-- Right "\n\n"
 --
--- Like Ledger, we sometimes allow data to be embedded in comments. Eg,
--- comments on the account directive and on transactions can contain tags,
--- and comments on postings can contain tags and/or bracketed posting dates.
--- To handle these variations, this parser takes as parameter a subparser,
--- which should consume all input up until the next newline, and which can
--- optionally extract some kind of data from it.
--- followingcommentp' returns this data along with the full text of the comment.
+followingcommentp :: TextParser m Text
+followingcommentp =
+  fst <$> followingcommentpWith (void $ takeWhileP Nothing (/= '\n'))  -- XXX support \r\n ?
+
+{-# INLINABLE followingcommentp #-}
+
+-- | Parse a following comment, possibly continued on multiple lines,
+-- using the provided line parser to parse each line.
+-- This returns the comment text, and the combined results from the line parser.
 --
--- See followingcommentp for tests.
+-- Following comments begin with a semicolon and extend to the end of the line.
+-- They can optionally be continued on the next lines,
+-- where each next line begins with an indent and another semicolon.
+-- (This parser expects to see these semicolons and indents.)
 --
-followingcommentp' :: (Monoid a, Show a) => TextParser m a -> TextParser m (Text, a)
-followingcommentp' contentp = do
+-- Like Ledger, we sometimes allow data to be embedded in comments.
+-- account directive comments and transaction comments can contain tags,
+-- and posting comments can contain tags or bracketed posting dates.
+-- This helper lets us handle these variations. 
+-- The line parser should consume all input up until the next newline.
+-- See followingcommentp for some tests.
+--
+followingcommentpWith :: (Monoid a, Show a) => TextParser m a -> TextParser m (Text, a)
+followingcommentpWith contentp = do
   skipNonNewlineSpaces
   -- there can be 0 or 1 sameLine
   sameLine <- try headerp *> ((:[]) <$> match' contentp) <|> pure []
@@ -1346,25 +1365,35 @@ followingcommentp' contentp = do
   where
     headerp = char ';' *> skipNonNewlineSpaces
 
-{-# INLINABLE followingcommentp' #-}
+{-# INLINABLE followingcommentpWith #-}
 
--- | Parse the text of a (possibly multiline) comment following a journal item.
---
--- >>> rtp followingcommentp ""   -- no comment
--- Right ""
--- >>> rtp followingcommentp ";"    -- just a (empty) same-line comment. newline is added
--- Right "\n"
--- >>> rtp followingcommentp ";  \n"
--- Right "\n"
--- >>> rtp followingcommentp ";\n ;\n"  -- a same-line and a next-line comment
--- Right "\n\n"
--- >>> rtp followingcommentp "\n ;\n"  -- just a next-line comment. Insert an empty same-line comment so the next-line comment doesn't become a same-line comment.
--- Right "\n\n"
---
-followingcommentp :: TextParser m Text
-followingcommentp =
-  fst <$> followingcommentp' (void $ takeWhileP Nothing (/= '\n'))  -- XXX support \r\n ?
-{-# INLINABLE followingcommentp #-}
+
+-- Parse the tags from a single comment line, eg for use with followingcommentpWith.
+-- XXX what part of a comment line ? leading whitespace / semicolon or not ?
+commentlinetagsp :: TextParser m [Tag]
+commentlinetagsp = do
+  -- XXX sketchy
+  tagName <- (last . T.split isSpace) <$> takeWhileP Nothing (\c -> c /= ':' && c /= '\n')
+  atColon tagName <|> pure [] -- if not ':', then either '\n' or EOF
+
+  where
+    atColon :: Text -> TextParser m [Tag]
+    atColon name = char ':' *> do
+      if T.null name
+        then commentlinetagsp
+        else do
+          skipNonNewlineSpaces
+          val <- tagValue
+          let tag = (name, val)
+          (tag:) <$> commentlinetagsp
+
+    tagValue :: TextParser m Text
+    tagValue = do
+      val <- T.strip <$> takeWhileP Nothing (\c -> c /= ',' && c /= '\n')
+      _ <- optional $ char ','
+      pure val
+
+{-# INLINABLE commentlinetagsp #-}
 
 
 -- | Parse a transaction comment and extract its tags.
@@ -1393,32 +1422,8 @@ followingcommentp =
 -- leading and trailing whitespace.
 --
 transactioncommentp :: TextParser m (Text, [Tag])
-transactioncommentp = followingcommentp' commenttagsp
+transactioncommentp = followingcommentpWith commentlinetagsp
 {-# INLINABLE transactioncommentp #-}
-
-commenttagsp :: TextParser m [Tag]
-commenttagsp = do
-  tagName <- (last . T.split isSpace) <$> takeWhileP Nothing (\c -> c /= ':' && c /= '\n')
-  atColon tagName <|> pure [] -- if not ':', then either '\n' or EOF
-
-  where
-    atColon :: Text -> TextParser m [Tag]
-    atColon name = char ':' *> do
-      if T.null name
-        then commenttagsp
-        else do
-          skipNonNewlineSpaces
-          val <- tagValue
-          let tag = (name, val)
-          (tag:) <$> commenttagsp
-
-    tagValue :: TextParser m Text
-    tagValue = do
-      val <- T.strip <$> takeWhileP Nothing (\c -> c /= ',' && c /= '\n')
-      _ <- optional $ char ','
-      pure val
-
-{-# INLINABLE commenttagsp #-}
 
 
 -- | Parse a posting comment and extract its tags and dates.
@@ -1473,7 +1478,7 @@ postingcommentp
   :: Maybe Year -> TextParser m (Text, [Tag], Maybe Day, Maybe Day)
 postingcommentp mYear = do
   (commentText, (tags, dateTags)) <-
-    followingcommentp' (commenttagsanddatesp mYear)
+    followingcommentpWith (commenttagsanddatesp mYear)
   let mdate  = snd <$> find ((=="date") .fst) dateTags
       mdate2 = snd <$> find ((=="date2").fst) dateTags
   pure (commentText, tags, mdate, mdate2)
