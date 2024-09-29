@@ -23,7 +23,7 @@ import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft, alignright)
-import qualified Hledger.Write.Html as Html
+import qualified Hledger.Write.Html.Lucid as Html
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
 import Safe (tailDef)

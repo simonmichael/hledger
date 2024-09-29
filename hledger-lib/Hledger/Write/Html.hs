@@ -1,67 +1,27 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-Export spreadsheet table data as HTML table.
-
-This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/src/src/Spreadsheet/Format.hs>
+Common definitions for Html.Blaze and Html.Lucid
 -}
 module Hledger.Write.Html (
-    printHtml,
-    formatRow,
-    formatCell,
+    Lines(..),
+    borderStyles,
     ) where
 
-import qualified Hledger.Write.Html.Attribute as Attr
 import qualified Hledger.Write.Spreadsheet as Spr
-import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
+import Hledger.Write.Spreadsheet (Cell(..))
 
-import qualified Data.Text as Text
-import qualified Lucid.Base as LucidBase
-import qualified Lucid
 import Data.Text (Text)
-import Data.Foldable (traverse_)
 
 
-printHtml :: (Lines border) => [[Cell border (Lucid.Html ())]] -> Lucid.Html ()
-printHtml table = do
-    Lucid.style_ Attr.tableStylesheet
-    Lucid.table_ $ traverse_ formatRow table
-
-formatRow:: (Lines border) => [Cell border (Lucid.Html ())] -> Lucid.Html ()
-formatRow = Lucid.tr_ . traverse_ formatCell
-
-formatCell :: (Lines border) => Cell border (Lucid.Html ()) -> Lucid.Html ()
-formatCell cell =
-    let str = cellContent cell in
-    let content =
-            if Text.null $ cellAnchor cell
-                then str
-                else Lucid.a_ [Lucid.href_ $ cellAnchor cell] str in
+borderStyles :: Lines border => Cell border text -> [Text]
+borderStyles cell =
     let border field access =
             map (field<>) $ borderLines $ access $ cellBorder cell in
     let leftBorder   = border "border-left:"   Spr.borderLeft   in
     let rightBorder  = border "border-right:"  Spr.borderRight  in
     let topBorder    = border "border-top:"    Spr.borderTop    in
     let bottomBorder = border "border-bottom:" Spr.borderBottom in
-    let style =
-            case leftBorder++rightBorder++topBorder++bottomBorder of
-                [] -> []
-                ss -> [Lucid.style_ $ Attr.concatStyles ss] in
-    let class_ =
-            map Lucid.class_ $
-            filter (not . Text.null) [Spr.textFromClass $ cellClass cell] in
-    case cellStyle cell of
-        Head -> Lucid.th_ (style++class_) content
-        Body emph ->
-            let align =
-                    case cellType cell of
-                        TypeString -> []
-                        TypeDate -> []
-                        _ -> [LucidBase.makeAttribute "align" "right"]
-                withEmph =
-                    case emph of
-                        Item -> id
-                        Total -> Lucid.b_
-            in  Lucid.td_ (style++align++class_) $ withEmph content
+    leftBorder++rightBorder++topBorder++bottomBorder
 
 
 class (Spr.Lines border) => Lines border where
