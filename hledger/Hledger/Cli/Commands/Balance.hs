@@ -260,6 +260,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportTableAsText
  ,multiBalanceReportAsSpreadsheet
  ,addTotalBorders
+ ,addRowSpanHeader
  ,simpleDateSpanCell
  ,RowClass(..)
   -- ** Tests
@@ -458,12 +459,11 @@ budgetAverageClass rc =
     case rc of Value -> "budget rowaverage"; Total -> "budget colaverage"
 
 -- What to show as heading for the totals row in balance reports ?
--- Currently nothing in terminal, Total: in html and xSV output.
-totalRowHeadingText       = ""
-totalRowHeadingBudgetText = ""
-totalRowHeadingHtml       = "Total:"
-totalRowHeadingCsv        = "Total:"
-totalRowHeadingBudgetCsv  = "Total:"
+-- Currently nothing in terminal, Total: in HTML, FODS and xSV output.
+totalRowHeadingText        = ""
+totalRowHeadingSpreadsheet = "Total:"
+totalRowHeadingBudgetText  = ""
+totalRowHeadingBudgetCsv   = "Total:"
 
 -- Single-column balance reports
 
@@ -663,6 +663,19 @@ addTotalBorders =
 rawTableContent :: [[Ods.Cell border text]] -> [[text]]
 rawTableContent = map (map Ods.cellContent)
 
+addRowSpanHeader ::
+    Ods.Cell border text ->
+    [[Ods.Cell border text]] -> [[Ods.Cell border text]]
+addRowSpanHeader header rows =
+    case rows of
+        [] -> []
+        [row] -> [header:row]
+        _ ->
+            zipWith (:)
+                (header{Ods.cellSpan = Ods.SpanVertical (length rows)} :
+                 repeat header{Ods.cellSpan = Ods.Covered})
+                rows
+
 setAccountAnchor ::
     Maybe Text -> [Text] -> Text -> Ods.Cell border text -> Ods.Cell border text
 setAccountAnchor base query acct cell =
@@ -677,7 +690,7 @@ balanceReportAsSpreadsheet opts (items, total) =
     headers :
     concatMap (\(a, _, _, b) -> rows Value a b) items ++
     if no_total_ opts then []
-      else addTotalBorders $ rows Total totalRowHeadingCsv total
+      else addTotalBorders $ rows Total totalRowHeadingSpreadsheet total
   where
     cell = Ods.defaultCell
     headers =
@@ -694,14 +707,12 @@ balanceReportAsSpreadsheet opts (items, total) =
                   (guard (rc==Value) >> balance_base_url_ opts)
                   (querystring_ opts) name $
               cell $ accountNameDrop (drop_ opts) name in
+      addRowSpanHeader accountCell $
       case layout_ opts of
       LayoutBare ->
-          map (\a ->
-                [accountCell,
-                 cell $ acommodity a,
-                 renderAmount rc $ mixedAmount a])
+          map (\a -> [cell $ acommodity a, renderAmount rc $ mixedAmount a])
           . amounts $ mixedAmountStripCosts ma
-      _ -> [[accountCell, renderAmount rc ma]]
+      _ -> [[renderAmount rc ma]]
 
     renderAmount rc mixedAmt =
         wbToText <$> cellFromMixedAmount bopts (amountClass rc, mixedAmt)
@@ -787,18 +798,17 @@ multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport
       [hCell "rowtotal" "total" | row_total_] ++
       [hCell "rowaverage" "average" | average_]
     fullRowAsTexts row =
-        map (anchorCell:) $
+        addRowSpanHeader anchorCell $
         rowAsText Value (dateSpanCell balance_base_url_ querystring_ acctName) row
       where acctName = prrFullName row
             anchorCell =
               setAccountAnchor balance_base_url_ querystring_ acctName $
               accountCell $ accountNameDrop drop_ acctName
-    totalrows
-      | no_total_ = []
-      | ishtml    = zipWith (:) (accountCell totalRowHeadingHtml : repeat Ods.emptyCell) $
-                    rowAsText Total simpleDateSpanCell tr
-      | otherwise = map (accountCell totalRowHeadingCsv :) $
-                    rowAsText Total simpleDateSpanCell tr
+    totalrows =
+      if no_total_
+        then []
+        else addRowSpanHeader (accountCell totalRowHeadingSpreadsheet) $
+                rowAsText Total simpleDateSpanCell tr
     rowAsText rc dsCell =
         let fmt = if ishtml then oneLineNoCostFmt else machineFmt
         in  map (map (fmap wbToText)) .

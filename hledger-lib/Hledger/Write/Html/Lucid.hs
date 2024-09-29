@@ -45,16 +45,33 @@ formatCell cell =
     let class_ =
             map Html.class_ $
             filter (not . Text.null) [Spr.textFromClass $ cellClass cell] in
+    let span_ makeCell attrs cont =
+            case Spr.cellSpan cell of
+                Spr.NoSpan -> makeCell attrs cont
+                Spr.Covered -> pure ()
+                Spr.SpanHorizontal n ->
+                    makeCell (Html.colspan_ (Text.pack $ show n) : attrs) cont
+                Spr.SpanVertical n ->
+                    makeCell (Html.rowspan_ (Text.pack $ show n) : attrs) cont
+            in
     case cellStyle cell of
-        Head -> Html.th_ (style++class_) content
+        Head -> span_ Html.th_ (style++class_) content
         Body emph ->
             let align =
                     case cellType cell of
                         TypeString -> []
                         TypeDate -> []
                         _ -> [HtmlBase.makeAttribute "align" "right"]
+                valign =
+                    case Spr.cellSpan cell of
+                        Spr.SpanVertical n ->
+                            if n>1
+                                then [HtmlBase.makeAttribute "valign" "top"]
+                                else []
+                        _ -> []
                 withEmph =
                     case emph of
                         Item -> id
                         Total -> Html.b_
-            in  Html.td_ (style++align++class_) $ withEmph content
+            in  span_ Html.td_ (style++align++valign++class_) $
+                withEmph content
