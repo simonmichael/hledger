@@ -153,6 +153,7 @@ library:
   - Hledger.Write.Ods
   - Hledger.Write.Html
   - Hledger.Write.Html.Attribute
+  - Hledger.Write.Html.Blaze
   - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions

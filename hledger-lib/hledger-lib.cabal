@@ -89,6 +89,7 @@ library
       Hledger.Write.Ods
       Hledger.Write.Html
       Hledger.Write.Html.Attribute
+      Hledger.Write.Html.Blaze
       Hledger.Write.Spreadsheet
       Hledger.Reports
       Hledger.Reports.ReportOptions
@@ -123,6 +124,7 @@ library
     , array
     , base >=4.14 && <4.20
     , base-compat
+    , blaze-html >0.8
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
