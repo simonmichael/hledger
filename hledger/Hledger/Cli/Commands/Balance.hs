@@ -297,9 +297,9 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import Hledger.Write.Html (printHtml)
+import Hledger.Write.Html.Lucid (printHtml)
 import Hledger.Write.Html.Attribute (tableStylesheet)
-import qualified Hledger.Write.Html as Html
+import qualified Hledger.Write.Html.Lucid as Html
 import qualified Hledger.Write.Spreadsheet as Ods
 
 
