@@ -310,6 +310,10 @@ balancemode = hledgerCommandMode
     -- https://hledger.org/dev/hledger.html#calculation-type :
     [flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
+    ,flagNone ["valuechange"] (setboolopt "valuechange")
+      "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)"
+    ,flagNone ["gain"] (setboolopt "gain")
+      "show unrealised capital gain/loss (historical balance value minus cost basis)"
     -- XXX --budget[=DESCPAT], --forecast[=PERIODEXP], could be more consistent
     ,flagOpt "" ["budget"] (\s opts -> Right $ setopt "budget" s opts) "DESCPAT"
       (unlines
@@ -318,11 +322,8 @@ balancemode = hledgerCommandMode
       , "use only periodic transactions with matching description"
       , "(case insensitive substring match)."
       ])
-    ,flagNone ["valuechange"] (setboolopt "valuechange")
-      "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)"
-    ,flagNone ["gain"] (setboolopt "gain")
-      "show unrealised capital gain/loss (historical balance value minus cost basis)"
     ,flagNone ["count"] (setboolopt "count") "show the count of postings"
+
     -- https://hledger.org/dev/hledger.html#accumulation-type :
     ,flagNone ["change"] (setboolopt "change")
       "accumulate amounts from column start to column end (in multicolumn reports, default)"
@@ -331,12 +332,12 @@ balancemode = hledgerCommandMode
     ,flagNone ["historical","H"] (setboolopt "historical")
       "accumulate amounts from journal start to column end (includes postings before report start date)"
     ]
+
     -- other options specific to this command:
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
     ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
-    ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
@@ -345,8 +346,6 @@ balancemode = hledgerCommandMode
     ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "add anchors to table cells with respect to this base URL"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
-    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
         ["how to lay out multi-commodity amounts and the overall table:"
@@ -355,9 +354,14 @@ balancemode = hledgerCommandMode
         ,"'bare'        : commodity symbols in one column"
         ,"'tidy'        : every attribute in its own column"
         ])
+    ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
+    ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+    ,flagNone ["transpose"] (setboolopt "transpose") "transpose rows and columns"
+
     -- output:
     ,outputFormatFlag ["txt","html","csv","tsv","json","fods"]
     ,outputFileFlag
+
     ]
   )
   cligeneralflagsgroups1
