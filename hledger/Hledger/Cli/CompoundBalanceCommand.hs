@@ -22,7 +22,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html.Attribute (stylesheet_, collapse, lpad, alignleft, alignright)
+import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft, alignright)
 import qualified Hledger.Write.Html as Html
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
@@ -384,10 +384,8 @@ compoundBalanceReportAsHtml ropts cbr =
 
   in do
     link_ [rel_ "stylesheet", href_ "hledger.css"]
-    stylesheet_ [
-      ("table",collapse),
-      ("th, td",lpad),
-      ("th.account, td.account","padding-left:0;"),
+    style_ $ stylesheet $
+      tableStyle ++ [
       ("td:nth-child(1)", "white-space:nowrap"),
       ("tr:nth-child(even) td", "background-color:#eee")
       ]

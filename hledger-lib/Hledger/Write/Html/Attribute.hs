@@ -1,11 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}      -- for stylesheet_
 {- |
 Helpers and CSS styles for HTML output.
 -}
 module Hledger.Write.Html.Attribute (
-    stylesheet_,
-    styles_,
+    stylesheet,
+    concatStyles,
+    tableStylesheet,
+    tableStyle,
     bold,
     doubleborder,
     topdoubleborder,
@@ -20,20 +21,27 @@ module Hledger.Write.Html.Attribute (
     vpad,
     ) where
 
-import qualified Lucid.Base as LucidBase
-import qualified Lucid
 import qualified Data.Text as Text
 import Data.Text (Text)
 
 
--- | result can be 'Lucid.Attribute' or @Lucid.Html ()@
-stylesheet_ :: LucidBase.TermRaw Text result => [(Text,Text)] -> result
-stylesheet_ elstyles =
-    Lucid.style_ $ Text.unlines $
+stylesheet :: [(Text,Text)] -> Text
+stylesheet elstyles =
+    Text.unlines $
         "" : [el<>" {"<>styles<>"}" | (el,styles) <- elstyles]
 
-styles_ :: [Text] -> Lucid.Attribute
-styles_ = Lucid.style_ . Text.intercalate "; "
+concatStyles :: [Text] -> Text
+concatStyles = Text.intercalate "; "
+
+
+tableStylesheet :: Text
+tableStylesheet = stylesheet tableStyle
+
+tableStyle :: [(Text, Text)]
+tableStyle =
+  [("table", collapse),
+   ("th, td", lpad),
+   ("th.account, td.account", "padding-left:0;")]
 
 bold, doubleborder, topdoubleborder, bottomdoubleborder :: Text
 bold = "font-weight:bold"
