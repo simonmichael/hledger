@@ -63,6 +63,8 @@ compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
    cbcdoc
+   -- keep roughly consistent order with Balance.hs. XXX refactor
+
    ([flagNone ["sum"] (setboolopt "sum")
       "show sum of posting amounts (default)"
    ,flagNone ["valuechange"] (setboolopt "valuechange")
@@ -82,6 +84,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
        ("accumulate amounts from journal start to column end (includes postings before report start date)"
            ++ defaultMarker Historical)
     ]
+
     ++ flattreeflags True ++
     [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
     ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
@@ -91,7 +94,6 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-    ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "add anchors to table cells with respect to this base URL"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
@@ -101,8 +103,11 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
         ,"'tall'        : each commodity on a new line"
         ,"'bare'        : bare numbers, symbols in a column"
         ])
+    ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate hyperlinks to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+
     ,outputFormatFlag ["txt","html","csv","tsv","json"]
     ,outputFileFlag
+
     ])
     cligeneralflagsgroups1
     (hiddenflags ++
