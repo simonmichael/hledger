@@ -1094,26 +1094,30 @@ $  ./csvtest.sh
 >2 /unexpected space/
 >=1
 
-# ** 56. match transaction by posting tag (#2114)
+# ** 56. make sure transaction tags are functional (#2114), including ones on subsequent lines (#2241)
 <
 2020-01-01, 1
 RULES
 fields date, desc
 if %desc 1
- comment  ttag:tval
- comment1 ptag:pval
+ comment  ttag:tval\nttag2:
+ comment1 ptag:pval\ndate:2022-02-02
  account1 a
 
-$  ./csvtest.sh tag:ptag
+$  ./csvtest.sh tag:ttag2
 2020-01-01  ; ttag:tval
+    ; ttag2:
     a                  ; ptag:pval
+    ; date:2022-02-02
 
 >=
 
-# ** 57. match transaction by transaction tag (#2114)
-$  ./csvtest.sh tag:ttag
+# ** 57. and also posting tags, and (primary, yearful) posting dates (#2114, #2241)
+$  ./csvtest.sh tag:date
 2020-01-01  ; ttag:tval
+    ; ttag2:
     a                  ; ptag:pval
+    ; date:2022-02-02
 
 >=
 

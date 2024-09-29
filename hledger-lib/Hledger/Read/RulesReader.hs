@@ -76,7 +76,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, commenttagsp )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
 import Hledger.Write.Csv
 import System.Directory (doesFileExist, getHomeDirectory)
 import Data.Either (fromRight)
@@ -1111,7 +1111,13 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     code        = maybe "" singleline' $ fieldval "code"
     description = maybe "" singleline' $ fieldval "description"
     comment     = maybe "" unescapeNewlines $ fieldval "comment"
-    ttags       = fromRight [] $ rtp commenttagsp comment
+
+    -- Convert some parsed comment text back into following comment syntax,
+    -- with the semicolons and indents, so it can be parsed again for tags.
+    textToFollowingComment :: Text -> Text
+    textToFollowingComment = T.stripStart . T.unlines . map (" ;"<>) . T.lines
+
+    ttags       = fromRight [] $ fmap snd $ rtp transactioncommentp $ textToFollowingComment comment
     precomment  = maybe "" unescapeNewlines $ fieldval "precomment"
 
     singleline' = T.unwords . filter (not . T.null) . map T.strip . T.lines
@@ -1124,7 +1130,15 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     p1IsVirtual = (accountNamePostingType <$> fieldval "account1") == Just VirtualPosting
     ps = [p | n <- [1..maxpostings]
          ,let cmt  = maybe "" unescapeNewlines $ fieldval ("comment"<> T.pack (show n))
-         ,let ptags = fromRight [] $ rtp commenttagsp cmt
+          -- Tags in the comment will be parsed and attached to the posting.
+          -- A posting date, in the date: tag or in brackets, will also be parsed and applied to the posting.
+          -- But it must have a year, or it will be ignored.
+          -- A secondary posting date will also be ignored.
+         ,let (tags,mdate) =
+                fromRight ([],Nothing) $
+                fmap (\(_,ts,md,_)->(ts,md)) $
+                rtp (postingcommentp Nothing) $
+                textToFollowingComment cmt
          ,let currency = fromMaybe "" (fieldval ("currency"<> T.pack (show n)) <|> fieldval "currency")
          ,let mamount  = getAmount rules record currency p1IsVirtual n
          ,let mbalance = getBalance rules record currency n
@@ -1132,12 +1146,13 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
          ,let acct' | not isfinal && acct==unknownExpenseAccount &&
                       fromMaybe False (mamount >>= isNegativeMixedAmount) = unknownIncomeAccount
                     | otherwise = acct
-         ,let p = nullposting{paccount          = accountNameWithoutPostingType acct'
+         ,let p = nullposting{pdate             = mdate
+                             ,paccount          = accountNameWithoutPostingType acct'
                              ,pamount           = fromMaybe missingmixedamt mamount
                              ,ptransaction      = Just t
                              ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
                              ,pcomment          = cmt
-                             ,ptags             = ptags
+                             ,ptags             = tags
                              ,ptype             = accountNamePostingType acct
                              }
          ]

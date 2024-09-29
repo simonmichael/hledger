@@ -3351,6 +3351,8 @@ You can assign multi-line comments by writing literal `\n` in the code. A commen
 
 Comments can contain [tags](#tags), as usual.
 
+Posting comments can also contain a [posting date](#posting-dates). A secondary date, or a year-less date, will be ignored.
+
 ### account field
 
 Assigning to `accountN`, where N is 1 to 99, 
