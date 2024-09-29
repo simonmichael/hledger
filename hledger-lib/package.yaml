@@ -46,6 +46,7 @@ dependencies:
 - ansi-terminal >=0.9
 - array
 - blaze-markup >=0.5.1
+- blaze-html
 - bytestring
 - call-stack
 - cmdargs >=0.10
@@ -151,6 +152,7 @@ library:
   - Hledger.Read.TimeclockReader
   - Hledger.Write.Csv
   - Hledger.Write.Ods
+  - Hledger.Write.Html
   - Hledger.Write.Html.Attribute
   - Hledger.Write.Html.Blaze
   - Hledger.Write.Html.Lucid
@@ -173,8 +175,8 @@ library:
   - Hledger.Utils.Test
   - Hledger.Utils.Text
   - Text.Tabular.AsciiWide
-  other-modules:
-  - Hledger.Write.Html
+  - Text.WideString
+#  other-modules:
 #  - Ledger.Parser.Text
 
 # "cabal test hledger-lib" currently fails, see doctest suite below
