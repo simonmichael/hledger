@@ -598,6 +598,25 @@ registerQueryUrl query =
              map quoteIfSpaced $ filter (not . T.null) query]
     }
 
+{- |
+>>> composeAnchor Nothing ["date:2024"]
+""
+>>> composeAnchor (Just "") ["date:2024"]
+"register?q=date:2024"
+>>> composeAnchor (Just "/") ["date:2024"]
+"/register?q=date:2024"
+>>> composeAnchor (Just "foo") ["date:2024"]
+"foo/register?q=date:2024"
+>>> composeAnchor (Just "foo/") ["date:2024"]
+"foo/register?q=date:2024"
+-}
+composeAnchor :: Maybe Text -> [Text] -> Text
+composeAnchor Nothing _ = mempty
+composeAnchor (Just baseUrl) query =
+    baseUrl <>
+    (if all (('/'==) . snd) $ T.unsnoc baseUrl then "" else "/") <>
+    registerQueryUrl query
+
 -- cf. Web.Widget.Common
 removeDates :: [Text] -> [Text]
 removeDates =
@@ -612,8 +631,7 @@ headerDateSpanCell ::
 headerDateSpanCell base query spn =
     let prd = showDateSpan spn in
     (headerCell prd) {
-        Ods.cellAnchor =
-            foldMap (<> registerQueryUrl (replaceDate prd query)) base
+        Ods.cellAnchor = composeAnchor base $ replaceDate prd query
     }
 
 simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
@@ -626,9 +644,7 @@ dateSpanCell base query acct spn =
     let prd = showDateSpan spn in
     (Ods.defaultCell prd) {
         Ods.cellAnchor =
-            foldMap
-                (<> registerQueryUrl ("inacct:"<>acct : replaceDate prd query))
-                base
+            composeAnchor base $ "inacct:"<>acct : replaceDate prd query
     }
 
 addTotalBorders :: [[Ods.Cell border text]] -> [[Ods.Cell Ods.NumLines text]]
@@ -646,9 +662,7 @@ rawTableContent = map (map Ods.cellContent)
 setAccountAnchor ::
     Maybe Text -> [Text] -> Text -> Ods.Cell border text -> Ods.Cell border text
 setAccountAnchor base query acct cell =
-    cell
-    {Ods.cellAnchor =
-        foldMap (<> registerQueryUrl ("inacct:"<>acct : query)) base}
+    cell {Ods.cellAnchor = composeAnchor base $ "inacct:"<>acct : query}
 
 
 -- | Render a single-column balance report as FODS.
