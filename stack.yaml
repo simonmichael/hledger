@@ -12,8 +12,6 @@ extra-deps:
 # needed only for dev builds when the ghcdebug flag is enabled:
 - ghc-debug-convention-0.6.0.0
 - ghc-debug-stub-0.6.0.0
-# avoid brick 2.3.2 which doesn't build on windows
-- brick-2.4
 
 nix:
   pure: false
