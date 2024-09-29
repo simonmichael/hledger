@@ -73,6 +73,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
       "show unrealised capital gain/loss (historical balance value minus cost basis)"
    ,flagNone ["budget"] (setboolopt "budget")
       "show sum of posting amounts compared to budget goals defined by periodic transactions"
+   ,flagNone ["count"] (setboolopt "count") "show the count of postings"
 
    ,flagNone ["change"] (setboolopt "change")
        ("accumulate amounts from column start to column end (in multicolumn reports)"
