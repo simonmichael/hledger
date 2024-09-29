@@ -14,6 +14,7 @@ Flags:
                             balance value minus cost basis)
      --budget               show sum of posting amounts compared to budget
                             goals defined by periodic transactions
+     --count                show the count of postings
      --change               accumulate amounts from column start to column
                             end (in multicolumn reports)
      --cumulative           accumulate amounts from report start (specified
@@ -45,6 +46,9 @@ Flags:
                             'wide[,WIDTH]': all commodities on one line
                             'tall'        : each commodity on a new line
                             'bare'        : bare numbers, symbols in a column
+     --base-url=URLPREFIX   in html output, generate hyperlinks to
+                            hledger-web, with this prefix. (Usually the base
+                            url shown by hledger-web; can also be relative.)
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
   -o --output-file=FILE     write output to FILE. A file extension matching

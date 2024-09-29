@@ -8,6 +8,11 @@ This can be balance changes per period, end balances, budget performance, unreal
 ```flags
 Flags:
      --sum                  show sum of posting amounts (default)
+     --valuechange          show total change of value of period-end
+                            historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
      --budget[=DESCPAT]     show sum of posting amounts together with budget
                             goals defined by periodic
                             transactions. With a DESCPAT argument (must be
@@ -15,11 +20,6 @@ Flags:
                             use only periodic transactions with matching
                             description
                             (case insensitive substring match).
-     --valuechange          show total change of value of period-end
-                            historical balances (caused by deposits,
-                            withdrawals, market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
      --count                show the count of postings
      --change               accumulate amounts from column start to column
                             end (in multicolumn reports, default)
@@ -37,7 +37,6 @@ Flags:
                             with -E)
   -A --average              show a row average column (in multicolumn
                             reports)
-  -r --related              show postings' siblings instead
   -T --row-total            show a row total column (in multicolumn reports)
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
@@ -50,14 +49,18 @@ Flags:
                             total, or by row average if that is displayed.
   -% --percent              express values in percentage of each column's
                             total
+  -r --related              show the other accounts transacted with, instead
      --invert               display all amounts with reversed sign
-     --transpose            transpose rows and columns
+     --transpose            switch rows and columns (use vertical time axis)
      --layout=ARG           how to lay out multi-commodity amounts and the
                             overall table:
                             'wide[,WIDTH]': commodities on one line
                             'tall'        : commodities on separate lines
                             'bare'        : commodity symbols in one column
                             'tidy'        : every attribute in its own column
+     --base-url=URLPREFIX   in html output, generate links to hledger-web,
+                            with this prefix. (Usually the base url shown by
+                            hledger-web; can also be relative.)
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json, fods.
   -o --output-file=FILE     write output to FILE. A file extension matching
