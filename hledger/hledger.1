@@ -290,8 +290,9 @@ Most of these commands do not change the journal file; they just read it
 and output a report.
 A few commands assist with adding data and file management.
 .PP
-To show the commands list, run \f[CR]hledger\f[R] with no arguments.
-The commands are described in detail in PART 4: COMMANDS, below.
+To show a summary of commands, run \f[CR]hledger\f[R] with no arguments.
+You can see the same commands summary at the start of PART 4: COMMANDS
+below.
 .PP
 To use a particular command, run
 \f[CR]hledger CMD [CMDOPTS] [CMDARGS]\f[R],
@@ -748,8 +749,6 @@ Here\[aq]s a small example:
 To use a config file, specify it with the \f[CR]\-\-conf\f[R] option.
 Its options will be inserted near the start of your command line (so you
 can override them if needed).
-Or, you can add a \f[CR]hledger \-\-conf\f[R] shebang line to a config
-file and execute it like a script.
 .PP
 Or, you can set up an automatic config file that is used whenever you
 run hledger.
@@ -769,12 +768,14 @@ To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
 Here is another example config file you could start with:
 https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample
 .PP
+Tips:
+.PP
 Automatic config files are convenient, but have a cost: it\[aq]s easy to
 change a report\[aq]s behaviour, or break scripts/applications which use
 hledger, in unintended ways that will surprise you later.
 They change the nature of hledger somewhat, making it less transparent
 and predictable.
-If you decide to use one, here are some tips:
+If you decide to use one:
 .IP \[bu] 2
 Be conservative about what you put in it.
 Try to consider the effect on all your reports.
@@ -785,8 +786,38 @@ Whenever a hledger command does not work as expected, try it again with
 If that helps, you can run it with \f[CR]\-\-debug\f[R] to see how a
 config file affected it.
 .PP
-This feature has been added in hledger 1.40 and is considered
+On unix machines, you can add a shebang line at the top of a config
+file, set executable permission on the file, and use it like a script.
+Eg (some operating systems need the \f[CR]\-S\f[R], some don\[aq]t):
+.IP
+.EX
+#!/usr/bin/env \-S hledger \-\-conf
+.EE
+.PP
+You can put not only options, but also arguments in a config file.
+This is probably more useful in special\-purpose config files, not an
+automatic one.
+.PP
+There\[aq]s an exception to this: a config file can\[aq]t provide the
+command argument, currently (#2231).
+If you need that, you can do it in the shebang line instead.
+Eg:
+.IP
+.EX
+#!/usr/bin/env \-S hledger balance \-\-conf
+.EE
+.PP
+The config file feature has been added in hledger 1.40 and is considered
 \f[I]experimental\f[R].
+.SS Shell completions
+If you use the bash shell, you can optionally set up context\-sensitive
+autocompletions when you press TAB in a hledger command line.
+At a bash shell prompt, try pressing \f[CR]hledger<SPACE><TAB><TAB>\f[R]
+(should list all hledger commands) or
+\f[CR]hledger reg acct:<TAB><TAB>\f[R] (should list your top\-level
+account names).
+If completions aren\[aq]t working, or for more details, see Install >
+Shell completions.
 .SH Output
 .SS Output destination
 hledger commands send their output to the terminal by default.
@@ -4205,6 +4236,9 @@ in the code.
 A comment starting with \f[CR]\[rs]n\f[R] will begin on a new line.
 .PP
 Comments can contain tags, as usual.
+.PP
+Posting comments can also contain a posting date.
+A secondary date, or a year\-less date, will be ignored.
 .SS account field
 Assigning to \f[CR]accountN\f[R], where N is 1 to 99, sets the account
 name of the Nth posting, and causes that posting to be generated.
@@ -5467,6 +5501,11 @@ And from the first date line onward, Emacs org mode heading prefixes at
 the start of lines (one or more \f[CR]*\f[R]\[aq]s followed by a space)
 will be ignored.
 This means the time log can also be a org outline.
+.PP
+Timedot files don\[aq]t support directives like journal files.
+So a common pattern is to have a main journal file (eg
+\f[CR]time.journal\f[R]) that contains any needed directives, and then
+includes the timedot file (\f[CR]include time.timedot\f[R]).
 .SS Timedot examples
 Numbers:
 .IP
@@ -9089,6 +9128,7 @@ Flags:
                             balance value minus cost basis)
      \-\-budget               show sum of posting amounts compared to budget
                             goals defined by periodic transactions
+     \-\-count                show the count of postings
      \-\-change               accumulate amounts from column start to column
                             end (in multicolumn reports)
      \-\-cumulative           accumulate amounts from report start (specified
@@ -9120,6 +9160,9 @@ Flags:
                             \[aq]wide[,WIDTH]\[aq]: all commodities on one line
                             \[aq]tall\[aq]        : each commodity on a new line
                             \[aq]bare\[aq]        : bare numbers, symbols in a column
+     \-\-base\-url=URLPREFIX   in html output, generate hyperlinks to
+                            hledger\-web, with this prefix. (Usually the base
+                            url shown by hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -9189,6 +9232,7 @@ Flags:
                             balance value minus cost basis)
      \-\-budget               show sum of posting amounts compared to budget
                             goals defined by periodic transactions
+     \-\-count                show the count of postings
      \-\-change               accumulate amounts from column start to column
                             end (in multicolumn reports)
      \-\-cumulative           accumulate amounts from report start (specified
@@ -9220,6 +9264,9 @@ Flags:
                             \[aq]wide[,WIDTH]\[aq]: all commodities on one line
                             \[aq]tall\[aq]        : each commodity on a new line
                             \[aq]bare\[aq]        : bare numbers, symbols in a column
+     \-\-base\-url=URLPREFIX   in html output, generate hyperlinks to
+                            hledger\-web, with this prefix. (Usually the base
+                            url shown by hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -9297,6 +9344,7 @@ Flags:
                             balance value minus cost basis)
      \-\-budget               show sum of posting amounts compared to budget
                             goals defined by periodic transactions
+     \-\-count                show the count of postings
      \-\-change               accumulate amounts from column start to column
                             end (in multicolumn reports) (default)
      \-\-cumulative           accumulate amounts from report start (specified
@@ -9327,6 +9375,9 @@ Flags:
                             \[aq]wide[,WIDTH]\[aq]: all commodities on one line
                             \[aq]tall\[aq]        : each commodity on a new line
                             \[aq]bare\[aq]        : bare numbers, symbols in a column
+     \-\-base\-url=URLPREFIX   in html output, generate hyperlinks to
+                            hledger\-web, with this prefix. (Usually the base
+                            url shown by hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -9394,6 +9445,7 @@ Flags:
                             balance value minus cost basis)
      \-\-budget               show sum of posting amounts compared to budget
                             goals defined by periodic transactions
+     \-\-count                show the count of postings
      \-\-change               accumulate amounts from column start to column
                             end (in multicolumn reports) (default)
      \-\-cumulative           accumulate amounts from report start (specified
@@ -9424,6 +9476,9 @@ Flags:
                             \[aq]wide[,WIDTH]\[aq]: all commodities on one line
                             \[aq]tall\[aq]        : each commodity on a new line
                             \[aq]bare\[aq]        : bare numbers, symbols in a column
+     \-\-base\-url=URLPREFIX   in html output, generate hyperlinks to
+                            hledger\-web, with this prefix. (Usually the base
+                            url shown by hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -9488,6 +9543,11 @@ performance, unrealised capital gains, etc.
 .EX
 Flags:
      \-\-sum                  show sum of posting amounts (default)
+     \-\-valuechange          show total change of value of period\-end
+                            historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 show unrealised capital gain/loss (historical
+                            balance value minus cost basis)
      \-\-budget[=DESCPAT]     show sum of posting amounts together with budget
                             goals defined by periodic
                             transactions. With a DESCPAT argument (must be
@@ -9495,11 +9555,6 @@ Flags:
                             use only periodic transactions with matching
                             description
                             (case insensitive substring match).
-     \-\-valuechange          show total change of value of period\-end
-                            historical balances (caused by deposits,
-                            withdrawals, market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
      \-\-count                show the count of postings
      \-\-change               accumulate amounts from column start to column
                             end (in multicolumn reports, default)
@@ -9517,7 +9572,6 @@ Flags:
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
                             reports)
-  \-r \-\-related              show postings\[aq] siblings instead
   \-T \-\-row\-total            show a row total column (in multicolumn reports)
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
@@ -9530,14 +9584,18 @@ Flags:
                             total, or by row average if that is displayed.
   \-% \-\-percent              express values in percentage of each column\[aq]s
                             total
+  \-r \-\-related              show the other accounts transacted with, instead
      \-\-invert               display all amounts with reversed sign
-     \-\-transpose            transpose rows and columns
+     \-\-transpose            switch rows and columns (use vertical time axis)
      \-\-layout=ARG           how to lay out multi\-commodity amounts and the
                             overall table:
                             \[aq]wide[,WIDTH]\[aq]: commodities on one line
                             \[aq]tall\[aq]        : commodities on separate lines
                             \[aq]bare\[aq]        : commodity symbols in one column
                             \[aq]tidy\[aq]        : every attribute in its own column
+     \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
+                            with this prefix. (Usually the base url shown by
+                            hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json, fods.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -9890,6 +9948,17 @@ each commodity:
 $ hledger bal \-% cur:\[rs]\[rs]$
 $ hledger bal \-% cur:€
 .EE
+.SS Hyperlinks
+The HTML and FODS output formats can generate hyperlinks to a
+\f[CR]hledger\-web\f[R] register view for each account and period.
+E.g.
+if your \f[CR]hledger\-web\f[R] server is reachable at
+\f[CR]http://localhost:5000\f[R] then you might run the
+\f[CR]balance\f[R] command with the extra option
+\f[CR]\-\-base\-url=http://localhost:5000\f[R].
+You can also produce relative links, like
+\f[CR]\-\-base\-url=\[dq]some/path\[dq]\f[R] or
+\f[CR]\-\-base\-url=\[dq]\[dq]\f[R].)
 .SS Multi\-period balance report
 With a report interval (set by the \f[CR]\-D/\-\-daily\f[R],
 \f[CR]\-W/\-\-weekly\f[R], \f[CR]\-M/\-\-monthly\f[R],

@@ -203,48 +203,48 @@ Commands
        output a report.  A few commands assist with adding data and file  man-
        agement.
 
-       To show the commands list, run hledger with no arguments.  The commands
-       are described in detail in PART 4: COMMANDS, below.
+       To  show a summary of commands, run hledger with no arguments.  You can
+       see the same commands summary at the start of PART 4: COMMANDS below.
 
        To use a particular command, run hledger CMD [CMDOPTS] [CMDARGS],
 
-       o CMD  is  the full command name, or its standard abbreviation shown in
+       o CMD is the full command name, or its standard abbreviation  shown  in
          the commands list, or any unambiguous prefix of the name.
 
-       o CMDOPTS are command-specific options, if any.   Command-specific  op-
+       o CMDOPTS  are  command-specific options, if any.  Command-specific op-
          tions must be written after the command name.  Eg: hledger print -x.
 
-       o CMDARGS  are  additional  arguments  to  the  command,  if any.  Most
-         hledger commands accept arguments representing a query, to limit  the
+       o CMDARGS are additional  arguments  to  the  command,  if  any.   Most
+         hledger  commands accept arguments representing a query, to limit the
          data in some way.  Eg: hledger reg assets:checking.
 
        To list a command's options, arguments, and documentation in the termi-
        nal, run hledger CMD -h.  Eg: hledger bal -h.
 
    Add-on commands
-       In  addition to the built-in commands, you can install add-on commands:
-       programs or scripts named "hledger-SOMETHING", which will  also  appear
-       in  hledger's  commands  list.  If you used the hledger-install script,
-       you will have several add-ons installed  already.   Some  more  can  be
-       found     in     hledger's     bin/     directory,     documented    at
+       In addition to the built-in commands, you can install add-on  commands:
+       programs  or  scripts named "hledger-SOMETHING", which will also appear
+       in hledger's commands list.  If you used  the  hledger-install  script,
+       you  will  have  several  add-ons  installed already.  Some more can be
+       found    in     hledger's     bin/     directory,     documented     at
        https://hledger.org/scripts.html.
 
        More precisely, add-on commands are programs or scripts in your shell's
        PATH, whose name starts with "hledger-" and ends with no extension or a
-       recognised extension (".bat", ".com",  ".exe",  ".hs",  ".js",  ".lhs",
-       ".lua",  ".php",  ".pl",  ".py", ".rb", ".rkt", or ".sh"), and (on unix
+       recognised  extension  (".bat",  ".com",  ".exe", ".hs", ".js", ".lhs",
+       ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),  and  (on  unix
        and mac) which has executable permission for the current user.
 
        You can run add-on commands using hledger, much like built-in commands:
        hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS].  But note the double
-       hyphen argument, required before add-on-specific options.  Eg:  hledger
-       ui  --  --watch  or hledger web -- --serve.  If this causes difficulty,
+       hyphen  argument, required before add-on-specific options.  Eg: hledger
+       ui -- --watch or hledger web -- --serve.  If  this  causes  difficulty,
        you  can  always  run  the  add-on  directly,  without  using  hledger:
        hledger-ui --watch or hledger-web --serve.
 
 Options
-       Run  hledger -h to see general command line help.  Options can be writ-
-       ten either before or after the command name.  These  options  are  spe-
+       Run hledger -h to see general command line help.  Options can be  writ-
+       ten  either  before  or after the command name.  These options are spe-
        cific to the hledger CLI:
 
               Flags:
@@ -334,14 +334,14 @@ Options
                    --version              show version information
                    --debug=[1-9]          show this much debug output (default: 1)
 
-       Usually  hledger  accepts any unambiguous flag prefix, eg you can write
+       Usually hledger accepts any unambiguous flag prefix, eg you  can  write
        --tl instead of --tldr or --dry instead of --dry-run.
 
-       If the same option appears more than once in  a  command,  usually  the
+       If  the  same  option  appears more than once in a command, usually the
        last (right-most) wins.
 
-       With  most commands, arguments are interpreted as a hledger query which
-       filter the data.  Some queries can be expressed either with options  or
+       With most commands, arguments are interpreted as a hledger query  which
+       filter  the data.  Some queries can be expressed either with options or
        with arguments.
 
        Below are more tips for using the command line interface - feel free to
@@ -349,10 +349,10 @@ Options
 
    Special characters
    Single escaping (shell metacharacters)
-       In  shell command lines, characters significant to your shell - such as
-       spaces, <, >, (, ), |, $ and \ - should be "shell-escaped" if you  want
-       hledger  to see them.  This is done by enclosing them in single or dou-
-       ble quotes, or by writing a backslash before them.  Eg to match an  ac-
+       In shell command lines, characters significant to your shell - such  as
+       spaces,  <, >, (, ), |, $ and \ - should be "shell-escaped" if you want
+       hledger to see them.  This is done by enclosing them in single or  dou-
+       ble  quotes, or by writing a backslash before them.  Eg to match an ac-
        count name containing a space:
 
               $ hledger register 'credit card'
@@ -361,17 +361,17 @@ Options
 
               $ hledger register credit\ card
 
-       Windows  users  should  keep  in mind that cmd treats single quote as a
-       regular character, so you should be using  double  quotes  exclusively.
+       Windows users should keep in mind that cmd treats  single  quote  as  a
+       regular  character,  so  you should be using double quotes exclusively.
        PowerShell treats both single and double quotes as quotes.
 
    Double escaping (regular expression metacharacters)
-       Characters  significant in regular expressions (described below) - such
-       as ., ^, $, [, ], (, ), |, and \ - may need to  be  "regex-escaped"  if
-       you  don't  want them to be interpreted by hledger's regular expression
-       engine.  This is done by writing backslashes  before  them,  but  since
-       backslash  is typically also a shell metacharacter, both shell-escaping
-       and regex-escaping will be needed.  Eg to match a literal $ sign  while
+       Characters significant in regular expressions (described below) -  such
+       as  .,  ^,  $, [, ], (, ), |, and \ - may need to be "regex-escaped" if
+       you don't want them to be interpreted by hledger's  regular  expression
+       engine.   This  is  done  by writing backslashes before them, but since
+       backslash is typically also a shell metacharacter, both  shell-escaping
+       and  regex-escaping will be needed.  Eg to match a literal $ sign while
        using the bash shell:
 
               $ hledger balance cur:'\$'
@@ -381,10 +381,10 @@ Options
               $ hledger balance cur:\\$
 
    Triple escaping (for add-on commands)
-       When  you  use hledger to run an external add-on command (described be-
+       When you use hledger to run an external add-on command  (described  be-
        low), one level of shell-escaping is lost from any options or arguments
-       intended for by the add-on command, so those need  an  extra  level  of
-       shell-escaping.   Eg  to  match  a  literal $ sign while using the bash
+       intended  for  by  the  add-on command, so those need an extra level of
+       shell-escaping.  Eg to match a literal $  sign  while  using  the  bash
        shell and running an add-on command (ui):
 
               $ hledger ui cur:'\\$'
@@ -400,14 +400,14 @@ Options
        double-escaped:   \\$
        triple-escaped:   \\\\$
 
-       Or, you can avoid the extra escaping by running the  add-on  executable
+       Or,  you  can avoid the extra escaping by running the add-on executable
        directly:
 
               $ hledger-ui cur:\\$
 
    Less escaping
        Options and arguments are sometimes used in places other than the shell
-       command  line,  where shell-escaping is not needed, so there you should
+       command line, where shell-escaping is not needed, so there  you  should
        use one less level of escaping.  Those places include:
 
        o an @argumentfile
@@ -421,8 +421,8 @@ Options
    Unicode characters
        hledger is expected to handle non-ascii characters correctly:
 
-       o they should be parsed correctly in input files  and  on  the  command
-         line,  by all hledger tools (add, iadd, hledger-web's search/add/edit
+       o they  should  be  parsed  correctly in input files and on the command
+         line, by all hledger tools (add, iadd, hledger-web's  search/add/edit
          forms, etc.)
 
        o they  should  be  displayed  correctly  by  all  hledger  tools,  and
@@ -430,40 +430,40 @@ Options
 
        This requires a well-configured environment.  Here are some tips:
 
-       o A  system  locale must be configured, and it must be one that can de-
-         code the characters being used.  In bash, you can set a  locale  like
-         this:  export LANG=en_US.UTF-8.  There are some more details in Trou-
-         bleshooting.  This step is essential - without it, hledger will  quit
-         on  encountering a non-ascii character (as with all GHC-compiled pro-
+       o A system locale must be configured, and it must be one that  can  de-
+         code  the  characters being used.  In bash, you can set a locale like
+         this: export LANG=en_US.UTF-8.  There are some more details in  Trou-
+         bleshooting.   This step is essential - without it, hledger will quit
+         on encountering a non-ascii character (as with all GHC-compiled  pro-
          grams).
 
-       o Your terminal software (eg  Terminal.app,  iTerm,  CMD.exe,  xterm..)
+       o Your  terminal  software  (eg  Terminal.app, iTerm, CMD.exe, xterm..)
          must support unicode.  On Windows, you may need to use Windows Termi-
          nal and/or enable UTF-8 support.
 
        o The terminal must be using a font which includes the required unicode
          glyphs.
 
-       o The  terminal should be configured to display wide characters as dou-
+       o The terminal should be configured to display wide characters as  dou-
          ble width (for report alignment).
 
-       o On Windows, for best results you should run hledger in the same  kind
-         of  environment in which it was built.  Eg hledger built in the stan-
-         dard CMD.EXE environment (like the binaries  on  our  download  page)
-         might  show  display  problems when run in a cygwin or msys terminal,
+       o On  Windows, for best results you should run hledger in the same kind
+         of environment in which it was built.  Eg hledger built in the  stan-
+         dard  CMD.EXE  environment  (like  the binaries on our download page)
+         might show display problems when run in a cygwin  or  msys  terminal,
          and vice versa.  (See eg #961).
 
    Regular expressions
-       A regular expression (regexp) is a small piece of  text  where  certain
-       characters  (like  .,  ^, $, +, *, (), |, [], \) have special meanings,
-       forming a tiny language for matching text precisely -  very  useful  in
-       hledger  and elsewhere.  To learn all about them, visit regular-expres-
+       A  regular  expression  (regexp) is a small piece of text where certain
+       characters (like ., ^, $, +, *, (), |, [], \)  have  special  meanings,
+       forming  a  tiny  language for matching text precisely - very useful in
+       hledger and elsewhere.  To learn all about them, visit  regular-expres-
        sions.info.
 
-       hledger supports regexps whenever you are entering a pattern  to  match
-       something,  eg  in  query  arguments,  account  aliases,  CSV if rules,
+       hledger  supports  regexps whenever you are entering a pattern to match
+       something, eg in  query  arguments,  account  aliases,  CSV  if  rules,
        hledger-web's search form, hledger-ui's / search, etc.  You may need to
-       wrap them in quotes, especially at the command line (see Special  char-
+       wrap  them in quotes, especially at the command line (see Special char-
        acters above).  Here are some examples:
 
        Account name queries (quoted for command line use):
@@ -519,57 +519,57 @@ Options
               &  %date   (29|30|31|01|02|03)$
 
    hledger's regular expressions
-       hledger's  regular  expressions  come  from the regex-tdfa library.  If
-       they're not doing what you expect, it's important to know exactly  what
+       hledger's regular expressions come from  the  regex-tdfa  library.   If
+       they're  not doing what you expect, it's important to know exactly what
        they support:
 
        1. they are case insensitive
 
-       2. they  are infix matching (they do not need to match the entire thing
+       2. they are infix matching (they do not need to match the entire  thing
           being matched)
 
        3. they are POSIX ERE (extended regular expressions)
 
        4. they also support GNU word boundaries (\b, \B, \<, \>)
 
-       5. backreferences are supported when doing text replacement in  account
-          aliases  or  CSV  rules, where backreferences can be used in the re-
+       5. backreferences  are supported when doing text replacement in account
+          aliases or CSV rules, where backreferences can be used  in  the  re-
           placement string to reference capturing groups in the search regexp.
           Otherwise, if you write \1, it will match the digit 1.
 
-       6. they do not support mode modifiers ((?s)),  character  classes  (\w,
+       6. they  do  not  support mode modifiers ((?s)), character classes (\w,
           \d), or anything else not mentioned above.
 
        Some things to note:
 
-       o In  the  alias directive and --alias option, regular expressions must
-         be enclosed in forward  slashes  (/REGEX/).   Elsewhere  in  hledger,
+       o In the alias directive and --alias option, regular  expressions  must
+         be  enclosed  in  forward  slashes  (/REGEX/).  Elsewhere in hledger,
          these are not required.
 
-       o In  queries,  to match a regular expression metacharacter like $ as a
-         literal character, prepend a backslash.  Eg  to  search  for  amounts
+       o In queries, to match a regular expression metacharacter like $  as  a
+         literal  character,  prepend  a  backslash.  Eg to search for amounts
          with the dollar sign in hledger-web, write cur:\$.
 
-       o On  the command line, some metacharacters like $ have a special mean-
+       o On the command line, some metacharacters like $ have a special  mean-
          ing to the shell and so must be escaped at least once more.  See Spe-
          cial characters.
 
    Argument files
        You can save a set of command line options and arguments in a file, and
-       then reuse them by writing @FILENAME as a command line  argument.   Eg:
+       then  reuse  them by writing @FILENAME as a command line argument.  Eg:
        hledger bal @foo.args.
 
-       (Inside  the argument file, each line should contain just one option or
-       argument.  Don't use spaces except inside quotes; write  =  or  nothing
-       between  a flag and its argument.  For the special characters mentioned
-       above, use one less level of quoting than  you  would  at  the  command
+       (Inside the argument file, each line should contain just one option  or
+       argument.   Don't  use  spaces except inside quotes; write = or nothing
+       between a flag and its argument.  For the special characters  mentioned
+       above,  use  one  less  level  of quoting than you would at the command
        prompt.)
 
        Argument files are now superseded by..
 
    Config files
-       As  of  hledger  1.40, you can optionally save command line options (or
-       arguments) to be used when running hledger commands, in a config  file.
+       As of hledger 1.40, you can optionally save command  line  options  (or
+       arguments)  to be used when running hledger commands, in a config file.
        Here's a small example:
 
               # General options are listed first, one or more per line.
@@ -580,42 +580,67 @@ Options
               [print]
               --explicit --show-costs
 
-       To  use  a config file, specify it with the --conf option.  Its options
-       will be inserted near the start of your command line (so you can  over-
-       ride them if needed).  Or, you can add a hledger --conf shebang line to
-       a config file and execute it like a script.
+       To use a config file, specify it with the --conf option.   Its  options
+       will  be inserted near the start of your command line (so you can over-
+       ride them if needed).
 
-       Or,  you  can set up an automatic config file that is used whenever you
-       run hledger.  This can be hledger.conf  in  the  current  directory  or
-       above,  or  .hledger.conf  in your home directory (~/.hledger.conf), or
-       hledger.conf    in    your    XDG     config     directory     (~/.con-
+       Or, you can set up an automatic config file that is used  whenever  you
+       run  hledger.   This  can  be  hledger.conf in the current directory or
+       above, or .hledger.conf in your home  directory  (~/.hledger.conf),  or
+       hledger.conf     in     your     XDG    config    directory    (~/.con-
        fig/hledger/hledger.conf).
 
-       You  can  ignore config files by adding the -n/--no-conf flag.  This is
-       useful when using hledger in scripts, or when  troubleshooting.   (When
-       both  --conf  and --no-conf options are used, the right-most wins.)  To
+       You can ignore config files by adding the -n/--no-conf flag.   This  is
+       useful  when  using hledger in scripts, or when troubleshooting.  (When
+       both --conf and --no-conf options are used, the right-most  wins.)   To
        inspect the processing of config files, use --debug or --debug=8.
 
-       Here  is  another  example  config   file   you   could   start   with:
+       Here   is   another   example   config   file  you  could  start  with:
        https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample
 
-       Automatic  config  files  are convenient, but have a cost: it's easy to
-       change a report's behaviour, or break  scripts/applications  which  use
-       hledger,  in unintended ways that will surprise you later.  They change
-       the nature of hledger somewhat, making it  less  transparent  and  pre-
-       dictable.  If you decide to use one, here are some tips:
+       Tips:
+
+       Automatic config files are convenient, but have a cost:  it's  easy  to
+       change  a  report's  behaviour, or break scripts/applications which use
+       hledger, in unintended ways that will surprise you later.  They  change
+       the  nature  of  hledger  somewhat, making it less transparent and pre-
+       dictable.  If you decide to use one:
 
        o Be conservative about what you put in it.  Try to consider the effect
          on all your reports.
 
-       o Whenever  a  hledger  command does not work as expected, try it again
+       o Whenever a hledger command does not work as expected,  try  it  again
          with -n.
 
-       o If that helps, you can run it with --debug to see how a  config  file
+       o If  that  helps, you can run it with --debug to see how a config file
          affected it.
 
-       This  feature  has been added in hledger 1.40 and is considered experi-
-       mental.
+       On unix machines, you can add a shebang line at the  top  of  a  config
+       file,  set executable permission on the file, and use it like a script.
+       Eg (some operating systems need the -S, some don't):
+
+              #!/usr/bin/env -S hledger --conf
+
+       You can put not only options, but also  arguments  in  a  config  file.
+       This  is  probably  more useful in special-purpose config files, not an
+       automatic one.
+
+       There's an exception to this: a config file can't provide  the  command
+       argument,  currently  (#2231).   If you need that, you can do it in the
+       shebang line instead.  Eg:
+
+              #!/usr/bin/env -S hledger balance --conf
+
+       The config file feature has been added in hledger 1.40 and  is  consid-
+       ered experimental.
+
+   Shell completions
+       If  you use the bash shell, you can optionally set up context-sensitive
+       autocompletions when you press TAB in a hledger  command  line.   At  a
+       bash  shell  prompt, try pressing hledger<SPACE><TAB><TAB> (should list
+       all hledger commands) or hledger reg acct:<TAB><TAB> (should list  your
+       top-level  account  names).  If completions aren't working, or for more
+       details, see Install > Shell completions.
 
 Output
    Output destination
@@ -3276,6 +3301,9 @@ CSV
 
        Comments can contain tags, as usual.
 
+       Posting comments can also contain a posting date.  A secondary date, or
+       a year-less date, will be ignored.
+
    account field
        Assigning to accountN, where N is 1 to 99, sets the account name of the
        Nth posting, and causes that posting to be generated.
@@ -4328,6 +4356,11 @@ Timedot
          heading prefixes at the start of lines (one or more *'s followed by a
          space) will be ignored.  This means the time log can also  be  a  org
          outline.
+
+       Timedot files don't support directives like journal files.  So a common
+       pattern  is to have a main journal file (eg time.journal) that contains
+       any needed directives, and then  includes  the  timedot  file  (include
+       time.timedot).
 
    Timedot examples
        Numbers:
@@ -7147,6 +7180,7 @@ Standard report commands
                                           balance value minus cost basis)
                    --budget               show sum of posting amounts compared to budget
                                           goals defined by periodic transactions
+                   --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports)
                    --cumulative           accumulate amounts from report start (specified
@@ -7178,6 +7212,9 @@ Standard report commands
                                           'wide[,WIDTH]': all commodities on one line
                                           'tall'        : each commodity on a new line
                                           'bare'        : bare numbers, symbols in a column
+                   --base-url=URLPREFIX   in html output, generate hyperlinks to
+                                          hledger-web, with this prefix. (Usually the base
+                                          url shown by hledger-web; can also be relative.)
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, html, csv, tsv, json.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -7240,6 +7277,7 @@ Standard report commands
                                           balance value minus cost basis)
                    --budget               show sum of posting amounts compared to budget
                                           goals defined by periodic transactions
+                   --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports)
                    --cumulative           accumulate amounts from report start (specified
@@ -7271,6 +7309,9 @@ Standard report commands
                                           'wide[,WIDTH]': all commodities on one line
                                           'tall'        : each commodity on a new line
                                           'bare'        : bare numbers, symbols in a column
+                   --base-url=URLPREFIX   in html output, generate hyperlinks to
+                                          hledger-web, with this prefix. (Usually the base
+                                          url shown by hledger-web; can also be relative.)
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, html, csv, tsv, json.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -7339,6 +7380,7 @@ Standard report commands
                                           balance value minus cost basis)
                    --budget               show sum of posting amounts compared to budget
                                           goals defined by periodic transactions
+                   --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports) (default)
                    --cumulative           accumulate amounts from report start (specified
@@ -7369,6 +7411,9 @@ Standard report commands
                                           'wide[,WIDTH]': all commodities on one line
                                           'tall'        : each commodity on a new line
                                           'bare'        : bare numbers, symbols in a column
+                   --base-url=URLPREFIX   in html output, generate hyperlinks to
+                                          hledger-web, with this prefix. (Usually the base
+                                          url shown by hledger-web; can also be relative.)
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, html, csv, tsv, json.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -7428,6 +7473,7 @@ Standard report commands
                                           balance value minus cost basis)
                    --budget               show sum of posting amounts compared to budget
                                           goals defined by periodic transactions
+                   --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports) (default)
                    --cumulative           accumulate amounts from report start (specified
@@ -7458,6 +7504,9 @@ Standard report commands
                                           'wide[,WIDTH]': all commodities on one line
                                           'tall'        : each commodity on a new line
                                           'bare'        : bare numbers, symbols in a column
+                   --base-url=URLPREFIX   in html output, generate hyperlinks to
+                                          hledger-web, with this prefix. (Usually the base
+                                          url shown by hledger-web; can also be relative.)
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, html, csv, tsv, json.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -7514,6 +7563,11 @@ Advanced report commands
 
               Flags:
                    --sum                  show sum of posting amounts (default)
+                   --valuechange          show total change of value of period-end
+                                          historical balances (caused by deposits,
+                                          withdrawals, market price fluctuations)
+                   --gain                 show unrealised capital gain/loss (historical
+                                          balance value minus cost basis)
                    --budget[=DESCPAT]     show sum of posting amounts together with budget
                                           goals defined by periodic
                                           transactions. With a DESCPAT argument (must be
@@ -7521,11 +7575,6 @@ Advanced report commands
                                           use only periodic transactions with matching
                                           description
                                           (case insensitive substring match).
-                   --valuechange          show total change of value of period-end
-                                          historical balances (caused by deposits,
-                                          withdrawals, market price fluctuations)
-                   --gain                 show unrealised capital gain/loss (historical
-                                          balance value minus cost basis)
                    --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports, default)
@@ -7543,7 +7592,6 @@ Advanced report commands
                                           with -E)
                 -A --average              show a row average column (in multicolumn
                                           reports)
-                -r --related              show postings' siblings instead
                 -T --row-total            show a row total column (in multicolumn reports)
                    --summary-only         display only row summaries (e.g. row total,
                                           average) (in multicolumn reports)
@@ -7556,14 +7604,18 @@ Advanced report commands
                                           total, or by row average if that is displayed.
                 -% --percent              express values in percentage of each column's
                                           total
+                -r --related              show the other accounts transacted with, instead
                    --invert               display all amounts with reversed sign
-                   --transpose            transpose rows and columns
+                   --transpose            switch rows and columns (use vertical time axis)
                    --layout=ARG           how to lay out multi-commodity amounts and the
                                           overall table:
                                           'wide[,WIDTH]': commodities on one line
                                           'tall'        : commodities on separate lines
                                           'bare'        : commodity symbols in one column
                                           'tidy'        : every attribute in its own column
+                   --base-url=URLPREFIX   in html output, generate links to hledger-web,
+                                          with this prefix. (Usually the base url shown by
+                                          hledger-web; can also be relative.)
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, html, csv, tsv, json, fods.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -7878,6 +7930,14 @@ Advanced report commands
 
               $ hledger bal -% cur:\\$
               $ hledger bal -% cur:
+
+   Hyperlinks
+       The  HTML  and  FODS  output  formats  can  generate  hyperlinks  to  a
+       hledger-web  register  view for each account and period.  E.g.  if your
+       hledger-web server is reachable at http://localhost:5000 then you might
+       run the balance command with the extra option  --base-url=http://local-
+       host:5000.     You    can    also    produce   relative   links,   like
+       --base-url="some/path" or --base-url="".)
 
    Multi-period balance report
        With  a  report  interval  (set   by   the   -D/--daily,   -W/--weekly,

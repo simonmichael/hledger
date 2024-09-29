@@ -162,6 +162,10 @@ General help flags:
    With hledger-ui, the '--debug' option sends debug output to a
 'hledger-ui.log' file in the current directory.
 
+   If you use the bash shell, you can auto-complete flags by pressing
+TAB in the command line.  If this is not working see Install > Shell
+completions.
+
 
 File: hledger-ui.info,  Node: MOUSE,  Next: KEYS,  Prev: OPTIONS,  Up: Top
 
@@ -537,34 +541,34 @@ Tag Table:
 Node: Top221
 Node: OPTIONS1872
 Ref: #options1970
-Node: MOUSE8236
-Ref: #mouse8331
-Node: KEYS8568
-Ref: #keys8661
-Node: SCREENS13396
-Ref: #screens13500
-Node: Menu screen14136
-Ref: #menu-screen14257
-Node: Cash accounts screen14452
-Ref: #cash-accounts-screen14629
-Node: Balance sheet accounts screen14813
-Ref: #balance-sheet-accounts-screen15029
-Node: Income statement accounts screen15149
-Ref: #income-statement-accounts-screen15370
-Node: All accounts screen15534
-Ref: #all-accounts-screen15715
-Node: Register screen15897
-Ref: #register-screen16056
-Node: Transaction screen18340
-Ref: #transaction-screen18498
-Node: Error screen19915
-Ref: #error-screen20037
-Node: WATCH MODE20281
-Ref: #watch-mode20398
-Node: ENVIRONMENT21857
-Ref: #environment21973
-Node: BUGS22164
-Ref: #bugs22247
+Node: MOUSE8389
+Ref: #mouse8484
+Node: KEYS8721
+Ref: #keys8814
+Node: SCREENS13549
+Ref: #screens13653
+Node: Menu screen14289
+Ref: #menu-screen14410
+Node: Cash accounts screen14605
+Ref: #cash-accounts-screen14782
+Node: Balance sheet accounts screen14966
+Ref: #balance-sheet-accounts-screen15182
+Node: Income statement accounts screen15302
+Ref: #income-statement-accounts-screen15523
+Node: All accounts screen15687
+Ref: #all-accounts-screen15868
+Node: Register screen16050
+Ref: #register-screen16209
+Node: Transaction screen18493
+Ref: #transaction-screen18651
+Node: Error screen20068
+Ref: #error-screen20190
+Node: WATCH MODE20434
+Ref: #watch-mode20551
+Node: ENVIRONMENT22010
+Ref: #environment22126
+Node: BUGS22317
+Ref: #bugs22400
 
 End Tag Table
 
