@@ -87,6 +87,7 @@ library
       Hledger.Read.TimeclockReader
       Hledger.Write.Csv
       Hledger.Write.Ods
+      Hledger.Write.Html
       Hledger.Write.Html.Attribute
       Hledger.Write.Html.Blaze
       Hledger.Write.Html.Lucid
@@ -109,9 +110,8 @@ library
       Hledger.Utils.Test
       Hledger.Utils.Text
       Text.Tabular.AsciiWide
-  other-modules:
-      Hledger.Write.Html
       Text.WideString
+  other-modules:
       Paths_hledger_lib
   hs-source-dirs:
       ./
@@ -125,7 +125,7 @@ library
     , array
     , base >=4.14 && <4.20
     , base-compat
-    , blaze-html >0.8
+    , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -189,6 +189,7 @@ test-suite doctest
     , array
     , base >=4.14 && <4.20
     , base-compat
+    , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
@@ -255,6 +256,7 @@ test-suite unittest
     , array
     , base >=4.14 && <4.20
     , base-compat
+    , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
     , call-stack
