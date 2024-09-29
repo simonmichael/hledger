@@ -239,24 +239,32 @@ data DataStyle =
 
 cellConfig :: ((Spr.Border Spr.NumLines, Style), DataStyle) -> [String]
 cellConfig ((border, cstyle), dataStyle) =
-    let moreStyles =
+    let boldStyle = "    <style:text-properties fo:font-weight='bold'/>"
+        alignTop =
+            "    <style:table-cell-properties style:vertical-align='top'/>"
+        alignParagraph =
+            printf "    <style:paragraph-properties fo:text-align='%s'/>"
+        moreStyles =
             borderStyle border
             ++
             (
             case cstyle of
-                Body Item -> []
+                Body Item ->
+                    alignTop :
+                    []
                 Body Total ->
-                    ["    <style:text-properties fo:font-weight='bold'/>"]
+                    alignTop :
+                    boldStyle :
+                    []
                 Head ->
-                    "    <style:paragraph-properties fo:text-align='center'/>" :
-                    "    <style:text-properties fo:font-weight='bold'/>" :
+                    alignParagraph "center" :
+                    boldStyle :
                     []
             )
             ++
             (
             case dataStyle of
-                DataMixedAmount ->
-                    ["    <style:paragraph-properties fo:text-align='end'/>"]
+                DataMixedAmount -> [alignParagraph "end"]
                 _ -> []
             )
         cstyleName = cellStyleName cstyle
@@ -314,6 +322,19 @@ formatCell cell =
                         (cellContent cell)
                 _ -> "office:value-type='string'"
 
+        covered =
+            case cellSpan cell of
+                Spr.Covered -> "covered-"
+                _ -> ""
+
+        span_ =
+            case cellSpan cell of
+                Spr.SpanHorizontal n | n>1 ->
+                    printf " table:number-columns-spanned='%d'" n
+                Spr.SpanVertical n | n>1 ->
+                    printf " table:number-rows-spanned='%d'" n
+                _ -> ""
+
         anchor text =
             if T.null $ Spr.cellAnchor cell
                 then text
@@ -321,10 +342,10 @@ formatCell cell =
                         (escape $ T.unpack $ Spr.cellAnchor cell) text
 
     in
-    printf "<table:table-cell%s %s>" style valueType :
+    printf "<table:%stable-cell%s%s %s>" covered style span_ valueType :
     printf "<text:p>%s</text:p>"
         (anchor $ escape $ T.unpack $ cellContent cell) :
-    "</table:table-cell>" :
+    printf "</table:%stable-cell>" covered :
     []
 
 escape :: String -> String

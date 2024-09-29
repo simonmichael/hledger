@@ -376,7 +376,7 @@ compoundBalanceReportAsHtml ropts cbr =
             Total simpleDateSpanCell totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
-        & zipWith (:) (Spr.defaultCell "Net:" : repeat Spr.emptyCell)
+        & addRowSpanHeader (Spr.defaultCell "Net:")
                              -- insert a headings column, with Net: on the first line only
         & addTotalBorders    -- marking the first for special styling
         & map (Html.formatRow . map (fmap L.toHtml))
