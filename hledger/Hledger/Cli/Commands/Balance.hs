@@ -691,9 +691,10 @@ balanceReportAsSpreadsheet ::
 balanceReportAsSpreadsheet opts (items, total) =
     (if transpose_ opts then Ods.transpose else id) $
     headers :
-    concatMap (\(a, _, _, b) -> rows Value a b) items ++
+    concatMap (rows Value) items ++
     if no_total_ opts then []
-      else addTotalBorders $ rows Total totalRowHeadingSpreadsheet total
+      else addTotalBorders $
+           rows Total (totalRowHeadingSpreadsheet, totalRowHeadingSpreadsheet, 0, total)
   where
     cell = Ods.defaultCell
     headers =
@@ -702,14 +703,14 @@ balanceReportAsSpreadsheet opts (items, total) =
         LayoutBare -> ["commodity", "balance"]
         _          -> ["balance"]
     rows ::
-        RowClass -> AccountName ->
-        MixedAmount -> [[Ods.Cell Ods.NumLines Text]]
-    rows rc name ma =
+        RowClass -> BalanceReportItem ->
+        [[Ods.Cell Ods.NumLines Text]]
+    rows rc (name, dispName, dep, ma) =
       let accountCell =
               setAccountAnchor
                   (guard (rc==Value) >> balance_base_url_ opts)
                   (querystring_ opts) name $
-              cell $ accountNameDrop (drop_ opts) name in
+              cell $ renderBalanceAcct opts (name, dispName, dep) in
       addRowSpanHeader accountCell $
       case layout_ opts of
       LayoutBare ->
@@ -806,7 +807,7 @@ multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport 
       where acctName = prrFullName row
             anchorCell =
               setAccountAnchor balance_base_url_ querystring_ acctName $
-              accountCell $ accountNameDrop drop_ acctName
+              accountCell $ renderPeriodicAcct opts row
     totalrows =
       if no_total_
         then []
@@ -1046,7 +1047,7 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text WideBuilder
-budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
+budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
   maybetransposetable $
   addtotalrow $
     Table
@@ -1152,17 +1153,10 @@ budgetReportAsTable ReportOpts{..} (PeriodicReport spans items totrow) =
             shownitems =
               map (\i ->
                 let
-                  addacctcolumn = map (\(cs, cvals) -> (renderacct i, cs, cvals))
+                  addacctcolumn = map (\(cs, cvals) -> (renderPeriodicAcct ropts i, cs, cvals))
                   isunbudgetedrow = displayFull (prrName i) == unbudgetedAccountName
                 in addacctcolumn $ showrow isunbudgetedrow $ rowToBudgetCells i)
               items
-              where
-                -- FIXME. Have to check explicitly for which to render here, since
-                -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
-                -- this.
-                renderacct row = case accountlistmode_ of
-                  ALTree -> T.replicate ((prrDepth row - 1)*2) " " <> prrDisplayName row
-                  ALFlat -> accountNameDrop (drop_) $ prrFullName row
 
         (totrowcs, totrowtexts)  = unzip  $ concat showntotrow
           where
@@ -1330,6 +1324,20 @@ budgetReportAsSpreadsheet
             let name = render row in
             setAccountAnchor (guard (rc==Value) >> balance_base_url_)
                 querystring_ name (cell name)
+
+
+renderBalanceAcct :: ReportOpts -> (AccountName, AccountName, Int) -> Text
+renderBalanceAcct opts (fullName, displayName, dep) =
+  case accountlistmode_ opts of
+    ALTree -> T.replicate ((dep - 1)*2) "\160" <> displayName
+    ALFlat -> accountNameDrop (drop_ opts) fullName
+
+-- FIXME. Have to check explicitly for which to render here, since
+-- budgetReport sets accountlistmode to ALTree. Find a principled way to do
+-- this.
+renderPeriodicAcct :: ReportOpts -> PeriodicReportRow DisplayName a -> Text
+renderPeriodicAcct opts row =
+    renderBalanceAcct opts (prrFullName row, prrDisplayName row, prrDepth row)
 
 
 -- tests
