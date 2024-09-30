@@ -134,12 +134,16 @@ accountTransactionsReportItemAsCsvRecord
 -- | Render a register report as a HTML snippet.
 accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsHTML copts reportq thisacctq items =
-    L.renderText $ L.table_ (do L.thead_ (L.tr_ (do L.th_ "date"
-                                                    L.th_ "description"
-                                                    L.th_ "otheraccounts"
-                                                    L.th_ "change"
-                                                    L.th_ "balance"))
-                                L.tbody_ (mconcat (map (htmlRow copts reportq thisacctq) items)))
+  L.renderText $ do
+    L.link_ [L.rel_ "stylesheet", href_ "hledger.css"]
+    L.table_ $ do
+      L.thead_ $ L.tr_ $ do
+        L.th_ "date"
+        L.th_ "description"
+        L.th_ "otheraccounts"
+        L.th_ "change"
+        L.th_ "balance"
+      L.tbody_ $ mconcat $ map (htmlRow copts reportq thisacctq) items
 
 -- | Render one account register report line item as a HTML table row snippet.
 htmlRow :: CliOpts -> Query -> Query -> AccountTransactionsReportItem -> L.Html ()
