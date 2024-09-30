@@ -25,6 +25,7 @@ type Html = Html.Html ()
 
 printHtml :: (Lines border) => [[Cell border Html]] -> Html
 printHtml table = do
+    Html.link_ [Html.rel_ "stylesheet", Html.href_ "hledger.css"]
     Html.style_ Attr.tableStylesheet
     Html.table_ $ traverse_ formatRow table
 

@@ -821,6 +821,7 @@ multiBalanceReportAsHtml ropts mbr =
   let
     (headingsrow,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
   in do
+    link_ [rel_ "stylesheet", href_ "hledger.css"]
     style_ tableStylesheet
     table_ $ mconcat $
          [headingsrow]
