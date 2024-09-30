@@ -1000,6 +1000,12 @@ disabled automatically.
 .IP \[bu] 2
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
+.IP \[bu] 2
+HTML output will be UTF\-8 encoded.
+If your web browser is showing junk characters, you may need to change
+its text encoding to UTF\-8.
+Eg in Safari, see View \-> Text Encoding and Settings \-> Advanced \->
+Default Encoding.
 .SS JSON output
 .IP \[bu] 2
 This is not yet much used; real\-world feedback is welcome.
@@ -9948,17 +9954,6 @@ each commodity:
 $ hledger bal \-% cur:\[rs]\[rs]$
 $ hledger bal \-% cur:€
 .EE
-.SS Hyperlinks
-The HTML and FODS output formats can generate hyperlinks to a
-\f[CR]hledger\-web\f[R] register view for each account and period.
-E.g.
-if your \f[CR]hledger\-web\f[R] server is reachable at
-\f[CR]http://localhost:5000\f[R] then you might run the
-\f[CR]balance\f[R] command with the extra option
-\f[CR]\-\-base\-url=http://localhost:5000\f[R].
-You can also produce relative links, like
-\f[CR]\-\-base\-url=\[dq]some/path\[dq]\f[R] or
-\f[CR]\-\-base\-url=\[dq]\[dq]\f[R].)
 .SS Multi\-period balance report
 With a report interval (set by the \f[CR]\-D/\-\-daily\f[R],
 \f[CR]\-W/\-\-weekly\f[R], \f[CR]\-M/\-\-monthly\f[R],
@@ -10646,6 +10641,27 @@ $ hledger \-f examples/bcexample.hledger bal assets:us:etrade \-3 \-Y \-O csv \-
 \[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014\-01\-01\[dq],\[dq]2014\-12\-31\[dq],\[dq]VEA\[dq],\[dq]14.00\[dq]
 \[dq]Assets:US:ETrade\[dq],\[dq]2014\[dq],\[dq]2014\-01\-01\[dq],\[dq]2014\-12\-31\[dq],\[dq]VHT\[dq],\[dq]170.00\[dq]
 .EE
+.SS Balance report output
+As noted in Output format, if you choose HTML output (by using
+\f[CR]\-O html\f[R] or \f[CR]\-o somefile.html\f[R]), it will use the
+UTF\-8 text encoding, And you can create a \f[CR]hledger.css\f[R] file
+in the same directory to customise the report\[aq]s appearance.
+.PP
+The HTML and FODS output formats can generate hyperlinks to a
+\f[CR]hledger\-web\f[R] register view for each account and period.
+E.g.
+if your \f[CR]hledger\-web\f[R] server is reachable at
+\f[CR]http://localhost:5000\f[R] then you might run the
+\f[CR]balance\f[R] command with the extra option
+\f[CR]\-\-base\-url=http://localhost:5000\f[R].
+You can also produce relative links, like
+\f[CR]\-\-base\-url=\[dq]some/path\[dq]\f[R] or
+\f[CR]\-\-base\-url=\[dq]\[dq]\f[R].)
+.PP
+The balance reports\[aq] HTML output currently does not display tree
+mode reports properly (#1846).
+For now, if generating HTML you should probabBly use the default
+\f[CR]\-\-flat\f[R] mode.
 .SS Some useful balance reports
 Some frequently used \f[CR]balance\f[R] options/reports are:
 .IP \[bu] 2
