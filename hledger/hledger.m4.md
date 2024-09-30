@@ -677,7 +677,8 @@ Some notes about the various output formats:
 - HTML output can be styled by an optional `hledger.css` file in the same directory.
 
 - HTML output will be UTF-8 encoded. If your web browser is showing junk characters,
-  you may need to change its text encoding to UTF-8. Eg in Safari, see View -> Text Encoding.
+  you may need to change its text encoding to UTF-8.
+  Eg in Safari, see View -> Text Encoding and Settings -> Advanced -> Default Encoding.
 
 ### JSON output
 
