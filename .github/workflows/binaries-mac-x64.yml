@@ -98,10 +98,11 @@ jobs:
       run: |
         echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
 
+    # XXX occasionally we need to force a cache flush, or tools eventually become too old (Cabal tends to break old stack, eg)
     - name: Install haskell tools with ghcup if needed
       run: |
         if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-apple-darwin-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
+        if [[ ! -x ~/.ghcup/bin/stack ]];     then ~/.ghcup/bin/ghcup install stack 3.1.1   && ~/.ghcup/bin/ghcup set stack 3.1.1;   fi; printf "stack: "; stack --version
         #if [[ ! -x ~/.ghcup/bin/ghc-9.8.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;     fi; printf "ghc: "; ghc --version
 
     - name: Install GHC with stack
