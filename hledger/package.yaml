@@ -115,7 +115,7 @@ ghc-options:
 - -optP-Wno-nonportable-include-path
 
 dependencies:
-- base >=4.14 && <4.20
+- base >=4.14 && <4.21
 - hledger-lib >=1.40.99 && <1.41
 - aeson >=1 && <2.3
 - ansi-terminal >=0.9
