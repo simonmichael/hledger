@@ -19,10 +19,11 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 69da3c0a1
+# 81167e81a
 
 Docs
 
+- REGRESSIONS: new table format; updates.
 - CODE: notes on the use of haddock [#2222]
 - Simplify github bug report template
 - Add man pages and info manuals to the release bindists on github
@@ -34,6 +35,7 @@ Scripts/addons
 Infrastructure/Misc
 
 - Add bash shell completion script to the release bindists ([#2223], gesh/hseg, Simon Michael)
+- hledger is now 35th among Github-starred haskell projects (up from 36th).
 
 
 # 1.40 2024-09-09
