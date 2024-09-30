@@ -388,13 +388,6 @@ $ hledger bal -% cur:\\$
 $ hledger bal -% cur:€
 ```
 
-### Hyperlinks
-
-The HTML and FODS output formats can generate hyperlinks to a `hledger-web` register view for each account and period.
-E.g. if your `hledger-web` server is reachable at `http://localhost:5000`
-then you might run the `balance` command with the extra option `--base-url=http://localhost:5000`.
-You can also produce relative links, like `--base-url="some/path"` or `--base-url=""`.)
-
 ### Multi-period balance report
 
 With a [report interval](#report-intervals) (set by the `-D/--daily`,
@@ -879,6 +872,17 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layo
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
 ```
+
+### Balance report output
+
+As noted in [Output format](#output-format),
+if you choose HTML output (by using `-O html` or `-o somefile.html`), it will use the UTF-8 text encoding,
+And you can create a `hledger.css` file in the same directory to customise the report's appearance.
+
+The HTML and FODS output formats can generate hyperlinks to a `hledger-web` register view for each account and period.
+E.g. if your `hledger-web` server is reachable at `http://localhost:5000`
+then you might run the `balance` command with the extra option `--base-url=http://localhost:5000`.
+You can also produce relative links, like `--base-url="some/path"` or `--base-url=""`.)
 
 ### Some useful balance reports
 
