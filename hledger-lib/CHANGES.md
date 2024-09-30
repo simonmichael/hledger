@@ -22,25 +22,20 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# ff397f79c
-
-- lib: Write.Spreadsheet.Cell: add cellClass field for HTML style class (Henning Thielemann)
-  cmd: Commands.Balance.multiBalanceRowAsCellBuilders: add HTML style class attributes here
-  This way we do not need to dissect table rows in
-  multiBalanceReportHtmlHeadRow, multiBalanceReportHtmlBodyRow, multiBalanceReportHtmlFootRow
-  Eventually removed these three functions.
-
-- cli: Commands.Balance.budgetReportAsSpreadsheet: also transpose border (Henning Thielemann)
-
-- lib: Write.Spreadsheet: support for borders like in existing HTML export (Henning Thielemann)
-  cli: Commands.Balance: use for FODS export and balance and budget export to HTML
+# 81167e81a
 
 Breaking changes
+
+- New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help abstract the rendering of
+  tables in various output formats, eg HTML and FODS.
+  (Spreadsheet is in addition to the tabular package we already in use; there may be some overlap.)
+  (XXX Review module changes)
 
 Fixes
 
 Improvements
 
+- dependency changes: 
 
 
 # 1.40 2024-09-09
