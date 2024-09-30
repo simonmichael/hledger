@@ -12,6 +12,9 @@ module Hledger.Write.Ods (
     printFods,
     ) where
 
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..))
+
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import Data.Text (Text)
