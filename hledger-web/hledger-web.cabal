@@ -161,6 +161,7 @@ library
       Decimal >=0.5.1
     , aeson >=1 && <2.3
     , base >=4.14 && <4.21
+    , base-compat >=0.14.0
     , base64
     , blaze-html
     , blaze-markup
@@ -226,6 +227,7 @@ executable hledger-web
   cpp-options: -DVERSION="1.40.99"
   build-depends:
       base >=4.14 && <4.21
+    , base-compat >=0.14.0
     , hledger-web
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))
@@ -250,6 +252,7 @@ test-suite test
   cpp-options: -DVERSION="1.40.99"
   build-depends:
       base >=4.14 && <4.21
+    , base-compat >=0.14.0
     , hledger-web
   default-language: Haskell2010
   if (flag(dev)) || (flag(library-only))

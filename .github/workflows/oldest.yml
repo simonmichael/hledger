@@ -137,15 +137,18 @@ jobs:
       run: |
         $stack install --test --bench hledger-web --fast --ghc-options=-Werror
 
+    # XXX disable until this is fixed: shelltestrunner-1.10/src/shelltest.hs:125:20: error:
+    # shelltestrunner      >     Not in scope: ‘configFailFast’
+    # shelltestrunner      >     Perhaps you meant ‘configFastFail’ (imported from Test.Hspec.Core.Runner)
 
-    - name: Install shelltestrunner
-      run: |
-        export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
-        shelltest --version
+    # - name: Install shelltestrunner
+    #   run: |
+    #     export PATH=~/.local/bin:$PATH
+    #     if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
+    #     shelltest --version
 
-    - name: Test functional tests (excluding addons)
-      run: |
-        export PATH=~/.local/bin:$PATH
-        COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
-        # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
+    # - name: Test functional tests (excluding addons)
+    #   run: |
+    #     export PATH=~/.local/bin:$PATH
+    #     COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+    #     # XXX run the bin/ func tests corresponding to the GHC version enabled above, only
