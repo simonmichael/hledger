@@ -87,6 +87,7 @@ when:
 
 dependencies:
 - base >=4.14 && <4.21
+- base-compat >=0.14.0
 
 library:
   source-dirs: .

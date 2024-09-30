@@ -9,7 +9,7 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.List.NonEmpty.Compat as NonEmpty  -- from base-compat for ghc 8.10
 import Data.List (intersperse, nub, partition)
 import qualified Data.Text as T
 import Text.Hamlet (hamletFile)
