@@ -1,7 +1,3 @@
-{-# LANGUAGE FlexibleInstances     #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE ScopedTypeVariables   #-}
 {-|
 
 Easy regular expression helpers, currently based on regex-tdfa. These should:
@@ -42,6 +38,12 @@ Current limitations:
 
 -}
 
+{-# LANGUAGE CPP                   #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE ScopedTypeVariables   #-}
+
 module Hledger.Utils.Regex (
   -- * Regexp type and constructors
    Regexp(reString)
@@ -66,7 +68,9 @@ import Control.Monad (foldM)
 import Data.Aeson (ToJSON(..), Value(String))
 import Data.Array ((!), elems, indices)
 import Data.Char (isDigit)
+#if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
+#endif
 import Data.MemoUgly (memo)
 import Data.Text (Text)
 import qualified Data.Text as T

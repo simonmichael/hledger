@@ -39,6 +39,7 @@ with similar amounts since it mostly ignores costss and commodity exchange rates
 
 -}
 
+{-# LANGUAGE CPP  #-}
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE RecordWildCards    #-}
 {-# LANGUAGE NamedFieldPuns #-}
@@ -175,7 +176,10 @@ import Data.Char (isDigit)
 import Data.Decimal (DecimalRaw(..), decimalPlaces, normalizeDecimal, roundTo)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List (find, foldl', intercalate, intersperse, mapAccumL, partition)
+import Data.List (find, intercalate, intersperse, mapAccumL, partition)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S

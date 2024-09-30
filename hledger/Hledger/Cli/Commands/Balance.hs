@@ -233,6 +233,7 @@ Currently, empty cells show 0.
 
 -}
 
+{-# LANGUAGE CPP                  #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE NamedFieldPuns       #-}
 {-# LANGUAGE RecordWildCards      #-}
@@ -272,7 +273,10 @@ import Control.Monad (guard)
 import Data.Decimal (roundTo)
 import Data.Default (def)
 import Data.Function (on)
-import Data.List (find, transpose, foldl')
+import Data.List (find, transpose)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import qualified Data.Map as Map
 import qualified Data.Set as S
 import Data.Maybe (mapMaybe, fromMaybe)

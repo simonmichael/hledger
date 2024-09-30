@@ -3,6 +3,8 @@ Utilities used throughout hledger, or needed low in the module hierarchy.
 These are the bottom of hledger's module graph.
 -}
 
+{-# LANGUAGE CPP #-}
+
 module Hledger.Utils (
 
   -- * Functions
@@ -69,7 +71,10 @@ where
 
 import Data.Char (toLower)
 import Data.List (intersperse)
-import Data.List.Extra (chunksOf, foldl', foldl1', uncons, unsnoc)
+import Data.List.Extra (chunksOf, foldl1', uncons, unsnoc)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import qualified Data.Set as Set
 import qualified Data.Text as T (pack, unpack)
 import Data.Tree (foldTree, Tree (Node, subForest))
