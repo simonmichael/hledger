@@ -1,4 +1,3 @@
-{-# LANGUAGE NamedFieldPuns #-}
 {-|
 
 A 'Posting' represents a change (by some 'MixedAmount') of the balance in
@@ -8,6 +7,8 @@ look up the date or description there.
 
 -}
 
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.Data.Posting (
@@ -82,7 +83,10 @@ import Data.Foldable (asum)
 import Data.Function ((&))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.List (foldl', sort, union)
+import Data.List (sort, union)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T

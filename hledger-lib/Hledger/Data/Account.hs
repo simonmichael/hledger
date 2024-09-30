@@ -34,7 +34,10 @@ module Hledger.Data.Account
 
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
-import Data.List (find, foldl', sortOn)
+import Data.List (find, sortOn)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import Data.List.Extra (groupOn)
 import qualified Data.Map as M
 import Data.Ord (Down(..))

@@ -14,6 +14,7 @@ Most of the code for reading rules files and csv files is in this module.
 -- stack haddock hledger-lib --fast --no-haddock-deps --haddock-arguments='--ignore-all-exports' --open
 
 --- ** language
+{-# LANGUAGE CPP    #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
@@ -52,7 +53,10 @@ import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
 import Data.Functor               ((<&>))
-import Data.List (elemIndex, foldl', mapAccumL, nub, sortOn)
+import Data.List (elemIndex, mapAccumL, nub, sortOn)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import Data.List.Extra (groupOn)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
@@ -1325,9 +1329,7 @@ parseAmount rules record currency s =
       ,showRules rules record
       -- ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
       ,"the parse error is:      " <> T.pack (customErrorBundlePretty e)
-      ,"you may need to \
-        \change your amount*, balance*, or currency* rules, \
-        \or add or change your skip rule"
+      ,"you may need to change your amount*, balance*, or currency* rules, or add or change your skip rule"
       ]
 
 -- | Show the values assigned to each journal field.

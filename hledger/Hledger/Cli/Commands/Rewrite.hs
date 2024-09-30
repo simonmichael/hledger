@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP               #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -11,7 +12,10 @@ module Hledger.Cli.Commands.Rewrite (
 where
 
 import Data.Functor.Identity
-import Data.List (sortOn, foldl')
+import Data.List (sortOn)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
