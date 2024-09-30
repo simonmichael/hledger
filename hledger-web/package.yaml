@@ -86,7 +86,7 @@ when:
   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
-- base >=4.14 && <4.20
+- base >=4.14 && <4.21
 
 library:
   source-dirs: .

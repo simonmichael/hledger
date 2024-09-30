@@ -53,7 +53,7 @@ ghc-options:
 - -Wno-unused-do-bind
 
 dependencies:
-- base >=4.14 && <4.20
+- base >=4.14 && <4.21
 
 when:
 - condition: (flag(ghcdebug))
@@ -125,7 +125,7 @@ executables:
     source-dirs: app
     main: hledger-ui.hs
     dependencies:
-    - base >=4.14 && <4.20
+    - base >=4.14 && <4.21
     - hledger-ui
     when:
     - condition: flag(threaded)

@@ -379,7 +379,7 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(attrName "border", attr
 
 -- | Scroll a list's viewport so that the selected item is centered in the
 -- middle of the display area.
-scrollSelectionToMiddle :: List Name item -> EventM Name UIState ()
+scrollSelectionToMiddle :: Brick.Widgets.List.List Name item -> EventM Name UIState ()
 scrollSelectionToMiddle list = do
   case list^.listSelectedL of
     Nothing -> return ()
@@ -429,7 +429,7 @@ reportSpecSetFutureAndForecast fcast rspec =
 -- Vertically scroll the named list's viewport with the given number of non-empty items
 -- by the given positive or negative number of items (usually 1 or -1).
 -- The selection will be moved when necessary to keep it visible and allow the scroll.
-listScrollPushingSelection :: Name -> Int -> Int -> EventM Name (List Name item) (GenericList Name Vector item)
+listScrollPushingSelection :: Name -> Int -> Int -> EventM Name (Brick.Widgets.List.List Name item) (GenericList Name Vector item)
 listScrollPushingSelection name listheight scrollamt = do
   list <- get
   viewportScroll name `vScrollBy` scrollamt
