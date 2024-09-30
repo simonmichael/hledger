@@ -12,11 +12,6 @@ module Hledger.Write.Ods (
     printFods,
     ) where
 
-import qualified Hledger.Write.Spreadsheet as Spr
-import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
-import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
-import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
-
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import Data.Text (Text)
@@ -33,6 +28,10 @@ import Data.Maybe (catMaybes)
 import qualified System.IO as IO
 import Text.Printf (printf)
 
+import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
+import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
+import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
 
 printFods ::
     IO.TextEncoding ->
