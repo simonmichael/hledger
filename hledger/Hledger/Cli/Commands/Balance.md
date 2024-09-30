@@ -884,6 +884,11 @@ E.g. if your `hledger-web` server is reachable at `http://localhost:5000`
 then you might run the `balance` command with the extra option `--base-url=http://localhost:5000`.
 You can also produce relative links, like `--base-url="some/path"` or `--base-url=""`.)
 
+The balance reports' HTML output
+currently does not display tree mode reports properly ([#1846](https://github.com/simonmichael/hledger/issues/1846)).
+For now, if generating HTML you should probabBly use the default `--flat` mode.
+
+
 ### Some useful balance reports
 
 Some frequently used `balance` options/reports are:
