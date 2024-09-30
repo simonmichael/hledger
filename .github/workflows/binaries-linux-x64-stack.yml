@@ -98,7 +98,7 @@ jobs:
     - name: Install haskell tools with ghcup if needed
       run: |
         if [[ ! -x ~/.ghcup/bin/ghcup ]]; then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/stack ]]; then ~/.ghcup/bin/ghcup install stack 2.15.5   && ~/.ghcup/bin/ghcup set stack 2.15.5;   fi; printf "stack: "; stack --version
+        if [[ ! -x ~/.ghcup/bin/stack ]]; then ~/.ghcup/bin/ghcup install stack 3.1.1   && ~/.ghcup/bin/ghcup set stack 3.1.1;   fi; printf "stack: "; stack --version
 
     # --allow-different-user is needed because of #863 above (or because stack didn't notice we're in a docker container)
     - name: Install GHC with stack
