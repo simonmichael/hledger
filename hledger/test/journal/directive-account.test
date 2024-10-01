@@ -73,30 +73,32 @@ Expenses:Food
 account (a)
 
 $ hledger -f- accounts
->2
-hledger: Error: -:1:9:
-  |
-1 | account (a)
-  |         ^
-unexpected '('
+>2 /hledger: Error: -:1:9:
+  \|
+1 \| account \(a\)
+  \|         \^
+unexpected '\('
 expecting account name without brackets
 
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # ** 6. It does not allow brackets in names.
 <
 account [a]
 
 $ hledger -f- accounts
->2
-hledger: Error: -:1:9:
-  |
-1 | account [a]
-  |         ^
-unexpected '['
+>2 /hledger: Error: -:1:9:
+  \|
+1 \| account \[a\]
+  \|         \^
+unexpected '\['
 expecting account name without brackets
 
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # TODO
 # a trailing : should give a clear error

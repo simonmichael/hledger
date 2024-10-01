@@ -774,14 +774,15 @@ if|account2|comment
 %amount 150|acct2
 %description Flubber|acct|
 $  ./csvtest.sh
->2
-hledger: Error: input.rules:6:1:
-  |
-6 | %amount 150|acct2
-  | ^
+>2 /hledger: Error: input.rules:6:1:
+  \|
+6 \| %amount 150\|acct2
+  \| \^
 line of conditional table should have 2 values, but this one has only 1
 
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # ** 40. unindented condition block error
 <
@@ -796,15 +797,16 @@ if Flubber
 account2 acct
 comment cmt
 $  ./csvtest.sh
->2
-hledger: Error: input.rules:5:1:
-  |
-5 | if Flubber
-  | ^
+>2 /hledger: Error: input.rules:5:1:
+  \|
+5 \| if Flubber
+  \| \^
 start of conditional block found, but no assignment rules afterward
-(assignment rules in a conditional block should be indented)
+\(assignment rules in a conditional block should be indented\)
 
+/
 >=1
+# XXX
 
 # ** 41. Assignment to custom field (#1264) + spaces after the if (#1120)
 <
@@ -822,15 +824,16 @@ if Flubber
 
 account2 %myaccount2
 $  ./csvtest.sh
->2
-hledger: Error: input.rules:6:3:
-  |
-6 |   myaccount2 acct
-  |   ^^^^^^^^^^^^
+>2 /hledger: Error: input.rules:6:3:
+  \|
+6 \|   myaccount2 acct
+  \|   \^\^\^\^\^\^\^\^\^\^\^\^
 unexpected "myaccount2 a"
 expecting conditional block
 
+/
 >=1
+# XXX
 
 # ** 42. Rules override each other in the order listed in the file
 <
@@ -870,15 +873,16 @@ if account2 comment
 %amount 150 acct2 
 %description Flubber acct 
 $  ./csvtest.sh
->2
-hledger: Error: input.rules:5:1:
-  |
-5 | if account2 comment
-  | ^
+>2 /hledger: Error: input.rules:5:1:
+  \|
+5 \| if account2 comment
+  \| \^
 start of conditional block found, but no assignment rules afterward
-(assignment rules in a conditional block should be indented)
+\(assignment rules in a conditional block should be indented\)
 
+/
 >=1
+# XXX
 
 # ** 44. handle conditions with & operator
 <

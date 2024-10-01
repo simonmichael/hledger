@@ -170,15 +170,16 @@ Balance changes in 2016-10-01..2017-01-31:
 # ** 9. Parse error in malformed forecast period expression
 $ hledger bal -M -b 2016-10 -e 2017-02 -f - --forecast=20160801-foobar
 >
->2
-hledger: Error: could not parse forecast period : 1:10:
-  |
-1 | 20160801-foobar
-  |          ^
+>2 /hledger: Error: could not parse forecast period : 1:10:
+  \|
+1 \| 20160801-foobar
+  \|          \^
 unexpected 'f'
 expecting end of input
- (use -h to see usage)
+ \(use -h to see usage\)
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 <
 commodity 1,000.00 USD

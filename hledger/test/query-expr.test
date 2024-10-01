@@ -129,10 +129,11 @@ $ hledger -f - print expr:"not tag:transactiontag=B"
 
 # ** 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
 $ hledger -f - print expr:"not(tag:transactiontag=B)"
->2
-hledger: Error: This regular expression is invalid or unsupported, please correct it:
-not(tag:transactiontag=B
+>2 /hledger: Error: This regular expression is invalid or unsupported, please correct it:
+not\(tag:transactiontag=B
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # ** 10. ... whereas parentheses with a space between 'not' and '(' is fine.
 $ hledger -f - print expr:"not (tag:transactiontag=B)"

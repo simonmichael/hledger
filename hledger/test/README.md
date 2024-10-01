@@ -26,6 +26,9 @@ and a test number (`1. `), useful for running individual tests.
 
 A few tests invoke unix commands; these won't run in a Windows CMD shell.
 
+2024-09-30 Note: tests of error output must use regexps for now to work
+around ghc 9.10's extra newline in error output: https://gitlab.haskell.org/ghc/ghc/-/issues/25116
+
 [Developer docs > TESTS]: https://hledger.org/TESTS.html
 [component]: https://hledger.org/CONTRIBUTING.html#components
 [shelltestrunner]: https://github.com/simonmichael/shelltestrunner#readme
