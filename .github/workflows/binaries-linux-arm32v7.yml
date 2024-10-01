@@ -1,9 +1,6 @@
 # This was used for certain raspberry pi hardware and perhaps needs update.
 # Runs on any push to binaries-linux-arm32v7.
-# Produces optimised static arm32v7 linux  binaries,
-# using GHC 8.10.4 and cabal.
-# Currently runs no tests.
-# Slow, will probably time out.
+# ACTION: Builds and saves linux arm32v7 static binaries, using docker-arm32v7/Dockerfile and cabal and the ghc specified there. Slow, may time out.
 
 name: binaries-linux-arm32v7
 on:

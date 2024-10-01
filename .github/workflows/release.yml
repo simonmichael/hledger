@@ -1,4 +1,4 @@
-# Create/update a draft release when a release tag is pushed.
+# ACTION: Creates/updates a draft release when a release tag is pushed.
 # Expects that the main binaries* workflows have been completed first.
 # XXX Triggers too much, eg on pushing VER.99 dev tags; those releases must be deleted manually.
 

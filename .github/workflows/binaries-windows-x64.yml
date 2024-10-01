@@ -1,7 +1,5 @@
 # Runs on any push to binaries-windows-x64 or binaries.
-# Produces optimised windows binaries,
-# using the default stack.yaml's GHC version.
-# Currently runs no tests.
+# ACTION: Builds and saves windows x64 binaries with stack and the default ghc.
 
 name: binaries-windows-x64
 on:
