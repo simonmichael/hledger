@@ -710,7 +710,7 @@ balanceReportAsSpreadsheet opts (items, total) =
               setAccountAnchor
                   (guard (rc==Value) >> balance_base_url_ opts)
                   (querystring_ opts) name $
-              cell $ renderBalanceAcct opts (name, dispName, dep) in
+              cell $ renderBalanceAcct opts nbsp (name, dispName, dep) in
       addRowSpanHeader accountCell $
       case layout_ opts of
       LayoutBare ->
@@ -807,7 +807,7 @@ multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport 
       where acctName = prrFullName row
             anchorCell =
               setAccountAnchor balance_base_url_ querystring_ acctName $
-              accountCell $ renderPeriodicAcct opts row
+              accountCell $ renderPeriodicAcct opts nbsp row
     totalrows =
       if no_total_
         then []
@@ -1153,7 +1153,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
             shownitems =
               map (\i ->
                 let
-                  addacctcolumn = map (\(cs, cvals) -> (renderPeriodicAcct ropts i, cs, cvals))
+                  addacctcolumn = map (\(cs, cvals) -> (renderPeriodicAcct ropts " " i, cs, cvals))
                   isunbudgetedrow = displayFull (prrName i) == unbudgetedAccountName
                 in addacctcolumn $ showrow isunbudgetedrow $ rowToBudgetCells i)
               items
@@ -1326,18 +1326,24 @@ budgetReportAsSpreadsheet
                 querystring_ name (cell name)
 
 
-renderBalanceAcct :: ReportOpts -> (AccountName, AccountName, Int) -> Text
-renderBalanceAcct opts (fullName, displayName, dep) =
+nbsp :: Text
+nbsp = "\160"
+
+renderBalanceAcct ::
+    ReportOpts -> Text -> (AccountName, AccountName, Int) -> Text
+renderBalanceAcct opts space (fullName, displayName, dep) =
   case accountlistmode_ opts of
-    ALTree -> T.replicate ((dep - 1)*2) "\160" <> displayName
+    ALTree -> T.replicate ((dep - 1)*2) space <> displayName
     ALFlat -> accountNameDrop (drop_ opts) fullName
 
 -- FIXME. Have to check explicitly for which to render here, since
 -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
 -- this.
-renderPeriodicAcct :: ReportOpts -> PeriodicReportRow DisplayName a -> Text
-renderPeriodicAcct opts row =
-    renderBalanceAcct opts (prrFullName row, prrDisplayName row, prrDepth row)
+renderPeriodicAcct ::
+    ReportOpts -> Text -> PeriodicReportRow DisplayName a -> Text
+renderPeriodicAcct opts space row =
+    renderBalanceAcct opts space
+        (prrFullName row, prrDisplayName row, prrDepth row)
 
 
 -- tests
