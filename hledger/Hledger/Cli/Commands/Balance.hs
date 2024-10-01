@@ -303,7 +303,6 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
-import Hledger.Write.Html.Attribute (tableStylesheet)
 import qualified Hledger.Write.Html.Lucid as Html
 import qualified Hledger.Write.Spreadsheet as Ods
 
@@ -822,15 +821,10 @@ multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
-  let
-    (headingsrow,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
-  in do
+  do
     link_ [rel_ "stylesheet", href_ "hledger.css"]
-    style_ tableStylesheet
-    table_ $ mconcat $
-         [headingsrow]
-      ++ bodyrows
-      ++ mtotalsrows
+    printHtml . map (map (fmap L.toHtml)) $
+      snd $ multiBalanceReportAsSpreadsheet ropts mbr
 
 -- | Render the HTML table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
