@@ -1,4 +1,4 @@
-# Runs on any push to binaries-windows-x64 or binaries.
+# TRIGGER: Runs on any push to binaries-windows-x64 or binaries branches.
 # ACTION: Builds, unit-tests and saves windows x64 binaries with stack and the default ghc.
 
 name: binaries-windows-x64

@@ -1,6 +1,7 @@
-# ACTION: Creates/updates a draft release when a release tag is pushed.
-# Expects that the main binaries* workflows have been completed first.
-# XXX Triggers too much, eg on pushing VER.99 dev tags; those releases must be deleted manually.
+# TRIGGER: Runs when a release tag like "1.*" is pushed to the repo.
+# XXX Triggers too much, eg for 1.x.99 dev tags; those releases must be deleted manually.
+# ACTION: Creates/updates a draft release with binaries from the latest successful binaries-* runs.
+# The main binaries* workflows should be completed before triggering this.
 
 name: release
 
