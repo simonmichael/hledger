@@ -1316,7 +1316,8 @@ budgetReportAsSpreadsheet
     rowAsTexts rc render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
       | layout_ /= LayoutBare = [accountCell : map showNorm vals]
       | otherwise =
-            joinNames . zipWith (:) (map cell cs)  -- add symbols and names
+            addRowSpanHeader accountCell -- add name
+          . zipWith (:) (map cell cs)   -- add symbols
           . transpose                   -- each row becomes a list of Text quantities
           . map (map (fmap wbToText) . cellsFromMixedAmount dopts . second (fromMaybe nullmixedamt))
           $ vals
@@ -1331,7 +1332,6 @@ budgetReportAsSpreadsheet
                         (budgetAverageClass rc, budgetavg)]
                             | average_]
 
-        joinNames = map (accountCell :)
         accountCell =
             let name = render row in
             setAccountAnchor (guard (rc==Value) >> balance_base_url_)
