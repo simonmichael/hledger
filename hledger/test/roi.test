@@ -236,10 +236,7 @@ $ hledger -f- roi -p 2019-11
   Assets:Checking    101 A
   Unrealized PnL
 $ hledger -f- roi -p 2019-11 --inv Investment --pnl PnL
->2
-hledger: Error: Amounts could not be converted to a single commodity: ["10 B","-9 B @@ 100 A","100 C"]
-Consider using --value to force all costs to be in a single commodity.
-For example, "--value=end,<commodity> --infer-market-prices", where commodity is the one that was used for investment valuations.
+>2 /hledger: Error: Amounts could not be converted to a single commodity: \["10 B","-9 B @@ 100 A","100 C"\]/
 >= 1
 
 # ** 10. Forcing valuation via --value

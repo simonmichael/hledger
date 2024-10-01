@@ -6,15 +6,16 @@
 2018
 
 $ hledger -f - print
->2
-hledger: Error: -:1:5:
-  |
-1 | 2018
-  |     ^
+>2 /hledger: Error: -:1:5:
+  \|
+1 \| 2018
+  \|     \^
 unexpected newline
 expecting date separator or digit
 
+/
 >=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # A journal with an unbalanced transaction.
 <
@@ -122,18 +123,17 @@ $ hledger -f- print
   b  1B
 
 $ hledger -f- print
->2
-hledger: Error: -:1-3:
-1 | 2020-01-01
-  |     a              1A
-  |     b              1B
+>2 /hledger: Error: -:1-3:
+1 \| 2020-01-01
+  \|     a              1A
+  \|     b              1B
 
 This multi-commodity transaction is unbalanced.
 The real postings all have the same sign. Consider negating some of them.
-Consider adjusting this entry's amounts, adding missing postings,
-or recording conversion price(s) with @, @@ or equity postings.
+/
 >=1
 #'
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
 
 # ** 12. Typical "hledger equity --close" transaction does not trigger sign error.
 <
