@@ -1265,7 +1265,7 @@ budgetReportAsCsv ropts report
 budgetReportAsSpreadsheet ::
   ReportOpts -> BudgetReport -> [[Ods.Cell Ods.NumLines Text]]
 budgetReportAsSpreadsheet
-  ReportOpts{..}
+  ropts@ReportOpts{..}
   (PeriodicReport colspans items totrow)
   = (if transpose_ then Ods.transpose else id) $
 
@@ -1279,14 +1279,18 @@ budgetReportAsSpreadsheet
   ) :
 
   -- account rows
-  concatMap (rowAsTexts Value prrFullName) items
+  concatMap (\row -> rowAsTexts Value (accountCell row) row) items
 
   -- totals row
   ++ addTotalBorders
-        (concat [ rowAsTexts Total (const totalRowHeadingBudgetCsv) totrow | not no_total_ ])
+        (concat [ rowAsTexts Total (cell totalRowHeadingBudgetCsv) totrow | not no_total_ ])
 
   where
     cell = Ods.defaultCell
+    accountCell row =
+        let name = prrFullName row in
+        setAccountAnchor (balance_base_url_) querystring_ name $
+        cell $ renderPeriodicAcct ropts nbsp row
     {-
     ToDo: The chosen HTML cell class names are not put in stone.
     If you find you need more systematic names,
@@ -1298,17 +1302,18 @@ budgetReportAsSpreadsheet
         maybe Ods.emptyCell (fmap wbToText . curry (cellFromMixedAmount oneLineNoCostFmt) cls) mval
 
     rowAsTexts :: RowClass
-               -> (PeriodicReportRow a BudgetCell -> Text)
+               -> Ods.Cell Ods.NumLines Text
                -> PeriodicReportRow a BudgetCell
                -> [[Ods.Cell Ods.NumLines Text]]
-    rowAsTexts rc render row@(PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg))
-      | layout_ /= LayoutBare = [accountCell : map showNorm vals]
-      | otherwise =
-            addRowSpanHeader accountCell -- add name
-          . zipWith (:) (map cell cs)   -- add symbols
+    rowAsTexts rc acctCell (PeriodicReportRow _ as (rowtot,budgettot) (rowavg, budgetavg)) =
+      addRowSpanHeader acctCell $
+      case layout_ of
+        LayoutBare ->
+            zipWith (:) (map cell cs)   -- add symbols
           . transpose                   -- each row becomes a list of Text quantities
           . map (map (fmap wbToText) . cellsFromMixedAmount dopts . second (fromMaybe nullmixedamt))
           $ vals
+        _ -> [map showNorm vals]
       where
         cs = S.toList . mconcat . map maCommodities $ mapMaybe snd vals
         dopts = oneLineNoCostFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
@@ -1319,11 +1324,6 @@ budgetReportAsSpreadsheet
             ++ concat [[(rowAverageClass rc, rowavg),
                         (budgetAverageClass rc, budgetavg)]
                             | average_]
-
-        accountCell =
-            let name = render row in
-            setAccountAnchor (guard (rc==Value) >> balance_base_url_)
-                querystring_ name (cell name)
 
 
 nbsp :: Text
