@@ -108,9 +108,9 @@ jobs:
 
     - name: Build with stack
       run: |
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger      # || (echo "ERROR: building hledger failed"; false)
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Run built-in unit tests
       run: |
