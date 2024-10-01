@@ -33,7 +33,7 @@ RUN cabal update
 COPY . /hledger
 
 # Build static hledger binary
-RUN cd /hledger && cabal build --enable-executable-static --with-compiler=/usr/local/bin/ghc-8.10.4 hledger
+RUN cd /hledger && cabal build --enable-executable-static --with-compiler=/usr/local/bin/ghc-8.10.4 --ghc-options=-Werror hledger
 
 # Strip symbols from binary
 RUN cp /hledger/dist-newstyle/build/arm-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger /root/ && strip /root/hledger
