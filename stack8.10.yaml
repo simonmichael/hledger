@@ -32,6 +32,8 @@ extra-deps:
 - text-builder-dev-0.3.3.2
 - isomorphism-class-0.1.0.7
 # for hledger:
+# silence a warning
+- wizards-1.0.3@rev:3
 # for hledger-ui:
 - brick-2.3.1
 - bimap-0.5.0

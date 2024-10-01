@@ -31,6 +31,8 @@ extra-deps:
 
 # for hledger
 - haskeline-0.8.2.1
+# to silence a warning
+- wizards-1.0.3@rev:3
 
 # for dev builds when the ghcdebug flag is enabled:
 - ghc-debug-convention-0.6.0.0
