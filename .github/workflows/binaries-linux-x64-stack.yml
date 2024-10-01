@@ -106,6 +106,10 @@ jobs:
       run: |
         stack --allow-different-user setup --install-ghc
 
+    - name: List dep versions
+      run: |
+        $stack exec -- ghc-pkg list
+
     - name: Build with stack and run unit tests
       run: |
         stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger      # || (echo "ERROR: building hledger failed"; false)

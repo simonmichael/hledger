@@ -118,6 +118,10 @@ jobs:
         $stack build --test --only-dependencies --dry-run
         $stack build --test --only-dependencies
 
+    - name: List dep versions
+      run: |
+        $stack exec -- ghc-pkg list
+
     - name: Build hledger and test unit tests, doc tests
       run: |
         $stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror

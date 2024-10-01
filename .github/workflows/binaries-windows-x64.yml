@@ -123,7 +123,9 @@ jobs:
         ./stack --no-terminal build --test --only-dependencies --dry-run
         ./stack --no-terminal build --test --only-dependencies
 
-    # use whichever GHC is in default stack.yaml
+    - name: List dep versions
+      run: |
+        $stack exec -- ghc-pkg list
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
