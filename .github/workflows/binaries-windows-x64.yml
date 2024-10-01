@@ -1,5 +1,5 @@
 # Runs on any push to binaries-windows-x64 or binaries.
-# ACTION: Builds and saves windows x64 binaries with stack and the default ghc.
+# ACTION: Builds, unit-tests and saves windows x64 binaries with stack and the default ghc.
 
 name: binaries-windows-x64
 on:
@@ -118,23 +118,23 @@ jobs:
       run: |
         ./stack --no-terminal setup --install-ghc
 
-    # - name: Install shelltestrunner
-    ## - export PATH=~/.local/bin:$PATH
-    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.10; fi
-    # - shelltest --version
-
     - name: Install haskell deps
       run: |
-        ./stack --no-terminal build --only-dependencies --dry-run
-        ./stack --no-terminal build --only-dependencies
+        ./stack --no-terminal build --test --only-dependencies --dry-run
+        ./stack --no-terminal build --test --only-dependencies
 
     # use whichever GHC is in default stack.yaml
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        ./stack --no-terminal install --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        ./stack --no-terminal install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
+
+    # - name: Install shelltestrunner
+    ## - export PATH=~/.local/bin:$PATH
+    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.10; fi
+    # - shelltest --version
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons
     ## - export PATH=~/.local/bin:$PATH

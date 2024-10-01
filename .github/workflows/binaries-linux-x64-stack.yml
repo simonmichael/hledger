@@ -1,5 +1,5 @@
 # Runs on any push to binaries-linux-x64-stack.
-# ACTION: Builds and saves mac x64 static binaries with stack and the default ghc. May not work,
+# ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc. May not work,
 # the cabal-based binaries-linux-x64.yml is normally used instead.
 
 name: binaries-linux-x64-stack
@@ -106,15 +106,11 @@ jobs:
       run: |
         stack --allow-different-user setup --install-ghc
 
-    - name: Build with stack
+    - name: Build with stack and run unit tests
       run: |
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger      # || (echo "ERROR: building hledger failed"; false)
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
-        stack --allow-different-user build --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
-
-    - name: Run built-in unit tests
-      run: |
-        stack exec -- hledger test
+        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
