@@ -12,7 +12,6 @@ jobs:
     # arm64
     runs-on: macos-14
     env:
-      ghc:   98
       stack: stack
     steps:
 
