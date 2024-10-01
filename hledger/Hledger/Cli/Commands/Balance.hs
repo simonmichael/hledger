@@ -774,16 +774,16 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
       _ -> rows ++ totals
     rows = header:body
     (header, body, totals) =
-        multiBalanceReportAsSpreadsheetHelper False opts report
+        multiBalanceReportAsSpreadsheetParts False opts report
     maybeTranspose = if transpose_ then transpose else id
 
 -- Helper for CSV and ODS and HTML rendering.
-multiBalanceReportAsSpreadsheetHelper ::
+multiBalanceReportAsSpreadsheetParts ::
     Bool -> ReportOpts -> MultiBalanceReport ->
     ([Ods.Cell Ods.NumLines Text],
      [[Ods.Cell Ods.NumLines Text]],
      [[Ods.Cell Ods.NumLines Text]])
-multiBalanceReportAsSpreadsheetHelper ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
+multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
     (headers, concatMap fullRowAsTexts items, addTotalBorders totalrows)
   where
     accountCell label =
@@ -840,7 +840,7 @@ multiBalanceReportHtmlRows ropts mbr =
     -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
     (headingsrow, bodyrows, mtotalsrows)
       | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
-      | otherwise = multiBalanceReportAsSpreadsheetHelper True ropts mbr
+      | otherwise = multiBalanceReportAsSpreadsheetParts True ropts mbr
     formatRow = Html.formatRow . map (fmap L.toHtml)
   in
     (formatRow headingsrow
@@ -854,7 +854,7 @@ multiBalanceReportAsSpreadsheet ::
   ReportOpts -> MultiBalanceReport ->
   ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
-  let (header,body,total) = multiBalanceReportAsSpreadsheetHelper True ropts mbr
+  let (header,body,total) = multiBalanceReportAsSpreadsheetParts True ropts mbr
   in  (if transpose_ ropts then swap *** Ods.transpose else id) $
       ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
             header : body ++ total)
