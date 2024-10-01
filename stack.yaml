@@ -14,6 +14,8 @@ packages:
 - hledger-web
 
 extra-deps:
+- base-compat-0.14.0
+- base-compat-batteries-0.14.0
 # for hledger-lib
 - Cabal-3.12.0.0
 - Cabal-syntax-3.12.0.0
