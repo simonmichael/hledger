@@ -1,4 +1,4 @@
-# Runs on any push to binaries-mac-x64 or binaries.
+# TRIGGER: Runs on any push to binaries-mac-x64 or binaries branches.
 # ACTION: Builds, tests and saves mac x64 dynamic binaries with stack and the default ghc.
 
 name: binaries-mac-x64

@@ -1,6 +1,7 @@
-# This was used for certain raspberry pi hardware and perhaps needs update.
-# Runs on any push to binaries-linux-arm32v7.
-# ACTION: Builds and saves linux arm32v7 static binaries, using docker-arm32v7/Dockerfile and cabal and the ghc specified there. Slow, may time out.
+# This was once used for certain raspberry pi hardware, may need update.
+# TRIGGER: Runs on any push to binaries-linux-arm32v7 branch.
+# ACTION: Builds and saves linux arm32v7 static binaries, using docker-arm32v7/Dockerfile and cabal and the ghc specified there.
+# XXX Slow, may time out.
 
 name: binaries-linux-arm32v7
 on:

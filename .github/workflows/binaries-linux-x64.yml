@@ -1,4 +1,4 @@
-# Runs on any push to binaries-linux-x64 or binaries.
+# TRIGGER: Runs on any push to binaries-linux-x64 or binaries branches.
 # ACTION: Builds, unit-tests and saves linux x64 static binaries with cabal and the ghc version below and Alpine linux,
 # which provides the statically-linkable musl.
 

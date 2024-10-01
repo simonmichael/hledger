@@ -1,7 +1,8 @@
-hledger github actions workflows.
+The hledger project's github actions workflows.
 
-These have a greppable one-line "ACTION:" comment near the top summarising their current intended behaviour.
-These should be kept up to date.
+They have greppable one-line TRIGGER: and ACTION: comments near the top,
+summarising their current intended behaviour.
+These are carefully worded and should be kept up to date.
 
 docs:
 

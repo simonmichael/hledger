@@ -1,4 +1,5 @@
-# ACTION: Builds and tests with stack and the oldest supported GHC version.
+# TRIGGER: Runs on any push to oldest branch.
+# ACTION: Builds and tests with stack and the oldest supported ghc.
 
 name: oldest
 
