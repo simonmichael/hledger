@@ -1,6 +1,5 @@
 # Runs on any push to binaries-mac-x64 or binaries.
-# Produces optimised mac x64 binaries and runs unit/doc/functional tests,
-# using the default stack.yaml's GHC version.
+# ACTION: Builds, tests and saves mac x64 dynamic binaries with stack and the default ghc.
 
 name: binaries-mac-x64
 on:

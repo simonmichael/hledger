@@ -1,5 +1,7 @@
 hledger github actions workflows.
 
+These have a greppable one-line "ACTION:" comment near the top summarising their current intended behaviour.
+These should be kept up to date.
 
 docs:
 

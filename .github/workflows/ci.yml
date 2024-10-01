@@ -1,8 +1,7 @@
 # The main hledger continuous integration tests.
-# Builds all packages expecting no warnings, runs lots of tests,
-# and on success, saves the binaries as an artifact.
-# Code must pass this successfully before it can be merged or pushed to master
-# (https://github.com/simonmichael/hledger/settings/branch_protection_rules/17386787).
+# ACTION: Builds, tests and saves linux x64 dynamic binaries with stack and the default ghc.
+# Code must pass this successfully before it can be merged or pushed to master.
+# https://github.com/simonmichael/hledger/settings/branch_protection_rules/17386787
 
 name: ci
 

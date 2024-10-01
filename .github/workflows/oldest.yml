@@ -1,4 +1,4 @@
-# Test that hledger still builds with the oldest supported GHC version.
+# ACTION: Builds and tests with stack and the oldest supported GHC version.
 
 name: oldest
 

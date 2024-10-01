@@ -1,5 +1,6 @@
 # Runs on any push to binaries-linux-x64-stack.
-# Like binaries-linux-x64.yml except it builds with stack instead of cabal.
+# ACTION: Builds and saves mac x64 static binaries with stack and the default ghc. May not work,
+# the cabal-based binaries-linux-x64.yml is normally used instead.
 
 name: binaries-linux-x64-stack
 on:
