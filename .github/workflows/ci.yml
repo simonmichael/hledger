@@ -51,7 +51,8 @@ jobs:
       # Keep these synced with the latest ghc version at https://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
       #
       # caching id for this ghc's build artifacts:
-      ghc: 982
+      # XXX ideally should match the default ghc in stack.yaml, though it's not critical
+      ghc: 910
       # stack config for this ghc:
       stack: stack --system-ghc
 
