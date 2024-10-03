@@ -1333,7 +1333,7 @@ renderBalanceAcct ::
     ReportOpts -> Text -> (AccountName, AccountName, Int) -> Text
 renderBalanceAcct opts space (fullName, displayName, dep) =
   case accountlistmode_ opts of
-    ALTree -> T.replicate ((dep - 1)*2) space <> displayName
+    ALTree -> T.replicate (dep*2) space <> displayName
     ALFlat -> accountNameDrop (drop_ opts) fullName
 
 -- FIXME. Have to check explicitly for which to render here, since
@@ -1343,7 +1343,7 @@ renderPeriodicAcct ::
     ReportOpts -> Text -> PeriodicReportRow DisplayName a -> Text
 renderPeriodicAcct opts space row =
     renderBalanceAcct opts space
-        (prrFullName row, prrDisplayName row, prrDepth row)
+        (prrFullName row, prrDisplayName row, prrDepth row - 1)
 
 
 -- tests
