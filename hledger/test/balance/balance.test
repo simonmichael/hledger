@@ -138,7 +138,7 @@ $ hledger -f - balance -N --output-format=csv
 "Assets:ABC","""AB.C"" 1"
 "Assets:Cash","$-1"
 
-# ** 8. CSV output always shows full account names, even in tree mode (#1565).
+# ** 8. CSV output in tree mode.
 <
 2021-01-01 Test
     Assets:ABC   "AB.C" 1
@@ -146,8 +146,8 @@ $ hledger -f - balance -N --output-format=csv
 $ hledger -f - balance -N --output-format=csv --tree
 "account","balance"
 "Assets","$-1, ""AB.C"" 1"
-"Assets:ABC","""AB.C"" 1"
-"Assets:Cash","$-1"
+"  ABC","""AB.C"" 1"
+"  Cash","$-1"
 
 # ** 9. CSV output always does not show thousands separators
 <

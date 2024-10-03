@@ -49,6 +49,6 @@ $ hledger -f - balance --tree --no-total --output-format=csv --drop 1
 "k","1"
 "i:p","1"
 "j","2"
-"j:q","1"
+"  q","1"
 "...","1"
 >=
