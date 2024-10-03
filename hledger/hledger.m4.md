@@ -1886,12 +1886,15 @@ This is convenient, but it means hledger can't warn you when you mis-spell an ac
 Usually you'll find that error later, as an extra account in balance reports, 
 or an incorrect balance when reconciling.
 
-In [strict mode], enabled with the `-s`/`--strict` flag, hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#account). Some notes:
+In [strict mode], enabled with the `-s`/`--strict` flag, or when you run `hledger check accounts`,
+hledger will report an error if any transaction uses an account name that has not been declared by an [account directive](#account). 
+Some notes:
 
 - The declaration is case-sensitive; transactions must use the correct account name capitalisation.
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
 - Accounts can only be declared in `journal` files, but will affect [included](#include-directive) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
+- If you use the [--infer-equity](#inferring-equity-conversion-postings) flag, you will also need declarations for the account names it generates.
 
 ### Account display order
 
@@ -5627,6 +5630,8 @@ $ hledger print --infer-equity
 The equity account names will be "equity:conversion:A-B:A" and "equity:conversion:A-B:B"
 where A is the alphabetically first commodity symbol.
 You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
+
+Note you will need to add [account declarations](#account-error-checking) for these to your journal, if you use `check accounts` or `check --strict`.
 
 ## Combining costs and equity conversion postings
 
