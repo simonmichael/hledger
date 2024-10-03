@@ -26,7 +26,12 @@
 # Always infer these things ? Why not.
 --infer-costs
 --infer-market-prices
+
 #--infer-equity
+# If you use hledger check accounts or hledger check -s with this flag enabled,
+# you may see that some extra account declarations are needed in your journal, like
+# account equity:conversion:CUR1-CUR2:CUR1
+# account equity:conversion:CUR1-CUR2:CUR2
 
 
 # 2. Command-specific options.
