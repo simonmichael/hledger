@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 81167e81a
+# 5591be772
 
 Docs
 
@@ -34,8 +34,9 @@ Scripts/addons
 
 Infrastructure/Misc
 
+- GHC 9.10 is now the default for dev builds and most github workflows.
+- Add consistent greppable summaries to all workflows; various other improvements
 - Add bash shell completion script to the release bindists ([#2223], gesh/hseg, Simon Michael)
-- hledger is now 35th among Github-starred haskell projects (up from 36th).
 
 
 # 1.40 2024-09-09

@@ -22,34 +22,23 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 81167e81a
-
-- web: RegisterR.getRegisterR.addCommas: do not drop last account (Henning Thielemann)
-  Bug was introduced in commit 2a99b3d45634f26cd62745ddce6136361001b3f8
-  in an effort to get rid of partial List.tail,
-  because GHC-9.8 started to warn about it.
-
-  Problem is that the rewritten code with tailDef always removes the last account,
-  whereas the original intention was to replace all accounts by a comma except the last one.
-  addCommas should prepare a comma separated list like List.intercalate.
-
-- fix: web: enable autocomplete in newly created account fields [#2215]
-
-- dev: web: cleanup: more explicit globals; and match inputs more carefully [#2215]
-  (Don't match the hidden duplicate inputs created by typeahead.js)
-
-- ;doc: update changelogs
+# 1c45496f1
 
 Breaking changes
 
+- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
+
 Fixes
 
-- Bring bash shell completions up to date.
-  [#986]
+- Autocompletions now work in newly created account fields. [#2215]
+
+- Bash shell completions are now up to date. [#986]
 
 Features
 
 Improvements
+
+- Support ghc 9.10 / base 4.20.
 
 Docs
 

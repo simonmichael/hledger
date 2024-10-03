@@ -22,9 +22,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 81167e81a
+# bb551bf0d
 
 Breaking changes
+
+- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
 
 Fixes
 
@@ -35,7 +37,9 @@ Features
 
 Improvements
 
-- Avoid brick 2.3.2 which doesn't build on windows.
+- Support ghc 9.10 / base 4.20.
+
+- Avoid brick 2.3.2, which doesn't build on windows.
 
 Docs
 

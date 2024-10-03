@@ -23,9 +23,11 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 81167e81a
+# eeb070195
 
 Breaking changes
+
+- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
 
 Fixes
 
@@ -53,17 +55,21 @@ Improvements
 
 - `balance` and `aregister`'s HTML output will now use a hledger.css file if present, like `bs`/`bse`/`cf`/`is`.
 
+- The balance commands' HTML and FODS output now show table borders consistently.
+  (Henning Thielemann)
+
 - In the balance commands' HTML output, row headings now span multiple rows when appropriate,
   rather than being repeated.
   (Henning Thielemann)
 
-- All balance commands' HTML and FODS output now show table borders consistently.
+- Balance commands now support `--transpose` when generating HTML output.
+  (Henning Thielemann)
 
-- The balance commands' options help has had some consistency/readability tweaks.
+- Balance commands' options help has had some consistency/readability tweaks.
 
 - `bs`/`bse`/`cf`/`is` now support the `--count` (postings count) report type, like `balance`.
 
-- hledger now builds cleanly with GHC 9.10.
+- hledger now supports GHC 9.10.
 
 Docs
 

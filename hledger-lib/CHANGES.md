@@ -22,9 +22,11 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 81167e81a
+# 1c45496f1
 
 Breaking changes
+
+- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
 
 - New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help abstract the rendering of
   tables in various output formats, eg HTML and FODS.
@@ -34,6 +36,8 @@ Breaking changes
 Fixes
 
 Improvements
+
+- Support ghc 9.10 / base 4.20.
 
 - dependency changes: 
 
