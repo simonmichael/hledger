@@ -37,7 +37,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Data.Function ((&))
-import Control.Monad (when)
+import Control.Monad (guard)
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -340,24 +340,22 @@ compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName 
 compoundBalanceReportAsHtml ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports totalrow = cbr
-    colspanattr = colspan_ $ T.pack $ show $ sum [
-      1,
-      length colspans,
-      if multiBalanceHasTotalsColumn ropts then 1 else 0,
-      if average_ ropts then 1 else 0,
-      if layout_ ropts == LayoutBare then 1 else 0
-      ]
+    headerrow =
+      th_ "" :
+      (guard (layout_ ropts == LayoutBare) >> [th_ "Commodity"]) ++
+      map (th_ [style_ alignright] . toHtml .
+           reportPeriodName (balanceaccum_ ropts) colspans)
+        colspans ++
+      (guard (multiBalanceHasTotalsColumn ropts) >> [th_ "Total"]) ++
+      (guard (average_   ropts) >> [th_ "Average"])
+
+    colspanattr = colspan_ $ T.pack $ show $ length headerrow
     leftattr = style_ alignleft
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
       [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title
-      ,tr_ $ do
-          th_ ""
-          when (layout_ ropts == LayoutBare) $ th_ "Commodity"
-          mconcat $ map (th_ [style_ alignright] . toHtml . reportPeriodName (balanceaccum_ ropts) colspans) colspans
-          when (multiBalanceHasTotalsColumn ropts) $ th_ "Total"
-          when (average_   ropts) $ th_ "Average"
+      ,tr_ $ mconcat headerrow
       ]
 
     -- Make rows for a subreport: its title row, not the headings row,
