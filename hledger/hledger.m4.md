@@ -598,7 +598,7 @@ $ hledger print > foo.txt
 ```
 
 Some commands (print, register, stats, the balance commands) also
-provide the `-o/--output-file` option, which does the same thing
+provide the `-o`/`--output-file` option, which does the same thing
 without needing the shell. Eg:
 ```cli
 $ hledger print -o foo.txt
@@ -610,18 +610,16 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
-| -                  | txt              | csv/tsv          | html             | fods             | json | sql |
-|--------------------|------------------|------------------|------------------|------------------|------|-----|
-| aregister          | Y                | Y                | Y                |                  | Y    |     |
-| balance            | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y    |     |
-| balancesheet       | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* |                  | Y    |     |
-| balancesheetequity | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* |                  | Y    |     |
-| cashflow           | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* |                  | Y    |     |
-| incomestatement    | Y *<sup>1</sup>* | Y *<sup>1</sup>* | Y *<sup>1</sup>* |                  | Y    |     |
-| print              | Y                | Y                |                  |                  | Y    | Y   |
-| register           | Y                | Y                |                  |                  | Y    |     |
-
-- *<sup>1</sup> Also affected by the balance commands' [`--layout` option](#balance-report-layout).*
+|  command           | txt | html | csv, tsv | fods | beancount | sql | json |
+|--------------------|-----|------|----------|------|-----------|-----|------|
+| aregister          | Y   | Y    | Y        |      |           |     | Y    |
+| balance            | Y   | Y    | Y        | Y    |           |     | Y    |
+| balancesheet       | Y   | Y    | Y        |      |           |     | Y    |
+| balancesheetequity | Y   | Y    | Y        |      |           |     | Y    |
+| cashflow           | Y   | Y    | Y        |      |           |     | Y    |
+| incomestatement    | Y   | Y    | Y        |      |           |     | Y    |
+| print              | Y   |      | Y        |      | Y         | Y   | Y    |
+| register           | Y   |      | Y        |      |           |     | Y    |
 
 <!--
 | accounts              |     |     |      |      |     |
@@ -650,12 +648,12 @@ Here are those commands and the formats currently supported:
 | test                  |     |     |      |      |     |
 -->
 
-The output format is selected by the `-O/--output-format=FMT` option:
+The output format is selected by the `-O`/`--output-format=FMT` option:
 ```cli
 $ hledger print -O csv    # print CSV on stdout
 ```
 
-or by the filename extension of an output file specified with the `-o/--output-file=FILE.FMT` option:
+or by the filename extension of an output file specified with the `-o`/`--output-file=FILE.FMT` option:
 ```cli
 $ hledger balancesheet -o foo.csv    # write CSV to foo.csv
 ```
@@ -665,12 +663,11 @@ The `-O` option can be combined with `-o` to override the file extension, if nee
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
-Some notes about the various output formats:
+Here are some notes about the various output formats.
 
-### CSV output
+### Text output
 
-- In CSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
-  are disabled automatically.
+This is the default: human readable, plain text report output, suitable for a terminal.
 
 ### HTML output
 
@@ -679,6 +676,79 @@ Some notes about the various output formats:
 - HTML output will be UTF-8 encoded. If your web browser is showing junk characters,
   you may need to change its text encoding to UTF-8.
   Eg in Safari, see View -> Text Encoding and Settings -> Advanced -> Default Encoding.
+
+### CSV / TSV output
+
+- In CSV or TSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
+  are disabled automatically.
+
+### FODS output
+
+[FODS] is the OpenDocument spreadsheet format used by LibreOffice and OpenOffice.
+It is a good format to use if you are exporting to their spreadsheet app.
+
+[FODS]: https://en.wikipedia.org/wiki/OpenDocument
+
+### Beancount output
+
+This is [Beancount's journal format][beancount journal].
+You can use this to export your hledger data to [Beancount],
+perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
+
+hledger will mostly adapt your account names to the more restricted
+[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts), by
+
+- replacing unsupported characters with `-`
+- capitalising each account name part
+- and prepending `B` to any parts which don't begin with a letter or digit
+
+But you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`.
+If yours are different, you can use [account aliases](#alias-directive), usually in the form of `--alias` options,
+possibly stored in a [config file](#config-file). For example,
+
+```conf
+--alias actifs=assets
+--alias passifs=liabilities
+--alias 'capitaux propres'=equity
+--alias revenus=income
+--alias dépenses=expenses
+```
+<!--
+If you use entity names as your top accounts: here's a more complex alias that moves the level 2 names up to level 1:
+
+```
+--alias /^([^:]+):([^:]+)/=\2:\1
+```
+-->
+
+Finally, you will also need to exclude any transactions that use [unbalanced/virtual postings](#virtual-postings).
+Beancount doesn't allow those, but some hledger and Ledger users use them occasionally.
+Transactions containing only virtual postings can be excluded easily with `--real`.
+Transactions which are a mixture of balanced and unbalanced postings will need to be excluded by some other method.
+<!-- (We don't automate this, to avoid surprises.) -->
+
+[Beancount]: https://beancount.github.io
+[beancount journal]: https://beancount.github.io/docs/beancount_language_syntax.html
+[Beancount Query Language]: https://beancount.github.io/docs/beancount_query_language.html
+[Fava]: https://beancount.github.io/fava/
+
+### SQL output
+
+- This is not yet much used; real-world feedback is welcome.
+
+- SQL output is expected to work at least with SQLite, MySQL and Postgres.
+
+- For SQLite, it will be more useful if you modify the generated `id` field
+  to be a PRIMARY KEY. Eg:
+  ```
+  $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
+  ```
+
+- SQL output is structured with the expectations that statements will
+  be executed in the empty database. If you already have tables created
+  via SQL output of hledger, you would probably want to either clear tables
+  of existing data (via `delete` or `truncate` SQL statements) or drop
+  tables completely as otherwise your postings will be duped.
 
 ### JSON output
 
@@ -712,24 +782,6 @@ Some notes about the various output formats:
   (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
 
 [openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
-
-### SQL output
-
-- This is not yet much used; real-world feedback is welcome.
-
-- SQL output is expected to work at least with SQLite, MySQL and Postgres.
-
-- For SQLite, it will be more useful if you modify the generated `id` field
-  to be a PRIMARY KEY. Eg:
-  ```
-  $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
-  ```
-
-- SQL output is structured with the expectations that statements will
-  be executed in the empty database. If you already have tables created
-  via SQL output of hledger, you would probably want to either clear tables
-  of existing data (via `delete` or `truncate` SQL statements) or drop
-  tables completely as otherwise your postings will be duped.
 
 ## Commodity styles
 
