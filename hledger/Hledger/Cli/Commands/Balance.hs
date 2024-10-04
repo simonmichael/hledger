@@ -777,17 +777,17 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
       _ -> rows ++ totals
     rows = header:body
     (header, body, totals) =
-        multiBalanceReportAsSpreadsheetParts False opts report
+        multiBalanceReportAsSpreadsheetParts machineFmt opts report
     maybeTranspose = if transpose_ then transpose else id
 
 -- | Render the Spreadsheet table rows (CSV, ODS, HTML) for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
 multiBalanceReportAsSpreadsheetParts ::
-    Bool -> ReportOpts -> MultiBalanceReport ->
+    AmountFormat -> ReportOpts -> MultiBalanceReport ->
     ([Ods.Cell Ods.NumLines Text],
      [[Ods.Cell Ods.NumLines Text]],
      [[Ods.Cell Ods.NumLines Text]])
-multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport colspans items tr) =
+multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport colspans items tr) =
     (headers, concatMap fullRowAsTexts items, addTotalBorders totalrows)
   where
     accountCell label =
@@ -818,9 +818,8 @@ multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport 
         else addRowSpanHeader (accountCell totalRowHeadingSpreadsheet) $
                 rowAsText Total simpleDateSpanCell tr
     rowAsText rc dsCell =
-        let fmt = if ishtml then oneLineNoCostFmt else machineFmt
-        in  map (map (fmap wbToText)) .
-            multiBalanceRowAsCellBuilders fmt opts colspans rc dsCell
+        map (map (fmap wbToText)) .
+        multiBalanceRowAsCellBuilders fmt opts colspans rc dsCell
 
 
 -- | Render a multi-column balance report as HTML.
@@ -835,7 +834,8 @@ multiBalanceReportAsSpreadsheet ::
   ReportOpts -> MultiBalanceReport ->
   ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
-  let (header,body,total) = multiBalanceReportAsSpreadsheetParts True ropts mbr
+  let (header,body,total) =
+            multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
   in  (if transpose_ ropts then swap *** Ods.transpose else id) $
       ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
             header : body ++ total)
