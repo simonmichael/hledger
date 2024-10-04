@@ -256,10 +256,10 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsText
  ,multiBalanceReportAsCsv
  ,multiBalanceReportAsHtml
- ,multiBalanceReportHtmlRows
  ,multiBalanceReportAsTable
  ,multiBalanceReportTableAsText
  ,multiBalanceReportAsSpreadsheet
+ ,multiBalanceReportAsSpreadsheetParts
  ,multiBalanceHasTotalsColumn
  ,addTotalBorders
  ,addRowSpanHeader
@@ -304,7 +304,6 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
-import qualified Hledger.Write.Html.Lucid as Html
 import qualified Hledger.Write.Spreadsheet as Ods
 
 
@@ -778,7 +777,8 @@ multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
         multiBalanceReportAsSpreadsheetParts False opts report
     maybeTranspose = if transpose_ then transpose else id
 
--- Helper for CSV and ODS and HTML rendering.
+-- | Render the Spreadsheet table rows (CSV, ODS, HTML) for a MultiBalanceReport.
+-- Returns the heading row, 0 or more body rows, and the totals row if enabled.
 multiBalanceReportAsSpreadsheetParts ::
     Bool -> ReportOpts -> MultiBalanceReport ->
     ([Ods.Cell Ods.NumLines Text],
@@ -827,22 +827,6 @@ multiBalanceReportAsHtml ropts mbr =
     link_ [rel_ "stylesheet", href_ "hledger.css"]
     printHtml . map (map (fmap L.toHtml)) $
       snd $ multiBalanceReportAsSpreadsheet ropts mbr
-
--- | Render the HTML table rows for a MultiBalanceReport.
--- Returns the heading row, 0 or more body rows, and the totals row if enabled.
-multiBalanceReportHtmlRows :: ReportOpts -> MultiBalanceReport -> (Html (), [Html ()], [Html ()])
-multiBalanceReportHtmlRows ropts mbr =
-  let
-    -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
-    (headingsrow, bodyrows, mtotalsrows)
-      | transpose_ ropts = error' "Sorry, --transpose with HTML output is not yet supported"  -- PARTIAL:
-      | otherwise = multiBalanceReportAsSpreadsheetParts True ropts mbr
-    formatRow = Html.formatRow . map (fmap L.toHtml)
-  in
-    (formatRow headingsrow
-    ,map formatRow bodyrows
-    ,map formatRow mtotalsrows
-    )
 
 -- | Render the ODS table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.

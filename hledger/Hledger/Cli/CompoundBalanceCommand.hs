@@ -365,11 +365,15 @@ compoundBalanceReportAsHtml ropts cbr =
     subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
-        (_,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
+        -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
+        (_, bodyrows, mtotalsrows) =
+          multiBalanceReportAsSpreadsheetParts True ropts mbr
+        formatRow = Html.formatRow . map (fmap L.toHtml)
+
       in
            [tr_ $ th_ [colspanattr, leftattr, class_ "account"] $ toHtml subreporttitle]
-        ++ bodyrows
-        ++ mtotalsrows
+        ++ map formatRow bodyrows
+        ++ map formatRow mtotalsrows
         ++ [blankrow]
 
     totalrows =
