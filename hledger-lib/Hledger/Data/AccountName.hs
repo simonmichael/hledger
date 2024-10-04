@@ -74,7 +74,7 @@ import Text.DocLayout (realLength)
 
 import Hledger.Data.Types hiding (asubs)
 import Hledger.Utils
-import Data.Char (isDigit, isLetter)
+import Data.Char (isDigit, isLetter, isUpperCase)
 import Data.List (partition)
 
 -- $setup
@@ -362,44 +362,64 @@ accountNameToAccountOnlyRegexCI a = toRegexCI' $ "^" <> escapeName a <> "$" -- P
 type BeancountAccountName = AccountName
 type BeancountAccountNameComponent = AccountName
 
--- Convert a hledger account name to a valid Beancount account name.
+-- | Convert a hledger account name to a valid Beancount account name.
 -- It replaces non-supported characters with @-@ (warning: in extreme cases
--- separate accounts could end up with the same name), and it capitalises 
--- each account name part. It also checks that the first part is one of 
--- Assets, Liabilities, Equity, Income, or Expenses, and if not it raises an error.
--- Account aliases (eg --alias) should be used to set these required
--- top-level account names if needed.
+-- separate accounts could end up with the same name), it prepends the letter B
+-- to any part which doesn't begin with a letter or number, and it capitalises
+-- each part. It also checks that the first part is one of the required english
+-- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
+-- it raises an informative error suggesting --alias.
+-- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#accounts
 accountNameToBeancount :: AccountName -> BeancountAccountName
 accountNameToBeancount a =
-  -- https://beancount.github.io/docs/beancount_language_syntax.html#accounts
-  accountNameFromComponents $
-  case map (accountNameComponentToBeancount a) $ accountNameComponents a of
-    c:_ | c `notElem` beancountTopLevelAccounts -> error' e
-      where
-        e = T.unpack $ T.unlines [
-          beancountAccountErrorMessage a,
-          "For Beancount output, all top-level accounts must be (or be aliased to) one of",
-          T.intercalate ", " beancountTopLevelAccounts <> "."
-          ]
-    cs -> cs
+  dbg9 "beancount account name" $
+  accountNameFromComponents bs'
+  where
+    bs =
+      map accountNameComponentToBeancount $ accountNameComponents $
+      dbg9 "hledger account name  " $
+      a
+    bs' =
+      case bs of
+        b:_ | b `notElem` beancountTopLevelAccounts -> error' e
+          where
+            e = T.unpack $ T.unlines [
+              "bad top-level account: " <> b
+              ,"in beancount account name:           " <> accountNameFromComponents bs
+              ,"converted from hledger account name: " <> a
+              ,"For Beancount, top-level accounts must be (or be --alias'ed to)"
+              ,"one of " <> T.intercalate ", " beancountTopLevelAccounts <> "."
+              -- ,"and not: " <> b
+              ]
+        cs -> cs
 
-accountNameComponentToBeancount :: AccountName -> AccountName -> BeancountAccountNameComponent
-accountNameComponentToBeancount acct part =
-  case T.uncons part of
-    Just (c,_) | not $ isLetter c -> error' e
-      where
-        e = unlines [
-          T.unpack $ beancountAccountErrorMessage acct,
-          "For Beancount output, each account name part must begin with a letter."
-          ]
-    _ -> textCapitalise part'
-      where part' = T.map (\c -> if isBeancountAccountChar c then c else '-') part
+accountNameComponentToBeancount :: AccountName -> BeancountAccountNameComponent
+accountNameComponentToBeancount acctpart =
+  prependStartCharIfNeeded $
+  case T.uncons acctpart of
+    Nothing -> ""
+    Just (c,cs) ->
+      textCapitalise $
+      T.map (\d -> if isBeancountAccountChar d then d else '-') $ T.cons c cs
+  where
+    prependStartCharIfNeeded t =
+      case T.uncons t of
+        Just (c,_) | not $ isBeancountAccountStartChar c -> T.cons beancountAccountDummyStartChar t
+        _ -> t
 
-beancountAccountErrorMessage :: AccountName -> Text
-beancountAccountErrorMessage a = "Could not convert \"" <> a <> "\" to a Beancount account name."
+-- | Dummy valid starting character to prepend to Beancount account name parts if needed (B).
+beancountAccountDummyStartChar :: Char
+beancountAccountDummyStartChar = 'B'
 
+-- XXX these probably allow too much unicode:
+
+-- | Is this a valid character to start a Beancount account name part (capital letter or digit) ?
+isBeancountAccountStartChar :: Char -> Bool
+isBeancountAccountStartChar c = (isLetter c && isUpperCase c) || isDigit c
+
+-- | Is this a valid character to appear elsewhere in a Beancount account name part (letter, digit, or -) ?
 isBeancountAccountChar :: Char -> Bool
-isBeancountAccountChar c = c `elem` ("-:"::[Char]) || isLetter c || isDigit c
+isBeancountAccountChar c = isLetter c || isDigit c || c=='-'
 
 beancountTopLevelAccounts = ["Assets", "Liabilities", "Equity", "Income", "Expenses"]
 
