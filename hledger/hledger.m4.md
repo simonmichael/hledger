@@ -695,6 +695,8 @@ This is [Beancount's journal format][beancount journal].
 You can use this to export your hledger data to [Beancount],
 perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
 
+#### Beancount account names
+
 hledger will mostly adapt your account names to the more restricted
 [Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts), by
 
@@ -707,9 +709,28 @@ If yours are different, you can use [account aliases](#alias-directive), usually
 possibly stored in a [config file](#config-file).
 (Example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
 
-Finally, you will also need to exclude any transactions that use [unbalanced/virtual postings](#virtual-postings).
-We don't automate this, to avoid surprises. `--real` may be enough
-(though, not if you have transactions which are a mixture of balanced and unbalanced postings).
+#### Beancount commodity names
+
+[Beancount commodity/currency names](https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies)
+also are more restricted: they must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`,
+beginning with a letter and ending with a letter or digit.
+
+Currently hledger helps only a little with this:
+if you are using currency symbols `$`, `€`, `£` or `¥`, these will be converted
+to the equivalent [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) currency codes.
+
+Other symbols, or other commodity names not valid for Beancount, must be adjusted by you,
+either permanently in your journal, or in a temporary copy used just for export.
+
+Amounts with no currency symbol will also not work for Beancount.
+If you want to keep using those, the [`D` directive](#d-directive) is one way to add a temporary commodity symbol.
+
+#### Beancount virtual postings
+
+Beancount doesn't allow [unbalanced/virtual postings](#virtual-postings),
+so you will need to comment those,
+or use `--real` to exclude transactions that use them.
+(If you have transactions which are a mixture of balanced and unbalanced postings, you'll have to do something more.)
 
 [Beancount]: https://beancount.github.io
 [beancount journal]: https://beancount.github.io/docs/beancount_language_syntax.html
