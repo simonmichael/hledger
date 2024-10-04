@@ -610,16 +610,16 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
-|  command           | txt | html | csv, tsv | fods | beancount | sql | json |
-|--------------------|-----|------|----------|------|-----------|-----|------|
-| aregister          | Y   | Y    | Y        |      |           |     | Y    |
-| balance            | Y   | Y    | Y        | Y    |           |     | Y    |
-| balancesheet       | Y   | Y    | Y        |      |           |     | Y    |
-| balancesheetequity | Y   | Y    | Y        |      |           |     | Y    |
-| cashflow           | Y   | Y    | Y        |      |           |     | Y    |
-| incomestatement    | Y   | Y    | Y        |      |           |     | Y    |
-| print              | Y   |      | Y        |      | Y         | Y   | Y    |
-| register           | Y   |      | Y        |      |           |     | Y    |
+|  command           | txt | html | csv/tsv | fods | beancount | sql | json |
+|--------------------|-----|------|---------|------|-----------|-----|------|
+| aregister          | Y   | Y    | Y       |      |           |     | Y    |
+| balance            | Y   | Y    | Y       | Y    |           |     | Y    |
+| balancesheet       | Y   | Y    | Y       |      |           |     | Y    |
+| balancesheetequity | Y   | Y    | Y       |      |           |     | Y    |
+| cashflow           | Y   | Y    | Y       |      |           |     | Y    |
+| incomestatement    | Y   | Y    | Y       |      |           |     | Y    |
+| print              | Y   |      | Y       |      | Y         | Y   | Y    |
+| register           | Y   |      | Y       |      |           |     | Y    |
 
 <!--
 | accounts              |     |     |      |      |     |
@@ -704,28 +704,12 @@ hledger will mostly adapt your account names to the more restricted
 
 But you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`.
 If yours are different, you can use [account aliases](#alias-directive), usually in the form of `--alias` options,
-possibly stored in a [config file](#config-file). For example,
-
-```conf
---alias actifs=assets
---alias passifs=liabilities
---alias 'capitaux propres'=equity
---alias revenus=income
---alias dépenses=expenses
-```
-<!--
-If you use entity names as your top accounts: here's a more complex alias that moves the level 2 names up to level 1:
-
-```
---alias /^([^:]+):([^:]+)/=\2:\1
-```
--->
+possibly stored in a [config file](#config-file).
+(Example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
 
 Finally, you will also need to exclude any transactions that use [unbalanced/virtual postings](#virtual-postings).
-Beancount doesn't allow those, but some hledger and Ledger users use them occasionally.
-Transactions containing only virtual postings can be excluded easily with `--real`.
-Transactions which are a mixture of balanced and unbalanced postings will need to be excluded by some other method.
-<!-- (We don't automate this, to avoid surprises.) -->
+We don't automate this, to avoid surprises. `--real` may be enough
+(though, not if you have transactions which are a mixture of balanced and unbalanced postings).
 
 [Beancount]: https://beancount.github.io
 [beancount journal]: https://beancount.github.io/docs/beancount_language_syntax.html
