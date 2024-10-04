@@ -367,7 +367,7 @@ compoundBalanceReportAsHtml ropts cbr =
       let
         -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
         (_, bodyrows, mtotalsrows) =
-          multiBalanceReportAsSpreadsheetParts True ropts mbr
+          multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
         formatRow = Html.formatRow . map (fmap L.toHtml)
 
       in
