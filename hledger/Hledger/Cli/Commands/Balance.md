@@ -736,15 +736,15 @@ Here are some differences between them:
 
 ### Balance report layout
 
-The `--layout` option affects how balance reports show
-multi-commodity amounts and commodity symbols, which can improve readability. 
-It can also normalise the data for easy consumption by other programs.
+The `--layout` option affects how `balance` and the other balance-like commands show multi-commodity amounts and commodity symbols.
+It can improve readability, for humans and/or machines (other software).
 It has four possible values:
 
 - `--layout=wide[,WIDTH]`: commodities are shown on a single line, optionally elided to WIDTH
 - `--layout=tall`: each commodity is shown on a separate line
 - `--layout=bare`: commodity symbols are in their own column, amounts are bare numbers
-- `--layout=tidy`: data is normalised to easily-consumed "tidy" form, with one row per data value
+- `--layout=tidy`: data is normalised to easily-consumed "tidy" form, with one row per data value.
+  (This one is currently supported only by the `balance` command.)
 
 Here are the `--layout` modes supported by each [output format](#output-format)
 Only CSV output supports all of them:
@@ -879,7 +879,7 @@ As noted in [Output format](#output-format),
 if you choose HTML output (by using `-O html` or `-o somefile.html`), it will use the UTF-8 text encoding,
 And you can create a `hledger.css` file in the same directory to customise the report's appearance.
 
-The HTML and FODS output formats can generate hyperlinks to a `hledger-web` register view for each account and period.
+The HTML and [FODS] output formats can generate hyperlinks to a `hledger-web` register view for each account and period.
 E.g. if your `hledger-web` server is reachable at `http://localhost:5000`
 then you might run the `balance` command with the extra option `--base-url=http://localhost:5000`.
 You can also produce relative links, like `--base-url="some/path"` or `--base-url=""`.)
@@ -927,3 +927,4 @@ Also:
 - `bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]`\
   Show top gainers [or losers] last week
 
+[FODS]: https://en.wikipedia.org/wiki/OpenDocument
