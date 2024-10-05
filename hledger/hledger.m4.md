@@ -697,15 +697,13 @@ perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
 
 #### Beancount account names
 
-hledger will mostly adapt your account names to the more restricted
+hledger will try adjust your account names to the more restricted
 [Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts), by
-
-- replacing unsupported characters with `-`
-- capitalising each account name part
-- and prepending `B` to any parts which don't begin with a letter or digit
+capitalising, replacing unsupported characters with `-`, and/or
+prepending `B` to parts which don't begin with a letter or digit.
 
 But you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`.
-If yours are different, you can use [account aliases](#alias-directive), usually in the form of `--alias` options,
+If yours are not, you can use [account aliases](#alias-directive), usually in the form of `--alias` options,
 possibly stored in a [config file](#config-file).
 (Example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
 
