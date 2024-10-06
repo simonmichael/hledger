@@ -105,6 +105,7 @@ To claim the bounty:
 | [#2130]                                          | Simon Michael   : N/A                                                                                               | Simon Michael : N/A                                                          |
 | [#2134]                                          | pepe_pecas      : donated 2023-12-15                                                                                | Simon Michael : N/A                                                          |
 | [#2156]                                          | ishmaelavila    : **unclaimed**                                                                                     | Simon Michael : **unclaimed**                                                |
+| [#2254]                                          | akanshaG42      : **unclaimed**                                                                                     | Simon Michael : **unclaimed**                                                |
 | **1.33** 2024-04-18                              | ---                                                                                                                 | ---                                                                          |
 | [#2227]                                          | Henning Thielemann : **unclaimed**                                                                                  | Henning Thielemann : **unclaimed**                                           |
 | **1.34** 2024-06-01                              | ---                                                                                                                 | ---                                                                          |
@@ -159,3 +160,4 @@ To claim the bounty:
 [#2224]: https://github.com/simonmichael/hledger/issues/2224
 [#2225]: https://github.com/simonmichael/hledger/issues/2225
 [#2227]: https://github.com/simonmichael/hledger/issues/2227
+[#2254]: https://github.com/simonmichael/hledger/issues/2254
