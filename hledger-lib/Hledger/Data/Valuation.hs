@@ -48,7 +48,8 @@ import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates (nulldate)
 import Text.Printf (printf)
-import Data.Decimal (decimalPlaces, roundTo)
+import Data.Decimal (decimalPlaces, roundTo, Decimal)
+import Data.Word (Word8)
 
 
 ------------------------------------------------------------------------------
@@ -290,12 +291,17 @@ priceLookup makepricegraph d from mto =
                 -- aggregate all the prices into one
                 product rates
                 -- product (Decimal's Num instance) normalises, stripping trailing zeros.
-                -- Here we undo that (by restoring the old max precision with roundTo), 
-                -- so that amountValueAtDate can see the original internal precision,
-                -- to use as the display precision of calculated value amounts.
-                -- (This can add more than the original number of trailing zeros to some prices,
-                -- making them seem more precise than they were, but it seems harmless here.)
-                & roundTo (maximum $ map decimalPlaces rates)
+                -- But we want to preserve even those, since the number of decimal digits
+                -- here will guide amountValueAtDate in setting the Amount display precision later.
+                -- So we restore them. Or rather, we ensure as many decimal digits as the maximum seen among rates.
+                -- (Some prices might end up more precise than they were, but that seems harmless here.)
+                & setMinDecimalPlaces (maximum $ map decimalPlaces rates)
+
+-- Ensure this Decimal has at least this many decimal places, adding trailing zeros if necessary.
+setMinDecimalPlaces :: Word8 -> Decimal -> Decimal
+setMinDecimalPlaces n d
+  | decimalPlaces d < n = roundTo n d  -- too few, add some zeros
+  | otherwise           = d            -- more than enough, keep as-is
 
 tests_priceLookup =
   let

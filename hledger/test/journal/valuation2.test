@@ -341,3 +341,18 @@ Balance changes in 2019, valued at period ends:
 ==========++========
  Assets:A ||  $2.00 
  Income:B || $-2.00 
+
+# ** 33. #2254 Conversion rates should not be display-rounded during value calculation.
+# 100 * 10.5 * 100.5 = 105525
+<
+P 2000-01-01 A   10.5 B
+P 2000-01-01 B  100.5 C
+
+2000-01-01
+    (a)    100 A
+
+$ hledger -f- print -X C
+2000-01-01
+    (a)        105525 C
+
+>=
