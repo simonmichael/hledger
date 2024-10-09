@@ -311,7 +311,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
       : ( "Account"
         : ["Commodity" | layout_ ropts == LayoutBare]
         ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
-        ++ (if row_total_ ropts then ["Total"] else [])
+        ++ (if multiBalanceHasTotalsColumn ropts then ["Total"] else [])
         ++ (if average_ ropts then ["Average"] else [])
         )
       : concatMap (subreportAsCsv ropts) subreports
@@ -327,7 +327,7 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
           | otherwise =
             (1 +) $ -- account name column
             (if layout_ ropts == LayoutBare then (1+) else id) $
-            (if row_total_ ropts then (1+) else id) $
+            (if multiBalanceHasTotalsColumn ropts then (1+) else id) $
             (if average_ ropts then (1+) else id) $
             maximum $ -- depends on non-null subreports
             map (length . prDates . second3) subreports
@@ -343,7 +343,7 @@ compoundBalanceReportAsHtml ropts cbr =
     colspanattr = colspan_ $ T.pack $ show $ sum [
       1,
       length colspans,
-      if row_total_ ropts then 1 else 0,
+      if multiBalanceHasTotalsColumn ropts then 1 else 0,
       if average_ ropts then 1 else 0,
       if layout_ ropts == LayoutBare then 1 else 0
       ]
@@ -356,7 +356,7 @@ compoundBalanceReportAsHtml ropts cbr =
           th_ ""
           when (layout_ ropts == LayoutBare) $ th_ "Commodity"
           mconcat $ map (th_ [style_ alignright] . toHtml . reportPeriodName (balanceaccum_ ropts) colspans) colspans
-          when (row_total_ ropts) $ th_ "Total"
+          when (multiBalanceHasTotalsColumn ropts) $ th_ "Total"
           when (average_   ropts) $ th_ "Average"
       ]
 

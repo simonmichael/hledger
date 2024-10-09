@@ -260,6 +260,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsTable
  ,multiBalanceReportTableAsText
  ,multiBalanceReportAsSpreadsheet
+ ,multiBalanceHasTotalsColumn
  ,addTotalBorders
  ,addRowSpanHeader
  ,simpleDateSpanCell
@@ -913,7 +914,7 @@ multiBalanceReportTableAsText ReportOpts{..} = renderTableByRowsB tableopts rend
 
 -- | Build a 'Table' from a multi-column balance report.
 multiBalanceReportAsTable :: ReportOpts -> MultiBalanceReport -> Table T.Text T.Text WideBuilder
-multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, balanceaccum_}
+multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, balanceaccum_}
     (PeriodicReport spans items tr) =
    maybetranspose $
    addtotalrow $
@@ -922,10 +923,9 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
      (Group multiColumnTableInterColumnBorder $ map Header colheadings)
      (concat rows)
   where
-    totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     colheadings = ["Commodity" | layout_ opts == LayoutBare]
                   ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
-                  ++ ["  Total" | totalscolumn]
+                  ++ ["  Total" | multiBalanceHasTotalsColumn opts]
                   ++ ["Average" | average_]
     (accts, rows) = unzip $ fmap fullRowAsTexts items
       where
@@ -950,7 +950,7 @@ multiBalanceRowAsCellBuilders ::
     RowClass -> (DateSpan -> Ods.Cell Ods.NumLines Text) ->
     PeriodicReportRow a MixedAmount ->
     [[Ods.Cell Ods.NumLines WideBuilder]]
-multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
+multiBalanceRowAsCellBuilders bopts ropts@ReportOpts{..} colspans
       rc renderDateSpanCell (PeriodicReportRow _acct as rowtot rowavg) =
     case layout_ of
       LayoutWide width -> [fmap (cellFromMixedAmount bopts{displayMaxWidth=width}) clsamts]
@@ -971,12 +971,12 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
   where
     wbCell = Ods.defaultCell . wbFromText
     wbDate content = (wbCell content) {Ods.cellType = Ods.TypeDate}
-    totalscolumn = row_total_ && balanceaccum_ `notElem` [Cumulative, Historical]
     cs = if all mixedAmountLooksZero allamts then [""] else S.toList $ foldMap maCommodities allamts
     classified = map ((,) (amountClass rc)) as
     allamts = map snd clsamts
     clsamts = (if not summary_only_ then classified else []) ++
-                [(rowTotalClass rc, rowtot) | totalscolumn && not (null as)] ++
+                [(rowTotalClass rc, rowtot) |
+                    multiBalanceHasTotalsColumn ropts && not (null as)] ++
                 [(rowAverageClass rc, rowavg) | average_ && not (null as)]
     addDateColumns spn@(DateSpan s e) remCols =
         (wbFromText <$> renderDateSpanCell spn) :
@@ -998,6 +998,10 @@ multiBalanceRowAsCellBuilders bopts ReportOpts{..} colspans
           m (x:xs) = x:xs
           m [] = [n]
 
+
+multiBalanceHasTotalsColumn :: ReportOpts -> Bool
+multiBalanceHasTotalsColumn ropts =
+    row_total_ ropts && balanceaccum_ ropts `notElem` [Cumulative, Historical]
 
 multiBalanceRowAsText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[WideBuilder]]
 multiBalanceRowAsText opts =
