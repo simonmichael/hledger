@@ -18,10 +18,12 @@ module Hledger.Cli.CompoundBalanceCommand (
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
+import Data.Foldable (traverse_)
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
+import qualified Data.Set as Set
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
@@ -37,7 +39,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Data.Function ((&))
-import Control.Monad (when)
+import Control.Monad (guard)
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -279,11 +281,13 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
           --   [COL1LINE1, COL2LINE1]
           --   [COL1LINE2, COL2LINE2]
           --  ]
-          coltotalslines = multiBalanceRowAsText ropts totalsrow
+          coltotalslines = multiBalanceRowAsText ropts allCommodities totalsrow
           totalstable = Table
             (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
             (Header [])     -- column headers, concatTables will discard these
             coltotalslines  -- cell values         
+
+    allCommodities = allCommoditiesFromSubreports subreports
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
@@ -333,31 +337,42 @@ compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subrepor
             map (length . prDates . second3) subreports
     addtotals
       | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ map ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans totalrow))
+      | otherwise = (++ map ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans allCommodities totalrow))
+    allCommodities = allCommoditiesFromSubreports subreports
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports totalrow = cbr
-    colspanattr = colspan_ $ T.pack $ show $ sum [
-      1,
-      length colspans,
-      if multiBalanceHasTotalsColumn ropts then 1 else 0,
-      if average_ ropts then 1 else 0,
-      if layout_ ropts == LayoutBare then 1 else 0
-      ]
+    leadingHeaders =
+      th_ "" :
+      (guard (layout_ ropts == LayoutBare) >> [th_ "Commodity"])
+    dataHeaders =
+        map (th_ (style_ alignright : commoditySpan) . toHtml .
+             reportPeriodName (balanceaccum_ ropts) colspans)
+          colspans
+        ++
+        (guard (multiBalanceHasTotalsColumn ropts)
+                                  >> [th_ commoditySpan "Total"])
+        ++
+        (guard (average_   ropts) >> [th_ commoditySpan "Average"])
+
+    allCommodities = allCommoditiesFromSubreports subreports
+    (numSubColumns,commoditySpan) =
+        case layout_ ropts of
+            LayoutBareWide ->
+              let n = length allCommodities in (n, [colspanInt n])
+            _ -> (1,[])
+    colspanInt = colspan_ . T.pack . show
+    colspanattr =
+        colspanInt $ length leadingHeaders + numSubColumns * length dataHeaders
     leftattr = style_ alignleft
     blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
 
     titlerows =
       [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title
-      ,tr_ $ do
-          th_ ""
-          when (layout_ ropts == LayoutBare) $ th_ "Commodity"
-          mconcat $ map (th_ [style_ alignright] . toHtml . reportPeriodName (balanceaccum_ ropts) colspans) colspans
-          when (multiBalanceHasTotalsColumn ropts) $ th_ "Total"
-          when (average_   ropts) $ th_ "Average"
+      ,tr_ $ mconcat $ leadingHeaders ++ dataHeaders
       ]
 
     -- Make rows for a subreport: its title row, not the headings row,
@@ -365,17 +380,27 @@ compoundBalanceReportAsHtml ropts cbr =
     subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
-        (_,bodyrows,mtotalsrows) = multiBalanceReportHtmlRows ropts mbr
+        -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
+        (_, bodyrows, mtotalsrows) =
+          multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts allCommodities mbr
+        formatRow = Html.formatRow . map (fmap L.toHtml)
+
       in
-           [tr_ $ th_ [colspanattr, leftattr, class_ "account"] $ toHtml subreporttitle]
-        ++ bodyrows
-        ++ mtotalsrows
+           [tr_ $ do
+                th_ [leftattr, class_ "account"] $ toHtml subreporttitle
+                case layout_ ropts of
+                    LayoutBareWide ->
+                        traverse_ (th_ . toHtml) $ dataHeaders >> allCommodities
+                    _ -> pure ()
+                ]
+        ++ map formatRow bodyrows
+        ++ map formatRow mtotalsrows
         ++ [blankrow]
 
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
       else
-        multiBalanceRowAsCellBuilders oneLineNoCostFmt ropts colspans
+        multiBalanceRowAsCellBuilders oneLineNoCostFmt ropts colspans allCommodities
             Total simpleDateSpanCell totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
@@ -399,3 +424,9 @@ compoundBalanceReportAsHtml ropts cbr =
       ++ concatMap subreportrows subreports
       ++ totalrows
 
+allCommoditiesFromSubreports ::
+    [(text, PeriodicReport a MixedAmount, bool)] -> [CommoditySymbol]
+allCommoditiesFromSubreports =
+    Set.toAscList .
+    foldMap (\(_,mbr,_) ->
+                foldMap (foldMap maCommodities . prrAmounts) $ prRows mbr)
