@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-# List git files as an indented tree (because the other tools suck).
+# Display git-tracked files (or with -d, just directories) as a compact tree.
+# With -u, show untracked files instead.
+# With -u -I, show all untracked files, including ignored ones.
+# With a REGEX argument, show only the paths it matches.
+# Requires hledger (with a version <1.40, remove the -n below).
 
 set -e
 
@@ -8,11 +12,14 @@ usage() {
 gtree [-d] [REGEX] - list some or all git-tracked files as an indented tree.
 Directories are shown with a trailing slash.
 REGEX is a case-insensitive grep regexp matching the relative file paths.
--d: show only directories
+-d: show directories only
+-u: show untracked files instead
+-I: with -u, also show ignored untracked files
 
 Examples:
 gtree
 gtree -d
+gtree -u
 gtree yaml
 gtree '(^|/)((bsd)?m|sh)ake'
 EOF
@@ -31,6 +38,14 @@ while [[ $# -gt 0 ]]; do
             D=1
             shift
             ;;
+        -u)
+            U=1
+            shift
+            ;;
+        -I)
+            I=1
+            shift
+            ;;
         *)
             if [[ "$1" != -* ]]
             then
@@ -43,17 +58,13 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
-#if [[ $HELP = 1 || ${#ARGS} -eq 0 ]]; then usage; exit; fi
 if [[ $HELP = 1 ]]; then usage; exit; fi
 
 REGEX="${ARGS[0]:-.}"
 ROOT=$(pwd)
-
-# list git-tracked files
-# keep only the paths matching REGEX, if provided
-# convert paths list to an indented tree
-# keep only the directories, if -d provided
-git ls-files \
+GITLS="git ls-files ${U:+-o $(if [[ $I = 1 ]]; then echo ''; else echo '--exclude-standard'; fi)}"
+$GITLS \
     | grep -iE "$REGEX" \
-    | sed -e 's%/%/:%g' -e "s%^%account $ROOT/:%" | hledger -f- accounts -t \
+    | sed -e 's%/%/:%g' -e "s%^%account $ROOT/:%" \
+    | hledger -n -f- accounts -t \
     | grep -E "$(if [[ $D = 1 ]]; then echo '/$'; else echo '.'; fi)"
