@@ -71,7 +71,7 @@ balanceReport rspec j = (rows, total)
     report = multiBalanceReport rspec j
     rows = [( prrFullName row
             , prrDisplayName row
-            , prrIndent row - 1  -- BalanceReport uses 0-based account depths
+            , prrIndent row
             , prrTotal row
             ) | row <- prRows report]
     total = prrTotal $ prTotals report

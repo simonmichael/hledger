@@ -138,6 +138,14 @@ accountNameType :: M.Map AccountName AccountType -> AccountName -> Maybe Account
 accountNameType atypes a = asum (map (`M.lookup` atypes) $ a : parentAccountNames a)
                          <|> accountNameInferType a
 
+-- | The level (depth) of an account name.
+--
+-- >>> accountNameLevel ""  -- special case
+-- 0
+-- >>> accountNameLevel "assets"
+-- 1
+-- >>> accountNameLevel "assets:cash"
+-- 2
 accountNameLevel :: AccountName -> Int
 accountNameLevel "" = 0
 accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1

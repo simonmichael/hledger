@@ -400,33 +400,32 @@ buildReportRows ropts displaynames =
         rowavg = averageMixedAmounts rowbals
     balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
 
--- | Calculate accounts which are to be displayed in the report, as well as
--- their name and depth
+-- | Calculate accounts which are to be displayed in the report,
+-- and their name and their indent level if displayed in tree mode.
 displayedAccounts :: ReportSpec
                   -> Set AccountName
                   -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
 displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts valuedaccts
-    | qdepth == 0 = HM.singleton "..." $ DisplayName "..." "..." 1
+    | qdepth == 0 = HM.singleton "..." $ DisplayName "..." "..." 0
     | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
+    displayedName name = case accountlistmode_ ropts of
+        ALTree -> DisplayName name leaf (max 0 $ level - 1 - boringParents)
+        ALFlat -> DisplayName name droppedName 0
+      where
+        droppedName   = accountNameDrop (drop_ ropts) name
+        leaf          = accountNameFromComponents . reverse . map accountLeafName $
+                          droppedName : takeWhile notDisplayed parents
+        level         = max 0 $ (accountNameLevel name) - drop_ ropts
+        parents       = take (level - 1) $ parentAccountNames name
+        boringParents = if no_elide_ ropts then 0 else length $ filter notDisplayed parents
+        notDisplayed  = not . (`HM.member` displayedAccts)
+
     -- Accounts which are to be displayed
     displayedAccts = (if qdepth == 0 then id else HM.filterWithKey keep) valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
-
-    displayedName name = case accountlistmode_ ropts of
-        ALTree -> DisplayName name leaf . max 0 $ level - boringParents
-        ALFlat -> DisplayName name droppedName 1
-      where
-        droppedName = accountNameDrop (drop_ ropts) name
-        leaf = accountNameFromComponents . reverse . map accountLeafName $
-            droppedName : takeWhile notDisplayed parents
-
-        level = max 0 $ accountNameLevel name - drop_ ropts
-        parents = take (level - 1) $ parentAccountNames name
-        boringParents = if no_elide_ ropts then 0 else length $ filter notDisplayed parents
-        notDisplayed = not . (`HM.member` displayedAccts)
 
     -- Accounts interesting for their own sake
     isInteresting name amts =

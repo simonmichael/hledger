@@ -227,13 +227,12 @@ instance ToJSON DisplayName where
     toJSON = toJSON . displayFull
     toEncoding = toEncoding . displayFull
 
--- | Construct a flat display name, where the full name is also displayed at
--- depth 1
+-- | Construct a display name for a list report, where full names are shown unindented.
 flatDisplayName :: AccountName -> DisplayName
-flatDisplayName a = DisplayName a a 1
+flatDisplayName a = DisplayName a a 0
 
--- | Construct a tree display name, where only the leaf is displayed at its
--- given depth
+-- | Construct a display name for a tree report, where leaf names (possibly prefixed by
+-- boring parents) are shown indented).
 treeDisplayName :: AccountName -> DisplayName
 treeDisplayName a = DisplayName a (accountLeafName a) (accountNameLevel a)
 
