@@ -66,6 +66,7 @@ module Hledger.Read.Common (
   -- ** dates
   datep,
   datetimep,
+  timestampp,
   secondarydatep,
 
   -- ** account names
@@ -143,14 +144,16 @@ import qualified Data.Map as M
 import qualified Data.Semigroup as Sem
 import Data.Text (Text, stripEnd)
 import qualified Data.Text as T
-import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
+import Data.Time.Calendar (Day, fromGregorianValid, fromGregorian, toGregorian, addDays)
 import Data.Time.Clock.POSIX (getPOSIXTime)
+import Data.Time.Clock (UTCTime(UTCTime), picosecondsToDiffTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
+import GHC.Float (floorDouble)
 import System.FilePath (takeFileName)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
-import Text.Megaparsec.Char.Lexer (decimal)
+import Text.Megaparsec.Char.Lexer (decimal, float)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -351,6 +354,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
       >>= journalMarkRedundantCosts                      -- Mark redundant costs, to help journalBalanceTransactions ignore them.
                                                          -- (Later, journalInferEquityFromCosts will do a similar pass, adding missing equity postings.)
+      >>= journalSetTransactionDatetimes -- Compute and set tdatetime's based on surrounding transactions
 
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
@@ -522,6 +526,55 @@ descriptionp :: TextParser m Text
 descriptionp = noncommenttextp <?> "description"
 
 --- *** dates
+
+-- | Parse a transaction timestamp.
+-- This function is effectively an extension of `datep`, where
+-- all dates accepted by `datep` are accepted, but we also support
+-- specifying the time of day (up to millisecond precision)
+-- along with a timezone offset. In other words, this function parses one of:
+-- - YYYY-MM-DD (e.g. 2024-01-01)
+-- - YYYY-MM-DD hh:mm:ss.Z (e.g. 2024-01-01 12:34:56.789+02:00)
+--
+-- If the time of day is omitted, we assume 00:00:00 as default.
+-- If the timezone offset is omitted, we assume +00:00 (UTC) as default.
+timestampp :: JournalParser m (Day, Maybe UTCTime)
+timestampp = do
+  date <- datep
+  time <- optional . try $ timeAndOffsetp
+  return $ case time of
+    Nothing -> (date, Nothing)
+    Just (t, dateOffset) -> (date, Just $ UTCTime (addDays dateOffset date) (picosecondsToDiffTime t))
+  where
+    pico :: Integer
+    pico = 1000000000000
+    timeAndOffsetp :: JournalParser m (Integer, Integer)
+    timeAndOffsetp = do
+      let oneDay = 24 * 3600 * pico
+      t <- timep
+      return $ case () of _
+                            | t < 0 -> (t + oneDay, -1)
+                            | t > oneDay -> (t - oneDay, 1)
+                            | otherwise -> (t, 0)
+    timep :: JournalParser m Integer
+    timep = do
+      char ' '
+      h <- ((pico * 3600) *) <$> decimal
+      char ':'
+      m <- ((pico * 60) *) <$> decimal
+      s <- optional . try $ do
+        char ':'
+        value::Double <- (try float <|> (fromIntegral <$> decimal))
+        return . floorDouble $ (fromIntegral pico) * value
+      tz <- optional . try $ do
+        sign <- oneOf ['+', '-']
+        tzH <- ((pico * 3600) *) <$> decimal
+        char ':'
+        tzM <- ((pico * 60) *) <$> decimal
+        return $ (tzH + tzM) * case sign of
+          '+' -> -1
+          '-' -> 1
+          _ -> 0 -- this should never happen
+      return $ h + m + (fromMaybe 0 s) + (fromMaybe 0 tz)
 
 -- | Parse a date in YYYY-MM-DD format.
 -- Slash (/) and period (.) are also allowed as separators.
@@ -1693,6 +1746,16 @@ tests_Common = testGroup "Common" [
     -- ,testCase "just amount" $ assertParseError spaceandamountormissingp "$47.18" ""  -- succeeds, consuming nothing
     ]
 
-  ]
+  , let pico = 1000000000000
+        date = fromGregorian 2024 1 1
+    in testGroup "timestampp" [
+      testCase "2024-01-01" $ assertParseEq timestampp "2024-01-01" (date, Nothing),
+      testCase "2024-01-01 12:34" $ assertParseEq timestampp "2024-01-01 12:34" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60) * pico)),
+      testCase "2024-01-01 12:34+05:06" $ assertParseEq timestampp "2024-01-01 12:34+05:06" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 5) * 3600 + (34 - 6) * 60) * pico)),
+      testCase "2024-01-01 12:34:56" $ assertParseEq timestampp "2024-01-01 12:34:56" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ (12 * 3600 + 34 * 60 + 56) * pico)),
+      testCase "2024-01-01 12:34:56+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56+07:08" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico)),
+      testCase "2024-01-01 12:34:56.000+07:08" $ assertParseEq timestampp "2024-01-01 12:34:56.000+07:08" (date, Just $ UTCTime (fromGregorian 2024 1 1) (picosecondsToDiffTime $ ((12 - 7) * 3600 + (34 - 8) * 60 + 56) * pico))
+    ]
 
+  ]
 
