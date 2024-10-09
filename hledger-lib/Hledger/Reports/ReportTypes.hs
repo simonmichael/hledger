@@ -31,7 +31,7 @@ module Hledger.Reports.ReportTypes
 , prrShowDebug
 , prrFullName
 , prrDisplayName
-, prrDepth
+, prrIndent
 , prrAdd
 ) where
 
@@ -211,11 +211,16 @@ data CBCSubreportSpec a = CBCSubreportSpec
   }
 
 
--- | A full name, display name, and depth for an account.
+-- | The number of indentation steps with which to display a report item.
+-- 0 means no indentation. 1 means one indent step, which is normally rendered
+-- as two spaces in text output, or two no-break spaces in csv/html output.
+type NumberOfIndents = Int
+
+-- | A full name, display name, and indent level for an account.
 data DisplayName = DisplayName
-    { displayFull :: AccountName
-    , displayName :: AccountName
-    , displayDepth :: Int
+    { displayFull   :: AccountName
+    , displayName   :: AccountName
+    , displayIndent :: NumberOfIndents
     } deriving (Show, Eq, Ord)
 
 instance ToJSON DisplayName where
@@ -232,15 +237,14 @@ flatDisplayName a = DisplayName a a 1
 treeDisplayName :: AccountName -> DisplayName
 treeDisplayName a = DisplayName a (accountLeafName a) (accountNameLevel a)
 
--- | Get the full, canonical, name of a PeriodicReportRow tagged by a
--- DisplayName.
+-- | Get the full canonical account name from a PeriodicReportRow containing a DisplayName.
 prrFullName :: PeriodicReportRow DisplayName a -> AccountName
 prrFullName = displayFull . prrName
 
--- | Get the display name of a PeriodicReportRow tagged by a DisplayName.
+-- | Get the account display name from a PeriodicReportRow containing a DisplayName.
 prrDisplayName :: PeriodicReportRow DisplayName a -> AccountName
 prrDisplayName = displayName . prrName
 
--- | Get the display depth of a PeriodicReportRow tagged by a DisplayName.
-prrDepth :: PeriodicReportRow DisplayName a -> Int
-prrDepth = displayDepth . prrName
+-- | Get the indent level from a PeriodicReportRow containing a DisplayName.
+prrIndent :: PeriodicReportRow DisplayName a -> Int
+prrIndent = displayIndent . prrName

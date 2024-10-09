@@ -601,7 +601,7 @@ tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
           (eitems, etotal) = r
           (PeriodicReport _ aitems atotal) = multiBalanceReport rspec' journal
           showw (PeriodicReportRow a lAmt amt amt')
-              = (displayFull a, displayName a, displayDepth a, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
+              = (displayFull a, displayName a, displayIndent a, map showMixedAmountDebug lAmt, showMixedAmountDebug amt, showMixedAmountDebug amt')
       (map showw aitems) @?= (map showw eitems)
       showMixedAmountDebug (prrTotal atotal) @?= showMixedAmountDebug etotal -- we only check the sum of the totals
   in

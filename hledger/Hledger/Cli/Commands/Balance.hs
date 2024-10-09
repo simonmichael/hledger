@@ -932,7 +932,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
        in (replicate (length rs) (renderacct row), rs)
     (accts, rows) = unzip $ fmap fullRowAsTexts items
     renderacct row =
-        T.replicate ((prrDepth row - 1) * 2) " " <> prrDisplayName row
+        T.replicate ((prrIndent row - 1) * 2) " " <> prrDisplayName row
     addtotalrow
       | no_total_ opts = id
       | otherwise =
@@ -1343,7 +1343,7 @@ renderPeriodicAcct ::
     ReportOpts -> Text -> PeriodicReportRow DisplayName a -> Text
 renderPeriodicAcct opts space row =
     renderBalanceAcct opts space
-        (prrFullName row, prrDisplayName row, prrDepth row - 1)
+        (prrFullName row, prrDisplayName row, prrIndent row - 1)
 
 
 -- tests
