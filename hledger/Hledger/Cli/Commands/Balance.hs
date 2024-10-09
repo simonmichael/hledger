@@ -927,12 +927,12 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, row_total_, b
                   ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
                   ++ ["  Total" | totalscolumn]
                   ++ ["Average" | average_]
-    fullRowAsTexts row =
-      let rs = multiBalanceRowAsText opts row
-       in (replicate (length rs) (renderacct row), rs)
     (accts, rows) = unzip $ fmap fullRowAsTexts items
-    renderacct row =
-        T.replicate ((prrIndent row - 1) * 2) " " <> prrDisplayName row
+      where
+        fullRowAsTexts row = (replicate (length rs) (renderacct row), rs)
+          where
+            rs = multiBalanceRowAsText opts row
+            renderacct row' = T.replicate ((prrIndent row' - 1) * 2) " " <> prrDisplayName row'
     addtotalrow
       | no_total_ opts = id
       | otherwise =
