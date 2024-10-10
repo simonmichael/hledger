@@ -43,8 +43,8 @@ To claim the bounty:
 ## Regressions reported
 
 - [Issue tracker: all regression reports](https://bugs.hledger.org/regressions)
-- [Opencollective: expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
-- [Opencollective: payments](https://opencollective.com/hledger/transactions?kind=EXPENSE)
+- [Open Collective: expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
+- [Open Collective: payments](https://opencollective.com/hledger/transactions?kind=EXPENSE)
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
 [#1468]: https://github.com/simonmichael/hledger/issues/1468
@@ -102,7 +102,7 @@ Bold things are unresolved. The flow is:
 **FINDORFIXDATE unclaimed** -> **[EXPENSEDATE](EXPENSEPAGE)** -> [PAIDDATE](EXPENSEPAGE)
                                                               -> DONATEDATE donated
 -->
-| donated hledger&nbsp;version, <br>regressions&nbsp;found | Finder&nbsp;bounties <br>(since 2021-06-14)          | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
+| hledger&nbsp;version, <br>regressions&nbsp;found | Finder&nbsp;bounties <br>(since 2021-06-14)                  | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
 |--------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
 | **1.19** 2020-09-01      | ---                                                                                  | ---
 | [#1568]                  | jolmg           N/A                                                                  | N/A
@@ -166,4 +166,4 @@ Bold things are unresolved. The flow is:
 | [#2227]                  | Henning Thielemann **2024-09-12 unclaimed**                                          | Henning Thielemann **2024-09-24 unclaimed**
 | **1.34** 2024-06-01      | ---                                                                                  | ---
 | **1.40** 2024-09-09      | ---                                                                                  | ---
-| [#2225]                  | Bas van Dijk    2024-09-22 donated                                                   | Henning Thielemann **2024-09-18 unclaimed**y
+| [#2225]                  | Bas van Dijk    2024-09-22 donated                                                   | Henning Thielemann **2024-09-18 unclaimed**
