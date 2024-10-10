@@ -95,75 +95,74 @@ To claim the bounty:
 [#2254]: https://github.com/simonmichael/hledger/issues/2254
 
 <!-- 
-This table keeps evolving.
-Dates following names are initially the finding/fixing date (useful to identify bounties),
-then the latest submission/payment/donation date (useful to track resolution).
-Bold things are unresolved. The flow is:
-**FINDORFIXDATE unclaimed** -> **[EXPENSEDATE](EXPENSEPAGE)** -> [PAIDDATE](EXPENSEPAGE)
-                                                              -> DONATEDATE donated
+This table keeps evolving. Bold things are unresolved. The flow is this:
+     (unclaimed)                (submitted)               (paid)
+**NAME FINDORFIXDATE** -> **[NAME](EXPENSEPAGE)** -> [NAME](EXPENSEPAGE)
+                                                  -> NAME donated
 -->
-| hledger&nbsp;version, <br>regressions&nbsp;found | Finder&nbsp;bounties <br>(since 2021-06-14)                  | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
-|--------------------------|--------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
-| **1.19** 2020-09-01      | ---                                                                                  | ---
-| [#1568]                  | jolmg           N/A                                                                  | N/A
-| [#1688]                  | Simon Michael   N/A                                                                  | N/A
-| [#1698]                  | David Lowe      [2021-09-18](https://opencollective.com/hledger/expenses/50380)      | N/A
-| [#1745]                  | Arne Schlüter   [2021-11-02](https://opencollective.com/hledger/expenses/54446)      | N/A
-| [#1800]                  | Chuck Holmes    [2022-01-21](https://opencollective.com/hledger/expenses/61802)      | N/A
-| **1.20** 2020-12-05      | ---                                                                                  | ---
-| [#1439]                  | apauley         N/A                                                                  | N/A
-| [#1468]                  | Simon Michael   N/A                                                                  | N/A
-| **1.20.3** 2021-01-14    | ---                                                                                  | ---
-| [#1566]                  | benwebber       N/A                                                                  | N/A
-| **1.21** 2021-03-10      | ---                                                                                  | ---
-| [#1508]                  | edlanglois      N/A                                                                  | N/A
-| [#1523]                  | Simon Michael   N/A                                                                  | N/A
-| [#1526]                  | lestephane      N/A                                                                  | N/A
-| [#1527]                  | lestephane      N/A                                                                  | N/A
-| [#1656]                  | Stephen Morgan  [2021-08-22](https://opencollective.com/hledger/expenses/48246)      | N/A
-| **1.22** 2021-07-03      | ---                                                                                  | ---
-| [#1597]                  | Simon Michael   [2021-07-08](https://opencollective.com/hledger/expenses/44939)      | N/A
-| [#1607]                  | Simon Michael   [2021-07-16](https://opencollective.com/hledger/expenses/45547)      | N/A
-| [#1625]                  | Julian Klode    [2021-07-30](https://opencollective.com/hledger/expenses/46431)      | N/A
-| [#1736]                  | Romain Gehrig   [2021-11-14](https://opencollective.com/hledger/expenses/55510)      | N/A
-| [#1851]                  | Eric Langlois   [2022-04-11](https://opencollective.com/hledger/expenses/72187)      | N/A
-| **1.22.1** 2021-08-02    | ---                                                                                  | ---
-| [#1638]                  | Yann Büchau     [2021-08-03](https://opencollective.com/hledger/expenses/46918)      | N/A
-| [#1642]                  | Simon Michael   N/A                                                                  | N/A
-| **1.23** 2021-09-21      | ---                                                                                  | ---
-| [#1933]                  | Simon Michael   [2022-09-14](https://opencollective.com/hledger/expenses/95068)      | N/A
-| [#2071]                  | William Pierce  [2024-04-02](https://opencollective.com/hledger/expenses/195768)     | Simon Michael **[2024-02-25](https://opencollective.com/hledger/expenses/223927)**
-| **1.24** 2021-12-01      | ---                                                                                  | ---
-| [#1782]                  | Simon Michael   N/A                                                                  | N/A
-| **1.25** 2022-03-04      | ---                                                                                  | ---
-| [#2032]                  | Simon Michael   [2023-05-03](https://opencollective.com/hledger/expenses/137410)     | N/A
-| [#2196]                  | Pranesh Prakash [2024-09-18](https://opencollective.com/hledger/expenses/220683)     | Simon Michael **[2024-04-25](https://opencollective.com/hledger/expenses/223926)**, <br>Bas van Dijk [#2224] 2024-09-22 donated
-| **1.26** 2022-06-04      | ---                                                                                  | ---
-| **1.27** 2022-09-01      | ---                                                                                  | ---
-| [#1932]                  | Andras Fabian   [2022-09-15](https://opencollective.com/hledger/expenses/95112)      | N/A
-| [#2018]                  | Allan Odgaard   [2023-03-28](https://opencollective.com/hledger/expenses/130591)     | N/A
-| **1.28** 2022-12-01      | ---                                                                                  | ---
-| **1.29** 2023-03-11      | ---                                                                                  | ---
-| [#2012]                  | Simon Michael   N/A                                                                  | N/A
-| [#2020]                  | Pablo Mora      [2023-03-31](https://opencollective.com/hledger/expenses/131350)     | N/A
-| [#2023]                  | Simon Michael   [2023-04-06](https://opencollective.com/hledger/expenses/132635)     | N/A
-| [#2034]                  | Simon Michael   N/A                                                                  | N/A
-| [#2045]                  | Pranesh Prakash [2023-10-17](https://opencollective.com/hledger/expenses/150171)     | N/A
-| [#2153]                  | markokocic      2024-01-25 donated                                                   | N/A
-| **1.30** 2023-06-01      | ---                                                                                  | ---
-| [#2072]                  | Simon Michael   **[2023-08-22](https://opencollective.com/hledger/expenses/223926)**  , <br>usaAmch [#2137] 2024-09-18 donated, <br>ipvych [#2150] [2024-09-25](https://opencollective.com/hledger/expenses/221597)  | Simon Michael **[2024-01-28](https://opencollective.com/hledger/expenses/223926)**
-| **1.31** 2023-09-03      | ---                                                                                  | ---
-| [#2091]                  | Petr Slansky    [2023-10-16](https://opencollective.com/hledger/expenses/166632)     | N/A
-| [#2115]                  | usaAmch         2024-09-25 donated                                                   | N/A
-| **1.32** 2023-12-01      | ---                                                                                  | ---
-| [#2125]                  | Simon Michael   N/A                                                                  | N/A
-| [#2127]                  | Rajeev N        [2023-12-15](https://opencollective.com/hledger/expenses/177761)     | N/A
-| [#2130]                  | Simon Michael   N/A                                                                  | N/A
-| [#2134]                  | pepe_pecas      2023-12-15 donated                                                   | N/A
-| [#2156]                  | ishmaelavila    **2024-01-18 unclaimed**                                             | Simon Michael **[2024-01-21](https://opencollective.com/hledger/expenses/223926)**
-| [#2254]                  | akanshaG42      2024-10-09 donated                                                   | Simon Michael **[2024-10-05](https://opencollective.com/hledger/expenses/223926)**
-| **1.33** 2024-04-18      | ---                                                                                  | ---
-| [#2227]                  | Henning Thielemann **2024-09-12 unclaimed**                                          | Henning Thielemann **2024-09-24 unclaimed**
-| **1.34** 2024-06-01      | ---                                                                                  | ---
-| **1.40** 2024-09-09      | ---                                                                                  | ---
-| [#2225]                  | Bas van Dijk    2024-09-22 donated                                                   | Henning Thielemann **2024-09-18 unclaimed**
+
+| hledger&nbsp;version, <br>regressions&nbsp;found | Finder&nbsp;bounties <br>(since 2021-06-14)              | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
+|--------------------------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
+| **1.19** 2020-09-01      | ---                                                                              | ---
+| [#1568]                  | jolmg           N/A                                                              | N/A
+| [#1688]                  | Simon Michael   N/A                                                              | N/A
+| [#1698]                  | [David Lowe](https://opencollective.com/hledger/expenses/50380)                  | N/A
+| [#1745]                  | [Arne Schlüter](https://opencollective.com/hledger/expenses/54446)               | N/A
+| [#1800]                  | [Chuck Holmes](https://opencollective.com/hledger/expenses/61802)                | N/A
+| **1.20** 2020-12-05      | ---                                                                              | ---
+| [#1439]                  | apauley         N/A                                                              | N/A
+| [#1468]                  | Simon Michael   N/A                                                              | N/A
+| **1.20.3** 2021-01-14    | ---                                                                              | ---
+| [#1566]                  | benwebber       N/A                                                              | N/A
+| **1.21** 2021-03-10      | ---                                                                              | ---
+| [#1508]                  | edlanglois      N/A                                                              | N/A
+| [#1523]                  | Simon Michael   N/A                                                              | N/A
+| [#1526]                  | lestephane      N/A                                                              | N/A
+| [#1527]                  | lestephane      N/A                                                              | N/A
+| [#1656]                  | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
+| **1.22** 2021-07-03      | ---                                                                              | ---
+| [#1597]                  | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
+| [#1607]                  | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
+| [#1625]                  | [Julian Klode](https://opencollective.com/hledger/expenses/46431)                | N/A
+| [#1736]                  | [Romain Gehrig](https://opencollective.com/hledger/expenses/55510)               | N/A
+| [#1851]                  | [Eric Langlois](https://opencollective.com/hledger/expenses/72187)               | N/A
+| **1.22.1** 2021-08-02    | ---                                                                              | ---
+| [#1638]                  | [Yann Büchau](https://opencollective.com/hledger/expenses/46918)                 | N/A
+| [#1642]                  | Simon Michael   N/A                                                              | N/A
+| **1.23** 2021-09-21      | ---                                                                              | ---
+| [#1933]                  | [Simon Michael](https://opencollective.com/hledger/expenses/95068)               | N/A
+| [#2071]                  | [William Pierce](https://opencollective.com/hledger/expenses/195768)             | **[Simon Michael](https://opencollective.com/hledger/expenses/223927)**
+| **1.24** 2021-12-01      | ---                                                                              | ---
+| [#1782]                  | Simon Michael   N/A                                                              | N/A
+| **1.25** 2022-03-04      | ---                                                                              | ---
+| [#2032]                  | [Simon Michael](https://opencollective.com/hledger/expenses/137410)              | N/A
+| [#2196]                  | [Pranesh Prakash](https://opencollective.com/hledger/expenses/220683)            | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**, <br>Bas van Dijk [#2224] donated
+| **1.26** 2022-06-04      | ---                                                                              | ---
+| **1.27** 2022-09-01      | ---                                                                              | ---
+| [#1932]                  | [Andras Fabian](https://opencollective.com/hledger/expenses/95112)               | N/A
+| [#2018]                  | [Allan Odgaard](https://opencollective.com/hledger/expenses/130591)              | N/A
+| **1.28** 2022-12-01      | ---                                                                              | ---
+| **1.29** 2023-03-11      | ---                                                                              | ---
+| [#2012]                  | Simon Michael   N/A                                                              | N/A
+| [#2020]                  | [Pablo Mora](https://opencollective.com/hledger/expenses/131350)                 | N/A
+| [#2023]                  | [Simon Michael](https://opencollective.com/hledger/expenses/132635)              | N/A
+| [#2034]                  | Simon Michael   N/A                                                              | N/A
+| [#2045]                  | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171)            | N/A
+| [#2153]                  | markokocic donated                                                               | N/A
+| **1.30** 2023-06-01      | ---                                                                              | ---
+| [#2072]                  | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**  , <br>usaAmch [#2137] donated, <br>[ipvych](https://opencollective.com/hledger/expenses/221597) [#2150] | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
+| **1.31** 2023-09-03      | ---                                                                              | ---
+| [#2091]                  | [Petr Slansky](https://opencollective.com/hledger/expenses/166632)               | N/A
+| [#2115]                  | usaAmch donated                                                                  | N/A
+| **1.32** 2023-12-01      | ---                                                                              | ---
+| [#2125]                  | Simon Michael   N/A                                                              | N/A
+| [#2127]                  | [Rajeev N](https://opencollective.com/hledger/expenses/177761)                   | N/A
+| [#2130]                  | Simon Michael   N/A                                                              | N/A
+| [#2134]                  | pepe_pecas donated                                                               | N/A
+| [#2156]                  | **ishmaelavila 2024-01-18**                                                      | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
+| [#2254]                  | akanshaG42 donated                                                               | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
+| **1.33** 2024-04-18      | ---                                                                              | ---
+| [#2227]                  | **Henning Thielemann 2024-09-12**                                                | **Henning Thielemann 2024-09-24**
+| **1.34** 2024-06-01      | ---                                                                              | ---
+| **1.40** 2024-09-09      | ---                                                                              | ---
+| [#2225]                  | Bas van Dijk donated                                                             | **Henning Thielemann 2024-09-18**
