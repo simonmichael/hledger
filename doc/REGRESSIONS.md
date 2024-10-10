@@ -131,12 +131,12 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#1642]                  | Simon Michael   N/A                                                              | N/A
 | **1.23** 2021-09-21      | ---                                                                              | ---
 | [#1933]                  | [Simon Michael](https://opencollective.com/hledger/expenses/95068)               | N/A
-| [#2071]                  | [William Pierce](https://opencollective.com/hledger/expenses/195768)             | **[Simon Michael](https://opencollective.com/hledger/expenses/223927)**
+| [#2071]                  | [William Pierce](https://opencollective.com/hledger/expenses/195768)             | [Simon Michael](https://opencollective.com/hledger/expenses/223927)
 | **1.24** 2021-12-01      | ---                                                                              | ---
 | [#1782]                  | Simon Michael   N/A                                                              | N/A
 | **1.25** 2022-03-04      | ---                                                                              | ---
 | [#2032]                  | [Simon Michael](https://opencollective.com/hledger/expenses/137410)              | N/A
-| [#2196]                  | [Pranesh Prakash](https://opencollective.com/hledger/expenses/220683)            | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**, <br>Bas van Dijk [#2224] donated
+| [#2196]                  | [Pranesh Prakash](https://opencollective.com/hledger/expenses/220683)            | [Simon Michael](https://opencollective.com/hledger/expenses/223926), <br>Bas van Dijk [#2224] donated
 | **1.26** 2022-06-04      | ---                                                                              | ---
 | **1.27** 2022-09-01      | ---                                                                              | ---
 | [#1932]                  | [Andras Fabian](https://opencollective.com/hledger/expenses/95112)               | N/A
@@ -150,7 +150,7 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#2045]                  | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171)            | N/A
 | [#2153]                  | markokocic donated                                                               | N/A
 | **1.30** 2023-06-01      | ---                                                                              | ---
-| [#2072]                  | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**  , <br>usaAmch [#2137] donated, <br>[ipvych](https://opencollective.com/hledger/expenses/221597) [#2150] | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
+| [#2072]                  | [Simon Michael](https://opencollective.com/hledger/expenses/223926)  , <br>usaAmch [#2137] donated, <br>[ipvych](https://opencollective.com/hledger/expenses/221597) [#2150] | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | **1.31** 2023-09-03      | ---                                                                              | ---
 | [#2091]                  | [Petr Slansky](https://opencollective.com/hledger/expenses/166632)               | N/A
 | [#2115]                  | usaAmch donated                                                                  | N/A
@@ -159,8 +159,8 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#2127]                  | [Rajeev N](https://opencollective.com/hledger/expenses/177761)                   | N/A
 | [#2130]                  | Simon Michael   N/A                                                              | N/A
 | [#2134]                  | pepe_pecas donated                                                               | N/A
-| [#2156]                  | **ishmaelavila 2024-01-18**                                                      | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
-| [#2254]                  | akanshaG42 donated                                                               | **[Simon Michael](https://opencollective.com/hledger/expenses/223926)**
+| [#2156]                  | **ishmaelavila 2024-01-18**                                                      | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
+| [#2254]                  | akanshaG42 donated                                                               | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | **1.33** 2024-04-18      | ---                                                                              | ---
 | [#2227]                  | **Henning Thielemann 2024-09-12**                                                | **Henning Thielemann 2024-09-24**
 | **1.34** 2024-06-01      | ---                                                                              | ---
