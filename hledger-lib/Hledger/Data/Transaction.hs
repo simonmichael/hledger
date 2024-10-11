@@ -34,6 +34,9 @@ module Hledger.Data.Transaction
 , transactionMapPostingAmounts
 , transactionAmounts
 , partitionAndCheckConversionPostings
+  -- * helpers
+, payeeAndNoteFromDescription
+, payeeAndNoteFromDescription'
   -- nonzerobalanceerror
   -- * date operations
 , transactionDate2
@@ -46,7 +49,6 @@ module Hledger.Data.Transaction
 , showTransaction
 , showTransactionOneLineAmounts
 , showTransactionLineFirstPart
-, showTransactionBeancount
 , transactionFile
   -- * transaction errors
 , annotateErrorWithTransaction
@@ -175,33 +177,6 @@ showTransactionLineFirstPart t = T.concat [date, status, code]
            | tstatus t == Pending = " !"
            | otherwise            = ""
     code = if T.null (tcode t) then "" else wrap " (" ")" $ tcode t
-
--- | Like showTransaction, but generates Beancount journal format.
-showTransactionBeancount :: Transaction -> Text
-showTransactionBeancount t =
-  -- https://beancount.github.io/docs/beancount_language_syntax.html
-  -- similar to showTransactionHelper, but I haven't bothered with Builder
-     firstline <> nl
-  <> foldMap ((<> nl)) newlinecomments
-  <> foldMap ((<> nl)) (postingsAsLinesBeancount $ tpostings t)
-  <> nl
-  where
-    nl = "\n"
-    firstline = T.concat [date, status, payee, note, tags, samelinecomment]
-    date = showDate $ tdate t
-    status = if tstatus t == Pending then " !" else " *"
-    (payee,note) =
-      case payeeAndNoteFromDescription' $ tdescription t of
-        ("","") -> ("",      ""      )
-        ("",n ) -> (""     , wrapq n )
-        (p ,"") -> (wrapq p, wrapq "")
-        (p ,n ) -> (wrapq p, wrapq n )
-      where
-        wrapq = wrap " \"" "\"" . escapeDoubleQuotes . escapeBackslash
-    tags = T.concat $ map ((" #"<>).fst) $ ttags t
-    (samelinecomment, newlinecomments) =
-      case renderCommentLines (tcomment t) of []   -> ("",[])
-                                              c:cs -> (c,cs)
 
 hasRealPostings :: Transaction -> Bool
 hasRealPostings = not . null . realPostings

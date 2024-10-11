@@ -62,10 +62,8 @@ module Hledger.Data.Posting (
   showPostingLines,
   postingAsLines,
   postingsAsLines,
-  postingsAsLinesBeancount,
-  postingAsLinesBeancount,
+  postingIndent,
   showAccountName,
-  showAccountNameBeancount,
   renderCommentLines,
   showBalanceAssertion,
   -- * misc.
@@ -309,7 +307,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
             assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
 
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
+    statusandaccount = postingIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
     thisacctwidth = realLength $ pacctstr p
 
     (samelinecomment, newlinecomments) =
@@ -325,91 +323,6 @@ showAccountName w = fmt
     fmt VirtualPosting         = wrap "(" ")" . maybe id (T.takeEnd . subtract 2) w
     fmt BalancedVirtualPosting = wrap "[" "]" . maybe id (T.takeEnd . subtract 2) w
 
--- | Like postingsAsLines but generates Beancount journal format.
-postingsAsLinesBeancount :: [Posting] -> [Text]
-postingsAsLinesBeancount ps = concatMap first3 linesWithWidths
-  where
-    linesWithWidths = map (postingAsLinesBeancount False maxacctwidth maxamtwidth) ps
-    maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
-    maxamtwidth  = maximumBound 0 $ map third3  linesWithWidths
-
--- | Like postingAsLines but generates Beancount journal format.
-postingAsLinesBeancount  :: Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
-postingAsLinesBeancount elideamount acctwidth amtwidth p =
-    (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
-  where
-    -- This needs to be converted to strict Text in order to strip trailing
-    -- spaces. This adds a small amount of inefficiency, and the only difference
-    -- is whether there are trailing spaces in print (and related) reports. This
-    -- could be removed and we could just keep everything as a Text Builder, but
-    -- would require adding trailing spaces to 42 failing tests.
-    postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
-                       render [ textCell BottomLeft statusandaccount
-                              , textCell BottomLeft "  "
-                              , Cell BottomLeft [pad amt]
-                              , textCell BottomLeft samelinecomment
-                              ]
-                    | (amt,_assertion) <- shownAmountsAssertions]
-    render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
-    pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
-
-    pacct = showAccountNameBeancount Nothing $ paccount p
-    pstatusandacct p' = if pstatus p' == Pending then "! " else "" <> pacct
-
-    -- currently prices are considered part of the amount string when right-aligning amounts
-    -- Since we will usually be calling this function with the knot tied between
-    -- amtwidth and thisamtwidth, make sure thisamtwidth does not depend on
-    -- amtwidth at all.
-    shownAmounts
-      | elideamount = [mempty]
-      | otherwise   = showMixedAmountLinesB displayopts a'
-        where
-          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True }
-          a' = mapMixedAmount amountToBeancount $ pamount p
-    thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
-
-    -- when there is a balance assertion, show it only on the last posting line
-    shownAmountsAssertions = zip shownAmounts shownAssertions
-      where
-        shownAssertions = replicate (length shownAmounts - 1) mempty ++ [assertion]
-          where
-            assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
-
-    -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
-    statusandaccount = lineIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
-    thisacctwidth = realLength pacct
-
-    (samelinecomment, newlinecomments) =
-      case renderCommentLines (pcomment p) of []   -> ("",[])
-                                              c:cs -> (c,cs)
-
-type BeancountAmount = Amount
-
--- | Do some best effort adjustments to make an amount that renders
--- in a way that Beancount can read: forces the commodity symbol to the right,
--- converts a few currency symbols to names, capitalises all letters.
-amountToBeancount :: Amount -> BeancountAmount
-amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', astyle=s', acost=mp'}
-  -- https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
-  where
-    c' = T.toUpper $
-      T.replace "$" "USD" $
-      T.replace "€" "EUR" $
-      T.replace "¥" "JPY" $
-      T.replace "£" "GBP" $
-      c
-    s' = s{ascommodityside=R, ascommodityspaced=True}
-    mp' = costToBeancount <$> mp
-      where
-        costToBeancount (TotalCost amt) = TotalCost $ amountToBeancount amt
-        costToBeancount (UnitCost  amt) = UnitCost  $ amountToBeancount amt
-
--- | Like showAccountName for Beancount journal format.
--- Calls accountNameToBeancount first.
-showAccountNameBeancount :: Maybe Int -> AccountName -> Text
-showAccountNameBeancount w = maybe id T.take w . accountNameToBeancount
-
 -- | Render a transaction or posting's comment as indented, semicolon-prefixed comment lines.
 -- The first line (unless empty) will have leading space, subsequent lines will have a larger indent.
 renderCommentLines :: Text -> [Text]
@@ -417,14 +330,14 @@ renderCommentLines t =
   case T.lines t of
     []      -> []
     [l]     -> [commentSpace $ comment l]        -- single-line comment
-    ("":ls) -> "" : map (lineIndent . comment) ls  -- multi-line comment with empty first line
-    (l:ls)  -> commentSpace (comment l) : map (lineIndent . comment) ls
+    ("":ls) -> "" : map (postingIndent . comment) ls  -- multi-line comment with empty first line
+    (l:ls)  -> commentSpace (comment l) : map (postingIndent . comment) ls
   where
     comment = ("; "<>)
 
 -- | Prepend a suitable indent for a posting (or transaction/posting comment) line.
-lineIndent :: Text -> Text
-lineIndent = ("    "<>)
+postingIndent :: Text -> Text
+postingIndent = ("    "<>)
 
 -- | Prepend the space required before a same-line comment.
 commentSpace :: Text -> Text

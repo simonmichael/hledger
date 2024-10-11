@@ -53,8 +53,6 @@ module Hledger.Data.AccountName (
   ,concatAccountNames
   ,accountNameApplyAliases
   ,accountNameApplyAliasesMemo
-  ,accountNameToBeancount
-  ,beancountTopLevelAccounts
   ,tests_AccountName
 )
 where
@@ -74,7 +72,6 @@ import Text.DocLayout (realLength)
 
 import Hledger.Data.Types hiding (asubs)
 import Hledger.Utils
-import Data.Char (isDigit, isLetter, isUpperCase)
 import Data.List (partition)
 
 -- $setup
@@ -366,70 +363,6 @@ accountNameToAccountOnlyRegexCI a = toRegexCI' $ "^" <> escapeName a <> "$" -- P
 -- -- | Does this string look like an exact account-matching regular expression ?
 --isAccountRegex  :: String -> Bool
 --isAccountRegex s = take 1 s == "^" && take 5 (reverse s) == ")$|:("
-
-type BeancountAccountName = AccountName
-type BeancountAccountNameComponent = AccountName
-
--- | Convert a hledger account name to a valid Beancount account name.
--- It replaces non-supported characters with @-@ (warning: in extreme cases
--- separate accounts could end up with the same name), it prepends the letter B
--- to any part which doesn't begin with a letter or number, and it capitalises
--- each part. It also checks that the first part is one of the required english
--- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
--- it raises an informative error suggesting --alias.
--- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#accounts
-accountNameToBeancount :: AccountName -> BeancountAccountName
-accountNameToBeancount a =
-  dbg9 "beancount account name" $
-  accountNameFromComponents bs'
-  where
-    bs =
-      map accountNameComponentToBeancount $ accountNameComponents $
-      dbg9 "hledger account name  " $
-      a
-    bs' =
-      case bs of
-        b:_ | b `notElem` beancountTopLevelAccounts -> error' e
-          where
-            e = T.unpack $ T.unlines [
-              "bad top-level account: " <> b
-              ,"in beancount account name:           " <> accountNameFromComponents bs
-              ,"converted from hledger account name: " <> a
-              ,"For Beancount, top-level accounts must be (or be --alias'ed to)"
-              ,"one of " <> T.intercalate ", " beancountTopLevelAccounts <> "."
-              -- ,"and not: " <> b
-              ]
-        cs -> cs
-
-accountNameComponentToBeancount :: AccountName -> BeancountAccountNameComponent
-accountNameComponentToBeancount acctpart =
-  prependStartCharIfNeeded $
-  case T.uncons acctpart of
-    Nothing -> ""
-    Just (c,cs) ->
-      textCapitalise $
-      T.map (\d -> if isBeancountAccountChar d then d else '-') $ T.cons c cs
-  where
-    prependStartCharIfNeeded t =
-      case T.uncons t of
-        Just (c,_) | not $ isBeancountAccountStartChar c -> T.cons beancountAccountDummyStartChar t
-        _ -> t
-
--- | Dummy valid starting character to prepend to Beancount account name parts if needed (B).
-beancountAccountDummyStartChar :: Char
-beancountAccountDummyStartChar = 'B'
-
--- XXX these probably allow too much unicode:
-
--- | Is this a valid character to start a Beancount account name part (capital letter or digit) ?
-isBeancountAccountStartChar :: Char -> Bool
-isBeancountAccountStartChar c = (isLetter c && isUpperCase c) || isDigit c
-
--- | Is this a valid character to appear elsewhere in a Beancount account name part (letter, digit, or -) ?
-isBeancountAccountChar :: Char -> Bool
-isBeancountAccountChar c = isLetter c || isDigit c || c=='-'
-
-beancountTopLevelAccounts = ["Assets", "Liabilities", "Equity", "Income", "Expenses"]
 
 tests_AccountName = testGroup "AccountName" [
    testCase "accountNameTreeFrom" $ do
