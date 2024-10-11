@@ -823,10 +823,8 @@ multiBalanceReportAsSpreadsheetParts ishtml opts@ReportOpts{..} (PeriodicReport 
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
-  do
-    link_ [rel_ "stylesheet", href_ "hledger.css"]
-    printHtml . map (map (fmap L.toHtml)) $
-      snd $ multiBalanceReportAsSpreadsheet ropts mbr
+  printHtml . map (map (fmap L.toHtml)) $
+    snd $ multiBalanceReportAsSpreadsheet ropts mbr
 
 -- | Render the HTML table rows for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
