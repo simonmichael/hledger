@@ -85,6 +85,7 @@ library
       Hledger.Read.RulesReader
       Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
+      Hledger.Write.Beancount
       Hledger.Write.Csv
       Hledger.Write.Ods
       Hledger.Write.Html
