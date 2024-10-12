@@ -19,7 +19,7 @@ import qualified Data.Text as T
 import Safe
 import System.Exit
 import Hledger
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode :: Mode RawOpts

@@ -8,7 +8,7 @@
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 import System.Environment (getArgs)
-import Hledger.Cli
+import Hledger.Cli.Script
 import qualified Data.Map as M
 import Data.Map.Merge.Strict
 import qualified Data.Text.Lazy.IO as TL

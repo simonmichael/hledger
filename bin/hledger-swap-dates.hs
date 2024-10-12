@@ -11,7 +11,7 @@
 import Data.String.QQ (s)
 import qualified Data.Text.IO as T
 import Hledger
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode

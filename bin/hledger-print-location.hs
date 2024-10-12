@@ -20,7 +20,7 @@ $ hledger print-location -f examples/sample.journal desc:eat
 
 import Data.String.QQ (s)
 import qualified Data.Text as T
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
