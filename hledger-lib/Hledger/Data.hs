@@ -13,6 +13,7 @@ module Hledger.Data (
                module Hledger.Data.AccountName,
                module Hledger.Data.Amount,
                module Hledger.Data.Balancing,
+               module Hledger.Data.Currency,
                module Hledger.Data.Dates,
                module Hledger.Data.Errors,
                module Hledger.Data.Journal,
@@ -38,6 +39,7 @@ import Hledger.Data.Account
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Balancing
+import Hledger.Data.Currency
 import Hledger.Data.Dates
 import Hledger.Data.Errors
 import Hledger.Data.Journal
@@ -58,8 +60,9 @@ import Hledger.Data.Valuation
 tests_Data = testGroup "Data" [
    tests_AccountName
   ,tests_Amount
-  ,tests_Dates
   ,tests_Balancing
+  -- ,tests_Currency
+  ,tests_Dates
   ,tests_Journal
   ,tests_Ledger
   ,tests_Posting

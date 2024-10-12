@@ -122,6 +122,7 @@ library:
   - Hledger.Data.AccountName
   - Hledger.Data.Amount
   - Hledger.Data.Balancing
+  - Hledger.Data.Currency
   - Hledger.Data.Dates
   - Hledger.Data.Errors
   - Hledger.Data.Journal
