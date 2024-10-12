@@ -464,9 +464,9 @@ STACKTEST := STACK + ' test --fast'
 # Or, could run it with ghc 8.2:
 #    @($STACKTEST --stack-yaml stack8.2.yaml hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
-# run the doctests in hledger-lib module/function docs
-@doctest:
-    ($STACKTEST --ghc-options=-fobject-code hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+# run the doctests in hledger-lib module/function docs. DOCTESTARGS is passed through but seems not too useful.
+@doctest *DOCTESTARGS:
+    ($STACKTEST --ghc-options=-fobject-code --test-arguments="$DOCTESTARGS" hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # # run the unit tests in hledger-lib
 # unittest:
