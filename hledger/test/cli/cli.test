@@ -148,3 +148,9 @@ $ hledger -f /dev/null --conf nosuchfile --no-conf check
 $ hledger -f /dev/null --no-conf --conf nosuchfile check
 >2 /nosuchfile does not exist/
 >=1
+
+# ** 24. --debug doesn't disturb the order of --conf and --no-conf.
+# This is a hard one to reproduce in GHCI.
+$ hledger --debug -f /dev/null --conf /dev/null --no-conf >/dev/null
+>2 /ignoring config files/
+

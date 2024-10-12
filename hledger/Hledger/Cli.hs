@@ -96,7 +96,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List
 import qualified Data.List.NonEmpty as NE
-import Data.Maybe (isJust, fromMaybe)
+import Data.Maybe (isJust, fromMaybe, fromJust)
 import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
@@ -226,11 +226,11 @@ main = withGhcDebug' $ do
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
   dbgIO "cli args" cliargs
-  dbg1IO "cli args with command first, if any" cliargswithcmdfirst
+  dbg1IO "cli args with options moved after command, if any" cliargswithcmdfirst
   dbgIO "cli command argument found" clicmdarg
   dbgIO "cli args before command"    cliargsbeforecmd
   dbgIO "cli args after command"     cliargsaftercmd
-  dbgIO "cli args without command"   cliargswithoutcmd
+  -- dbgIO "cli args without command"   cliargswithoutcmd
 
   ---------------------------------------------------------------
   dbgIO "\n2. Read the config file if any" ()
@@ -458,9 +458,9 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- Short flags can be joined together, some flags can have a value or no value,
 -- flags and values can be separated by =, a space, or nothing, etc.
 --
--- We make a best-effort attempt like so:
--- whether a flag argument (- or -- followed by a non-space character and zero or more others),
--- and its following argument, are movable, falls into these cases, to be checked in this order:
+-- In this context, a "flag" is an argument beginning with - or --, followed by one or more non-space characters.
+-- We decide if a flag, and possibly its subsequent value argument, are movable
+-- by checking these cases in order:
 --
 -- - it exactly matches a known short or long no-value flag; move it
 -- - it exactly matches a short or long requires-value flag; move it and the following argument
@@ -487,37 +487,44 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 --
 moveFlagsAfterCommand :: [String] -> (String, [String], [String])
 moveFlagsAfterCommand args =
-  case moveFlagArgs (args, []) of
+  case moveFlagAndVal (args, []) of
     ([],as)                      -> ("", as, as)
     (unmoved@(('-':_):_), moved) -> ("", as, as) where as = unmoved<>moved
     (cmdarg:unmoved, moved)      -> (cmdarg, as, cmdarg:as) where as = unmoved<>moved
   where
-    moveFlagArgs :: ([String], [String]) -> ([String], [String])
-    moveFlagArgs ((a:b:cs), moved)
-      | isMovableFlagArg a b == 2 = moveFlagArgs (cs, moved++[a,b])
-      | isMovableFlagArg a b == 1 = moveFlagArgs (b:cs, moved++[a])
-      | otherwise                 = (a:b:cs, moved)
-      where
-        -- Is this a short or long flag argument that should be moved,
-        -- and is its following argument a value that also should be moved ?
-        -- Returns:
-        -- 0 (not a flag; don't move this argument)
-        -- 1 (a valueless flag, or a long flag with joined argument, or multiple joined valueless short flags; move this argument)
-        -- 2 (a short or long flag with a value in the next argument; move this and next argument).
-        isMovableFlagArg :: String -> String -> Int
-        isMovableFlagArg a1 a2
-          | a1 `elem` noValFlagArgs  = 1  -- short or long no-val flag
-          | a1 == "--debug" && not (isDebugValue a2) = 1  --debug without a value
-          | a1 `elem` reqValFlagArgs = 2  -- short or long req-val flag (or --debug) with a separate value
-          | a1 `elem` optValFlagArgs = 1  -- long (or short ?) opt-val flag, assume no value
-          | any (`isPrefixOf` a1) shortReqValFlagArgs = 1  -- short req-val flag with a joined value
-               -- or possibly multiple joined valueless short flags, we won't move those correctly
-          | any (`isPrefixOf` a1) longReqValFlagArgs_ = 1  -- long req-val flag (or --debug) with a joined value
-          | any (`isPrefixOf` a1) longOptValFlagArgs_ = 1  -- long opt-val flag with a joined value
-          -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longReqValFlagArgs_ ... -- try to move abbreviated long flags ?
-          | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
-          | otherwise = 0    -- not a flag
-    moveFlagArgs (as, moved)       = (as, moved)
+    -- Move the next argument to the end if it is a movable flag, along with its subsequent value argument if any.
+    moveFlagAndVal :: ([String], [String]) -> ([String], [String])
+    moveFlagAndVal ((a:b:cs), moved) =
+      case isMovableFlagArg a (Just b) of
+        2 -> traceOrLogAt lvl ("moving 2: "<>a<>" "<>b) $ moveFlagAndVal (cs, moved++[a,b])
+        1 -> traceOrLogAt lvl ("moving 1: "<>a) $ moveFlagAndVal (b:cs, moved++[a])
+        _ -> traceOrLogAt lvl ("found unmovable: "<>a) (a:b:cs, moved)
+    moveFlagAndVal ([a], moved) =
+      case isMovableFlagArg a Nothing of
+        1 -> traceOrLogAt lvl ("moving 1: "<>a) ([], moved++[a])
+        _ -> traceOrLogAt lvl ("found unmovable: "<>a) ([a], moved)
+    moveFlagAndVal ([], moved) = ptraceOrLogAt lvl "moved all" ([], moved)
+    lvl = 8
+
+-- Is this a short or long flag argument that should be moved,
+-- and is its following argument a value that also should be moved ?
+-- Returns:
+-- 0 (not a flag; don't move this argument)
+-- 1 (a valueless flag, or a long flag with joined argument, or multiple joined valueless short flags; move this argument)
+-- 2 (a short or long flag with a value in the next argument; move this and next argument).
+isMovableFlagArg :: String -> Maybe String -> Int
+isMovableFlagArg a1 ma2
+  | a1 `elem` noValFlagArgs  = 1  -- short or long no-val flag
+  | a1 == "--debug" && isJust ma2 && not (isDebugValue $ fromJust ma2) = 1  --debug without a value
+  | a1 `elem` reqValFlagArgs = 2  -- short or long req-val flag (or --debug) with a separate value
+  | a1 `elem` optValFlagArgs = 1  -- long (or short ?) opt-val flag, assume no value
+  | any (`isPrefixOf` a1) shortReqValFlagArgs = 1  -- short req-val flag with a joined value
+        -- or possibly multiple joined valueless short flags, we won't move those correctly
+  | any (`isPrefixOf` a1) longReqValFlagArgs_ = 1  -- long req-val flag (or --debug) with a joined value
+  | any (`isPrefixOf` a1) longOptValFlagArgs_ = 1  -- long opt-val flag with a joined value
+  -- | isLongFlagArg a1 && any (takeWhile (/='=') `isPrefixOf`) longReqValFlagArgs_ ... -- try to move abbreviated long flags ?
+  | isFlagArg a1 = 1    -- an addon flag (or mistyped flag) we don't know, assume no value or value is joined
+  | otherwise = 0    -- not a flag
 
 -- Is this string a valid --debug value ?
 isDebugValue s = isRight $ parsewith isdebugvalp $ pack s
