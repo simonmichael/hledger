@@ -14,9 +14,12 @@ module Hledger.Write.Spreadsheet (
     NumLines(..),
     noBorder,
     defaultCell,
+    headerCell,
     emptyCell,
     transposeCell,
     transpose,
+    addRowSpanHeader,
+    rawTableContent,
     ) where
 
 import Hledger.Data.Types (Amount)
@@ -151,6 +154,9 @@ defaultCell text =
         cellContent = text
     }
 
+headerCell :: (Lines borders) => Text -> Cell borders Text
+headerCell text = (defaultCell text) {cellStyle = Head}
+
 emptyCell :: (Lines border, Monoid text) => Cell border text
 emptyCell = defaultCell mempty
 
@@ -163,3 +169,20 @@ transposeCell cell =
 
 transpose :: [[Cell border text]] -> [[Cell border text]]
 transpose = List.transpose . map (map transposeCell)
+
+
+addRowSpanHeader ::
+    Cell border text ->
+    [[Cell border text]] -> [[Cell border text]]
+addRowSpanHeader header rows =
+    case rows of
+        [] -> []
+        [row] -> [header:row]
+        _ ->
+            zipWith (:)
+                (header{cellSpan = SpanVertical (length rows)} :
+                 repeat header{cellSpan = Covered})
+                rows
+
+rawTableContent :: [[Cell border text]] -> [[text]]
+rawTableContent = map (map cellContent)
