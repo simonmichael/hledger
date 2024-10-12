@@ -743,6 +743,14 @@ or use `--real` to exclude transactions that use them.
 Beancount doesn't allow [redundant cost notation](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings)
 as hledger does. If you have entries like this, you may need to comment out either the costs or the equity postings.
 
+#### Beancount operating currency
+
+Declaring an operating currency improves Beancount and Fava reports.
+You can do this manually by adding a line like this to the beancount journal:
+```beancount
+option "operating_currency" "USD"
+```
+
 [Beancount]: https://beancount.github.io
 [beancount journal]: https://beancount.github.io/docs/beancount_language_syntax.html
 [Beancount Query Language]: https://beancount.github.io/docs/beancount_query_language.html
