@@ -512,17 +512,16 @@ You can save a set of command line options and arguments in a file,
 and then reuse them by writing `@FILENAME` as a command line argument.
 Eg: `hledger bal @foo.args`.
 
-(Inside the argument file, each line should contain just one option or argument.
+An argument file's format is more restrictive than the command line.
+Each line should contain just one option or argument.
 Don't use spaces except inside quotes; write `=` or nothing between a flag and its argument.
-For the special characters mentioned above, use one less level of quoting than
-you would at the command prompt.)
-
-Argument files are now superseded by..
+If you use quotes, they must enclose the whole line.
+For the special characters mentioned above, use one less level of quoting than you would at the command line.
 
 ## Config files
 
-As of hledger 1.40, you can optionally save command line options (or arguments)
-to be used when running hledger commands, in a config file. Here's a small example:
+With hledger 1.40+, you can save extra command line options and arguments
+in a more featureful hledger config file. Here's a small example:
 
 ```conf
 # General options are listed first, one or more per line.
@@ -570,14 +569,7 @@ Eg (some operating systems need the `-S`, some don't):
 You can put not only options, but also arguments in a config file.
 This is probably more useful in special-purpose config files, not an automatic one.
 
-There's an exception to this: a config file can't provide the command argument, currently
-([#2231](https://github.com/simonmichael/hledger/issues/2231)).
-If you need that, you can do it in the shebang line instead. Eg:
-```
-#!/usr/bin/env -S hledger balance --conf
-```
-
-The config file feature has been added in hledger 1.40 and is considered *experimental*.
+The config file feature was added in hledger 1.40 and is considered *experimental*.
 
 ## Shell completions
 
@@ -741,7 +733,7 @@ or use `--real` to exclude transactions that use them.
 #### Beancount costs
 
 Beancount doesn't allow [redundant cost notation](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings)
-as hledger does. If you have entries like this, you may need to comment out either the costs or the equity postings.
+as hledger does. If you have entries like this, you will need to comment out either the costs or the equity postings.
 
 #### Beancount operating currency
 
