@@ -266,6 +266,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceHasTotalsColumn
  ,addTotalBorders
  ,simpleDateSpanCell
+ ,nbsp
  ,RowClass(..)
   -- ** Tests
  ,tests_Balance
