@@ -190,7 +190,7 @@ confflagsmode = defMode{
 main :: IO ()
 main = withGhcDebug' $ do
 
-  -- let's go!
+  -- 0. let's go!
   let
     -- Trace helpers. These always trace to stderr, even when running `hledger ui`;
     -- that's ok as conf is a hledger cli feature for now.
@@ -213,8 +213,9 @@ main = withGhcDebug' $ do
   addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
 
   ---------------------------------------------------------------
-  -- Preliminary command line parsing.
+  -- 1. Preliminary command line parsing.
 
+  dbgIO "\n1. Preliminary command line parsing" ()
   -- Do some argument preprocessing to help cmdargs
   cliargs <- getArgs
     >>= expandArgsAt         -- interpolate @ARGFILEs
@@ -235,11 +236,11 @@ main = withGhcDebug' $ do
   -- If no command was provided, or if the command line contains a bad flag
   -- or a wrongly present/missing flag argument, cmd will be "".
   let
-    rawopts0 = cmdargsParse
-      "to get command name"
+    rawopts1 = cmdargsParse
+      "for command name"
       (mainmode addons)
       cliargswithcmdfirstwithoutclispecific
-    cmd = stringopt "command" rawopts0
+    cmd = stringopt "command" rawopts1
       -- XXX better error message when cmdargs fails (eg spaced/quoted/malformed flag values) ?
     nocmdprovided  = null clicmdarg
     badcmdprovided = null cmd && not nocmdprovided
@@ -254,18 +255,19 @@ main = withGhcDebug' $ do
   dbgIO "is addon command" isaddoncmd
 
   ---------------------------------------------------------------
-  -- Read extra options from a config file.
+  -- 2. Read extra options from a config file.
 
+  dbgIO "\n2. Read options from a config file" ()
   -- Identify any --conf/--no-conf options.
-  -- For this parse with cmdargs again, this time with just the args that look conf-related.
+  -- For this parse with cmdargs a second time, this time with just the args that look conf-related.
   let cliconfargs = dropUnsupportedOpts confflagsmode cliargswithoutcmd
   dbgIO "cli args without command" cliargswithoutcmd
   -- dbgIO "cli conf args" cliconfargs
-  let rawopts1 = cmdargsParse "to get conf file" confflagsmode cliconfargs
+  let rawopts2 = cmdargsParse "for conf options" confflagsmode cliconfargs
 
   -- Read extra general and command-specific args/opts from the config file if found.
   -- Ignore any general opts or cli-specific opts not known to be supported by the command.
-  (conf, mconffile) <- getConf rawopts1
+  (conf, mconffile) <- getConf rawopts2
   let
     genargsfromconf = confLookup "general" conf
     addoncmdssupportinggenopts = ["ui", "web"]  -- addons known to support hledger general options
@@ -285,52 +287,54 @@ main = withGhcDebug' $ do
     dbgIO1 "using extra command args from config file" cmdargsfromconf
 
   ---------------------------------------------------------------
-  -- Combine cli and config file args and parse with cmdargs.
+  -- 3. Combine cli and config file args and parse with cmdargs a third time.
   -- A bad flag or flag argument will cause the program to exit with an error here.
 
+  dbgIO "\n3. Combine command line and config file args" ()
   let
-    finalargs =  -- (avoid breaking vs code haskell highlighting..)
+    finalargs =
       (if null clicmdarg then [] else [clicmdarg]) <> supportedgenargsfromconf <> cmdargsfromconf <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
-  let rawopts = cmdargsParse "to get options" (mainmode addons) finalargs
+  let rawopts3 = cmdargsParse "for all options" (mainmode addons) finalargs
 
   ---------------------------------------------------------------
-  -- Finally, select an action and run it.
+  -- 4. Finally, select an action and run it.
 
+  dbgIO "\n4. Select an action" ()
   -- We check for the help/doc/version flags first, since they are a high priority.
   -- (A perfectionist might think they should be so high priority that adding -h
   -- to an invalid command line would show help. But cmdargs tends to fail first,
   -- preventing this, and trying to detect them without cmdargs, and always do the
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
-    helpFlag    = boolopt "help"    rawopts
-    tldrFlag    = boolopt "tldr"    rawopts
-    infoFlag    = boolopt "info"    rawopts
-    manFlag     = boolopt "man"     rawopts
-    versionFlag = boolopt "version" rawopts
+    helpFlag    = boolopt "help"    rawopts3
+    tldrFlag    = boolopt "tldr"    rawopts3
+    infoFlag    = boolopt "info"    rawopts3
+    manFlag     = boolopt "man"     rawopts3
+    versionFlag = boolopt "version" rawopts3
 
   if
-    -- no command and a help/doc flag found - show general help/docs
+    -- 4.1. no command and a help/doc flag found - show general help/docs
     | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
 
-    -- --version flag found and none of these other conditions - show version
+    -- 4.2. --version flag found and none of these other conditions - show version
     | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
 
-    -- there's a command argument, but it's bad - show error
+    -- 4.3. there's a command argument, but it's bad - show error
     | badcmdprovided -> error' $ "command "++clicmdarg++" is not recognized, run with no command to see a list"
 
-    -- no command found, nothing else to do - show the commands list
+    -- 4.4. no command found, nothing else to do - show the commands list
     | nocmdprovided -> dbgIO "" "no command, showing commands list" >> printCommandsList prognameandversion addons
 
-    -- builtin command found
+    -- 4.5. builtin command found
     | Just (cmdmode, cmdaction) <- mcmdmodeaction -> do
 
       -- validate opts/args more and convert to CliOpts
-      opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
+      opts <- rawOptsToCliOpts rawopts3 >>= \opts0 -> return opts0{progstarttime_=starttime}
       dbgIO2 "processed opts" opts
       dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
       dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
@@ -359,7 +363,7 @@ main = withGhcDebug' $ do
         -- all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
 
-    -- external addon command found - run it,
+    -- 4.6. external addon command found - run it,
     -- passing any cli arguments written after the command name
     -- and any command-specific opts from the config file.
     -- Any "--" arguments, which sometimes must be used in the command line
@@ -382,13 +386,13 @@ main = withGhcDebug' $ do
     -- deprecated command found
     -- cmd == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
 
-    -- something else (shouldn't happen) - show an error 
+    -- 4.7. something else (shouldn't happen) - show an error
     | otherwise -> usageError $
         "could not understand the arguments "++show finalargs
         <> if null genargsfromconf then "" else "\ngeneral arguments added from config file: "++show genargsfromconf
         <> if null cmdargsfromconf then "" else "\ncommand arguments added from config file: "++show cmdargsfromconf
 
-  -- And we're done.
+  -- 5. And we're done.
   -- Give ghc-debug a final chance to take control.
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
@@ -405,8 +409,8 @@ argsToCliOpts args addons = do
   let
     (_, _, args0) = moveFlagsAfterCommand args
     args1 = replaceNumericFlags args0
-    rawopts = cmdargsParse "to get options" (mainmode addons) args1
-  rawOptsToCliOpts rawopts
+    rawopts3 = cmdargsParse "for options" (mainmode addons) args1
+  rawOptsToCliOpts rawopts3
 
 -- | Parse the given command line arguments/options with the given cmdargs mode,
 -- after adding values to any valueless --debug flags,
