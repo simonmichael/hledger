@@ -250,6 +250,9 @@ module Hledger.Cli.Commands.Balance (
  ,balanceReportAsCsv
  ,balanceReportAsSpreadsheet
  ,balanceReportItemAsText
+ ,budgetReportAsText
+ ,budgetReportAsCsv
+ ,budgetReportAsSpreadsheet
  ,multiBalanceRowAsCellBuilders
  ,multiBalanceRowAsCsvText
  ,multiBalanceRowAsText
