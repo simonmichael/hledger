@@ -498,12 +498,12 @@ moveFlagsAfterCommand args =
       case isMovableFlagArg a (Just b) of
         2 -> traceOrLogAt lvl ("moving 2: "<>a<>" "<>b) $ moveFlagAndVal (cs, moved++[a,b])
         1 -> traceOrLogAt lvl ("moving 1: "<>a) $ moveFlagAndVal (b:cs, moved++[a])
-        _ -> traceOrLogAt lvl ("found unmovable: "<>a) (a:b:cs, moved)
+        _ -> (a:b:cs, moved)
     moveFlagAndVal ([a], moved) =
       case isMovableFlagArg a Nothing of
         1 -> traceOrLogAt lvl ("moving 1: "<>a) ([], moved++[a])
-        _ -> traceOrLogAt lvl ("found unmovable: "<>a) ([a], moved)
-    moveFlagAndVal ([], moved) = ptraceOrLogAt lvl "moved all" ([], moved)
+        _ -> ([a], moved)
+    moveFlagAndVal ([], moved) = ([], moved)
     lvl = 8
 
 -- Is this a short or long flag argument that should be moved,
