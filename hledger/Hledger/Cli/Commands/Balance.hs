@@ -500,9 +500,9 @@ balanceReportAsText opts ((items, total)) = case layout_ opts of
 
 -- | Render a single-column balance report as plain text with a separate commodity column (--layout=bare)
 bareLayoutBalanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
-bareLayoutBalanceReportAsText opts ((items, total)) =
+bareLayoutBalanceReportAsText opts (items, total) =
   unlinesB .
-  map 
+  map
     (renderColumns def{tableBorders=singleColumnTableOuterBorder} sizes .
      Group singleColumnTableInterColumnBorder . map Header) $
   ls ++ concat [[[overline], totalline] | not (no_total_ opts)]
@@ -542,7 +542,7 @@ balanceReportItemAsText opts (_, accountName, dep, amt) =
   renderBalanceReportItem opts (accountName, dep, amt)
 
 -- | Render a balance report item, using the StringFormat specified by --format.
--- 
+--
 renderBalanceReportItem :: ReportOpts -> (AccountName, Int, MixedAmount) -> (TB.Builder, [Int])
 renderBalanceReportItem opts (acctname, dep, total) =
   case format_ opts of
@@ -1054,7 +1054,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
     addtotalrow
       | no_total_ = id
       | otherwise =
-        let 
+        let
           rowhdrs = Group NoLine $ map Header $ totalRowHeadingBudgetText : replicate (length totalrows - 1) ""
           colhdrs = Header [] -- ignored by concatTables
         in
@@ -1152,7 +1152,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
             showntotrow :: [[(WideBuilder, BudgetDisplayRow)]]
             showntotrow = [showrow False $ rowToBudgetCells totrow]
 
-        -- | Get the data cells from a row or totals row, maybe adding 
+        -- | Get the data cells from a row or totals row, maybe adding
         -- the row total and/or row average depending on options.
         rowToBudgetCells :: PeriodicReportRow a BudgetCell -> [BudgetCell]
         rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
