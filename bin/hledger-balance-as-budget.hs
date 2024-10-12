@@ -10,7 +10,7 @@
 -}
 import Data.Text.Lazy.IO as TL
 import System.Environment (getArgs)
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
@@ -34,13 +34,13 @@ main = do
   args <- getArgs
   let report1args = takeWhile (/= "--") args
   let report2args = drop 1 $ dropWhile (/= "--") args
-  (_,_,report1) <- mbReport report1args
-  (ropts2,j,report2) <- mbReport report2args
+  (opts,_,_,report1) <- mbReport report1args
+  (_,ropts2,j,report2) <- mbReport report2args
   let pastAsBudget = combineBudgetAndActual ropts2 j report1{prDates=prDates report2} report2
-  TL.putStrLn $ budgetReportAsText ropts2 pastAsBudget
+  writeOutputLazyText opts $ budgetReportAsText ropts2 pastAsBudget
   where
     mbReport args = do
       opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args
       d <- getCurrentDay
       (report,j) <- withJournalDo opts $ \j -> return (multiBalanceReport rspec j, j)
-      return (_rsReportOpts rspec,j,report)
+      return (opts, _rsReportOpts rspec,j,report)

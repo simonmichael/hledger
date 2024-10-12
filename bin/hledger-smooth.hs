@@ -24,7 +24,7 @@ import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe
 -- import Hledger
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode

@@ -40,7 +40,7 @@ import Text.Printf
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 
-import Hledger.Cli
+import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
@@ -156,7 +156,7 @@ main = do
       force       = boolopt "force" rawopts
 
       -- parse the AMT arg as a cost-less Amount (any provided cost is ignored)
-      eamt = styleAmount (journalCommodityStyles j) . amountStripCost <$> parseamount amtarg
+      eamt = styleAmounts (journalCommodityStyles j) . amountStripCost <$> parseamount amtarg
       amt = case eamt of
         Left err ->
           error' $ "could not parse " ++ show amtarg ++ " as a hledger amount\n" ++ customErrorBundlePretty err ++ "\n" ++shortusage
