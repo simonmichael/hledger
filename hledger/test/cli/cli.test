@@ -146,5 +146,5 @@ $ hledger -f /dev/null --conf nosuchfile --no-conf check
 
 # ** 23. The rightmost --conf/--no-conf option wins, 2.
 $ hledger -f /dev/null --no-conf --conf nosuchfile check
->2 /nosuchfile.*No such file/
+>2 /nosuchfile does not exist/
 >=1

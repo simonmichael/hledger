@@ -12,7 +12,7 @@ module Hledger.Cli.Conf (
 )
 where
 
-import Control.Monad (void, forM)
+import Control.Monad (void, forM, when)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
 import qualified Data.Map as M
@@ -110,6 +110,10 @@ getConf rawopts = do
 -- | Read this config file and parse its contents, or raise an error.
 readConfFile :: FilePath -> IO (Conf, Maybe FilePath)
 readConfFile f = do
+  -- avoid GHC 9.10.1's ugly stack trace when calling readFile on a nonexistent file
+  exists <- doesFileExist f
+  when (not exists) $ error' $ f <> " does not exist"
+
   ecs <- readFile f <&> parseConf f . T.pack
   case ecs of
     Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
