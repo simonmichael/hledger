@@ -93,17 +93,19 @@ confLookup cmd Conf{confSections} =
 -- Otherwise this returns the parsed Conf, and the file path.
 getConf :: RawOpts -> IO (Conf, Maybe FilePath)
 getConf rawopts = do
-  defconfpaths <- defaultConfFilePaths
-  defconffiles <- fmap catMaybes $ forM defconfpaths $ \f -> do
-    exists <- doesFileExist f
-    return $ if exists then Just f else Nothing
-  case (confFileSpecFromRawOpts rawopts, defconffiles) of
-    -- As in Cli.hs, conf debug output always goes to stderr;
-    -- that's ok as conf is a hledger cli feature for now.
-    (SomeConfFile f,   _) -> getCurrentDirectory >>= flip expandPath f >>= readConfFile
-    (NoConfFile, _)       -> return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
-    (AutoConfFile,f:_)    -> dbg8IO "found config files" defconffiles >> dbg1IO "using config file" f >> readConfFile f
-    (AutoConfFile,[] )    -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
+  -- As in Cli.hs, conf debug output always goes to stderr;
+  -- that's ok as conf is a hledger cli feature for now.
+  case confFileSpecFromRawOpts rawopts of
+    NoConfFile     -> return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
+    SomeConfFile f -> getCurrentDirectory >>= flip expandPath f >>= readConfFile . dbg1 "using specified config file"
+    AutoConfFile   -> do
+      defconfpaths <- defaultConfFilePaths
+      conffiles <- fmap catMaybes $ forM defconfpaths $ \f -> do
+        exists <- doesFileExist f
+        return $ if exists then Just f else Nothing
+      case conffiles of
+        f:_ -> dbg8IO "found config files" conffiles >> dbg1IO "using config file" f >> readConfFile f
+        []  -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
 
 -- | Read this config file and parse its contents, or raise an error.
 readConfFile :: FilePath -> IO (Conf, Maybe FilePath)
