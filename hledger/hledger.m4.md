@@ -694,34 +694,42 @@ It is a good format to use if you are exporting to their spreadsheet app.
 This is [Beancount's journal format][beancount journal].
 You can use this to export your hledger data to [Beancount],
 perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
+hledger will try to adjust your data to suit Beancount.
+If you plan to export often, you may want to follow Beancount's conventions in your hledger data,
+to ease conversion. Eg use Beancount-friendly account names, currency codes instead of currency symbols,
+and avoid virtual postings, redundant cost notation, etc.
+
+Here are more details, included here for now
+(see also "hledger and Beancount" <https://hledger.org/beancount.html>).
 
 #### Beancount account names
 
-hledger will try adjust your account names to the more restricted
-[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts), by
-capitalising, replacing unsupported characters with `-`, and/or
+hledger will try adjust your account names, if needed, to
+[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts),
+by capitalising, replacing unsupported characters with `-`, and
 prepending `B` to parts which don't begin with a letter or digit.
+(It's possible for this to convert distinct hledger account names to the same beancount name.
+Eg, hledger's automatic equity conversion accounts can have currency symbols in their name,
+so `equity:conversion:$-€` becomes `equity:conversion:B---`.)
 
-But you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`.
-If yours are not, you can use [account aliases](#alias-directive), usually in the form of `--alias` options,
-possibly stored in a [config file](#config-file).
-(Example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
+In addition, you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`,
+which Beancount requires.
+If yours are named differently, you can use [account aliases](#alias-directive),
+usually in the form of `--alias` options, possibly stored in a [config file](#config-file).
+(An example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
 
 #### Beancount commodity names
 
-[Beancount commodity/currency names](https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies)
-also are more restricted: they must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`,
+hledger will adjust your commodity names, if needed, to
+[Beancount commodity/currency names](https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies),
+which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`,
 beginning with a letter and ending with a letter or digit.
-
-Currently hledger helps only a little with this:
-if you are using currency symbols `$`, `€`, `£` or `¥`, these will be converted
-to the equivalent [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217#Active_codes) currency codes.
-
-Other symbols, or other commodity names not valid for Beancount, must be adjusted by you,
-either permanently in your journal, or in a temporary copy used just for export.
-
-Amounts with no currency symbol will also not work for Beancount.
-If you want to keep using those, the [`D` directive](#d-directive) is one way to add a temporary commodity symbol.
+hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes).
+Otherwise, it will capitalise letters,
+replace unsupported characters with a dash (-),
+and prepend/append a "B" when needed.
+(It's possible for this to generate unreadable commodity names,
+or to convert distinct hledger commodity names to the same beancount name.)
 
 #### Beancount virtual postings
 
@@ -729,6 +737,11 @@ Beancount doesn't allow [unbalanced/virtual postings](#virtual-postings),
 so you will need to comment those,
 or use `--real` to exclude transactions that use them.
 (If you have transactions which are a mixture of balanced and unbalanced postings, you'll have to do something more.)
+
+#### Beancount costs
+
+Beancount doesn't allow [redundant cost notation](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings)
+as hledger does. If you have entries like this, you may need to comment out either the costs or the equity postings.
 
 [Beancount]: https://beancount.github.io
 [beancount journal]: https://beancount.github.io/docs/beancount_language_syntax.html

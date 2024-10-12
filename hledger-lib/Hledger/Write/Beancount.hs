@@ -32,9 +32,11 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Currency (currencySymbolToCode)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Posting (renderCommentLines, showBalanceAssertion, postingIndent)
 import Hledger.Data.Transaction (payeeAndNoteFromDescription')
+import Data.Function ((&))
 
 --- ** doctest setup
 -- $setup
@@ -135,10 +137,10 @@ type BeancountAccountName = AccountName
 type BeancountAccountNameComponent = AccountName
 
 -- | Convert a hledger account name to a valid Beancount account name.
--- It replaces non-supported characters with @-@ (warning: in extreme cases
--- separate accounts could end up with the same name), it prepends the letter B
--- to any part which doesn't begin with a letter or number, and it capitalises
--- each part. It also checks that the first part is one of the required english
+-- It replaces non-supported characters with a dash, it prepends the letter B
+-- to any part which doesn't begin with a letter or number, and it capitalises each part.
+-- It's possible this could generate the same beancount name for distinct hledger account names.
+-- It also checks that the first part is one of the required english
 -- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
 -- it raises an informative error suggesting --alias.
 -- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#accounts
@@ -198,24 +200,75 @@ beancountTopLevelAccounts = ["Assets", "Liabilities", "Equity", "Income", "Expen
 type BeancountAmount = Amount
 
 -- | Do some best effort adjustments to make an amount that renders
--- in a way that Beancount can read: forces the commodity symbol to the right,
--- converts a few currency symbols to names, capitalises all letters.
+-- in a way that Beancount can read: force the commodity symbol to the right,
+-- capitalise all letters, convert a few currency symbols to codes.
 amountToBeancount :: Amount -> BeancountAmount
 amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', astyle=s', acost=mp'}
-  -- https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
   where
-    c' = T.toUpper $
-      T.replace "$" "USD" $
-      T.replace "€" "EUR" $
-      T.replace "¥" "JPY" $
-      T.replace "£" "GBP" $
-      c
+    c' = commodityToBeancount c
     s' = s{ascommodityside=R, ascommodityspaced=True}
     mp' = costToBeancount <$> mp
       where
         costToBeancount (TotalCost amt) = TotalCost $ amountToBeancount amt
         costToBeancount (UnitCost  amt) = UnitCost  $ amountToBeancount amt
 
+type BeancountCommoditySymbol = CommoditySymbol
+
+-- | Convert a hledger commodity name to a valid Beancount commodity name.
+-- That is: 2-24 uppercase letters / digits / apostrophe / period / underscore / dash,
+-- starting with a letter, and ending with a letter or digit.
+-- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
+-- So this: removes any enclosing double quotes,
+-- replaces some common currency symbols with currency codes,
+-- capitalises all letters,
+-- replaces any invalid characters with a dash (-),
+-- prepends a B if the first character is not a letter,
+-- and appends a B if the last character is not a letter or digit.
+-- It's possible this could generate unreadable commodity names,
+-- or the same beancount name for distinct hledger commodity names.
+--
+-- >>> commodityToBeancount ""
+-- "B"
+-- >>> commodityToBeancount "$"
+-- "USD"
+-- >>> commodityToBeancount "Usd"
+-- "USD"
+-- >>> commodityToBeancount "\"a1\""
+-- "A1"
+-- >>> commodityToBeancount "\"A 1!\""
+-- "A-1-B"
+--
+commodityToBeancount :: CommoditySymbol -> BeancountCommoditySymbol
+commodityToBeancount com =
+  dbg9 "beancount commodity name" $
+  let com' = stripquotes com
+  in case currencySymbolToCode com' of
+    Just code -> code
+    Nothing ->
+      com'
+      & T.toUpper
+      & T.map (\d -> if isBeancountCommodityChar d then d else '-')
+      & fixstart
+      & fixend
+  where
+    fixstart bcom = case T.uncons bcom of
+      Just (c,_) | isBeancountCommodityStartChar c -> bcom
+      _ -> "B" <> bcom
+    fixend bcom = case T.unsnoc bcom of
+      Just (_,c) | isBeancountCommodityEndChar c -> bcom
+      _ -> bcom <> "B"
+
+-- | Is this a valid character in the middle of a Beancount commodity name (a capital letter, digit, or '._-) ?
+isBeancountCommodityChar :: Char -> Bool
+isBeancountCommodityChar c = (isLetter c && isUpperCase c) || isDigit c || c `elem` ['\'', '.', '_', '-']
+
+-- | Is this a valid character to start a Beancount commodity name (a capital letter) ?
+isBeancountCommodityStartChar :: Char -> Bool
+isBeancountCommodityStartChar c = isLetter c && isUpperCase c
+
+-- | Is this a valid character to end a Beancount commodity name (a capital letter or digit) ?
+isBeancountCommodityEndChar :: Char -> Bool
+isBeancountCommodityEndChar c = (isLetter c && isUpperCase c) || isDigit c
 
 --- ** tests
 
