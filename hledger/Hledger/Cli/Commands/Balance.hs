@@ -587,15 +587,8 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 
-headerCell :: Text -> Ods.Cell Ods.NumLines Text
-headerCell text =
-    let deflt = Ods.defaultCell text
-    in
-    deflt {
-        Ods.cellStyle = Ods.Head,
-        Ods.cellBorder =
-            (Ods.cellBorder deflt) {Ods.borderBottom = Ods.DoubleLine}
-    }
+headerCell :: (Ods.Lines borders) => Text -> Ods.Cell borders Text
+headerCell text = (Ods.defaultCell text) {Ods.cellStyle = Ods.Head}
 
 registerQueryUrl :: [Text] -> Text
 registerQueryUrl query =
@@ -637,12 +630,17 @@ replaceDate :: Text -> [Text] -> [Text]
 replaceDate prd query = "date:"<>prd : removeDates query
 
 headerDateSpanCell ::
-    Maybe Text -> [Text] -> DateSpan -> Ods.Cell Ods.NumLines Text
+    Maybe Text -> [Text] -> DateSpan -> Ods.Cell () Text
 headerDateSpanCell base query spn =
     let prd = showDateSpan spn in
     (headerCell prd) {
         Ods.cellAnchor = composeAnchor base $ replaceDate prd query
     }
+
+addHeaderBorders :: [Ods.Cell () text] -> [Ods.Cell Ods.NumLines text]
+addHeaderBorders =
+    map (\c -> c {Ods.cellBorder =
+                        Ods.noBorder {Ods.borderBottom = Ods.DoubleLine}})
 
 simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
 simpleDateSpanCell = Ods.defaultCell . showDateSpan
@@ -701,7 +699,7 @@ balanceReportAsSpreadsheet opts (items, total) =
   where
     cell = Ods.defaultCell
     headers =
-      map headerCell $
+      addHeaderBorders $ map headerCell $
       "account" : case layout_ opts of
         LayoutBare -> ["commodity", "balance"]
         _          -> ["balance"]
@@ -794,6 +792,7 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
         (Ods.defaultCell label) {Ods.cellClass = Ods.Class "account"}
     hCell cls label = (headerCell label) {Ods.cellClass = Ods.Class cls}
     headers =
+      addHeaderBorders $
       hCell "account" "account" :
       case layout_ of
       LayoutTidy ->
@@ -1259,7 +1258,7 @@ budgetReportAsSpreadsheet
   = (if transpose_ then Ods.transpose else id) $
 
   -- heading row
-  (map headerCell $
+  (addHeaderBorders $ map headerCell $
   "Account" :
   ["Commodity" | layout_ == LayoutBare ]
    ++ concatMap (\spn -> [showDateSpan spn, "budget"]) colspans
