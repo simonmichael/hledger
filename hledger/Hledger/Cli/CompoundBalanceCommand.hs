@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE LambdaCase #-}
@@ -15,9 +14,7 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
-#if !MIN_VERSION_base(4,20,0)
-import Data.List (foldl')
-#endif
+import qualified Data.List as List
 import Data.Maybe (fromMaybe, mapMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -260,7 +257,7 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
     bigtable =
       case map (subreportAsTable ropts) subreports of
         []   -> Tabular.empty
-        r:rs -> foldl' (concatTables tableInterSubreportBorder) r rs
+        r:rs -> List.foldl' (concatTables tableInterSubreportBorder) r rs
     bigtablewithtotalsrow =
       if no_total_ ropts || length subreports == 1
       then bigtable
