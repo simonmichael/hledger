@@ -265,7 +265,6 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsSpreadsheetParts
  ,multiBalanceHasTotalsColumn
  ,addTotalBorders
- ,addRowSpanHeader
  ,simpleDateSpanCell
  ,RowClass(..)
   -- ** Tests
@@ -307,6 +306,7 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Spreadsheet (rawTableContent, addRowSpanHeader, headerCell)
 import qualified Hledger.Write.Spreadsheet as Ods
 
 
@@ -587,9 +587,6 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 
-headerCell :: (Ods.Lines borders) => Text -> Ods.Cell borders Text
-headerCell text = (Ods.defaultCell text) {Ods.cellStyle = Ods.Head}
-
 registerQueryUrl :: [Text] -> Text
 registerQueryUrl query =
     Uri.render $
@@ -663,22 +660,6 @@ addTotalBorders =
                     Ods.cellStyle = Ods.Body Ods.Total,
                     Ods.cellBorder = Ods.noBorder {Ods.borderTop = border}}))
         (Ods.DoubleLine : repeat Ods.NoLine)
-
-rawTableContent :: [[Ods.Cell border text]] -> [[text]]
-rawTableContent = map (map Ods.cellContent)
-
-addRowSpanHeader ::
-    Ods.Cell border text ->
-    [[Ods.Cell border text]] -> [[Ods.Cell border text]]
-addRowSpanHeader header rows =
-    case rows of
-        [] -> []
-        [row] -> [header:row]
-        _ ->
-            zipWith (:)
-                (header{Ods.cellSpan = Ods.SpanVertical (length rows)} :
-                 repeat header{Ods.cellSpan = Ods.Covered})
-                rows
 
 setAccountAnchor ::
     Maybe Text -> [Text] -> Text -> Ods.Cell border text -> Ods.Cell border text
