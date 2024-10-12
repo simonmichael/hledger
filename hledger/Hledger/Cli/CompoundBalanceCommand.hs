@@ -14,19 +14,24 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
+import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Bifunctor (second)
+import qualified Data.Map as Map
 import qualified Data.List as List
-import Data.Maybe (fromMaybe, mapMaybe)
+import qualified Data.List.NonEmpty as NonEmpty
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
+import qualified System.IO as IO
+import Hledger.Write.Ods (printFods)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft, alignright)
-import qualified Hledger.Write.Html.Lucid as Html
+import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
-import Safe (tailDef)
 import Text.Tabular.AsciiWide as Tabular hiding (render)
 
 import Hledger
@@ -197,6 +202,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
       "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
       "tsv"  -> printTSV . compoundBalanceReportAsCsv ropts'
       "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
+      "fods" -> printFods IO.localeEncoding .
+                fmap (second NonEmpty.toList) . uncurry Map.singleton .
+                compoundBalanceReportAsSpreadsheet
+                    oneLineNoCostFmt "Account" (Just "") ropts'
       "json" -> toJsonText
       x      -> error' $ unsupportedOutputFormatError x
 
@@ -302,99 +311,85 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
 compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
-compoundBalanceReportAsCsv ropts (CompoundPeriodicReport title colspans subreports totalrow) =
-    addtotals $
-      padRow title
-      : ( "Account"
-        : ["Commodity" | layout_ ropts == LayoutBare]
-        ++ map (reportPeriodName (balanceaccum_ ropts) colspans) colspans
-        ++ (if multiBalanceHasTotalsColumn ropts then ["Total"] else [])
-        ++ (if average_ ropts then ["Average"] else [])
-        )
-      : concatMap (subreportAsCsv ropts) subreports
-  where
-    -- | Add a subreport title row and drop the heading row.
-    subreportAsCsv ropts1 (subreporttitle, multibalreport, _) =
-      padRow subreporttitle :
-      tailDef [] (multiBalanceReportAsCsv ropts1 multibalreport)
-    padRow s = take numcols $ s : repeat ""
-      where
-        numcols
-          | null subreports = 1
-          | otherwise =
-            (1 +) $ -- account name column
-            (if layout_ ropts == LayoutBare then (1+) else id) $
-            (if multiBalanceHasTotalsColumn ropts then (1+) else id) $
-            (if average_ ropts then (1+) else id) $
-            maximum $ -- depends on non-null subreports
-            map (length . prDates . second3) subreports
-    addtotals
-      | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ map ("Net:" : ) (multiBalanceRowAsCsvText ropts colspans totalrow))
+compoundBalanceReportAsCsv ropts cbr =
+    let spreadsheet =
+            snd $ snd $
+            compoundBalanceReportAsSpreadsheet
+                machineFmt "Account" Nothing ropts cbr
+    in  Spr.rawTableContent $
+        Spr.horizontalSpan (NonEmpty.head spreadsheet)
+           (Spr.headerCell (cbrTitle cbr)) :
+        NonEmpty.toList spreadsheet
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
 compoundBalanceReportAsHtml ropts cbr =
+  let (title, (_fixed, cells)) =
+          compoundBalanceReportAsSpreadsheet
+              oneLineNoCostFmt "" (Just nbsp) ropts cbr
+      colspanattr = colspan_ $ T.pack $ show $ length $ NonEmpty.head cells
+  in do
+    link_ [rel_ "stylesheet", href_ "hledger.css"]
+    style_ $ stylesheet $
+      tableStyle ++ [
+      ("td:nth-child(1)", "white-space:nowrap"),
+      ("tr:nth-child(odd) td", "background-color:#eee")
+      ]
+    table_ $ do
+      tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
+      printHtml $ NonEmpty.toList $ fmap (map (fmap L.toHtml)) cells
+
+-- | Render a compound balance report as Spreadsheet.
+compoundBalanceReportAsSpreadsheet ::
+  AmountFormat -> T.Text -> Maybe T.Text ->
+  ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount ->
+  (T.Text, ((Maybe Int, Maybe Int), NonEmpty [Spr.Cell Spr.NumLines T.Text]))
+compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports totalrow = cbr
     headerrow =
-      th_ "" :
-      (guard (layout_ ropts == LayoutBare) >> [th_ "Commodity"]) ++
-      map (th_ [style_ alignright] . toHtml .
-           reportPeriodName (balanceaccum_ ropts) colspans)
+      Spr.headerCell accountLabel :
+      (guard (layout_ ropts == LayoutBare) >> [Spr.headerCell "Commodity"]) ++
+      map (Spr.headerCell . reportPeriodName (balanceaccum_ ropts) colspans)
         colspans ++
-      (guard (multiBalanceHasTotalsColumn ropts) >> [th_ "Total"]) ++
-      (guard (average_   ropts) >> [th_ "Average"])
+      (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
+      (guard (average_   ropts) >> [Spr.headerCell "Average"])
 
-    colspanattr = colspan_ $ T.pack $ show $ length headerrow
-    leftattr = style_ alignleft
-    blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
-
-    titlerows =
-      [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title
-      ,tr_ $ mconcat headerrow
-      ]
+    blankrow =
+      fmap (Spr.horizontalSpan headerrow . Spr.defaultCell) maybeBlank
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
-    subreportrows :: (T.Text, MultiBalanceReport, Bool) -> [Html ()]
+    subreportrows ::
+      (T.Text, MultiBalanceReport, Bool) -> [[Spr.Cell Spr.NumLines T.Text]]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
-        -- TODO: should the commodity_column be displayed as a subaccount in this case as well?
         (_, bodyrows, mtotalsrows) =
-          multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
-        formatRow = Html.formatRow . map (fmap L.toHtml)
+          multiBalanceReportAsSpreadsheetParts fmt ropts mbr
 
       in
-           [tr_ $ th_ [colspanattr, leftattr, class_ "account"] $ toHtml subreporttitle]
-        ++ map formatRow bodyrows
-        ++ map formatRow mtotalsrows
-        ++ [blankrow]
+        Spr.horizontalSpan headerrow
+            ((Spr.defaultCell subreporttitle){
+                Spr.cellStyle = Spr.Body Spr.Total,
+                Spr.cellClass = Spr.Class "account"
+            }) :
+        bodyrows ++
+        mtotalsrows ++
+        maybeToList blankrow ++
+        []
 
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
       else
-        multiBalanceRowAsCellBuilders oneLineNoCostFmt ropts colspans
+        multiBalanceRowAsCellBuilders fmt ropts colspans
             Total simpleDateSpanCell totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
         & Spr.addRowSpanHeader
             ((Spr.defaultCell "Net:") {Spr.cellClass = Spr.Class "account"})
                              -- insert a headings column, with Net: on the first line only
-        & addTotalBorders    -- marking the first for special styling
-        & map (Html.formatRow . map (fmap L.toHtml))
-                             -- convert to a list of HTML totals rows
+        & addTotalBorders    -- marking the first row for special styling
 
-  in do
-    link_ [rel_ "stylesheet", href_ "hledger.css"]
-    style_ $ stylesheet $
-      tableStyle ++ [
-      ("td:nth-child(1)", "white-space:nowrap"),
-      ("tr:nth-child(even) td", "background-color:#eee")
-      ]
-    table_ $ mconcat $
-         titlerows
-      ++ [blankrow]
-      ++ concatMap subreportrows subreports
-      ++ totalrows
-
+  in  (title,
+        ((Just 1, Just 1),
+            headerrow :| concatMap subreportrows subreports ++ totalrows))
