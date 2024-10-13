@@ -533,7 +533,8 @@ in a more featureful hledger config file. Here's a small example:
 ```
 
 To use a config file, specify it with the `--conf` option.
-Its options will be inserted near the start of your command line (so you can override them if needed).
+Its options will be inserted near the start of your command line,
+so you can override them with command line options if needed.
 
 Or, you can set up an automatic config file that is used whenever you run hledger,
 by creating `hledger.conf` in the current directory or above,
@@ -544,7 +545,9 @@ Here is another example config you could start with:
 <https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample>
 
 You can put not only options, but also arguments in a config file.
-This is probably more useful in special-purpose config files, not an automatic one.
+If the first word in a config file's top (general) section does not begin with a dash
+(eg: `print`), it is treated as the command argument
+(overriding any argument on the command line).
 
 On unix machines, you can add a shebang line at the top of a config file, set executable permission on the file, and use it like a script.
 Eg (the `-S` is needed on some operating systems):
