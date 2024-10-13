@@ -524,11 +524,10 @@ With hledger 1.40+, you can save extra command line options and arguments
 in a more featureful hledger config file. Here's a small example:
 
 ```conf
-# General options are listed first, one or more per line.
-# These will be used with all hledger commands that support them.
+# General options are listed first, and used with hledger commands that support them.
 --pretty
 
-# Options following a `[COMMANDNAME]` heading are used with that hledger command only.
+# Options following a `[COMMAND]` heading are used with that hledger command only.
 [print]
 --explicit --show-costs
 ```
@@ -536,38 +535,50 @@ in a more featureful hledger config file. Here's a small example:
 To use a config file, specify it with the `--conf` option.
 Its options will be inserted near the start of your command line (so you can override them if needed).
 
-Or, you can set up an automatic config file that is used whenever you run hledger.
-This can be `hledger.conf` in the current directory or above,
+Or, you can set up an automatic config file that is used whenever you run hledger,
+by creating `hledger.conf` in the current directory or above,
 or `.hledger.conf` in your home directory (`~/.hledger.conf`),
 or `hledger.conf` in your XDG config directory (`~/.config/hledger/hledger.conf`).
 
-You can ignore config files by adding the `-n/--no-conf` flag.
-This is useful when using hledger in scripts, or when troubleshooting.
-(When both `--conf` and `--no-conf` options are used, the right-most wins.)
-To inspect the processing of config files, use `--debug` or `--debug=8`.
-
-Here is another example config file you could start with:
+Here is another example config you could start with:
 <https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample>
 
-Tips:
-
-Automatic config files are convenient, but have a cost: it's easy to change a report's behaviour,
-or break scripts/applications which use hledger, in unintended ways that will surprise you later.
-They change the nature of hledger somewhat, making it less transparent and predictable.
-If you decide to use one:
-
-- Be conservative about what you put in it. Try to consider the effect on all your reports.
-- Whenever a hledger command does not work as expected, try it again with `-n`.
-- If that helps, you can run it with `--debug` to see how a config file affected it.
+You can put not only options, but also arguments in a config file.
+This is probably more useful in special-purpose config files, not an automatic one.
 
 On unix machines, you can add a shebang line at the top of a config file, set executable permission on the file, and use it like a script.
-Eg (some operating systems need the `-S`, some don't):
+Eg (the `-S` is needed on some operating systems):
 ```
 #!/usr/bin/env -S hledger --conf
 ```
 
-You can put not only options, but also arguments in a config file.
-This is probably more useful in special-purpose config files, not an automatic one.
+You can ignore config files by adding the `-n`/`--no-conf` flag to the command line.
+This is useful when using hledger in scripts, or when troubleshooting.
+When both `--conf` and `--no-conf` options are used, the right-most wins.
+
+To inspect the processing of config files, use `--debug` or `--debug=8`.
+
+**Warning!**
+
+There aren't many hledger features that need a warning, but this is one!
+
+Automatic config files, while convenient, also make hledger less predictable and dependable.
+It's easy to make a config file that changes a report's behaviour,
+or breaks your hledger-using scripts/applications,
+in ways that will surprise you later.
+
+If you don't want this,
+
+1. Just don't create a hledger.conf file on your machine.
+2. Also be alert to downloaded directories which may contain a hledger.conf file.
+3. Also if you are sharing scripts or examples or support, consider that others may have a hledger.conf file.
+
+Conversely, once you decide to use this feature, try to remember:
+
+1. Whenever a hledger command does not work as expected, try it again with `-n` (`--no-conf`) to see if a config file was to blame.
+2. Whenever you call hledger from a script, consider whether that call should use `-n` or not.
+3. Be conservative about what you put in your config file; try to consider the effect on all your reports.
+4. To troubleshoot the effect of config files, run with `--debug` or `--debug 8`.
 
 The config file feature was added in hledger 1.40 and is considered *experimental*.
 
