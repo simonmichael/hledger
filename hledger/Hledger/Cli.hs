@@ -313,7 +313,7 @@ main = withGhcDebug' $ do
 
   let
     finalargs =
-      [cmdarg | not $ null cmdarg] <>  supportedgenargsfromconf <> confcmdargs <> cliargswithoutcmd
+      [cmdarg | not $ null cmdarg] <> supportedgenargsfromconf <> confcmdargs <> [clicmdarg | not $ null confcmdarg] <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
   dbgIO1 "final args" finalargs
