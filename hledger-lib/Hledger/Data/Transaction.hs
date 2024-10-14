@@ -85,6 +85,7 @@ nulltransaction :: Transaction
 nulltransaction = Transaction {
                     tindex=0,
                     tsourcepos=nullsourcepos,
+                    tdatetime=Nothing,
                     tdate=nulldate,
                     tdate2=Nothing,
                     tstatus=Unmarked,
@@ -580,6 +581,7 @@ tests_Transaction =
                    0
                    ""
                    nullsourcepos
+                   Nothing
                    (fromGregorian 2007 01 28)
                    Nothing
                    Unmarked
@@ -604,6 +606,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
+                Nothing
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -627,6 +630,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
+                Nothing
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -643,6 +647,7 @@ tests_Transaction =
                 0
                 ""
                 nullsourcepos
+                Nothing
                 (fromGregorian 2010 01 01)
                 Nothing
                 Unmarked
