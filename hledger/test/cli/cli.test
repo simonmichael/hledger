@@ -154,3 +154,13 @@ $ hledger -f /dev/null --no-conf --conf nosuchfile check
 $ hledger --debug -f /dev/null --conf /dev/null --no-conf >/dev/null
 >2 /ignoring config files/
 
+# ** 25. Having general options in a conf file doesn't break cli command parsing.
+$  echo '--pretty' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null
+
+# ** 26. An initial non-flag general argument in a conf file is used as the command.
+$  echo 'files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+
+# ** 27. A non-flag general argument that's not first in the conf file is note used as the command.
+$  echo '--pretty files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+> /Runtime stats/

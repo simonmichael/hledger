@@ -268,7 +268,7 @@ main = withGhcDebug' $ do
     -- If no command argument was provided, or if cmdargs fails because 
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
-    args = confallgenargs <> cliargswithcmdfirstwithoutclispecific
+    args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) args
     badcmdprovided = null cmdname && not nocmdprovided
     isaddoncmd     = not (null cmdname) && cmdname `elem` addons
