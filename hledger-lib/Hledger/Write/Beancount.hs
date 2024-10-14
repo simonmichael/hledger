@@ -187,9 +187,13 @@ beancountAccountDummyStartChar = 'B'
 
 -- XXX these probably allow too much unicode:
 
+-- https://hackage.haskell.org/package/base-4.20.0.1/docs/Data-Char.html#v:isUpperCase would be more correct,
+-- but isn't available till base 4.18/ghc 9.6. isUpper is close enough in practice.
+isuppercase = isUpper
+
 -- | Is this a valid character to start a Beancount account name part (capital letter or digit) ?
 isBeancountAccountStartChar :: Char -> Bool
-isBeancountAccountStartChar c = (isLetter c && isUpperCase c) || isDigit c
+isBeancountAccountStartChar c = (isLetter c && isuppercase c) || isDigit c
 
 -- | Is this a valid character to appear elsewhere in a Beancount account name part (letter, digit, or -) ?
 isBeancountAccountChar :: Char -> Bool
@@ -260,15 +264,15 @@ commodityToBeancount com =
 
 -- | Is this a valid character in the middle of a Beancount commodity name (a capital letter, digit, or '._-) ?
 isBeancountCommodityChar :: Char -> Bool
-isBeancountCommodityChar c = (isLetter c && isUpperCase c) || isDigit c || c `elem` ['\'', '.', '_', '-']
+isBeancountCommodityChar c = (isLetter c && isuppercase c) || isDigit c || c `elem` ['\'', '.', '_', '-']
 
 -- | Is this a valid character to start a Beancount commodity name (a capital letter) ?
 isBeancountCommodityStartChar :: Char -> Bool
-isBeancountCommodityStartChar c = isLetter c && isUpperCase c
+isBeancountCommodityStartChar c = isLetter c && isuppercase c
 
 -- | Is this a valid character to end a Beancount commodity name (a capital letter or digit) ?
 isBeancountCommodityEndChar :: Char -> Bool
-isBeancountCommodityEndChar c = (isLetter c && isUpperCase c) || isDigit c
+isBeancountCommodityEndChar c = (isLetter c && isuppercase c) || isDigit c
 
 --- ** tests
 
