@@ -485,6 +485,9 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 --   and will be moved - but later rejected by cmdargs.
 --   Instead these should be written to the right of a "--" argument, which hides them.
 --
+-- - XXX Relative order of flags is mostly but not entirely preserved, currently:
+--   pre-command flags get moved to the end, after post-command flags. 
+--
 moveFlagsAfterCommand :: [String] -> (String, [String], [String])
 moveFlagsAfterCommand args =
   case moveFlagAndVal (args, []) of

@@ -104,7 +104,7 @@ getConf rawopts = do
         exists <- doesFileExist f
         return $ if exists then Just f else Nothing
       case conffiles of
-        f:_ -> dbg8IO "found config files" conffiles >> dbg1IO "using config file" f >> readConfFile f
+        f:_ -> dbg8IO "found config files" conffiles >> dbg1IO "using nearest config file" f >> readConfFile f
         []  -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
 
 -- | Read this config file and parse its contents, or raise an error.
@@ -130,7 +130,7 @@ defaultConfFilePaths :: IO [FilePath]
 defaultConfFilePaths = do
   ds   <- confDirs
   home <- getHomeDirectory
-  return $ dbg8 "possible config files" $
+  return $ dbg8 "possible config file paths" $
     flip map ds $ \d -> d </> if d==home then ".hledger.conf" else "hledger.conf"
 
 -- | Get the directories to check for a hledger config file.
