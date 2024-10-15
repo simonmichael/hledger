@@ -413,15 +413,15 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
     _ -> do  -- single period simple balance report
         let report = styleAmounts styles $ balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
-              "txt"  -> \ropts1 -> TB.toLazyText . balanceReportAsText ropts1
-              "csv"  -> \ropts1 -> printCSV . balanceReportAsCsv ropts1
-              "tsv"  -> \ropts1 -> printTSV . balanceReportAsCsv ropts1
-              "html" -> \ropts1 -> (<>"\n") . L.renderText .
-                                   printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts1
-              "json" -> const $ (<>"\n") . toJsonText
-              "fods" -> \ropts1 -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts1
+              "txt"  -> TB.toLazyText . balanceReportAsText ropts
+              "csv"  -> printCSV . balanceReportAsCsv ropts
+              "tsv"  -> printTSV . balanceReportAsCsv ropts
+              "html" -> (<>"\n") . L.renderText .
+                                   printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
+              "json" -> (<>"\n") . toJsonText
+              "fods" -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
-        writeOutputLazyText opts $ render ropts report
+        writeOutputLazyText opts $ render report
   where
     styles = journalCommodityStylesWith HardRounding j
     ropts@ReportOpts{..} = _rsReportOpts rspec
