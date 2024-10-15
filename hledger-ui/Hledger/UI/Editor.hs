@@ -120,6 +120,11 @@ editFileAtPositionCommand mpos f = do
           Nothing -> [f']
           Just ('-' : _, _) -> ["+", f']
           Just (l, _) -> ['+' : l, f']
+        -- arch linux creates a symlink to /usr/lib/helix/hx at /usr/bin/helix
+        e | e `elem` ["hx", "helix"] -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> [f']
+          Just (l, _) -> ['+' : l, f']
         _ -> [f']
   return $ unwords $ cmd:args
 
