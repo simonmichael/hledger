@@ -266,6 +266,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceHasTotalsColumn
  ,addTotalBorders
  ,simpleDateSpanCell
+ ,tidyColumnLabels
  ,nbsp
  ,RowClass(..)
   -- ** Tests
@@ -777,9 +778,7 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
       addHeaderBorders $
       hCell "account" "account" :
       case layout_ of
-      LayoutTidy ->
-          map headerCell
-              ["period", "start_date", "end_date", "commodity", "value"]
+      LayoutTidy -> map headerCell tidyColumnLabels
       LayoutBare -> headerCell "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders =
@@ -801,6 +800,10 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
     rowAsText rc dsCell =
         map (map (fmap wbToText)) .
         multiBalanceRowAsCellBuilders fmt opts colspans rc dsCell
+
+tidyColumnLabels :: [Text]
+tidyColumnLabels =
+    ["period", "start_date", "end_date", "commodity", "value"]
 
 
 -- | Render a multi-column balance report as HTML.
