@@ -347,13 +347,19 @@ compoundBalanceReportAsSpreadsheet ::
 compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports totalrow = cbr
-    headerrow =
+    leadingHeaders =
       Spr.headerCell accountLabel :
-      (guard (layout_ ropts == LayoutBare) >> [Spr.headerCell "Commodity"]) ++
+      case layout_ ropts of
+          LayoutTidy -> map Spr.headerCell tidyColumnLabels
+          LayoutBare -> [Spr.headerCell "Commodity"]
+          _ -> []
+    dataHeaders =
+      (guard (layout_ ropts /= LayoutTidy) >>) $
       map (Spr.headerCell . reportPeriodName (balanceaccum_ ropts) colspans)
         colspans ++
       (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
       (guard (average_   ropts) >> [Spr.headerCell "Average"])
+    headerrow = leadingHeaders ++ dataHeaders
 
     blankrow =
       fmap (Spr.horizontalSpan headerrow . Spr.defaultCell) maybeBlank
