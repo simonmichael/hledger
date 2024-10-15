@@ -232,7 +232,8 @@ builtinTags = [
   ,"_generated-transaction" -- always exists on generated periodic txns
   ,"_generated-posting"     -- always exists on generated auto postings
   ,"_modified"              -- always exists on txns which have had auto postings added
-  ,"_conversion-matched"    -- exists on postings which have been matched with a nearby @/@@ cost notation
+  ,"_conversion-matched"    -- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
+  ,"_cost-matched"          -- marks equity conversion postings which have been matched with a nearby posting with a cost
   ]
 
 -- | In each tranaction, check that any conversion postings occur in adjacent pairs.

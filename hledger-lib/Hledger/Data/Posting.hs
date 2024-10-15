@@ -466,13 +466,13 @@ postingToCost ToCost         p
 -- Make sure not to duplicate them when matching ones exist already.
 postingAddInferredEquityPostings :: Bool -> Text -> Posting -> [Posting]
 postingAddInferredEquityPostings verbosetags equityAcct p
-    | "_price-matched" `elem` map fst (ptags p) = [p]
+    | "_cost-matched" `elem` map fst (ptags p) = [p]
     | otherwise = taggedPosting : concatMap conversionPostings costs
   where
     costs = filter (isJust . acost) . amountsRaw $ pamount p
     taggedPosting
       | null costs = p
-      | otherwise  = p{ ptags = ("_price-matched","") : ptags p }
+      | otherwise  = p{ ptags = ("_cost-matched","") : ptags p }
     conversionPostings amt = case acost amt of
         Nothing -> []
         Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity

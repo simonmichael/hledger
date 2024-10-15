@@ -58,6 +58,7 @@ $ hledger -f - check tags
   ; _generated-posting:
   ; _modified:
   ; _conversion-matched:
+  ; _cost-matched:
 $ hledger -f - check tags
 
 # ** 7. Declaring the built-in special tags is harmless.
@@ -77,4 +78,5 @@ tag _generated-transaction  ; always exists on generated periodic txns
 tag _generated-posting      ; always exists on generated auto postings
 tag _modified               ; always exists on txns which have had auto postings added
 tag _conversion-matched     ; exists on postings which have been matched with a nearby @/@@ cost notation
+tag _cost-matched     ; exists on postings which have been matched with a nearby @/@@ cost notation
 $ hledger -f - check tags

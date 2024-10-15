@@ -299,7 +299,7 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
     -- Approximately: given a pair of conversion postings to match,
     -- and lists of the remaining unmatched costful and costless other postings,
     -- 1. find (and consume) two other postings which match the two conversion postings
-    -- 2. add identifying tags to the four postings
+    -- 2. add identifying (hidden) tags to the four postings
     -- 3. add an explicit cost, if missing, to one of the matched other postings
     -- 4. or if there is a problem, raise an informative error or do nothing as appropriate.
     -- Or, if the first argument is true:
@@ -326,8 +326,8 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
 
         -- A function that adds a cost and/or tag to a numbered posting if appropriate.
         postingAddCostAndOrTag np costp (n,p) =
-          (n, if | n == np            -> costp `postingAddTags` [("_price-matched","")]
-                 | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]
+          (n, if | n == np            -> costp `postingAddTags` [("_cost-matched","")]        -- add this tag to the posting with a cost
+                 | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]  -- add this tag to the two equity conversion postings
                  | otherwise          -> p)
 
       -- Annotate any errors with the conversion posting pair

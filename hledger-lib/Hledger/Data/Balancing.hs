@@ -104,7 +104,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
     -- convert this posting's amount to cost,
     -- without getting confused by redundant costs/equity postings
     postingBalancingAmount p
-      | "_price-matched" `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
+      | "_cost-matched" `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
       | otherwise                                 = mixedAmountCost $ pamount p
 
     -- transaction balancedness is checked at each commodity's display precision
