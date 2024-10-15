@@ -381,7 +381,7 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
+balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
     CalcBudget -> do  -- single or multi period budget report
       let rspan = fst $ reportSpan j rspec
           budgetreport = styleAmounts styles $ budgetReport rspec (balancingopts_ $ inputopts_ opts) rspan j
@@ -424,9 +424,14 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ of
         writeOutputLazyText opts $ render report
   where
     styles = journalCommodityStylesWith HardRounding j
-    ropts@ReportOpts{..} = _rsReportOpts rspec
+    ropts =
+        let ropts0 = _rsReportOpts rspec in
+        ropts0 {
+            -- tidy csv is defined externally and must not include totals or averages
+            no_total_ = no_total_ ropts0 || layout_ ropts0 == LayoutTidy
+        }
     -- Tidy csv/tsv should be consistent between single period and multiperiod reports.
-    multiperiod = interval_ /= NoInterval || (layout_ == LayoutTidy && delimited)
+    multiperiod = interval_ ropts /= NoInterval || (layout_ ropts == LayoutTidy && delimited)
     delimited   = fmt == "csv" || fmt == "tsv"
     fmt         = outputFormatFromOpts opts
 
@@ -748,17 +753,12 @@ amountType bopts amt =
 -- The CSV will always include the initial headings row,
 -- and will include the final totals row unless --no-total is set.
 multiBalanceReportAsCsv :: ReportOpts -> MultiBalanceReport -> CSV
-multiBalanceReportAsCsv opts@ReportOpts{..} report = maybeTranspose allRows
+multiBalanceReportAsCsv opts@ReportOpts{..} report =
+    (if transpose_ then transpose else id) $
+    rawTableContent $ header : body ++ totals
   where
-    allRows =
-      rawTableContent $
-      case layout_ of
-      LayoutTidy -> rows  -- tidy csv should not include totals or averages
-      _ -> rows ++ totals
-    rows = header:body
     (header, body, totals) =
         multiBalanceReportAsSpreadsheetParts machineFmt opts report
-    maybeTranspose = if transpose_ then transpose else id
 
 -- | Render the Spreadsheet table rows (CSV, ODS, HTML) for a MultiBalanceReport.
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
