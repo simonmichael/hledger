@@ -51,3 +51,27 @@ $ hledger -f- --auto check accounts
 $ hledger -f- --auto --strict bal
 >2 /account "b" has not been declared/
 >=1
+
+# ** 7. The default equity:conversion account used by --infer-equity does not need to be declared for check accounts.
+<
+account a
+account b
+
+2024-01-01
+    a    1A
+    b   -1B
+
+$ hledger -f- check accounts --infer-equity
+
+# ** 8. It does not need to be declared, even without --infer-equity, and even if a different conversion account is declared. (For simplicity.)
+<
+account a
+account b
+account equity  ; type:V
+
+2024-01-01
+    a    1A
+    b   -1B
+    equity:conversion   0
+
+$ hledger -f- check accounts

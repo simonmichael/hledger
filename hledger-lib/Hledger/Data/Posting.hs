@@ -81,7 +81,7 @@ import Data.Foldable (asum)
 import Data.Function ((&))
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.List (sort, union)
+import Data.List (union)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -475,17 +475,15 @@ postingAddInferredEquityPostings verbosetags equityAcct p
       | otherwise  = p{ ptags = ("_cost-matched","") : ptags p }
     conversionPostings amt = case acost amt of
         Nothing -> []
-        Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
+        Just _  -> [ cp{ paccount = equityAcct
                        , pamount = mixedAmount . negate $ amountStripCost amt
                        }
-                   , cp{ paccount = accountPrefix <> costCommodity
+                   , cp{ paccount = equityAcct
                        , pamount = mixedAmount cost
                        }
                    ]
       where
         cost = amountCost amt
-        amtCommodity  = commodity amt
-        costCommodity = commodity cost
         cp = p{ pcomment = pcomment p & (if verbosetags then (`commentAddTag` ("generated-posting","conversion")) else id)
               , ptags    =
                    ("_conversion-matched","") : -- implementation-specific internal tag, not for users
@@ -494,9 +492,6 @@ postingAddInferredEquityPostings verbosetags equityAcct p
               , pbalanceassertion = Nothing
               , poriginal = Nothing
               }
-        accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
-        -- Take the commodity of an amount and collapse consecutive spaces to a single space
-        commodity = T.unwords . filter (not . T.null) . T.words . acommodity
 
 -- | Make a market price equivalent to this posting's amount's unit
 -- price, if any.

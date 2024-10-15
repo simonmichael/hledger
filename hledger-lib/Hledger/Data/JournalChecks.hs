@@ -58,7 +58,7 @@ journalCheckAccounts :: Journal -> Either String ()
 journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
     checkacct p@Posting{paccount=a}
-      | a `elem` journalAccountNamesDeclared j = Right ()
+      | a `elem` declaredaccounts = Right ()
       | otherwise = Left $ printf (unlines [
            "%s:%d:"
           ,"%s"
@@ -67,9 +67,23 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex (show a) a a
+          ]) f l ex (show a) a
         where
+          declaredaccounts = journalAccountNamesDeclared j <> builtinAccounts
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
+
+-- | Hard coded account names in hledger, which need not be declared for `hledger check accounts`.
+-- Keep synced with check-accounts.test, hledger manual.
+builtinAccounts = [
+  defaultConversionAccount  -- equity:conversion, the account used by --infer-equity by default
+  ]
+-- The following accounts names are also special, in that they are recognised as conversion equity accounts
+-- by transactionInferCostsFromEquity; but these are not auto-declared for hledger check accounts.
+-- equity:trade
+-- equity:trades
+-- equity:trading
+-- and any subaccounts of these or defaultConversionAccount.
+
 
 -- | Check all balance assertions in the journal and return an error message if any of them fail.
 -- (Technically, this also tries to balance the journal and can return balancing failure errors;
@@ -214,7 +228,7 @@ journalCheckTags j = do
       ,"tag %s"
       ])
 
--- | Tag names which have special significance to hledger.
+-- | Tag names which have special significance to hledger, and need not be declared for `hledger check tags`.
 -- Keep synced with check-tags.test and hledger manual > Special tags.
 builtinTags = [
    "date"                   -- overrides a posting's date

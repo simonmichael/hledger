@@ -96,11 +96,13 @@ module Hledger.Data.Journal (
   journalAccountTypes,
   journalAddAccountTypes,
   journalPostingsAddAccountTags,
+  defaultConversionAccount,
   -- journalPrices,
   journalConversionAccount,
   journalConversionAccounts,
   -- * Misc
   canonicalStyleFrom,
+
   nulljournal,
   journalConcat,
   journalNumberTransactions,

@@ -30,8 +30,8 @@ $ hledger -f- print --explicit --cost
 $ hledger -f- print --infer-equity --verbose-tags
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
-    equity:conversion:$-€:€             €-100  ; generated-posting: conversion
-    equity:conversion:$-€:$           $135.00  ; generated-posting: conversion
+    equity:conversion                   €-100  ; generated-posting: conversion
+    equity:conversion                 $135.00  ; generated-posting: conversion
     assets                           $-135.00
 
 >=0
@@ -142,8 +142,8 @@ $ hledger -f - balance --value=cost,XXX
 $ hledger -f - balance --infer-equity
                  10£  a
                 -16$  b
-                 16$  equity:conversion:$-£:$
-                -10£  equity:conversion:$-£:£
+                 16$
+                -10£  equity:conversion
 --------------------
                    0  
 >=0
@@ -366,8 +366,8 @@ account  equity:trades   ; type:V
 $ hledger -f- print --infer-equity
 2011-01-01
     expenses:foreign currency    €100 @ $1.35
-    equity:trades:$-€:€                 €-100
-    equity:trades:$-€:$               $135.00
+    equity:trades                       €-100
+    equity:trades                     $135.00
     assets
 
 >=0

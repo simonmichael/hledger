@@ -714,9 +714,7 @@ hledger will try adjust your account names, if needed, to
 [Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts),
 by capitalising, replacing unsupported characters with `-`, and
 prepending `B` to parts which don't begin with a letter or digit.
-(It's possible for this to convert distinct hledger account names to the same beancount name.
-Eg, hledger's automatic equity conversion accounts can have currency symbols in their name,
-so `equity:conversion:$-€` becomes `equity:conversion:B---`.)
+(It's possible for this to convert distinct hledger account names to the same beancount name.)
 
 In addition, you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`,
 which Beancount requires.
@@ -1980,7 +1978,8 @@ Some notes:
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
 - Accounts can only be declared in `journal` files, but will affect [included](#include-directive) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
-- If you use the [--infer-equity](#inferring-equity-conversion-postings) flag, you will also need declarations for the account names it generates.
+- The account [--infer-equity](#inferring-equity-conversion-postings) uses by default - equity:conversion - need not be declared.
+  (If you configure a different conversion account, that will need to be declared.)
 
 ### Account display order
 
@@ -2049,7 +2048,8 @@ account expenses           ; type: X
 account assets:bank        ; type: C
 account assets:cash        ; type: C
 
-account equity:conversion  ; type: V
+; if you want to override the conversion account name, which is equity:conversion by default:
+;account equity:exchange   ; type: V
 ```
 
 [five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
@@ -5709,15 +5709,12 @@ $ hledger print --infer-equity
 2022-01-01
     assets:dollars                    $-135
     assets:euros               €100 @ $1.35
-    equity:conversion:$-€:€           €-100
-    equity:conversion:$-€:$         $135.00
+    equity:conversion                 €-100
+    equity:conversion               $135.00
 ```
 
-The equity account names will be "equity:conversion:A-B:A" and "equity:conversion:A-B:B"
-where A is the alphabetically first commodity symbol.
-You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
-
-Note you will need to add [account declarations](#account-error-checking) for these to your journal, if you use `check accounts` or `check --strict`.
+`--infer-equity` will use the "equity:conversion" account by default (and you don't have to declare this account for `check accounts` or `check --strict`).
+If you declare some other account with the `V`/`Conversion` [account type](#account-types), it will use that instead.
 
 ## Combining costs and equity conversion postings
 
@@ -5762,9 +5759,9 @@ It will infer costs only in transactions with:
   Equity conversion accounts are:
 
   - any accounts declared with account type `V`/`Conversion`, or their subaccounts
-  - otherwise, accounts named `equity:conversion`, `equity:trade`, or `equity:trading`, or their subaccounts.
+  - otherwise, accounts named `equity:conversion`, `equity:trade`, `equity:trades`, `equity:trading`, or any subaccounts of these.
 
-And multiple such four-posting groups can coexist within a single transaction.
+Multiple such four-posting groups can coexist within a single transaction.
 When `--infer-costs` fails, it does not infer a cost in that transaction, and does not raise an error (ie, it infers costs where it can).
 
 Reading variant 5 journal entries, combining cost notation and equity postings, has all the same requirements.
