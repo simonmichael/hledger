@@ -1,4 +1,4 @@
-This is hledger-web.info, produced by makeinfo version 7.1 from stdin.
+This is hledger-web.info, produced by makeinfo version 7.1.1 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -526,25 +526,16 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 
 
 Tag Table:
-Node: Top223
-Node: OPTIONS2569
-Ref: #options2674
-Node: PERMISSIONS11101
-Ref: #permissions11240
-Node: EDITING UPLOADING DOWNLOADING12452
-Ref: #editing-uploading-downloading12633
-Node: RELOADING13467
-Ref: #reloading13601
-Node: JSON API14034
-Ref: #json-api14149
-Node: DEBUG OUTPUT19683
-Ref: #debug-output19808
-Node: Debug output19835
-Ref: #debug-output-119936
-Node: ENVIRONMENT20353
-Ref: #environment20472
-Node: BUGS20589
-Ref: #bugs20673
+Node: Top225
+Node: OPTIONS2571
+Node: PERMISSIONS11103
+Node: EDITING UPLOADING DOWNLOADING12454
+Node: RELOADING13469
+Node: JSON API14036
+Node: DEBUG OUTPUT19685
+Node: Debug output19837
+Node: ENVIRONMENT20355
+Node: BUGS20591
 
 End Tag Table
 

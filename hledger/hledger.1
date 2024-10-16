@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2024" "hledger-1.40.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "October 2024" "hledger-1.40.99 " "hledger User Manuals"
 
 
 
@@ -723,91 +723,99 @@ then reuse them by writing \f[CR]\[at]FILENAME\f[R] as a command line
 argument.
 Eg: \f[CR]hledger bal \[at]foo.args\f[R].
 .PP
-(Inside the argument file, each line should contain just one option or
-argument.
+An argument file\[aq]s format is more restrictive than the command line.
+Each line should contain just one option or argument.
 Don\[aq]t use spaces except inside quotes; write \f[CR]=\f[R] or nothing
 between a flag and its argument.
+If you use quotes, they must enclose the whole line.
 For the special characters mentioned above, use one less level of
-quoting than you would at the command prompt.)
-.PP
-Argument files are now superseded by..
+quoting than you would at the command line.
 .SS Config files
-As of hledger 1.40, you can optionally save command line options (or
-arguments) to be used when running hledger commands, in a config file.
+With hledger 1.40+, you can save extra command line options and
+arguments in a more featureful hledger config file.
 Here\[aq]s a small example:
 .IP
 .EX
-\f[I]# General options are listed first, one or more per line.\f[R]
-\f[I]# These will be used with all hledger commands that support them.\f[R]
+\f[I]# General options are listed first, and used with hledger commands that support them.\f[R]
 \-\-pretty
 
-\f[I]# Options following a \[ga][COMMANDNAME]\[ga] heading are used with that hledger command only.\f[R]
+\f[I]# Options following a \[ga][COMMAND]\[ga] heading are used with that hledger command only.\f[R]
 \f[B][print]\f[R]
 \-\-explicit \-\-show\-costs
 .EE
 .PP
 To use a config file, specify it with the \f[CR]\-\-conf\f[R] option.
-Its options will be inserted near the start of your command line (so you
-can override them if needed).
+Its options will be inserted near the start of your command line, so you
+can override them with command line options if needed.
 .PP
 Or, you can set up an automatic config file that is used whenever you
-run hledger.
-This can be \f[CR]hledger.conf\f[R] in the current directory or above,
-or \f[CR].hledger.conf\f[R] in your home directory
+run hledger, by creating \f[CR]hledger.conf\f[R] in the current
+directory or above, or \f[CR].hledger.conf\f[R] in your home directory
 (\f[CR]\[ti]/.hledger.conf\f[R]), or \f[CR]hledger.conf\f[R] in your XDG
 config directory (\f[CR]\[ti]/.config/hledger/hledger.conf\f[R]).
 .PP
-You can ignore config files by adding the \f[CR]\-n/\-\-no\-conf\f[R]
-flag.
-This is useful when using hledger in scripts, or when troubleshooting.
-(When both \f[CR]\-\-conf\f[R] and \f[CR]\-\-no\-conf\f[R] options are
-used, the right\-most wins.)
-To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
-\f[CR]\-\-debug=8\f[R].
-.PP
-Here is another example config file you could start with:
+Here is another example config you could start with:
 https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample
 .PP
-Tips:
-.PP
-Automatic config files are convenient, but have a cost: it\[aq]s easy to
-change a report\[aq]s behaviour, or break scripts/applications which use
-hledger, in unintended ways that will surprise you later.
-They change the nature of hledger somewhat, making it less transparent
-and predictable.
-If you decide to use one:
-.IP \[bu] 2
-Be conservative about what you put in it.
-Try to consider the effect on all your reports.
-.IP \[bu] 2
-Whenever a hledger command does not work as expected, try it again with
-\f[CR]\-n\f[R].
-.IP \[bu] 2
-If that helps, you can run it with \f[CR]\-\-debug\f[R] to see how a
-config file affected it.
+You can put not only options, but also arguments in a config file.
+If the first word in a config file\[aq]s top (general) section does not
+begin with a dash (eg: \f[CR]print\f[R]), it is treated as the command
+argument (overriding any argument on the command line).
 .PP
 On unix machines, you can add a shebang line at the top of a config
 file, set executable permission on the file, and use it like a script.
-Eg (some operating systems need the \f[CR]\-S\f[R], some don\[aq]t):
+Eg (the \f[CR]\-S\f[R] is needed on some operating systems):
 .IP
 .EX
 #!/usr/bin/env \-S hledger \-\-conf
 .EE
 .PP
-You can put not only options, but also arguments in a config file.
-This is probably more useful in special\-purpose config files, not an
-automatic one.
+You can ignore config files by adding the
+\f[CR]\-n\f[R]/\f[CR]\-\-no\-conf\f[R] flag to the command line.
+This is useful when using hledger in scripts, or when troubleshooting.
+When both \f[CR]\-\-conf\f[R] and \f[CR]\-\-no\-conf\f[R] options are
+used, the right\-most wins.
 .PP
-There\[aq]s an exception to this: a config file can\[aq]t provide the
-command argument, currently (#2231).
-If you need that, you can do it in the shebang line instead.
-Eg:
-.IP
-.EX
-#!/usr/bin/env \-S hledger balance \-\-conf
-.EE
+To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
+\f[CR]\-\-debug=8\f[R].
 .PP
-The config file feature has been added in hledger 1.40 and is considered
+\f[B]Warning!\f[R]
+.PP
+There aren\[aq]t many hledger features that need a warning, but this is
+one!
+.PP
+Automatic config files, while convenient, also make hledger less
+predictable and dependable.
+It\[aq]s easy to make a config file that changes a report\[aq]s
+behaviour, or breaks your hledger\-using scripts/applications, in ways
+that will surprise you later.
+.PP
+If you don\[aq]t want this,
+.IP "1." 3
+Just don\[aq]t create a hledger.conf file on your machine.
+.IP "2." 3
+Also be alert to downloaded directories which may contain a hledger.conf
+file.
+.IP "3." 3
+Also if you are sharing scripts or examples or support, consider that
+others may have a hledger.conf file.
+.PP
+Conversely, once you decide to use this feature, try to remember:
+.IP "1." 3
+Whenever a hledger command does not work as expected, try it again with
+\f[CR]\-n\f[R] (\f[CR]\-\-no\-conf\f[R]) to see if a config file was to
+blame.
+.IP "2." 3
+Whenever you call hledger from a script, consider whether that call
+should use \f[CR]\-n\f[R] or not.
+.IP "3." 3
+Be conservative about what you put in your config file; try to consider
+the effect on all your reports.
+.IP "4." 3
+To troubleshoot the effect of config files, run with
+\f[CR]\-\-debug\f[R] or \f[CR]\-\-debug 8\f[R].
+.PP
+The config file feature was added in hledger 1.40 and is considered
 \f[I]experimental\f[R].
 .SS Shell completions
 If you use the bash shell, you can optionally set up context\-sensitive
@@ -829,8 +837,8 @@ $ hledger print > foo.txt
 .EE
 .PP
 Some commands (print, register, stats, the balance commands) also
-provide the \f[CR]\-o/\-\-output\-file\f[R] option, which does the same
-thing without needing the shell.
+provide the \f[CR]\-o\f[R]/\f[CR]\-\-output\-file\f[R] option, which
+does the same thing without needing the shell.
 Eg:
 .IP
 .EX
@@ -844,21 +852,23 @@ Here are those commands and the formats currently supported:
 .PP
 .TS
 tab(@);
-lw(13.6n) lw(12.2n) lw(12.2n) lw(12.2n) lw(12.2n) lw(4.1n) lw(3.4n).
+lw(20.6n) lw(5.1n) lw(6.2n) lw(9.3n) lw(6.2n) lw(11.3n) lw(5.1n) lw(6.2n).
 T{
-\-
+command
 T}@T{
 txt
 T}@T{
-csv/tsv
-T}@T{
 html
+T}@T{
+csv/tsv
 T}@T{
 fods
 T}@T{
-json
+beancount
 T}@T{
 sql
+T}@T{
+json
 T}
 _
 T{
@@ -871,83 +881,91 @@ T}@T{
 Y
 T}@T{
 T}@T{
-Y
 T}@T{
+T}@T{
+Y
 T}
 T{
 balance
 T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
+Y
 T}@T{
 Y
 T}@T{
+Y
+T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 T{
 balancesheet
 T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 T{
 balancesheetequity
 T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 T{
 cashflow
 T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 T{
 incomestatement
 T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
-Y \f[I]1\f[R]
-T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
+T}@T{
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 T{
 print
 T}@T{
 Y
 T}@T{
+T}@T{
 Y
 T}@T{
 T}@T{
+Y
 T}@T{
 Y
 T}@T{
@@ -958,27 +976,25 @@ register
 T}@T{
 Y
 T}@T{
-Y
-T}@T{
-T}@T{
 T}@T{
 Y
 T}@T{
+T}@T{
+T}@T{
+T}@T{
+Y
 T}
 .TE
-.IP \[bu] 2
-\f[I]1 Also affected by the balance commands\[aq] \f[CI]\-\-layout\f[I]
-option.\f[R]
 .PP
 The output format is selected by the
-\f[CR]\-O/\-\-output\-format=FMT\f[R] option:
+\f[CR]\-O\f[R]/\f[CR]\-\-output\-format=FMT\f[R] option:
 .IP
 .EX
 $ hledger print \-O csv    # print CSV on stdout
 .EE
 .PP
 or by the filename extension of an output file specified with the
-\f[CR]\-o/\-\-output\-file=FILE.FMT\f[R] option:
+\f[CR]\-o\f[R]/\f[CR]\-\-output\-file=FILE.FMT\f[R] option:
 .IP
 .EX
 $ hledger balancesheet \-o foo.csv    # write CSV to foo.csv
@@ -991,11 +1007,10 @@ override the file extension, if needed:
 $ hledger balancesheet \-o foo.txt \-O csv    # write CSV to foo.txt
 .EE
 .PP
-Some notes about the various output formats:
-.SS CSV output
-.IP \[bu] 2
-In CSV output, digit group marks (such as thousands separators) are
-disabled automatically.
+Here are some notes about the various output formats.
+.SS Text output
+This is the default: human readable, plain text report output, suitable
+for a terminal.
 .SS HTML output
 .IP \[bu] 2
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
@@ -1006,28 +1021,74 @@ If your web browser is showing junk characters, you may need to change
 its text encoding to UTF\-8.
 Eg in Safari, see View \-> Text Encoding and Settings \-> Advanced \->
 Default Encoding.
-.SS JSON output
+.SS CSV / TSV output
 .IP \[bu] 2
-This is not yet much used; real\-world feedback is welcome.
-.IP \[bu] 2
-Our JSON is rather large and verbose, since it is a faithful
-representation of hledger\[aq]s internal data types.
-To understand the JSON, read the Haskell type definitions, which are
-mostly in
-https://github.com/simonmichael/hledger/blob/master/hledger\-lib/Hledger/Data/Types.hs.
-hledger\-web\[aq]s OpenAPI specification may also be relevant.
-.IP \[bu] 2
-hledger represents quantities as Decimal values storing up to 255
-significant digits, eg for repeating decimals.
-Such numbers can arise in practice (from automatically\-calculated
-transaction prices), and would break most JSON consumers.
-So in JSON, we show quantities as simple Numbers with at most 10 decimal
-places.
-We don\[aq]t limit the number of integer digits, but that part is under
-your control.
-We hope this approach will not cause problems in practice; if you find
-otherwise, please let us know.
-(Cf #1195)
+In CSV or TSV output, digit group marks (such as thousands separators)
+are disabled automatically.
+.SS FODS output
+FODS is the OpenDocument spreadsheet format used by LibreOffice and
+OpenOffice.
+It is a good format to use if you are exporting to their spreadsheet
+app.
+.SS Beancount output
+This is Beancount\[aq]s journal format.
+You can use this to export your hledger data to Beancount, perhaps to
+query it with Beancount Query Language or with the Fava web app.
+hledger will try to adjust your data to suit Beancount.
+If you plan to export often, you may want to follow Beancount\[aq]s
+conventions in your hledger data, to ease conversion.
+Eg use Beancount\-friendly account names, currency codes instead of
+currency symbols, and avoid virtual postings, redundant cost notation,
+etc.
+.PP
+Here are more details, included here for now (see also \[dq]hledger and
+Beancount\[dq] https://hledger.org/beancount.html).
+.SS Beancount account names
+hledger will try adjust your account names, if needed, to Beancount
+account names, by capitalising, replacing unsupported characters with
+\f[CR]\-\f[R], and prepending \f[CR]B\f[R] to parts which don\[aq]t
+begin with a letter or digit.
+(It\[aq]s possible for this to convert distinct hledger account names to
+the same beancount name.
+Eg, hledger\[aq]s automatic equity conversion accounts can have currency
+symbols in their name, so \f[CR]equity:conversion:$\-€\f[R] becomes
+\f[CR]equity:conversion:B\-\-\-\f[R].)
+.PP
+In addition, you must ensure that the top level account names are
+\f[CR]Assets\f[R], \f[CR]Liabilities\f[R], \f[CR]Equity\f[R],
+\f[CR]Income\f[R], and \f[CR]Expenses\f[R], which Beancount requires.
+If yours are named differently, you can use account aliases, usually in
+the form of \f[CR]\-\-alias\f[R] options, possibly stored in a config
+file.
+(An example: hledger2beancount.conf)
+.SS Beancount commodity names
+hledger will adjust your commodity names, if needed, to Beancount
+commodity/currency names, which must be 2\-24 uppercase letters, digits,
+or \f[CR]\[aq]\f[R], \f[CR].\f[R], \f[CR]_\f[R], \f[CR]\-\f[R],
+beginning with a letter and ending with a letter or digit.
+hledger will convert known currency symbols to ISO 4217 currency codes.
+Otherwise, it will capitalise letters, replace unsupported characters
+with a dash (\-), and prepend/append a \[dq]B\[dq] when needed.
+(It\[aq]s possible for this to generate unreadable commodity names, or
+to convert distinct hledger commodity names to the same beancount name.)
+.SS Beancount virtual postings
+Beancount doesn\[aq]t allow unbalanced/virtual postings, so you will
+need to comment those, or use \f[CR]\-\-real\f[R] to exclude
+transactions that use them.
+(If you have transactions which are a mixture of balanced and unbalanced
+postings, you\[aq]ll have to do something more.)
+.SS Beancount costs
+Beancount doesn\[aq]t allow redundant cost notation as hledger does.
+If you have entries like this, you will need to comment out either the
+costs or the equity postings.
+.SS Beancount operating currency
+Declaring an operating currency improves Beancount and Fava reports.
+You can do this manually by adding a line like this to the beancount
+journal:
+.IP
+.EX
+option \[dq]operating_currency\[dq] \[dq]USD\[dq]
+.EE
 .SS SQL output
 .IP \[bu] 2
 This is not yet much used; real\-world feedback is welcome.
@@ -1050,6 +1111,28 @@ If you already have tables created via SQL output of hledger, you would
 probably want to either clear tables of existing data (via
 \f[CR]delete\f[R] or \f[CR]truncate\f[R] SQL statements) or drop tables
 completely as otherwise your postings will be duped.
+.SS JSON output
+.IP \[bu] 2
+This is not yet much used; real\-world feedback is welcome.
+.IP \[bu] 2
+Our JSON is rather large and verbose, since it is a faithful
+representation of hledger\[aq]s internal data types.
+To understand the JSON, read the Haskell type definitions, which are
+mostly in
+https://github.com/simonmichael/hledger/blob/master/hledger\-lib/Hledger/Data/Types.hs.
+hledger\-web\[aq]s OpenAPI specification may also be relevant.
+.IP \[bu] 2
+hledger represents quantities as Decimal values storing up to 255
+significant digits, eg for repeating decimals.
+Such numbers can arise in practice (from automatically\-calculated
+transaction prices), and would break most JSON consumers.
+So in JSON, we show quantities as simple Numbers with at most 10 decimal
+places.
+We don\[aq]t limit the number of integer digits, but that part is under
+your control.
+We hope this approach will not cause problems in practice; if you find
+otherwise, please let us know.
+(Cf #1195)
 .SS Commodity styles
 When displaying amounts, hledger infers a standard display style for
 each commodity/currency, as described below in Commodity display style.
@@ -2156,16 +2239,18 @@ Tags hledger adds to indicate generated data:
  generated\-transaction  \-\- appears on generated periodic txns (with \-\-verbose\-tags)
  generated\-posting      \-\- appears on generated auto postings (with \-\-verbose\-tags)
  modified               \-\- appears on txns which have had auto postings added (with \-\-verbose\-tags)
+
 Not displayed, but queryable:
  _generated\-transaction \-\- exists on generated periodic txns (always)
  _generated\-posting     \-\- exists on generated auto postings (always)
  _modified              \-\- exists on txns which have had auto postings added (always)
 .EE
 .PP
-Tags hledger uses internally:
+Other tags hledger uses internally:
 .IP
 .EX
- _conversion\-matched    \-\- exists on postings which have been matched with a nearby \[at]/\[at]\[at] cost annotation
+ _cost\-matched          \-\- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
+ _conversion\-matched    \-\- marks equity conversion postings which have been matched with a nearby posting with a cost
 .EE
 .SS Tag values
 Tags can have a value, which is any text after the colon up until a
@@ -2510,8 +2595,9 @@ Usually you\[aq]ll find that error later, as an extra account in balance
 reports, or an incorrect balance when reconciling.
 .PP
 In strict mode, enabled with the \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R]
-flag, hledger will report an error if any transaction uses an account
-name that has not been declared by an account directive.
+flag, or when you run \f[CR]hledger check accounts\f[R], hledger will
+report an error if any transaction uses an account name that has not
+been declared by an account directive.
 Some notes:
 .IP \[bu] 2
 The declaration is case\-sensitive; transactions must use the correct
@@ -2530,6 +2616,9 @@ affect included files of all types.
 It\[aq]s currently not possible to declare \[dq]all possible
 subaccounts\[dq] with a wildcard; every account posted to must be
 declared.
+.IP \[bu] 2
+If you use the \-\-infer\-equity flag, you will also need declarations
+for the account names it generates.
 .SS Account display order
 Account directives also cause hledger to display accounts in a
 particular order, not just alphabetically.
@@ -7073,6 +7162,10 @@ The equity account names will be \[dq]equity:conversion:A\-B:A\[dq] and
 commodity symbol.
 You can customise the \[dq]equity:conversion\[dq] part by declaring an
 account with the \f[CR]V\f[R]/\f[CR]Conversion\f[R] account type.
+.PP
+Note you will need to add account declarations for these to your
+journal, if you use \f[CR]check accounts\f[R] or
+\f[CR]check \-\-strict\f[R].
 .SS Combining costs and equity conversion postings
 Finally, you can use both the \[at]/\[at]\[at] cost notation and equity
 postings at the same time.
@@ -10439,10 +10532,10 @@ uses all periodic rules; or with an argument
 T}
 .TE
 .SS Balance report layout
-The \f[CR]\-\-layout\f[R] option affects how balance reports show
-multi\-commodity amounts and commodity symbols, which can improve
-readability.
-It can also normalise the data for easy consumption by other programs.
+The \f[CR]\-\-layout\f[R] option affects how \f[CR]balance\f[R] and the
+other balance\-like commands show multi\-commodity amounts and commodity
+symbols.
+It can improve readability, for humans and/or machines (other software).
 It has four possible values:
 .IP \[bu] 2
 \f[CR]\-\-layout=wide[,WIDTH]\f[R]: commodities are shown on a single
@@ -10454,7 +10547,9 @@ line, optionally elided to WIDTH
 amounts are bare numbers
 .IP \[bu] 2
 \f[CR]\-\-layout=tidy\f[R]: data is normalised to easily\-consumed
-\[dq]tidy\[dq] form, with one row per data value
+\[dq]tidy\[dq] form, with one row per data value.
+(This one is currently supported only by the \f[CR]balance\f[R]
+command.)
 .PP
 Here are the \f[CR]\-\-layout\f[R] modes supported by each output format
 Only CSV output supports all of them:
@@ -10658,10 +10753,9 @@ You can also produce relative links, like
 \f[CR]\-\-base\-url=\[dq]some/path\[dq]\f[R] or
 \f[CR]\-\-base\-url=\[dq]\[dq]\f[R].)
 .PP
-The balance reports\[aq] HTML output currently does not display tree
-mode reports properly (#1846).
-For now, if generating HTML you should probabBly use the default
-\f[CR]\-\-flat\f[R] mode.
+The balance reports\[aq] HTML output currently does not indent tree mode
+reports properly (#1846).
+So in HTML balance reports, use list mode for now (it is the default).
 .SS Some useful balance reports
 Some frequently used \f[CR]balance\f[R] options/reports are:
 .IP \[bu] 2

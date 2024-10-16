@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 7.1 from stdin.
+This is hledger-ui.info, produced by makeinfo version 7.1.1 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -538,37 +538,22 @@ above).
 
 
 Tag Table:
-Node: Top221
-Node: OPTIONS1872
-Ref: #options1970
-Node: MOUSE8389
-Ref: #mouse8484
-Node: KEYS8721
-Ref: #keys8814
-Node: SCREENS13549
-Ref: #screens13653
-Node: Menu screen14289
-Ref: #menu-screen14410
-Node: Cash accounts screen14605
-Ref: #cash-accounts-screen14782
-Node: Balance sheet accounts screen14966
-Ref: #balance-sheet-accounts-screen15182
-Node: Income statement accounts screen15302
-Ref: #income-statement-accounts-screen15523
-Node: All accounts screen15687
-Ref: #all-accounts-screen15868
-Node: Register screen16050
-Ref: #register-screen16209
-Node: Transaction screen18493
-Ref: #transaction-screen18651
-Node: Error screen20068
-Ref: #error-screen20190
-Node: WATCH MODE20434
-Ref: #watch-mode20551
-Node: ENVIRONMENT22010
-Ref: #environment22126
-Node: BUGS22317
-Ref: #bugs22400
+Node: Top223
+Node: OPTIONS1874
+Node: MOUSE8391
+Node: KEYS8723
+Node: SCREENS13551
+Node: Menu screen14291
+Node: Cash accounts screen14607
+Node: Balance sheet accounts screen14968
+Node: Income statement accounts screen15304
+Node: All accounts screen15689
+Node: Register screen16052
+Node: Transaction screen18495
+Node: Error screen20070
+Node: WATCH MODE20436
+Node: ENVIRONMENT22012
+Node: BUGS22319
 
 End Tag Table
 
