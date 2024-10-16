@@ -162,7 +162,7 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#2156]                  | **ishmaelavila 2024-01-18**                                                      | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | akanshaG42 donated                                                               | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | **1.33** 2024-04-18      | ---                                                                              | ---
-| [#2227]                  | **Henning Thielemann 2024-09-12**                                                | **Henning Thielemann 2024-09-24**
+| [#2227]                  | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**     | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**
 | **1.34** 2024-06-01      | ---                                                                              | ---
 | **1.40** 2024-09-09      | ---                                                                              | ---
-| [#2225]                  | Bas van Dijk donated                                                             | **Henning Thielemann 2024-09-18**
+| [#2225]                  | Bas van Dijk donated                                                             | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**
