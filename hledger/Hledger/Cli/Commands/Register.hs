@@ -20,6 +20,7 @@ module Hledger.Cli.Commands.Register (
 
 import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
@@ -27,14 +28,19 @@ import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
-import Hledger.Write.Csv (CSV, CsvRecord, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import Hledger.Write.Html.Lucid (printHtml)
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide hiding (render)
+import Text.Tabular.AsciiWide (Cell(..), Align(..), Properties(..), Header(Header, Group), renderRowB, textCell, tableBorders, borderSpaces)
+import qualified Lucid
 import Data.List (sortBy)
 import Data.Char (toUpper)
 import Data.List.Extra (intersect)
 import System.Exit (exitFailure)
+import qualified System.IO as IO
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
@@ -90,21 +96,38 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
     styles = journalCommodityStylesWith HardRounding j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
+           | fmt=="json" = toJsonText
            | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="tsv"  = printTSV . postingsReportAsCsv
-           | fmt=="json" = toJsonText
+           | fmt=="html" =
+                (<>"\n") . Lucid.renderText . printHtml .
+                map (map (fmap Lucid.toHtml)) . postingsReportAsSpreadsheet
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Register" .
+                (,) (Just 1, Nothing) . postingsReportAsSpreadsheet
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
 
 postingsReportAsCsv :: PostingsReport -> CSV
-postingsReportAsCsv is =
-  ["txnidx","date","code","description","account","amount","total"]
-  :
-  map postingsReportItemAsCsvRecord is
+postingsReportAsCsv = Spr.rawTableContent . postingsReportAsSpreadsheet
 
-postingsReportItemAsCsvRecord :: PostingsReportItem -> CsvRecord
-postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
+postingsReportAsSpreadsheet ::
+  PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
+postingsReportAsSpreadsheet is =
+  Spr.addHeaderBorders
+    (map Spr.headerCell
+      ["txnidx","date","code","description","account","amount","total"])
+  :
+  map postingsReportItemAsRecord is
+
+postingsReportItemAsRecord ::
+    (Spr.Lines border) => PostingsReportItem -> [Spr.Cell border T.Text]
+postingsReportItemAsRecord (_, _, _, p, b) =
+    [cell idx,
+     (cell date) {Spr.cellType = Spr.TypeDate},
+     cell code, cell desc, cell acct, cell amt, cell bal]
   where
+    cell = Spr.defaultCell
     idx  = T.pack . show . maybe 0 tindex $ ptransaction p
     date = showDate $ postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" tcode $ ptransaction p
