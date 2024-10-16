@@ -22,7 +22,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# bb551bf0d
+# f54805a03
 
 Breaking changes
 

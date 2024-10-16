@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 5591be772
+# ceeea6926
 
 Docs
 
@@ -30,6 +30,7 @@ Docs
 
 Scripts/addons
 
+- Fixed build errors in all bin/ scripts. (Dmitry Astapov)
 - hledger-install: fix installation of hledger-ui
 
 Infrastructure/Misc
@@ -37,6 +38,8 @@ Infrastructure/Misc
 - GHC 9.10 is now the default for dev builds and most github workflows.
 - Add consistent greppable summaries to all workflows; various other improvements
 - Add bash shell completion script to the release bindists ([#2223], gesh/hseg, Simon Michael)
+- tools/gtree: -u shows untracked files, -I adds ignored files.
+- just doctest: pass through doctest arg(s).
 
 
 # 1.40 2024-09-09

@@ -22,20 +22,27 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 1c45496f1
+# 17dd3d434
 
 Breaking changes
 
 - When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
 
-- New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help abstract the rendering of
-  tables in various output formats, eg HTML and FODS.
-  (Spreadsheet is in addition to the tabular package we already in use; there may be some overlap.)
-  (XXX Review module changes)
+- New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help abstract rendering
+  in various output formats, eg HTML, FODS and beancount.
+
+- Rename displayDepth/prrDepth to displayIndent/prrIndent, and make them
+  correspond to the number of indentation steps.
+  (These are about indentation for rendering, not account depth.) [#2246]
 
 Fixes
 
 Improvements
+
+- Add Hledger.Data.Currency, currencySymbolToCode, currencyCodeToSymbol
+
+- Added Spreadsheet abstraction for tabular reports (in addition to
+  the tabular package we already use; there may be some overlap).
 
 - Support ghc 9.10 / base 4.20.
 
