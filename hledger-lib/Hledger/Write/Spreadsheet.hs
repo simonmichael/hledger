@@ -19,6 +19,7 @@ module Hledger.Write.Spreadsheet (
     transposeCell,
     transpose,
     horizontalSpan,
+    addHeaderBorders,
     addRowSpanHeader,
     rawTableContent,
     ) where
@@ -171,6 +172,10 @@ transposeCell cell =
 transpose :: [[Cell border text]] -> [[Cell border text]]
 transpose = List.transpose . map (map transposeCell)
 
+
+addHeaderBorders :: [Cell () text] -> [Cell NumLines text]
+addHeaderBorders =
+    map (\c -> c {cellBorder = noBorder {borderBottom = DoubleLine}})
 
 horizontalSpan ::
     (Lines border, Monoid text) =>

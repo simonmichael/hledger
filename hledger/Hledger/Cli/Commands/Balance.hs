@@ -308,7 +308,7 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
-import Hledger.Write.Spreadsheet (rawTableContent, addRowSpanHeader, headerCell)
+import Hledger.Write.Spreadsheet (rawTableContent, addHeaderBorders, addRowSpanHeader, headerCell)
 import qualified Hledger.Write.Spreadsheet as Ods
 
 
@@ -640,11 +640,6 @@ headerDateSpanCell base query spn =
     (headerCell prd) {
         Ods.cellAnchor = composeAnchor base $ replaceDate prd query
     }
-
-addHeaderBorders :: [Ods.Cell () text] -> [Ods.Cell Ods.NumLines text]
-addHeaderBorders =
-    map (\c -> c {Ods.cellBorder =
-                        Ods.noBorder {Ods.borderBottom = Ods.DoubleLine}})
 
 simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
 simpleDateSpanCell = Ods.defaultCell . showDateSpan
