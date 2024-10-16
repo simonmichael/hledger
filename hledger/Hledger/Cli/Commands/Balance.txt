@@ -361,15 +361,6 @@ report for each commodity:
 $ hledger bal -% cur:\\$
 $ hledger bal -% cur:€
 
-Hyperlinks
-
-The HTML and FODS output formats can generate hyperlinks to a
-hledger-web register view for each account and period. E.g. if your
-hledger-web server is reachable at http://localhost:5000 then you might
-run the balance command with the extra option
---base-url=http://localhost:5000. You can also produce relative links,
-like --base-url="some/path" or --base-url="".)
-
 Multi-period balance report
 
 With a report interval (set by the -D/--daily, -W/--weekly,
@@ -763,9 +754,9 @@ time if you want. Here are some differences between them:
 
 Balance report layout
 
-The --layout option affects how balance reports show multi-commodity
-amounts and commodity symbols, which can improve readability. It can
-also normalise the data for easy consumption by other programs. It has
+The --layout option affects how balance and the other balance-like
+commands show multi-commodity amounts and commodity symbols. It can
+improve readability, for humans and/or machines (other software). It has
 four possible values:
 
 -   --layout=wide[,WIDTH]: commodities are shown on a single line,
@@ -774,7 +765,8 @@ four possible values:
 -   --layout=bare: commodity symbols are in their own column, amounts
     are bare numbers
 -   --layout=tidy: data is normalised to easily-consumed "tidy" form,
-    with one row per data value
+    with one row per data value. (This one is currently supported only
+    by the balance command.)
 
 Here are the --layout modes supported by each output format Only CSV
 output supports all of them:
@@ -902,6 +894,24 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layo
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","USD","4881.44"
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VEA","14.00"
 "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
+
+Balance report output
+
+As noted in Output format, if you choose HTML output (by using -O html
+or -o somefile.html), it will use the UTF-8 text encoding, And you can
+create a hledger.css file in the same directory to customise the
+report's appearance.
+
+The HTML and FODS output formats can generate hyperlinks to a
+hledger-web register view for each account and period. E.g. if your
+hledger-web server is reachable at http://localhost:5000 then you might
+run the balance command with the extra option
+--base-url=http://localhost:5000. You can also produce relative links,
+like --base-url="some/path" or --base-url="".)
+
+The balance reports' HTML output currently does not indent tree mode
+reports properly (#1846). So in HTML balance reports, use list mode for
+now (it is the default).
 
 Some useful balance reports
 
