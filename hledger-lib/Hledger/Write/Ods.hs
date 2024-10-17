@@ -269,23 +269,12 @@ cellConfig ((border, cstyle), dataStyle) =
                 DataMixedAmount -> [alignParagraph "end"]
                 _ -> []
             )
-        cstyleName = cellStyleName cstyle
-        bordName = borderName border
         style :: String
         style =
-            case dataStyle of
-                DataDate ->
-                    printf
-                      "style:name='%s-%s-date' style:data-style-name='iso-date'"
-                      cstyleName bordName
-                DataAmount comm prec ->
-                    let name = numberStyleName (comm, prec) in
-                    printf
-                      "style:name='%s-%s-%s' style:data-style-name='number-%s'"
-                      cstyleName bordName name name
-                DataMixedAmount ->
-                    printf "style:name='%s-%s-mixedamount'" cstyleName bordName
-                DataString -> printf "style:name='%s-%s'" cstyleName bordName
+            let (styleName,dataStyleName) = styleNames cstyle border dataStyle
+            in  printf "style:name='%s'" styleName
+                ++
+                foldMap (printf " style:data-style-name='%s'") dataStyleName
     in
     case moreStyles of
         [] ->
@@ -301,20 +290,12 @@ cellConfig ((border, cstyle), dataStyle) =
 formatCell :: Cell Spr.NumLines Text -> [String]
 formatCell cell =
     let style, valueType :: String
-        style = tableStyle styleName
-        cstyleName = cellStyleName $ cellStyle cell
-        bordName = borderName $ cellBorder cell
-        styleName :: String
-        styleName =
-            case dataStyleFromType $ cellType cell of
-                DataDate -> printf "%s-%s-date" cstyleName bordName
-                DataAmount comm prec ->
-                    let name = numberStyleName (comm, prec) in
-                    printf "%s-%s-%s" cstyleName bordName name
-                DataMixedAmount ->
-                    printf "%s-%s-mixedamount" cstyleName bordName
-                DataString -> printf "%s-%s" cstyleName bordName
-        tableStyle = printf " table:style-name='%s'"
+        style =
+            printf " table:style-name='%s'" $ fst $
+            styleNames
+                (cellStyle cell)
+                (cellBorder cell)
+                (dataStyleFromType $ cellType cell)
 
         valueType =
             case cellType cell of
@@ -353,6 +334,22 @@ formatCell cell =
         (anchor $ escape $ T.unpack $ cellContent cell) :
     printf "</table:%stable-cell>" covered :
     []
+
+styleNames ::
+    Style -> Spr.Border Spr.NumLines -> DataStyle -> (String, Maybe String)
+styleNames cstyle border dataStyle =
+    let cstyleName = cellStyleName cstyle in
+    let bordName = borderName border in
+    case dataStyle of
+        DataDate ->
+            (printf "%s-%s-date" cstyleName bordName, Just "iso-date")
+        DataAmount comm prec ->
+            let name = numberStyleName (comm, prec) in
+            (printf "%s-%s-%s" cstyleName bordName name,
+                Just $ printf "number-%s" name)
+        DataMixedAmount ->
+            (printf "%s-%s-mixedamount" cstyleName bordName, Nothing)
+        DataString -> (printf "%s-%s" cstyleName bordName, Nothing)
 
 escape :: String -> String
 escape =
