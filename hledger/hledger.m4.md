@@ -273,37 +273,43 @@ feel free to skip these until you need them.
 
 ## Special characters
 
-### Single-escaping shell special characters
+Here we touch on shell escaping/quoting rules, and give some examples.
+This is a slightly complicated topic which you may not need at first,
+but be aware of it, and return here when needed.
 
-At the command line, characters which have special meaning for your shell -
-such as spaces, `<`, `>`, `(`, `)`, `|`, `$` and `\` -
+### Escaping shell special characters
+
+At the command line, characters which have special meaning for your shell
 must be "shell-escaped" (AKA "quoted") if you want hledger to see them.
-In most shells this can be done by enclosing the argument containing them in single or double quotes.
-In Unix shells, writing a backslash before the character also works.
+Often these include space, `<`, `>`, `(`, `)`, `|`, `\`, `$` and/or `%`.
 
-For example, to match an account name containing the phrase "credit card", don't write this
-(which will match accounts containing "credit" or "card"):
+For example, to match an account name containing the phrase "credit card",
+don't write this:
 
 ```cli
 $ hledger register credit card
 ```
 
-Instead, write:
+In that command, "credit" and "card" are treated as separate query arguments (described below),
+so this would match accounts containing either word.
+Instead, enclose the phrase in double or single quotes:
 
 ```cli
 $ hledger register "credit card"
 ```
 
-or:
-
-```cli
-$ hledger register 'credit card'
-```
-
-or (in a Unix shell):
+In Unix shells, writing a backslash before the character can also work. Eg:
 
 ```cli
 $ hledger register credit\ card
+```
+
+Some shell characters still have a special meaning inside double quotes, such as the dollar sign in Unix shells.
+Eg in `"assets:$account"`, the bash shell would replace `$account` with the value of a shell variable with that name.
+When you don't want that, use single quotes, which escape more strongly:
+
+```cli
+$ hledger balance 'assets:$account'
 ```
 
 ### Escaping on Windows
@@ -315,34 +321,35 @@ If you are using hledger in a Powershell or Command window on Microsoft Windows,
 
 The next two sections were written for Unix-like shells, so might need to be adapted if you're using `cmd` or `powershell`. (Edits welcome.)
 
-### Double-escaping regular expression special characters
+### Escaping regular expression special characters
 
-Characters which have special meaning in [regular expressions] (described below),
-such as `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`, and `\`,
-may need to be "regex-escaped" if you don't want them to be interpreted by hledger's regular expression engine.
-This is done by writing backslashes before them.
-But since backslash is usually also special to the shell, both shell-escaping and regex-escaping will be needed.
+Many hledger arguments are [regular expressions] (described below), and these too have characters which cause special effects.
+Some of those characters are `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`, and `\`.
+When you don't want these to cause special effects, you can "regex-escape" them by writing `\` (a backslash) before them.
+But since backslash is also special to the shell, you may need to also shell-escape the backslashes.
 
-Eg, to match a literal `$` sign while using the bash shell, you could write:
-
-```cli
-$ hledger balance cur:'\$'
-```
-
-or:
+Eg, in the bash shell, to match a literal `$` sign, you could write:
 
 ```cli
 $ hledger balance cur:\\$
 ```
 
-### Triple-escaping add-on command arguments
+or:
+
+```cli
+$ hledger balance 'cur:\$'
+```
+
+(The dollar sign is regex-escaped by the backslash preceding it.
+Then that backslash is shell-escaped by another backslash, or by single quotes.)
+
+### Escaping add-on arguments
 
 When you run an external add-on command with `hledger` (described below),
-any options or arguments being passed through to the add-on executable will lose one level of shell-escaping.
-So those will need an extra level of shell-escaping.
-Or, you can avoid this issue by running the add-on executable directly.
+any options or arguments being passed through to the add-on executable lose one level of shell-escaping,
+so you must add an extra level of shell-escaping to compensate.
 
-So, to match a literal `$` sign while using the bash shell and running the `ui` add-on, you could write:
+Eg, in the bash shell, to run the `ui` add-on and match a literal `$` sign, you need to write:
 
 ```cli
 $ hledger ui cur:'\\$'
@@ -354,41 +361,41 @@ or:
 $ hledger ui cur:\\\\$
 ```
 
-or (running the add-on executable directly):
+If you are wondering why *four* backslashes:
+
+- `$`     is unescaped
+- `\$`    is regex-escaped
+- `\\$`   is regex-escaped, then shell-escaped
+- `\\\\$` is regex-escaped, then shell-escaped, then both slashes are shell-escaped once more for hledger argument pass-through.
+
+Or you can avoid such triple-escaping, by running the add-on executable directly:
 
 ```cli
 $ hledger-ui cur:\\$
 ```
 
-If you're wondering why there's *four* backslashes in the second example, perhaps this helps:
+### Escaping in other situations
 
-|         ||
-|---------|----------------------------------------------------------------------------------------------------------
-| `$`     | is unescaped
-| `\$`    | is single-escaped (for regex)
-| `\\$`   | is double-escaped (for regex, then for shell)
-| `\\\\$` | is triple-escaped (for regex, then for shell, then both slashes once more for hledger argument pass-through
+hledger options and arguments are sometimes used in places other than the command line, with different escaping rules.
+For example, backslash-quoting generally does not work there. Here are some more tips.
 
-### Escaping in other contexts
-
-hledger options and arguments are sometimes used in places other than the command line, where the escaping rules can be different.
-Windows has been mentioned above; here are some more notes.
-
-|                                   ||
-|:----------------------------------|:--------------------------------------------------------------------------------------------
-| In Windows `cmd`                  | Use double quotes
-| In Windows `powershell`           | Use single or double quotes
-| In hledger-ui's `/` filter prompt | Use single or double quotes
-| In hledger-web's search form      | Use single or double quotes
-| In an [argument file]             | Use one less level of quoting than the command line, and avoid spaces
-| In a [config file]                | Use single or double quotes, and enclose the whole argument<br> (`"desc:a b"` not `desc:"a b"`)
-| In GHCI (the Haskell REPL)        | Use double quotes, enclosing the whole argument.
+|                               ||
+|:------------------------------|:--------------------------------------------------------------------------------------------
+| In Windows `cmd`              | Use double quotes
+| In Windows `powershell`       | Use single or double quotes
+| In hledger-ui's filter prompt | Use single or double quotes
+| In hledger-web's search form  | Use single or double quotes
+| In an [argument file]         | Don't use spaces, don't shell-escape, do regex-escape when needed
+| In a [config file]            | Use single or double quotes, and enclose the whole argument <br>(`"desc:a b"` not `desc:"a b"`)
+| In `ghci` (the Haskell REPL)  | Use double quotes, and enclose the whole argument
 
 [argument file]: #argument-files
 [config file]: #config-files
 
-When escaping a special character is too much hassle, or even impossible, 
-you can often work around by writing `.` (period), which in regular expressions means any character.
+### Using a wild card
+
+When escaping a special character is too much hassle (or impossible), you can often just write `.` (a period) instead.
+In regular expressions, this means "accept any character here".
 Eg:
 
 ```cli
