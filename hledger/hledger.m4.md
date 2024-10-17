@@ -2038,7 +2038,7 @@ Some notes:
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
 - Accounts can only be declared in `journal` files, but will affect [included](#include-directive) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
-- If you use the [--infer-equity](#inferring-equity-conversion-postings) flag, you will also need declarations for the account names it generates.
+- [Equity conversion accounts](#account-types), including the ones used by [--infer-equity](#inferring-equity-conversion-postings), need not be declared.
 
 ### Account display order
 
@@ -2107,7 +2107,8 @@ account expenses           ; type: X
 account assets:bank        ; type: C
 account assets:cash        ; type: C
 
-account equity:conversion  ; type: V
+; if you want to override the conversion account name, which is equity:conversion by default:
+;account equity:exchange   ; type: V
 ```
 
 [five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
@@ -5774,8 +5775,7 @@ $ hledger print --infer-equity
 The equity account names will be "equity:conversion:A-B:A" and "equity:conversion:A-B:B"
 where A is the alphabetically first commodity symbol.
 You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
-
-Note you will need to add [account declarations](#account-error-checking) for these to your journal, if you use `check accounts` or `check --strict`.
+(These conversion accounts are automatically recognised by [`check accounts` and `check -s`](#account-error-checking), whether declared or not.)
 
 ## Combining costs and equity conversion postings
 
@@ -5820,9 +5820,9 @@ It will infer costs only in transactions with:
   Equity conversion accounts are:
 
   - any accounts declared with account type `V`/`Conversion`, or their subaccounts
-  - otherwise, accounts named `equity:conversion`, `equity:trade`, or `equity:trading`, or their subaccounts.
+  - otherwise, accounts named `equity:conversion`, `equity:trade`, `equity:trades`, `equity:trading`, or any subaccounts of these.
 
-And multiple such four-posting groups can coexist within a single transaction.
+Multiple such four-posting groups can coexist within a single transaction.
 When `--infer-costs` fails, it does not infer a cost in that transaction, and does not raise an error (ie, it infers costs where it can).
 
 Reading variant 5 journal entries, combining cost notation and equity postings, has all the same requirements.

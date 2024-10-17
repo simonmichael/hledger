@@ -42,6 +42,7 @@ import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
+import Hledger.Query (matchesTags)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -52,13 +53,16 @@ journalStrictChecks j = do
   journalCheckCommodities j
   journalCheckAccounts j
 
--- | Check that all the journal's postings are to accounts  with
--- account directives, returning an error message otherwise.
+-- | Check that all the journal's postings are to accounts declared by account directives.
+-- Or, to conversion accounts (the default or a custom equity conversion account, and its subaccounts).
+-- Otherwise, return an error message.
 journalCheckAccounts :: Journal -> Either String ()
 journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
-    checkacct p@Posting{paccount=a}
-      | a `elem` journalAccountNamesDeclared j = Right ()
+    checkacct p@Posting{paccount=a, ptags=ts}
+      | a `elem` declaredaccts           = Right ()  -- is it a declared account
+      | a `elem` detectedconversionaccts = Right ()  -- or a conversion account detected by being the default or declared conversion account or a subaccount of that
+      | hasgeneratedconversionacct       = Right ()  -- or a conversion account generated more recently by --infer-equity (which runs after journalAddAccountTypes)
       | otherwise = Left $ printf (unlines [
            "%s:%d:"
           ,"%s"
@@ -69,6 +73,10 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ,"account %s"
           ]) f l ex (show a) a
         where
+          declaredaccts              = journalAccountNamesDeclared j
+          detectedconversionaccts    = journalConversionAccounts j
+          hasgeneratedconversionacct = hastag conversionPostingTagName
+            where hastag t = matchesTags (toRegex' $ "^"<>t<>"$") Nothing ts
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 
 -- | Check all balance assertions in the journal and return an error message if any of them fail.
