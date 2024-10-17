@@ -239,7 +239,6 @@ Currently, empty cells show 0.
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE TemplateHaskell      #-}
-{-# LANGUAGE QuasiQuotes          #-}
 
 module Hledger.Cli.Commands.Balance (
   -- ** balance command
@@ -294,8 +293,6 @@ import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C (flagNone, flagReq, flagOpt)
 import Lucid as L hiding (value_)
 import Safe (headMay, maximumMay)
-import qualified Text.URI as Uri
-import qualified Text.URI.QQ as UriQQ
 import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
     cellWidth, concatTables, renderColumns, renderRowB, renderTableByRowsB, textCell)
@@ -305,6 +302,7 @@ import qualified System.IO as IO
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Hledger.Cli.Anchor (setAccountAnchor, dateSpanCell, headerDateSpanCell)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
@@ -596,65 +594,8 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 
-registerQueryUrl :: [Text] -> Text
-registerQueryUrl query =
-    Uri.render $
-    [UriQQ.uri|register|] {
-        Uri.uriQuery =
-            [Uri.QueryParam [UriQQ.queryKey|q|] $
-             fromMaybe (error "register URI query construction failed") $
-             Uri.mkQueryValue $ T.unwords $
-             map quoteIfSpaced $ filter (not . T.null) query]
-    }
-
-{- |
->>> composeAnchor Nothing ["date:2024"]
-""
->>> composeAnchor (Just "") ["date:2024"]
-"register?q=date:2024"
->>> composeAnchor (Just "/") ["date:2024"]
-"/register?q=date:2024"
->>> composeAnchor (Just "foo") ["date:2024"]
-"foo/register?q=date:2024"
->>> composeAnchor (Just "foo/") ["date:2024"]
-"foo/register?q=date:2024"
--}
-composeAnchor :: Maybe Text -> [Text] -> Text
-composeAnchor Nothing _ = mempty
-composeAnchor (Just baseUrl) query =
-    baseUrl <>
-    (if all (('/'==) . snd) $ T.unsnoc baseUrl then "" else "/") <>
-    registerQueryUrl query
-
--- cf. Web.Widget.Common
-removeDates :: [Text] -> [Text]
-removeDates =
-    filter (\term_ ->
-        not $ T.isPrefixOf "date:" term_ || T.isPrefixOf "date2:" term_)
-
-replaceDate :: Text -> [Text] -> [Text]
-replaceDate prd query = "date:"<>prd : removeDates query
-
-headerDateSpanCell ::
-    Maybe Text -> [Text] -> DateSpan -> Ods.Cell () Text
-headerDateSpanCell base query spn =
-    let prd = showDateSpan spn in
-    (headerCell prd) {
-        Ods.cellAnchor = composeAnchor base $ replaceDate prd query
-    }
-
 simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
 simpleDateSpanCell = Ods.defaultCell . showDateSpan
-
-dateSpanCell ::
-    (Ods.Lines border) =>
-    Maybe Text -> [Text] -> Text -> DateSpan -> Ods.Cell border Text
-dateSpanCell base query acct spn =
-    let prd = showDateSpan spn in
-    (Ods.defaultCell prd) {
-        Ods.cellAnchor =
-            composeAnchor base $ "inacct:"<>acct : replaceDate prd query
-    }
 
 addTotalBorders :: [[Ods.Cell border text]] -> [[Ods.Cell Ods.NumLines text]]
 addTotalBorders =
@@ -664,11 +605,6 @@ addTotalBorders =
                     Ods.cellStyle = Ods.Body Ods.Total,
                     Ods.cellBorder = Ods.noBorder {Ods.borderTop = border}}))
         (Ods.DoubleLine : repeat Ods.NoLine)
-
-setAccountAnchor ::
-    Maybe Text -> [Text] -> Text -> Ods.Cell border text -> Ods.Cell border text
-setAccountAnchor base query acct cell =
-    cell {Ods.cellAnchor = composeAnchor base $ "inacct:"<>acct : query}
 
 
 -- | Render a single-column balance report as FODS.

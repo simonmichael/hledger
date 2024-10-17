@@ -20,6 +20,7 @@ module Hledger.Cli.Commands.Register (
 
 import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
+import Data.Text (Text)
 import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
@@ -34,6 +35,7 @@ import Hledger.Write.Html.Lucid (printHtml)
 import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Hledger.Cli.Anchor (setAccountAnchor, dateCell)
 import Text.Tabular.AsciiWide (Cell(..), Align(..), Properties(..), Header(Header, Group), renderRowB, textCell, tableBorders, borderSpaces)
 import qualified Lucid
 import Data.List (sortBy)
@@ -68,6 +70,7 @@ registermode = hledgerCommandMode
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
+  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","csv","tsv","json"]
   ,outputFileFlag
   ])
@@ -102,40 +105,49 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
            | fmt=="html" =
                 (<>"\n") . Lucid.renderText . printHtml .
                 map (map (fmap Lucid.toHtml)) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt
+                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Register" .
                 (,) (Just 1, Nothing) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt
+                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
+            baseUrl = balance_base_url_ $ _rsReportOpts rspec
+            query = querystring_ $ _rsReportOpts rspec
 
 postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv =
-  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt
+  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt Nothing []
 
 postingsReportAsSpreadsheet ::
-  AmountFormat -> PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
-postingsReportAsSpreadsheet fmt is =
+  AmountFormat -> Maybe Text -> [Text] ->
+  PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
+postingsReportAsSpreadsheet fmt base query is =
   Spr.addHeaderBorders
     (map Spr.headerCell
       ["txnidx","date","code","description","account","amount","total"])
   :
-  map (postingsReportItemAsRecord fmt) is
+  map (postingsReportItemAsRecord fmt base query) is
 
+{- ToDo:
+link txnidx to journal URL,
+   however, requires Web.Widget.Common.transactionFragment
+-}
 postingsReportItemAsRecord ::
     (Spr.Lines border) =>
-    AmountFormat -> PostingsReportItem -> [Spr.Cell border T.Text]
-postingsReportItemAsRecord fmt (_, _, _, p, b) =
+    AmountFormat -> Maybe Text -> [Text] ->
+    PostingsReportItem -> [Spr.Cell border T.Text]
+postingsReportItemAsRecord fmt base query (_, _, _, p, b) =
     [(cell idx) {Spr.cellType = Spr.TypeInteger},
-     (cell date) {Spr.cellType = Spr.TypeDate},
-     cell code, cell desc, cell acct,
+     (dateCell base query (paccount p) date) {Spr.cellType = Spr.TypeDate},
+     cell code, cell desc,
+     setAccountAnchor base query (paccount p) $ cell acct,
      amountCell (pamount p),
      amountCell b]
   where
     cell = Spr.defaultCell
     idx  = T.pack . show . maybe 0 tindex $ ptransaction p
-    date = showDate $ postingDate p -- XXX csv should show date2 with --date2
+    date = postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" tcode $ ptransaction p
     desc = maybe "" tdescription $ ptransaction p
     acct = bracket $ paccount p
