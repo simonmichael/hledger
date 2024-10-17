@@ -67,7 +67,7 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex (show a) a a
+          ]) f l ex (show a) a
         where
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 
