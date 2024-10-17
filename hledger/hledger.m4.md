@@ -273,13 +273,19 @@ feel free to skip these until you need them.
 
 ## Special characters
 
-### Single escaping (shell metacharacters)
+### Single escaping (for shell metacharacters)
 
 In shell command lines, characters significant to your shell - such as
 spaces, `<`, `>`, `(`, `)`, `|`, `$` and `\` - should be
 "shell-escaped" if you want hledger to see them. This is done by
 enclosing them in single or double quotes, or by writing a backslash
 before them. Eg to match an account name containing a space:
+
+```cli
+$ hledger register "credit card"
+```
+
+or:
 
 ```cli
 $ hledger register 'credit card'
@@ -291,11 +297,17 @@ or:
 $ hledger register credit\ card
 ```
 
-Windows users should keep in mind that `cmd` treats single quote as a
-regular character, so you should be using double quotes exclusively.
-PowerShell treats both single and double quotes as quotes.
+### Escaping on Windows
 
-### Double escaping (regular expression metacharacters)
+If you are using hledger on Microsoft Windows, unless you are using a Unix-like shell (such Windows Subsystem for Linux),
+be aware that the escaping rules are different. In particular:
+
+- In a powershell window (`powershell`, blue background), you must use double quotes or single quotes (not backslash).
+- In a command window (`cmd`, black background), you must use double quotes (not single quotes or backslash).
+
+The following sections assume a Unix-like shell, and will need to be adapted if you're using `cmd` or `powershell`. (Edits welcome.)
+
+### Double escaping (for regular expression metacharacters)
 
 Characters significant in [regular expressions]
 (described below) - such as `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`,
