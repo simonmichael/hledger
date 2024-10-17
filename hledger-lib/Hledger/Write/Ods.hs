@@ -283,7 +283,9 @@ cellConfig ((border, cstyle), dataStyle) =
                     printf
                       "style:name='%s-%s-%s' style:data-style-name='number-%s'"
                       cstyleName bordName name name
-                _ -> printf "style:name='%s-%s'" cstyleName bordName
+                DataMixedAmount ->
+                    printf "style:name='%s-%s-mixedamount'" cstyleName bordName
+                DataString -> printf "style:name='%s-%s'" cstyleName bordName
     in
     case moreStyles of
         [] ->
@@ -309,7 +311,9 @@ formatCell cell =
                 DataAmount comm prec ->
                     let name = numberStyleName (comm, prec) in
                     printf "%s-%s-%s" cstyleName bordName name
-                _ -> printf "%s-%s" cstyleName bordName
+                DataMixedAmount ->
+                    printf "%s-%s-mixedamount" cstyleName bordName
+                DataString -> printf "%s-%s" cstyleName bordName
         tableStyle = printf " table:style-name='%s'"
 
         valueType =
