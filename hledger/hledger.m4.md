@@ -338,7 +338,7 @@ $ hledger balance cur:\\$
 ### Triple-escaping add-on command arguments
 
 When you run an external add-on command with `hledger` (described below),
-any options or arguments being passed through to the add-on command will lose one level of shell-escaping.
+any options or arguments being passed through to the add-on executable will lose one level of shell-escaping.
 So those will need an extra level of shell-escaping.
 Or, you can avoid this issue by running the add-on executable directly.
 
@@ -362,13 +362,12 @@ $ hledger-ui cur:\\$
 
 If you're wondering why there's *four* backslashes in the second example, perhaps this helps:
 
-|                 |         |
-|-----------------|---------|
-| unescaped:      | `$`     |
-| escaped:        | `\$`    |
-| double-escaped: | `\\$`   |
-| triple-escaped: | `\\\\$` |
-
+|         ||
+|---------|----------------------------------------------------------------------------------------------------------
+| `$`     | is unescaped
+| `\$`    | is single-escaped (for regex)
+| `\\$`   | is double-escaped (for regex, then for shell)
+| `\\\\$` | is triple-escaped (for regex, then for shell, then both slashes once more for hledger argument pass-through
 
 ### Escaping in other contexts
 
