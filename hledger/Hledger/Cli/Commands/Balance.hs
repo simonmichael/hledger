@@ -308,7 +308,9 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
-import Hledger.Write.Spreadsheet (rawTableContent, addHeaderBorders, addRowSpanHeader, headerCell)
+import Hledger.Write.Spreadsheet (rawTableContent, headerCell,
+            addHeaderBorders, addRowSpanHeader,
+            cellFromMixedAmount, cellsFromMixedAmount)
 import qualified Hledger.Write.Spreadsheet as Ods
 
 
@@ -709,37 +711,6 @@ balanceReportAsSpreadsheet opts (items, total) =
         (showcomm, commorder)
           | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
           | otherwise                  = (True, Nothing)
-
-cellFromMixedAmount ::
-    (Ods.Lines border) =>
-    AmountFormat -> (Ods.Class, MixedAmount) -> Ods.Cell border WideBuilder
-cellFromMixedAmount bopts (cls, mixedAmt) =
-    (Ods.defaultCell $ showMixedAmountB bopts mixedAmt) {
-        Ods.cellClass = cls,
-        Ods.cellType =
-          case unifyMixedAmount mixedAmt of
-            Just amt -> amountType bopts amt
-            Nothing -> Ods.TypeMixedAmount
-    }
-
-cellsFromMixedAmount ::
-    (Ods.Lines border) =>
-    AmountFormat -> (Ods.Class, MixedAmount) -> [Ods.Cell border WideBuilder]
-cellsFromMixedAmount bopts (cls, mixedAmt) =
-    map
-        (\(str,amt) ->
-            (Ods.defaultCell str) {
-                Ods.cellClass = cls,
-                Ods.cellType = amountType bopts amt
-            })
-        (showMixedAmountLinesPartsB bopts mixedAmt)
-
-amountType :: AmountFormat -> Amount -> Ods.Type
-amountType bopts amt =
-    Ods.TypeAmount $
-    if displayCommodity bopts
-      then amt
-      else amt {acommodity = T.empty}
 
 
 

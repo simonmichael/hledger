@@ -101,31 +101,37 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
            | fmt=="tsv"  = printTSV . postingsReportAsCsv
            | fmt=="html" =
                 (<>"\n") . Lucid.renderText . printHtml .
-                map (map (fmap Lucid.toHtml)) . postingsReportAsSpreadsheet
+                map (map (fmap Lucid.toHtml)) .
+                postingsReportAsSpreadsheet oneLineNoCostFmt
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Register" .
-                (,) (Just 1, Nothing) . postingsReportAsSpreadsheet
+                (,) (Just 1, Nothing) .
+                postingsReportAsSpreadsheet oneLineNoCostFmt
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
 
 postingsReportAsCsv :: PostingsReport -> CSV
-postingsReportAsCsv = Spr.rawTableContent . postingsReportAsSpreadsheet
+postingsReportAsCsv =
+  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt
 
 postingsReportAsSpreadsheet ::
-  PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
-postingsReportAsSpreadsheet is =
+  AmountFormat -> PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
+postingsReportAsSpreadsheet fmt is =
   Spr.addHeaderBorders
     (map Spr.headerCell
       ["txnidx","date","code","description","account","amount","total"])
   :
-  map postingsReportItemAsRecord is
+  map (postingsReportItemAsRecord fmt) is
 
 postingsReportItemAsRecord ::
-    (Spr.Lines border) => PostingsReportItem -> [Spr.Cell border T.Text]
-postingsReportItemAsRecord (_, _, _, p, b) =
+    (Spr.Lines border) =>
+    AmountFormat -> PostingsReportItem -> [Spr.Cell border T.Text]
+postingsReportItemAsRecord fmt (_, _, _, p, b) =
     [cell idx,
      (cell date) {Spr.cellType = Spr.TypeDate},
-     cell code, cell desc, cell acct, cell amt, cell bal]
+     cell code, cell desc, cell acct,
+     amountCell (pamount p),
+     amountCell b]
   where
     cell = Spr.defaultCell
     idx  = T.pack . show . maybe 0 tindex $ ptransaction p
@@ -139,8 +145,8 @@ postingsReportItemAsRecord (_, _, _, p, b) =
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    amt = wbToText . showMixedAmountB machineFmt $ pamount p
-    bal = wbToText $ showMixedAmountB machineFmt b
+    amountCell amt =
+      wbToText <$> Spr.cellFromMixedAmount fmt (Spr.Class "amount", amt)
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text
