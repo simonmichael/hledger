@@ -277,6 +277,13 @@ Here we touch on shell escaping/quoting rules, and give some examples.
 This is a slightly complicated topic which you may not need at first,
 but you should be aware of it, so you can return here when needed.
 
+If you are able to minimise the use of special characters in your data,
+you won't need escaping as much, and your command lines will be simpler.
+For example, avoiding spaces in account names, and using an ISO-4217 currency code like `USD`
+instead of the `$` currency symbol, can be helpful.
+
+But if you want to use spaced account names and `$`, go right ahead; escaping isn't a big deal.
+
 ### Escaping shell special characters
 
 At the command line, characters which have special meaning for your shell
@@ -304,7 +311,7 @@ In Unix shells, writing a backslash before the character can also work. Eg:
 $ hledger register credit\ card
 ```
 
-Some shell characters still have a special meaning inside double quotes, such as the dollar sign in Unix shells.
+Some shell characters still have a special meaning inside double quotes, such as the dollar sign (`$`).
 Eg in `"assets:$account"`, the bash shell would replace `$account` with the value of a shell variable with that name.
 When you don't want that, use single quotes, which escape more strongly:
 
@@ -394,7 +401,7 @@ For example, backslash-quoting generally does not work there. Here are some more
 
 ### Using a wild card
 
-When escaping a special character is too much hassle (or impossible), you can often just write `.` (a period) instead.
+When escaping a special character is too much hassle (or impossible), you can often just write `.` (period) instead.
 In regular expressions, this means "accept any character here".
 Eg:
 
