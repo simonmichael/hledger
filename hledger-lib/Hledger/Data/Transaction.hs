@@ -420,7 +420,7 @@ partitionAndCheckConversionPostings check conversionaccts =
   -- Left fold processes postings in parse order, so that eg inferred costs
   -- will be added to the first (top-most) posting, not the last one.
   foldlM select (([], ([], [])), Nothing)
-    -- The costless other postings are somehow reversed still; "second (second reverse" fixes that.
+    -- The costless other postings are somehow reversed still; "second (second reverse)" fixes that.
     <&> fmap (second (second reverse) . fst)
   where
     select ((cs, others@(ps, os)), Nothing) np@(_, p)
