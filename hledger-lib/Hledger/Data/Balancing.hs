@@ -102,10 +102,11 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
             VirtualPosting         -> (l, r)
 
     -- convert this posting's amount to cost,
-    -- without getting confused by redundant costs/equity postings
+    -- unless it has been marked as a redundant cost (equivalent to some nearby equity conversion postings),
+    -- in which case ignore it.
     postingBalancingAmount p
-      | "_cost-matched" `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
-      | otherwise                                 = mixedAmountCost $ pamount p
+      | costPostingTagName `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
+      | otherwise                                   = mixedAmountCost $ pamount p
 
     -- transaction balancedness is checked at each commodity's display precision
     lookszero = mixedAmountLooksZero . atdisplayprecision

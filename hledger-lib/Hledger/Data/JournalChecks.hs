@@ -33,7 +33,7 @@ import Hledger.Data.Errors
 import Hledger.Data.Journal
 import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
-import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags)
+import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName)
 import Hledger.Data.Types
 import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt, amounts)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
@@ -214,7 +214,7 @@ journalCheckTags j = do
       ,"tag %s"
       ])
 
--- | Tag names which have special significance to hledger.
+-- | Tag names which have special significance to hledger, and need not be declared for `hledger check tags`.
 -- Keep synced with check-tags.test and hledger manual > Special tags.
 builtinTags = [
    "date"                   -- overrides a posting's date
@@ -231,8 +231,8 @@ builtinTags = [
   ,"_generated-transaction" -- always exists on generated periodic txns
   ,"_generated-posting"     -- always exists on generated auto postings
   ,"_modified"              -- always exists on txns which have had auto postings added
-  ,"_conversion-matched"    -- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
-  ,"_cost-matched"          -- marks equity conversion postings which have been matched with a nearby posting with a cost
+  ,conversionPostingTagName -- marks costful postings which have been matched with a nearby pair of equity conversion postings
+  ,costPostingTagName       -- marks equity conversion postings which have been matched with a nearby costful posting
   ]
 
 -- | In each tranaction, check that any conversion postings occur in adjacent pairs.
