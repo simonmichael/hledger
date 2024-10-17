@@ -69,6 +69,9 @@ printFods encoding tables =
           "    <number:text>-</number:text>" :
           "    <number:day number:style='long'/>" :
           "  </number:date-style>" :
+          "  <number:number-style style:name='integer'>" :
+          "    <number:number number:min-integer-digits='1'/>" :
+          "  </number:number-style>" :
           customStyles ++
           "</office:styles>" :
           []
@@ -139,6 +142,7 @@ dataStyleFromType :: Type -> DataStyle
 dataStyleFromType typ =
     case typ of
         TypeString -> DataString
+        TypeInteger -> DataInteger
         TypeDate -> DataDate
         TypeAmount amt -> DataAmount (acommodity amt) (asprecision $ astyle amt)
         TypeMixedAmount -> DataMixedAmount
@@ -234,6 +238,7 @@ borderStyle border =
 
 data DataStyle =
       DataString
+    | DataInteger
     | DataDate
     | DataAmount CommoditySymbol AmountPrecision
     | DataMixedAmount
@@ -299,6 +304,10 @@ formatCell cell =
 
         valueType =
             case cellType cell of
+                TypeInteger ->
+                    printf
+                        "office:value-type='float' office:value='%s'"
+                        (cellContent cell)
                 TypeAmount amt ->
                     printf
                         "office:value-type='float' office:value='%s'"
@@ -343,6 +352,8 @@ styleNames cstyle border dataStyle =
     case dataStyle of
         DataDate ->
             (printf "%s-%s-date" cstyleName bordName, Just "iso-date")
+        DataInteger ->
+            (printf "%s-%s-integer" cstyleName bordName, Just "integer")
         DataAmount comm prec ->
             let name = numberStyleName (comm, prec) in
             (printf "%s-%s-%s" cstyleName bordName name,

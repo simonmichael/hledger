@@ -40,6 +40,7 @@ import Prelude hiding (span)
 
 data Type =
       TypeString
+    | TypeInteger
     | TypeAmount !Amount
     | TypeMixedAmount
     | TypeDate
