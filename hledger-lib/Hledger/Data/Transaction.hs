@@ -27,8 +27,8 @@ module Hledger.Data.Transaction
 , transactionTransformPostings
 , transactionApplyValuation
 , transactionToCost
-, transactionAddInferredEquityPostings
-, transactionInferCostsFromEquity
+, transactionInferEquityPostings
+, transactionTagCostsAndEquityAndMaybeInferCosts
 , transactionApplyAliases
 , transactionMapPostings
 , transactionMapPostingAmounts
@@ -235,10 +235,11 @@ transactionApplyValuation priceoracle styles periodlast today v =
 transactionToCost :: ConversionOp -> Transaction -> Transaction
 transactionToCost cost t = t{tpostings = mapMaybe (postingToCost cost) $ tpostings t}
 
--- | Add inferred equity postings to a 'Transaction' using transaction prices.
-transactionAddInferredEquityPostings :: Bool -> AccountName -> Transaction -> Transaction
-transactionAddInferredEquityPostings verbosetags equityAcct t =
-    t{tpostings=concatMap (postingAddInferredEquityPostings verbosetags equityAcct) $ tpostings t}
+-- | For any costs in this 'Transaction' which don't have associated equity conversion postings,
+-- generate and add those.
+transactionInferEquityPostings :: Bool -> AccountName -> Transaction -> Transaction
+transactionInferEquityPostings verbosetags equityAcct t =
+  t{tpostings=concatMap (postingAddInferredEquityPostings verbosetags equityAcct) $ tpostings t}
 
 type IdxPosting = (Int, Posting)
 
@@ -248,17 +249,19 @@ type IdxPosting = (Int, Posting)
 
 label s = ((s <> ": ")++)
 
--- | Add costs inferred from equity postings in this transaction.
--- The name(s) of conversion equity accounts should be provided.
--- For every adjacent pair of conversion postings, it will first search the postings
--- with costs to see if any match. If so, it will tag these as matched.
--- If no postings with costs match, it will then search the postings without costs,
--- and will match the first such posting which matches one of the conversion amounts.
--- If it finds a match, it will add a cost and then tag it.
--- If the first argument is true, do a dry run instead: identify and tag
--- the costful and conversion postings, but don't add costs.
-transactionInferCostsFromEquity :: Bool -> [AccountName] -> Transaction -> Either String Transaction
-transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorWithTransaction t . T.unpack) $ do
+-- | Find, associate, and tag the corresponding equity conversion postings and costful or potentially costful postings in this transaction.
+-- With a true addcosts argument, also generate and add any equivalent costs that are missing.
+-- The (previously detected) names of all equity conversion accounts should be provided.
+--
+-- For every pair of adjacent conversion postings, this first searches for a posting with equivalent cost (1).
+-- If no such posting is found, it then searches the costless postings, for one matching one of the conversion amounts (2).
+-- If either of these found a candidate posting, it is tagged with costPostingTagName.
+-- Then if in addcosts mode, if a costless posting was found, a cost equivalent to the conversion amounts is added to it.
+--
+-- The name reflects the complexity of this and its helpers; clarification is ongoing.
+--
+transactionTagCostsAndEquityAndMaybeInferCosts :: Bool -> [AccountName] -> Transaction -> Either String Transaction
+transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts t = first (annotateErrorWithTransaction t . T.unpack) $ do
   -- number the postings
   let npostings = zip [0..] $ tpostings t
 
@@ -270,7 +273,7 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
   -- 1. each pair of conversion postings, and the corresponding postings which balance them, are tagged for easy identification
   -- 2. each pair of balancing postings which did't have an explicit cost, have had a cost calculated and added to one of them
   -- 3. if any ambiguous situation was detected, an informative error is raised
-  processposting <- transformIndexedPostingsF (addCostsToPostings dryrun) conversionPairs otherps
+  processposting <- transformIndexedPostingsF (tagAndMaybeAddCostsForEquityPostings addcosts) conversionPairs otherps
 
   -- And if there was no error, use it to modify the transaction's postings.
   return t{tpostings = map (snd . processposting) npostings}
@@ -279,7 +282,7 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
 
     -- Generate the tricksy processposting function,
     -- which when applied to each posting in turn, rather magically has the effect of
-    -- applying addCostsToPostings to each pair of conversion postings in the transaction,
+    -- applying tagAndMaybeAddCostsForEquityPostings to each pair of conversion postings in the transaction,
     -- matching them with the other postings, tagging them and perhaps adding cost information to the other postings.
     -- General type:
     -- transformIndexedPostingsF :: (Monad m, Foldable t, Traversable t) =>
@@ -289,45 +292,44 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
     --   m (a1 -> a1)
     -- Concrete type:
     transformIndexedPostingsF ::
-      ((IdxPosting, IdxPosting) -> StateT ([IdxPosting],[IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)) ->  -- state update function (addCostsToPostings with the bool applied)
+      ((IdxPosting, IdxPosting) -> StateT ([IdxPosting],[IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)) ->  -- state update function (tagAndMaybeAddCostsForEquityPostings with the bool applied)
       [(IdxPosting, IdxPosting)] ->   -- initial state: the pairs of adjacent conversion postings in the transaction
       ([IdxPosting],[IdxPosting]) ->  -- initial state: the other postings in the transaction, separated into costful and costless
       (Either Text (IdxPosting -> IdxPosting))  -- returns an error message or a posting transform function
     transformIndexedPostingsF updatefn = evalStateT . fmap (appEndo . foldMap Endo) . traverse (updatefn)
 
     -- A tricksy state update helper for processposting/transformIndexedPostingsF.
-    -- Approximately: given a pair of conversion postings to match,
+    -- Approximately: given a pair of equity conversion postings to match,
     -- and lists of the remaining unmatched costful and costless other postings,
-    -- 1. find (and consume) two other postings which match the two conversion postings
-    -- 2. add identifying (hidden) tags to the four postings
-    -- 3. add an explicit cost, if missing, to one of the matched other postings
-    -- 4. or if there is a problem, raise an informative error or do nothing as appropriate.
-    -- Or, if the first argument is true:
-    -- do a dry run instead: find and consume, add tags, but don't add costs
-    -- (and if there are no costful postings at all, do nothing).
-    addCostsToPostings :: Bool -> (IdxPosting, IdxPosting) -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
-    addCostsToPostings dryrun' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
+    -- 1. find (and consume) two other postings whose amounts/cost match the two conversion postings
+    -- 2. add hidden identifying tags to the conversion postings and the other posting which has (or could have) an equivalent cost
+    -- 3. if in add costs mode, and the potential equivalent-cost posting does not have that explicit cost, add it
+    -- 4. or if there is a problem, raise an informative error or do nothing, as appropriate.
+    -- Or if there are no costful postings at all, do nothing.
+    tagAndMaybeAddCostsForEquityPostings :: Bool -> (IdxPosting, IdxPosting) -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
+    tagAndMaybeAddCostsForEquityPostings addcosts' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
       -- Get the two conversion posting amounts, if possible
       ca1 <- conversionPostingAmountNoCost cp1
       ca2 <- conversionPostingAmountNoCost cp2
       let 
-        -- All costful postings which match the conversion posting pair
-        matchingCostPs =
+        -- All costful postings whose cost is equivalent to the conversion postings' amounts.
+        matchingCostfulPs =
           dbg7With (label "matched costful postings".show.length) $ 
           mapMaybe (mapM $ costfulPostingIfMatchesBothAmounts ca1 ca2) costps
 
-        -- All other single-commodity postings whose amount matches at least one of the conversion postings,
-        -- with an explicit cost added. Or in dry run mode, all other single-commodity postings.
-        matchingOtherPs =
+        -- In dry run mode: all other costless, single-commodity postings.
+        -- In add costs mode: all other costless, single-commodity postings whose amount matches at least one of the conversion postings,
+        -- with the equivalent cost added to one of them. (?)
+        matchingCostlessPs =
           dbg7With (label "matched costless postings".show.length) $
-          if dryrun'
-          then [(n,(p, a)) | (n,p) <- otherps, let Just a = postingSingleAmount p]
-          else mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
+          if addcosts'
+          then mapMaybe (mapM $ addCostIfMatchesOneAmount ca1 ca2) otherps
+          else [(n,(p, a)) | (n,p) <- otherps, let Just a = postingSingleAmount p]
 
         -- A function that adds a cost and/or tag to a numbered posting if appropriate.
         postingAddCostAndOrTag np costp (n,p) =
-          (n, if | n == np            -> costp `postingAddTags` [("_cost-matched","")]        -- add this tag to the posting with a cost
-                 | n == n1 || n == n2 -> p     `postingAddTags` [("_conversion-matched","")]  -- add this tag to the two equity conversion postings
+          (n, if | n == np            -> costp `postingAddTags` [(costPostingTagName,"")]        -- add this tag to the posting with a cost
+                 | n == n1 || n == n2 -> p     `postingAddTags` [(conversionPostingTagName,"")]  -- add this tag to the two equity conversion postings
                  | otherwise          -> p)
 
       -- Annotate any errors with the conversion posting pair
@@ -337,20 +339,20 @@ transactionInferCostsFromEquity dryrun conversionaccts t = first (annotateErrorW
           -- delete it from the list of costful postings in the state, delete the
           -- first matching costless posting from the list of costless postings
           -- in the state, and return the transformation function with the new state.
-          | [(np, costp)] <- matchingCostPs
+          | [(np, costp)] <- matchingCostfulPs
           , Just newcostps <- deleteIdx np costps
-              -> Right (postingAddCostAndOrTag np costp, (if dryrun' then costps else newcostps, otherps))
+              -> Right (postingAddCostAndOrTag np costp, (if addcosts' then newcostps else costps, otherps))
 
           -- If no costful postings match the conversion postings, but some
           -- of the costless postings match, check that the first such posting has a
           -- different amount from all the others, and if so add a cost to it,
           -- then delete it from the list of costless postings in the state,
           -- and return the transformation function with the new state.
-          | [] <- matchingCostPs
-          , (np, (costp, amt)):nps <- matchingOtherPs
+          | [] <- matchingCostfulPs
+          , (np, (costp, amt)):nps <- matchingCostlessPs
           , not $ any (amountsMatch amt . snd . snd) nps
           , Just newotherps <- deleteIdx np otherps
-              -> Right (postingAddCostAndOrTag np costp, (costps, if dryrun' then otherps else newotherps))
+              -> Right (postingAddCostAndOrTag np costp, (costps, if addcosts' then newotherps else otherps))
 
           -- Otherwise, do nothing, leaving the transaction unchanged.
           -- We don't want to be over-zealous reporting problems here
