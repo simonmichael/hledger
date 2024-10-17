@@ -55,7 +55,10 @@ module Hledger.Data.Posting (
   commentAddTag,
   commentAddTagUnspaced,
   commentAddTagNextLine,
-  -- * arithmetic
+  conversionPostingTagName,
+  costPostingTagName,
+
+-- * arithmetic
   sumPostings,
   -- * rendering
   showPosting,
@@ -103,6 +106,23 @@ import Hledger.Data.AccountName
 import Hledger.Data.Dates (nulldate, spanContainsDate)
 import Hledger.Data.Valuation
 
+
+-- | These are hidden tags used internally to mark:
+-- (1) "matched conversion postings", which are to an account of Conversion type and have a nearby equivalent costful or potentially costful posting, and
+-- (2) "matched cost postings", which have or could have a cost that's equivalent to nearby conversion postings.
+--
+-- One or both of these tags are added during journal finalising:
+-- (1) before transaction balancing, to allow ignoring redundant costs
+-- (2) when inferring costs from equity conversion postings, and
+-- (3) when inferring equity conversion postings from costs.
+--
+-- These are hidden tags, mainly for internal use, and not visible in output. (XXX visibility would be useful for troubleshooting)
+-- But they are mentioned in docs and can be matched by user queries, which can be useful occasionally;
+-- so consider user impact before changing these names.
+--
+conversionPostingTagName, costPostingTagName :: TagName
+conversionPostingTagName = "_conversion-matched"
+costPostingTagName       = "_cost-matched"
 
 instance HasAmounts BalanceAssertion where
   styleAmounts styles ba@BalanceAssertion{baamount} = ba{baamount=styleAmounts styles baamount}
@@ -456,39 +476,40 @@ postingApplyValuation priceoracle styles periodlast today v p =
 postingToCost :: ConversionOp -> Posting -> Maybe Posting
 postingToCost NoConversionOp p = Just p
 postingToCost ToCost         p
-  -- If this is a conversion posting with a matched transaction price posting, ignore it
-  | "_conversion-matched" `elem` map fst (ptags p) && nocosts = Nothing
+  -- If this is an equity conversion posting with an associated cost nearby, ignore it
+  | conversionPostingTagName `elem` map fst (ptags p) && nocosts = Nothing
   | otherwise = Just $ postingTransformAmount mixedAmountCost p
   where
     nocosts = (not . any (isJust . acost) . amountsRaw) $ pamount p
 
--- | Generate inferred equity postings from a 'Posting''s costs.
--- Make sure not to duplicate them when matching ones exist already.
+-- | Generate equity conversion postings corresponding to a 'Posting''s cost(s)
+-- (one pair of conversion postings per cost), wherever they don't already exist.
 postingAddInferredEquityPostings :: Bool -> Text -> Posting -> [Posting]
 postingAddInferredEquityPostings verbosetags equityAcct p
-    | "_cost-matched" `elem` map fst (ptags p) = [p]
-    | otherwise = taggedPosting : concatMap conversionPostings costs
+  -- this posting has no costs
+  | null costs = [p]
+  -- this posting is already tagged as having associated conversion postings
+  | costPostingTagName `elem` map fst (ptags p) = [p]
+  -- tag the posting, and for each of its costs, add an equivalent pair of conversion postings after it
+  | otherwise = p `postingAddTags` [(costPostingTagName,"")] : concatMap makeConversionPostings costs
   where
     costs = filter (isJust . acost) . amountsRaw $ pamount p
-    taggedPosting
-      | null costs = p
-      | otherwise  = p{ ptags = ("_cost-matched","") : ptags p }
-    conversionPostings amt = case acost amt of
-        Nothing -> []
-        Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
-                       , pamount = mixedAmount . negate $ amountStripCost amt
-                       }
-                   , cp{ paccount = accountPrefix <> costCommodity
-                       , pamount = mixedAmount cost
-                       }
-                   ]
+    makeConversionPostings amt = case acost amt of
+      Nothing -> []
+      Just _  -> [ cp{ paccount = accountPrefix <> amtCommodity
+                      , pamount = mixedAmount . negate $ amountStripCost amt
+                      }
+                  , cp{ paccount = accountPrefix <> costCommodity
+                      , pamount = mixedAmount cost
+                      }
+                  ]
       where
         cost = amountCost amt
         amtCommodity  = commodity amt
         costCommodity = commodity cost
         cp = p{ pcomment = pcomment p & (if verbosetags then (`commentAddTag` ("generated-posting","conversion")) else id)
               , ptags    =
-                   ("_conversion-matched","") : -- implementation-specific internal tag, not for users
+                   (conversionPostingTagName,"") :
                    ("_generated-posting","conversion") :
                    (if verbosetags then [("generated-posting", "conversion")] else [])
               , pbalanceassertion = Nothing

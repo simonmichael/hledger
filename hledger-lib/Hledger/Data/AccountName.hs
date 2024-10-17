@@ -22,6 +22,7 @@ module Hledger.Data.AccountName (
   ,accountSummarisedName
   ,accountNameInferType
   ,accountNameType
+  ,defaultBaseConversionAccount
   ,assetAccountRegex
   ,cashAccountRegex
   ,liabilityAccountRegex
@@ -104,6 +105,9 @@ accountSummarisedName a
     where
       cs = accountNameComponents a
       a' = accountLeafName a
+-- The base conversion account name used by --infer-equity,
+-- when no other account of type V/Conversion has been declared.
+defaultBaseConversionAccount = "equity:conversion"
 
 -- | Regular expressions matching common English top-level account names,
 -- used as a fallback when account types are not declared.
@@ -111,7 +115,7 @@ assetAccountRegex      = toRegexCI' "^assets?(:|$)"
 cashAccountRegex       = toRegexCI' "^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$)"
 liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
 equityAccountRegex     = toRegexCI' "^equity(:|$)"
-conversionAccountRegex = toRegexCI' "^equity:(trad(e|ing)|conversion)s?(:|$)"
+conversionAccountRegex = toRegexCI' "^equity:(trade|trades|trading|conversion)(:|$)"
 revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
 expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
 

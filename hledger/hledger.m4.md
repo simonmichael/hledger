@@ -1881,17 +1881,26 @@ Tags hledger adds to indicate generated data:
  generated-transaction  -- appears on generated periodic txns (with --verbose-tags)
  generated-posting      -- appears on generated auto postings (with --verbose-tags)
  modified               -- appears on txns which have had auto postings added (with --verbose-tags)
+```
 
-Not displayed, but queryable:
+These similar tags are also provided; they are not displayed, but can be relied on for querying:
+```
  _generated-transaction -- exists on generated periodic txns (always)
  _generated-posting     -- exists on generated auto postings (always)
  _modified              -- exists on txns which have had auto postings added (always)
 ```
 
-Other tags hledger uses internally:
+The following non-displayed tags are used internally by hledger,
+(1) to ignore redundant costs when balancing transactions,
+(2) when using --infer-costs, and
+(3) when using --infer-equity.
+Essentially they mark postings with costs which have corresponding equity conversion postings, and vice-versa.
+They are queryable, but you should not rely on them for your reports:
 ```
- _cost-matched          -- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
- _conversion-matched    -- marks equity conversion postings which have been matched with a nearby posting with a cost
+ _conversion-matched    -- marks "matched conversion postings", which are to a V/Conversion account
+                           and have a nearby equivalent costful or potentially costful posting
+ _cost-matched          -- marks "matched cost postings", which have or could have a cost
+                           that's equivalent to nearby conversion postings
 ```
 
 ### Tag values
