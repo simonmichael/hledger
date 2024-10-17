@@ -127,7 +127,7 @@ postingsReportItemAsRecord ::
     (Spr.Lines border) =>
     AmountFormat -> PostingsReportItem -> [Spr.Cell border T.Text]
 postingsReportItemAsRecord fmt (_, _, _, p, b) =
-    [cell idx,
+    [(cell idx) {Spr.cellType = Spr.TypeInteger},
      (cell date) {Spr.cellType = Spr.TypeDate},
      cell code, cell desc, cell acct,
      amountCell (pamount p),
