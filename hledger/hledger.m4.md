@@ -275,7 +275,7 @@ feel free to skip these until you need them.
 
 Here we touch on shell escaping/quoting rules, and give some examples.
 This is a slightly complicated topic which you may not need at first,
-but be aware of it, and return here when needed.
+but you should be aware of it, so you can return here when needed.
 
 ### Escaping shell special characters
 
