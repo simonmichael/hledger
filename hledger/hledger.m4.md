@@ -1864,17 +1864,26 @@ Tags hledger adds to indicate generated data:
  generated-transaction  -- appears on generated periodic txns (with --verbose-tags)
  generated-posting      -- appears on generated auto postings (with --verbose-tags)
  modified               -- appears on txns which have had auto postings added (with --verbose-tags)
+```
 
-Not displayed, but queryable:
+These similar tags are also provided; they are not displayed, but can be relied on for querying:
+```
  _generated-transaction -- exists on generated periodic txns (always)
  _generated-posting     -- exists on generated auto postings (always)
  _modified              -- exists on txns which have had auto postings added (always)
 ```
 
-Other tags hledger uses internally:
+The following non-displayed tags are used internally by hledger,
+(1) to ignore redundant costs when balancing transactions,
+(2) when using --infer-costs, and
+(3) when using --infer-equity.
+Essentially they mark postings with costs which have corresponding equity conversion postings, and vice-versa.
+They are queryable, but you should not rely on them for your reports:
 ```
- _cost-matched          -- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
- _conversion-matched    -- marks equity conversion postings which have been matched with a nearby posting with a cost
+ _conversion-matched    -- marks "matched conversion postings", which are to a V/Conversion account
+                           and have a nearby equivalent costful or potentially costful posting
+ _cost-matched          -- marks "matched cost postings", which have or could have a cost
+                           that's equivalent to nearby conversion postings
 ```
 
 ### Tag values
@@ -2029,7 +2038,7 @@ Some notes:
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
 - Accounts can only be declared in `journal` files, but will affect [included](#include-directive) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
-- If you use the [--infer-equity](#inferring-equity-conversion-postings) flag, you will also need declarations for the account names it generates.
+- [Equity conversion accounts](#account-types), including the ones used by [--infer-equity](#inferring-equity-conversion-postings), need not be declared.
 
 ### Account display order
 
@@ -2098,7 +2107,8 @@ account expenses           ; type: X
 account assets:bank        ; type: C
 account assets:cash        ; type: C
 
-account equity:conversion  ; type: V
+; if you want to override the conversion account name, which is equity:conversion by default:
+;account equity:exchange   ; type: V
 ```
 
 [five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
@@ -5765,8 +5775,7 @@ $ hledger print --infer-equity
 The equity account names will be "equity:conversion:A-B:A" and "equity:conversion:A-B:B"
 where A is the alphabetically first commodity symbol.
 You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
-
-Note you will need to add [account declarations](#account-error-checking) for these to your journal, if you use `check accounts` or `check --strict`.
+(These conversion accounts are automatically recognised by [`check accounts` and `check -s`](#account-error-checking), whether declared or not.)
 
 ## Combining costs and equity conversion postings
 
@@ -5811,9 +5820,9 @@ It will infer costs only in transactions with:
   Equity conversion accounts are:
 
   - any accounts declared with account type `V`/`Conversion`, or their subaccounts
-  - otherwise, accounts named `equity:conversion`, `equity:trade`, or `equity:trading`, or their subaccounts.
+  - otherwise, accounts named `equity:conversion`, `equity:trade`, `equity:trades`, `equity:trading`, or any subaccounts of these.
 
-And multiple such four-posting groups can coexist within a single transaction.
+Multiple such four-posting groups can coexist within a single transaction.
 When `--infer-costs` fails, it does not infer a cost in that transaction, and does not raise an error (ie, it infers costs where it can).
 
 Reading variant 5 journal entries, combining cost notation and equity postings, has all the same requirements.

@@ -39,3 +39,56 @@ account asset
 $ hledger -f - accounts --types
 asset      ; type: A
 unknown    ; type: 
+
+# ** 7. equity:conversion, and several other names, are detected as V/Conversion type by default.
+<
+account equity:conversion
+account equity:trade
+account equity:trades
+account equity:trading
+$ hledger -f- accounts --types
+equity:conversion    ; type: V
+equity:trade         ; type: V
+equity:trades        ; type: V
+equity:trading       ; type: V
+
+# ** 8. If any other account name is declared with V type, those default names become just ordinary equity accounts.
+<
+account trade  ; type: V
+account equity:conversion
+account equity:trade
+account equity:trades
+account equity:trading
+$ hledger -f- accounts --types
+trade                ; type: V
+equity:conversion    ; type: E
+equity:trade         ; type: E
+equity:trades        ; type: E
+equity:trading       ; type: E
+
+# ** 9. --infer-equity uses equity:conversion as its base account by default.
+<
+2024-01-01
+  a    1A
+  b   -1B
+
+$ hledger -f- accounts --infer-equity
+a
+b
+equity:conversion:A-B:A
+equity:conversion:A-B:B
+
+# ** 10. With a custom conversion account declared, --infer-equity uses that instead.
+<
+account trade  ; type:V
+
+2024-01-01
+  a    1A
+  b   -1B
+
+$ hledger -f- accounts --infer-equity
+trade
+trade:A-B:A
+trade:A-B:B
+a
+b

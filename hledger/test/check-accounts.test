@@ -51,3 +51,54 @@ $ hledger -f- --auto check accounts
 $ hledger -f- --auto --strict bal
 >2 /account "b" has not been declared/
 >=1
+
+# ** 7. The default conversion accounts used by --infer-equity (and the parent accounts, and children) are automatically recognised by check accounts.
+<
+account a
+account b
+
+2024-01-01
+  a    1A
+  b   -1B
+
+2024-01-01
+  ; all of these are auto-recognised
+  equity:conversion              0
+  equity:conversion:A-B          0
+  equity:conversion:A-B:A        0
+  equity:conversion:A-B:B        0
+  equity:conversion:foo:bar:baz  0
+
+$ hledger -f- check accounts --infer-equity
+
+# ** 8. When the base conversion account has been customised, --infer-equity's conversion accounts are still automatically recognised.
+<
+account a
+account b
+account equity:trade  ; type:V
+
+2024-01-01
+  a    1A
+  b   -1B
+
+2024-01-01
+  ; all of these are auto-recognised
+  equity:trade:A-B          0
+  equity:trade:A-B:A        0
+  equity:trade:A-B:B        0
+  equity:trade:foo:bar:baz  0
+
+$ hledger -f- check accounts
+
+# ** 8. When the base conversion account has been customised, the default conversion account is no longer automatically recognised.
+<
+account a
+account b
+account equity:trade  ; type:V
+
+2024-01-01
+  equity:conversion        0
+
+$ hledger -f- check accounts
+>2 /"equity:conversion" has not been declared/
+>=1
