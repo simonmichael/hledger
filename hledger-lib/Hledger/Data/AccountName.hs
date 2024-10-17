@@ -21,6 +21,7 @@ module Hledger.Data.AccountName (
   ,accountNameTreeFrom
   ,accountSummarisedName
   ,accountNameInferType
+  ,accountNameInferTypeExcept
   ,accountNameType
   ,defaultBaseConversionAccount
   ,assetAccountRegex
@@ -84,27 +85,6 @@ acctsepchar = ':'
 acctsep :: Text
 acctsep = T.pack [acctsepchar]
 
--- accountNameComponents :: AccountName -> [String]
--- accountNameComponents = splitAtElement acctsepchar
-
-accountNameComponents :: AccountName -> [Text]
-accountNameComponents = T.splitOn acctsep
-
-accountNameFromComponents :: [Text] -> AccountName
-accountNameFromComponents = T.intercalate acctsep
-
-accountLeafName :: AccountName -> Text
-accountLeafName = last . accountNameComponents
-
--- | Truncate all account name components but the last to two characters.
-accountSummarisedName :: AccountName -> Text
-accountSummarisedName a
-  --   length cs > 1 = take 2 (head cs) ++ ":" ++ a'
-  | length cs > 1 = T.intercalate ":" (map (T.take 2) $ init cs) <> ":" <> a'
-  | otherwise     = a'
-    where
-      cs = accountNameComponents a
-      a' = accountLeafName a
 -- The base conversion account name used by --infer-equity,
 -- when no other account of type V/Conversion has been declared.
 defaultBaseConversionAccount = "equity:conversion"
@@ -132,12 +112,43 @@ accountNameInferType a
   | regexMatchText expenseAccountRegex    a = Just Expense
   | otherwise                               = Nothing
 
+-- | Like accountNameInferType, but exclude the provided types from the guesses.
+-- Used eg to prevent "equity:conversion" being inferred as Conversion when a different
+-- account has been declared with that type.
+accountNameInferTypeExcept :: [AccountType] -> AccountName -> Maybe AccountType
+accountNameInferTypeExcept excludedtypes a =
+  case accountNameInferType a of
+    Just t | not $ t `elem` excludedtypes -> Just t
+    _ -> Nothing
+
 -- Extract the 'AccountType' of an 'AccountName' by looking it up in the
 -- provided Map, traversing the parent accounts if necessary. If none of those
 -- work, try 'accountNameInferType'.
 accountNameType :: M.Map AccountName AccountType -> AccountName -> Maybe AccountType
 accountNameType atypes a = asum (map (`M.lookup` atypes) $ a : parentAccountNames a)
                          <|> accountNameInferType a
+
+-- accountNameComponents :: AccountName -> [String]
+-- accountNameComponents = splitAtElement acctsepchar
+
+accountNameComponents :: AccountName -> [Text]
+accountNameComponents = T.splitOn acctsep
+
+accountNameFromComponents :: [Text] -> AccountName
+accountNameFromComponents = T.intercalate acctsep
+
+accountLeafName :: AccountName -> Text
+accountLeafName = last . accountNameComponents
+
+-- | Truncate all account name components but the last to two characters.
+accountSummarisedName :: AccountName -> Text
+accountSummarisedName a
+  --   length cs > 1 = take 2 (head cs) ++ ":" ++ a'
+  | length cs > 1 = T.intercalate ":" (map (T.take 2) $ init cs) <> ":" <> a'
+  | otherwise     = a'
+    where
+      cs = accountNameComponents a
+      a' = accountLeafName a
 
 -- | The level (depth) of an account name.
 --

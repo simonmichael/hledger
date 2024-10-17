@@ -579,7 +579,7 @@ journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
 
 -- | An account type inherited from the parent account(s),
 -- and whether it was originally declared by an account directive (true) or inferred from an account name (false).
-type ParentAccountType = ( AccountType, Bool )
+type ParentAccountType = (AccountType, Bool)
 
 -- | Build a map of all known account types, explicitly declared
 -- or inferred from the account's parent or name.
@@ -587,11 +587,12 @@ journalAccountTypes :: Journal -> M.Map AccountName AccountType
 journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- flatten t']
   where
     t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
-    -- Map from the top of the account tree down to the leaves, applying any explicitly declared account types,
+    -- Traverse downward through the account tree, applying any explicitly declared account types,
     -- otherwise inferring account types from account names when possible, and propagating account types downward.
     -- Declared account types (possibly inherited from parent) are preferred, inferred types are used as a fallback.
     t' = setTypeHereAndBelow Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
       where
+        declaredtypes       = M.keys $ jdeclaredaccounttypes j
         declaredtypesbyname = journalDeclaredAccountTypes j & fmap (,True)
         setTypeHereAndBelow :: Maybe ParentAccountType -> Tree AccountName -> Tree (AccountName, Maybe ParentAccountType)
         setTypeHereAndBelow mparenttype (Node a subs) = Node (a, mnewtype) (map (setTypeHereAndBelow mnewtype) subs)
@@ -601,9 +602,9 @@ journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- fla
                 mthisacctdeclaredtype   = M.lookup a declaredtypesbyname
                 mparentacctdeclaredtype = if       fromMaybe False $ snd <$> mparenttype then mparenttype else Nothing
                 mparentacctinferredtype = if not $ fromMaybe True  $ snd <$> mparenttype then mparenttype else Nothing
-                mthisacctinferredtype   = accountNameInferType a & fmap (,False)
+                mthisacctinferredtype   = accountNameInferTypeExcept declaredtypes a & fmap (,False)  -- XXX not sure about this Except logic.. but for now, tests pass
 
--- | Build a map of the account types explicitly declared for each account.
+-- | Build a map from account names to explicitly declared account types.
 journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
 journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
   M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
