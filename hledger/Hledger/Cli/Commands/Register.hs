@@ -20,6 +20,8 @@ module Hledger.Cli.Commands.Register (
 
 import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
+import Data.Text (Text)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
@@ -27,14 +29,20 @@ import qualified Data.Text.Lazy.Builder as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
-import Hledger.Write.Csv (CSV, CsvRecord, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import Hledger.Write.Html.Lucid (printHtml)
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide hiding (render)
+import Hledger.Cli.Anchor (setAccountAnchor, dateCell)
+import Text.Tabular.AsciiWide (Cell(..), Align(..), Properties(..), Header(Header, Group), renderRowB, textCell, tableBorders, borderSpaces)
+import qualified Lucid
 import Data.List (sortBy)
 import Data.Char (toUpper)
 import Data.List.Extra (intersect)
 import System.Exit (exitFailure)
+import qualified System.IO as IO
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
@@ -62,6 +70,7 @@ registermode = hledgerCommandMode
       ++ " or $COLUMNS). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
+  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","csv","tsv","json"]
   ,outputFileFlag
   ])
@@ -90,23 +99,55 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
     styles = journalCommodityStylesWith HardRounding j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
+           | fmt=="json" = toJsonText
            | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="tsv"  = printTSV . postingsReportAsCsv
-           | fmt=="json" = toJsonText
+           | fmt=="html" =
+                (<>"\n") . Lucid.renderText . printHtml .
+                map (map (fmap Lucid.toHtml)) .
+                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Register" .
+                (,) (Just 1, Nothing) .
+                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
+            baseUrl = balance_base_url_ $ _rsReportOpts rspec
+            query = querystring_ $ _rsReportOpts rspec
 
 postingsReportAsCsv :: PostingsReport -> CSV
-postingsReportAsCsv is =
-  ["txnidx","date","code","description","account","amount","total"]
-  :
-  map postingsReportItemAsCsvRecord is
+postingsReportAsCsv =
+  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt Nothing []
 
-postingsReportItemAsCsvRecord :: PostingsReportItem -> CsvRecord
-postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal]
+postingsReportAsSpreadsheet ::
+  AmountFormat -> Maybe Text -> [Text] ->
+  PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
+postingsReportAsSpreadsheet fmt base query is =
+  Spr.addHeaderBorders
+    (map Spr.headerCell
+      ["txnidx","date","code","description","account","amount","total"])
+  :
+  map (postingsReportItemAsRecord fmt base query) is
+
+{- ToDo:
+link txnidx to journal URL,
+   however, requires Web.Widget.Common.transactionFragment
+-}
+postingsReportItemAsRecord ::
+    (Spr.Lines border) =>
+    AmountFormat -> Maybe Text -> [Text] ->
+    PostingsReportItem -> [Spr.Cell border T.Text]
+postingsReportItemAsRecord fmt base query (_, _, _, p, b) =
+    [(cell idx) {Spr.cellType = Spr.TypeInteger},
+     (dateCell base query (paccount p) date) {Spr.cellType = Spr.TypeDate},
+     cell code, cell desc,
+     setAccountAnchor base query (paccount p) $ cell acct,
+     amountCell (pamount p),
+     amountCell b]
   where
+    cell = Spr.defaultCell
     idx  = T.pack . show . maybe 0 tindex $ ptransaction p
-    date = showDate $ postingDate p -- XXX csv should show date2 with --date2
+    date = postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" tcode $ ptransaction p
     desc = maybe "" tdescription $ ptransaction p
     acct = bracket $ paccount p
@@ -116,8 +157,8 @@ postingsReportItemAsCsvRecord (_, _, _, p, b) = [idx,date,code,desc,acct,amt,bal
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
     -- Since postingsReport strips prices from all Amounts when not used, we can display prices.
-    amt = wbToText . showMixedAmountB machineFmt $ pamount p
-    bal = wbToText $ showMixedAmountB machineFmt b
+    amountCell amt =
+      wbToText <$> Spr.cellFromMixedAmount fmt (Spr.Class "amount", amt)
 
 -- | Render a register report as plain text suitable for console output.
 postingsReportAsText :: CliOpts -> PostingsReport -> TL.Text

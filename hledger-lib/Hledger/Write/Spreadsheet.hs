@@ -19,20 +19,28 @@ module Hledger.Write.Spreadsheet (
     transposeCell,
     transpose,
     horizontalSpan,
+    addHeaderBorders,
     addRowSpanHeader,
     rawTableContent,
+    cellFromMixedAmount,
+    cellsFromMixedAmount,
     ) where
 
-import Hledger.Data.Types (Amount)
+import qualified Hledger.Data.Amount as Amt
+import Hledger.Data.Types (Amount, MixedAmount, acommodity)
+import Hledger.Data.Amount (AmountFormat)
 
 import qualified Data.List as List
+import qualified Data.Text as Text
 import Data.Text (Text)
+import Text.WideString (WideBuilder)
 
 import Prelude hiding (span)
 
 
 data Type =
       TypeString
+    | TypeInteger
     | TypeAmount !Amount
     | TypeMixedAmount
     | TypeDate
@@ -172,6 +180,10 @@ transpose :: [[Cell border text]] -> [[Cell border text]]
 transpose = List.transpose . map (map transposeCell)
 
 
+addHeaderBorders :: [Cell () text] -> [Cell NumLines text]
+addHeaderBorders =
+    map (\c -> c {cellBorder = noBorder {borderBottom = DoubleLine}})
+
 horizontalSpan ::
     (Lines border, Monoid text) =>
     [a] -> Cell border text -> [Cell border text]
@@ -196,3 +208,36 @@ addRowSpanHeader header rows =
 
 rawTableContent :: [[Cell border text]] -> [[text]]
 rawTableContent = map (map cellContent)
+
+
+
+cellFromMixedAmount ::
+    (Lines border) =>
+    AmountFormat -> (Class, MixedAmount) -> Cell border WideBuilder
+cellFromMixedAmount bopts (cls, mixedAmt) =
+    (defaultCell $ Amt.showMixedAmountB bopts mixedAmt) {
+        cellClass = cls,
+        cellType =
+          case Amt.unifyMixedAmount mixedAmt of
+            Just amt -> amountType bopts amt
+            Nothing -> TypeMixedAmount
+    }
+
+cellsFromMixedAmount ::
+    (Lines border) =>
+    AmountFormat -> (Class, MixedAmount) -> [Cell border WideBuilder]
+cellsFromMixedAmount bopts (cls, mixedAmt) =
+    map
+        (\(str,amt) ->
+            (defaultCell str) {
+                cellClass = cls,
+                cellType = amountType bopts amt
+            })
+        (Amt.showMixedAmountLinesPartsB bopts mixedAmt)
+
+amountType :: AmountFormat -> Amount -> Type
+amountType bopts amt =
+    TypeAmount $
+    if Amt.displayCommodity bopts
+      then amt
+      else amt {acommodity = Text.empty}
