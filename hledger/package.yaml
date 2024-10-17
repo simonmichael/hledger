@@ -164,6 +164,7 @@ library:
   cpp-options: -DVERSION="1.40.99"
   exposed-modules:
   - Hledger.Cli
+  - Hledger.Cli.Anchor
   - Hledger.Cli.Anon
   - Hledger.Cli.CliOptions
   - Hledger.Cli.Commands

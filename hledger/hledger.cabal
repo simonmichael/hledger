@@ -110,6 +110,7 @@ flag threaded
 library
   exposed-modules:
       Hledger.Cli
+      Hledger.Cli.Anchor
       Hledger.Cli.Anon
       Hledger.Cli.CliOptions
       Hledger.Cli.Commands
