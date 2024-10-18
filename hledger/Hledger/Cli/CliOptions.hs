@@ -22,8 +22,8 @@ module Hledger.Cli.CliOptions (
   -- * cmdargs flags & modes
   inputflags,
   reportflags,
-  terminalflags,
   helpflags,
+  terminalflags,
   helpflagstitle,
   flattreeflags,
   confflags,
@@ -240,17 +240,17 @@ helpflags = [
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
   -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
- ]
--- XXX why are these duplicated in defCommandMode below ?
+ ] -- XXX why are these duplicated in defCommandMode below ?
  <> terminalflags
 
 -- Low-level flags affecting terminal output.
 -- These are included in helpflags so they appear everywhere.
 terminalflags = [
-  flagNone ["no-pager"] (setboolopt "no-pager") "don't use a pager for long output"
+  flagReq  ["pager"] (\s opts -> Right $ setopt "pager" s opts) "YN"
+   "use pager for long output ? y/yes or n/no"
   -- This has special support in hledger-lib:colorOption, keep synced
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
-   "use ANSI color in terminal ? 'y'/'yes', 'n'/'no', or 'auto' (default)"
+   "use ANSI color ? y/yes, n/no, or auto (default)"
  ]
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
@@ -542,6 +542,8 @@ data CliOpts = CliOpts {
     ,reportspec_      :: ReportSpec
     ,output_file_     :: Maybe FilePath
     ,output_format_   :: Maybe String
+    ,pageropt_        :: Maybe Bool     -- ^ --pager
+    ,coloropt_        :: Maybe YNA      -- ^ --color. Controls use of ANSI color and ANSI styles.
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- ^ the --width value provided, if any
@@ -563,6 +565,8 @@ defcliopts = CliOpts
     , reportspec_      = def
     , output_file_     = Nothing
     , output_format_   = Nothing
+    , pageropt_        = Nothing
+    , coloropt_        = Nothing
     , debug_           = 0
     , no_new_accounts_ = False
     , width_           = Nothing
@@ -621,6 +625,8 @@ rawOptsToCliOpts rawopts = do
              ,reportspec_      = rspec
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
+             ,pageropt_        = maybeynopt "pager" rawopts
+             ,coloropt_        = maybeynaopt "color" rawopts
              ,debug_           = posintopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,width_           = maybestringopt "width" rawopts

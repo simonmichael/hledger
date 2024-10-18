@@ -345,7 +345,7 @@ main = withGhcDebug' $ do
   withArgs (progname:finalargs) $
    if
     -- 6.1. no command and a help/doc flag found - show general help/docs
-    | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
+    | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
@@ -375,7 +375,7 @@ main = withGhcDebug' $ do
       -- run the builtin command according to its type
       if
         -- 6.5.1. help/doc flag - show command help/docs
-        | helpFlag  -> pager $ showModeUsage cmdmode ++ "\n"
+        | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
         | tldrFlag  -> runTldrForPage tldrpagename
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname

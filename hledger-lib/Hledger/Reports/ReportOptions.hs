@@ -346,7 +346,7 @@ ynopt opt rawopts = case maybestringopt opt rawopts of
     Just "never"  -> Just False
     Just "no"     -> Just False
     Just "n"      -> Just False
-    Just _        -> usageError "--pretty's argument should be \"yes\" or \"no\" (or y, n, always, never)"
+    Just _        -> usageError "this argument should be one of y, yes, n, no"
     _             -> Nothing
 
 balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation

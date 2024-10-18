@@ -75,7 +75,7 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
   case True of
-    _ | boolopt "help"    rawopts -> pager $ showModeUsage uimode ++ "\n"
+    _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
     _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
