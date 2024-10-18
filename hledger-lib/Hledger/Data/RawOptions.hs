@@ -9,6 +9,7 @@ more easily by hledger commands/scripts in this and other packages.
 
 module Hledger.Data.RawOptions (
   RawOpts,
+  YNA,
   mkRawOpts,
   overRawOpts,
   setopt,
@@ -26,7 +27,9 @@ module Hledger.Data.RawOptions (
   posintopt,
   maybeintopt,
   maybeposintopt,
-  maybecharopt
+  maybecharopt,
+  maybeynopt,
+  maybeynaopt,
 )
 where
 
@@ -35,6 +38,8 @@ import Data.Default (Default(..))
 import Safe (headMay, lastMay, readDef)
 
 import Hledger.Utils
+import Data.Char (toLower)
+import Data.List (intercalate)
 
 
 -- | The result of running cmdargs: an association list of option names to string values.
@@ -139,3 +144,22 @@ maybeclippedintopt minVal maxVal name =
                                          ++ " must lie in the range "
                                          ++ show minVal ++ " to " ++ show maxVal
                                          ++ ", but is " ++ show n
+
+maybeynopt :: String -> RawOpts -> Maybe Bool
+maybeynopt name rawopts =
+  case maybestringopt name rawopts of
+    Just v | map toLower v `elem` ["y","yes","always"] -> Just True
+    Just v | map toLower v `elem` ["n","no","never"]   -> Just False
+    Just _ -> error' $ name <> " value should be one of " <> (intercalate ", " ["y","yes","n","no"])
+    _ -> Nothing
+
+data YNA = Yes | No | Auto deriving (Eq,Show)
+
+maybeynaopt :: String -> RawOpts -> Maybe YNA
+maybeynaopt name rawopts =
+  case maybestringopt name rawopts of
+    Just v | map toLower v `elem` ["y","yes","always"] -> Just Yes
+    Just v | map toLower v `elem` ["n","no","never"]   -> Just No
+    Just v | map toLower v `elem` ["a","auto"]         -> Just Auto
+    Just _ -> error' $ name <> " value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
+    _ -> Nothing

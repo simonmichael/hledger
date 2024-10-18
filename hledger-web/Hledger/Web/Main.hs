@@ -55,7 +55,7 @@ hledgerWebMain = withGhcDebug' $ do
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
-    | boolopt "help"            rawopts_ -> pager $ showModeUsage webmode ++ "\n"
+    | boolopt "help"            rawopts_ -> runPager $ showModeUsage webmode ++ "\n"
     | boolopt "tldr"            rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing

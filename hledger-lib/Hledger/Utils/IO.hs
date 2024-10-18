@@ -20,8 +20,8 @@ module Hledger.Utils.IO (
   pprint',
 
   -- * Viewing with pager
-  pager,
   setupPager,
+  runPager,
 
   -- * Terminal size
   getTerminalHeightWidth,
@@ -32,6 +32,9 @@ module Hledger.Utils.IO (
   progArgs,
   outputFileOption,
   hasOutputFile,
+  splitFlagsAndVals,
+  getLongOpt,
+  parseYN,
 
   -- * ANSI color
   colorOption,
@@ -130,6 +133,7 @@ import           Text.Pretty.Simple
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
+import Data.Char (toLower)
 
 
 -- Pretty showing/printing with pretty-simple
@@ -210,13 +214,18 @@ setupPager = do
 -- supports those, the pager should be configured to display those, otherwise
 -- users will see junk on screen (#2015).
 -- Call "setupPager" at program startup to make that less likely.
-pager :: String -> IO ()
+--
+-- Pager use is influenced by the --pager option, at least.
+-- Rather than pass in a huge CliOpts, or duplicate conditional logic at every call site,
+-- this does some redundant local options parsing.
+runPager :: String -> IO ()
 #ifdef mingw32_HOST_OS
-pager = putStr
+runPager = putStr
 #else
-pager s = do
-  -- disable pager when --no-pager is specified
-  nopager <- elem "--no-pager" <$> getArgs
+runPager s = do
+  -- disable pager with --pager=no
+  mpager <- getLongOpt "pager"
+  let nopager = not $ maybe True parseYN mpager
   -- disable pager when TERM=dumb (for Emacs shell users)
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
   -- disable pager with single-line output (https://github.com/pharpend/pager/issues/2)
@@ -238,6 +247,33 @@ pager s = do
     s
 #endif
 
+-- | Given a list of arguments, split any of the form --flag=val into --flag, val.
+splitFlagsAndVals :: [String] -> [String]
+splitFlagsAndVals =
+  concatMap
+    (\a ->
+      if "--" `isPrefixOf` a && '=' `elem` a
+      then let (x,y) = break (=='=') a in [x, drop 1 y]
+      else [a])
+
+-- | Read the value of the rightmost long option of this name from the command line arguments.
+-- If the value is missing raise an error.
+getLongOpt :: String -> IO (Maybe String)
+getLongOpt name = do
+  rargs <- reverse . splitFlagsAndVals <$> getArgs
+  let flag = "--"<>name
+  return $
+    case break (==flag) rargs of
+      ([],_)        -> error' $ flag <> " requires a value"
+      (argsafter,_) -> Just $ last argsafter
+
+-- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
+parseYN :: String -> Bool
+parseYN s
+  | l `elem` ["y","yes","always"] = True
+  | l `elem` ["n","no","never"]   = False
+  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
+  where l = map toLower s
 
 -- Command line arguments
 
