@@ -674,7 +674,7 @@ Here are those commands and the formats currently supported:
 | cashflow           | Y   | Y    | Y       |      |           |     | Y    |
 | incomestatement    | Y   | Y    | Y       |      |           |     | Y    |
 | print              | Y   |      | Y       |      | Y         | Y   | Y    |
-| register           | Y   |      | Y       |      |           |     | Y    |
+| register           | Y   | Y    | Y       | Y    |           |     | Y    |
 
 <!--
 | accounts              |     |     |      |      |     |

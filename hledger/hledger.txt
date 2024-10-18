@@ -681,7 +681,7 @@ Output
        cashflow                Y       Y        Y                                           Y
        incomestatement         Y       Y        Y                                           Y
        print                   Y                Y                    Y              Y       Y
-       register                Y                Y                                           Y
+       register                Y       Y        Y           Y                               Y
 
        The output format is selected by the -O/--output-format=FMT option:
 
