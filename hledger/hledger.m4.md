@@ -736,6 +736,9 @@ in `less` (and in its `more` compatibility mode).
 If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
 Or you can set the `NO_COLOR` environment variable described below.
 
+You can prevent the use of a pager by using the `--no-pager` flag,
+eg in your hledger config file.
+
 Here are some notes about the various output formats.
 
 ### Text output

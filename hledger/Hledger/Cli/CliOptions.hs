@@ -228,6 +228,7 @@ reportflags = [
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
   -- This has special support in hledger-lib:colorOption, keep synced
+ ,flagNone ["no-pager"] (setboolopt "no-pager") "don't use a pager for long output"
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
    (unlines
      ["Use ANSI color codes in text output? Can be"
