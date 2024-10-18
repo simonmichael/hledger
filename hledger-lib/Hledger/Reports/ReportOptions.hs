@@ -226,14 +226,14 @@ defreportopts = ReportOpts
     , layout_           = LayoutWide Nothing
     }
 
--- | Generate a ReportOpts from raw command-line input, given a day.
+-- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
 -- This will fail with a usage error if it is passed
 -- - an invalid --format argument,
 -- - an invalid --value argument,
 -- - if --valuechange is called with a valuation type other than -V/--value=end.
 -- - an invalid --pretty argument,
-rawOptsToReportOpts :: Day -> RawOpts -> ReportOpts
-rawOptsToReportOpts d rawopts =
+rawOptsToReportOpts :: Day -> Bool -> RawOpts -> ReportOpts
+rawOptsToReportOpts d usecoloronstdout rawopts =
 
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
@@ -277,7 +277,7 @@ rawOptsToReportOpts d rawopts =
           ,percent_          = boolopt "percent" rawopts
           ,invert_           = boolopt "invert" rawopts
           ,pretty_           = pretty
-          ,color_            = useColorOnStdout -- a lower-level helper
+          ,color_            = usecoloronstdout
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
           }
@@ -941,5 +941,5 @@ updateReportSpecWith = overEither reportOpts
 
 -- | Generate a ReportSpec from RawOpts and a provided day, or return an error
 -- string if there are regular expression errors.
-rawOptsToReportSpec :: Day -> RawOpts -> Either String ReportSpec
-rawOptsToReportSpec day = reportOptsToSpec day . rawOptsToReportOpts day
+rawOptsToReportSpec :: Day -> Bool -> RawOpts -> Either String ReportSpec
+rawOptsToReportSpec day coloronstdout = reportOptsToSpec day . rawOptsToReportOpts day coloronstdout

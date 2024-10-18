@@ -163,7 +163,7 @@ _banner_speed = drop 1 [""
 -- picking one that will contrast with the current terminal background colour.
 accent :: String -> String
 accent
-  | not useColorOnStdout          = id
+  | not useColorOnStdoutUnsafe    = id  -- XXX unsafe accenting the title banner - seems to work, even respecting config file
   | terminalIsLight == Just False = brightWhite
   | terminalIsLight == Just True  = brightBlack
   | otherwise                     = id

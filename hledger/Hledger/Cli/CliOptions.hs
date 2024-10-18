@@ -493,7 +493,7 @@ showModeUsage =
 
 -- | Add some ANSI decoration to cmdargs' help output.
 highlightHelp
-  | not useColorOnStdout = id
+  | not useColorOnStdoutUnsafe = id   -- XXX unsafe boldening help headings - seems to work, even respecting config file
   | otherwise = unlines . zipWith (curry f) [1..] . lines
   where
     f (n,l)
@@ -606,8 +606,9 @@ rawOptsToCliOpts rawopts = do
               Nothing -> currentDay
               Just d  -> either (const err) fromEFDay $ fixSmartDateStrEither' currentDay (T.pack d)
                 where err = error' $ "Unable to parse date \"" ++ d ++ "\""
-  let iopts = rawOptsToInputOpts day rawopts
-  rspec <- either error' pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
+  usecolor <- useColorOnStdout
+  let iopts = rawOptsToInputOpts day usecolor rawopts
+  rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
 #ifdef mingw32_HOST_OS

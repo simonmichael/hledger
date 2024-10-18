@@ -126,9 +126,10 @@ hledgerWebTest = do
 
     -- yit "can add transactions" $ do
 
+  usecolor <- useColorOnStdout
   let
     rawopts = [("forecast","")]
-    iopts = rawOptsToInputOpts d $ mkRawOpts rawopts
+    iopts = rawOptsToInputOpts d usecolor $ mkRawOpts rawopts
     f = "fake"  -- need a non-null filename so forecast transactions get index 0
   pj <- readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
     ["~ monthly"
