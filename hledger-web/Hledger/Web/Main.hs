@@ -5,6 +5,7 @@ Copyright (c) 2007-2023 Simon Michael <simon@joyful.com> and contributors.
 Released under GPL version 3 or later.
 -}
 
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -12,6 +13,9 @@ Released under GPL version 3 or later.
 module Hledger.Web.Main where
 
 import Control.Exception (bracket)
+#if MIN_VERSION_base(4,20,0)
+import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
+#endif
 import Control.Monad (when)
 import Data.String (fromString)
 import qualified Data.Text as T
@@ -48,6 +52,12 @@ hledgerWebDev =
 hledgerWebMain :: IO ()
 hledgerWebMain = withGhcDebug' $ do
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
+#if MIN_VERSION_base(4,20,0)
+  -- Control ghc 9.10+'s stack traces.
+  -- hledger-web isn't showing many yet; leave this enabled for now.
+  setBacktraceMechanismState HasCallStackBacktrace True
+#endif
 
   -- try to encourage user's $PAGER to properly display ANSI (in command line help)
   usecolor <- useColorOnStdout

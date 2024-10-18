@@ -66,6 +66,7 @@ etc.
 
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Unused LANGUAGE pragma" #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -88,6 +89,9 @@ module Hledger.Cli (
 )
 where
 
+#if MIN_VERSION_base(4,20,0)
+import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
+#endif
 import Control.Monad (when, unless)
 import Data.Bifunctor (second)
 import Data.Char (isDigit)
@@ -189,6 +193,16 @@ confflagsmode = defMode{
 --
 main :: IO ()
 main = withGhcDebug' $ do
+
+#if MIN_VERSION_base(4,20,0)
+  -- Control ghc 9.10+'s stack traces.
+  -- hledger isn't showing many yet; leave this enabled for now
+  setBacktraceMechanismState HasCallStackBacktrace True
+    -- CostCentreBacktrace   - collect cost-centre stack backtraces (only available when built with profiling)
+    -- HasCallStackBacktrace - collect HasCallStack backtraces
+    -- ExecutionBacktrace    - collect backtraces from native execution stack unwinding
+    -- IPEBacktrace          - collect backtraces from Info Table Provenance Entries
+#endif
 
   -- 0. let's go!
 

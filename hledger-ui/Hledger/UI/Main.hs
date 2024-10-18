@@ -3,6 +3,7 @@ hledger-ui - a hledger add-on providing an efficient TUI.
 Copyright (c) 2007-2015 Simon Michael <simon@joyful.com>
 Released under GPL version 3 or later.
 -}
+{-# LANGUAGE CPP                   #-}
 {-# LANGUAGE LambdaCase            #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE OverloadedStrings     #-}
@@ -13,6 +14,9 @@ module Hledger.UI.Main where
 import Control.Applicative ((<|>))
 import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
+#if MIN_VERSION_base(4,20,0)
+import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
+#endif
 import Control.Monad (forM_, void, when)
 import Data.Bifunctor (first)
 import Data.Function ((&))
@@ -60,6 +64,14 @@ writeChan = BC.writeBChan
 hledgerUiMain :: IO ()
 hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
+
+#if MIN_VERSION_base(4,20,0)
+  -- Control ghc 9.10+'s stack traces.
+  -- Strangely only hledger-ui has been showing them (when command line processing fails),
+  -- even though hledger and hledger-web process it in just the same way.
+  -- Disable them here.
+  setBacktraceMechanismState HasCallStackBacktrace False
+#endif
 
   traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"
   dbg1IO "args" progArgs
