@@ -794,8 +794,21 @@ are disabled automatically.
 
 ### FODS output
 
-[FODS] is the OpenDocument spreadsheet format used by LibreOffice and OpenOffice.
-It is a good format to use if you are exporting to their spreadsheet app.
+[FODS] is the OpenDocument Spreadsheet format as plain XML,
+as accepted by LibreOffice and OpenOffice.
+If you use their spreadsheet applications,
+this is better than CSV because it works across locales
+(decimal point vs. decimal comma,
+character encoding stored in XML header, thus no problems with umlauts),
+it supports fixed header rows and columns,
+cell types (string vs. number vs. date),
+separation of number and currency
+(currency is displayed but the cell type
+is still a number accessible for computation),
+styles (bold), borders.
+Btw. you can still extract CSV from FODS/ODS
+using various utilities like `libreoffice --headless` or
+[ods2csv](https://hackage.haskell.org/package/ods2csv).
 
 [FODS]: https://en.wikipedia.org/wiki/OpenDocument
 
