@@ -394,7 +394,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
             "html" -> (<>"\n") . L.renderText .
                       printHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
             "fods" -> printFods IO.localeEncoding .
-                      Map.singleton "Hledger" . (,) (Just 1, Nothing) . budgetReportAsSpreadsheet ropts
+                      Map.singleton "Budget Report" . (,) (Just 1, Nothing) . budgetReportAsSpreadsheet ropts
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
@@ -407,7 +407,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
               "fods" -> printFods IO.localeEncoding .
-                        Map.singleton "Hledger" . multiBalanceReportAsSpreadsheet ropts
+                        Map.singleton "Multi-period Balance Report" . multiBalanceReportAsSpreadsheet ropts
               _      -> const $ error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
 
@@ -420,7 +420,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "html" -> (<>"\n") . L.renderText .
                                    printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
               "json" -> (<>"\n") . toJsonText
-              "fods" -> printFods IO.localeEncoding . Map.singleton "Hledger" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts
+              "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
   where
