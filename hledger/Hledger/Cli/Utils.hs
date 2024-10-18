@@ -130,7 +130,7 @@ writeOutput opts s = do
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
   f <- outputFileFromOpts opts
-  maybe (pager.TL.unpack) TL.writeFile f s
+  maybe (pager . TL.unpack) TL.writeFile f s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal

@@ -170,23 +170,6 @@ pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
--- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive and TERM is not "dumb";
--- except on Windows, where currently we don't attempt to use a pager.
--- If the text contains ANSI codes, because hledger thinks the current terminal
--- supports those, the pager should be configured to display those, otherwise
--- users will see junk on screen (#2015).
--- We call "setupPager" at hledger startup to make that less likely.
-pager :: String -> IO ()
-#ifdef mingw32_HOST_OS
-pager = putStrLn
-#else
-printOrPage' s = do  -- an extra check for Emacs users:
-  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  if dumbterm then putStrLn s else printOrPage (T.pack s)
-pager = printOrPage'
-#endif
-
 -- | An alternative to ansi-terminal's getTerminalSize, based on
 -- the more robust-looking terminal-size package.
 -- Tries to get stdout's terminal's current height and width.
@@ -200,9 +183,12 @@ getTerminalHeight = fmap fst <$> getTerminalHeightWidth
 getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
+
+-- Pager output
+
 -- | Make sure our $LESS and $MORE environment variables contain R,
--- to help ensure the common pager `less` will show our ANSI output properly.
--- less uses $LESS by default, and $MORE when it is invoked as `more`.
+-- to help ensure the common `less` pager will show our ANSI output properly.
+-- less uses $LESS by default, or $MORE when it is invoked as `more`.
 -- What the original `more` program does, I'm not sure.
 -- If $PAGER is configured to something else, this probably will have no effect.
 setupPager :: IO ()
@@ -215,6 +201,31 @@ setupPager = do
         Just v  -> ('R':v)
   addR "LESS"
   addR "MORE"
+
+-- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
+-- than the current terminal and stdout is interactive and TERM is not "dumb";
+-- except on Windows, where currently we don't attempt to use a pager.
+-- If the text contains ANSI codes, because hledger thinks the current terminal
+-- supports those, the pager should be configured to display those, otherwise
+-- users will see junk on screen (#2015).
+-- Call "setupPager" at program startup to make that less likely.
+pager :: String -> IO ()
+#ifdef mingw32_HOST_OS
+pager = putStr
+#else
+pager = printOrPage'
+
+printOrPage' s = do
+  -- disable pager if TERM=dumb (for Emacs shell users)
+  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
+  -- avoid a pager crash with single-line output, https://github.com/pharpend/pager/issues/2
+  let singleline = not $ '\n' `elem` s
+  (if dumbterm || singleline
+  then putStr
+  else printOrPage . T.pack)
+    s
+#endif
+
 
 -- Command line arguments
 
