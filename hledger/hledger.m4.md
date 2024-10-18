@@ -747,11 +747,10 @@ hledger tries to detect ANSI color and text styling support and use it when appr
 though currently rather minimally: some reports show negative numbers in red,
 and help output uses bold text for emphasis.
 
-You can override this in the usual ways:
-
-- If the `NO_COLOR` environment variable is set, colour will be disabled by default.
-- Use the `--color/--colour` option with a `yes`/`always` value,
-  or `no`/`never`, to force colour on or off.
+You can override this in the usual ways.
+If the `NO_COLOR` environment variable is set, colour will be disabled by default.
+Or you can use the `--color/--colour` option with a `yes`/`always` value,
+or `no`/`never`, to force colour on or off.
 
 #### Box-drawing
 
@@ -850,54 +849,39 @@ option "operating_currency" "USD"
 
 ### SQL output
 
-- This is not yet much used; real-world feedback is welcome.
+SQL output is expected to work at least with SQLite, MySQL and Postgres.
 
-- SQL output is expected to work at least with SQLite, MySQL and Postgres.
+The SQL statements are expected to be executed in the empty database.
+If you already have tables created via SQL output of hledger,
+you would probably want to either clear data from these
+(via `delete` or `truncate` SQL statements) or `drop` the tables completely
+before import; otherwise your postings would be duplicated.
 
-- For SQLite, it will be more useful if you modify the generated `id` field
-  to be a PRIMARY KEY. Eg:
-  ```
-  $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
-  ```
+For SQLite, it is more useful if you modify the generated `id` field
+to be a PRIMARY KEY. Eg:
+```
+$ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
+```
 
-- SQL output is structured with the expectations that statements will
-  be executed in the empty database. If you already have tables created
-  via SQL output of hledger, you would probably want to either clear tables
-  of existing data (via `delete` or `truncate` SQL statements) or drop
-  tables completely as otherwise your postings will be duped.
+This is not yet much used; feedback is welcome.
 
 ### JSON output
 
-- This is not yet much used; real-world feedback is welcome.
-
-- Our JSON is rather large and verbose, since it is a faithful
-  representation of hledger's internal data types. To understand the
-  JSON, read the Haskell type definitions, which are mostly in
-  <https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
-  [hledger-web's OpenAPI specification][openapi.yaml] may also be relevant.
-
-<!--
-- The JSON output from hledger commands is essentially the same as the
-  JSON served by [hledger-web's JSON API](hledger-web.html#json-api),
-  but pretty printed, using line breaks and indentation.
-  Our pretty printer has the ability to elide data in certain cases -
-  rendering non-strings as if they were strings, or displaying "FOO.."
-  instead of FOO's full details. This should never happen in hledger's
-  JSON output; if you see otherwise, please report as a bug.
--->
-
-- hledger represents quantities as Decimal values storing up to 255
-  significant digits, eg for repeating decimals. Such numbers can
-  arise in practice (from automatically-calculated transaction
-  prices), and would break most JSON consumers. So in JSON, we show
-  quantities as simple Numbers with at most 10 decimal places. We
-  don't limit the number of integer digits, but that part is under
-  your control.
-  We hope this approach will not cause problems in practice; if you
-  find otherwise, please let us know. 
-  (Cf [#1195](https://github.com/simonmichael/hledger/issues/1195))
+Our JSON is rather large and verbose, since it is a faithful representation of hledger's internal data types. 
+To understand its structure, read the Haskell type definitions, which are mostly in
+<https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
+[hledger-web's OpenAPI specification][openapi.yaml] may also be relevant.
 
 [openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
+
+hledger stores numbers with sometimes up to 255 significant digits.
+This is too many digits for most JSON consumers,
+so in JSON output we round numbers to at most 10 decimal places.
+(We don't limit the number of integer digits.)
+If you find this causing problems, please let us know.
+Related: [#1195](https://github.com/simonmichael/hledger/issues/1195)
+
+This is not yet much used; feedback is welcome.
 
 ## Commodity styles
 
