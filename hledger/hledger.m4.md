@@ -767,8 +767,8 @@ and help output uses bold text for emphasis.
 
 You can override this in the usual ways.
 If the `NO_COLOR` environment variable is set, colour will be disabled by default.
-Or you can use the `--color/--colour` option with a `yes`/`always` value,
-or `no`/`never`, to force colour on or off.
+Or you can use the `--color/--colour` option with a `y`/`yes` value,
+or `n`/`no`, to force colour on or off.
 (This option doesn't work in a config file yet.)
 
 #### Box-drawing
@@ -955,7 +955,7 @@ Default: `$HOME/.hledger.journal`.
 **NO_COLOR**
 If this environment variable exists (with any value, including empty),
 hledger will not use ANSI color codes in terminal output,
-unless overridden by an explicit `--color=y`/`--colour=y` option.
+unless overridden by an explicit `--color=y` or `--colour=y` option.
 
 # PART 2: DATA FORMATS
 

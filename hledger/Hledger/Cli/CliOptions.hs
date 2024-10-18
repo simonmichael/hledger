@@ -250,10 +250,7 @@ terminalflags = [
   flagNone ["no-pager"] (setboolopt "no-pager") "don't use a pager for long output"
   -- This has special support in hledger-lib:colorOption, keep synced
  ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
-   (unlines
-     ["Use ANSI color codes in text output? Can be"
-     ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
-     ])
+   "use ANSI color in terminal ? 'y'/'yes', 'n'/'no', or 'auto' (default)"
  ]
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
