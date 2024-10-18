@@ -721,6 +721,21 @@ The `-O` option can be combined with `-o` to override the file extension if need
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
+## Paging
+
+On unix-like systems, when displaying large output in the terminal,
+hledger tries to use a pager when appropriate:
+the one specified by the `PAGER` environment variable,
+otherwise `less` if available, otherwise `more` if available.
+The pager shows one page of text at a time, and lets you scroll around to see more.
+While it is active, usually `SPACE` shows the next page, `q` quits, and `?` shows more features.
+
+The pager is expected to display ANSI color and text styling if possible.
+hledger adds `R` to the `LESS` and `MORE` environment variables to enable this
+in `less` (and in its `more` compatibility mode).
+If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
+Or you can set the `NO_COLOR` environment variable described below.
+
 Here are some notes about the various output formats.
 
 ### Text output
@@ -905,23 +920,6 @@ the [commodity directive](#commodity-directive).
 
 In some cases hledger will adjust number formatting to improve their parseability
 (such as adding [trailing decimal marks](#trailing-decimal-marks) when needed).
-
-## Paging
-
-When showing long output in the terminal, hledger will try to use
-the pager specified by the `PAGER` environment variable, or `less`, or `more`.
-(A pager is a helper program that shows one page at a time rather than scrolling everything off screen).
-Currently it does this only for help output, not for reports; specifically,
-
-- when listing commands, with `hledger`
-- when showing help with `hledger [CMD] --help`,
-- when viewing manuals with `hledger help` or `hledger --man`.
-
-Note the pager is expected to handle ANSI codes, which hledger uses eg for bold emphasis. 
-For the common pager `less` (and its `more` compatibility mode),
-we add `R` to the `LESS` and `MORE` environment variables to make this work.
-If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen (let us know).
-Otherwise, you can set the `NO_COLOR` environment variable to 1 to disable all ANSI output (see [Colour](#colour)).
 
 ## Debug output
 

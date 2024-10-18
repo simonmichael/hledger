@@ -171,12 +171,12 @@ pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive and TERM is not "dumb"
--- (except on Windows, where a pager will not be used).
+-- than the current terminal and stdout is interactive and TERM is not "dumb";
+-- except on Windows, where currently we don't attempt to use a pager.
 -- If the text contains ANSI codes, because hledger thinks the current terminal
 -- supports those, the pager should be configured to display those, otherwise
 -- users will see junk on screen (#2015).
--- We call "setLessR" at hledger startup to make that less likely.
+-- We call "setupPager" at hledger startup to make that less likely.
 pager :: String -> IO ()
 #ifdef mingw32_HOST_OS
 pager = putStrLn
