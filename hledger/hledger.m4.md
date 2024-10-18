@@ -703,17 +703,20 @@ Here are those commands and the formats currently supported:
 | test                  |     |     |      |      |     |
 -->
 
-The output format is selected by the `-O`/`--output-format=FMT` option:
+You can also see which output formats a command supports by running
+`hledger CMD -h` and looking for the `-O`/`--output-format=FMT` option,
+
+You can select the output format by using that option:
 ```cli
-$ hledger print -O csv    # print CSV on stdout
+$ hledger print -O csv    # print CSV to standard output
 ```
 
-or by the filename extension of an output file specified with the `-o`/`--output-file=FILE.FMT` option:
+or by choosing a suitable filename extension with the `-o`/`--output-file=FILE.FMT` option:
 ```cli
 $ hledger balancesheet -o foo.csv    # write CSV to foo.csv
 ```
 
-The `-O` option can be combined with `-o` to override the file extension, if needed:
+The `-O` option can be combined with `-o` to override the file extension if needed:
 ```cli
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
@@ -722,37 +725,53 @@ Here are some notes about the various output formats.
 
 ### Text output
 
-This is the default: human readable, plain text report output,
-suitable for viewing with a monospace font in a terminal.
-If the data contains wide characters, use a font and terminal that render those correctly.
+This is the default: human readable, plain text report output, suitable for viewing with a monospace font in a terminal.
+If your data contains unicode or wide characters, you'll need a terminal and font that render those correctly.
+(This can be challenging on MS Windows.)
 
 Some reports (`register`, `aregister`) will use the width indicated by the `COLUMNS` environment variable.
 If your shell and terminal are working well, they will keep COLUMNS updated as you resize the window.
 So register reports normally will use the full window width.
-When this isn't working or isn't what you want, you can manually set COLUMNS, or use register's `-w`/`--width` option.
+When this isn't working or you want to override it, you can manually set COLUMNS, or use the `-w`/`--width` option.
 
 Balance reports (`balance`, `balancesheet`, `incomestatement`...) use whatever width they need.
-Multi-period multi-currency reports can often be wider than the window. Helpful techniques for this situation include
---tree, --depth, --drop, --layout=bare, -V, cur:, --transpose, less, emacs shell, switching to html output, etc.
+Multi-period multi-currency reports can often be wider than the window. Besides using a pager,
+helpful techniques for this situation include
+--layout=bare, -V, cur:, --transpose, --tree, --depth, --drop, emacs shell, switching to html output, etc.
 
 (Help output uses a pager automatically when appropriate, but regular reports do not, currently.)
+#### Colour
 
-hledger tries to detect ANSI color support and use it when appropriate,
-currently rather minimally (showing negative numbers in red).
-You can override it in the usual ways with `--color` or the `NO_COLOR` environment variable.
+hledger tries to detect ANSI color and text styling support and use it when appropriate,
+though currently rather minimally: some reports show negative numbers in red,
+and help output uses bold text for emphasis.
+
+You can override this in the usual ways:
+
+- If the `NO_COLOR` environment variable is set, colour will be disabled by default.
+- Use the `--color/--colour` option with a `yes`/`always` value,
+  or `no`/`never`, to force colour on or off.
+
+#### Box-drawing
+
+By default, hledger draws table borders using ascii characters, to minimise the chance of display problems.
+
+If your terminal and font support box-drawing characters (they probably do),
+you will probably want to use the `--pretty` flag to show prettier tables.
+This is a good flag to add to your hledger config file.
 
 ### HTML output
 
-- HTML output can be styled by an optional `hledger.css` file in the same directory.
+HTML output can be styled by an optional `hledger.css` file in the same directory.
 
-- HTML output will be UTF-8 encoded. If your web browser is showing junk characters,
-  you may need to change its text encoding to UTF-8.
-  Eg in Safari, see View -> Text Encoding and Settings -> Advanced -> Default Encoding.
+HTML output will be UTF-8 encoded. If your web browser is showing junk characters,
+you may need to change its text encoding to UTF-8.
+Eg in Safari, see View -> Text Encoding and Settings -> Advanced -> Default Encoding.
 
 ### CSV / TSV output
 
-- In CSV or TSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
-  are disabled automatically.
+In CSV or TSV output, [digit group marks](#digit-group-marks) (such as thousands separators)
+are disabled automatically.
 
 ### FODS output
 
@@ -901,23 +920,6 @@ the [commodity directive](#commodity-directive).
 
 In some cases hledger will adjust number formatting to improve their parseability
 (such as adding [trailing decimal marks](#trailing-decimal-marks) when needed).
-
-## Colour
-
-In terminal output, some commands can produce colour when the terminal supports it:
-
-- if the `--color/--colour` option is given a value of `yes` or `always`
-  (or `no` or `never`), colour will (or will not) be used;
-- otherwise, if the `NO_COLOR` environment variable is set, colour will not be used;
-- otherwise, colour will be used if the output (terminal or file) supports it.
-
-## Box-drawing
-
-In terminal (text) output, to minimise the risk of display problems,
-table borders are drawn using only ascii characters by default.
-
-To see tables with prettier unicode box-drawing characters, add the `--pretty` flag.
-This will also show outer borders and inter-column borders.
 
 ## Paging
 
