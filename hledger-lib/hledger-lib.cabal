@@ -138,7 +138,7 @@ library
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
-    , directory
+    , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , extra >=1.6.3
     , file-embed >=0.0.10
@@ -202,7 +202,7 @@ test-suite doctest
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
-    , directory
+    , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , doctest >=0.18.1
     , extra >=1.6.3
@@ -269,7 +269,7 @@ test-suite unittest
     , containers >=0.5.9
     , data-default >=0.5
     , deepseq
-    , directory
+    , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , extra >=1.6.3
     , file-embed >=0.0.10
