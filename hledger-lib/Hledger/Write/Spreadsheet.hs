@@ -24,6 +24,7 @@ module Hledger.Write.Spreadsheet (
     rawTableContent,
     cellFromMixedAmount,
     cellsFromMixedAmount,
+    cellFromAmount,
     ) where
 
 import qualified Hledger.Data.Amount as Amt
@@ -234,6 +235,15 @@ cellsFromMixedAmount bopts (cls, mixedAmt) =
                 cellType = amountType bopts amt
             })
         (Amt.showMixedAmountLinesPartsB bopts mixedAmt)
+
+cellFromAmount ::
+    (Lines border) =>
+    AmountFormat -> (Class, (wb, Amount)) -> Cell border wb
+cellFromAmount bopts (cls, (str,amt)) =
+    (defaultCell str) {
+        cellClass = cls,
+        cellType = amountType bopts amt
+    }
 
 amountType :: AmountFormat -> Amount -> Type
 amountType bopts amt =

@@ -22,7 +22,9 @@ where
 import Data.Function ((&))
 import Data.List (intersperse, intercalate)
 import Data.List.Extra (nubSort)
-import qualified Data.Map as M
+import Data.Text (Text)
+import Data.Map (Map)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -34,8 +36,14 @@ import System.Exit (exitFailure)
 import Hledger
 import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import Hledger.Write.Html.Lucid (printHtml)
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
+import Hledger.Cli.Anchor (setAccountAnchor)
+import qualified Lucid
+import qualified System.IO as IO
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
@@ -49,7 +57,8 @@ printmode = hledgerCommandMode
   ,let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
-  ,outputFormatFlag ["txt","beancount","csv","tsv","json","sql"]
+  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+  ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
@@ -83,7 +92,7 @@ roundFromRawOpts = lastMay . collectopts roundfromrawopt
 
 -- | Set these amount styles' rounding strategy when they are being applied to amounts,
 -- according to the value of the --round option, if any.
-amountStylesSetRoundingFromRawOpts :: RawOpts -> M.Map CommoditySymbol AmountStyle -> M.Map CommoditySymbol AmountStyle
+amountStylesSetRoundingFromRawOpts :: RawOpts -> Map CommoditySymbol AmountStyle -> Map CommoditySymbol AmountStyle
 amountStylesSetRoundingFromRawOpts rawopts styles =
   case roundFromRawOpts rawopts of
     Just r  -> amountStylesSetRounding r styles
@@ -122,13 +131,25 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
 
     fmt = outputFormatFromOpts opts
+    baseUrl = balance_base_url_ $ _rsReportOpts rspec
+    query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount      . styleAmounts styles . map maybeoriginalamounts
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json"      = toJsonText                    . styleAmounts styles
            | fmt=="sql"       = entriesReportAsSql            . styleAmounts styles
-           | otherwise        = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+           | fmt=="html" =
+                (<>"\n") . Lucid.renderText . printHtml .
+                map (map (fmap Lucid.toHtml)) .
+                entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
+                styleAmounts styles
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Print" .
+                (,) (Just 1, Nothing) .
+                entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
+                styleAmounts styles
+           | otherwise = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
         maybeoriginalamounts
           -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
@@ -190,43 +211,70 @@ entriesReportAsSql txns = TB.toLazyText $ mconcat
     values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
     toSql "" = TB.fromText "NULL"
     toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
-    csv = concatMap (transactionToCSV . transactionMapPostingAmounts (mapMixedAmount setDecimalPoint)) txns
+    csv =
+        Spr.rawTableContent . transactionToSpreadsheet machineFmt Nothing [] .
+        transactionMapPostingAmounts (mapMixedAmount setDecimalPoint)
+            =<< txns
       where
         setDecimalPoint a = a{astyle=(astyle a){asdecimalmark=Just '.'}}
 
 entriesReportAsCsv :: EntriesReport -> CSV
-entriesReportAsCsv txns =
-  ["txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"] :
-  concatMap transactionToCSV txns
+entriesReportAsCsv =
+  Spr.rawTableContent . entriesReportAsSpreadsheet machineFmt Nothing []
 
--- | Generate one CSV record per posting, duplicating the common transaction fields.
+entriesReportAsSpreadsheet ::
+  AmountFormat -> Maybe Text -> [Text] ->
+  EntriesReport -> [[Spr.Cell Spr.NumLines Text]]
+entriesReportAsSpreadsheet fmt baseUrl query txns =
+  Spr.addHeaderBorders
+    (map Spr.headerCell
+        ["txnidx","date","date2","status","code","description","comment",
+         "account","amount","commodity","credit","debit",
+         "posting-status","posting-comment"])
+  :
+  concatMap (transactionToSpreadsheet fmt baseUrl query) txns
+
+-- | Generate one record per posting, duplicating the common transaction fields.
 -- The txnidx field (transaction index) allows postings to be grouped back into transactions.
-transactionToCSV :: Transaction -> CSV
-transactionToCSV t =
-  map (\p -> T.pack (show idx):d:d2:status:code:description:comment:p)
-   (concatMap postingToCSV $ tpostings t)
+transactionToSpreadsheet ::
+  AmountFormat -> Maybe Text -> [Text] ->
+  Transaction -> [[Spr.Cell Spr.NumLines Text]]
+transactionToSpreadsheet fmt baseUrl query t =
+  map
+    (\p -> idx:d:d2:status:code:description:comment:p)
+    (postingToSpreadsheet fmt baseUrl query =<< tpostings t)
   where
-    idx = tindex t
-    description = tdescription t
-    d = showDate (tdate t)
-    d2 = maybe "" showDate $ tdate2 t
-    status = T.pack . show $ tstatus t
-    code = tcode t
-    comment = T.strip $ tcomment t
+    cell = Spr.defaultCell
+    idx = (cell $ T.pack $ show $ tindex t) {Spr.cellType = Spr.TypeInteger}
+    description = cell $ tdescription t
+    dateCell date =
+        (Spr.defaultCell $ showDate date) {Spr.cellType = Spr.TypeDate}
+    d = dateCell $ tdate t
+    d2 = maybe Spr.emptyCell dateCell $ tdate2 t
+    status = cell $ T.pack . show $ tstatus t
+    code = cell $ tcode t
+    comment = cell $ T.strip $ tcomment t
 
-postingToCSV :: Posting -> CSV
-postingToCSV p =
+postingToSpreadsheet ::
+  (Spr.Lines border) =>
+  AmountFormat -> Maybe Text -> [Text] ->
+  Posting -> [[Spr.Cell border Text]]
+postingToSpreadsheet fmt baseUrl query p =
   map (\(a@(Amount {aquantity=q,acommodity=c})) ->
     -- commodity goes into separate column, so we suppress it, along with digit group
     -- separators and prices
     let a_ = amountStripCost a{acommodity=""} in
-    let showamt = wbToText . showAmountB machineFmt in
-    let amt = showamt a_ in
-    let credit = if q < 0 then showamt $ negate a_ else "" in
-    let debit  = if q >= 0 then showamt a_ else "" in
-    [account, amt, c, credit, debit, status, comment])
+    let credit = if q < 0 then amountCell $ negate a_ else Spr.emptyCell in
+    let debit  = if q >= 0 then amountCell a_ else Spr.emptyCell in
+    [setAccountAnchor baseUrl query (paccount p) $ cell account,
+     amountCell a_, cell c,
+     credit, debit, cell status, cell comment])
     . amounts $ pamount p
   where
+    cell = Spr.defaultCell
+    amountCell amt =
+      Spr.cellFromAmount fmt
+        (Spr.Class "amount", (wbToText $ showAmountB machineFmt amt, amt))
     status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = T.strip $ pcomment p
