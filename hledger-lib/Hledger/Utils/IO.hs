@@ -114,7 +114,7 @@ import           String.ANSI
 import           System.Console.ANSI (Color(..),ColorIntensity(..),
   ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Console.Terminal.Size (Window (Window), size)
-import           System.Directory (getHomeDirectory, getModificationTime)
+import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
@@ -202,6 +202,7 @@ setupPager = do
   addR "LESS"
   addR "MORE"
 
+-- related: Hledger.Cli.DocFiles.runPagerForTopic
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
 -- than the current terminal and stdout is interactive and TERM is not "dumb";
 -- except on Windows, where currently we don't attempt to use a pager.
@@ -220,7 +221,18 @@ printOrPage' s = do
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
   -- avoid a pager crash with single-line output, https://github.com/pharpend/pager/issues/2
   let singleline = not $ '\n' `elem` s
-  (if dumbterm || singleline
+  -- avoid a pager crash when PAGER is set to something not in PATH
+  mpagervar <- lookupEnv "PAGER"
+  badpager <-
+    case mpagervar of
+      Nothing -> return False
+      Just p -> do
+        mexe <- findExecutable p
+        case mexe of
+          Just _  -> return False
+          Nothing -> return True
+
+  (if dumbterm || singleline || badpager
   then putStr
   else printOrPage . T.pack)
     s
