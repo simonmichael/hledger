@@ -167,8 +167,8 @@ regexMatch = matchTest
 
 -- | Tests whether a Regexp matches a Text.
 --
--- This currently unpacks the Text to a String an works on that. This is due to
--- a performance bug in regex-tdfa (#9), which may or may not be relevant here.
+-- This currently unpacks the Text to a String, to work around a performance bug
+-- in regex-tdfa (#9), which may or may not be relevant here.
 regexMatchText :: Regexp -> Text -> Bool
 regexMatchText r = matchTest r . T.unpack
 

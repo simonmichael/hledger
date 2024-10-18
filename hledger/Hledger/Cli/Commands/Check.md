@@ -57,6 +57,10 @@ These provide extra error-catching power when you are serious about keeping your
 
 - **accounts** - all account names used [must be declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
+  An exception is made for [equity conversion accounts](#account-types),
+  such as the ones used by [--infer-equity](#inferring-equity-conversion-postings).
+  the accounts check will not warn about conversion accounts.
+  If you don't want this, you can declare your own conversion account with type `V`, and avoid using it.
 
 ### Other checks
 

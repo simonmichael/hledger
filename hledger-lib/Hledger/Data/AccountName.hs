@@ -21,7 +21,9 @@ module Hledger.Data.AccountName (
   ,accountNameTreeFrom
   ,accountSummarisedName
   ,accountNameInferType
+  ,accountNameInferTypeExcept
   ,accountNameType
+  ,defaultBaseConversionAccount
   ,assetAccountRegex
   ,cashAccountRegex
   ,liabilityAccountRegex
@@ -83,6 +85,49 @@ acctsepchar = ':'
 acctsep :: Text
 acctsep = T.pack [acctsepchar]
 
+-- The base conversion account name used by --infer-equity,
+-- when no other account of type V/Conversion has been declared.
+defaultBaseConversionAccount = "equity:conversion"
+
+-- | Regular expressions matching common English top-level account names,
+-- used as a fallback when account types are not declared.
+assetAccountRegex      = toRegexCI' "^assets?(:|$)"
+cashAccountRegex       = toRegexCI' "^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$)"
+liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
+equityAccountRegex     = toRegexCI' "^equity(:|$)"
+conversionAccountRegex = toRegexCI' "^equity:(trade|trades|trading|conversion)(:|$)"
+revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
+expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
+
+-- | Try to guess an account's type from its name,
+-- matching common English top-level account names.
+accountNameInferType :: AccountName -> Maybe AccountType
+accountNameInferType a
+  | regexMatchText cashAccountRegex       a = Just Cash
+  | regexMatchText assetAccountRegex      a = Just Asset
+  | regexMatchText liabilityAccountRegex  a = Just Liability
+  | regexMatchText conversionAccountRegex a = Just Conversion
+  | regexMatchText equityAccountRegex     a = Just Equity
+  | regexMatchText revenueAccountRegex    a = Just Revenue
+  | regexMatchText expenseAccountRegex    a = Just Expense
+  | otherwise                               = Nothing
+
+-- | Like accountNameInferType, but exclude the provided types from the guesses.
+-- Used eg to prevent "equity:conversion" being inferred as Conversion when a different
+-- account has been declared with that type.
+accountNameInferTypeExcept :: [AccountType] -> AccountName -> Maybe AccountType
+accountNameInferTypeExcept excludedtypes a =
+  case accountNameInferType a of
+    Just t | not $ t `elem` excludedtypes -> Just t
+    _ -> Nothing
+
+-- Extract the 'AccountType' of an 'AccountName' by looking it up in the
+-- provided Map, traversing the parent accounts if necessary. If none of those
+-- work, try 'accountNameInferType'.
+accountNameType :: M.Map AccountName AccountType -> AccountName -> Maybe AccountType
+accountNameType atypes a = asum (map (`M.lookup` atypes) $ a : parentAccountNames a)
+                         <|> accountNameInferType a
+
 -- accountNameComponents :: AccountName -> [String]
 -- accountNameComponents = splitAtElement acctsepchar
 
@@ -104,36 +149,6 @@ accountSummarisedName a
     where
       cs = accountNameComponents a
       a' = accountLeafName a
-
--- | Regular expressions matching common English top-level account names,
--- used as a fallback when account types are not declared.
-assetAccountRegex      = toRegexCI' "^assets?(:|$)"
-cashAccountRegex       = toRegexCI' "^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$)"
-liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
-equityAccountRegex     = toRegexCI' "^equity(:|$)"
-conversionAccountRegex = toRegexCI' "^equity:(trad(e|ing)|conversion)s?(:|$)"
-revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
-expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
-
--- | Try to guess an account's type from its name,
--- matching common English top-level account names.
-accountNameInferType :: AccountName -> Maybe AccountType
-accountNameInferType a
-  | regexMatchText cashAccountRegex       a = Just Cash
-  | regexMatchText assetAccountRegex      a = Just Asset
-  | regexMatchText liabilityAccountRegex  a = Just Liability
-  | regexMatchText conversionAccountRegex a = Just Conversion
-  | regexMatchText equityAccountRegex     a = Just Equity
-  | regexMatchText revenueAccountRegex    a = Just Revenue
-  | regexMatchText expenseAccountRegex    a = Just Expense
-  | otherwise                               = Nothing
-
--- Extract the 'AccountType' of an 'AccountName' by looking it up in the
--- provided Map, traversing the parent accounts if necessary. If none of those
--- work, try 'accountNameInferType'.
-accountNameType :: M.Map AccountName AccountType -> AccountName -> Maybe AccountType
-accountNameType atypes a = asum (map (`M.lookup` atypes) $ a : parentAccountNames a)
-                         <|> accountNameInferType a
 
 -- | The level (depth) of an account name.
 --

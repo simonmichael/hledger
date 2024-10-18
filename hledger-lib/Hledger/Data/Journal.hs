@@ -31,8 +31,7 @@ module Hledger.Data.Journal (
   journalCommodityStylesWith,
   journalToCost,
   journalInferEquityFromCosts,
-  journalInferCostsFromEquity,
-  journalMarkRedundantCosts,
+  journalTagCostsAndEquityAndMaybeInferCosts,
   journalReverse,
   journalSetLastReadTime,
   journalRenumberAccountDeclarations,
@@ -96,11 +95,13 @@ module Hledger.Data.Journal (
   journalAccountTypes,
   journalAddAccountTypes,
   journalPostingsAddAccountTags,
+  defaultBaseConversionAccount,
   -- journalPrices,
-  journalConversionAccount,
+  journalBaseConversionAccount,
   journalConversionAccounts,
   -- * Misc
   canonicalStyleFrom,
+
   nulljournal,
   journalConcat,
   journalNumberTransactions,
@@ -153,6 +154,7 @@ import System.FilePath (takeFileName)
 import Data.Ord (comparing)
 import Hledger.Data.Dates (nulldate)
 import Data.List (sort)
+import Data.Function ((&))
 -- import Data.Function ((&))
 
 
@@ -575,29 +577,34 @@ journalAccountType Journal{jaccounttypes} = accountNameType jaccounttypes
 journalAddAccountTypes :: Journal -> Journal
 journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
 
+-- | An account type inherited from the parent account(s),
+-- and whether it was originally declared by an account directive (true) or inferred from an account name (false).
+type ParentAccountType = (AccountType, Bool)
+
 -- | Build a map of all known account types, explicitly declared
 -- or inferred from the account's parent or name.
 journalAccountTypes :: Journal -> M.Map AccountName AccountType
 journalAccountTypes j = M.fromList [(a,acctType) | (a, Just (acctType,_)) <- flatten t']
   where
     t = accountNameTreeFrom $ journalAccountNames j :: Tree AccountName
-    -- Map from the top of the account tree down to the leaves, propagating
-    -- account types downward. Keep track of whether the account is declared
-    -- (True), in which case the parent account should be preferred, or merely
-    -- inferred (False), in which case the inferred type should be preferred.
-    t' = settypes Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
+    -- Traverse downward through the account tree, applying any explicitly declared account types,
+    -- otherwise inferring account types from account names when possible, and propagating account types downward.
+    -- Declared account types (possibly inherited from parent) are preferred, inferred types are used as a fallback.
+    t' = setTypeHereAndBelow Nothing t :: Tree (AccountName, Maybe (AccountType, Bool))
       where
-        settypes :: Maybe (AccountType, Bool) -> Tree AccountName -> Tree (AccountName, Maybe (AccountType, Bool))
-        settypes mparenttype (Node a subs) = Node (a, mtype) (map (settypes mtype) subs)
+        declaredtypes       = M.keys $ jdeclaredaccounttypes j
+        declaredtypesbyname = journalDeclaredAccountTypes j & fmap (,True)
+        setTypeHereAndBelow :: Maybe ParentAccountType -> Tree AccountName -> Tree (AccountName, Maybe ParentAccountType)
+        setTypeHereAndBelow mparenttype (Node a subs) = Node (a, mnewtype) (map (setTypeHereAndBelow mnewtype) subs)
           where
-            mtype = M.lookup a declaredtypes <|> minferred
-              where 
-                declaredtypes = (,True) <$> journalDeclaredAccountTypes j
-                minferred = if maybe False snd mparenttype
-                            then mparenttype
-                            else (,False) <$> accountNameInferType a <|> mparenttype
+            mnewtype = mthisacctdeclaredtype <|> mparentacctdeclaredtype <|> mthisacctinferredtype <|> mparentacctinferredtype
+              where
+                mthisacctdeclaredtype   = M.lookup a declaredtypesbyname
+                mparentacctdeclaredtype = if       fromMaybe False $ snd <$> mparenttype then mparenttype else Nothing
+                mparentacctinferredtype = if not $ fromMaybe True  $ snd <$> mparenttype then mparenttype else Nothing
+                mthisacctinferredtype   = accountNameInferTypeExcept declaredtypes a & fmap (,False)  -- XXX not sure about this Except logic.. but for now, tests pass
 
--- | Build a map of the account types explicitly declared for each account.
+-- | Build a map from account names to explicitly declared account types.
 journalDeclaredAccountTypes :: Journal -> M.Map AccountName AccountType
 journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
   M.fromList $ concat [map (,t) as | (t,as) <- M.toList jdeclaredaccounttypes]
@@ -609,18 +616,17 @@ journalPostingsAddAccountTags :: Journal -> Journal
 journalPostingsAddAccountTags j = journalMapPostings addtags j
   where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
 
--- | The account to use for automatically generated conversion postings in this journal:
--- the first of the journalConversionAccounts.
-journalConversionAccount :: Journal -> AccountName
-journalConversionAccount = headDef defaultConversionAccount . journalConversionAccounts
+-- | The account name to use for conversion postings generated by --infer-equity.
+-- This is the first account declared with type V/Conversion,
+-- or otherwise the defaultBaseConversionAccount (equity:conversion).
+journalBaseConversionAccount :: Journal -> AccountName
+journalBaseConversionAccount = headDef defaultBaseConversionAccount . journalConversionAccounts
 
--- | All the accounts declared or inferred as Conversion type in this journal.
+-- | All the accounts in this journal which are declared or inferred as V/Conversion type.
+-- This does not include new account names which might be generated by --infer-equity, currently.
 journalConversionAccounts :: Journal -> [AccountName]
 journalConversionAccounts = M.keys . M.filter (==Conversion) . jaccounttypes
 
--- The fallback account to use for automatically generated conversion postings
--- if no account is declared with the Conversion type.
-defaultConversionAccount = "equity:conversion"
 
 -- Various kinds of filtering on journals. We do it differently depending
 -- on the command.
@@ -985,32 +991,23 @@ journalInferMarketPricesFromTransactions j =
 journalToCost :: ConversionOp -> Journal -> Journal
 journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost cost) ts}
 
+-- | Identify and tag (1) equity conversion postings and (2) postings which have (or could have ?) redundant costs.
+-- And if the addcosts flag is true, also add any costs which can be inferred from equity conversion postings.
+-- This is always called before transaction balancing to tag the redundant-cost postings so they can be ignored.
+-- With --infer-costs, it is called again after transaction balancing (when it has more information to work with) to infer costs from equity postings.
+-- See transactionTagCostsAndEquityAndMaybeInferCosts for more details, and hledger manual > Cost reporting for more background.
+journalTagCostsAndEquityAndMaybeInferCosts :: Bool -> Journal -> Either String Journal
+journalTagCostsAndEquityAndMaybeInferCosts addcosts j = do
+  let conversionaccts = journalConversionAccounts j
+  ts <- mapM (transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts) $ jtxns j
+  return j{jtxns=ts}
+
 -- | Add equity postings inferred from costs, where needed and possible.
 -- See hledger manual > Cost reporting.
 journalInferEquityFromCosts :: Bool -> Journal -> Journal
-journalInferEquityFromCosts verbosetags j = journalMapTransactions (transactionAddInferredEquityPostings verbosetags equityAcct) j
-  where
-    equityAcct = journalConversionAccount j
-
--- | Add costs inferred from equity conversion postings, where needed and possible.
--- See hledger manual > Cost reporting.
-journalInferCostsFromEquity :: Journal -> Either String Journal
-journalInferCostsFromEquity j = do
-  ts <- mapM (transactionInferCostsFromEquity False conversionaccts) $ jtxns j
-  return j{jtxns=ts}
-  where conversionaccts = journalConversionAccounts j
-
--- XXX duplication of the above
--- | Do just the internal tagging that is normally done by journalInferCostsFromEquity,
--- identifying equity conversion postings and, in particular, postings which have redundant costs.
--- Tagging the latter is useful as it allows them to be ignored during transaction balancedness checking.
--- And that allows journalInferCostsFromEquity to be postponed till after transaction balancing,
--- when it will have more information (amounts) to work with.
-journalMarkRedundantCosts :: Journal -> Either String Journal
-journalMarkRedundantCosts j = do
-  ts <- mapM (transactionInferCostsFromEquity True conversionaccts) $ jtxns j
-  return j{jtxns=ts}
-  where conversionaccts = journalConversionAccounts j
+journalInferEquityFromCosts verbosetags j =
+  journalMapTransactions (transactionInferEquityPostings verbosetags equityAcct) j
+  where equityAcct = journalBaseConversionAccount j
 
 -- -- | Get this journal's unique, display-preference-canonicalised commodities, by symbol.
 -- journalCanonicalCommodities :: Journal -> M.Map String CommoditySymbol
