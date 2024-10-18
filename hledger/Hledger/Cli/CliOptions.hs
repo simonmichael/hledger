@@ -23,6 +23,7 @@ module Hledger.Cli.CliOptions (
   inputflags,
   reportflags,
   helpflags,
+  terminalflags,
   helpflagstitle,
   flattreeflags,
   confflags,
@@ -223,16 +224,8 @@ reportflags = [
       ,"'now':      value today"
       ,"YYYY-MM-DD: value on given date"
       ])
-
-  -- general output-related
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
-  -- This has special support in hledger-lib:colorOption, keep synced
- ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
-   (unlines
-     ["Use ANSI color codes in text output? Can be"
-     ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
-     ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."
  ]
@@ -247,8 +240,18 @@ helpflags = [
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
   -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
+ ] -- XXX why are these duplicated in defCommandMode below ?
+ <> terminalflags
+
+-- Low-level flags affecting terminal output.
+-- These are included in helpflags so they appear everywhere.
+terminalflags = [
+  flagReq  ["pager"] (\s opts -> Right $ setopt "pager" s opts) "YN"
+   "use pager for long output ? y/yes or n/no"
+  -- This has special support in hledger-lib:colorOption, keep synced
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
+   "use ANSI color ? y/yes, n/no, or auto (default)"
  ]
--- XXX why are these duplicated in defCommandMode below ?
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
 -- With a True argument, shows some extra help about inclusive/exclusive amounts.
@@ -268,7 +271,7 @@ confflags = [
   ,flagNone ["no-conf","n"] (setboolopt "no-conf") "ignore any config file"
   ]
 
--- | Common legacy flags that are accepted but not shown in --help.
+-- | Common legacy flags that are accepted but not shown in --help, when running the main mode.
 hiddenflagsformainmode :: [Flag RawOpts]
 hiddenflagsformainmode = [
    flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
@@ -279,7 +282,8 @@ hiddenflagsformainmode = [
   ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
 
--- Subcommands/addons add the conf flags, so they won't error if those are present.
+-- Hidden flags accepted but not shown, when running subcommand or addon command modes.
+-- Here we add the confflags, so their presence won't cause an error,
 hiddenflags :: [Flag RawOpts]
 hiddenflags = hiddenflagsformainmode ++ confflags
 
@@ -489,7 +493,7 @@ showModeUsage =
 
 -- | Add some ANSI decoration to cmdargs' help output.
 highlightHelp
-  | not useColorOnStdout = id
+  | not useColorOnStdoutUnsafe = id   -- XXX unsafe boldening help headings - seems to work, even respecting config file
   | otherwise = unlines . zipWith (curry f) [1..] . lines
   where
     f (n,l)
@@ -538,6 +542,8 @@ data CliOpts = CliOpts {
     ,reportspec_      :: ReportSpec
     ,output_file_     :: Maybe FilePath
     ,output_format_   :: Maybe String
+    ,pageropt_        :: Maybe Bool     -- ^ --pager
+    ,coloropt_        :: Maybe YNA      -- ^ --color. Controls use of ANSI color and ANSI styles.
     ,debug_           :: Int            -- ^ debug level, set by @--debug[=N]@. See also 'Hledger.Utils.debugLevel'.
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- ^ the --width value provided, if any
@@ -559,6 +565,8 @@ defcliopts = CliOpts
     , reportspec_      = def
     , output_file_     = Nothing
     , output_format_   = Nothing
+    , pageropt_        = Nothing
+    , coloropt_        = Nothing
     , debug_           = 0
     , no_new_accounts_ = False
     , width_           = Nothing
@@ -598,8 +606,9 @@ rawOptsToCliOpts rawopts = do
               Nothing -> currentDay
               Just d  -> either (const err) fromEFDay $ fixSmartDateStrEither' currentDay (T.pack d)
                 where err = error' $ "Unable to parse date \"" ++ d ++ "\""
-  let iopts = rawOptsToInputOpts day rawopts
-  rspec <- either error' pure $ rawOptsToReportSpec day rawopts  -- PARTIAL:
+  usecolor <- useColorOnStdout
+  let iopts = rawOptsToInputOpts day usecolor rawopts
+  rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
 #ifdef mingw32_HOST_OS
@@ -617,6 +626,8 @@ rawOptsToCliOpts rawopts = do
              ,reportspec_      = rspec
              ,output_file_     = maybestringopt "output-file" rawopts
              ,output_format_   = maybestringopt "output-format" rawopts
+             ,pageropt_        = maybeynopt "pager" rawopts
+             ,coloropt_        = maybeynaopt "color" rawopts
              ,debug_           = posintopt "debug" rawopts
              ,no_new_accounts_ = boolopt "no-new-accounts" rawopts -- add
              ,width_           = maybestringopt "width" rawopts

@@ -66,7 +66,8 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
   dbg1IO "debugLevel" debugLevel
 
   -- try to encourage user's $PAGER to properly display ANSI (in command line help)
-  when useColorOnStdout setupPager
+  usecolor <- useColorOnStdout
+  when usecolor setupPager
 
   opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
@@ -75,7 +76,7 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
   case True of
-    _ | boolopt "help"    rawopts -> pager $ showModeUsage uimode ++ "\n"
+    _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
     _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing

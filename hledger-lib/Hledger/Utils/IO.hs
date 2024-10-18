@@ -20,8 +20,8 @@ module Hledger.Utils.IO (
   pprint',
 
   -- * Viewing with pager
-  pager,
   setupPager,
+  runPager,
 
   -- * Terminal size
   getTerminalHeightWidth,
@@ -32,11 +32,18 @@ module Hledger.Utils.IO (
   progArgs,
   outputFileOption,
   hasOutputFile,
+  splitFlagsAndVals,
+  getOpt,
+  parseYN,
+  parseYNA,
+  YNA(..),
 
   -- * ANSI color
-  colorOption,
   useColorOnStdout,
   useColorOnStderr,
+  colorOption,
+  useColorOnStdoutUnsafe,
+  useColorOnStderrUnsafe,
   -- XXX needed for using color/bgColor/colorB/bgColorB, but clashing with UIUtils:
   -- Color(..),
   -- ColorIntensity(..),
@@ -114,7 +121,7 @@ import           String.ANSI
 import           System.Console.ANSI (Color(..),ColorIntensity(..),
   ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Console.Terminal.Size (Window (Window), size)
-import           System.Directory (getHomeDirectory, getModificationTime)
+import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
@@ -130,6 +137,7 @@ import           Text.Pretty.Simple
   defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
+import Data.Char (toLower)
 
 
 -- Pretty showing/printing with pretty-simple
@@ -138,11 +146,12 @@ import Hledger.Utils.Text (WideBuilder(WideBuilder))
 
 -- | pretty-simple options with colour enabled if allowed.
 prettyopts =
-  (if useColorOnStderr then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
+  (if useColorOnStderrUnsafe then defaultOutputOptionsDarkBg else defaultOutputOptionsNoColor)
     { outputOptionsIndentAmount = 2
     -- , outputOptionsCompact      = True  -- fills lines, but does not respect page width (https://github.com/cdepillabout/pretty-simple/issues/126)
     -- , outputOptionsPageWidth    = fromMaybe 80 $ unsafePerformIO getTerminalWidth
     }
+-- XXX unsafe detection of color option for debug output, does not respect config file (perhaps evaluated before withArgs ?)
 
 -- | pretty-simple options with colour disabled.
 prettyoptsNoColor =
@@ -151,7 +160,7 @@ prettyoptsNoColor =
     }
 
 -- | Pretty show. An easier alias for pretty-simple's pShow.
--- This will probably show in colour if useColorOnStderr is true.
+-- This will probably show in colour if useColorOnStderrUnsafe is true.
 pshow :: Show a => a -> String
 pshow = TL.unpack . pShowOpt prettyopts
 
@@ -160,32 +169,15 @@ pshow' :: Show a => a -> String
 pshow' = TL.unpack . pShowOpt prettyoptsNoColor
 
 -- | Pretty print a showable value. An easier alias for pretty-simple's pPrint.
--- This will print in colour if useColorOnStderr is true.
+-- This will print in colour if useColorOnStderrUnsafe is true.
 pprint :: Show a => a -> IO ()
-pprint = pPrintOpt (if useColorOnStderr then CheckColorTty else NoCheckColorTty) prettyopts
+pprint = pPrintOpt (if useColorOnStderrUnsafe then CheckColorTty else NoCheckColorTty) prettyopts
 
 -- | Monochrome version of pprint. This will never print in colour.
 pprint' :: Show a => a -> IO ()
 pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
-
--- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive and TERM is not "dumb"
--- (except on Windows, where a pager will not be used).
--- If the text contains ANSI codes, because hledger thinks the current terminal
--- supports those, the pager should be configured to display those, otherwise
--- users will see junk on screen (#2015).
--- We call "setLessR" at hledger startup to make that less likely.
-pager :: String -> IO ()
-#ifdef mingw32_HOST_OS
-pager = putStrLn
-#else
-printOrPage' s = do  -- an extra check for Emacs users:
-  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  if dumbterm then putStrLn s else printOrPage (T.pack s)
-pager = printOrPage'
-#endif
 
 -- | An alternative to ansi-terminal's getTerminalSize, based on
 -- the more robust-looking terminal-size package.
@@ -200,9 +192,12 @@ getTerminalHeight = fmap fst <$> getTerminalHeightWidth
 getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
+
+-- Pager output
+
 -- | Make sure our $LESS and $MORE environment variables contain R,
--- to help ensure the common pager `less` will show our ANSI output properly.
--- less uses $LESS by default, and $MORE when it is invoked as `more`.
+-- to help ensure the common `less` pager will show our ANSI output properly.
+-- less uses $LESS by default, or $MORE when it is invoked as `more`.
 -- What the original `more` program does, I'm not sure.
 -- If $PAGER is configured to something else, this probably will have no effect.
 setupPager :: IO ()
@@ -216,6 +211,90 @@ setupPager = do
   addR "LESS"
   addR "MORE"
 
+-- related: Hledger.Cli.DocFiles.runPagerForTopic
+-- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
+-- than the current terminal and stdout is interactive and TERM is not "dumb";
+-- except on Windows, where currently we don't attempt to use a pager.
+-- If the text contains ANSI codes, because hledger thinks the current terminal
+-- supports those, the pager should be configured to display those, otherwise
+-- users will see junk on screen (#2015).
+-- Call "setupPager" at program startup to make that less likely.
+--
+-- Pager use is influenced by the --pager option, at least.
+-- Rather than pass in a huge CliOpts, or duplicate conditional logic at every call site,
+-- this does some redundant local options parsing.
+runPager :: String -> IO ()
+#ifdef mingw32_HOST_OS
+runPager = putStr
+#else
+runPager s = do
+  -- disable pager with --pager=no
+  mpager <- getOpt ["pager"]
+  let nopager = not $ maybe True parseYN mpager
+  -- disable pager when TERM=dumb (for Emacs shell users)
+  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
+  -- disable pager with single-line output (https://github.com/pharpend/pager/issues/2)
+  let singleline = not $ '\n' `elem` s
+  -- disable pager when PAGER is set to something bad (https://github.com/pharpend/pager/issues/3)
+  mpagervar <- lookupEnv "PAGER"
+  badpager <-
+    case mpagervar of
+      Nothing -> return False
+      Just p -> do
+        mexe <- findExecutable p
+        case mexe of
+          Just _  -> return False
+          Nothing -> return True
+
+  (if nopager || dumbterm || singleline || badpager
+  then putStr
+  else printOrPage . T.pack)
+    s
+#endif
+
+-- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
+-- into separate list items. Multiple valueless short flags joined together is not supported.
+splitFlagsAndVals :: [String] -> [String]
+splitFlagsAndVals = concatMap $
+  \case
+    a@('-':'-':_) | '=' `elem` a -> let (x,y) = break (=='=') a in [x, drop 1 y]
+    a@('-':f:_:_) | not $ f=='-' -> [take 2 a, drop 2 a]
+    a -> [a]
+
+toFlag [c] = ['-',c]
+toFlag s   = '-':'-':s
+
+-- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
+-- If the value is missing raise an error.
+getOpt :: [String] -> IO (Maybe String)
+getOpt names = do
+  rargs <- reverse . splitFlagsAndVals <$> getArgs
+  let flags = map toFlag names
+  return $
+    case break ((`elem` flags)) rargs of
+      (_,[])        -> Nothing
+      ([],flag:_)   -> error' $ flag <> " requires a value"
+      (argsafter,_) -> Just $ last argsafter
+
+-- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
+parseYN :: String -> Bool
+parseYN s
+  | l `elem` ["y","yes","always"] = True
+  | l `elem` ["n","no","never"]   = False
+  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
+  where l = map toLower s
+
+data YNA = Yes | No | Auto deriving (Eq,Show)
+
+-- | Parse y/yes/always or n/no/never or a/auto to a YNA choice, or with any other value raise an error.
+parseYNA :: String -> YNA
+parseYNA s
+  | l `elem` ["y","yes","always"] = Yes
+  | l `elem` ["n","no","never"]   = No
+  | l `elem` ["a","auto"]         = Auto
+  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
+  where l = map toLower s
+
 -- Command line arguments
 
 -- | The command line arguments that were used at program startup.
@@ -223,40 +302,33 @@ setupPager = do
 {-# NOINLINE progArgs #-}
 progArgs :: [String]
 progArgs = unsafePerformIO getArgs
+-- XXX While convenient, using this has the following problem:
+-- it detects flags/options/arguments from the command line, but not from a config file.
+-- Currently this affects:
+--  --debug
+--  --color
+--  the enabling of orderdates and assertions checks in journalFinalise
+-- Separate these into unsafe and safe variants and try to use the latter more
 
--- | Read the value of the -o/--output-file command line option provided at program startup,
--- if any, using unsafePerformIO.
-outputFileOption :: Maybe String
-outputFileOption =
-  -- keep synced with output-file flag definition in hledger:CliOptions.
-  let args = progArgs in
-  case dropWhile (not . ("-o" `isPrefixOf`)) args of
-    -- -oARG
-    ('-':'o':v@(_:_)):_ -> Just v
-    -- -o ARG
-    "-o":v:_ -> Just v
-    _ ->
-      case dropWhile (/="--output-file") args of
-        -- --output-file ARG
-        "--output-file":v:_ -> Just v
-        _ ->
-          case take 1 $ filter ("--output-file=" `isPrefixOf`) args of
-            -- --output=file=ARG
-            ['-':'-':'o':'u':'t':'p':'u':'t':'-':'f':'i':'l':'e':'=':v] -> Just v
-            _ -> Nothing
+outputFileOption :: IO (Maybe String)
+outputFileOption = getOpt ["output-file","o"]
 
--- | Check whether the -o/--output-file option has been used at program startup
--- with an argument other than "-", using unsafePerformIO.
-hasOutputFile :: Bool
-hasOutputFile = outputFileOption `notElem` [Nothing, Just "-"]
--- XXX shouldn't we check that stdout is interactive. instead ?
+hasOutputFile :: IO Bool
+hasOutputFile = do
+  mv <- getOpt ["output-file","o"]
+  return $
+    case mv of
+      Nothing  -> False
+      Just "-" -> False
+      _        -> True
 
 -- ANSI colour
-
-ifAnsi f = if useColorOnStdout then f else id
+-- XXX unsafe detection of --color option. At the moment this is always true in ghci,
+-- respects the command line --color if compiled, and ignores the config file.
+ifAnsi f = if useColorOnStdoutUnsafe then f else id
 
 -- | Versions of some of text-ansi's string colors/styles which are more careful
--- to not print junk onscreen. These use our useColorOnStdout.
+-- to not print junk onscreen. These use our useColorOnStdoutUnsafe.
 bold' :: String -> String
 bold'  = ifAnsi bold
 
@@ -314,29 +386,30 @@ brightWhite'  = ifAnsi brightWhite
 rgb' :: Word8 -> Word8 -> Word8 -> String -> String
 rgb' r g b  = ifAnsi (rgb r g b)
 
--- | Read the value of the --color or --colour command line option provided at program startup
--- using unsafePerformIO. If this option was not provided, returns the empty string.
-colorOption :: String
-colorOption =
-  -- similar to debugLevel
-  -- keep synced with color/colour flag definition in hledger:CliOptions
-  let args = progArgs in
-  case dropWhile (/="--color") args of
-    -- --color ARG
-    "--color":v:_ -> v
-    _ ->
-      case take 1 $ filter ("--color=" `isPrefixOf`) args of
-        -- --color=ARG
-        ['-':'-':'c':'o':'l':'o':'r':'=':v] -> v
-        _ ->
-          case dropWhile (/="--colour") args of
-            -- --colour ARG
-            "--colour":v:_ -> v
-            _ ->
-              case take 1 $ filter ("--colour=" `isPrefixOf`) args of
-                -- --colour=ARG
-                ['-':'-':'c':'o':'l':'o':'u':'r':'=':v] -> v
-                _ -> ""
+-- | Get the value of the rightmost --color option from the command line arguments.
+useColorOnStdout :: IO Bool
+useColorOnStdout = do
+  nooutputfile <- not <$> hasOutputFile
+  usecolor <- useColorOnHandle stdout
+  return $ nooutputfile && usecolor
+
+-- traceWith (("USE COLOR ON STDOUT: "<>).show) <$> 
+
+useColorOnStderr :: IO Bool
+useColorOnStderr = useColorOnHandle stderr
+
+-- | Should ANSI color & styling be used with this output handle ?
+useColorOnHandle :: Handle -> IO Bool
+useColorOnHandle h = do
+  no_color       <- isJust <$> lookupEnv "NO_COLOR"
+  supports_color <- hSupportsANSIColor h
+  yna            <- colorOption
+  return $ yna==Yes || (yna==Auto && not no_color && supports_color)
+
+colorOption :: IO YNA
+colorOption = do
+  mcolor <- getOpt ["color","colour"]
+  return $ maybe Auto parseYNA mcolor
 
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in
@@ -349,21 +422,13 @@ colorOption =
 --   and stdout supports ANSI color
 --   and -o/--output-file was not used, or its value is "-"
 -- ).
-useColorOnStdout :: Bool
-useColorOnStdout = not hasOutputFile && useColorOnHandle stdout
+useColorOnStdoutUnsafe :: Bool
+useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
 
--- | Like useColorOnStdout, but checks for ANSI color support on stderr,
+-- | Like useColorOnStdoutUnsafe, but checks for ANSI color support on stderr,
 -- and is not affected by -o/--output-file.
-useColorOnStderr :: Bool
-useColorOnStderr = useColorOnHandle stderr
-
-useColorOnHandle :: Handle -> Bool
-useColorOnHandle h = unsafePerformIO $ do
-  no_color       <- isJust <$> lookupEnv "NO_COLOR"
-  supports_color <- hSupportsANSIColor h
-  let coloroption = colorOption
-  return $ coloroption `elem` ["always","yes","y"]
-       || (coloroption `notElem` ["never","no","n"] && not no_color && supports_color)
+useColorOnStderrUnsafe :: Bool
+useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
 
 -- | Wrap a string in ANSI codes to set and reset foreground colour.
 -- ColorIntensity is @Dull@ or @Vivid@ (ie normal and bold).

@@ -204,7 +204,8 @@ main = withGhcDebug' $ do
   -- give ghc-debug a chance to take control
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
   -- try to encourage user's $PAGER to display ANSI when supported
-  when useColorOnStdout setupPager
+  usecolor <- useColorOnStdout
+  when usecolor setupPager
   -- Search PATH for addon commands. Exclude any that match builtin command names.
   addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
 
@@ -269,6 +270,7 @@ main = withGhcDebug' $ do
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
     args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
+    -- XXX Unknown flag: --depth while parsing these args for command name
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) args
     badcmdprovided = null cmdname && not nocmdprovided
     isaddoncmd     = not (null cmdname) && cmdname `elem` addons
@@ -338,9 +340,14 @@ main = withGhcDebug' $ do
     manFlag     = boolopt "man"     rawopts
     versionFlag = boolopt "version" rawopts
 
-  if
+  -- Ensure that anything calling getArgs later will see all args, including config file args.
+  -- Some things (--color, --debug, some checks in journalFinalise) are detected by unsafePerformIO,
+  -- eg in Hledger.Utils.IO.progArgs, which means they aren't be seen in a config file
+  -- (because many things before this point have forced the one-time evaluation of progArgs).
+  withArgs (progname:finalargs) $
+   if
     -- 6.1. no command and a help/doc flag found - show general help/docs
-    | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
+    | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
@@ -370,7 +377,7 @@ main = withGhcDebug' $ do
       -- run the builtin command according to its type
       if
         -- 6.5.1. help/doc flag - show command help/docs
-        | helpFlag  -> pager $ showModeUsage cmdmode ++ "\n"
+        | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
         | tldrFlag  -> runTldrForPage tldrpagename
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
