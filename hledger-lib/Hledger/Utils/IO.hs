@@ -202,10 +202,6 @@ setupPager = do
   addR "LESS"
   addR "MORE"
 
--- | Check if the --no-pager command line flag was provided at program startup, using unsafePerformIO.
-noPagerFlag :: Bool
-noPagerFlag = "--no-pager" `elem` progArgs
-
 -- related: Hledger.Cli.DocFiles.runPagerForTopic
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
 -- than the current terminal and stdout is interactive and TERM is not "dumb";
@@ -220,7 +216,7 @@ pager = putStr
 #else
 pager s = do
   -- disable pager when --no-pager is specified
-  let nopager = noPagerFlag
+  nopager <- elem "--no-pager" <$> getArgs
   -- disable pager when TERM=dumb (for Emacs shell users)
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
   -- disable pager with single-line output (https://github.com/pharpend/pager/issues/2)
@@ -250,6 +246,13 @@ pager s = do
 {-# NOINLINE progArgs #-}
 progArgs :: [String]
 progArgs = unsafePerformIO getArgs
+-- XXX While convenient, using this has the following problem:
+-- it detects flags/options/arguments from the command line, but not from a config file.
+-- Currently this affects:
+--  --debug
+--  --color
+--  the enabling of orderdates and assertions checks in journalFinalise
+-- Separate these into unsafe and safe variants and try to use the latter more
 
 -- | Read the value of the -o/--output-file command line option provided at program startup,
 -- if any, using unsafePerformIO.
