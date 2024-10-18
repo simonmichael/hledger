@@ -202,6 +202,10 @@ setupPager = do
   addR "LESS"
   addR "MORE"
 
+-- | Check if the --no-pager command line flag was provided at program startup, using unsafePerformIO.
+noPagerFlag :: Bool
+noPagerFlag = "--no-pager" `elem` progArgs
+
 -- related: Hledger.Cli.DocFiles.runPagerForTopic
 -- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
 -- than the current terminal and stdout is interactive and TERM is not "dumb";
@@ -214,14 +218,14 @@ pager :: String -> IO ()
 #ifdef mingw32_HOST_OS
 pager = putStr
 #else
-pager = printOrPage'
-
-printOrPage' s = do
-  -- disable pager if TERM=dumb (for Emacs shell users)
+pager s = do
+  -- disable pager when --no-pager is specified
+  let nopager = noPagerFlag
+  -- disable pager when TERM=dumb (for Emacs shell users)
   dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  -- avoid a pager crash with single-line output, https://github.com/pharpend/pager/issues/2
+  -- disable pager with single-line output (https://github.com/pharpend/pager/issues/2)
   let singleline = not $ '\n' `elem` s
-  -- avoid a pager crash when PAGER is set to something not in PATH
+  -- disable pager when PAGER is set to something bad (https://github.com/pharpend/pager/issues/3)
   mpagervar <- lookupEnv "PAGER"
   badpager <-
     case mpagervar of
@@ -232,7 +236,7 @@ printOrPage' s = do
           Just _  -> return False
           Nothing -> return True
 
-  (if dumbterm || singleline || badpager
+  (if nopager || dumbterm || singleline || badpager
   then putStr
   else printOrPage . T.pack)
     s
