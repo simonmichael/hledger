@@ -722,7 +722,24 @@ Here are some notes about the various output formats.
 
 ### Text output
 
-This is the default: human readable, plain text report output, suitable for a terminal.
+This is the default: human readable, plain text report output,
+suitable for viewing with a monospace font in a terminal.
+If the data contains wide characters, use a font and terminal that render those correctly.
+
+Some reports (`register`, `aregister`) will use the width indicated by the `COLUMNS` environment variable.
+If your shell and terminal are working well, they will keep COLUMNS updated as you resize the window.
+So register reports normally will use the full window width.
+When this isn't working or isn't what you want, you can manually set COLUMNS, or use register's `-w`/`--width` option.
+
+Balance reports (`balance`, `balancesheet`, `incomestatement`...) use whatever width they need.
+Multi-period multi-currency reports can often be wider than the window. Helpful techniques for this situation include
+--tree, --depth, --drop, --layout=bare, -V, cur:, --transpose, less, emacs shell, switching to html output, etc.
+
+(Help output uses a pager automatically when appropriate, but regular reports do not, currently.)
+
+hledger tries to detect ANSI color support and use it when appropriate,
+currently rather minimally (showing negative numbers in red).
+You can override it in the usual ways with `--color` or the `NO_COLOR` environment variable.
 
 ### HTML output
 
