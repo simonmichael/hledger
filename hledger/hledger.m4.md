@@ -737,7 +737,7 @@ When this isn't working or you want to override it, you can manually set COLUMNS
 Balance reports (`balance`, `balancesheet`, `incomestatement`...) use whatever width they need.
 Multi-period multi-currency reports can often be wider than the window. Besides using a pager,
 helpful techniques for this situation include
---layout=bare, -V, cur:, --transpose, --tree, --depth, --drop, emacs shell, switching to html output, etc.
+`--layout=bare`, `-V`, `cur:`, `--transpose`, `--tree`, `--depth`, `--drop`, switching to html output, etc.
 
 (Help output uses a pager automatically when appropriate, but regular reports do not, currently.)
 #### Colour
