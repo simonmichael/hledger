@@ -192,14 +192,14 @@ instance Show (Reader m) where show r = show (rFormat r) ++ " reader"
 
 -- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.
-rawOptsToInputOpts :: Day -> RawOpts -> InputOpts
-rawOptsToInputOpts day rawopts =
+rawOptsToInputOpts :: Day -> Bool -> RawOpts -> InputOpts
+rawOptsToInputOpts day usecoloronstdout rawopts =
 
     let noinferbalancingcosts = boolopt "strict" rawopts || stringopt "args" rawopts == "balanced"
 
         -- Do we really need to do all this work just to get the requested end date? This is duplicating
         -- much of reportOptsToSpec.
-        ropts = rawOptsToReportOpts day rawopts
+        ropts = rawOptsToReportOpts day usecoloronstdout rawopts
         argsquery = map fst . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 

@@ -9,7 +9,6 @@ more easily by hledger commands/scripts in this and other packages.
 
 module Hledger.Data.RawOptions (
   RawOpts,
-  YNA,
   mkRawOpts,
   overRawOpts,
   setopt,
@@ -152,8 +151,6 @@ maybeynopt name rawopts =
     Just v | map toLower v `elem` ["n","no","never"]   -> Just False
     Just _ -> error' $ name <> " value should be one of " <> (intercalate ", " ["y","yes","n","no"])
     _ -> Nothing
-
-data YNA = Yes | No | Auto deriving (Eq,Show)
 
 maybeynaopt :: String -> RawOpts -> Maybe YNA
 maybeynaopt name rawopts =

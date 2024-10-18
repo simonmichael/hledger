@@ -204,7 +204,8 @@ main = withGhcDebug' $ do
   -- give ghc-debug a chance to take control
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
   -- try to encourage user's $PAGER to display ANSI when supported
-  when useColorOnStdout setupPager
+  usecolor <- useColorOnStdout
+  when usecolor setupPager
   -- Search PATH for addon commands. Exclude any that match builtin command names.
   addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
 
@@ -269,6 +270,7 @@ main = withGhcDebug' $ do
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
     args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
+    -- XXX Unknown flag: --depth while parsing these args for command name
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) args
     badcmdprovided = null cmdname && not nocmdprovided
     isaddoncmd     = not (null cmdname) && cmdname `elem` addons
