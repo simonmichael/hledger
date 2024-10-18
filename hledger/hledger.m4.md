@@ -736,8 +736,8 @@ in `less` (and in its `more` compatibility mode).
 If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
 Or you can set the `NO_COLOR` environment variable described below.
 
-You can prevent the use of a pager by using the `--no-pager` flag,
-eg in your hledger config file.
+You can prevent the use of a pager by providing the `--no-pager` flag at the command line,
+or in a config file.
 
 Here are some notes about the various output formats.
 
@@ -769,6 +769,7 @@ You can override this in the usual ways.
 If the `NO_COLOR` environment variable is set, colour will be disabled by default.
 Or you can use the `--color/--colour` option with a `yes`/`always` value,
 or `no`/`never`, to force colour on or off.
+(This option doesn't work in a config file yet.)
 
 #### Box-drawing
 
@@ -936,6 +937,7 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 ```cli
 hledger bal --debug=3 2>hledger.log
 ```
+(This option doesn't work in a config file yet.)
 
 # Environment
 
