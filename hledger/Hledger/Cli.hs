@@ -338,7 +338,12 @@ main = withGhcDebug' $ do
     manFlag     = boolopt "man"     rawopts
     versionFlag = boolopt "version" rawopts
 
-  if
+  -- Ensure that anything calling getArgs later will see all args, including config file args.
+  -- Some things (--color, --debug, some checks in journalFinalise) are detected by unsafePerformIO,
+  -- eg in Hledger.Utils.IO.progArgs, which means they aren't be seen in a config file
+  -- (because many things before this point have forced the one-time evaluation of progArgs).
+  withArgs (progname:finalargs) $
+   if
     -- 6.1. no command and a help/doc flag found - show general help/docs
     | nocmdprovided && helpFlag -> pager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
