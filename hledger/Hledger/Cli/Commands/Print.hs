@@ -240,8 +240,7 @@ transactionToSpreadsheet ::
   AmountFormat -> Maybe Text -> [Text] ->
   Transaction -> [[Spr.Cell Spr.NumLines Text]]
 transactionToSpreadsheet fmt baseUrl query t =
-  map
-    (\p -> idx:d:d2:status:code:description:comment:p)
+  addRowSpanHeader (idx:d:d2:status:code:description:comment:[])
     (postingToSpreadsheet fmt baseUrl query =<< tpostings t)
   where
     cell = Spr.defaultCell
@@ -254,6 +253,20 @@ transactionToSpreadsheet fmt baseUrl query t =
     status = cell $ T.pack . show $ tstatus t
     code = cell $ tcode t
     comment = cell $ T.strip $ tcomment t
+
+addRowSpanHeader ::
+    [Spr.Cell border text] ->
+    [[Spr.Cell border text]] -> [[Spr.Cell border text]]
+addRowSpanHeader common rows =
+    case rows of
+        [] -> []
+        [row] -> [common++row]
+        _ ->
+            let setSpan spn cell = cell{Spr.cellSpan = spn} in
+            zipWith (++)
+                (map (setSpan $ Spr.SpanVertical $ length rows) common :
+                 repeat (map (setSpan Spr.Covered) common))
+                rows
 
 postingToSpreadsheet ::
   (Spr.Lines border) =>
