@@ -123,13 +123,14 @@ writeOutput opts s = do
   f <- outputFileFromOpts opts
   (maybe putStr writeFile f) s
 
--- | Write some output to stdout or to a file selected by --output-file.
--- If the file exists it will be overwritten. This function operates on Lazy
--- Text values.
+-- | Write some output, to a file specified by --output-file if any,
+-- otherwise to stdout.
+-- If writing to a file and the file exists, it will be overwritten.
+-- If writing to stdout, a pager is used when appropriate and possible.
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
   f <- outputFileFromOpts opts
-  (maybe TL.putStr TL.writeFile f) s
+  maybe (pager.TL.unpack) TL.writeFile f s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
