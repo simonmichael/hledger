@@ -740,6 +740,7 @@ helpful techniques for this situation include
 `--layout=bare`, `-V`, `cur:`, `--transpose`, `--tree`, `--depth`, `--drop`, switching to html output, etc.
 
 (Help output uses a pager automatically when appropriate, but regular reports do not, currently.)
+
 #### Colour
 
 hledger tries to detect ANSI color and text styling support and use it when appropriate,
