@@ -22,6 +22,7 @@ module Hledger.Cli.CliOptions (
   -- * cmdargs flags & modes
   inputflags,
   reportflags,
+  terminalflags,
   helpflags,
   helpflagstitle,
   flattreeflags,
@@ -223,17 +224,8 @@ reportflags = [
       ,"'now':      value today"
       ,"YYYY-MM-DD: value on given date"
       ])
-
-  -- general output-related
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
-  -- This has special support in hledger-lib:colorOption, keep synced
- ,flagNone ["no-pager"] (setboolopt "no-pager") "don't use a pager for long output"
- ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
-   (unlines
-     ["Use ANSI color codes in text output? Can be"
-     ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
-     ])
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."
  ]
@@ -250,6 +242,19 @@ helpflags = [
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
  ]
 -- XXX why are these duplicated in defCommandMode below ?
+ <> terminalflags
+
+-- Low-level flags affecting terminal output.
+-- These are included in helpflags so they appear everywhere.
+terminalflags = [
+  flagNone ["no-pager"] (setboolopt "no-pager") "don't use a pager for long output"
+  -- This has special support in hledger-lib:colorOption, keep synced
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
+   (unlines
+     ["Use ANSI color codes in text output? Can be"
+     ,"'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'."
+     ])
+ ]
 
 -- | Flags for selecting flat/tree mode, used for reports organised by account.
 -- With a True argument, shows some extra help about inclusive/exclusive amounts.
@@ -269,7 +274,7 @@ confflags = [
   ,flagNone ["no-conf","n"] (setboolopt "no-conf") "ignore any config file"
   ]
 
--- | Common legacy flags that are accepted but not shown in --help.
+-- | Common legacy flags that are accepted but not shown in --help, when running the main mode.
 hiddenflagsformainmode :: [Flag RawOpts]
 hiddenflagsformainmode = [
    flagNone ["effective","aux-date"] (setboolopt "date2") "Ledger-compatible aliases for --date2"
@@ -280,7 +285,8 @@ hiddenflagsformainmode = [
   ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
 
--- Subcommands/addons add the conf flags, so they won't error if those are present.
+-- Hidden flags accepted but not shown, when running subcommand or addon command modes.
+-- Here we add the confflags, so their presence won't cause an error,
 hiddenflags :: [Flag RawOpts]
 hiddenflags = hiddenflagsformainmode ++ confflags
 
