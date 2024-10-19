@@ -138,7 +138,7 @@ postingsReportItemAsRecord ::
     AmountFormat -> Maybe Text -> [Text] ->
     PostingsReportItem -> [Spr.Cell border T.Text]
 postingsReportItemAsRecord fmt base query (_, _, _, p, b) =
-    [(cell idx) {Spr.cellType = Spr.TypeInteger},
+    [idx,
      (dateCell base query (paccount p) date) {Spr.cellType = Spr.TypeDate},
      cell code, cell desc,
      setAccountAnchor base query (paccount p) $ cell acct,
@@ -146,7 +146,7 @@ postingsReportItemAsRecord fmt base query (_, _, _, p, b) =
      amountCell b]
   where
     cell = Spr.defaultCell
-    idx  = T.pack . show . maybe 0 tindex $ ptransaction p
+    idx  = Spr.integerCell . maybe 0 tindex $ ptransaction p
     date = postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" tcode $ ptransaction p
     desc = maybe "" tdescription $ ptransaction p
