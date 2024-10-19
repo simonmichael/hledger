@@ -22,6 +22,8 @@ module Hledger.Cli.Commands.Aregister (
 import Data.Default (def)
 import Data.List (find)
 import Data.Maybe (fromMaybe)
+import Data.Text (Text)
+import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -29,10 +31,13 @@ import Lucid as L hiding (value_)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger
-import Hledger.Write.Csv (CSV, CsvRecord, printCSV, printTSV)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Text.Tabular.AsciiWide hiding (render)
+import qualified System.IO as IO
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")
@@ -108,6 +113,10 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
            | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
            | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Aregister" .
+                (,) (Just 1, Nothing) .
+                accountTransactionsReportAsSpreadsheet oneLineNoCostFmt wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -116,20 +125,44 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   writeOutputLazyText opts $ render items'
 
 accountTransactionsReportAsCsv :: WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv wd reportq thisacctq is =
-  ["txnidx","date","code","description","otheraccounts","change","balance"]
-  : map (accountTransactionsReportItemAsCsvRecord wd reportq thisacctq) is
+accountTransactionsReportAsCsv wd reportq thisacctq =
+  Spr.rawTableContent .
+  accountTransactionsReportAsSpreadsheet machineFmt wd reportq thisacctq
 
-accountTransactionsReportItemAsCsvRecord :: WhichDate -> Query -> Query -> AccountTransactionsReportItem -> CsvRecord
-accountTransactionsReportItemAsCsvRecord
-  wd reportq thisacctq
+accountTransactionsReportAsSpreadsheet ::
+  AmountFormat ->
+  WhichDate -> Query -> Query -> AccountTransactionsReport ->
+  [[Spr.Cell Spr.NumLines Text]]
+accountTransactionsReportAsSpreadsheet fmt wd reportq thisacctq is =
+  Spr.addHeaderBorders
+    (map Spr.headerCell
+      ["txnidx","date","code","description","otheraccounts","change","balance"])
+  : map (accountTransactionsReportItemAsRecord fmt wd reportq thisacctq) is
+
+accountTransactionsReportItemAsRecord ::
+  (Spr.Lines border) =>
+  AmountFormat ->
+  WhichDate -> Query -> Query -> AccountTransactionsReportItem ->
+  [Spr.Cell border Text]
+accountTransactionsReportItemAsRecord
+  fmt wd reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
-  = [idx,date,tcode,tdescription,otheracctsstr,amt,bal]
+  = [idx,
+     date,
+     cell tcode,
+     cell tdescription,
+     cell otheracctsstr,
+     amountCell change,
+     amountCell balance]
   where
-    idx  = T.pack $ show tindex
-    date = showDate $ transactionRegisterDate wd reportq thisacctq t
-    amt  = wbToText $ showMixedAmountB machineFmt change
-    bal  = wbToText $ showMixedAmountB machineFmt balance
+    cell = Spr.defaultCell
+    idx  = (cell $ T.pack $ show tindex) {Spr.cellType = Spr.TypeInteger}
+    date =
+        (Spr.defaultCell $ showDate $
+         transactionRegisterDate wd reportq thisacctq t)
+            {Spr.cellType = Spr.TypeDate}
+    amountCell amt =
+      wbToText <$> Spr.cellFromMixedAmount fmt (Spr.Class "amount", amt)
 
 -- | Render a register report as a HTML snippet.
 accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
