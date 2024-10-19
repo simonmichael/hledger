@@ -115,6 +115,7 @@ entryFromTimeclockInOut i o
       t = Transaction {
             tindex       = 0,
             tsourcepos   = (tlsourcepos i, tlsourcepos i),
+            tdatetime   = Nothing,
             tdate        = idate,
             tdate2       = Nothing,
             tstatus      = Cleared,

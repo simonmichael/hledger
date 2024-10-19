@@ -58,6 +58,7 @@ module Hledger.Read.JournalReader (
   marketpricedirectivep,
   datetimep,
   datep,
+  timestampp,
   modifiedaccountnamep,
   tmpostingrulep,
   statusp,
@@ -88,6 +89,7 @@ import Data.Maybe
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
+import Data.Time.Clock(utctDay, picosecondsToDiffTime, UTCTime(UTCTime))
 import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
@@ -795,7 +797,7 @@ transactionp :: JournalParser m Transaction
 transactionp = do
   -- dbgparse 0 "transactionp"
   startpos <- getSourcePos
-  date <- datep <?> "transaction"
+  (date, datetime) <- timestampp
   edate <- optional (lift $ secondarydatep date) <?> "secondary date"
   lookAhead (lift spacenonewline <|> newline) <?> "whitespace or newline"
   status <- lift statusp <?> "cleared status"
@@ -806,7 +808,7 @@ transactionp = do
   postings <- postingsp (Just year)
   endpos <- getSourcePos
   let sourcepos = (startpos, endpos)
-  return $ txnTieKnot $ Transaction 0 "" sourcepos date edate status code description comment tags postings
+  return $ txnTieKnot $ Transaction 0 "" sourcepos datetime date edate status code description comment tags postings
 
 --- *** postings
 
@@ -1021,7 +1023,15 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testGroup "transactionp" [
 
-     testCase "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{tdate=fromGregorian 2015 1 1}
+     testCase "just a date" $ assertParseEq transactionp "2015/1/1\n" nulltransaction{
+      tdate=fromGregorian 2015 1 1
+      ,tdatetime=Nothing
+     }
+
+    ,testCase "just a datetime" $ assertParseEq transactionp "2015/1/1 09:00:00\n" nulltransaction{
+      tdate=fromGregorian 2015 1 1
+      ,tdatetime=Just $ UTCTime (fromGregorian 2015 1 1) (picosecondsToDiffTime $ (9 * 3600) * 1000000000000)
+     }
 
     ,testCase "more complex" $ assertParseEq transactionp
       (T.unlines [
@@ -1037,6 +1047,42 @@ tests_JournalReader = testGroup "JournalReader" [
         tsourcepos=(SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 8) (mkPos 1)),  -- 8 because there are 7 lines
         tprecedingcomment="",
         tdate=fromGregorian 2012 5 14,
+        tdatetime=Nothing,
+        tdate2=Just $ fromGregorian 2012 5 15,
+        tstatus=Unmarked,
+        tcode="code",
+        tdescription="desc",
+        tcomment="tcomment1\ntcomment2\nttag1: val1\n",
+        ttags=[("ttag1","val1")],
+        tpostings=[
+          nullposting{
+            pdate=Nothing,
+            pstatus=Cleared,
+            paccount="a",
+            pamount=mixedAmount (usd 1),
+            pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
+            ptype=RegularPosting,
+            ptags=[("ptag1","val1"),("ptag2","val2")],
+            ptransaction=Nothing
+            }
+          ]
+      }
+
+    ,testCase "more complex with timestamp" $ assertParseEq transactionp
+      (T.unlines [
+        "2012/05/14 12:00=2012/05/15 (code) desc  ; tcomment1",
+        "    ; tcomment2",
+        "    ; ttag1: val1",
+        "    * a         $1.00  ; pcomment1",
+        "    ; pcomment2",
+        "    ; ptag1: val1",
+        "    ; ptag2: val2"
+        ])
+      nulltransaction{
+        tsourcepos=(SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 8) (mkPos 1)),  -- 8 because there are 7 lines
+        tprecedingcomment="",
+        tdate=fromGregorian 2012 5 14,
+        tdatetime=Just $ UTCTime (fromGregorian 2012 5 14) (picosecondsToDiffTime $ 12 * 3600 * 1000000000000),
         tdate2=Just $ fromGregorian 2012 5 15,
         tstatus=Unmarked,
         tcode="code",

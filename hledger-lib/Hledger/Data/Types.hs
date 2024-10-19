@@ -45,6 +45,7 @@ import qualified Data.Map as M
 import Data.Ord (comparing)
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
+import Data.Time.Clock (UTCTime)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)
 import Data.Word (Word8)
@@ -467,6 +468,7 @@ data Transaction = Transaction {
       tindex                   :: Integer,   -- ^ this transaction's 1-based position in the transaction stream, or 0 when not available
       tprecedingcomment        :: Text,      -- ^ any comment lines immediately preceding this transaction
       tsourcepos               :: (SourcePos, SourcePos),  -- ^ the file position where the date starts, and where the last posting ends
+      tdatetime                :: Maybe UTCTime,
       tdate                    :: Day,
       tdate2                   :: Maybe Day,
       tstatus                  :: Status,
