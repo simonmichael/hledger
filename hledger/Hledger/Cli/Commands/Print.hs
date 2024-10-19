@@ -244,7 +244,7 @@ transactionToSpreadsheet fmt baseUrl query t =
     (postingToSpreadsheet fmt baseUrl query =<< tpostings t)
   where
     cell = Spr.defaultCell
-    idx = (cell $ T.pack $ show $ tindex t) {Spr.cellType = Spr.TypeInteger}
+    idx = Spr.integerCell $ tindex t
     description = cell $ tdescription t
     dateCell date =
         (Spr.defaultCell $ showDate date) {Spr.cellType = Spr.TypeDate}

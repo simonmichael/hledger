@@ -147,7 +147,7 @@ accountTransactionsReportItemAsRecord ::
 accountTransactionsReportItemAsRecord
   fmt wd reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
-  = [idx,
+  = [Spr.integerCell tindex,
      date,
      cell tcode,
      cell tdescription,
@@ -156,7 +156,6 @@ accountTransactionsReportItemAsRecord
      amountCell balance]
   where
     cell = Spr.defaultCell
-    idx  = (cell $ T.pack $ show tindex) {Spr.cellType = Spr.TypeInteger}
     date =
         (Spr.defaultCell $ showDate $
          transactionRegisterDate wd reportq thisacctq t)

@@ -25,6 +25,7 @@ module Hledger.Write.Spreadsheet (
     cellFromMixedAmount,
     cellsFromMixedAmount,
     cellFromAmount,
+    integerCell,
     ) where
 
 import qualified Hledger.Data.Amount as Amt
@@ -251,3 +252,7 @@ amountType bopts amt =
     if Amt.displayCommodity bopts
       then amt
       else amt {acommodity = Text.empty}
+
+
+integerCell :: (Lines border) => Integer -> Cell border Text
+integerCell k = (defaultCell $ Text.pack $ show k) {cellType = TypeInteger}
