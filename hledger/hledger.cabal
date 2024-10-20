@@ -92,8 +92,8 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag ghcdebug
-  description: Build with support for attaching a ghc-debug client
+flag debug
+  description: Build with GHC 9.10+'s stack traces enabled, and with support for attaching a ghc-debug client
   manual: True
   default: False
 
@@ -196,8 +196,8 @@ library
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
 
@@ -250,8 +250,8 @@ executable hledger
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(threaded)
@@ -305,8 +305,8 @@ test-suite unittest
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
 
@@ -360,7 +360,7 @@ benchmark bench
   if (!(os(windows))) && (flag(terminfo))
     build-depends:
         terminfo
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7

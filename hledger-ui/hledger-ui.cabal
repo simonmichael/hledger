@@ -39,7 +39,7 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
-flag ghcdebug
+flag debug
   description: Build with support for attaching a ghc-debug client
   manual: True
   default: False
@@ -105,8 +105,8 @@ library
     , vty >=6.1 && <6.3
     , vty-crossplatform >=0.4.0.0 && <0.5.0.0
   default-language: Haskell2010
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
   if os(windows)
@@ -128,8 +128,8 @@ executable hledger-ui
       base >=4.14 && <4.21
     , hledger-ui
   default-language: Haskell2010
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(threaded)

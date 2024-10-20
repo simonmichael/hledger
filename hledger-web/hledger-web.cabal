@@ -112,14 +112,14 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
+flag debug
+  description: Build with support for attaching a ghc-debug client
+  manual: True
+  default: False
+
 flag dev
   description: Turn on development settings, like auto-reload templates.
   manual: False
-  default: False
-
-flag ghcdebug
-  description: Build with support for attaching a ghc-debug client
-  manual: True
   default: False
 
 flag library-only
@@ -212,8 +212,8 @@ library
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
 
@@ -234,8 +234,8 @@ executable hledger-web
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(library-only)
@@ -259,7 +259,7 @@ test-suite test
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if (flag(ghcdebug))
-    cpp-options: -DGHCDEBUG
+  if (flag(debug))
+    cpp-options: -DDEBUG
     build-depends:
         ghc-debug-stub >=0.6.0.0 && <0.7
