@@ -1,11 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-|
 
--}
-
-module Hledger.UI.UIOptions
-where
+module Hledger.UI.UIOptions where
 
 import Data.Default (def)
 import Data.List (intercalate)

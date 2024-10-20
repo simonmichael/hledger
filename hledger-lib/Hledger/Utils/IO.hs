@@ -252,18 +252,6 @@ runPager s = do
     s
 #endif
 
--- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
--- into separate list items. Multiple valueless short flags joined together is not supported.
-splitFlagsAndVals :: [String] -> [String]
-splitFlagsAndVals = concatMap $
-  \case
-    a@('-':'-':_) | '=' `elem` a -> let (x,y) = break (=='=') a in [x, drop 1 y]
-    a@('-':f:_:_) | not $ f=='-' -> [take 2 a, drop 2 a]
-    a -> [a]
-
-toFlag [c] = ['-',c]
-toFlag s   = '-':'-':s
-
 -- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
 -- If the value is missing raise an error.
 getOpt :: [String] -> IO (Maybe String)
@@ -275,6 +263,19 @@ getOpt names = do
       (_,[])        -> Nothing
       ([],flag:_)   -> error' $ flag <> " requires a value"
       (argsafter,_) -> Just $ last argsafter
+
+-- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
+-- into separate list items. Multiple valueless short flags joined together is not supported.
+splitFlagsAndVals :: [String] -> [String]
+splitFlagsAndVals = concatMap $
+  \case
+    a@('-':'-':_) | '=' `elem` a -> let (x,y) = break (=='=') a in [x, drop 1 y]
+    a@('-':f:_:_) | not $ f=='-' -> [take 2 a, drop 2 a]
+    a -> [a]
+
+-- | Convert a short or long flag name to a flag with leading hyphen(s).
+toFlag [c] = ['-',c]
+toFlag s   = '-':'-':s
 
 -- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
 parseYN :: String -> Bool
