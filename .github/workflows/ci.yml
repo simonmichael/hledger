@@ -52,6 +52,7 @@ jobs:
       #
       # caching id for this ghc's build artifacts:
       # XXX ideally should match the default ghc in stack.yaml, though it's not critical
+      # XXX supposed to be interpolated by $ghc below, but this is not working
       ghc: 910
       # stack config for this ghc:
       stack: stack --system-ghc
