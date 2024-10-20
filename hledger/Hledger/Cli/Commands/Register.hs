@@ -121,13 +121,13 @@ postingsReportAsCsv =
 
 postingsReportAsSpreadsheet ::
   AmountFormat -> Maybe Text -> [Text] ->
-  PostingsReport -> [[Spr.Cell Spr.NumLines T.Text]]
-postingsReportAsSpreadsheet fmt base query is =
+  PostingsReport -> [[Spr.Cell Spr.NumLines Text]]
+postingsReportAsSpreadsheet fmt baseUrl query is =
   Spr.addHeaderBorders
     (map Spr.headerCell
       ["txnidx","date","code","description","account","amount","total"])
   :
-  map (postingsReportItemAsRecord fmt base query) is
+  map (postingsReportItemAsRecord fmt baseUrl query) is
 
 {- ToDo:
 link txnidx to journal URL,
@@ -136,12 +136,12 @@ link txnidx to journal URL,
 postingsReportItemAsRecord ::
     (Spr.Lines border) =>
     AmountFormat -> Maybe Text -> [Text] ->
-    PostingsReportItem -> [Spr.Cell border T.Text]
-postingsReportItemAsRecord fmt base query (_, _, _, p, b) =
+    PostingsReportItem -> [Spr.Cell border Text]
+postingsReportItemAsRecord fmt baseUrl query (_, _, _, p, b) =
     [idx,
-     (dateCell base query (paccount p) date) {Spr.cellType = Spr.TypeDate},
+     (dateCell baseUrl query (paccount p) date) {Spr.cellType = Spr.TypeDate},
      cell code, cell desc,
-     setAccountAnchor base query (paccount p) $ cell acct,
+     setAccountAnchor baseUrl query (paccount p) $ cell acct,
      amountCell (pamount p),
      amountCell b]
   where
