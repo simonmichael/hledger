@@ -247,9 +247,10 @@ helpflags = [
 -- These are included in helpflags so they appear everywhere.
 terminalflags = [
   flagReq  ["pager"] (\s opts -> Right $ setopt "pager" s opts) "YN"
-   "use pager for long output ? y/yes or n/no"
-  -- This has special support in hledger-lib:colorOption, keep synced
- ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YN"
+   "use a pager when needed ? y/yes (default) or n/no"
+
+  -- keep synced with hledger-lib:colorOption:
+ ,flagReq  ["color","colour"] (\s opts -> Right $ setopt "color" s opts) "YNA"
    "use ANSI color ? y/yes, n/no, or auto (default)"
  ]
 
