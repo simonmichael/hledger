@@ -721,24 +721,6 @@ The `-O` option can be combined with `-o` to override the file extension if need
 $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 ```
 
-## Paging
-
-On unix-like systems, when displaying large output in the terminal,
-hledger tries to use a pager when appropriate:
-the one specified by the `PAGER` environment variable,
-otherwise `less` if available, otherwise `more` if available.
-The pager shows one page of text at a time, and lets you scroll around to see more.
-While it is active, usually `SPACE` shows the next page, `q` quits, and `?` shows more features.
-
-The pager is expected to display ANSI color and text styling if possible.
-hledger adds `R` to the `LESS` and `MORE` environment variables to enable this
-in `less` (and in its `more` compatibility mode).
-If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
-Or you can set the `NO_COLOR` environment variable described below.
-
-You can prevent the use of a pager by providing the `--no-pager` flag at the command line,
-or in a config file.
-
 Here are some notes about the various output formats.
 
 ### Text output
@@ -757,27 +739,42 @@ Multi-period multi-currency reports can often be wider than the window. Besides 
 helpful techniques for this situation include
 `--layout=bare`, `-V`, `cur:`, `--transpose`, `--tree`, `--depth`, `--drop`, switching to html output, etc.
 
-(Help output uses a pager automatically when appropriate, but regular reports do not, currently.)
+#### Box-drawing characters
+
+hledger draws simple table borders by default, to minimise the risk of display problems
+caused by a terminal/font not supporting box-drawing characters.
+
+But your terminal and font probably do support them, so we recommend
+using the `--pretty` flag to show prettier tables in the terminal.
+This is a good flag to add to your hledger config file.
 
 #### Colour
 
-hledger tries to detect ANSI color and text styling support and use it when appropriate,
-though currently rather minimally: some reports show negative numbers in red,
-and help output uses bold text for emphasis.
+hledger tries to automatically detect ANSI colour and text styling support and use it when appropriate.
+(Currently, it is used rather minimally: some reports show negative numbers in red, and help output uses bold text for emphasis.)
 
-You can override this in the usual ways.
-If the `NO_COLOR` environment variable is set, colour will be disabled by default.
-Or you can use the `--color/--colour` option with a `y`/`yes` value,
-or `n`/`no`, to force colour on or off.
-(This option doesn't work in a config file yet.)
+You can override this by setting the `NO_COLOR` environment variable to disable it,
+or by using the `--color/--colour` option, perhaps in your config file,
+with a `y`/`yes` or `n`/`no` value to force it on or off.
 
-#### Box-drawing
+#### Paging
 
-By default, hledger draws table borders using ascii characters, to minimise the chance of display problems.
+In unix-like environments, when displaying large output in the terminal,
+hledger tries to use a pager when appropriate.
+(Actually it does this for any output format displayed in the terminal, not just text.)
+You can prevent this with the `--pager=no` option, perhaps in your config file.
 
-If your terminal and font support box-drawing characters (they probably do),
-you will probably want to use the `--pretty` flag to show prettier tables.
-This is a good flag to add to your hledger config file.
+It will use the pager specified by the `PAGER` environment variable,
+otherwise `less` if available, otherwise `more` if available.
+
+The pager shows one page of text at a time, and lets you scroll around to see more.
+While it is active, usually `SPACE` shows the next page, `q` quits, and `?` shows more features.
+(And in `less`, `G` jumps to the end, which is useful when you are viewing register output.)
+
+The pager is expected to display hledger's ANSI colour and text styling.
+hledger adds `R` to the `LESS` and `MORE` environment variables to enable this for `less` and its `more` compatibility mode.
+If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
+(Or you can disable colour, as described above.)
 
 ### HTML output
 
