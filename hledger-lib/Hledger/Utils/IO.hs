@@ -195,11 +195,11 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
 -- Pager output
 
--- | Make sure our $LESS and $MORE environment variables contain R,
+-- | Make sure our LESS and MORE environment variables contain R,
 -- to help ensure the common `less` pager will show our ANSI output properly.
--- less uses $LESS by default, or $MORE when it is invoked as `more`.
+-- less uses LESS by default, or MORE when it is invoked as `more`.
 -- What the original `more` program does, I'm not sure.
--- If $PAGER is configured to something else, this probably will have no effect.
+-- If PAGER is configured to something else, this probably will have no effect.
 setupPager :: IO ()
 setupPager = do
   let
@@ -211,23 +211,43 @@ setupPager = do
   addR "LESS"
   addR "MORE"
 
--- related: Hledger.Cli.DocFiles.runPagerForTopic
--- | Display the given text on the terminal, using the user's $PAGER if the text is taller 
--- than the current terminal and stdout is interactive and TERM is not "dumb";
--- except on Windows, where currently we don't attempt to use a pager.
--- If the text contains ANSI codes, because hledger thinks the current terminal
--- supports those, the pager should be configured to display those, otherwise
--- users will see junk on screen (#2015).
--- Call "setupPager" at program startup to make that less likely.
+-- | Display the given text on the terminal, trying to use a pager when appropriate, otherwise
+-- printing to standard output.
+-- This tries to be robust, but in fact the logic is rather complicated, and it can
+-- print, page, or raise an error and terminate the program.
+-- (Related: Hledger.Cli.DocFiles.runPagerForTopic, which uses much simpler logic.)
 --
--- Pager use is influenced by the --pager option, at least.
+-- A pager is not used:
+-- if the program is running in a native MS Windows environment (like cmd or powershell).
+-- Or if the --pager=n|no|never option was used.
+-- Or if TERM=dumb (for emacs shell users).
+-- Or if the text is a single line (avoids a pager lib bug).
+-- Or if PAGER is set to something that is not an executable in PATH (avoids a pager lib bug).
+-- Or if the pager lib can't detect the terminal's current height and width (successfully doing so ensures it is interactive, I think.)
+-- Or if the text is wider or taller than the terminal.
+-- Or if PATH is not set (pager lib raises an error in this case).
+-- Or if PAGER is unset and neither `less` or `more` are found in PATH (pager lib raises an error).
+--
+-- Otherwise, $PAGER (or if it was unset, `less`; or if that was not found, `more`) is used.
+--
+-- If running the pager fails, or the pager exits with a non-zero exit code, pager lib raises an error.
+--
+-- hledger output may contain ANSI color or style codes, if the current terminal seems to
+-- support them, and if they haven't been disabled by --color=n|no|never or by NO_COLOR.
+-- These will be passed to the pager, so it should be configured to display them;
+-- otherwise users will see junk on screen (#2015). setupPager, called at program startup, 
+-- tries to configure this automatically for some pagers.
+--
 -- Rather than pass in a huge CliOpts, or duplicate conditional logic at every call site,
--- this does some redundant local options parsing.
+-- this does some redundant local parsing of the command line args.
+--
 runPager :: String -> IO ()
 #ifdef mingw32_HOST_OS
 runPager = putStr
 #else
 runPager s = do
+  -- keep synced with description above
+
   -- disable pager with --pager=no
   mpager <- getOpt ["pager"]
   let nopager = not $ maybe True parseYN mpager
