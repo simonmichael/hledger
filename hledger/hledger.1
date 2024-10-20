@@ -449,57 +449,110 @@ Some queries can be expressed either with options or with arguments.
 Below are more tips for using the command line interface \- feel free to
 skip these until you need them.
 .SS Special characters
-.SS Single escaping (shell metacharacters)
-In shell command lines, characters significant to your shell \- such as
-spaces, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R], \f[CR])\f[R],
-\f[CR]|\f[R], \f[CR]$\f[R] and \f[CR]\[rs]\f[R] \- should be
-\[dq]shell\-escaped\[dq] if you want hledger to see them.
-This is done by enclosing them in single or double quotes, or by writing
-a backslash before them.
-Eg to match an account name containing a space:
+Here we touch on shell escaping/quoting rules, and give some examples.
+This is a slightly complicated topic which you may not need at first,
+but you should be aware of it, so you can return here when needed.
+.PP
+If you are able to minimise the use of special characters in your data,
+you won\[aq]t need escaping as much, and your command lines will be
+simpler.
+For example, avoiding spaces in account names, and using an ISO\-4217
+currency code like \f[CR]USD\f[R] instead of the \f[CR]$\f[R] currency
+symbol, can be helpful.
+.PP
+But if you want to use spaced account names and \f[CR]$\f[R], go right
+ahead; escaping isn\[aq]t a big deal.
+.SS Escaping shell special characters
+At the command line, characters which have special meaning for your
+shell must be \[dq]shell\-escaped\[dq] (AKA \[dq]quoted\[dq]) if you
+want hledger to see them.
+Often these include space, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R],
+\f[CR])\f[R], \f[CR]|\f[R], \f[CR]\[rs]\f[R], \f[CR]$\f[R] and/or
+\f[CR]%\f[R].
+.PP
+For example, to match an account name containing the phrase \[dq]credit
+card\[dq], don\[aq]t write this:
 .IP
 .EX
-$ hledger register \[aq]credit card\[aq]
+$ hledger register credit card
 .EE
 .PP
-or:
+In that command, \[dq]credit\[dq] and \[dq]card\[dq] are treated as
+separate query arguments (described below), so this would match accounts
+containing either word.
+Instead, enclose the phrase in double or single quotes:
+.IP
+.EX
+$ hledger register \[dq]credit card\[dq]
+.EE
+.PP
+In Unix shells, writing a backslash before the character can also work.
+Eg:
 .IP
 .EX
 $ hledger register credit\[rs] card
 .EE
 .PP
-Windows users should keep in mind that \f[CR]cmd\f[R] treats single
-quote as a regular character, so you should be using double quotes
-exclusively.
-PowerShell treats both single and double quotes as quotes.
-.SS Double escaping (regular expression metacharacters)
-Characters significant in regular expressions (described below) \- such
-as \f[CR].\f[R], \f[CR]\[ha]\f[R], \f[CR]$\f[R], \f[CR][\f[R],
-\f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R], \f[CR]|\f[R], and
-\f[CR]\[rs]\f[R] \- may need to be \[dq]regex\-escaped\[dq] if you
-don\[aq]t want them to be interpreted by hledger\[aq]s regular
-expression engine.
-This is done by writing backslashes before them, but since backslash is
-typically also a shell metacharacter, both shell\-escaping and
-regex\-escaping will be needed.
-Eg to match a literal \f[CR]$\f[R] sign while using the bash shell:
+Some shell characters still have a special meaning inside double quotes,
+such as the dollar sign (\f[CR]$\f[R]).
+Eg in \f[CR]\[dq]assets:$account\[dq]\f[R], the bash shell would replace
+\f[CR]$account\f[R] with the value of a shell variable with that name.
+When you don\[aq]t want that, use single quotes, which escape more
+strongly:
 .IP
 .EX
-$ hledger balance cur:\[aq]\[rs]$\[aq]
+$ hledger balance \[aq]assets:$account\[aq]
+.EE
+.SS Escaping on Windows
+If you are using hledger in a Powershell or Command window on Microsoft
+Windows, the escaping rules are different:
+.IP \[bu] 2
+In a Powershell window (\f[CR]powershell\f[R], blue background), you
+must use double quotes or single quotes (not backslash).
+.IP \[bu] 2
+In a Command window (\f[CR]cmd\f[R], black background), you must use
+double quotes (not single quotes or backslash).
+.PP
+The next two sections were written for Unix\-like shells, so might need
+to be adapted if you\[aq]re using \f[CR]cmd\f[R] or
+\f[CR]powershell\f[R].
+(Edits welcome.)
+.SS Escaping regular expression special characters
+Many hledger arguments are regular expressions (described below), and
+these too have characters which cause special effects.
+Some of those characters are \f[CR].\f[R], \f[CR]\[ha]\f[R],
+\f[CR]$\f[R], \f[CR][\f[R], \f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R],
+\f[CR]|\f[R], and \f[CR]\[rs]\f[R].
+When you don\[aq]t want these to cause special effects, you can
+\[dq]regex\-escape\[dq] them by writing \f[CR]\[rs]\f[R] (a backslash)
+before them.
+But since backslash is also special to the shell, you may need to also
+shell\-escape the backslashes.
+.PP
+Eg, in the bash shell, to match a literal \f[CR]$\f[R] sign, you could
+write:
+.IP
+.EX
+$ hledger balance cur:\[rs]\[rs]$
 .EE
 .PP
 or:
 .IP
 .EX
-$ hledger balance cur:\[rs]\[rs]$
+$ hledger balance \[aq]cur:\[rs]$\[aq]
 .EE
-.SS Triple escaping (for add\-on commands)
-When you use hledger to run an external add\-on command (described
-below), one level of shell\-escaping is lost from any options or
-arguments intended for by the add\-on command, so those need an extra
-level of shell\-escaping.
-Eg to match a literal \f[CR]$\f[R] sign while using the bash shell and
-running an add\-on command (\f[CR]ui\f[R]):
+.PP
+(The dollar sign is regex\-escaped by the backslash preceding it.
+Then that backslash is shell\-escaped by another backslash, or by single
+quotes.)
+.SS Escaping add\-on arguments
+When you run an external add\-on command with \f[CR]hledger\f[R]
+(described below), any options or arguments being passed through to the
+add\-on executable lose one level of shell\-escaping, so you must add an
+extra level of shell\-escaping to compensate.
+.PP
+Eg, in the bash shell, to run the \f[CR]ui\f[R] add\-on and match a
+literal \f[CR]$\f[R] sign, you need to write:
 .IP
 .EX
 $ hledger ui cur:\[aq]\[rs]\[rs]$\[aq]
@@ -511,52 +564,80 @@ or:
 $ hledger ui cur:\[rs]\[rs]\[rs]\[rs]$
 .EE
 .PP
-If you wondered why \f[I]four\f[R] backslashes, perhaps this helps:
+If you are wondering why \f[I]four\f[R] backslashes:
+.IP \[bu] 2
+\f[CR]$\f[R] is unescaped
+.IP \[bu] 2
+\f[CR]\[rs]$\f[R] is regex\-escaped
+.IP \[bu] 2
+\f[CR]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped
+.IP \[bu] 2
+\f[CR]\[rs]\[rs]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped,
+then both slashes are shell\-escaped once more for hledger argument
+pass\-through.
 .PP
-.TS
-tab(@);
-l l.
-T{
-unescaped:
-T}@T{
-\f[CR]$\f[R]
-T}
-T{
-escaped:
-T}@T{
-\f[CR]\[rs]$\f[R]
-T}
-T{
-double\-escaped:
-T}@T{
-\f[CR]\[rs]\[rs]$\f[R]
-T}
-T{
-triple\-escaped:
-T}@T{
-\f[CR]\[rs]\[rs]\[rs]\[rs]$\f[R]
-T}
-.TE
-.PP
-Or, you can avoid the extra escaping by running the add\-on executable
-directly:
+Or you can avoid such triple\-escaping, by running the add\-on
+executable directly:
 .IP
 .EX
 $ hledger\-ui cur:\[rs]\[rs]$
 .EE
-.SS Less escaping
-Options and arguments are sometimes used in places other than the shell
-command line, where shell\-escaping is not needed, so there you should
-use one less level of escaping.
-Those places include:
-.IP \[bu] 2
-an \[at]argumentfile
-.IP \[bu] 2
-hledger\-ui\[aq]s filter field
-.IP \[bu] 2
-hledger\-web\[aq]s search form
-.IP \[bu] 2
-GHCI\[aq]s prompt (used by developers).
+.SS Escaping in other situations
+hledger options and arguments are sometimes used in places other than
+the command line, with different escaping rules.
+For example, backslash\-quoting generally does not work there.
+Here are some more tips.
+.PP
+.TS
+tab(@);
+lw(17.5n) lw(52.5n).
+T{
+In Windows \f[CR]cmd\f[R]
+T}@T{
+Use double quotes
+T}
+T{
+In Windows \f[CR]powershell\f[R]
+T}@T{
+Use single or double quotes
+T}
+T{
+In hledger\-ui\[aq]s filter prompt
+T}@T{
+Use single or double quotes
+T}
+T{
+In hledger\-web\[aq]s search form
+T}@T{
+Use single or double quotes
+T}
+T{
+In an argument file
+T}@T{
+Don\[aq]t use spaces, don\[aq]t shell\-escape, do regex\-escape when
+needed
+T}
+T{
+In a config file
+T}@T{
+Use single or double quotes, and enclose the whole argument
+(\f[CR]\[dq]desc:a b\[dq]\f[R] not \f[CR]desc:\[dq]a b\[dq]\f[R])
+T}
+T{
+In \f[CR]ghci\f[R] (the Haskell REPL)
+T}@T{
+Use double quotes, and enclose the whole argument
+T}
+.TE
+.SS Using a wild card
+When escaping a special character is too much hassle (or impossible),
+you can often just write \f[CR].\f[R] (period) instead.
+In regular expressions, this means \[dq]accept any character here\[dq].
+Eg:
+.IP
+.EX
+$ hledger register credit.card
+.EE
 .SS Unicode characters
 hledger is expected to handle non\-ascii characters correctly:
 .IP \[bu] 2
@@ -909,6 +990,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -923,6 +1005,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -937,6 +1020,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -951,6 +1035,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -961,9 +1046,11 @@ print
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 Y
 T}@T{
@@ -976,9 +1063,11 @@ register
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -986,14 +1075,17 @@ Y
 T}
 .TE
 .PP
-The output format is selected by the
-\f[CR]\-O\f[R]/\f[CR]\-\-output\-format=FMT\f[R] option:
+You can also see which output formats a command supports by running
+\f[CR]hledger CMD \-h\f[R] and looking for the
+\f[CR]\-O\f[R]/\f[CR]\-\-output\-format=FMT\f[R] option,
+.PP
+You can select the output format by using that option:
 .IP
 .EX
-$ hledger print \-O csv    # print CSV on stdout
+$ hledger print \-O csv    # print CSV to standard output
 .EE
 .PP
-or by the filename extension of an output file specified with the
+or by choosing a suitable filename extension with the
 \f[CR]\-o\f[R]/\f[CR]\-\-output\-file=FILE.FMT\f[R] option:
 .IP
 .EX
@@ -1001,35 +1093,109 @@ $ hledger balancesheet \-o foo.csv    # write CSV to foo.csv
 .EE
 .PP
 The \f[CR]\-O\f[R] option can be combined with \f[CR]\-o\f[R] to
-override the file extension, if needed:
+override the file extension if needed:
 .IP
 .EX
 $ hledger balancesheet \-o foo.txt \-O csv    # write CSV to foo.txt
 .EE
+.SS Paging
+On unix\-like systems, when displaying large output in the terminal,
+hledger tries to use a pager when appropriate: the one specified by the
+\f[CR]PAGER\f[R] environment variable, otherwise \f[CR]less\f[R] if
+available, otherwise \f[CR]more\f[R] if available.
+The pager shows one page of text at a time, and lets you scroll around
+to see more.
+While it is active, usually \f[CR]SPACE\f[R] shows the next page,
+\f[CR]q\f[R] quits, and \f[CR]?\f[R] shows more features.
+.PP
+The pager is expected to display ANSI color and text styling if
+possible.
+hledger adds \f[CR]R\f[R] to the \f[CR]LESS\f[R] and \f[CR]MORE\f[R]
+environment variables to enable this in \f[CR]less\f[R] (and in its
+\f[CR]more\f[R] compatibility mode).
+If you use a different pager, you might need to configure it similarly,
+to avoid seeing junk on screen.
+Or you can set the \f[CR]NO_COLOR\f[R] environment variable described
+below.
+.PP
+You can prevent the use of a pager by providing the
+\f[CR]\-\-no\-pager\f[R] flag at the command line, or in a config file.
 .PP
 Here are some notes about the various output formats.
 .SS Text output
 This is the default: human readable, plain text report output, suitable
-for a terminal.
+for viewing with a monospace font in a terminal.
+If your data contains unicode or wide characters, you\[aq]ll need a
+terminal and font that render those correctly.
+(This can be challenging on MS Windows.)
+.PP
+Some reports (\f[CR]register\f[R], \f[CR]aregister\f[R]) will use the
+width indicated by the \f[CR]COLUMNS\f[R] environment variable.
+If your shell and terminal are working well, they will keep COLUMNS
+updated as you resize the window.
+So register reports normally will use the full window width.
+When this isn\[aq]t working or you want to override it, you can manually
+set COLUMNS, or use the \f[CR]\-w\f[R]/\f[CR]\-\-width\f[R] option.
+.PP
+Balance reports (\f[CR]balance\f[R], \f[CR]balancesheet\f[R],
+\f[CR]incomestatement\f[R]...)
+use whatever width they need.
+Multi\-period multi\-currency reports can often be wider than the
+window.
+Besides using a pager, helpful techniques for this situation include
+\f[CR]\-\-layout=bare\f[R], \f[CR]\-V\f[R], \f[CR]cur:\f[R],
+\f[CR]\-\-transpose\f[R], \f[CR]\-\-tree\f[R], \f[CR]\-\-depth\f[R],
+\f[CR]\-\-drop\f[R], switching to html output, etc.
+.PP
+(Help output uses a pager automatically when appropriate, but regular
+reports do not, currently.)
+.SS Colour
+hledger tries to detect ANSI color and text styling support and use it
+when appropriate, though currently rather minimally: some reports show
+negative numbers in red, and help output uses bold text for emphasis.
+.PP
+You can override this in the usual ways.
+If the \f[CR]NO_COLOR\f[R] environment variable is set, colour will be
+disabled by default.
+Or you can use the \f[CR]\-\-color/\-\-colour\f[R] option with a
+\f[CR]y\f[R]/\f[CR]yes\f[R] value, or \f[CR]n\f[R]/\f[CR]no\f[R], to
+force colour on or off.
+(This option doesn\[aq]t work in a config file yet.)
+.SS Box\-drawing
+By default, hledger draws table borders using ascii characters, to
+minimise the chance of display problems.
+.PP
+If your terminal and font support box\-drawing characters (they probably
+do), you will probably want to use the \f[CR]\-\-pretty\f[R] flag to
+show prettier tables.
+This is a good flag to add to your hledger config file.
 .SS HTML output
-.IP \[bu] 2
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
-.IP \[bu] 2
+.PP
 HTML output will be UTF\-8 encoded.
 If your web browser is showing junk characters, you may need to change
 its text encoding to UTF\-8.
 Eg in Safari, see View \-> Text Encoding and Settings \-> Advanced \->
 Default Encoding.
 .SS CSV / TSV output
-.IP \[bu] 2
 In CSV or TSV output, digit group marks (such as thousands separators)
 are disabled automatically.
 .SS FODS output
-FODS is the OpenDocument spreadsheet format used by LibreOffice and
-OpenOffice.
-It is a good format to use if you are exporting to their spreadsheet
-app.
+FODS is the OpenDocument Spreadsheet format as plain XML, as accepted by
+LibreOffice and OpenOffice.
+If you use their spreadsheet applications, this is better than CSV
+because it works across locales (decimal point vs.
+decimal comma, character encoding stored in XML header, thus no problems
+with umlauts), it supports fixed header rows and columns, cell types
+(string vs.
+number vs.
+date), separation of number and currency (currency is displayed but the
+cell type is still a number accessible for computation), styles (bold),
+borders.
+Btw.
+you can still extract CSV from FODS/ODS using various utilities like
+\f[CR]libreoffice \-\-headless\f[R] or ods2csv.
 .SS Beancount output
 This is Beancount\[aq]s journal format.
 You can use this to export your hledger data to Beancount, perhaps to
@@ -1090,49 +1256,39 @@ journal:
 option \[dq]operating_currency\[dq] \[dq]USD\[dq]
 .EE
 .SS SQL output
-.IP \[bu] 2
-This is not yet much used; real\-world feedback is welcome.
-.IP \[bu] 2
 SQL output is expected to work at least with SQLite, MySQL and Postgres.
-.IP \[bu] 2
-For SQLite, it will be more useful if you modify the generated
-\f[CR]id\f[R] field to be a PRIMARY KEY.
+.PP
+The SQL statements are expected to be executed in the empty database.
+If you already have tables created via SQL output of hledger, you would
+probably want to either clear data from these (via \f[CR]delete\f[R] or
+\f[CR]truncate\f[R] SQL statements) or \f[CR]drop\f[R] the tables
+completely before import; otherwise your postings would be duplicated.
+.PP
+For SQLite, it is more useful if you modify the generated \f[CR]id\f[R]
+field to be a PRIMARY KEY.
 Eg:
-.RS 2
 .IP
 .EX
 $ hledger print \-O sql | sed \[aq]s/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g\[aq] | ...
 .EE
-.RE
-.IP \[bu] 2
-SQL output is structured with the expectations that statements will be
-executed in the empty database.
-If you already have tables created via SQL output of hledger, you would
-probably want to either clear tables of existing data (via
-\f[CR]delete\f[R] or \f[CR]truncate\f[R] SQL statements) or drop tables
-completely as otherwise your postings will be duped.
+.PP
+This is not yet much used; feedback is welcome.
 .SS JSON output
-.IP \[bu] 2
-This is not yet much used; real\-world feedback is welcome.
-.IP \[bu] 2
 Our JSON is rather large and verbose, since it is a faithful
 representation of hledger\[aq]s internal data types.
-To understand the JSON, read the Haskell type definitions, which are
-mostly in
+To understand its structure, read the Haskell type definitions, which
+are mostly in
 https://github.com/simonmichael/hledger/blob/master/hledger\-lib/Hledger/Data/Types.hs.
 hledger\-web\[aq]s OpenAPI specification may also be relevant.
-.IP \[bu] 2
-hledger represents quantities as Decimal values storing up to 255
-significant digits, eg for repeating decimals.
-Such numbers can arise in practice (from automatically\-calculated
-transaction prices), and would break most JSON consumers.
-So in JSON, we show quantities as simple Numbers with at most 10 decimal
-places.
-We don\[aq]t limit the number of integer digits, but that part is under
-your control.
-We hope this approach will not cause problems in practice; if you find
-otherwise, please let us know.
-(Cf #1195)
+.PP
+hledger stores numbers with sometimes up to 255 significant digits.
+This is too many digits for most JSON consumers, so in JSON output we
+round numbers to at most 10 decimal places.
+(We don\[aq]t limit the number of integer digits.)
+If you find this causing problems, please let us know.
+Related: #1195
+.PP
+This is not yet much used; feedback is welcome.
 .SS Commodity styles
 When displaying amounts, hledger infers a standard display style for
 each commodity/currency, as described below in Commodity display style.
@@ -1154,51 +1310,6 @@ Its argument is as described in the commodity directive.
 .PP
 In some cases hledger will adjust number formatting to improve their
 parseability (such as adding trailing decimal marks when needed).
-.SS Colour
-In terminal output, some commands can produce colour when the terminal
-supports it:
-.IP \[bu] 2
-if the \f[CR]\-\-color/\-\-colour\f[R] option is given a value of
-\f[CR]yes\f[R] or \f[CR]always\f[R] (or \f[CR]no\f[R] or
-\f[CR]never\f[R]), colour will (or will not) be used;
-.IP \[bu] 2
-otherwise, if the \f[CR]NO_COLOR\f[R] environment variable is set,
-colour will not be used;
-.IP \[bu] 2
-otherwise, colour will be used if the output (terminal or file) supports
-it.
-.SS Box\-drawing
-In terminal (text) output, to minimise the risk of display problems,
-table borders are drawn using only ascii characters by default.
-.PP
-To see tables with prettier unicode box\-drawing characters, add the
-\f[CR]\-\-pretty\f[R] flag.
-This will also show outer borders and inter\-column borders.
-.SS Paging
-When showing long output in the terminal, hledger will try to use the
-pager specified by the \f[CR]PAGER\f[R] environment variable, or
-\f[CR]less\f[R], or \f[CR]more\f[R].
-(A pager is a helper program that shows one page at a time rather than
-scrolling everything off screen).
-Currently it does this only for help output, not for reports;
-specifically,
-.IP \[bu] 2
-when listing commands, with \f[CR]hledger\f[R]
-.IP \[bu] 2
-when showing help with \f[CR]hledger [CMD] \-\-help\f[R],
-.IP \[bu] 2
-when viewing manuals with \f[CR]hledger help\f[R] or
-\f[CR]hledger \-\-man\f[R].
-.PP
-Note the pager is expected to handle ANSI codes, which hledger uses eg
-for bold emphasis.
-For the common pager \f[CR]less\f[R] (and its \f[CR]more\f[R]
-compatibility mode), we add \f[CR]R\f[R] to the \f[CR]LESS\f[R] and
-\f[CR]MORE\f[R] environment variables to make this work.
-If you use a different pager, you might need to configure it similarly,
-to avoid seeing junk on screen (let us know).
-Otherwise, you can set the \f[CR]NO_COLOR\f[R] environment variable to 1
-to disable all ANSI output (see Colour).
 .SS Debug output
 We intend hledger to be relatively easy to troubleshoot, introspect and
 develop.
@@ -1218,6 +1329,8 @@ stderr, eg:
 .EX
 hledger bal \-\-debug=3 2>hledger.log
 .EE
+.PP
+(This option doesn\[aq]t work in a config file yet.)
 .SH Environment
 These environment variables affect hledger:
 .PP
@@ -1231,8 +1344,8 @@ Default: \f[CR]$HOME/.hledger.journal\f[R].
 .PP
 \f[B]NO_COLOR\f[R] If this environment variable exists (with any value,
 including empty), hledger will not use ANSI color codes in terminal
-output, unless overridden by an explicit
-\f[CR]\-\-color=y\f[R]/\f[CR]\-\-colour=y\f[R] option.
+output, unless overridden by an explicit \f[CR]\-\-color=y\f[R] or
+\f[CR]\-\-colour=y\f[R] option.
 .SH PART 2: DATA FORMATS
 .SH Journal
 hledger\[aq]s usual data source is a plain text file containing journal
@@ -8068,10 +8181,10 @@ heading.
 .IP
 .EX
 Flags:
-  \-i                show the manual with info
-  \-m                show the manual with man
-  \-p                show the manual with $PAGER or less
-                    (less is always used if TOPIC is specified)
+  \-i                      show the manual with info
+  \-m                      show the manual with man
+  \-p                      show the manual with $PAGER or less
+                          (less is always used if TOPIC is specified)
 .EE
 .PP
 This command shows the hledger manual built in to your hledger
@@ -8112,8 +8225,8 @@ Play demos of hledger usage in the terminal, if asciinema is installed.
 .IP
 .EX
 Flags:
-  \-s \-\-speed=SPEED  playback speed (1 is original speed, .5 is half, 2 is
-                    double, etc (default: 2))
+  \-s \-\-speed=SPEED        playback speed (1 is original speed, .5 is half, 2
+                          is double, etc (default: 2))
 .EE
 .PP
 Run this command with no argument to list the demos.
@@ -8726,8 +8839,11 @@ Flags:
                             file since last run
   \-m \-\-match=DESC           fuzzy search for one recent transaction with
                             description closest to DESC
+     \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
+                            with this prefix. (Usually the base url shown by
+                            hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
-                            txt, beancount, csv, tsv, json, sql.
+                            txt, beancount, csv, tsv, html, fods, json, sql.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 .EE
@@ -9047,8 +9163,11 @@ Flags:
   \-w \-\-width=N              set output width (default: terminal width or
                             $COLUMNS). \-wN,M sets description width as well.
      \-\-align\-all            guarantee alignment across all lines (slower)
+     \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
+                            with this prefix. (Usually the base url shown by
+                            hledger\-web; can also be relative.)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
-                            txt, csv, tsv, json.
+                            txt, csv, tsv, html, fods, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 .EE
