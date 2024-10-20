@@ -96,7 +96,7 @@ ghc-options:
 - -Wno-unused-do-bind
 
 flags:
-  ghcdebug:
+  debug:
     description: Build with support for attaching a ghc-debug client
     default: false
     manual:  true
@@ -105,8 +105,8 @@ when:
 - condition: (!(os(windows)))
   dependencies:
   - pager >=0.1.1.0
-- condition: (flag(ghcdebug))
-  cpp-options: -DGHCDEBUG
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
   dependencies:
   - ghc-debug-stub >=0.6.0.0 && <0.7
 

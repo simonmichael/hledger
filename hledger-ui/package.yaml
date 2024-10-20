@@ -37,7 +37,7 @@ flags:
     description: Build with support for multithreaded execution
     default: true
     manual:  false
-  ghcdebug:
+  debug:
     description: Build with support for attaching a ghc-debug client
     default: false
     manual:  true
@@ -56,8 +56,8 @@ dependencies:
 - base >=4.14 && <4.21
 
 when:
-- condition: (flag(ghcdebug))
-  cpp-options: -DGHCDEBUG
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
   dependencies:
   - ghc-debug-stub >=0.6.0.0 && <0.7
 

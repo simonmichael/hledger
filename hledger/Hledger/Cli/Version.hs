@@ -39,7 +39,7 @@ packagemajorversion :: PackageVersion
 packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
 
 -- | Given possible git state info from the build directory (or a git error, which is ignored),
--- and the ghcdebug build flag, executable name and package version for the package being built,
+-- and the debug build flag, executable name and package version for the package being built,
 -- make the best version string we can. Here is the logic:
 -- 
 -- * Program name, OS and architecture are always shown.
@@ -50,7 +50,7 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 -- * (TODO, requires adding --match support to githash:
 --   If there are tags matching THISPKG-[0-9]*, the latest one is used to calculate patch level
 --   (number of commits since tag), and if non-zero, it and the branch name are shown.)
--- * If the ghcdebug build flag was enabled for the package being built, and for hledger-lib (both are needed),
+-- * If the debug build flag was enabled for the package being built, and for hledger-lib (both are needed),
 --   "ghc-debug support" is shown.
 --
 -- Some example outputs:
@@ -64,7 +64,7 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 --
 -- The GitInfo if any, fetched by template haskell, is passed down from
 -- a top-level module, reducing wasteful recompilation.
--- The status of the ghcdebug build flag is also passed down, since it is
+-- The status of the debug build flag is also passed down, since it is
 -- specific to each hledger package.
 --
 -- This is used indirectly by at least hledger, hledger-ui, and hledger-web,

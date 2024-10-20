@@ -67,10 +67,15 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
 
 #if MIN_VERSION_base(4,20,0)
   -- Control ghc 9.10+'s stack traces.
-  -- Strangely only hledger-ui has been showing them (when command line processing fails),
-  -- even though hledger and hledger-web process it in just the same way.
-  -- Disable them here.
+  -- CostCentreBacktrace   - collect cost-centre stack backtraces (only available when built with profiling)
+  -- HasCallStackBacktrace - collect HasCallStack backtraces
+  -- ExecutionBacktrace    - collect backtraces from native execution stack unwinding
+  -- IPEBacktrace          - collect backtraces from Info Table Provenance Entries
+#ifdef DEBUG
+  setBacktraceMechanismState HasCallStackBacktrace True
+#else
   setBacktraceMechanismState HasCallStackBacktrace False
+#endif
 #endif
 
   traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"

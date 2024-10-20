@@ -43,7 +43,7 @@ prognameandversion :: String
 prognameandversion =
   versionStringWith
   $$tGitInfoCwdTry
-#ifdef GHCDEBUG
+#ifdef DEBUG
   True
 #else
   False

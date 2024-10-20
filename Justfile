@@ -556,14 +556,14 @@ INSTALLING:
     $STACK install --local-bin-path bin/old
     for e in hledger hledger-ui hledger-web ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
 
-# install hledger with ghc-debug support as bin/hledger*-dbg
+# install hledger with stack traces and ghc-debug support enabled, as bin/hledger*-dbg
 @installasdbg *STACKARGS:
-    $STACK install --local-bin-path bin --flag '*:ghcdebug' {{ STACKARGS }} hledger
+    $STACK install --local-bin-path bin --flag '*:debug' {{ STACKARGS }} hledger
     for e in hledger ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
-# install all hledger executables with ghc-debug support as bin/hledger*-dbg
+# install all hledger executables with stack traces and ghc-debug support enabled, as bin/hledger*-dbg
 @installallasdbg *STACKARGS:
-    $STACK install --local-bin-path bin --flag '*:ghcdebug' {{ STACKARGS }}
+    $STACK install --local-bin-path bin --flag '*:debug' {{ STACKARGS }}
     for e in hledger hledger-ui hledger-web ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
 # # make must be GNU Make 4.3+

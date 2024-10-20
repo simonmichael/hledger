@@ -59,7 +59,7 @@ flags:
     description: Build with support for multithreaded execution.
     default: true
     manual:  false
-  ghcdebug:
+  debug:
     description: Build with support for attaching a ghc-debug client
     default: false
     manual:  true
@@ -80,8 +80,8 @@ when:
 # 'ghc-options: -O0' is not needed. Use the --disable-optimization configure flag.
 - condition: flag(dev)
   ghc-options: -O0
-- condition: (flag(ghcdebug))
-  cpp-options: -DGHCDEBUG
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
   dependencies:
   - ghc-debug-stub >=0.6.0.0 && <0.7
 

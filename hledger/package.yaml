@@ -99,8 +99,8 @@ flags:
     description: Build with support for multithreaded execution
     default: true
     manual:  false
-  ghcdebug:
-    description: Build with support for attaching a ghc-debug client
+  debug:
+    description: Build with GHC 9.10+'s stack traces enabled, and with support for attaching a ghc-debug client
     default: false
     manual:  true
 
@@ -155,8 +155,8 @@ when:
 - condition: (!(os(windows))) && (flag(terminfo))
   dependencies:
   - terminfo
-- condition: (flag(ghcdebug))
-  cpp-options: -DGHCDEBUG
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
   dependencies:
   - ghc-debug-stub >=0.6.0.0 && <0.7
 

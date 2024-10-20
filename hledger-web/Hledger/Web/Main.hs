@@ -55,7 +55,15 @@ hledgerWebMain = withGhcDebug' $ do
 
 #if MIN_VERSION_base(4,20,0)
   -- Control ghc 9.10+'s stack traces.
+  -- CostCentreBacktrace   - collect cost-centre stack backtraces (only available when built with profiling)
+  -- HasCallStackBacktrace - collect HasCallStack backtraces
+  -- ExecutionBacktrace    - collect backtraces from native execution stack unwinding
+  -- IPEBacktrace          - collect backtraces from Info Table Provenance Entries
+#ifdef DEBUG
+  setBacktraceMechanismState HasCallStackBacktrace True
+#else
   setBacktraceMechanismState HasCallStackBacktrace False
+#endif
 #endif
 
   -- try to encourage user's $PAGER to properly display ANSI (in command line help)
