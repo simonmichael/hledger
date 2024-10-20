@@ -21,8 +21,11 @@ Flags:
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
+     --base-url=URLPREFIX   in html output, generate links to hledger-web,
+                            with this prefix. (Usually the base url shown by
+                            hledger-web; can also be relative.)
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, csv, tsv, json.
+                            txt, csv, tsv, html, fods, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 
