@@ -122,8 +122,6 @@ General output/reporting flags (supported by some commands):
                             YYYY-MM-DD: value on given date
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '$1000.' or -c '1.000,00 EUR'
-     --color=YN --colour    Use ANSI color codes in text output? Can be
-                            'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
@@ -135,6 +133,8 @@ General help flags:
      --man                  show the manual with man
      --version              show version information
      --debug=[1-9]          show this much debug output (default: 1)
+     --pager=YN             use a pager when needed ? y/yes (default) or n/no
+     --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
 ```
 }} )m4_dnl
 m4_dnl
