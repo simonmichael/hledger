@@ -255,7 +255,7 @@ main = withGhcDebug' $ do
   -- or if there is none, from the first non-flag argument on the command line.
 
   let
-    confallgenargs = confLookup "general" conf
+    confallgenargs = confLookup "general" conf & replaceNumericFlags
     -- we don't try to move flags/values preceding a command argument here;
     -- if a command name is written in the config file, it must be first
     (confcmdarg, confothergenargs) = case confallgenargs of
@@ -264,20 +264,21 @@ main = withGhcDebug' $ do
     cmdarg = if not $ null confcmdarg then confcmdarg else clicmdarg
     nocmdprovided = null cmdarg
 
-    -- The argument may be an abbreviated command name.
+    -- The argument may be an abbreviated command name, which we need to expand.
+
     -- Run cmdargs on conf + cli args to get the full command name.
     -- If no command argument was provided, or if cmdargs fails because 
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
     args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
-    -- XXX Unknown flag: --depth while parsing these args for command name
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) args
+
     badcmdprovided = null cmdname && not nocmdprovided
     isaddoncmd     = not (null cmdname) && cmdname `elem` addons
 
-    -- And get the builtin command's action, if any.
+    -- And get the builtin command's mode and action, if any.
     mbuiltincmdaction = findBuiltinCommand cmdname
-    effectivemode     = maybe (mainmode []) fst mbuiltincmdaction
+    effectivemode = maybe (mainmode []) fst mbuiltincmdaction
 
   when (isJust mconffile) $ do
     unless (null confcmdarg) $
@@ -301,8 +302,11 @@ main = withGhcDebug' $ do
       | otherwise  = dropUnsupportedOpts effectivemode confothergenargs
     excludedgenargsfromconf = confothergenargs \\ supportedgenargsfromconf
     confcmdargs
-      | null cmdname  = []
-      | otherwise = confLookup cmdname conf & if isaddoncmd then ("--":) else id
+      | null cmdname = []
+      | otherwise =
+          confLookup cmdname conf
+          & replaceNumericFlags
+          & if isaddoncmd then ("--":) else id
 
   when (isJust mconffile) $ do
     dbgIO1 "using general args from config file" confothergenargs
@@ -315,8 +319,13 @@ main = withGhcDebug' $ do
 
   let
     finalargs =
-      [cmdarg | not $ null cmdarg] <> supportedgenargsfromconf <> confcmdargs <> [clicmdarg | not $ null confcmdarg] <> cliargswithoutcmd
+      [cmdarg | not $ null cmdarg]
+        <> supportedgenargsfromconf
+        <> confcmdargs
+        <> [clicmdarg | not $ null confcmdarg]
+        <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
+
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
   dbgIO1 "final args" finalargs
 
@@ -451,7 +460,7 @@ argsToCliOpts args addons = do
 cmdargsParse :: String -> Mode RawOpts -> [String] -> RawOpts
 cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
   & either
-    (\e -> error' $ e <> " while parsing these args " <> desc <> ": " <> unwords (map quoteIfNeeded args0))
+    (\e -> error' $ e <> "\n* while parsing the following args, " <> desc <> ":\n*  " <> unwords (map quoteIfNeeded args0))
     (traceOrLogAt verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
   -- XXX better error message when cmdargs fails (eg spaced/quoted/malformed flag values) ?
 
