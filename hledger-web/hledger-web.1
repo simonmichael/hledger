@@ -185,8 +185,6 @@ General output/reporting flags (supported by some commands):
                             YYYY\-MM\-DD: value on given date
   \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
                             Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
-     \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be
-                            \[aq]y\[aq]/\[aq]yes\[aq]/\[aq]always\[aq], \[aq]n\[aq]/\[aq]no\[aq]/\[aq]never\[aq] or \[aq]auto\[aq].
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
                             \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
                             If YN is specified, the equals is required.
@@ -198,6 +196,8 @@ General help flags:
      \-\-man                  show the manual with man
      \-\-version              show version information
      \-\-debug=[1\-9]          show this much debug output (default: 1)
+     \-\-pager=YN             use a pager when needed ? y/yes (default) or n/no
+     \-\-color=YNA \-\-colour   use ANSI color ? y/yes, n/no, or auto (default)
 .EE
 .PP
 hledger\-web shows accounts with zero balances by default (like

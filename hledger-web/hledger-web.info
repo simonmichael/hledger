@@ -190,8 +190,6 @@ General output/reporting flags (supported by some commands):
                             YYYY-MM-DD: value on given date
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '.' or -c '1.000,00 EUR'
-     --color=YN --colour    Use ANSI color codes in text output? Can be
-                            'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
@@ -203,6 +201,8 @@ General help flags:
      --man                  show the manual with man
      --version              show version information
      --debug=[1-9]          show this much debug output (default: 1)
+     --pager=YN             use a pager when needed ? y/yes (default) or n/no
+     --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
 
    hledger-web shows accounts with zero balances by default (like
 'hledger-ui', and unlike 'hledger').  Using the '-E/--empty' flag will
@@ -528,14 +528,14 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 Tag Table:
 Node: Top225
 Node: OPTIONS2571
-Node: PERMISSIONS11103
-Node: EDITING UPLOADING DOWNLOADING12454
-Node: RELOADING13469
-Node: JSON API14036
-Node: DEBUG OUTPUT19685
-Node: Debug output19837
-Node: ENVIRONMENT20355
-Node: BUGS20591
+Node: PERMISSIONS11109
+Node: EDITING UPLOADING DOWNLOADING12460
+Node: RELOADING13475
+Node: JSON API14042
+Node: DEBUG OUTPUT19691
+Node: Debug output19843
+Node: ENVIRONMENT20361
+Node: BUGS20597
 
 End Tag Table
 

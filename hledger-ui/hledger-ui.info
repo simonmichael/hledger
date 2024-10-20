@@ -145,8 +145,6 @@ General output/reporting flags (supported by some commands):
                             YYYY-MM-DD: value on given date
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '.' or -c '1.000,00 EUR'
-     --color=YN --colour    Use ANSI color codes in text output? Can be
-                            'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
      --pretty[=YN]          Use box-drawing characters in text output? Can be
                             'y'/'yes' or 'n'/'no'.
                             If YN is specified, the equals is required.
@@ -158,6 +156,8 @@ General help flags:
      --man                  show the manual with man
      --version              show version information
      --debug=[1-9]          show this much debug output (default: 1)
+     --pager=YN             use a pager when needed ? y/yes (default) or n/no
+     --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
 
    With hledger-ui, the '--debug' option sends debug output to a
 'hledger-ui.log' file in the current directory.
@@ -540,20 +540,20 @@ above).
 Tag Table:
 Node: Top223
 Node: OPTIONS1874
-Node: MOUSE8391
-Node: KEYS8723
-Node: SCREENS13551
-Node: Menu screen14291
-Node: Cash accounts screen14607
-Node: Balance sheet accounts screen14968
-Node: Income statement accounts screen15304
-Node: All accounts screen15689
-Node: Register screen16052
-Node: Transaction screen18495
-Node: Error screen20070
-Node: WATCH MODE20436
-Node: ENVIRONMENT22012
-Node: BUGS22319
+Node: MOUSE8397
+Node: KEYS8729
+Node: SCREENS13557
+Node: Menu screen14297
+Node: Cash accounts screen14613
+Node: Balance sheet accounts screen14974
+Node: Income statement accounts screen15310
+Node: All accounts screen15695
+Node: Register screen16058
+Node: Transaction screen18501
+Node: Error screen20076
+Node: WATCH MODE20442
+Node: ENVIRONMENT22018
+Node: BUGS22325
 
 End Tag Table
 

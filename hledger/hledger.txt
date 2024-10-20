@@ -320,8 +320,6 @@ Options
                                           YYYY-MM-DD: value on given date
                 -c --commodity-style=S    Override a commodity's display style.
                                           Eg: -c '.' or -c '1.000,00 EUR'
-                   --color=YN --colour    Use ANSI color codes in text output? Can be
-                                          'y'/'yes'/'always', 'n'/'no'/'never' or 'auto'.
                    --pretty[=YN]          Use box-drawing characters in text output? Can be
                                           'y'/'yes' or 'n'/'no'.
                                           If YN is specified, the equals is required.
@@ -333,6 +331,8 @@ Options
                    --man                  show the manual with man
                    --version              show version information
                    --debug=[1-9]          show this much debug output (default: 1)
+                   --pager=YN             use a pager when needed ? y/yes (default) or n/no
+                   --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
 
        Usually hledger accepts any unambiguous flag prefix, eg you  can  write
        --tl instead of --tldr or --dry instead of --dry-run.
@@ -736,7 +736,7 @@ Output
 
        command                 txt     html     csv/tsv     fods     beancount      sql     json
        --------------------------------------------------------------------------------------------
-       aregister               Y       Y        Y                                           Y
+       aregister               Y       Y        Y           Y                               Y
        balance                 Y       Y        Y           Y                               Y
        balancesheet            Y       Y        Y           Y                               Y
        balancesheetequity      Y       Y        Y           Y                               Y
@@ -762,24 +762,6 @@ Output
 
               $ hledger balancesheet -o foo.txt -O csv    # write CSV to foo.txt
 
-   Paging
-       On unix-like systems, when displaying large  output  in  the  terminal,
-       hledger tries to use a pager when appropriate: the one specified by the
-       PAGER environment variable, otherwise less if available, otherwise more
-       if available.  The pager shows one page of text at a time, and lets you
-       scroll around to see more.  While it is active, usually SPACE shows the
-       next page, q quits, and ? shows more features.
-
-       The  pager is expected to display ANSI color and text styling if possi-
-       ble.  hledger adds R to the LESS and MORE environment variables to  en-
-       able  this  in less (and in its more compatibility mode).  If you use a
-       different pager, you might need to configure  it  similarly,  to  avoid
-       seeing  junk  on screen.  Or you can set the NO_COLOR environment vari-
-       able described below.
-
-       You can prevent the use of a pager by providing the --no-pager flag  at
-       the command line, or in a config file.
-
        Here are some notes about the various output formats.
 
    Text output
@@ -788,132 +770,152 @@ Output
        unicode or wide characters, you'll need a terminal and font that render
        those correctly.  (This can be challenging on MS Windows.)
 
-       Some  reports (register, aregister) will use the width indicated by the
-       COLUMNS environment variable.  If your shell and terminal  are  working
+       Some reports (register, aregister) will use the width indicated by  the
+       COLUMNS  environment  variable.  If your shell and terminal are working
        well, they will keep COLUMNS updated as you resize the window.  So reg-
        ister reports normally will use the full window width.  When this isn't
-       working  or  you  want to override it, you can manually set COLUMNS, or
+       working or you want to override it, you can manually  set  COLUMNS,  or
        use the -w/--width option.
 
-       Balance reports (balance, balancesheet, incomestatement...)  use  what-
+       Balance  reports (balance, balancesheet, incomestatement...)  use what-
        ever width they need.  Multi-period multi-currency reports can often be
-       wider  than  the window.  Besides using a pager, helpful techniques for
-       this situation include --layout=bare, -V,  cur:,  --transpose,  --tree,
+       wider than the window.  Besides using a pager, helpful  techniques  for
+       this  situation  include  --layout=bare, -V, cur:, --transpose, --tree,
        --depth, --drop, switching to html output, etc.
 
-       (Help  output  uses a pager automatically when appropriate, but regular
-       reports do not, currently.)
+   Box-drawing characters
+       hledger draws simple table borders by default, to minimise the risk  of
+       display  problems  caused by a terminal/font not supporting box-drawing
+       characters.
+
+       But your terminal and font probably do support them,  so  we  recommend
+       using  the --pretty flag to show prettier tables in the terminal.  This
+       is a good flag to add to your hledger config file.
 
    Colour
-       hledger tries to detect ANSI color and text styling support and use  it
-       when  appropriate, though currently rather minimally: some reports show
-       negative numbers in red, and help output uses bold text for emphasis.
+       hledger tries to automatically detect ANSI colour and text styling sup-
+       port and use it when appropriate.  (Currently, it is used rather  mini-
+       mally:  some reports show negative numbers in red, and help output uses
+       bold text for emphasis.)
 
-       You can override this in the usual ways.  If the  NO_COLOR  environment
-       variable  is  set,  colour will be disabled by default.  Or you can use
-       the --color/--colour option with a  y/yes  value,  or  n/no,  to  force
-       colour on or off.  (This option doesn't work in a config file yet.)
+       You can override this by setting the NO_COLOR environment  variable  to
+       disable  it,  or  by using the --color/--colour option, perhaps in your
+       config file, with a y/yes or n/no value to force it on or off.
 
-   Box-drawing
-       By default, hledger draws table borders using ascii characters, to min-
-       imise the chance of display problems.
+   Paging
+       In unix-like environments, when displaying large output in  the  termi-
+       nal,  hledger tries to use a pager when appropriate.  (Actually it does
+       this for any output format displayed in the terminal, not  just  text.)
+       You can prevent this with the --pager=no option, perhaps in your config
+       file.
 
-       If your terminal and font support box-drawing characters (they probably
-       do),  you  will probably want to use the --pretty flag to show prettier
-       tables.  This is a good flag to add to your hledger config file.
+       It will use the pager specified by the PAGER environment variable, oth-
+       erwise less if available, otherwise more if available.
+
+       The  pager shows one page of text at a time, and lets you scroll around
+       to see more.  While it is active, usually SPACE shows the next page,  q
+       quits,  and  ?  shows more features.  (And in less, G jumps to the end,
+       which is useful when you are viewing register output.)
+
+       The pager is  expected  to  display  hledger's  ANSI  colour  and  text
+       styling.   hledger adds R to the LESS and MORE environment variables to
+       enable this for less and its more compatibility mode.   If  you  use  a
+       different  pager,  you  might  need to configure it similarly, to avoid
+       seeing junk on screen.   (Or  you  can  disable  colour,  as  described
+       above.)
 
    HTML output
-       HTML output can be styled by an optional hledger.css file in  the  same
+       HTML  output  can be styled by an optional hledger.css file in the same
        directory.
 
        HTML output will be UTF-8 encoded.  If your web browser is showing junk
-       characters,  you  may need to change its text encoding to UTF-8.  Eg in
-       Safari, see View -> Text Encoding and Settings -> Advanced  ->  Default
+       characters, you may need to change its text encoding to UTF-8.   Eg  in
+       Safari,  see  View -> Text Encoding and Settings -> Advanced -> Default
        Encoding.
 
    CSV / TSV output
-       In  CSV or TSV output, digit group marks (such as thousands separators)
+       In CSV or TSV output, digit group marks (such as thousands  separators)
        are disabled automatically.
 
    FODS output
-       FODS is the OpenDocument Spreadsheet format as plain XML,  as  accepted
-       by  LibreOffice  and OpenOffice.  If you use their spreadsheet applica-
+       FODS  is  the OpenDocument Spreadsheet format as plain XML, as accepted
+       by LibreOffice and OpenOffice.  If you use their  spreadsheet  applica-
        tions, this is better than CSV because it works across locales (decimal
        point vs.  decimal comma, character encoding stored in XML header, thus
-       no problems with umlauts), it supports fixed header rows  and  columns,
-       cell  types  (string  vs.   number vs.  date), separation of number and
+       no  problems  with umlauts), it supports fixed header rows and columns,
+       cell types (string vs.  number vs.  date),  separation  of  number  and
        currency (currency is displayed but the cell type is still a number ac-
        cessible for computation), styles (bold), borders.  Btw.  you can still
-       extract CSV from FODS/ODS  using  various  utilities  like  libreoffice
+       extract  CSV  from  FODS/ODS  using  various utilities like libreoffice
        --headless or ods2csv.
 
    Beancount output
-       This  is  Beancount's  journal format.  You can use this to export your
-       hledger data to Beancount, perhaps to query  it  with  Beancount  Query
-       Language  or  with  the  Fava web app.  hledger will try to adjust your
-       data to suit Beancount.  If you plan to export often, you may  want  to
-       follow  Beancount's  conventions  in your hledger data, to ease conver-
-       sion.  Eg use Beancount-friendly account names, currency codes  instead
-       of  currency  symbols, and avoid virtual postings, redundant cost nota-
+       This is Beancount's journal format.  You can use this  to  export  your
+       hledger  data  to  Beancount,  perhaps to query it with Beancount Query
+       Language or with the Fava web app.  hledger will  try  to  adjust  your
+       data  to  suit Beancount.  If you plan to export often, you may want to
+       follow Beancount's conventions in your hledger data,  to  ease  conver-
+       sion.   Eg use Beancount-friendly account names, currency codes instead
+       of currency symbols, and avoid virtual postings, redundant  cost  nota-
        tion, etc.
 
-       Here are more details, included here for now  (see  also  "hledger  and
+       Here  are  more  details,  included here for now (see also "hledger and
        Beancount" https://hledger.org/beancount.html).
 
    Beancount account names
        hledger will try adjust your account names, if needed, to Beancount ac-
-       count  names, by capitalising, replacing unsupported characters with -,
-       and prepending B to parts which don't begin with  a  letter  or  digit.
-       (It's  possible  for  this to convert distinct hledger account names to
+       count names, by capitalising, replacing unsupported characters with  -,
+       and  prepending  B  to  parts which don't begin with a letter or digit.
+       (It's possible for this to convert distinct hledger  account  names  to
        the same beancount name.  Eg, hledger's automatic equity conversion ac-
        counts can have currency symbols in their name, so equity:conversion:$-
        becomes equity:conversion:B---.)
 
-       In addition, you must ensure that the top level account names  are  As-
-       sets,  Liabilities,  Equity,  Income, and Expenses, which Beancount re-
-       quires.  If yours are named differently, you can use  account  aliases,
-       usually  in  the  form  of --alias options, possibly stored in a config
+       In  addition,  you must ensure that the top level account names are As-
+       sets, Liabilities, Equity, Income, and Expenses,  which  Beancount  re-
+       quires.   If  yours are named differently, you can use account aliases,
+       usually in the form of --alias options, possibly  stored  in  a  config
        file.  (An example: hledger2beancount.conf)
 
    Beancount commodity names
-       hledger will adjust your commodity names, if needed, to Beancount  com-
+       hledger  will adjust your commodity names, if needed, to Beancount com-
        modity/currency names, which must be 2-24 uppercase letters, digits, or
-       ',  ., _, -, beginning with a letter and ending with a letter or digit.
+       ', ., _, -, beginning with a letter and ending with a letter or  digit.
        hledger will convert known currency symbols to ISO 4217 currency codes.
-       Otherwise, it will capitalise letters, replace  unsupported  characters
-       with  a dash (-), and prepend/append a "B" when needed.  (It's possible
+       Otherwise,  it  will capitalise letters, replace unsupported characters
+       with a dash (-), and prepend/append a "B" when needed.  (It's  possible
        for this to generate unreadable commodity names, or to convert distinct
        hledger commodity names to the same beancount name.)
 
    Beancount virtual postings
-       Beancount doesn't allow unbalanced/virtual postings, so you  will  need
-       to  comment those, or use --real to exclude transactions that use them.
-       (If you have transactions which are a mixture of  balanced  and  unbal-
+       Beancount  doesn't  allow unbalanced/virtual postings, so you will need
+       to comment those, or use --real to exclude transactions that use  them.
+       (If  you  have  transactions which are a mixture of balanced and unbal-
        anced postings, you'll have to do something more.)
 
    Beancount costs
-       Beancount  doesn't  allow  redundant cost notation as hledger does.  If
-       you have entries like this, you will need to  comment  out  either  the
+       Beancount doesn't allow redundant cost notation as  hledger  does.   If
+       you  have  entries  like  this, you will need to comment out either the
        costs or the equity postings.
 
    Beancount operating currency
-       Declaring  an  operating  currency improves Beancount and Fava reports.
-       You can do this manually by adding a line like this  to  the  beancount
+       Declaring an operating currency improves Beancount  and  Fava  reports.
+       You  can  do  this manually by adding a line like this to the beancount
        journal:
 
               option "operating_currency" "USD"
 
    SQL output
-       SQL  output  is  expected to work at least with SQLite, MySQL and Post-
+       SQL output is expected to work at least with SQLite,  MySQL  and  Post-
        gres.
 
-       The SQL statements are expected to be executed in the  empty  database.
+       The  SQL  statements are expected to be executed in the empty database.
        If you already have tables created via SQL output of hledger, you would
-       probably  want  to either clear data from these (via delete or truncate
-       SQL statements) or drop the tables completely before import;  otherwise
+       probably want to either clear data from these (via delete  or  truncate
+       SQL  statements) or drop the tables completely before import; otherwise
        your postings would be duplicated.
 
-       For  SQLite,  it is more useful if you modify the generated id field to
+       For SQLite, it is more useful if you modify the generated id  field  to
        be a PRIMARY KEY.  Eg:
 
               $ hledger print -O sql | sed 's/id serial/id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL/g' | ...
@@ -921,48 +923,48 @@ Output
        This is not yet much used; feedback is welcome.
 
    JSON output
-       Our JSON is rather large and verbose, since it is a faithful  represen-
-       tation  of hledger's internal data types.  To understand its structure,
-       read   the   Haskell   type   definitions,   which   are   mostly    in
+       Our  JSON is rather large and verbose, since it is a faithful represen-
+       tation of hledger's internal data types.  To understand its  structure,
+       read    the   Haskell   type   definitions,   which   are   mostly   in
        https://github.com/simonmichael/hledger/blob/mas-
-       ter/hledger-lib/Hledger/Data/Types.hs.   hledger-web's OpenAPI specifi-
+       ter/hledger-lib/Hledger/Data/Types.hs.  hledger-web's OpenAPI  specifi-
        cation may also be relevant.
 
-       hledger stores numbers with sometimes up  to  255  significant  digits.
-       This  is  too many digits for most JSON consumers, so in JSON output we
+       hledger  stores  numbers  with  sometimes up to 255 significant digits.
+       This is too many digits for most JSON consumers, so in JSON  output  we
        round numbers to at most 10 decimal places.  (We don't limit the number
-       of integer digits.)  If you find this causing problems, please  let  us
+       of  integer  digits.)  If you find this causing problems, please let us
        know.  Related: #1195
 
        This is not yet much used; feedback is welcome.
 
    Commodity styles
-       When  displaying  amounts,  hledger infers a standard display style for
+       When displaying amounts, hledger infers a standard  display  style  for
        each commodity/currency, as described below in Commodity display style.
 
        If needed, this can be overridden by a -c/--commodity-style option (ex-
        cept for cost amounts and amounts displayed by the print command, which
-       are always displayed with all decimal digits).  For example,  the  fol-
+       are  always  displayed with all decimal digits).  For example, the fol-
        lowing will force dollar amounts to be displayed as shown:
 
               $ hledger print -c '$1.000,0'
 
        This option can repeated to set the display style for multiple commodi-
-       ties/currencies.   Its argument is as described in the commodity direc-
+       ties/currencies.  Its argument is as described in the commodity  direc-
        tive.
 
-       In some cases hledger will adjust number formatting  to  improve  their
+       In  some  cases  hledger will adjust number formatting to improve their
        parseability (such as adding trailing decimal marks when needed).
 
    Debug output
        We intend hledger to be relatively easy to troubleshoot, introspect and
-       develop.   You  can  add --debug[=N] to any hledger command line to see
-       additional debug output.  N ranges from 1 (least output,  the  default)
-       to  9  (maximum output).  Typically you would start with 1 and increase
-       until you are seeing enough.  Debug output goes to stderr, and  is  not
+       develop.  You can add --debug[=N] to any hledger command  line  to  see
+       additional  debug  output.  N ranges from 1 (least output, the default)
+       to 9 (maximum output).  Typically you would start with 1  and  increase
+       until  you  are seeing enough.  Debug output goes to stderr, and is not
        affected by -o/--output-file (unless you redirect stderr to stdout, eg:
-       2>&1).   It  will be interleaved with normal output, which can help re-
-       veal when parts of the code are evaluated.  To capture debug output  in
+       2>&1).  It will be interleaved with normal output, which can  help  re-
+       veal  when parts of the code are evaluated.  To capture debug output in
        a log file instead, you can usually redirect stderr, eg:
 
               hledger bal --debug=3 2>hledger.log
@@ -972,35 +974,35 @@ Output
 Environment
        These environment variables affect hledger:
 
-       COLUMNS  This  is  normally set by your terminal; some hledger commands
-       (register) will format their output to this width.  If  not  set,  they
+       COLUMNS This is normally set by your terminal;  some  hledger  commands
+       (register)  will  format  their output to this width.  If not set, they
        will try to use the available terminal width.
 
-       LEDGER_FILE  The  main  journal  file  to  use  when not specified with
+       LEDGER_FILE The main journal  file  to  use  when  not  specified  with
        -f/--file.  Default: $HOME/.hledger.journal.
 
        NO_COLOR If this environment variable exists (with any value, including
-       empty), hledger will not use ANSI color codes in terminal  output,  un-
+       empty),  hledger  will not use ANSI color codes in terminal output, un-
        less overridden by an explicit --color=y or --colour=y option.
 
 PART 2: DATA FORMATS
 Journal
        hledger's usual data source is a plain text file containing journal en-
-       tries  in hledger journal format.  If you're looking for a quick refer-
-       ence, jump ahead to the journal cheatsheet (or use the  table  of  con-
+       tries in hledger journal format.  If you're looking for a quick  refer-
+       ence,  jump  ahead  to the journal cheatsheet (or use the table of con-
        tents at https://hledger.org/hledger.html).
 
-       This  file represents an accounting General Journal.  The .journal file
-       extension is most often used, though not strictly required.  The  jour-
-       nal  file  contains  a number of transaction entries, each describing a
-       transfer of money (or any commodity) between  two  or  more  named  ac-
+       This file represents an accounting General Journal.  The .journal  file
+       extension  is most often used, though not strictly required.  The jour-
+       nal file contains a number of transaction entries,  each  describing  a
+       transfer  of  money  (or  any  commodity) between two or more named ac-
        counts, in a simple format readable by both hledger and humans.
 
-       hledger's  journal  format  is compatible with most of Ledger's journal
+       hledger's journal format is compatible with most  of  Ledger's  journal
        format, but not all of it.  The differences and interoperation tips are
-       described at hledger and Ledger.  With some care, and by  avoiding  in-
-       compatible  features,  you  can  keep  your hledger journal readable by
-       Ledger and vice versa.  This can useful eg for comparing the  behaviour
+       described  at  hledger and Ledger.  With some care, and by avoiding in-
+       compatible features, you can keep  your  hledger  journal  readable  by
+       Ledger  and vice versa.  This can useful eg for comparing the behaviour
        of one app against the other.
 
        You can use hledger without learning any more about this file; just use
@@ -1008,16 +1010,16 @@ Journal
 
        Many users, though, edit the journal file with a text editor, and track
        changes with a version control system such as git.  Editor add-ons such
-       as  ledger-mode  or  hledger-mode  for  Emacs,  vim-ledger for Vim, and
+       as ledger-mode or hledger-mode  for  Emacs,  vim-ledger  for  Vim,  and
        hledger-vscode for Visual Studio Code, make this easier, adding colour,
        formatting, tab completion, and useful commands.  See Editor configura-
        tion at hledger.org for the full list.
 
        A hledger journal file can contain three kinds of thing: comment lines,
-       transactions, and/or directives (including periodic  transaction  rules
-       and  auto  posting  rules).  Understanding the journal file format will
-       also give you a good understanding of hledger's data model.   Here's  a
-       quick  cheatsheet/overview,  followed  by detailed descriptions of each
+       transactions,  and/or  directives (including periodic transaction rules
+       and auto posting rules).  Understanding the journal  file  format  will
+       also  give  you a good understanding of hledger's data model.  Here's a
+       quick cheatsheet/overview, followed by detailed  descriptions  of  each
        part.
 
    Journal cheatsheet
@@ -1151,7 +1153,7 @@ Journal
 
    Comments
        Lines in the journal will be ignored if they begin with a hash (#) or a
-       semicolon (;).  (See also Other syntax.)  hledger will also ignore  re-
+       semicolon  (;).  (See also Other syntax.)  hledger will also ignore re-
        gions beginning with a comment line and ending with an end comment line
        (or file end).  Here's a suggestion for choosing between them:
 
@@ -1173,15 +1175,15 @@ Journal
               end comment
 
        Some hledger entries can have same-line comments attached to them, from
-       ;  (semicolon)  to end of line.  See Transaction comments, Posting com-
+       ; (semicolon) to end of line.  See Transaction comments,  Posting  com-
        ments, and Account comments below.
 
    Transactions
-       Transactions are the main unit of information in a journal file.   They
-       represent  events, typically a movement of some quantity of commodities
+       Transactions  are the main unit of information in a journal file.  They
+       represent events, typically a movement of some quantity of  commodities
        between two or more named accounts.
 
-       Each transaction is recorded as a journal entry, beginning with a  sim-
+       Each  transaction is recorded as a journal entry, beginning with a sim-
        ple date in column 0.  This can be followed by any of the following op-
        tional fields, separated by spaces:
 
@@ -1191,11 +1193,11 @@ Journal
 
        o a description (any remaining text until end of line or a semicolon)
 
-       o a  comment  (any  remaining  text  following a semicolon until end of
+       o a comment (any remaining text following  a  semicolon  until  end  of
          line, and any following indented lines beginning with a semicolon)
 
        o 0 or more indented posting lines, describing what was transferred and
-         the accounts involved (indented comment lines are also  allowed,  but
+         the  accounts  involved (indented comment lines are also allowed, but
          not blank lines or non-indented lines).
 
        Here's a simple journal file containing one transaction:
@@ -1206,22 +1208,22 @@ Journal
 
    Dates
    Simple dates
-       Dates  in  the  journal  file  use  simple  dates format: YYYY-MM-DD or
+       Dates in the journal  file  use  simple  dates  format:  YYYY-MM-DD  or
        YYYY/MM/DD or YYYY.MM.DD, with leading zeros optional.  The year may be
-       omitted, in which case it will be inferred from the context:  the  cur-
-       rent  transaction, the default year set with a Y directive, or the cur-
+       omitted,  in  which case it will be inferred from the context: the cur-
+       rent transaction, the default year set with a Y directive, or the  cur-
        rent  date  when  the  command  is  run.   Some  examples:  2010-01-31,
        2010/01/31, 2010.1.31, 1/31.
 
-       (The  UI  also accepts simple dates, as well as the more flexible smart
+       (The UI also accepts simple dates, as well as the more  flexible  smart
        dates documented in the hledger manual.)
 
    Posting dates
-       You can give individual postings a different  date  from  their  parent
-       transaction,  by  adding a posting comment containing a tag (see below)
+       You  can  give  individual  postings a different date from their parent
+       transaction, by adding a posting comment containing a tag  (see  below)
        like date:DATE.  This is probably the best way to control posting dates
-       precisely.  Eg in this example the expense should  appear  in  May  re-
-       ports,  and  the  deduction from checking should be reported on 6/1 for
+       precisely.   Eg  in  this  example the expense should appear in May re-
+       ports, and the deduction from checking should be reported  on  6/1  for
        easy bank reconciliation:
 
               2015/5/30
@@ -1234,15 +1236,15 @@ Journal
               $ hledger -f t.j register checking
               2015-06-01                      assets:checking               $-10          $-10
 
-       DATE should be a simple date; if the year is not specified it will  use
+       DATE  should be a simple date; if the year is not specified it will use
        the year of the transaction's date.
-       The  date: tag must have a valid simple date value if it is present, eg
+       The date: tag must have a valid simple date value if it is present,  eg
        a date: tag with no value is not allowed.
 
    Status
-       Transactions (or individual postings within a transaction) can  have  a
-       status  mark,  which  is  a single character before the transaction de-
-       scription (or posting account name), separated from it by a space,  in-
+       Transactions  (or  individual postings within a transaction) can have a
+       status mark, which is a single character  before  the  transaction  de-
+       scription  (or posting account name), separated from it by a space, in-
        dicating one of three statuses:
 
        mark     status
@@ -1251,20 +1253,20 @@ Journal
        !        pending
        *        cleared
 
-       When  reporting,  you  can  filter  by  status  with the -U/--unmarked,
+       When reporting, you  can  filter  by  status  with  the  -U/--unmarked,
        -P/--pending, and -C/--cleared flags (and you can combine these, eg -UP
-       to match all except cleared things).  Or you can use the status:,  sta-
+       to  match all except cleared things).  Or you can use the status:, sta-
        tus:!, and status:* queries, or the U, P, C keys in hledger-ui.
 
        (Note: in Ledger the "unmarked" state is called "uncleared"; in hledger
        we renamed it to "unmarked" for semantic clarity.)
 
-       Status  marks  are optional, but can be helpful eg for reconciling with
+       Status marks are optional, but can be helpful eg for  reconciling  with
        real-world accounts.  Some editor modes provide highlighting and short-
-       cuts for working with status.  Eg in Emacs ledger-mode, you can  toggle
+       cuts  for working with status.  Eg in Emacs ledger-mode, you can toggle
        transaction status with C-c C-e, or posting status with C-c C-c.
 
-       What  "uncleared", "pending", and "cleared" actually mean is up to you.
+       What "uncleared", "pending", and "cleared" actually mean is up to  you.
        Here's one suggestion:
 
        status       meaning
@@ -1275,55 +1277,55 @@ Journal
        cleared      complete, reconciled as far as possible, and considered cor-
                     rect
 
-       With this scheme, you would use -PC to see the current balance at  your
+       With  this scheme, you would use -PC to see the current balance at your
        bank, -U to see things which will probably hit your bank soon (like un-
-       cashed  checks),  and no flags to see the most up-to-date state of your
+       cashed checks), and no flags to see the most up-to-date state  of  your
        finances.
 
    Code
-       After the status mark, but before the description, you  can  optionally
-       write  a  transaction  "code", enclosed in parentheses.  This is a good
-       place to record a check number, or some other important transaction  id
+       After  the  status mark, but before the description, you can optionally
+       write a transaction "code", enclosed in parentheses.  This  is  a  good
+       place  to record a check number, or some other important transaction id
        or reference number.
 
    Description
-       After  the  date,  status mark and/or code fields, the rest of the line
-       (or until a comment is begun with ;) is the transaction's  description.
+       After the date, status mark and/or code fields, the rest  of  the  line
+       (or  until a comment is begun with ;) is the transaction's description.
        Here you can describe the transaction (called the "narration" in tradi-
-       tional  bookkeeping),  or you can record a payee/payer name, or you can
+       tional bookkeeping), or you can record a payee/payer name, or  you  can
        leave it empty.
 
-       Transaction descriptions show up in print output and  in  register  re-
+       Transaction  descriptions  show  up in print output and in register re-
        ports, and can be listed with the descriptions command.
 
-       You  can query by description with desc:DESCREGEX, or pivot on descrip-
+       You can query by description with desc:DESCREGEX, or pivot on  descrip-
        tion with --pivot desc.
 
    Payee and note
        Sometimes people want a dedicated payee/payer field that can be queried
-       and checked more strictly.  If you want that, you can write a |  (pipe)
-       character  in the description.  This divides it into a "payee" field on
+       and  checked more strictly.  If you want that, you can write a | (pipe)
+       character in the description.  This divides it into a "payee" field  on
        the left, and a "note" field on the right.  (Either can be empty.)
 
-       You can query these  with  payee:PAYEEREGEX  and  note:NOTEREGEX,  list
-       their  values  with the payees and notes commands, or pivot on payee or
+       You  can  query  these  with  payee:PAYEEREGEX and note:NOTEREGEX, list
+       their values with the payees and notes commands, or pivot on  payee  or
        note.
 
        Note: in transactions with no | character, description, payee, and note
        all have the same value.  Once a | is added, they become distinct.  (If
-       you'd like to change this behaviour, please  propose  it  on  the  mail
+       you'd  like  to  change  this  behaviour, please propose it on the mail
        list.)
 
        If you want more strict error checking, you can declare the valid payee
-       names  with payee directives, and then enforce these with hledger check
-       payees.  (Note: because of the above, for this you'll  need  to  ensure
-       every  transaction  description  contains a | and therefore a checkable
+       names with payee directives, and then enforce these with hledger  check
+       payees.   (Note:  because  of the above, for this you'll need to ensure
+       every transaction description contains a | and  therefore  a  checkable
        payee name, even if it's empty.)
 
    Transaction comments
-       Text following ;, after a transaction description, and/or  on  indented
-       lines  immediately  below it, form comments for that transaction.  They
-       are reproduced by print but otherwise ignored, except they may  contain
+       Text  following  ;, after a transaction description, and/or on indented
+       lines immediately below it, form comments for that  transaction.   They
+       are  reproduced by print but otherwise ignored, except they may contain
        tags, which are not ignored.
 
               2012-01-01 something  ; a transaction comment
@@ -1332,63 +1334,63 @@ Journal
                   assets
 
    Postings
-       A  posting  is an addition of some amount to, or removal of some amount
-       from, an account.  Each posting line begins with at least one space  or
+       A posting is an addition of some amount to, or removal of  some  amount
+       from,  an account.  Each posting line begins with at least one space or
        tab (2 or 4 spaces is common), followed by:
 
        o (optional) a status character (empty, !, or *), followed by a space
 
-       o (required)  an  account  name (any text, optionally containing single
+       o (required) an account name (any text,  optionally  containing  single
          spaces, until end of line or a double space)
 
        o (optional) two or more spaces (or tabs) followed by an amount.
 
-       If the amount is positive, it is being added to the account;  if  nega-
+       If  the  amount is positive, it is being added to the account; if nega-
        tive, it is being removed from the account.
 
-       The  posting  amounts  in a transaction must sum up to zero, indicating
-       that the inflows and outflows are  equal.   We  call  this  a  balanced
+       The posting amounts in a transaction must sum up  to  zero,  indicating
+       that  the  inflows  and  outflows  are  equal.  We call this a balanced
        transaction.  (You can read more about the nitty-gritty details of "sum
        up to zero" in Transaction balancing below.)
 
-       As  a  convenience,  you can optionally leave one amount blank; hledger
+       As a convenience, you can optionally leave one  amount  blank;  hledger
        will infer what it should be so as to balance the transaction.
 
    Debits and credits
        The traditional accounting concepts of debit and credit of course exist
-       in hledger, but we represent  them  with  numeric  sign,  as  described
-       above.   Positive  and  negative  posting  amounts represent debits and
+       in  hledger,  but  we  represent  them  with numeric sign, as described
+       above.  Positive and negative  posting  amounts  represent  debits  and
        credits respectively.
 
-       You don't need to remember that, but if you would  like  to  -  eg  for
-       helping  newcomers or for talking with your accountant - here's a handy
+       You  don't  need  to  remember  that, but if you would like to - eg for
+       helping newcomers or for talking with your accountant - here's a  handy
        mnemonic:
 
        debit  / plus  / left  / short  words
        credit / minus / right / longer words
 
    The two space delimiter
-       Be sure to notice the unusual separator between the  account  name  and
+       Be  sure  to  notice the unusual separator between the account name and
        the following amount.  Because hledger allows account names with spaces
-       in  them, you must separate the account name and amount (if any) by two
-       or more spaces (or tabs).  It's easy to forget at first.  If  you  ever
-       see  the  amount being treated as part of the account name, you'll know
+       in them, you must separate the account name and amount (if any) by  two
+       or  more  spaces (or tabs).  It's easy to forget at first.  If you ever
+       see the amount being treated as part of the account name,  you'll  know
        you probably need to add another space between them.
 
    Account names
-       Accounts are the main way of categorising things  in  hledger.   As  in
-       Double  Entry Bookkeeping, they can represent real world accounts (such
+       Accounts  are  the  main  way of categorising things in hledger.  As in
+       Double Entry Bookkeeping, they can represent real world accounts  (such
        as a bank account), or more abstract categories such as "money borrowed
        from Frank" or "money spent on electricity".
 
-       You can use any account names you like, but we usually start  with  the
+       You  can  use any account names you like, but we usually start with the
        traditional accounting categories, which in english are assets, liabil-
        ities, equity, revenues, expenses.  (You might see these referred to as
        A, L, E, R, X for short.)
 
-       For  more  precise  reporting, we usually divide the top level accounts
+       For more precise reporting, we usually divide the  top  level  accounts
        into more detailed subaccounts, by writing a full colon between account
-       name parts.  For example, from the account  names  assets:bank:checking
+       name  parts.   For example, from the account names assets:bank:checking
        and expenses:food, hledger will infer this hierarchy of five accounts:
 
               assets
@@ -1406,33 +1408,33 @@ Journal
                food
 
        hledger reports can summarise the account tree to any depth, so you can
-       go  as  deep  as  you like with subcategories, but keeping your account
+       go as deep as you like with subcategories,  but  keeping  your  account
        names relatively simple may be best when starting out.
 
        Account names may be capitalised or not; they may contain letters, num-
-       bers, symbols, or single spaces.  Note, when an  account  name  and  an
-       amount  are  written on the same line, they must be separated by two or
+       bers,  symbols,  or  single  spaces.  Note, when an account name and an
+       amount are written on the same line, they must be separated by  two  or
        more spaces (or tabs).
 
-       Parentheses or brackets enclosing the full account name  indicate  vir-
-       tual  postings,  described  below.  Parentheses or brackets internal to
+       Parentheses  or  brackets enclosing the full account name indicate vir-
+       tual postings, described below.  Parentheses or  brackets  internal  to
        the account name have no special meaning.
 
-       Account names can be altered  temporarily  or  permanently  by  account
+       Account  names  can  be  altered  temporarily or permanently by account
        aliases.
 
    Amounts
        After the account name, there is usually an amount.  (Remember: between
        account name and amount, there must be two or more spaces.)
 
-       hledger's  amount  format is flexible, supporting several international
-       formats.  Here are some examples.  Amounts have a  number  (the  "quan-
+       hledger's amount format is flexible, supporting  several  international
+       formats.   Here  are  some examples.  Amounts have a number (the "quan-
        tity"):
 
               1
 
        ..and usually a currency symbol or commodity name (more on this below),
-       to  the  left  or  right  of the quantity, with or without a separating
+       to the left or right of the quantity,  with  or  without  a  separating
        space:
 
               $1
@@ -1440,13 +1442,13 @@ Journal
               3 "green apples"
 
        Amounts can be preceded by a minus sign (or a plus sign, though plus is
-       the default), The sign can be written before or after a left-side  com-
+       the  default), The sign can be written before or after a left-side com-
        modity symbol:
 
               -$1
               $-1
 
-       One  or more spaces between the sign and the number are acceptable when
+       One or more spaces between the sign and the number are acceptable  when
        parsing (but they won't be displayed in output):
 
               + $1
@@ -1464,31 +1466,31 @@ Journal
               1,23
 
        Both of these are common in international number formats, so hledger is
-       not biased towards one or the other.   Because  hledger  also  supports
-       digit  group  marks (eg thousands separators), this means that a number
-       like 1,000 or 1.000 containing just one period or comma  is  ambiguous.
-       In  such  cases,  hledger  by default assumes it is a decimal mark, and
+       not  biased  towards  one  or the other.  Because hledger also supports
+       digit group marks (eg thousands separators), this means that  a  number
+       like  1,000  or 1.000 containing just one period or comma is ambiguous.
+       In such cases, hledger by default assumes it is  a  decimal  mark,  and
        will parse both of those as 1.
 
-       To help hledger parse such ambiguous numbers more  accurately,  if  you
-       use  digit group marks, we recommend declaring the decimal mark explic-
-       itly.  The best way is to add a decimal-mark directive at  the  top  of
+       To  help  hledger  parse such ambiguous numbers more accurately, if you
+       use digit group marks, we recommend declaring the decimal mark  explic-
+       itly.   The  best  way is to add a decimal-mark directive at the top of
        each data file, like this:
 
               decimal-mark .
 
-       Or  you  can  declare  it  per commodity with commodity directives, de-
+       Or you can declare it per  commodity  with  commodity  directives,  de-
        scribed below.
 
-       hledger also accepts numbers like 10. with no digits after the  decimal
-       mark  (and will sometimes display numbers that way to disambiguate them
+       hledger  also accepts numbers like 10. with no digits after the decimal
+       mark (and will sometimes display numbers that way to disambiguate  them
        - see Trailing decimal marks).
 
    Digit group marks
-       In the integer part of the amount quantity (left of the decimal  mark),
-       groups  of digits can optionally be separated by a digit group mark - a
-       comma or period (whichever is not used as decimal  mark),  or  a  space
-       (several  Unicode  space  variants,  like  no-break space, are also ac-
+       In  the integer part of the amount quantity (left of the decimal mark),
+       groups of digits can optionally be separated by a digit group mark -  a
+       comma  or  period  (whichever  is not used as decimal mark), or a space
+       (several Unicode space variants, like  no-break  space,  are  also  ac-
        cepted).   So these are all valid amounts in a journal file:
 
                    $1,000,000.00
@@ -1498,46 +1500,46 @@ Journal
                     1 000 000.00   ; <- no-break space
 
    Commodity
-       Amounts in hledger have both a "quantity", which is  a  signed  decimal
+       Amounts  in  hledger  have both a "quantity", which is a signed decimal
        number, and a "commodity", which is a currency symbol, stock ticker, or
        any word or phrase describing something you are tracking.
 
        If the commodity name contains non-letters (spaces, numbers, or punctu-
-       ation),  you must always write it inside double quotes ("green apples",
+       ation), you must always write it inside double quotes ("green  apples",
        "ABC123").
 
-       If you write just a bare number, that too will have a  commodity,  with
+       If  you  write just a bare number, that too will have a commodity, with
        name ""; we call that the "no-symbol commodity".
 
-       Actually,  hledger  combines  these  single-commodity amounts into more
-       powerful multi-commodity amounts, which are what it works with most  of
-       the  time.   A multi-commodity amount could be, eg: 1 USD, 2 EUR, 3.456
-       TSLA.  In practice,  you  will  only  see  multi-commodity  amounts  in
+       Actually, hledger combines these  single-commodity  amounts  into  more
+       powerful  multi-commodity amounts, which are what it works with most of
+       the time.  A multi-commodity amount could be, eg: 1 USD, 2  EUR,  3.456
+       TSLA.   In  practice,  you  will  only  see  multi-commodity amounts in
        hledger's output; you can't write them directly in the journal file.
 
        By default, the format of amounts in the journal influences how hledger
-       displays  them in output.  This is explained in Commodity display style
+       displays them in output.  This is explained in Commodity display  style
        below.
 
    Costs
-       After a posting amount, you can note its cost (when buying) or  selling
-       price  (when  selling)  in another commodity, by writing either @ UNIT-
-       PRICE or @@ TOTALPRICE after it.  This indicates a conversion  transac-
+       After  a posting amount, you can note its cost (when buying) or selling
+       price (when selling) in another commodity, by writing  either  @  UNIT-
+       PRICE  or @@ TOTALPRICE after it.  This indicates a conversion transac-
        tion, where one commodity is exchanged for another.
 
-       (You  might  also  see this called "transaction price" in hledger docs,
-       discussions, or code; that term was directionally neutral and  reminded
-       that  it  is a price specific to a transaction, but we now just call it
+       (You might also see this called "transaction price"  in  hledger  docs,
+       discussions,  or code; that term was directionally neutral and reminded
+       that it is a price specific to a transaction, but we now just  call  it
        "cost", with the understanding that the transaction could be a purchase
        or a sale.)
 
-       Costs are usually written explicitly with @ or @@, but can also be  in-
+       Costs  are usually written explicitly with @ or @@, but can also be in-
        ferred automatically for simple multi-commodity transactions.  Note, if
-       costs  are  inferred,  the  order of postings is significant; the first
+       costs are inferred, the order of postings  is  significant;  the  first
        posting will have a cost attached, in the commodity of the second.
 
-       As an example, here are several ways to record purchases of  a  foreign
-       currency  in  hledger, using the cost notation either explicitly or im-
+       As  an  example, here are several ways to record purchases of a foreign
+       currency in hledger, using the cost notation either explicitly  or  im-
        plicitly:
 
        1. Write the price per unit, as @ UNITPRICE after the amount:
@@ -1561,17 +1563,17 @@ Journal
                     assets:euros     100          ; one hundred euros purchased
                     assets:dollars  $-135          ; for $135
 
-       Amounts can be converted to cost at report  time  using  the  -B/--cost
+       Amounts  can  be  converted  to cost at report time using the -B/--cost
        flag; this is discussed more in the Cost reporting section.
 
-       Note  that  the  cost normally should be a positive amount, though it's
-       not required to be.  This can be a little confusing, see discussion  at
+       Note that the cost normally should be a positive  amount,  though  it's
+       not  required to be.  This can be a little confusing, see discussion at
        --infer-market-prices: market prices from transactions.
 
    Balance assertions
-       hledger  supports  Ledger-style  balance  assertions  in journal files.
-       These look like, for example, = EXPECTEDBALANCE following  a  posting's
-       amount.   Eg  here  we assert the expected dollar balance in accounts a
+       hledger supports Ledger-style  balance  assertions  in  journal  files.
+       These  look  like, for example, = EXPECTEDBALANCE following a posting's
+       amount.  Eg here we assert the expected dollar balance  in  accounts  a
        and b after each posting:
 
               2013/1/1
@@ -1583,42 +1585,42 @@ Journal
                 b  $-1 = $-2
 
        After reading a journal file, hledger will check all balance assertions
-       and report an error if any of them fail.  Balance assertions  can  pro-
-       tect  you  from, eg, inadvertently disrupting reconciled balances while
-       cleaning up old entries.  You can disable  them  temporarily  with  the
+       and  report  an error if any of them fail.  Balance assertions can pro-
+       tect you from, eg, inadvertently disrupting reconciled  balances  while
+       cleaning  up  old  entries.   You can disable them temporarily with the
        -I/--ignore-assertions flag, which can be useful for troubleshooting or
-       for  reading Ledger files.  (Note: this flag currently does not disable
+       for reading Ledger files.  (Note: this flag currently does not  disable
        balance assignments, described below).
 
    Assertions and ordering
-       hledger calculates and checks an account's balance assertions  in  date
+       hledger  calculates  and checks an account's balance assertions in date
        order (and when there are multiple assertions on the same day, in parse
-       order).   Note  this  is different from Ledger, which checks assertions
+       order).  Note this is different from Ledger,  which  checks  assertions
        always in parse order, ignoring dates.
 
        This means in hledger you can freely reorder transactions, postings, or
        files, and balance assertions will usually keep working.  The exception
-       is when you reorder multiple postings on the same day, to the same  ac-
+       is  when you reorder multiple postings on the same day, to the same ac-
        count, which have balance assertions; those will likely need updating.
 
    Assertions and multiple included files
-       Multiple  files included with the include directive are processed as if
-       concatenated into one file, preserving their order and the posting  or-
-       der  within each file.  It means that balance assertions in later files
+       Multiple files included with the include directive are processed as  if
+       concatenated  into one file, preserving their order and the posting or-
+       der within each file.  It means that balance assertions in later  files
        will see balance from earlier files.
 
-       And if you have multiple postings to an account on the same day,  split
-       across  multiple files, and you want to assert the account's balance on
+       And  if you have multiple postings to an account on the same day, split
+       across multiple files, and you want to assert the account's balance  on
        that day, you'll need to put the assertion in the right file - the last
        one in the sequence, probably.
 
    Assertions and multiple -f files
-       Unlike include, when multiple files are specified on the  command  line
-       with  multiple  -f/--file options, balance assertions will not see bal-
+       Unlike  include,  when multiple files are specified on the command line
+       with multiple -f/--file options, balance assertions will not  see  bal-
        ance from earlier files.  This can be useful when you do not want prob-
        lems in earlier files to disrupt valid assertions in later files.
 
-       If you do want assertions to see balance from earlier  files,  use  in-
+       If  you  do  want assertions to see balance from earlier files, use in-
        clude, or concatenate the files temporarily.
 
    Assertions and costs
@@ -1628,20 +1630,20 @@ Journal
               2019/1/1
                 (a)     $1 @ 1 = $1
 
-       We  do allow costs to be written in balance assertion amounts, however,
-       and print shows them, but  they  don't  affect  whether  the  assertion
-       passes  or  fails.  This is for backward compatibility (hledger's close
-       command used to generate balance assertions with  costs),  and  because
+       We do allow costs to be written in balance assertion amounts,  however,
+       and  print  shows  them,  but  they  don't affect whether the assertion
+       passes or fails.  This is for backward compatibility  (hledger's  close
+       command  used  to  generate balance assertions with costs), and because
        balance assignments do use costs (see below).
 
    Assertions and commodities
-       The  balance  assertions described so far are "single commodity balance
+       The balance assertions described so far are "single  commodity  balance
        assertions": they assert and check the balance in one commodity, ignor-
-       ing any others that may be present.  This  is  how  balance  assertions
+       ing  any  others  that  may be present.  This is how balance assertions
        work in Ledger also.
 
-       If  an account contains multiple commodities, you can assert their bal-
-       ances by writing multiple postings with  balance  assertions,  one  for
+       If an account contains multiple commodities, you can assert their  bal-
+       ances  by  writing  multiple  postings with balance assertions, one for
        each commodity:
 
               2013/1/1
@@ -1653,8 +1655,8 @@ Journal
                 both    0 = $1
                 both    0 = 1
 
-       In  hledger  you can make a stronger "sole commodity balance assertion"
-       by writing two equals signs (== EXPECTEDBALANCE).   This  also  asserts
+       In hledger you can make a stronger "sole commodity  balance  assertion"
+       by  writing  two  equals signs (== EXPECTEDBALANCE).  This also asserts
        that there are no other commodities in the account besides the asserted
        one (or at least, that their current balance is zero):
 
@@ -1664,12 +1666,12 @@ Journal
                 both      ;==  $1  ; this one would fail because 'both' contains $ and
 
        It's less easy to make a "sole commodities balance assertion" (note the
-       plural)  - ie, asserting that an account contains two or more specified
+       plural) - ie, asserting that an account contains two or more  specified
        commodities and no others.  It can be done by
 
        1. isolating each commodity in a subaccount, and asserting those
 
-       2. and also asserting there are no commodities in  the  parent  account
+       2. and  also  asserting  there are no commodities in the parent account
           itself:
 
           2013/1/1
@@ -1681,10 +1683,10 @@ Journal
 
    Assertions and subaccounts
        All of the balance assertions above (both = and ==) are "subaccount-ex-
-       clusive  balance  assertions";  they  ignore any balances that exist in
+       clusive balance assertions"; they ignore any  balances  that  exist  in
        deeper subaccounts.
 
-       In hledger you can make "subaccount-inclusive  balance  assertions"  by
+       In  hledger  you  can make "subaccount-inclusive balance assertions" by
        adding a star after the equals (=* or ==*):
 
               2019/1/1
@@ -1698,10 +1700,10 @@ Journal
        are not affected by the --real/-R flag or real: query.
 
    Assertions and auto postings
-       Balance  assertions  are  affected  by the --auto flag, which generates
+       Balance assertions are affected by the  --auto  flag,  which  generates
        auto postings, which can alter account balances.  Because auto postings
        are optional in hledger, accounts affected by them effectively have two
-       balances.  But balance assertions can only test one  or  the  other  of
+       balances.   But  balance  assertions  can only test one or the other of
        these.  So to avoid making fragile assertions, either:
 
        o assert the balance calculated with --auto, and always use --auto with
@@ -1714,15 +1716,15 @@ Journal
          avoid auto postings entirely).
 
    Assertions and precision
-       Balance  assertions  compare  the exactly calculated amounts, which are
-       not always what is shown by reports.   Eg  a  commodity  directive  may
-       limit  the  display  precision, but this will not affect balance asser-
+       Balance assertions compare the exactly calculated  amounts,  which  are
+       not  always  what  is  shown  by reports.  Eg a commodity directive may
+       limit the display precision, but this will not  affect  balance  asser-
        tions.  Balance assertion failure messages show exact amounts.
 
    Posting comments
-       Text following ;, at the end of a  posting  line,  and/or  on  indented
-       lines  immediately  below it, form comments for that posting.  They are
-       reproduced by print but otherwise  ignored,  except  they  may  contain
+       Text  following  ;,  at  the  end of a posting line, and/or on indented
+       lines immediately below it, form comments for that posting.   They  are
+       reproduced  by  print  but  otherwise  ignored, except they may contain
        tags, which are not ignored.
 
               2012-01-01
@@ -1732,55 +1734,55 @@ Journal
                   ; a second comment line for posting 2
 
    Transaction balancing
-       How  exactly  does hledger decide when a transaction is balanced ?  The
+       How exactly does hledger decide when a transaction is balanced  ?   The
        general goal is that if you look at the journal entry and calculate the
        amounts' sum perfectly with pencil and paper, hledger should agree with
        you.
 
-       Real world transactions, especially for  investments  or  cryptocurren-
-       cies,  often  involve  imprecise  costs, complex decimals, and/or infi-
-       nitely-recurring decimals, which are difficult or inconvenient to  han-
+       Real  world  transactions,  especially for investments or cryptocurren-
+       cies, often involve imprecise costs,  complex  decimals,  and/or  infi-
+       nitely-recurring  decimals, which are difficult or inconvenient to han-
        dle on a computer.  So to be a practical accounting system, hledger al-
-       lows  some  imprecision  when  checking  transaction balancedness.  The
+       lows some imprecision  when  checking  transaction  balancedness.   The
        question is, how much imprecision should be allowed ?
 
-       hledger currently decides it based on the commodity display styles:  if
+       hledger  currently decides it based on the commodity display styles: if
        the postings' sum would appear to be zero when displayed with the stan-
        dard display precisions, the transaction is considered balanced.
 
        Or equivalently: if the journal entry is displayed with amounts rounded
-       to  the  standard display precisions (with hledger print --round=hard),
-       and a human with pencil and paper  would  agree  that  those  displayed
+       to the standard display precisions (with hledger  print  --round=hard),
+       and  a  human  with  pencil  and paper would agree that those displayed
        amounts add up to zero, the transaction is considered balanced.
 
-       This   has  some  advantages:  it  is  fairly  intuitive,  general  not
-       hard-coded, yet configurable when needed.  On  the  downside  it  means
-       that  transaction  balancedness  is related to commodity display preci-
-       sions, so eg when using -c/--commodity-style  to  display  things  with
-       more  than  usual precision, you might need to fix some of your journal
+       This  has  some  advantages:  it  is  fairly  intuitive,  general   not
+       hard-coded,  yet  configurable  when  needed.  On the downside it means
+       that transaction balancedness is related to  commodity  display  preci-
+       sions,  so  eg  when  using -c/--commodity-style to display things with
+       more than usual precision, you might need to fix some of  your  journal
        entries (ie, add decimal digits to make them balance more precisely).
 
        Other PTA tools (Ledger, Beancount..)  have their own ways of doing it.
        Possible improvements are discussed at #1964.
 
-       Note: if you have multiple journal files, and are relying on  commodity
-       directives  to  make imprecise journal entries balance, the directives'
+       Note:  if you have multiple journal files, and are relying on commodity
+       directives to make imprecise journal entries balance,  the  directives'
        placement might be important - see commodity directive.
 
    Tags
-       Tags are a way to add extra labels  or  data  fields  to  transactions,
+       Tags  are  a  way  to  add extra labels or data fields to transactions,
        postings, or accounts, which you can then search or pivot on.
 
-       A  tag is a word, optionally hyphenated, immediately followed by a full
+       A tag is a word, optionally hyphenated, immediately followed by a  full
        colon, in the comment of a transaction, a posting, or an account direc-
-       tive.  Eg: 2024-01-01 a transaction   ; foo: Note this is an  exception
+       tive.   Eg: 2024-01-01 a transaction   ; foo: Note this is an exception
        to the usual rule that things in comments are ignored.
 
-       You  can  write  multiple tags on one line, separated by comma.  Or you
-       can write each tag on its own comment line (no  comma  needed  in  this
+       You can write multiple tags on one line, separated by  comma.   Or  you
+       can  write  each  tag  on its own comment line (no comma needed in this
        case).
 
-       For  example,  here are five different tags: one on the assets:checking
+       For example, here are five different tags: one on  the  assets:checking
        account, two on the transaction, and two on the expenses:food posting:
 
               account assets:checking         ; accounttag:
@@ -1790,15 +1792,15 @@ Journal
                   assets:checking        $-1
                   expenses:food           $1  ; postingtag:, another-posting-tag:
 
-       Postings also inherit tags from their transaction  and  their  account.
-       And  transactions  also acquire tags from their postings (and postings'
-       accounts).  So in the example above, the expenses  posting  effectively
+       Postings  also  inherit  tags from their transaction and their account.
+       And transactions also acquire tags from their postings  (and  postings'
+       accounts).   So  in the example above, the expenses posting effectively
        has all five tags (by inheriting from the account and transaction), and
-       the  transaction also has all five tags (by acquiring from the expenses
+       the transaction also has all five tags (by acquiring from the  expenses
        posting).
 
    Tag names
-       Most non-whitespace characters are allowed in tag names.   Eg  :  is  a
+       Most  non-whitespace  characters  are  allowed in tag names.  Eg : is a
        valid tag.
 
        You can list the tag names used in your journal with the tags command:
@@ -1807,13 +1809,13 @@ Journal
        In commands which use a query, you can match by tag name.  Eg:
        hledger print tag:NAMEREGEX
 
-       You  can  declare valid tag names with the tag directive and then check
+       You can declare valid tag names with the tag directive and  then  check
        them with the check command.
 
    Special tags
-       Some tag names have special significance to hledger.  There's not  much
-       harm  in  using them yourself, but some could produce an error message,
-       particularly the date: and type: tags.  They are  explained  elsewhere,
+       Some  tag names have special significance to hledger.  There's not much
+       harm in using them yourself, but some could produce an  error  message,
+       particularly  the  date: and type: tags.  They are explained elsewhere,
        but here is a quick list for reference:
 
        Tags you can set to influence hledger's behaviour:
@@ -1832,15 +1834,24 @@ Journal
                generated-posting      -- appears on generated auto postings (with --verbose-tags)
                modified               -- appears on txns which have had auto postings added (with --verbose-tags)
 
-              Not displayed, but queryable:
+       These similar tags are also provided; they are not displayed,  but  can
+       be relied on for querying:
+
                _generated-transaction -- exists on generated periodic txns (always)
                _generated-posting     -- exists on generated auto postings (always)
                _modified              -- exists on txns which have had auto postings added (always)
 
-       Other tags hledger uses internally:
+       The following non-displayed tags are used internally by hledger, (1) to
+       ignore  redundant  costs  when  balancing  transactions, (2) when using
+       --infer-costs, and (3) when  using  --infer-equity.   Essentially  they
+       mark  postings  with  costs  which have corresponding equity conversion
+       postings, and vice-versa.  They are queryable, but you should not  rely
+       on them for your reports:
 
-               _cost-matched          -- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
-               _conversion-matched    -- marks equity conversion postings which have been matched with a nearby posting with a cost
+               _conversion-matched    -- marks "matched conversion postings", which are to a V/Conversion account
+                                         and have a nearby equivalent costful or potentially costful posting
+               _cost-matched          -- marks "matched cost postings", which have or could have a cost
+                                         that's equivalent to nearby conversion postings
 
    Tag values
        Tags  can  have  a  value, which is any text after the colon up until a
@@ -6338,10 +6349,10 @@ Help commands
        insensitive) TOPIC argument, try to open it at that section heading.
 
               Flags:
-                -i                      show the manual with info
-                -m                      show the manual with man
-                -p                      show the manual with $PAGER or less
-                                        (less is always used if TOPIC is specified)
+                -i                       show the manual with info
+                -m                       show the manual with man
+                -p                       show the manual with $PAGER or less
+                                         (less is always used if TOPIC is specified)
 
        This command shows the hledger manual built in  to  your  hledger  exe-
        cutable.   It can be useful when offline, or when you prefer the termi-
@@ -6373,8 +6384,8 @@ Help commands
        Play demos of hledger usage in the terminal, if asciinema is installed.
 
               Flags:
-                -s --speed=SPEED        playback speed (1 is original speed, .5 is half, 2
-                                        is double, etc (default: 2))
+                -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
+                                         is double, etc (default: 2))
 
        Run  this  command with no argument to list the demos.  To play a demo,
        write its number or a prefix or substring of its title.  Tips:

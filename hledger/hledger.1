@@ -420,8 +420,6 @@ General output/reporting flags (supported by some commands):
                             YYYY\-MM\-DD: value on given date
   \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
                             Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
-     \-\-color=YN \-\-colour    Use ANSI color codes in text output? Can be
-                            \[aq]y\[aq]/\[aq]yes\[aq]/\[aq]always\[aq], \[aq]n\[aq]/\[aq]no\[aq]/\[aq]never\[aq] or \[aq]auto\[aq].
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
                             \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
                             If YN is specified, the equals is required.
@@ -433,6 +431,8 @@ General help flags:
      \-\-man                  show the manual with man
      \-\-version              show version information
      \-\-debug=[1\-9]          show this much debug output (default: 1)
+     \-\-pager=YN             use a pager when needed ? y/yes (default) or n/no
+     \-\-color=YNA \-\-colour   use ANSI color ? y/yes, n/no, or auto (default)
 .EE
 .PP
 Usually hledger accepts any unambiguous flag prefix, eg you can write
@@ -961,6 +961,7 @@ Y
 T}@T{
 Y
 T}@T{
+Y
 T}@T{
 T}@T{
 T}@T{
@@ -1098,28 +1099,6 @@ override the file extension if needed:
 .EX
 $ hledger balancesheet \-o foo.txt \-O csv    # write CSV to foo.txt
 .EE
-.SS Paging
-On unix\-like systems, when displaying large output in the terminal,
-hledger tries to use a pager when appropriate: the one specified by the
-\f[CR]PAGER\f[R] environment variable, otherwise \f[CR]less\f[R] if
-available, otherwise \f[CR]more\f[R] if available.
-The pager shows one page of text at a time, and lets you scroll around
-to see more.
-While it is active, usually \f[CR]SPACE\f[R] shows the next page,
-\f[CR]q\f[R] quits, and \f[CR]?\f[R] shows more features.
-.PP
-The pager is expected to display ANSI color and text styling if
-possible.
-hledger adds \f[CR]R\f[R] to the \f[CR]LESS\f[R] and \f[CR]MORE\f[R]
-environment variables to enable this in \f[CR]less\f[R] (and in its
-\f[CR]more\f[R] compatibility mode).
-If you use a different pager, you might need to configure it similarly,
-to avoid seeing junk on screen.
-Or you can set the \f[CR]NO_COLOR\f[R] environment variable described
-below.
-.PP
-You can prevent the use of a pager by providing the
-\f[CR]\-\-no\-pager\f[R] flag at the command line, or in a config file.
 .PP
 Here are some notes about the various output formats.
 .SS Text output
@@ -1146,29 +1125,52 @@ Besides using a pager, helpful techniques for this situation include
 \f[CR]\-\-layout=bare\f[R], \f[CR]\-V\f[R], \f[CR]cur:\f[R],
 \f[CR]\-\-transpose\f[R], \f[CR]\-\-tree\f[R], \f[CR]\-\-depth\f[R],
 \f[CR]\-\-drop\f[R], switching to html output, etc.
+.SS Box\-drawing characters
+hledger draws simple table borders by default, to minimise the risk of
+display problems caused by a terminal/font not supporting box\-drawing
+characters.
 .PP
-(Help output uses a pager automatically when appropriate, but regular
-reports do not, currently.)
-.SS Colour
-hledger tries to detect ANSI color and text styling support and use it
-when appropriate, though currently rather minimally: some reports show
-negative numbers in red, and help output uses bold text for emphasis.
-.PP
-You can override this in the usual ways.
-If the \f[CR]NO_COLOR\f[R] environment variable is set, colour will be
-disabled by default.
-Or you can use the \f[CR]\-\-color/\-\-colour\f[R] option with a
-\f[CR]y\f[R]/\f[CR]yes\f[R] value, or \f[CR]n\f[R]/\f[CR]no\f[R], to
-force colour on or off.
-(This option doesn\[aq]t work in a config file yet.)
-.SS Box\-drawing
-By default, hledger draws table borders using ascii characters, to
-minimise the chance of display problems.
-.PP
-If your terminal and font support box\-drawing characters (they probably
-do), you will probably want to use the \f[CR]\-\-pretty\f[R] flag to
-show prettier tables.
+But your terminal and font probably do support them, so we recommend
+using the \f[CR]\-\-pretty\f[R] flag to show prettier tables in the
+terminal.
 This is a good flag to add to your hledger config file.
+.SS Colour
+hledger tries to automatically detect ANSI colour and text styling
+support and use it when appropriate.
+(Currently, it is used rather minimally: some reports show negative
+numbers in red, and help output uses bold text for emphasis.)
+.PP
+You can override this by setting the \f[CR]NO_COLOR\f[R] environment
+variable to disable it, or by using the \f[CR]\-\-color/\-\-colour\f[R]
+option, perhaps in your config file, with a \f[CR]y\f[R]/\f[CR]yes\f[R]
+or \f[CR]n\f[R]/\f[CR]no\f[R] value to force it on or off.
+.SS Paging
+In unix\-like environments, when displaying large output in the
+terminal, hledger tries to use a pager when appropriate.
+(Actually it does this for any output format displayed in the terminal,
+not just text.)
+You can prevent this with the \f[CR]\-\-pager=no\f[R] option, perhaps in
+your config file.
+.PP
+It will use the pager specified by the \f[CR]PAGER\f[R] environment
+variable, otherwise \f[CR]less\f[R] if available, otherwise
+\f[CR]more\f[R] if available.
+.PP
+The pager shows one page of text at a time, and lets you scroll around
+to see more.
+While it is active, usually \f[CR]SPACE\f[R] shows the next page,
+\f[CR]q\f[R] quits, and \f[CR]?\f[R] shows more features.
+(And in \f[CR]less\f[R], \f[CR]G\f[R] jumps to the end, which is useful
+when you are viewing register output.)
+.PP
+The pager is expected to display hledger\[aq]s ANSI colour and text
+styling.
+hledger adds \f[CR]R\f[R] to the \f[CR]LESS\f[R] and \f[CR]MORE\f[R]
+environment variables to enable this for \f[CR]less\f[R] and its
+\f[CR]more\f[R] compatibility mode.
+If you use a different pager, you might need to configure it similarly,
+to avoid seeing junk on screen.
+(Or you can disable colour, as described above.)
 .SS HTML output
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
@@ -2352,18 +2354,29 @@ Tags hledger adds to indicate generated data:
  generated\-transaction  \-\- appears on generated periodic txns (with \-\-verbose\-tags)
  generated\-posting      \-\- appears on generated auto postings (with \-\-verbose\-tags)
  modified               \-\- appears on txns which have had auto postings added (with \-\-verbose\-tags)
-
-Not displayed, but queryable:
+.EE
+.PP
+These similar tags are also provided; they are not displayed, but can be
+relied on for querying:
+.IP
+.EX
  _generated\-transaction \-\- exists on generated periodic txns (always)
  _generated\-posting     \-\- exists on generated auto postings (always)
  _modified              \-\- exists on txns which have had auto postings added (always)
 .EE
 .PP
-Other tags hledger uses internally:
+The following non\-displayed tags are used internally by hledger, (1) to
+ignore redundant costs when balancing transactions, (2) when using
+\-\-infer\-costs, and (3) when using \-\-infer\-equity.
+Essentially they mark postings with costs which have corresponding
+equity conversion postings, and vice\-versa.
+They are queryable, but you should not rely on them for your reports:
 .IP
 .EX
- _cost\-matched          \-\- marks postings with a cost which have been matched with a nearby pair of equity conversion postings
- _conversion\-matched    \-\- marks equity conversion postings which have been matched with a nearby posting with a cost
+ _conversion\-matched    \-\- marks \[dq]matched conversion postings\[dq], which are to a V/Conversion account
+                           and have a nearby equivalent costful or potentially costful posting
+ _cost\-matched          \-\- marks \[dq]matched cost postings\[dq], which have or could have a cost
+                           that\[aq]s equivalent to nearby conversion postings
 .EE
 .SS Tag values
 Tags can have a value, which is any text after the colon up until a
@@ -8181,10 +8194,10 @@ heading.
 .IP
 .EX
 Flags:
-  \-i                      show the manual with info
-  \-m                      show the manual with man
-  \-p                      show the manual with $PAGER or less
-                          (less is always used if TOPIC is specified)
+  \-i                       show the manual with info
+  \-m                       show the manual with man
+  \-p                       show the manual with $PAGER or less
+                           (less is always used if TOPIC is specified)
 .EE
 .PP
 This command shows the hledger manual built in to your hledger
@@ -8225,8 +8238,8 @@ Play demos of hledger usage in the terminal, if asciinema is installed.
 .IP
 .EX
 Flags:
-  \-s \-\-speed=SPEED        playback speed (1 is original speed, .5 is half, 2
-                          is double, etc (default: 2))
+  \-s \-\-speed=SPEED         playback speed (1 is original speed, .5 is half, 2
+                           is double, etc (default: 2))
 .EE
 .PP
 Run this command with no argument to list the demos.
