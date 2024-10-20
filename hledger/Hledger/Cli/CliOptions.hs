@@ -471,7 +471,7 @@ parseCommandHelp :: CommandHelpStr -> Maybe CommandHelp
 parseCommandHelp t =
   case lines t of
     [] -> Nothing
-    (l1:_:l3:ls) -> Just $ CommandHelp cmdname (Just cmdalias) preamble postamble
+    (l1:_:l3:ls) -> Just $ CommandHelp cmdname (if null cmdalias then Nothing else Just cmdalias) preamble postamble
       where
         cmdname = l1
         (cmdalias, rest) =
