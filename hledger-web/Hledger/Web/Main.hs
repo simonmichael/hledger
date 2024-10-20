@@ -55,8 +55,7 @@ hledgerWebMain = withGhcDebug' $ do
 
 #if MIN_VERSION_base(4,20,0)
   -- Control ghc 9.10+'s stack traces.
-  -- hledger-web isn't showing many yet; leave this enabled for now.
-  setBacktraceMechanismState HasCallStackBacktrace True
+  setBacktraceMechanismState HasCallStackBacktrace False
 #endif
 
   -- try to encourage user's $PAGER to properly display ANSI (in command line help)
