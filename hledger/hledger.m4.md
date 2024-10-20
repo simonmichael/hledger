@@ -667,7 +667,7 @@ Here are those commands and the formats currently supported:
 
 |  command           | txt | html | csv/tsv | fods | beancount | sql | json |
 |--------------------|-----|------|---------|------|-----------|-----|------|
-| aregister          | Y   | Y    | Y       |      |           |     | Y    |
+| aregister          | Y   | Y    | Y       | Y    |           |     | Y    |
 | balance            | Y   | Y    | Y       | Y    |           |     | Y    |
 | balancesheet       | Y   | Y    | Y       | Y    |           |     | Y    |
 | balancesheetequity | Y   | Y    | Y       | Y    |           |     | Y    |
