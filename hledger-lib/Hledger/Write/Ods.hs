@@ -13,6 +13,7 @@ module Hledger.Write.Ods (
     ) where
 
 import Prelude hiding (Applicative(..))
+import Control.Monad (guard)
 import Control.Applicative (Applicative(..))
 
 import qualified Data.Text.Lazy as TL
@@ -38,7 +39,7 @@ import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
 
 printFods ::
     IO.TextEncoding ->
-    Map Text ((Maybe Int, Maybe Int), [[Cell Spr.NumLines Text]]) -> TL.Text
+    Map Text ((Int, Int), [[Cell Spr.NumLines Text]]) -> TL.Text
 printFods encoding tables =
     let fileOpen customStyles =
           map (map (\c -> case c of '\'' -> '"'; _ -> c)) $
@@ -87,14 +88,14 @@ printFods encoding tables =
           "    <config:config-item-map-entry>" :
           "     <config:config-item-map-named config:name='Tables'>" :
           (fold $
-           flip Map.mapWithKey tableNames $ \tableName (mTopRow,mLeftColumn) ->
+           flip Map.mapWithKey tableNames $ \tableName (topRow,leftColumn) ->
              printf "      <config:config-item-map-entry config:name='%s'>" tableName :
-             (flip foldMap mLeftColumn $ \leftColumn ->
+             ((guard (leftColumn>0) >>) $
                 "       <config:config-item config:name='HorizontalSplitMode' config:type='short'>2</config:config-item>" :
                 printf "       <config:config-item config:name='HorizontalSplitPosition' config:type='int'>%d</config:config-item>" leftColumn :
                 printf "       <config:config-item config:name='PositionRight' config:type='int'>%d</config:config-item>" leftColumn :
                 []) ++
-             (flip foldMap mTopRow $ \topRow ->
+             ((guard (topRow>0) >>) $
                 "       <config:config-item config:name='VerticalSplitMode' config:type='short'>2</config:config-item>" :
                 printf "       <config:config-item config:name='VerticalSplitPosition' config:type='int'>%d</config:config-item>" topRow :
                 printf "       <config:config-item config:name='PositionBottom' config:type='int'>%d</config:config-item>" topRow :

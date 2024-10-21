@@ -121,7 +121,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
            | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Aregister" .
-                (,) (Just 1, Nothing) .
+                (,) (1,0) .
                 accountTransactionsReportAsSpreadsheet oneLineNoCostFmt wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:

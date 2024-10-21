@@ -108,7 +108,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
                 postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Register" .
-                (,) (Just 1, Nothing) .
+                (,) (1,0) .
                 postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
@@ -119,6 +119,8 @@ postingsReportAsCsv :: PostingsReport -> CSV
 postingsReportAsCsv =
   Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt Nothing []
 
+-- ToDo: --layout=bare etc.
+-- ToDo: Text output does not show headers, but Spreadsheet does
 postingsReportAsSpreadsheet ::
   AmountFormat -> Maybe Text -> [Text] ->
   PostingsReport -> [[Spr.Cell Spr.NumLines Text]]
