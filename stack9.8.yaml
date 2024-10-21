@@ -9,6 +9,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- base-compat-0.14.0
 # needed only for dev builds when the debug flag is enabled:
 - ghc-debug-convention-0.6.0.0
 - ghc-debug-stub-0.6.0.0

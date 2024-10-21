@@ -13,6 +13,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- base-compat-0.14.0
 - megaparsec-9.3.0
 - safe-0.3.21
 # for hledger-lib:

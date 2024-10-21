@@ -9,6 +9,7 @@ packages:
 - hledger-web
 
 extra-deps:
+- base-compat-0.14.0
 - vty-windows-0.2.0.1   # not yet in stackage
 
 nix:
