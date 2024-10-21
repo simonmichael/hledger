@@ -343,7 +343,7 @@ compoundBalanceReportAsHtml ropts cbr =
 compoundBalanceReportAsSpreadsheet ::
   AmountFormat -> T.Text -> Maybe T.Text ->
   ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount ->
-  (T.Text, ((Maybe Int, Maybe Int), NonEmpty [Spr.Cell Spr.NumLines T.Text]))
+  (T.Text, ((Int, Int), NonEmpty [Spr.Cell Spr.NumLines T.Text]))
 compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
   let
     CompoundPeriodicReport title colspans subreports totalrow = cbr
@@ -397,5 +397,5 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
         & addTotalBorders    -- marking the first row for special styling
 
   in  (title,
-        ((Just 1, Just 1),
+        ((1,1),
             headerrow :| concatMap subreportrows subreports ++ totalrows))

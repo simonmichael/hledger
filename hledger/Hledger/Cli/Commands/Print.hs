@@ -146,7 +146,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
                 styleAmounts styles
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Print" .
-                (,) (Just 1, Nothing) .
+                (,) (1,0) .
                 entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
                 styleAmounts styles
            | otherwise = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:

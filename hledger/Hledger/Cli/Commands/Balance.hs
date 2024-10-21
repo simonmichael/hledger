@@ -394,7 +394,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
             "html" -> (<>"\n") . L.renderText .
                       printHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
             "fods" -> printFods IO.localeEncoding .
-                      Map.singleton "Budget Report" . (,) (Just 1, Nothing) . budgetReportAsSpreadsheet ropts
+                      Map.singleton "Budget Report" . (,) (1,0) . budgetReportAsSpreadsheet ropts
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
@@ -420,7 +420,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "html" -> (<>"\n") . L.renderText .
                                    printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
               "json" -> (<>"\n") . toJsonText
-              "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (Just 1, Nothing) . balanceReportAsSpreadsheet ropts
+              "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (1,0) . balanceReportAsSpreadsheet ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
   where
@@ -718,12 +718,12 @@ multiBalanceReportAsHtml ropts mbr =
 -- Returns the heading row, 0 or more body rows, and the totals row if enabled.
 multiBalanceReportAsSpreadsheet ::
   ReportOpts -> MultiBalanceReport ->
-  ((Maybe Int, Maybe Int), [[Ods.Cell Ods.NumLines Text]])
+  ((Int, Int), [[Ods.Cell Ods.NumLines Text]])
 multiBalanceReportAsSpreadsheet ropts mbr =
   let (header,body,total) =
             multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
   in  (if transpose_ ropts then swap *** Ods.transpose else id) $
-      ((Just 1, case layout_ ropts of LayoutWide _ -> Just 1; _ -> Nothing),
+      ((1, case layout_ ropts of LayoutWide _ -> 1; _ -> 0),
             header : body ++ total)
 
 
