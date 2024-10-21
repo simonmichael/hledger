@@ -48,11 +48,11 @@ aregistermode = hledgerCommandMode
   ([
    flagNone ["txn-dates"] (setboolopt "txn-dates") 
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
-   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
-  --  flagNone ["cumulative"] (setboolopt "cumulative")
-  --    "show running total from report start date (default)"
-  -- ,flagNone ["historical","H"] (setboolopt "historical")
-  --    "show historical running total/balance (includes postings before report start date)\n "
+  ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
+  ,flagNone ["cumulative"] (setboolopt "cumulative")
+     "show running total from report start date"
+  ,flagNone ["historical","H"] (setboolopt "historical")
+     "show historical running total/balance (includes postings before report start date) (default)\n "
   -- ,flagNone ["average","A"] (setboolopt "average")
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
@@ -97,8 +97,10 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     ropts' = (_rsReportOpts rspec) {
         -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
         depth_=Nothing
-        -- always show historical balance
-      , balanceaccum_= Historical
+      , balanceaccum_ =
+          case balanceaccum_ $ _rsReportOpts rspec of
+            PerPeriod -> Historical
+            ba -> ba
       , querystring_ = querystr
       }
     wd = whichDate ropts'
