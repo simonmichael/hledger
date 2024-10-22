@@ -82,12 +82,17 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
   dbg1IO "args" progArgs
   dbg1IO "debugLevel" debugLevel
 
-  -- try to encourage user's $PAGER to properly display ANSI (in command line help)
-  usecolor <- useColorOnStdout
-  when usecolor setupPager
-
-  opts@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
+  opts1@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=iopts,rawopts_=rawopts}} <- getHledgerUIOpts
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
+
+  usecolor <- useColorOnStdout
+  -- When ANSI colour/styling is available and enabled, encourage user's $PAGER to use it (for command line help).
+  when usecolor setupPager
+  -- And when it's not, disable colour in the TUI ?
+  -- Theme.hs's themes currently hard code various colours and styles provided by vty,
+  -- which probably are disabled automatically when terminal doesn't support them.
+  -- But we'll at least force hledger-ui's theme to a monochrome one.
+  let opts = if usecolor then opts1 else opts1{uoTheme=Just "terminal"}
 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}

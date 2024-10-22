@@ -184,7 +184,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.List hiding (uncons)
 -- import Debug.Breakpoint
 import Debug.Trace (trace, traceIO, traceShowId)
-#ifdef DEBUG
+#ifdef GHCDEBUG
 import GHC.Debug.Stub (pause, withGhcDebug)
 #endif
 import Safe (readDef)
@@ -224,11 +224,12 @@ debugLevel = case dropWhile (/="--debug") progArgs of
                    _                                   -> 0
 
 -- | Whether ghc-debug support is included in this build, and if so, how it will behave.
--- When hledger is built with the @debug@ cabal flag (off by default),
+-- When hledger is built with the @ghcdebug@ cabal flag (off by default, because of extra deps),
 -- it can listen (on unix ?) for connections from ghc-debug clients like ghc-debug-brick,
 -- for pausing/resuming the program and inspecting memory usage and profile information.
 --
--- This is enabled by running hledger with a negative --debug level, with three different modes:
+-- With a ghc-debug-supporting build, ghc-debug can be enabled by running hledger with
+-- a negative --debug level. There are three different modes:
 -- --debug=-1 - run normally (can be paused/resumed by a ghc-debug client),
 -- --debug=-2 - pause and await client commands at program start (not useful currently),
 -- --debug=-3 - pause and await client commands at program end.
@@ -244,7 +245,7 @@ data GhcDebugMode =
 -- | Is the hledger-lib package built with ghc-debug support ?
 ghcDebugSupportedInLib :: Bool
 ghcDebugSupportedInLib =
-#ifdef DEBUG
+#ifdef GHCDEBUG
   True
 #else
   False
@@ -254,6 +255,7 @@ ghcDebugSupportedInLib =
 -- See GhcDebugMode.
 ghcDebugMode :: GhcDebugMode
 ghcDebugMode =
+#ifdef GHCDEBUG
   case debugLevel of
     _ | not ghcDebugSupportedInLib -> GDNotSupported
     (-1) -> GDNoPause
@@ -261,11 +263,14 @@ ghcDebugMode =
     (-3) -> GDPauseAtEnd
     _    -> GDDisabled
     -- keep synced with GhcDebugMode
+#else
+  GDNotSupported
+#endif
 
 -- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
 -- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.
 withGhcDebug' =
-#ifdef DEBUG
+#ifdef GHCDEBUG
   if ghcDebugMode > GDDisabled then withGhcDebug else id
 #else
   id
@@ -274,7 +279,7 @@ withGhcDebug' =
 -- | When ghc-debug support has been built into the program, this calls ghc-debug's pause, otherwise it's a no-op.
 ghcDebugPause' :: IO ()
 ghcDebugPause' =
-#ifdef DEBUG
+#ifdef GHCDEBUG
   pause
 #else
   return ()

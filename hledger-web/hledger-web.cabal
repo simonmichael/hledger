@@ -113,7 +113,7 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with support for attaching a ghc-debug client
+  description: Build with GHC 9.10+'s stack traces enabled
   manual: True
   default: False
 
@@ -214,8 +214,6 @@ library
     ghc-options: -O0
   if (flag(debug))
     cpp-options: -DDEBUG
-    build-depends:
-        ghc-debug-stub >=0.6.0.0 && <0.7
 
 executable hledger-web
   main-is: main.hs
@@ -236,8 +234,6 @@ executable hledger-web
     ghc-options: -O0
   if (flag(debug))
     cpp-options: -DDEBUG
-    build-depends:
-        ghc-debug-stub >=0.6.0.0 && <0.7
   if flag(library-only)
     buildable: False
   if flag(threaded)
@@ -261,5 +257,3 @@ test-suite test
     ghc-options: -O0
   if (flag(debug))
     cpp-options: -DDEBUG
-    build-depends:
-        ghc-debug-stub >=0.6.0.0 && <0.7

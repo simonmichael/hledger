@@ -60,9 +60,14 @@ flags:
     default: true
     manual:  false
   debug:
-    description: Build with support for attaching a ghc-debug client
+    description: Build with GHC 9.10+'s stack traces enabled
     default: false
     manual:  true
+# bitrotted
+#  ghcdebug:
+#    description: Build with support for attaching a ghc-debug client
+#    default: false
+#    manual:  true
 
 ghc-options:
 - -Wall
@@ -82,8 +87,10 @@ when:
   ghc-options: -O0
 - condition: (flag(debug))
   cpp-options: -DDEBUG
-  dependencies:
-  - ghc-debug-stub >=0.6.0.0 && <0.7
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
 - base >=4.14 && <4.21
