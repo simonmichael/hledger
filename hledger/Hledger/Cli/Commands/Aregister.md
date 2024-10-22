@@ -11,6 +11,7 @@ Flags:
                             date. Warning: this can show a wrong running
                             balance.
      --no-elide             don't show only 2 commodities per amount
+     --cumulative           show running total from report start date
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
@@ -22,8 +23,9 @@ Flags:
 
 `aregister` shows the overall transactions affecting a particular account (and
 any subaccounts). Each report line represents one transaction in this account.
-Transactions before the report start date are always included in the running balance
-(`--historical` mode is always on).
+Transactions before the report start date are included in the running balance
+(`--historical` mode is the default).
+You can suppress this behaviour using the `--cumulative` option.
 
 This is a more "real world", bank-like view than the [`register`](#register) 
 command (which shows individual postings, possibly from multiple accounts,
@@ -75,7 +77,7 @@ at the cost of more time and memory, use the `--align-all` flag.
 This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options.
-The output formats supported are `txt`, `csv`, `tsv` (*Added in 1.32*), and `json`.
+The output formats supported are `txt`, `csv`, `tsv` (*Added in 1.32*), `html`, `fods` (*Added in 1.41*) and `json`.
 
 ### aregister and posting dates
 
