@@ -28,7 +28,7 @@ import qualified Data.Map as Map
 import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
-import Control.Monad (guard)
+import Control.Monad (when)
 import Lucid (toHtml)
 import qualified Lucid as L
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
@@ -57,6 +57,8 @@ aregistermode = hledgerCommandMode
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   -- ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+  ,flagNone ["no-header"] (setboolopt "no-header")
+     "omit header row in table output"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
@@ -117,33 +119,36 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
-           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
-           | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv wd (_rsQuery rspec') thisacctq
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv hd wd (_rsQuery rspec') thisacctq
+           | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv hd wd (_rsQuery rspec') thisacctq
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Aregister" .
                 (,) (1,0) .
-                accountTransactionsReportAsSpreadsheet oneLineNoCostFmt wd (_rsQuery rspec') thisacctq
+                accountTransactionsReportAsSpreadsheet oneLineNoCostFmt hd wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
+        hd = headeropt opts
         fmt = outputFormatFromOpts opts
 
   writeOutputLazyText opts $ render items'
 
-accountTransactionsReportAsCsv :: WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv wd reportq thisacctq =
+accountTransactionsReportAsCsv ::
+  Bool -> WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
+accountTransactionsReportAsCsv hd wd reportq thisacctq =
   Spr.rawTableContent .
-  accountTransactionsReportAsSpreadsheet machineFmt wd reportq thisacctq
+  accountTransactionsReportAsSpreadsheet machineFmt hd wd reportq thisacctq
 
 accountTransactionsReportAsSpreadsheet ::
-  AmountFormat ->
+  AmountFormat -> Bool ->
   WhichDate -> Query -> Query -> AccountTransactionsReport ->
   [[Spr.Cell Spr.NumLines Text]]
-accountTransactionsReportAsSpreadsheet fmt wd reportq thisacctq is =
-  Spr.addHeaderBorders
-    (map Spr.headerCell
-      ["txnidx","date","code","description","otheraccounts","change","balance"])
-  : map (accountTransactionsReportItemAsRecord fmt True wd reportq thisacctq) is
+accountTransactionsReportAsSpreadsheet fmt hd wd reportq thisacctq is =
+  optional hd
+    [Spr.addHeaderBorders $ map Spr.headerCell $
+      ["txnidx","date","code","description","otheraccounts","change","balance"]]
+  ++
+  map (accountTransactionsReportItemAsRecord fmt True wd reportq thisacctq) is
 
 accountTransactionsReportItemAsRecord ::
   AmountFormat -> Bool ->
@@ -152,9 +157,9 @@ accountTransactionsReportItemAsRecord ::
 accountTransactionsReportItemAsRecord
   fmt internals wd reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
-  = (guard internals >> [Spr.integerCell tindex]) ++
+  = (optional internals [Spr.integerCell tindex]) ++
     date :
-    (guard internals >> [cell tcode]) ++
+    (optional internals [cell tcode]) ++
     [cell tdescription,
      cell otheracctsstr,
      amountCell change,
@@ -174,7 +179,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
   L.renderText $ do
     L.link_ [L.rel_ "stylesheet", L.href_ "hledger.css"]
     L.table_ $ do
-      L.thead_ $ L.tr_ $ do
+      when (headeropt copts) $ L.thead_ $ L.tr_ $ do
         L.th_ "date"
         L.th_ "description"
         L.th_ "otheraccounts"
@@ -190,7 +195,8 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
-    title <> TB.singleton '\n' <>
+    (optional (headeropt copts) $ title <> TB.singleton '\n')
+    <>
     postingsOrTransactionsReportAsText alignAll copts itemAsText itemamt itembal items
   where
     alignAll = boolopt "align-all" $ rawopts_ copts
@@ -211,6 +217,13 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
             hasextraquery =
               length (querystring_ $ _rsReportOpts $ reportspec_ copts) > 1
               && not (queryIsNull $ filterQuery (not.(\q->queryIsDepth q || queryIsDateOrDate2 q)) reportq)
+
+headeropt :: CliOpts -> Bool
+headeropt = not . boolopt "no-header" . rawopts_
+
+optional :: (Monoid p) => Bool -> p -> p
+optional b x = if b then x else mempty
+
 
 -- | Render one account register report line item as plain text. Layout is like so:
 -- @
