@@ -98,16 +98,17 @@ defuiopts = UIOpts
   }
 
 -- | Process a RawOpts into a UIOpts.
--- This will return a usage error if provided an invalid theme.
+-- An invalid --theme name will raise an error.
 rawOptsToUIOpts :: RawOpts -> IO UIOpts
 rawOptsToUIOpts rawopts = do
-    cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
-    return defuiopts {
-                uoWatch    = boolopt "watch" rawopts
-               ,uoTheme    = checkTheme <$> maybestringopt "theme" rawopts
-               ,uoRegister = maybestringopt "register" rawopts
-               ,uoCliOpts  = cliopts
-               }
+  cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
+  return
+    defuiopts {
+       uoWatch    = boolopt "watch" rawopts
+      ,uoTheme    = checkTheme <$> maybestringopt "theme" rawopts
+      ,uoRegister = maybestringopt "register" rawopts
+      ,uoCliOpts  = cliopts
+      }
   where
     -- show historical balance by default (unlike hledger)
     accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
