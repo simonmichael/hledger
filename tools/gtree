@@ -63,6 +63,7 @@ if [[ $HELP = 1 ]]; then usage; exit; fi
 REGEX="${ARGS[0]:-.}"
 ROOT=$(pwd)
 GITLS="git ls-files ${U:+-o $(if [[ $I = 1 ]]; then echo ''; else echo '--exclude-standard'; fi)}"
+# XXX the hledger accounts trick doesn't work for paths with double spaces in them
 $GITLS \
     | grep -iE "$REGEX" \
     | sed -e 's%/%/:%g' -e "s%^%account $ROOT/:%" \
