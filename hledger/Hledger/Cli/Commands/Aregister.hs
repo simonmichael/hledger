@@ -57,8 +57,8 @@ aregistermode = hledgerCommandMode
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-  ,flagNone ["no-header"] (setboolopt "no-header")
-     "omit header row in table output"
+  ,flagReq  ["header"] (\s opts -> Right $ setopt "header" s opts) "YN"
+     "show header row above table: yes (default) or no"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
@@ -219,7 +219,7 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
               && not (queryIsNull $ filterQuery (not.(\q->queryIsDepth q || queryIsDateOrDate2 q)) reportq)
 
 headeropt :: CliOpts -> Bool
-headeropt = not . boolopt "no-header" . rawopts_
+headeropt = fromMaybe True . maybeynopt "header" . rawopts_
 
 optional :: (Monoid p) => Bool -> p -> p
 optional b x = if b then x else mempty

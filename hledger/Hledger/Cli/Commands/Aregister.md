@@ -13,7 +13,7 @@ Flags:
      --no-elide             don't show only 2 commodities per amount
      --cumulative           show running total from report start date
      --invert               display all amounts with reversed sign
-     --no-header            omit header row in table output
+     --header=YN            show header row above table: yes (default) or no
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
@@ -79,7 +79,7 @@ at the cost of more time and memory, use the `--align-all` flag.
 By default, `aregister` shows a header above the data.
 However, when reporting in a language different from English,
 it is easier to omit this header and prepend your own one.
-For this purpose, use the `--no-header` option.
+For this purpose, use the `--header=no` option.
 
 This command also supports the
 [output destination](hledger.html#output-destination) and
