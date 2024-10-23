@@ -56,7 +56,7 @@ aregistermode = hledgerCommandMode
   -- ,flagNone ["average","A"] (setboolopt "average")
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
-  -- ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+  ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["no-header"] (setboolopt "no-header")
      "omit header row in table output"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"

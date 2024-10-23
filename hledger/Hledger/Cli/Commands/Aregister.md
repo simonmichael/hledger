@@ -12,6 +12,7 @@ Flags:
                             balance.
      --no-elide             don't show only 2 commodities per amount
      --cumulative           show running total from report start date
+     --invert               display all amounts with reversed sign
      --no-header            omit header row in table output
   -w --width=N              set output width (default: terminal width or
                             $COLUMNS). -wN,M sets description width as well.
