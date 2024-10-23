@@ -58,8 +58,9 @@ module Hledger.Data.Posting (
   conversionPostingTagName,
   costPostingTagName,
 
--- * arithmetic
+  -- * arithmetic
   sumPostings,
+  negatePostingAmount,
   -- * rendering
   showPosting,
   showPostingLines,
@@ -386,6 +387,10 @@ accountNamesFromPostings = S.toList . S.fromList . map paccount
 -- | Sum all amounts from a list of postings.
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
+
+-- | Negate amount in a posting.
+negatePostingAmount :: Posting -> Posting
+negatePostingAmount = postingTransformAmount negate
 
 -- | Strip all prices from a Posting.
 postingStripCosts :: Posting -> Posting

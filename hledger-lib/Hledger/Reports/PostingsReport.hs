@@ -249,9 +249,6 @@ summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
         bal = if isclipped a then aibalance else aebalance
         isclipped a' = maybe False (accountNameLevel a' >=) mdepth
 
-negatePostingAmount :: Posting -> Posting
-negatePostingAmount = postingTransformAmount negate
-
 
 -- tests
 
