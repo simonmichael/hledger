@@ -9,7 +9,9 @@ The colour scheme may be somewhat hard-coded.
 
 -}
 
-{-# LANGUAGE CPP, LambdaCase, PackageImports #-}
+{-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE PackageImports      #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Hledger.Utils.IO (
 
@@ -99,45 +101,42 @@ module Hledger.Utils.IO (
   )
 where
 
-import qualified Control.Exception as C (evaluate)
-import           Control.Monad (when, forM)
+import           Control.Concurrent (forkIO)
+import           Control.Exception (catch, evaluate, throwIO)
+import           Control.Monad (when, forM, guard, void)
+import           Data.Char (toLower)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
-import           Data.Maybe (isJust)
+import           Data.Maybe (isJust, catMaybes)
 import           Data.Ord (comparing, Down (Down))
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
-import           Data.Time.LocalTime
-  (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
+import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
 import           Data.Word (Word8, Word16)
+import           Foreign.C.Error (Errno(..), ePIPE)
+import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
+import           Safe (headMay, maximumDef)
 import           String.ANSI
-import           System.Console.ANSI (Color(..),ColorIntensity(..),
-  ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
+import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, lookupEnv, setEnv)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
-import           System.IO
-  (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode,
-   openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice)
+import           System.Info (os)
+import           System.IO (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode, openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice, hPutStr, hClose)
 import           System.IO.Unsafe (unsafePerformIO)
-#ifndef mingw32_HOST_OS
-import           System.Pager (printOrPage)
-#endif
-import           Text.Pretty.Simple
-  (CheckColorTty(..), OutputOptions(..),
-  defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
+import           System.Process (CreateProcess(..), StdStream(CreatePipe), shell, waitForProcess, withCreateProcess)
+import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
-import Data.Char (toLower)
 
 
 -- Pretty showing/printing with pretty-simple
@@ -193,84 +192,109 @@ getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
 
--- Pager output
 
--- | Make sure our LESS and MORE environment variables contain R,
--- to help ensure the common `less` pager will show our ANSI output properly.
--- less uses LESS by default, or MORE when it is invoked as `more`.
--- What the original `more` program does, I'm not sure.
+-- Pager helpers, somewhat hledger-specific.
+
+-- Configure some preferred options when viewing output with the `less` pager
+-- or its `more` emulation mode.
 -- If PAGER is configured to something else, this probably will have no effect.
+-- The options are:
+--
+-- * squash excess vertical whitespace (-s),
+--
+-- * search case insensitively (-i),
+--
+-- * allow search for dollar sign and other regex metacharacters by backslash-quoting (--use-backslash),
+--
+-- * intepret ANSI style/colour codes (-R).
+--   hledger output may contain these, if the terminal seems to support them,
+--   so if a pager other than less is used, it should be configured to display them.
+--   (Or they can be disabled by --color=no or NO_COLOR.)
+--
+-- The options are appended to the LESS and MORE environment variables in this program's environment,
+-- overriding rather than replacing whatever the user may have configured there.
+--
 setupPager :: IO ()
 setupPager = do
   let
-    addR var = do
+    lessopts = unwords [  -- keep synced with doc above:
+       "-R"
+      ,"-s"
+      ,"-i"
+      ,"--use-backslash"
+      ]
+    addToEnvVar var = do
       mv <- lookupEnv var
-      setEnv var $ case mv of
-        Nothing -> "R"
-        Just v  -> ('R':v)
-  addR "LESS"
-  addR "MORE"
+      setEnv var $
+        case mv of
+          Just v  -> unwords [v, lessopts]
+          Nothing -> lessopts
+  addToEnvVar "LESS"
+  addToEnvVar "MORE"
 
--- | Display the given text on the terminal, trying to use a pager when appropriate, otherwise
--- printing to standard output.
--- This tries to be robust, but in fact the logic is rather complicated, and it can
--- print, page, or raise an error and terminate the program.
--- (Related: Hledger.Cli.DocFiles.runPagerForTopic, which uses much simpler logic.)
---
--- A pager is not used:
--- if the program is running in a native MS Windows environment (like cmd or powershell).
--- Or if the --pager=n|no|never option was used.
--- Or if TERM=dumb (for emacs shell users).
--- Or if the text is a single line (avoids a pager lib bug).
--- Or if PAGER is set to something that is not an executable in PATH (avoids a pager lib bug).
--- Or if the pager lib can't detect the terminal's current height and width (successfully doing so ensures it is interactive, I think.)
--- Or if the text is wider or taller than the terminal.
--- Or if PATH is not set (pager lib raises an error in this case).
--- Or if PAGER is unset and neither `less` or `more` are found in PATH (pager lib raises an error).
---
--- Otherwise, $PAGER (or if it was unset, `less`; or if that was not found, `more`) is used.
---
--- If running the pager fails, or the pager exits with a non-zero exit code, pager lib raises an error.
---
--- hledger output may contain ANSI color or style codes, if the current terminal seems to
--- support them, and if they haven't been disabled by --color=n|no|never or by NO_COLOR.
--- These will be passed to the pager, so it should be configured to display them;
--- otherwise users will see junk on screen (#2015). setupPager, called at program startup, 
--- tries to configure this automatically for some pagers.
---
--- Rather than pass in a huge CliOpts, or duplicate conditional logic at every call site,
--- this does some redundant local parsing of the command line args.
---
+-- | Display the given text on the terminal, trying to use a pager when appropriate,
+-- otherwise printing to standard output. Uses maybePagerFor.
 runPager :: String -> IO ()
-#ifdef mingw32_HOST_OS
-runPager = putStr
-#else
 runPager s = do
-  -- keep synced with description above
+  mpager <- maybePagerFor s
+  case mpager of
+    Nothing -> putStr s
+    Just pager -> do
+      withCreateProcess (shell pager){std_in=CreatePipe} $
+        \mhin _ _ p -> do
+          -- Pipe in the text on stdin.
+          case mhin of
+            Nothing  -> return ()  -- shouldn't happen
+            Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
+              (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
+                -- If the pager quits early, we'll receive an EPIPE error; hide that.
+                `catch` \(e::IOException) -> case e of
+                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin
+                    -> return ()
+                  _ -> throwIO e
+          void $ waitForProcess p
 
-  -- disable pager with --pager=no
-  mpager <- getOpt ["pager"]
-  let nopager = not $ maybe True parseYN mpager
-  -- disable pager when TERM=dumb (for Emacs shell users)
-  dumbterm <- (== Just "dumb") <$> lookupEnv "TERM"
-  -- disable pager with single-line output (https://github.com/pharpend/pager/issues/2)
-  let singleline = not $ '\n' `elem` s
-  -- disable pager when PAGER is set to something bad (https://github.com/pharpend/pager/issues/3)
+-- | Should a pager be used for displaying the given text on stdout, and if so, which one ?
+-- Uses a pager if findPager finds one and none of the following conditions are true:
+-- We're running in a native MS Windows environment like cmd or powershell.
+-- Or the --pager=n|no option is in effect.
+-- Or the -o/--output-file option is in effect.
+-- Or INSIDE_EMACS is set, to something other than "vterm".
+-- Or the terminal's current height and width can't be detected.
+-- Or the output text is less wide and less tall than the terminal.
+-- Rather than pass in a huge CliOpts, this does some redundant local parsing of command line args.
+maybePagerFor :: String -> IO (Maybe String)
+maybePagerFor output = do
+  let
+    ls = lines output
+    oh = length ls
+    ow = maximumDef 0 $ map length ls
+    windows = os == "mingw32"
+  pagerno    <- maybe False (not.parseYN) <$> getOpt ["pager"]
+  outputfile <- hasOutputFile
+  emacsterm  <- lookupEnv "INSIDE_EMACS" <&> (`notElem` [Nothing, Just "vterm"])
+  mhw        <- getTerminalHeightWidth
+  mpager     <- findPager
+  return $ do
+    guard $ not $ windows || pagerno || outputfile || emacsterm
+    (th,tw) <- mhw
+    guard $ oh > th || ow > tw
+    mpager
+
+-- | Try to find a pager executable robustly, safely handling various error conditions
+-- like an unset PATH var or the specified pager not being found as an executable.
+-- The pager can be specified by a path or program name in the PAGER environment variable.
+-- If that is unset or has a problem, "less" is tried, then "more".
+-- If successful, the pager's path or program name is returned.
+findPager :: IO (Maybe String)  -- XXX probably a ByteString in fact ?
+findPager = do
   mpagervar <- lookupEnv "PAGER"
-  badpager <-
-    case mpagervar of
-      Nothing -> return False
-      Just p -> do
-        mexe <- findExecutable p
-        case mexe of
-          Just _  -> return False
-          Nothing -> return True
+  let pagers = [p | Just p <- [mpagervar]] <> ["less", "more"]
+  headMay . catMaybes <$> mapM findExecutable pagers
 
-  (if nopager || dumbterm || singleline || badpager
-  then putStr
-  else printOrPage . T.pack)
-    s
-#endif
+
+
+-- Command line parsing
 
 -- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
 -- If the value is missing raise an error.
@@ -407,7 +431,8 @@ brightWhite'  = ifAnsi brightWhite
 rgb' :: Word8 -> Word8 -> Word8 -> String -> String
 rgb' r g b  = ifAnsi (rgb r g b)
 
--- | Get the value of the rightmost --color option from the command line arguments.
+-- | Should ANSI color & styling be used for standard output ?
+-- Considers useColorOnHandle stdout and whether there's an --output-file.
 useColorOnStdout :: IO Bool
 useColorOnStdout = do
   nooutputfile <- not <$> hasOutputFile
@@ -420,6 +445,8 @@ useColorOnStderr :: IO Bool
 useColorOnStderr = useColorOnHandle stderr
 
 -- | Should ANSI color & styling be used with this output handle ?
+-- Considers hSupportsANSIColor stdout, whether NO_COLOR is defined,
+-- and the rightmost --color option.
 useColorOnHandle :: Handle -> IO Bool
 useColorOnHandle h = do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
@@ -428,9 +455,7 @@ useColorOnHandle h = do
   return $ yna==Yes || (yna==Auto && not no_color && supports_color)
 
 colorOption :: IO YNA
-colorOption = do
-  mcolor <- getOpt ["color","colour"]
-  return $ maybe Auto parseYNA mcolor
+colorOption = maybe Auto parseYNA <$> getOpt ["color","colour"]
 
 -- | Check the IO environment to see if ANSI colour codes should be used on stdout.
 -- This is done using unsafePerformIO so it can be used anywhere, eg in
@@ -554,7 +579,7 @@ sortByModTime fs = do
 
 -- | Like readFilePortably, but read all of the file before proceeding.
 readFileStrictly :: FilePath -> IO T.Text
-readFileStrictly f = readFilePortably f >>= \t -> C.evaluate (T.length t) >> return t
+readFileStrictly f = readFilePortably f >>= \t -> evaluate (T.length t) >> return t
 
 -- | Read text from a file,
 -- converting any \r\n line endings to \n,,

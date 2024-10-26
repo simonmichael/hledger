@@ -151,6 +151,7 @@ library
     , mtl >=2.2.1
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
+    , process
     , regex-tdfa
     , safe >=0.3.20
     , tabular >=0.2
@@ -167,9 +168,6 @@ library
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
   default-language: Haskell2010
-  if (!(os(windows)))
-    build-depends:
-        pager >=0.1.1.0
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -214,6 +212,7 @@ test-suite doctest
     , mtl >=2.2.1
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
+    , process
     , regex-tdfa
     , safe >=0.3.20
     , tabular >=0.2
@@ -230,9 +229,6 @@ test-suite doctest
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
   default-language: Haskell2010
-  if (!(os(windows)))
-    build-depends:
-        pager >=0.1.1.0
   if (flag(debug))
     cpp-options: -DDEBUG
   if impl(ghc >= 9.0) && impl(ghc < 9.2)
@@ -279,6 +275,7 @@ test-suite unittest
     , mtl >=2.2.1
     , parser-combinators >=0.4.0
     , pretty-simple >4 && <5
+    , process
     , regex-tdfa
     , safe >=0.3.20
     , tabular >=0.2
@@ -296,8 +293,5 @@ test-suite unittest
     , utf8-string >=0.3.5
   buildable: True
   default-language: Haskell2010
-  if (!(os(windows)))
-    build-depends:
-        pager >=0.1.1.0
   if (flag(debug))
     cpp-options: -DDEBUG

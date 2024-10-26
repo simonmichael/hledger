@@ -69,6 +69,7 @@ dependencies:
 - mtl >=2.2.1
 - parser-combinators >=0.4.0
 - pretty-simple >4 && <5
+- process
 - regex-tdfa
 - safe >=0.3.20
 - tabular >=0.2
@@ -107,9 +108,6 @@ flags:
 #    manual:  true
 
 when:
-- condition: (!(os(windows)))
-  dependencies:
-  - pager >=0.1.1.0
 - condition: (flag(debug))
   cpp-options: -DDEBUG
 # - condition: (flag(ghcdebug))
