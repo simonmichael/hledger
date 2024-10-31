@@ -57,8 +57,8 @@ aregistermode = hledgerCommandMode
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-  ,flagReq  ["header"] (\s opts -> Right $ setopt "header" s opts) "YN"
-     "show header row above table: yes (default) or no"
+  ,flagReq  ["heading"] (\s opts -> Right $ setopt "heading" s opts) "YN"
+     "show heading row above table: yes (default) or no"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
      ("set output width (default: " ++
 #ifdef mingw32_HOST_OS
@@ -128,7 +128,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
-        hd = headeropt opts
+        hd = headingopt opts
         fmt = outputFormatFromOpts opts
 
   writeOutputLazyText opts $ render items'
@@ -179,7 +179,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
   L.renderText $ do
     L.link_ [L.rel_ "stylesheet", L.href_ "hledger.css"]
     L.table_ $ do
-      when (headeropt copts) $ L.thead_ $ L.tr_ $ do
+      when (headingopt copts) $ L.thead_ $ L.tr_ $ do
         L.th_ "date"
         L.th_ "description"
         L.th_ "otheraccounts"
@@ -195,7 +195,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
-    (optional (headeropt copts) $ title <> TB.singleton '\n')
+    (optional (headingopt copts) $ title <> TB.singleton '\n')
     <>
     postingsOrTransactionsReportAsText alignAll copts itemAsText itemamt itembal items
   where
@@ -218,8 +218,8 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
               length (querystring_ $ _rsReportOpts $ reportspec_ copts) > 1
               && not (queryIsNull $ filterQuery (not.(\q->queryIsDepth q || queryIsDateOrDate2 q)) reportq)
 
-headeropt :: CliOpts -> Bool
-headeropt = fromMaybe True . maybeynopt "header" . rawopts_
+headingopt :: CliOpts -> Bool
+headingopt = fromMaybe True . maybeynopt "heading" . rawopts_
 
 optional :: (Monoid p) => Bool -> p -> p
 optional b x = if b then x else mempty
