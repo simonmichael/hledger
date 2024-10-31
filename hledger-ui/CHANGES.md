@@ -22,11 +22,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# f54805a03
+# 75fd38665
 
 Breaking changes
 
-- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
+- When built with ghc 9.10.1, hledger error messages are displayed with two extra trailing newlines.
 
 Fixes
 
@@ -35,9 +35,20 @@ Fixes
 
 Features
 
+- Added helix as a supported editor for the `e` key. (amano.kenji)
+
 Improvements
 
-- Support ghc 9.10 / base 4.20.
+- Added --pager and --color options as in hledger, affecting command line help.
+  Also --color=no forces use of the "terminal" theme.
+
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
+  will show some kind of partial stack trace if the program exits with an error.
+  These will improve in future ghc versions.
+
+- ghc 9.10 / base 4.20 are now supported.
 
 - Avoid brick 2.3.2, which doesn't build on windows.
 

@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 71a787921
+# 75fd38665
 
 Breaking changes
 
@@ -50,7 +50,7 @@ Breaking changes
       2000-01-01
           (a)        105525 C   ; right
  
-- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
+- When built with ghc 9.10.1, hledger error messages are displayed with two extra trailing newlines.
 
 Fixes
 
@@ -76,14 +76,40 @@ Fixes
 - hledger's bash shell completions are now up to date with latest options.
   [#986]
 
+- When showing output with a pager, if `$PAGER` is set to something not found in PATH,
+  we now ignore it instead of raising an error.
+
 Features
 
-- When generating HTML output with the balance commands,
+- `print`, `register` and `aregister` now support HTML and FODS output.
+  Now all of the "STANDARD REPORTS" commands, and the `balance` command, support text, HTML, CSV, TSV, or FODS output.
+  (Henning Thielemann)
+
+- When generating HTML output with the register or balance commands,
   the `--base-url` option will add hyperlinks to hledger-web,
   allowing you to view the detailed transactions if you have hledger-web running.
   (Henning Thielemann)
 
+- In unix-like environments, hledger now uses a pager (`$PAGER`, `less`, or `more`)
+  for all large terminal output, not just for help.
+  You can override this with the new `--pager` option.
+  Note, if you use a pager other than `less`, you might need to configure it to display ANSI colour.
+  
 Improvements
+
+- The `--color` option now works in config files.
+  (Except for debug output, currently.)
+
+- The `--color` option's recommended values are now `yes`/`y`/`no`/`n`/`auto`/`a`.
+  The `always`/`never` spellings are no longer documented, though still supported.
+
+- The `-NUM` shortcut for `--depth NUM` now works in config files.
+
+- `aregister` now supports FODS output (Henning Thielemann)
+
+- `aregister` has a new `--header=YN` option, for disabling the report heading. (Henning Thielemann)
+
+- `aregister` now supports the `--invert` and `--cumulative` flags, like the `register` command. (Henning Thielemann)
 
 - `bs`/`bse`/`cf`/`is` now support FODS output.
   (Henning Thielemann)
@@ -98,18 +124,40 @@ Improvements
 - Balance commands now support `--transpose` when generating HTML output.
   (Henning Thielemann)
 
+- The `balance` command's `--layout=tidy` now affects HTML and FODS output at least to some extent (not just CSV output).
+  And it always disables the totals row. (Henning Thielemann)
+
+- The `balance` command's FODS output now picks a report title based on the report mode:
+  "Balance Report", "Multi-period Balance Report", or "Budget Report". (Henning Thielemann)
+
 - `balance` and `aregister`'s HTML output will now use a hledger.css file if present, like `bs`/`bse`/`cf`/`is`.
 
 - `bs`/`bse`/`cf`/`is` now support the `--count` (postings count) report type, like `balance`.
 
 - Balance commands' options help has had some consistency/readability tweaks.
 
-- hledger now supports GHC 9.10.
+- The "equity:conversion" account, and its variations "equity:trade(s)" and "equity:trading",
+  which by default are detected as `V`/`Conversion` type, now revert to ordinary `E`/`Equity` accounts
+  if some other account is declared with the `V` type.
+
+- The error message from `check accounts` was simplified a little.
+
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
+  will show some kind of partial stack trace if the program exits with an error.
+  These will improve in future ghc versions.
+
+- ghc 9.10 / base 4.20 are now supported.
 
 Docs
 
-- output formats:beancount: mention operating_currency
-- output formats: expand, document beancount and FODS output
+- Regular expressions: note possible RTL/bidi limitation (?)
+- Special characters: rewrite, more precision, mention some Windows differences
+- Output formats: expand, document beancount and FODS output
+- Text output: expand/consolidate terminal topics
+- FODS output: describe the advantages over CSV (Henning Thielemann)
+- Debug output: note that the --debug option doesn't work in config files.
 - bal: improve --layout doc
 - bal: note that tree mode doesn't work in html output [#1846]
 - bal: also mention hledger.css and text encoding in balance doc
@@ -117,6 +165,7 @@ Docs
 - timedot: mention the common journal+timedot file setup [#2238]
 - Install, manual: new shell completions doc. [#986]
 - Config files: rewrite [#2231]
+- examples/csv: an example of YNAB 4 data, and RTL text, with a workaround
 - examples: hledger2beancount.conf
 
 Scripts/addons
