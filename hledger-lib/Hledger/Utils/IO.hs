@@ -107,6 +107,7 @@ import           Control.Monad (when, forM, guard, void)
 import           Data.Char (toLower)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
+import           Data.Colour.SRGB (sRGB)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
@@ -118,13 +119,12 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
-import           Data.Word (Word8, Word16)
+import           Data.Word (Word16)
 import           Foreign.C.Error (Errno(..), ePIPE)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
 import           Safe (headMay, maximumDef)
-import           String.ANSI
-import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor)
+import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..))
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, lookupEnv, setEnv)
@@ -386,68 +386,97 @@ hasOutputFile = do
       _        -> True
 
 -- ANSI colour
--- XXX unsafe detection of --color option. At the moment this is always true in ghci,
--- respects the command line --color if compiled, and ignores the config file.
-ifAnsi f = if useColorOnStdoutUnsafe then f else id
 
--- | Versions of some of text-ansi's string colors/styles which are more careful
--- to not print junk onscreen. These use our useColorOnStdoutUnsafe.
+-- Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
+-- and if so prepend and append the given SGR codes to a string.
+-- Currently used in a few places (eg: the commands list, the demo command, the recentassertions error message.)
+-- This tends to get stuck on or off in GHCI,
+-- respects the command line --color if compiled,
+-- and ignores the config file.
+ansiWrap :: SGRString -> SGRString -> String -> String
+ansiWrap pre post s = if useColorOnStdoutUnsafe then pre<>s<>post else s
+
+type SGRString = String
+
+sgrbold          = setSGRCode [SetConsoleIntensity BoldIntensity]
+sgrfaint         = setSGRCode [SetConsoleIntensity FaintIntensity]
+sgrnormal        = setSGRCode [SetConsoleIntensity NormalIntensity]
+sgrresetfg       = setSGRCode [SetDefaultColor Foreground]
+sgrblack         = setSGRCode [SetColor Foreground Dull Black]
+sgrred           = setSGRCode [SetColor Foreground Dull Red]
+sgrgreen         = setSGRCode [SetColor Foreground Dull Green]
+sgryellow        = setSGRCode [SetColor Foreground Dull Yellow]
+sgrblue          = setSGRCode [SetColor Foreground Dull Blue]
+sgrmagenta       = setSGRCode [SetColor Foreground Dull Magenta]
+sgrcyan          = setSGRCode [SetColor Foreground Dull Cyan]
+sgrwhite         = setSGRCode [SetColor Foreground Dull White]
+sgrbrightblack   = setSGRCode [SetColor Foreground Vivid Black]
+sgrbrightred     = setSGRCode [SetColor Foreground Vivid Red]
+sgrbrightgreen   = setSGRCode [SetColor Foreground Vivid Green]
+sgrbrightyellow  = setSGRCode [SetColor Foreground Vivid Yellow]
+sgrbrightblue    = setSGRCode [SetColor Foreground Vivid Blue]
+sgrbrightmagenta = setSGRCode [SetColor Foreground Vivid Magenta]
+sgrbrightcyan    = setSGRCode [SetColor Foreground Vivid Cyan]
+sgrbrightwhite   = setSGRCode [SetColor Foreground Vivid White]
+sgrrgb r g b     = setSGRCode [SetRGBColor Foreground $ sRGB r g b]
+
+-- | Set various ANSI styles/colours in a string, only if useColorOnStdoutUnsafe says we should.
 bold' :: String -> String
-bold'  = ifAnsi bold
+bold'  = ansiWrap sgrbold sgrnormal
 
 faint' :: String -> String
-faint'  = ifAnsi faint
+faint'  = ansiWrap sgrfaint sgrnormal
 
 black' :: String -> String
-black'  = ifAnsi black
+black'  = ansiWrap sgrblack sgrresetfg
 
 red' :: String -> String
-red'  = ifAnsi red
+red'  = ansiWrap sgrred sgrresetfg
 
 green' :: String -> String
-green'  = ifAnsi green
+green'  = ansiWrap sgrgreen sgrresetfg
 
 yellow' :: String -> String
-yellow'  = ifAnsi yellow
+yellow'  = ansiWrap sgryellow sgrresetfg
 
 blue' :: String -> String
-blue'  = ifAnsi blue
+blue'  = ansiWrap sgrblue sgrresetfg
 
 magenta' :: String -> String
-magenta'  = ifAnsi magenta
+magenta'  = ansiWrap sgrmagenta sgrresetfg
 
 cyan' :: String -> String
-cyan'  = ifAnsi cyan
+cyan'  = ansiWrap sgrcyan sgrresetfg
 
 white' :: String -> String
-white'  = ifAnsi white
+white'  = ansiWrap sgrwhite sgrresetfg
 
 brightBlack' :: String -> String
-brightBlack'  = ifAnsi brightBlack
+brightBlack'  = ansiWrap sgrbrightblack sgrresetfg
 
 brightRed' :: String -> String
-brightRed'  = ifAnsi brightRed
+brightRed'  = ansiWrap sgrbrightred sgrresetfg
 
 brightGreen' :: String -> String
-brightGreen'  = ifAnsi brightGreen
+brightGreen'  = ansiWrap sgrbrightgreen sgrresetfg
 
 brightYellow' :: String -> String
-brightYellow'  = ifAnsi brightYellow
+brightYellow'  = ansiWrap sgrbrightyellow sgrresetfg
 
 brightBlue' :: String -> String
-brightBlue'  = ifAnsi brightBlue
+brightBlue'  = ansiWrap sgrbrightblue sgrresetfg
 
 brightMagenta' :: String -> String
-brightMagenta'  = ifAnsi brightMagenta
+brightMagenta'  = ansiWrap sgrbrightmagenta sgrresetfg
 
 brightCyan' :: String -> String
-brightCyan'  = ifAnsi brightCyan
+brightCyan'  = ansiWrap sgrbrightcyan sgrresetfg
 
 brightWhite' :: String -> String
-brightWhite'  = ifAnsi brightWhite
+brightWhite'  = ansiWrap sgrbrightwhite sgrresetfg
 
-rgb' :: Word8 -> Word8 -> Word8 -> String -> String
-rgb' r g b  = ifAnsi (rgb r g b)
+rgb' :: Float -> Float -> Float -> String -> String
+rgb' r g b  = ansiWrap (sgrrgb r g b) sgrresetfg
 
 -- | Should ANSI color & styling be used for standard output ?
 -- Considers useColorOnHandle stdout and whether there's an --output-file.

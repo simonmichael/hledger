@@ -328,7 +328,7 @@ printCommandsList progversion installedaddons =
   seq (length $ dbg8 "installedknownaddons"   installedknownaddons)   $
   seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
   runPager $ unlines $ map unplus $ filter (not.isuninstalledaddon) $
-  commandsList progversion installedunknownaddons
+    commandsList progversion installedunknownaddons
   where
     knownaddons = knownAddonCommands
     uninstalledknownaddons  = knownaddons \\ installedaddons
