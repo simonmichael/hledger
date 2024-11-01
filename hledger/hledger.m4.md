@@ -760,22 +760,34 @@ with a `y`/`yes` or `n`/`no` value to force it on or off.
 
 #### Paging
 
-In unix-like environments, when displaying large output in the terminal,
+In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
-(Actually it does this for any output format displayed in the terminal, not just text.)
-You can prevent this with the `--pager=no` option, perhaps in your config file.
-
-It will use the pager specified by the `PAGER` environment variable,
-otherwise `less` if available, otherwise `more` if available.
-
 The pager shows one page of text at a time, and lets you scroll around to see more.
-While it is active, usually `SPACE` shows the next page, `q` quits, and `?` shows more features.
-(And in `less`, `G` jumps to the end, which is useful when you are viewing register output.)
+While it is active, usually `SPACE` shows the next page, `h` shows help, and `q` quits.
+The home/end/page up/page down/cursor keys, and mouse scrolling, may also work.
 
+hledger will use the pager specified by the `PAGER` environment variable, otherwise `less` if available, otherwise `more` if available.
 The pager is expected to display hledger's ANSI colour and text styling.
-hledger adds `R` to the `LESS` and `MORE` environment variables to enable this for `less` and its `more` compatibility mode.
-If you use a different pager, you might need to configure it similarly, to avoid seeing junk on screen.
-(Or you can disable colour, as described above.)
+(If you use a pager other than `less`, you might need to configure it to handle this.
+Or you could disable colour as described above.)
+
+If you are using the `less` pager, hledger automatically appends a number of options to
+the `LESS` variable to enable ANSI colour and a number of other conveniences.
+(At the time of writing:
+--chop-long-lines
+--hilite-unread
+--ignore-case
+--mouse
+--no-init
+--quit-at-eof
+--quit-if-one-screen
+--RAW-CONTROL-CHARS
+--shift=8
+--squeeze-blank-lines
+--use-backslash
+--use-color
+).
+If these don't work well, you can set your preferred options in the `HLEDGER_LESS` variable, which will be used instead.
 
 ### HTML output
 
@@ -958,6 +970,10 @@ These environment variables affect hledger:
 This is normally set by your terminal;
 some hledger commands (`register`) will format their output to this width.
 If not set, they will try to use the available terminal width.
+
+**HLEDGER_LESS**
+If `less` is your [pager](#paging), this variable specifies the `less` options hledger should use.
+(Otherwise, `LESS` + custom options are used.)
 
 **LEDGER_FILE**
 The main journal file to use when not specified with `-f/--file`.

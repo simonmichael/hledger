@@ -213,6 +213,11 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 --   --use-backslash
 --   --use-color
 --
+-- You can choose different options by setting the HLEDGER_LESS variable;
+-- if set, its value will be used instead of LESS.
+-- Or you can force hledger to use your exact LESS settings,
+-- by setting HLEDGER_LESS equal to LESS.
+--
 setupPager :: IO ()
 setupPager = do
   let
@@ -231,11 +236,13 @@ setupPager = do
       ,"--use-backslash"
       ,"--use-color"
       ]
-  mless <- lookupEnv "LESS"
+  mhledgerless <- lookupEnv "HLEDGER_LESS"
+  mless        <- lookupEnv "LESS"
   setEnv "LESS" $
-    case mless of
-      Just less -> unwords [less, deflessopts]
-      _         -> deflessopts
+    case (mhledgerless, mless) of
+      (Just hledgerless, _) -> hledgerless
+      (_, Just less)        -> unwords [less, deflessopts]
+      _                     -> deflessopts
 
 -- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
 -- when appropriate, otherwise printing to standard output. Uses maybePagerFor.
