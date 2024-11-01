@@ -195,33 +195,44 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
 -- Pager helpers, somewhat hledger-specific.
 
--- Configure some preferred options when viewing output with the `less` pager
--- or its `more` emulation mode.
--- If PAGER is configured to something else, this probably will have no effect.
--- The options are:
+-- Configure some preferred options for the `less` pager or its `more` emulation mode,
+-- by setting the LESS and MORE environment variables in this program's environment.
+-- If PAGER is set to something else, this probably will have no effect.
+-- This is intended to be called at program startup.
 --
--- * squash excess vertical whitespace (-s),
+-- Currently this sets a rather ambitious set of options, and overrides the user's
+-- LESS or MORE settings (appending to those variables if they are already set).
 --
--- * search case insensitively (-i),
---
--- * allow search for dollar sign and other regex metacharacters by backslash-quoting (--use-backslash),
---
--- * intepret ANSI style/colour codes (-R).
---   hledger output may contain these, if the terminal seems to support them,
---   so if a pager other than less is used, it should be configured to display them.
---   (Or they can be disabled by --color=no or NO_COLOR.)
---
--- The options are appended to the LESS and MORE environment variables in this program's environment,
--- overriding rather than replacing whatever the user may have configured there.
+--   --chop-long-lines
+--   --hilite-unread
+--   --ignore-case
+--   --mouse
+--   --no-init
+--   --quit-at-eof
+--   --quit-if-one-screen
+--   --RAW-CONTROL-CHARS
+--   --shift=8
+--   --squeeze-blank-lines
+--   --use-backslash
+--   --use-color
 --
 setupPager :: IO ()
 setupPager = do
   let
-    lessopts = unwords [  -- keep synced with doc above:
-       "-R"
-      ,"-s"
-      ,"-i"
+    -- keep synced with doc above
+    lessopts = unwords [
+       "--chop-long-lines"
+      ,"--hilite-unread"
+      ,"--ignore-case"
+      ,"--mouse"
+      ,"--no-init"
+      ,"--quit-at-eof"
+      ,"--quit-if-one-screen"
+      ,"--RAW-CONTROL-CHARS"
+      ,"--shift=8"
+      ,"--squeeze-blank-lines"
       ,"--use-backslash"
+      ,"--use-color"
       ]
     addToEnvVar var = do
       mv <- lookupEnv var
@@ -232,8 +243,14 @@ setupPager = do
   addToEnvVar "LESS"
   addToEnvVar "MORE"
 
--- | Display the given text on the terminal, trying to use a pager when appropriate,
--- otherwise printing to standard output. Uses maybePagerFor.
+-- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
+-- when appropriate, otherwise printing to standard output. Uses maybePagerFor.
+--
+-- hledger's output may contain ANSI style/color codes
+-- (if the terminal supports them and they are not disabled by --color=no or NO_COLOR),
+-- so the pager should be configured to handle these.
+-- setupPager tries to configure that automatically when using the `less` pager.
+--
 runPager :: String -> IO ()
 runPager s = do
   mpager <- maybePagerFor s
