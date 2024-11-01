@@ -109,9 +109,11 @@ runInfoForTopic tool mtopic =
 -- less with any vertical whitespace squashed, case-insensitive searching, the $ regex metacharacter accessible as \$.
 less = "less -s -i --use-backslash"
 
--- XXX should use the more robust Hledger.Utils.IO.runPager.
 -- | Display plain text help for this tool, scrolled to the given topic if any, using the users $PAGER or "less".
 -- When a topic is provided we always use less, ignoring $PAGER.
+--
+-- This is less robust than the newer Hledger.Utils.IO.runPager,
+-- but that one doesn't yet support scrolling to a topic.
 runPagerForTopic :: Tool -> Maybe Topic -> IO ()
 runPagerForTopic tool mtopic = do
   withSystemTempFile ("hledger-"++tool++".txt") $ \f h -> do

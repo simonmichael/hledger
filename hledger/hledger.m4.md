@@ -767,9 +767,11 @@ While it is active, usually `SPACE` shows the next page, `h` shows help, and `q`
 The home/end/page up/page down/cursor keys, and mouse scrolling, may also work.
 
 hledger will use the pager specified by the `PAGER` environment variable, otherwise `less` if available, otherwise `more` if available.
+(With one exception: `hledger help -p TOPIC` will always use `less`, so that it can scroll to the topic.)
+
 The pager is expected to display hledger's ANSI colour and text styling.
-(If you use a pager other than `less`, you might need to configure it to handle this.
-Or you could disable colour as described above.)
+If you see junk characters, you might need to configure your pager to handle ANSI codes.
+Or you could disable colour as described above.
 
 If you are using the `less` pager, hledger automatically appends a number of options to
 the `LESS` variable to enable ANSI colour and a number of other conveniences.
