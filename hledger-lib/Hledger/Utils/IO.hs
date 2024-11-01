@@ -195,13 +195,10 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
 -- Pager helpers, somewhat hledger-specific.
 
--- Configure some preferred options for the `less` pager or its `more` emulation mode,
--- by setting the LESS and MORE environment variables in this program's environment.
--- If PAGER is set to something else, this probably will have no effect.
--- This is intended to be called at program startup.
---
--- Currently this sets a rather ambitious set of options, and overrides the user's
--- LESS or MORE settings (appending to those variables if they are already set).
+-- Configure some preferred options for the `less` pager,
+-- by modifying the LESS environment variable in this program's environment.
+-- If you are using some other pager, this will have no effect.
+-- By default, this sets the following options, appending them to LESS's current value:
 --
 --   --chop-long-lines
 --   --hilite-unread
@@ -220,7 +217,7 @@ setupPager :: IO ()
 setupPager = do
   let
     -- keep synced with doc above
-    lessopts = unwords [
+    deflessopts = unwords [
        "--chop-long-lines"
       ,"--hilite-unread"
       ,"--ignore-case"
@@ -234,14 +231,11 @@ setupPager = do
       ,"--use-backslash"
       ,"--use-color"
       ]
-    addToEnvVar var = do
-      mv <- lookupEnv var
-      setEnv var $
-        case mv of
-          Just v  -> unwords [v, lessopts]
-          Nothing -> lessopts
-  addToEnvVar "LESS"
-  addToEnvVar "MORE"
+  mless <- lookupEnv "LESS"
+  setEnv "LESS" $
+    case mless of
+      Just less -> unwords [less, deflessopts]
+      _         -> deflessopts
 
 -- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
 -- when appropriate, otherwise printing to standard output. Uses maybePagerFor.
