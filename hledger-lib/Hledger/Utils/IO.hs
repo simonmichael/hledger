@@ -21,16 +21,27 @@ module Hledger.Utils.IO (
   pprint,
   pprint',
 
-  -- * Viewing with pager
-  setupPager,
-  runPager,
+  -- * Errors
+  error',
+  usageError,
 
-  -- * Terminal size
-  getTerminalHeightWidth,
-  getTerminalHeight,
-  getTerminalWidth,
+  -- * Time
+  getCurrentLocalTime,
+  getCurrentZonedTime,
 
-  -- * Command line arguments
+  -- * Files
+  embedFileRelative,
+  expandHomePath,
+  expandPath,
+  expandGlob,
+  sortByModTime,
+  readFileOrStdinPortably,
+  readFileStrictly,
+  readFilePortably,
+  readHandlePortably,
+  -- hereFileRelative,
+
+  -- * Command line parsing
   progArgs,
   outputFileOption,
   hasOutputFile,
@@ -40,8 +51,19 @@ module Hledger.Utils.IO (
   parseYNA,
   YNA(..),
 
-  -- * ANSI color/styles
+  -- * Terminal size
+  getTerminalHeightWidth,
+  getTerminalHeight,
+  getTerminalWidth,
+
+  -- * Pager output
+  setupPager,
+  runPager,
+
+  -- * ANSI colour/styles
+
   -- ** hledger-specific
+
   colorOption,
   useColorOnStdout,
   useColorOnStderr,
@@ -68,38 +90,20 @@ module Hledger.Utils.IO (
   rgb',
 
   -- ** Generic
-  -- XXX Types used with color/bgColor/colorB/bgColorB,
-  -- not re-exported because clashing with UIUtils:
-  -- Color(..),
-  -- ColorIntensity(..),
+
   color,
   bgColor,
   colorB,
   bgColorB,
+  -- XXX Types used with color/bgColor/colorB/bgColorB,
+  -- not re-exported because clashing with UIUtils:
+  -- Color(..),
+  -- ColorIntensity(..),
+
   terminalIsLight,
   terminalLightness,
   terminalFgColor,
   terminalBgColor,
-
-  -- * Errors
-  error',
-  usageError,
-
-  -- * Files
-  embedFileRelative,
-  expandHomePath,
-  expandPath,
-  expandGlob,
-  sortByModTime,
-  readFileOrStdinPortably,
-  readFileStrictly,
-  readFilePortably,
-  readHandlePortably,
-  -- hereFileRelative,
-
-  -- * Time
-  getCurrentLocalTime,
-  getCurrentZonedTime,
 
   )
 where
@@ -142,7 +146,9 @@ import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defau
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
 
 
--- Pretty showing/printing with pretty-simple
+
+-- Pretty showing/printing
+-- using pretty-simple
 
 -- https://hackage.haskell.org/package/pretty-simple/docs/Text-Pretty-Simple.html#t:OutputOptions
 
@@ -181,6 +187,181 @@ pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 
 -- "Avoid using pshow, pprint, dbg* in the code below to prevent infinite loops." (?)
 
+
+
+-- Errors
+
+-- | Simpler alias for errorWithoutStackTrace
+error' :: String -> a
+error' = errorWithoutStackTrace . ("Error: " <>)
+
+-- | A version of errorWithoutStackTrace that adds a usage hint.
+usageError :: String -> a
+usageError = error' . (++ " (use -h to see usage)")
+
+
+
+-- Time
+
+getCurrentLocalTime :: IO LocalTime
+getCurrentLocalTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToLocalTime tz t
+
+getCurrentZonedTime :: IO ZonedTime
+getCurrentZonedTime = do
+  t <- getCurrentTime
+  tz <- getCurrentTimeZone
+  return $ utcToZonedTime tz t
+
+
+
+-- Files
+
+-- | Expand a tilde (representing home directory) at the start of a file path.
+-- ~username is not supported. Can raise an error.
+expandHomePath :: FilePath -> IO FilePath
+expandHomePath = \case
+    ('~':'/':p)  -> (</> p) <$> getHomeDirectory
+    ('~':'\\':p) -> (</> p) <$> getHomeDirectory
+    ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
+    p            -> return p
+
+-- | Given a current directory, convert a possibly relative, possibly tilde-containing
+-- file path to an absolute one.
+-- ~username is not supported. Leaves "-" unchanged. Can raise an error.
+expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
+expandPath _ "-" = return "-"
+expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p  -- PARTIAL:
+
+-- | Like expandPath, but treats the expanded path as a glob, and returns
+-- zero or more matched absolute file paths, alphabetically sorted.
+-- Can raise an error.
+expandGlob :: FilePath -> FilePath -> IO [FilePath]
+expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
+
+-- | Given a list of existing file paths, sort them by modification time, most recent first.
+sortByModTime :: [FilePath] -> IO [FilePath]
+sortByModTime fs = do
+  ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
+  return $ map snd $ sortBy (comparing Data.Ord.Down) ftimes
+
+-- | Like readFilePortably, but read all of the file before proceeding.
+readFileStrictly :: FilePath -> IO T.Text
+readFileStrictly f = readFilePortably f >>= \t -> evaluate (T.length t) >> return t
+
+-- | Read text from a file,
+-- converting any \r\n line endings to \n,,
+-- using the system locale's text encoding,
+-- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
+readFilePortably :: FilePath -> IO T.Text
+readFilePortably f =  openFile f ReadMode >>= readHandlePortably
+
+-- | Like readFilePortably, but read from standard input if the path is "-".
+readFileOrStdinPortably :: String -> IO T.Text
+readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
+  where
+    openFileOrStdin :: String -> IOMode -> IO Handle
+    openFileOrStdin "-" _ = return stdin
+    openFileOrStdin f' m   = openFile f' m
+
+readHandlePortably :: Handle -> IO T.Text
+readHandlePortably h = do
+  hSetNewlineMode h universalNewlineMode
+  menc <- hGetEncoding h
+  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
+    hSetEncoding h utf8_bom
+  T.hGetContents h
+
+-- | Like embedFile, but takes a path relative to the package directory.
+embedFileRelative :: FilePath -> Q Exp
+embedFileRelative f = makeRelativeToProject f >>= embedStringFile
+
+-- -- | Like hereFile, but takes a path relative to the package directory.
+-- -- Similar to embedFileRelative ?
+-- hereFileRelative :: FilePath -> Q Exp
+-- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
+--   where
+--     QuasiQuoter{quoteExp=hereFileExp} = hereFile
+
+
+
+-- Command line parsing
+
+-- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
+-- If the value is missing raise an error.
+getOpt :: [String] -> IO (Maybe String)
+getOpt names = do
+  rargs <- reverse . splitFlagsAndVals <$> getArgs
+  let flags = map toFlag names
+  return $
+    case break ((`elem` flags)) rargs of
+      (_,[])        -> Nothing
+      ([],flag:_)   -> error' $ flag <> " requires a value"
+      (argsafter,_) -> Just $ last argsafter
+
+-- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
+-- into separate list items. Multiple valueless short flags joined together is not supported.
+splitFlagsAndVals :: [String] -> [String]
+splitFlagsAndVals = concatMap $
+  \case
+    a@('-':'-':_) | '=' `elem` a -> let (x,y) = break (=='=') a in [x, drop 1 y]
+    a@('-':f:_:_) | not $ f=='-' -> [take 2 a, drop 2 a]
+    a -> [a]
+
+-- | Convert a short or long flag name to a flag with leading hyphen(s).
+toFlag [c] = ['-',c]
+toFlag s   = '-':'-':s
+
+-- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
+parseYN :: String -> Bool
+parseYN s
+  | l `elem` ["y","yes","always"] = True
+  | l `elem` ["n","no","never"]   = False
+  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
+  where l = map toLower s
+
+data YNA = Yes | No | Auto deriving (Eq,Show)
+
+-- | Parse y/yes/always or n/no/never or a/auto to a YNA choice, or with any other value raise an error.
+parseYNA :: String -> YNA
+parseYNA s
+  | l `elem` ["y","yes","always"] = Yes
+  | l `elem` ["n","no","never"]   = No
+  | l `elem` ["a","auto"]         = Auto
+  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
+  where l = map toLower s
+
+-- | The command line arguments that were used at program startup.
+-- Uses unsafePerformIO.
+{-# NOINLINE progArgs #-}
+progArgs :: [String]
+progArgs = unsafePerformIO getArgs
+-- XXX While convenient, using this has the following problem:
+-- it detects flags/options/arguments from the command line, but not from a config file.
+-- Currently this affects:
+--  --debug
+--  --color
+--  the enabling of orderdates and assertions checks in journalFinalise
+-- Separate these into unsafe and safe variants and try to use the latter more
+
+outputFileOption :: IO (Maybe String)
+outputFileOption = getOpt ["output-file","o"]
+
+hasOutputFile :: IO Bool
+hasOutputFile = do
+  mv <- getOpt ["output-file","o"]
+  return $
+    case mv of
+      Nothing  -> False
+      Just "-" -> False
+      _        -> True
+
+
+
+-- Terminal size
+
 -- | An alternative to ansi-terminal's getTerminalSize, based on
 -- the more robust-looking terminal-size package.
 -- Tries to get stdout's terminal's current height and width.
@@ -196,7 +377,8 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
 
 
--- Pager helpers, somewhat hledger-specific.
+-- Pager output
+-- somewhat hledger-specific
 
 -- Configure some preferred options for the `less` pager,
 -- by modifying the LESS environment variable in this program's environment.
@@ -315,80 +497,8 @@ findPager = do
 
 
 
--- Command line parsing
-
--- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
--- If the value is missing raise an error.
-getOpt :: [String] -> IO (Maybe String)
-getOpt names = do
-  rargs <- reverse . splitFlagsAndVals <$> getArgs
-  let flags = map toFlag names
-  return $
-    case break ((`elem` flags)) rargs of
-      (_,[])        -> Nothing
-      ([],flag:_)   -> error' $ flag <> " requires a value"
-      (argsafter,_) -> Just $ last argsafter
-
--- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
--- into separate list items. Multiple valueless short flags joined together is not supported.
-splitFlagsAndVals :: [String] -> [String]
-splitFlagsAndVals = concatMap $
-  \case
-    a@('-':'-':_) | '=' `elem` a -> let (x,y) = break (=='=') a in [x, drop 1 y]
-    a@('-':f:_:_) | not $ f=='-' -> [take 2 a, drop 2 a]
-    a -> [a]
-
--- | Convert a short or long flag name to a flag with leading hyphen(s).
-toFlag [c] = ['-',c]
-toFlag s   = '-':'-':s
-
--- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
-parseYN :: String -> Bool
-parseYN s
-  | l `elem` ["y","yes","always"] = True
-  | l `elem` ["n","no","never"]   = False
-  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
-  where l = map toLower s
-
-data YNA = Yes | No | Auto deriving (Eq,Show)
-
--- | Parse y/yes/always or n/no/never or a/auto to a YNA choice, or with any other value raise an error.
-parseYNA :: String -> YNA
-parseYNA s
-  | l `elem` ["y","yes","always"] = Yes
-  | l `elem` ["n","no","never"]   = No
-  | l `elem` ["a","auto"]         = Auto
-  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
-  where l = map toLower s
-
--- | The command line arguments that were used at program startup.
--- Uses unsafePerformIO.
-{-# NOINLINE progArgs #-}
-progArgs :: [String]
-progArgs = unsafePerformIO getArgs
--- XXX While convenient, using this has the following problem:
--- it detects flags/options/arguments from the command line, but not from a config file.
--- Currently this affects:
---  --debug
---  --color
---  the enabling of orderdates and assertions checks in journalFinalise
--- Separate these into unsafe and safe variants and try to use the latter more
-
-outputFileOption :: IO (Maybe String)
-outputFileOption = getOpt ["output-file","o"]
-
-hasOutputFile :: IO Bool
-hasOutputFile = do
-  mv <- getOpt ["output-file","o"]
-  return $
-    case mv of
-      Nothing  -> False
-      Just "-" -> False
-      _        -> True
-
-
-
--- ANSI colour/style helpers. Some of these use unsafePerformIO to read info.
+-- ANSI colour/styles
+-- Some of these use unsafePerformIO to read info.
 
 -- hledger-specific:
 
@@ -541,6 +651,7 @@ bgColorB :: ColorIntensity -> Color -> WideBuilder -> WideBuilder
 bgColorB int col (WideBuilder s w) =
     WideBuilder (TB.fromString (setSGRCode [SetColor Background int col]) <> s <> TB.fromString (setSGRCode [])) w
 
+
 -- | Detect whether the terminal currently has a light background colour,
 -- if possible, using unsafePerformIO.
 -- If the terminal is transparent, its apparent light/darkness may be different.
@@ -580,101 +691,4 @@ getLayerColor' l = do
   where
     fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
     fractionalRGB (RGB r g b) = RGB (fromIntegral r / 65535) (fromIntegral g / 65535) (fromIntegral b / 65535)  -- chatgpt
-
-
-
--- Errors
-
--- | Simpler alias for errorWithoutStackTrace
-error' :: String -> a
-error' = errorWithoutStackTrace . ("Error: " <>)
-
--- | A version of errorWithoutStackTrace that adds a usage hint.
-usageError :: String -> a
-usageError = error' . (++ " (use -h to see usage)")
-
-
-
--- Files
-
--- | Expand a tilde (representing home directory) at the start of a file path.
--- ~username is not supported. Can raise an error.
-expandHomePath :: FilePath -> IO FilePath
-expandHomePath = \case
-    ('~':'/':p)  -> (</> p) <$> getHomeDirectory
-    ('~':'\\':p) -> (</> p) <$> getHomeDirectory
-    ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
-    p            -> return p
-
--- | Given a current directory, convert a possibly relative, possibly tilde-containing
--- file path to an absolute one.
--- ~username is not supported. Leaves "-" unchanged. Can raise an error.
-expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
-expandPath _ "-" = return "-"
-expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p  -- PARTIAL:
-
--- | Like expandPath, but treats the expanded path as a glob, and returns
--- zero or more matched absolute file paths, alphabetically sorted.
--- Can raise an error.
-expandGlob :: FilePath -> FilePath -> IO [FilePath]
-expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
-
--- | Given a list of existing file paths, sort them by modification time, most recent first.
-sortByModTime :: [FilePath] -> IO [FilePath]
-sortByModTime fs = do
-  ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
-  return $ map snd $ sortBy (comparing Data.Ord.Down) ftimes
-
--- | Like readFilePortably, but read all of the file before proceeding.
-readFileStrictly :: FilePath -> IO T.Text
-readFileStrictly f = readFilePortably f >>= \t -> evaluate (T.length t) >> return t
-
--- | Read text from a file,
--- converting any \r\n line endings to \n,,
--- using the system locale's text encoding,
--- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
-readFilePortably :: FilePath -> IO T.Text
-readFilePortably f =  openFile f ReadMode >>= readHandlePortably
-
--- | Like readFilePortably, but read from standard input if the path is "-".
-readFileOrStdinPortably :: String -> IO T.Text
-readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
-  where
-    openFileOrStdin :: String -> IOMode -> IO Handle
-    openFileOrStdin "-" _ = return stdin
-    openFileOrStdin f' m   = openFile f' m
-
-readHandlePortably :: Handle -> IO T.Text
-readHandlePortably h = do
-  hSetNewlineMode h universalNewlineMode
-  menc <- hGetEncoding h
-  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
-    hSetEncoding h utf8_bom
-  T.hGetContents h
-
--- | Like embedFile, but takes a path relative to the package directory.
-embedFileRelative :: FilePath -> Q Exp
-embedFileRelative f = makeRelativeToProject f >>= embedStringFile
-
--- -- | Like hereFile, but takes a path relative to the package directory.
--- -- Similar to embedFileRelative ?
--- hereFileRelative :: FilePath -> Q Exp
--- hereFileRelative f = makeRelativeToProject f >>= hereFileExp
---   where
---     QuasiQuoter{quoteExp=hereFileExp} = hereFile
-
--- Time
-
-getCurrentLocalTime :: IO LocalTime
-getCurrentLocalTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToLocalTime tz t
-
-getCurrentZonedTime :: IO ZonedTime
-getCurrentZonedTime = do
-  t <- getCurrentTime
-  tz <- getCurrentTimeZone
-  return $ utcToZonedTime tz t
-
 
