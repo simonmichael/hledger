@@ -43,13 +43,12 @@ module Hledger.Utils.IO (
 
   -- * Command line parsing
   progArgs,
-  outputFileOption,
-  hasOutputFile,
-  splitFlagsAndVals,
   getOpt,
   parseYN,
   parseYNA,
   YNA(..),
+  -- hasOutputFile,
+  -- outputFileOption,
 
   -- * Terminal size
   getTerminalHeightWidth,
@@ -289,8 +288,20 @@ embedFileRelative f = makeRelativeToProject f >>= embedStringFile
 
 -- Command line parsing
 
+-- | The program's command line arguments.
+-- Uses unsafePerformIO; tends to stick in GHCI until reloaded,
+-- and may or may not detect args provided by a hledger config file.
+{-# NOINLINE progArgs #-}
+progArgs :: [String]
+progArgs = unsafePerformIO getArgs
+-- XX currently this affects:
+--  the enabling of orderdates and assertions checks in journalFinalise
+--  a few cases involving --color (see useColorOnStdoutUnsafe)
+--  --debug
+
 -- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
 -- If the value is missing raise an error.
+-- Concatenated short flags (-a -b written as -ab) are not supported.
 getOpt :: [String] -> IO (Maybe String)
 getOpt names = do
   rargs <- reverse . splitFlagsAndVals <$> getArgs
@@ -301,8 +312,8 @@ getOpt names = do
       ([],flag:_)   -> error' $ flag <> " requires a value"
       (argsafter,_) -> Just $ last argsafter
 
--- | Given a list of arguments, split any of the form --flag=VAL or -fVAL
--- into separate list items. Multiple valueless short flags joined together is not supported.
+-- | Given a list of command line arguments, split any of the form --flag=VAL or -fVAL into two list items.
+-- Concatenated short flags (-a -b written as -ab) are not supported.
 splitFlagsAndVals :: [String] -> [String]
 splitFlagsAndVals = concatMap $
   \case
@@ -333,22 +344,8 @@ parseYNA s
   | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
   where l = map toLower s
 
--- | The command line arguments that were used at program startup.
--- Uses unsafePerformIO.
-{-# NOINLINE progArgs #-}
-progArgs :: [String]
-progArgs = unsafePerformIO getArgs
--- XXX While convenient, using this has the following problem:
--- it detects flags/options/arguments from the command line, but not from a config file.
--- Currently this affects:
---  --debug
---  --color
---  the enabling of orderdates and assertions checks in journalFinalise
--- Separate these into unsafe and safe variants and try to use the latter more
-
-outputFileOption :: IO (Maybe String)
-outputFileOption = getOpt ["output-file","o"]
-
+-- | Is there a --output-file or -o option in the command line arguments ?
+-- Uses getOpt; sticky in GHCI until reloaded, may not always be affected by a hledger config file, etc.
 hasOutputFile :: IO Bool
 hasOutputFile = do
   mv <- getOpt ["output-file","o"]
@@ -357,6 +354,11 @@ hasOutputFile = do
       Nothing  -> False
       Just "-" -> False
       _        -> True
+
+-- -- | Get the -o/--output-file option's value, if any, from the command line arguments.
+-- -- Uses getOpt; sticky in GHCI until reloaded, may not always be affected by a hledger config file, etc.
+-- outputFileOption :: IO (Maybe String)
+-- outputFileOption = getOpt ["output-file","o"]
 
 
 
@@ -465,7 +467,6 @@ runPager s = do
 -- Or INSIDE_EMACS is set, to something other than "vterm".
 -- Or the terminal's current height and width can't be detected.
 -- Or the output text is less wide and less tall than the terminal.
--- Rather than pass in a huge CliOpts, this does some redundant local parsing of command line args.
 maybePagerFor :: String -> IO (Maybe String)
 maybePagerFor output = do
   let
@@ -516,7 +517,7 @@ useColorOnHandle h = do
   return $ yna==Yes || (yna==Auto && not no_color && supports_color)
 
 -- | Should ANSI color and styles be used for standard output ?
--- Considers useColorOnHandle stdout and whether there's an --output-file option.
+-- Considers useColorOnHandle stdout and hasOutputFile.
 useColorOnStdout :: IO Bool
 useColorOnStdout = do
   nooutputfile <- not <$> hasOutputFile
@@ -528,8 +529,8 @@ useColorOnStdout = do
 useColorOnStderr :: IO Bool
 useColorOnStderr = useColorOnHandle stderr
 
--- | Like useColorOnStdout, but using unsafePerformIO. Useful eg in low-level debug code.
--- Sticky in GHCI, may not be affected by --color in a config file, etc.
+-- | Like useColorOnStdout, but using unsafePerformIO. Useful eg for low-level debug code.
+-- Sticky in GHCI until reloaded, may not always be affected by --color in a hledger config file, etc.
 useColorOnStdoutUnsafe :: Bool
 useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
 
@@ -537,12 +538,10 @@ useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
 useColorOnStderrUnsafe :: Bool
 useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
 
--- Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
+-- | Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
 -- and if so prepend and append the given SGR codes to a string.
--- Currently used in a few places (the commands list, the demo command, the recentassertions error message).
--- This tends to get stuck on or off in GHCI until reloaded,
--- respects --color on the command line if the program is compiled,
--- and ignores --color in the config file.
+-- Currently used in a few places (the commands list, the demo command, the recentassertions error message);
+-- see useColorOnStdoutUnsafe's limitations.
 ansiWrapUnsafe :: SGRString -> SGRString -> String -> String
 ansiWrapUnsafe pre post s = if useColorOnStdoutUnsafe then pre<>s<>post else s
 
