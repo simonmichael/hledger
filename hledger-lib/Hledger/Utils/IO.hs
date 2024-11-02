@@ -40,20 +40,13 @@ module Hledger.Utils.IO (
   parseYNA,
   YNA(..),
 
-  -- * ANSI color
+  -- * ANSI color/styles
+  -- ** hledger-specific
+  colorOption,
   useColorOnStdout,
   useColorOnStderr,
-  colorOption,
   useColorOnStdoutUnsafe,
   useColorOnStderrUnsafe,
-  -- XXX needed for using color/bgColor/colorB/bgColorB, but clashing with UIUtils:
-  -- Color(..),
-  -- ColorIntensity(..),
-  color,
-  bgColor,
-  colorB,
-  bgColorB,
-  --
   bold',
   faint',
   black',
@@ -73,6 +66,16 @@ module Hledger.Utils.IO (
   brightCyan',
   brightWhite',
   rgb',
+
+  -- ** Generic
+  -- XXX Types used with color/bgColor/colorB/bgColorB,
+  -- not re-exported because clashing with UIUtils:
+  -- Color(..),
+  -- ColorIntensity(..),
+  color,
+  bgColor,
+  colorB,
+  bgColorB,
   terminalIsLight,
   terminalLightness,
   terminalFgColor,
@@ -358,8 +361,6 @@ parseYNA s
   | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
   where l = map toLower s
 
--- Command line arguments
-
 -- | The command line arguments that were used at program startup.
 -- Uses unsafePerformIO.
 {-# NOINLINE progArgs #-}
@@ -385,16 +386,55 @@ hasOutputFile = do
       Just "-" -> False
       _        -> True
 
--- ANSI colour
+
+
+-- ANSI colour/style helpers. Some of these use unsafePerformIO to read info.
+
+-- hledger-specific:
+
+-- | Get the value of the rightmost --color or --colour option from the program's command line arguments.
+colorOption :: IO YNA
+colorOption = maybe Auto parseYNA <$> getOpt ["color","colour"]
+
+-- | Should ANSI color and styles be used with this output handle ?
+-- Considers colorOption, the NO_COLOR environment variable, and hSupportsANSIColor.
+useColorOnHandle :: Handle -> IO Bool
+useColorOnHandle h = do
+  no_color       <- isJust <$> lookupEnv "NO_COLOR"
+  supports_color <- hSupportsANSIColor h
+  yna            <- colorOption
+  return $ yna==Yes || (yna==Auto && not no_color && supports_color)
+
+-- | Should ANSI color and styles be used for standard output ?
+-- Considers useColorOnHandle stdout and whether there's an --output-file option.
+useColorOnStdout :: IO Bool
+useColorOnStdout = do
+  nooutputfile <- not <$> hasOutputFile
+  usecolor <- useColorOnHandle stdout
+  return $ nooutputfile && usecolor
+
+-- | Should ANSI color and styles be used for standard error output ?
+-- Considers useColorOnHandle stderr; is not affected by an --output-file option.
+useColorOnStderr :: IO Bool
+useColorOnStderr = useColorOnHandle stderr
+
+-- | Like useColorOnStdout, but using unsafePerformIO. Useful eg in low-level debug code.
+-- Sticky in GHCI, may not be affected by --color in a config file, etc.
+useColorOnStdoutUnsafe :: Bool
+useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
+
+-- | Like useColorOnStdoutUnsafe, but for stderr.
+useColorOnStderrUnsafe :: Bool
+useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
 
 -- Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
 -- and if so prepend and append the given SGR codes to a string.
--- Currently used in a few places (eg: the commands list, the demo command, the recentassertions error message.)
--- This tends to get stuck on or off in GHCI,
--- respects the command line --color if compiled,
--- and ignores the config file.
-ansiWrap :: SGRString -> SGRString -> String -> String
-ansiWrap pre post s = if useColorOnStdoutUnsafe then pre<>s<>post else s
+-- Currently used in a few places (the commands list, the demo command, the recentassertions error message).
+-- This tends to get stuck on or off in GHCI until reloaded,
+-- respects --color on the command line if the program is compiled,
+-- and ignores --color in the config file.
+ansiWrapUnsafe :: SGRString -> SGRString -> String -> String
+ansiWrapUnsafe pre post s = if useColorOnStdoutUnsafe then pre<>s<>post else s
 
 type SGRString = String
 
@@ -422,106 +462,63 @@ sgrrgb r g b     = setSGRCode [SetRGBColor Foreground $ sRGB r g b]
 
 -- | Set various ANSI styles/colours in a string, only if useColorOnStdoutUnsafe says we should.
 bold' :: String -> String
-bold'  = ansiWrap sgrbold sgrnormal
+bold'  = ansiWrapUnsafe sgrbold sgrnormal
 
 faint' :: String -> String
-faint'  = ansiWrap sgrfaint sgrnormal
+faint'  = ansiWrapUnsafe sgrfaint sgrnormal
 
 black' :: String -> String
-black'  = ansiWrap sgrblack sgrresetfg
+black'  = ansiWrapUnsafe sgrblack sgrresetfg
 
 red' :: String -> String
-red'  = ansiWrap sgrred sgrresetfg
+red'  = ansiWrapUnsafe sgrred sgrresetfg
 
 green' :: String -> String
-green'  = ansiWrap sgrgreen sgrresetfg
+green'  = ansiWrapUnsafe sgrgreen sgrresetfg
 
 yellow' :: String -> String
-yellow'  = ansiWrap sgryellow sgrresetfg
+yellow'  = ansiWrapUnsafe sgryellow sgrresetfg
 
 blue' :: String -> String
-blue'  = ansiWrap sgrblue sgrresetfg
+blue'  = ansiWrapUnsafe sgrblue sgrresetfg
 
 magenta' :: String -> String
-magenta'  = ansiWrap sgrmagenta sgrresetfg
+magenta'  = ansiWrapUnsafe sgrmagenta sgrresetfg
 
 cyan' :: String -> String
-cyan'  = ansiWrap sgrcyan sgrresetfg
+cyan'  = ansiWrapUnsafe sgrcyan sgrresetfg
 
 white' :: String -> String
-white'  = ansiWrap sgrwhite sgrresetfg
+white'  = ansiWrapUnsafe sgrwhite sgrresetfg
 
 brightBlack' :: String -> String
-brightBlack'  = ansiWrap sgrbrightblack sgrresetfg
+brightBlack'  = ansiWrapUnsafe sgrbrightblack sgrresetfg
 
 brightRed' :: String -> String
-brightRed'  = ansiWrap sgrbrightred sgrresetfg
+brightRed'  = ansiWrapUnsafe sgrbrightred sgrresetfg
 
 brightGreen' :: String -> String
-brightGreen'  = ansiWrap sgrbrightgreen sgrresetfg
+brightGreen'  = ansiWrapUnsafe sgrbrightgreen sgrresetfg
 
 brightYellow' :: String -> String
-brightYellow'  = ansiWrap sgrbrightyellow sgrresetfg
+brightYellow'  = ansiWrapUnsafe sgrbrightyellow sgrresetfg
 
 brightBlue' :: String -> String
-brightBlue'  = ansiWrap sgrbrightblue sgrresetfg
+brightBlue'  = ansiWrapUnsafe sgrbrightblue sgrresetfg
 
 brightMagenta' :: String -> String
-brightMagenta'  = ansiWrap sgrbrightmagenta sgrresetfg
+brightMagenta'  = ansiWrapUnsafe sgrbrightmagenta sgrresetfg
 
 brightCyan' :: String -> String
-brightCyan'  = ansiWrap sgrbrightcyan sgrresetfg
+brightCyan'  = ansiWrapUnsafe sgrbrightcyan sgrresetfg
 
 brightWhite' :: String -> String
-brightWhite'  = ansiWrap sgrbrightwhite sgrresetfg
+brightWhite'  = ansiWrapUnsafe sgrbrightwhite sgrresetfg
 
 rgb' :: Float -> Float -> Float -> String -> String
-rgb' r g b  = ansiWrap (sgrrgb r g b) sgrresetfg
+rgb' r g b  = ansiWrapUnsafe (sgrrgb r g b) sgrresetfg
 
--- | Should ANSI color & styling be used for standard output ?
--- Considers useColorOnHandle stdout and whether there's an --output-file.
-useColorOnStdout :: IO Bool
-useColorOnStdout = do
-  nooutputfile <- not <$> hasOutputFile
-  usecolor <- useColorOnHandle stdout
-  return $ nooutputfile && usecolor
-
--- traceWith (("USE COLOR ON STDOUT: "<>).show) <$> 
-
-useColorOnStderr :: IO Bool
-useColorOnStderr = useColorOnHandle stderr
-
--- | Should ANSI color & styling be used with this output handle ?
--- Considers hSupportsANSIColor stdout, whether NO_COLOR is defined,
--- and the rightmost --color option.
-useColorOnHandle :: Handle -> IO Bool
-useColorOnHandle h = do
-  no_color       <- isJust <$> lookupEnv "NO_COLOR"
-  supports_color <- hSupportsANSIColor h
-  yna            <- colorOption
-  return $ yna==Yes || (yna==Auto && not no_color && supports_color)
-
-colorOption :: IO YNA
-colorOption = maybe Auto parseYNA <$> getOpt ["color","colour"]
-
--- | Check the IO environment to see if ANSI colour codes should be used on stdout.
--- This is done using unsafePerformIO so it can be used anywhere, eg in
--- low-level debug utilities, which should be ok since we are just reading.
--- The logic is: use color if
--- the program was started with --color=yes|always
--- or (
---   the program was not started with --color=no|never
---   and a NO_COLOR environment variable is not defined
---   and stdout supports ANSI color
---   and -o/--output-file was not used, or its value is "-"
--- ).
-useColorOnStdoutUnsafe :: Bool
-useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
-
--- | Like useColorOnStdoutUnsafe, but checks for ANSI color support on stderr,
--- and is not affected by -o/--output-file.
-useColorOnStderrUnsafe :: Bool
-useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
+-- Generic:
 
 -- | Wrap a string in ANSI codes to set and reset foreground colour.
 -- ColorIntensity is @Dull@ or @Vivid@ (ie normal and bold).
@@ -568,7 +565,7 @@ terminalFgColor = terminalColor Foreground
 terminalColor :: ConsoleLayer -> Maybe (RGB Float)
 terminalColor = unsafePerformIO . getLayerColor'
 
--- A version of getLayerColor that is less likely to leak escape sequences to output,
+-- A version of ansi-terminal's getLayerColor that is less likely to leak escape sequences to output,
 -- and that returns a RGB of Floats (0..1) that is more compatible with the colour package.
 -- This does nothing in a non-interactive context (eg when piping stdout to another command),
 -- inside emacs (emacs shell buffers show the escape sequence for some reason),
@@ -584,6 +581,8 @@ getLayerColor' l = do
     fractionalRGB :: (Fractional a) => RGB Word16 -> RGB a
     fractionalRGB (RGB r g b) = RGB (fromIntegral r / 65535) (fromIntegral g / 65535) (fromIntegral b / 65535)  -- chatgpt
 
+
+
 -- Errors
 
 -- | Simpler alias for errorWithoutStackTrace
@@ -593,6 +592,8 @@ error' = errorWithoutStackTrace . ("Error: " <>)
 -- | A version of errorWithoutStackTrace that adds a usage hint.
 usageError :: String -> a
 usageError = error' . (++ " (use -h to see usage)")
+
+
 
 -- Files
 
