@@ -1,12 +1,7 @@
 {- | 
-Helpers for pretty-printing haskell values, reading command line arguments,
-working with ANSI colours, files, and time.
-Uses unsafePerformIO.
-
-Limitations:
-When running in GHCI, this module must be reloaded to see environmental changes.
-The colour scheme may be somewhat hard-coded.
-
+General and hledger-specific input/output-related helpers for
+pretty-printing haskell values, error reporting, time, files, command line parsing,
+terminals, pager output, ANSI colour/styles, etc.
 -}
 
 {-# LANGUAGE LambdaCase          #-}
@@ -158,7 +153,6 @@ prettyopts =
     -- , outputOptionsCompact      = True  -- fills lines, but does not respect page width (https://github.com/cdepillabout/pretty-simple/issues/126)
     -- , outputOptionsPageWidth    = fromMaybe 80 $ unsafePerformIO getTerminalWidth
     }
--- XXX unsafe detection of color option for debug output, does not respect config file (perhaps evaluated before withArgs ?)
 
 -- | pretty-simple options with colour disabled.
 prettyoptsNoColor =
