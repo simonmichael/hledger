@@ -160,7 +160,6 @@ library
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
-    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -221,7 +220,6 @@ test-suite doctest
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
-    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -284,7 +282,6 @@ test-suite unittest
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
-    , text-ansi >=0.2.1
     , time >=1.5
     , timeit
     , transformers >=0.2
