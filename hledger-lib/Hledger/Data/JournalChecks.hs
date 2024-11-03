@@ -77,44 +77,53 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
 journalCheckBalanceAssertions :: Journal -> Either String ()
 journalCheckBalanceAssertions = fmap (const ()) . journalBalanceTransactions defbalancingopts
 
--- | Check that all the commodities used in this journal's postings have been declared
--- by commodity directives, returning an error message otherwise.
+-- | Check that all the commodities used in this journal's postings and P directives
+-- have been declared by commodity directives, returning an error message otherwise.
 journalCheckCommodities :: Journal -> Either String ()
-journalCheckCommodities j = mapM_ checkcommodities (journalPostings j)
+journalCheckCommodities j = do
+  mapM_ checkPriceDirectiveCommodities $ jpricedirectives j
+  mapM_ checkPostingCommodities $ journalPostings j
   where
-    checkcommodities p =
-      case findundeclaredcomm p of
-        Nothing -> Right ()
-        Just (comm, _) ->
-          Left $ printf (unlines [
-           "%s:%d:"
-          ,"%s"
-          ,"Strict commodity checking is enabled, and"
-          ,"commodity %s has not been declared."
-          ,"Consider adding a commodity directive. Examples:"
-          ,""
-          ,"commodity %s1000.00"
-          ,"commodity 1.000,00 %s"
-          ]) f l ex (show comm) comm comm
+    firstUndeclaredOf comms = find (`M.notMember` jcommodities j) comms
+
+    errmsg = unlines [
+        "%s:%d:"
+      ,"%s"
+      ,"Strict commodity checking is enabled, and"
+      ,"commodity %s has not been declared."
+      ,"Consider adding a commodity directive. Examples:"
+      ,""
+      ,"commodity %s1000.00"
+      ,"commodity 1.000,00 %s"
+      ]
+
+    checkPriceDirectiveCommodities pd@PriceDirective{pdcommodity=c, pdamount=amt} =
+      case firstUndeclaredOf [c, acommodity amt] of
+        Nothing   -> Right ()
+        Just comm -> Left $ printf errmsg f l ex (show comm) comm comm
+          where (f,l,_mcols,ex) = makePriceDirectiveErrorExcerpt pd Nothing
+
+    checkPostingCommodities p =
+      case firstundeclaredcomm p of
+        Nothing                    -> Right ()
+        Just (comm, _inpostingamt) -> Left $ printf errmsg f l ex (show comm) comm comm
           where
             (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
       where
-        -- Find the first undeclared commodity symbol in this posting's amount
-        -- or balance assertion amount, if any. The boolean will be true if
-        -- the undeclared symbol was in the posting amount.
-        findundeclaredcomm :: Posting -> Maybe (CommoditySymbol, Bool)
-        findundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
-          case (findundeclared postingcomms, findundeclared assertioncomms) of
+        -- Find the first undeclared commodity symbol in this posting's amount or balance assertion amount, if any.
+        -- and whether it was in the posting amount.
+        -- XXX The latter is currently unused, could be used to refine the error highlighting ?
+        firstundeclaredcomm :: Posting -> Maybe (CommoditySymbol, Bool)
+        firstundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
+          case (firstUndeclaredOf postingcomms, firstUndeclaredOf assertioncomms) of
             (Just c, _) -> Just (c, True)
             (_, Just c) -> Just (c, False)
             _           -> Nothing
           where
+            assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
             postingcomms = map acommodity $ filter (not . isIgnorable) $ amountsRaw amt
               where
-                -- Ignore missing amounts and zero amounts without commodity (#1767)
-                isIgnorable a = (T.null (acommodity a) && amountIsZero a) || a == missingamt
-            assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
-            findundeclared = find (`M.notMember` jcommodities j)
+                isIgnorable a = a==missingamt || (amountIsZero a && T.null (acommodity a))  -- #1767
 
         -- Calculate columns suitable for highlighting the excerpt.
         -- We won't show these in the main error line as they aren't

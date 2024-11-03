@@ -7,6 +7,7 @@ Helpers for making error messages.
 
 module Hledger.Data.Errors (
   makeAccountTagErrorExcerpt,
+  makePriceDirectiveErrorExcerpt,
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
   makePostingAccountErrorExcerpt,
@@ -27,6 +28,9 @@ import Hledger.Utils
 import Data.Maybe
 import Safe (headMay)
 import Hledger.Data.Posting (isVirtual)
+import Hledger.Data.Dates (showDate)
+import Hledger.Data.Amount (showCommoditySymbol, showAmount)
+
 
 -- | Given an account name and its account directive, and a problem tag within the latter:
 -- render it as a megaparsec-style excerpt, showing the original line number and
@@ -38,10 +42,10 @@ makeAccountTagErrorExcerpt :: (AccountName, AccountDeclarationInfo) -> TagName -
 makeAccountTagErrorExcerpt (a, adi) _t = (f, l, merrcols, ex)
   -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
   where
-    (SourcePos f pos _) = adisourcepos adi
+    SourcePos f pos _ = adisourcepos adi
     l = unPos pos
     txt   = showAccountDirective (a, adi) & textChomp & (<>"\n")
-    ex = decorateTagErrorExcerpt l merrcols txt
+    ex = decorateExcerpt l merrcols txt
     -- Calculate columns which will help highlight the region in the excerpt
     -- (but won't exactly match the real data, so won't be shown in the main error line)
     merrcols = Nothing
@@ -55,9 +59,10 @@ showAccountDirective (a, AccountDeclarationInfo{..}) =
   "account " <> a
   <> (if not $ T.null adicomment then "    ; " <> adicomment else "")
 
--- | Add megaparsec-style left margin, line number, and optional column marker(s).
-decorateTagErrorExcerpt :: Int -> Maybe (Int, Maybe Int) -> Text -> Text
-decorateTagErrorExcerpt l mcols txt =
+-- | Decorate a data excerpt with megaparsec-style left margin, line number,
+-- and marker/underline for the column(s) if known, for inclusion in an error message.
+decorateExcerpt :: Int -> Maybe (Int, Maybe Int) -> Text -> Text
+decorateExcerpt l mcols txt =
   T.unlines $ ls' <> colmarkerline <> map (lineprefix<>) ms
   where
     (ls,ms) = splitAt 1 $ T.lines txt
@@ -70,7 +75,27 @@ decorateTagErrorExcerpt l mcols txt =
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show l) + 1
 
-_showAccountDirective = undefined
+-- | Given a problem price directive,
+-- and maybe a function to calculate the error region's column(s) (currently ignored):
+-- generate a megaparsec-style error message with highlighted excerpt.
+-- Returns the source file path, line number, column(s) if known, and the rendered excerpt,
+-- or as much of these as possible.
+-- Columns will be accurate for the rendered error message, not for the original journal entry.
+makePriceDirectiveErrorExcerpt :: PriceDirective -> Maybe (PriceDirective -> Text -> Maybe (Int, Maybe Int)) -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePriceDirectiveErrorExcerpt pd _finderrorcolumns = (file, line, merrcols, excerpt)
+  where
+    SourcePos file pos _ = pdsourcepos pd
+    line = unPos pos
+    merrcols = Nothing
+    excerpt = decorateExcerpt line merrcols $ showPriceDirective pd <> "\n"
+
+showPriceDirective :: PriceDirective -> Text
+showPriceDirective PriceDirective{..} = T.unwords [
+   "P"
+  ,showDate pddate
+  ,showCommoditySymbol pdcommodity
+  ,T.pack $ showAmount pdamount 
+  ]
 
 -- | Given a problem transaction and a function calculating the best
 -- column(s) for marking the error region:
@@ -83,7 +108,7 @@ makeTransactionErrorExcerpt :: Transaction -> (Transaction -> Maybe (Int, Maybe 
 makeTransactionErrorExcerpt t findtxnerrorcolumns = (f, tl, merrcols, ex)
   -- XXX findtxnerrorcolumns is awkward, I don't think this is the final form
   where
-    (SourcePos f tpos _) = fst $ tsourcepos t
+    SourcePos f tpos _ = fst $ tsourcepos t
     tl = unPos tpos
     txntxt = showTransaction t & textChomp & (<>"\n")
     merrcols = findtxnerrorcolumns t
