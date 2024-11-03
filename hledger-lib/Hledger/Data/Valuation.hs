@@ -119,7 +119,7 @@ amountPriceDirectiveFromCost d amt@Amount{acommodity=fromcomm, aquantity=n} = ca
       where u = amountSetFullPrecisionUpTo Nothing $ divideAmount n t
     _                            -> Nothing
   where
-    pd = PriceDirective{pddate = d, pdcommodity = fromcomm, pdamount = nullamt}
+    pd = PriceDirective{pdsourcepos=nullsourcepos, pddate=d, pdcommodity=fromcomm, pdamount=nullamt}
 
 ------------------------------------------------------------------------------
 -- Converting things to value

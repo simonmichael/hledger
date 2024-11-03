@@ -552,7 +552,8 @@ data TimeclockEntry = TimeclockEntry {
 -- It declares two things: a historical exchange rate between two commodities,
 -- and an amount display style for the second commodity.
 data PriceDirective = PriceDirective {
-   pddate      :: Day
+   pdsourcepos :: SourcePos
+  ,pddate      :: Day
   ,pdcommodity :: CommoditySymbol
   ,pdamount    :: Amount
   } deriving (Eq,Ord,Generic,Show)

@@ -671,6 +671,7 @@ defaultcommoditydirectivep = do
 
 marketpricedirectivep :: JournalParser m PriceDirective
 marketpricedirectivep = do
+  pos <- getSourcePos
   char 'P' <?> "market price"
   lift skipNonNewlineSpaces
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
@@ -679,7 +680,7 @@ marketpricedirectivep = do
   lift skipNonNewlineSpaces
   price <- amountp
   lift restofline
-  return $ PriceDirective date symbol price
+  return $ PriceDirective pos date symbol price
 
 ignoredpricecommoditydirectivep :: JournalParser m ()
 ignoredpricecommoditydirectivep = do
@@ -1145,6 +1146,7 @@ tests_JournalReader = testGroup "JournalReader" [
   ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep
     "P 2017/01/30 BTC $922.83\n"
     PriceDirective{
+      pdsourcepos = nullsourcepos,
       pddate      = fromGregorian 2017 1 30,
       pdcommodity = "BTC",
       pdamount    = usd 922.83
