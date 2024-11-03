@@ -406,9 +406,13 @@ showJournalAmountsDebug = show.map showMixedAmountOneLine.journalPostingAmounts
 journalCommoditiesDeclared :: Journal -> [CommoditySymbol]
 journalCommoditiesDeclared = M.keys . jdeclaredcommodities
 
--- | Sorted unique commodity symbols declared or inferred from this journal.
+-- | Sorted unique commodity symbols mentioned in this journal.
 journalCommodities :: Journal -> S.Set CommoditySymbol
-journalCommodities j = M.keysSet (jdeclaredcommodities j) <> M.keysSet (jinferredcommoditystyles j)
+journalCommodities j =
+     M.keysSet (jdeclaredcommodities j)
+  <> M.keysSet (jinferredcommoditystyles j)
+  <> S.fromList (concatMap pdcommodities $ jpricedirectives j)
+      where pdcommodities pd = [pdcommodity pd, acommodity $ pdamount pd]
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
@@ -901,8 +905,7 @@ journalCommodityStylesWith :: Rounding -> Journal -> M.Map CommoditySymbol Amoun
 journalCommodityStylesWith r = amountStylesSetRounding r . journalCommodityStyles
 
 -- | Collect and save inferred amount styles for each commodity based on
--- the posting amounts in that commodity (excluding price amounts), ie:
--- "the format of the first amount, adjusted to the highest precision of all amounts".
+-- the posting amounts in that commodity (excluding price amounts).
 -- Can return an error message eg if inconsistent number formats are found.
 journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
