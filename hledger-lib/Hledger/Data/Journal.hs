@@ -205,7 +205,7 @@ journalDbg j@Journal{..} = chomp $ unlines $
   ,"jdeclaredaccounttypes: "     <> shw jdeclaredaccounttypes
   ,"jaccounttypes: "             <> shw jaccounttypes
   ,"jglobalcommoditystyles: "    <> shw jglobalcommoditystyles
-  ,"jcommodities: "              <> shw jcommodities
+  ,"jdeclaredcommodities: "              <> shw jdeclaredcommodities
   ,"jinferredcommoditystyles: "      <> shw jinferredcommoditystyles
   ,"jpricedirectives: "          <> shw jpricedirectives
   ,"jinferredmarketprices: "     <> shw jinferredmarketprices
@@ -279,8 +279,8 @@ journalConcat j1 j2 =
     -- ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle
     ,jglobalcommoditystyles     = (<>) (jglobalcommoditystyles j1) (jglobalcommoditystyles j2)
     --
-    -- ,jcommodities           :: M.Map CommoditySymbol Commodity
-    ,jcommodities               = (<>) (jcommodities j1) (jcommodities j2)
+    -- ,jdeclaredcommodities           :: M.Map CommoditySymbol Commodity
+    ,jdeclaredcommodities               = (<>) (jdeclaredcommodities j1) (jdeclaredcommodities j2)
     --
     -- ,jinferredcommoditystyles   :: M.Map CommoditySymbol AmountStyle
     ,jinferredcommoditystyles       = (<>) (jinferredcommoditystyles j1) (jinferredcommoditystyles j2)
@@ -343,7 +343,7 @@ nulljournal = Journal {
   ,jdeclaredaccounttypes      = M.empty
   ,jaccounttypes              = M.empty
   ,jglobalcommoditystyles     = M.empty
-  ,jcommodities               = M.empty
+  ,jdeclaredcommodities               = M.empty
   ,jinferredcommoditystyles       = M.empty
   ,jpricedirectives           = []
   ,jinferredmarketprices      = []
@@ -404,11 +404,11 @@ showJournalAmountsDebug = show.map showMixedAmountOneLine.journalPostingAmounts
 
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
 journalCommoditiesDeclared :: Journal -> [CommoditySymbol]
-journalCommoditiesDeclared = M.keys . jcommodities
+journalCommoditiesDeclared = M.keys . jdeclaredcommodities
 
 -- | Sorted unique commodity symbols declared or inferred from this journal.
 journalCommodities :: Journal -> S.Set CommoditySymbol
-journalCommodities j = M.keysSet (jcommodities j) <> M.keysSet (jinferredcommoditystyles j)
+journalCommodities j = M.keysSet (jdeclaredcommodities j) <> M.keysSet (jinferredcommoditystyles j)
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
@@ -891,7 +891,7 @@ journalCommodityStyles j =
   globalstyles <> declaredstyles <> defaultcommoditystyle <> inferredstyles
   where
     globalstyles          = jglobalcommoditystyles j
-    declaredstyles        = M.mapMaybe cformat $ jcommodities j
+    declaredstyles        = M.mapMaybe cformat $ jdeclaredcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommoditystyles j
 

@@ -84,7 +84,7 @@ journalCheckCommodities j = do
   mapM_ checkPriceDirectiveCommodities $ jpricedirectives j
   mapM_ checkPostingCommodities $ journalPostings j
   where
-    firstUndeclaredOf comms = find (`M.notMember` jcommodities j) comms
+    firstUndeclaredOf comms = find (`M.notMember` jdeclaredcommodities j) comms
 
     errmsg = unlines [
         "%s:%d:"

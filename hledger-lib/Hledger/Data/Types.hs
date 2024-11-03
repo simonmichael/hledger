@@ -596,8 +596,8 @@ data Journal = Journal {
   ,jdeclaredaccounttags   :: M.Map AccountName [Tag]                -- ^ Accounts which have tags declared in their directives, and those tags. (Does not include parents' tags.)
   ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been explicitly declared in their account directives, grouped by type.
   ,jaccounttypes          :: M.Map AccountName AccountType          -- ^ All accounts for which a type has been declared or can be inferred from its parent or its name.
-  ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, eg by command line option or import command
-  ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
+  ,jdeclaredcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities (and display styles) declared by commodity directives
+  ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, usually by command line options (see also the import command)
   ,jinferredcommoditystyles :: M.Map CommoditySymbol AmountStyle    -- ^ commodity styles inferred from journal amounts
   ,jpricedirectives       :: [PriceDirective]                       -- ^ Declarations of market prices by P directives, in parse order (after journal finalisation)
   ,jinferredmarketprices  :: [MarketPrice]                          -- ^ Market prices implied by transactions, in parse order (after journal finalisation)

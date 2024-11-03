@@ -436,8 +436,8 @@ getDefaultAmountStyle = fmap snd <$> getDefaultCommodityAndStyle
 -- prior to the current position) commodity directive for the given commodity, if any.
 getAmountStyle :: CommoditySymbol -> JournalParser m (Maybe AmountStyle)
 getAmountStyle commodity = do
-  Journal{jcommodities} <- get
-  let mspecificStyle = M.lookup commodity jcommodities >>= cformat
+  Journal{jdeclaredcommodities} <- get
+  let mspecificStyle = M.lookup commodity jdeclaredcommodities >>= cformat
   mdefaultStyle <- fmap snd <$> getDefaultCommodityAndStyle
   return $ listToMaybe $ catMaybes [mspecificStyle, mdefaultStyle]
 

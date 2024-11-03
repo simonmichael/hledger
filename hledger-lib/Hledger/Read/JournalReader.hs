@@ -374,7 +374,7 @@ includedirectivep = do
       ,jparseparentaccounts   = jparseparentaccounts j
       ,jparsedecimalmark      = jparsedecimalmark j
       ,jparsealiases          = jparsealiases j
-      ,jcommodities           = jcommodities j
+      ,jdeclaredcommodities           = jdeclaredcommodities j
       -- ,jparsetransactioncount = jparsetransactioncount j
       ,jparsetimeclockentries = jparsetimeclockentries j
       ,jincludefilestack      = filepath : jincludefilestack j
@@ -509,7 +509,7 @@ commoditydirectiveonelinep = do
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-  else modify' (\j -> j{jcommodities=M.insert acommodity comm $ jcommodities j})
+  else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j})
 
 pleaseincludedecimalpoint :: String
 pleaseincludedecimalpoint = chomp $ unlines [
@@ -535,7 +535,7 @@ commoditydirectivemultilinep = do
   subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
   let mfmt = lastMay $ lefts subdirectives
   let comm = Commodity{csymbol=sym, cformat=mfmt}
-  modify' (\j -> j{jcommodities=M.insert sym comm $ jcommodities j})
+  modify' (\j -> j{jdeclaredcommodities=M.insert sym comm $ jdeclaredcommodities j})
   where
     indented = (lift skipNonNewlineSpaces1 >>)
 
