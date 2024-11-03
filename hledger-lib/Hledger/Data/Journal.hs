@@ -204,9 +204,9 @@ journalDbg j@Journal{..} = chomp $ unlines $
   ,"jdeclaredaccounttags: "      <> shw jdeclaredaccounttags
   ,"jdeclaredaccounttypes: "     <> shw jdeclaredaccounttypes
   ,"jaccounttypes: "             <> shw jaccounttypes
+  ,"jdeclaredcommodities: "      <> shw jdeclaredcommodities
+  ,"jinferredcommoditystyles: "  <> shw jinferredcommoditystyles
   ,"jglobalcommoditystyles: "    <> shw jglobalcommoditystyles
-  ,"jdeclaredcommodities: "              <> shw jdeclaredcommodities
-  ,"jinferredcommoditystyles: "      <> shw jinferredcommoditystyles
   ,"jpricedirectives: "          <> shw jpricedirectives
   ,"jinferredmarketprices: "     <> shw jinferredmarketprices
   ,"jtxnmodifiers: "             <> shw jtxnmodifiers

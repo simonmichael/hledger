@@ -569,48 +569,47 @@ data MarketPrice = MarketPrice {
 
 -- additional valuation-related types in Valuation.hs
 
--- | A Journal, containing transactions and various other things.
--- The basic data model for hledger.
+-- | A journal, containing general ledger transactions; also directives and various other things.
+-- This is hledger's main data model.
 --
--- This is used during parsing (as the type alias ParsedJournal), and
--- then finalised/validated for use as a Journal. Some extra
--- parsing-related fields are included for convenience, at least for
--- now. In a ParsedJournal these are updated as parsing proceeds, in a
--- Journal they represent the final state at end of parsing (used eg
--- by the add command).
+-- During parsing, it is used as the type alias "ParsedJournal".
+-- The jparse* fields are mainly used during parsing and included here for convenience.
+-- The list fields described as "in parse order" are usually reversed for efficiency during parsing.
+-- After parsing, "journalFinalise" converts ParsedJournal to a finalised "Journal",
+-- which has all lists correctly ordered, and much data inference and validation applied.
 --
 data Journal = Journal {
-  -- parsing-related data
-   jparsedefaultyear      :: Maybe Year                            -- ^ the current default year, specified by the most recent Y directive (or current date)
-  ,jparsedefaultcommodity :: Maybe (CommoditySymbol,AmountStyle)   -- ^ the current default commodity and its format, specified by the most recent D directive
-  ,jparsedecimalmark      :: Maybe DecimalMark                     -- ^ the character to always parse as decimal point, if set by CsvReader's decimal-mark (or a future journal directive)
-  ,jparseparentaccounts   :: [AccountName]                         -- ^ the current stack of parent account names, specified by apply account directives
-  ,jparsealiases          :: [AccountAlias]                        -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
+  -- parsing-related state
+   jparsedefaultyear        :: Maybe Year                             -- ^ the current default year, specified by the most recent Y directive (or current date)
+  ,jparsedefaultcommodity   :: Maybe (CommoditySymbol,AmountStyle)    -- ^ the current default commodity and its format, specified by the most recent D directive
+  ,jparsedecimalmark        :: Maybe DecimalMark                      -- ^ the character to always parse as decimal point, if set by CsvReader's decimal-mark (or a future journal directive)
+  ,jparseparentaccounts     :: [AccountName]                          -- ^ the current stack of parent account names, specified by apply account directives
+  ,jparsealiases            :: [AccountAlias]                         -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
-  ,jparsetimeclockentries :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
-  ,jincludefilestack      :: [FilePath]
+  ,jparsetimeclockentries   :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
+  ,jincludefilestack        :: [FilePath]
   -- principal data
-  ,jdeclaredpayees        :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order (after journal finalisation)
-  ,jdeclaredtags          :: [(TagName,TagDeclarationInfo)]         -- ^ Tags declared by tag directives, in parse order (after journal finalisation)
-  ,jdeclaredaccounts      :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order (after journal finalisation)
-  ,jdeclaredaccounttags   :: M.Map AccountName [Tag]                -- ^ Accounts which have tags declared in their directives, and those tags. (Does not include parents' tags.)
-  ,jdeclaredaccounttypes  :: M.Map AccountType [AccountName]        -- ^ Accounts whose type has been explicitly declared in their account directives, grouped by type.
-  ,jaccounttypes          :: M.Map AccountName AccountType          -- ^ All accounts for which a type has been declared or can be inferred from its parent or its name.
-  ,jdeclaredcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities (and display styles) declared by commodity directives
-  ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, usually by command line options (see also the import command)
-  ,jinferredcommoditystyles :: M.Map CommoditySymbol AmountStyle    -- ^ commodity styles inferred from journal amounts
-  ,jpricedirectives       :: [PriceDirective]                       -- ^ Declarations of market prices by P directives, in parse order (after journal finalisation)
-  ,jinferredmarketprices  :: [MarketPrice]                          -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
-  ,jtxnmodifiers          :: [TransactionModifier]
-  ,jperiodictxns          :: [PeriodicTransaction]
-  ,jtxns                  :: [Transaction]
-  ,jfinalcommentlines     :: Text                                   -- ^ any final trailing comments in the (main) journal file
-  ,jfiles                 :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
-                                                                    --   any included journal files. The main file is first,
-                                                                    --   followed by any included files in the order encountered.
-                                                                    --   TODO: FilePath is a sloppy type here, don't assume it's a
-                                                                    --   real file; values like "", "-", "(string)" can be seen
-  ,jlastreadtime          :: POSIXTime                              -- ^ when this journal was last read from its file(s)
+  ,jdeclaredpayees          :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order.
+  ,jdeclaredtags            :: [(TagName,TagDeclarationInfo)]         -- ^ Tags declared by tag directives, in parse order.
+  ,jdeclaredaccounts        :: [(AccountName,AccountDeclarationInfo)] -- ^ Accounts declared by account directives, in parse order.
+  ,jdeclaredaccounttags     :: M.Map AccountName [Tag]                -- ^ Declared accounts which have tags, and those tags. (Not including parent accounts' tags.)
+  ,jdeclaredaccounttypes    :: M.Map AccountType [AccountName]        -- ^ Declared accounts which have a type: tag, grouped by the type.
+  ,jaccounttypes            :: M.Map AccountName AccountType          -- ^ All known account types, from account declarations or account names or account parents.
+  ,jdeclaredcommodities     :: M.Map CommoditySymbol Commodity        -- ^ Commodities (and their display styles) declared by commodity directives, in parse order.
+  ,jinferredcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ Commodity display styles inferred from amounts in the journal.
+  ,jglobalcommoditystyles   :: M.Map CommoditySymbol AmountStyle      -- ^ Commodity display styles declared by command line options (sometimes augmented, see the import command).
+  ,jpricedirectives         :: [PriceDirective]                       -- ^ P (market price) directives in the journal, in parse order.
+  ,jinferredmarketprices    :: [MarketPrice]                          -- ^ Market prices inferred from transactions in the journal, in parse order.
+  ,jtxnmodifiers            :: [TransactionModifier]                  -- ^ Auto posting rules declared in the journal.
+  ,jperiodictxns            :: [PeriodicTransaction]                  -- ^ Periodic transaction rules declared in the journal.
+  ,jtxns                    :: [Transaction]                          -- ^ Transactions recorded in the journal. The important bit.
+  ,jfinalcommentlines       :: Text                                   -- ^ any final trailing comments in the (main) journal file
+  ,jfiles                   :: [(FilePath, Text)]                     -- ^ the file path and raw text of the main and
+                                                                      --   any included journal files. The main file is first,
+                                                                      --   followed by any included files in the order encountered.
+                                                                      --   TODO: FilePath is a sloppy type here, don't assume it's a
+                                                                      --   real file; values like "", "-", "(string)" can be seen
+  ,jlastreadtime            :: POSIXTime                              -- ^ when this journal was last read from its file(s)
   -- NOTE: after adding new fields, eg involving account names, consider updating
   -- the Anon instance in Hleger.Cli.Anon
   } deriving (Eq, Generic)
