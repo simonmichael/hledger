@@ -156,7 +156,7 @@ Click error names to see an example. The table headings mean:
 
 
 <!-- GENERATED: -->
-hledger 1.32.99-g4dbd417c9-20240326 error messages:
+hledger 1.40.99-gd6e34d8cd-20241102 error messages:
 
 ### accounts
 ```
@@ -170,7 +170,6 @@ account "a" has not been declared.
 Consider adding an account directive. Examples:
 
 account a
-account a    ; type:A  ; (L,E,R,X,C,V)
 ```
 
 
@@ -301,20 +300,18 @@ payee p
 
 ### recentassertions
 ```
-hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:11:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./recentassertions.j:18:
    | 2022-01-09 bad1
-11 |     a               0
+18 |     a               0
    |     ^
 
-The recentassertions check is enabled, so accounts with balance assertions must
-have a balance assertion within 7 days of their latest posting.
-In account "a", this posting is 8 days later
-than the last balance assertion, which was on 2022-01-01.
+The recentassertions check is enabled, so accounts with balance assertions
+must have a recent one, not more than 7 days older than their latest posting.
+In account: a
+the last assertion was on 2022-01-01, 8 days before this latest posting.
+Consider adding a new balance assertion to the above posting. Eg:
 
-Consider adding a more recent balance assertion for this account. Eg:
-
-2024-03-26
-    a     0 =  0  ; (adjust asserted amount)
+    a               0 = BALANCE
 ```
 
 
