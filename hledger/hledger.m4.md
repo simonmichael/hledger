@@ -773,8 +773,9 @@ The pager is expected to display hledger's ANSI colour and text styling.
 If you see junk characters, you might need to configure your pager to handle ANSI codes.
 Or you could disable colour as described above.
 
-If you are using the `less` pager, hledger automatically appends a number of options to
-the `LESS` variable to enable ANSI colour and a number of other conveniences.
+If you are using the [`less` pager](https://www.greenwoodsoftware.com/less/faq.html),
+hledger automatically appends a number of options to the `LESS` variable
+to enable ANSI colour and a number of other conveniences.
 (At the time of writing:
 --chop-long-lines
 --hilite-unread
