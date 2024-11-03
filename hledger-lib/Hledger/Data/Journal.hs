@@ -1242,7 +1242,7 @@ samplejournalMaybeExplicit explicit = nulljournal
          {jtxns = [
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 01 01,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -1259,7 +1259,7 @@ samplejournalMaybeExplicit explicit = nulljournal
           ,
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 06 01,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -1276,7 +1276,7 @@ samplejournalMaybeExplicit explicit = nulljournal
           ,
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 06 02,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -1293,7 +1293,7 @@ samplejournalMaybeExplicit explicit = nulljournal
           ,
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 06 03,
              tdate2=Nothing,
              tstatus=Cleared,
@@ -1310,7 +1310,7 @@ samplejournalMaybeExplicit explicit = nulljournal
           ,
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 10 01,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -1326,7 +1326,7 @@ samplejournalMaybeExplicit explicit = nulljournal
           ,
            txnTieKnot $ Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2008 12 31,
              tdate2=Nothing,
              tstatus=Unmarked,

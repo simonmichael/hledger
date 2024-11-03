@@ -53,6 +53,7 @@ import Text.Megaparsec (SourcePos(SourcePos), mkPos)
 
 import Hledger.Utils.Regex
 
+
 -- synonyms for various date-related scalars
 #if MIN_VERSION_time(1,11,0)
 import Data.Time.Calendar (Year)
@@ -400,6 +401,12 @@ instance Show Status where -- custom show.. bad idea.. don't do it..
   show Unmarked = ""
   show Pending   = "!"
   show Cleared   = "*"
+
+nullsourcepos :: SourcePos
+nullsourcepos = SourcePos "" (mkPos 1) (mkPos 1)
+
+nullsourcepospair :: (SourcePos, SourcePos)
+nullsourcepospair = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
 
 -- | A balance assertion is a declaration about an account's expected balance
 -- at a certain point (posting date and parse order). They provide additional

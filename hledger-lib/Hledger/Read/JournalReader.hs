@@ -1116,7 +1116,7 @@ tests_JournalReader = testGroup "JournalReader" [
         [("a:b", AccountDeclarationInfo{adicomment          = "type:asset\n"
                                        ,aditags             = [("type","asset")]
                                        ,adideclarationorder = 1
-                                       ,adisourcepos        = fst nullsourcepos
+                                       ,adisourcepos        = nullsourcepos
                                        })
         ]
       ]

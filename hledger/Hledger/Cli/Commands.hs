@@ -385,7 +385,7 @@ tests_Commands = testGroup "Commands" [
   ,testGroup "apply account directive" [
      testCase "works" $ do
         let
-          ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepos}) (jtxns j)}
+          ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepospair}) (jtxns j)}
           sameParse str1 str2 = do
             j1 <- ignoresourcepos <$> readJournal' str1  -- PARTIAL:
             j2 <- ignoresourcepos <$> readJournal' str2  -- PARTIAL:
@@ -651,7 +651,7 @@ journal7 = nulljournal {jtxns =
           [
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 01 01,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -668,7 +668,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 02 01,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -685,7 +685,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 01 02,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -702,7 +702,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -719,7 +719,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,
@@ -736,7 +736,7 @@ journal7 = nulljournal {jtxns =
           ,
            txnTieKnot Transaction {
              tindex=0,
-             tsourcepos=nullsourcepos,
+             tsourcepos=nullsourcepospair,
              tdate=fromGregorian 2007 01 03,
              tdate2=Nothing,
              tstatus=Unmarked,

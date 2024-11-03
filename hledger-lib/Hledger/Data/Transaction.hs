@@ -84,7 +84,7 @@ instance HasAmounts Transaction where
 nulltransaction :: Transaction
 nulltransaction = Transaction {
                     tindex=0,
-                    tsourcepos=nullsourcepos,
+                    tsourcepos=nullsourcepospair,
                     tdate=nulldate,
                     tdate2=Nothing,
                     tstatus=Unmarked,
@@ -581,7 +581,7 @@ tests_Transaction =
                  Transaction
                    0
                    ""
-                   nullsourcepos
+                   nullsourcepospair
                    (fromGregorian 2007 01 28)
                    Nothing
                    Unmarked
@@ -605,7 +605,7 @@ tests_Transaction =
               Transaction
                 0
                 ""
-                nullsourcepos
+                nullsourcepospair
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -628,7 +628,7 @@ tests_Transaction =
               Transaction
                 0
                 ""
-                nullsourcepos
+                nullsourcepospair
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -644,7 +644,7 @@ tests_Transaction =
               Transaction
                 0
                 ""
-                nullsourcepos
+                nullsourcepospair
                 (fromGregorian 2010 01 01)
                 Nothing
                 Unmarked

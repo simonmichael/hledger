@@ -793,7 +793,7 @@ tests_Balancing =
                (Transaction
                   0
                   ""
-                  nullsourcepos
+                  nullsourcepospair
                   (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
@@ -808,7 +808,7 @@ tests_Balancing =
                (Transaction
                   0
                   ""
-                  nullsourcepos
+                  nullsourcepospair
                   (fromGregorian 2007 01 28)
                   Nothing
                   Unmarked
@@ -825,7 +825,7 @@ tests_Balancing =
              (Transaction
                 0
                 ""
-                nullsourcepos
+                nullsourcepospair
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -841,7 +841,7 @@ tests_Balancing =
              (Transaction
                 0
                 ""
-                nullsourcepos
+                nullsourcepospair
                 (fromGregorian 2007 01 28)
                 Nothing
                 Unmarked
@@ -859,7 +859,7 @@ tests_Balancing =
             (Transaction
                0
                ""
-               nullsourcepos
+               nullsourcepospair
                (fromGregorian 2011 01 01)
                Nothing
                Unmarked
@@ -876,7 +876,7 @@ tests_Balancing =
             (Transaction
                0
                ""
-               nullsourcepos
+               nullsourcepospair
                (fromGregorian 2011 01 01)
                Nothing
                Unmarked
@@ -895,7 +895,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -913,7 +913,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -931,7 +931,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -946,7 +946,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -961,7 +961,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -980,7 +980,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked
@@ -998,7 +998,7 @@ tests_Balancing =
           Transaction
             0
             ""
-            nullsourcepos
+            nullsourcepospair
             (fromGregorian 2009 01 01)
             Nothing
             Unmarked

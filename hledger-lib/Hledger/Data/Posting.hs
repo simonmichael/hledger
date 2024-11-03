@@ -19,7 +19,6 @@ module Hledger.Data.Posting (
   vpost,
   post',
   vpost',
-  nullsourcepos,
   nullassertion,
   balassert,
   balassertTot,
@@ -180,9 +179,6 @@ post' acc amt ass = posting {paccount=acc, pamount=mixedAmount amt, pbalanceasse
 -- | Make a virtual (unbalanced) posting to an account, maybe with a balance assertion.
 vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
 vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion=ass}
-
-nullsourcepos :: (SourcePos, SourcePos)
-nullsourcepos = (SourcePos "" (mkPos 1) (mkPos 1), SourcePos "" (mkPos 2) (mkPos 1))
 
 nullassertion :: BalanceAssertion
 nullassertion = BalanceAssertion
