@@ -33,11 +33,11 @@ import Hledger.Data.Errors
 import Hledger.Data.Journal
 import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
-import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName)
+import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName, postingAsLines)
 import Hledger.Data.Types
-import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt, amounts)
+import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt, oneLineFmt, showMixedAmountWith)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
-import Data.Time (Day, diffDays)
+import Data.Time (diffDays)
 import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
@@ -264,11 +264,10 @@ maxlag = 7
 
 -- | Check that accounts with balance assertions have no posting more
 -- than maxlag days after their latest balance assertion.
--- Today's date is provided for error messages.
-journalCheckRecentAssertions :: Day -> Journal -> Either String ()
-journalCheckRecentAssertions today j =
+journalCheckRecentAssertions :: Journal -> Either String ()
+journalCheckRecentAssertions j =
   let acctps = groupOn paccount $ sortOn paccount $ journalPostings j
-  in case mapMaybe (findRecentAssertionError today) acctps of
+  in case mapMaybe findRecentAssertionError acctps of
     []         -> Right ()
     firsterr:_ -> Left firsterr
 
@@ -277,8 +276,8 @@ journalCheckRecentAssertions today j =
 -- and if any postings are >maxlag days later than the assertion,
 -- return an error message identifying the first of them.
 -- Postings on the same date will be handled in parse order (hopefully).
-findRecentAssertionError :: Day -> [Posting] -> Maybe String
-findRecentAssertionError today ps = do
+findRecentAssertionError :: [Posting] -> Maybe String
+findRecentAssertionError ps = do
   let rps = sortOn (Data.Ord.Down . postingDate) ps
   let (afterlatestassertrps, untillatestassertrps) = span (isNothing.pbalanceassertion) rps
   latestassertdate <- postingDate <$> headMay untillatestassertrps
@@ -287,36 +286,39 @@ findRecentAssertionError today ps = do
   let lag = diffDays (postingDate firsterrorp) latestassertdate
   let acct = paccount firsterrorp
   let (f,l,_mcols,ex) = makePostingAccountErrorExcerpt firsterrorp
-  let comm =
-        case map acommodity $ amounts $ pamount firsterrorp of
-          [] -> ""
-          (t:_) | T.length t == 1 -> t
-          (t:_) -> t <> " "
+  -- let comm =
+  --       case map acommodity $ amounts $ pamount firsterrorp of
+  --         [] -> ""
+  --         (t:_) | T.length t == 1 -> t
+  --         (t:_) -> t <> " "
   Just $ chomp $ printf
     (unlines [
       "%s:%d:",
       "%s\n",
-      "The recentassertions check is enabled, so accounts with balance assertions must",
-      "have a balance assertion within %d days of their latest posting.",
+      -- "The recentassertions check is enabled, so accounts with balance assertions must",
+      -- "have a balance assertion within %d days of their latest posting.",
+      "The recentassertions check is enabled, so accounts with balance assertions",
+      "must have a recent one, not more than %d days older than their latest posting.",
+      "In account: %s",
+      "the last assertion was on %s, %d days before this latest posting.",
+      "Consider adding a new balance assertion to the above posting. Eg:",
       "",
-      "In %s,",
-      "this posting is %d days later than the balance assertion on %s.",
-      "",
-      "Consider adding a more recent balance assertion for this account. Eg:",
-      "",
-      "%s\n    %s    %s0 = %sAMT"
+      "%s = BALANCE"
       ])
     f
     l
     (textChomp ex)
     maxlag
     (bold' $ T.unpack acct)
-    lag
     (showDate latestassertdate)
-    (show today)
-    acct
-    comm
-    comm
+    lag
+    (showposting firsterrorp)
+    where
+      showposting p =
+        headDef "" $ first3 $ postingAsLines False True acctw amtw p{pcomment=""}
+        where
+          acctw = T.length $ paccount p
+          amtw  = length $ showMixedAmountWith oneLineFmt $ pamount p
 
 -- -- | Print the last balance assertion date & status of all accounts with balance assertions.
 -- printAccountLastAssertions :: Day -> [BalanceAssertionInfo] -> IO ()

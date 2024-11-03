@@ -93,7 +93,6 @@ parseCheckArgument s =
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck _opts j (chck,_) = do
-  d <- getCurrentDay
   let
     results = case chck of
       -- these checks are assumed to have passed earlier during journal parsing (if enabled):
@@ -105,7 +104,7 @@ runCheck _opts j (chck,_) = do
       Commodities     -> journalCheckCommodities j
       Ordereddates    -> journalCheckOrdereddates j
       Payees          -> journalCheckPayees j
-      Recentassertions -> journalCheckRecentAssertions d j
+      Recentassertions -> journalCheckRecentAssertions j
       Tags            -> journalCheckTags j
       Uniqueleafnames -> journalCheckUniqueleafnames j
 
