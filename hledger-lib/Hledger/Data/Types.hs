@@ -598,7 +598,7 @@ data Journal = Journal {
   ,jaccounttypes          :: M.Map AccountName AccountType          -- ^ All accounts for which a type has been declared or can be inferred from its parent or its name.
   ,jglobalcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ per-commodity display styles declared globally, eg by command line option or import command
   ,jcommodities           :: M.Map CommoditySymbol Commodity        -- ^ commodities and formats declared by commodity directives
-  ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle      -- ^ commodities and formats inferred from journal amounts
+  ,jinferredcommoditystyles :: M.Map CommoditySymbol AmountStyle    -- ^ commodity styles inferred from journal amounts
   ,jpricedirectives       :: [PriceDirective]                       -- ^ Declarations of market prices by P directives, in parse order (after journal finalisation)
   ,jinferredmarketprices  :: [MarketPrice]                          -- ^ Market prices implied by transactions, in parse order (after journal finalisation)
   ,jtxnmodifiers          :: [TransactionModifier]

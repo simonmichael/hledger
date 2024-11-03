@@ -84,7 +84,7 @@ getCommoditiesR = do
   VD{j} <- getViewData
   require ViewPermission
   selectRep $ do
-    provideJson $ (M.keys . jinferredcommodities) j
+    provideJson $ (M.keys . jinferredcommoditystyles) j
 
 getAccountsR :: Handler TypedContent
 getAccountsR = do

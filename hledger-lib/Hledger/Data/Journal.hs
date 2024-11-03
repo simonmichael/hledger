@@ -184,7 +184,7 @@ instance Show Journal where
              (length $ jtxns j)
              (length accounts)
              (show accounts)
-             (show $ jinferredcommodities j)
+             (show $ jinferredcommoditystyles j)
              -- ++ (show $ journalTransactions l)
              where accounts = filter (/= "root") $ flatten $ journalAccountNameTree j
 
@@ -206,7 +206,7 @@ journalDbg j@Journal{..} = chomp $ unlines $
   ,"jaccounttypes: "             <> shw jaccounttypes
   ,"jglobalcommoditystyles: "    <> shw jglobalcommoditystyles
   ,"jcommodities: "              <> shw jcommodities
-  ,"jinferredcommodities: "      <> shw jinferredcommodities
+  ,"jinferredcommoditystyles: "      <> shw jinferredcommoditystyles
   ,"jpricedirectives: "          <> shw jpricedirectives
   ,"jinferredmarketprices: "     <> shw jinferredmarketprices
   ,"jtxnmodifiers: "             <> shw jtxnmodifiers
@@ -282,8 +282,8 @@ journalConcat j1 j2 =
     -- ,jcommodities           :: M.Map CommoditySymbol Commodity
     ,jcommodities               = (<>) (jcommodities j1) (jcommodities j2)
     --
-    -- ,jinferredcommodities   :: M.Map CommoditySymbol AmountStyle
-    ,jinferredcommodities       = (<>) (jinferredcommodities j1) (jinferredcommodities j2)
+    -- ,jinferredcommoditystyles   :: M.Map CommoditySymbol AmountStyle
+    ,jinferredcommoditystyles       = (<>) (jinferredcommoditystyles j1) (jinferredcommoditystyles j2)
     --
     --
     ,jpricedirectives           = jpricedirectives           j1 <> jpricedirectives           j2
@@ -344,7 +344,7 @@ nulljournal = Journal {
   ,jaccounttypes              = M.empty
   ,jglobalcommoditystyles     = M.empty
   ,jcommodities               = M.empty
-  ,jinferredcommodities       = M.empty
+  ,jinferredcommoditystyles       = M.empty
   ,jpricedirectives           = []
   ,jinferredmarketprices      = []
   ,jtxnmodifiers              = []
@@ -408,7 +408,7 @@ journalCommoditiesDeclared = M.keys . jcommodities
 
 -- | Sorted unique commodity symbols declared or inferred from this journal.
 journalCommodities :: Journal -> S.Set CommoditySymbol
-journalCommodities j = M.keysSet (jcommodities j) <> M.keysSet (jinferredcommodities j)
+journalCommodities j = M.keysSet (jcommodities j) <> M.keysSet (jinferredcommoditystyles j)
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
@@ -893,7 +893,7 @@ journalCommodityStyles j =
     globalstyles          = jglobalcommoditystyles j
     declaredstyles        = M.mapMaybe cformat $ jcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
-    inferredstyles        = jinferredcommodities j
+    inferredstyles        = jinferredcommoditystyles j
 
 -- | Like journalCommodityStyles, but attach a particular rounding strategy to the styles,
 -- affecting how they will affect display precisions when applied.
@@ -908,7 +908,7 @@ journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
   case commodityStylesFromAmounts $ journalStyleInfluencingAmounts j of
     Left e   -> Left e
-    Right cs -> Right j{jinferredcommodities = dbg7 "journalInferCommodityStyles" cs}
+    Right cs -> Right j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
 
 -- | Given a list of amounts, in parse order (roughly speaking; see journalStyleInfluencingAmounts),
 -- build a map from their commodity names to standard commodity

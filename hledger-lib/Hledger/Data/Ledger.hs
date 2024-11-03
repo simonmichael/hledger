@@ -97,7 +97,7 @@ ledgerDateSpan = journalDateSpanBothDates . ljournal
 
 -- | All commodities used in this ledger.
 ledgerCommodities :: Ledger -> [CommoditySymbol]
-ledgerCommodities = M.keys . jinferredcommodities . ljournal
+ledgerCommodities = M.keys . jinferredcommoditystyles . ljournal
 
 -- tests
 
