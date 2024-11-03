@@ -677,7 +677,7 @@ marketpricedirectivep = do
   date <- try (do {LocalTime d _ <- datetimep; return d}) <|> datep -- a time is ignored
   lift skipNonNewlineSpaces1
   symbol <- lift commoditysymbolp
-  lift skipNonNewlineSpaces
+  lift skipNonNewlineSpaces1
   price <- amountp
   lift restofline
   return $ PriceDirective pos date symbol price
