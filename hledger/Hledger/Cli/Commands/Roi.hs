@@ -239,7 +239,9 @@ timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixed
                Left pnl' ->
                  -- PnL change
                  let valueAfterDate = valueOnDate + unMix pnl'
-                     unitCost' = valueAfterDate/unitBalance
+                     unitCost' =
+                       if unitBalance == 0 then initialUnitCost -- everything was sold, let's reset the cost to initial cost
+                       else valueAfterDate/unitBalance
                  in (valueOnDate, 0, unitCost', unitBalance))
           (0, 0, initialUnitCost, initialUnits)
           $ dbg3 "changes" changes
