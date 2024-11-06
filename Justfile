@@ -347,10 +347,18 @@ TESTING:
 @ghci *GHCIARGS:
     $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
+# echo the full command that just ghci would run
+@ghci-echo *GHCIARGS:
+    echo $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
+
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof *GHCIARGS:
     stack build --profile hledger --only-dependencies
     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
+
+# run ghcitui on hledger-lib + hledger
+@ghcitui *GHCITUIARGS:
+    ghcitui --cmd "just ghci"
 
 # # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
