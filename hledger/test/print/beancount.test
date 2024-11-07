@@ -1,0 +1,46 @@
+# * print command's beancount output format
+
+# ** 1. Unrecognised top level account names are rejected.
+<
+2000-01-01
+  other        0 ABC
+
+$ hledger -f- print -O beancount
+>2 /bad top-level account/
+>=1
+
+# ** 2. Otherwise, accounts are encoded to suit beancount, and open directives are added.
+<
+2000-01-01
+  assets:a        0 ABC
+  equity:$-€:$    0 USD
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets:A
+2000-01-01 open Equity:C24-C20ac:C24
+
+2000-01-01 *
+    Assets:A                       0 ABC
+    Equity:C24-C20ac:C24           0 USD
+
+>=
+
+# ** 3. Commodity symbols are converted to ISO 4217 codes, or encoded, to suit beancount.
+<
+2000-01-01
+  assets    $0
+  assets    0
+  assets    0!
+  assets    0 "size 2 pencils"
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets
+
+2000-01-01 *
+    Assets               0 USD
+    Assets                 0 C
+    Assets               0 C21
+    Assets    0 SIZE-2-PENCILS
+
+>=
+

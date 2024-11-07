@@ -834,38 +834,29 @@ hledger will try to adjust your data to suit Beancount.
 If you plan to export often, you may want to follow Beancount's conventions in your hledger data,
 to ease conversion. Eg use Beancount-friendly account names, currency codes instead of currency symbols,
 and avoid virtual postings, redundant cost notation, etc.
-
-Here are more details, included here for now
+Here are more details
 (see also "hledger and Beancount" <https://hledger.org/beancount.html>).
 
 #### Beancount account names
 
-hledger will try adjust your account names, if needed, to
-[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts),
-by capitalising, replacing unsupported characters with `-`, and
-prepending `B` to parts which don't begin with a letter or digit.
-(It's possible for this to convert distinct hledger account names to the same beancount name.
-Eg, hledger's automatic equity conversion accounts can have currency symbols in their name,
-so `equity:conversion:$-€` becomes `equity:conversion:B---`.)
-
-In addition, you must ensure that the top level account names are `Assets`, `Liabilities`, `Equity`, `Income`, and `Expenses`,
-which Beancount requires.
+hledger will adjust your account names when needed, to make valid
+[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts)
+(capitalising, replacing spaces with `-`, replacing other unsupported characters with `C<HEXBYTES>`,
+and prepending `A` to account name parts which don't begin with a letter or digit).
+However, you must ensure that all top level account names are one of the five required by Beancount:
+`Assets`, `Liabilities`, `Equity`, `Income`, or `Expenses`.
 If yours are named differently, you can use [account aliases](#alias-directive),
 usually in the form of `--alias` options, possibly stored in a [config file](#config-file).
 (An example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
 
 #### Beancount commodity names
 
-hledger will adjust your commodity names, if needed, to
+hledger will adjust commodity names when needed, to make valid
 [Beancount commodity/currency names](https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies),
-which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`,
-beginning with a letter and ending with a letter or digit.
-hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes).
-Otherwise, it will capitalise letters,
-replace unsupported characters with a dash (-),
-and prepend/append a "B" when needed.
-(It's possible for this to generate unreadable commodity names,
-or to convert distinct hledger commodity names to the same beancount name.)
+(which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`, beginning with a letter and ending with a letter or digit).
+hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes),
+capitalise letters, replace spaces with `-`, replace other unsupported characters with `C<HEXBYTES>`,
+and prepend/append a "C" when needed.
 
 #### Beancount virtual postings
 

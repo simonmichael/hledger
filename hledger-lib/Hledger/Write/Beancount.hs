@@ -26,6 +26,7 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Safe (maximumBound)
 import Text.DocLayout (realLength)
+import Text.Printf
 import Text.Tabular.AsciiWide hiding (render)
 
 import Hledger.Utils
@@ -109,7 +110,7 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB displayopts a'
         where
-          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True }
+          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
           a' = mapMixedAmount amountToBeancount $ pamount p
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
@@ -137,12 +138,12 @@ type BeancountAccountName = AccountName
 type BeancountAccountNameComponent = AccountName
 
 -- | Convert a hledger account name to a valid Beancount account name.
--- It replaces non-supported characters with a dash, it prepends the letter B
--- to any part which doesn't begin with a letter or number, and it capitalises each part.
--- It's possible this could generate the same beancount name for distinct hledger account names.
+-- It replaces spaces with dashes and other non-supported characters with C<HEXBYTES>;
+-- prepends the letter A- to any part which doesn't begin with a letter or number;
+-- and capitalises each part.
 -- It also checks that the first part is one of the required english
 -- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
--- it raises an informative error suggesting --alias.
+-- raises an informative error.
 -- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#accounts
 accountNameToBeancount :: AccountName -> BeancountAccountName
 accountNameToBeancount a =
@@ -174,16 +175,19 @@ accountNameComponentToBeancount acctpart =
     Nothing -> ""
     Just (c,cs) ->
       textCapitalise $
-      T.map (\d -> if isBeancountAccountChar d then d else '-') $ T.cons c cs
+      T.concatMap (\d -> if isBeancountAccountChar d then (T.singleton d) else T.pack $ charToBeancount d) $ T.cons c cs
   where
     prependStartCharIfNeeded t =
       case T.uncons t of
         Just (c,_) | not $ isBeancountAccountStartChar c -> T.cons beancountAccountDummyStartChar t
         _ -> t
 
--- | Dummy valid starting character to prepend to Beancount account name parts if needed (B).
+-- | Dummy valid starting character to prepend to Beancount account name parts if needed (A).
 beancountAccountDummyStartChar :: Char
-beancountAccountDummyStartChar = 'B'
+beancountAccountDummyStartChar = 'A'
+
+charToBeancount :: Char -> String
+charToBeancount c = if isSpace c then "-" else printf "C%x" c
 
 -- XXX these probably allow too much unicode:
 
@@ -222,17 +226,16 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- That is: 2-24 uppercase letters / digits / apostrophe / period / underscore / dash,
 -- starting with a letter, and ending with a letter or digit.
 -- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies
--- So this: removes any enclosing double quotes,
--- replaces some common currency symbols with currency codes,
+-- So this:
+-- replaces common currency symbols with their ISO 4217 currency codes,
 -- capitalises all letters,
--- replaces any invalid characters with a dash (-),
--- prepends a B if the first character is not a letter,
--- and appends a B if the last character is not a letter or digit.
--- It's possible this could generate unreadable commodity names,
--- or the same beancount name for distinct hledger commodity names.
+-- replaces spaces with dashes and other invalid characters with C<HEXBYTES>,
+-- prepends a C if the first character is not a letter,
+-- appends a C if the last character is not a letter or digit,
+-- and disables hledger's enclosing double quotes.
 --
 -- >>> commodityToBeancount ""
--- "B"
+-- "C"
 -- >>> commodityToBeancount "$"
 -- "USD"
 -- >>> commodityToBeancount "Usd"
@@ -240,7 +243,7 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- >>> commodityToBeancount "\"a1\""
 -- "A1"
 -- >>> commodityToBeancount "\"A 1!\""
--- "A-1-B"
+-- "A-1C21"
 --
 commodityToBeancount :: CommoditySymbol -> BeancountCommoditySymbol
 commodityToBeancount com =
@@ -251,16 +254,16 @@ commodityToBeancount com =
     Nothing ->
       com'
       & T.toUpper
-      & T.map (\d -> if isBeancountCommodityChar d then d else '-')
+      & T.concatMap (\d -> if isBeancountCommodityChar d then T.singleton d else T.pack $ charToBeancount d)
       & fixstart
       & fixend
   where
     fixstart bcom = case T.uncons bcom of
       Just (c,_) | isBeancountCommodityStartChar c -> bcom
-      _ -> "B" <> bcom
+      _ -> "C" <> bcom
     fixend bcom = case T.unsnoc bcom of
       Just (_,c) | isBeancountCommodityEndChar c -> bcom
-      _ -> bcom <> "B"
+      _ -> bcom <> "C"
 
 -- | Is this a valid character in the middle of a Beancount commodity name (a capital letter, digit, or '._-) ?
 isBeancountCommodityChar :: Char -> Bool
