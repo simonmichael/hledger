@@ -242,6 +242,7 @@ data AmountFormat = AmountFormat
   , displayMaxWidth         :: Maybe Int  -- ^ Maximum width to clip to
   , displayCost             :: Bool       -- ^ Whether to display Amounts' costs.
   , displayColour           :: Bool       -- ^ Whether to ansi-colourise negative Amounts.
+  , displayQuotes           :: Bool       -- ^ Whether to enclose complex symbols in quotes (normally true)
   } deriving (Show)
 
 -- | By default, display amounts using @defaultFmt@ amount display options.
@@ -260,6 +261,7 @@ defaultFmt = AmountFormat {
   , displayMaxWidth         = Nothing
   , displayCost             = True
   , displayColour           = False
+  , displayQuotes           = True
   }
 
 -- | Like defaultFmt but show zero amounts with commodity symbol and styling, like non-zero amounts.
@@ -655,7 +657,7 @@ showAmountB :: AmountFormat -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
   afmt@AmountFormat{displayCommodity, displayZeroCommodity, displayDigitGroups
-                   ,displayForceDecimalMark, displayCost, displayColour}
+                   ,displayForceDecimalMark, displayCost, displayColour, displayQuotes}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
       L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> cost
@@ -666,7 +668,7 @@ showAmountB
       if displayDigitGroups then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity', comm)
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
-      | otherwise = (quantity, quoteCommoditySymbolIfNeeded $ acommodity a)
+      | otherwise = (quantity, (if displayQuotes then quoteCommoditySymbolIfNeeded else id) $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     cost = if displayCost then showAmountCostB afmt a else mempty
 
