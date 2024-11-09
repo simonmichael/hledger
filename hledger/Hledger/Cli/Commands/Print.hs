@@ -44,6 +44,7 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor)
 import qualified Lucid
 import qualified System.IO as IO
+import Data.Maybe (isJust)
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
@@ -186,17 +187,33 @@ entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showt
 entriesReportAsBeancount :: EntriesReport -> TL.Text
 entriesReportAsBeancount ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
-  opendirectives <> "\n" <> entriesReportAsTextHelper showTransactionBeancount allrealts
+  opendirectives <> "\n" <> entriesReportAsTextHelper showTransactionBeancount ts3
   where
-    allrealts = [t{tpostings=filter isReal $ tpostings t} | t <- ts]
+    -- Remove any virtual postings.
+    ts2 = [t{tpostings=filter isReal $ tpostings t} | t <- ts]
+
+    -- Remove any conversion postings that are redundant with costs.
+    -- It would be easier to remove the costs instead,
+    -- but those are more useful to Beancount than conversion postings.
+    ts3 =
+      [ t{tpostings=filter (not . isredundantconvp) $ tpostings t}
+      | t <- ts2
+      -- XXX But how to do it ? conversion-posting tag is on non-redundant postings too.
+      -- Assume the simple case of no more than one cost + conversion posting group in each transaction.
+      -- Actually that seems to be required by hledger right now.
+      , let isredundantconvp p =
+              matchesPosting (Tag (toRegex' "conversion-posting") Nothing) p
+              && any (any (isJust.acost) . amounts . pamount) (tpostings t)
+      ]
+
     opendirectives
       | null ts = ""
       | otherwise = TL.fromStrict $ T.unlines [
           firstdate <> " open " <> accountNameToBeancount a
-          | a <- nubSort $ concatMap (map paccount.tpostings) allrealts
+          | a <- nubSort $ concatMap (map paccount.tpostings) ts3
           ]
         where
-          firstdate = showDate $ minimumDef err $ map tdate allrealts
+          firstdate = showDate $ minimumDef err $ map tdate ts3
             where err = error' "entriesReportAsBeancount: should not happen"
 
 entriesReportAsSql :: EntriesReport -> TL.Text
