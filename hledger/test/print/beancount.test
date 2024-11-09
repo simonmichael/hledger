@@ -59,3 +59,63 @@ $ hledger -f- print -O beancount
     Assets:A           0 USD
 
 >=
+
+# ** 5. Conversion postings that are not redundant are preserved.
+# If the accounts are named after currency symbols, they will look strange.
+# (A better conversion would be this, but it seems hard to automate:
+#  Equity:Conversion:EUR-USD:USD, Equity:Conversion:EUR-USD:EUR.)
+<
+2000-01-01
+    Assets                      $1
+    equity:conversion:€-$:$    -$1
+    equity:conversion:€-$:€     €1
+    Assets                     €-1
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets:A
+2000-01-01 open Equity:Conversion:C20ac-C24:C24
+2000-01-01 open Equity:Conversion:C20ac-C24:C20ac
+
+2000-01-01 *
+    Assets:A                                    1 USD
+    Equity:Conversion:C20ac-C24:C24            -1 USD
+    Equity:Conversion:C20ac-C24:C20ac           1 EUR
+    Assets:A                                   -1 EUR
+
+>=
+
+# ** 6. Conversion postings that are redundant with costs are dropped.
+<
+2000-01-01
+    Assets                      $1 @@ €1
+    equity:conversion:€-$:$    -$1
+    equity:conversion:€-$:€     €1
+    Assets                     €-1
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets:A
+
+2000-01-01 *
+    Assets:A    1 USD @@ 1 EUR
+    Assets:A            -1 EUR
+
+>=
+
+# ** 7. Multiple cost/conversion groups within a transaction are not supported
+# (by hledger generally, apparently ?)
+<
+2000-01-01
+    Assets                      $1 @@ €1
+    equity:conversion:€-$:$    -$1
+    equity:conversion:€-$:€     €1
+    Assets                     €-1
+    ;
+    Assets                      A1 @@ B1
+    equity:conversion:€-$:$    -A1
+    equity:conversion:€-$:€     B1
+    Assets                     B-1
+
+$ hledger -f- print -O beancount
+>2 /unbalanced/
+>=1
+

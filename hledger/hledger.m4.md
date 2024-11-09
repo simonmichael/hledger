@@ -830,12 +830,14 @@ using various utilities like `libreoffice --headless` or
 This is [Beancount's journal format][beancount journal].
 You can use this to export your hledger data to [Beancount],
 perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
+
 hledger will try to adjust your data to suit Beancount.
-If you plan to export often, you may want to follow Beancount's conventions in your hledger data,
-to ease conversion. Eg use Beancount-friendly account names, currency codes instead of currency symbols,
-and avoid virtual postings, redundant cost notation, etc.
-Here are more details
-(see also "hledger and Beancount" <https://hledger.org/beancount.html>).
+You should be cautious and check the conversion carefully until you are confident it is good.
+If you plan to export to Beancount often, you may want to follow its conventions in your hledger data, to make conversion easier.
+Eg use Beancount-friendly account names, currency codes instead of currency symbols, costs instead of equity conversion postings, no virtual postings, etc.
+
+Here are more details.
+<!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
 #### Beancount account names
 
@@ -866,8 +868,9 @@ if you have any, they will not appear in beancount output.
 
 #### Beancount costs
 
-Beancount doesn't allow [redundant cost notation](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings)
-as hledger does. If you have entries like this, you will need to comment out either the costs or the equity postings.
+Beancount doesn't allow [redundant costs and conversion postings](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings) as hledger does.
+If you have entries like this, the conversion postings will be dropped.
+Currently we support at most one cost + conversion postings group per transaction.
 
 #### Beancount operating currency
 
