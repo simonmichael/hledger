@@ -43,7 +43,7 @@ import Data.Function ((&))
 -- $setup
 -- >>> :set -XOverloadedStrings
 
--- | Like showTransaction, but generates Beancount journal format.
+-- | Like showTransaction, but applies various adjustments to produce valid Beancount journal data.
 showTransactionBeancount :: Transaction -> Text
 showTransactionBeancount t =
   -- https://beancount.github.io/docs/beancount_language_syntax.html

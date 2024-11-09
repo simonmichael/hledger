@@ -181,23 +181,22 @@ entriesReportAsText = entriesReportAsTextHelper showTransaction
 entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text
 entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showtxn)
 
--- In addition to rendering the transactions in (best effort) Beancount format,
--- this generates an account open directive for each account name used
--- (using the earliest transaction date).
+-- This transforms transactions in various ways (see Beancount.hs) to make them Beancount-compatible.
+-- It also generates an account open directive for each account used (on their earliest transaction dates).
 entriesReportAsBeancount :: EntriesReport -> TL.Text
 entriesReportAsBeancount ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
-  opendirectives <> "\n" <>
-  entriesReportAsTextHelper showTransactionBeancount ts
+  opendirectives <> "\n" <> entriesReportAsTextHelper showTransactionBeancount allrealts
   where
+    allrealts = [t{tpostings=filter isReal $ tpostings t} | t <- ts]
     opendirectives
       | null ts = ""
       | otherwise = TL.fromStrict $ T.unlines [
           firstdate <> " open " <> accountNameToBeancount a
-          | a <- nubSort $ concatMap (map paccount.tpostings) ts
+          | a <- nubSort $ concatMap (map paccount.tpostings) allrealts
           ]
         where
-          firstdate = showDate $ minimumDef err $ map tdate ts
+          firstdate = showDate $ minimumDef err $ map tdate allrealts
             where err = error' "entriesReportAsBeancount: should not happen"
 
 entriesReportAsSql :: EntriesReport -> TL.Text
