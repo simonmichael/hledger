@@ -139,34 +139,34 @@ type BeancountAccountNameComponent = AccountName
 
 -- | Convert a hledger account name to a valid Beancount account name.
 -- It replaces spaces with dashes and other non-supported characters with C<HEXBYTES>;
--- prepends the letter A- to any part which doesn't begin with a letter or number;
+-- prepends the letter A to any part which doesn't begin with a letter or number;
+-- adds a second :A part if there is only one part;
 -- and capitalises each part.
 -- It also checks that the first part is one of the required english
 -- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
 -- raises an informative error.
 -- Ref: https://beancount.github.io/docs/beancount_language_syntax.html#accounts
 accountNameToBeancount :: AccountName -> BeancountAccountName
-accountNameToBeancount a =
-  dbg9 "beancount account name" $
-  accountNameFromComponents bs'
+accountNameToBeancount a = b
   where
-    bs =
+    cs1 =
       map accountNameComponentToBeancount $ accountNameComponents $
-      dbg9 "hledger account name  " $
-      a
-    bs' =
-      case bs of
-        b:_ | b `notElem` beancountTopLevelAccounts -> error' e
+      dbg9 "hledger account name  " a
+    cs2 =
+      case cs1 of
+        c:_ | c `notElem` beancountTopLevelAccounts -> error' e
           where
             e = T.unpack $ T.unlines [
-              "bad top-level account: " <> b
-              ,"in beancount account name:           " <> accountNameFromComponents bs
+              "bad top-level account: " <> c
+              ,"in beancount account name:           " <> accountNameFromComponents cs1
               ,"converted from hledger account name: " <> a
               ,"For Beancount, top-level accounts must be (or be --alias'ed to)"
               ,"one of " <> T.intercalate ", " beancountTopLevelAccounts <> "."
               -- ,"and not: " <> b
               ]
-        cs -> cs
+        [c] -> [c, "A"]
+        cs  -> cs
+    b = dbg9 "beancount account name" $ accountNameFromComponents cs2
 
 accountNameComponentToBeancount :: AccountName -> BeancountAccountNameComponent
 accountNameComponentToBeancount acctpart =
