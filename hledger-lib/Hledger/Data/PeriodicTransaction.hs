@@ -20,7 +20,7 @@ import Text.Printf
 import Hledger.Data.Types
 import Hledger.Data.Dates
 import Hledger.Data.Amount
-import Hledger.Data.Posting (post, commentAddTagNextLine)
+import Hledger.Data.Posting (post, generatedTransactionTagName)
 import Hledger.Data.Transaction
 
 -- $setup
@@ -205,13 +205,11 @@ runPeriodicTransaction verbosetags PeriodicTransaction{..} requestedspan =
           ,tstatus      = ptstatus
           ,tcode        = ptcode
           ,tdescription = ptdescription
-          ,tcomment     = ptcomment &
-            (if verbosetags then (`commentAddTagNextLine` ("generated-transaction",period)) else id)
-          ,ttags        = pttags &
-            (("_generated-transaction",period) :) &
-            (if verbosetags then (("generated-transaction" ,period) :) else id)
+          ,tcomment     = ptcomment
+          ,ttags        = pttags
           ,tpostings    = ptpostings
           }
+        & transactionAddHiddenAndMaybeVisibleTag verbosetags (generatedTransactionTagName, period)
     period = "~ " <> ptperiodexpr
     -- All the date spans described by this periodic transaction rule.
     alltxnspans = splitSpan adjust ptinterval span'

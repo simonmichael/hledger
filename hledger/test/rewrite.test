@@ -12,7 +12,8 @@
     assets:cash             $20
     assets:bank
 $ hledger rewrite -f- ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --verbose-tags
-2016-01-01 paycheck  ; modified:
+2016-01-01 paycheck
+    ; modified-transaction: 
     income:remuneration           $-100
     (liabilities:tax)              $-33  ; income tax, generated-posting: = ^income
     income:donations               $-15
@@ -181,12 +182,14 @@ $ hledger rewrite -f- assets:bank and 'amt:<0' --add-posting 'expenses:fee  $5' 
     (budget:misc)  *-1
 
 $ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0' --verbose-tags
-2016-12-31  ; modified:
+2016-12-31
+    ; modified-transaction: 
     expenses:housing            $600
     (budget:housing)           $-600  ; generated-posting: = ^expenses:housing
     assets:cash
 
-2017-01-01  ; modified:
+2017-01-01
+    ; modified-transaction: 
     expenses:food                $20
     (budget:food)               $-20  ; generated-posting: = ^expenses:grocery ^expenses:food
     Here comes Santa              $0  ; generated-posting: = date:2017/1
@@ -199,7 +202,8 @@ $ hledger rewrite -f- date:2017/1  --add-posting 'Here comes Santa  $0' --verbos
     assets:cash
     Here comes Santa              $0  ; generated-posting: = date:2017/1
 
-2017-01-02  ; modified:
+2017-01-02
+    ; modified-transaction: 
     assets:cash              $200.00
     Here comes Santa              $0  ; generated-posting: = date:2017/1
     assets:bank

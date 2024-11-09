@@ -350,7 +350,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
       <&> journalAddForecast verbose_tags_ (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                  -- Add account tags to postings, so they can be matched by auto postings.
-      >>= journalTagCostsAndEquityAndMaybeInferCosts False   -- Tag equity conversion postings and redundant costs, to help journalBalanceTransactions ignore them.
+      >>= journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ False   -- Tag equity conversion postings and redundant costs, to help journalBalanceTransactions ignore them.
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
             else pure)
@@ -364,7 +364,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalAmountsDebug)
       >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present
       -- >>= Right . dbg0With (pshow.journalCommodityStyles)
-      >>= (if infer_costs_  then journalTagCostsAndEquityAndMaybeInferCosts True else pure)  -- With --infer-costs, infer costs from equity postings where possible
+      >>= (if infer_costs_  then journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ True else pure)  -- With --infer-costs, infer costs from equity postings where possible
       <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)          -- With --infer-equity, infer equity postings from costs where possible
       <&> dbg9With (lbl "amounts after equity-inferring".showJournalAmountsDebug)
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions

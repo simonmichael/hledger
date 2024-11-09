@@ -33,6 +33,7 @@ module Hledger.Data.Types (
 where
 
 import GHC.Generics (Generic)
+import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
@@ -44,6 +45,7 @@ import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Ord (comparing)
 import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)
@@ -390,7 +392,24 @@ data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
 type TagName = Text
 type TagValue = Text
 type Tag = (TagName, TagValue)  -- ^ A tag name and (possibly empty) value.
+type HiddenTag = Tag            -- ^ A tag whose name begins with _.
 type DateTag = (TagName, Day)
+
+-- | Add the _ prefix to a normal visible tag's name, making it a hidden tag.
+toHiddenTag :: Tag -> HiddenTag
+toHiddenTag = first toHiddenTagName
+
+-- | Drop the _ prefix from a hidden tag's name, making it a normal visible tag.
+toVisibleTag :: HiddenTag -> Tag
+toVisibleTag = first toVisibleTagName
+
+-- | Add the _ prefix to a normal visible tag's name, making it a hidden tag.
+toHiddenTagName :: TagName -> TagName
+toHiddenTagName = T.cons '_'
+
+-- | Drop the _ prefix from a hidden tag's name, making it a normal visible tag.
+toVisibleTagName :: TagName -> TagName
+toVisibleTagName = T.drop 1
 
 -- | The status of a transaction or posting, recorded with a status mark
 -- (nothing, !, or *). What these mean is ultimately user defined.
