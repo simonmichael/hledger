@@ -10,6 +10,7 @@ module Hledger.Write.Beancount (
   -- postingAsLinesBeancount,
   -- showAccountNameBeancount,
   accountNameToBeancount,
+  commodityToBeancount,
   -- beancountTopLevelAccounts,
 
   -- * Tests

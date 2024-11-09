@@ -875,8 +875,9 @@ Currently we support at most one cost + conversion postings group per transactio
 
 #### Beancount operating currency
 
-Declaring an operating currency improves Beancount and Fava reports.
-You can do this manually by adding a line like this to the beancount journal:
+Declaring an operating currency (or several) improves Beancount and Fava reports.
+Currently hledger will declare each currency used in cost amounts as an operating currency.
+If needed, replace these with your own declaration, like
 ```beancount
 option "operating_currency" "USD"
 ```
