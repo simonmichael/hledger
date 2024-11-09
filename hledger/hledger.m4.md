@@ -1826,99 +1826,93 @@ the directives' placement might be important - see [`commodity` directive](#comm
 
 ## Tags
 
-<!-- same section name as Commands > tags, if reordering these update all #tags[-1] links -->
+<!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
 
-Tags are a way to add extra labels or data fields to transactions, postings, or accounts,
-which you can then [search](#queries) or [pivot](#pivoting) on.
+Tags are a way to add extra labels or data fields to transactions, postings, or accounts.
+They are usually a word or hyphenated word, immediately followed by a full colon,
+written within the [comment](#account-comments) of a transaction, a posting, or an `account` directive.
+(Yes, storing data in comments is slightly weird!)
 
-A tag is a word, optionally hyphenated, immediately followed by a full colon,
-in the [comment](#account-comments) of a transaction, a posting, or an account directive.
-Eg: `2024-01-01 a transaction   ; foo:`
-Note this is an exception to the usual rule that things in comments are ignored.
+You can write each tag on its own comment line, or multiple tags on one line, separated by commas.
+Tags can also have a value, which is any text after the colon until the next comma or end of line, excluding surrounding whitespace.
+(hledger tag values can't contain commas.)
+If the same tag name appears multiple times in a comment, each name:value pair is preserved.
 
-You can write multiple tags on one line, separated by comma.
-Or you can write each tag on its own comment line (no comma needed in this case).
-
-For example, here are five different tags: 
-one on the `assets:checking` account, two on the transaction, and two on the `expenses:food` posting:
+An example: in this journal there are six tags, one of them with a value:
 
 ```journal
 account assets:checking         ; accounttag:
+account expenses:food
 
-2017/1/16 bought groceries      ; transactiontag-1:
-    ; transactiontag-2:
+2017/1/16 bought groceries      ; transactiontag:
+    ; transactiontag2:
     assets:checking        $-1
-    expenses:food           $1  ; postingtag:, another-posting-tag:
+     ; posting-tag-1:, (belongs to the posting above)
+    expenses:food           $1  ; posting-tag-2:, posting-tag-3: with a value
 ```
 
-Postings also inherit tags from their transaction and their account.
-And transactions also acquire tags from their postings (and postings' accounts).
-So in the example above, the expenses posting effectively has all five tags
-(by inheriting from the account and transaction), 
-and the transaction also has all five tags (by acquiring from the expenses posting).
+### Querying with tags
+
+Tags are most often used to select a subset of data; you can match tagged things with `tag:` [queries](#queries) (discussed below).
+ 
+When querying for tag names or values, note that postings inherit tags from their transaction and from their account,
+and transactions acquire tags from their postings. So in the example above,
+- the assets:checking posting effectively has four tags (one of its own, one from the account, two from the transaction)
+- the expenses:food posting effectively has four tags (two of its own, two from the transaction)
+- the transaction effectively has all six tags (two of its own, and two from each posting)
+
+### Displaying tags
+
+You can use the [`tags` command](#tags-1) to list tag names or values.
+
+The [`print` command](#print) also shows tags.
+
+You can use [--pivot](#pivoting) to display tag values in other reports, in various ways (eg appended to account names, like pseudo subaccounts).
+
+### When to use tags ?
+
+Tags provide more dimensions of categorisation, complementing accounts and transaction descriptions.
+When to use each of these is somewhat a matter of taste.
+Accounts have the most built-in support, and regex queries on descriptions are also quite powerful. So you may not need tags at all.
+But if you want to track multiple cross-cutting categories, they can be a good fit.
+For example, you could tag trip-related transactions with `trip: YEAR:PLACE`, without disturbing your usual account categories.
 
 ### Tag names
 
-Most non-whitespace characters are allowed in tag names. Eg `😀:` is a valid tag.
+What is allowed in a tag name ? Currently, most non-whitespace characters. Eg `😀:` is a valid tag.
 
-You can list the tag names used in your journal with the [tags](#tags) command:\
-`hledger tags [NAMEREGEX]`
+For extra error checking, you can declare valid tag names with the [`tag` directive](#tag-directive),
+and then enforce these with the [`check` command](#check).
 
-In commands which use a [query](#queries), you can match by tag name. Eg:\
-`hledger print tag:NAMEREGEX`
-
-You can declare valid tag names with the [tag directive](#tag-directive) and then check them with the [check](#check) command.
+But note that tags are detected quite loosely at present, sometimes where you didn't intend them.
+Eg `; see https://foo.com` contains a `https` tag with value `//foo.com`.
 
 ### Special tags
 
-Some tag names have special significance to hledger.
-There's not much harm in using them yourself, but some could produce an error message, particularly the `date:` and `type:` tags.
-They are explained elsewhere, but here is a quick list for reference:
-
+Some tag names have special significance to hledger. They are explained elsewhere, but here's a quick reference:
 <!-- keep synced with JournalChecks.hs -->
-Tags you can set to influence hledger's behaviour:
 ```
+ type                   -- declares an account's type
  date                   -- overrides a posting's date
  date2                  -- overrides a posting's secondary date
- type                   -- declares an account's type
-```
-
-Tags hledger adds to indicate generated data (either always, or when `--verbose-tags` is used):
-```
- t                      -- appears on postings generated by timedot letters
  assert                 -- appears on txns generated by close --assert
  retain                 -- appears on txns generated by close --retain
  start                  -- appears on txns generated by close --migrate/--close/--open/--assign
+ t                      -- appears on postings generated from timedot letters
+
  generated-transaction  -- appears on txns generated by a periodic rule
  modified-transaction   -- appears on txns which have had auto postings added
  generated-posting      -- appears on generated postings
- cost-posting           -- marks postings which have a cost, or could have a cost,
-                           that's equivalent to nearby conversion postings
- conversion-posting     -- marks postings which are to a V/Conversion account
-                           and whose amount is equivalent to a nearby cost posting
+ cost-posting           -- appears on postings which have (or could have) a cost,
+                           and which have equivalent conversion postings in the transaction
+ conversion-posting     -- appears on postings which are to a V/Conversion account
+                           and which have an equivalent cost posting in the transaction
 ```
 
-The `*-transaction` and `*-posting` tags above are also added as hidden tags (with a `_` prefix).
-Hidden tags are not displayed, but can be relied on for querying.
+The second group above (generated-transaction, etc.) are normally hidden, with a `_` prefix added.
+This means `print` doesn't show them by default; but you can still use them in queries.
+You can add the `--verbose-tags` flag to make them visible, which can be useful for troubleshooting.
 
-### Tag values
-
-Tags can have a value, which is any text after the colon up until a comma or end of line, with surrounding whitespace removed.
-Ending at comma allows us to write multiple tags on one line, but also means that tag values can not contain commas.
-
-Eg in the following posting, the three tags' values are "value 1", "value 2", and "" (empty) respectively:
-```journal
-    expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
-```
-
-Multiple tags with the same name are additive rather than overriding:
-when the same tag name is seen again with a new value, the new name:value pair is added to the tags.
-It is not possible to override a previous tag's value or remove a tag.
-
-You can list all the values used for a particular tag in the journal with\
-`hledger tags TAGNAME --values`
-
-You can match on tag values with a query like `tag:NAMEREGEX=VALUEREGEX`
 
 ## Directives
 
