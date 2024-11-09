@@ -842,7 +842,8 @@ Here are more details
 hledger will adjust your account names when needed, to make valid
 [Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts)
 (capitalising, replacing spaces with `-`, replacing other unsupported characters with `C<HEXBYTES>`,
-and prepending `A` to account name parts which don't begin with a letter or digit).
+prepending `A` to account name parts which don't begin with a letter or digit,
+and appending `:A` to account names which have only one part).
 However, you must ensure that all top level account names are one of the five required by Beancount:
 `Assets`, `Liabilities`, `Equity`, `Income`, or `Expenses`.
 If yours are named differently, you can use [account aliases](#alias-directive),
