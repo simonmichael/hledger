@@ -85,6 +85,7 @@ $ hledger -f- print -O beancount
 >=
 
 # ** 6. Conversion postings that are redundant with costs are dropped.
+# And when there are costs, operating_currency directives are added for the cost currencies.
 <
 2000-01-01
     Assets                      $1 @@ €1
@@ -93,6 +94,8 @@ $ hledger -f- print -O beancount
     Assets                     €-1
 
 $ hledger -f- print -O beancount
+option "operating_currency" "EUR"
+
 2000-01-01 open Assets:A
 
 2000-01-01 *
