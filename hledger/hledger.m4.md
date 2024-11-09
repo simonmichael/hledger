@@ -860,10 +860,8 @@ and prepend/append a "C" when needed.
 
 #### Beancount virtual postings
 
-Beancount doesn't allow [unbalanced/virtual postings](#virtual-postings),
-so you will need to comment those,
-or use `--real` to exclude transactions that use them.
-(If you have transactions which are a mixture of balanced and unbalanced postings, you'll have to do something more.)
+Beancount doesn't allow [virtual postings](#virtual-postings);
+if you have any, they will not appear in beancount output.
 
 #### Beancount costs
 

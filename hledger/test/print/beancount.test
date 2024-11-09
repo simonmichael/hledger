@@ -44,3 +44,18 @@ $ hledger -f- print -O beancount
 
 >=
 
+# ** 4. Virtual postings are dropped.
+<
+2000-01-01
+  Assets  0 USD
+  (a)   1
+  [b]   2
+  [c]
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets
+
+2000-01-01 *
+    Assets           0 USD
+
+>=
