@@ -828,48 +828,49 @@ using various utilities like `libreoffice --headless` or
 ### Beancount output
 
 This is [Beancount's journal format][beancount journal].
-You can use this to export your hledger data to [Beancount],
-perhaps to query it with [Beancount Query Language] or with the [Fava] web app.
+You can use this to export your hledger data to [Beancount], eg to use the [Fava] web app.
 
-hledger will try to adjust your data to suit Beancount.
-You should be cautious and check the conversion carefully until you are confident it is good.
-If you plan to export to Beancount often, you may want to follow its conventions in your hledger data, to make conversion easier.
-Eg use Beancount-friendly account names, currency codes instead of currency symbols, costs instead of equity conversion postings, no virtual postings, etc.
+hledger will try to adjust your data to suit Beancount, automatically.
+Be cautious and check the conversion until you are confident it is good.
+If you plan to export to Beancount often, you may want to follow its [conventions], to make conversion easier:
+- Beancount-friendly account names
+- currency codes instead of currency symbols
+- costs instead of conversion postings
+- no virtual postings, etc.
 
-Here are more details.
+[conventions]: https://plaintextaccounting.org/#other-features
+
+Note there is one big adjustment you must handle yourself:
+when exporting data for Beancount, your top level account names must be `Assets`, `Liabilities`, `Equity`, `Income`, and/or `Expenses`.
+If needed you can use [account aliases](#alias-directive) to rewrite your account names temporarily.
+as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) config file.
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
 #### Beancount account names
 
-hledger will adjust your account names when needed, to make valid
-[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts)
-(capitalising, replacing spaces with `-`, replacing other unsupported characters with `C<HEXBYTES>`,
+Aside from the top-level names, hledger will adjust your account names to make valid
+[Beancount account names](https://beancount.github.io/docs/beancount_language_syntax.html#accounts),
+by capitalising each part, replacing spaces with `-`, replacing other unsupported characters with `C<HEXBYTES>`,
 prepending `A` to account name parts which don't begin with a letter or digit,
-and appending `:A` to account names which have only one part).
-However, you must ensure that all top level account names are one of the five required by Beancount:
-`Assets`, `Liabilities`, `Equity`, `Income`, or `Expenses`.
-If yours are named differently, you can use [account aliases](#alias-directive),
-usually in the form of `--alias` options, possibly stored in a [config file](#config-file).
-(An example: [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf))
+and appending `:A` to account names which have only one part.
 
 #### Beancount commodity names
 
-hledger will adjust commodity names when needed, to make valid
+hledger will adjust your commodity names to make valid
 [Beancount commodity/currency names](https://beancount.github.io/docs/beancount_language_syntax.html#commodities-currencies),
-(which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`, beginning with a letter and ending with a letter or digit).
+which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`, beginning with a letter and ending with a letter or digit.
 hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes),
 capitalise letters, replace spaces with `-`, replace other unsupported characters with `C<HEXBYTES>`,
-and prepend/append a "C" when needed.
+and prepend or append `C` if needed.
 
 #### Beancount virtual postings
 
-Beancount doesn't allow [virtual postings](#virtual-postings);
-if you have any, they will not appear in beancount output.
+Beancount doesn't allow [virtual postings](#virtual-postings); if you have any, they will be omitted from beancount output.
 
 #### Beancount costs
 
 Beancount doesn't allow [redundant costs and conversion postings](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings) as hledger does.
-If you have entries like this, the conversion postings will be dropped.
+If you have any of these, the conversion postings will be omitted.
 Currently we support at most one cost + conversion postings group per transaction.
 
 #### Beancount operating currency
