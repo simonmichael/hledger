@@ -15,8 +15,9 @@ We don't like regressions. We want to detect them quickly, repair them quickly, 
 ## Regression bounty
 
 You can help!
-[Since 2021-06-14](https://github.com/simonmichael/hledger/issues/1570) we have offered a $100 bounty for each new regression reported in hledger releases.
-Since 2024-01-01, the bounty is split: $50 to the finder and $50 to the fixer (can be the same person, can't be the breaker).
+For reports made between 2021-06-14 and 2023-12-31 we offered a $100 bounty for each new regression reported in hledger releases.
+([original announcement](https://github.com/simonmichael/hledger/issues/1570))
+For reports made since 2024-01-01, we offer $50 to the finder and $50 to the fixer (can be the same person, can't be the breaker).
 
 To claim the bounty:
 
@@ -93,6 +94,7 @@ To claim the bounty:
 [#2225]: https://github.com/simonmichael/hledger/issues/2225
 [#2227]: https://github.com/simonmichael/hledger/issues/2227
 [#2254]: https://github.com/simonmichael/hledger/issues/2254
+[#2284]: https://github.com/simonmichael/hledger/issues/2284
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The flow is this:
@@ -120,6 +122,7 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#1526]                  | lestephane      N/A                                                              | N/A
 | [#1527]                  | lestephane      N/A                                                              | N/A
 | [#1656]                  | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
+| [#2284]                  | **lakshayg**                                                                     | 
 | **1.22** 2021-07-03      | ---                                                                              | ---
 | [#1597]                  | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
 | [#1607]                  | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
@@ -159,10 +162,10 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#2127]                  | [Rajeev N](https://opencollective.com/hledger/expenses/177761)                   | N/A
 | [#2130]                  | Simon Michael   N/A                                                              | N/A
 | [#2134]                  | pepe_pecas donated                                                               | N/A
-| [#2156]                  | **ishmaelavila 2024-01-18**                                                      | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
+| [#2156]                  | ishmaelavila 2024-01-18 donated*                                                 | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | akanshaG42 donated                                                               | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | **1.33** 2024-04-18      | ---                                                                              | ---
-| [#2227]                  | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**     | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**
+| [#2227]                  | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.34** 2024-06-01      | ---                                                                              | ---
 | **1.40** 2024-09-09      | ---                                                                              | ---
-| [#2225]                  | Bas van Dijk donated                                                             | **[Henning Thielemann](https://opencollective.com/hledger/expenses/224252)**
+| [#2225]                  | Bas van Dijk donated                                                             | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
