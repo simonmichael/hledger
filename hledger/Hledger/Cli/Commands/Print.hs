@@ -34,7 +34,7 @@ import System.Console.CmdArgs.Explicit
 import System.Exit (exitFailure)
 
 import Hledger
-import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount)
+import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (printHtml)
@@ -44,8 +44,8 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor)
 import qualified Lucid
 import qualified System.IO as IO
-import Data.Maybe (isJust, catMaybes)
-import Hledger.Write.Beancount (commodityToBeancount)
+import Data.Maybe (isJust, catMaybes, fromMaybe)
+import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
@@ -136,7 +136,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
-           | fmt=="beancount" = entriesReportAsBeancount      . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) . styleAmounts styles . map maybeoriginalamounts
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json"      = toJsonText                    . styleAmounts styles
@@ -183,11 +183,15 @@ entriesReportAsText = entriesReportAsTextHelper showTransaction
 entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text
 entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showtxn)
 
--- This transforms transactions in various ways (see Beancount.hs) to make them Beancount-compatible.
--- It also generates an account open directive for each account used (on their earliest transaction dates),
--- and operating_currency directives based on currencies used in costs.
-entriesReportAsBeancount :: EntriesReport -> TL.Text
-entriesReportAsBeancount ts =
+-- | This generates Beancount-compatible journal output, transforming/encoding the data
+-- in various ways when necessary (see Beancount.hs). It renders:
+-- account open directives for each account used (on their earliest posting dates),
+-- operating_currency directives (based on currencies used in costs),
+-- and transaction entries.
+-- Transaction and posting tags are converted to metadata lines.
+-- Account tags are not propagated to the open directive, currently.
+entriesReportAsBeancount ::  Map AccountName [Tag] -> EntriesReport -> TL.Text
+entriesReportAsBeancount atags ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
   TL.concat [
      TL.fromStrict operatingcurrencydirectives
@@ -255,8 +259,13 @@ entriesReportAsBeancount ts =
     openaccountdirectives
       | null ts = ""
       | otherwise = T.unlines [
-          firstdate <> " open " <> accountNameToBeancount a
+          T.intercalate "\n" $
+            firstdate <> " open " <> accountNameToBeancount a :
+            mdlines
           | a <- nubSort $ concatMap (map paccount.tpostings) ts3
+          , let mds      = tagsToBeancountMetadata $ fromMaybe [] $ Map.lookup a atags
+          , let maxwidth = maximum' $ map (T.length . fst) mds
+          , let mdlines  = map (postingIndent . showBeancountMetadata (Just maxwidth)) mds
           ]
         where
           firstdate = showDate $ minimumDef err $ map tdate ts3

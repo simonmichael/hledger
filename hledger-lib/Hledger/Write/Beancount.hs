@@ -9,6 +9,8 @@ module Hledger.Write.Beancount (
   -- postingsAsLinesBeancount,
   -- postingAsLinesBeancount,
   -- showAccountNameBeancount,
+  tagsToBeancountMetadata,
+  showBeancountMetadata,
   accountNameToBeancount,
   commodityToBeancount,
   -- beancountTopLevelAccounts,
@@ -39,6 +41,9 @@ import Hledger.Data.Dates (showDate)
 import Hledger.Data.Posting (renderCommentLines, showBalanceAssertion, postingIndent)
 import Hledger.Data.Transaction (payeeAndNoteFromDescription')
 import Data.Function ((&))
+import Data.List.Extra (groupOnKey)
+import Data.Bifunctor (first)
+import Data.List (sort)
 
 --- ** doctest setup
 -- $setup
@@ -50,12 +55,12 @@ showTransactionBeancount t =
   -- https://beancount.github.io/docs/beancount_language_syntax.html
   -- similar to showTransactionHelper, but I haven't bothered with Builder
      firstline <> nl
+  <> foldMap ((<> nl).postingIndent.showBeancountMetadata (Just maxmdnamewidth)) mds
   <> foldMap ((<> nl)) newlinecomments
   <> foldMap ((<> nl)) (postingsAsLinesBeancount $ tpostings t)
   <> nl
   where
-    nl = "\n"
-    firstline = T.concat [date, status, payee, note, tags, samelinecomment]
+    firstline = T.concat [date, status, payee, note, samelinecomment]
     date = showDate $ tdate t
     status = if tstatus t == Pending then " !" else " *"
     (payee,note) =
@@ -66,12 +71,92 @@ showTransactionBeancount t =
         (p ,n ) -> (wrapq p, wrapq n )
       where
         wrapq = wrap " \"" "\"" . escapeDoubleQuotes . escapeBackslash
-    tags = T.concat $ map ((" #"<>).fst) $ ttags t
+    mds = tagsToBeancountMetadata $ ttags t
+    maxmdnamewidth = maximum' $ map (T.length . fst) mds
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
 
--- | Like postingsAsLines but generates Beancount journal format.
+nl = "\n"
+
+type BMetadata = Tag
+
+-- https://beancount.github.io/docs/beancount_language_syntax.html#metadata-1
+-- | Render a Beancount metadata as a metadata line (without the indentation or newline).
+-- If a maximum name length is provided, space will be left after the colon
+-- so that successive metadata values will all start at the same column.
+showBeancountMetadata :: Maybe Int -> BMetadata -> Text
+showBeancountMetadata mmaxnamewidth (n,v) =
+  fitText (fmap (+2) mmaxnamewidth) Nothing False True (n <> ": ")
+  <> toBeancountMetadataValue v
+
+-- | Make a list of tags ready to be rendered as Beancount metadata:
+-- Encode and lengthen names, encode values, and combine repeated tags into one.
+-- Metadatas will be sorted by (encoded) name and then value.
+tagsToBeancountMetadata :: [Tag] -> [BMetadata]
+tagsToBeancountMetadata = sort . map (first toBeancountMetadataName) . uniquifyTags . filter (not.isHiddenTagName.fst)
+
+-- | In a list of tags, replace each tag that appears more than once
+-- with a single tag with all of the values combined into one, comma-and-space-separated.
+-- This function also sorts all tags by name and then value.
+uniquifyTags :: [Tag] -> [Tag]
+uniquifyTags ts = [(k, T.intercalate ", " $ map snd $ tags) | (k, tags) <- groupOnKey fst $ sort ts]
+
+toBeancountMetadataName :: TagName -> Text
+toBeancountMetadataName name =
+  prependStartCharIfNeeded $
+  case T.uncons name of
+    Nothing -> ""
+    Just (c,cs) ->
+      T.concatMap (\d -> if isBeancountMetadataNameChar d then T.singleton d else toBeancountMetadataNameChar d) $ T.cons c cs
+  where
+    -- If the name is empty, make it "mm".
+    -- If it has only one character, prepend "m".
+    -- If the first character is not a valid one, prepend "m".
+    prependStartCharIfNeeded t =
+      case T.uncons t of
+        Nothing -> T.replicate 2 $ T.singleton beancountMetadataDummyNameStartChar
+        Just (c,cs) | T.null cs || not (isBeancountMetadataNameStartChar c) -> T.cons beancountMetadataDummyNameStartChar t
+        _ -> t
+
+-- | Is this a valid character to start a Beancount metadata name (lowercase letter) ?
+isBeancountMetadataNameStartChar :: Char -> Bool
+isBeancountMetadataNameStartChar c = isLetter c && islowercase c
+
+-- | Dummy valid starting character to prepend to a Beancount metadata name if needed.
+beancountMetadataDummyNameStartChar :: Char
+beancountMetadataDummyNameStartChar = 'm'
+
+-- | Is this a valid character in the middle of a Beancount metadata name (a lowercase letter, digit, _ or -) ?
+isBeancountMetadataNameChar :: Char -> Bool
+isBeancountMetadataNameChar c = (isLetter c && islowercase c) || isDigit c || c `elem` ['_', '-']
+
+-- | Convert a character to one or more characters valid inside a Beancount metadata name.
+-- Letters are lowercased, spaces are converted to dashes, and unsupported characters are encoded as c<HEXBYTES>.
+toBeancountMetadataNameChar :: Char -> Text
+toBeancountMetadataNameChar c
+  | isBeancountMetadataNameChar c = T.singleton c
+  | isLetter c = T.singleton $ toLower c
+  | isSpace c = "-"
+  | otherwise = T.pack $ printf "c%x" c
+
+toBeancountMetadataValue :: TagValue -> Text
+toBeancountMetadataValue = ("\"" <>) . (<> "\"") . T.concatMap toBeancountMetadataValueChar
+
+-- | Is this a valid character in the middle of a Beancount metadata name (a lowercase letter, digit, _ or -) ?
+isBeancountMetadataValueChar :: Char -> Bool
+isBeancountMetadataValueChar c = c `notElem` ['"']
+
+-- | Convert a character to one or more characters valid inside a Beancount metadata value:
+-- a double quote is encoded as c<HEXBYTES>.
+toBeancountMetadataValueChar :: Char -> Text
+toBeancountMetadataValueChar c
+  | isBeancountMetadataValueChar c = T.singleton c
+  | otherwise = T.pack $ printf "c%x" c
+
+
+-- | Render a transaction's postings as indented lines, suitable for `print -O beancount` output.
+-- See also Posting.postingsAsLines.
 postingsAsLinesBeancount :: [Posting] -> [Text]
 postingsAsLinesBeancount ps = concatMap first3 linesWithWidths
   where
@@ -79,10 +164,15 @@ postingsAsLinesBeancount ps = concatMap first3 linesWithWidths
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3  linesWithWidths
 
--- | Like postingAsLines but generates Beancount journal format.
+-- | Render one posting, on one or more lines, suitable for `print -O beancount` output.
+-- Also returns the widths calculated for the account and amount fields.
+-- See also Posting.postingAsLines.
 postingAsLinesBeancount  :: Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
 postingAsLinesBeancount elideamount acctwidth amtwidth p =
-    (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
+    (concatMap (++ (map ("  "<>) $ metadatalines <> newlinecomments)) postingblocks
+    ,thisacctwidth
+    ,thisamtwidth
+    )
   where
     -- This needs to be converted to strict Text in order to strip trailing
     -- spaces. This adds a small amount of inefficiency, and the only difference
@@ -125,7 +215,9 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
     statusandaccount = postingIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
     thisacctwidth = realLength pacct
-
+    mds = tagsToBeancountMetadata $ ptags p
+    metadatalines = map (postingIndent . showBeancountMetadata (Just maxtagnamewidth)) mds
+      where maxtagnamewidth = maximum' $ map (T.length . fst) mds
     (samelinecomment, newlinecomments) =
       case renderCommentLines (pcomment p) of []   -> ("",[])
                                               c:cs -> (c,cs)
@@ -195,6 +287,8 @@ charToBeancount c = if isSpace c then "-" else printf "C%x" c
 -- https://hackage.haskell.org/package/base-4.20.0.1/docs/Data-Char.html#v:isUpperCase would be more correct,
 -- but isn't available till base 4.18/ghc 9.6. isUpper is close enough in practice.
 isuppercase = isUpper
+-- same story, presumably
+islowercase = isLower
 
 -- | Is this a valid character to start a Beancount account name part (capital letter or digit) ?
 isBeancountAccountStartChar :: Char -> Bool

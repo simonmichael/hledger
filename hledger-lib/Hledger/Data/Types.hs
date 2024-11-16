@@ -417,6 +417,13 @@ toHiddenTag = first toHiddenTagName
 toVisibleTag :: HiddenTag -> Tag
 toVisibleTag = first toVisibleTagName
 
+-- | Does this tag name begin with the hidden tag prefix (_) ?
+isHiddenTagName :: TagName -> Bool
+isHiddenTagName t =
+  case T.uncons t of
+    Just ('_',_) -> True
+    _ -> False
+
 -- | Add the _ prefix to a normal visible tag's name, making it a hidden tag.
 toHiddenTagName :: TagName -> TagName
 toHiddenTagName = T.cons '_'

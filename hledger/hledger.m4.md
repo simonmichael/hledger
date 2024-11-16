@@ -867,6 +867,21 @@ and prepend or append `C` if needed.
 
 Beancount doesn't allow [virtual postings](#virtual-postings); if you have any, they will be omitted from beancount output.
 
+#### Beancount metadata
+
+hledger tags are converted to Beancount [metadata](https://beancount.github.io/docs/beancount_language_syntax.html#metadata-1) lines attached to transactions and postings.
+Metadata names and values are adjusted to be Beancount-compatible as needed.
+(Names will begin with a lowercase letter, will be at least two characters long, and unsupported characters will be encoded.
+Values will use Beancount's string type.)
+Internal or user-created tags whose names begin with `_` will not be converted.
+
+Unlike normal print output, postings will explicitly show any tags inherited from their account, currently.
+This is perhaps correct, but over-verbose (and somewhat inconsistent).
+
+Note that in hledger, objects can have the same tag with multiple values.
+Eg an `assets:cash` account might have both `type:C` and `type:A` tags.
+In such cases, the values will be combined into one, separated by commas.
+
 #### Beancount costs
 
 Beancount doesn't allow [redundant costs and conversion postings](https://hledger.org/hledger.html#combining-costs-and-equity-conversion-postings) as hledger does.

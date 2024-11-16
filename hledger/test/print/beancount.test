@@ -122,3 +122,48 @@ $ hledger -f- print -O beancount
 >2 /unbalanced/
 >=1
 
+# ** 8. Tags are converted to metadata lines.
+# Metadata names and values are encoded/adjusted to be Beancount-compatible as needed.
+# The original hledger comments are also preserved.
+# Hidden internal tags, and also user-created tags that begin with _, are not converted.
+# Account tags inherited by postings are visibly added to the postings, unlike normal hledger print.
+# Account tags are not yet propagated to open directives.
+<
+account assets       ; type:A
+account assets:cash  ; type:C
+
+2000-01-01 transaction tags
+  ; a:v
+  ; a-a: v colon: thing , other
+  ; "troublesome: quotes"
+  ; https://a.com/b?q=v,w
+  ; 😀:
+  ; _hiddenish:
+
+2000-01-02 posting tags     ; a: ttag
+  assets:cash            0  ; a: ptag
+
+$ hledger -f- print -O beancount
+2000-01-01 open Assets:Cash
+    type: "C"
+
+2000-01-01 * "transaction tags"
+    a-a:            "v colon: thing"
+    c1f600:         ""
+    c22troublesome: "quotesc22"
+    https:          "//a.com/b?q=v"
+    ma:             "v"
+    ; a:v
+    ; a-a: v colon: thing , other
+    ; "troublesome: quotes"
+    ; https://a.com/b?q=v,w
+    ; 😀:
+    ; _hiddenish:
+
+2000-01-02 * "posting tags"  ; a: ttag
+    ma: "ttag"
+    Assets:Cash             0 C  ; a: ptag
+      ma:   "ptag"
+      type: "A, C"
+
+>=
