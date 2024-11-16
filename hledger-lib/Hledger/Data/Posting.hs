@@ -229,11 +229,11 @@ showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidt
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
--- | Given a transaction and its postings, render the postings, suitable
--- for `print` output. Normally this output will be valid journal syntax which
--- hledger can reparse (though it may include no-longer-valid balance assertions).
+-- | Render a transaction's postings as indented lines, suitable for `print` output.
 --
--- Explicit amounts are shown, any implicit amounts are not.
+-- Normally these will be in valid journal syntax which hledger can reparse
+-- (though they may include no-longer-valid balance assertions).
+-- Explicit amounts are shown, implicit amounts are not.
 --
 -- Postings with multicommodity explicit amounts are handled as follows:
 -- if onelineamounts is true, these amounts are shown on one line,
@@ -241,12 +241,12 @@ showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidt
 -- Otherwise, they are shown as several similar postings, one per commodity.
 -- When the posting has a balance assertion, it is attached to the last of these postings.
 --
--- The output will appear to be a balanced transaction.
--- Amounts' display precisions, which may have been limited by commodity
--- directives, will be increased if necessary to ensure this.
---
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
+-- The postings will appear balanced (amounts summing to zero).
+-- Amounts' display precisions, which may have been limited by commodity directives,
+-- will be increased if necessary to ensure this.
+--
 postingsAsLines :: Bool -> [Posting] -> [Text]
 postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
   where
@@ -255,11 +255,12 @@ postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
+-- Also returns the widths calculated for the account and amount fields.
+--
 -- There will be an indented account name, plus one or more of status flag,
 -- posting amount, balance assertion, same-line comment, next-line comments.
 --
 -- If the posting's amount is implicit or if elideamount is true, no amount is shown.
---
 -- If the posting's amount is explicit and multi-commodity, multiple similar
 -- postings are shown, one for each commodity, to help produce parseable journal syntax.
 -- Or if onelineamounts is true, such amounts are shown on one line, comma-separated
@@ -276,7 +277,6 @@ postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
--- Also returns the account width and amount width used.
 postingAsLines :: Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
 postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
