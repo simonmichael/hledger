@@ -122,7 +122,7 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#1526]                  | lestephane      N/A                                                              | N/A
 | [#1527]                  | lestephane      N/A                                                              | N/A
 | [#1656]                  | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
-| [#2284]                  | **lakshayg**                                                                     | 
+| [#2284]                  | [lakshayg](https://opencollective.com/hledger/expenses/227577)                   | 
 | **1.22** 2021-07-03      | ---                                                                              | ---
 | [#1597]                  | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
 | [#1607]                  | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
