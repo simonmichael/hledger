@@ -149,15 +149,16 @@ toggleEmpty = over empty__ not
 
 -- | Toggle between showing the primary amounts or costs.
 toggleConversionOp :: UIState -> UIState
-toggleConversionOp = over conversionop toggleCostMode
+toggleConversionOp ui = (over value valOff) (over conversionop toggleCostMode ui)
   where
     toggleCostMode Nothing               = Just ToCost
     toggleCostMode (Just NoConversionOp) = Just ToCost
     toggleCostMode (Just ToCost)         = Just NoConversionOp
+    valOff _                             = Nothing
 
 -- | Toggle between showing primary amounts or values (using valuation specified at startup, or a default).
 toggleValue :: UIState -> UIState
-toggleValue ui = over value (valuationToggleValue mstartupvaluation0) ui
+toggleValue ui = (over conversionop costOff) (over value (valuationToggleValue mstartupvaluation0) ui)
   where
     mstartupvaluation0 = value_ $ _rsReportOpts $ reportspec_ $ uoCliOpts $ astartupopts ui
     mdefvaluation = Just (AtEnd Nothing)
@@ -166,6 +167,7 @@ toggleValue ui = over value (valuationToggleValue mstartupvaluation0) ui
     valuationToggleValue Nothing           (Just _) = Nothing
     valuationToggleValue mstartupvaluation Nothing  = mstartupvaluation
     valuationToggleValue _                 (Just _) = Nothing
+    costOff _ = Just NoConversionOp
 
 -- | Set hierarchic account tree mode.
 setTree :: UIState -> UIState
