@@ -44,6 +44,7 @@ import Data.List (intercalate, sortBy)
 --The stored values don't represent large virtual data structures to be lazily computed.
 import qualified Data.Map as M
 import Data.Ord (comparing)
+import Data.Semigroup (Min(..))
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
@@ -155,6 +156,19 @@ instance Default Interval where def = NoInterval
 type Payee = Text
 
 type AccountName = Text
+
+-- A specification indicating how to depth-limit
+data DepthSpec = DepthSpec {
+  dsFlatDepth    :: Maybe Int,
+  dsRegexpDepths :: [(Regexp, Int)]
+  } deriving (Eq,Show)
+
+-- Semigroup instance consider all regular expressions, but take the minimum of the simple flat depths
+instance Semigroup DepthSpec where
+    DepthSpec d1 l1 <> DepthSpec d2 l2 = DepthSpec (getMin <$> (Min <$> d1) <> (Min <$> d2)) (l1 ++ l2)
+
+instance Monoid DepthSpec where
+    mempty = DepthSpec Nothing []
 
 data AccountType =
     Asset

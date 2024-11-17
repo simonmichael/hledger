@@ -98,7 +98,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     thisacctq = Acct $ (if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex) acct
     ropts' = (_rsReportOpts rspec) {
         -- ignore any depth limit, as in postingsReport; allows register's total to match balance reports (cf #1468)
-        depth_=Nothing
+        depth_=DepthSpec Nothing []
       , balanceaccum_ =
           case balanceaccum_ $ _rsReportOpts rspec of
             PerPeriod -> Historical

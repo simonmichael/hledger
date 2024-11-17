@@ -149,7 +149,7 @@ tests_BalanceReport = testGroup "BalanceReport" [
        mixedAmount (usd 0))
 
     ,testCase "with --depth=N" $
-     (defreportspec{_rsReportOpts=defreportopts{depth_=Just 1}}, samplejournal) `gives`
+     (defreportspec{_rsReportOpts=defreportopts{depth_=DepthSpec (Just 1) []}}, samplejournal) `gives`
       ([
        ("expenses",    "expenses",     0, mixedAmount (usd 2))
        ,("income",      "income",      0, mixedAmount (usd (-2)))
@@ -222,7 +222,7 @@ tests_BalanceReport = testGroup "BalanceReport" [
        ]
 
       ,testCase "accounts report with account pattern o and --depth 1" ~:
-       defreportopts{patterns_=["o"],depth_=Just 1} `gives`
+       defreportopts{patterns_=["o"],depth_=(Just 1, [])} `gives`
        ["                  $1  expenses"
        ,"                 $-2  income"
        ,"--------------------"
