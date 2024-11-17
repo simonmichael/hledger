@@ -23,10 +23,10 @@ import Safe (headDef)
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.Dates
-import Hledger.Data.Transaction (txnTieKnot)
+import Hledger.Data.Transaction (txnTieKnot, transactionAddHiddenAndMaybeVisibleTag)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
                       parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
-import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags)
+import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, modifiedTransactionTagName)
 import Hledger.Utils (dbg6, wrap)
 
 -- $setup
@@ -47,14 +47,10 @@ modifyTransactions :: (AccountName -> Maybe AccountType)
 modifyTransactions atypes atags styles d verbosetags tmods ts = do
   fs <- mapM (transactionModifierToFunction atypes atags styles d verbosetags) tmods  -- convert modifiers to functions, or return a parse error
   let
-    modifytxn t = t''
+    modifytxn t =
+      t' & if t'/=t then transactionAddHiddenAndMaybeVisibleTag verbosetags (modifiedTransactionTagName,"") else id
       where
         t' = foldr (flip (.)) id fs t  -- apply each function in turn
-        t'' = if t' == t
-              then t'
-              else t'{tcomment=tcomment t' & (if verbosetags then (`commentAddTag` ("modified","")) else id)
-                     ,ttags=ttags t' & (("_modified","") :) & (if verbosetags then (("modified","") :) else id)
-                     }
 
   Right $ map modifytxn ts
 

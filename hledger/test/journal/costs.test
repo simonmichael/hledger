@@ -29,9 +29,9 @@ $ hledger -f- print --explicit --cost
 # and with --verbose-tags, they will be visibly tagged.
 $ hledger -f- print --infer-equity --verbose-tags
 2011-01-01
-    expenses:foreign currency    €100 @ $1.35
-    equity:conversion:$-€:€             €-100  ; generated-posting: conversion
-    equity:conversion:$-€:$           $135.00  ; generated-posting: conversion
+    expenses:foreign currency    €100 @ $1.35  ; cost-posting:
+    equity:conversion:$-€:€             €-100  ; conversion-posting:, generated-posting:
+    equity:conversion:$-€:$           $135.00  ; conversion-posting:, generated-posting:
     assets                           $-135.00
 
 >=0

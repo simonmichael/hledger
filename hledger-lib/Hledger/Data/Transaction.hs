@@ -34,6 +34,8 @@ module Hledger.Data.Transaction
 , transactionMapPostingAmounts
 , transactionAmounts
 , partitionAndCheckConversionPostings
+, transactionAddTags
+, transactionAddHiddenAndMaybeVisibleTag
   -- * helpers
 , payeeAndNoteFromDescription
 , payeeAndNoteFromDescription'
@@ -76,6 +78,8 @@ import Hledger.Data.Amount
 import Hledger.Data.Valuation
 import Data.Decimal (normalizeDecimal, decimalPlaces)
 import Data.Functor ((<&>))
+import Data.Function ((&))
+import Data.List (union)
 
 
 instance HasAmounts Transaction where
@@ -249,6 +253,22 @@ type IdxPosting = (Int, Posting)
 
 label s = ((s <> ": ")++)
 
+-- | Add tags to a transaction, discarding any for which it already has a value.
+-- Note this does not add tags to the transaction's comment.
+transactionAddTags :: Transaction -> [Tag] -> Transaction
+transactionAddTags t@Transaction{ttags} tags = t{ttags=ttags `union` tags}
+
+-- | Add the given hidden tag to a transaction; and with a true argument,
+-- also add the equivalent visible tag to the transaction's tags and comment fields.
+-- If the transaction already has these tags (with any value), do nothing.
+transactionAddHiddenAndMaybeVisibleTag :: Bool -> HiddenTag -> Transaction -> Transaction
+transactionAddHiddenAndMaybeVisibleTag verbosetags ht t@Transaction{tcomment=c, ttags} =
+  (t `transactionAddTags` ([ht] <> [vt|verbosetags]))
+  {tcomment=if verbosetags && not hadtag then c `commentAddTagNextLine` vt else c}
+  where
+    vt@(vname,_) = toVisibleTag ht
+    hadtag = any ((== (T.toLower vname)) . T.toLower . fst) ttags  -- XXX should regex-quote vname
+
 -- | Find, associate, and tag the corresponding equity conversion postings and costful or potentially costful postings in this transaction.
 -- With a true addcosts argument, also generate and add any equivalent costs that are missing.
 -- The (previously detected) names of all equity conversion accounts should be provided.
@@ -260,8 +280,8 @@ label s = ((s <> ": ")++)
 --
 -- The name reflects the complexity of this and its helpers; clarification is ongoing.
 --
-transactionTagCostsAndEquityAndMaybeInferCosts :: Bool -> [AccountName] -> Transaction -> Either String Transaction
-transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts t = first (annotateErrorWithTransaction t . T.unpack) $ do
+transactionTagCostsAndEquityAndMaybeInferCosts :: Bool -> Bool -> [AccountName] -> Transaction -> Either String Transaction
+transactionTagCostsAndEquityAndMaybeInferCosts verbosetags1 addcosts conversionaccts t = first (annotateErrorWithTransaction t . T.unpack) $ do
   -- number the postings
   let npostings = zip [0..] $ tpostings t
 
@@ -273,7 +293,7 @@ transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts t = firs
   -- 1. each pair of conversion postings, and the corresponding postings which balance them, are tagged for easy identification
   -- 2. each pair of balancing postings which did't have an explicit cost, have had a cost calculated and added to one of them
   -- 3. if any ambiguous situation was detected, an informative error is raised
-  processposting <- transformIndexedPostingsF (tagAndMaybeAddCostsForEquityPostings addcosts) conversionPairs otherps
+  processposting <- transformIndexedPostingsF (tagAndMaybeAddCostsForEquityPostings verbosetags1 addcosts) conversionPairs otherps
 
   -- And if there was no error, use it to modify the transaction's postings.
   return t{tpostings = map (snd . processposting) npostings}
@@ -306,8 +326,8 @@ transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts t = firs
     -- 3. if in add costs mode, and the potential equivalent-cost posting does not have that explicit cost, add it
     -- 4. or if there is a problem, raise an informative error or do nothing, as appropriate.
     -- Or if there are no costful postings at all, do nothing.
-    tagAndMaybeAddCostsForEquityPostings :: Bool -> (IdxPosting, IdxPosting) -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
-    tagAndMaybeAddCostsForEquityPostings addcosts' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
+    tagAndMaybeAddCostsForEquityPostings :: Bool -> Bool -> (IdxPosting, IdxPosting) -> StateT ([IdxPosting], [IdxPosting]) (Either Text) (IdxPosting -> IdxPosting)
+    tagAndMaybeAddCostsForEquityPostings verbosetags addcosts' ((n1, cp1), (n2, cp2)) = StateT $ \(costps, otherps) -> do
       -- Get the two conversion posting amounts, if possible
       ca1 <- conversionPostingAmountNoCost cp1
       ca2 <- conversionPostingAmountNoCost cp2
@@ -328,8 +348,8 @@ transactionTagCostsAndEquityAndMaybeInferCosts addcosts conversionaccts t = firs
 
         -- A function that adds a cost and/or tag to a numbered posting if appropriate.
         postingAddCostAndOrTag np costp (n,p) =
-          (n, if | n == np            -> costp `postingAddTags` [(costPostingTagName,"")]        -- add this tag to the posting with a cost
-                 | n == n1 || n == n2 -> p     `postingAddTags` [(conversionPostingTagName,"")]  -- add this tag to the two equity conversion postings
+          (n, if | n == np            -> costp & postingAddHiddenAndMaybeVisibleTag verbosetags (costPostingTagName,"")        -- if it's the specified posting number, replace it with the costful posting, and tag it
+                 | n == n1 || n == n2 -> p     & postingAddHiddenAndMaybeVisibleTag verbosetags (conversionPostingTagName,"")  -- if it's one of the equity conversion postings, tag it
                  | otherwise          -> p)
 
       -- Annotate any errors with the conversion posting pair
