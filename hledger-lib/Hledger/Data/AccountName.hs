@@ -35,6 +35,7 @@ module Hledger.Data.AccountName (
   ,acctsepchar
   ,clipAccountName
   ,clipOrEllipsifyAccountName
+  ,getAccountNameClippedDepth
   ,elideAccountName
   ,escapeName
   ,expandAccountName
@@ -61,9 +62,10 @@ where
 
 import Control.Applicative ((<|>))
 import Control.Monad (foldM)
-import Data.Foldable (asum, toList)
+import Data.Foldable (asum, find, toList)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map as M
+import Data.Maybe (mapMaybe)
 import Data.MemoUgly (memo)
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -335,18 +337,54 @@ elideAccountName width s
           | otherwise = done++ss
 
 -- | Keep only the first n components of an account name, where n
--- is a positive integer. If n is Just 0, returns the empty string, if n is
--- Nothing, return the full name.
-clipAccountName :: Maybe Int -> AccountName -> AccountName
-clipAccountName Nothing  = id
-clipAccountName (Just n) = accountNameFromComponents . take n . accountNameComponents
+-- is a positive integer.
+clipAccountNameTo :: Int -> AccountName -> AccountName
+clipAccountNameTo n = accountNameFromComponents . take n . accountNameComponents
 
--- | Keep only the first n components of an account name, where n
--- is a positive integer. If n is Just 0, returns "...", if n is Nothing, return
--- the full name.
-clipOrEllipsifyAccountName :: Maybe Int -> AccountName -> AccountName
-clipOrEllipsifyAccountName (Just 0) = const "..."
-clipOrEllipsifyAccountName n        = clipAccountName n
+-- | Calculate the depth to which an account name should be clipped for a given
+-- 'DepthSpec'.
+--
+-- First checking whether the account name matches any of the regular
+-- expressions controlling depth. If so, clip to the depth of the most specific
+-- of those matches, i.e. the one which starts matching the latest as you
+-- progress up the parents of the account. Otherwise clip to the flat depth
+-- provided, or return the full name if Nothing.
+getAccountNameClippedDepth :: DepthSpec -> AccountName -> Maybe Int
+getAccountNameClippedDepth (DepthSpec flat regexps) acctName =
+    mostSpecificRegexp regexps <|> flat
+  where
+    -- If any regular expressions match, choose the one with the greatest
+    -- specificity and clip to that depth.
+    mostSpecificRegexp = fmap snd . foldr takeMax Nothing . mapMaybe matchRegexp
+      where
+        -- If two regexps match, take the most specific one. If there is a tie,
+        -- take the last one (this aligns with the behaviour for flat depths
+        -- limiting).
+        takeMax (s, d) (Just (s', d')) = Just $ if s'>= s then (s', d') else (s, d)
+        takeMax (s, d) Nothing = Just (s, d)
+
+    -- If the regular expression matches the account name, store the specificity and requested depth
+    matchRegexp :: (Regexp, Int) -> Maybe (Int, Int)
+    matchRegexp (r, d) = if regexMatchText r acctName then Just (getSpecificity r, d) else Nothing
+    -- Specificity is the smallest parent of the account which matches the regular expression
+    getSpecificity r = maybe maxBound fst $ find (regexMatchText r . snd) acctParents
+    acctParents = zip [1..] . initDef [] $ expandAccountName acctName
+
+-- | Clip an account name to a given 'DepthSpec', first checking whether it
+-- matches any of the regular expressions controlling depth. If so, clip to the
+-- depth of the most specific of those matches, i.e. the one which starts
+-- matching the latest as you progress up the parents of the account. Otherwise
+-- clip to the flat depth provided, or return the full name if Nothing.
+clipAccountName :: DepthSpec -> AccountName -> AccountName
+clipAccountName ds a = maybe id clipAccountNameTo (getAccountNameClippedDepth ds a) a
+
+-- | As 'clipAccountName', but return '...' if asked to clip to depth 0.
+clipOrEllipsifyAccountName :: DepthSpec -> AccountName -> AccountName
+clipOrEllipsifyAccountName ds a = go (getAccountNameClippedDepth ds a)
+  where
+    go Nothing  = a
+    go (Just 0) = "..."
+    go (Just n) = clipAccountNameTo n a
 
 -- | Escape an AccountName for use within a regular expression.
 -- >>> putStr . T.unpack $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"

@@ -71,7 +71,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
     where
       (reportspan, colspans) = reportSpanBothDates j rspec
       whichdate   = whichDate ropts
-      mdepth      = queryDepth $ _rsQuery rspec
+      depthSpec   = queryDepth $ _rsQuery rspec
       multiperiod = interval_ /= NoInterval
 
       -- postings to be included in the report, and similarly-matched postings before the report start date
@@ -82,7 +82,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
         | multiperiod = [(p', Just period') | (p', period') <- summariseps reportps]
         | otherwise   = [(p', Nothing) | p' <- reportps]
         where
-          summariseps = summarisePostingsByInterval whichdate mdepth showempty colspans
+          summariseps = summarisePostingsByInterval whichdate (dsFlatDepth depthSpec) showempty colspans
           showempty = empty_ || average_
 
       sortedps = if sortspec_ /= defsortspec then sortPostings ropts sortspec_ displayps else displayps
@@ -90,7 +90,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
       -- Posting report items ready for display.
       items =
         dbg4 "postingsReport items" $
-        postingsReportItems postings (nullposting,Nothing) whichdate mdepth startbal runningcalc startnum
+        postingsReportItems postings (nullposting,Nothing) whichdate depthSpec startbal runningcalc startnum
         where
           -- In historical mode we'll need a starting balance, which we
           -- may be converting to value per hledger_options.m4.md "Effect
@@ -180,7 +180,7 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
 
 -- | Generate postings report line items from a list of postings or (with
 -- non-Nothing periods attached) summary postings.
-postingsReportItems :: [(Posting,Maybe Period)] -> (Posting,Maybe Period) -> WhichDate -> Maybe Int -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
+postingsReportItems :: [(Posting,Maybe Period)] -> (Posting,Maybe Period) -> WhichDate -> DepthSpec -> MixedAmount -> (Int -> MixedAmount -> MixedAmount -> MixedAmount) -> Int -> [PostingsReportItem]
 postingsReportItems [] _ _ _ _ _ _ = []
 postingsReportItems ((p,mperiod):ps) (pprev,mperiodprev) wd d b runningcalcfn itemnum =
     i:(postingsReportItems ps (p,mperiod) wd d b' runningcalcfn (itemnum+1))
@@ -237,7 +237,7 @@ summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
     postingdate = if wd == PrimaryDate then postingDate else postingDate2
     b' = maybe (maybe nulldate postingdate $ headMay ps) fromEFDay b
     summaryp = nullposting{pdate=Just b'}
-    clippedanames = nub $ map (clipAccountName mdepth) anames
+    clippedanames = nub $ map (clipAccountName (DepthSpec mdepth [])) anames
     summaryps | mdepth == Just 0 = [summaryp{paccount="...",pamount=sumPostings ps}]
               | otherwise        = [summaryp{paccount=a,pamount=balance a} | a <- clippedanames]
     summarypes = map (, dateSpanAsPeriod spn) $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps

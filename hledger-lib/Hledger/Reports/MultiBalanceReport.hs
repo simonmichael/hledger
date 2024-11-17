@@ -289,10 +289,12 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
               filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) query
 
     filterbydepth = case accountlistmode_ of
-      ALTree -> filter ((depthq `matchesAccount`) . aname)    -- a tree - just exclude deeper accounts
-      ALFlat -> clipAccountsAndAggregate (queryDepth depthq)  -- a list - aggregate deeper accounts at the depth limit
-                . filter ((0<) . anumpostings)                -- and exclude empty parent accounts
-      where depthq = dbg3 "depthq" $ filterQuery queryIsDepth query
+        ALTree -> filter (depthMatches . aname)       -- a tree - just exclude deeper accounts
+        ALFlat -> clipAccountsAndAggregate depthSpec  -- a list - aggregate deeper accounts at the depth limit
+                  . filter ((0<) . anumpostings)      -- and exclude empty parent accounts
+      where
+        depthSpec = dbg3 "depthq" . queryDepth $ filterQuery queryIsDepth query
+        depthMatches name = maybe True (accountNameLevel name <=) $ getAccountNameClippedDepth depthSpec name
 
     accts = filterbydepth $ drop 1 $ accountsFromPostings ps'
 
@@ -409,8 +411,8 @@ displayedAccounts :: ReportSpec
                   -> HashMap AccountName (Map DateSpan Account)
                   -> HashMap AccountName DisplayName
 displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts valuedaccts
-    | qdepth == 0 = HM.singleton "..." $ DisplayName "..." "..." 0
-    | otherwise  = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
+    | qdepthIsZero = HM.singleton "..." $ DisplayName "..." "..." 0
+    | otherwise    = HM.mapWithKey (\a _ -> displayedName a) displayedAccts
   where
     displayedName name = case accountlistmode_ ropts of
         ALTree -> DisplayName name leaf (max 0 $ level - 1 - boringParents)
@@ -425,19 +427,20 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
         notDisplayed  = not . (`HM.member` displayedAccts)
 
     -- Accounts which are to be displayed
-    displayedAccts = (if qdepth == 0 then id else HM.filterWithKey keep) valuedaccts
+    displayedAccts = (if qdepthIsZero then id else HM.filterWithKey keep) valuedaccts
       where
         keep name amts = isInteresting name amts || name `HM.member` interestingParents
 
     -- Accounts interesting for their own sake
     isInteresting name amts =
-        d <= qdepth                                  -- Throw out anything too deep
+        d <= qdepth                                -- Throw out anything too deep
         && ( name `Set.member` unelidableaccts     -- Unelidable accounts should be kept unless too deep
            ||(empty_ ropts && keepWhenEmpty amts)  -- Keep empty accounts when called with --empty
            || not (isZeroRow balance amts)         -- Keep everything with a non-zero balance in the row
            )
       where
         d = accountNameLevel name
+        qdepth = fromMaybe maxBound $ getAccountNameClippedDepth depthspec name
         keepWhenEmpty = case accountlistmode_ ropts of
             ALFlat -> const True          -- Keep all empty accounts in flat mode
             ALTree -> all (null . asubs)  -- Keep only empty leaves in tree mode
@@ -455,7 +458,8 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
         minSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    qdepth = fromMaybe maxBound $ queryDepth query
+    depthspec = queryDepth query
+    qdepthIsZero = depthspec == DepthSpec (Just 0) []
     numSubs = subaccountTallies . HM.keys $ HM.filterWithKey isInteresting valuedaccts
 
 -- | Sort the rows by amount or by account declaration order.

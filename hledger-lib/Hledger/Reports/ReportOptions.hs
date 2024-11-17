@@ -75,6 +75,7 @@ import Data.Char (toLower)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
+import Data.List (partition)
 import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
@@ -134,7 +135,7 @@ data ReportOpts = ReportOpts {
     ,conversionop_     :: Maybe ConversionOp  -- ^ Which operation should we apply to conversion transactions?
     ,value_            :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_prices_     :: Bool      -- ^ Infer market prices from transactions ?
-    ,depth_            :: Maybe Int
+    ,depth_            :: DepthSpec
     ,date2_            :: Bool
     ,empty_            :: Bool
     ,no_elide_         :: Bool
@@ -194,7 +195,7 @@ defreportopts = ReportOpts
     , conversionop_     = Nothing
     , value_            = Nothing
     , infer_prices_     = False
-    , depth_            = Nothing
+    , depth_            = DepthSpec Nothing []
     , date2_            = False
     , empty_            = False
     , no_elide_         = False
@@ -251,7 +252,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,conversionop_     = conversionOpFromRawOpts rawopts
           ,value_            = valuationTypeFromRawOpts rawopts
           ,infer_prices_     = boolopt "infer-market-prices" rawopts
-          ,depth_            = maybeposintopt "depth" rawopts
+          ,depth_            = depthFromRawOpts rawopts
           ,date2_            = boolopt "date2" rawopts
           ,empty_            = boolopt "empty" rawopts
           ,no_elide_         = boolopt "no-elide" rawopts
@@ -541,6 +542,21 @@ conversionOpFromRawOpts rawopts
       | n == "value", takeWhile (/=',') v `elem` ["cost", "c"] = Just ToCost  -- keep supporting --value=cost for now
       | otherwise                                   = Nothing
 
+-- | Parse the depth arguments. This can be either a flat depth that applies to
+-- all accounts, or a regular expression and depth, which only matches certain
+-- accounts. If an account name is matched by a regular expression, then the
+-- smallest depth is used. Otherwise, if no regular expressions match, then the
+-- flat depth is used. If more than one flat depth is supplied, use only the
+-- last one.
+depthFromRawOpts :: RawOpts -> DepthSpec
+depthFromRawOpts rawopts = lastDef mempty flats <> mconcat regexps
+  where
+    (flats, regexps) = partition (\(DepthSpec f rs) -> isJust f && null rs) depthSpecs
+    depthSpecs = case mapM (parseDepthSpec . T.pack) depths of
+      Right d -> d
+      Left err -> usageError $ "Unable to parse depth specification: " ++ err
+    depths = listofstringopt "depth" rawopts
+
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
 transactionDateFn ReportOpts{..} = if date2_ then transactionDate2 else tdate
@@ -667,11 +683,13 @@ queryFromFlags :: ReportOpts -> Query
 queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
   where
     flagsq = consIf   Real  real_
-           . consJust Depth depth_
-           $   [ (if date2_ then Date2 else Date) $ periodAsDateSpan period_
+           . consJust Depth flatDepth
+           $ map (uncurry DepthAcct) regexpDepths
+           ++  [ (if date2_ then Date2 else Date) $ periodAsDateSpan period_
                , Or $ map StatusQ statuses_
                ]
     consIf f b = if b then (f True:) else id
+    DepthSpec flatDepth regexpDepths = depth_
     consJust f = maybe id ((:) . f)
 
 -- Methods/types needed for --sort argument
@@ -891,7 +909,7 @@ class HasReportOptsNoUpdate a => HasReportOpts a where
     statuses = reportOpts.statusesNoUpdate
     {-# INLINE statuses #-}
 
-    depth :: ReportableLens' a (Maybe Int)
+    depth :: ReportableLens' a DepthSpec
     depth = reportOpts.depthNoUpdate
     {-# INLINE depth #-}
 

@@ -23,6 +23,7 @@ module Hledger.Query (
   parseQueryList,
   parseQueryTerm,
   parseAccountType,
+  parseDepthSpec,
   -- * modifying
   simplifyQuery,
   filterQuery,
@@ -82,7 +83,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day, fromGregorian )
-import Safe (headErr, readDef, readMay, maximumByMay, maximumMay, minimumMay)
+import Safe (headErr, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)
 import Text.Megaparsec.Char (char, string, string')
 
@@ -116,6 +117,7 @@ data Query =
   | Acct Regexp               -- ^ match account names infix-matched by this regexp
   | Type [AccountType]        -- ^ match accounts whose type is one of these (or with no types, any account)
   | Depth Int                 -- ^ match if account depth is less than or equal to this value (or, sometimes used as a display option)
+  | DepthAcct Regexp Int      -- ^ match if the account matches and account depth is less than or equal to this value (usually used as a display option)
   | Real Bool                 -- ^ match postings with this "realness" value
   | Amt OrdPlus Quantity      -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
   | Sym Regexp                -- ^ match if the commodity symbol is fully-matched by this regexp
@@ -301,11 +303,7 @@ parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
                               Right st -> Right (StatusQ st, [])
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Right (Real $ parseBool s || T.null s, [])
 parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right (Amt ord q, []) where (ord, q) = either error id $ parseAmountQueryTerm s  -- PARTIAL:
-parseQueryTerm _ (T.stripPrefix "depth:" -> Just s)
-  | n >= 0    = Right (Depth n, [])
-  | otherwise = Left "depth: should have a positive number"
-  where n = readDef 0 (T.unpack s)
-
+parseQueryTerm _ (T.stripPrefix "depth:" -> Just s) = (,[]) <$> parseDepthSpecQuery s
 parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = (,[]) . Sym <$> toRegexCI ("^" <> s <> "$") -- support cur: as an alias
 parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = (,[]) <$> parseTag s
 parseQueryTerm _ (T.stripPrefix "type:" -> Just s) = (,[]) <$> parseTypeCodes s
@@ -473,6 +471,25 @@ parseTag s = do
     return $ Tag tag body
   where (n,v) = T.break (=='=') s
 
+parseDepthSpec :: T.Text -> Either RegexError DepthSpec
+parseDepthSpec s = do
+    let depthString = T.unpack $ if T.null b then a else T.tail b
+    depth <- case readMay depthString of
+        Just d | d >= 0 -> Right d
+        _ -> Left $ "depth: should be a positive number, but received " ++ depthString
+    regexp <- mapM toRegexCI $ if T.null b then Nothing else Just a
+    return $ case regexp of
+      Nothing -> DepthSpec (Just depth) []
+      Just r  -> DepthSpec Nothing [(r, depth)]
+  where
+    (a,b) = T.break (=='=') s
+
+parseDepthSpecQuery :: T.Text -> Either RegexError Query
+parseDepthSpecQuery s = do
+    DepthSpec flat rs <- parseDepthSpec s
+    let regexps = map (uncurry DepthAcct) rs
+    return . And $ maybe id (\d -> (Depth d :)) flat regexps
+
 -- | Parse one or more account type code letters to a query matching any of those types.
 parseTypeCodes :: T.Text -> Either String Query
 parseTypeCodes s =
@@ -639,6 +656,7 @@ queryIsType _ = False
 
 queryIsDepth :: Query -> Bool
 queryIsDepth (Depth _) = True
+queryIsDepth (DepthAcct _ _) = True
 queryIsDepth _ = False
 
 queryIsReal :: Query -> Bool
@@ -749,13 +767,12 @@ latestMaybeDate' = fromMaybe Nothing . maximumByMay compareNothingMax
     compareNothingMax (Just a) (Just b) = compare a b
 
 -- | The depth limit this query specifies, if it has one
-queryDepth :: Query -> Maybe Int
-queryDepth = minimumMay . queryDepth'
-  where
-    queryDepth' (Depth d) = [d]
-    queryDepth' (Or qs)   = concatMap queryDepth' qs
-    queryDepth' (And qs)  = concatMap queryDepth' qs
-    queryDepth' _         = []
+queryDepth :: Query -> DepthSpec
+queryDepth (Or qs)         = foldMap queryDepth qs
+queryDepth (And qs)        = foldMap queryDepth qs
+queryDepth (Depth d)       = DepthSpec (Just d) []
+queryDepth (DepthAcct r d) = DepthSpec Nothing [(r,d)]
+queryDepth _               = mempty
 
 -- | The account we are currently focussed on, if any, and whether subaccounts are included.
 -- Just looks at the first query option.
@@ -819,6 +836,7 @@ matchesAccount (Or ms) a = any (`matchesAccount` a) ms
 matchesAccount (And ms) a = all (`matchesAccount` a) ms
 matchesAccount (Acct r) a = regexMatchText r a
 matchesAccount (Depth d) a = accountNameLevel a <= d
+matchesAccount (DepthAcct r d) a = accountNameLevel a <= d || not (regexMatchText r a)
 matchesAccount (Tag _ _) _ = False
 matchesAccount _ _ = True
 
@@ -855,6 +873,7 @@ matchesPosting (Date2 spn) p = spn `spanContainsDate` postingDate2 p
 matchesPosting (StatusQ s) p = postingStatus p == s
 matchesPosting (Real v) p = v == isReal p
 matchesPosting q@(Depth _) Posting{paccount=a} = q `matchesAccount` a
+matchesPosting q@(DepthAcct _ _) Posting{paccount=a} = q `matchesAccount` a
 matchesPosting q@(Amt _ _) Posting{pamount=as} = q `matchesMixedAmount` as
 matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r) . acommodity) $ amountsRaw as
 matchesPosting (Tag n v) p = case (reString n, v) of
@@ -897,7 +916,8 @@ matchesTransaction (Date2 spn) t = spanContainsDate spn $ transactionDate2 t
 matchesTransaction (StatusQ s) t = tstatus t == s
 matchesTransaction (Real v) t = v == hasRealPostings t
 matchesTransaction q@(Amt _ _) t = any (q `matchesPosting`) $ tpostings t
-matchesTransaction (Depth d) t = any (Depth d `matchesPosting`) $ tpostings t
+matchesTransaction q@(Depth _) t = any (q `matchesPosting`) $ tpostings t
+matchesTransaction q@(DepthAcct _ _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n v) t = case (reString n, v) of
   ("payee", Just v') -> regexMatchText v' $ transactionPayee t
