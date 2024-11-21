@@ -1752,6 +1752,11 @@ In hledger you can make "**subaccount-inclusive balance assertions**" by adding 
   assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 ```
 
+### Assertions and status
+
+Balance assertions always consider postings of all [statuses](#status) (unmarked, pending, or cleared);
+they are not affected by the `-U`/`--unmarked` / `-P`/`--pending` / `-C`/`--cleared` flags or the `status:` query.
+
 ### Assertions and virtual postings
 
 Balance assertions always consider both real and [virtual](#virtual-postings) postings;
