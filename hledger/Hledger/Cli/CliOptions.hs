@@ -201,7 +201,7 @@ reportflags = [
  ,flagNone ["pending","P"]   (setboolopt "pending")  "include only pending postings/transactions"
  ,flagNone ["cleared","C"]   (setboolopt "cleared")  "include only cleared postings/transactions\n(-U/-P/-C can be combined)"
  ,flagNone ["real","R"]      (setboolopt "real")     "include only non-virtual postings"
- ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "NUM" "or -NUM: show only top NUM levels of accounts"
+ ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "DEPTHEXP" "if a number (or -NUM): show only top NUM levels of accounts. If REGEXP=NUM, only apply limiting to accounts matching the regular expression."
  ,flagNone ["empty","E"]     (setboolopt "empty") "Show zero items, which are normally hidden.\nIn hledger-ui & hledger-web, do the opposite."
 
   -- valuation
