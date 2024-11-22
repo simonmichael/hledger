@@ -130,7 +130,7 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   ,uiShowStatus copts $ statuses_ ropts
                   ,if real_ ropts then ["real"] else []
                   ]
-                mdepth = depth_ ropts
+                mdepth = dsFlatDepth $ depth_ ropts
                 curidx = case ass ^. assList . listSelectedL of
                           Nothing -> "-"
                           Just i -> show (i + 1)

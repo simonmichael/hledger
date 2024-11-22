@@ -281,7 +281,7 @@ resetFilter = set querystringNoUpdate [] . set realNoUpdate False . set statuses
 -- resetOpts ui@UIState{astartupopts} = ui{aopts=astartupopts}
 
 resetDepth :: UIState -> UIState
-resetDepth = updateReportDepth (const Nothing)
+resetDepth = updateReportDepth (const mempty)
 
 -- | Get the maximum account depth in the current journal.
 maxDepth :: UIState -> Int
@@ -292,34 +292,38 @@ maxDepth UIState{ajournal=j} = getMax . foldMap (Max . accountNameLevel) $ journ
 decDepth :: UIState -> UIState
 decDepth ui = updateReportDepth dec ui
   where
-    dec (Just d) = Just $ max 0 (d-1)
-    dec Nothing  = Just $ maxDepth ui - 1
+    dec (DepthSpec (Just d) _) = DepthSpec (Just $ max 0 (d-1)) []
+    dec (DepthSpec Nothing  _) = DepthSpec (Just $ maxDepth ui - 1) []
 
 -- | Increment the current depth limit. If this makes it equal to the
 -- the maximum account depth, remove the depth limit.
 incDepth :: UIState -> UIState
-incDepth = updateReportDepth (fmap succ)
+incDepth = updateReportDepth inc
+  where
+    inc (DepthSpec Nothing  _) = DepthSpec Nothing []
+    inc (DepthSpec (Just d) _) = DepthSpec (Just $ d + 1) []
 
 -- | Set the current depth limit to the specified depth, or remove the depth limit.
 -- Also remove the depth limit if the specified depth is greater than the current
 -- maximum account depth. If the specified depth is negative, reset the depth limit
 -- to whatever was specified at uiartup.
 setDepth :: Maybe Int -> UIState -> UIState
-setDepth mdepth = updateReportDepth (const mdepth)
+setDepth mdepth = updateReportDepth (const $ DepthSpec mdepth [])
 
 getDepth :: UIState -> Maybe Int
-getDepth = (^.depth)
+getDepth = dsFlatDepth . (^.depth)
 
 -- | Update report depth by a applying a function. If asked to set a depth less
 -- than zero, it will leave it unchanged.
-updateReportDepth :: (Maybe Int -> Maybe Int) -> UIState -> UIState
+updateReportDepth :: (DepthSpec -> DepthSpec) -> UIState -> UIState
 updateReportDepth updateDepth ui = over reportSpec update ui
   where
     update = fromRight (error "updateReportDepth: updating depth should not result in an error")  -- PARTIAL:
-           . updateReportSpecWith (\ropts -> ropts{depth_=updateDepth (depth_ ropts) >>= clipDepth ropts})
-    clipDepth ropts d | d < 0            = depth_ ropts
-                      | d >= maxDepth ui = Nothing
-                      | otherwise        = Just d
+           . updateReportSpecWith (\ropts -> ropts{depth_=clipDepth ropts $ updateDepth (depth_ ropts)})
+    clipDepth _        (DepthSpec Nothing  _) = mempty
+    clipDepth ropts ds@(DepthSpec (Just d) _) | d < 0            = depth_ ropts
+                                              | d >= maxDepth ui = mempty
+                                              | otherwise        = ds
 
 -- | Open the minibuffer, setting its content to the current query with the cursor at the end.
 showMinibuffer :: T.Text -> Maybe String -> UIState -> UIState
