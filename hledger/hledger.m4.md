@@ -5098,7 +5098,36 @@ Examples:
 With the `--depth NUM` option (short form: `-NUM`), 
 reports will show accounts only to the specified depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
-This flag has the same effect as a `depth:` query argument: `depth:2`, `--depth=2` or `-2` are equivalent.
+This flag has the same effect as a `depth:` query argument: `depth:2`,
+`--depth=2` or `-2` are equivalent.
+
+In place of a single number which limits the depth for all accounts, you can
+also provide separate depth limits for different accounts using regular
+expressions.
+For example, `--depth assets=2` (or, equivalently: `depth:assets=2`)
+will collapse accounts matching the regular expression `assets` to depth 2.
+So `assets:bank:savings` would be collapsed to `assets:bank`, while
+`liabilities:bank:credit card` would not be affected.
+This can be combined with a flat depth to collapse other accounts not matching
+the regular expression, so `--depth assets=2 --depth 1` would collapse
+`assets:bank:savings` to `assets:bank` and `liabilities:bank:credit card` to
+`liabilities`.
+
+You can supply multiple depth arguments and they will all be applied, so
+`--depth assets=2 --depth liabilities=3 --depth 1` would collapse:
+
+- accounts matching `assets` to depth 2,
+- accounts matching `liabilities` to depth 3,
+- all other accounts to depth 1.
+
+If an account is matched by more than one regular expression depth argument
+then the more specific one will used.
+For example, if `--depth assets=1 --depth assets:bank:savings=2` is provided,
+then `assets:bank:savings` will be collapsed to depth 2 rather than depth 1.
+This is because `assets:bank:savings` matches at level 3 in the account name,
+while `assets` matches at level 1.
+The same would be true with the argument `--depth assets=1 --depth savings=2`.
+
 
 # Queries
 
@@ -5191,8 +5220,10 @@ Examples:\
 **`date2:PERIODEXPR`**\
 Match secondary dates within the specified period (independent of the `--date2` flag).
 
-**`depth:N`**\
-Match (or display, depending on command) accounts at or above this depth.
+**`depth:[REGEXP=]N`**\
+Match (or display, depending on command) accounts at or above this depth,
+optionally only for accounts matching a provided regular expression.
+See [Depth](#depth) for detailed rules.
 
 **`expr:"TERM AND NOT (TERM OR TERM)"`** (eg)\
 Match with a boolean combination of queries (which must be enclosed in quotes).
