@@ -256,7 +256,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
     -- adjust the report options and report spec, carefully as usual to avoid screwups (#1523)
     ropts' = ropts {
         -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
-        depth_=Nothing
+        depth_=mempty
         -- do not strip prices so we can toggle costs within the ui
       , show_costs_=True
       -- XXX aregister also has this, needed ?
