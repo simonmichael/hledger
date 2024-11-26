@@ -115,6 +115,7 @@ library
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:
+      Hledger.Data.AccountBalance
       Paths_hledger_lib
   autogen-modules:
       Paths_hledger_lib
