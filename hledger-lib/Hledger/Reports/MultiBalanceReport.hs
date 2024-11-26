@@ -289,11 +289,11 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
               filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) query
 
     filterbydepth = case accountlistmode_ of
-        ALTree -> filter (depthMatches . aname)       -- a tree - just exclude deeper accounts
-        ALFlat -> clipAccountsAndAggregate depthSpec  -- a list - aggregate deeper accounts at the depth limit
-                  . filter ((0<) . anumpostings)      -- and exclude empty parent accounts
+      ALTree -> filter (depthMatches . aname)       -- a tree - just exclude deeper accounts
+      ALFlat -> clipAccountsAndAggregate depthSpec  -- a list - aggregate deeper accounts at the depth limit
+                . filter ((0<) . abnumpostings . abhistorical . abalances)  -- and exclude empty parent accounts
       where
-        depthSpec = dbg3 "depthq" . queryDepth $ filterQuery queryIsDepth query
+        depthSpec = dbg3 "depthSpec" . queryDepth $ filterQuery queryIsDepth query
         depthMatches name = maybe True (accountNameLevel name <=) $ getAccountNameClippedDepth depthSpec name
 
     accts = filterbydepth $ drop 1 $ accountsFromPostings ps'
@@ -339,8 +339,7 @@ calculateReportMatrix rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle startb
     -- Fill out the matrix with zeros in empty cells
     allchanges = ((<>zeros) <$> acctchanges) <> (zeros <$ startbals)
 
-    avalue = acctApplyBoth . mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
-    acctApplyBoth f a = a{aibalance = f $ aibalance a, aebalance = f $ aebalance a}
+    avalue a = fmap (applyAccountBalance (mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle a))
     historicalDate = minimumMay $ mapMaybe spanStart colspans
     zeros = M.fromList [(spn, nullacct) | spn <- colspans]
     colspans = map fst colps
@@ -402,7 +401,9 @@ buildReportRows ropts displaynames =
             PerPeriod -> maSum rowbals
             _         -> lastDef nullmixedamt rowbals
         rowavg = averageMixedAmounts rowbals
-    balance = case accountlistmode_ ropts of ALTree -> aibalance; ALFlat -> aebalance
+    balance = case accountlistmode_ ropts of
+        ALTree -> abibalance . abhistorical . abalances
+        ALFlat -> abebalance . abhistorical . abalances
 
 -- | Calculate accounts which are to be displayed in the report,
 -- and their name and their indent level if displayed in tree mode.
@@ -445,8 +446,8 @@ displayedAccounts ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
             ALFlat -> const True          -- Keep all empty accounts in flat mode
             ALTree -> all (null . asubs)  -- Keep only empty leaves in tree mode
         balance = maybeStripPrices . case accountlistmode_ ropts of
-            ALTree | d == qdepth -> aibalance
-            _                    -> aebalance
+            ALTree | d == qdepth -> abibalance . abhistorical . abalances
+            _                    -> abebalance . abhistorical . abalances
           where maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
     -- Accounts interesting because they are a fork for interesting subaccounts
@@ -479,8 +480,9 @@ sortRows ropts j
         -- Set the inclusive balance of an account from the rows, or sum the
         -- subaccounts if it's not present
         accounttreewithbals = mapAccounts setibalance accounttree
-        setibalance a = a{aibalance = maybe (maSum . map aibalance $ asubs a) prrTotal $
-                                          HM.lookup (aname a) rowMap}
+        setibalance a = a{abalances = (abalances a){abhistorical = hist}}
+          where
+            hist = (abhistorical $ abalances a){abibalance = maybe (maSum . map (abibalance . abhistorical . abalances) $ asubs a) prrTotal $ HM.lookup (aname a) rowMap}
         sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
 
@@ -575,13 +577,13 @@ perdivide a b = fromMaybe (error' errmsg) $ do  -- PARTIAL:
 -- Add the values of two accounts. Should be right-biased, since it's used
 -- in scanl, so other properties (such as anumpostings) stay in the right place
 sumAcct :: Account -> Account -> Account
-sumAcct Account{aibalance=i1,aebalance=e1} a@Account{aibalance=i2,aebalance=e2} =
-    a{aibalance = i1 `maPlus` i2, aebalance = e1 `maPlus` e2}
+sumAcct Account{abalances=bal1} a@Account{abalances = bal2} =
+    a{abalances = bal2 <> bal1}
 
 -- Subtract the values in one account from another. Should be left-biased.
 subtractAcct :: Account -> Account -> Account
-subtractAcct a@Account{aibalance=i1,aebalance=e1} Account{aibalance=i2,aebalance=e2} =
-    a{aibalance = i1 `maMinus` i2, aebalance = e1 `maMinus` e2}
+subtractAcct a@Account{abalances=bal1} Account{abalances=bal2} =
+    a{abalances = opAccountBalances (opAccountBalance maMinus) bal1 bal2}
 
 -- | Extract period changes from a cumulative list
 periodChanges :: Account -> Map k Account -> Map k Account

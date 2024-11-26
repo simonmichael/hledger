@@ -246,7 +246,7 @@ summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
     accts = accountsFromPostings ps
     balance a = maybe nullmixedamt bal $ lookupAccount a accts
       where
-        bal = if isclipped a then aibalance else aebalance
+        bal = (if isclipped a then abibalance else abebalance) . abhistorical . abalances
         isclipped a' = maybe False (accountNameLevel a' >=) mdepth
 
 

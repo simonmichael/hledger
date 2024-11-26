@@ -1039,9 +1039,16 @@ mixedAmountSetStyles = styleAmounts
 instance HasAmounts MixedAmount where
   styleAmounts styles = mapMixedAmountUnsafe (styleAmounts styles)
 
-instance HasAmounts Account where
-  styleAmounts styles acct@Account{aebalance,aibalance} =
-    acct{aebalance=styleAmounts styles aebalance, aibalance=styleAmounts styles aibalance}
+instance HasAmounts AccountBalance where
+  styleAmounts styles balance@AccountBalance{abebalance,abibalance} =
+    balance{abebalance=styleAmounts styles abebalance, abibalance=styleAmounts styles abibalance}
+
+instance HasAmounts a => HasAmounts (AccountBalances a) where
+  styleAmounts styles = fmap (styleAmounts styles)
+
+instance HasAmounts a => HasAmounts (Account' a) where
+  styleAmounts styles acct@Account{abalances} =
+    acct{abalances = styleAmounts styles <$> abalances}
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount
