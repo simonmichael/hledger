@@ -22,9 +22,11 @@ import           Data.Aeson.Encode.Pretty (Config(..), Indent(..), NumberFormat(
 --import           Data.Aeson.TH
 import qualified Data.ByteString.Lazy as BL
 import           Data.Decimal (DecimalRaw(..), roundTo)
+import qualified Data.IntMap as IM
 import           Data.Maybe (fromMaybe)
 import qualified Data.Text.Lazy    as TL
 import qualified Data.Text.Lazy.Builder as TB
+import           Data.Time (Day(..))
 import           Text.Megaparsec (Pos, SourcePos, mkPos, unPos)
 
 import           Hledger.Data.Types
@@ -154,24 +156,27 @@ instance ToJSON TimeclockCode
 instance ToJSON TimeclockEntry
 instance ToJSON Journal
 
-instance ToJSON Account where
+instance ToJSON AccountBalance
+instance ToJSON a => ToJSON (AccountBalances a) where
+  toJSON a = object
+    [ "abhistorical" .= abhistorical a
+    , "abdatemap"    .= map (\(d, x) -> (ModifiedJulianDay (toInteger d), x)) (IM.toList $ abdatemap a)
+    ]
+
+instance ToJSON a => ToJSON (Account a) where
   toJSON = object . accountKV
   toEncoding = pairs . mconcat . accountKV
 
 accountKV ::
 #if MIN_VERSION_aeson(2,2,0)
-  KeyValue e kv
+  (KeyValue e kv, ToJSON a)
 #else
-  KeyValue kv
+  (KeyValue kv, ToJSON a)
 #endif
-  => Account -> [kv]
+  => Account a -> [kv]
 accountKV a =
     [ "aname"            .= aname a
     , "adeclarationinfo" .= adeclarationinfo a
-    , "aebalance"        .= aebalance a
-    , "aibalance"        .= aibalance a
-    , "anumpostings"     .= anumpostings a
-    , "aboring"          .= aboring a
     -- To avoid a cycle, show just the parent account's name
     -- in a dummy field. When re-parsed, there will be no parent.
     , "aparent_"         .= maybe "" aname (aparent a)
@@ -180,7 +185,9 @@ accountKV a =
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
     -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    , "asubs"            .= ([]::[Account])
+    , "asubs"            .= ([]::[Account AccountBalance])
+    , "aboring"          .= aboring a
+    , "abalances"        .= abalances a
     ]
 
 instance ToJSON Ledger
@@ -214,10 +221,17 @@ instance FromJSON PostingType
 instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo
+
+instance FromJSON AccountBalance
+instance FromJSON a => FromJSON (AccountBalances a) where
+  parseJSON = withObject "AccountBalances" $ \v -> AccountBalances
+    <$> v .: "abhistorical"
+    <*> (IM.fromList . map (\(d, x) -> (fromInteger $ toModifiedJulianDay d, x)) <$> v .: "abdatemap")
+
 -- XXX The ToJSON instance replaces subaccounts with just names.
 -- Here we should try to make use of those to reconstruct the
 -- parent-child relationships.
-instance FromJSON Account
+instance FromJSON a => FromJSON (Account a)
 
 -- Decimal, various attempts
 --
