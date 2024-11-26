@@ -52,6 +52,7 @@ module Hledger.Reports.ReportOptions (
   journalApplyValuationFromOptsWith,
   mixedAmountApplyValuationAfterSumFromOptsWith,
   valuationAfterSum,
+  requiresHistorical,
   intervalFromRawOpts,
   queryFromFlags,
   transactionDateFn,
@@ -677,21 +678,20 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
 -- | Select the Account valuation functions required for performing valuation after summing
 -- amounts. Used in MultiBalanceReport to value historical and similar reports.
 mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle
-                                              -> (DateSpan -> MixedAmount -> MixedAmount)
+                                              -> (Day -> MixedAmount -> MixedAmount)
 mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
     case valuationAfterSum ropts of
         Just mc -> case balancecalc_ ropts of
             CalcGain -> gain mc
-            _        -> \spn -> valuation mc spn . costing
+            _        -> \d -> valuation mc d . costing
         Nothing      -> const id
   where
-    valuation mc spn = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
-    gain mc spn = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
+    valuation mc d = mixedAmountValueAtDate priceoracle styles mc d
+    gain mc d = mixedAmountGainAtDate priceoracle styles mc d
     costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
         NoConversionOp -> id
         ToCost         -> styleAmounts styles . mixedAmountCost
     styles = journalCommodityStyles j
-    err = error' "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
 
 -- | If the ReportOpts specify that we are performing valuation after summing amounts,
 -- return Just of the commodity symbol we're converting to, Just Nothing for the default,
@@ -699,12 +699,15 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
 -- Used for example with historical reports with --value=end.
 valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
 valuationAfterSum ropts = case value_ ropts of
-    Just (AtEnd mc) | valueAfterSum -> Just mc
-    _                               -> Nothing
-  where valueAfterSum = balancecalc_  ropts == CalcValueChange
-                     || balancecalc_  ropts == CalcGain
-                     || balanceaccum_ ropts /= PerPeriod
+    Just (AtEnd mc) | requiresHistorical ropts -> Just mc
+    _                                          -> Nothing
 
+-- | If the ReportOpts specify that we will need to consider historical
+-- postings, either because this is a historical report, or because the
+-- valuation strategy requires historical amounts.
+requiresHistorical :: ReportOpts -> Bool
+requiresHistorical ReportOpts{balanceaccum_ = accum, balancecalc_ = calc} =
+    accum == Historical || calc == CalcValueChange || calc == CalcGain
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
 queryFromFlags :: ReportOpts -> Query
@@ -780,7 +783,7 @@ reportSpanBothDates = reportSpanHelper True
 -- primary and secondary dates.
 reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
-    (reportspan, intervalspans)
+    (reportspan, if not (null intervalspans) then intervalspans else [reportspan])
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
