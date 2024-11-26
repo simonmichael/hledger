@@ -18,6 +18,7 @@ For more detailed documentation on each type, see the corresponding modules.
 
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
 {-# LANGUAGE CPP        #-}
+{-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
@@ -39,6 +40,7 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
+import qualified Data.IntMap.Strict as IM
 import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
@@ -733,20 +735,36 @@ nullaccountdeclarationinfo = AccountDeclarationInfo {
   ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
--- | An account, with its balances, parent/subaccount relationships, etc.
--- Only the name is required; the other fields are added when needed.
-data Account = Account {
-   aname                     :: AccountName    -- ^ this account's full name
+-- | An account within a hierarchy, with references to its parent
+-- and subaccounts if any, and with per-report-period data of type 'a'.
+-- Only the name is required; the other fields may or may not be present.
+data Account a = Account {
+   aname                     :: AccountName        -- ^ full name
   ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives
   -- relationships in the tree
-  ,asubs                     :: [Account]      -- ^ this account's sub-accounts
-  ,aparent                   :: Maybe Account  -- ^ parent account
-  ,aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
-  -- balance information
-  ,anumpostings              :: Int            -- ^ the number of postings to this account
-  ,aebalance                 :: MixedAmount    -- ^ this account's balance, excluding subaccounts
-  ,aibalance                 :: MixedAmount    -- ^ this account's balance, including subaccounts
-  } deriving (Generic)
+  ,asubs                     :: [Account a]        -- ^ subaccounts
+  ,aparent                   :: Maybe (Account a)  -- ^ parent account
+  ,aboring                   :: Bool               -- ^ used in some reports to indicate elidable accounts
+  ,adata                     :: PeriodData a       -- ^ associated data per report period
+  } deriving (Generic, Functor)
+
+-- | Data values for zero or more report periods, and for the pre-report period.
+-- Report periods are assumed to be contiguous, and represented only by start dates
+-- (as keys of an IntMap). XXX how does that work, again ?
+data PeriodData a = PeriodData {
+   pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
+  ,pdperiods :: IM.IntMap a  -- ^ data for the periods
+  } deriving (Eq, Functor, Generic)
+
+-- | Data that's useful in "balance" reports:
+-- subaccount-exclusive and -inclusive amounts,
+-- typically representing either a balance change or an end balance;
+-- and a count of postings.
+data BalanceData = BalanceData {
+   bdexcludingsubs :: MixedAmount  -- ^ balance data excluding subaccounts
+  ,bdincludingsubs :: MixedAmount  -- ^ balance data including subaccounts
+  ,bdnumpostings :: Int            -- ^ the number of postings
+  } deriving (Eq, Generic)
 
 -- | Whether an account's balance is normally a positive number (in
 -- accounting terms, a debit balance) or a negative number (credit balance).
@@ -761,7 +779,7 @@ data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Eq)
 -- account is the root of the tree and always exists.
 data Ledger = Ledger {
    ljournal  :: Journal
-  ,laccounts :: [Account]
+  ,laccounts :: [Account BalanceData]
   } deriving (Generic)
 
 instance NFData AccountAlias

@@ -32,6 +32,7 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Hledger.Data.Types
 import Hledger.Data.Account
+import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Journal
 import Hledger.Query
 
@@ -61,7 +62,8 @@ ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
     (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
     j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
           filterJournalPostings q' j
-    as  = accountsFromPostings $ journalPostings j'
+    -- Ledger does not use date-separated balances, so dates are left empty
+    as  = accountsFromPostings (const $ Just nulldate) $ journalPostings j'
     j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
@@ -69,21 +71,21 @@ ledgerAccountNames :: Ledger -> [AccountName]
 ledgerAccountNames = drop 1 . map aname . laccounts
 
 -- | Get the named account from a ledger.
-ledgerAccount :: Ledger -> AccountName -> Maybe Account
+ledgerAccount :: Ledger -> AccountName -> Maybe (Account BalanceData)
 ledgerAccount l a = lookupAccount a $ laccounts l
 
 -- | Get this ledger's root account, which is a dummy "root" account
 -- above all others. This should always be first in the account list,
 -- if somehow not this returns a null account.
-ledgerRootAccount :: Ledger -> Account
+ledgerRootAccount :: Ledger -> Account BalanceData
 ledgerRootAccount = headDef nullacct . laccounts
 
 -- | List a ledger's top-level accounts (the ones below the root), in tree order.
-ledgerTopAccounts :: Ledger -> [Account]
+ledgerTopAccounts :: Ledger -> [Account BalanceData]
 ledgerTopAccounts = asubs . headDef nullacct . laccounts
 
 -- | List a ledger's bottom-level (subaccount-less) accounts, in tree order.
-ledgerLeafAccounts :: Ledger -> [Account]
+ledgerLeafAccounts :: Ledger -> [Account BalanceData]
 ledgerLeafAccounts = filter (null.asubs) . laccounts
 
 -- | List a ledger's postings, in the order parsed.

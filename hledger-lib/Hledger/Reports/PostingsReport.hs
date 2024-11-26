@@ -243,10 +243,10 @@ summarisePostingsInDateSpan spn@(DateSpan b e) wd mdepth showempty ps
     summarypes = map (, dateSpanAsPeriod spn) $ (if showempty then id else filter (not . mixedAmountLooksZero . pamount)) summaryps
     anames = nubSort $ map paccount ps
     -- aggregate balances by account, like ledgerFromJournal, then do depth-clipping
-    accts = accountsFromPostings ps
+    accts = accountsFromPostings (const Nothing) ps
     balance a = maybe nullmixedamt bal $ lookupAccount a accts
       where
-        bal = if isclipped a then aibalance else aebalance
+        bal = (if isclipped a then bdincludingsubs else bdexcludingsubs) . pdpre . adata
         isclipped a' = maybe False (accountNameLevel a' >=) mdepth
 
 
