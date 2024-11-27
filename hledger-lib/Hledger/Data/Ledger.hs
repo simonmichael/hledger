@@ -32,6 +32,7 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), testCase)
 import Hledger.Data.Types
 import Hledger.Data.Account
+import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Journal
 import Hledger.Query
 
@@ -61,7 +62,8 @@ ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
     (q',depthq)  = (filterQuery (not . queryIsDepth) q, filterQuery queryIsDepth q)
     j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
           filterJournalPostings q' j
-    as  = accountsFromPostings $ journalPostings j'
+    -- Ledger does not use date-separated balances, so dates are left empty
+    as  = accountsFromPostings (const nulldate) [] $ journalPostings j'
     j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
