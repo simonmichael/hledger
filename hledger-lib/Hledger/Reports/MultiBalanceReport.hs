@@ -296,7 +296,7 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
         depthSpec = dbg3 "depthSpec" . queryDepth $ filterQuery queryIsDepth query
         depthMatches name = maybe True (accountNameLevel name <=) $ getAccountNameClippedDepth depthSpec name
 
-    accts = filterbydepth $ drop 1 $ accountsFromPostings ps'
+    accts = filterbydepth . drop 1 $ accountsFromPostings postingDate [] ps'
 
 -- | Gather the account balance changes into a regular matrix, then
 -- accumulate and value amounts, as specified by the report options.

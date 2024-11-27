@@ -12,6 +12,7 @@ account, and subaccounting-excluding and -including balances.
 module Hledger.Data.Account
 ( nullacct
 , accountFromBalances
+, accountFromPostings
 , accountsFromPostings
 , accountTree
 , accountTreeFromBalanceAndNames
@@ -42,7 +43,9 @@ import Data.List (foldl')
 #endif
 import Data.List.NonEmpty (NonEmpty(..), groupWith)
 import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
 import Data.Ord (Down(..))
+import Data.Time (Day)
 import Safe (headMay)
 import Text.Printf (printf)
 
@@ -92,22 +95,28 @@ accountFromBalances name bal = Account
 -- The accounts are returned as a list in flattened tree order,
 -- and also reference each other as a tree.
 -- (The first account is the root of the tree.)
-accountsFromPostings :: [Posting] -> [Account]
-accountsFromPostings ps =
-  let
-    summed = foldr (\p -> HM.insertWith addAndIncrement (paccount p) (1, pamount p)) mempty ps
-      where addAndIncrement (n, a) (m, b) = (n + m, a `maPlus` b)
-    acctstree      = accountTree "root" $ HM.keys summed
-    acctswithebals = mapAccounts setnumpsebalance acctstree
-      where setnumpsebalance a = a{abalances = abalances}
-              where
-                abalances = AccountBalances (AccountBalance numps total nullmixedamt) mempty
-                (numps, total) = HM.lookupDefault (0, nullmixedamt) (aname a) summed
-    acctswithibals = sumAccounts acctswithebals
-    acctswithparents = tieAccountParents acctswithibals
-    acctsflattened = flattenAccounts acctswithparents
-  in
-    acctsflattened
+accountsFromPostings :: (Posting -> Day) -> [Day] -> [Posting] -> [Account]
+accountsFromPostings getPostingDate days = flattenAccounts . accountFromPostings getPostingDate days
+
+-- | Derive 1. an account tree and 2. each account's total exclusive
+-- and inclusive changes from a list of postings.
+-- This is the core of the balance command (and of *ledger).
+-- The accounts are returned as tree.
+accountFromPostings :: (Posting -> Day) -> [Day] -> [Posting] -> Account
+accountFromPostings getPostingDate days ps =
+    tieAccountParents . sumAccounts $ mapAccounts setBalance acctTree
+  where
+    acctTree     = accountTree "root" $ HM.keys accountMap
+    setBalance a = a{abalances = HM.lookupDefault mempty (aname a) accountMap}
+    accountMap   = processPostings ps
+
+    processPostings :: [Posting] -> HM.HashMap AccountName (AccountBalances AccountBalance)
+    processPostings = foldl' (flip processAccountName) mempty
+      where
+        processAccountName p = HM.alter (updateAccountBalance p) (paccount p)
+        updateAccountBalance p = Just
+                               . insertAccountBalances (getPostingDate p) (AccountBalance 1 (pamount p) nullmixedamt)
+                               . fromMaybe (emptyAccountBalances days)
 
 -- | Convert a list of account names to a tree of Account objects,
 -- with just the account names filled in.
