@@ -65,7 +65,7 @@ For each `FILE` being imported with `hledger import FILE ...`,
 If overlap detection does go wrong, it's relatively easy to repair:
 
 - You'll notice it when you try to reconcile your hledger balances with your bank.
-- `hledger print FILE.csv` will show all recently downloaded transactions.
+- `hledger print -f FILE.csv` will show all recently downloaded transactions.
   Compare these with your journal and copy/paste if needed.
 - You can manually update or remove the `.latest.FILE`, or use `--catchup`.
 - You can use `--dry-run` to preview what will be imported.
