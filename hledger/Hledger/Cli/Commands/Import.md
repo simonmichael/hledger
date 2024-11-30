@@ -62,7 +62,7 @@ For each `FILE` being imported with `hledger import FILE ...`,
 3. After a successful import of all FILE arguments, without error and without `--dry-run`,
    hledger saves the new latest dates in each FILE's `.latest.FILE` for next time.
 
-If overlap detection does go wrong, it's not too hard to recover from:
+If overlap detection does go wrong, it's relatively easy to repair:
 
 - You'll notice it when you try to reconcile your hledger balances with your bank.
 - `hledger print FILE.csv` will show all recently downloaded transactions.
@@ -98,6 +98,33 @@ $ watchexec -- 'hledger import --dry-run data.csv | hledger -f- -I print unknown
 
 There is another command which does the same kind of overlap detection: [`hledger print --new`](#print).
 But generally `import` or `import --dry-run` are used instead.
+
+### First import
+
+The first time you import from a file, there will be no corresponding .latest file,
+so by default all of the records will be imported.
+
+If you know that all of these transactions are already in your journal, you can run `hledger import --catchup` once.
+This will create a .latest file containing the latest CSV record date, so that none of those records will be re-imported.
+
+Or, perhaps you know that some but not all of the CSV records are already in the journal.
+In this case, create the .latest file yourself, with an appropriate date or dates.
+Eg, let's say you have manually recorded foobank transactions up to 2024-10-31 in the journal.
+But from now on you are going to download and import foobank's CSV instead.
+So in the directory where you'll be saving `foobank.csv`,
+create a `.latest.foobank.csv` file, containing the latest recorded date:
+```
+2024-10-31
+```
+
+Or if you had three foobank transactions recorded on that date, you would repeat the date that many times:
+```
+2024-10-31
+2024-10-31
+2024-10-31
+```
+
+Then you'll see `hledger import --dry-run foobank.csv` ignoring the older records.
 
 ### Importing balance assignments
 
