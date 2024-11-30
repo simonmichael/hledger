@@ -44,22 +44,10 @@ This is a simple mechanism that works well for most real-world CSV, where:
 3. the order of same-date items is stable across imports
 4. the newest items have the newest dates
 
-If the downloaded file name does change, you could use the rules file
-(with a `source` glob rule) as the import source instead.
-Also if there is occasional instability in item dates/order, it is usually harmless.
-(You can reduce the chance of disruption by downloading and importing more often.)
+(Occasional minor instabilities in item dates/order are usually harmless.
+You can reduce the chance of disruption by downloading and importing more often.)
 
-If overlap detection does go wrong, it's not too hard to recover from:
-
-- You'll notice it when you try to reconcile your hledger balances with your bank.
-- `hledger print FILE.csv` will show all recently downloaded transactions.
-  Compare these with your journal and copy/paste if needed.
-- You can manually update or remove the `.latest.FILE`, or use `--catchup`.
-- You can use `--dry-run` to preview what will be imported.
-- Download and import more often, eg twice a week, at least while you are learning.
-  It's easier to review and troubleshoot when there are fewer transactions.
-
-Here's how it works in detail:
+Here's how overlap detection works in detail:
 
 For each `FILE` being imported with `hledger import FILE ...`,
 
@@ -73,6 +61,16 @@ For each `FILE` being imported with `hledger import FILE ...`,
 
 3. After a successful import of all FILE arguments, without error and without `--dry-run`,
    hledger saves the new latest dates in each FILE's `.latest.FILE` for next time.
+
+If overlap detection does go wrong, it's not too hard to recover from:
+
+- You'll notice it when you try to reconcile your hledger balances with your bank.
+- `hledger print FILE.csv` will show all recently downloaded transactions.
+  Compare these with your journal and copy/paste if needed.
+- You can manually update or remove the `.latest.FILE`, or use `--catchup`.
+- You can use `--dry-run` to preview what will be imported.
+- Download and import more often, eg twice a week, at least while you are learning.
+  It's easier to review and troubleshoot when there are fewer transactions.
 
 <!--
 Related: 
@@ -101,27 +99,6 @@ $ watchexec -- 'hledger import --dry-run data.csv | hledger -f- -I print unknown
 There is another command which does the same kind of overlap detection: [`hledger print --new`](#print).
 But generally `import` or `import --dry-run` are used instead.
 
-### Import special cases
-
-As mentioned, general "deduplication" is not what `import` does.
-For example, here are two cases which will not be deduplicated
-(and normally should not be, since these can happen legitimately in financial data):
-
-- Two or more of the new CSV records are identical.
-- Or a new CSV record generates a journal entry identical to one already in the journal.
-
-Separately, here's a situation where you need to run `import` with care:
-say you download `bank.csv`, but forget to import it or delete it.
-And next month you download it again. This time your web browser may save it as `bank (2).csv`.
-So now each of these may have data not included in the other.
-You should import from each one in turn, in the correct order, taking care to use the same filename each time:
-
-```cli
-$ hledger import bank.csv
-$ mv 'bank (2).csv' bank.csv
-$ hledger import bank.csv
-```
-
 ### Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit (like `hledger print -x`).
@@ -145,3 +122,30 @@ Amounts in entries added by import will be formatted according to the journal's 
 as declared by [`commodity` directives](#commodity-directive) or inferred from the journal's amounts.
 
 Related: [CSV > Amount decimal places](#amount-decimal-places).
+
+### Import special cases
+
+If you have a download whose file name does vary, you could rename it after download.
+Or you could use a [`source` rule](#source) with a suitable glob pattern,
+and import from the .rules file instead of the data file.
+
+Here's a situation where you need to run `import` with care:
+say you download `bank.csv`, but forget to import it or delete it.
+And next month you download it again. This time your web browser may save it as `bank (2).csv`.
+So now each of these may have data not included in the other.
+And a `source` rule with a glob pattern would match only the most recent file.
+So in this case you should import from each one in turn, in the correct order, taking care to use the same filename each time:
+
+```cli
+$ hledger import bank.csv
+$ mv 'bank (2).csv' bank.csv
+$ hledger import bank.csv
+```
+
+As mentioned above, general "deduplication" is not what `import` does.
+For example, here are two cases which will not be deduplicated
+(and normally should not be, since these can happen legitimately in financial data):
+
+- Two or more of the new CSV records are identical.
+- Or a new CSV record generates a journal entry identical to one already in the journal.
+
