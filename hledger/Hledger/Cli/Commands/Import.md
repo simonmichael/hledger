@@ -102,19 +102,20 @@ But generally `import` or `import --dry-run` are used instead.
 ### Importing balance assignments
 
 Entries added by import will have their posting amounts made explicit (like `hledger print -x`).
-This means that any [balance assignments](https://hledger.org/hledger.html#balance-assignments) in imported files must be evaluated;
-but, imported files don't get to see the main file's account balances.
-As a result, importing entries with balance assignments
-(eg from an institution that provides only balances and not posting amounts)
-will probably generate incorrect posting amounts.
-To avoid this problem, use print instead of import:
+
+This means that any [balance assignments](https://hledger.org/hledger.html#balance-assignments) in imported files must be evaluated.
+
+However, balance assignments generally can't be calculated accurately during import (the main file's account balances are not visible).
+Balance assignments are best avoided anyway, so eg don't generate them in your CSV rules if you can help it.
+
+But if you need them, eg when importing data that includes only balances and not change amounts:
+you can use the [`print`](#print), which unlike `import` leaves implicit amounts implicit:
 
 ```cli
-$ hledger print IMPORTFILE [--new] >> $LEDGER_FILE
+$ hledger print -f IMPORTFILE [--new] >> $LEDGER_FILE
 ```
 
-(If you think import should leave amounts implicit like print does,
-please test it and send a pull request.)
+(If you think `import` also should leave implicit amounts implicit, please test it and send a pull request.)
 
 ### Import and commodity styles
 
