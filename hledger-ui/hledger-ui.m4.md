@@ -127,6 +127,7 @@ pressing `SHIFT-LEFT` or `SHIFT-RIGHT` moves to the previous or next period,
 and pressing `T` sets the period to "today".
 If you are using `-w/--watch` and viewing a narrowed period containing today,
 the view will follow any changes in system date (moving to the period containing the new date).
+(These keys work only with the standard Julian calendar year/quarter/month/week/day periods; they are not affected by a custom report interval specified at the command line.)
 
 You can also specify a non-standard period with `/` and a `date:` query;
 in this case, the period is not movable with the arrow keys.
