@@ -22,7 +22,7 @@ extra-deps:
 - filepath-1.4.301.0
 - ghc-boot-9.10.1@rev:1
 - process-1.6.25.0
-- time-1.14
+- time-1.12.2
 - unix-2.8.6.0
 # for windows
 - Win32-2.14.0.0
