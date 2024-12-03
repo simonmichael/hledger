@@ -130,7 +130,7 @@ library:
   - http-conduit
   - http-client
   - http-types
-  - megaparsec >=7.0.0 && <9.7
+  - megaparsec >=7.0.0 && <9.8
   - mtl >=2.2.1
   - network
   - safe >=0.3.20

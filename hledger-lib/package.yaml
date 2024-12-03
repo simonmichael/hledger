@@ -63,7 +63,7 @@ dependencies:
 - filepath
 - hashtables >=1.2.3.1
 - lucid
-- megaparsec >=7.0.0 && <9.7
+- megaparsec >=7.0.0 && <9.8
 - microlens >=0.4
 - microlens-th >=0.4
 - mtl >=2.2.1

@@ -90,7 +90,7 @@ library
     , githash >=0.1.6.2
     , hledger >=1.40.99 && <1.41
     , hledger-lib >=1.40.99 && <1.41
-    , megaparsec >=7.0.0 && <9.7
+    , megaparsec >=7.0.0 && <9.8
     , microlens >=0.4
     , microlens-platform >=0.2.3.1
     , mtl >=2.2.1
