@@ -1121,8 +1121,8 @@ relprep VER:
 
 # Push the current branch to github to generate release binaries.
 @relbin:
-    # assumes the github remote is named "github"
-    git push -f github HEAD:binaries
+    # assumes the github remote is named "origin"
+    git push -f origin HEAD:binaries
 
 # Show last release date (of hledger package).
 @reldate:
