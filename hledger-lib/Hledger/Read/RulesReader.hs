@@ -770,23 +770,28 @@ getEffectiveAssignment rules record f = lastMay assignments
 isBlockActive :: CsvRules -> CsvRecord -> ConditionalBlock -> Bool
 isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers cbMatchers
   where
-    -- does this individual matcher match the current csv record ?
+    -- Does this individual matcher match the current csv record ?
+    -- A matcher's target can be a specific CSV field, or the "whole record".
+    --
+    -- In the former case, note that the field reference must be either numeric or
+    -- a csv field name declared by a `fields` rule; anything else will raise an error
+    -- (to avoid confusion when a hledger field name doesn't work, see #2289).
+    --
+    -- In the latter case, the matched value will be a synthetic CSV record.
+    -- Note this will not necessarily be the same as the original CSV record:
+    -- the field separator will be comma, and quotes enclosing field values,
+    -- and any whitespace outside those quotes, will be removed.
+    -- (This means that a field containing a comma will now look like two fields.)
+    --
     matcherMatches :: Matcher -> Bool
-    matcherMatches (RecordMatcher prefix pat) = maybeNegate prefix origbool
+    matcherMatches m =
+      case m of
+        RecordMatcher prefix pat -> maybeNegate prefix $ match pat val
+          where val = T.intercalate "," record
+        FieldMatcher prefix csvfieldref pat -> maybeNegate prefix $ match pat val
+          where val = replaceCsvFieldReference rules record csvfieldref
       where
-        -- A synthetic whole CSV record to match against. Note, this can be
-        -- different from the original CSV data:
-        -- - any whitespace surrounding field values is preserved
-        -- - any quotes enclosing field values are removed
-        -- - and the field separator is always comma
-        -- which means that a field containing a comma will look like two fields.
-        wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
-        origbool = regexMatchText (dbg7 "regex" pat) wholecsvline
-    matcherMatches (FieldMatcher prefix csvfieldref pat) = maybeNegate prefix origbool
-      where
-        -- the value of the referenced CSV field to match against.
-        csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
-        origbool = regexMatchText (dbg7 "regex" pat) csvfieldvalue
+        match pat val = regexMatchText (dbg7 "regex" pat) (dbg7 "value" val)
 
     -- | Group matchers into associative pairs based on prefix, e.g.:
     --   A
