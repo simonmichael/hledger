@@ -16,7 +16,7 @@
 -- stack script --snapshot lts-22.27 --verbosity error --package hledger --package text
 --  (Uses the specified snapshot with its hledger and ghc, https://www.stackage.org/lts-22.27)
 --
--- stack script --snapshot nightly-2024-11-30 --verbosity error --package hledger --package hledger-lib --package text --compile
+-- stack script --snapshot nightly-2024-09-26 --verbosity error --package hledger --package hledger-lib --package text --compile
 --  (Uses a newer snapshot, hledger and ghc. The --compile flag compiles the script to a faster binary.)
 --
 ------------------------------------78----------------------------------------
