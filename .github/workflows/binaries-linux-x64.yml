@@ -60,10 +60,11 @@ jobs:
         cabal update
 
     - name: Build with cabal
+      # - wai-extra < 3.1.17 # https://github.com/commercialhaskell/stackage/issues/7570
       run: |
-        cabal build --enable-executable-static --ghc-options=-Werror hledger || (echo "ERROR: building hledger failed"; false)
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui || (echo "ERROR: building hledger-ui failed"; false)
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-web || (echo "ERROR: building hledger-web failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger     --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui  --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger-ui failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-web --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
