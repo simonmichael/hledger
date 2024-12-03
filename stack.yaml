@@ -24,7 +24,7 @@ extra-deps:
 - process-1.6.25.0
 - time-1.12.2
 - unix-2.8.5.1
-#- unix-2.8.6.0
+#- unix-2.8.6.0  # https://github.com/haskell/unix/issues/329
 # for windows
 - Win32-2.14.0.0
 # for hledger
