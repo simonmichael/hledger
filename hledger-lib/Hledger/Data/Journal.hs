@@ -984,7 +984,7 @@ canonicalStyle a b = a{asprecision=prec, asdecimalmark=decmark, asdigitgroups=mg
 journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
   j{jinferredmarketprices =
-       dbg4 "jinferredmarketprices" .
+       dbg4With (("jinferredmarketprices:\n"<>) . showMarketPrices) $
        map priceDirectiveToMarketPrice .
        concatMap postingPriceDirectivesFromCost $
        journalPostings j

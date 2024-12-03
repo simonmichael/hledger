@@ -37,7 +37,7 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
-import Data.List (intercalate)
+import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
 --You will eventually need all the values stored.
@@ -585,6 +585,9 @@ data MarketPrice = MarketPrice {
   ,mpto   :: CommoditySymbol    -- ^ The commodity being converted to.
   ,mprate :: Quantity           -- ^ One unit of the "from" commodity is worth this quantity of the "to" commodity.
   } deriving (Eq,Ord,Generic, Show)
+
+showMarketPrice MarketPrice{..} = unwords [show mpdate, T.unpack mpfrom <> ">" <> T.unpack mpto, show mprate]
+showMarketPrices = intercalate "\n" . map ((' ':).showMarketPrice) . sortBy (comparing mpdate)
 
 -- additional valuation-related types in Valuation.hs
 

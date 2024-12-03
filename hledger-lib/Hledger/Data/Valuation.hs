@@ -95,7 +95,9 @@ journalPriceOracle :: Bool -> Journal -> PriceOracle
 journalPriceOracle infer Journal{jpricedirectives, jinferredmarketprices} =
   let
     declaredprices = map priceDirectiveToMarketPrice jpricedirectives
-    inferredprices = if infer then jinferredmarketprices else []
+    inferredprices =
+      (if infer then jinferredmarketprices else [])
+      & traceOrLogAt 2 ("use prices inferred from costs? " <> if infer then "yes" else "no")
     makepricegraph = memo $ makePriceGraph declaredprices inferredprices
   in
     memo $ uncurry3 $ priceLookup makepricegraph
@@ -274,14 +276,17 @@ priceLookup makepricegraph d from mto =
       Just to            ->
         -- We have a commodity to convert to. Find the most direct price available,
         -- according to the rules described in makePriceGraph.
-        let msg = printf "seeking %s to %s price" (showCommoditySymbol from) (showCommoditySymbol to)
-        in case 
-          (traceOrLogAt 2 (msg++" using forward prices") $ 
-            pricesShortestPath from to forwardprices)
-          <|> 
-          (traceOrLogAt 2 (msg++" using forward and reverse prices") $ 
-            pricesShortestPath from to allprices)
-        of
+        let
+          msg = printf "seeking %s to %s price" (showCommoditySymbol from) (showCommoditySymbol to)
+          prices =
+            (traceOrLogAt 2 (msg++" using forward prices") $
+             traceOrLogAt 2 ("forward prices:\n" <> showMarketPrices forwardprices) $
+             pricesShortestPath from to forwardprices)
+            <|>
+            (traceOrLogAt 2 (msg++" using forward and reverse prices") $
+             traceOrLogAt 2 ("forward and reverse prices:\n" <> showMarketPrices allprices) $
+             pricesShortestPath from to $ dbg5 "all forward and reverse prices" allprices)
+        in case prices of
           Nothing -> Nothing
           Just [] -> Nothing
           Just ps -> Just (mpto $ last ps, rate)
@@ -332,7 +337,7 @@ data PriceGraph = PriceGraph {
     -- ^ The date on which these prices are in effect.
   ,pgEdges :: [Edge]
     -- ^ "Forward" exchange rates between commodity pairs, either
-    --   declared by P directives or inferred from transaction prices,
+    --   declared by P directives or (with --infer-market-prices) inferred from costs,
     --   forming the edges of a directed graph.  
   ,pgEdgesRev :: [Edge]
     -- ^ The same edges, plus any additional edges that can be
@@ -340,6 +345,7 @@ data PriceGraph = PriceGraph {
     --
     --   In both of these there will be at most one edge between each
     --   directed pair of commodities, eg there can be one USD->EUR and one EUR->USD.
+    --
   ,pgDefaultValuationCommodities :: M.Map CommoditySymbol CommoditySymbol
     -- ^ The default valuation commodity for each source commodity.
     --   These are used when a valuation commodity is not specified
@@ -358,9 +364,8 @@ pricesShortestPath :: CommoditySymbol -> CommoditySymbol -> [Edge] -> Maybe Path
 pricesShortestPath start end edges =
   -- at --debug=2 +, print the pretty path and also the detailed prices
   let label = printf "shortest path from %s to %s: " (showCommoditySymbol start) (showCommoditySymbol end) in
-  fmap (dbg2With (("price chain:\n"++).pshow)) $ 
-  dbg2With ((label++).(maybe "none found" (pshowpath ""))) $
-
+  fmap (dbg2With (("price chain:\n"++).showMarketPrices)) $
+  dbg2With ((label++).(maybe "none" (pshowpath ""))) $
   find [([],edges)]
 
   where

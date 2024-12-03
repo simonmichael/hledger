@@ -112,6 +112,8 @@ multiBalanceReportWith rspec' j priceoracle unelidableaccts = report
     -- Queries, report/column dates.
     (reportspan, colspans) = reportSpan j rspec'
     rspec = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
+    -- force evaluation order to show price lookup after date spans in debug output (XXX not working)
+    -- priceoracle = reportspan `seq` priceoracle0
 
     -- Group postings into their columns.
     colps = dbg5 "colps" $ getPostingsByColumn rspec j priceoracle colspans
