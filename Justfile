@@ -62,12 +62,18 @@ WATCHEXEC := 'watchexec --timings'
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
 
+#[group('HELPERS')]  # XXX too noisy
 # list this justfile's recipes, optionally filtered by REGEX
-@help *REGEX:
-    if [[ '{{ REGEX }}' =~ '' ]]; then just -ul; else just -ul | rg -i '{{ REGEX }}'; true; fi
+help *REGEX:
+    #!/usr/bin/env bash
+    if [[ '{{ REGEX }}' == '' ]]
+    then just -ul --color=always | sed -E 's/(^ +[A-Z_-]+ )/\n\1/'; echo
+    else just -ul --color=always | rg -i '{{ REGEX }}'; true
+    fi
 
 alias h := help
 
+#[group('HELPERS')]
 # check this justfile for errors and non-standard format
 @check:
     just --fmt --unstable --check
