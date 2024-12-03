@@ -774,7 +774,6 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     matcherMatches :: Matcher -> Bool
     matcherMatches (RecordMatcher prefix pat) = maybeNegate prefix origbool
       where
-        pat' = dbg7 "regex" pat
         -- A synthetic whole CSV record to match against. Note, this can be
         -- different from the original CSV data:
         -- - any whitespace surrounding field values is preserved
@@ -782,12 +781,12 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
         -- - and the field separator is always comma
         -- which means that a field containing a comma will look like two fields.
         wholecsvline = dbg7 "wholecsvline" $ T.intercalate "," record
-        origbool = regexMatchText pat' wholecsvline
+        origbool = regexMatchText (dbg7 "regex" pat) wholecsvline
     matcherMatches (FieldMatcher prefix csvfieldref pat) = maybeNegate prefix origbool
       where
         -- the value of the referenced CSV field to match against.
         csvfieldvalue = dbg7 "csvfieldvalue" $ replaceCsvFieldReference rules record csvfieldref
-        origbool = regexMatchText pat csvfieldvalue
+        origbool = regexMatchText (dbg7 "regex" pat) csvfieldvalue
 
     -- | Group matchers into associative pairs based on prefix, e.g.:
     --   A
