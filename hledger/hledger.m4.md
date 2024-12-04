@@ -3693,8 +3693,8 @@ When an if block has multiple matchers, each on its own line,
 - By default they are OR'd (any of them can match).
 - Matcher lines beginning with `&` (and optional space) are AND'ed with the matcher above (all in the AND'ed group must match).
 
-You can't use both `&` and `!` on the same line (you can't AND a negated matcher),
-[currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398).
+You can use a negated `!` matcher on a `&` line, meaning AND NOT.
+*Since 1.41.*
 
 ### Match groups
 

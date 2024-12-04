@@ -884,7 +884,7 @@ start of conditional block found, but no assignment rules afterward
 >=1
 # XXX
 
-# ** 44. handle conditions with & operator
+# ** 44. handle matchers with & prefix
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,50
@@ -908,7 +908,31 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 45. decimal-mark helps parse ambiguous decimals correctly.
+# ** 45. handle matchers with both & and !
+<
+10/2009/09,Flubber Co,50
+10/2009/09,Blubber Co,50
+
+RULES
+fields date, description, amount
+date-format %d/%Y/%m
+currency $
+account1 assets:myacct
+if Flubber
+&!%amount 50
+  account2 acct
+$  ./csvtest.sh
+2009-09-10 Flubber Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+2009-09-10 Blubber Co
+    assets:myacct              $50
+    income:unknown            $-50
+
+>=0
+
+# ** 46. decimal-mark helps parse ambiguous decimals correctly.
 # Here it's one thousand, one.
 <
 2020-01-01,"1,000"
@@ -929,7 +953,7 @@ $  ./csvtest.sh
 
 >=
 
-# ** 46. Again, this time with comma as decimal mark.
+# ** 47. Again, this time with comma as decimal mark.
 # Here it's one, one thousand.
 <
 2020-01-01,"1,000"
@@ -950,7 +974,7 @@ $  ./csvtest.sh
 
 >=
 
-# ** 47. Account aliases work when reading from CSV.
+# ** 48. Account aliases work when reading from CSV.
 <
 2020-01-01,10
 
@@ -964,7 +988,7 @@ $  ./csvtest.sh --alias expenses=FOO
 
 >=
 
-# ** 48. Allow for whitespace in csv amounts
+# ** 49. Allow for whitespace in csv amounts
 <
 2009-09-10,+ $20
 2009-09-10, $ +30
@@ -1000,7 +1024,7 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 49. Handle an entry with all zeros
+# ** 50. Handle an entry with all zeros
 <
 Date;Description;Category;Debit;Credit;Balance
 "2020-01-21","Client card point of sale fee",Fees,"0","0","1068.94"
@@ -1018,7 +1042,7 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 50. Allow unicode field references (#1809)
+# ** 51. Allow unicode field references (#1809)
 <
 Date, Description, Id, Amount
 12/11/2019, Foo, 123, 10.23
@@ -1036,7 +1060,7 @@ $  ./csvtest.sh
 
 >=0
 
-# ** 51. Throw an error when unable to substitute csv templates
+# ** 52. Throw an error when unable to substitute csv templates
 <
 "2021-12-23","caffe_siciliaexpenses:cibo:dolce","-10.5"
 
@@ -1048,7 +1072,7 @@ $  ./csvtest.sh
 >2 /transaction is unbalanced/
 >=1
 
-# ** 52. We can't parse double quotes inside an unquoted field, or other non-RFC4180 data. (#1966)
+# ** 53. We can't parse double quotes inside an unquoted field, or other non-RFC4180 data. (#1966)
 <
 2022-01-01,B"B",C
 RULES
@@ -1057,7 +1081,7 @@ $  ./csvtest.sh
 >2 /unexpected '"'/
 >=1
 
-# ** 53. A top-level skip directive is able to skip lines which would fail to parse as CSV. (#1967)
+# ** 54. A top-level skip directive is able to skip lines which would fail to parse as CSV. (#1967)
 <
 2022-01-01,B"B",C
 RULES
@@ -1066,7 +1090,7 @@ fields date, b, c
 $  ./csvtest.sh
 >=
 
-# ** 54. Empty (zero length) or blank (containing only spaces, tabs, etc.) lines
+# ** 55. Empty (zero length) or blank (containing only spaces, tabs, etc.) lines
 # are skipped automatically, including inner ones; skip's argument
 # counts only the non-empty/blank lines.
 <
@@ -1087,7 +1111,7 @@ $  ./csvtest.sh
 
 >=
 
-# ** 55. Some validation is done on account name assignments; trying to
+# ** 56. Some validation is done on account name assignments; trying to
 # also set an amount there (with 2+ spaces) will be rejected. (#1978)
 <
 2022-01-01,1
@@ -1098,7 +1122,7 @@ $  ./csvtest.sh
 >2 /unexpected space/
 >=1
 
-# ** 56. make sure transaction tags are functional (#2114), including ones on subsequent lines (#2241)
+# ** 57. make sure transaction tags are functional (#2114), including ones on subsequent lines (#2241)
 <
 2020-01-01, 1
 RULES
@@ -1116,7 +1140,7 @@ $  ./csvtest.sh tag:ttag2
 
 >=
 
-# ** 57. and also posting tags, and (primary, yearful) posting dates (#2114, #2241)
+# ** 59. and also posting tags, and (primary, yearful) posting dates (#2114, #2241)
 $  ./csvtest.sh tag:date
 2020-01-01  ; ttag:tval
     ; ttag2:
@@ -1125,7 +1149,7 @@ $  ./csvtest.sh tag:date
 
 >=
 
-# ** 58. handle newlines in an assignment value, without breaking interpolations (#2134)
+# ** 59. handle newlines in an assignment value, without breaking interpolations (#2134)
 <
 2023-01-01,1
 RULES
@@ -1139,7 +1163,7 @@ $  ./csvtest.sh
 
 >=
 
-# ** 59. specify ssv prefix and no extension
+# ** 60. specify ssv prefix and no extension
 <
 12/11/2019;Foo;123;10.23
 RULES
@@ -1152,7 +1176,7 @@ $  ./ssvtest.sh
 
 >=
 
-# ** 60. tabular rules with comments
+# ** 61. tabular rules with comments
 <
 10/2009/09,Flubber Co,50
 10/2009/09,Blubber Co,150
