@@ -6492,6 +6492,8 @@ or try running these commands in a powershell window
 > MKDIR finance
 > SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
 ```
+When correctly configured, in a new terminal window `$env:LEDGER_FILE` will show the file path,
+and so will `hledger files`.
 
 # Setting opening balances
 
@@ -6841,6 +6843,7 @@ and/or open a new terminal window.
 - `LEDGER_FILE` should be a real environment variable, not just a shell variable.
   Eg on unix, the command `env | grep LEDGER_FILE` should show it.
   You may need to use `export` (see <https://stackoverflow.com/a/7411509>).
+  On Windows, `$env:LEDGER_FILE` should show it.
 - You may need to force your shell to see the new configuration.
   A simple way is to close your terminal window and open a new one.
 
