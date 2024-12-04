@@ -3693,7 +3693,7 @@ When an if block has multiple matchers, each on its own line,
 - By default they are OR'd (any of them can match).
 - Matcher lines beginning with `&` (and optional space) are AND'ed with the matcher above (all in the AND'ed group must match).
 
-(*Since 1.41:*)
+*(Since 1.41:)*
 You can use a negated `!` matcher on a `&` line, meaning AND NOT.
 
 ### Match groups
@@ -5105,7 +5105,8 @@ This flag has the same effect as a `depth:` query argument: `depth:2`,
 
 In place of a single number which limits the depth for all accounts, you can
 also provide separate depth limits for different accounts using regular
-expressions.
+expressions *(since 1.41)*.
+
 For example, `--depth assets=2` (or, equivalently: `depth:assets=2`)
 will collapse accounts matching the regular expression `assets` to depth 2.
 So `assets:bank:savings` would be collapsed to `assets:bank`, while
