@@ -635,6 +635,9 @@ conditionaltablep = do
       
 
 -- A single matcher, on one line.
+-- This tries to parse first as a field matcher, then if that fails, as a whole-record matcher;
+-- the goal was to not break legacy whole-record patterns that happened to look a bit like a field matcher
+-- (eg, beginning with %, possibly preceded by & or !), or at least not to raise an error.
 matcherp' :: CsvRulesParser () -> CsvRulesParser Matcher
 matcherp' end = try (fieldmatcherp end) <|> recordmatcherp end
 
@@ -686,6 +689,7 @@ csvfieldreferencep = do
   lift $ dbgparse 8 "trying csvfieldreferencep"
   char '%'
   T.cons '%' . textQuoteIfNeeded <$> fieldnamep
+    -- XXX this parses any generic field name, which may not actually be a valid CSV field name [#2289]
 
 -- A single regular expression
 regexp :: CsvRulesParser () -> CsvRulesParser Regexp
@@ -774,8 +778,8 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     -- A matcher's target can be a specific CSV field, or the "whole record".
     --
     -- In the former case, note that the field reference must be either numeric or
-    -- a csv field name declared by a `fields` rule; anything else will raise an error
-    -- (to avoid confusion when a hledger field name doesn't work, see #2289).
+    -- a csv field name declared by a `fields` rule; anything else will emit a warning to stderr
+    -- (to reduce confusion when a hledger field name doesn't work; not an error, to avoid breaking legacy rules; see #2289).
     --
     -- In the latter case, the matched value will be a synthetic CSV record.
     -- Note this will not necessarily be the same as the original CSV record:
@@ -784,14 +788,13 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     -- (This means that a field containing a comma will now look like two fields.)
     --
     matcherMatches :: Matcher -> Bool
-    matcherMatches m =
-      case m of
-        RecordMatcher prefix pat -> maybeNegate prefix $ match pat val
-          where val = T.intercalate "," record
-        FieldMatcher prefix csvfieldref pat -> maybeNegate prefix $ match pat val
-          where val = replaceCsvFieldReference rules record csvfieldref
+    matcherMatches = \case
+      RecordMatcher prefix pat -> maybeNegate prefix $ match pat $ T.intercalate "," record
+      FieldMatcher  prefix csvfieldref pat -> maybeNegate prefix $ match pat $
+        fromMaybe (warn "'if %CSVFIELD' should use a name declared with 'fields', or a number" "") $
+        replaceCsvFieldReference rules record csvfieldref
       where
-        match pat val = regexMatchText (dbg7 "regex" pat) (dbg7 "value" val)
+        match p v = regexMatchText (dbg7 "regex" p) (dbg7 "value" v)
 
     -- | Group matchers into associative pairs based on prefix, e.g.:
     --   A
@@ -817,7 +820,7 @@ renderTemplate rules record t =
     (many
       (   literaltextp
       <|> (matchrefp <&> replaceRegexGroupReference rules record)
-      <|> (fieldrefp <&> replaceCsvFieldReference   rules record)
+      <|> (fieldrefp <&> replaceCsvFieldReference   rules record <&> fromMaybe "")
       )
     )
     t
@@ -850,20 +853,18 @@ regexMatchValue rules record sgroup = let
   in atMay matchgroups group
 
 getMatchGroups :: CsvRules -> CsvRecord -> Matcher -> [Text]
-getMatchGroups _ record (RecordMatcher _ regex)  = let
-  txt = T.intercalate "," record -- see caveats of wholecsvline, in `isBlockActive`
-  in regexMatchTextGroups regex txt
-getMatchGroups rules record (FieldMatcher _ fieldref regex) = let
-  txt = replaceCsvFieldReference rules record fieldref
-  in regexMatchTextGroups regex txt
+getMatchGroups _ record (RecordMatcher _ regex) =
+  regexMatchTextGroups regex $ T.intercalate "," record -- see caveats in matcherMatches
+getMatchGroups rules record (FieldMatcher _ fieldref regex) =
+  regexMatchTextGroups regex $ fromMaybe "" $ replaceCsvFieldReference rules record fieldref
 
 -- | Replace something that looks like a reference to a csv field ("%date" or "%1)
 -- with that field's value. If it doesn't look like a field reference, or if we
--- can't find such a field, replace it with the empty string.
-replaceCsvFieldReference :: CsvRules -> CsvRecord -> CsvFieldReference -> Text
+-- can't find a csv field with that name, return nothing.
+replaceCsvFieldReference :: CsvRules -> CsvRecord -> CsvFieldReference -> Maybe Text
 replaceCsvFieldReference rules record s = case T.uncons s of
-    Just ('%', fieldname) -> fromMaybe "" $ csvFieldValue rules record fieldname
-    _                     -> s
+    Just ('%', fieldname) -> csvFieldValue rules record fieldname
+    _                     -> Nothing
 
 -- | Get the (whitespace-stripped) value of a CSV field, identified by its name or
 -- column number, ("date" or "1"), from the given CSV record, if such a field exists.

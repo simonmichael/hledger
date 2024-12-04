@@ -3655,44 +3655,44 @@ if ,,,,
 
 ## Matchers
 
-There are two kinds:
+There are two kinds of matcher:
 
-1. A record matcher is a word or single-line text fragment or regular expression (`REGEX`), 
-   which hledger will try to match case-insensitively anywhere within the CSV record.\
-   Eg: `whole foods`
+1. A whole record matcher is simplest: it is just a word, single-line text fragment, or other regular expression,
+   which hledger will try to match case-insensitively anywhere within the CSV record. Eg: `whole foods`.
 
-2. A field matcher is preceded with a percent sign and [CSV field name](#field-names) (`%CSVFIELD REGEX`).
-   hledger will try to match these just within the named CSV field.\
-   Eg: `%date 2023`
+2. A field matcher has a percent-prefixed CSV field number or name before the pattern.
+   Eg: `%3 whole foods` or `%description whole foods`.
+   hledger will try to match the pattern just within the named CSV field.
 
-The regular expression is (as usual in hledger) a POSIX extended regular expression,
-that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`),
-and nothing else.
-If you have trouble, see "Regular expressions" in the hledger manual (<https://hledger.org/hledger.html#regular-expressions>).
+When using these, there's two things to be aware of:
 
-### What matchers match
+1. Whole record matchers see a synthetic reconstruction or record, not the original data;
+   values will be comma-separated, and quotes enclosing values and whitespace outside those quotes will be removed.\
+   Eg when reading an SSV record like:   `2023-01-01 ; "Acme, Inc. " ;  1,000`\
+   the whole record matcher sees instead: `2023-01-01,Acme, Inc. ,1,000`
 
-With record matchers, it's important to know that the record matched is not the original CSV record, but a modified one:
-separators will be converted to commas, and enclosing double quotes (but not enclosing whitespace) are removed.
-So for example, when reading an SSV file, if the original record was:
-```ssv
-2023-01-01; "Acme, Inc.";  1,000
-```
-the regex would see, and try to match, this modified record text:
-```
-2023-01-01,Acme, Inc.,  1,000
-```
+2. In field matchers you must use either a CSV field number,
+   or a [CSV field name](#field-names) which has been set by a [`fields` list](#fields-list).
+   Anything else will print a warning, to avoid [confusion](https://github.com/simonmichael/hledger/issues/2289);
+   if you see it, you should adjust your matchers. This might become an error in future.
 
-### Combining matchers
+You can also prefix a matcher with `!` (and optional space) to negate it.
+Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is not present.
+*Added in 1.32.*
 
-When an if block has multiple matchers, they are combined as follows:
+The pattern is, as usual in hledger, a POSIX extended regular expression
+that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`) and nothing else.
+If you have trouble with it, see "Regular expressions" in the hledger manual (<https://hledger.org/hledger.html#regular-expressions>).
 
-- By default they are OR'd (any of them can match)
-- When a matcher is preceded by ampersand (`&`, at the start of the line) it will be AND'ed with the previous matcher (all in the AND'ed group must match)
-- *Added in 1.32* When a matcher is preceded by an exclamation mark (`!`), it is negated (it must not match).
+### Multiple matchers
 
-Note [currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398) there is a limitation:
-you can't use both `&` and `!` on the same line (you can't AND a negated matcher).
+When an if block has multiple matchers, each on its own line,
+
+- By default they are OR'd (any of them can match).
+- Matcher lines beginning with `&` (and optional space) are AND'ed with the matcher above (all in the AND'ed group must match).
+
+You can't use both `&` and `!` on the same line (you can't AND a negated matcher),
+[currently](https://github.com/simonmichael/hledger/pull/2088#issuecomment-1844200398).
 
 ### Match groups
 
