@@ -207,7 +207,7 @@ Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases a
 ## Release artifacts / value chain
 
 Higher things depend on lower things; when doing a release, work upward from the bottom.
-(Or downward through the [Procedures](#procedures)).
+(Or downward through the [Process](#process)).
 
 [![release diagram](RELEASING.png)](RELEASING.png)
 <!-- source: RELEASING.canvas (Obsidian) -->
