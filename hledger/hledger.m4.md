@@ -3658,16 +3658,18 @@ if ,,,,
 There are two kinds of matcher:
 
 1. A whole record matcher is simplest: it is just a word, single-line text fragment, or other regular expression,
-   which hledger will try to match case-insensitively anywhere within the CSV record. Eg: `whole foods`.
+   which hledger will try to match case-insensitively anywhere within the CSV record.\
+  Eg: `whole foods`.
 
-2. A field matcher has a percent-prefixed CSV field number or name before the pattern.
-   Eg: `%3 whole foods` or `%description whole foods`.
+2. A field matcher has a percent-prefixed CSV field number or name before the pattern.\
+   Eg: `%3 whole foods` or `%description whole foods`.\
    hledger will try to match the pattern just within the named CSV field.
 
 When using these, there's two things to be aware of:
 
-1. Whole record matchers see a synthetic reconstruction or record, not the original data;
-   values will be comma-separated, and quotes enclosing values and whitespace outside those quotes will be removed.\
+1. Whole record matchers don't see the exact original record;
+   they see a reconstruction of it, in which values are comma-separated,
+   and quotes enclosing values and whitespace outside those quotes are removed.\
    Eg when reading an SSV record like:   `2023-01-01 ; "Acme, Inc. " ;  1,000`\
    the whole record matcher sees instead: `2023-01-01,Acme, Inc. ,1,000`
 
