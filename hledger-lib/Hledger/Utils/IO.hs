@@ -19,6 +19,7 @@ module Hledger.Utils.IO (
   -- * Errors
   error',
   usageError,
+  warn,
 
   -- * Time
   getCurrentLocalTime,
@@ -121,6 +122,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
 import           Data.Word (Word16)
+import           Debug.Trace (trace)
 import           Foreign.C.Error (Errno(..), ePIPE)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
@@ -191,6 +193,13 @@ error' = errorWithoutStackTrace . ("Error: " <>)
 -- | A version of errorWithoutStackTrace that adds a usage hint.
 usageError :: String -> a
 usageError = error' . (++ " (use -h to see usage)")
+
+-- | Show a warning message on stderr before returning the given value.
+-- Use this when you want to show the user a message on stderr, without stopping the program.
+-- Currently we do this very sparingly in hledger; we prefer to either quietly work,
+-- or loudly raise an error. Variable output can make scripting harder.
+warn :: String -> a -> a
+warn msg = trace ("Warning: " <> msg)
 
 
 
