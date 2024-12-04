@@ -3679,7 +3679,7 @@ When using these, there's two things to be aware of:
    if you see it, you should adjust your matchers. This might become an error in future.
 
 You can also prefix a matcher with `!` (and optional space) to negate it.
-Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is not present.
+Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is NOT present.
 *Added in 1.32.*
 
 The pattern is, as usual in hledger, a POSIX extended regular expression
@@ -3693,8 +3693,8 @@ When an if block has multiple matchers, each on its own line,
 - By default they are OR'd (any of them can match).
 - Matcher lines beginning with `&` (and optional space) are AND'ed with the matcher above (all in the AND'ed group must match).
 
+(*Since 1.41:*)
 You can use a negated `!` matcher on a `&` line, meaning AND NOT.
-*Since 1.41.*
 
 ### Match groups
 
