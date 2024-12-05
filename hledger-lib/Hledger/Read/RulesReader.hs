@@ -808,8 +808,10 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     matcherMatches = \case
       RecordMatcher prefix             pat -> maybeNegate prefix $ match pat $ T.intercalate "," record
       FieldMatcher  prefix csvfieldref pat -> maybeNegate prefix $ match pat $
-        fromMaybe (warn msg "") $ replaceCsvFieldReference rules record csvfieldref
-        where msg = "if "<>T.unpack csvfieldref<>": this should be a name declared with 'fields', or %NUM"
+        fromMaybe "" $ replaceCsvFieldReference rules record csvfieldref
+        -- (warn msg "") where msg = "if "<>T.unpack csvfieldref<>": this should be a name declared with 'fields', or %NUM"
+        --  #2289: we'd like to warn the user when an unknown CSV field is being referenced,
+        --  but it's useful to ignore it for easier reuse of rules files.
       where match p v = regexMatchText (dbg7 "regex" p) (dbg7 "value" v)
 
     -- | Group matchers into associative pairs based on prefix, e.g.:

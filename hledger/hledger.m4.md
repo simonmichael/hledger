@@ -3673,10 +3673,10 @@ When using these, there's two things to be aware of:
    Eg when reading an SSV record like:   `2023-01-01 ; "Acme, Inc. " ;  1,000`\
    the whole record matcher sees instead: `2023-01-01,Acme, Inc. ,1,000`
 
-2. In field matchers you must use either a CSV field number,
-   or a [CSV field name](#field-names) which has been set by a [`fields` list](#fields-list).
-   Anything else will print a warning, to avoid [confusion](https://github.com/simonmichael/hledger/issues/2289);
-   if you see it, you should adjust your matchers. This might become an error in future.
+2. Field matchers expect either a CSV field number, or a [CSV field name](#field-names) declared with [`fields`](#fields-list).
+   (Don't use a hledger field name here, unless it is also a CSV field name.)
+   A non-CSV field name will cause the matcher to match against `""` (the empty string),
+   and does not raise an error, allowing easier reuse of common rules with different CSV files.
 
 You can also prefix a matcher with `!` (and optional space) to negate it.
 Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is NOT present.
