@@ -808,10 +808,9 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     matcherMatches = \case
       RecordMatcher prefix             pat -> maybeNegate prefix $ match pat $ T.intercalate "," record
       FieldMatcher  prefix csvfieldref pat -> maybeNegate prefix $ match pat $
-        fromMaybe (warn "'if %CSVFIELD' should use a name declared with 'fields', or a number" "") $
-        replaceCsvFieldReference rules record csvfieldref
-      where
-        match p v = regexMatchText (dbg7 "regex" p) (dbg7 "value" v)
+        fromMaybe (warn msg "") $ replaceCsvFieldReference rules record csvfieldref
+        where msg = "if "<>T.unpack csvfieldref<>": this should be a name declared with 'fields', or %NUM"
+      where match p v = regexMatchText (dbg7 "regex" p) (dbg7 "value" v)
 
     -- | Group matchers into associative pairs based on prefix, e.g.:
     --   A
