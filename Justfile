@@ -1399,6 +1399,14 @@ sccv:
 # ** Misc ------------------------------------------------------------
 MISC:
 
+# show recent branches summary and detail with jj
+@branches:
+    echo "Recent branches:"
+    bash -ic 'jjb | head -20'
+    echo
+    echo "Recent branches (commits):"
+    jj log -n 30 -r 'log_default ~ @'
+
 # push to github CI, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to master.
 @push *INTERVAL:
     tools/push {{ INTERVAL }}
