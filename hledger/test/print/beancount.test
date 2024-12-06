@@ -163,7 +163,6 @@ $ hledger -f- print -O beancount
 2000-01-02 * "posting tags"  ; a: ttag
     ma: "ttag"
     Assets:Cash             0 C  ; a: ptag
-      ma:   "ptag"
-      type: "A, C"
+      ma: "ptag"
 
 >=
