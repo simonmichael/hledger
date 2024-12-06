@@ -129,7 +129,7 @@ hledgerWebTest = do
   usecolor <- useColorOnStdout
   let
     rawopts = [("forecast","")]
-    iopts = rawOptsToInputOpts d usecolor $ mkRawOpts rawopts
+    iopts = rawOptsToInputOpts d usecolor True $ mkRawOpts rawopts
     f = "fake"  -- need a non-null filename so forecast transactions get index 0
   pj <- readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
     ["~ monthly"

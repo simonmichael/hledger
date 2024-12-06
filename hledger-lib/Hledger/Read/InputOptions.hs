@@ -34,6 +34,7 @@ data InputOpts = InputOpts {
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time ?
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
+    ,posting_account_tags_  :: Bool             -- ^ propagate account tags to postings ?
     ,verbose_tags_      :: Bool                 -- ^ add user-visible tags when generating/modifying transactions & postings ?
     ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
     ,auto_              :: Bool                 -- ^ generate extra postings according to auto posting rules ?
@@ -55,6 +56,7 @@ definputopts = InputOpts
     , new_save_          = True
     , pivot_             = ""
     , forecast_          = Nothing
+    , posting_account_tags_ = False
     , verbose_tags_      = False
     , reportspan_        = nulldatespan
     , auto_              = False

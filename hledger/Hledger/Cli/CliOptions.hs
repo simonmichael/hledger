@@ -603,12 +603,16 @@ ensureDebugFlagHasVal as = case break (=="--debug") as of
 rawOptsToCliOpts :: RawOpts -> IO CliOpts
 rawOptsToCliOpts rawopts = do
   currentDay <- getCurrentDay
-  let day = case maybestringopt "today" rawopts of
-              Nothing -> currentDay
-              Just d  -> either (const err) fromEFDay $ fixSmartDateStrEither' currentDay (T.pack d)
-                where err = error' $ "Unable to parse date \"" ++ d ++ "\""
+  let
+    day = case maybestringopt "today" rawopts of
+            Nothing -> currentDay
+            Just d  -> either (const err) fromEFDay $ fixSmartDateStrEither' currentDay (T.pack d)
+              where err = error' $ "Unable to parse date \"" ++ d ++ "\""
+    command = stringopt "command" rawopts
+    moutputformat = maybestringopt "output-format" rawopts
+    postingaccttags = not $ command == "print" && moutputformat == Just "beancount"
   usecolor <- useColorOnStdout
-  let iopts = rawOptsToInputOpts day usecolor rawopts
+  let iopts = rawOptsToInputOpts day usecolor postingaccttags rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <-
@@ -621,12 +625,12 @@ rawOptsToCliOpts rawopts = do
   let availablewidth = NE.head $ NE.fromList $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
   return defcliopts {
               rawopts_         = rawopts
-             ,command_         = stringopt "command" rawopts
+             ,command_         = command
              ,file_            = listofstringopt "file" rawopts
              ,inputopts_       = iopts
              ,reportspec_      = rspec
              ,output_file_     = maybestringopt "output-file" rawopts
-             ,output_format_   = maybestringopt "output-format" rawopts
+             ,output_format_   = moutputformat
              ,pageropt_        = maybeynopt "pager" rawopts
              ,coloropt_        = maybeynaopt "color" rawopts
              ,debug_           = posintopt "debug" rawopts
