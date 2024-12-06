@@ -5293,10 +5293,10 @@ Certain kinds of account alias can disrupt account types, see
 **`tag:NAMEREGEX[=VALREGEX]`**\
 Match by tag name, and optionally also by tag value. Note:
 
-- To match values, ignoring names, do `tag:.=VALREGEX`
 - Both regular expressions do infix matching by default.
   If you need a complete match, use `^` and `$`.
   Eg: `tag:'^fullname$'`, `tag:'^fullname$=^fullvalue$`
+- To match values, ignoring names, do `tag:.=VALREGEX`
 - Accounts also inherit the tags of their parent accounts.
 - Postings also inherit the tags of their account and their transaction .
 - Transactions also acquire the tags of their postings.
