@@ -5225,9 +5225,8 @@ Match by transaction code (eg check number).
 Match postings or transactions including any amounts whose currency/commodity symbol is fully matched by REGEX.
 (Contrary to hledger's usual infix matching. To do infix matching, write `.*REGEX.*`.) 
 Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
-And for characters which are significant to your shell you may need one more level of escaping. 
-So eg to match the dollar sign:\
-`hledger print cur:\\$`.
+And for characters which are significant to your shell you will usually need one more level of escaping.
+Eg to match the dollar sign: `cur:\\$` or `cur:'\$'`
 
 ### desc: query
 **`desc:REGEX`**\
@@ -5293,6 +5292,7 @@ Certain kinds of account alias can disrupt account types, see
 ### tag: query
 **`tag:NAMEREGEX[=VALREGEX]`**\
 Match by tag name, and optionally also by tag value. Note:
+
 - To match values, ignoring names, do `tag:.=VALREGEX`
 - Both regular expressions do infix matching by default.
   If you need a complete match, use `^` and `$`.
