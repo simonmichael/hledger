@@ -54,7 +54,7 @@ set export := true
 
 # and/or: -q --bell --stop-timeout=1
 
-WATCHEXEC := 'watchexec --timings'
+WATCHEXEC := 'watchexec --wrap-process=session --timings'
 
 # grep-like rg
 #RG_ := 'rg --sort=path --no-heading -i'
