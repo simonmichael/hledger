@@ -5294,8 +5294,8 @@ Certain kinds of account alias can disrupt account types, see
 **`tag:NAMEREGEX[=VALREGEX]`**\
 Match by tag name, and optionally also by tag value. Note:
 
-- Both regular expressions do infix matching by default.
-  If you need a complete match, use `^` and `$`.
+- Both regular expressions do infix matching.
+  If you need a complete match, use `^` and `$`.\
   Eg: `tag:'^fullname$'`, `tag:'^fullname$=^fullvalue$`
 - To match values, ignoring names, do `tag:.=VALREGEX`
 - Accounts also inherit the tags of their parent accounts.
