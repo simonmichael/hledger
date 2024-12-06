@@ -1874,7 +1874,8 @@ account expenses:food
 
 ### Querying with tags
 
-Tags are most often used to select a subset of data; you can match tagged things with `tag:` [queries](#queries) (discussed below).
+Tags are most often used to select a subset of data; you can match tagged things by tag name and or tag value with a `tag:` query.
+(See [queries](#queries) below.)
  
 When querying for tag names or values, note that postings inherit tags from their transaction and from their account,
 and transactions acquire tags from their postings. So in the example above,
@@ -5200,68 +5201,87 @@ Multiple query terms can be provided to build up a more complex query.
 ## Query types
 
 Here are the types of query term available.
-Remember these can also be prefixed with **`not:`** to convert them into a negative match.
 
-**`acct:REGEX`** or **`REGEX`**\
-Match account names containing this case insensitive [regular expression]. 
+### acct: query
+**`acct:REGEX`**, or just **`REGEX`**\
+Match account names containing this case insensitive [regular expression].\
 This is the default query type, so we usually don't bother writing the "acct:" prefix.
 
-**`amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N`**\
+### amt: query
+**`amt:N, amt:'<N', amt:'<=N', amt:'>N', amt:'>=N'`**\
 Match postings with a single-commodity amount equal to, less than, or greater than N.
 (Postings with multi-commodity amounts are not tested and will always match.)
 The comparison has two modes: 
 if N is preceded by a + or - sign (or is 0), the two signed numbers are compared. 
 Otherwise, the absolute magnitudes are compared, ignoring sign.
+`amt:` needs quotes to hide the less than/greater than sign from the command line shell.
 
+### code: query
 **`code:REGEX`**\
 Match by transaction code (eg check number).
 
+### cur: query
 **`cur:REGEX`**\
-Match postings or transactions including any amounts whose
-currency/commodity symbol is fully matched by REGEX. (For a partial
-match, use `.*REGEX.*`). 
+Match postings or transactions including any amounts whose currency/commodity symbol is fully matched by REGEX.
+(Contrary to hledger's usual infix matching. To do infix matching, write `.*REGEX.*`.) 
 Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
 And for characters which are significant to your shell you may need one more level of escaping. 
 So eg to match the dollar sign:\
 `hledger print cur:\\$`.
 
+### desc: query
 **`desc:REGEX`**\
 Match transaction descriptions.
 
+### date: query
 **`date:PERIODEXPR`**\
-Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates))
-within the specified period.
+Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates)) within the specified period.
 PERIODEXPR is a [period expression](#period-expressions) with no report interval.
 Examples:\
 `date:2016`, `date:thismonth`, `date:2/1-2/15`, `date:2021-07-27..nextquarter`.
 
-
+### date2: query
 **`date2:PERIODEXPR`**\
-Match secondary dates within the specified period (independent of the `--date2` flag).
+If you use secondary dates: this matches secondary dates within the specified period.
+It is not affected by the `--date2` flag.
 
+### depth: query
 **`depth:[REGEXP=]N`**\
 Match (or display, depending on command) accounts at or above this depth,
 optionally only for accounts matching a provided regular expression.
 See [Depth](#depth) for detailed rules.
 
-**`expr:"TERM AND NOT (TERM OR TERM)"`** (eg)\
-Match with a boolean combination of queries (which must be enclosed in quotes).
-See [Combining query terms](#combining-query-terms) below.
+### expr: query
+**`expr:'QUERYEXPR'`**\
+`expr` lets you write more complicated query expressions with AND, OR, NOT, and parentheses.\
+Eg: `expr:'date:lastmonth and not (food or rent)'`\
+The expression should be enclosed in quotes. See [Combining query terms](#combining-query-terms) below.
 
+### not: query
+**`not:QUERYTERM`**\
+You can prepend **`not:`** to any other query term to negate the match.\
+Eg: `not:equity`, `not:desc:apple`\
+(Also, a trick: `not:not:...` can sometimes solve query problems conveniently..)
+
+### note: query
 **`note:REGEX`**\
 Match transaction [notes](#payee-and-note)
 (the part of the description right of `|`, or the whole description if there's no `|`).
 
+### payee: query
 **`payee:REGEX`**\
 Match transaction [payee/payer names](#payee-and-note)
 (the part of the description left of `|`, or the whole description if there's no `|`).
 
+### real: query
 **`real:, real:0`**\
 Match real or virtual postings respectively.
 
+### status: query
 **`status:, status:!, status:*`**\
 Match unmarked, pending, or cleared transactions respectively.
 
+### type: query
 **`type:TYPECODES`**\
 Match by account type (see [Declaring accounts > Account types](#account-types)).
 `TYPECODES` is one or more of the single-letter account type codes
@@ -5270,19 +5290,16 @@ Note `type:A` and `type:E` will also match their respective subtypes `C` (Cash) 
 Certain kinds of account alias can disrupt account types, see 
 [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 
-**`tag:REGEX[=REGEX]`**\
-Match by tag name, and optionally also by tag value.
-(To match only by value, use `tag:.=REGEX`.)
-
-When querying by tag, note that:
-
-- Accounts also inherit the tags of their parent accounts
-- Postings also inherit the tags of their account and their transaction 
+### tag: query
+**`tag:NAMEREGEX[=VALREGEX]`**\
+Match by tag name, and optionally also by tag value. Note:
+- To match values, ignoring names, do `tag:.=VALREGEX`
+- Both regular expressions do infix matching by default.
+  If you need a complete match, use `^` and `$`.
+  Eg: `tag:'^fullname$'`, `tag:'^fullname$=^fullvalue$`
+- Accounts also inherit the tags of their parent accounts.
+- Postings also inherit the tags of their account and their transaction .
 - Transactions also acquire the tags of their postings.
-
-(**`inacct:ACCTNAME`**\
-A special query term used automatically in hledger-web only:
-tells hledger-web to show the transaction register for an account.)
 
 ## Combining query terms
 
