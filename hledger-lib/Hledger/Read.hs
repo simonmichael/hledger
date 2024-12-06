@@ -125,7 +125,7 @@ module Hledger.Read (
 
 --- ** imports
 import qualified Control.Exception as C
-import Control.Monad (unless, when)
+import Control.Monad (unless, when, forM)
 import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
@@ -159,6 +159,7 @@ import Hledger.Read.RulesReader (tests_RulesReader)
 import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 import Hledger.Data.JournalChecks (journalStrictChecks)
+import Text.Printf (printf)
 
 --- ** doctest setup
 -- $setup
@@ -401,12 +402,15 @@ saveLatestDatesForFiles = mapM_ (\(LatestDatesForFile f ds) -> saveLatestDates d
 previousLatestDates :: FilePath -> IO LatestDates
 previousLatestDates f = do
   let latestfile = latestDatesFileFor f
-      parsedate s = maybe (fail $ "could not parse date \"" ++ s ++ "\"") return $
-                      parsedateM s
   exists <- doesFileExist latestfile
-  if exists
-  then traverse (parsedate . T.unpack . T.strip) . T.lines =<< readFileStrictly latestfile
-  else return []
+  t <- if exists then readFileStrictly latestfile else return T.empty
+  let nls = zip [1::Int ..] $ T.lines t
+  fmap catMaybes $ forM nls $ \(n,l) -> do
+    let s = T.unpack $ T.strip l
+    case (s, parsedateM s) of
+      ("", _)       -> return Nothing
+      (_,  Nothing) -> error' (printf "%s:%d: invalid date: \"%s\"" latestfile n s)
+      (_,  Just d)  -> return $ Just d
 
 -- | Where to save latest transaction dates for the given file path.
 -- (.latest.FILE)
