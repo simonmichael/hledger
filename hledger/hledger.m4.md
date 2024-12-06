@@ -832,17 +832,18 @@ You can use this to export your hledger data to [Beancount], eg to use the [Fava
 
 hledger will try to adjust your data to suit Beancount, automatically.
 Be cautious and check the conversion until you are confident it is good.
-If you plan to export to Beancount often, you may want to follow its [conventions], to make conversion easier:
-- Beancount-friendly account names
-- currency codes instead of currency symbols
-- costs instead of conversion postings
-- no virtual postings, etc.
+If you plan to export to Beancount often, you may want to follow its [conventions], for a cleaner conversion:
+
+- use Beancount-friendly account names
+- use currency codes instead of currency symbols
+- use cost notation instead of equity conversion postings
+- avoid virtual postings
 
 [conventions]: https://plaintextaccounting.org/#other-features
 
-Note there is one big adjustment you must handle yourself:
-when exporting data for Beancount, your top level account names must be `Assets`, `Liabilities`, `Equity`, `Income`, and/or `Expenses`.
-If needed you can use [account aliases](#alias-directive) to rewrite your account names temporarily.
+There is one big adjustment you must handle yourself:
+for Beancount, the top level account names must be `Assets`, `Liabilities`, `Equity`, `Income`, and/or `Expenses`.
+You can use [account aliases](#alias-directive) to rewrite your account names temporarily, if needed,
 as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) config file.
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
