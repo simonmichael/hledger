@@ -22,11 +22,11 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 75fd38665
+# f648903b3
 
 Breaking changes
 
-- When built with ghc 9.10.1, hledger error messages are displayed with two extra trailing newlines.
+- When built with ghc 9.10.1, error messages are displayed with two extra trailing newlines.
 
 Fixes
 
@@ -40,19 +40,19 @@ Improvements
 
 - Added --pager and --color options as in hledger, affecting command line help.
 
-- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
-
 - Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
   will show some kind of partial stack trace if the program exits with an error.
   These will improve in future ghc versions.
+
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- allow megaparsec 9.7
 
 - ghc 9.10 / base 4.20 are now supported.
 
 Docs
 
 - Install, manual: new shell completions doc. [#986]
-
-API
 
 
 

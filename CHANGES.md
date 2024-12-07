@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 75fd38665
+# 1af6e9c51
 
 Docs
 
@@ -109,7 +109,6 @@ Docs
 - move Developer docs, MOCKUPS, investment-accounting-features to main repo
 - merge LINKS into dev docs page; cleanup
 - drop unused BACKLOG, TODO pages
-
 
 
 # 1.32.3 2024-01-28

@@ -22,42 +22,50 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 75fd38665
+# 786f5dd72
 
 Breaking changes
 
-- When built with ghc 9.10.1, hledger error messages are displayed with two extra trailing newlines.
+- When built with ghc 9.10.1, error messages are displayed with two extra trailing newlines.
 
 Fixes
 
-- Bring bash shell completions up to date.
-  [#986]
+- V (value) and C (cost) toggle keys once again reset each other as they should
+  (broken since 1.21).
+  (Gal Lakovnik Gorenec, [#2284])
+
+- Bash shell completions are now up to date. [#986]
 
 Features
 
-- Added helix as a supported editor for the `e` key. (amano.kenji)
-
 Improvements
+
+- Allow clipping depth to be configured per account (until adjusted in app, at least).
+  (Stephen Morgan, [#2292])
+
+- Added helix as a supported editor for the `e` key. (amano.kenji)
 
 - Added --pager and --color options as in hledger, affecting command line help.
   Also --color=no forces use of the "terminal" theme.
-
-- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
 
 - Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
   will show some kind of partial stack trace if the program exits with an error.
   These will improve in future ghc versions.
 
-- ghc 9.10 / base 4.20 are now supported.
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- Allow megaparsec 9.7.
+
+- Allow brick 2.5, 2.6.
 
 - Avoid brick 2.3.2, which doesn't build on windows.
 
+- ghc 9.10 / base 4.20 are now supported.
+
 Docs
 
+- Mention that period navigation uses standard periods [#2293]
 - Install, manual: new shell completions doc. [#986]
-
-API
-
 
 
 # 1.40 2024-09-09

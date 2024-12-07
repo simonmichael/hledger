@@ -22,31 +22,37 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 75fd38665
+# f648903b3
 
 Breaking changes
 
-- When built with ghc 9.10.1, hledger error messages are displayed with an extra trailing newline.
-
-- New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help abstract rendering
-  in various output formats, eg HTML, FODS and beancount.
+- New/refactored modules (Hledger.Write.*) and types (Spreadsheet) to help
+  abstract rendering in various output formats, eg HTML, FODS and beancount.
+  Spreadsheet is an abstraction for tabular reports, in addition to the
+  tabular package we already use; there may be some overlap.
+  (Henning Thielemann)
 
 - Rename displayDepth/prrDepth to displayIndent/prrIndent, and make them
   correspond to the number of indentation steps.
   (These are about indentation for rendering, not account depth.) [#2246]
 
-Fixes
-
 Improvements
 
 - Add Hledger.Data.Currency, currencySymbolToCode, currencyCodeToSymbol
+- AmountFormat: add displayQuotes flag to control enclosing quotes
+- InputOpts: add `posting_account_tags_` flag to control account tags on postings
+- Support ghc 9.10 and base 4.20.
+  Note, when built with ghc 9.10.1, hledger error messages are displayed with two extra trailing newlines.
 
-- Added Spreadsheet abstraction for tabular reports (in addition to
-  the tabular package we already use; there may be some overlap).
+Other API/doc changes
 
-- Support ghc 9.10 / base 4.20.
+- Hledger.Utils.IO: cleanup; rgb' now takes Float arguments instead of Word8
+- rename jinferredcommodities to jinferredcommoditystyles
+- rename jcommodities to jdeclaredcommodities
+- move/rename nullsourcepos
+- document isBlockActive, matcherMatches
+- posting*AsLines: fix some docs
 
-- dependency changes: 
 
 
 # 1.40 2024-09-09
