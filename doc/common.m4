@@ -1,59 +1,69 @@
-m4_dnl m4 macro definitions used in all hledger package docs.
-m4_dnl m4 commands in Shake.hs always load this file first;
-m4_dnl m4 macros in package directories could override these.
+m4_dnl m4 helpers and common text used in hledger docs (the manuals, mainly).
+m4_dnl When Shake.hs docs scripts use m4, they always load this file first.
 m4_dnl
-m4_dnl Don't leave any blank lines here, outside of macros.
+m4_dnl `m4_dnl` ignores the rest of the line, including the newline.
+m4_dnl Avoid blank lines or stray newlines in this file, unless inside a macro.
+m4_dnl Add single quotes where needed to help vscode's highlighting. '
 m4_dnl
-m4_dnl "m4_dnl" ignores the rest of the line (including newline).
 m4_dnl
-m4_dnl {{ }} will be our quoting delimiters
+m4_dnl Set {{ }} as our m4 quoting delimiters:
+m4_dnl
 m4_changequote({{,}})m4_dnl
 m4_dnl
-m4_dnl _MACRO_ will be the naming convention for our macros
-m4_define({{_include_}},     m4_defn({{m4_include}})              )m4_dnl
 m4_dnl
-m4_dnl Author to show in man pages.
-m4_define({{_author_}}, {{}})m4_dnl
+m4_dnl Easier macros for including/excluding content based on output format:
 m4_dnl
-m4_dnl Macros for conditionally including or excluding content based on the format
-m4_dnl (man, web or info).
 m4_define({{_man_}},         m4_ifdef({{MANFORMAT}},{{$1}})    )m4_dnl
 m4_define({{_notman_}},      m4_ifdef({{MANFORMAT}},,{{$1}})   )m4_dnl
-m4_define({{_web_}},         m4_ifdef({{WEBFORMAT}},{{$1}})    )m4_dnl
-m4_define({{_notweb_}},      m4_ifdef({{WEBFORMAT}},,{{$1}})   )m4_dnl
 m4_define({{_info_}},        m4_ifdef({{INFOFORMAT}},{{$1}})   )m4_dnl
 m4_define({{_notinfo_}},     m4_ifdef({{INFOFORMAT}},,{{$1}})  )m4_dnl
-m4_dnl 
-m4_dnl Two side-by-side columns.
-m4_define({{_col2_}},
-{{<div class="container-fluid">
-<div class="row">
-<div class="col-sm-6">$1</div>
-<div class="col-sm-6">$2</div>
-</div>
-</div>}})m4_dnl
+m4_define({{_web_}},         m4_ifdef({{WEBFORMAT}},{{$1}})    )m4_dnl
+m4_define({{_notweb_}},      m4_ifdef({{WEBFORMAT}},,{{$1}})   )m4_dnl
 m4_dnl
-m4_dnl Three side-by-side columns.
-m4_define({{_col3_}},
-{{<div class="container-fluid">
-<div class="row">
-<div class="col-sm-4">$1</div>
-<div class="col-sm-4">$2</div>
-<div class="col-sm-4">$3</div>
-</div>
-</div>}})m4_dnl
 m4_dnl
-m4_dnl Various kinds of code block.
-m4_define({{_shell_}},     {{```shell$1```}}          )m4_dnl
-m4_define({{_shellbold_}}, {{```{.shell .bold}$1```}} )m4_dnl
-m4_define({{_journal_}},   {{```journal$1```}}        )m4_dnl
-m4_define({{_csv_}},       {{```csv$1```}}            )m4_dnl
-m4_define({{_rules_}},     {{```rules$1```}}          )m4_dnl
-m4_define({{_timeclock_}}, {{```timeclock$1```}}      )m4_dnl
-m4_define({{_timedot_}},   {{```timedot$1```}}        )m4_dnl
+m4_dnl Author name for pandoc metadata in manuals, affecting man pages. Currently left blank.
 m4_dnl
-m4_dnl Various lists of common command line options.
-m4_dnl Should be kept synced with CliOptions.hs etc.
+m4_define({{_author_}}, {{}})m4_dnl
+m4_dnl
+m4_dnl
+m4_dnl A general hledger description used at the start of the manuals.
+m4_dnl
+m4_define({{_hledgerdescription_}}, {{
+hledger is a robust, user-friendly, cross-platform set of programs
+for tracking money, time, or any other commodity,
+using double-entry accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1),
+and largely interconvertible with beancount(1). }} )m4_dnl
+m4_dnl
+m4_dnl
+m4_dnl A short description of hledger's input files, used in the manuals. '
+m4_dnl
+m4_define({{_inputfiles_}},
+{{reads from (and appends to) a journal file specified by the `LEDGER_FILE` environment variable
+(defaulting to `$HOME/.hledger.journal`); or you can specify files with `-f` options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file with a date field.}} )m4_dnl
+m4_dnl
+m4_dnl
+m4_dnl The above text plus a pointer to the more detailed hledger manual section.
+m4_dnl Used in the ui/web manuals.
+m4_dnl
+m4_define({{_inputfileswithptr_}},
+{{_inputfiles_
+(See hledger(1) -> Input for details.)}} )m4_dnl
+m4_dnl
+m4_dnl
+m4_dnl Bug reporting info for the manuals' BUGS sections. '
+m4_dnl
+m4_define({{_reportbugs_}},
+{{We welcome bug reports in the hledger issue tracker (shortcut: <https://bugs.hledger.org>),
+or on the hledger chat or mail list (<https://hledger.org/support>).}} )m4_dnl
+m4_dnl
+m4_dnl
+m4_dnl A copy of the general options help shown by `hledger --help`. Used in the three manuals.
+m4_dnl To make changes: update the flag definitions at top of CliOptions.hs,
+m4_dnl build hledger, and manually copy most of that build's --help output to here. '
+m4_dnl Do this always before release, and more often if needed to update
+m4_dnl the manual within dev builds and at https://hledger.org/dev/hledger.html#options.
 m4_dnl
 m4_define({{_generaloptions_}}, {{
 ```
@@ -103,9 +113,11 @@ General output/reporting flags (supported by some commands):
   -C --cleared              include only cleared postings/transactions
                             (-U/-P/-C can be combined)
   -R --real                 include only non-virtual postings
-     --depth=NUM            or -NUM: show only top NUM levels of accounts
   -E --empty                Show zero items, which are normally hidden.
                             In hledger-ui & hledger-web, do the opposite.
+     --depth=DEPTHEXP       if a number (or -NUM): show only top NUM levels
+                            of accounts. If REGEXP=NUM, only apply limiting to
+                            accounts matching the regular expression.
   -B --cost                 show amounts converted to their cost/sale amount
   -V --market               Show amounts converted to their value at period
                             end(s) in their default valuation commodity.
@@ -136,35 +148,4 @@ General help flags:
      --pager=YN             use a pager when needed ? y/yes (default) or n/no
      --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
 ```
-}} )m4_dnl
-m4_dnl
-m4_dnl A standard description of hledger.
-m4_define({{_hledgerdescription_}}, {{
-hledger is a robust, user-friendly, cross-platform set of programs
-for tracking money, time, or any other commodity,
-using double-entry accounting and a simple, editable file format.
-hledger is inspired by and largely compatible with ledger(1),
-and largely interconvertible with beancount(1). }} )m4_dnl
-m4_dnl
-m4_dnl A standard description of where hledger reads data from.
-m4_define({{_inputfiles_}},
-{{reads from (and appends to) a journal file specified by the `LEDGER_FILE` environment variable
-(defaulting to `$HOME/.hledger.journal`); or you can specify files with `-f` options.
-It can also read timeclock files, timedot files, or any CSV/SSV/TSV file with a date field.}} )m4_dnl
-m4_dnl
-m4_dnl Like the above, with an added pointer to the hledger manual.
-m4_define({{_inputfileswithptr_}},
-{{_inputfiles_
-(See hledger(1) -> Input for details.)}} )m4_dnl
-m4_dnl
-m4_dnl BUGS boilerplate
-m4_define({{_reportbugs_}},
-{{We welcome bug reports in the hledger issue tracker (shortcut: <http://bugs.hledger.org>),
-or on the #hledger chat or hledger mail list (<https://hledger.org/support>).}} )m4_dnl
-m4_dnl
-m4_dnl The _FLAGS marker is used in generating command help (see
-m4_dnl CliOptions.parseCommandDoc), but should be removed when generating manuals.
-m4_dnl Just one underscore here, so pandoc doesn't strip them
-m4_dnl ($FLAGS$ and =FLAGS= didn't work, not sure why).
-m4_define({{_FLAGS}}, {{}})m4_dnl
-m4_dnl
+}} )m4_dnl '

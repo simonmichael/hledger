@@ -49,11 +49,11 @@ hledger usually _inputfiles_
 
 Here is a small journal file describing one transaction:
 
-_journal_({{
+```journal
 2015-10-16 bought food
   expenses:food          $10
   assets:cash
-}})
+```
 
 Transactions are dated movements of money (etc.) between two or more *accounts*:
 bank accounts, your wallet, revenue/expense categories, people, etc.

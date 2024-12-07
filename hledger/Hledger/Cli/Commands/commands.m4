@@ -71,8 +71,8 @@ _command_({{Test}})
 }})m4_dnl
 m4_dnl
 m4_dnl _command_(MDFILE)
-m4_dnl Include a command's doc. The doc should start with a level two heading.
+m4_dnl Include a command's doc. The doc should start with a level two heading. '
 m4_define({{_command_}},
 {{
-_include_(hledger/Hledger/Cli/Commands/$1.md)
+m4_include(hledger/Hledger/Cli/Commands/$1.md)
 }})m4_dnl
