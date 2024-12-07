@@ -85,8 +85,10 @@ usage =
   ,""
   ,"See comments in Shake.hs for more detailed descriptions."
   ,"Add -c/--commit to have commands commit their changes."
-  ,"Add -V/-VV/-VVV to see more verbose output."
-  ,"Add -B, with nothing immediately after it, to force rebuilding."
+  ,"Add -B (on its own) to force rebuilding."
+  ,"Add -V/-VV/-VVV/-VVVV to see more verbose output."
+  ,"Add --skip-commands to try to avoid running external commands"
+  ,"(not a true dry run; some cmd calls may still run, code may do IO, etc)."
   ]
 -- TODO
 --  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
@@ -880,7 +882,7 @@ commitIfChanged msg files = do
   diffs <- (/=ExitSuccess) . fromExit <$> cmd Shell "git diff --no-ext-diff --quiet --exit-code --" files
   if diffs
   then cmd Shell ("git commit -m '"++msg++"' --") files
-  else liftIO $ putStrLn $ "nothing to commit (\"" ++ msg ++ "\")"
+  else liftIO $ putStrLn $ "nothing to commit for \"" ++ msg ++ "\""
 
 -- Convert numbered man page names to manual names.
 -- hledger.1 -> hledger, hledger_journal.5 -> hledger_journal
