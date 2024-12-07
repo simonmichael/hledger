@@ -15,7 +15,7 @@ import qualified "text" Data.Text as T
 import qualified "text" Data.Text.IO as T
 
 cmdmode = hledgerCommandMode (unlines
-    -- Command name, then --help text, then _FLAGS; empty help lines get stripped:
+    -- Command name, then --help text. Note, empty help lines get stripped.
   ["register-match"
   ,"Show the register item(s) with maximum (or with --invert, minimum) balance."
   ,"Usage: hledger-register-max [REGISTERARGS]"
@@ -25,8 +25,6 @@ cmdmode = hledgerCommandMode (unlines
   ,"$ hledger-register-max -f examples/bcexample.hledger -H checking"
   ,"2013-01-03 Payroll  Assets:US:BofA:Checking  1350.60 USD  8799.22 USD"
     ------------------------------------78----------------------------------------
-  ,""
-  ,"_FLAGS"
   ])
   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")  -- or Nothing
 

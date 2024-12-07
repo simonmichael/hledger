@@ -26,8 +26,6 @@ cmdmode :: Mode RawOpts
 cmdmode = hledgerCommandMode
   [s| check-postable
 Check that no postings are made to accounts with a postable:(n|no) tag.
-
-_FLAGS
   |]
   [] 
   [generalflagsgroup1]

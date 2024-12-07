@@ -28,7 +28,7 @@ import qualified "text" Data.Text as T
 import qualified "text" Data.Text.IO as T
 
 cmdmode = hledgerCommandMode (unlines
-    -- Command name, then --help text, then _FLAGS; empty help lines get stripped:
+    -- Command name, then --help text. Note, empty help lines get stripped.
   ["script-example"
   ,"This is an example of a (hledger-lib-using) hledger script."
   ,"Usage: hledger-script-example [OPTS] [ARGS]"
@@ -39,8 +39,6 @@ cmdmode = hledgerCommandMode (unlines
   ,"$ hledger-script-example --help"
   ,"(this help)"
     ------------------------------------78----------------------------------------
-  ,""
-  ,"_FLAGS"
   ])
   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")  -- or Nothing
 
@@ -89,8 +87,8 @@ main = do
 -- Using [s|...|] for multiline string literals (requires string-qq package and {-# LANGUAGE QuasiQuotes #-}):
 
 -- cmdmode = hledgerCommandMode (unlines
---     -- Command name, then --help text, then _FLAGS; empty help lines get stripped:
---   [s| script-example
+--     -- Command name, then --help text. Note, empty help lines get stripped.
+-- [s| script-example
 -- This is an example of a (hledger-lib-using) hledger script."
 -- Usage: hledger-script-example [OPTS] [ARGS]"
 -- or:    hledger script-example -- [OPTS] [ARGS]"
@@ -99,8 +97,6 @@ main = do
 -- Examples:"
 -- $ hledger-script-example --help"
 -- (this help)"
---
--- _FLAGS
 --   |]
 --     ------------------------------------78----------------------------------------
 --   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")  -- or Nothing

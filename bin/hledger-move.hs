@@ -44,8 +44,7 @@ import Hledger.Cli.Script
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
-  -- Command name and help text goes here. Current limitations:
-  -- help text must be above _FLAGS, blank lines will not be displayed.
+  -- Command name and help text goes here. Note blank lines will not be displayed.
   [s| hledger-move
 Print an entry to move funds between accounts, preserving costs and subaccounts
 .
@@ -82,8 +81,6 @@ Examples:
 .
 $ hledger-move $50 assets:checking assets:cash  # withdraw cash from bank
 $ hledger-move ADA1000 ada:wallet1 ada:wallet2  # move 1000 ADA, keeping lots
-
-_FLAGS
 |]
 {- NOT YET IMPLEMENTED:
 
