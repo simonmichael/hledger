@@ -57,7 +57,7 @@ usage =
   let scriptname = "Shake" in replaceRe [re|/Shake|] ('/':scriptname) $
   unlines
     ---------------------------------------79--------------------------------------
-  ["Shake: for heavy project scripting. See also: Justfile"
+  ["Shake: for heavier project scripting. See also Justfile"
   ,"Usage:"
   ,"./Shake.hs [CMD [ARGS]]  run CMD, compiling this script first if needed"
   ,"./Shake    [CMD [ARGS]]  run CMD, using the compiled version of this script"
@@ -66,12 +66,11 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
-  -- ,"./Shake optdocs [-c]  update options in hledger CLI command docs"
-  -- ,"                      (run after changing command flags)"
-  ,"./Shake cmddocs [-c]     update hledger command help after changing opts/docs"
+  ,"./Shake cmddocs [-c]     update all hledger's COMMAND.md and COMMAND.txt files,"
+  ,"                         used for --help, manuals etc. (run after changing"
+  ,"                         COMMAND.md or command options or general options)"
   ,"./Shake mandates         update the date shown in some manual formats"
-  ,"./Shake manuals [-c]     update all packages' txt/man/info/web manuals"
-  -- ,"./Shake webmanuals       update just the web manuals"
+  ,"./Shake manuals [-c]     update the packages' embedded info/man/txt manuals"
   ,"./Shake changelogs [-c] [-n/--dry-run]"
   ,"                         update CHANGES.md files, adding new commits & headings"
   ,"./Shake docs [-c]        update all program docs (CLI help, manuals, changelogs)"
@@ -413,7 +412,7 @@ main = do
               ,webmanuals
               ]
         when commit $
-          commitIfChanged ";doc: update manuals" $
+          commitIfChanged ";doc: update embedded manuals" $
             concat [commandmds, packagemandatem4s, nroffmanuals, infomanuals, infodirentries, txtmanuals]  -- infodir
 
       -- Update the dates to show in man pages, to the current month and year.
@@ -596,17 +595,26 @@ main = do
           | pkg <- pkgs
           ]
 
-      -- Regenerate Hledger/Cli/Commands/*.txt, rendering the corresponding .md files as plain text.
-      -- Also updates cmddocs first.
-      -- For commands' --help output.
-      -- NB this assumes the hledger executables are up to date. XXX
+      -- Using the current hledger build, run all commands to update their options help in COMMAND.md,
+      -- then regenerate all the COMMAND.txt from COMMAND.md.
+      -- With -c, also commit any changes in the .md and .txt files.
+      -- The hledger build should up to date when running this. XXX how to check ? need ["build"] is circular
       phony "cmddocs" $ do
-        -- need ["build"]  -- XXX circular dep, how would this work ?
-        liftIO $ putStrLn "please ensure the hledger build is up to date"  -- XXX never printed, why ?
+        liftIO $ putStrLn "please ensure the hledger build is up to date"
         need commandtxts
-        when commit $ commitIfChanged ";doc: update help" $ commandmds <> commandtxts
+        when commit $ commitIfChanged ";doc: update command docs" $ commandmds <> commandtxts
 
-      -- -- Update each Hledger/Cli/Commands/*.md, replacing the flags block with latest --help output,
+      -- Regenerate Hledger/Cli/Commands/*.txt from the corresponding .md files,
+      -- after first updating the options help within those.
+      commandtxts |%> \out -> do
+        let src = out -<.> "md"
+        liftIO $ putStrLn ("generating " <> out)
+        need [src <.> "new"]  -- 1. depend on phony target that updates the options help in src
+        need [src]            -- 2. depend on the now updated src
+        cmd Shell
+          pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
+
+      -- -- Update each Hledger/Cli/Commands/*.md, replacing the ```flags block with latest --help output,
       -- -- or a placeholder if there are no command-specific flags.
       -- -- For hledger manual and also for cmddocs below.
       -- -- NB hledger executables should be up to date, see cmddocs
@@ -614,7 +622,7 @@ main = do
       --   need commandmdsnew
       --   when commit $ commitIfChanged ";doc: update command flag docs" commandmds
 
-      -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the options help
+      -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the ```flags block
       -- within hledger/Hledger/Cli/Commands/CMD.md with the output of "stack run -- hledger CMD --help".
       -- If that fails, a warning is printed and it carries on, keeping the old options help.
       -- NB this needs the hledger build to be up to date, see cmddocs.
@@ -647,14 +655,6 @@ main = do
             --       | "path: [" `isInfixOf` err = takeWhile (/='[') err <> "..."
             --       | otherwise = err
             -- in \(e::C.IOException) -> liftIO $ hPutStrLn stderr $ elide $ show e  -- not used
-
-      commandtxts |%> \out -> do
-        let src = out -<.> "md"
-        liftIO $ putStrLn ("generating " <> out)
-        need [src <.> "new"]  -- 1. update flags doc in src
-        need [src]            -- 2. depend on src
-        cmd Shell
-          pandoc fromsrcmd src "--lua-filter" "tools/pandoc-dedent-code-blocks.lua" "-t plain" ">" out
 
       -- CHANGELOGS
 
