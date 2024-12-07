@@ -612,9 +612,9 @@ main = do
       --   need commandmdsnew
       --   when commit $ commitIfChanged ";doc: update command flag docs" commandmds
 
-      -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the flags doc
-      -- within hledger/Hledger/Cli/Commands/CMD.md. Runs "stack run -- hledger CMD -h" to get the latest.
-      -- If that fails, a warning is printed and it carries on, keeping the old flags doc.
+      -- hledger/Hledger/Cli/Commands/CMD.md.new: a phony target that updates the options help
+      -- within hledger/Hledger/Cli/Commands/CMD.md with the output of "stack run -- hledger CMD --help".
+      -- If that fails, a warning is printed and it carries on, keeping the old options help.
       -- NB this needs the hledger build to be up to date, see cmddocs.
       phonys $ \out ->
         if not $ "hledger/Hledger/Cli/Commands/" `isPrefixOf` out && ".md.new" `isSuffixOf` out
