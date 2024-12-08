@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 972a2a066
+# 1.41 2024-12-07
 
 Breaking changes
 
@@ -236,7 +236,8 @@ Docs
 
 Scripts/addons
 
-- examples/csv: add an example python-based CSV converter script
+- bin/*: remove obsolete _FLAGS markers from --help
+- examples/csv/csv-hledger-1.py: a python-based CSV converter script
 
 API
 
