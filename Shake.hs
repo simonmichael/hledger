@@ -403,6 +403,7 @@ main = do
       -- MANUALS
 
       -- Generate the manuals in plain text, nroff, info, and markdown formats.
+      -- NB you should run "Shake cmddocs" before this, it's not automatic (?)
       phony "manuals" $ do
         need $ concat [
                nroffmanuals
@@ -600,7 +601,7 @@ main = do
       -- With -c, also commit any changes in the .md and .txt files.
       -- The hledger build should up to date when running this. XXX how to check ? need ["build"] is circular
       phony "cmddocs" $ do
-        liftIO $ putStrLn "please ensure the hledger build is up to date"
+        liftIO $ putStrLn "please ensure the hledger build is up to date. Running all commands..."
         need commandtxts
         when commit $ commitIfChanged ";doc: update command docs" $ commandmds <> commandtxts
 
@@ -639,7 +640,7 @@ main = do
           let cmdname = map toLower $ takeBaseName src
           do
             let shellcmd = "stack exec -- hledger -h " <> cmdname
-            liftIO $ putStrLn $ "running " <> shellcmd <> " to get options help"
+            -- liftIO $ putStrLn $ "running " <> shellcmd <> " to get options help"
             cmdhelp <- lines . fromStdout <$> (cmd Shell shellcmd :: Action (Stdout String))
             let
               cmdflagshelp = takeWhile (not.null) $ dropWhile (/="Flags:") cmdhelp
@@ -659,8 +660,9 @@ main = do
       -- CHANGELOGS
 
       let
-        -- git log showing short commit hashes
-        gitlog = "git log --abbrev-commit"
+        -- git log showing short commit hashes.
+        -- In 2024 git is showing 9 digits, 1 more than jj - show 8 for easier interop
+        gitlog = "git log --abbrev=8"
 
         -- git log formats suitable for changelogs/release notes
         -- %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
