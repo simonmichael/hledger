@@ -1111,17 +1111,16 @@ relprep VER:
     set -euo pipefail
     [[ -z {{ VER }} ]] && usage
     BRANCH=$(just _versionReleaseBranch {{ VER }})
-    COMMIT="-c"
     echo "Switching to $BRANCH, auto-creating it if needed..."
     just _gitSwitchAutoCreate "$BRANCH"
     echo "Bumping all version strings to {{ VER }} ..."
-    ./Shake setversion {{ VER }} $COMMIT
+    ./Shake setversion {{ VER }} -c
     echo "Updating all command help texts for embedding..."
-    ./Shake cmddocs $COMMIT
+    ./Shake cmddocs -c
     echo "Updating all dates in man pages..."
     ./Shake mandates
     echo "Generating all the manuals in all formats...."
-    ./Shake manuals $COMMIT
+    ./Shake manuals -c
     # echo "Updating CHANGES.md files with latest commits..."
     # ./Shake changelogs $COMMIT
 
