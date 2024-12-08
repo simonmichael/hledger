@@ -659,134 +659,93 @@ main = do
 
       -- CHANGELOGS
 
-      let
-        -- git log showing short commit hashes.
-        -- In 2024 git is showing 9 digits, 1 more than jj - show 8 for easier interop
-        gitlog = "git log --abbrev=8"
-
-        -- git log formats suitable for changelogs/release notes
-        -- %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
-        changelogGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b\n'"
-        -- changelogVerboseGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat"
-
-        -- Format a git log message, with one of the formats above, as a changelog item
-        changelogCleanupCmd = unwords [
-           sed
-          ,"-e 's/^( )*\\* /\1- /'"        --  ensure bullet lists in descriptions use hyphens not stars
-          ,"-e 's/ \\(Simon Michael\\)//'" --  strip maintainer's author name
-          ,"-e 's/^- (doc: *)?(updated? *)?changelogs?( *updates?)?$//'"  --  strip some variants of "updated changelog"
-          ,"-e 's/^ +\\[ci skip\\] *$//'"  --  strip [ci skip] lines
-          ,"-e 's/^ +$//'"                 --  replace lines containing only spaces with empty lines
-          -- ,"-e 's/\r//'"                   --  strip windows carriage returns (XXX \r untested. IDEA doesn't like a real ^M here)
-          ,"-e '/./,/^$/!d'"               --  replace consecutive newlines with one
-          ]
-
-        -- Things to exclude when doing git log for project-wide changelog.
-        -- git exclude pathspecs, https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
-        projectChangelogExcludeDirs = unwords [
-           ":!hledger-lib"
-          ,":!hledger"
-          ,":!hledger-ui"
-          ,":!hledger-web"
-          ,":!tests"
-          ]
-
       -- update all changelogs with latest commits
       phony "changelogs" $ do
         need changelogs
         when commit $ commitIfChanged ";doc: update changelogs" changelogs
 
-      -- [PKG/]CHANGES.md
-      -- Add any new non-boring commits to the specified changelog, in
-      -- an idempotent way, minimising manual toil, as follows. We look at:
-      --
-      -- - the changelog's topmost markdown heading, which can be a
-      --   dev heading (first word is a git revision like 4fffe6e7) or
-      --   a release heading (first word is a release version & tag
-      --   like 1.18.1, second word is a date like 2020-06-21) or a
-      --   package release heading (hledger-ui-1.18.1).
-      --
-      -- - the package version, in the adjacent .version file, which
-      --   can be a dev version like 1.18.99 (first two digits of last
-      --   part are 97, 98 or 99) or a release version like 1.18.1
-      --   (any other cabal-style version).
-      --
-      -- The old changelog heading is removed if it was a dev heading;
-      -- new commits in PKG not prefixed with semicolon are added;
-      -- and a suitable new heading is added: a release heading if
-      -- the package version looks like a release version, otherwise 
-      -- a dev heading with the current HEAD revision.
-      -- 
-      -- With -n/--dry-run, print new content to stdout instead of
-      -- updating the changelog.
-      --
+      -- [PKG/]CHANGES.md [-n|--dry-run]
+      -- Add any new commit messages to the specified changelog, idempotently.
+      -- Or with -n/--dry-run, just print the new content to stdout.
+      -- Assumptions/requirements:
+      -- 1. All releases nowadays are full releases (including all four packages).
+      -- 2. The changelog's topmost markdown heading text is a release heading like "1.18.1 2020-06-21", or a more recent commit id like "4fffe6e7".
+      -- 3. When a release heading is added to a changelog, a corresponding release tag is also created.
       phonys (\out -> if out `notElem` changelogs
         then Nothing
         else Just $ do
-          tags <- lines . fromStdout <$> (cmd Shell "git tag" :: Action (Stdout String))
+          let
+            -- shell command to run git log showing short commit hashes.
+            -- In 2024 git is showing 9 digits, 1 more than jj - show 8 for easier interop
+            gitlog = "git log --abbrev=8"
+
+            -- a git log format suitable for changelogs/release notes
+            -- %s=subject, %an=author name, %n=newline if needed, %w=width/indent1/indent2, %b=body, %h=hash
+            changelogGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b\n'"
+            -- changelogVerboseGitFormat = "--pretty=format:'- %s (%an)%n%w(0,2,2)%b%h' --stat"
+
+            -- shell command to format a git log message with the above format, as a changelog item
+            commitMessageToChangelogItemCmd = unwords [
+              sed
+              ,"-e 's/^( )*\\* /\1- /'"        --  ensure bullet lists in descriptions use hyphens not stars
+              ,"-e 's/ \\(Simon Michael\\)//'" --  strip maintainer's author name
+              ,"-e 's/^- (doc: *)?(updated? *)?changelogs?( *updates?)?$//'"  --  strip some variants of "updated changelog"
+              ,"-e 's/^ +\\[ci skip\\] *$//'"  --  strip [ci skip] lines
+              ,"-e 's/^ +$//'"                 --  replace lines containing only spaces with empty lines
+              -- ,"-e 's/\r//'"                   --  strip windows carriage returns (XXX \r untested. IDEA doesn't like a real ^M here)
+              ,"-e '/./,/^$/!d'"               --  replace consecutive newlines with one
+              ]
+
+            -- Directories to exclude when doing git log for the project changelog.
+            -- https://git-scm.com/docs/gitglossary.html#gitglossary-aiddefpathspecapathspec
+            projectChangelogExcludes = unwords [
+              ":!hledger-lib"
+              ,":!hledger"
+              ,":!hledger-ui"
+              ,":!hledger-web"
+              ,":!tests"
+              ]
+
+            mpkg = if dir=="." then Nothing else Just dir where dir = takeDirectory out
+
+          -- Parse the changelog.
           oldlines <- liftIO $ lines <$> readFileStrictly out
           let
-            dir = takeDirectory out
-            mpkg | dir=="."  = Nothing
-                 | otherwise = Just dir
-            (preamble, oldheading:rest) = span isnotheading oldlines
-              where isnotheading = not . ("#" `isPrefixOf`)
-            -- changelog version: a hash or the last release version of this package (or the project)
-            changelogversion = headDef err $ drop 1 $ words oldheading
+            (preamble, oldheading:rest) = span isnotheading oldlines where isnotheading = not . ("#" `isPrefixOf`)
+            oldversion = headDef err $ drop 1 $ words oldheading
               where err = error $ "could not parse changelog heading: "++oldheading
-            -- prepend the package name if we are in a package (not the top-level project directory)
-            maybePrependPackage s = maybe s (++("-"++s)) mpkg
-            toTag = maybePrependPackage
-            isOldRelease rev = isReleaseVersion rev && toTag rev `elem` tags
-            isNewRelease rev = isReleaseVersion rev && toTag rev `notElem` tags
-            -- git revision corresponding to the changelog version:
-            -- a hash (a3f19c15), package release tag (hledger-ui-1.20), or project release tag (1.20)
-            lastrev
-              | isOldRelease changelogversion = toTag changelogversion  -- package release tag
-              | isNewRelease changelogversion =
-                  trace (out ++ "'s version \""++changelogversion++"\" is not yet tagged, can't list changes")
-                  "HEAD"
-              | otherwise = changelogversion
-                
-          -- interesting commit messages between lastrev and HEAD, cleaned up
-          let
-            interestingpaths = fromMaybe projectChangelogExcludeDirs mpkg
-            -- interestingmessages = "--invert-grep --grep '^;'"  -- ignore commits beginning with ;
-            -- TODO: update for new commit conventions. ; now means skip CI,
-            -- feat:/imp:/fix: means release notes, pkg:/lib: means changelogs, etc.
-            interestingmessages = ""
-          newitems <- fromStdout <$>
-                        (cmd Shell gitlog changelogGitFormat (lastrev++"..") interestingmessages "--" interestingpaths
-                         "|" changelogCleanupCmd :: Action (Stdout String))
 
-          -- git revision of current HEAD
-          headrev <- unwords . words . fromStdout <$>
-                     (cmd Shell gitlog "-1 --pretty=%h -- " interestingpaths :: Action (Stdout String))
-          -- package version: the version number currently configured for this package (or the project)
-          packageversion <-
-            let versionfile = dir </> ".version"
-                err = error $ "could not parse a version in "++versionfile
-            in liftIO $ headDef err . words <$> readFileStrictly versionfile
-          date <- liftIO getCurrentDay
-          let
-            -- the new changelog heading will be a final (dated, versioned) heading if
-            -- the configured package version is a new release version (non-dev & non-tagged)
-            (newrev, newheading)
-              | isNewRelease packageversion = (toTag packageversion, unwords [packageversion, show date])
-              | otherwise                   = (headrev, headrev)
-            newcontent = "# "++newheading++"\n" ++ newitems
-            newchangelog =
-                 unlines preamble
-              ++ newcontent
-              ++ (if isCommitHash changelogversion then "" else oldheading)
-              ++ unlines rest
+          -- Find the latest commit that has been scanned for this changelog, as a commit id or tag name.
+            lastscannedrev
+              | isCommitHash oldversion = oldversion
+              | otherwise = maybe oldversion (++("-"++oldversion)) mpkg
 
-          liftIO $ if
-            | lastrev == newrev -> pure ()  -- putStrLn $ out ++ ": up to date"
-            | dryrun -> putStr $ out ++ ":\n" ++ newcontent
-            | otherwise -> do
-                writeFile out newchangelog
-                putStrLn $ out ++ ": updated to " ++ newrev
+          -- Find the latest commit (HEAD).
+          latestrev <- unwords . words . fromStdout <$> (cmd Shell gitlog "-1 --pretty=%h" :: Action (Stdout String))
+
+          -- If it's newer,
+          when (lastscannedrev /= latestrev) $ do
+
+            -- Find the new commit messages relevant to this changelog, and clean them.
+            let scanpath = fromMaybe projectChangelogExcludes mpkg
+            newitems <- fromStdout <$> (cmd Shell
+              "set -o pipefail;"  -- so git log failure will cause this action to fail
+              gitlog changelogGitFormat (lastscannedrev++"..") "--" scanpath
+              "|" commitMessageToChangelogItemCmd
+              :: Action (Stdout String))
+
+            -- Add the new heading and change items to the changelog, or print them.
+            let newcontent = "# " ++ latestrev ++ "\n" ++ newitems
+            liftIO $ if dryrun
+              then putStr $ out ++ ":\n" ++ newcontent
+              else do
+                writeFile out $ concat [
+                  unlines preamble
+                  ,newcontent
+                  ,if isCommitHash oldversion then "" else oldheading
+                  ,unlines rest
+                  ]
+                putStrLn (out ++ ": updated to " ++ latestrev)
 
           )
 
