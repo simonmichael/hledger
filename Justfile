@@ -920,6 +920,12 @@ unreleased *CHANGELOG:
 pushfaq:
     (cd ~/src/hledger/site; git commit -m 'faq' src/faq.md; git push)
 
+# Show diffs between upstream hledger tldr pages and the local copies in this repo.
+tldr-diff:
+    # XXX JUSTFILEDIR
+    diff doc/tldr/upstream doc/tldr | grep hledger
+
+
 # ** News ------------------------------------------------------------
 NEWS:
 
