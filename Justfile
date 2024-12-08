@@ -1105,24 +1105,25 @@ bloglog:
 # ** Releasing ------------------------------------------------------------
 RELEASING:
 
-# Prepare to release today, creating/switching to release branch and doing routine updates - versions, dates, manuals, command helps
-relprep VER:
+# Create or switch to this release branch, and set the version string in various places.
+relbranch VER:
     #!/usr/bin/env bash
     set -euo pipefail
     [[ -z {{ VER }} ]] && usage
     BRANCH=$(just _versionReleaseBranch {{ VER }})
-    echo "Switching to $BRANCH, auto-creating it if needed..."
+    echo "Switching to $BRANCH, auto-creating it if needed"
     just _gitSwitchAutoCreate "$BRANCH"
-    echo "Bumping all version strings to {{ VER }} ..."
+    echo "Setting {{ VER }} in package.yamls and .version.m4 macros"
     ./Shake setversion {{ VER }} -c
-    echo "Updating all command help texts for embedding..."
-    ./Shake cmddocs -c
-    echo "Updating all dates in man pages..."
-    ./Shake mandates
-    echo "Generating all the manuals in all formats...."
-    ./Shake manuals -c
-    # echo "Updating CHANGES.md files with latest commits..."
-    # ./Shake changelogs $COMMIT
+# Too much at once, allow smaller steps.
+#    echo "Updating all command help texts for embedding..."
+#    ./Shake cmddocs -c
+#    echo "Updating all dates in man pages..."
+#    ./Shake mandates
+#    echo "Generating all the manuals in all formats...."
+#    ./Shake manuals -c
+#    # echo "Updating CHANGES.md files with latest commits..."
+#    # ./Shake changelogs $COMMIT
 
 # Push the current branch to github to generate release binaries.
 @relbin:
