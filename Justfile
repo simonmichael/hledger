@@ -829,6 +829,11 @@ LOCALSITEURL := 'http://localhost:3000/index.html'
     (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
     $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
+# make and commit a snapshot of the manuals, with this version number
+@site-manuals-snapshot VER:
+    make -C site snapshot-{{ VER }}
+
+
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
     --haddock-arguments="--no-warnings" \
