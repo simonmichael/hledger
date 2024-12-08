@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 1.41 2024-12-07
+# b8f8f6b2
 
 Docs
 
@@ -63,11 +63,13 @@ Infrastructure/Misc
   listed in the manuals, and shows progress output.  It should be run (at
   some point) after changing commands' docs or options.
 - Shake txtmanuals: silence all but wide table warnings
+- Shake changelogs: simplify, don't duplicate heading
 - just file cleanups; update to support just 1.28+
 - just twih: date fixes
 - just ghci: -fobject-code was a mistake, keep everything interpreted
 - just functest: try again to reduce rebuilding/slowdowns when testing
 - just installrel: update for .tar.gz
+- just tldr-diff
 - ci scripts: cleanup, fix a macos-ism
 
 

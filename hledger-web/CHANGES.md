@@ -22,7 +22,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 1.41 2024-12-07
+# b8f8f6b2
 
 Breaking changes
 
