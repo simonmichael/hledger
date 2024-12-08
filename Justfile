@@ -580,12 +580,6 @@ INSTALLING:
     $STACK install --local-bin-path bin --flag '*:debug' {{ STACKARGS }}
     for e in hledger hledger-ui hledger-web ; do mv bin/$e bin/$e-dbg; echo "bin/$e-dbg"; done
 
-# # make must be GNU Make 4.3+
-# .PHONY: shellcompletions
-# # update shell completions in hledger package
-# shellcompletions:
-#     make -C hledger/shell-completion/ clean-all all
-
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
 # linux / mac only for now, does not handle the windows zip file.
 # download github release VER binaries for OS (linux, mac) and ARCH (x64, arm64) to bin/old/hledger*-VER
@@ -618,11 +612,6 @@ symlink-web-dirs:
     ln -sf hledger-web/messages
     ln -sf hledger-web/static
     ln -sf hledger-web/templates
-
-# update shell completions in hledger package
-shell-completions:
-    make -C hledger/shell-completion/ clean-all all
-
 
 # ** Benchmarking ------------------------------------------------------------
 BENCHMARKING:
@@ -958,7 +947,7 @@ twih:  # *DATE:
     #!/usr/bin/env osh
     #BEG=`just _dateorsecondlatestfriday  $DATE`
     END=`just _todayorlatestfriday $DATE`
-    cat <<EOS
+    cat <<EOS:  # the colon helps the vscode just highlighter
     == TWIH notes: ========================================
 
     last release: `just rel`
@@ -974,8 +963,8 @@ twih:  # *DATE:
 
     == TWIH draft (in clipboard) : ========================
 
-    EOS
-    (cat <<EOS
+    EOS:
+    (cat <<EOS:
     ---
 
     ## This Week In Hledger $END
@@ -995,7 +984,7 @@ twih:  # *DATE:
     <https://hledger.org/news.html#this-week-in-hledger-$END>
 
     
-    EOS
+    EOS:
     ) | tee /dev/tty | pbcopy
 
 GITSHORTFMT := "--format='%ad %s' --date=short"
@@ -1016,7 +1005,7 @@ commitlog *DATE:
     git -C ../plaintextaccounting.org log {{ GITSHORTFMT }} --since $BEG --until $END --reverse | sed -E -e 's/ ;/ /'
     echo
 
-WORKLOG := "../../notes/CLOUD/hledger log.md"
+WORKLOG := "../../notes/CLOUD/hledger.md"
 
 # Show dates logged in hledger work log.
 @worklogdates:
@@ -1376,6 +1365,11 @@ sccv:
 #     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
 # list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
 #     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
+
+# update shell completions in hledger package
+@completions:
+    make -C hledger/shell-completion/
+    echo "now please commit any changes in hledger/shell-completion/"
 
 # Make git release tags for the hledger packages and project, assuming a complete single-version release.
 @reltag:
