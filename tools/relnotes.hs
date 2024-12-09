@@ -1,4 +1,9 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env stack
+{- stack script --resolver nightly-2024-09-26 --compile
+--package process
+--package split
+-}
+--   --verbosity=info
 {-
 Make/update hledger release notes from the latest release's changelogs.
 Run this in the root of the hledger repo, in a release branch.
