@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# b8f8f6b2
+# fe9fc63d
 
 Docs
 
@@ -65,12 +65,8 @@ Infrastructure/Misc
 - Shake txtmanuals: silence all but wide table warnings
 - Shake changelogs: simplify, don't duplicate heading
 - just file cleanups; update to support just 1.28+
-- just twih: date fixes
-- just ghci: -fobject-code was a mistake, keep everything interpreted
-- just functest: try again to reduce rebuilding/slowdowns when testing
-- just installrel: update for .tar.gz
-- just tldr-diff
-- ci scripts: cleanup, fix a macos-ism
+- new/updated just scripts: changelogs-finalise changelogs-reset functest ghci installrel mastertag relnotes reltag site-manuals-snapshot tldr-diff twih
+- ci scripts: various updates
 
 
 # 1.34 2024-06-01

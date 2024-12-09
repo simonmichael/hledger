@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# b8f8f6b2
+# fe9fc63d
 
 Breaking changes
 
