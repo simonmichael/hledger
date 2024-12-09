@@ -1,20 +1,30 @@
-I'm pleased to announce hledger 1.40, with a new config file system,
-sortable register output, FODS output, and prettier tables.
+I'm pleased to announce hledger 1.41.
+This release brings
 
-- https://github.com/simonmichael/hledger/releases/1.40
-- https://hledger.org/relnotes.html#2024-09-09-hledger-140
-- https://hledger.org/install
+- a notable valuation fix
+- pervasive improved HTML and FODS output
+- multiple depths
+- terminal pagination
+- robust export to Beancount
 
-Best,
+..and more. Thank you to contributors Dmitry Astapov, Stephen Morgan,
+Bas van Dijk, Gal Lakovnik Gorenec, amano.kenji, gesh, and especially
+Henning Thielemann !
+
+Best wishes,
 -Simon
+
+- https://github.com/simonmichael/hledger/releases/1.41
+- https://hledger.org/relnotes.html#2024-12-09-hledger-141
+- https://hledger.org/install
 
 
 hledger is free, robust, friendly, multicurrency, double-entry,
 plain text accounting software for unix, mac, windows, and the web.
-Written in Haskell for reliability and longevity,
-it is built around human-readable, version-controllable plain text files,
-inspired by and largely compatible with Ledger CLI,
-and convertible to and from Beancount.
+
+Written in Haskell for reliability, it is built around human-readable,
+version-controllable plain text files. It is inspired by and largely
+compatible with Ledger CLI, and convertible to and from Beancount.
 
 For more info or help, see https://hledger.org and the support page.
 Newcomers, experts, contributors, sponsors, feedback are welcome!
