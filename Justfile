@@ -804,6 +804,26 @@ quickprof CMD: #hledgerprof #samplejournals
 # ** Documenting ------------------------------------------------------------
 DOCUMENTING:
 
+# Add latest commit messages to the changelogs. (Runs ./Shake changelogs [OPTS])
+changelogs *OPTS:
+    ./Shake changelogs {{ OPTS }}
+
+# Drop any uncommitted changes to the project and package changelogs.
+changelogs-reset:
+    git checkout CHANGES.md */CHANGES.md
+
+# Finalise changelogs for a full release today. Run on release branch.
+changelogs-finalise:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-release-branch
+    for p in $PACKAGES; do \
+      sed -i "0,/^# /s/^# .*$/# `gdate -I` `cat $p/.version`/" $p/CHANGES.md; \
+    done
+    sed -i "0,/^# /s/^# .*$/# `gdate -I` `cat .version`/" CHANGES.md
+    git commit -m ";doc: finalise changelogs for `cat .version`" CHANGES.md */CHANGES.md
+    echo "Changelogs are finalised for release!"
+
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
 
@@ -1382,19 +1402,57 @@ sccv:
     make -C hledger/shell-completion/
     echo "now please commit any changes in hledger/shell-completion/"
 
-# Make git release tags for the hledger packages and project, assuming a complete single-version release.
-@reltag:
-	for p in $PACKAGES; do just reltagpkg $p; done
-	git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/relnotes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
+# Check that we're on a release branch. (Hopefully the latest.)
+_on-release-branch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH=$(git branch --show-current)
+    if [[ ! $BRANCH =~ ^[0-9.]*-branch ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the latest release branch."
+        exit 1
+    fi
 
-# Make a git release tag for the given hledger package.
-@reltagpkg PKG:
-	git tag -fs $PKG-`cat $PKG/.version` -m "Release $PKG-`cat $PKG/.version`"
+# Check that we're on the master branch.
+_on-master-branch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH=$(git branch --show-current)
+    if [[ ! $BRANCH =~ master ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the master branch."
+        exit 1
+    fi
 
-# After a major release, also tag master to indicate start of release cycle and influence git describe and dev builds' --version output.
+# Make draft release notes from changelogs. Run on release branch.
+@relnotes:
+    just _on-release-branch
+    tools/relnotes.hs
+
+# Make git tags for a full release today. Run on release branch.
+reltag:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-release-branch
+    for p in $PACKAGES; do \
+      git tag -fs $p-`cat $p/.version` -m "Release $p-`cat $p/.version`"; \
+    done
+    git tag --force --annotate --sign `cat .version` -m "Release `cat .version`"
+    echo "Release has been tagged!"
+    git tag -l --sort=-committerdate --format='%(committerdate:iso8601) %(refname:short)' | head -5
+
+# After a major release, update the dev tag/version strings/manual dates on master. Run on master.
+mastertag VER:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-master-branch
+    ./Shake setversion {{ VER }} -c
+    ./Shake mandates
+    ./Shake manuals -c
+    git tag {{ VER }}
+    echo "master's tag, version strings and manuals have been updated."
+
 # XXX Run this only after .version has been updated to NEWVER
 # @reltagmaster:
-# 	git tag -fs `cat .version`.99 master -m "start of next release cycle"
+#   git tag -fs `cat .version`.99 master -m "start of next release cycle"
 
 # Upload all packages to hackage (run from release branch).
 @hackageupload:
