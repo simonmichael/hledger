@@ -21,7 +21,7 @@ import Data.Ord (comparing)
 import Data.Time (fromGregorian)
 
 import Hledger.Data
-import Hledger.Query (Query(..))
+import Hledger.Query (Query(..), filterQuery, queryIsDepth)
 import Hledger.Reports.ReportOptions
 import Hledger.Utils
 
@@ -37,7 +37,7 @@ entriesReport :: ReportSpec -> Journal -> EntriesReport
 entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
     sortBy (comparing $ transactionDateFn ropts) . jtxns
     . journalApplyValuationFromOpts (setDefaultConversionOp NoConversionOp rspec)
-    . filterJournalTransactions (_rsQuery rspec)
+    . filterJournalTransactions (filterQuery (not.queryIsDepth) $ _rsQuery rspec)
 
 tests_EntriesReport = testGroup "EntriesReport" [
   testGroup "entriesReport" [

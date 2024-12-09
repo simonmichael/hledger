@@ -27,3 +27,14 @@ $ hledger -f- print -x
     z             0 B
 
 >=
+
+# ** 3. --depth does not affect print.
+<
+2023-01-01
+  A:AA   0 A
+
+$ hledger -f- print --depth 1
+2023-01-01
+    A:AA             0 A
+
+>=
