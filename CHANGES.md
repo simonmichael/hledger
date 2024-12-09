@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# fe9fc63d
+# 2024-12-08 1.41
 
 Docs
 
