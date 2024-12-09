@@ -1,13 +1,13 @@
-I'm pleased to announce hledger 1.40, with a new config file system,
-sortable register output, FODS output, and prettier tables.
+hledger 1.41 is out, with many useful improvements.
+Thank you to contributors Dmitry Astapov, Stephen Morgan,
+Bas van Dijk, Gal Lakovnik Gorenec, amano.kenji, gesh, and 
+Henning Thielemann !
 
-- https://github.com/simonmichael/hledger/releases/1.40
-- https://hledger.org/relnotes.html#2024-09-09-hledger-140
+- https://github.com/simonmichael/hledger/releases/1.41
+- https://hledger.org/relnotes.html#2024-12-09-hledger-141
 - https://hledger.org/install
+- https://hledger.org/support
 
 #hledger is free, robust, friendly, multicurrency, double-entry,
-#PlainTextAccounting software for unix, mac, windows, and the web,
-written in #Haskell for reliability and longevity.
-For help, join the chat, forum or mail list: https://hledger.org/support
-
-#PersonalFinance
+#plaintextaccounting software for unix, mac, windows, and the web,
+written in #haskell for reliability.
