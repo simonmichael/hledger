@@ -286,10 +286,13 @@ main = do
 
             when commit $ commitIfChanged ";cabal: update cabal files" cabalfiles
 
-      -- Update version strings in most "source" files to match what's in PKG/.version.
-      -- If a version number is provided as first argument, save that in PKG/.version files first.
-      -- If one or more subdirectories are provided as arguments, save/update only those.
-      -- Also regenerates .cabal files from package.yaml files.
+      -- setversion [VER] [PKGS] [-c]
+      -- Update version strings in all packages, or just the ones specified.
+      -- If a version number is provided as first argument, save that in .version files first.
+      -- Then update various source files to match what's in their nearby .version file, such as:
+      -- package.yaml files, .cabal files (regenerating from package.yaml), .version.m4 files,
+      -- hledger-install.sh, etc.
+      -- With -c, also commit the changes.
       -- See also CONTRIBUTING.md > Version numbers.
       phony "setversion" $ do
         let
@@ -304,15 +307,16 @@ main = do
           Just v  -> liftIO $ forM_ specifiedversionfiles $ flip maybeWriteFile (v++"\n")
           Nothing -> return ()
 
-        -- update "source" files depending on .version in the specified packages
+        -- update source files depending on .version in the specified packages
         let dependents = map (</> ".version.m4")  specifiedpkgs
                       ++ map (</> "package.yaml") specifiedpkgs
+                      ++ ["hledger-install/hledger-install.sh"]
         need dependents
 
         -- and maybe commit them
         when commit $ do
           let msg = unwords [
-                 ";pkg: bump"
+                 ";pkg: set"
                 ,case dirargs of
                    [] -> "version"
                    ds -> intercalate ", " ds ++ " version"
@@ -323,6 +327,15 @@ main = do
           commitIfChanged msg $ specifiedversionfiles ++ dependents
 
         gencabalfiles
+
+      -- Update some of the version strings in hledger-install/hledger-install.sh (not all).
+      -- Also sets the script version based on today's date.
+      phony "hledger-install/hledger-install.sh" $ do
+        let versionfile = ".version"
+        let out = "hledger-install/hledger-install.sh"
+        version <- ((headDef (error $ "failed to read " <> versionfile) . words) <$>) $ liftIO $ readFile versionfile
+        cmd_ Shell sed "-i -e" ("'s/(^HLEDGER_INSTALL_VERSION)=.*/\\1='`date +%Y%m%d`'/'") out
+        cmd_ Shell sed "-i -e" ("'s/(^HLEDGER(|_LIB|_UI|_WEB)_VERSION)=.*/\\1="++version++"/'") out
 
       -- PKG/.version.m4 <- PKG/.version, just updates the _version_ macro
       "hledger*/.version.m4" %> \out -> do
