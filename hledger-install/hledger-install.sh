@@ -3,34 +3,34 @@
 # This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20240912
+HLEDGER_INSTALL_VERSION=20241209
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.40
-HLEDGER_VERSION=1.40
-HLEDGER_UI_VERSION=1.40
-HLEDGER_WEB_VERSION=1.40
+HLEDGER_LIB_VERSION=1.41
+HLEDGER_VERSION=1.41
+HLEDGER_UI_VERSION=1.41
+HLEDGER_WEB_VERSION=1.41
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.21
 HLEDGER_INTEREST_VERSION=1.6.6
 HLEDGER_EDIT_VERSION=1.14.0
 HLEDGER_PLOT_VERSION=1.14.0
 HLEDGER_LOTS_VERSION=0.4.2
-PRICEHIST_VERSION=1.4.9
+PRICEHIST_VERSION=1.4.12
 
 # stackage snapshot to use when installing with stack.
 # You can try specifying a different stackage version here, or
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACKAGE_SNAPSHOT=nightly-2024-09-04
+STACKAGE_SNAPSHOT=lts-23
 
 # If nny required haskell dependencies aren't in the above stackage snapshot,
 # list them here in this format: "PKG1-VER1 PKG2-VER2.."
 # (one line, don't break interpolation in commands below).
-STACK_EXTRA_DEPS="brick-2.4"
+STACK_EXTRA_DEPS="base-compat-0.14.0"
 
 # Tools to be installed by this install script, official tools first.
 # Keep synced with the package versions below.
