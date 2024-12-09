@@ -1,6 +1,6 @@
-# stack build plan using GHC 9.8.2
+# stack build plan using GHC 9.8.4
 
-resolver: nightly-2024-09-26
+resolver: lts-23.0
 
 packages:
 - hledger-lib
@@ -10,9 +10,6 @@ packages:
 
 extra-deps:
 - base-compat-0.14.0
-# needed only for dev builds when the debug flag is enabled:
-- ghc-debug-convention-0.6.0.0
-- ghc-debug-stub-0.6.0.0
 
 nix:
   pure: false
