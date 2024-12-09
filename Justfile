@@ -1445,9 +1445,9 @@ reltag:
     set -euo pipefail
     just _on-release-branch
     for p in $PACKAGES; do \
-      git tag -fs $p-`cat $p/.version` -m "Release $p-`cat $p/.version`"; \
+      git tag --force --sign $p-`cat $p/.version` -m "Release $p-`cat $p/.version`"; \
     done
-    git tag --force --annotate --sign `cat .version` -m "Release `cat .version`"
+    git tag --force --sign `cat .version` -m "Release `cat .version`"
     echo "Release has been tagged!"
     git tag -l --sort=-committerdate --format='%(committerdate:iso8601) %(refname:short)' | head -5
 
