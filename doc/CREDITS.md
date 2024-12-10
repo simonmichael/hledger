@@ -1,7 +1,7 @@
 # CREDITS
 
-hledger is brought to you by the
-Issue wranglers,
+hledger is brought to you by...\
+the Issue wranglers,
 Bug hunters,
 Design dreamers,
 Code slingers,
@@ -11,7 +11,7 @@ Helping hands,
 Good news preachers,
 Bank rollers,
 Broom pushers,
-by the pioneering John Wiegley,
+the pioneer John Wiegley,
 and innumerable other benefactors.
 
 ## Commit authors 
