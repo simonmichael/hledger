@@ -1439,6 +1439,11 @@ _on-master-branch:
     just _on-release-branch
     tools/relnotes.hs
 
+# Generate github release notes for the .version release and copy to clipboard.
+@ghrelnotes:
+    just _on-release-branch
+    doc/ghrelnotes `cat .version` | pbcopy
+
 # Make git tags for a full release today. Run on release branch.
 reltag:
     #!/usr/bin/env bash
