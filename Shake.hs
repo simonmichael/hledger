@@ -66,6 +66,7 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
+  ,"./Shake hledger-install-version"  update some version strs in hledger-install"
   ,"./Shake cmddocs [-c]     update all hledger's COMMAND.md and COMMAND.txt files,"
   ,"                         used for --help, manuals etc. (run after changing"
   ,"                         COMMAND.md or command options or general options)"
@@ -290,8 +291,7 @@ main = do
       -- Update version strings in all packages, or just the ones specified.
       -- If a version number is provided as first argument, save that in .version files first.
       -- Then update various source files to match what's in their nearby .version file, such as:
-      -- package.yaml files, .cabal files (regenerating from package.yaml), .version.m4 files,
-      -- hledger-install.sh, etc.
+      -- package.yaml files, .cabal files (regenerating from package.yaml), .version.m4 files.
       -- With -c, also commit the changes.
       -- See also CONTRIBUTING.md > Version numbers.
       phony "setversion" $ do
@@ -310,7 +310,6 @@ main = do
         -- update source files depending on .version in the specified packages
         let dependents = map (</> ".version.m4")  specifiedpkgs
                       ++ map (</> "package.yaml") specifiedpkgs
-                      ++ ["hledger-install/hledger-install.sh"]
         need dependents
 
         -- and maybe commit them
@@ -328,9 +327,9 @@ main = do
 
         gencabalfiles
 
-      -- Update some of the version strings in hledger-install/hledger-install.sh (not all).
-      -- Also sets the script version based on today's date.
-      phony "hledger-install/hledger-install.sh" $ do
+      -- Update some of the version strings in hledger-install/hledger-install.sh. Manual fixup will be needed.
+      -- Not done by setversion since that is used on master, where the production hledger-install is.
+      phony "hledger-install-version" $ do
         let versionfile = ".version"
         let out = "hledger-install/hledger-install.sh"
         version <- ((headDef (error $ "failed to read " <> versionfile) . words) <$>) $ liftIO $ readFile versionfile
