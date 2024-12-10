@@ -1445,7 +1445,7 @@ _on-master-branch:
     doc/ghrelnotes `cat .version` | pbcopy
 
 # Make git tags for a full release today. Run on release branch.
-reltag:
+reltags:
     #!/usr/bin/env bash
     set -euo pipefail
     just _on-release-branch
@@ -1454,6 +1454,10 @@ reltag:
     done
     git tag --force --sign `cat .version` -m "Release `cat .version`"
     echo "Release has been tagged!"
+
+# Push the 5 release tags for the specified release version.
+reltags-push VER:
+    git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
 # List git tags approximately most recent first (grouped by package). The available fields vary over time.
 tags:
