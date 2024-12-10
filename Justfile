@@ -1466,16 +1466,15 @@ reltags-push VER:
 tags:
     git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
 
-# After a major release, update the dev tag/version strings/manual dates on master. Run on master.
-mastertag VER:
-    #!/usr/bin/env bash
+# Tag the new dev cycle start and update version strings/manuals. Run on master.
+@devtag VER:
     set -euo pipefail
     just _on-master-branch
+    git tag --force --sign {{ VER }} -m 'start of {{ VER }} dev cycle'
     ./Shake setversion {{ VER }} -c
     ./Shake mandates
     ./Shake manuals -c
-    git tag {{ VER }}
-    echo "master's tag, version strings and manuals have been updated."
+    echo "master's tag, version strings and manuals have been updated to {{ VER }}."
 
 # XXX Run this only after .version has been updated to NEWVER
 # @reltagmaster:
