@@ -861,10 +861,10 @@ LOCALSITEURL := 'http://localhost:3000/index.html'
     (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
     $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
 
-# make and commit a snapshot of the manuals, with this version number
+# In the site repo, commit a snapshot of the manuals with this version number.
 @site-manuals-snapshot VER:
     make -C site snapshot-{{ VER }}
-
+    echo "{{ VER }} manuals created. Please add the new version to site.js, Makefile, and hledger.org.caddy."
 
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
@@ -1443,6 +1443,9 @@ _on-master-branch:
 @ghrelnotes:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | pbcopy
+    echo "Github release notes for `cat .version` copied to clipboard"
+    echo "Paste into release created by tags push"
+    echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
 
 # Make git tags for a full release today. Run on release branch.
 reltags:
