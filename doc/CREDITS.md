@@ -1,21 +1,18 @@
 # CREDITS
 
 hledger is brought to you by the
-
-- Issue wranglers,
-- Bug hunters,
-- Design dreamers,
-- Code slingers,
-- Doc poets,
-- Package marshals,
-- Helping hands,
-- Good news preachers,
-- Bank rollers,
-- Broom pushers,
-
-by the pioneering John Wiegley, who opened up this territory with [Ledger](https://ledger-cli.org),
-
-and by the innumerable other benefactors making it all possible.
+Issue wranglers,
+Bug hunters,
+Design dreamers,
+Code slingers,
+Doc poets,
+Package marshals,
+Helping hands,
+Good news preachers,
+Bank rollers,
+Broom pushers,
+by the pioneering John Wiegley,
+and innumerable other benefactors.
 
 ## Commit authors 
 
