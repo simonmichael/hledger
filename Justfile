@@ -1449,7 +1449,10 @@ reltag:
     done
     git tag --force --sign `cat .version` -m "Release `cat .version`"
     echo "Release has been tagged!"
-    git tag -l --sort=-committerdate --format='%(committerdate:iso8601) %(refname:short)' | head -5
+
+# List git tags approximately most recent first (grouped by package). The available fields vary over time.
+tags:
+    git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
 
 # After a major release, update the dev tag/version strings/manual dates on master. Run on master.
 mastertag VER:
