@@ -79,7 +79,7 @@ Changes in hledger-install.sh are shown
 
 ## 2024-12-09 hledger-1.41
 
-**Valuation fix, pervasive improved HTML and FODS output, multiple depths, terminal pagination, robust export to Beancount, ...**
+**Valuation fix, improved HTML and FODS output, multiple depths, terminal pagination, robust export to Beancount, ...**
 
 ### hledger 1.41
 
