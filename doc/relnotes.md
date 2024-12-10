@@ -242,7 +242,6 @@ Docs
 - FODS output: describe the advantages over CSV (Henning Thielemann)
 - Debug output: note that the --debug option doesn't work in config files.
 - bal: improve --layout doc
-- bal: note that tree mode doesn't work in html output [#1846]
 - bal: also mention hledger.css and text encoding in balance doc
 - html: note safari text encoding issue
 - timedot: mention the common journal+timedot file setup [#2238]
