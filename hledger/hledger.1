@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "October 2024" "hledger-1.40.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2024" "hledger-1.41.99 " "hledger User Manuals"
 
 
 
@@ -33,7 +33,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.40.99.
+1.41.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -401,9 +401,11 @@ General output/reporting flags (supported by some commands):
   \-C \-\-cleared              include only cleared postings/transactions
                             (\-U/\-P/\-C can be combined)
   \-R \-\-real                 include only non\-virtual postings
-     \-\-depth=NUM            or \-NUM: show only top NUM levels of accounts
   \-E \-\-empty                Show zero items, which are normally hidden.
                             In hledger\-ui & hledger\-web, do the opposite.
+     \-\-depth=DEPTHEXP       if a number (or \-NUM): show only top NUM levels
+                            of accounts. If REGEXP=NUM, only apply limiting to
+                            accounts matching the regular expression.
   \-B \-\-cost                 show amounts converted to their cost/sale amount
   \-V \-\-market               Show amounts converted to their value at period
                             end(s) in their default valuation commodity.
@@ -782,6 +784,9 @@ Otherwise, if you write \f[CR]\[rs]1\f[R], it will match the digit
 they do not support mode modifiers (\f[CR](?s)\f[R]), character classes
 (\f[CR]\[rs]w\f[R], \f[CR]\[rs]d\f[R]), or anything else not mentioned
 above.
+.IP "7." 3
+they may not (I\[aq]m guessing not) properly support right\-to\-left or
+bidirectional text.
 .PP
 Some things to note:
 .IP \[bu] 2
@@ -1145,32 +1150,36 @@ variable to disable it, or by using the \f[CR]\-\-color/\-\-colour\f[R]
 option, perhaps in your config file, with a \f[CR]y\f[R]/\f[CR]yes\f[R]
 or \f[CR]n\f[R]/\f[CR]no\f[R] value to force it on or off.
 .SS Paging
-In unix\-like environments, when displaying large output in the
-terminal, hledger tries to use a pager when appropriate.
-(Actually it does this for any output format displayed in the terminal,
-not just text.)
-You can prevent this with the \f[CR]\-\-pager=no\f[R] option, perhaps in
-your config file.
-.PP
-It will use the pager specified by the \f[CR]PAGER\f[R] environment
-variable, otherwise \f[CR]less\f[R] if available, otherwise
-\f[CR]more\f[R] if available.
-.PP
+In unix\-like environments, when displaying large output (in any output
+format) in the terminal, hledger tries to use a pager when appropriate.
 The pager shows one page of text at a time, and lets you scroll around
 to see more.
 While it is active, usually \f[CR]SPACE\f[R] shows the next page,
-\f[CR]q\f[R] quits, and \f[CR]?\f[R] shows more features.
-(And in \f[CR]less\f[R], \f[CR]G\f[R] jumps to the end, which is useful
-when you are viewing register output.)
+\f[CR]h\f[R] shows help, and \f[CR]q\f[R] quits.
+The home/end/page up/page down/cursor keys, and mouse scrolling, may
+also work.
+.PP
+hledger will use the pager specified by the \f[CR]PAGER\f[R] environment
+variable, otherwise \f[CR]less\f[R] if available, otherwise
+\f[CR]more\f[R] if available.
+(With one exception: \f[CR]hledger help \-p TOPIC\f[R] will always use
+\f[CR]less\f[R], so that it can scroll to the topic.)
 .PP
 The pager is expected to display hledger\[aq]s ANSI colour and text
 styling.
-hledger adds \f[CR]R\f[R] to the \f[CR]LESS\f[R] and \f[CR]MORE\f[R]
-environment variables to enable this for \f[CR]less\f[R] and its
-\f[CR]more\f[R] compatibility mode.
-If you use a different pager, you might need to configure it similarly,
-to avoid seeing junk on screen.
-(Or you can disable colour, as described above.)
+If you see junk characters, you might need to configure your pager to
+handle ANSI codes.
+Or you could disable colour as described above.
+.PP
+If you are using the \f[CR]less\f[R] pager, hledger automatically
+appends a number of options to the \f[CR]LESS\f[R] variable to enable
+ANSI colour and a number of other conveniences.
+(At the time of writing: \-\-chop\-long\-lines \-\-hilite\-unread
+\-\-ignore\-case \-\-mouse \-\-no\-init \-\-quit\-at\-eof
+\-\-quit\-if\-one\-screen \-\-RAW\-CONTROL\-CHARS \-\-shift=8
+\-\-squeeze\-blank\-lines \-\-use\-backslash \-\-use\-color ).
+If these don\[aq]t work well, you can set your preferred options in the
+\f[CR]HLEDGER_LESS\f[R] variable, which will be used instead.
 .SS HTML output
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
@@ -1200,59 +1209,73 @@ you can still extract CSV from FODS/ODS using various utilities like
 \f[CR]libreoffice \-\-headless\f[R] or ods2csv.
 .SS Beancount output
 This is Beancount\[aq]s journal format.
-You can use this to export your hledger data to Beancount, perhaps to
-query it with Beancount Query Language or with the Fava web app.
-hledger will try to adjust your data to suit Beancount.
-If you plan to export often, you may want to follow Beancount\[aq]s
-conventions in your hledger data, to ease conversion.
-Eg use Beancount\-friendly account names, currency codes instead of
-currency symbols, and avoid virtual postings, redundant cost notation,
-etc.
+You can use this to export your hledger data to Beancount, eg to use the
+Fava web app.
 .PP
-Here are more details, included here for now (see also \[dq]hledger and
-Beancount\[dq] https://hledger.org/beancount.html).
+hledger will try to adjust your data to suit Beancount, automatically.
+Be cautious and check the conversion until you are confident it is good.
+If you plan to export to Beancount often, you may want to follow its
+conventions, for a cleaner conversion:
+.IP \[bu] 2
+use Beancount\-friendly account names
+.IP \[bu] 2
+use currency codes instead of currency symbols
+.IP \[bu] 2
+use cost notation instead of equity conversion postings
+.IP \[bu] 2
+avoid virtual postings
+.PP
+There is one big adjustment you must handle yourself: for Beancount, the
+top level account names must be \f[CR]Assets\f[R],
+\f[CR]Liabilities\f[R], \f[CR]Equity\f[R], \f[CR]Income\f[R], and/or
+\f[CR]Expenses\f[R].
+You can use account aliases to rewrite your account names temporarily,
+if needed, as in this hledger2beancount.conf config file.
 .SS Beancount account names
-hledger will try adjust your account names, if needed, to Beancount
-account names, by capitalising, replacing unsupported characters with
-\f[CR]\-\f[R], and prepending \f[CR]B\f[R] to parts which don\[aq]t
-begin with a letter or digit.
-(It\[aq]s possible for this to convert distinct hledger account names to
-the same beancount name.
-Eg, hledger\[aq]s automatic equity conversion accounts can have currency
-symbols in their name, so \f[CR]equity:conversion:$\-€\f[R] becomes
-\f[CR]equity:conversion:B\-\-\-\f[R].)
-.PP
-In addition, you must ensure that the top level account names are
-\f[CR]Assets\f[R], \f[CR]Liabilities\f[R], \f[CR]Equity\f[R],
-\f[CR]Income\f[R], and \f[CR]Expenses\f[R], which Beancount requires.
-If yours are named differently, you can use account aliases, usually in
-the form of \f[CR]\-\-alias\f[R] options, possibly stored in a config
-file.
-(An example: hledger2beancount.conf)
+Aside from the top\-level names, hledger will adjust your account names
+to make valid Beancount account names, by capitalising each part,
+replacing spaces with \f[CR]\-\f[R], replacing other unsupported
+characters with \f[CR]C<HEXBYTES>\f[R], prepending \f[CR]A\f[R] to
+account name parts which don\[aq]t begin with a letter or digit, and
+appending \f[CR]:A\f[R] to account names which have only one part.
 .SS Beancount commodity names
-hledger will adjust your commodity names, if needed, to Beancount
+hledger will adjust your commodity names to make valid Beancount
 commodity/currency names, which must be 2\-24 uppercase letters, digits,
 or \f[CR]\[aq]\f[R], \f[CR].\f[R], \f[CR]_\f[R], \f[CR]\-\f[R],
 beginning with a letter and ending with a letter or digit.
-hledger will convert known currency symbols to ISO 4217 currency codes.
-Otherwise, it will capitalise letters, replace unsupported characters
-with a dash (\-), and prepend/append a \[dq]B\[dq] when needed.
-(It\[aq]s possible for this to generate unreadable commodity names, or
-to convert distinct hledger commodity names to the same beancount name.)
+hledger will convert known currency symbols to ISO 4217 currency codes,
+capitalise letters, replace spaces with \f[CR]\-\f[R], replace other
+unsupported characters with \f[CR]C<HEXBYTES>\f[R], and prepend or
+append \f[CR]C\f[R] if needed.
 .SS Beancount virtual postings
-Beancount doesn\[aq]t allow unbalanced/virtual postings, so you will
-need to comment those, or use \f[CR]\-\-real\f[R] to exclude
-transactions that use them.
-(If you have transactions which are a mixture of balanced and unbalanced
-postings, you\[aq]ll have to do something more.)
+Beancount doesn\[aq]t allow virtual postings; if you have any, they will
+be omitted from beancount output.
+.SS Beancount metadata
+hledger tags will be converted to Beancount metadata (except for tags
+whose name begins with \f[CR]_\f[R]).
+Metadata names will be adjusted to be Beancount\-compatible: beginning
+with a lowercase letter, at least two characters long, and with
+unsupported characters encoded.
+Metadata values will use Beancount\[aq]s string type.
+.PP
+In hledger, objects can have the same tag repeated with multiple values.
+Eg an \f[CR]assets:cash\f[R] account might have both
+\f[CR]type:Asset\f[R] and \f[CR]type:Cash\f[R] tags.
+For Beancount these will be combined into one, with the values combined,
+comma separated.
+Eg: \f[CR]type: \[dq]Asset, Cash\[dq]\f[R].
 .SS Beancount costs
-Beancount doesn\[aq]t allow redundant cost notation as hledger does.
-If you have entries like this, you will need to comment out either the
-costs or the equity postings.
+Beancount doesn\[aq]t allow redundant costs and conversion postings as
+hledger does.
+If you have any of these, the conversion postings will be omitted.
+Currently we support at most one cost + conversion postings group per
+transaction.
 .SS Beancount operating currency
-Declaring an operating currency improves Beancount and Fava reports.
-You can do this manually by adding a line like this to the beancount
-journal:
+Declaring an operating currency (or several) improves Beancount and Fava
+reports.
+Currently hledger will declare each currency used in cost amounts as an
+operating currency.
+If needed, replace these with your own declaration, like
 .IP
 .EX
 option \[dq]operating_currency\[dq] \[dq]USD\[dq]
@@ -1339,6 +1362,10 @@ These environment variables affect hledger:
 \f[B]COLUMNS\f[R] This is normally set by your terminal; some hledger
 commands (\f[CR]register\f[R]) will format their output to this width.
 If not set, they will try to use the available terminal width.
+.PP
+\f[B]HLEDGER_LESS\f[R] If \f[CR]less\f[R] is your pager, this variable
+specifies the \f[CR]less\f[R] options hledger should use.
+(Otherwise, \f[CR]LESS\f[R] + custom options are used.)
 .PP
 \f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
 with \f[CR]\-f/\-\-file\f[R].
@@ -2197,6 +2224,13 @@ assertions\f[R]\[dq] by adding a star after the equals (\f[CR]=*\f[R] or
   assets:savings   $10
   assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 .EE
+.SS Assertions and status
+Balance assertions always consider postings of all statuses (unmarked,
+pending, or cleared); they are not affected by the
+\f[CR]\-U\f[R]/\f[CR]\-\-unmarked\f[R] /
+\f[CR]\-P\f[R]/\f[CR]\-\-pending\f[R] /
+\f[CR]\-C\f[R]/\f[CR]\-\-cleared\f[R] flags or the \f[CR]status:\f[R]
+query.
 .SS Assertions and virtual postings
 Balance assertions always consider both real and virtual postings; they
 are not affected by the \f[CR]\-\-real/\-R\f[R] flag or \f[CR]real:\f[R]
@@ -2278,134 +2312,106 @@ directives\[aq] placement might be important \- see \f[CR]commodity\f[R]
 directive.
 .SS Tags
 Tags are a way to add extra labels or data fields to transactions,
-postings, or accounts, which you can then search or pivot on.
+postings, or accounts.
+They are usually a word or hyphenated word, immediately followed by a
+full colon, written within the comment of a transaction, a posting, or
+an \f[CR]account\f[R] directive.
+(Yes, storing data in comments is slightly weird!)
 .PP
-A tag is a word, optionally hyphenated, immediately followed by a full
-colon, in the comment of a transaction, a posting, or an account
-directive.
-Eg: \f[CR]2024\-01\-01 a transaction   ; foo:\f[R] Note this is an
-exception to the usual rule that things in comments are ignored.
+You can write each tag on its own comment line, or multiple tags on one
+line, separated by commas.
+Tags can also have a value, which is any text after the colon until the
+next comma or end of line, excluding surrounding whitespace.
+(hledger tag values can\[aq]t contain commas.)
+If the same tag name appears multiple times in a comment, each
+name:value pair is preserved.
 .PP
-You can write multiple tags on one line, separated by comma.
-Or you can write each tag on its own comment line (no comma needed in
-this case).
-.PP
-For example, here are five different tags: one on the
-\f[CR]assets:checking\f[R] account, two on the transaction, and two on
-the \f[CR]expenses:food\f[R] posting:
+An example: in this journal there are six tags, one of them with a
+value:
 .IP
 .EX
 account assets:checking         ; accounttag:
+account expenses:food
 
-2017/1/16 bought groceries      ; transactiontag\-1:
-    ; transactiontag\-2:
+2017/1/16 bought groceries      ; transactiontag:
+    ; transactiontag2:
     assets:checking        $\-1
-    expenses:food           $1  ; postingtag:, another\-posting\-tag:
+     ; posting\-tag\-1:, (belongs to the posting above)
+    expenses:food           $1  ; posting\-tag\-2:, posting\-tag\-3: with a value
 .EE
+.SS Querying with tags
+Tags are most often used to select a subset of data; you can match
+tagged things by tag name and or tag value with a \f[CR]tag:\f[R] query.
+(See queries below.)
 .PP
-Postings also inherit tags from their transaction and their account.
-And transactions also acquire tags from their postings (and
-postings\[aq] accounts).
-So in the example above, the expenses posting effectively has all five
-tags (by inheriting from the account and transaction), and the
-transaction also has all five tags (by acquiring from the expenses
-posting).
+When querying for tag names or values, note that postings inherit tags
+from their transaction and from their account, and transactions acquire
+tags from their postings.
+So in the example above, \- the assets:checking posting effectively has
+four tags (one of its own, one from the account, two from the
+transaction) \- the expenses:food posting effectively has four tags (two
+of its own, two from the transaction) \- the transaction effectively has
+all six tags (two of its own, and two from each posting)
+.SS Displaying tags
+You can use the \f[CR]tags\f[R] command to list tag names or values.
+.PP
+The \f[CR]print\f[R] command also shows tags.
+.PP
+You can use \-\-pivot to display tag values in other reports, in various
+ways (eg appended to account names, like pseudo subaccounts).
+.SS When to use tags ?
+Tags provide more dimensions of categorisation, complementing accounts
+and transaction descriptions.
+When to use each of these is somewhat a matter of taste.
+Accounts have the most built\-in support, and regex queries on
+descriptions are also quite powerful.
+So you may not need tags at all.
+But if you want to track multiple cross\-cutting categories, they can be
+a good fit.
+For example, you could tag trip\-related transactions with
+\f[CR]trip: YEAR:PLACE\f[R], without disturbing your usual account
+categories.
 .SS Tag names
-Most non\-whitespace characters are allowed in tag names.
+What is allowed in a tag name ?
+Currently, most non\-whitespace characters.
 Eg \f[CR]😀:\f[R] is a valid tag.
 .PP
-You can list the tag names used in your journal with the tags command:
-.PD 0
-.P
-.PD
-\f[CR]hledger tags [NAMEREGEX]\f[R]
+For extra error checking, you can declare valid tag names with the
+\f[CR]tag\f[R] directive, and then enforce these with the
+\f[CR]check\f[R] command.
 .PP
-In commands which use a query, you can match by tag name.
-Eg:
-.PD 0
-.P
-.PD
-\f[CR]hledger print tag:NAMEREGEX\f[R]
-.PP
-You can declare valid tag names with the tag directive and then check
-them with the check command.
+But note that tags are detected quite loosely at present, sometimes
+where you didn\[aq]t intend them.
+Eg \f[CR]; see https://foo.com\f[R] contains a \f[CR]https\f[R] tag with
+value \f[CR]//foo.com\f[R].
 .SS Special tags
 Some tag names have special significance to hledger.
-There\[aq]s not much harm in using them yourself, but some could produce
-an error message, particularly the \f[CR]date:\f[R] and \f[CR]type:\f[R]
-tags.
-They are explained elsewhere, but here is a quick list for reference:
-.PP
-Tags you can set to influence hledger\[aq]s behaviour:
+They are explained elsewhere, but here\[aq]s a quick reference:
 .IP
 .EX
+ type                   \-\- declares an account\[aq]s type
  date                   \-\- overrides a posting\[aq]s date
  date2                  \-\- overrides a posting\[aq]s secondary date
- type                   \-\- declares an account\[aq]s type
-.EE
-.PP
-Tags hledger adds to indicate generated data:
-.IP
-.EX
- t                      \-\- appears on postings generated by timedot letters
  assert                 \-\- appears on txns generated by close \-\-assert
  retain                 \-\- appears on txns generated by close \-\-retain
  start                  \-\- appears on txns generated by close \-\-migrate/\-\-close/\-\-open/\-\-assign
- generated\-transaction  \-\- appears on generated periodic txns (with \-\-verbose\-tags)
- generated\-posting      \-\- appears on generated auto postings (with \-\-verbose\-tags)
- modified               \-\- appears on txns which have had auto postings added (with \-\-verbose\-tags)
+ t                      \-\- appears on postings generated from timedot letters
+
+ generated\-transaction  \-\- appears on txns generated by a periodic rule
+ modified\-transaction   \-\- appears on txns which have had auto postings added
+ generated\-posting      \-\- appears on generated postings
+ cost\-posting           \-\- appears on postings which have (or could have) a cost,
+                           and which have equivalent conversion postings in the transaction
+ conversion\-posting     \-\- appears on postings which are to a V/Conversion account
+                           and which have an equivalent cost posting in the transaction
 .EE
 .PP
-These similar tags are also provided; they are not displayed, but can be
-relied on for querying:
-.IP
-.EX
- _generated\-transaction \-\- exists on generated periodic txns (always)
- _generated\-posting     \-\- exists on generated auto postings (always)
- _modified              \-\- exists on txns which have had auto postings added (always)
-.EE
-.PP
-The following non\-displayed tags are used internally by hledger, (1) to
-ignore redundant costs when balancing transactions, (2) when using
-\-\-infer\-costs, and (3) when using \-\-infer\-equity.
-Essentially they mark postings with costs which have corresponding
-equity conversion postings, and vice\-versa.
-They are queryable, but you should not rely on them for your reports:
-.IP
-.EX
- _conversion\-matched    \-\- marks \[dq]matched conversion postings\[dq], which are to a V/Conversion account
-                           and have a nearby equivalent costful or potentially costful posting
- _cost\-matched          \-\- marks \[dq]matched cost postings\[dq], which have or could have a cost
-                           that\[aq]s equivalent to nearby conversion postings
-.EE
-.SS Tag values
-Tags can have a value, which is any text after the colon up until a
-comma or end of line, with surrounding whitespace removed.
-Ending at comma allows us to write multiple tags on one line, but also
-means that tag values can not contain commas.
-.PP
-Eg in the following posting, the three tags\[aq] values are \[dq]value
-1\[dq], \[dq]value 2\[dq], and \[dq]\[dq] (empty) respectively:
-.IP
-.EX
-    expenses:food   $10    ; foo, tag1: value 1 , tag2:value 2, bar tag3: , baz
-.EE
-.PP
-Multiple tags with the same name are additive rather than overriding:
-when the same tag name is seen again with a new value, the new
-name:value pair is added to the tags.
-It is not possible to override a previous tag\[aq]s value or remove a
-tag.
-.PP
-You can list all the values used for a particular tag in the journal
-with
-.PD 0
-.P
-.PD
-\f[CR]hledger tags TAGNAME \-\-values\f[R]
-.PP
-You can match on tag values with a query like
-\f[CR]tag:NAMEREGEX=VALUEREGEX\f[R]
+The second group above (generated\-transaction, etc.)
+are normally hidden, with a \f[CR]_\f[R] prefix added.
+This means \f[CR]print\f[R] doesn\[aq]t show them by default; but you
+can still use them in queries.
+You can add the \f[CR]\-\-verbose\-tags\f[R] flag to make them visible,
+which can be useful for troubleshooting.
 .SS Directives
 Besides transactions, there is something else you can put in a
 \f[CR]journal\f[R] file: directives.
@@ -4621,61 +4627,75 @@ if ,,,,
  end
 .EE
 .SS Matchers
-There are two kinds:
+There are two kinds of matcher:
 .IP "1." 3
-A record matcher is a word or single\-line text fragment or regular
-expression (\f[CR]REGEX\f[R]), which hledger will try to match
+A whole record matcher is simplest: it is just a word, single\-line text
+fragment, or other regular expression, which hledger will try to match
 case\-insensitively anywhere within the CSV record.
 .PD 0
 .P
 .PD
-Eg: \f[CR]whole foods\f[R]
+Eg: \f[CR]whole foods\f[R].
 .IP "2." 3
-A field matcher is preceded with a percent sign and CSV field name
-(\f[CR]%CSVFIELD REGEX\f[R]).
-hledger will try to match these just within the named CSV field.
+A field matcher has a percent\-prefixed CSV field number or name before
+the pattern.
 .PD 0
 .P
 .PD
-Eg: \f[CR]%date 2023\f[R]
+Eg: \f[CR]%3 whole foods\f[R] or \f[CR]%description whole foods\f[R].
+.PD 0
+.P
+.PD
+hledger will try to match the pattern just within the named CSV field.
 .PP
-The regular expression is (as usual in hledger) a POSIX extended regular
-expression, that also supports GNU word boundaries (\f[CR]\[rs]b\f[R],
-\f[CR]\[rs]B\f[R], \f[CR]\[rs]<\f[R], \f[CR]\[rs]>\f[R]), and nothing
+When using these, there\[aq]s two things to be aware of:
+.IP "1." 3
+Whole record matchers don\[aq]t see the exact original record; they see
+a reconstruction of it, in which values are comma\-separated, and quotes
+enclosing values and whitespace outside those quotes are removed.
+.PD 0
+.P
+.PD
+Eg when reading an SSV record like:
+\f[CR]2023\-01\-01 ; \[dq]Acme, Inc. \[dq] ;  1,000\f[R]
+.PD 0
+.P
+.PD
+the whole record matcher sees instead:
+\f[CR]2023\-01\-01,Acme, Inc. ,1,000\f[R]
+.IP "2." 3
+Field matchers expect either a CSV field number, or a CSV field name
+declared with \f[CR]fields\f[R].
+(Don\[aq]t use a hledger field name here, unless it is also a CSV field
+name.)
+A non\-CSV field name will cause the matcher to match against
+\f[CR]\[dq]\[dq]\f[R] (the empty string), and does not raise an error,
+allowing easier reuse of common rules with different CSV files.
+.PP
+You can also prefix a matcher with \f[CR]!\f[R] (and optional space) to
+negate it.
+Eg \f[CR]! whole foods\f[R], \f[CR]! %3 whole foods\f[R],
+\f[CR]!%description whole foods\f[R] will match if \[dq]whole foods\[dq]
+is NOT present.
+\f[I]Added in 1.32.\f[R]
+.PP
+The pattern is, as usual in hledger, a POSIX extended regular expression
+that also supports GNU word boundaries (\f[CR]\[rs]b\f[R],
+\f[CR]\[rs]B\f[R], \f[CR]\[rs]<\f[R], \f[CR]\[rs]>\f[R]) and nothing
 else.
-If you have trouble, see \[dq]Regular expressions\[dq] in the hledger
-manual (https://hledger.org/hledger.html#regular\-expressions).
-.SS What matchers match
-With record matchers, it\[aq]s important to know that the record matched
-is not the original CSV record, but a modified one: separators will be
-converted to commas, and enclosing double quotes (but not enclosing
-whitespace) are removed.
-So for example, when reading an SSV file, if the original record was:
-.IP
-.EX
-2023\-01\-01; \[dq]Acme, Inc.\[dq];  1,000
-.EE
+If you have trouble with it, see \[dq]Regular expressions\[dq] in the
+hledger manual (https://hledger.org/hledger.html#regular\-expressions).
+.SS Multiple matchers
+When an if block has multiple matchers, each on its own line,
+.IP \[bu] 2
+By default they are OR\[aq]d (any of them can match).
+.IP \[bu] 2
+Matcher lines beginning with \f[CR]&\f[R] (and optional space) are
+AND\[aq]ed with the matcher above (all in the AND\[aq]ed group must
+match).
 .PP
-the regex would see, and try to match, this modified record text:
-.IP
-.EX
-2023\-01\-01,Acme, Inc.,  1,000
-.EE
-.SS Combining matchers
-When an if block has multiple matchers, they are combined as follows:
-.IP \[bu] 2
-By default they are OR\[aq]d (any of them can match)
-.IP \[bu] 2
-When a matcher is preceded by ampersand (\f[CR]&\f[R], at the start of
-the line) it will be AND\[aq]ed with the previous matcher (all in the
-AND\[aq]ed group must match)
-.IP \[bu] 2
-\f[I]Added in 1.32\f[R] When a matcher is preceded by an exclamation
-mark (\f[CR]!\f[R]), it is negated (it must not match).
-.PP
-Note currently there is a limitation: you can\[aq]t use both
-\f[CR]&\f[R] and \f[CR]!\f[R] on the same line (you can\[aq]t AND a
-negated matcher).
+\f[I](Since 1.41:)\f[R] You can use a negated \f[CR]!\f[R] matcher on a
+\f[CR]&\f[R] line, meaning AND NOT.
 .SS Match groups
 \f[I]Added in 1.32\f[R]
 .PP
@@ -6335,6 +6355,43 @@ Use this when you want a summary with less detail.
 This flag has the same effect as a \f[CR]depth:\f[R] query argument:
 \f[CR]depth:2\f[R], \f[CR]\-\-depth=2\f[R] or \f[CR]\-2\f[R] are
 equivalent.
+.PP
+In place of a single number which limits the depth for all accounts, you
+can also provide separate depth limits for different accounts using
+regular expressions \f[I](since 1.41)\f[R].
+.PP
+For example, \f[CR]\-\-depth assets=2\f[R] (or, equivalently:
+\f[CR]depth:assets=2\f[R]) will collapse accounts matching the regular
+expression \f[CR]assets\f[R] to depth 2.
+So \f[CR]assets:bank:savings\f[R] would be collapsed to
+\f[CR]assets:bank\f[R], while \f[CR]liabilities:bank:credit card\f[R]
+would not be affected.
+This can be combined with a flat depth to collapse other accounts not
+matching the regular expression, so
+\f[CR]\-\-depth assets=2 \-\-depth 1\f[R] would collapse
+\f[CR]assets:bank:savings\f[R] to \f[CR]assets:bank\f[R] and
+\f[CR]liabilities:bank:credit card\f[R] to \f[CR]liabilities\f[R].
+.PP
+You can supply multiple depth arguments and they will all be applied, so
+\f[CR]\-\-depth assets=2 \-\-depth liabilities=3 \-\-depth 1\f[R] would
+collapse:
+.IP \[bu] 2
+accounts matching \f[CR]assets\f[R] to depth 2,
+.IP \[bu] 2
+accounts matching \f[CR]liabilities\f[R] to depth 3,
+.IP \[bu] 2
+all other accounts to depth 1.
+.PP
+If an account is matched by more than one regular expression depth
+argument then the more specific one will used.
+For example, if
+\f[CR]\-\-depth assets=1 \-\-depth assets:bank:savings=2\f[R] is
+provided, then \f[CR]assets:bank:savings\f[R] will be collapsed to depth
+2 rather than depth 1.
+This is because \f[CR]assets:bank:savings\f[R] matches at level 3 in the
+account name, while \f[CR]assets\f[R] matches at level 1.
+The same would be true with the argument
+\f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R].
 .SH Queries
 One of hledger\[aq]s strengths is being able to quickly report on a
 precise subset of your data.
@@ -6449,18 +6506,19 @@ is interpreted as:
 .RE
 .SS Query types
 Here are the types of query term available.
-Remember these can also be prefixed with \f[B]\f[CB]not:\f[B]\f[R] to
-convert them into a negative match.
-.PP
-\f[B]\f[CB]acct:REGEX\f[B]\f[R] or \f[B]\f[CB]REGEX\f[B]\f[R]
+.SS acct: query
+\f[B]\f[CB]acct:REGEX\f[B]\f[R], or just \f[B]\f[CB]REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match account names containing this case insensitive regular expression.
+.PD 0
+.P
+.PD
 This is the default query type, so we usually don\[aq]t bother writing
 the \[dq]acct:\[dq] prefix.
-.PP
-\f[B]\f[CB]amt:N, amt:<N, amt:<=N, amt:>N, amt:>=N\f[B]\f[R]
+.SS amt: query
+\f[B]\f[CB]amt:N, amt:\[aq]<N\[aq], amt:\[aq]<=N\[aq], amt:\[aq]>N\[aq], amt:\[aq]>=N\[aq]\f[B]\f[R]
 .PD 0
 .P
 .PD
@@ -6470,36 +6528,36 @@ and will always match.)
 The comparison has two modes: if N is preceded by a + or \- sign (or is
 0), the two signed numbers are compared.
 Otherwise, the absolute magnitudes are compared, ignoring sign.
-.PP
+\f[CR]amt:\f[R] needs quotes to hide the less than/greater than sign
+from the command line shell.
+.SS code: query
 \f[B]\f[CB]code:REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match by transaction code (eg check number).
-.PP
+.SS cur: query
 \f[B]\f[CB]cur:REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match postings or transactions including any amounts whose
 currency/commodity symbol is fully matched by REGEX.
-(For a partial match, use \f[CR].*REGEX.*\f[R]).
+(Contrary to hledger\[aq]s usual infix matching.
+To do infix matching, write \f[CR].*REGEX.*\f[R].)
 Note, to match special characters which are regex\-significant, you need
 to escape them with \f[CR]\[rs]\f[R].
-And for characters which are significant to your shell you may need one
-more level of escaping.
-So eg to match the dollar sign:
-.PD 0
-.P
-.PD
-\f[CR]hledger print cur:\[rs]\[rs]$\f[R].
-.PP
+And for characters which are significant to your shell you will usually
+need one more level of escaping.
+Eg to match the dollar sign: \f[CR]cur:\[rs]\[rs]$\f[R] or
+\f[CR]cur:\[aq]\[rs]$\[aq]\f[R]
+.SS desc: query
 \f[B]\f[CB]desc:REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match transaction descriptions.
-.PP
+.SS date: query
 \f[B]\f[CB]date:PERIODEXPR\f[B]\f[R]
 .PD 0
 .P
@@ -6513,55 +6571,82 @@ Examples:
 .PD
 \f[CR]date:2016\f[R], \f[CR]date:thismonth\f[R],
 \f[CR]date:2/1\-2/15\f[R], \f[CR]date:2021\-07\-27..nextquarter\f[R].
-.PP
+.SS date2: query
 \f[B]\f[CB]date2:PERIODEXPR\f[B]\f[R]
 .PD 0
 .P
 .PD
-Match secondary dates within the specified period (independent of the
-\f[CR]\-\-date2\f[R] flag).
-.PP
-\f[B]\f[CB]depth:N\f[B]\f[R]
+If you use secondary dates: this matches secondary dates within the
+specified period.
+It is not affected by the \f[CR]\-\-date2\f[R] flag.
+.SS depth: query
+\f[B]\f[CB]depth:[REGEXP=]N\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match (or display, depending on command) accounts at or above this
-depth.
-.PP
-\f[B]\f[CB]expr:\[dq]TERM AND NOT (TERM OR TERM)\[dq]\f[B]\f[R] (eg)
+depth, optionally only for accounts matching a provided regular
+expression.
+See Depth for detailed rules.
+.SS expr: query
+\f[B]\f[CB]expr:\[aq]QUERYEXPR\[aq]\f[B]\f[R]
 .PD 0
 .P
 .PD
-Match with a boolean combination of queries (which must be enclosed in
-quotes).
+\f[CR]expr\f[R] lets you write more complicated query expressions with
+AND, OR, NOT, and parentheses.
+.PD 0
+.P
+.PD
+Eg: \f[CR]expr:\[aq]date:lastmonth and not (food or rent)\[aq]\f[R]
+.PD 0
+.P
+.PD
+The expression should be enclosed in quotes.
 See Combining query terms below.
-.PP
+.SS not: query
+\f[B]\f[CB]not:QUERYTERM\f[B]\f[R]
+.PD 0
+.P
+.PD
+You can prepend \f[B]\f[CB]not:\f[B]\f[R] to any other query term to
+negate the match.
+.PD 0
+.P
+.PD
+Eg: \f[CR]not:equity\f[R], \f[CR]not:desc:apple\f[R]
+.PD 0
+.P
+.PD
+(Also, a trick: \f[CR]not:not:...\f[R] can sometimes solve query
+problems conveniently..)
+.SS note: query
 \f[B]\f[CB]note:REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match transaction notes (the part of the description right of
 \f[CR]|\f[R], or the whole description if there\[aq]s no \f[CR]|\f[R]).
-.PP
+.SS payee: query
 \f[B]\f[CB]payee:REGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match transaction payee/payer names (the part of the description left of
 \f[CR]|\f[R], or the whole description if there\[aq]s no \f[CR]|\f[R]).
-.PP
+.SS real: query
 \f[B]\f[CB]real:, real:0\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match real or virtual postings respectively.
-.PP
+.SS status: query
 \f[B]\f[CB]status:, status:!, status:*\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match unmarked, pending, or cleared transactions respectively.
-.PP
+.SS type: query
 \f[B]\f[CB]type:TYPECODES\f[B]\f[R]
 .PD 0
 .P
@@ -6573,28 +6658,29 @@ Note \f[CR]type:A\f[R] and \f[CR]type:E\f[R] will also match their
 respective subtypes \f[CR]C\f[R] (Cash) and \f[CR]V\f[R] (Conversion).
 Certain kinds of account alias can disrupt account types, see Rewriting
 accounts > Aliases and account types.
-.PP
-\f[B]\f[CB]tag:REGEX[=REGEX]\f[B]\f[R]
+.SS tag: query
+\f[B]\f[CB]tag:NAMEREGEX[=VALREGEX]\f[B]\f[R]
 .PD 0
 .P
 .PD
 Match by tag name, and optionally also by tag value.
-(To match only by value, use \f[CR]tag:.=REGEX\f[R].)
-.PP
-When querying by tag, note that:
+Note:
 .IP \[bu] 2
-Accounts also inherit the tags of their parent accounts
-.IP \[bu] 2
-Postings also inherit the tags of their account and their transaction
-.IP \[bu] 2
-Transactions also acquire the tags of their postings.
-.PP
-(\f[B]\f[CB]inacct:ACCTNAME\f[B]\f[R]
+Both regular expressions do infix matching.
+If you need a complete match, use \f[CR]\[ha]\f[R] and \f[CR]$\f[R].
 .PD 0
 .P
 .PD
-A special query term used automatically in hledger\-web only: tells
-hledger\-web to show the transaction register for an account.)
+Eg: \f[CR]tag:\[aq]\[ha]fullname$\[aq]\f[R],
+\f[CR]tag:\[aq]\[ha]fullname$=\[ha]fullvalue$\f[R]
+.IP \[bu] 2
+To match values, ignoring names, do \f[CR]tag:.=VALREGEX\f[R]
+.IP \[bu] 2
+Accounts also inherit the tags of their parent accounts.
+.IP \[bu] 2
+Postings also inherit the tags of their account and their transaction .
+.IP \[bu] 2
+Transactions also acquire the tags of their postings.
 .SS Combining query terms
 When given multiple space\-separated query terms, most commands select
 things which match:
@@ -8360,139 +8446,192 @@ Flags:
      \-\-dry\-run              just show the transactions to be imported
 .EE
 .PP
-This command detects new transactions in each FILE argument since it was
-last run, and appends them to the main journal.
+This command detects new transactions in one or more data files
+specified as arguments, and appends them to the main journal.
 .PP
-Or with \f[CR]\-\-dry\-run\f[R], it just print the transactions that
-would be added.
+You can import from any input file format hledger supports, but
+CSV/SSV/TSV files, downloaded from financial institutions, are the most
+common import source.
 .PP
-Or with \f[CR]\-\-catchup\f[R], it just marks all of the FILEs\[aq]
-current transactions as already imported.
+The import destination is the default journal file, or another specified
+in the usual way with \f[CR]$LEDGER_FILE\f[R] or
+\f[CR]\-f/\-\-file\f[R].
+It should be in journal format.
 .PP
-This is one of the few hledger commands that writes to the journal file
-(see also \f[CR]add\f[R]).
-It only appends; existing data will not be changed.
+Examples:
+.IP
+.EX
+$ hledger import bank1\-checking.csv bank1\-savings.csv
+.EE
+.IP
+.EX
+$ hledger import *.csv
+.EE
+.SS Import preview
+It\[aq]s useful to preview the import by running first with
+\f[CR]\-\-dry\-run\f[R], to sanity check the range of dates being
+imported, and to check the effect of your conversion rules if converting
+from CSV.
+Eg:
+.IP
+.EX
+$ hledger import bank.csv \-\-dry\-run
+.EE
 .PP
-The input files are specified as arguments, so to import one or more CSV
-files to your main journal, you will run
-\f[CR]hledger import bank.csv\f[R] or perhaps
-\f[CR]hledger import *.csv\f[R].
+The dry run output is valid journal format, so hledger can re\-parse it.
+If the output is large, you could show just the uncategorised
+transactions like so:
+.IP
+.EX
+$ hledger import \-\-dry\-run bank.csv | hledger \-f\- \-I print unknown
+.EE
 .PP
-Note you can import from any file format, though CSV files are the most
-common import source, and these docs focus on that case.
-The target file (main journal) should be in journal format.
-.SS Date skipping
-\f[CR]import\f[R] tries to import only the transactions which are new
-since the last import, ignoring any that it has seen in previous runs.
-So if your bank\[aq]s CSV includes the last three months of data, you
-can download and \f[CR]import\f[R] it every month (or week, or day) and
-only the new transactions will be imported each time.
+You could also run this repeatedly to see the effect of edits to your
+conversion rules:
+.IP
+.EX
+$ watchexec \-\- \[aq]hledger import \-\-dry\-run bank.csv | hledger \-f\- \-I print unknown\[aq]
+.EE
 .PP
-It works as follows: for each imported \f[CR]FILE\f[R],
-.IP \[bu] 2
-It tries to read the latest date previously seen, from
-\f[CR].latest.FILE\f[R] in the same directory
-.IP \[bu] 2
-Then it processes \f[CR]FILE\f[R], ignoring transactions on or before
-that date
+Once the conversion and dates look good enough to import to your
+journal, perhaps with some manual fixups to follow, you would do the
+actual import:
+.IP
+.EX
+$ hledger import bank.csv
+.EE
+.SS Overlap detection
+Reading CSV files is built in to hledger, and not specific to
+\f[CR]import\f[R]; so you could also import by doing
+\f[CR]hledger \-f bank.csv print >>$LEDGER_FILE\f[R].
 .PP
-And after a successful import, unless \f[CR]\-\-dry\-run\f[R] was used,
-it updates the \f[CR].latest.FILE\f[R](s) for next time.
-This is a simple system that works for most real\-world CSV files; it
-assumes the following are true, or true enough:
+But \f[CR]import\f[R] is easier and provides some advantages.
+The main one is that it avoids re\-importing transactions it has seen on
+previous runs.
+This means you don\[aq]t have to worry about overlapping data in
+successive downloads of your bank CSV; just download and
+\f[CR]import\f[R] as often as you like, and only the new transactions
+will be imported each time.
+.PP
+We don\[aq]t call this \[dq]deduplication\[dq], as it\[aq]s generally
+not possible to reliably detect duplicates in bank CSV.
+Instead, \f[CR]import\f[R] remembers the latest date processed
+previously in each CSV file (saving it in a hidden file), and skips any
+records prior to that date.
+This works well for most real\-world CSV, where:
 .IP "1." 3
-the name of the input file is stable across successive downloads
+the data file name is stable (does not change) across imports
 .IP "2." 3
-new items always have the newest dates
+the item dates are stable across imports
 .IP "3." 3
-item dates are stable across downloads
+the order of same\-date items is stable across imports
 .IP "4." 3
-the order of same\-date items is stable across downloads.
+the newest items have the newest dates
 .PP
-Tips:
+(Occasional violations of 2\-4 are often harmless; you can reduce the
+chance of disruption by downloading and importing more often.)
+.PP
+Overlap detection is automatic, and shouldn\[aq]t require much attention
+from you, except perhaps at first import (see below).
+But here\[aq]s how it works:
 .IP \[bu] 2
-To help ensure a stable file name, remember you can use a CSV rules file
-as an input file.
+For each \f[CR]FILE\f[R] being imported from:
+.RS 2
+.IP "1." 3
+hledger reads a file named \f[CR].latest.FILE\f[R] file in the same
+directory, if any.
+This file contains the latest record date previously imported from FILE,
+in YYYY\-MM\-DD format.
+If multiple records with that date were imported, the date is repeated
+on N lines.
+.IP "2." 3
+hledger reads records from FILE.
+If a latest date was found in step 1, any records before that date, and
+the first N records on that date, are skipped.
+.RE
 .IP \[bu] 2
-If you have a bank whose CSV dates or ordering occasionally change, you
-can reduce the chance of this happening in new transactions by importing
-more often.
-(If it happens in old transactions, that\[aq]s harmless.)
+After a successful import from all FILEs, without error and without
+\f[CR]\-\-dry\-run\f[R], hledger updates each FILE\[aq]s
+\f[CR].latest.FILE\f[R] for next time.
 .PP
-Note this is just one kind of \[dq]deduplication\[dq]: not reprocessing
-the same dates across successive runs.
-\f[CR]import\f[R] doesn\[aq]t detect other kinds of duplication, such as
-the same transaction appearing multiple times within a single run, or a
-new transaction that looks identical to a transaction already in the
-journal.
-(Because these can happen legitimately in real\-world data.)
+If this goes wrong, it\[aq]s relatively easy to repair:
+.IP \[bu] 2
+You\[aq]ll notice it before import when you preview with
+\f[CR]import \-\-dry\-run\f[R].
+.IP \[bu] 2
+Or after import when you try to reconcile your hledger account balances
+with your bank.
+.IP \[bu] 2
+\f[CR]hledger print \-f FILE.csv\f[R] will show all recently downloaded
+transactions.
+Compare these with your journal.
+Copy/paste if needed.
+.IP \[bu] 2
+Update your conversion rules and print again, if needed.
+.IP \[bu] 2
+You can manually update or remove the .latest file, or use
+\f[CR]import \-\-catchup FILE\f[R].
+.IP \[bu] 2
+Download and import more often, eg twice a week, at least while you are
+learning.
+It\[aq]s easier to review and troubleshoot when there are fewer
+transactions.
+.SS First import
+The first time you import from a file, when no corresponding .latest
+file has been created yet, all of the records will be imported.
 .PP
-Here\[aq]s a situation where you need to run \f[CR]import\f[R] with
-care: say you download but forget to import \f[CR]bank.1.csv\f[R], and a
-week later you download \f[CR]bank.2.csv\f[R] with some overlapping
-data.
-You should not process both of these as a single import
-(\f[CR]hledger import bank.1.csv bank.2.csv\f[R]), because the
-overlapping transactions would not be deduplicated.
-Instead, import one file at a time, using the same filename each time:
+But perhaps you have been entering the data manually, so you know that
+all of these transactions are already recorded in the journal.
+In this case you can run \f[CR]hledger import \-\-catchup\f[R] once.
+This will create a .latest file containing the latest CSV record date,
+so that none of those records will be re\-imported.
+.PP
+Or, if you know that some but not all of the transactions are in the
+journal, you can create the .latest file yourself.
+Eg, let\[aq]s say you previously recorded foobank transactions up to
+2024\-10\-31 in the journal.
+Then in the directory where you\[aq]ll be saving \f[CR]foobank.csv\f[R],
+you would create a \f[CR].latest.foobank.csv\f[R] file containing
 .IP
 .EX
-$ mv bank.1.csv bank.csv; hledger import bank.csv
-$ mv bank.2.csv bank.csv; hledger import bank.csv
+2024\-10\-31
 .EE
 .PP
-Normally you don\[aq]t need to think about \f[CR].latest.*\f[R] files,
-but you can create or modify them to catch up to a certain date, or
-delete them to mark all transactions as new.
-Their format is a single ISO\-format \f[CR]YYYY\-MM\-DD\f[R] date,
-optionally repeated on multiple lines, meaning \[dq]I have seen the
-transactions before this date, and this many of them on this date\[dq].
-.PP
-\f[CR]hledger print \-\-new\f[R] also uses and updates these
-\f[CR].latest.*\f[R] files, but it is less often used.
-.PP
-Related: CSV > Working with CSV > Deduplicating, importing.
-.SS Import testing
-With \f[CR]\-\-dry\-run\f[R], the transactions that will be imported are
-printed to the terminal, without updating your journal or state files.
-The output is valid journal format, like the print command, so you can
-re\-parse it.
-Eg, to see any importable transactions which CSV rules have not
-categorised:
+Or if you had three foobank transactions recorded with that date, you
+would repeat the date that many times:
 .IP
 .EX
-$ hledger import \-\-dry bank.csv | hledger \-f\- \-I print unknown
+2024\-10\-31
+2024\-10\-31
+2024\-10\-31
 .EE
 .PP
-or (live updating):
-.IP
-.EX
-$ ls bank.csv* | entr bash \-c \[aq]echo ====; hledger import \-\-dry bank.csv | hledger \-f\- \-I print unknown\[aq]
-.EE
-.PP
-Note: when importing from multiple files at once, it\[aq]s currently
-possible for some .latest files to be updated successfully, while the
-actual import fails because of a problem in one of the files, leaving
-them out of sync (and causing some transactions to be missed).
-To prevent this, do a \-\-dry\-run first and fix any problems before the
-real import.
+Then \f[CR]hledger import foobank.csv [\-\-dry\-run]\f[R] will import
+only the newer records.
 .SS Importing balance assignments
-Entries added by import will have their posting amounts made explicit
-(like \f[CR]hledger print \-x\f[R]).
-This means that any balance assignments in imported files must be
-evaluated; but, imported files don\[aq]t get to see the main file\[aq]s
-account balances.
-As a result, importing entries with balance assignments (eg from an
-institution that provides only balances and not posting amounts) will
-probably generate incorrect posting amounts.
-To avoid this problem, use print instead of import:
+Journal entries added by import will have all posting amounts made
+explicit (like \f[CR]print \-x\f[R]).
+.PP
+This means that any balance assignments in the imported entries would
+need to be evaluated.
+But this generally isn\[aq]t possible, as the main file\[aq]s account
+balances are not visible during import.
+So try to avoid generating balance assignments with your CSV rules, or
+importing from a journal that contains balance assignments.
+(Balance assignments are best avoided anyway.)
+.PP
+But if you must use them, eg because your CSV includes only balances:
+you can import with \f[CR]print\f[R], which leaves implicit amounts
+implicit.
+(\f[CR]print\f[R] can also do overlap detection like import, with the
+\f[CR]\-\-new\f[R] flag):
 .IP
 .EX
-$ hledger print IMPORTFILE [\-\-new] >> $LEDGER_FILE
+$ hledger print \-\-new \-f bank.csv >> $LEDGER_FILE
 .EE
 .PP
-(If you think import should leave amounts implicit like print does,
-please test it and send a pull request.)
+(If you think \f[CR]import\f[R] should preserve implicit balances,
+please test that and send a pull request.)
 .SS Import and commodity styles
 Amounts in entries added by import will be formatted according to the
 journal\[aq]s canonical commodity styles, as declared by
@@ -8500,6 +8639,38 @@ journal\[aq]s canonical commodity styles, as declared by
 amounts.
 .PP
 Related: CSV > Amount decimal places.
+.SS Import special cases
+If you have a download whose file name varies, you could rename it to a
+fixed name after each download.
+Or you could use a CSV \f[CR]source\f[R] rule with a suitable glob
+pattern, and import from the .rules file instead of the data file.
+.PP
+Here\[aq]s a situation where you would need to run \f[CR]import\f[R]
+with care: say you download \f[CR]bank.csv\f[R], but forget to import it
+or delete it.
+And next month you download it again.
+This time your web browser may save it as \f[CR]bank (2).csv\f[R].
+So now each of these may have data not included in the other.
+And a \f[CR]source\f[R] rule with a glob pattern would match only the
+most recent file.
+So in this case you should import from each one in turn, in the correct
+order, taking care to use the same filename each time:
+.IP
+.EX
+$ hledger import bank.csv
+$ mv \[aq]bank (2).csv\[aq] bank.csv
+$ hledger import bank.csv
+.EE
+.PP
+Here are two kinds of \[dq]deduplication\[dq] which \f[CR]import\f[R]
+does not handle (and generally should not, since these can happen
+legitimately in financial data):
+.IP \[bu] 2
+Two or more of the new CSV records are identical, and generate identical
+new journal entries.
+.IP \[bu] 2
+A new CSV record generates a journal entry identical to one(s) already
+in the journal.
 .SH Basic report commands
 .SS accounts
 List account names.
@@ -9060,6 +9231,9 @@ Flags:
                             date. Warning: this can show a wrong running
                             balance.
      \-\-no\-elide             don\[aq]t show only 2 commodities per amount
+     \-\-cumulative           show running total from report start date
+     \-\-invert               display all amounts with reversed sign
+     \-\-heading=YN           show heading row above table: yes (default) or no
   \-w \-\-width=N              set output width (default: terminal width or
                             $COLUMNS). \-wN,M sets description width as well.
      \-\-align\-all            guarantee alignment across all lines (slower)
@@ -9072,8 +9246,10 @@ Flags:
 \f[CR]aregister\f[R] shows the overall transactions affecting a
 particular account (and any subaccounts).
 Each report line represents one transaction in this account.
-Transactions before the report start date are always included in the
-running balance (\f[CR]\-\-historical\f[R] mode is always on).
+Transactions before the report start date are included in the running
+balance (\f[CR]\-\-historical\f[R] mode is the default).
+You can suppress this behaviour using the \f[CR]\-\-cumulative\f[R]
+option.
 .PP
 This is a more \[dq]real world\[dq], bank\-like view than the
 \f[CR]register\f[R] command (which shows individual postings, possibly
@@ -9133,10 +9309,16 @@ visual discontinuities as column widths are adjusted.
 If you want to ensure perfect alignment, at the cost of more time and
 memory, use the \f[CR]\-\-align\-all\f[R] flag.
 .PP
+By default, \f[CR]aregister\f[R] shows a heading above the data.
+However, when reporting in a language different from English, it is
+easier to omit this heading and prepend your own one.
+For this purpose, use the \f[CR]\-\-heading=no\f[R] option.
+.PP
 This command also supports the output destination and output format
 options.
 The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
-\f[CR]tsv\f[R] (\f[I]Added in 1.32\f[R]), and \f[CR]json\f[R].
+\f[CR]tsv\f[R] (\f[I]Added in 1.32\f[R]), \f[CR]html\f[R],
+\f[CR]fods\f[R] (\f[I]Added in 1.41\f[R]) and \f[CR]json\f[R].
 .SS aregister and posting dates
 aregister always shows one line (and date and amount) per transaction.
 But sometimes transactions have postings with different dates.
@@ -11882,6 +12064,10 @@ persists across a reboot, and if you need to be an Administrator):
 > MKDIR finance
 > SETX LEDGER_FILE \[dq]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]2023.journal\[dq]
 .EE
+.PP
+When correctly configured, in a new terminal window
+\f[CR]$env:LEDGER_FILE\f[R] will show the file path, and so will
+\f[CR]hledger files\f[R].
 .SH Setting opening balances
 Pick a starting date for which you can look up the balances of some
 real\-world assets (bank accounts, wallet..)
@@ -12222,7 +12408,7 @@ If using version control, don\[aq]t forget to \f[CR]git add\f[R] the new
 file.
 .SH BUGS
 We welcome bug reports in the hledger issue tracker (shortcut:
-http://bugs.hledger.org), or on the #hledger chat or hledger mail list
+https://bugs.hledger.org), or on the hledger chat or mail list
 (https://hledger.org/support).
 .PP
 Some known issues and limitations:
@@ -12272,6 +12458,7 @@ Eg on unix, the command \f[CR]env | grep LEDGER_FILE\f[R] should show
 it.
 You may need to use \f[CR]export\f[R] (see
 https://stackoverflow.com/a/7411509).
+On Windows, \f[CR]$env:LEDGER_FILE\f[R] should show it.
 .IP \[bu] 2
 You may need to force your shell to see the new configuration.
 A simple way is to close your terminal window and open a new one.

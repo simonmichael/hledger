@@ -11,7 +11,7 @@ SYNOPSIS
        hledger ui -- [OPTS] [QUERYARGS]
 
 DESCRIPTION
-       This manual is for hledger's terminal interface, version 1.40.99.   See
+       This manual is for hledger's terminal interface, version 1.41.99.   See
        also the hledger manual for common concepts and file formats.
 
        hledger  is a robust, user-friendly, cross-platform set of programs for
@@ -104,9 +104,11 @@ OPTIONS
                 -C --cleared              include only cleared postings/transactions
                                           (-U/-P/-C can be combined)
                 -R --real                 include only non-virtual postings
-                   --depth=NUM            or -NUM: show only top NUM levels of accounts
                 -E --empty                Show zero items, which are normally hidden.
                                           In hledger-ui & hledger-web, do the opposite.
+                   --depth=DEPTHEXP       if a number (or -NUM): show only top NUM levels
+                                          of accounts. If REGEXP=NUM, only apply limiting to
+                                          accounts matching the regular expression.
                 -B --cost                 show amounts converted to their cost/sale amount
                 -V --market               Show amounts converted to their value at period
                                           end(s) in their default valuation commodity.
@@ -189,7 +191,9 @@ KEYS
        the previous or next period, and pressing T sets the period to "today".
        If  you  are  using -w/--watch and viewing a narrowed period containing
        today, the view will follow any changes in system date (moving  to  the
-       period containing the new date).
+       period  containing the new date).  (These keys work only with the stan-
+       dard Julian calendar year/quarter/month/week/day periods; they are  not
+       affected by a custom report interval specified at the command line.)
 
        You can also specify a non-standard period with / and a date: query; in
        this case, the period is not movable with the arrow keys.
@@ -415,7 +419,7 @@ ENVIRONMENT
 
 BUGS
        We  welcome  bug  reports  in  the  hledger  issue  tracker  (shortcut:
-       http://bugs.hledger.org), or on the #hledger chat or hledger mail  list
+       https://bugs.hledger.org),  or  on  the  hledger  chat  or  mail   list
        (https://hledger.org/support).
 
        Some known issues:
@@ -448,4 +452,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-ui-1.40.99               October 2024                    HLEDGER-UI(1)
+hledger-ui-1.41.99               December 2024                   HLEDGER-UI(1)

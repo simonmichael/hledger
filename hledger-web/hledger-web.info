@@ -18,7 +18,7 @@ plain text accounting app.
 or
 'hledger web -- [OPTS] [QUERY]'
 
-   This manual is for hledger's web interface, version 1.40.99.  See
+   This manual is for hledger's web interface, version 1.41.99.  See
 also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -171,9 +171,11 @@ General output/reporting flags (supported by some commands):
   -C --cleared              include only cleared postings/transactions
                             (-U/-P/-C can be combined)
   -R --real                 include only non-virtual postings
-     --depth=NUM            or -NUM: show only top NUM levels of accounts
   -E --empty                Show zero items, which are normally hidden.
                             In hledger-ui & hledger-web, do the opposite.
+     --depth=DEPTHEXP       if a number (or -NUM): show only top NUM levels
+                            of accounts. If REGEXP=NUM, only apply limiting to
+                            accounts matching the regular expression.
   -B --cost                 show amounts converted to their cost/sale amount
   -V --market               Show amounts converted to their value at period
                             end(s) in their default valuation commodity.
@@ -517,7 +519,7 @@ File: hledger-web.info,  Node: BUGS,  Prev: ENVIRONMENT,  Up: Top
 ******
 
 We welcome bug reports in the hledger issue tracker (shortcut:
-http://bugs.hledger.org), or on the #hledger chat or hledger mail list
+https://bugs.hledger.org), or on the hledger chat or mail list
 (https://hledger.org/support).
 
    Some known issues:
@@ -528,14 +530,14 @@ http://bugs.hledger.org), or on the #hledger chat or hledger mail list
 Tag Table:
 Node: Top225
 Node: OPTIONS2571
-Node: PERMISSIONS11109
-Node: EDITING UPLOADING DOWNLOADING12460
-Node: RELOADING13475
-Node: JSON API14042
-Node: DEBUG OUTPUT19691
-Node: Debug output19843
-Node: ENVIRONMENT20361
-Node: BUGS20597
+Node: PERMISSIONS11260
+Node: EDITING UPLOADING DOWNLOADING12611
+Node: RELOADING13626
+Node: JSON API14193
+Node: DEBUG OUTPUT19842
+Node: Debug output19994
+Node: ENVIRONMENT20512
+Node: BUGS20748
 
 End Tag Table
 
