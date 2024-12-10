@@ -22,7 +22,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 786f5dd72
+# 2024-12-09 1.41
 
 Breaking changes
 
@@ -66,6 +66,7 @@ Docs
 
 - Mention that period navigation uses standard periods [#2293]
 - Install, manual: new shell completions doc. [#986]
+
 
 
 # 1.40 2024-09-09
