@@ -1,5 +1,5 @@
 name: hledger
-version: 1.40.99
+version: 1.41.99
 synopsis: Command-line interface for the hledger accounting system
 description: |
   The command-line interface for the hledger accounting system.
@@ -121,7 +121,7 @@ ghc-options:
 
 dependencies:
 - base >=4.14 && <4.21
-- hledger-lib >=1.40.99 && <1.41
+- hledger-lib >=1.41.99 && <1.42
 - aeson >=1 && <2.3
 - ansi-terminal >=0.9
 - bytestring
@@ -168,7 +168,7 @@ when:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 library:
-  cpp-options: -DVERSION="1.40.99"
+  cpp-options: -DVERSION="1.41.99"
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.Anchor
@@ -219,7 +219,7 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.40.99"
+    cpp-options: -DVERSION="1.41.99"
     when:
     - condition: flag(threaded)
       ghc-options: -threaded -with-rtsopts=-T
@@ -231,7 +231,7 @@ tests:
     source-dirs: test
     main: unittest.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    cpp-options: -DVERSION="1.40.99"
+    cpp-options: -DVERSION="1.41.99"
     dependencies:
     - hledger
 
