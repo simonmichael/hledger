@@ -383,6 +383,7 @@ gesh.
 [#2225]: https://github.com/simonmichael/hledger/issues/2225
 [#2231]: https://github.com/simonmichael/hledger/issues/2231
 [#2238]: https://github.com/simonmichael/hledger/issues/2238
+[#2241]: https://github.com/simonmichael/hledger/issues/2241
 [#2254]: https://github.com/simonmichael/hledger/issues/2254
 [#2280]: https://github.com/simonmichael/hledger/issues/2280
 [#2281]: https://github.com/simonmichael/hledger/issues/2281
