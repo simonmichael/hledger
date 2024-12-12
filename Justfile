@@ -54,7 +54,8 @@ set export := true
 
 # and/or: -q --bell --stop-timeout=1
 
-WATCHEXEC := 'watchexec --wrap-process=session --timings'
+# The --wrap-process change is needed for watchexec 2.1.2 on mac, https://github.com/watchexec/watchexec/issues/864
+WATCHEXEC := 'watchexec --wrap-process=session'
 
 # grep-like rg
 #RG_ := 'rg --sort=path --no-heading -i'
