@@ -859,7 +859,8 @@ LOCALSITEURL := 'http://localhost:3000/index.html'
 # open a browser on the website (in ./site) and rerender when docs or web pages change
 @site-watch: #Shake
     (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
-    $WATCHEXEC --print-events -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && ./Shake orgfiles && make -sC site serve'
+    $WATCHEXEC --no-vcs-ignore -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && make -sC site serve'
+# --no-vcs-ignore to include site/src/*.md
 
 # In the site repo, commit a snapshot of the manuals with this version number.
 @site-manuals-snapshot VER:
