@@ -37,8 +37,8 @@ At the command line,
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.tar.gz
-tar xvf hledger-linux-x64.tar.gz && rm -f hledger-linux-x64.tar.gz
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.zip
+(unzip -p hledger-linux-x64.zip | tar xf -) && rm hledger-linux-x64.zip
 cd
 hledger --version    # should show $REL
 ```
@@ -63,12 +63,12 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 cd /usr/local/bin
 
 # for ARM macs:
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.tar.gz
-tar xvf hledger-mac-arm64.tar.gz && rm -f hledger-mac-arm64.tar.gz
+curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.zip
+(unzip -p hledger-mac-arm64.zip | tar xf -) && rm hledger-mac-arm64.zip
 
 # or for Intel macs:
 curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-x64.tar.gz
-tar xvf hledger-mac-x64.tar.gz && rm -f hledger-mac-x64.tar.gz
+(unzip -p hledger-mac-x64.tar.gz | tar xf -) && rm -f hledger-mac-x64.zip
 cd
 hledger --version    # should show $REL
 ```
