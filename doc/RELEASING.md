@@ -223,26 +223,28 @@ Waypoints and required artifacts.
   - [x] draft announcement for chat / mail list (doc/ANNOUNCE)
   - [x] draft announcement for mastodon (doc/ANNOUNCE.masto)
   - [x] release tags
-      `just reltag`
+      `just reltags`
   - [x] release binaries built from tag
       `just relbin`
 - [x] published
   - [x] all packages uploaded correctly to hackage
       `just hackageupload`
   - [x] hledger-install merged to master and pushed to github
-  - [x] site repo published to hledger.org and rendering correctly
+  - [x] site repo pushed to github and hledger.org, new manuals rendering correctly
   - [x] release branch and tags pushed to github
       `just reltags-push`
   - [x] github release with release binaries attached (https://github.com/simonmichael/hledger/releases/new)
-      should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new
-      `just ghrelnotes`, paste, review
+      should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new,
+      `just ghrelnotes`, paste, download release binaries, upload release binaries, review
       publish
+  - [ ] test hledger.org > Install procedures (hledger-install, stack, cabal)
+  - [ ] test github release > How to install procedures (each platform's binaries
   - [x] announced
-    - [x] matrix
     - [x] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
+    - [x] matrix
+    - [x] irc
     - [x] pta forum
     - [x] mastodon
-    - [x] irc
 - [x] cleanup and support
   - [x] remaining relevant release branch work merged to master
   - [x] new dev tag/versions/man dates in master
@@ -260,7 +262,7 @@ After release, it's a good time for:
 
 ## How-to notes
 
-More detailed procedure vnotes.
+More detailed procedure notes.
 
 ### General tips
 
