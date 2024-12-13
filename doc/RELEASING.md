@@ -237,8 +237,12 @@ Waypoints and required artifacts.
       should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new,
       `just ghrelnotes`, paste, download release binaries, upload release binaries, review
       publish
-  - [ ] test hledger.org > Install procedures (hledger-install, stack, cabal)
-  - [ ] test github release > How to install procedures (each platform's binaries
+  - [x] install instructions tested and working
+    - [x] hledger-install
+    - [x] stack
+    - [x] cabal
+    - [x] source checkout
+    - [x] github release > How to install, each platform
   - [x] announced
     - [x] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
     - [x] matrix
