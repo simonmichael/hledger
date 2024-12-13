@@ -3,7 +3,7 @@
 # This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20241209
+HLEDGER_INSTALL_VERSION=20241212
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
@@ -1054,6 +1054,8 @@ if [[ $(cmpver "$(cmd_version hledger 2>/dev/null)" $HLEDGER_VERSION) = 2 ]]; th
   echo Installing hledger
   try_install hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
+else
+  echo hledger is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-ui 2>/dev/null)" $HLEDGER_UI_VERSION) = 2 ]]; then
@@ -1061,12 +1063,16 @@ if [[ $(cmpver "$(cmd_version hledger-ui 2>/dev/null)" $HLEDGER_UI_VERSION) = 2 
   try_install hledger-ui-$HLEDGER_UI_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS \
     # brick-X.Y   # when hledger-iadd requires a special brick, use the same here to reduce rebuilding
   echo
+else
+  echo hledger-ui is up to date
 fi
 
 if [[ $(cmpver "$(cmd_version hledger-web 2>/dev/null)" $HLEDGER_WEB_VERSION) = 2 ]]; then
   echo Installing hledger-web
   try_install hledger-web-$HLEDGER_WEB_VERSION hledger-$HLEDGER_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
+else
+  echo hledger-web is up to date
 fi
 
 # Third-party addons.
