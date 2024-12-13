@@ -4,12 +4,18 @@
 cd "$(dirname $0)"
 cat <<'END'
 
+<details>
+<summary>
+
 ## Release notes
+
+</summary>
 
 END
 export REL=$1
 ../tools/getrelnotes $REL
 envsubst '$REL' <<'END'
+</details>
 
 <details>
 <summary>
