@@ -856,7 +856,7 @@ cmd_location() {
 # Get the given command's version, ie the first number in the first line of its --version output,
 # or empty string if there's a problem.
 cmd_version() {
-  (command "$1" --version 2>/dev/null | head -n1 | grep -E '[0-9]' | $SED -e 's/[^0-9]*([0-9][0-9.]*).*/\1/') || ""
+  (command "$1" --version 2>/dev/null | head -n1 | grep -E '[0-9]' | $SED -e 's/[^0-9]*([0-9][0-9.]*).*/\1/') || echo ""
 }
 
 # Check whether the given command exists with given version
@@ -898,11 +898,24 @@ quietly_run() {
 try_install() {
   cd  # ensure we install at user level, not in some project's stack/cabal setup
   if has_cmd stack ; then
-    try_info stack install --install-ghc --resolver $STACKAGE_SNAPSHOT "$@" --verbosity="$STACK_VERBOSITY" || echo "Failed to install $@"
+    try_info stack install --install-ghc --resolver $STACKAGE_SNAPSHOT "$@" --verbosity="$STACK_VERBOSITY" || (echo "Failed to install $@"; false)
   elif has_cmd cabal ; then
-    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" || echo "Failed to install $@"
+    try_info cabal install "$@" --verbose="$CABAL_VERBOSITY" || (echo "Failed to install $@"; false)
   else
-    echo "Failed to install $@"
+    echo "Failed to install $@"; false
+  fi
+}
+
+# Like the above but try harder, ignoring dependency bounds. Could potentially try to install something very old.
+try_install_ignore_bounds() {
+  cd  # ensure we install at user level, not in some project's stack/cabal setup
+  echo "Trying without dependency bounds"
+  if has_cmd stack ; then
+    try_info stack install --allow-newer --install-ghc --resolver $STACKAGE_SNAPSHOT "$@" --verbosity="$STACK_VERBOSITY" || (echo "Failed to install $@"; false)
+  elif has_cmd cabal ; then
+    try_info cabal install --allow-newer "$@" --verbose="$CABAL_VERBOSITY" || (echo "Failed to install $@"; false)
+  else
+    echo "Failed to install $@"; false
   fi
 }
 
@@ -913,7 +926,7 @@ try_install_py() {
   if has_cmd pip ; then
     try_info pip install --disable-pip-version-check -U "$@" $PIP_VERBOSITY
   else
-    echo "Failed to install $@"
+    echo "Failed to install $@"; false
   fi
 }
 
@@ -1076,12 +1089,13 @@ else
 fi
 
 # Third-party addons.
-# We might have to build these with an older version of hledger,
-# if they have not been updated yet.
+# These often won't build with new hledger right away just because of tight bounds,
+# so we'll also try building without bounds. Perhaps a little risky.
 
 if [[ $(cmpver "$(cmd_version hledger-iadd 2>/dev/null)" $HLEDGER_IADD_VERSION) = 2 ]]; then
   echo Installing hledger-iadd
-  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
+  try_install hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS \
+  || try_install_ignore_bounds hledger-iadd-$HLEDGER_IADD_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
 else
   echo hledger-iadd is up to date
@@ -1089,7 +1103,8 @@ fi
 
 if [[ $(cmpver "$(cmd_version hledger-interest 2>/dev/null)" $HLEDGER_INTEREST_VERSION) = 2 ]]; then
   echo Installing hledger-interest
-  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
+  try_install hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS \
+  || try_install_ignore_bounds hledger-interest-$HLEDGER_INTEREST_VERSION hledger-lib-$HLEDGER_LIB_VERSION $STACK_EXTRA_DEPS
   echo
 else
   echo hledger-interest is up to date
