@@ -964,6 +964,21 @@ tldr-diff:
     # XXX JUSTFILEDIR
     diff doc/tldr/upstream doc/tldr | grep hledger
 
+# Save a copy of the full jj log showing all commits and branches.
+log-save:
+    jj log -r:: >doc/log.txt
+    jj log -r:: --color=always >doc/log.color.txt
+
+# log-headtail [y] - show the start and end of the saved log, optionally in color.
+log-headtail *COLOR:
+    #/usr/bin/env osh
+    set -euo pipefail
+    LOG=doc/log{{ if COLOR == 'y' { ".color" } else { "" } }}.txt; \
+    head $LOG; echo ...; tail $LOG
+
+# Upload a copy of the log to the website, on the side since it's large.
+log-push:
+    scp -v doc/log*.txt 173.255.213.235:/opt/hledger/site/out
 
 # ** News ------------------------------------------------------------
 NEWS:
