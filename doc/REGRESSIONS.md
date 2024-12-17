@@ -95,6 +95,7 @@ To claim the bounty:
 [#2227]: https://github.com/simonmichael/hledger/issues/2227
 [#2254]: https://github.com/simonmichael/hledger/issues/2254
 [#2284]: https://github.com/simonmichael/hledger/issues/2284
+[#2302]: https://github.com/simonmichael/hledger/issues/2302
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The flow is this:
@@ -123,6 +124,7 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#1527]                  | lestephane      N/A                                                              | N/A
 | [#1656]                  | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
 | [#2284]                  | [lakshayg](https://opencollective.com/hledger/expenses/227577)                   | GLaknovik donated
+| [#2302]                  | **lowercasename**                                                                | 
 | **1.22** 2021-07-03      | ---                                                                              | ---
 | [#1597]                  | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
 | [#1607]                  | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
