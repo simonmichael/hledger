@@ -13,7 +13,7 @@ in a released version of hledger.
 We don't like regressions. We want to detect them quickly, repair them quickly, and reduce their frequency.
 You can help by finding them, or fixing them! 
 
-## Regression finder's bounty
+## Regression finder bounty
 
 For new regression reports submitted to the bug tracker since 2024-01-01 (affecting any past release), we currently offer a $50 bounty
 ([original announcement](https://github.com/simonmichael/hledger/issues/1570)).
@@ -21,7 +21,7 @@ If you don't want the bounty, you can absolutely choose to re-donate it back to 
 But consider accepting it - it's good for the project!
 Just do respond within 7 days after the bounty is confirmed, otherwise it will become an automatic project donation.
 
-## Regression fixer's bounty
+## Regression fixer bounty
 
 For regression issues fixed, we currently offer a separate $50 bounty.
 If you find and fix the regression, you get both bounties. 
