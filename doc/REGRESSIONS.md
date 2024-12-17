@@ -11,35 +11,41 @@ A regression is "something that used to work, that broke", or "an unintended not
 in a released version of hledger.
 
 We don't like regressions. We want to detect them quickly, repair them quickly, and reduce their frequency.
+You can help by finding them, or fixing them! 
 
-## Regression bounty
+## Regression finder's bounty
 
-You can help!
-For reports made between 2021-06-14 and 2023-12-31 we offered a $100 bounty for each new regression reported in hledger releases.
-([original announcement](https://github.com/simonmichael/hledger/issues/1570))
-For reports made since 2024-01-01, we offer $50 to the finder and $50 to the fixer (can be the same person, can't be the breaker).
+For new regression reports submitted to the bug tracker since 2024-01-01 (affecting any past release), we currently offer a $50 bounty
+([original announcement](https://github.com/simonmichael/hledger/issues/1570)).
+If you don't want the bounty, you can absolutely choose to re-donate it back to the project treasury.
+But consider accepting it - it's good for the project!
+Just do respond within 7 days after the bounty is confirmed, otherwise it will become an automatic project donation.
 
-To claim the bounty:
+## Regression fixer's bounty
 
-1. Discover a new regression yourself (and don't be the one who caused it)
-2. Report it in the [hledger bug tracker](http://bugs.hledger.org)
-3. Wait for the issue manager ([SM](https://joyful.com)) confirm it with the `regression` label
-4. And/or, fix a regression yourself.
-5. Send an expense reimbursement request to our Open Collective. 
-   Be aware this might reveal your real name, on opencollective.com and here on hledger.org.
-   Here's the suggested procedure for fastest processing:
-   - click [Submit Expense](https://opencollective.com/hledger/expenses/new)  (if you are logged in, it will be under the ACTIONS menu) 
-   - choose Invoice
-   - choose a Payout method; click Next
-   - Expense title: "Regression finder bounty for #NNNN" (or "fixer" or "finder & fixer")
-   - Description: "Found ISSUEURL, WORKDATE(S)" (or "Fixed ...")
-   - Date: today's date
-   - Amount: USD 50 (or 100 if you found and fixed).
-     Or if you choose to receive another currency, convert from USD with that day's conversion rate, and mention the rate in Description.
+For regression issues fixed, we currently offer a separate $50 bounty.
+If you find and fix the regression, you get both bounties. 
+(If you caused the regression, we appreciate you fixing it but you don't get either bounty - sorry!)
+
+## How to claim the bounty
+
+1. Discover a new regression, which you did not cause, and report it in the [hledger bug tracker](http://bugs.hledger.org).
+   And/or, fix an open issue which has the `regression` label.
+2. Wait for confirmation from the issue manager ([SM](https://joyful.com)).
+3. Send an expense reimbursement request to [hledger's open collective](https://opencollective.com/hledger).
+   Note this might reveal your real name.
+   Here's the procedure:
+   - at hledger's open collective, click [Submit Expense](https://opencollective.com/hledger/expenses/new).  (If you are logged in, this will be under the ACTIONS menu.)
+   - choose **Invoice**; choose a Payout method; click Next
+   - Expense title: **Regression (finder / fixer / finder & fixer) bounty for #NNNN**
+   - Description: **(Found / Fixed) ISSUEURL, WORKDATE(S)**
+   - Date: **today's date**
+   - Amount: **USD 50** (or **100** if you found and fixed).
+     Or convert to another currency with today's rate (and mention that rate in Description).
    - Next, Submit Expense
-5. Announce on the issue page or in chat that you've submitted (to help ensure it is not overlooked)
+5. Mention that you've submitted, on the issue page or in chat, to help ensure it is not overlooked.
 6. Wait for the finance manager (SM) to approve it. This should not take more than a day or two.
-7. Then wait for Open Collective to pay it. Payouts happen twice a week.
+7. Wait for Open Collective to pay it. This should happen within a week.
 
 ## Regressions reported
 
