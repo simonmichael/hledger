@@ -25,7 +25,7 @@ Just do respond within 7 days after the bounty is confirmed, otherwise it will b
 
 For regression issues fixed, we currently offer a separate $50 bounty.
 If you find and fix the regression, you get both bounties. 
-(If you caused the regression, we appreciate you fixing it but you don't get either bounty - sorry!)
+(If you caused the regression, we appreciate you fixing it but you don't get the bounties - sorry!)
 
 ## How to claim the bounty
 
@@ -43,9 +43,9 @@ If you find and fix the regression, you get both bounties.
    - Amount: **USD 50** (or **100** if you found and fixed).
      Or convert to another currency with today's rate (and mention that rate in Description).
    - Next, Submit Expense
-5. Mention that you've submitted, on the issue page or in chat, to help ensure it is not overlooked.
-6. Wait for the finance manager (SM) to approve it. This should not take more than a day or two.
-7. Wait for Open Collective to pay it. This should happen within a week.
+5. Wait for the finance manager (SM) to get the email notification and approve it. This should not take more than a day or two.
+   (For fastest response, mention on the issue page or in chat that you've submitted.)
+6. Wait for Open Collective to pay it. This should happen within a week (payouts happen twice a week).
 
 ## Regressions reported
 
