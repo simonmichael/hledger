@@ -980,6 +980,10 @@ log-headtail *COLOR:
 log-push:
     scp -v doc/log*.txt 173.255.213.235:/opt/hledger/site/out
 
+# Update the short version of the hledger script example (by removing docs).
+bin-short:
+    awk '/^----/ { b=!b; next } !b' bin/hledger-script-example.hs | rg -v '^ *-- \w' > bin/hledger-script-example-short.hs
+
 # ** News ------------------------------------------------------------
 NEWS:
 
