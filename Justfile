@@ -1441,7 +1441,7 @@ _on-master-branch:
     just _on-release-branch
     tools/relnotes.hs
 
-# Generate github release notes for the current release, on stdout and in clipboard.
+# Generate github release notes for the current release, on stdout and in clipboard. Run on release branch.
 @ghrelnotes:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | tee pbcopy
@@ -1449,7 +1449,7 @@ _on-master-branch:
     # echo "Paste into release created by tags push"
     # echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
 
-# Generate github release notes and update the release on github with the latest text.
+# Generate github release notes and update the release on github with the latest text. Run on release branch.
 @ghrelnotes-publish:
     just ghrelnotes | gh release edit -F- `cat .version`
 
