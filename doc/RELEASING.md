@@ -10,7 +10,7 @@ Notes for hledger release managers and maintainers.
 ## Goals
 
 **2024**
-- [ ] Make releasing easier
+- [x] Make releasing easier
 
 **2023**
 - [x] Make releasing eas<s>y</s>ier
@@ -173,89 +173,89 @@ Release readiness and the release process go from the bottom of this diagram to 
 ## Checklist
 Waypoints and required artifacts.
 
-- [x] product
-  - [x] blocking defects resolved
-  - [x] desired improvements landed and stabilised
-  - [x] building and passing tests with current ghcs, deps, and stackage snapshots
-  - [x] building and passing tests on all platforms  
+- [ ] product
+  - [ ] blocking defects resolved
+  - [ ] desired improvements landed and stabilised
+  - [ ] building and passing tests with current ghcs, deps, and stackage snapshots
+  - [ ] building and passing tests on all platforms  
         `just relbin` (or push to github `binaries[-*]` branch)
-- [x] product docs and metadata
-  - [x] release branch
-  - [x] version strings (in **/.version, */.version.m4, */package.yaml)
-  - [x] cabal files x 4 (hledger*/hledger*.cabal)  
+- [ ] product docs and metadata
+  - [ ] release branch
+  - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
+  - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
         `just relbranch`
-  - [x] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)
-  - [x] embedded manuals x 3
-    - [x] generaloptions macro (in doc/common.m4)
-    - [x] tool specific options in manuals (hledger*/hledger*.m4.md > # Options)
-    - [x] man page dates (*/.date.m4)
-    - [x] man  (hledger*/hledger*.1)
-    - [x] info (hledger*/hledger*.info)
-    - [x] text (hledger*/hledger*.txt)  
+  - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)
+  - [ ] embedded manuals x 3
+    - [ ] generaloptions macro (in doc/common.m4)
+    - [ ] tool specific options in manuals (hledger*/hledger*.m4.md > # Options)
+    - [ ] man page dates (*/.date.m4)
+    - [ ] man  (hledger*/hledger*.1)
+    - [ ] info (hledger*/hledger*.info)
+    - [ ] text (hledger*/hledger*.txt)  
         `./Shake manuals -c`
-  - [x] embedded tldr pages synced with upstream (doc/tldr/*)  
+  - [ ] embedded tldr pages synced with upstream (doc/tldr/*)  
         `just tldr-diff`
-  - [x] embedded asciinema demos (hledger/embeddedfiles/*.cast)
-  - [x] shell completions (hledger/shell-completion/hledger-completion.bash)  
+  - [ ] embedded asciinema demos (hledger/embeddedfiles/*.cast)
+  - [ ] shell completions (hledger/shell-completion/hledger-completion.bash)  
         `just completions`, commit any changes
-  - [x] changelogs x 5 (**/CHANGES.md)  
+  - [ ] changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
         `just changelogs-finalise`
-- [x] release docs and artifacts
-  - [x] draft binaries building started  
+- [ ] release docs and artifacts
+  - [ ] draft binaries building started  
       `just relbin`
-  - [x] hledger.org html manuals x 3 (site/src/VER/*.md)  
+  - [ ] hledger.org html manuals x 3 (site/src/VER/*.md)  
         `just site-manuals-snapshot VER`  
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
-  - [x] release notes @ hledger.org (doc/relnotes.md)  
+  - [ ] release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes`,  
       select & transform with `md-issue-refs`,  
       uniquify issue refs,  
       unwrap long lines,  
       add author github nicks,  
       commit
-  - [x] github binary install docs up to date and pre-tested (doc/ghrelnotes.md)
-  - [x] hledger-install up to date and pre-tested (hledger-install/hledger-install.sh)  
+  - [ ] github binary install docs up to date and pre-tested (doc/ghrelnotes.md)
+  - [ ] hledger-install up to date and pre-tested (hledger-install/hledger-install.sh)  
       `./Shake hledger-install-version`,  
       check/update dep versions,  
       select/test snapshot version
-  - [x] hledger.org Install page up to date and pre-tested (site/src/install.md)
-  - [x] draft announcement for chat / mail list (doc/ANNOUNCE)
-  - [x] draft announcement for mastodon (doc/ANNOUNCE.masto)
-  - [x] release tags  
+  - [ ] hledger.org Install page up to date and pre-tested (site/src/install.md)
+  - [ ] draft announcement for chat / mail list (doc/ANNOUNCE)
+  - [ ] draft announcement for mastodon (doc/ANNOUNCE.masto)
+  - [ ] release tags  
       `just reltags`
-  - [x] release binaries built from tag  
+  - [ ] release binaries built from tag  
       `just relbin`
-- [x] published
-  - [x] all packages uploaded correctly to hackage  
+- [ ] published
+  - [ ] all packages uploaded correctly to hackage  
       `just hackageupload`
-  - [x] hledger-install merged to master and pushed to github
-  - [x] site repo pushed to github and hledger.org, new manuals rendering correctly
-  - [x] release branch and tags pushed to github  
+  - [ ] hledger-install merged to master and pushed to github
+  - [ ] site repo pushed to github and hledger.org, new manuals rendering correctly
+  - [ ] release branch and tags pushed to github  
       `just reltags-push`
-  - [x] github release with release binaries attached (https://github.com/simonmichael/hledger/releases/new)  
+  - [ ] github release with release binaries attached (https://github.com/simonmichael/hledger/releases/new)  
       should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new,
       `just ghrelnotes`, paste, download release binaries, upload release binaries, review  
       publish
-  - [x] install instructions tested and working
-    - [x] hledger-install
-    - [x] stack
-    - [x] cabal
-    - [x] source checkout
-    - [x] github release > How to install, each platform
-  - [x] announced
-    - [x] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
-    - [x] matrix
-    - [x] irc
-    - [x] pta forum
-    - [x] mastodon
-- [x] cleanup and support
-  - [x] remaining relevant release branch work merged to master
-  - [x] new dev tag/versions/man dates in master  
+  - [ ] install instructions tested and working
+    - [ ] hledger-install
+    - [ ] stack
+    - [ ] cabal
+    - [ ] source checkout
+    - [ ] github release > How to install, each platform
+  - [ ] announced
+    - [ ] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
+    - [ ] matrix
+    - [ ] irc
+    - [ ] pta forum
+    - [ ] mastodon
+- [ ] cleanup and support
+  - [ ] remaining relevant release branch work merged to master
+  - [ ] new dev tag/versions/man dates in master  
       `j devtag`
-  - [x] pta.o project stats updated
-  - [x] process notes updated/cleaned
-  - [x] monitor/support/handle issues:  
+  - [ ] pta.o project stats updated
+  - [ ] process notes updated/cleaned
+  - [ ] monitor/support/handle issues:  
       [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
 
 After release, it's a good time for:
