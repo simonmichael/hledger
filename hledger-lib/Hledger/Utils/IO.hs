@@ -83,6 +83,7 @@ module Hledger.Utils.IO (
   brightCyan',
   brightWhite',
   rgb',
+  sgrresetall,
 
   -- ** Generic
 
@@ -186,22 +187,39 @@ pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 
 -- Errors
 
--- | Simpler alias for errorWithoutStackTrace
+-- | Call errorWithoutStackTrace, prepending a "Error:" label.
+-- Also do some ANSI styling of the first line when allowed (using unsafe IO).
 error' :: String -> a
-error' = errorWithoutStackTrace . ("Error: " <>)
+error' =
+  if useColorOnStderrUnsafe
+  then  -- color the program name as well
+    unsafePerformIO $ do
+      putStr fmt
+      return $ errorWithoutStackTrace . modifyFirstLine ((<>sgrresetall) . (label<>))
+  else
+    errorWithoutStackTrace . modifyFirstLine (label<>)
+  where
+    label = "Error: "
+    fmt = sgrbrightred <> sgrbold
 
--- | A version of errorWithoutStackTrace that adds a usage hint.
+-- | Like error', but add a hint about using -h.
 usageError :: String -> a
 usageError = error' . (++ " (use -h to see usage)")
 
--- | Show a warning message on stderr before returning the given value.
--- Use this when you want to show the user a message on stderr, without stopping the program.
--- Currently we do this very sparingly in hledger; we prefer to either quietly work,
--- or loudly raise an error. Variable output can make scripting harder.
+-- | Show a message, with "Warning:" label, on stderr before returning the given value.
+-- Also do some ANSI styling of the first line when we detect that's supported (using unsafe IO).
+-- Currently we use this very sparingly in hledger; we prefer to either quietly work,
+-- or loudly raise an error. (Varying output can make scripting harder.)
 warn :: String -> a -> a
-warn msg = trace ("Warning: " <> msg)
+warn msg = trace (modifyFirstLine f (label <> msg))
+  where
+    label = "Warning: "
+    f = if useColorOnStderrUnsafe then ((<>sgrresetall).(fmt<>)) else id
+      where
+        fmt = sgrbrightyellow <> sgrbold
 
-
+-- Transform a string's first line.
+modifyFirstLine f s = unlines $ map f l <> ls where (l,ls) = splitAt 1 $ lines s  -- total
 
 -- Time
 
@@ -554,6 +572,8 @@ sgrbold          = setSGRCode [SetConsoleIntensity BoldIntensity]
 sgrfaint         = setSGRCode [SetConsoleIntensity FaintIntensity]
 sgrnormal        = setSGRCode [SetConsoleIntensity NormalIntensity]
 sgrresetfg       = setSGRCode [SetDefaultColor Foreground]
+sgrresetbg       = setSGRCode [SetDefaultColor Background]
+sgrresetall      = sgrresetfg <> sgrresetbg <> sgrnormal
 sgrblack         = setSGRCode [SetColor Foreground Dull Black]
 sgrred           = setSGRCode [SetColor Foreground Dull Red]
 sgrgreen         = setSGRCode [SetColor Foreground Dull Green]
