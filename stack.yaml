@@ -2,10 +2,7 @@
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.10
 # https://downloads.haskell.org/ghc/9.10.1/docs/users_guide/9.10.1-notes.html
 
-resolver: nightly-2024-11-30
-compiler: ghc-9.10.1
-notify-if-ghc-untested: false
-notify-if-cabal-untested: false
+resolver: nightly-2024-12-19
 
 packages:
 - hledger-lib
@@ -15,31 +12,27 @@ packages:
 
 # To minimise problems, use the versions shipped with GHC 9.10.1 when possible.
 # See https://github.com/haskell/unix/issues/329.
-extra-deps:
-- base-compat-0.14.0
+# extra-deps:
+# - base-compat-0.14.0
 
-# for hledger-lib
-- Cabal-3.12.0.0
-- Cabal-syntax-3.12.0.0
-#- directory-1.3.8.3
-#- filepath-1.5.2.0
-- directory-1.3.9.0
-- filepath-1.4.301.0
-- ghc-boot-9.10.1@rev:1
-- process-1.6.19.0
-- time-1.12.2
-- unix-2.8.5.1
-# for windows
-- Win32-2.14.0.0
+# # for hledger-lib
+# - Cabal-3.12.0.0
+# - Cabal-syntax-3.12.0.0
+# #- directory-1.3.8.3
+# #- filepath-1.5.2.0
+# - directory-1.3.9.0
+# - filepath-1.4.301.0
+# - ghc-boot-9.10.1@rev:1
+# - process-1.6.19.0
+# - time-1.12.2
+# - unix-2.8.5.1
+# # for windows
+# - Win32-2.14.0.0
 
-# for hledger
-- haskeline-0.8.2.1
-# to silence a warning
-- wizards-1.0.3@rev:3
-
-# for dev builds when the debug flag is enabled:
-# - ghc-debug-convention-0.6.0.0
-# - ghc-debug-stub-0.6.0.0
+# # for hledger
+# - haskeline-0.8.2.1
+# # to silence a warning
+# - wizards-1.0.3@rev:3
 
 nix:
   pure: false
