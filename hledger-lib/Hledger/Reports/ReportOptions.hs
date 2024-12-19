@@ -88,7 +88,6 @@ import Hledger.Query
 import Hledger.Utils
 import Data.Function ((&))
 
-
 -- | What to calculate for each cell in a balance report.
 -- "Balance report types -> Calculation type" in the hledger manual.
 data BalanceCalculation =
@@ -890,10 +889,13 @@ makeHledgerClassyLenses ''ReportSpec
 -- Left "This regular expression is invalid or unsupported, please correct it:\n(assets"
 -- >>> _rsQuery $ set querystring ["assets"] defreportspec
 -- Acct (RegexpCI "assets")
--- >>> _rsQuery $ set querystring ["(assets"] defreportspec
--- *** Exception: Error: Updating ReportSpec failed: try using overEither instead of over or setEither instead of set
 -- >>> _rsQuery $ set period (MonthPeriod 2021 08) defreportspec
 -- Date DateSpan 2021-08
+--
+-- XXX testing error output isn't working since adding color to it:
+-- > import System.Environment
+-- > setEnv "NO_COLOR" "1" >> return (_rsQuery $ set querystring ["(assets"] defreportspec)
+-- *** Exception: Error: Updating ReportSpec failed: try using overEither instead of over or setEither instead of set
 class HasReportOptsNoUpdate a => HasReportOpts a where
     reportOpts :: ReportableLens' a ReportOpts
     reportOpts = reportOptsNoUpdate
