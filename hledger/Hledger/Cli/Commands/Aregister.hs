@@ -52,7 +52,7 @@ aregistermode = hledgerCommandMode
   ,flagNone ["cumulative"] (setboolopt "cumulative")
      "show running total from report start date"
   ,flagNone ["historical","H"] (setboolopt "historical")
-     "show historical running total/balance (includes postings before report start date) (default)\n "
+     "show historical running total/balance (includes postings before report start date) (default)"
   -- ,flagNone ["average","A"] (setboolopt "average")
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
