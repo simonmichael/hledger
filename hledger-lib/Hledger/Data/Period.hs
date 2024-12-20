@@ -26,6 +26,7 @@ module Hledger.Data.Period (
   ,periodGrow
   ,periodShrink
   ,mondayBefore
+  ,thursdayOfWeekContaining
   ,yearMonthContainingWeekStarting
   ,quarterContainingMonth
   ,firstMonthOfQuarter
@@ -174,9 +175,14 @@ periodTextWidth = periodTextWidth' . simplifyPeriod
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
 -- "2016-W30"
+-- >>> showPeriod (WeekPeriod (fromGregorian 2024 12 30))
+-- "2025-W01"
 showPeriod :: Period -> Text
 showPeriod (DayPeriod b)       = T.pack $ formatTime defaultTimeLocale "%F" b              -- DATE
-showPeriod (WeekPeriod b)      = T.pack $ formatTime defaultTimeLocale "%0Y-W%V" b         -- YYYY-Www
+showPeriod (WeekPeriod b)      = T.pack $ y <> "-W" <> w                                   -- YYYY-Www
+  where
+    y = formatTime defaultTimeLocale "%0Y" $ thursdayOfWeekContaining b  -- be careful at year boundary
+    w = formatTime defaultTimeLocale "%V" b
 showPeriod (MonthPeriod y m)   = T.pack $ printf "%04d-%02d" y m                           -- YYYY-MM
 showPeriod (QuarterPeriod y q) = T.pack $ printf "%04dQ%d" y q                             -- YYYYQN
 showPeriod (YearPeriod y)      = T.pack $ printf "%04d" y                                  -- YYYY
@@ -190,6 +196,8 @@ showPeriod PeriodAll           = ".."
 -- an abbreviated form.
 -- >>> showPeriodAbbrev (WeekPeriod (fromGregorian 2016 7 25))
 -- "W30"
+-- >>> showPeriodAbbrev (WeekPeriod (fromGregorian 2024 12 30))
+-- "W01"
 showPeriodAbbrev :: Period -> Text
 showPeriodAbbrev (MonthPeriod _ m)                                              -- Jan
   | m > 0 && m <= length monthnames = T.pack . snd $ monthnames !! (m-1)
@@ -324,6 +332,8 @@ periodShrink today _ = YearPeriod y
 mondayBefore d = addDays (1 - toInteger wd) d
   where
     (_,_,wd) = toWeekDate d
+
+thursdayOfWeekContaining = (addDays 3).mondayBefore
 
 yearMonthContainingWeekStarting weekstart = (y,m)
   where

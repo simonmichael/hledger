@@ -218,7 +218,7 @@ spansSpan spans = DateSpan (spanStartDate =<< headMay spans) (spanEndDate =<< la
 -- >>> t (Months 2) 2008 01 01 2008 04 01
 -- [DateSpan 2008-01-01..2008-02-29,DateSpan 2008-03-01..2008-04-30]
 -- >>> t (Weeks 1) 2008 01 01 2008 01 15
--- [DateSpan 2007-W01,DateSpan 2008-W02,DateSpan 2008-W03]
+-- [DateSpan 2008-W01,DateSpan 2008-W02,DateSpan 2008-W03]
 -- >>> t (Weeks 2) 2008 01 01 2008 01 15
 -- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
 -- >>> t (MonthDay 2) 2008 01 01 2008   04 01
@@ -252,6 +252,7 @@ splitSpan _      (DaysOfWeek [])          ds = [ds]
 splitSpan _      (DaysOfWeek days@(n:_))  ds = spansFromBoundaries e bdrys
   where
     (s, e) = dateSpanSplitLimits (nthdayofweekcontaining n) nextday ds
+    -- can't show this when debugging, it'll hang:
     bdrys = concatMap (flip map starts . addDays) [0,7..]
     -- The first representative of each weekday
     starts = map (\d -> addDays (toInteger $ d - n) $ nthdayofweekcontaining n s) days
