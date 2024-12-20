@@ -76,8 +76,9 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
       "show total change of period-end historical balance value (caused by deposits, withdrawals, market price fluctuations)"
     ,flagNone ["gain"] (setboolopt "gain")
       "show unrealised capital gain/loss (historical balance value minus cost basis)"
-   ,flagNone ["budget"] (setboolopt "budget")
-      "show sum of posting amounts compared to budget goals defined by periodic transactions"
+  -- currently not supported by compound balance commands:
+  --  ,flagNone ["budget"] (setboolopt "budget")
+  --     "show sum of posting amounts compared to budget goals defined by periodic transactions"
    ,flagNone ["count"] (setboolopt "count") "show the count of postings"
 
    ,flagNone ["change"] (setboolopt "change")
