@@ -882,6 +882,13 @@ Output
        count  names  temporarily, if needed, as in this hledger2beancount.conf
        config file.
 
+       2024-12-20: Some more things not yet handled for you:
+
+       o P directives are not converted automatically - convert those yourself
+
+       o Balance assignments are not converted (Beancount doesnt support them)
+         - replace those with explicit amounts
+
    Beancount account names
        Aside from the top-level names, hledger will adjust your account  names
        to  make  valid Beancount account names, by capitalising each part, re-
@@ -7260,6 +7267,8 @@ Standard report commands
                                           balance.
                    --no-elide             don't show only 2 commodities per amount
                    --cumulative           show running total from report start date
+                -H --historical           show historical running total/balance (includes
+                                          postings before report start date) (default)
                    --invert               display all amounts with reversed sign
                    --heading=YN           show heading row above table: yes (default) or no
                 -w --width=N              set output width (default: terminal width or
@@ -7522,8 +7531,6 @@ Standard report commands
                                           market price fluctuations)
                    --gain                 show unrealised capital gain/loss (historical
                                           balance value minus cost basis)
-                   --budget               show sum of posting amounts compared to budget
-                                          goals defined by periodic transactions
                    --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports)
@@ -7619,8 +7626,6 @@ Standard report commands
                                           market price fluctuations)
                    --gain                 show unrealised capital gain/loss (historical
                                           balance value minus cost basis)
-                   --budget               show sum of posting amounts compared to budget
-                                          goals defined by periodic transactions
                    --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports)
@@ -7722,8 +7727,6 @@ Standard report commands
                                           market price fluctuations)
                    --gain                 show unrealised capital gain/loss (historical
                                           balance value minus cost basis)
-                   --budget               show sum of posting amounts compared to budget
-                                          goals defined by periodic transactions
                    --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports) (default)
@@ -7815,8 +7818,6 @@ Standard report commands
                                           market price fluctuations)
                    --gain                 show unrealised capital gain/loss (historical
                                           balance value minus cost basis)
-                   --budget               show sum of posting amounts compared to budget
-                                          goals defined by periodic transactions
                    --count                show the count of postings
                    --change               accumulate amounts from column start to column
                                           end (in multicolumn reports) (default)
@@ -8827,10 +8828,6 @@ Advanced report commands
        run the balance command with the extra option  --base-url=http://local-
        host:5000.     You    can    also    produce   relative   links,   like
        --base-url="some/path" or --base-url="".)
-
-       The balance reports' HTML output currently does not  indent  tree  mode
-       reports  properly  (#1846).   So in HTML balance reports, use list mode
-       for now (it is the default).
 
    Some useful balance reports
        Some frequently used balance options/reports are:
