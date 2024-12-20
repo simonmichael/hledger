@@ -848,6 +848,7 @@ as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
 2024-12-20: Some more things not yet handled for you:
+
 - P directives are not converted automatically - convert those yourself
 - Balance assignments are not converted (Beancount doesnt support them) - replace those with explicit amounts
 
