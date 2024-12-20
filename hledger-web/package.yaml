@@ -78,6 +78,8 @@ ghc-options:
 - -Wincomplete-uni-patterns
 
 when:
+- condition: flag(threaded)
+  ghc-options: -threaded -with-rtsopts=-T
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
 # This causes a warning when uploading to hackage:
@@ -165,8 +167,6 @@ executables:
     when:
     - condition: flag(library-only)
       buildable: false
-    - condition: flag(threaded)
-      ghc-options: -threaded -with-rtsopts=-T
 
 tests:
   test:

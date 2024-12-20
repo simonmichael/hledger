@@ -208,6 +208,8 @@ library
     , yesod-static >=1.4 && <1.7
     , yesod-test
   default-language: Haskell2010
+  if flag(threaded)
+    ghc-options: -threaded -with-rtsopts=-T
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -228,6 +230,8 @@ executable hledger-web
     , base-compat >=0.14.0
     , hledger-web
   default-language: Haskell2010
+  if flag(threaded)
+    ghc-options: -threaded -with-rtsopts=-T
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
@@ -236,8 +240,6 @@ executable hledger-web
     cpp-options: -DDEBUG
   if flag(library-only)
     buildable: False
-  if flag(threaded)
-    ghc-options: -threaded -with-rtsopts=-T
 
 test-suite test
   type: exitcode-stdio-1.0
@@ -251,6 +253,8 @@ test-suite test
     , base-compat >=0.14.0
     , hledger-web
   default-language: Haskell2010
+  if flag(threaded)
+    ghc-options: -threaded -with-rtsopts=-T
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
