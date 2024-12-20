@@ -12,6 +12,8 @@ Flags:
                             balance.
      --no-elide             don't show only 2 commodities per amount
      --cumulative           show running total from report start date
+  -H --historical           show historical running total/balance (includes
+                            postings before report start date) (default)
      --invert               display all amounts with reversed sign
      --heading=YN           show heading row above table: yes (default) or no
   -w --width=N              set output width (default: terminal width or

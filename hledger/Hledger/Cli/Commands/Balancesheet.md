@@ -13,8 +13,6 @@ Flags:
                             market price fluctuations)
      --gain                 show unrealised capital gain/loss (historical
                             balance value minus cost basis)
-     --budget               show sum of posting amounts compared to budget
-                            goals defined by periodic transactions
      --count                show the count of postings
      --change               accumulate amounts from column start to column
                             end (in multicolumn reports)
