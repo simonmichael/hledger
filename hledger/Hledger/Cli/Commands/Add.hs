@@ -161,7 +161,7 @@ confirmedTransactionWizard prevInput es [] = confirmedTransactionWizard prevInpu
 confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) = case currentStage of
   EnterDateAndCode -> dateAndCodeWizard prevInput es >>= \case
     Just (efd, code) -> do
-      let 
+      let
         date = fromEFDay efd
         es' = es{ esArgs = drop 1 esArgs
                 , esDefDate = date
@@ -239,7 +239,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                           }
           amountAndCommentString = showAmount amt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
-          es' = es{esPostings=esPostings++[p], esArgs=drop 2 esArgs}
+          es' = es{esPostings=esPostings++[p], esArgs=drop 1 esArgs}
       confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
     Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
