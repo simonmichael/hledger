@@ -2389,7 +2389,7 @@ If you are using account aliases and the [`type:` query](#queries) is not matchi
 try troubleshooting with the accounts command, eg something like:
 
 ```cli
-$ hledger accounts --alias assets=bassetts type:a
+$ hledger accounts --types -1 --alias assets=bassetts
 ```
 
 ## `commodity` directive
