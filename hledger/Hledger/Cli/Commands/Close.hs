@@ -14,7 +14,6 @@ import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time.Calendar (addDays)
-import Lens.Micro ((^.))
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
@@ -74,7 +73,7 @@ closeModeFromRawOpts rawopts = lastDef Close $ collectopts (\(name,_) -> readMay
 
 -- Debugger, beware: close is incredibly devious; simple rules combine to make a horrid maze.
 -- Tests are in hledger/test/close.test.
-close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
+close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   let
     mode_ = closeModeFromRawOpts rawopts
     defacctsq_    = if mode_ == Retain then Type [Revenue, Expense] else Type [Asset, Liability]
@@ -119,7 +118,7 @@ close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     opendate = addDays 1 closedate
 
     -- should we show the amount(s) on the equity posting(s) ?
-    explicit = boolopt "explicit" rawopts || copts ^. infer_costs
+    explicit = boolopt "explicit" rawopts
 
     -- the accounts to close
     argsacctq = filterQuery (\q -> queryIsAcct q || queryIsType q) argsq
