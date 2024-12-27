@@ -762,6 +762,8 @@ with a `y`/`yes` or `n`/`no` value to force it on or off.
 
 In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
+(You can disable this with the `--pager=no` option, perhaps in your config file.)
+
 The pager shows one page of text at a time, and lets you scroll around to see more.
 While it is active, usually `SPACE` shows the next page, `h` shows help, and `q` quits.
 The home/end/page up/page down/cursor keys, and mouse scrolling, may also work.
