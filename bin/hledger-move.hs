@@ -84,27 +84,28 @@ $ hledger-move ADA1000 ada:wallet1 ada:wallet2  # move 1000 ADA, keeping lots
 |]
 {- NOT YET IMPLEMENTED:
 
-As a convenience, no symbol means "move the account's only commodity";
+- As a convenience, no symbol means "move the account's only commodity";
 this works when the source account contains just one commodity.
 $ hledger-move 50 checking cash                 # the same, less typing
 
-A zero AMT means "move all of the specified commodity".
+- A zero AMT means "move all of the specified commodity".
+$ hledger-move $0 checking cash                 # move all $ from checking
 
-or the keyword "all"
-An "all" AMT does the same, but for all commodities present;
-it works when all of the source account's commodities are positive.
-$ hledger-move all savings checking               # all savings -> checking
-$ hledger-move all assets:broker1:FOO assets:broker2:FOO  # move all lots
+- The "all" AMT does the same, but for any and all commodities present,
+without having to write the commodity symbol(s).
+It requires that all of the source account's commodities are positive.
+$ hledger-move all savings checking             # move all from savings
+$ hledger-move all assets:broker1:FOO assets:broker2:FOO  # move all FOO lots to broker2
 
-It is aware of account balances, and prevents overdraft/overpay:
-it will fail if the requested transfer would make
-the source account go negative (as when overdrawing an asset)
-or the destination account go positive (as when over-paying a liability).
-You can disable this validation by adding the --force flag.
+- It is aware of account balances, and prevents overdraft or overpay:
+  it will fail if the requested transfer would change
+  the source account's balance from positive to negative (as when overdrawing an asset)
+  or the destination account's balance from negative to positive (as when over-paying a liability).
+  You can disable this validation by adding the --force flag.
 
-balance assertions
+- balance assertions
 
-respecting end date, for calculating balances and generated txn date
+- respecting end date, for calculating balances and generated txn date
 
 -}
 
