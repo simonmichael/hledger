@@ -62,12 +62,11 @@ EOF
     fi
 }
 
-# TODO: also look in parent directories
 ensure_git_repo() {
-    if [[ ! -d "$DIR/.git" ]]; then
-        $GIT init "$DIR"
-        echo "Created git repo in $DIR"
-    fi
+  if [[ $($GIT -C "$DIR" rev-parse --is-inside-work-tree 2> /dev/null) != true ]];  then
+      $GIT init "$DIR"
+      echo "Created git repo in $DIR"
+  fi
 }
 
 # * Commands
