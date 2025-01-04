@@ -1,6 +1,7 @@
-{-# LANGUAGE CPP               #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE CPP                 #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE RecordWildCards     #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-|
 
 
@@ -33,12 +34,16 @@ module Hledger.Data.Account
 , mergeAccounts
 , accountSetDeclarationInfo
 , sortAccountNamesByDeclaration
+, sortAccountTreeByDeclaration
 , sortAccountTreeByAmount
+-- -- * Tests
+, tests_Account
 ) where
 
 import Control.Applicative ((<|>))
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
+import qualified Data.IntMap as IM
 import Data.List (find, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -49,14 +54,15 @@ import Data.Maybe (fromMaybe)
 import Data.Ord (Down(..))
 import qualified Data.Text as T
 import Data.These (These(..))
-import Data.Time (Day)
+import Data.Time (Day(..), fromGregorian)
 import Safe (headMay)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountBalance
-import Hledger.Data.AccountName (expandAccountName, clipOrEllipsifyAccountName)
+import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Types
+import Hledger.Utils
 
 
 -- deriving instance Show Account
@@ -113,8 +119,10 @@ accountFromPostings :: (Posting -> Day) -> [Day] -> [Posting] -> Account
 accountFromPostings getPostingDate days ps =
     tieAccountParents . sumAccounts $ mapAccounts setBalance acctTree
   where
-    acctTree     = accountTree "root" $ HM.keys accountMap
-    setBalance a = a{abalances = HM.lookupDefault mempty (aname a) accountMap}
+    -- The special name "..." is stored in the root of the tree
+    acctTree     = accountTree "root" . HM.keys $ HM.delete "..." accountMap
+    setBalance a = a{abalances = HM.lookupDefault emptyMap name accountMap}
+      where name = if aname a == "root" then "..." else aname a
     accountMap   = processPostings ps
 
     processPostings :: [Posting] -> HM.HashMap AccountName (AccountBalances AccountBalance)
@@ -123,7 +131,9 @@ accountFromPostings getPostingDate days ps =
         processAccountName p = HM.alter (updateAccountBalance p) (paccount p)
         updateAccountBalance p = Just
                                . insertAccountBalances (getPostingDate p) (AccountBalance 1 (pamount p) nullmixedamt)
-                               . fromMaybe (emptyAccountBalances days)
+                               . fromMaybe emptyMap
+
+    emptyMap = emptyAccountBalances days
 
 -- | Convert a list of account names to a tree of Account objects,
 -- with just the account names filled in.
@@ -185,19 +195,26 @@ anyAccounts p a
     | p a = True
     | otherwise = any (anyAccounts p) $ asubs a
 
+-- | Is the predicate true on all of this account and its subaccounts ?
+allAccounts :: (Account' a -> Bool) -> Account' a -> Bool
+allAccounts p a
+    | not (p a) = False
+    | otherwise = all (allAccounts p) $ asubs a
+
 -- | Recalculate all the subaccount-inclusive balances in this tree.
 sumAccounts :: Account -> Account
-sumAccounts a = a{asubs = subs, abalances = summedBal}
+sumAccounts a = a{asubs = subs, abalances = setInclusiveBalances $ abalances a}
   where
     subs = map sumAccounts $ asubs a
-    bals = abalances a
-    summedBal = if null subs
-      then fmap setibal bals
-      else let subbals = foldMap abalances subs
-           in opAccountBalances addibal bals subbals
+    subtotals = foldMap abalances subs
 
-    setibal (AccountBalance p ebal _) = AccountBalance p ebal ebal
-    addibal bal@(AccountBalance _ ebal _) (AccountBalance _ _ ibal) = bal{abibalance = ebal <> ibal}
+    setInclusiveBalances :: AccountBalances AccountBalance -> AccountBalances AccountBalance
+    setInclusiveBalances = if null subs
+      then fmap setibal
+      else opAccountBalances addibal subtotals
+
+    setibal bal@(AccountBalance _ ebal _) = bal{abibalance = ebal}
+    addibal (AccountBalance _ _ ibal) bal@(AccountBalance _ ebal _) = bal{abibalance = ebal <> ibal}
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account' a -> Account' a
@@ -211,11 +228,12 @@ clipAccounts d a = a{asubs=subs}
 -- If the depth is Nothing, return the original accounts
 clipAccountsAndAggregate :: Monoid a => DepthSpec -> [Account' a] -> [Account' a]
 clipAccountsAndAggregate (DepthSpec Nothing []) as = as
-clipAccountsAndAggregate d                      as = combined
+clipAccountsAndAggregate depthSpec              as = combined
     where
-      clipped  = [a{aname=clipOrEllipsifyAccountName d $ aname a} | a <- as]
+      clipped  = [a{aname=clipOrEllipsifyAccountName depthSpec $ aname a} | a <- as]
       combined = [a{abalances=foldMap abalances same}
                  | same@(a:|_) <- groupWith aname clipped]
+
 {-
 test cases, assuming d=1:
 
@@ -359,15 +377,26 @@ lookupAccount a = find ((==a).aname)
 
 -- debug helpers
 
-printAccounts :: Account' a -> IO ()
+printAccounts :: Show a => Account' a -> IO ()
 printAccounts = putStrLn . showAccounts
 
+showAccounts :: Show a => Account' a -> String
 showAccounts = unlines . map showAccountDebug . flattenAccounts
 
 showAccountsBoringFlag = unlines . map (show . aboring) . flattenAccounts
 
-showAccountDebug a = printf "%-25s %4s %4s %s"
+showAccountDebug a = printf "%-25s %s %4s"
                      (aname a)
-                     ("test" :: String)  -- (wbUnpack . showMixedAmountB defaultFmt $ aebalance a)
-                     ("test" :: String)  -- (wbUnpack . showMixedAmountB defaultFmt $ aibalance a)
                      (if aboring a then "b" else " " :: String)
+                     (show $ abalances a)
+
+
+tests_Account = testGroup "Account" [
+    testGroup "accountFromPostings" [
+      testCase "no postings, no days" $
+        accountFromPostings undefined [] [] @?= accountTree "root" []
+     ,testCase "no postings, only 2000-01-01" $
+         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . IM.keys . abdatemap . abalances)
+                     (accountFromPostings undefined [fromGregorian 2000 01 01] []) @? "Not all abalances have exactly 2000-01-01"
+    ]
+  ]
