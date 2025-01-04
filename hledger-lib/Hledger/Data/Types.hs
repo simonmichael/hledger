@@ -745,7 +745,7 @@ data Account' a = Account {
   ,aparent                   :: Maybe (Account' a)  -- ^ parent account
   ,aboring                   :: Bool                -- ^ used in the accounts report to label elidable parents
   -- balance information
-  ,abalances                 :: AccountBalances  a  -- ^ historical and date-associated account balances
+  ,abalances                 :: AccountBalances a   -- ^ historical and date-associated account balances
   } deriving (Generic, Functor)
 
 -- | A component of an 'Account' containing historical 'AccountBalance', and a
