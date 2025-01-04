@@ -60,7 +60,10 @@ import Hledger.Data.Types hiding (MixedAmountKey, Mixed)
 import Hledger.Data.Valuation
 
 tests_Data = testGroup "Data" [
-   tests_AccountName
+   tests_Account
+  ,tests_AccountName
+  ,tests_AccountBalance
+  ,tests_AccountBalances
   ,tests_Amount
   ,tests_Balancing
   -- ,tests_Currency
