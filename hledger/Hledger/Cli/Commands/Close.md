@@ -44,7 +44,7 @@ Flags:
 ### close --migrate
 
 This is the most common mode.
-It prints a "closing balances" transaction that zeroes out all asset and liability balances (by default),
+It prints a "closing balances" transaction that zeroes out all Asset and Liability balances (by default),
 and an opposite "opening balances" transaction that restores them again.
 The balancing account will be `equity:opening/closing balances` (or another specified by `--close-acct` or `--open-acct`).
 
@@ -62,7 +62,7 @@ Eg if you want to include equity, you can add `assets liabilities equity` or [`t
 (The balancing account is always excluded.)
 Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
 
-The generated transactions will have a `start:` tag, with its value set to 
+The generated transactions will have a `clopen:` tag, with its value set to
 `--migrate`'s `NEW` argument if any, for easier matching or exclusion.
 When `NEW` is not specified, it will be inferred if possible by incrementing
 a number (eg a year number) within the default journal's main file name.
@@ -81,33 +81,32 @@ It is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.ht
 
 ### close --assert
 
-This prints a "closing balances" transaction (with `balances:` tag), 
-that just declares [balance assertions](#balance-assertions) for the current balances without changing them.
+This prints a transaction that [asserts](#balance-assertions) the account balances as they are on the end date (and adds an `assert:` tag).
 It could be useful as documention and to guard against changes.
 
 ### close --assign
 
-This prints an "opening balances" transaction that
-restores the account balances using [balance assignments](#balance-assignments).
-Balance assignments work regardless of any previous balance, so a preceding closing balances transaction is not needed.
+This prints a transaction that [assigns](#balance-assignments) the account balances as they are on the end date (and adds an "assign:" tag).
+Unlike balance assertions, assignments will post changes to balances as needed to reach the specified amounts.
 
-However, omitting the closing balances transaction would unbalance equity.
-This is relatively harmless for personal reports, but it disturbs the accounting equation, removing a source of error detection.
-So `--migrate` is generally the best way to set to set balances in new files, [for now](https://github.com/simonmichael/hledger/issues/2151).
+This is another way to set starting balances when migrating to a new file,
+and it will set them correctly even in the presence of earlier files which do not have a closing balances transaction.
+However, it can hide errors, and disturb the accounting equation,
+so `--migrate` is usually recommended [for now](https://github.com/simonmichael/hledger/issues/2151).
 
 ### close --retain
 
-This is like `--close` with different defaults:
-it prints a "retain earnings" transaction (with `retain:` tag), 
-that transfers revenue and expense balances to `equity:retained earnings`.
+This is like `--close`, but with different defaults:
+it prints a transaction that transfers Revenue and Expense balances to `equity:retained earnings` (and adds a `retain:` tag).
 
-This is a different kind of closing, called "retaining earnings" or "closing the books";
-it is traditionally performed by businesses at the end of each accounting period,
-to consolidate revenues and expenses into the main equity balance.
-("Revenues" and "expenses" are actually equity by another name, kept separate temporarily for reporting purposes.)
-
-In personal accounting you generally don't need to do this,
-unless you want the `balancesheetequity` report to show a zero total, demonstrating that the accounting equation (A-L=E) is satisfied.
+This is called "retaining earnings", or "closing the books".
+Revenues and expenses are actually part of equity, kept separate temporarily for clarity;
+once they have been seen and noted, at the end of each accounting period, 
+businesses normally consolidate them into equity,
+ 
+In personal accounting, there's not much benefit from this, and most people don't do it.
+One reason to do it is to help the `balancesheetequity` report show a zero total,
+demonstrating that the accounting equation (A-L=E) is satisfied.
 
 ### close customisation
 
@@ -208,15 +207,15 @@ After this, to see 2022's end-of-year balances you must exclude the closing bala
 $ hledger -f 2022.journal bs not:desc:'closing balances'
 ```
 
-For more flexibility, it helps to tag closing and opening transactions with eg `start:NEWYEAR`,
+For more flexibility, it helps to tag closing and opening transactions with eg `clopen:NEWYEAR`,
 then you can ensure correct balances by excluding all opening/closing transactions except the first, like so:
 
 ```cli
-$ hledger bs -Y -f 2021.j -f 2022.j -f 2023.j expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2021.j -f 2022.j           expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2022.j -f 2023.j           expr:'tag:start=2022 or not tag:start'
-$ hledger bs -Y -f 2021.j                     expr:'tag:start=2021 or not tag:start'
-$ hledger bs -Y -f 2022.j                     expr:'tag:start=2022 or not tag:start'
+$ hledger bs -Y -f 2021.j -f 2022.j -f 2023.j expr:'tag:clopen=2021 or not tag:clopen'
+$ hledger bs -Y -f 2021.j -f 2022.j           expr:'tag:clopen=2021 or not tag:clopen'
+$ hledger bs -Y -f 2022.j -f 2023.j           expr:'tag:clopen=2022 or not tag:clopen'
+$ hledger bs -Y -f 2021.j                     expr:'tag:clopen=2021 or not tag:clopen'
+$ hledger bs -Y -f 2022.j                     expr:'tag:clopen=2022 or not tag:clopen'
 $ hledger bs -Y -f 2023.j                     # unclosed file, no query needed
 ```
 

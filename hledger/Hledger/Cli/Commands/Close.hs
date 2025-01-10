@@ -85,8 +85,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     tagval = fromMaybe "" $ maybestringopt modeflag rawopts where modeflag = lowercase $ show mode_
     comment = T.pack $ if
       | mode_ == Assert -> "assert:" <> tagval
+      | mode_ == Assign -> "assign:" <> tagval
       | mode_ == Retain -> "retain:" <> tagval
-      | otherwise       -> "start:"  <> if null tagval then inferredval else tagval
+      | otherwise       -> "clopen:" <> if null tagval then inferredval else tagval
       where
         inferredval = newfilename
           where
