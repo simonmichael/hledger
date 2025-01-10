@@ -71,6 +71,8 @@ Eg to add Equity accounts, provide arguments like `assets liabilities equity` or
 When migrating to a new file, you'll usually want to bring along the AL or ALE accounts,
 but not the RX accounts (Revenue, Expense).
 
+Assertions will be added indicating and checking the new balances of the closed/opened accounts.
+
 The generated transactions will have a `clopen:` tag.
 If the main journal's base file name contains a number (eg a year number),
 the tag's value will be that base file name with the number incremented.
