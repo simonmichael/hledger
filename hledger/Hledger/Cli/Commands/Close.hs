@@ -19,7 +19,7 @@ import System.Console.CmdArgs.Explicit as C
 import Hledger
 import Hledger.Cli.CliOptions
 import Safe (lastDef, readMay, readDef)
-import System.FilePath (takeFileName)
+import System.FilePath (takeBaseName)
 import Data.Char (isDigit)
 import Hledger.Read.RulesReader (parseBalanceAssertionType)
 import Hledger.Cli.Commands.Print (roundFlag, amountStylesSetRoundingFromRawOpts)
@@ -87,12 +87,12 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
       | mode_ == Retain -> "retain:" <> tagval
       | otherwise       -> "clopen:" <> if null tagval then inferredval else tagval
       where
-        inferredval = newfilename
+        inferredval = newfilebasename
           where
-            oldfilename = takeFileName $ journalFilePath j
-            (nonnum, rest) = break isDigit $ reverse oldfilename
+            oldfilebasename = takeBaseName $ journalFilePath j
+            (nonnum, rest) = break isDigit $ reverse oldfilebasename
             (oldnum, rest2) = span isDigit rest
-            newfilename = case oldnum of
+            newfilebasename = case oldnum of
               [] -> ""
               _  -> reverse rest2 <> newnum <> reverse nonnum
                 where
