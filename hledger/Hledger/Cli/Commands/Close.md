@@ -2,19 +2,19 @@
 
 (equity)
 
-`close` generates several kinds of "closing" and/or "opening" transactions, useful in certain situations, including
-migrating balances to a new journal file, retaining earnings into equity, consolidating balances, or viewing lots.
+`close` prints several kinds of "closing" and/or "opening" transactions, useful in various situations:
+migrating balances to a new journal file, retaining earnings into equity, consolidating balances, viewing lot costs..
 Like `print`, it prints valid journal entries.
-You can append or copy these to your journal file(s) when you are happy with how they look.
+You can copy these into your journal file(s) when you are happy with how they look.
 
 ```flags
 Flags:
-     --migrate[=NEW]        show closing and opening transactions, for Asset
+     --close[=NEW]          (default) show a closing transaction
+     --open[=NEW]           show an opening transaction
+     --clopen[=NEW]         show closing and opening transactions, for Asset
                             and Liability accounts by default, tagged for easy
                             matching. The tag's default value can be overridden
                             by providing NEW.
-     --close[=NEW]          (default) show a closing transaction
-     --open[=NEW]           show an opening transaction
      --assign[=NEW]         show opening balance assignments
      --assert[=NEW]         show closing balance assertions
      --retain[=NEW]         show a retain earnings transaction, for Revenue
@@ -39,45 +39,59 @@ Flags:
                                    (can unbalance transactions)
 ```
 
-`close` currently has six modes, selected by a single mode flag:
+`close` has six modes, selected by choosing one of the mode flags (`--close` is the default).
+They all do much the same operation, but with different defaults, useful in different situations.
 
-### close --migrate
+### close --clopen
 
-This is the most common mode.
-It prints a "closing balances" transaction that zeroes out all Asset and Liability balances (by default),
+This is useful if migrating balances to a new journal file at the start of a new year.
+It prints a "closing balances" transaction that zeroes out account balances (Asset and Liability accounts, by default),
 and an opposite "opening balances" transaction that restores them again.
-The balancing account will be `equity:opening/closing balances` (or another specified by `--close-acct` or `--open-acct`).
+Typically, you would run
+```
+hledger close --clopen -e NEWYEAR >> $LEDGER_FILE
+```
+and then move the opening transaction from the old file to the new file
+(and probably also update your LEDGER_FILE environment variable).
 
-This is useful when migrating balances to a new journal file at the start of a new year.
-Essentially, you run `hledger close --migrate=NEWYEAR -e NEWYEAR`
-and then copy the closing transaction to the end of the old file
-and the opening transaction to the start of the new file.
-The opening transaction sets correct starting balances in the new file when it is used alone,
-and the closing transaction keeps balances correct when you use both old and new files together,
-by cancelling out the following opening transaction and preventing buildup of duplicated opening balances.
-Think of the closing/opening pair as "moving the balances into the next file".
+Why might you do this ? If your reports are fast, you may not need it.
+But at some point you will probably want to partition your data by time,
+for performance or data integrity or regulatory reasons.
+A new file or set of files per year is common.
+Then, having each file/fileset "bookended" with opening and closing balance transactions
+will allow you to freely pick and choose which files to read -
+just the current year, any past year, any sequence of years, or all of them -
+while showing correct account balances in each case.
+The earliest opening balances transaction sets correct starting balances,
+and any later closing/opening pairs will harmlessly cancel each other out.
 
-You can close a different set of accounts by providing a query.
-Eg if you want to include equity, you can add `assets liabilities equity` or [`type:ALE`](hledger.md#account-types) arguments.
-(The balancing account is always excluded.)
-Revenues and expenses usually are not migrated to a new file directly; see `--retain` below.
+The balances will be transferred to and from `equity:opening/closing balances` by default.
+You can override this by using `--close-acct` and/or `--open-acct`.
 
-The generated transactions will have a `clopen:` tag, with its value set to
-`--migrate`'s `NEW` argument if any, for easier matching or exclusion.
-When `NEW` is not specified, it will be inferred if possible by incrementing
-a number (eg a year number) within the default journal's main file name.
-The other modes behave similarly.
+You can select a different set of accounts to close/open by providing an account query.
+Eg to add Equity accounts, provide arguments like `assets liabilities equity` or `type:ALE`.
+When migrating to a new file, you'll usually want to bring along the AL or ALE accounts,
+but not the RX accounts (Revenue, Expense).
+
+The generated transactions will have a `clopen:` tag.
+If the main journal's file name contains a number (eg a year number),
+the tag's value will be that file name with the number incremented.
+Or you can choose the tag value yourself, by using `--clopen=TAGVAL`.
 
 ### close --close
 
-This prints just the closing balances transaction of `--migrate`.
-It is the default behaviour if you specify no mode flag.
-Using the customisation options below, you can move balances from any set of accounts to a different account.
+This prints just the closing balances transaction of `--clopen`.
+It is the default if you don't specify a mode.
+
+More customisation options are described below.
+Among other things, you can use `close --close` to generate a transaction
+moving the balances from any set of accounts, to a different account.
+(If you need to move just a portion of the balance, see [hledger-move](https://hledger.org/scripts.html#hledger-move).)
 
 ### close --open
 
-This prints just the opening balances transaction of `--migrate`.
-It is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command).
+This prints just the opening balances transaction of `--clopen`.
+(It is similar to [Ledger's equity command](https://ledger-cli.org/doc/ledger3.html#The-equity-command).)
 
 ### close --assert
 
@@ -92,21 +106,21 @@ Unlike balance assertions, assignments will post changes to balances as needed t
 This is another way to set starting balances when migrating to a new file,
 and it will set them correctly even in the presence of earlier files which do not have a closing balances transaction.
 However, it can hide errors, and disturb the accounting equation,
-so `--migrate` is usually recommended [for now](https://github.com/simonmichael/hledger/issues/2151).
+so `--clopen` is usually [recommended](https://github.com/simonmichael/hledger/issues/2151).
 
 ### close --retain
 
-This is like `--close`, but with different defaults:
-it prints a transaction that transfers Revenue and Expense balances to `equity:retained earnings` (and adds a `retain:` tag).
+This is like `--close`, but it closes Revenue and Expense account balances by default.
+They will be transferred to `equity:retained earnings`, or another account specified with `--close-acct`.
 
+Revenues and expenses correspond to changes in equity.
+They are categorised separately for reporting purposes,
+but traditionally at the end of each accounting period, businesses consolidate them into equity,
 This is called "retaining earnings", or "closing the books".
-Revenues and expenses are actually part of equity, kept separate temporarily for clarity;
-once they have been seen and noted, at the end of each accounting period, 
-businesses normally consolidate them into equity,
  
-In personal accounting, there's not much benefit from this, and most people don't do it.
-One reason to do it is to help the `balancesheetequity` report show a zero total,
-demonstrating that the accounting equation (A-L=E) is satisfied.
+In personal accounting, there's not much reason to do this, and most people don't.
+(One reason to do it is to help the `balancesheetequity` report show a zero total,
+demonstrating that the accounting equation (A-L=E) is satisfied.)
 
 ### close customisation
 
@@ -196,7 +210,7 @@ $ hledger -f 2022.journal is not:desc:'retain earnings'
 Close assets/liabilities on 2022-12-31 and re-open them on 2023-01-01:
 
 ```cli
-$ hledger close --migrate -f 2022.journal -p 2022
+$ hledger close --clopen -f 2022.journal -p 2022
 # copy/paste the closing transaction to the end of 2022.journal
 # copy/paste the opening transaction to the start of 2023.journal
 ```

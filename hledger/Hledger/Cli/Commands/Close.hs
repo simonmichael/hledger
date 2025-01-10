@@ -33,18 +33,15 @@ defretainacct = "equity:retained earnings"
 
 closemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Close.txt")
-  [flagOpt "" ["migrate"]    (\s opts -> Right $ setopt "migrate" s opts) "NEW" ("show closing and opening transactions,"
-    <> " for Asset and Liability accounts by default, tagged for easy matching."
-    <> " The tag's default value can be overridden by providing NEW."
-    )
-  ,flagOpt "" ["close"]      (\s opts -> Right $ setopt "close" s opts)  "NEW" "(default) show a closing transaction"
-  ,flagOpt "" ["open"]       (\s opts -> Right $ setopt "open" s opts)   "NEW" "show an opening transaction"
-  ,flagOpt "" ["assign"]     (\s opts -> Right $ setopt "assign" s opts) "NEW" "show opening balance assignments"
-  ,flagOpt "" ["assert"]     (\s opts -> Right $ setopt "assert" s opts) "NEW" "show closing balance assertions"
-  ,flagOpt "" ["retain"]     (\s opts -> Right $ setopt "retain" s opts) "NEW" "show a retain earnings transaction, for Revenue and Expense accounts by default"
-  ,flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
-  ,flagNone ["show-costs"]   (setboolopt "show-costs") "show amounts with different costs separately"
-  ,flagNone ["interleaved"]  (setboolopt "interleaved") "show source and destination postings together"
+  [flagOpt "" ["clopen"]     (\s opts -> Right $ setopt "clopen" s opts) "TAGVAL" "show closing and opening balances transactions, for AL accounts by default"
+  ,flagOpt "" ["close"]      (\s opts -> Right $ setopt "close" s opts)  "TAGVAL" "show just a closing balances transaction"
+  ,flagOpt "" ["open"]       (\s opts -> Right $ setopt "open" s opts)   "TAGVAL" "show just an opening balances transaction"
+  ,flagOpt "" ["assert"]     (\s opts -> Right $ setopt "assert" s opts) "TAGVAL" "show a balance assertions transaction"
+  ,flagOpt "" ["assign"]     (\s opts -> Right $ setopt "assign" s opts) "TAGVAL" "show a balance assignments transaction"
+  ,flagOpt "" ["retain"]     (\s opts -> Right $ setopt "retain" s opts) "TAGVAL" "show a retain earnings transaction, for RX accounts by default"
+  ,flagNone ["explicit","x"] (setboolopt "explicit")                              "show all amounts explicitly"
+  ,flagNone ["show-costs"]   (setboolopt "show-costs")                            "show amounts with different costs separately"
+  ,flagNone ["interleaved"]  (setboolopt "interleaved")                           "show source and destination postings together"
   ,flagReq  ["assertion-type"]  (\s opts -> Right $ setopt "assertion-type" s opts) "TYPE" "=, ==, =* or ==*"
   ,flagReq  ["close-desc"]   (\s opts -> Right $ setopt "close-desc" s opts) "DESC" "set closing transaction's description"
   ,flagReq  ["close-acct"]   (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "set closing transaction's destination account"
@@ -57,17 +54,18 @@ closemode = hledgerCommandMode
     ++  -- keep supporting old flag names for compatibility
     [flagNone ["closing"]   (setboolopt "close")                                   "old spelling of --close"
     ,flagNone ["opening"]   (setboolopt "open")                                    "old spelling of --open"
+    ,flagNone ["migrate"]   (setboolopt "clopen")                                  "old spelling of --clopen"
     ,flagReq  ["close-to"]  (\s opts -> Right $ setopt "close-acct" s opts) "ACCT" "old spelling of --close-acct"
     ,flagReq  ["open-from"] (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "old spelling of --open-acct"
     ]
   )
-  ([], Just $ argsFlag "[--migrate|--close|--open|--assign|--assert|--retain] [ACCTQUERY]")
+  ([], Just $ argsFlag "[--close|--open|--clopen|--assign|--assert|--retain] [ACCTQUERY]")
 
 -- | The close command's mode (subcommand).
 -- The code depends on these spellings.
-data CloseMode = Migrate | Close | Open | Assign | Assert | Retain deriving (Eq,Show,Read)
+data CloseMode = Clopen | Close | Open | Assign | Assert | Retain deriving (Eq,Show,Read)
 
--- | Pick the rightmost flag spelled like a CloseMode (--migrate, --close, --open, etc), or default to Close.
+-- | Pick the rightmost flag spelled like a CloseMode (--clopen, --close, --open, etc), or default to Close.
 closeModeFromRawOpts :: RawOpts -> CloseMode
 closeModeFromRawOpts rawopts = lastDef Close $ collectopts (\(name,_) -> readMay (capitalise name)) rawopts
 
@@ -147,7 +145,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
 
     -- the closing (balance-asserting or balance-zeroing) transaction
     mclosetxn
-      | mode_ `notElem` [Migrate, Close, Assert, Retain] = Nothing
+      | mode_ `notElem` [Clopen, Close, Assert, Retain] = Nothing
       | otherwise = Just nulltransaction{
           tdate=closedate, tdescription=closedesc, tcomment=comment, tpostings=closeps
           }
@@ -162,7 +160,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
           -- XXX some duplication
           | mode_ == Assert =
             [ posting{
-                  paccount          = a
+                   paccount          = a
                   ,pamount           = mixedAmount $ precise b{aquantity=0, acost=Nothing}
                   -- after each commodity's last posting, assert 0 balance (#1035)
                   -- balance assertion amounts are unpriced (#824)
@@ -210,7 +208,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
 
     -- the opening (balance-assigning or balance-unzeroing) transaction
     mopentxn
-      | mode_ `notElem` [Migrate, Open, Assign] = Nothing
+      | mode_ `notElem` [Clopen, Open, Assign] = Nothing
       | otherwise = Just nulltransaction{
           tdate=opendate, tdescription=opendesc, tcomment=comment, tpostings=openps
           }
