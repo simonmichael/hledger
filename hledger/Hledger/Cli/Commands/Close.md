@@ -9,16 +9,14 @@ You can copy these into your journal file(s) when you are happy with how they lo
 
 ```flags
 Flags:
-     --close[=NEW]          (default) show a closing transaction
-     --open[=NEW]           show an opening transaction
-     --clopen[=NEW]         show closing and opening transactions, for Asset
-                            and Liability accounts by default, tagged for easy
-                            matching. The tag's default value can be overridden
-                            by providing NEW.
-     --assign[=NEW]         show opening balance assignments
-     --assert[=NEW]         show closing balance assertions
-     --retain[=NEW]         show a retain earnings transaction, for Revenue
-                            and Expense accounts by default
+     --clopen[=TAGVAL]      show closing and opening balances transactions,
+                            for AL accounts by default
+     --close[=TAGVAL]       show just a closing balances transaction
+     --open[=TAGVAL]        show just an opening balances transaction
+     --assert[=TAGVAL]      show a balance assertions transaction
+     --assign[=TAGVAL]      show a balance assignments transaction
+     --retain[=TAGVAL]      show a retain earnings transaction, for RX
+                            accounts by default
   -x --explicit             show all amounts explicitly
      --show-costs           show amounts with different costs separately
      --interleaved          show source and destination postings together
