@@ -158,6 +158,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           -- with -x/--explicit:
           | boolopt "explicit" (rawopts_ opts) = id
           -- with --show-costs:
+          -- XXX infer_costs is --infer-costs not --show-costs. And where is show-costs used anyway ?
           | opts ^. infer_costs = id
           -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
           | has (value . _Just) opts = id
