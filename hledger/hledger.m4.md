@@ -5373,15 +5373,22 @@ When amounts are converted to other commodities in [cost](#cost-reporting) or [v
 
 # Pivoting
 
-Normally, hledger groups and sums amounts within each account.
-The `--pivot FIELD` option substitutes some other transaction field for account names,
-causing amounts to be grouped and summed by that field's value instead.
-FIELD can be any of the transaction fields `acct`, `status`, `code`, `desc`, `payee`, `note`, or a tag name.
-When pivoting on a tag and a posting has multiple values of that tag, only the first value is displayed.
-Values containing `colon:separated:parts` will be displayed hierarchically, like account names.
-Multiple, colon-delimited fields can be pivoted simultaneously, generating a hierarchical account name.
+Normally, hledger groups amounts and displays their totals by account (name).
+With `--pivot PIVOTEXPR`, some other field's (or multiple fields') value is used as a synthetic account name, causing different grouping and display.
+PIVOTEXPR can be 
 
-Some examples:
+- any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`
+- or a tag name
+- or any combination of these, colon-separated.
+
+Some special cases:
+
+- Colons, in PIVOTEXPR or in a pivoted tag value, will appear in the generated account name, influencing the account tree.
+- When an unrecognised tag name or field is provided, its pivoted value will be "".
+- When a posting has multiple commodities, the pivoted value of "comm"/"cur" will be "".
+- When pivoting a posting has multiple values for a tag, the pivoted value of that tag will be the first value.
+
+For example:
 
 ```journal
 2016/02/16 Yearly Dues Payment
@@ -5418,7 +5425,7 @@ $ hledger balance --pivot member acct:.
 --------------------
               -2 EUR
 ```
-Hierarchical reports can be generated with multiple pivots:
+Hierarchical reports can be generated with multiple pivot values:
 ```cli
 $ hledger balance Income:Dues --pivot kind:member
               -2 EUR  Lifetime:John Doe

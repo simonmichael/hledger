@@ -117,6 +117,7 @@ $ hledger -f- --pivot payee reg -D ^expense
 2016-02-16   Auchan                                         22 EUR        22 EUR
              StarBars                                        5 EUR        27 EUR
 2016-02-17   Auchan                                         30 EUR        57 EUR
+
 # ** 11. pivot on multiple tags
 <
 2023-01-01 compound purchase
@@ -128,3 +129,52 @@ $ hledger -f- --pivot acct:kind:project bal ^expense -N
                   10  expenses:equipment:job1
                   20  expenses:equipment:job2
                   25  expenses:fee:job2
+
+# ** 12. Pivot on the commodity symbol with "comm".
+<
+2025-01-01
+    expenses   1 A
+    expenses   2 B
+    assets
+
+$ hledger -f- bal -Y expenses --pivot=comm 
+Balance changes in 2025:
+
+   ||     2025 
+===++==========
+ A ||      1 A 
+ B ||      2 B 
+---++----------
+   || 1 A, 2 B 
+
+# ** 13. "cur" is accepted as a synonym. Postings with multiple commodities currently are lumped in the "" bucket, not pivoted fully.
+$ hledger -f- bal -Y assets --pivot=cur
+Balance changes in 2025:
+
+  ||       2025 
+==++============
+  || -1 A, -2 B 
+--++------------
+  || -1 A, -2 B 
+
+# ** 14. When commodities are being converted, the original commodity is shown.
+$ hledger -f- bal -Y expenses --pivot=comm -B
+Balance changes in 2025, converted to cost:
+
+   || 2025 
+===++======
+ A ||   $1 
+ B ||   $2 
+---++------
+   ||   $3 
+
+# ** 15. The "" bucket looks a bit strange in this case..
+$ hledger -f- bal -Y assets --pivot=comm -B
+Balance changes in 2025, converted to cost:
+
+   || 2025 
+===++======
+ $ ||  $-3 
+---++------
+   ||  $-3 
+

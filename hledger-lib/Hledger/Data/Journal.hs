@@ -1164,9 +1164,16 @@ pivotAccount :: Text -> Posting -> Text
 pivotAccount fieldortagname p =
   T.intercalate ":" [pivotComponent x p | x <- T.splitOn ":" fieldortagname]
 
+-- | Get the value of the given field or tag for this posting, otherwise the empty string.
+-- "comm" and "cur" are accepted as synonyms meaning the commodity symbol.
+-- We currently don't handle pivoting of a posting with more than one commodity symbol; in that case we return "".
 pivotComponent :: Text -> Posting -> Text
 pivotComponent fieldortagname p
   |                           fieldortagname == "acct"        = paccount p
+  |                           fieldortagname `elem` ["cur","comm"] =
+    case map acommodity $ amounts $ pamount p of
+      [s] -> s
+      _   -> ""
   | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
   | Just t <- ptransaction p, fieldortagname == "desc"        = tdescription t
   | Just t <- ptransaction p, fieldortagname == "description" = tdescription t  -- backward compatible with 1.30 and older
