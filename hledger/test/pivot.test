@@ -158,23 +158,52 @@ Balance changes in 2025:
   || -1 A, -2 B 
 
 # ** 14. When commodities are being converted, the original commodity is shown.
+<
+2025-01-01
+    expenses   1 A @ $10
+    expenses   2 B @ $100
+    assets
+
 $ hledger -f- bal -Y expenses --pivot=comm -B
 Balance changes in 2025, converted to cost:
 
    || 2025 
 ===++======
- A ||   $1 
- B ||   $2 
+ A ||  $10 
+ B || $200 
 ---++------
-   ||   $3 
+   || $210 
 
 # ** 15. The "" bucket looks a bit strange in this case..
 $ hledger -f- bal -Y assets --pivot=comm -B
 Balance changes in 2025, converted to cost:
 
-   || 2025 
-===++======
- $ ||  $-3 
----++------
-   ||  $-3 
+   ||  2025 
+===++=======
+ $ || $-210 
+---++-------
+   || $-210 
 
+# ** 16. Pivot on amount.
+$ hledger -f- bal -Y --pivot=amt
+Balance changes in 2025:
+
+      ||            2025 
+======++=================
+ -210 ||           $-210 
+ 1    ||             1 A 
+ 2    ||             2 B 
+------++-----------------
+      || $-210, 1 A, 2 B 
+
+# ** 17. Pivot on cost.
+$ hledger -f- bal -Y --pivot=cost
+Balance changes in 2025:
+
+         ||            2025 
+=========++=================
+         ||           $-210 
+  @ $10  ||             1 A 
+  @ $100 ||             2 B 
+---------++-----------------
+         || $-210, 1 A, 2 B 

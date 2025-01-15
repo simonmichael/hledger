@@ -5377,18 +5377,19 @@ Normally, hledger groups amounts and displays their totals by account (name).
 With `--pivot PIVOTEXPR`, some other field's (or multiple fields') value is used as a synthetic account name, causing different grouping and display.
 PIVOTEXPR can be 
 
-- any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`
+- any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`, `amt`, `cost`
 - or a tag name
 - or any combination of these, colon-separated.
 
 Some special cases:
 
-- Colons, in PIVOTEXPR or in a pivoted tag value, will appear in the generated account name, influencing the account tree.
-- When an unrecognised tag name or field is provided, its pivoted value will be "".
-- When a posting has multiple commodities, the pivoted value of "comm"/"cur" will be "".
+- Colons appearing in PIVOTEXPR or in a pivoted tag value will generate account hierarchy.
 - When pivoting a posting has multiple values for a tag, the pivoted value of that tag will be the first value.
+- When a posting has multiple commodities, the pivoted value of "comm"/"cur" will be "".
+  Also when an unrecognised tag name or field is provided, its pivoted value will be "".
+  (If this causes confusing output, consider excluding those postings from the report.)
 
-For example:
+Examples:
 
 ```journal
 2016/02/16 Yearly Dues Payment

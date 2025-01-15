@@ -1164,24 +1164,27 @@ pivotAccount :: Text -> Posting -> Text
 pivotAccount fieldortagname p =
   T.intercalate ":" [pivotComponent x p | x <- T.splitOn ":" fieldortagname]
 
--- | Get the value of the given field or tag for this posting, otherwise the empty string.
+-- | Get the value of the given field or tag for this posting.
 -- "comm" and "cur" are accepted as synonyms meaning the commodity symbol.
--- We currently don't handle pivoting of a posting with more than one commodity symbol; in that case we return "".
+-- Pivoting on an unknown field or tag, or on commodity when there are multiple commodities, returns "".
+-- Pivoting on a tag when there are multiple values for that tag, returns the first value.
 pivotComponent :: Text -> Posting -> Text
 pivotComponent fieldortagname p
-  |                           fieldortagname == "acct"        = paccount p
-  |                           fieldortagname `elem` ["cur","comm"] =
-    case map acommodity $ amounts $ pamount p of
-      [s] -> s
-      _   -> ""
-  | Just t <- ptransaction p, fieldortagname == "code"        = tcode t
-  | Just t <- ptransaction p, fieldortagname == "desc"        = tdescription t
-  | Just t <- ptransaction p, fieldortagname == "description" = tdescription t  -- backward compatible with 1.30 and older
-  | Just t <- ptransaction p, fieldortagname == "payee"       = transactionPayee t
-  | Just t <- ptransaction p, fieldortagname == "note"        = transactionNote t
-  | Just t <- ptransaction p, fieldortagname == "status"      = T.pack . show . tstatus $ t
-  | Just (_, value) <- postingFindTag fieldortagname p        = value
-  | otherwise                                                 = ""
+  | fieldortagname == "code",        Just t <- ptransaction p = tcode t
+  | fieldortagname `elem` descnames, Just t <- ptransaction p = tdescription t
+  | fieldortagname == "payee",       Just t <- ptransaction p = transactionPayee t
+  | fieldortagname == "note",        Just t <- ptransaction p = transactionNote t
+  | fieldortagname == "status",      Just t <- ptransaction p = T.pack . show . tstatus $ t
+  | fieldortagname == "acct"        = paccount p
+  | fieldortagname `elem` commnames = case map acommodity $ amounts $ pamount p of [s] -> s;                             _ -> unknown
+  | fieldortagname == "amt"         = case amounts $ pamount p of [a] -> T.pack $ show $ aquantity a;                    _ -> unknown
+  | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ showAmountCost a; _ -> unknown
+  | Just (_, tagvalue) <- postingFindTag fieldortagname p = tagvalue
+  | otherwise = unknown
+  where
+    descnames = ["desc", "description"]   -- allow "description" for hledger <=1.30 compat
+    commnames = ["cur","comm"]            -- allow either; cur is the query prefix, comm is more consistent
+    unknown   = ""
 
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p
