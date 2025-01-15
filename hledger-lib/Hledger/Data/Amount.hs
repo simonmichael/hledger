@@ -88,6 +88,7 @@ module Hledger.Data.Amount (
   showAmount,
   showAmountWith,
   showAmountB,
+  showAmountCost,
   showAmountCostB,
   cshowAmount,
   showAmountWithZeroCommodity,
@@ -671,6 +672,10 @@ showAmountB
       | otherwise = (quantity, (if displayQuotes then quoteCommoditySymbolIfNeeded else id) $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     cost = if displayCost then showAmountCostB afmt a else mempty
+
+-- Show an amount's cost as @ UNITCOST or @@ TOTALCOST.
+showAmountCost :: Amount -> String
+showAmountCost = wbUnpack . showAmountCostB defaultFmt
 
 -- Show an amount's cost as @ UNITCOST or @@ TOTALCOST (builder version).
 showAmountCostB :: AmountFormat -> Amount -> WideBuilder
