@@ -1176,9 +1176,9 @@ pivotComponent fieldortagname p
   | fieldortagname == "note",        Just t <- ptransaction p = transactionNote t
   | fieldortagname == "status",      Just t <- ptransaction p = T.pack . show . tstatus $ t
   | fieldortagname == "acct"        = paccount p
-  | fieldortagname `elem` commnames = case map acommodity $ amounts $ pamount p of [s] -> s;                             _ -> unknown
-  | fieldortagname == "amt"         = case amounts $ pamount p of [a] -> T.pack $ show $ aquantity a;                    _ -> unknown
-  | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ showAmountCost a; _ -> unknown
+  | fieldortagname `elem` commnames = case map acommodity $ amounts $ pamount p of [s] -> s; _ -> unknown
+  | fieldortagname == "amt"         = case amounts $ pamount p of [a] -> T.pack $ show $ aquantity a; _ -> unknown
+  | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ lstrip $ showAmountCost a; _ -> unknown
   | Just (_, tagvalue) <- postingFindTag fieldortagname p = tagvalue
   | otherwise = unknown
   where

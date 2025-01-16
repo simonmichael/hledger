@@ -673,22 +673,22 @@ showAmountB
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     cost = if displayCost then showAmountCostB afmt a else mempty
 
--- Show an amount's cost as @ UNITCOST or @@ TOTALCOST.
+-- Show an amount's cost as @ UNITCOST or @@ TOTALCOST, plus a leading space, or "" if there's no cost.
 showAmountCost :: Amount -> String
 showAmountCost = wbUnpack . showAmountCostB defaultFmt
 
--- Show an amount's cost as @ UNITCOST or @@ TOTALCOST (builder version).
+-- showAmountCost, efficient builder version.
 showAmountCostB :: AmountFormat -> Amount -> WideBuilder
 showAmountCostB afmt amt = case acost amt of
-  Nothing              -> mempty
+  Nothing             -> mempty
   Just (UnitCost  pa) -> WideBuilder (TB.fromString " @ ")  3 <> showAmountB afmt pa
   Just (TotalCost pa) -> WideBuilder (TB.fromString " @@ ") 4 <> showAmountB afmt (sign pa)
   where sign = if aquantity amt < 0 then negate else id
 
 showAmountCostDebug :: Maybe AmountCost -> String
 showAmountCostDebug Nothing                = ""
-showAmountCostDebug (Just (UnitCost pa))  = " @ "  ++ showAmountDebug pa
-showAmountCostDebug (Just (TotalCost pa)) = " @@ " ++ showAmountDebug pa
+showAmountCostDebug (Just (UnitCost pa))  = "@ "  ++ showAmountDebug pa
+showAmountCostDebug (Just (TotalCost pa)) = "@@ " ++ showAmountDebug pa
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
