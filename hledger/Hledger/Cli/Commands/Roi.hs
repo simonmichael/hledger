@@ -154,7 +154,9 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                , T.pack $ printf "%0.2f%%" $ smallIsZero annualizedTwr ]
 
   periodRows <- forM spans processSpan
-  totalRow <- processSpan fullPeriod
+  totalRow <- case periodRows of
+    [singleRow] -> return singleRow
+    _           -> processSpan fullPeriod
 
   let rowTitles = Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length periodRows) [1..]))
 
