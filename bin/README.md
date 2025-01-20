@@ -459,8 +459,8 @@ These are some official and third-party add-ons you can install as compiled prog
 
 Notes (as of 1.6.7):
 
-- Use the README at https://github.com/peti/hledger-interest, it's better than the command line help or hackage description.
-- It silently ignores $LEDGER_FILE, so be sure to provide a file name with -f.
+- Use the <https://github.com/peti/hledger-interest#readme>, it's better than the command line help or hackage description.
+- hledger-interest silently ignores $LEDGER_FILE, so be sure to provide a file name explicitly with -f.
 
 ### Other
 
