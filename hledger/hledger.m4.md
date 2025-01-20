@@ -2427,7 +2427,7 @@ Or, keep your decimal marks unambiguous and your entries well balanced and preci
 
 A commodity directive is normally the word `commodity`
 followed by a sample [amount](#amounts) (and optionally a comment).
-Only the amount's symbol and format is significant.
+Only the amount's symbol and the number's format is significant.
 Eg:
 
 ```journal
