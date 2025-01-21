@@ -28,7 +28,7 @@ where
 import Prelude hiding (Applicative(..))
 import Control.Monad.Except       (ExceptT(..), liftEither)
 import Control.Monad.IO.Class     (MonadIO)
-import Data.Text (Text)
+import System.IO                  (Handle)
 
 import Hledger.Data
 import Hledger.Utils
@@ -54,10 +54,10 @@ reader sep = Reader
 -- This file path is normally the CSV(/SSV/TSV) data file, and a corresponding rules file is inferred.
 -- But it can also be the rules file, in which case the corresponding data file is inferred.
 -- This does not check balance assertions.
-parse :: SepFormat -> InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse sep iopts f t = do
+parse :: SepFormat -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
+parse sep iopts f h = do
   let mrulesfile = mrules_file_ iopts
-  readJournalFromCsv (Right <$> mrulesfile) f t (Just sep)
+  readJournalFromCsv (Right <$> mrulesfile) f h (Just sep)
   -- apply any command line account aliases. Can fail with a bad replacement pattern.
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
       -- journalFinalise assumes the journal's items are
@@ -65,7 +65,7 @@ parse sep iopts f t = do
       -- But here they are already properly ordered. So we'd
       -- better preemptively reverse them once more. XXX inefficient
       . journalReverse
-  >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f t
+  >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f ""
 
 --- ** tests
 

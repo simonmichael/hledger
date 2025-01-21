@@ -10,11 +10,16 @@ packages:
 
 extra-deps:
 - base-compat-0.14.0
-- vty-windows-0.2.0.1   # not yet in stackage
+- vty-windows-0.2.0.1
+- encoding-0.10
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
+
+flags:
+  encoding:
+    systemEncoding: false # See https://github.com/dmwit/encoding/issues/26
 
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint

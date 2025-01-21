@@ -4,7 +4,9 @@ pretty-printing haskell values, error reporting, time, files, command line parsi
 terminals, pager output, ANSI colour/styles, etc.
 -}
 
+{-# LANGUAGE ImplicitParams      #-}
 {-# LANGUAGE LambdaCase          #-}
+{-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
@@ -31,11 +33,15 @@ module Hledger.Utils.IO (
   expandPath,
   expandGlob,
   sortByModTime,
+  openFileOrStdin,
   readFileOrStdinPortably,
+  readFileOrStdinPortably',
   readFileStrictly,
   readFilePortably,
   readHandlePortably,
+  readHandlePortably',
   -- hereFileRelative,
+  inputToHandle,
 
   -- * Command line parsing
   progArgs,
@@ -111,6 +117,7 @@ import           Data.Char (toLower)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.Colour.SRGB (sRGB)
+import           Data.Encoding (DynEncoding)
 import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
@@ -136,8 +143,9 @@ import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
 import           System.IO (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode, openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice, hPutStr, hClose)
+import qualified System.IO.Encoding as Enc
 import           System.IO.Unsafe (unsafePerformIO)
-import           System.Process (CreateProcess(..), StdStream(CreatePipe), shell, waitForProcess, withCreateProcess)
+import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, shell, waitForProcess, withCreateProcess)
 import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
@@ -280,19 +288,39 @@ readFilePortably f =  openFile f ReadMode >>= readHandlePortably
 
 -- | Like readFilePortably, but read from standard input if the path is "-".
 readFileOrStdinPortably :: String -> IO T.Text
-readFileOrStdinPortably f = openFileOrStdin f ReadMode >>= readHandlePortably
-  where
-    openFileOrStdin :: String -> IOMode -> IO Handle
-    openFileOrStdin "-" _ = return stdin
-    openFileOrStdin f' m   = openFile f' m
+readFileOrStdinPortably = readFileOrStdinPortably' Nothing
+
+-- | Like readFileOrStdinPortably, but take an optional converter.
+readFileOrStdinPortably' :: Maybe DynEncoding -> String -> IO T.Text
+readFileOrStdinPortably' c f = openFileOrStdin f >>= readHandlePortably' c
+
+openFileOrStdin :: String -> IO Handle
+openFileOrStdin "-" = return stdin
+openFileOrStdin f' = openFile f' ReadMode
 
 readHandlePortably :: Handle -> IO T.Text
-readHandlePortably h = do
+readHandlePortably = readHandlePortably' Nothing
+
+readHandlePortably' :: Maybe DynEncoding -> Handle -> IO T.Text
+readHandlePortably' Nothing h = do
   hSetNewlineMode h universalNewlineMode
   menc <- hGetEncoding h
   when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
     hSetEncoding h utf8_bom
   T.hGetContents h
+readHandlePortably' (Just e) h =
+  -- We need to manually apply the newline mode
+  -- Since we already have a Text
+  T.replace "\r\n" "\n" . T.pack <$> let ?enc = e in Enc.hGetContents h
+
+inputToHandle :: T.Text -> IO Handle
+inputToHandle t = do
+  (r, w) <- createPipe
+  hSetEncoding r utf8_bom
+  hSetEncoding w utf8_bom
+  T.hPutStr w t
+  hClose w
+  return r
 
 -- | Like embedFile, but takes a path relative to the package directory.
 embedFileRelative :: FilePath -> Q Exp

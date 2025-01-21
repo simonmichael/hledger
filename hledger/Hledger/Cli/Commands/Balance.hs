@@ -1226,7 +1226,7 @@ tests_Balance = testGroup "Balance" [
 
    testGroup "balanceReportAsText" [
     testCase "unicode in balance layout" $ do
-      j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+      j <- readJournal'' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec{_rsReportOpts=defreportopts{no_total_=True}}
       TB.toLazyText (balanceReportAsText (_rsReportOpts rspec) (balanceReport rspec{_rsDay=fromGregorian 2008 11 26} j))
         @?=

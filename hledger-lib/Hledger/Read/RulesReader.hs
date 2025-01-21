@@ -52,6 +52,7 @@ import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
+import Data.Encoding              (encodingFromStringExplicit)
 import Data.Functor               ((<&>))
 import Data.List (elemIndex, mapAccumL, nub, sortOn)
 #if !MIN_VERSION_base(4,20,0)
@@ -69,6 +70,7 @@ import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC)
 import Safe (atMay, headMay, lastMay, readMay)
 import System.FilePath ((</>), takeDirectory, takeExtension, stripExtension, takeFileName)
+import System.IO       (Handle, hClose)
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
 import qualified Data.ByteString as B
@@ -116,10 +118,11 @@ getDownloadDir = do
 -- file's directory. When a glob pattern matches multiple files, the alphabetically
 -- last is used. (Eg in case of multiple numbered downloads, the highest-numbered
 -- will be used.)
--- The provided text, or a --rules option, are ignored by this reader.
+-- The provided handle, or a --rules option, are ignored by this reader.
 -- Balance assertions are not checked.
-parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts f _ = do
+parse :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
+parse iopts f h = do
+  lift $ hClose h -- We don't need it
   rules <- readRulesFile $ dbg4 "reading rules file" f
   -- XXX higher-than usual debug level for file reading to bypass excessive noise from elsewhere, normally 6 or 7
   mdatafile <- liftIO $ do
@@ -139,8 +142,8 @@ parse iopts f _ = do
       if not (dat=="-" || exists)
       then return nulljournal      -- data file inferred from rules file name was not found
       else do
-        t <- liftIO $ readFileOrStdinPortably dat
-        readJournalFromCsv (Just $ Left rules) dat t Nothing
+        dath <- liftIO $ openFileOrStdin dat
+        readJournalFromCsv (Just $ Left rules) dat dath Nothing
         -- apply any command line account aliases. Can fail with a bad replacement pattern.
         >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
             -- journalFinalise assumes the journal's items are
@@ -500,6 +503,7 @@ directivep = (do
 directives :: [Text]
 directives =
   ["source"
+  ,"encoding"
   ,"date-format"
   ,"decimal-mark"
   ,"separator"
@@ -908,9 +912,9 @@ _CSV_READING__________________________________________ = undefined
 --
 -- 4. Return the transactions as a Journal.
 --
-readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
-readJournalFromCsv Nothing "-" _ _ = throwError "please use --rules when reading CSV from stdin"
-readJournalFromCsv merulesfile csvfile csvtext sep = do
+readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Handle -> Maybe SepFormat -> ExceptT String IO Journal
+readJournalFromCsv Nothing "-" h _ = lift (hClose h) *> throwError "please use --rules when reading CSV from stdin"
+readJournalFromCsv merulesfile csvfile csvhandle sep = do
     -- for now, correctness is the priority here, efficiency not so much
 
     rules <- case merulesfile of
@@ -918,6 +922,16 @@ readJournalFromCsv merulesfile csvfile csvtext sep = do
       Just (Right rulesfile) -> readRulesFile rulesfile
       Nothing                -> readRulesFile $ rulesFileFor csvfile
     dbg6IO "csv rules" rules
+
+    -- read csv while being aware of the encoding
+    mencoding <- do
+      -- XXX higher-than usual debug level for file reading to bypass excessive noise from elsewhere, normally 6 or 7
+      case T.unpack <$> getDirective "encoding" rules of
+        Just rawenc -> case encodingFromStringExplicit $ dbg4 "raw-encoding" rawenc of
+          Just enc -> return . Just $ dbg4 "encoding" enc
+          Nothing -> throwError $ "Invalid encoding: " <> rawenc
+        Nothing  -> return Nothing
+    csvtext <- lift $ readHandlePortably' mencoding csvhandle
 
     -- convert the csv data to lines and remove all empty/blank lines
     let csvlines1 = dbg9 "csvlines1" $ filter (not . T.null . T.strip) $ dbg9 "csvlines0" $ T.lines csvtext

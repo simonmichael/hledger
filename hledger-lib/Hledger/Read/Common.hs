@@ -34,6 +34,7 @@ module Hledger.Read.Common (
   HasInputOpts(..),
   definputopts,
   rawOptsToInputOpts,
+  handleReadFnToTextReadFn,
 
   -- * parsing utilities
   parseAndFinaliseJournal,
@@ -148,6 +149,7 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
 import System.FilePath (takeFileName)
+import System.IO (Handle)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
@@ -179,9 +181,9 @@ data Reader m = Reader {
     ,rExtensions :: [String]
 
      -- The entry point for reading this format, accepting input options, file
-     -- path for error messages and file contents, producing an exception-raising IO
+     -- path for error messages and file contents via the handle, producing an exception-raising IO
      -- action that produces a journal or error message.
-    ,rReadFn   :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
+    ,rReadFn   :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 
      -- The actual megaparsec parser called by the above, in case
      -- another parser (includedirectivep) wants to use it directly.
@@ -230,6 +232,10 @@ rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
       ,strict_            = boolopt "strict" rawopts
       ,_ioDay             = day
       }
+
+handleReadFnToTextReadFn :: (InputOpts -> FilePath -> Text -> ExceptT String IO Journal) -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
+handleReadFnToTextReadFn p iopts fp =
+  p iopts fp <=< lift . readHandlePortably
 
 -- | Get the date span from --forecast's PERIODEXPR argument, if any.
 -- This will fail with a usage error if the period expression cannot be parsed,
