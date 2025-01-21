@@ -102,6 +102,7 @@ module Hledger.Read (
 
   -- * Easy journal parsing
   readJournal',
+  readJournal'',
   readJournalFile',
   readJournalFiles',
   orDieTrying,
@@ -125,7 +126,7 @@ module Hledger.Read (
 
 --- ** imports
 import qualified Control.Exception as C
-import Control.Monad (unless, when, forM)
+import Control.Monad (unless, when, forM, (<=<))
 import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
@@ -145,7 +146,7 @@ import System.Environment (getEnv)
 import System.Exit (exitFailure)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
 import System.Info (os)
-import System.IO (hPutStr, stderr)
+import System.IO (Handle, hPutStr, stderr)
 
 import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
@@ -205,7 +206,7 @@ type PrefixedFilePath = FilePath
 
 -- | @readJournal iopts mfile txt@
 --
--- Read a Journal from some text, with strict checks if enabled,
+-- Read a Journal from some handle, with strict checks if enabled,
 -- or return an error message.
 --
 -- The reader (data format) is chosen based on, in this order:
@@ -219,11 +220,11 @@ type PrefixedFilePath = FilePath
 -- If none of these is available, or if the reader name is unrecognised,
 -- we use the journal reader (for predictability).
 --
-readJournal :: InputOpts -> Maybe FilePath -> Text -> ExceptT String IO Journal
-readJournal iopts@InputOpts{strict_, _defer} mpath txt = do
+readJournal :: InputOpts -> Maybe FilePath -> Handle -> ExceptT String IO Journal
+readJournal iopts@InputOpts{strict_, _defer} mpath hdl = do
   let r :: Reader IO = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
   dbg6IO "readJournal: trying reader" (rFormat r)
-  j <- rReadFn r iopts (fromMaybe "(string)" mpath) txt
+  j <- rReadFn r iopts (fromMaybe "(string)" mpath) hdl
   when (strict_ && not _defer) $ liftEither $ journalStrictChecks j
   return j
 
@@ -264,11 +265,11 @@ readJournalFileAndLatestDates iopts prefixedfile = do
     (mfmt, f) = splitReaderPrefix prefixedfile
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
   liftIO $ requireJournalFileExists f
-  t <-
+  h <-
     traceOrLogAt 6 ("readJournalFile: "++takeFileName f) $
-    liftIO $ readFileOrStdinPortably f
+    liftIO $ openFileOrStdin f
     -- <- T.readFile f  -- or without line ending translation, for testing
-  j <- readJournal iopts' (Just f) t
+  j <- readJournal iopts' (Just f) h
   if new_ iopts
     then do
       ds <- liftIO $ previousLatestDates f
@@ -313,8 +314,13 @@ readJournalFilesAndLatestDates iopts pfs = do
 
 -- | An easy version of 'readJournal' which assumes default options, and fails
 -- in the IO monad.
-readJournal' :: Text -> IO Journal
+readJournal' :: Handle -> IO Journal
 readJournal' = orDieTrying . readJournal definputopts Nothing
+
+-- | An even easier version of 'readJournal' which additionally to 'readJournal''
+-- also takes a 'Text' instead of a 'Handle'.
+readJournal'' :: Text -> IO Journal
+readJournal'' = readJournal' <=< inputToHandle
 
 -- | An easy version of 'readJournalFile' which assumes default options, and fails
 -- in the IO monad.

@@ -79,7 +79,7 @@ reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = Timeclock
   ,rExtensions = ["timeclock"]
-  ,rReadFn     = parse
+  ,rReadFn     = handleReadFnToTextReadFn parse
   ,rParser    = timeclockfilep
   }
 

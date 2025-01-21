@@ -194,7 +194,7 @@ reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = Journal'
   ,rExtensions = ["journal", "j", "hledger", "ledger"]
-  ,rReadFn     = parse
+  ,rReadFn     = handleReadFnToTextReadFn parse
   ,rParser    = journalp  -- no need to add command line aliases like journalp'
                            -- when called as a subparser I think
   }

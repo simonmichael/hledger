@@ -68,7 +68,7 @@ reader :: MonadIO m => Reader m
 reader = Reader
   {rFormat     = Timedot
   ,rExtensions = ["timedot"]
-  ,rReadFn     = parse
+  ,rReadFn     = handleReadFnToTextReadFn parse
   ,rParser    = timedotp
   }
 

@@ -304,7 +304,7 @@ tests_Register = testGroup "Register" [
 
    testGroup "postingsReportAsText" [
     testCase "unicode in register layout" $ do
-      j <- readJournal' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
+      j <- readJournal'' "2009/01/01 * медвежья шкура\n  расходы:покупки  100\n  актив:наличные\n"
       let rspec = defreportspec
       (TL.unpack . postingsReportAsText defcliopts $ postingsReport rspec j)
         @?=
