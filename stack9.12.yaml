@@ -18,7 +18,8 @@ packages:
 extra-deps:
 # - base-compat-0.14.0
 
-# # for hledger-lib
+ # for hledger-lib
+- encoding-0.10
 # - Cabal-3.12.0.0
 # - Cabal-syntax-3.12.0.0
 # #- directory-1.3.8.3
@@ -40,6 +41,10 @@ extra-deps:
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
+
+flags:
+  encoding:
+    systemEncoding: false # See https://github.com/dmwit/encoding/issues/26
 
 # ghc-options:
 #   "$locals": -Wno-x-partial

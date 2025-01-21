@@ -131,7 +131,7 @@ hledgerWebTest = do
     rawopts = [("forecast","")]
     iopts = rawOptsToInputOpts d usecolor True $ mkRawOpts rawopts
     f = "fake"  -- need a non-null filename so forecast transactions get index 0
-  pj <- readJournal' (T.pack $ unlines  -- PARTIAL: readJournal' should not fail
+  pj <- readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
     ["~ monthly"
     ,"    assets    10"
     ,"    income"

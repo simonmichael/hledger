@@ -59,6 +59,7 @@ dependencies:
 - Decimal >=0.5.1
 - directory >=1.2.6.1
 - doclayout >=0.3 && <0.6
+- encoding >=0.10
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1

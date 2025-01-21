@@ -391,8 +391,8 @@ tests_Commands = testGroup "Commands" [
         let
           ignoresourcepos j = j{jtxns=map (\t -> t{tsourcepos=nullsourcepospair}) (jtxns j)}
           sameParse str1 str2 = do
-            j1 <- ignoresourcepos <$> readJournal' str1  -- PARTIAL:
-            j2 <- ignoresourcepos <$> readJournal' str2  -- PARTIAL:
+            j1 <- ignoresourcepos <$> readJournal'' str1  -- PARTIAL:
+            j2 <- ignoresourcepos <$> readJournal'' str2  -- PARTIAL:
             j1 @?= j2{jlastreadtime=jlastreadtime j1, jfiles=jfiles j1} --, jparsestate=jparsestate j1}
         sameParse
            ("2008/12/07 One\n  alpha  $-1\n  beta  $1\n" <>
@@ -409,19 +409,19 @@ tests_Commands = testGroup "Commands" [
            )
 
     ,testCase "preserves \"virtual\" posting type" $ do
-      j <- readJournal' "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n"  -- PARTIAL:
+      j <- readJournal'' "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n"  -- PARTIAL:
       let p = headErr $ tpostings $ headErr $ jtxns j  -- PARTIAL headErrs succeed because txns & postings provided
       paccount p @?= "test:from"
       ptype p @?= VirtualPosting
     ]
 
   ,testCase "alias directive" $ do
-    j <- readJournal' "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n"  -- PARTIAL:
+    j <- readJournal'' "!alias expenses = equity:draw:personal\n1/1\n (expenses:food)  1\n"  -- PARTIAL:
     let p = headErr $ tpostings $ headErr $ jtxns j  -- PARTIAL headErrs succeed because txns & postings provided
     paccount p @?= "equity:draw:personal:food"
 
   ,testCase "Y default year directive" $ do
-    j <- readJournal' defaultyear_journal_txt  -- PARTIAL:
+    j <- readJournal'' defaultyear_journal_txt  -- PARTIAL:
     tdate (headErr $ jtxns j) @?= fromGregorian 2009 1 1  -- PARTIAL headErr succeeds because defaultyear_journal_txt has a txn
 
   ,testCase "ledgerAccountNames" $
@@ -454,7 +454,7 @@ tests_Commands = testGroup "Commands" [
 -- t1 = LocalTime date1 midday
 
 {-
-samplejournal = readJournal' sample_journal_str
+samplejournal = readJournal'' sample_journal_str
 
 sample_journal_str = unlines
  ["; A sample journal file."

@@ -141,6 +141,7 @@ library
     , deepseq
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
+    , encoding >=0.10
     , extra >=1.6.3
     , file-embed >=0.0.10
     , filepath
@@ -201,6 +202,7 @@ test-suite doctest
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , doctest >=0.18.1
+    , encoding >=0.10
     , extra >=1.6.3
     , file-embed >=0.0.10
     , filepath
@@ -262,6 +264,7 @@ test-suite unittest
     , deepseq
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
+    , encoding >=0.10
     , extra >=1.6.3
     , file-embed >=0.0.10
     , filepath

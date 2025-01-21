@@ -301,7 +301,7 @@ tests_PostingsReport = testGroup "PostingsReport" [
       ,"postings report with cleared option" ~:
        do
         let opts = defreportopts{cleared_=True}
-        j <- readJournal' sample_journal_str
+        j <- readJournal'' sample_journal_str
         (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
          ["2008/06/03 eat & shop           expenses:food                    $1           $1"
          ,"                                expenses:supplies                $1           $2"
@@ -313,7 +313,7 @@ tests_PostingsReport = testGroup "PostingsReport" [
       ,"postings report with uncleared option" ~:
        do
         let opts = defreportopts{uncleared_=True}
-        j <- readJournal' sample_journal_str
+        j <- readJournal'' sample_journal_str
         (postingsReportAsText opts $ postingsReport opts (queryFromOpts date1 opts) j) `is` unlines
          ["2008/01/01 income               assets:bank:checking             $1           $1"
          ,"                                income:salary                   $-1            0"
@@ -325,7 +325,7 @@ tests_PostingsReport = testGroup "PostingsReport" [
 
       ,"postings report sorts by date" ~:
        do
-        j <- readJournal' $ unlines
+        j <- readJournal'' $ unlines
             ["2008/02/02 a"
             ,"  b  1"
             ,"  c"

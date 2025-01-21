@@ -16,10 +16,15 @@ extra-deps:
 - vty-crossplatform-0.4.0.0
 - vty-unix-0.2.0.0
 - vty-windows-0.2.0.2
+- encoding-0.10
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
+
+flags:
+  encoding:
+    systemEncoding: false # See https://github.com/dmwit/encoding/issues/26
 
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint
