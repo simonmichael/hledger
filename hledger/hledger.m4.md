@@ -3102,8 +3102,6 @@ A slight digression for Ledger and Beancount users. Ledger has a number of cost/
 - `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
   - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
 
-Currently, hledger treats the above like `@` and `@@`; the parentheses are ignored.
-
 - `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
   - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
 
@@ -3119,8 +3117,12 @@ Currently, hledger treats the above like `@` and `@@`; the parentheses are ignor
   - when buying, attaches this note to the lot
   - when selling, selects a lot by its note
 
-Currently, hledger accepts any or all of the above in any order after the posting amount, but ignores them.
-(This can break transaction balancing.)
+Currently, hledger 
+
+- accepts any or all of the above in any order after the posting amount
+- supports `@` and `@@`
+- treats `(@)` and `(@@)` as synonyms for `@` and `@@`
+- and ignores the rest. (This can break transaction balancing.)
 
 [ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
@@ -3128,7 +3130,7 @@ Currently, hledger accepts any or all of the above in any order after the postin
 [ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
 [ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
 
-For Beancount users, the [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work] is different:
+Beancount has different [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work]:
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a cost without creating a lot, as in hledger
@@ -3141,12 +3143,13 @@ For Beancount users, the [notation][beancount: costs and prices] and [behaviour]
     - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
     - expresses the selling price for transaction balancing
 
-Currently, hledger accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation but ignores it.
+- These variants are also accepted: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
 
-- variations: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
+Currently, hledger
 
-Currently, hledger rejects these.
-
+- supports `@` and `@@`
+- accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation, but ignores it
+- and rejects the rest.
 
 [beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
 [beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
