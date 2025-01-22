@@ -10,9 +10,9 @@ Flags:
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
-                                   as in journal
+                                   as in journal (default)
                             soft - just add or remove decimal zeros
-                                   to match precision (default)
+                                   to match precision
                             hard - round posting amounts to precision
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision

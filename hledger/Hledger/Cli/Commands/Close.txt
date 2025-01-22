@@ -28,9 +28,9 @@ Flags:
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
-                                   as in journal
+                                   as in journal (default)
                             soft - just add or remove decimal zeros
-                                   to match precision (default)
+                                   to match precision
                             hard - round posting amounts to precision
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision
@@ -64,10 +64,9 @@ correct account balances in each case. The earliest opening balances
 transaction sets correct starting balances, and any later
 closing/opening pairs will harmlessly cancel each other out.
 
-The balances will be transferred to and from an equity account:
-equity:opening/closing balances by default, You can override this by
-declaring an account with type V/Conversion, or by using --close-acct
-and/or --open-acct.
+The balances will be transferred to and from
+equity:opening/closing balances by default. You can override this by
+using --close-acct and/or --open-acct.
 
 You can select a different set of accounts to close/open by providing an
 account query. Eg to add Equity accounts, provide arguments like
@@ -75,10 +74,13 @@ assets liabilities equity or type:ALE. When migrating to a new file,
 you'll usually want to bring along the AL or ALE accounts, but not the
 RX accounts (Revenue, Expense).
 
+Assertions will be added indicating and checking the new balances of the
+closed/opened accounts.
+
 The generated transactions will have a clopen: tag. If the main
-journal's file name contains a number (eg a year number), the tag's
-value will be that file name with the number incremented. Or you can
-choose the tag value yourself, by using --clopen=TAGVAL.
+journal's base file name contains a number (eg a year number), the tag's
+value will be that base file name with the number incremented. Or you
+can choose the tag value yourself, by using --clopen=TAGVAL.
 
 close --close
 
@@ -116,19 +118,19 @@ recommended.
 
 close --retain
 
-This is like --close, but with different defaults: it prints a
-transaction that transfers Revenue and Expense balances to
-equity:retained earnings (and adds a retain: tag).
+This is like --close, but it closes Revenue and Expense account balances
+by default. They will be transferred to equity:retained earnings, or
+another account specified with --close-acct.
 
-This is called "retaining earnings", or "closing the books". Revenues
-and expenses correspond to changes in equity. They are initially kept
-separate for reporting purposes, but traditionally at the end of each
-accounting period, businesses consolidate them into equity,
+Revenues and expenses correspond to changes in equity. They are
+categorised separately for reporting purposes, but traditionally at the
+end of each accounting period, businesses consolidate them into equity,
+This is called "retaining earnings", or "closing the books".
 
 In personal accounting, there's not much reason to do this, and most
-people don't. One reason to do it is to help the balancesheetequity
+people don't. (One reason to do it is to help the balancesheetequity
 report show a zero total, demonstrating that the accounting equation
-(A-L=E) is satisfied.
+(A-L=E) is satisfied.)
 
 close customisation
 
