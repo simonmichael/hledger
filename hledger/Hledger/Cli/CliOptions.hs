@@ -58,6 +58,7 @@ module Hledger.Cli.CliOptions (
   getHledgerCliOpts,
   getHledgerCliOpts',
   rawOptsToCliOpts,
+  cliOptsDropArgs,
   outputFormats,
   defaultOutputFormat,
   CommandHelpStr,
@@ -640,6 +641,10 @@ rawOptsToCliOpts rawopts = do
              ,width_           = maybestringopt "width" rawopts
              ,available_width_ = availablewidth
              }
+
+-- | Drop the arguments ("args") from this CliOpts' rawopts field.
+cliOptsDropArgs :: CliOpts -> CliOpts
+cliOptsDropArgs copts@CliOpts{rawopts_} = copts{rawopts_ = dropRawOpt "args" rawopts_}
 
 -- | A helper for addon commands: this parses options and arguments from
 -- the current command line using the given hledger-style cmdargs mode,

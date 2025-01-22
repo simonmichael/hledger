@@ -11,6 +11,7 @@ module Hledger.Data.RawOptions (
   RawOpts,
   mkRawOpts,
   overRawOpts,
+  dropRawOpt,
   setopt,
   setboolopt,
   unsetboolopt,
@@ -52,6 +53,9 @@ mkRawOpts = RawOpts
 
 overRawOpts :: ([(String,String)] -> [(String,String)]) -> RawOpts -> RawOpts
 overRawOpts f = RawOpts . f . unRawOpts
+
+dropRawOpt :: String -> RawOpts -> RawOpts
+dropRawOpt a = overRawOpts $ filter (not.(==a).fst)
 
 setopt :: String -> String -> RawOpts -> RawOpts
 setopt name val = overRawOpts (++ [(name, val)])
