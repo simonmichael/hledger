@@ -3093,7 +3093,9 @@ See also <https://hledger.org/ledger.html> for a detailed hledger/Ledger syntax 
 
 ### Other cost/lot notations
 
-A slight digression for Ledger and Beancount users. Ledger has a number of cost/lot-related notations:
+A slight digression for Ledger and Beancount users.
+
+**Ledger** has a number of cost/lot-related notations:
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a conversion rate, as in hledger
@@ -3130,15 +3132,15 @@ Currently, hledger
 [ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
 [ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
 
-Beancount has different [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work]:
+**Beancount** has different [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work]:
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a cost without creating a lot, as in hledger
-  - when buying (augmenting) or selling (reducing) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
+  - when buying (acquiring) or selling (disposing of) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
 
 - `{UNITCOST}` and `{{{{TOTALCOST}}}}`
-  - when buying (augmenting), expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
-  - when selling (reducing),
+  - when buying, expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
+  - when selling,
     - selects a lot by its cost basis
     - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
     - expresses the selling price for transaction balancing
