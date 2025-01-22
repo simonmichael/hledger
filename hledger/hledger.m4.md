@@ -3146,7 +3146,7 @@ Currently, hledger
     - expresses the selling price for transaction balancing
 
 - `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}`
-  - when selling, the various combinations of date, cost, and/or label are accepted for selecting the lot.
+  - when selling, other combinations of date/cost/label, like the above, are accepted for selecting the lot.
 
 Currently, hledger
 
