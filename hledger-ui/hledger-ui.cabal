@@ -78,7 +78,7 @@ library
       ansi-terminal >=0.9
     , async
     , base >=4.14 && <4.21
-    , brick >=2.1.1 && <2.3.2 || >2.3.2 && <2.7
+    , brick >=2.1.1 && <2.3.2 || >2.3.2 && <2.8
     , cmdargs >=0.8
     , containers >=0.5.9
     , data-default
