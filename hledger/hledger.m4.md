@@ -3111,7 +3111,7 @@ A slight digression for Ledger and Beancount users.
   - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
   - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
 
-- and related: `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
+- `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
   - when buying, attaches this acquisition date to the lot
   - when selling, selects a lot by its acquisition date
 
@@ -3145,7 +3145,8 @@ Currently, hledger
     - raises an error if that lot is not present or can not be selected unambiguously (depending on booking method configured)
     - expresses the selling price for transaction balancing
 
-- These variants are also accepted: `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}` etc.
+- `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}`
+  - when selling, the various combinations of date, cost, and/or label are accepted for selecting the lot.
 
 Currently, hledger
 
