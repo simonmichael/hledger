@@ -3132,7 +3132,7 @@ Currently, hledger
 [ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
 [ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
 
-**Beancount** has different [notation][beancount: costs and prices] and [behaviour][beancount: how inventories work]:
+**Beancount** has simpler [notation][beancount: costs and prices] and different [behaviour][beancount: how inventories work]:
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a cost without creating a lot, as in hledger
