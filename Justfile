@@ -1628,3 +1628,8 @@ TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFI
 # Clean: stackclean cleanghco cleantags \
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
+
+# hledger time report
+time *ARGS:
+    hledger -n -f $TIMEDIR/time-all.journal bal hledger -YTA --transpose -0 {{ ARGS }}
+
