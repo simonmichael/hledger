@@ -1,38 +1,41 @@
-{-# LANGUAGE OverloadedStrings #-}
 {- |
-Common definitions for Html.Blaze and Html.Lucid
+HTML writing helpers.
+This module would ideally hide the details of which HTML library is used, but it doesn't yet.
+
+Currently hledger-web uses blaze-html, but hledger CLI reports use lucid.
+lucid has a more usable API than blaze-html (https://chrisdone.com/posts/lucid).
+lucid2's is even better.
+Unfortunately lucid* can not render multi-line or indented text.
+We want this so that humans can read and troubleshoot our HTML output.
+So a transition to blaze-html may be coming.
+
 -}
+
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Write.Html (
-    Lines(..),
-    borderStyles,
-    ) where
+  L.toHtml,
+  Html,
+  formatRow,
+  htmlAsText,
+  htmlAsLazyText,
+  styledTableHtml,
+  tests_Hledger_Write_Html
+  ) where
 
-import qualified Hledger.Write.Spreadsheet as Spr
-import Hledger.Write.Spreadsheet (Cell(..))
+import qualified Data.Text as T (Text)
+import qualified Data.Text.Lazy as TL (Text, toStrict)
+import qualified Lucid as L (renderText, toHtml)
+import Test.Tasty (testGroup)
 
-import Data.Text (Text)
-
-
-borderStyles :: Lines border => Cell border text -> [Text]
-borderStyles cell =
-    let border field access =
-            map (field<>) $ borderLines $ access $ cellBorder cell in
-    let leftBorder   = border "border-left:"   Spr.borderLeft   in
-    let rightBorder  = border "border-right:"  Spr.borderRight  in
-    let topBorder    = border "border-top:"    Spr.borderTop    in
-    let bottomBorder = border "border-bottom:" Spr.borderBottom in
-    leftBorder++rightBorder++topBorder++bottomBorder
+import Hledger.Write.Html.Lucid (Html, formatRow, styledTableHtml)
 
 
-class (Spr.Lines border) => Lines border where
-    borderLines :: border -> [Text]
+htmlAsText :: Html -> T.Text
+htmlAsText = TL.toStrict . L.renderText
 
-instance Lines () where
-    borderLines () = []
+htmlAsLazyText :: Html -> TL.Text
+htmlAsLazyText = L.renderText
 
-instance Lines Spr.NumLines where
-    borderLines prop =
-        case prop of
-            Spr.NoLine -> []
-            Spr.SingleLine -> ["black"]
-            Spr.DoubleLine -> ["double black"]
+tests_Hledger_Write_Html = testGroup "Write.Html" [
+  ]

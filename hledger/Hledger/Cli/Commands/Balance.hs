@@ -291,7 +291,6 @@ import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C (flagNone, flagReq, flagOpt)
-import Lucid as L hiding (value_)
 import Safe (headMay, maximumMay)
 import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
@@ -305,7 +304,7 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor, dateSpanCell, headerDateSpanCell)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import Hledger.Write.Html.Lucid (styledTableHtml)
+import Hledger.Write.Html (Html, styledTableHtml, htmlAsLazyText, toHtml)
 import Hledger.Write.Spreadsheet (rawTableContent, headerCell,
             addHeaderBorders, addRowSpanHeader,
             cellFromMixedAmount, cellsFromMixedAmount)
@@ -391,8 +390,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
             "json" -> (<>"\n") . toJsonText
             "csv"  -> printCSV . budgetReportAsCsv ropts
             "tsv"  -> printTSV . budgetReportAsCsv ropts
-            "html" -> (<>"\n") . L.renderText .
-                      styledTableHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
+            "html" -> (<>"\n") . htmlAsLazyText .
+                      styledTableHtml . map (map (fmap toHtml)) . budgetReportAsSpreadsheet ropts
             "fods" -> printFods IO.localeEncoding .
                       Map.singleton "Budget Report" . (,) (1,0) . budgetReportAsSpreadsheet ropts
             _      -> error' $ unsupportedOutputFormatError fmt
@@ -404,7 +403,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "txt"  -> multiBalanceReportAsText ropts
               "csv"  -> printCSV . multiBalanceReportAsCsv ropts
               "tsv"  -> printTSV . multiBalanceReportAsCsv ropts
-              "html" -> (<>"\n") . L.renderText . multiBalanceReportAsHtml ropts
+              "html" -> (<>"\n") . htmlAsLazyText . multiBalanceReportAsHtml ropts
               "json" -> (<>"\n") . toJsonText
               "fods" -> printFods IO.localeEncoding .
                         Map.singleton "Multi-period Balance Report" . multiBalanceReportAsSpreadsheet ropts
@@ -417,8 +416,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "txt"  -> TB.toLazyText . balanceReportAsText ropts
               "csv"  -> printCSV . balanceReportAsCsv ropts
               "tsv"  -> printTSV . balanceReportAsCsv ropts
-              "html" -> (<>"\n") . L.renderText .
-                                   styledTableHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
+              "html" -> (<>"\n") . htmlAsLazyText .
+                                   styledTableHtml . map (map (fmap toHtml)) . balanceReportAsSpreadsheet ropts
               "json" -> (<>"\n") . toJsonText
               "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (1,0) . balanceReportAsSpreadsheet ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -709,9 +708,9 @@ tidyColumnLabels =
 
 
 -- | Render a multi-column balance report as HTML.
-multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
+multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html
 multiBalanceReportAsHtml ropts mbr =
-  styledTableHtml . map (map (fmap L.toHtml)) $
+  styledTableHtml . map (map (fmap toHtml)) $
     snd $ multiBalanceReportAsSpreadsheet ropts mbr
 
 -- | Render the ODS table rows for a MultiBalanceReport.

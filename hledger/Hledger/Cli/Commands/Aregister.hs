@@ -29,19 +29,18 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Control.Monad (when)
-import Lucid (toHtml)
-import qualified Lucid as L
+import qualified Lucid as L hiding (Html)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
+import qualified System.IO as IO
+import Text.Tabular.AsciiWide hiding (render)
 
 import Hledger
-import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Ods (printFods)
-import qualified Hledger.Write.Spreadsheet as Spr
-import qualified Hledger.Write.Html.Lucid as Html
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Text.Tabular.AsciiWide hiding (render)
-import qualified System.IO as IO
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Html (formatRow, htmlAsLazyText, toHtml)
+import Hledger.Write.Ods (printFods)
+import qualified Hledger.Write.Spreadsheet as Spr
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")
@@ -176,7 +175,7 @@ accountTransactionsReportItemAsRecord
 -- | Render a register report as a HTML snippet.
 accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsHTML copts reportq thisacctq items =
-  L.renderText $ do
+  htmlAsLazyText $ do
     L.link_ [L.rel_ "stylesheet", L.href_ "hledger.css"]
     L.table_ $ do
       when (headingopt copts) $ L.thead_ $ L.tr_ $ do
@@ -186,7 +185,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
         L.th_ "change"
         L.th_ "balance"
       L.tbody_ $ for_ items $
-        Html.formatRow . map (fmap toHtml) .
+        formatRow . map (fmap toHtml) .
         accountTransactionsReportItemAsRecord
           oneLineNoCostFmt False
           (whichDate $ _rsReportOpts $ reportspec_ copts)

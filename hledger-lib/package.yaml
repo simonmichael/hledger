@@ -162,6 +162,7 @@ library:
   - Hledger.Write.Html.Attribute
   - Hledger.Write.Html.Blaze
   - Hledger.Write.Html.Lucid
+  - Hledger.Write.Html.HtmlCommon
   - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
