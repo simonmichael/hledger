@@ -37,7 +37,7 @@ import Hledger
 import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Html.Lucid (styledTableHtml)
 import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
@@ -142,7 +142,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
            | fmt=="json"      = toJsonText                    . styleAmounts styles
            | fmt=="sql"       = entriesReportAsSql            . styleAmounts styles
            | fmt=="html" =
-                (<>"\n") . Lucid.renderText . printHtml .
+                (<>"\n") . Lucid.renderText . styledTableHtml .
                 map (map (fmap Lucid.toHtml)) .
                 entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
                 styleAmounts styles

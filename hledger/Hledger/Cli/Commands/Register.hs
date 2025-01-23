@@ -31,7 +31,7 @@ import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Hledger hiding (per)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Html.Lucid (styledTableHtml)
 import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
@@ -103,7 +103,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
            | fmt=="csv"  = printCSV . postingsReportAsCsv
            | fmt=="tsv"  = printTSV . postingsReportAsCsv
            | fmt=="html" =
-                (<>"\n") . Lucid.renderText . printHtml .
+                (<>"\n") . Lucid.renderText . styledTableHtml .
                 map (map (fmap Lucid.toHtml)) .
                 postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
            | fmt=="fods" =
