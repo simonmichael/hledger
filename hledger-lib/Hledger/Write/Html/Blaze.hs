@@ -1,9 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {- |
-Export spreadsheet table data as HTML table.
-
-This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/src/src/Spreadsheet/Format.hs>
+HTML writing helpers using blaze-html.
 -}
+
 module Hledger.Write.Html.Blaze (
     styledTableHtml,
     formatRow,
@@ -12,7 +11,7 @@ module Hledger.Write.Html.Blaze (
 
 import qualified Hledger.Write.Html.Attribute as Attr
 import qualified Hledger.Write.Spreadsheet as Spr
-import Hledger.Write.Html (Lines, borderStyles)
+import Hledger.Write.Html.HtmlCommon (Lines, borderStyles)
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 
 import qualified Text.Blaze.Html4.Transitional.Attributes as HtmlAttr
@@ -22,6 +21,8 @@ import Text.Blaze.Html4.Transitional (Html, toHtml, (!))
 import Data.Foldable (traverse_)
 
 
+-- | Export spreadsheet table data as HTML table.
+-- This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/src/src/Spreadsheet/Format.hs>
 styledTableHtml :: (Lines border) => [[Cell border Html]] -> Html
 styledTableHtml table = do
     Html.style $ toHtml $ Attr.tableStylesheet

@@ -14,9 +14,11 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
-import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
-import Data.List.NonEmpty (NonEmpty((:|)))
+import Control.Monad (guard)
 import Data.Bifunctor (second)
+import Data.Function ((&))
+import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import qualified Data.Map as Map
 import qualified Data.List as List
 import qualified Data.List.NonEmpty as NonEmpty
@@ -24,22 +26,20 @@ import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
 import Data.Time.Calendar (Day, addDays)
+import Lucid as L hiding (Html, value_)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import qualified System.IO as IO
-import Hledger.Write.Ods (printFods)
-import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html.Lucid (styledTableHtml)
-import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
-import qualified Hledger.Write.Spreadsheet as Spr
-import Lucid as L hiding (value_)
 import Text.Tabular.AsciiWide as Tabular hiding (render)
 
 import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
-import Data.Function ((&))
-import Control.Monad (guard)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Html (htmlAsLazyText, styledTableHtml, Html)
+import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
+import Hledger.Write.Ods (printFods)
+import qualified Hledger.Write.Spreadsheet as Spr
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
@@ -202,7 +202,7 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
       "txt"  -> compoundBalanceReportAsText ropts'
       "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
       "tsv"  -> printTSV . compoundBalanceReportAsCsv ropts'
-      "html" -> L.renderText . compoundBalanceReportAsHtml ropts'
+      "html" -> htmlAsLazyText . compoundBalanceReportAsHtml ropts'
       "fods" -> printFods IO.localeEncoding .
                 fmap (second NonEmpty.toList) . uncurry Map.singleton .
                 compoundBalanceReportAsSpreadsheet
@@ -323,7 +323,7 @@ compoundBalanceReportAsCsv ropts cbr =
         NonEmpty.toList spreadsheet
 
 -- | Render a compound balance report as HTML.
-compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html ()
+compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html
 compoundBalanceReportAsHtml ropts cbr =
   let (title, (_fixed, cells)) =
           compoundBalanceReportAsSpreadsheet
