@@ -5,7 +5,7 @@ Export spreadsheet table data as HTML table.
 This is derived from <https://hackage.haskell.org/package/classify-frog-0.2.4.3/src/src/Spreadsheet/Format.hs>
 -}
 module Hledger.Write.Html.Blaze (
-    printHtml,
+    styledTableHtml,
     formatRow,
     formatCell,
     ) where
@@ -22,8 +22,8 @@ import Text.Blaze.Html4.Transitional (Html, toHtml, (!))
 import Data.Foldable (traverse_)
 
 
-printHtml :: (Lines border) => [[Cell border Html]] -> Html
-printHtml table = do
+styledTableHtml :: (Lines border) => [[Cell border Html]] -> Html
+styledTableHtml table = do
     Html.style $ toHtml $ Attr.tableStylesheet
     Html.table $ traverse_ formatRow table
 

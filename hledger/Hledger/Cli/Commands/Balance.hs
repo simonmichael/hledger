@@ -305,7 +305,7 @@ import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor, dateSpanCell, headerDateSpanCell)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
-import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Html.Lucid (styledTableHtml)
 import Hledger.Write.Spreadsheet (rawTableContent, headerCell,
             addHeaderBorders, addRowSpanHeader,
             cellFromMixedAmount, cellsFromMixedAmount)
@@ -392,7 +392,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
             "csv"  -> printCSV . budgetReportAsCsv ropts
             "tsv"  -> printTSV . budgetReportAsCsv ropts
             "html" -> (<>"\n") . L.renderText .
-                      printHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
+                      styledTableHtml . map (map (fmap L.toHtml)) . budgetReportAsSpreadsheet ropts
             "fods" -> printFods IO.localeEncoding .
                       Map.singleton "Budget Report" . (,) (1,0) . budgetReportAsSpreadsheet ropts
             _      -> error' $ unsupportedOutputFormatError fmt
@@ -418,7 +418,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "csv"  -> printCSV . balanceReportAsCsv ropts
               "tsv"  -> printTSV . balanceReportAsCsv ropts
               "html" -> (<>"\n") . L.renderText .
-                                   printHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
+                                   styledTableHtml . map (map (fmap L.toHtml)) . balanceReportAsSpreadsheet ropts
               "json" -> (<>"\n") . toJsonText
               "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (1,0) . balanceReportAsSpreadsheet ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
@@ -711,7 +711,7 @@ tidyColumnLabels =
 -- | Render a multi-column balance report as HTML.
 multiBalanceReportAsHtml :: ReportOpts -> MultiBalanceReport -> Html ()
 multiBalanceReportAsHtml ropts mbr =
-  printHtml . map (map (fmap L.toHtml)) $
+  styledTableHtml . map (map (fmap L.toHtml)) $
     snd $ multiBalanceReportAsSpreadsheet ropts mbr
 
 -- | Render the ODS table rows for a MultiBalanceReport.

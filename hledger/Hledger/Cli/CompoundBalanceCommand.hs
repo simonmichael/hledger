@@ -28,7 +28,7 @@ import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import qualified System.IO as IO
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html.Lucid (printHtml)
+import Hledger.Write.Html.Lucid (styledTableHtml)
 import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
 import qualified Hledger.Write.Spreadsheet as Spr
 import Lucid as L hiding (value_)
@@ -338,7 +338,7 @@ compoundBalanceReportAsHtml ropts cbr =
       ]
     table_ $ do
       tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
-      printHtml $ NonEmpty.toList $ fmap (map (fmap L.toHtml)) cells
+      styledTableHtml $ NonEmpty.toList $ fmap (map (fmap L.toHtml)) cells
 
 -- | Render a compound balance report as Spreadsheet.
 compoundBalanceReportAsSpreadsheet ::
