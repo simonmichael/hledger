@@ -1,11 +1,11 @@
-# REGRESSIONS
+# Regression bounty
 
 <div class=pagetoc>
 
 <!-- toc -->
 </div>
 
-Short url for this page: [hledger.org/regressions](https://hledger.org/regressions)
+Shortcut: [hledger.org/regressions](https://hledger.org/regressions)
 
 A regression is "something that used to work, that broke", or "an unintended not-good change"
 in a released version of hledger.

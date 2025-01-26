@@ -5,57 +5,45 @@
 <!-- toc -->
 </div>
 
-<https://hledger.org/finance> this page
-<https://github.com/simonmichael/hledger_finance> finance repo
+This is the home for the hledger project's finances. (Shortcut: [hledger.org/finance](https://hledger.org/finance))
 
-Old:
+## Money and the hledger project
 
-## Funding
+Classic gift-economy FOSS communities are a beautiful and precious thing.
+Adding money, or adding money in the wrong way, can change or damage them.
+Yet, from the beginning I intended this project to be accountable, solvent and self-funding - ideally, not a money pit.
+And we need to be exploring new ways to integrate money and FOSS.
+And in many ways this project is ideal for that.
+So money is part of the hledger project, we welcome it, and we experiment with it, cautiously, to see what works.
+The CFO is SM.
+<!-- I know we would enjoy having more bugs resolved, more and better features, and a faster rate of improvement. -->
 
-My vision for the hledger project has always been for it to be "accountable" and "self-sustaining", possibly through new forms of incentivisation. 
-Classic non-monetary FOSS communities are a beautiful and precious thing.
-Adding money can change their dynamic.
-Yet, we would enjoy having a lot more issues resolved, and a faster rate of progress.
-So we experiment, gently.
+Here are some ways we interact with money here:
 
-Currently we use bounties as a way to encourage resolution of issues.
-There are a few ways to do this:
+You can [Sponsor hledger](sponsor.md) to support and grow this project.
 
-1. You or your organisation can offer a bounty simply by saying so on the issue.
+You can review our [Financial reports](financerepo.md).
 
-2. You can use Bountysource. A few hledger bounties have been completed there.
+You can earn [Regression bounties](REGRESSIONS.md) by finding or fixing regression bugs.
 
-3. You can use the new Open Collective process below.
+## Issue bounties
 
-Issues with bounties of any kind are marked with the `bounty` label.
-The Bounty Manager is @simonmichael.
+Bounties are sometimes offered to encourage completion of a fix or a new feature in the issue tracker.
+You can use this approach at any time.
+To earn bounties, search for [issues with the bounty label](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
 
-## New bounty process
+Anyone can offer bounties. There are two kinds:
 
-It currently looks like this, and will evolve:
+**Honour bounties**\
+You or your organisation can offer a bounty simply by saying so on the issue.
+Progress and payment are discussed there and handled on the honour system.
+The Bounty Manager is SM.
 
-- Issues are marked as bounties by @simonmichael. Feel free to suggest additional issues which should receive the bounty label.
+**Open Collective bounties**\
+Or the hledger project may offer bounties for specific issues, from our Open Collective fund.
+Feel free to suggest issues which might benefit from this.
+When you complete an OC bounty, submit an expense reimbursement requestto [hledger's open collective](https://opencollective.com/hledger),
+similar to claiming a [regression bounty](REGRESSIONS.md).
 
-- Bounties are paid from the hledger project's public Open Collective fund.
-  By contributing to the fund as an individual or organisation, you enable more bounties.
-
-- These OC bounties (unlike 1 and 2 above) have standard amounts.
-  These may be adjusted over time, depending eg on the state of our funds.
-  Our current bounty amounts are
-  - level 1: 10 USD
-  - level 2: 25 USD
-  - level 3: 50 USD
-
-- When you complete a bounty, submit an expense to Open Collective,
-  for whichever of the above bounty amounts you think appropriate,
-  based eg on time or expertise spent, how much you need it,
-  how much remains in our fund for other bounties, etc.
-  This will be reviewed by OC and (maybe ?) @simonmichael.
-  Successful claims, like donations, will appear in our public OC ledger.
-
-Our bounty amounts are small, and nothing like professional rates in most countries,
-but they still establish a principle of sustainability,
-and help us to experiment.
-You are encouraged to claim your bounties,
-though you can also choose to transfer them to a new issue of your choice.
-
+Our bounty amounts have so far been small, but they help us experiment with process and establish a principle of sustainability.
+When you earn a bounty we encourage you to claim it. But if you prefer, you can offer it as a new bounty on an issue of your choice.
