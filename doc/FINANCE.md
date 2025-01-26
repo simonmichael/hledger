@@ -15,22 +15,19 @@ Yet, from the beginning I intended this project to be accountable, solvent and s
 And we need to be exploring new ways to integrate money and FOSS.
 And in many ways this project is ideal for that.
 So money is part of the hledger project, we welcome it, and we experiment with it, cautiously, to see what works.
-The CFO is SM.
+The CFO is SM; help is welcome.
 <!-- I know we would enjoy having more bugs resolved, more and better features, and a faster rate of improvement. -->
 
-Here are some ways we interact with money here:
+You can review our [Financial reports](financerepo.md) here.
 
 You can [Sponsor hledger](sponsor.md) to support and grow this project.
-
-You can review our [Financial reports](financerepo.md).
 
 You can earn [Regression bounties](REGRESSIONS.md) by finding or fixing regression bugs.
 
 ## Issue bounties
 
-Bounties are sometimes offered to encourage completion of a fix or a new feature in the issue tracker.
-You can use this approach at any time.
-To earn bounties, search for [issues with the bounty label](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
+More generally, bounties are sometimes offered to encourage completion of a bug fix, or a new feature.\
+To earn bounties, try to resolve [issues with the bounty label](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
 
 Anyone can offer bounties. There are two kinds:
 
@@ -47,3 +44,10 @@ similar to claiming a [regression bounty](REGRESSIONS.md).
 
 Our bounty amounts have so far been small, but they help us experiment with process and establish a principle of sustainability.
 When you earn a bounty we encourage you to claim it. But if you prefer, you can offer it as a new bounty on an issue of your choice.
+
+## Funded projects
+
+We welcome proposals for new funded projects (as of 2025).
+Anyone can propose a project and a funding amount (in line with our current [funds](financerepo.md)), and if approved, do the work, and as deliverables are met, we pay you.
+Each proposal begins as an issue, and gets the `funded-project` label once approved.
+Here are the [funded projects](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Afunded-project).
