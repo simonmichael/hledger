@@ -22,12 +22,13 @@ You can review our [Financial reports](financerepo.md) here.
 
 You can [Sponsor hledger](sponsor.md) to support and grow this project.
 
-You can earn [Regression bounties](REGRESSIONS.md) by finding or fixing regression bugs.
+You can earn [Regression bounties](REGRESSIONS.md) by reporting or fixing regression bugs.
 
 ## Issue bounties
 
-More generally, bounties are sometimes offered to encourage completion of a bug fix, or a new feature.\
-To earn bounties, try to resolve [issues with the bounty label](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
+More generally, bounties are sometimes offered to encourage completion of a bug fix, or a new feature.
+To earn bounties, try to resolve issues with the bounty label.\
+Here are the [issue bounties](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Abounty).
 
 Anyone can offer bounties. There are two kinds:
 
@@ -48,6 +49,6 @@ When you earn a bounty we encourage you to claim it. But if you prefer, you can 
 ## Funded projects
 
 We welcome proposals for new funded projects (as of 2025).
-Anyone can propose a project and a funding amount (in line with our current [funds](financerepo.md)), and if approved, do the work, and as deliverables are met, we pay you.
-Each proposal begins as an issue, and gets the `funded-project` label once approved.
+Anyone can propose a project and a funding amount (in line with our current [funds](https://github.com/simonmichael/hledger_finance?tab=readme-ov-file#assets--liabilities-by-year)), and if approved, do the work, and as deliverables are met, we pay you.
+Each proposal begins as an issue, which gets the `funded-project` label when approved.
 Here are the [funded projects](https://github.com/simonmichael/hledger/issues/?q=is%3Aissue%20state%3Aopen%20label%3Afunded-project).
