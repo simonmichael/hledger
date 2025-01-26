@@ -18,7 +18,7 @@ So money is part of the hledger project, we welcome it, and we experiment with i
 The CFO is SM; help is welcome.
 <!-- I know we would enjoy having more bugs resolved, more and better features, and a faster rate of improvement. -->
 
-You can review our [Financial reports](financerepo.md) here.
+You can review our [Financial reports](https://github.com/simonmichael/hledger_finance?tab=readme-ov-file#reports) here.
 
 You can [Sponsor hledger](sponsor.md) to support and grow this project.
 
