@@ -1,4 +1,4 @@
-# Finance
+# Project finances
 
 <div class=pagetoc>
 
@@ -42,7 +42,7 @@ The Bounty Manager is SM.
 **Open Collective bounties**\
 Or the hledger project may offer bounties for specific issues, from our Open Collective fund.
 Feel free to suggest issues which might benefit from this.
-When you complete an OC bounty, submit an expense reimbursement requestto [hledger's open collective](https://opencollective.com/hledger),
+When you complete an OC bounty, submit an expense reimbursement request to [hledger's open collective](https://opencollective.com/hledger),
 similar to claiming a [regression bounty](REGRESSIONS.md).
 
 Our bounty amounts have so far been small, but they help us experiment with process and establish a principle of sustainability.
