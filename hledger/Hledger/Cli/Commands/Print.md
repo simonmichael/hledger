@@ -17,6 +17,7 @@ Flags:
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision
                                    (can unbalance transactions)
+     --invert               display all amounts with reversed sign
      --new                  show only newer-dated transactions added in each
                             file since last run
   -m --match=DESC           fuzzy search for one recent transaction with
@@ -123,6 +124,9 @@ There are some situations where print's output can become unparseable:
 
 With `-B`/`--cost`, amounts with [costs](https://hledger.org/hledger.html#costs)
 are shown converted to cost.
+
+With `--invert`, posting amounts are shown with their sign flipped.
+It could be useful if you have accidentally recorded some transactions with the wrong signs.
 
 With `--new`, print shows only transactions it has not seen on a previous run.
 This uses the same deduplication system as the [`import`](#import) command.

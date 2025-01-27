@@ -33,6 +33,7 @@ module Hledger.Data.Transaction
 , transactionMapPostings
 , transactionMapPostingAmounts
 , transactionAmounts
+, transactionNegate
 , partitionAndCheckConversionPostings
 , transactionAddTags
 , transactionAddHiddenAndMaybeVisibleTag
@@ -478,9 +479,13 @@ transactionMapPostings f t@Transaction{tpostings=ps} = t{tpostings=map f ps}
 transactionMapPostingAmounts :: (MixedAmount -> MixedAmount) -> Transaction -> Transaction
 transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount f)
 
--- | All posting amounts from this transactin, in order.
+-- | All posting amounts from this transaction, in order.
 transactionAmounts :: Transaction -> [MixedAmount]
 transactionAmounts = map pamount . tpostings
+
+-- | Flip the sign of this transaction's posting amounts.
+transactionNegate :: Transaction -> Transaction
+transactionNegate = transactionMapPostingAmounts negate
 
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath

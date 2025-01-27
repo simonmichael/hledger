@@ -38,3 +38,21 @@ $ hledger -f- print --depth 1
     A:AA             0 A
 
 >=
+
+# ** 4. print --invert flips signs.
+<
+2025-01-01
+  a   1 A @ 2 B
+  b
+  c   0 C
+
+$ hledger -f- print --invert -x
+2025-01-01
+    a      -1 A @ 2 B
+    b             2 B
+    c             0 C
+
+>=
+
+
+

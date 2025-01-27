@@ -54,6 +54,7 @@ printmode = hledgerCommandMode
   ,flagNone ["show-costs"] (setboolopt "show-costs")
     "show transaction prices even with conversion postings"
   ,roundFlag
+  ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
   ,let arg = "DESC" in

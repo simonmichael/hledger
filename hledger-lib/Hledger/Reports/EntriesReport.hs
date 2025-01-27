@@ -35,7 +35,9 @@ type EntriesReportItem = Transaction
 -- | Select transactions for an entries report.
 entriesReport :: ReportSpec -> Journal -> EntriesReport
 entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
-    sortBy (comparing $ transactionDateFn ropts) . jtxns
+      sortBy (comparing $ transactionDateFn ropts)
+    . map  (if invert_ ropts then transactionNegate else id)
+    . jtxns
     . journalApplyValuationFromOpts (setDefaultConversionOp NoConversionOp rspec)
     . filterJournalTransactions (filterQuery (not.queryIsDepth) $ _rsQuery rspec)
 
