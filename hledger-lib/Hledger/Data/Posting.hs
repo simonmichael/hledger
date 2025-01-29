@@ -63,7 +63,7 @@ module Hledger.Data.Posting (
 
   -- * arithmetic
   sumPostings,
-  negatePostingAmount,
+  postingNegateMainAmount,
   -- * rendering
   showPosting,
   showPostingLines,
@@ -381,9 +381,9 @@ accountNamesFromPostings = S.toList . S.fromList . map paccount
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
 
--- | Negate amount in a posting.
-negatePostingAmount :: Posting -> Posting
-negatePostingAmount = postingTransformAmount negate
+-- | Negate the posting's main amount but not the balance assertion amount.
+postingNegateMainAmount :: Posting -> Posting
+postingNegateMainAmount p@Posting{pamount=a} = p{pamount=negate a}
 
 -- | Strip all prices from a Posting.
 postingStripCosts :: Posting -> Posting
@@ -532,7 +532,7 @@ postingPriceDirectivesFromCost :: Posting -> [PriceDirective]
 postingPriceDirectivesFromCost p@Posting{pamount} =
     mapMaybe (amountPriceDirectiveFromCost $ postingDate p) $ amountsRaw pamount
 
--- | Apply a transform function to this posting's amount.
+-- | Apply a transform function to this posting's main amount (but not its balance assertion amount).
 postingTransformAmount :: (MixedAmount -> MixedAmount) -> Posting -> Posting
 postingTransformAmount f p@Posting{pamount=a} = p{pamount=f a}
 

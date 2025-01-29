@@ -162,7 +162,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
       . traceAtWith 5 (("ts4:\n"++).pshowTransactions.map snd)
       . sortBy (comparing (Down . fst) <> comparing (Down . tindex . snd))
       . map (\t -> (transactionRegisterDate wd reportq thisacctq t, t))
-      . map (if invert_ ropts then (\t -> t{tpostings = map negatePostingAmount $ tpostings t}) else id)
+      . map (if invert_ ropts then (\t -> t{tpostings = map postingNegateMainAmount $ tpostings t}) else id)
       $ jtxns acctJournal
 
 pshowTransactions :: [Transaction] -> String
