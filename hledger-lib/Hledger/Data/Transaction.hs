@@ -483,9 +483,9 @@ transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount
 transactionAmounts :: Transaction -> [MixedAmount]
 transactionAmounts = map pamount . tpostings
 
--- | Flip the sign of this transaction's posting amounts.
+-- | Flip the sign of this transaction's posting amounts (and balance assertion amounts).
 transactionNegate :: Transaction -> Transaction
-transactionNegate = transactionMapPostingAmounts negate
+transactionNegate = transactionMapPostings postingNegate
 
 -- | The file path from which this transaction was parsed.
 transactionFile :: Transaction -> FilePath

@@ -39,20 +39,18 @@ $ hledger -f- print --depth 1
 
 >=
 
-# ** 4. print --invert flips signs.
+# ** 4. print --invert flips signs in postings' main and assertion/assignment amounts.
 <
 2025-01-01
-  a   1 A @ 2 B
-  b
-  c   0 C
+  a   1 A @ 2 B = 1 A @ 2 B
+  b             = -2 B
+  c   0 C       = 0
 
 $ hledger -f- print --invert -x
 2025-01-01
-    a      -1 A @ 2 B
-    b             2 B
-    c             0 C
+    a      -1 A @ 2 B = -1 A @ 2 B
+    b             2 B = 2 B
+    c             0 C = 0
 
 >=
-
-
 
