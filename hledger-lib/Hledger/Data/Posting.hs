@@ -63,6 +63,7 @@ module Hledger.Data.Posting (
 
   -- * arithmetic
   sumPostings,
+  postingNegate,
   postingNegateMainAmount,
   -- * rendering
   showPosting,
@@ -380,6 +381,13 @@ accountNamesFromPostings = S.toList . S.fromList . map paccount
 -- | Sum all amounts from a list of postings.
 sumPostings :: [Posting] -> MixedAmount
 sumPostings = foldl' (\amt p -> maPlus amt $ pamount p) nullmixedamt
+
+-- | Negate the posting's main amount and balance assertion amount if any.
+postingNegate :: Posting -> Posting
+postingNegate p@Posting{pamount=a, pbalanceassertion=mb} =
+  p{pamount=negate a, pbalanceassertion=fmap balanceAssertionNegate mb}
+  where
+    balanceAssertionNegate b@BalanceAssertion{baamount=ba} = b{baamount=negate ba}
 
 -- | Negate the posting's main amount but not the balance assertion amount.
 postingNegateMainAmount :: Posting -> Posting
