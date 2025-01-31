@@ -282,10 +282,11 @@ directivep = (do
    ]
   ) <?> "directive"
 
--- | Parse an include directive. include's argument is an optionally
--- file-format-prefixed file path or glob pattern. In the latter case,
--- the prefix is applied to each matched path. Examples:
--- foo.j, foo/bar.j, timedot:foo/2020*.md
+-- | Parse an include directive, and the file(s) it refers to, possibly recursively.
+-- include's argument is a file path or glob pattern, optionally with a file type prefix.
+-- ~ at the start is expanded to the user's home directory.
+-- Relative paths are relative to the current file.
+-- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   string "include"
