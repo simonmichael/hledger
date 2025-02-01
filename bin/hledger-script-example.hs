@@ -62,13 +62,16 @@ cmdmode = hledgerCommandMode (unlines
   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")
 
 -- Most scripts have three steps:
--- 1. process command line options/arguments
--- 2. read the journal file
--- 3. do something with it.
 main = do
+
+  -- 1. process command line options/arguments
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
+
+  -- 2. read the journal file
   withJournalDo opts $ \j -> do
-    putStrLn "hello"
+
+    -- 3. do something with it.
+    putStrLn $ (show $ length $ jtxns j) <> " transactions in " <> (show $ journalFilePath j)
 
 
 
