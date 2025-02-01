@@ -3210,6 +3210,7 @@ The following kinds of rule can appear in the rules file, in any order.
 |                                                 |                                                                                                |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------|
 | [**`source`**](#source)                         | optionally declare which file to read data from                                                |
+| [**`encoding`**](#encoding)                     | optionally declare which encoding the data has                                                 |
 | [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
 | [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
 | [**`date-format`**](#date-format)               | declare how to parse CSV dates/date-times                                                      |
@@ -3255,6 +3256,19 @@ source Checking1*.csv
 ```
 
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
+
+## `encoding`
+
+```rules
+encoding ENCODING
+```
+
+Specifying `encoding` followed by a valid encoding tells HLedger how to convert a
+csv to be able to make use of it.
+This is most often useful when getting a csv from a bank as they are sometimes
+in an old encoding.
+
+If none is given, `utf8` is assumed.
 
 ## `separator`
 
