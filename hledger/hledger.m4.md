@@ -5727,9 +5727,12 @@ format amounts a little bit differently to suit different consumers:
 
 # Cost reporting
 
-In some transactions - for example a currency conversion, or a purchase or sale of stock - one commodity is exchanged for another.
-In these transactions there is a conversion rate, also called the cost (when buying) or selling price (when selling).
-In hledger docs we just say "cost", for convenience; feel free to mentally translate to "conversion rate" or "selling price" if helpful.
+In some transactions - for example a currency conversion, or a purchase
+or sale of stock - one commodity is exchanged for another. In these
+transactions there is a conversion rate, also called the cost (when
+buying) or selling price (when selling). (In hledger docs we just say
+"cost" generically for convenience.)
+With the `-B/--cost` flag, hledger can show amounts "at cost", converted to the cost's commodity.
 
 ## Recording costs
 
@@ -5945,12 +5948,11 @@ and let us know what problems you find.
 
 # Value reporting
 
-Instead of reporting amounts in their original commodity, hledger can convert them to
-cost/sale amount (using the conversion rate recorded in the transaction),
-and/or to market value (using some market price on a certain date).
-This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below.
-We also provide the simpler `-V` and `-X COMMODITY` options, and often
-one of these is all you need:
+hledger can also show amounts "at market value", 
+converted to some other commodity using the conversion rate, AKA market price, on a certain date. 
+This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below. We also provide the simpler `-V`
+and `-X COMMODITY` options, and often one of these is all you need.
+The market prices are declared with a special `P` directive, and/or they can be inferred from the costs recorded in transactions using the `--infer-market-prices` flag.
 
 ## -V: Value
 
