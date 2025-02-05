@@ -5953,7 +5953,7 @@ converted to some other commodity using the market price or conversion rate on a
 
 This is controlled by the `--value=TYPE[,COMMODITY]` option.
 We also provide simpler `-V` and `-X COMMODITY` aliases for this, which are often sufficient.
-The market prices are declared with a special `P` directive, and/or they can be inferred from the costs recorded in transactions using the `--infer-market-prices` flag.
+The market prices are declared with a special `P` directive, and/or they can be inferred from the costs recorded in transactions, by using the `--infer-market-prices` flag.
 
 ## -V: Value
 
