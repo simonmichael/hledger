@@ -5949,9 +5949,10 @@ and let us know what problems you find.
 # Value reporting
 
 hledger can also show amounts "at market value", 
-converted to some other commodity using the conversion rate, AKA market price, on a certain date. 
-This is controlled by the `--value=TYPE[,COMMODITY]` option, which will be described below. We also provide the simpler `-V`
-and `-X COMMODITY` options, and often one of these is all you need.
+converted to some other commodity using the market price or conversion rate on a certain date. 
+
+This is controlled by the `--value=TYPE[,COMMODITY]` option.
+We also provide simpler `-V` and `-X COMMODITY` aliases for this, which are often sufficient.
 The market prices are declared with a special `P` directive, and/or they can be inferred from the costs recorded in transactions using the `--infer-market-prices` flag.
 
 ## -V: Value
