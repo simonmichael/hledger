@@ -3099,17 +3099,17 @@ A slight digression for Ledger and Beancount users.
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a conversion rate, as in hledger
-  - when buying, also creates a lot than can be selected at selling time
+  - when buying, also creates a lot that can be selected at selling time
 
 - `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
   - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
 
-- `{=FIXEDUNITCOST}` and `{{{{=FIXEDTOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
-  - when buying, means "this cost is also the fixed price, don't let it fluctuate in value reports"
+- `{=UNITCOST}` and `{{{{=TOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
+  - when buying, means "this cost is also the fixed value, don't let it fluctuate in value reports"
 
 - `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
   - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
-  - when selling, combined with `@ ...`, specifies an investment lot by its cost basis; does not check if that lot is present
+  - when selling, combined with `@ ...`, selects an existing lot by its cost basis. Does not check if that lot is present.
 
 - `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
   - when buying, attaches this acquisition date to the lot
@@ -3136,7 +3136,8 @@ Currently, hledger
 
 - `@ UNITCOST` and `@@ TOTALCOST`
   - expresses a cost without creating a lot, as in hledger
-  - when buying (acquiring) or selling (disposing of) a lot, combined with `{...}`: documents the cost/selling price (not used for transaction balancing)
+  - when buying (acquiring) or selling (disposing of) a lot, and combined with `{...}`: 
+    is not used except to document the cost/selling price
 
 - `{UNITCOST}` and `{{{{TOTALCOST}}}}`
   - when buying, expresses the cost for transaction balancing, and also creates a lot with this cost basis attached
