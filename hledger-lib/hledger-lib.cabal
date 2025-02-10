@@ -140,7 +140,7 @@ library
     , deepseq
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
-    , encoding >=0.8.10
+    , encoding >=0.9
     , extra >=1.6.3
     , file-embed >=0.0.10
     , filepath
