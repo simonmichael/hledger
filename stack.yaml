@@ -35,6 +35,10 @@ extra-deps:
 # # to silence a warning
 # - wizards-1.0.3@rev:3
 
+flags:
+  encoding:
+    systemEncoding: false # See https://github.com/dmwit/encoding/issues/26
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
