@@ -13,6 +13,7 @@ extra-deps:
 - megaparsec-9.3.0
 - safe-0.3.21
 # for hledger-lib:
+- encoding-0.9
 # for hledger:
 # for hledger-ui:
 - brick-2.3.1

@@ -11,6 +11,7 @@ packages:
 extra-deps:
 - base-compat-0.14.0
 - vty-windows-0.2.0.1   # not yet in stackage
+- encoding-0.9          # not yet in stackage
 
 nix:
   pure: false
