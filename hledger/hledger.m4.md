@@ -106,7 +106,7 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 
 ## Text encoding
 
-Data files containing non-ascii characters must use UTF-8 encoding.
+Data files containing non-ascii characters must use UTF-8 encoding, with the exception being `csv` files (see [`encoding`](#encoding) below).
 An optional [byte order mark (BOM)](https://www.unicode.org/faq/utf_bom.html#BOM) is allowed, at the beginning of the file (only).
 
 Also, your system should be configured with a locale that can decode UTF-8 text.
@@ -114,8 +114,6 @@ On some unix systems, you may need set the `LANG` environment variable, eg.
 You can read more about this in [Unicode characters](#unicode-characters), below.
 
 On unix systems you can check a file's encoding with the `file` command.
-If you need to import from a UTF-16-encoded CSV file, say,
-you can convert it to UTF-8 with the `iconv` command. 
 
 ## Data formats
 
@@ -3269,6 +3267,64 @@ This is most often useful when getting a csv from a bank as they are sometimes
 in an old encoding.
 
 If none is given, `utf8` is assumed.
+
+The encoding will be checked case-insensitive with some alternative spellings also allowed.
+The full list of valid encodings is:
+- ASCII
+- UTF8
+- UTF16
+- UTF32
+- ISO88591
+- ISO88592
+- ISO88593
+- ISO88594
+- ISO88595
+- ISO88596
+- ISO88597
+- ISO88598
+- ISO88599
+- ISO885910
+- ISO885911
+- ISO885913
+- ISO885914
+- ISO885915
+- ISO885916
+- CP1250
+- CP1251
+- CP1252
+- CP1253
+- CP1254
+- CP1255
+- CP1256
+- CP1257
+- CP1258
+- KOI8R
+- KOI8U
+- GB18030
+- MacOSRoman
+- JISX0201
+- JISX0208
+- ISO2022JP
+- ShiftJIS
+- CP437
+- CP737
+- CP775
+- CP850
+- CP852
+- CP855
+- CP857
+- CP860
+- CP861
+- CP862
+- CP863
+- CP864
+- CP865
+- CP866
+- CP869
+- CP874
+- CP932
+
+Alternate spellings may be found in the [source code of `encoding`](https://hackage.haskell.org/package/encoding/docs/src/Data.Encoding.html#encodingFromStringExplicit)
 
 ## `separator`
 
