@@ -11,6 +11,7 @@
 import Data.Text.Lazy.IO as TL
 import System.Environment (getArgs)
 import Hledger.Cli.Script
+import Hledger.Cli.Commands.Balance
 
 ------------------------------------------------------------------------------
 cmdmode = hledgerCommandMode
@@ -37,10 +38,11 @@ main = do
   (opts,_,_,report1) <- mbReport report1args
   (_,ropts2,j,report2) <- mbReport report2args
   let pastAsBudget = combineBudgetAndActual ropts2 j report1{prDates=prDates report2} report2
-  writeOutputLazyText opts $ budgetReportAsText ropts2 pastAsBudget
+      styles = journalCommodityStylesWith HardRounding j
+  writeOutputLazyText opts $ budgetReportAsText ropts2 $ styleAmounts styles $ pastAsBudget
   where
     mbReport args = do
-      opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args
+      opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' balancemode args
       d <- getCurrentDay
       (report,j) <- withJournalDo opts $ \j -> return (multiBalanceReport rspec j, j)
       return (opts, _rsReportOpts rspec,j,report)
