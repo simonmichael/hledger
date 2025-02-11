@@ -66,7 +66,7 @@ usage =
   ,"./Shake setversion [VER] [PKGS] [-c]"
   ,"                         update versions in source files to */.version or VER"
   ,"                         and update */*.cabal files"
-  ,"./Shake hledger-install-version"  update some version strs in hledger-install"
+  ,"./Shake hledger-install-version    update some version strs in hledger-install"
   ,"./Shake cmddocs [-c]     update all hledger's COMMAND.md and COMMAND.txt files,"
   ,"                         used for --help, manuals etc. (run after changing"
   ,"                         COMMAND.md or command options or general options)"
