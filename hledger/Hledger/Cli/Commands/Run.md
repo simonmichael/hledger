@@ -1,6 +1,8 @@
 ## run 
 
-Runs a sequnce of hledger commands on the same input file(s), either interactively or as a script.
+Runs a sequence of hledger commands on the same input file(s), either interactively or as a script.
+
+This command is EXPERIMENTAL and syntax could change in the future.
 
 ```flags
 Flags:
@@ -25,9 +27,15 @@ Syntax of the commands (either in the file, or in REPL) is intentionally simple:
 
 You can use single quotes or double quotes to quote aguments that need quoting.
 
-You can use `#!/usr/bin/env hledger run` (or `env -S` on older unix systems) in the first line of the file to make it a runnable script.
+You can use `#!/usr/bin/env hledger run` in the first line of the file to make it a runnable script. If this complains about "binary `hledger run` not found", use `/usr/bin/env -S hledger run`.
 
-Examples:
+### Caveats:
+
+- If you meant to provide file name as an argument, but made a mistake and a gave file name that does not exist, "run" will attempt to interpret it as a command.
+
+- Numeric flags like `-3` do not work, use long form `--depth 3`
+
+### Examples:
 
 To start the REPL:
 ```cli

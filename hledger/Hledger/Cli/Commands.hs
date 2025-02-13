@@ -256,7 +256,7 @@ commandsList progversion othercmds =
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
-  ," run                      run multiple commands from a file"
+  ," run                      run multiple commands from a file (EXPERIMENTAL)"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "CHARTS (bar charts, line graphs..)"
