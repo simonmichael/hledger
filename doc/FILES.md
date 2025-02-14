@@ -450,6 +450,7 @@ src/hledger/
           Register.md
           Rewrite.md
           Roi.md
+          Run.md
           Stats.md
           Tags.md
           Test.md

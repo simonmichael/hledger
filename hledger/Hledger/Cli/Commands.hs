@@ -46,6 +46,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Print
   ,module Hledger.Cli.Commands.Register
   ,module Hledger.Cli.Commands.Rewrite
+  ,module Hledger.Cli.Commands.Run
   ,module Hledger.Cli.Commands.Stats
   ,module Hledger.Cli.Commands.Tags
 ) 
@@ -91,6 +92,7 @@ import Hledger.Cli.Commands.Print
 import Hledger.Cli.Commands.Register
 import Hledger.Cli.Commands.Rewrite
 import Hledger.Cli.Commands.Roi
+import Hledger.Cli.Commands.Run
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 import Hledger.Cli.Utils (tests_Cli_Utils)
@@ -126,6 +128,7 @@ builtinCommands = [
   ,(registermode           , register)
   ,(rewritemode            , rewrite)
   ,(roimode                , roi)
+  ,(runmode                , run')
   ,(statsmode              , stats)
   ,(tagsmode               , tags)
   ,(testmode               , testcmd)
@@ -253,6 +256,7 @@ commandsList progversion othercmds =
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
+  ," run                      run multiple commands from a file (EXPERIMENTAL)"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "CHARTS (bar charts, line graphs..)"
