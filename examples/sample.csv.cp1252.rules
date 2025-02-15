@@ -1,0 +1,2 @@
+include sample.csv.rules
+encoding cp1252
