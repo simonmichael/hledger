@@ -17,10 +17,6 @@ nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-flags:
-  encoding:
-    systemEncoding: false # See https://github.com/dmwit/encoding/issues/26
-
 # ghc-options:
 #   "$locals": -fplugin Debug.Breakpoint
 
