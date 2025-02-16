@@ -2,7 +2,7 @@
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.12
 # https://downloads.haskell.org/ghc/9.12.1/docs/users_guide/9.12.1-notes.html
 
-resolver: nightly-2024-12-19
+resolver: nightly-2025-02-15
 compiler: ghc-9.12.1
 notify-if-ghc-untested: false
 notify-if-cabal-untested: false
@@ -19,7 +19,6 @@ extra-deps:
 # - base-compat-0.14.0
 
  # for hledger-lib
-- encoding-0.10
 # - Cabal-3.12.0.0
 # - Cabal-syntax-3.12.0.0
 # #- directory-1.3.8.3
