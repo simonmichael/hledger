@@ -934,6 +934,45 @@ haddock-open:
 # # 2. cron, nightly. Config: /etc/crontab
 # # 3. manually: "make site" on hledger.org, or "make hledgerorg" elsewhere (cf Makefile.local).
 
+# Generate packages diagrams for the hledger packages.
+@packagediags:
+    # just packagediag hledger-lib
+    # just packagediag hledger
+    # just packagediag hledger-ui
+    # just packagediag hledger-web
+    stack exec -- ghc-pkg dot | tred | dot -Tsvg >packages.svg
+
+# View the packages diagrams.
+@packagediags-view:
+    # open -a safari hledger-lib/packages.svg
+    # open -a safari hledger/packages.svg
+    # open -a safari hledger-ui/packages.svg
+    # open -a safari hledger-web/packages.svg
+    open -a safari packages.svg
+
+# # Generate a packages diagram for a hledger package.
+# @packagediag PKG:
+#     cd  && stack exec -- ghc-pkg dot | tred | dot -Tsvg >packages.svg
+
+# Generate modules diagrams for the hledger packages.
+@modulediags:
+    just modulediag hledger-lib
+    just modulediag hledger
+    just modulediag hledger-ui
+    just modulediag hledger-web
+    cd hledger && stack exec -- graphmod -q -c Hledger.Cli.Commands | tred | dot -Tsvg >modules-collapsed.svg
+
+# View the modules diagrams.
+@modulediags-view:
+    open -a safari hledger-lib/modules.svg
+    open -a safari hledger/modules.svg
+    open -a safari hledger-ui/modules.svg
+    open -a safari hledger-web/modules.svg
+
+# Generate a modules diagram for a hledger package.
+@modulediag PKG:
+    cd {{ PKG }} && stack exec -- graphmod -q | tred | dot -Tsvg >modules.svg
+
 # optimise and commit RELEASING value map diagram
 @releasediag:
     pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
