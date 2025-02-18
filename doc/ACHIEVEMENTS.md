@@ -19,7 +19,7 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~pretty good cookbook docs~~
 - ~~100 IRC chatters~~
 - ~~2k github stars~~
-- **in top 30 github starred haskell projects**
+- ~~in top 30 github starred haskell projects~~
 - **match ledger speed**
 - **match ledger committers**
 - **200 committers**
