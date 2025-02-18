@@ -62,16 +62,15 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 [codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill),
 [codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund)\
 [projects.hledger.org](http://projects.hledger.org)\
-[stars.hledger.org](http://stars.hledger.org) our rank among starred haskell projects:\
+[star-history.com](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date) PTA apps' github star history\
+[stars.hledger.org](http://stars.hledger.org) our rank among github-starred haskell projects:\
 2025:#22\
-2024:...\
 2023:#32\
 2022:#34\
 2020:#36\
 2018:#53\
 2017:#54\
 2016:#71\
-[PTA apps' star history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date)\
 \
 **Hackage:**\
 packages:
@@ -99,9 +98,7 @@ reverse deps:
 [hledger](https://packdeps.haskellers.com/reverse/hledger),
 [hledger-ui](https://packdeps.haskellers.com/reverse/hledger-ui),
 [hledger-web](https://packdeps.haskellers.com/reverse/hledger-web)\
-[![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](https://hackage.haskell.org/package/hledger)\
-[![...](https://img.shields.io/hackage-deps/v/hledger-lib.svg?label=hledger-lib+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-lib)[![...](https://img.shields.io/hackage-deps/v/hledger.svg?label=hledger+bounds)](https://packdeps.haskellers.com/feed?needle=hledger)\
-[![...](https://img.shields.io/hackage-deps/v/hledger-ui.svg?label=hledger-ui+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-ui)[![...](https://img.shields.io/hackage-deps/v/hledger-web.svg?label=hledger-web+bounds)](https://packdeps.haskellers.com/feed?needle=hledger-web)\
+[![Hackage](https://img.shields.io/hackage/v/hledger.svg?logo=Haskell&label=Hackage&colorB=brightgreen)](https://hackage.haskell.org/package/hledger)
 \
 **Stackage:**\
 [build-constraints.yaml](https://github.com/fpco/stackage/blob/master/build-constraints.yaml)\
@@ -116,7 +113,8 @@ versions:
 [hledger](https://www.stackage.org/package/hledger/snapshots),
 [hledger-ui](https://www.stackage.org/package/hledger-ui/snapshots),
 [hledger-web](https://www.stackage.org/package/hledger-web/snapshots)\
-[![](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg)](https://repology.org/metapackage/hledger)[![...](https://repology.org/badge/version-for-repo/stackage_nighly/hledger.svg)](https://repology.org/metapackage/hledger)\
+[![Stackage LTS](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg?header=Stackage+LTS)](https://www.stackage.org/lts/package/hledger)
+[![Stackage LTS](https://repology.org/badge/version-for-repo/stackage_nighly/hledger.svg?header=Stackage+Nightly)](https://www.stackage.org/lts/package/hledger)\
 \
 **Repology:**\
 [quick hledger packaging status](https://repology.org/metapackage/hledger/badges),
@@ -126,9 +124,13 @@ versions:
 \
 **Homebrew:**\
 [hledger](https://formulae.brew.sh/formula/hledger)\
-our 1-year rank among homebrew installs:\
-2023: [#1821 of 24k](https://formulae.brew.sh/analytics/install-on-request/365d) (top 8%)\
-2020: [#1520 of 10k](https://formulae.brew.sh/analytics/install-on-request/365d) (top 15%)\
+our [homebrew requested installs in last 365 days](https://formulae.brew.sh/analytics/install-on-request/365d):\
+2025: #1872 of 26k, top 7%\
+2023: #1821 of 24k, top 8%\
+2020: #1520 of 10k, top 15%
+<!--
+2025-02-18: 2681
+-->
 \
 **Debian:**\
 source packages:
@@ -163,9 +165,8 @@ unstable:
 [bugs](https://bugs.debian.org/cgi-bin/pkgreport.cgi?package=hledger-web;dist=unstable)\
 all:
 [\*hledger\*](https://packages.debian.org/search?searchon=names&keywords=hledger)\
-popcon sampled install stats:
-[haskell-hledger](https://qa.debian.org/popcon.php?packages=haskell-hledger),
-[hledger](https://qa.debian.org/popcon.php?packages=hledger),
+Popularity contest install stats:
+[hledger](https://qa.debian.org/popcon-graph.php?packages=hledger),
 [hledger-ui](https://qa.debian.org/popcon-graph.php?packages=hledger-ui),
 [hledger-web](https://qa.debian.org/popcon-graph.php?packages=hledger-web)\
 \
