@@ -71,6 +71,7 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 2018:#53\
 2017:#54\
 2016:#71\
+[PTA apps' star history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date)\
 \
 **Hackage:**\
 packages:
