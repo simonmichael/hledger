@@ -1119,7 +1119,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
               where
                 costedAmounts = case conversionop_ of
                     Just ToCost -> amounts . mixedAmountCost
-                    _           -> amounts
+                    _           -> amounts . mixedAmountStripCosts  -- strip any lingering cost info that would prevent unification
 
             -- | Like percentage, but accept multicommodity actual and budget amounts,
             -- and extract the specified commodity from both.
