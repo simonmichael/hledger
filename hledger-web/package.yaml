@@ -132,6 +132,7 @@ library:
   - http-conduit
   - http-client
   - http-types
+  - lucid
   - megaparsec >=7.0.0 && <9.8
   - mtl >=2.2.1
   - network
