@@ -15,8 +15,10 @@ module Hledger.Cli.Commands.Run (
  ,run'
 ) where
 
+
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as Map
+import Data.Semigroup (sconcat)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import System.Console.CmdArgs.Explicit as C ( Mode )
@@ -33,7 +35,7 @@ import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
 import Safe (headMay)
-import Hledger.Cli.Utils (withJournalDo)
+import Hledger.Cli.Utils (journalTransform)
 
 -- | Command line options for this command.
 runmode = hledgerCommandMode
@@ -119,42 +121,39 @@ runREPL findBuiltinCommand = do
         loop
 
 {-# NOINLINE journalCache #-}
-journalCache :: MVar (Map.Map [String] Journal)
+journalCache :: MVar (Map.Map String Journal)
 journalCache = unsafePerformIO $ newMVar Map.empty
 
 -- | Key used to cache the journal given in the arguments to 'run'.
-defaultJournalKey :: [String]
-defaultJournalKey = ["journal specified in args of run"]
+defaultJournalKey :: String
+defaultJournalKey = "journal specified in args of run"
 
-hasStdin :: [String] -> Bool
-hasStdin fps = "-" `elem` fps
-
-addJournalToCache :: Journal -> [String] -> IO ()
-addJournalToCache j journalpaths = modifyMVar_ journalCache $ \cache ->
-  if hasStdin $ dbg1 "addJournalToCache" journalpaths
-  then return cache
-  else return $ Map.insert journalpaths j cache
+addJournalToCache :: Journal -> String -> IO ()
+addJournalToCache j key = modifyMVar_ journalCache $ \cache ->
+  return $ Map.insert key j cache
 
 withJournalCached :: CliOpts -> (Journal -> IO ()) -> IO ()
-withJournalCached cliopts f = do
-  journalpaths <- journalFilePathFromOptsNoDefault cliopts
-  -- if command does not have -f flags, use the same journal that was given to the "run" invocation
-  let key = case journalpaths of
-              Nothing -> defaultJournalKey
-              Just paths -> NE.toList paths
-  dbg1IO "withJournalCached key" key
-  modifyMVar_ journalCache $ \cache ->
-    if hasStdin key
-    then do dbg1IO "withJournalCached skipping cache due to stdin" key
-            withJournalDo cliopts f
-            return cache
-    else case Map.lookup key cache of
+withJournalCached cliopts cmd = do
+  mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
+  let journalpaths = case mbjournalpaths of
+                      Nothing    -> NE.fromList [defaultJournalKey]
+                      Just paths -> paths
+  j <- journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
+  cmd j
+  where
+    readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
+    readAndCacheJournalFile iopts "-" = do
+      dbg1IO "readAndCacheJournalFile using stdin, not cached" "-"
+      j <- runExceptT $ readJournalFile iopts "-"
+      either error' return j
+    readAndCacheJournalFile iopts fp = do
+      dbg1IO "readAndCacheJournalFile" fp
+      modifyMVar journalCache $ \cache ->
+        case Map.lookup fp cache of
           Just journal -> do
-            dbg1IO "withJournalCached using cache" key
-            f journal
-            return cache
+            dbg1IO "readAndCacheJournalFile using cache" fp
+            return (cache, journal)
           Nothing -> do
-            dbg1IO "withJournalCached reading and caching journal" key
-            withJournalDo cliopts $ \j -> do
-              f j
-              return (Map.insert key j cache)
+            dbg1IO "readAndCacheJournalFile reading and caching journals" fp
+            journal <- runExceptT $ readJournalFile iopts fp
+            either error' (\j -> return (Map.insert fp j cache, j)) journal
