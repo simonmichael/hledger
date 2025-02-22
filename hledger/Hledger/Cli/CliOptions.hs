@@ -67,6 +67,7 @@ module Hledger.Cli.CliOptions (
   -- * CLI option accessors
   -- | These do the extra processing required for some options.
   journalFilePathFromOpts,
+  journalFilePathFromOptsNoDefault,
   rulesFilePathFromOpts,
   outputFileFromOpts,
   outputFormatFromOpts,
@@ -696,12 +697,20 @@ getHledgerCliOpts mode' = do
 -- File paths can have a READER: prefix naming a reader/data format.
 journalFilePathFromOpts :: CliOpts -> IO (NE.NonEmpty String)
 journalFilePathFromOpts opts = do
-  f <- defaultJournalPath
+  mbpaths <- journalFilePathFromOptsNoDefault opts
+  case mbpaths of
+    Just paths -> return paths
+    Nothing -> do
+      f <- defaultJournalPath
+      return $ NE.fromList [f]
+
+-- | Like journalFilePathFromOpts, but does not use defaultJournalPath
+journalFilePathFromOptsNoDefault :: CliOpts -> IO (Maybe (NE.NonEmpty String))
+journalFilePathFromOptsNoDefault opts = do
   d <- getCurrentDirectory
-  maybe
-    (return $ NE.fromList [f])
-    (mapM (expandPathPreservingPrefix d))
-    $ NE.nonEmpty $ file_ opts
+  case NE.nonEmpty $ file_ opts of
+    Nothing -> return Nothing
+    Just paths -> Just <$> mapM (expandPathPreservingPrefix d) paths
 
 expandPathPreservingPrefix :: FilePath -> PrefixedFilePath -> IO PrefixedFilePath
 expandPathPreservingPrefix d prefixedf = do
