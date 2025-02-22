@@ -640,9 +640,8 @@ The config file feature was added in hledger 1.40 and is considered *experimenta
 
 ## Shell completions
 
-If you use the bash shell, you can optionally set up context-sensitive autocompletions when you press TAB in a hledger command line.
-At a bash shell prompt, try pressing
-`hledger<SPACE><TAB><TAB>` (should list all hledger commands)
+If you use the bash or zsh shells, you can optionally set up context-sensitive autocompletion for hledger command lines.
+Try pressing `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
 
