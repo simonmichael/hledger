@@ -35,6 +35,8 @@ You can use `#!/usr/bin/env hledger run` in the first line of the file to make i
 
 - Numeric flags like `-3` do not work, use long form `--depth 3`
 
+- You can pass `-f` to the `run` itself, and also to any commands given after it (or in the command file, or via REPL). When specific command does not have `-f` in its flags, it will use the journal(s) specified in the arguments of `run`. If command does have `-f` flag, this journal would be read and its contents would be cache, so if several commands specify the same `-f` flag, they will read the journal only once.
+
 ### Examples:
 
 To start the REPL:
@@ -44,7 +46,7 @@ hledger run
 
 To provide commands on the command line, separate them with `--`:
 ```cli
-hledger run -f some.journal -- balance assets --depth 2 -- balance liabilities --depth 3 --transpose
+hledger run -f some.journal -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose
 ```
 
 To provide commands in the file, as a runnable scripts:
@@ -57,6 +59,6 @@ echo "Assets"
 balance assets --depth 2
 
 echo "Liabilities"
-balance liabilities --depth 3 --transpose
+balance liabilities -f /some/other.journal --depth 3 --transpose
 ```
 
