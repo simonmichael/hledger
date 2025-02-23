@@ -30,6 +30,7 @@ import Control.Monad (forM_)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM)
 
+import System.Console.CmdArgs.Explicit (expandArgsAt)
 import System.Directory (doesFileExist)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
@@ -92,7 +93,7 @@ parseCommand line =
 
 runCommand :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
 runCommand findBuiltinCommand cmdline = do
-  dbg1IO "running command" cmdline
+  dbg1IO "runCommand for" cmdline
   -- # begins a comment, ignore everything after #
   case cmdline of
     "echo":args -> putStrLn $ unwords $ args
@@ -100,7 +101,11 @@ runCommand findBuiltinCommand cmdline = do
       case findBuiltinCommand cmdname of
       Nothing -> putStrLn $ unwords (cmdname:args)
       Just (cmdmode,cmdaction) -> do
-        opts <- getHledgerCliOpts' cmdmode args
+        -- Normally expandArgsAt is done by the Cli.hs, but it stops at the first '--', so we need
+        -- to do it here as well to make sure that each command can use @ARGFILEs 
+        args' <- expandArgsAt args
+        dbg1IO "runCommand final args" (cmdname,args')
+        opts <- getHledgerCliOpts' cmdmode args'
         withJournalCached opts (cmdaction opts)
     [] -> return ()
 
