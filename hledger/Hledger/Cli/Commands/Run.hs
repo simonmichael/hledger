@@ -137,7 +137,9 @@ defaultJournalKey = "journal specified in args of run"
 
 addJournalToCache :: Journal -> String -> IO ()
 addJournalToCache j key = modifyMVar_ journalCache $ \cache ->
-  return $ Map.insert key j cache
+  case Map.lookup key cache of
+    Just _  -> return cache
+    Nothing -> return $ Map.insert key j cache
 
 withJournalCached :: CliOpts -> (Journal -> IO ()) -> IO ()
 withJournalCached cliopts cmd = do
