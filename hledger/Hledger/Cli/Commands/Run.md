@@ -33,8 +33,6 @@ You can use `#!/usr/bin/env hledger run` in the first line of the file to make i
 
 - If you meant to provide file name as an argument, but made a mistake and a gave file name that does not exist, "run" will attempt to interpret it as a command.
 
-- Numeric flags like `-3` do not work, use long form `--depth 3`
-
 - You can pass `-f` to the `run` itself, and also to any commands given after it (or in the command file, or via REPL). When specific command does not have `-f` in its flags, it will use the journal(s) specified in the arguments of `run`. If command does have `-f` flag, this journal would be read and its contents would be cache, so if several commands specify the same `-f` flag, they will read the journal only once.
 
 ### Examples:
