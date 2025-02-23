@@ -101,12 +101,14 @@ runCommand findBuiltinCommand cmdline = do
       case findBuiltinCommand cmdname of
       Nothing -> putStrLn $ unwords (cmdname:args)
       Just (cmdmode,cmdaction) -> do
+        -- Allow "run" to call "run"
+        let cmdaction' = if cmdname == "run" then run findBuiltinCommand else cmdaction
         -- Normally expandArgsAt is done by the Cli.hs, but it stops at the first '--', so we need
         -- to do it here as well to make sure that each command can use @ARGFILEs 
         args' <- expandArgsAt args
         dbg1IO "runCommand final args" (cmdname,args')
         opts <- getHledgerCliOpts' cmdmode args'
-        withJournalCached opts (cmdaction opts)
+        withJournalCached opts (cmdaction' opts)
     [] -> return ()
 
 runREPL :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
