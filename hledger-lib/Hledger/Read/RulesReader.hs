@@ -637,19 +637,19 @@ conditionaltablep = do
                  ])
   when (null body) $
     customFailure $ parseErrorAt start $ "start of conditional table found, but no assignment rules afterward"
-  return $ flip map body $ \(m,vs) ->
-    CB{cbMatchers=[m], cbAssignments=zip fields vs}
+  return $ flip map body $ \(ms,vs) ->
+    CB{cbMatchers=ms, cbAssignments=zip fields vs}
   <?> "conditional table"
   where
-    bodylinep :: Char -> [Text] -> CsvRulesParser (Matcher,[FieldTemplate])
+    bodylinep :: Char -> [Text] -> CsvRulesParser ([Matcher],[FieldTemplate])
     bodylinep sep fields = do
       off <- getOffset
-      m <- matcherp' $ void $ char sep
+      ms <- matcherp' (lookAhead . void . char $ sep) `manyTill` char sep
       vs <- T.split (==sep) . T.pack <$> lift restofline
       if (length vs /= length fields)
         then customFailure $ parseErrorAt off $ ((printf "line of conditional table should have %d values, but this one has only %d" (length fields) (length vs)) :: String)
-        else return (m,vs)
-      
+        else return (ms,vs)
+
 
 -- A single matcher, on one line.
 -- This tries to parse first as a field matcher, then if that fails, as a whole-record matcher;
@@ -700,7 +700,7 @@ matcherprefixp :: CsvRulesParser MatcherPrefix
 matcherprefixp = do
   lift $ dbgparse 8 "trying matcherprefixp"
   (do
-    char '&' >> lift skipNonNewlineSpaces
+    char '&' >> optional (char '&') >> lift skipNonNewlineSpaces
     fromMaybe And <$> optional (char '!' >> lift skipNonNewlineSpaces >> return AndNot))
   <|> (char '!' >> lift skipNonNewlineSpaces >> return Not)
   <|> return Or
@@ -718,10 +718,12 @@ regexp end = do
   lift $ dbgparse 8 "trying regexp"
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
-  cs <- anySingle `manyTill` end
+  cs <- anySingle `manyTill` (double_ampersand <|> end)
   case toRegexCI . T.strip . T.pack $ c:cs of
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
+  where
+    double_ampersand = lookAhead . void $ char '&' >> char '&'
 
 -- -- A match operator, indicating the type of match to perform.
 -- -- Currently just ~ meaning case insensitive infix regex match.
@@ -1559,7 +1561,7 @@ tests_RulesReader = testGroup "RulesReader" [
    ,testCase "quoted name" $ parseWithState' defrules csvfieldreferencep "%\"csv date\"" @?= (Right "%\"csv date\"")
    ]
 
-  ,testGroup "matcherp" [
+  ,testGroup "recordmatcherp" [
 
     testCase "recordmatcherp" $
       parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher Or $ toRegexCI' "A A")
@@ -1567,18 +1569,47 @@ tests_RulesReader = testGroup "RulesReader" [
    ,testCase "recordmatcherp.starts-with-&" $
       parseWithState' defrules matcherp "& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
 
-   ,testCase "fieldmatcherp.starts-with-%" $
-      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher Or $ toRegexCI' "description A A")
+   ,testCase "recordmatcherp.starts-with-&&" $
+      parseWithState' defrules matcherp "&& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
 
-   ,testCase "fieldmatcherp" $
+   ,testCase "recordmatcherp.starts-with-&&-!" $
+      parseWithState' defrules matcherp "&& ! A A\n" @?= (Right $ RecordMatcher AndNot $ toRegexCI' "A A")
+
+   ,testCase "recordmatcherp.does-not-start-with-%" $
+      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher Or $ toRegexCI' "description A A")
+   ]
+
+  ,testGroup "fieldmatcherp" [
+    testCase "fieldmatcherp" $
       parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher Or "%description" $ toRegexCI' "A A")
 
    ,testCase "fieldmatcherp.starts-with-&" $
       parseWithState' defrules matcherp "& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
 
+   ,testCase "fieldmatcherp.starts-with-&&" $
+      parseWithState' defrules matcherp "&& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
+
+   ,testCase "fieldmatcherp.starts-with-&&-!" $
+      parseWithState' defrules matcherp "&& ! %description A A\n" @?= (Right $ FieldMatcher AndNot "%description" $ toRegexCI' "A A")
+
    -- ,testCase "fieldmatcherp with operator" $
    --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
+   ]
 
+  ,testGroup "regexp" [
+    testCase "regexp.ends-before-&&" $
+      parseWithState' defrules (regexp empty) "A A && xxx" @?= (Right $ toRegexCI' "A A")
+   ]
+
+  , let matchers = [RecordMatcher Or (toRegexCI' "A"), RecordMatcher And (toRegexCI' "B")]
+        assignments = [("account2", "foo"), ("comment2", "bar")]
+        block = CB matchers assignments
+    in
+   testGroup "Combine multiple matchers on the same line" [
+    testCase "conditionalblockp" $
+      parseWithState' defrules conditionalblockp "if A && B\n account2 foo\n comment2 bar" @?= (Right block)
+   ,testCase "conditionaltablep" $
+      parseWithState' defrules conditionaltablep "if,account2,comment2\nA && B,foo,bar" @?= (Right [block])
    ]
 
  ,testGroup "hledgerField" [

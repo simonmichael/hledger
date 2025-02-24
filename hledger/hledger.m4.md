@@ -3741,10 +3741,13 @@ If you have trouble with it, see "Regular expressions" in the hledger manual (<h
 When an if block has multiple matchers, each on its own line,
 
 - By default they are OR'd (any of them can match).
-- Matcher lines beginning with `&` (and optional space) are AND'ed with the matcher above (all in the AND'ed group must match).
+- Matcher lines beginning with `&` (or `&&`, *since 1.42*) are AND'ed with the matcher above (all in the AND'ed group must match).
+- Matcher lines beginning with `& !` (*since 1.41*, or `&& !`, *since 1.42*) are first negated and then AND'ed with the matcher above.
 
-*(Since 1.41:)*
-You can use a negated `!` matcher on a `&` line, meaning AND NOT.
+You can also combine multiple matchers one the same line separated by `&&` (AND) or `&& !` (AND NOT).
+Eg `%description amazon && %date 2025-01-01` will match only when the
+description field contains "amazon" and the date field equals 2025-01-01.
+*Added in 1.42.*
 
 ### Match groups
 
@@ -3779,9 +3782,9 @@ they can express many matchers and field assignments in a more compact tabular f
 ```rules
 if,HLEDGERFIELD1,HLEDGERFIELD2,...
 MATCHERA,VALUE1,VALUE2,...
-MATCHERB,VALUE1,VALUE2,...
-; Comment line that explains MATCHERC
-MATCHERC,VALUE1,VALUE2,...
+MATCHERB && MATCHERC,VALUE1,VALUE2,...  (*since 1.42*)
+; Comment line that explains MATCHERD
+MATCHERD,VALUE1,VALUE2,...
 <empty line>
 ```
 
@@ -3796,8 +3799,8 @@ You can use the comment lines in the table body.
 The table must be terminated by an empty line (or end of file).
 
 An if table like the above is interpreted as follows:
-try all of the matchers; 
-whenever a matcher succeeds, assign all of the values on that line to the corresponding hledger fields;
+try all of the lines with matchers; 
+whenever a line with matchers succeeds, assign all of the values on that line to the corresponding hledger fields;
 If multiple lines match, later lines will override fields assigned by the earlier ones - just like the sequence of `if` blocks would behave.
 
 If table presented above is equivalent to this sequence of if blocks:
@@ -3808,13 +3811,13 @@ if MATCHERA
   HLEDGERFIELD2 VALUE2
   ...
 
-if MATCHERB
+if MATCHERB && MATCHERC
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
   ...
 
-; Comment line which explains MATCHERC
-if MATCHERC
+; Comment line which explains MATCHERD
+if MATCHERD
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
   ...
