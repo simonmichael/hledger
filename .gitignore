@@ -110,3 +110,4 @@ hledger-web/yesod-devel/
 /examples/demo/
 /hledger-web/demo/
 /doc/ghrelnotes.md
+.aider*
