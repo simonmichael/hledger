@@ -176,7 +176,6 @@ test-suite doctest
   type: exitcode-stdio-1.0
   main-is: doctests.hs
   hs-source-dirs:
-      ./
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   build-depends:
@@ -239,7 +238,6 @@ test-suite unittest
   type: exitcode-stdio-1.0
   main-is: unittest.hs
   hs-source-dirs:
-      ./
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   build-depends:
