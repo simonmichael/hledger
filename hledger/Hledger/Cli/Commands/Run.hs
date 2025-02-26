@@ -122,7 +122,7 @@ runCommand findBuiltinCommand cmdline = do
 -- | Run an interactive REPL.
 runREPL :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
 runREPL findBuiltinCommand = do
-  putStrLn "Enter hledger commands, or 'quit' for help."
+  putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
   runInputT defaultSettings loop
   where
   loop :: InputT IO ()
