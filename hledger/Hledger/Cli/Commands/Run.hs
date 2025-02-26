@@ -167,7 +167,7 @@ withJournalCached cliopts cmd = do
   where
     -- | Read a journal file, caching it if it has not been read before.
     readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
-    readAndCacheJournalFile iopts "-" = do
+    readAndCacheJournalFile iopts fp | snd (splitReaderPrefix fp) == "-" = do
       dbg1IO "readAndCacheJournalFile using stdin, not cached" "-"
       j <- runExceptT $ readJournalFile iopts "-"
       either error' return j
