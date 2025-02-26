@@ -109,7 +109,7 @@ runCommand defaultJrnl findBuiltinCommand cmdline = do
           let cmdaction' = if cmdname == "run" then run findBuiltinCommand else cmdaction
           -- Even though expandArgsAt is done by the Cli.hs, it stops at the first '--', so we need
           -- to do it here as well to make sure that each command can use @ARGFILEs 
-          args' <- expandArgsAt args
+          args' <- replaceNumericFlags <$> expandArgsAt args
           dbg1IO "runCommand final args" (cmdname,args')
           opts <- getHledgerCliOpts' cmdmode args'
           withJournalCached defaultJrnl opts (cmdaction' opts)
