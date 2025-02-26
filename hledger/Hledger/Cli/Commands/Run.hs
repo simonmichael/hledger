@@ -15,8 +15,6 @@ module Hledger.Cli.Commands.Run (
  ,run'
 ) where
 
-
-import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as Map
 import Data.Semigroup (sconcat)
 import qualified Data.Text as T
@@ -61,36 +59,34 @@ run' _opts _j = return ()
 -- | The actual run command.
 run :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> Journal -> IO ()
 run findBuiltinCommand CliOpts{rawopts_=rawopts} j = do
-  -- Add current journal to cache, so that any commands that dont specify `-f` could fetch it from there
-  addJournalToCache j defaultJournalKey
   let args = dbg1 "args" $ listofstringopt "args" rawopts
-  case args of
-    [] -> runREPL findBuiltinCommand
-    maybeFile:_ -> do
-      -- Check if arguments could be interpreted as files.
-      -- If not, assume that they are files
-      isFile <- doesFileExist maybeFile
-      case isFile of
-        True  -> runFromFiles findBuiltinCommand args
-        False -> runFromArgs  findBuiltinCommand args
+  if args == []
+  then runREPL j findBuiltinCommand
+  else do
+    -- Check if arguments could be interpreted as files.
+    -- If not, assume that they are commands specified directly on the command line
+    allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
+    case allAreFiles of
+      True  -> runFromFiles j findBuiltinCommand args
+      False -> runFromArgs  j findBuiltinCommand args
 
 -- | Run commands from files given to "run".
-runFromFiles :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runFromFiles findBuiltinCommand inputfiles = do
+runFromFiles :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runFromFiles defaultJrnl findBuiltinCommand inputfiles = do
   dbg1IO "inputfiles" inputfiles
   -- read commands from all the inputfiles
   commands <- (flip concatMapM) inputfiles $ \f -> do
     dbg1IO "reading commands" f
     lines . T.unpack <$> T.readFile f
 
-  forM_ commands (runCommand findBuiltinCommand . parseCommand)
+  forM_ commands (runCommand defaultJrnl findBuiltinCommand . parseCommand)
 
 -- | Run commands from command line arguments given to "run".
-runFromArgs :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runFromArgs findBuiltinCommand args = do
+runFromArgs :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runFromArgs defaultJrnl findBuiltinCommand args = do
   -- read commands from all the inputfiles
   let commands = dbg1 "commands from args" $ splitAtElement "--" args
-  forM_ commands (runCommand findBuiltinCommand)
+  forM_ commands (runCommand defaultJrnl findBuiltinCommand)
 
 -- When commands are passed on the command line, shell will parse them for us
 -- When commands are read from file, we need to split the line into command and arguments
@@ -100,8 +96,8 @@ parseCommand line =
   takeWhile (not. ((Just '#')==) . headMay) $  words' (strip line)
 
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
-runCommand :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runCommand findBuiltinCommand cmdline = do
+runCommand :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runCommand defaultJrnl findBuiltinCommand cmdline = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
     "echo":args -> putStrLn $ unwords $ args
@@ -116,12 +112,12 @@ runCommand findBuiltinCommand cmdline = do
           args' <- expandArgsAt args
           dbg1IO "runCommand final args" (cmdname,args')
           opts <- getHledgerCliOpts' cmdmode args'
-          withJournalCached opts (cmdaction' opts)
+          withJournalCached defaultJrnl opts (cmdaction' opts)
     [] -> return ()
 
 -- | Run an interactive REPL.
-runREPL :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
-runREPL findBuiltinCommand = do
+runREPL :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
+runREPL defaultJrnl findBuiltinCommand = do
   putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
   runInputT defaultSettings loop
   where
@@ -133,7 +129,7 @@ runREPL findBuiltinCommand = do
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        liftIO $ runCommand findBuiltinCommand $ parseCommand input
+        liftIO $ runCommand defaultJrnl findBuiltinCommand $ parseCommand input
         loop
 
 -- | Cache of all journals that have been read by commands given to "run",
@@ -142,27 +138,13 @@ journalCache :: MVar (Map.Map String Journal)
 journalCache = unsafePerformIO $ newMVar Map.empty
 {-# NOINLINE journalCache #-}
 
--- | Key used to cache the journal given in the arguments to 'run' itself.
-defaultJournalKey :: String
-defaultJournalKey = "journal specified in the args of run"
-
-addJournalToCache :: Journal -> String -> IO ()
-addJournalToCache j key = modifyMVar_ journalCache $ \cache ->
-  case Map.lookup key cache of
-    Just _  -> return cache
-    Nothing -> return $ Map.insert key j cache
-
 -- | Similar to `withJournal`, but uses caches all the journals it reads.
-withJournalCached :: CliOpts -> (Journal -> IO ()) -> IO ()
-withJournalCached cliopts cmd = do
+withJournalCached :: Journal -> CliOpts -> (Journal -> IO ()) -> IO ()
+withJournalCached defaultJrnl cliopts cmd = do
   mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
-  let journalpaths = case mbjournalpaths of
-                      Nothing    ->
-                        -- If the command does not have -f args, it will use the default journal
-                        -- that was supplied to the "run" itself 
-                        NE.fromList [defaultJournalKey]
-                      Just paths -> paths
-  j <- journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
+  j <- case mbjournalpaths of
+    Nothing -> return defaultJrnl -- use the journal given to the "run" itself
+    Just journalpaths -> journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
   cmd j
   where
     -- | Read a journal file, caching it if it has not been read before.
