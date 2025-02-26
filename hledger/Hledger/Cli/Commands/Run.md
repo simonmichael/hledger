@@ -24,6 +24,7 @@ Syntax of the commands (either in the file, or in REPL) is intentionally simple:
 - empty lines are skipped
 - everything after `#` is considered to be a comment and will be ignored, and will not be printed out
 - `echo <text>` will print out text, even if it could be recognized as a hledger command 
+- `run` is a valid command to give use as well, so you can have `run` call `run` if you want to.
 
 You can use single quotes or double quotes to quote aguments that need quoting.
 
@@ -33,7 +34,7 @@ You can use `#!/usr/bin/env hledger run` in the first line of the file to make i
 
 - If you meant to provide file name as an argument, but made a mistake and a gave file name that does not exist, "run" will attempt to interpret it as a command.
 
-- You can pass `-f` to the `run` itself, and also to any commands given after it (or in the command file, or via REPL). When specific command does not have `-f` in its flags, it will use the journal(s) specified in the arguments of `run`. If command does have `-f` flag, this journal would be read and its contents would be cache, so if several commands specify the same `-f` flag, they will read the journal only once.
+- `Run`, like any other command, will load the input file(s) (specified by `LEDGER_JOURNAL` or by `-f` arguments). The contents of those files would be used by all the commands that `run` runs. If you want a particular command to use a different input file, you can use `-f` flag for that particular command. This will override (not add) the input for that particular command. All the files read would be cached, and would be read only once.
 
 ### Examples:
 
@@ -41,11 +42,17 @@ To start the REPL:
 ```cli
 hledger run
 ```
+or
+```cli
+hledger run -f some.journal
+```
+
 
 To provide commands on the command line, separate them with `--`:
 ```cli
-hledger run -f some.journal -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose
+hledger run -f some.journal -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 ```
+This would load `some.journal`, run `balance assets --depth 2` on it, then run `balance liabilities --depth 3 --transpose` on `/some/other.journal`, and finally will run `stats` on `some.journal`
 
 To provide commands in the file, as a runnable scripts:
 ```cli
@@ -56,7 +63,10 @@ accounts
 echo "Assets"
 balance assets --depth 2
 
-echo "Liabilities"
+echo "Liabilities from /some/other.journal"
 balance liabilities -f /some/other.journal --depth 3 --transpose
+
+echo "Commands from anoter.script, applied to another.journal"
+run -f anoter.journal another.script
 ```
 
