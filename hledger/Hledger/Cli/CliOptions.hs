@@ -107,9 +107,7 @@ import String.ANSI
 import System.Console.CmdArgs hiding (Default,def)
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
-#ifndef mingw32_HOST_OS
-import System.Console.Terminfo
-#endif
+import Hledger.Utils.IO (getTerminalWidth)
 import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)
@@ -618,13 +616,7 @@ rawOptsToCliOpts rawopts = do
   let iopts = rawOptsToInputOpts day usecolor postingaccttags rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mcolumns <- readMay <$> getEnvSafe "COLUMNS"
-  mtermwidth <-
-#ifdef mingw32_HOST_OS
-    return Nothing
-#else
-    (`getCapability` termColumns) <$> setupTermFromEnv
-    -- XXX Throws a SetupTermError if the terminfo database could not be read, should catch
-#endif
+  mtermwidth <- getTerminalWidth
   let availablewidth = NE.head $ NE.fromList $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
   return defcliopts {
               rawopts_         = rawopts

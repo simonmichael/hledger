@@ -413,8 +413,30 @@ hasOutputFile = do
 
 -- Terminal size
 
+-- [NOTE: Alternative methods of getting the terminal size]
+-- terminal-size uses the TIOCGWINSZ ioctl to get the window size on Unix
+-- systems, which may not be completely portable according to people in
+-- #linux@liberachat.
+--
+-- If this turns out to be the case, supplementary coverage can be given by
+-- using the terminfo package.
+--
+-- Conversely, terminfo on its own is not a full solution, firstly because it
+-- only works on Unix (not Windows), and secondly since in some scenarios (eg
+-- stripped-down build systems) the terminfo database may be limited and lack
+-- the correct entries. (A hack that sometimes works but which isn't robust
+-- enough to be relied upon is to set TERM=dumb -- while this advice does appear
+-- in some places, it's not guaranteed to work)
+--
+-- In any case, $LINES/$COLUMNS should not be used as a source for the terminal
+-- size -- that is a bashism, and in particular they aren't updated as the
+-- terminal is resized.
+--
+-- See #2332 for details
+
 -- | An alternative to ansi-terminal's getTerminalSize, based on
 -- the more robust-looking terminal-size package.
+--
 -- Tries to get stdout's terminal's current height and width.
 getTerminalHeightWidth :: IO (Maybe (Int,Int))
 getTerminalHeightWidth = fmap (fmap unwindow) size

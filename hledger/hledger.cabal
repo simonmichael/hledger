@@ -98,11 +98,6 @@ flag debug
   manual: True
   default: False
 
-flag terminfo
-  description: On POSIX systems, build with the terminfo lib for detecting terminal width
-  manual: False
-  default: True
-
 flag threaded
   description: Build with support for multithreaded execution
   manual: False
@@ -195,9 +190,6 @@ library
     , utility-ht >=0.0.13
     , wizards >=1.0
   default-language: Haskell2010
-  if (!(os(windows))) && (flag(terminfo))
-    build-depends:
-        terminfo
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -247,9 +239,6 @@ executable hledger
     , utility-ht >=0.0.13
     , wizards >=1.0
   default-language: Haskell2010
-  if (!(os(windows))) && (flag(terminfo))
-    build-depends:
-        terminfo
   if (flag(debug))
     cpp-options: -DDEBUG
   if flag(threaded)
@@ -300,9 +289,6 @@ test-suite unittest
     , utility-ht >=0.0.13
     , wizards >=1.0
   default-language: Haskell2010
-  if (!(os(windows))) && (flag(terminfo))
-    build-depends:
-        terminfo
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -353,8 +339,5 @@ benchmark bench
     , wizards >=1.0
   buildable: False
   default-language: Haskell2010
-  if (!(os(windows))) && (flag(terminfo))
-    build-depends:
-        terminfo
   if (flag(debug))
     cpp-options: -DDEBUG
