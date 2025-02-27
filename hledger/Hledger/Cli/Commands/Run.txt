@@ -29,8 +29,8 @@ and will not be printed out - echo <text> will print out text, even if
 it could be recognized as a hledger command - run is a valid command to
 use as well, so you can have run call run if you want to.
 
-You can use single quotes or double quotes to quote aguments that need
-quoting.
+You can use single or double quotes to quote aguments that need it
+('like this' or "like this").
 
 You can use #!/usr/bin/env hledger run in the first line of the file to
 make it a runnable script. If this complains about "binary hledger run
