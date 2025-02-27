@@ -227,6 +227,7 @@ commandsList progversion othercmds =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES (alternate UIs)"
+  ,"repl                      run interactive REPL"
   ,"+ui                       run terminal UI"                                       -- hledger-ui
   ,"+web                      run web UI"                                            -- hledger-web
                                                                                      -- see also: MoLe, https://hledger.org/mobile.html
