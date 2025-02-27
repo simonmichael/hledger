@@ -4,12 +4,11 @@
 
 import Criterion.Main     (defaultMainWith, defaultConfig, bench, nfIO)
 -- import QuickBench        (defaultMain)
-import Data.Default
 import System.Directory   (getCurrentDirectory)
 import System.Environment (getArgs, withArgs)
 import System.TimeIt      (timeItT)
 import Text.Printf
-import Hledger.Cli
+import Hledger.Cli hiding (main)
 
 -- sample journal file to use for benchmarks
 inputfile = "bench/10000x1000x10.journal"
@@ -34,7 +33,7 @@ main = do
 benchWithTimeit = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with timeit\n"
   let opts = defcliopts{output_file_=Just outputfile}
-  (t0,j) <- timeit ("read "++inputfile) $ either error id <$> readJournalFile def inputfile  -- PARTIAL:
+  (t0,j) <- timeit ("read "++inputfile) $ readJournalFile' inputfile  -- PARTIAL:
   (t1,_) <- timeit ("print") $ print' opts j
   (t2,_) <- timeit ("register") $ register opts j
   (t3,_) <- timeit ("balance") $ balance  opts j
@@ -50,9 +49,9 @@ timeit name action = do
 benchWithCriterion = do
   getCurrentDirectory >>= printf "Benchmarking hledger in %s with criterion\n"
   let opts = defcliopts{output_file_=Just "/dev/null"}
-  j <- either error id <$> readJournalFile def inputfile  -- PARTIAL:
+  j <- readJournalFile' inputfile  -- PARTIAL:
   Criterion.Main.defaultMainWith defaultConfig $ [
-    bench ("read "++inputfile) $ nfIO $ (either error const <$> readJournalFile def inputfile),  -- PARTIAL:
+    bench ("read "++inputfile) $ nfIO $ const <$> readJournalFile' inputfile,  -- PARTIAL:
     bench ("print")            $ nfIO $ print'   opts j,
     bench ("register")         $ nfIO $ register opts j,
     bench ("balance")          $ nfIO $ balance  opts j,
