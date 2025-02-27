@@ -1,3 +1,3 @@
-hledger -f examples/1000x1000x10.journal print
-hledger -f examples/1000x1000x10.journal register
-hledger -f examples/1000x1000x10.journal balance
+hledger -f examples/1ktxns-1kaccts.journal print
+hledger -f examples/1ktxns-1kaccts.journal register
+hledger -f examples/1ktxns-1kaccts.journal balance

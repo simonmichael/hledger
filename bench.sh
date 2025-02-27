@@ -5,7 +5,7 @@
 # (criterion) is more robust.
 # 
 # Generate the test journals: 
-# make samplejournals 
+# just samplejournals 
 #
 # Get quickbench: 
 # git clone https://github.com/simonmichael/quickbench
@@ -15,32 +15,31 @@
 # Measure performance:
 # time ./bench.sh      # show if these work, what they do, total time (GNU time also shows max memory)
 # quickbench [OPTS]    # time each command, one or more times
-# make bench           # time each command with several hledger versions (BENCHEXES in Makefile) 
 # stack bench hledger  # time a different set of benchmarks (bench/bench.hs) 
 # stack bench hledger --ba --criterion  # time more carefully, using criterion 
 
 # commands to benchmark:
 
-# hledger -f examples/100x100x10.journal print
-# hledger -f examples/1000x1000x10.journal print
-hledger -f examples/10000x1000x10.journal print
-# hledger -f examples/10000x1000x10.journal print ff
-#hledger -f examples/100000x1000x10.journal print
-#hledger -f examples/100000x1000x10.journal print ff
+# hledger -f examples/100txns-100accts.journal print
+# hledger -f examples/1ktxns-1kaccts.journal print
+hledger -f examples/10ktxns-1kaccts.journal print
+# hledger -f examples/10ktxns-1kaccts.journal print ff
+#hledger -f examples/100ktxns-1kaccts.journal print
+#hledger -f examples/100ktxns-1kaccts.journal print ff
 
-# hledger -f examples/100x100x10.journal register
-# hledger -f examples/1000x1000x10.journal register
-hledger -f examples/10000x1000x10.journal register
-# hledger -f examples/10000x1000x10.journal register ff
-#hledger -f examples/100000x1000x10.journal register
-#hledger -f examples/100000x1000x10.journal register ff
+# hledger -f examples/100txns-100accts.journal register
+# hledger -f examples/1ktxns-1kaccts.journal register
+hledger -f examples/10ktxns-1kaccts.journal register
+# hledger -f examples/10ktxns-1kaccts.journal register ff
+#hledger -f examples/100ktxns-1kaccts.journal register
+#hledger -f examples/100ktxns-1kaccts.journal register ff
 
-# hledger -f examples/100x100x10.journal balance
-# hledger -f examples/1000x1000x10.journal balance
-hledger -f examples/10000x1000x10.journal balance
-# hledger -f examples/10000x1000x10.journal balance ff
-#hledger -f examples/100000x1000x10.journal balance
-#hledger -f examples/100000x1000x10.journal balance ff
-#hledger -f examples/1000x1000x10.journal balance --weekly
-#hledger -f examples/10000x1000x10.journal balance --weekly
+# hledger -f examples/100txns-100accts.journal balance
+# hledger -f examples/1ktxns-1kaccts.journal balance
+hledger -f examples/10ktxns-1kaccts.journal balance
+# hledger -f examples/10ktxns-1kaccts.journal balance ff
+#hledger -f examples/100ktxns-1kaccts.journal balance
+#hledger -f examples/100ktxns-1kaccts.journal balance ff
+#hledger -f examples/1ktxns-1kaccts.journal balance --weekly
+#hledger -f examples/10ktxns-1kaccts.journal balance --weekly
 
