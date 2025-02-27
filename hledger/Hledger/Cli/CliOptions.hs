@@ -94,7 +94,7 @@ import Data.Char
 import Data.Default
 import Data.Either (isRight)
 import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
-import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, head, nonEmpty)
+import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, nonEmpty)
 import Data.List.Split (splitOn)
 import Data.Maybe
 --import Data.String.Here
@@ -107,7 +107,6 @@ import String.ANSI
 import System.Console.CmdArgs hiding (Default,def)
 import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Text
-import Hledger.Utils.IO (getTerminalWidth)
 import System.Directory
 import System.Environment
 import System.Exit (exitSuccess)

@@ -92,10 +92,6 @@ extra-source-files:
 #data-files:
 
 flags:
-  terminfo:
-    description: On POSIX systems, build with the terminfo lib for detecting terminal width
-    default: true
-    manual:  false
   threaded:
     description: Build with support for multithreaded execution
     default: true
@@ -158,9 +154,6 @@ dependencies:
 - wizards >=1.0
 
 when:
-- condition: (!(os(windows))) && (flag(terminfo))
-  dependencies:
-  - terminfo
 - condition: (flag(debug))
   cpp-options: -DDEBUG
 # - condition: (flag(ghcdebug))

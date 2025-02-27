@@ -429,8 +429,7 @@ hasOutputFile = do
 -- in some places, it's not guaranteed to work)
 --
 -- In any case, $LINES/$COLUMNS should not be used as a source for the terminal
--- size -- that is a bashism, and in particular they aren't updated as the
--- terminal is resized.
+-- size - they are not available or do not update reliably in all shells.
 --
 -- See #2332 for details
 
