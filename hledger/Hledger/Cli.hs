@@ -429,8 +429,9 @@ main = withGhcDebug' $ do
           ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
           withJournalDo opts (cmdaction opts)
 
-        -- 6.5.4. run needs findBuiltinCommands passed to it to avoid circular dependency in the code
-        | cmdname == "run" -> do withJournalDo opts $ Hledger.Cli.Commands.Run.run findBuiltinCommand opts
+        -- 6.5.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
+        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand opts
+        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand opts
 
         -- 6.5.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
