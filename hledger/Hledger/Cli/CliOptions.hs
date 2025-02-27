@@ -615,7 +615,7 @@ rawOptsToCliOpts rawopts = do
   let iopts = rawOptsToInputOpts day usecolor postingaccttags rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mtermwidth <- getTerminalWidth
-  let availablewidth = NE.head $ NE.fromList $ catMaybes [mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
+  let availablewidth = fromMaybe defaultWidth mtermwidth
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = command
