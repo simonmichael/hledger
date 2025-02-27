@@ -449,6 +449,7 @@ src/hledger/
           README.md
           Register.md
           Rewrite.md
+          Repl.md
           Roi.md
           Run.md
           Stats.md
