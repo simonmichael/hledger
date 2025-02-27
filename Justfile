@@ -698,8 +698,8 @@ OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn 
     echo system:     `uname -a`
     echo executable: {{ EXE }}
     echo version:    `{{ EXE }} --version`
-    for n in 1000 2000 3000 4000 5000 6000 7000 8000 9000 10000 100000 ; do \
-        printf "%6d txns: " $n; {{ EXE }} stats -f examples/${n}x1000x10.journal | tail -1; \
+    for n in 1 2 3 4 5 6 7 8 9 10 100 ; do \
+        printf "%3dk txns: " $n; {{ EXE }} stats -f examples/${n}ktxns-1kaccts.journal | tail -1; \
     done
     date
 
