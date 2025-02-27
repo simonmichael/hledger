@@ -65,7 +65,7 @@ aregistermode = hledgerCommandMode
 #else
       "terminal width"
 #endif
-      ++ " or $COLUMNS). -wN,M sets description width as well."
+      ++ "). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
   ,outputFormatFlag ["txt","html","csv","tsv","json"]

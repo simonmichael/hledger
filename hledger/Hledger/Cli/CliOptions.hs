@@ -550,9 +550,8 @@ data CliOpts = CliOpts {
     ,no_new_accounts_ :: Bool           -- add
     ,width_           :: Maybe String   -- ^ the --width value provided, if any
     ,available_width_ :: Int            -- ^ estimated usable screen width, based on
-                                        -- 1. the COLUMNS env var, if set
-                                        -- 2. the width reported by the terminal, if supported
-                                        -- 3. the default (80)
+                                        -- 1. the width reported by the terminal, if supported
+                                        -- 2. the default (80)
     ,progstarttime_   :: POSIXTime      -- system POSIX time at start
  } deriving (Show)
 
@@ -615,9 +614,8 @@ rawOptsToCliOpts rawopts = do
   usecolor <- useColorOnStdout
   let iopts = rawOptsToInputOpts day usecolor postingaccttags rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
-  mcolumns <- readMay <$> getEnvSafe "COLUMNS"
   mtermwidth <- getTerminalWidth
-  let availablewidth = NE.head $ NE.fromList $ catMaybes [mcolumns, mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
+  let availablewidth = NE.head $ NE.fromList $ catMaybes [mtermwidth, Just defaultWidth]  -- PARTIAL: fromList won't fail because non-null list
   return defcliopts {
               rawopts_         = rawopts
              ,command_         = command
@@ -763,8 +761,7 @@ rulesFilePathFromOpts opts = do
   maybe (return Nothing) (fmap Just . expandPath d) $ mrules_file_ $ inputopts_ opts
 
 -- -- | Get the width in characters to use for console output.
--- -- This comes from the --width option, or the COLUMNS environment
--- -- variable, or (on posix platforms) the current terminal width, or 80.
+-- -- This comes from the --width option, or the current terminal width, or 80.
 -- -- Will raise a parse error for a malformed --width argument.
 -- widthFromOpts :: CliOpts -> Int
 -- widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
@@ -779,7 +776,7 @@ rulesFilePathFromOpts opts = do
 -- and also the description column width if specified (following the main width, comma-separated).
 -- The widths will be as follows:
 -- @
--- no --width flag - overall width is the available width (COLUMNS, or posix terminal width, or 80); description width is unspecified (auto)
+-- no --width flag - overall width is the available width (or terminal width, or 80); description width is unspecified (auto)
 -- --width W       - overall width is W, description width is auto
 -- --width W,D     - overall width is W, description width is D
 -- @

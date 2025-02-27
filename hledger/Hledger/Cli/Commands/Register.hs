@@ -67,7 +67,7 @@ registermode = hledgerCommandMode
 #else
       "terminal width"
 #endif
-      ++ " or $COLUMNS). -wN,M sets description width as well."
+      ++ "). -wN,M sets description width as well."
      )
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
