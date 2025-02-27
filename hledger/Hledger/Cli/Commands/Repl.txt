@@ -23,8 +23,8 @@ considered to be a comment and will be ignored, and will not be printed
 out - echo <text> will print out text, even if it could be recognized as
 a hledger command
 
-You can use single quotes or double quotes to quote aguments that need
-quoting.
+You can use single or double quotes to quote aguments that need it
+('like this' or "like this").
 
 Caveats:
 
