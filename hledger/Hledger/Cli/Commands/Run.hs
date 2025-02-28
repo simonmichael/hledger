@@ -124,7 +124,7 @@ runCommand defaultJrnl findBuiltinCommand cmdline = do
     "echo":args -> putStrLn $ unwords $ args
     cmdname:args ->
       case findBuiltinCommand cmdname of
-        Nothing -> putStrLn $ unwords (cmdname:args)
+        Nothing -> error' $ "Unrecognized command: " ++ unwords (cmdname:args)
         Just (cmdmode,cmdaction) -> do
           -- Even though expandArgsAt is done by the Cli.hs, it stops at the first '--', so we need
           -- to do it here as well to make sure that each command can use @ARGFILEs 
