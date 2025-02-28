@@ -1,4 +1,5 @@
 #!/usr/bin/env ysh                                               # -*- sh -*-
+# tested with ysh 0.24
 # https://oils.pub/release/latest/doc/ysh-tour.html
 # https://oils.pub/release/latest/doc/ref/
 
@@ -24,12 +25,12 @@ $ hledger jj log -- -n5
 $ hledger-jj l -n5 --stat
 '''
 
-# $ hledger-jj c 'txns' -- -n  # commit changes, ignoring any pre-commit hooks
-# You can install this as more convenient top-level commands by creating
-# hledger-commit, hledger-status, hledger-log scripts like:
+# You could install this as more convenient top level hledger commands by
+# making hledger-commit, hledger-diff, hledger-status, hledger-log scripts like
 #
-#     #!/bin/sh
-#     hledger-jj commit "\$@"
+# #!/bin/sh
+# #hledger-commit
+# hledger-jj commit "$@"
 
 const S = /%start/
 const E = /%end/
