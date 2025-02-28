@@ -54,10 +54,10 @@ Flags:
      --transpose            switch rows and columns (use vertical time axis)
      --layout=ARG           how to lay out multi-commodity amounts and the
                             overall table:
-                            'wide[,WIDTH]': commodities on one line
-                            'tall'        : commodities on separate lines
-                            'bare'        : commodity symbols in one column
-                            'tidy'        : every attribute in its own column
+                            'wide[,W]': commodities on same line, up to W wide
+                            'tall'    : commodities on separate lines
+                            'bare'    : commodity symbols in a separate column
+                            'tidy'    : each data field in its own column
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)

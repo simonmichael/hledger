@@ -19,8 +19,8 @@ Flags:
      --sort=FIELDS          sort by: date, desc, account, amount, absamount,
                             or a comma-separated combination of these. For a
                             descending sort, prefix with -. (Default: date)
-  -w --width=N              set output width (default: terminal width or
-                            $COLUMNS). -wN,M sets description width as well.
+  -w --width=N              set output width (default: terminal width). -wN,M
+                            sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by

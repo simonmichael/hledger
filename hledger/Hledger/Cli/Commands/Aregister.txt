@@ -15,8 +15,8 @@ Flags:
                             postings before report start date) (default)
      --invert               display all amounts with reversed sign
      --heading=YN           show heading row above table: yes (default) or no
-  -w --width=N              set output width (default: terminal width or
-                            $COLUMNS). -wN,M sets description width as well.
+  -w --width=N              set output width (default: terminal width). -wN,M
+                            sets description width as well.
      --align-all            guarantee alignment across all lines (slower)
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
