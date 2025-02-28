@@ -21,7 +21,7 @@ $ hledger jj diff
 $ hledger jj commit
 $ hledger jj c "new txns"
 $ hledger jj log -- -n5
-$ hledger-jj l -n 5 --stat
+$ hledger-jj l -n5 --stat
 '''
 
 # $ hledger-jj c 'txns' -- -n  # commit changes, ignoring any pre-commit hooks
@@ -79,6 +79,14 @@ proc ensure_journal_repo() { # ensure that the journal file has a jj/git repo
   }
 }
 
+proc status(...opts) { ### [OPTS] - show status of journal files
+  cd "$DIR" { jj status --color=always @opts @FILES | grep -vE '^Untracked paths:|\?' }
+}
+
+proc diff(...opts) { ### [OPTS] - show unrecorded changes in journal files
+  cd "$DIR" { jj diff @opts @FILES }
+}
+
 proc commit(...opts) { ### [MSG [OPTS]] - record changes to journal files
   cd "$DIR" {
     jj file track @FILES
@@ -91,14 +99,6 @@ proc commit(...opts) { ### [MSG [OPTS]] - record changes to journal files
   }
 }
 
-proc status(...opts) { ### [OPTS] - show status of journal files
-  cd "$DIR" { jj status --color=always @opts @FILES | grep -vE '^Untracked paths:|\?' }
-}
-
-proc diff(...opts) { ### [OPTS] - show unrecorded changes in journal files
-  cd "$DIR" { jj diff @opts @FILES }
-}
-
 proc log(...opts) { ### [OPTS] - list recorded changes to journal files
   cd "$DIR" { jj log @opts @FILES }
 }
@@ -109,9 +109,9 @@ if (len(ARGV) < 1) {
   var args = ARGV[1:]
   case (ARGV[0]) {
     /S ('h'('e'('l'('p')?)?)? | '-h' | '-'? '-help') E/ { help }
-    /S 'c'('o'('m'('m'('i'('t')?)?)?)?)? E/ { setup; commit @args }
     /S 's'('t'('a'('t'('u'('s')?)?)?)?) ?E/ { setup; status @args }
     /S 'd'('i'('f'('f')?)?)? E/             { setup; diff @args }
+    /S 'c'('o'('m'('m'('i'('t')?)?)?)?)? E/ { setup; commit @args }
     /S 'l'('o'('g')?) ?E/                   { setup; log @args }
     (else)                                  { echo "Unknown command: $[ARGV[0]]"; return 1 }
   }
