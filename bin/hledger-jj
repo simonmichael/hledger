@@ -1,7 +1,10 @@
 #!/usr/bin/env ysh                                               # -*- sh -*-
-# tested with ysh 0.24
+# Tested with ysh 0.24
 # https://oils.pub/release/latest/doc/ysh-tour.html
-# https://oils.pub/release/latest/doc/ref/
+#  https://oils.pub/release/latest/doc/ref/
+# Tested with jj 0.26 with auto-track disabled, ie in ~/.jjconfig.toml:
+#  [snapshot]
+#  auto-track = "none()"
 
 const HELP = '''
 -------------------------------------------------------------------------------
@@ -110,7 +113,7 @@ if (len(ARGV) < 1) {
   var args = ARGV[1:]
   case (ARGV[0]) {
     /S ('h'('e'('l'('p')?)?)? | '-h' | '-'? '-help') E/ { help }
-    /S 's'('t'('a'('t'('u'('s')?)?)?)?) ?E/ { setup; status @args }
+    /S 's'('t'('a'('t'('u'('s')?)?)?)?)? E/ { setup; status @args }
     /S 'd'('i'('f'('f')?)?)? E/             { setup; diff @args }
     /S 'c'('o'('m'('m'('i'('t')?)?)?)?)? E/ { setup; commit @args }
     /S 'l'('o'('g')?) ?E/                   { setup; log @args }
