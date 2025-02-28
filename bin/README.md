@@ -255,7 +255,8 @@ $ hledger bar -- -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 ### hledger-git
 
 [`hledger-git`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-git)
-provides easy version control for your journal files, using git. Run it with no arguments for help.
+provides easy version control for your journal files, using [git](https://git-scm.com).
+Run it with no arguments for help.
 ```cli
 $ hledger git log
 $ hledger git status
@@ -265,7 +266,8 @@ $ hledger git record [MSG]
 ### hledger-jj
 
 [`hledger-jj`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-jj)
-provides easy version control for your journal files, using jj (and a git repo). Run it with no arguments for help.
+provides easy version control for your journal files, using [jj](https://jj-vcs.github.io)
+(and a git repo).
 This is newer and better than hledger-git and hledger-pijul.
 Unlike most shell scripts here, it requires [ysh](https://oils.pub).
 ```cli
@@ -278,7 +280,7 @@ $ hledger jj commit [MSG]
 ### hledger-pijul
 
 [`hledger-pijul`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pijul)
-provides easy version control for your journal files, using the [pijul](https://pijul.org) version control system..
+provides easy version control for your journal files, using the [pijul](https://pijul.org) version control system.
 ```cli
 $ hledger pijul log
 $ hledger pijul status
