@@ -33,6 +33,7 @@ import Control.Monad.Extra (concatMapM)
 
 import System.Console.CmdArgs.Explicit (expandArgsAt)
 import System.Directory (doesFileExist)
+import System.IO (stdin, hIsTerminalDevice)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
@@ -73,12 +74,16 @@ run :: Maybe Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO
 run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} = do
   withJournalCached defaultJournalOverride cliopts $ \j -> do
     let args = dbg1 "args" $ listofstringopt "args" rawopts
-    -- Check if arguments could be interpreted as files.
-    -- If not, assume that they are commands specified directly on the command line
-    allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
-    case allAreFiles of
-      True  -> runFromFiles j findBuiltinCommand args
-      False -> runFromArgs  j findBuiltinCommand args
+    isTerminal <- hIsTerminalDevice stdin
+    if args == [] && not isTerminal
+      then runREPL j findBuiltinCommand
+      else do
+        -- Check if arguments could be interpreted as files.
+        -- If not, assume that they are commands specified directly on the command line
+        allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
+        case allAreFiles of
+          True  -> runFromFiles j findBuiltinCommand args
+          False -> runFromArgs  j findBuiltinCommand args
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
@@ -135,12 +140,16 @@ runCommand defaultJrnl findBuiltinCommand cmdline = do
 -- | Run an interactive REPL.
 runREPL :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
 runREPL defaultJrnl findBuiltinCommand = do
-  putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
-  runInputT defaultSettings loop
+  isTerminal <- hIsTerminalDevice stdin
+  if not isTerminal
+    then runInputT defaultSettings (loop "")
+    else do
+      putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
+      runInputT defaultSettings (loop "% ")
   where
-  loop :: InputT IO ()
-  loop = do
-    minput <- getInputLine "% "
+  loop :: String -> InputT IO ()
+  loop prompt = do
+    minput <- getInputLine prompt
     case minput of
       Nothing -> return ()
       Just "quit" -> return ()
@@ -148,6 +157,7 @@ runREPL defaultJrnl findBuiltinCommand = do
       Just input -> do
         liftIO $ (runCommand defaultJrnl findBuiltinCommand $ parseCommand input)
                   `catch` (\(e::ErrorCall) -> putStr $ show e)
+        loop prompt
 
 -- | Cache of all journals that have been read by commands given to "run",
 -- keyed by the fully-expanded filename.
