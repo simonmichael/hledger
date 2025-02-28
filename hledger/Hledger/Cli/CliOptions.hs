@@ -886,6 +886,8 @@ addonExtensions =
   ,"rb"
   ,"rkt"
   ,"sh"
+  ,"osh"
+  ,"ysh"
   -- ,""
   ]
 
