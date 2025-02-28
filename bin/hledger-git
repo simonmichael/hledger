@@ -112,5 +112,5 @@ if [[ "$1" == "-h" ||  "$1" == "--help" || $# == 0 ]]; then usage
 elif declare -f "$1" > /dev/null; then "$@"
 else
     ensure_git
-    $GIT "$@"
+    $GIT -C "$DIR" "$@"
 fi
