@@ -262,6 +262,18 @@ $ hledger git status
 $ hledger git record [MSG]
 ```
 
+### hledger-jj
+
+[`hledger-jj`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-jj)
+provides easy version control for your journal files, using jj (and a git repo). Run it with no arguments for help.
+This is newer and better than hledger-git and hledger-pijul.
+```cli
+$ hledger jj log
+$ hledger jj status
+$ hledger jj diff
+$ hledger jj commit [MSG]
+```
+
 ### hledger-pijul
 
 [`hledger-pijul`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pijul)

@@ -1,0 +1,118 @@
+#!/usr/bin/env ysh                                               # -*- sh -*-
+# https://oils.pub/release/latest/doc/ysh-tour.html
+# https://oils.pub/release/latest/doc/ref/
+
+const HELP = '''
+-------------------------------------------------------------------------------
+hledger-jj [COMMAND [OPTS]] - easy version control for hledger journals
+
+An easy CLI for keeping your data in version control, using jj and a git repo.
+Works for $LEDGER_FILE and its subfiles only (-f is not yet supported).
+A repo will be created if needed, in $LEDGER_FILE's directory.
+You can run this tool from any directory. Commands may be abbreviated.
+Options are passed to jj; you may need to write -- first.
+''' #'
+
+const HELP2 = '''
+
+Examples:
+$ hledger jj status
+$ hledger jj diff
+$ hledger jj commit
+$ hledger jj c "new txns"
+$ hledger jj log -- -n5
+$ hledger-jj l -n 5 --stat
+'''
+
+# $ hledger-jj c 'txns' -- -n  # commit changes, ignoring any pre-commit hooks
+# You can install this as more convenient top-level commands by creating
+# hledger-commit, hledger-status, hledger-log scripts like:
+#
+#     #!/bin/sh
+#     hledger-jj commit "\$@"
+
+const S = /%start/
+const E = /%end/
+# const WS = /%word_start/
+# const WE = /%word_end/
+const FILE1 = ENV.LEDGER_FILE
+const DIR   = $(dirname "$FILE1")
+const FILES = split( $(hledger -f "$FILE1" files) => replace(/ DIR '/' /, '') )
+
+proc help() {
+  write -n -- """
+$HELP
+Commands:
+"""
+  # grep -E '^(proc +)?\w.*\(\) *{ *#+' "$0" | sed -E -e 's/^proc +//' -e 's/\(\) *\{//' -e 's/#+ /\t /'
+  redir < $0 {
+    for l in (io.stdin) {
+      if (l ~ /S ('proc' space+)? <capture w dot* as name> '(' (![')'])* ')' dot* '###' space* <capture dot* as help>/) {
+        echo "$[_group('name')]	$[_group('help')]"
+      }
+    }
+  }
+  write -n $HELP2
+}
+
+proc setup() { # do initial checks/setup
+  check_jj
+  ensure_journal_repo
+}
+
+proc check_jj() { # check that jj is installed
+  if ! hash jj 2>/dev/null {
+    write -n >&2 '''
+This command requires jj, but it is not installed in $PATH.
+Please install it and try again. https://jj-vcs.github.io
+'''
+    exit 1
+  }
+}
+
+proc ensure_journal_repo() { # ensure that the journal file has a jj/git repo
+  cd "$DIR" {
+    if ! jj status >/dev/null 2>&1 {
+      jj git init --colocate
+      write "Created new colocated jj/git repo in $DIR"
+    }
+  }
+}
+
+proc commit(...opts) { ### [MSG [OPTS]] - record changes to journal files
+  cd "$DIR" {
+    jj file track @FILES
+    var msg=${2:-$(date +'%Y-%m-%d %H:%M')}
+    # if [ $# -ge 1 ]; then
+    #     shift
+    # fi
+    # shift
+    jj commit -m "$msg" @opts @FILES   #"$@"
+  }
+}
+
+proc status(...opts) { ### [OPTS] - show status of journal files
+  cd "$DIR" { jj status --color=always @opts @FILES | grep -vE '^Untracked paths:|\?' }
+}
+
+proc diff(...opts) { ### [OPTS] - show unrecorded changes in journal files
+  cd "$DIR" { jj diff @opts @FILES }
+}
+
+proc log(...opts) { ### [OPTS] - list recorded changes to journal files
+  cd "$DIR" { jj log @opts @FILES }
+}
+
+if (len(ARGV) < 1) {
+  help
+} else {
+  var args = ARGV[1:]
+  case (ARGV[0]) {
+    /S ('h'('e'('l'('p')?)?)? | '-h' | '-'? '-help') E/ { help }
+    /S 'c'('o'('m'('m'('i'('t')?)?)?)?)? E/ { setup; commit @args }
+    /S 's'('t'('a'('t'('u'('s')?)?)?)?) ?E/ { setup; status @args }
+    /S 'd'('i'('f'('f')?)?)? E/             { setup; diff @args }
+    /S 'l'('o'('g')?) ?E/                   { setup; log @args }
+    (else)                                  { echo "Unknown command: $[ARGV[0]]"; return 1 }
+  }
+}
