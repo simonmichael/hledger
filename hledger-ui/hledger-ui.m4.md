@@ -347,10 +347,6 @@ clocks on both machines should be roughly in agreement.
 
 # ENVIRONMENT
 
-**COLUMNS**
-The screen width to use.
-Default: the full terminal width.
-
 **LEDGER_FILE**
 The main journal file to use when not specified with `-f/--file`.
 Default: `$HOME/.hledger.journal`.

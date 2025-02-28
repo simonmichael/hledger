@@ -732,10 +732,8 @@ This is the default: human readable, plain text report output, suitable for view
 If your data contains unicode or wide characters, you'll need a terminal and font that render those correctly.
 (This can be challenging on MS Windows.)
 
-Some reports (`register`, `aregister`) will use the width indicated by the `COLUMNS` environment variable.
-If your shell and terminal are working well, they will keep COLUMNS updated as you resize the window.
-So register reports normally will use the full window width.
-When this isn't working or you want to override it, you can manually set COLUMNS, or use the `-w`/`--width` option.
+Some reports (`register`, `aregister`) will normally use the full window width.
+If this isn't working or you want to override it, you can use the `-w`/`--width` option.
 
 Balance reports (`balance`, `balancesheet`, `incomestatement`...) use whatever width they need.
 Multi-period multi-currency reports can often be wider than the window. Besides using a pager,
@@ -985,11 +983,6 @@ hledger bal --debug=3 2>hledger.log
 # Environment
 
 These environment variables affect hledger:
-
-**COLUMNS**
-This is normally set by your terminal;
-some hledger commands (`register`) will format their output to this width.
-If not set, they will try to use the available terminal width.
 
 **HLEDGER_LESS**
 If `less` is your [pager](#paging), this variable specifies the `less` options hledger should use.

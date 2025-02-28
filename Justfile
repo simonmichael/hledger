@@ -491,7 +491,7 @@ STACKTEST := STACK + ' test --fast'
 @unittest:
     ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-SHELLTEST := 'COLUMNS=80 ' + STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
+SHELLTEST := STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
 
 #  --hide-successes
 

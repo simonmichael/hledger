@@ -38,25 +38,26 @@ around ghc 9.10's extra newline in error output: https://gitlab.haskell.org/ghc/
 
 Run them all (also builds hledger):
 
-    make functest
+    just functest
 
-See how the Makefile is invoking shelltestrunner:
+See the commands being run:
 
-    $ make functest -n
-    stack build --fast hledger
-    (COLUMNS=80 stack exec -- shelltest --execdir -j16 --hide-successes --exclude=/_ -w `stack exec -- which hledger` tests \
-            && echo functest PASSED) || (echo functest FAILED; false)
+    $ just -v functest
+    ===> Running recipe `functest`...
+    $STACK build --ghc-options=-Werror hledger
+    time ((stack exec -- shelltest --execdir --exclude=/_ --threads=32  hledger/test/ bin/ -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra && echo $@ PASSED) || (echo $@ FAILED; false))
 
-These are the most important:
+Some explanation:
 
-- `COLUMNS=80` makes output independent of your terminal width.
-- `--execdir` runs each test within its own directory.
-- ``-w `stack exec -- which hledger` `` ensures you are testing the hledger executable that was just built.
-- `-j16` runs tests in parallel which is much faster.
+- `stack exec -- ...` ensures you are testing the hledger executable that was just built (it will be first in PATH).
+- `--execdir` executes tests within their test file's directory.
+- `--exclude=/_` excludes top-level test files whose names begin with underscore.
+- `--threads=N` runs tests in parallel which is much faster.
+- `-x` is another spelling of --exclude
 
-Run only the tests matching a regular expression (`balance-assertions:.*19` in this case):)
+Run only the tests matching a regular expression (here, the 19th test in the balance-assertions.test file):
 
-    $ make functest-balance-assertions.*19
+    $ just functest -i balance-assertions.*19
     :hledger/test/journal/balance-assertions.test:19: [OK]
 
              Test Cases  Total      
@@ -64,21 +65,9 @@ Run only the tests matching a regular expression (`balance-assertions:.*19` in t
      Failed  0           0          
      Total   1           1          
 
-Run only the tests in one file:
+Run a specific test repeatedly as its file is changed:
 
-    $ COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` hledger/test/cli/query-args.test
-    :hledger/test/cli/query-args.test:1: [OK]
-    :hledger/test/cli/query-args.test:2: [OK]
-    :hledger/test/cli/query-args.test:3: [OK]
-
-             Test Cases  Total      
-     Passed  3           3          
-     Failed  0           0          
-     Total   3           3          
-
-Run a test [repeatedly](http://eradman.com/entrproject/) as its file is changed:
-
-    $ ls hledger/test/cli/query-args.test | entr bash -c "COLUMNS=80 shelltest --execdir -w `stack exec -- which hledger` hledger/test/cli/query-args.test -i1"
+    $ watchexec -w hledger/test/journal/balance-assertions.test just functest -i balance-assertions.*19
     :hledger/test/cli/query-args.test:1: [OK]
 
              Test Cases  Total      

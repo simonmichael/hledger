@@ -224,10 +224,6 @@ stack's --file-watch flag will re-run build/test/bench when source files or pack
 
 If you find that adding --fast makes this any faster, please update this.
 
-## Use entr for watching arbitrary commands
-
-[entr](https://entrproject.org/) is the most robust cross-platform tool for watching files and running a command when they change. Note its first argument must be an executable program, to run a shell command or multiple commands use `bash -c "..."`.
-
 ### Rerun a single functional test as you change it:
 
-    ls hledger/test/budget/budget.test | entr bash -c 'clear; COLUMNS=80 stack exec -- shelltest --execdir hledger/test/budget/budget.test -i12'
+    watchexec -w hledger/test/journal/balance-assertions.test just functest -i budget.*19
