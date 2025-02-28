@@ -61,7 +61,7 @@ balance assets --depth 2
 echo "Liabilities from /some/other.journal"
 balance liabilities -f /some/other.journal --depth 3 --transpose
 
-echo "Commands from anoter.script, applied to another.journal"
-run -f anoter.journal another.script
+echo "Commands from another.script, applied to another.journal"
+run -f another.journal another.script
 ```
 
