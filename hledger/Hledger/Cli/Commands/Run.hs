@@ -25,6 +25,7 @@ import System.Console.CmdArgs.Explicit as C ( Mode )
 import Hledger
 import Hledger.Cli.CliOptions
 
+import Control.Exception
 import Control.Concurrent.MVar
 import Control.Monad (forM_)
 import Control.Monad.IO.Class (liftIO)
@@ -145,8 +146,8 @@ runREPL defaultJrnl findBuiltinCommand = do
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        liftIO $ runCommand defaultJrnl findBuiltinCommand $ parseCommand input
-        loop
+        liftIO $ (runCommand defaultJrnl findBuiltinCommand $ parseCommand input)
+                  `catch` (\(e::ErrorCall) -> putStr $ show e)
 
 -- | Cache of all journals that have been read by commands given to "run",
 -- keyed by the fully-expanded filename.
