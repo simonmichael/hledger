@@ -1,19 +1,19 @@
 #!/usr/bin/env hledger run
 # (or env -S if needed)
 
-REPORTS 2
----------
+echo REPORTS 2
+echo ---------
 
 echo
-List of accounts
+echo List of accounts
 accounts --depth 2
 
 echo
-Assets
+echo Assets
 balance assets --depth 2
 
 echo
-Liabilities
+echo Liabilities
 balance liabilities --depth 3
 
 echo

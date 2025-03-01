@@ -1,19 +1,19 @@
 #!/usr/bin/env hledger run
 # (or env -S if needed)
 
-REPORTS 1
----------
+echo REPORTS 1
+echo ---------
 
 echo
-FILES:
+echo FILES:
 files
 
 echo
-STATS:
+echo STATS:
 stats
 
 echo
-BALANCESHEET:
+echo BALANCESHEET:
 bs --depth 2
 
 echo
