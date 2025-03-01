@@ -128,7 +128,8 @@ builtinCommands = [
   ,(registermode           , register)
   ,(rewritemode            , rewrite)
   ,(roimode                , roi)
-  ,(runmode                , run')
+  ,(runmode                , runOrReplStub)
+  ,(replmode               , runOrReplStub)
   ,(statsmode              , stats)
   ,(tagsmode               , tags)
   ,(testmode               , testcmd)
@@ -217,6 +218,7 @@ commandsList progversion othercmds =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES (alternate UIs)"
+  ," repl                     run interactive REPL"
   ,"+ui                       run terminal UI"                                       -- hledger-ui
   ,"+web                      run web UI"                                            -- hledger-web
                                                                                      -- see also: MoLe, https://hledger.org/mobile.html
