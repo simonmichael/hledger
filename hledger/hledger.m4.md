@@ -3746,7 +3746,7 @@ When an if block has multiple matchers, each on its own line,
 
 You can also combine multiple matchers one the same line separated by `&&` (AND) or `&& !` (AND NOT).
 Eg `%description amazon && %date 2025-01-01` will match only when the
-description field contains "amazon" and the date field equals 2025-01-01.
+description field contains "amazon" and the date field contains "2025-01-01".
 *Added in 1.42.*
 
 ### Match groups
