@@ -898,18 +898,6 @@ getDirectoryContentsSafe :: FilePath -> IO [String]
 getDirectoryContentsSafe d =
     (filter (not . (`elem` [".",".."])) `fmap` getDirectoryContents d) `C.catch` (\(_::C.IOException) -> return [])
 
--- not used:
--- -- | Print debug info about arguments and options if --debug is present.
--- debugArgs :: [String] -> CliOpts -> IO ()
--- debugArgs args opts =
---   when ("--debug" `elem` args) $ do
---     progname <- getProgName
---     putStrLn $ "running: " ++ progname
---     putStrLn $ "raw args: " ++ show args
---     putStrLn $ "processed opts:\n" ++ show opts
---     d <- getCurrentDay
---     putStrLn $ "search query: " ++ (show $ queryFromOpts d $ reportopts_ opts)
-
 -- ** Lenses
 
 makeHledgerClassyLenses ''CliOpts
