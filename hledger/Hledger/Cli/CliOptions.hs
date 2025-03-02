@@ -72,7 +72,6 @@ module Hledger.Cli.CliOptions (
   outputFileFromOpts,
   outputFormatFromOpts,
   defaultWidth,
-  -- widthFromOpts,
   replaceNumericFlags,
   ensureDebugFlagHasVal,
   -- | For register:
@@ -758,18 +757,6 @@ rulesFilePathFromOpts :: CliOpts -> IO (Maybe FilePath)
 rulesFilePathFromOpts opts = do
   d <- getCurrentDirectory
   maybe (return Nothing) (fmap Just . expandPath d) $ mrules_file_ $ inputopts_ opts
-
--- -- | Get the width in characters to use for console output.
--- -- This comes from the --width option, or the current terminal width, or 80.
--- -- Will raise a parse error for a malformed --width argument.
--- widthFromOpts :: CliOpts -> Int
--- widthFromOpts CliOpts{width_=Nothing, available_width_=w} = w
--- widthFromOpts CliOpts{width_=Just s}  =
---     case runParser (read `fmap` some digitChar <* eof :: ParsecT Void String Identity Int) "(unknown)" s of
---         Left e   -> usageError $ "could not parse width option: "++errorBundlePretty e
---         Right w  -> w
-
--- for register:
 
 -- | Get the width in characters to use for the register command's console output,
 -- and also the description column width if specified (following the main width, comma-separated).
