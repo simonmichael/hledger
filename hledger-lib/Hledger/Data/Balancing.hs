@@ -64,7 +64,7 @@ data BalancingOpts = BalancingOpts
   , infer_balancing_costs_ :: Bool  -- ^ Are we permitted to infer missing costs to balance transactions ?
                                     --   Distinct from InputOpts{infer_costs_}.
   , commodity_styles_      :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
-  } deriving (Show)
+  } deriving (Eq, Ord, Show)
 
 defbalancingopts :: BalancingOpts
 defbalancingopts = BalancingOpts

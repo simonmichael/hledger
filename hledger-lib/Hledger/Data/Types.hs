@@ -666,7 +666,7 @@ data SepFormat
   = Csv  -- comma-separated
   | Tsv  -- tab-separated
   | Ssv  -- semicolon-separated
-  deriving Eq
+  deriving (Eq, Ord)
 
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
@@ -677,7 +677,7 @@ data StorageFormat
   | Timeclock 
   | Timedot 
   | Sep SepFormat 
-  deriving Eq
+  deriving (Eq, Ord)
 
 instance Show SepFormat where
   show Csv = "csv"

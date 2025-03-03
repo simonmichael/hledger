@@ -17,6 +17,7 @@ module Hledger.Cli.Commands.Run (
  ,runOrReplStub
 ) where
 
+import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as Map
 import Data.Semigroup (sconcat)
 import qualified Data.Text as T
@@ -69,45 +70,49 @@ replmode = hledgerCommandMode
 runOrReplStub :: CliOpts -> Journal -> IO ()
 runOrReplStub _opts _j = return ()
 
+-- | Default input files + InputOpts that would be used by commands if
+--   there is no explicit alternative given
+newtype DefaultRunJournal = DefaultRunJournal (NE.NonEmpty String)
+
 -- | The actual run command.
-run :: Maybe Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
+run :: Maybe DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
 run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} = do
-  withJournalCached defaultJournalOverride cliopts $ \j -> do
+  withJournalCached defaultJournalOverride cliopts $ \(_,key) -> do
     let args = dbg1 "args" $ listofstringopt "args" rawopts
     isTerminal <- hIsTerminalDevice stdin
     if args == [] && not isTerminal
-      then runREPL j findBuiltinCommand
+      then runREPL key findBuiltinCommand
       else do
         -- Check if arguments could be interpreted as files.
         -- If not, assume that they are commands specified directly on the command line
         allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
         case allAreFiles of
-          True  -> runFromFiles j findBuiltinCommand args
-          False -> runFromArgs  j findBuiltinCommand args
+          True  -> runFromFiles key findBuiltinCommand args
+          False -> runFromArgs  key findBuiltinCommand args
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
 repl findBuiltinCommand cliopts = do
-  withJournalCached Nothing cliopts $ \j -> do
-    runREPL j findBuiltinCommand
+  withJournalCached Nothing cliopts $ \(_,key) -> do
+    runREPL key findBuiltinCommand
 
 -- | Run commands from files given to "run".
-runFromFiles :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runFromFiles defaultJrnl findBuiltinCommand inputfiles = do
+runFromFiles :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runFromFiles defaultJournalOverride findBuiltinCommand inputfiles = do
   dbg1IO "inputfiles" inputfiles
   -- read commands from all the inputfiles
   commands <- (flip concatMapM) inputfiles $ \f -> do
     dbg1IO "reading commands" f
     lines . T.unpack <$> T.readFile f
 
-  forM_ commands (runCommand defaultJrnl findBuiltinCommand . parseCommand)
+  forM_ commands (runCommand defaultJournalOverride findBuiltinCommand . parseCommand)
 
 -- | Run commands from command line arguments given to "run".
-runFromArgs :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runFromArgs defaultJrnl findBuiltinCommand args = do
+runFromArgs :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runFromArgs defaultJournalOverride findBuiltinCommand args = do
   -- read commands from all the inputfiles
   let commands = dbg1 "commands from args" $ splitAtElement "--" args
-  forM_ commands (runCommand defaultJrnl findBuiltinCommand)
+  forM_ commands (runCommand defaultJournalOverride findBuiltinCommand)
 
 -- When commands are passed on the command line, shell will parse them for us
 -- When commands are read from file, we need to split the line into command and arguments
@@ -117,8 +122,8 @@ parseCommand line =
   takeWhile (not. ((Just '#')==) . headMay) $  words' (strip line)
 
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
-runCommand :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runCommand defaultJrnl findBuiltinCommand cmdline = do
+runCommand :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
+runCommand defaultJournalOverride findBuiltinCommand cmdline = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
     "echo":args -> putStrLn $ unwords $ args
@@ -127,19 +132,19 @@ runCommand defaultJrnl findBuiltinCommand cmdline = do
         Nothing -> error' $ "Unrecognized command: " ++ unwords (cmdname:args)
         Just (cmdmode,cmdaction) -> do
           -- Even though expandArgsAt is done by the Cli.hs, it stops at the first '--', so we need
-          -- to do it here as well to make sure that each command can use @ARGFILEs 
+          -- to do it here as well to make sure that each command can use @ARGFILEs
           args' <- replaceNumericFlags <$> expandArgsAt args
           dbg1IO "runCommand final args" (cmdname,args')
           opts <- getHledgerCliOpts' cmdmode args'
-          withJournalCached (Just defaultJrnl) opts $ \j -> do
+          withJournalCached (Just defaultJournalOverride) opts $ \(j,key) -> do
             if cmdname == "run" -- allow "run" to call "run"
-              then run (Just j) findBuiltinCommand opts 
+              then run (Just key) findBuiltinCommand opts
               else cmdaction opts j
     [] -> return ()
 
 -- | Run an interactive REPL.
-runREPL :: Journal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
-runREPL defaultJrnl findBuiltinCommand = do
+runREPL :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
+runREPL defaultJournalOverride findBuiltinCommand = do
   isTerminal <- hIsTerminalDevice stdin
   if not isTerminal
     then runInputT defaultSettings (loop "")
@@ -155,30 +160,31 @@ runREPL defaultJrnl findBuiltinCommand = do
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        liftIO $ (runCommand defaultJrnl findBuiltinCommand $ parseCommand input)
+        liftIO $ (runCommand defaultJournalOverride findBuiltinCommand $ parseCommand input)
                   `catch` (\(e::ErrorCall) -> putStr $ show e)
         loop prompt
 
 -- | Cache of all journals that have been read by commands given to "run",
 -- keyed by the fully-expanded filename.
-journalCache :: MVar (Map.Map String Journal)
+journalCache :: MVar (Map.Map (InputOpts,PrefixedFilePath) Journal)
 journalCache = unsafePerformIO $ newMVar Map.empty
 {-# NOINLINE journalCache #-}
 
 -- | Similar to `withJournal`, but uses caches all the journals it reads.
-withJournalCached :: Maybe Journal -> CliOpts -> (Journal -> IO ()) -> IO ()
-withJournalCached defaultJournalOverride cliopts cmd = do  
-  j <- case defaultJournalOverride of
+withJournalCached :: Maybe DefaultRunJournal -> CliOpts -> ((Journal, DefaultRunJournal) -> IO ()) -> IO ()
+withJournalCached defaultJournalOverride cliopts cmd = do
+  (j,key) <- case defaultJournalOverride of
     Nothing -> journalFilePathFromOpts cliopts >>= readFiles
-    Just defaultJrnl -> do
+    Just (DefaultRunJournal defaultFiles) -> do
       mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
       case mbjournalpaths of
-        Nothing -> return defaultJrnl -- use the journal given to the "run" itself
+        Nothing -> readFiles defaultFiles -- use the journal(s) given to the "run" itself
         Just journalpaths -> readFiles journalpaths
-  cmd j
+  cmd (j,key)
   where
-    readFiles journalpaths = 
-      journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
+    readFiles journalpaths = do
+      j <- journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
+      return (j, DefaultRunJournal journalpaths)
     -- | Read a journal file, caching it if it has not been read before.
     readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
     readAndCacheJournalFile iopts fp | snd (splitReaderPrefix fp) == "-" = do
@@ -188,11 +194,11 @@ withJournalCached defaultJournalOverride cliopts cmd = do
     readAndCacheJournalFile iopts fp = do
       dbg1IO "readAndCacheJournalFile" fp
       modifyMVar journalCache $ \cache ->
-        case Map.lookup fp cache of
+        case Map.lookup (iopts,fp) cache of
           Just journal -> do
-            dbg1IO "readAndCacheJournalFile using cache" fp
+            dbg1IO "readAndCacheJournalFile using cache" (fp, iopts)
             return (cache, journal)
           Nothing -> do
-            dbg1IO "readAndCacheJournalFile reading and caching journals" fp
+            dbg1IO "readAndCacheJournalFile reading and caching journals" (fp, iopts)
             journal <- runExceptT $ readJournalFile iopts fp
-            either error' (\j -> return (Map.insert fp j cache, j)) journal
+            either error' (\j -> return (Map.insert (iopts,fp) j cache, j)) journal
