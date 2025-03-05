@@ -84,6 +84,7 @@ extra-source-files:
     Hledger/Cli/Commands/Print.txt
     Hledger/Cli/Commands/Register.txt
     Hledger/Cli/Commands/Rewrite.txt
+    Hledger/Cli/Commands/Repl.txt
     Hledger/Cli/Commands/Roi.txt
     Hledger/Cli/Commands/Run.txt
     Hledger/Cli/Commands/Stats.txt
