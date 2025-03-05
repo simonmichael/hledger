@@ -1,3 +1,6 @@
 commands
 
 Show the hledger commands list.
+
+Flags:
+     --builtin             show only builtin commands, not addons
