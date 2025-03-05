@@ -70,9 +70,9 @@ replmode = hledgerCommandMode
 runOrReplStub :: CliOpts -> Journal -> IO ()
 runOrReplStub _opts _j = return ()
 
--- | Default input files + InputOpts that would be used by commands if
+-- | Default input files that would be used by commands if
 --   there is no explicit alternative given
-newtype DefaultRunJournal = DefaultRunJournal (NE.NonEmpty String)
+newtype DefaultRunJournal = DefaultRunJournal (NE.NonEmpty String) deriving (Show)
 
 -- | The actual run command.
 run :: Maybe DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
