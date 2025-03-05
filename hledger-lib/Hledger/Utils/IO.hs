@@ -468,7 +468,6 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 --   --shift=8
 --   --squeeze-blank-lines
 --   --use-backslash
---   --use-color
 --
 -- You can choose different options by setting the HLEDGER_LESS variable;
 -- if set, its value will be used instead of LESS.
@@ -491,7 +490,7 @@ setupPager = do
       ,"--shift=8"
       ,"--squeeze-blank-lines"
       ,"--use-backslash"
-      ,"--use-color"
+      -- ,"--use-color"  #2335 rejected by older less versions (eg 551)
       ]
   mhledgerless <- lookupEnv "HLEDGER_LESS"
   mless        <- lookupEnv "LESS"

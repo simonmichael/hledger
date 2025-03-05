@@ -790,7 +790,6 @@ to enable ANSI colour and a number of other conveniences.
 --shift=8
 --squeeze-blank-lines
 --use-backslash
---use-color
 ).
 If these don't work well, you can set your preferred options in the `HLEDGER_LESS` variable, which will be used instead.
 
