@@ -35,7 +35,7 @@ import Control.Monad.Extra (concatMapM)
 import System.Exit (ExitCode)
 import System.Console.CmdArgs.Explicit (expandArgsAt)
 import System.Directory (doesFileExist)
-import System.IO (stdin, hIsTerminalDevice)
+import System.IO (stdin, hIsTerminalDevice, hIsOpen)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
@@ -80,7 +80,7 @@ run :: Maybe DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Jou
 run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} = do
   withJournalCached defaultJournalOverride cliopts $ \(_,key) -> do
     let args = dbg1 "args" $ listofstringopt "args" rawopts
-    isTerminal <- hIsTerminalDevice stdin
+    isTerminal <- isStdinTerminal
     if args == [] && not isTerminal
       then runREPL key findBuiltinCommand
       else do
@@ -146,7 +146,7 @@ runCommand defaultJournalOverride findBuiltinCommand cmdline = do
 -- | Run an interactive REPL.
 runREPL :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> IO ()
 runREPL defaultJournalOverride findBuiltinCommand = do
-  isTerminal <- hIsTerminalDevice stdin
+  isTerminal <- isStdinTerminal
   if not isTerminal
     then runInputT defaultSettings (loop "")
     else do
@@ -168,6 +168,10 @@ runREPL defaultJournalOverride findBuiltinCommand = do
                   ,Handler (\UserInterrupt -> return ())
                   ]
         loop prompt
+
+isStdinTerminal = do
+  op <- hIsOpen stdin
+  if op then hIsTerminalDevice stdin else return False
 
 -- | Cache of all journals that have been read by commands given to "run",
 -- keyed by the fully-expanded filename.
