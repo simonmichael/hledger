@@ -50,7 +50,7 @@ runmode = hledgerCommandMode
   )
   cligeneralflagsgroups1
   hiddenflags
-  ([], Just $ argsFlag "[COMMANDS_FILE1 COMMANDS_FILE2 ...] OR [command1 args... -- command2 args... -- command3 args...]")
+  ([], Just $ argsFlag "[COMMANDS_FILE1 COMMANDS_FILE2 ...] OR [-- command1 args... -- command2 args... -- command3 args...]")
 
 replmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Repl.txt")
