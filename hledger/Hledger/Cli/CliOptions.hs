@@ -49,7 +49,6 @@ module Hledger.Cli.CliOptions (
   showModeUsage,
   withAliases,
   likelyExecutablesInPath,
-  hledgerExecutablesInPath,
 
   -- * CLI options
   CliOpts(..),
@@ -78,7 +77,6 @@ module Hledger.Cli.CliOptions (
   registerWidthsFromOpts,
 
   -- * Other utils
-  hledgerAddons,
   topicForMode,
 
 --  -- * Convenience re-exports
@@ -91,8 +89,7 @@ import qualified Control.Exception as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
-import Data.Either (isRight)
-import Data.List.Extra (groupSortOn, intercalate, isInfixOf, nubSort)
+import Data.List.Extra (intercalate, isInfixOf, nubSort)
 import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, nonEmpty)
 import Data.List.Split (splitOn)
 import Data.Maybe
@@ -783,48 +780,6 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
 
 -- Other utils
 
--- | Get the sorted unique canonical names of hledger addon commands
--- found in the current user's PATH. These are used in command line
--- parsing and to display the commands list.
---
--- Canonical addon names are the filenames of hledger-* executables in
--- PATH, without the "hledger-" prefix, and without the file extension
--- except when it's needed for disambiguation (see below).
---
--- When there are exactly two versions of an executable (same base
--- name, different extensions) that look like a source and compiled
--- pair (one has .exe, .com, or no extension), the source version will
--- be excluded (even if it happens to be newer). When there are three
--- or more versions (or two versions that don't look like a
--- source/compiled pair), they are all included, with file extensions
--- intact.
---
-hledgerAddons :: IO [String]
-hledgerAddons = do
-  -- past bug generator
-  as1 <- hledgerExecutablesInPath                     -- ["hledger-check","hledger-check-dates","hledger-check-dates.hs","hledger-check.hs","hledger-check.py"]
-  let as2 = map stripPrognamePrefix as1               -- ["check","check-dates","check-dates.hs","check.hs","check.py"]
-  let as3 = groupSortOn takeBaseName as2              -- [["check","check.hs","check.py"],["check-dates","check-dates.hs"]]
-  let as4 = concatMap dropRedundantSourceVersion as3  -- ["check","check.hs","check.py","check-dates"]
-  return as4
-
-stripPrognamePrefix = drop (length progname + 1)
-
-dropRedundantSourceVersion [f,g]
-  | map toLower (takeExtension f) `elem` compiledExts = [f]
-  | map toLower (takeExtension g) `elem` compiledExts = [g]
-dropRedundantSourceVersion fs = fs
-
-compiledExts = ["",".com",".exe"]
-
--- | Get the sorted unique filenames of all hledger-* executables in
--- the current user's PATH. These are files in any of the PATH directories,
--- named hledger-*, with either no extension (and no periods in the name)
--- or one of the addonExtensions.
--- We do not currently filter out non-file objects or files without execute permission.
-hledgerExecutablesInPath :: IO [String]
-hledgerExecutablesInPath = filter isHledgerExeName <$> likelyExecutablesInPath
-
 -- None of https://hackage.haskell.org/package/directory-1.3.8.1/docs/System-Directory.html#g:5
 -- do quite what we need (find all the executables in PATH with a filename prefix).
 -- | Get all sorted unique filenames in the current user's PATH.
@@ -844,39 +799,6 @@ likelyExecutablesInPath = do
 -- exes'' <- filterM isExecutable exes'
 -- return exes''
 -- where isExecutable f = getPermissions f >>= (return . executable)
-
-isHledgerExeName :: String -> Bool
-isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
-    where
-      hledgerexenamep = do
-        _ <- string $ T.pack progname
-        _ <- char '-'
-        _ <- some $ noneOf ['.']
-        optional (string "." >> choice' (map (string . T.pack) addonExtensions))
-        eof
-
--- stripAddonExtension :: String -> String
--- stripAddonExtension = regexReplace re "" where re = "\\.(" ++ intercalate "|" addonExtensions ++ ")$"
-
-addonExtensions :: [String]
-addonExtensions =
-  ["bat"
-  ,"com"
-  ,"exe"
-  ,"hs"
-  ,"js"
-  ,"lhs"
-  ,"lua"
-  ,"php"
-  ,"pl"
-  ,"py"
-  ,"rb"
-  ,"rkt"
-  ,"sh"
-  ,"osh"
-  ,"ysh"
-  -- ,""
-  ]
 
 getEnvSafe :: String -> IO String
 getEnvSafe v = getEnv v `C.catch` (\(_::C.IOException) -> return "") -- XXX should catch only isDoesNotExistError e

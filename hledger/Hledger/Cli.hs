@@ -108,7 +108,6 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Explicit as CmdArgsWithoutName hiding (Name)
 import System.Environment
 import System.Exit
-import System.FilePath
 import System.Process
 import Text.Megaparsec (optional, takeWhile1P, eof)
 import Text.Megaparsec.Char (char)
@@ -225,7 +224,7 @@ main = withGhcDebug' $ do
   usecolor <- useColorOnStdout
   when usecolor setupPager
   -- Search PATH for addon commands. Exclude any that match builtin command names.
-  addons <- hledgerAddons <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
+  addons <- addonCommandNames
 
   ---------------------------------------------------------------
   dbgIO "\n1. Preliminary command line parsing" ()
@@ -366,6 +365,15 @@ main = withGhcDebug' $ do
     infoFlag    = boolopt "info"    rawopts
     manFlag     = boolopt "man"     rawopts
     versionFlag = boolopt "version" rawopts
+    -- ignoredopts    cmd = error' $ cmd ++ " tried to read options but is not supposed to"
+    ignoredjournal cmd = error' $ cmd ++ " tried to read the journal but is not supposed to"
+
+  -- validate opts/args more and convert to CliOpts
+  opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
+  dbgIO2 "processed opts" opts
+  dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
+  dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
+  dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
 
   -- Ensure that anything calling getArgs later will see all args, including config file args.
   -- Some things (--color, --debug, some checks in journalFinalise) are detected by unsafePerformIO,
@@ -386,32 +394,26 @@ main = withGhcDebug' $ do
     | badcmdprovided -> error' $ "command "++clicmdarg++" is not recognized, run with no command to see a list"
 
     -- 6.4. no command found, nothing else to do - show the commands list
-    | nocmdprovided -> dbgIO1 "no command, showing commands list" () >> printCommandsList prognameandversion addons
+    | nocmdprovided -> do
+        dbgIO1 "no command, showing commands list" ()
+        commands opts (ignoredjournal "commands")
 
     -- 6.5. builtin command found
     | Just (cmdmode, cmdaction) <- mbuiltincmdaction -> do
       let mmodecmdname = headMay $ modeNames cmdmode
       dbgIO1 "running builtin command mode" $ fromMaybe "" mmodecmdname
 
-      -- validate opts/args more and convert to CliOpts
-      opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
-      dbgIO2 "processed opts" opts
-      dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
-      dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
-      dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
-      let tldrpagename = maybe "hledger" (("hledger-"<>)) mmodecmdname
-
       -- run the builtin command according to its type
       if
         -- 6.5.1. help/doc flag - show command help/docs
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
-        | tldrFlag  -> runTldrForPage tldrpagename
+        | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
 
         -- 6.5.2. builtin command which should not require or read the journal - run it
         | cmdname `elem` ["demo","help","test"] ->
-          cmdaction opts $ error' $ cmdname++" tried to read the journal but is not supposed to"
+          cmdaction opts (ignoredjournal cmdname)
 
         -- 6.5.3. builtin command which should create the journal if missing - do that and run it
         | cmdname `elem` ["add","import"] -> do

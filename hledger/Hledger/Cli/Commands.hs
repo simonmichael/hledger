@@ -15,11 +15,13 @@ the export list, the import list, builtinCommands, commandsList.
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands (
-   testcmd
+   commands
+  ,testcmd
   ,builtinCommands
   ,builtinCommandNames
+  ,addonCommandNames
+  ,knownAddonCommandNames
   ,findBuiltinCommand
-  ,knownAddonCommands
   ,knownCommands
   ,printCommandsList
   ,tests_Hledger_Cli
@@ -52,17 +54,21 @@ module Hledger.Cli.Commands (
 ) 
 where
 
-import Data.Char (isAlphaNum, isSpace)
+import Data.Char (isAlphaNum, isSpace, toLower)
+import Data.Either (isRight)
 import Data.List
-import Data.List.Extra (nubSort)
+import Data.List.Extra (groupSortOn, nubSort)
 import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar
 import Safe (headErr)
 import String.ANSI
-import System.Environment (withArgs)
 import System.Console.CmdArgs.Explicit as C
+import System.Environment (withArgs)
+import System.FilePath (dropExtension, takeBaseName, takeExtension)
 import Test.Tasty (defaultMain)
+import Text.Megaparsec
+import Text.Megaparsec.Char
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -96,6 +102,7 @@ import Hledger.Cli.Commands.Run
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
 import Hledger.Cli.Utils (tests_Cli_Utils)
+import Data.Functor ((<&>))
 
 -- | The cmdargs subcommand mode (for command-line parsing)
 -- and IO action (for doing the command's work) for each builtin command.
@@ -113,6 +120,7 @@ builtinCommands = [
   ,(checkmode              , check)
   ,(closemode              , close)
   ,(codesmode              , codes)
+  ,(commandsmode           , commands)
   ,(commoditiesmode        , commodities)
   ,(demomode               , demo)
   ,(descriptionsmode       , descriptions)
@@ -191,7 +199,7 @@ accent
 -- 
 commandsList :: String -> [String] -> [String]
 commandsList progversion othercmds =
-  map (bold'.accent) _banner_smslant ++ 
+  map (bold'.accent) _banner_smslant ++   -- XXX not showing bold, why ?
   [
   -- Keep the following synced with:
   --  commands.m4
@@ -202,17 +210,18 @@ commandsList progversion othercmds =
    "-------------------------------------------------------------------------------"
   ,progversion
   ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONOPTIONS]"
-  ,"Commands (builtins + addons):"
+  -- ,"Commands (builtins + addons):"  -- XXX adapt for commands --builtin
+  ,"Commands:"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP (docs, demos..)"
-  ," (no arguments)           show this commands list"
-  ," -h [COMMAND]             show command line help"
-  ," --tldr [COMMAND]         show command examples with tldr"
-  ," --info [COMMAND]         show the hledger manual with info"
-  ," --man  [COMMAND]         show the hledger manual with man"
-  ," help [-i|-m|-p] [TOPIC]  show any topic in the hledger manual"
+  ," commands                 show the commands list (default)"
   ," demo [DEMO]              show brief demos in the terminal"
+  ," help [-i|-m|-p] [TOPIC]  show the hledger manual with info/man/pager"
+  ," --tldr    [COMMAND]      show command examples   [for command] with tldr"
+  ," --help/-h [COMMAND]      show command line help  [for command]"
+  ," --info    [COMMAND]      show the hledger manual [for command] with info"
+  ," --man     [COMMAND]      show the hledger manual [for command] with man"
   ,"                          more help: https://hledger.org"
   ,""
     -----------------------------------------80-------------------------------------
@@ -301,53 +310,156 @@ commandsListExtractCommands addonsonly l =
   , not $ "https://" `isInfixOf` line
   , let cmdname:_ = words line
   ]
-  -- KEEP SYNCED WITH commandsList.
+  -- Keep synced with commandsList.
+
+commandsmode =
+  hledgerCommandMode
+    $(embedFileRelative "Hledger/Cli/Commands/Commands.txt")
+    [flagNone ["builtin"] (setboolopt "builtin")  "show only builtin commands, not addons"
+    ]
+    [(helpflagstitle, helpflags)]
+    []
+    -- flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
+
+    ([], Nothing)
+
+-- | Display the commands list.
+commands :: CliOpts -> Journal -> IO ()
+commands opts _ = do
+  addons <- if boolopt "builtin" (rawopts_ opts) then return [] else addonCommandNames
+  printCommandsList prognameandversion addons
+
+{- | Print the commands list, with a pager if appropriate, customising the
+commandsList template above with the given version string and the installed addons.
+Uninstalled known addons will be removed from the list,
+installed known addons will have the + prefix removed,
+and installed unknown addons will be added under Misc.
+-}
+printCommandsList :: String -> [String] -> IO ()
+printCommandsList progversion installedaddons =
+  seq (length $ dbg8 "uninstalledknownaddons" uninstalledknownaddons) $ -- for debug output
+    seq (length $ dbg8 "installedknownaddons" installedknownaddons) $
+      seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
+        runPager $
+          unlines $
+            map unplus $
+              filter (not . isuninstalledaddon) $
+                commandsList progversion installedunknownaddons
+ where
+  knownaddons = knownAddonCommandNames
+  uninstalledknownaddons = knownaddons \\ installedaddons
+  installedknownaddons = knownaddons `intersect` installedaddons
+  installedunknownaddons = installedaddons \\ knownaddons
+  unplus ('+' : cs) = ' ' : cs
+  unplus s = s
+  isuninstalledaddon =
+    \case
+      ('+' : l)
+        | cmd `notElem` installedaddons ->
+            dbg9With (const $ "hiding uninstalled addon: " <> cmd) $
+              True
+       where
+        cmd = takeWhile (not . isSpace) l
+      _ -> False
 
 -- | Canonical names of all commands which have a slot in the commands list, in alphabetical order.
 -- These include the builtin commands and the known addon commands.
 knownCommands :: [String]
 knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname []
 
--- | Canonical names of the known addon commands which have a slot in the commands list,
--- in alphabetical order.
-knownAddonCommands :: [String]
-knownAddonCommands = nubSort . commandsListExtractCommands True $ commandsList progname []
-
 -- | All names and aliases of the builtin commands.
 builtinCommandNames :: [String]
 builtinCommandNames = concatMap (modeNames . fst) builtinCommands
 
--- | Look up a builtin command's mode and action by exact command name or alias. 
+-- | Look up a builtin command's mode and action by exact command name or alias.
 findBuiltinCommand :: String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ()) 
 findBuiltinCommand cmdname = find (elem cmdname . modeNames . fst) builtinCommands 
 
--- | Print the commands list, with a pager if appropriate, customising the
--- commandsList template above with the given version string and the installed addons.
--- Uninstalled known addons will be removed from the list,
--- installed known addons will have the + prefix removed,
--- and installed unknown addons will be added under Misc.
-printCommandsList :: String -> [String] -> IO ()
-printCommandsList progversion installedaddons =
-  seq (length $ dbg8 "uninstalledknownaddons" uninstalledknownaddons) $  -- for debug output
-  seq (length $ dbg8 "installedknownaddons"   installedknownaddons)   $
-  seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
-  runPager $ unlines $ map unplus $ filter (not.isuninstalledaddon) $
-    commandsList progversion installedunknownaddons
-  where
-    knownaddons = knownAddonCommands
-    uninstalledknownaddons  = knownaddons \\ installedaddons
-    installedknownaddons    = knownaddons `intersect` installedaddons
-    installedunknownaddons  = installedaddons \\ knownaddons
-    unplus ('+':cs) = ' ':cs
-    unplus s = s
-    isuninstalledaddon =
-      \case
-        ('+':l) | cmd `notElem` installedaddons ->
-                  dbg9With (const $ "hiding uninstalled addon: "<>cmd) $
-                  True where cmd = takeWhile (not . isSpace) l
-        _ -> False
+{- | Canonical names of the known addon commands which have a slot in the commands list,
+in alphabetical order.
+-}
+knownAddonCommandNames :: [String]
+knownAddonCommandNames = nubSort . commandsListExtractCommands True $ commandsList progname []
 
--- The test command is defined here for easy access to other modules' tests.
+-- Search PATH for names of addon commands, that aren't shadowed by builtin commands.
+addonCommandNames :: IO [String]
+addonCommandNames = installedAddonCommandNames <&> filter (not . (`elem` builtinCommandNames) . dropExtension)
+
+-- | Get the sorted unique canonical names of hledger addon commands
+-- found in the current user's PATH. These are used in command line
+-- parsing and to display the commands list.
+--
+-- Canonical addon names are the filenames of hledger-* executables in
+-- PATH, without the "hledger-" prefix, and without the file extension
+-- except when it's needed for disambiguation (see below).
+--
+-- When there are exactly two versions of an executable (same base
+-- name, different extensions) that look like a source and compiled
+-- pair (one has .exe, .com, or no extension), the source version will
+-- be excluded (even if it happens to be newer). When there are three
+-- or more versions (or two versions that don't look like a
+-- source/compiled pair), they are all included, with file extensions
+-- intact.
+--
+installedAddonCommandNames :: IO [String]
+installedAddonCommandNames = do
+  -- past bug generator
+  as1 <- hledgerExecutablesInPath                     -- ["hledger-check","hledger-check-dates","hledger-check-dates.hs","hledger-check.hs","hledger-check.py"]
+  let as2 = map stripPrognamePrefix as1               -- ["check","check-dates","check-dates.hs","check.hs","check.py"]
+  let as3 = groupSortOn takeBaseName as2              -- [["check","check.hs","check.py"],["check-dates","check-dates.hs"]]
+  let as4 = concatMap dropRedundantSourceVersion as3  -- ["check","check.hs","check.py","check-dates"]
+  return as4
+
+stripPrognamePrefix = drop (length progname + 1)
+
+dropRedundantSourceVersion [f,g]
+  | map toLower (takeExtension f) `elem` compiledExts = [f]
+  | map toLower (takeExtension g) `elem` compiledExts = [g]
+dropRedundantSourceVersion fs = fs
+
+compiledExts = ["",".com",".exe"]
+
+-- | Get the sorted unique filenames of all hledger-* executables in
+-- the current user's PATH. These are files in any of the PATH directories,
+-- named hledger-*, with either no extension (and no periods in the name)
+-- or one of the addonExtensions.
+-- We do not currently filter out non-file objects or files without execute permission.
+hledgerExecutablesInPath :: IO [String]
+hledgerExecutablesInPath = filter isHledgerExeName <$> likelyExecutablesInPath
+
+isHledgerExeName :: String -> Bool
+isHledgerExeName = isRight . parsewith hledgerexenamep . T.pack
+ where
+  hledgerexenamep = do
+    _ <- string $ T.pack progname
+    _ <- char '-'
+    _ <- some $ noneOf ['.']
+    optional (string "." >> choice' (map (string . T.pack) addonExtensions))
+    eof
+
+-- stripAddonExtension :: String -> String
+-- stripAddonExtension = regexReplace re "" where re = "\\.(" ++ intercalate "|" addonExtensions ++ ")$"
+
+addonExtensions :: [String]
+addonExtensions =
+  ["bat"
+  ,"com"
+  ,"exe"
+  ,"hs"
+  ,"js"
+  ,"lhs"
+  ,"lua"
+  ,"php"
+  ,"pl"
+  ,"py"
+  ,"rb"
+  ,"rkt"
+  ,"sh"
+  ,"osh"
+  ,"ysh"
+  ]
+
+-- The test command is also defined here for easy access to other modules' tests.
 
 testmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Test.txt")

@@ -69,6 +69,7 @@ extra-source-files:
     Hledger/Cli/Commands/Check.txt
     Hledger/Cli/Commands/Close.txt
     Hledger/Cli/Commands/Codes.txt
+    Hledger/Cli/Commands/Commands.txt
     Hledger/Cli/Commands/Commodities.txt
     Hledger/Cli/Commands/Demo.txt
     Hledger/Cli/Commands/Descriptions.txt
