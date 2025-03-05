@@ -185,7 +185,9 @@ withJournalCached defaultJournalOverride cliopts cmd = do
     readFiles journalpaths = do
       j <- journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
       return (j, DefaultRunJournal journalpaths)
-    -- | Read a journal file, caching it if it has not been read before.
+    -- | Read a journal file, caching it (and InputOptions used to read it) if it has not been seen before.
+    -- If the same file is requested with different InputOptions, we read it anew and cache
+    -- it separately.
     readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
     readAndCacheJournalFile iopts fp | snd (splitReaderPrefix fp) == "-" = do
       dbg1IO "readAndCacheJournalFile using stdin, not cached" "-"
@@ -194,11 +196,17 @@ withJournalCached defaultJournalOverride cliopts cmd = do
     readAndCacheJournalFile iopts fp = do
       dbg1IO "readAndCacheJournalFile" fp
       modifyMVar journalCache $ \cache ->
-        case Map.lookup (iopts,fp) cache of
+        case Map.lookup (ioptsWithoutReportSpan,fp) cache of
           Just journal -> do
             dbg1IO "readAndCacheJournalFile using cache" (fp, iopts)
             return (cache, journal)
           Nothing -> do
             dbg1IO "readAndCacheJournalFile reading and caching journals" (fp, iopts)
             journal <- runExceptT $ readJournalFile iopts fp
-            either error' (\j -> return (Map.insert (iopts,fp) j cache, j)) journal
+            either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
+      where
+        -- InputOptions contain reportspan_ that is used to calculare forecast period,
+        -- that is used by journalFinalise to insert forecast transactions.addHeaderBorders
+        -- For the purposes of caching, we want to ignore this, as it is only used for forecast
+        -- and it is sufficient to include forecast_ in the InputOptions that we use as a key.
+        ioptsWithoutReportSpan = iopts { reportspan_ = emptydatespan } 
