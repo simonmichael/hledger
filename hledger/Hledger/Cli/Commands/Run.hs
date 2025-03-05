@@ -32,6 +32,7 @@ import Control.Monad (forM_)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM)
 
+import System.Exit (ExitCode)
 import System.Console.CmdArgs.Explicit (expandArgsAt)
 import System.Directory (doesFileExist)
 import System.IO (stdin, hIsTerminalDevice)
@@ -161,7 +162,11 @@ runREPL defaultJournalOverride findBuiltinCommand = do
       Just "exit" -> return ()
       Just input -> do
         liftIO $ (runCommand defaultJournalOverride findBuiltinCommand $ parseCommand input)
-                  `catch` (\(e::ErrorCall) -> putStr $ show e)
+                  `catches`
+                  [Handler (\(e::ErrorCall) -> putStr $ show e)
+                  ,Handler (\(_::ExitCode) -> return ())
+                  ,Handler (\UserInterrupt -> return ())
+                  ]
         loop prompt
 
 -- | Cache of all journals that have been read by commands given to "run",
