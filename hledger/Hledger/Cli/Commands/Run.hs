@@ -82,7 +82,12 @@ run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} 
     let args = dbg1 "args" $ listofstringopt "args" rawopts
     isTerminal <- isStdinTerminal
     if args == [] && not isTerminal
-      then runREPL key findBuiltinCommand
+      then do
+        inputFiles <- journalFilePathFromOpts cliopts
+        let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
+        if journalFromStdin
+        then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
+        else runREPL key findBuiltinCommand
       else do
         -- Check if arguments could be interpreted as files.
         -- If not, assume that they are commands specified directly on the command line
