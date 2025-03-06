@@ -1,0 +1,38 @@
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.10 USD
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.20 USD
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.20 USD
+
+2025-02-01
+    revenues:gifts
+    assets:broker:aaa   10 AAA @ 0.40 USD
+
+2025-02-02
+    revenues:gifts
+    assets:broker:aaa   10 AAA @ 0.50 USD
+
+2025-03-01
+    assets:broker:aaa   -5 AAA @ 0.40 USD
+    assets:broker:usd    6.55 USD
+    revenues:gains
+
+2025-03-02
+    assets:broker:aaa   -5 AAA @ 0.40 USD
+    assets:broker:aaa  -10 AAA @ 0.50 USD
+    assets:broker:aaa   -9 AAA @ 1.10 USD
+    assets:broker:usd   31.68 USD
+    revenues:gains
+
+2025-03-03
+    assets:broker:aaa   -1 AAA @ 1.10 USD
+    assets:broker:aaa   -9 AAA @ 1.20 USD
+    assets:broker:usd   13.30 USD
+    revenues:gains
+
