@@ -166,7 +166,8 @@ jobs:
         strip tmp/hledger
         strip tmp/hledger-ui
         strip tmp/hledger-web
-        tar -C tmp cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web hledger-completion.bash
+        cd tmp
+        tar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.

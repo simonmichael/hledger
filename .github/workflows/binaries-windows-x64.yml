@@ -150,12 +150,13 @@ jobs:
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe tmp
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-ui.exe tmp
         cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe tmp
-        cp hledger/embeddedfiles/*.1 tmp
-        cp hledger/embeddedfiles/*.info tmp
-        cp hledger/shell-completion/hledger-completion.bash tmp
         strip tmp/hledger.exe
         strip tmp/hledger-ui.exe
         strip tmp/hledger-web.exe
+      # Guessing these are not likely to be used on windows.
+      # cp hledger/embeddedfiles/*.1 tmp
+      # cp hledger/embeddedfiles/*.info tmp
+      # cp hledger/shell-completion/hledger-completion.bash tmp
              
     - name: Create binaries artifact
       uses: actions/upload-artifact@v4
