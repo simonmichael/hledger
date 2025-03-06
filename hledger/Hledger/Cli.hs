@@ -422,8 +422,8 @@ main = withGhcDebug' $ do
           withJournalDo opts (cmdaction opts)
 
         -- 6.5.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
-        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand opts
-        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand opts
+        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
+        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
 
         -- 6.5.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
