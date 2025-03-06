@@ -1,5 +1,14 @@
 # * run command
 
+# ** 0. Run requires -- before first command
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- register cash
+>2 /hledger: Error: 'run' expects '--' before first command, found none/
+>=1
+
 # ** 0. Run one command from command line
 <
 2017-01-01 groceries
