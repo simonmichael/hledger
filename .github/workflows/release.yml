@@ -116,8 +116,12 @@ jobs:
       run: |
         ls -lRFh artifacts
 
-    # Artifacts are zip files because upload-artifact always zips.
-    # Here we can switch to more unix-standard gz.
+    # The unix files were
+    # 1. tarred to protect their executable permissions,
+    # 2. mandatorily zipped by actions/upload-artifact,
+    # 3. unzipped by dawidd6/action-download-artifact.
+    # Now we 4. gzip them - to be more unix-standard ?
+    # And 5. softprops/action-gh-release will mandatorily zip them again.
     - name: Repack unix artifacts with gz
       shell: bash
       run: |
