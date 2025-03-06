@@ -224,7 +224,7 @@ readJournal :: InputOpts -> Maybe FilePath -> Handle -> ExceptT String IO Journa
 readJournal iopts@InputOpts{strict_, _defer} mpath hdl = do
   let r :: Reader IO = fromMaybe JournalReader.reader $ findReader (mformat_ iopts) mpath
   dbg6IO "readJournal: trying reader" (rFormat r)
-  j <- rReadFn r iopts (fromMaybe "(string)" mpath) hdl
+  j <- rReadFn r iopts (fromMaybe "-" mpath) hdl
   when (strict_ && not _defer) $ liftEither $ journalStrictChecks j
   return j
 
