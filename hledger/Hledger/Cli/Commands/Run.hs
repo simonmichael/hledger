@@ -33,8 +33,6 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM)
 
 import System.Exit (ExitCode)
-import System.Console.CmdArgs.Explicit (expandArgsAt)
-import System.Directory (doesFileExist)
 import System.IO (stdin, hIsTerminalDevice, hIsOpen)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
@@ -89,15 +87,11 @@ run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} 
         then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
         else runREPL key findBuiltinCommand
       else do
-        -- Check if arguments could be interpreted as files.
-        -- If not, assume that they are commands specified directly on the command line
-        allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
-        case allAreFiles of
-          True  -> runFromFiles key findBuiltinCommand args
-          False ->
-            case args of
-              "--":_ -> runFromArgs  key findBuiltinCommand args
-              _ -> error' $ "'run' expects '--' before first command, found none"
+        -- Check if arguments start with "--".
+        -- If not, assume that they are files with commands
+          case args of
+            "--":_ -> runFromArgs  key findBuiltinCommand args
+            _ -> runFromFiles key findBuiltinCommand args
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
