@@ -1499,6 +1499,10 @@ _on-master-branch:
     just _on-release-branch
     tools/relnotes.hs
 
+# Show the release notes for VERSION.
+@showrelnotes VER:
+    awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
+
 # Generate github release notes for the current release, on stdout and in clipboard. Run on release branch.
 @ghrelnotes:
     just _on-release-branch
