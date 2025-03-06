@@ -180,9 +180,10 @@ runREPL defaultJournalOverride findBuiltinCommand = do
       Just input -> do
         liftIO $ (runCommand defaultJournalOverride findBuiltinCommand $ argsAddDoubleDash $ parseCommand input)
                   `catches`
-                  [Handler (\(e::ErrorCall) -> putStr $ show e)
-                  ,Handler (\(_::ExitCode) -> return ())
-                  ,Handler (\UserInterrupt -> return ())
+                  [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
+                  ,Handler (\(e::IOError)   -> putStrLn $ rstrip $ show e)
+                  ,Handler (\(_::ExitCode)  -> return ())
+                  ,Handler (\UserInterrupt  -> return ())
                   ]
         loop prompt
 
