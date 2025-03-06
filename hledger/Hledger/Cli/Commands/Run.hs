@@ -33,11 +33,13 @@ import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM)
 
 import System.Exit (ExitCode)
+import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames)
 import System.IO (stdin, hIsTerminalDevice, hIsOpen)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
 import Safe (headMay)
+import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
 import Hledger.Cli.Utils (journalTransform)
 
 -- | Command line options for this command.
@@ -134,15 +136,28 @@ runCommand defaultJournalOverride findBuiltinCommand cmdline = do
       case findBuiltinCommand cmdname of
         Nothing -> error' $ "Unrecognized command: " ++ unwords (cmdname:args)
         Just (cmdmode,cmdaction) -> do
-          -- Even though expandArgsAt is done by the Cli.hs, it stops at the first '--', so we need
-          -- to do it here as well to make sure that each command can use @ARGFILEs
-          args' <- replaceNumericFlags <$> expandArgsAt args
-          dbg1IO "runCommand final args" (cmdname,args')
-          opts <- getHledgerCliOpts' cmdmode args'
-          withJournalCached (Just defaultJournalOverride) opts $ \(j,key) -> do
-            if cmdname == "run" -- allow "run" to call "run"
-              then run (Just key) findBuiltinCommand opts
-              else cmdaction opts j
+              -- Even though expandArgsAt is done by the Cli.hs, it stops at the first '--', so we need
+              -- to do it here as well to make sure that each command can use @ARGFILEs
+              args' <- replaceNumericFlags <$> expandArgsAt args
+              dbg1IO "runCommand final args" (cmdname,args')
+              opts <- getHledgerCliOpts' cmdmode args'
+              let
+                rawopts      = rawopts_ opts
+                mmodecmdname = headMay $ modeNames cmdmode
+                helpFlag     = boolopt "help"    rawopts
+                tldrFlag     = boolopt "tldr"    rawopts
+                infoFlag     = boolopt "info"    rawopts
+                manFlag      = boolopt "man"     rawopts
+              if
+                | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
+                | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
+                | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
+                | manFlag   -> runManForTopic "hledger"  mmodecmdname
+                | otherwise -> do
+                  withJournalCached (Just defaultJournalOverride) opts $ \(j,key) -> do
+                    if cmdname == "run" -- allow "run" to call "run"
+                      then run (Just key) findBuiltinCommand opts
+                      else cmdaction opts j
     [] -> return ()
 
 -- | Run an interactive REPL.
