@@ -9,6 +9,12 @@ $ hledger run -f- register cash
 >2 /hledger: Error: 'run' expects '--' before first command, found none/
 >=1
 
+# ** 0. Run refuses to read input file and commands from stdin
+<
+$ hledger run -f-
+>2 /hledger: Error: 'run' can't read commands from stdin, as one of the input files was stdin as well/
+>=1
+
 # ** 0. Run one command from command line
 <
 2017-01-01 groceries
