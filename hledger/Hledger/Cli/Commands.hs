@@ -227,17 +227,18 @@ commandsList progversion othercmds =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES (alternate UIs)"
-  ," repl                     run interactive REPL"
-  ,"+ui                       run terminal UI"                                       -- hledger-ui
-  ,"+web                      run web UI"                                            -- hledger-web
+  ," repl                     run commands from an interactive prompt"
+  ," run                      run command scripts from files or arguments"
+  ,"+ui                       run a terminal UI (hledger-ui)"
+  ,"+web                      run a web UI (hledger-web)"
                                                                                      -- see also: MoLe, https://hledger.org/mobile.html
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "ENTERING DATA (add or edit transactions)"
   ," add                      add transactions using interactive prompts"
-  ,"+iadd                     add transactions using a TUI"                          -- hledger-iadd
+  ,"+iadd                     add transactions using a TUI (hledger-iadd)"
   ," import                   add new transactions from other files, eg CSV files"
-  ,"+edit                     edit existing transactions with $EDITOR"               -- hledger-utils
+  ,"+edit                     edit specific transactions with $EDITOR"               -- hledger-utils
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "BASIC REPORTS (simple lists)"
@@ -267,7 +268,6 @@ commandsList progversion othercmds =
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
-  ," run                      run multiple commands from a file (EXPERIMENTAL)"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "CHARTS (bar charts, line graphs..)"
