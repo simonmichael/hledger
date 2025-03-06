@@ -527,6 +527,9 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- - XXX Relative order of flags is mostly but not entirely preserved, currently:
 --   pre-command flags get moved to the end, after post-command flags. 
 --
+--   XXX This function should rearrange only the args before the first --,
+--   and leave the rest alone. This will avoid problems for the run command, eg.
+--
 moveFlagsAfterCommand :: [String] -> (String, [String], [String])
 moveFlagsAfterCommand args =
   case moveFlagAndVal (args, []) of
