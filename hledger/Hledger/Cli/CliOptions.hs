@@ -58,6 +58,7 @@ module Hledger.Cli.CliOptions (
   getHledgerCliOpts',
   rawOptsToCliOpts,
   cliOptsDropArgs,
+  argsAddDoubleDash,
   outputFormats,
   defaultOutputFormat,
   CommandHelpStr,
@@ -631,6 +632,14 @@ rawOptsToCliOpts rawopts = do
 -- | Drop the arguments ("args") from this CliOpts' rawopts field.
 cliOptsDropArgs :: CliOpts -> CliOpts
 cliOptsDropArgs copts@CliOpts{rawopts_} = copts{rawopts_ = dropRawOpt "args" rawopts_}
+
+-- | cmdargs eats the first double-dash (--) argument when parsing a command line,
+-- which causes problems for the run and repl commands.
+-- Sometimes we work around this by duplicating that first -- argument.
+-- This doesn't break anything that we know of yet.
+argsAddDoubleDash args'
+  | "--" `elem` args' = let (as,bs) = break (=="--") args' in as <> ["--"] <> bs
+  | otherwise = args'
 
 -- | A helper for addon commands: this parses options and arguments from
 -- the current command line using the given hledger-style cmdargs mode,

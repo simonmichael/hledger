@@ -235,19 +235,11 @@ main = withGhcDebug' $ do
   -- cmdname = the full unabbreviated command name, or ""
   -- confcmdargs = arguments for the subcommand, from config file
 
-  let
-    -- | cmdargs eats the first double-dash (--) argument, causing problems for
-    -- the run command. To work around it, we'll insert another.
-    -- This doesn't break anything that we know of.
-    doubleDoubleDash args
-      | "--" `elem` args = let (as,bs) = break (=="--") args in as <> ["--"] <> bs
-      | otherwise = args
-
   -- Do some argument preprocessing to help cmdargs
   cliargs <- getArgs
     >>= expandArgsAt         -- interpolate @ARGFILEs
     <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
-    <&> doubleDoubleDash     -- repeat the -- arg as a cmdargs workaround
+    <&> argsAddDoubleDash    -- repeat the first -- arg, as a cmdargs workaround
   let
     (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst

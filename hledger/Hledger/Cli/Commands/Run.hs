@@ -178,7 +178,7 @@ runREPL defaultJournalOverride findBuiltinCommand = do
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        liftIO $ (runCommand defaultJournalOverride findBuiltinCommand $ parseCommand input)
+        liftIO $ (runCommand defaultJournalOverride findBuiltinCommand $ argsAddDoubleDash $ parseCommand input)
                   `catches`
                   [Handler (\(e::ErrorCall) -> putStr $ show e)
                   ,Handler (\(_::ExitCode) -> return ())
