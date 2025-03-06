@@ -252,8 +252,8 @@ main = withGhcDebug' $ do
     (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
-  dbgIO "cli args, with some preprocessing like doubling --" cliargs
-  dbg1IO "cli args with options moved after command, if any" cliargswithcmdfirst
+  dbgIO  "cli args with preprocessing" cliargs
+  dbg1IO "cli args with preprocessing and options moved after command" cliargswithcmdfirst
   dbgIO "cli command argument found" clicmdarg
   dbgIO "cli args before command"    cliargsbeforecmd
   dbgIO "cli args after command"     cliargsaftercmd
@@ -501,10 +501,10 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- We prefer to hide this restriction from the user, providing a more forgiving CLI.
 -- So this helper tries to move any pre-command flags/options, and their values if any, after the command argument.
 -- If there is a "--"" argument, only the preceding args are rearranged.
--- So to be precise: pre-command options will be moved to the end of the part of the command line preceding the first -- argument.
---
+-- To be precise: pre-command options will be moved to the end of the part of the command line preceding the first -- argument.
 -- The pre-command options' relative order will be preserved, but since they may be moved after post-command options,
 -- the overall order of options may change.
+-- XXX moving them right after the command would probably be better.
 --
 -- For convenience of the caller, this currently returns a triple:
 -- (
