@@ -1,0 +1,4 @@
+echo "Cash:"
+register cash
+echo "Food:"
+register food
