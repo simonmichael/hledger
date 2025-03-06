@@ -1,0 +1,136 @@
+# * run command
+
+# ** 0. Run one command from command line
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- register cash
+>
+2017-01-01 groceries            assets:cash                  $-100         $-100
+
+
+# ** 0. Run two commands from command line
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- echo "Cash:" -- register cash -- echo 'Food:' -- register food
+>
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+
+# ** 0. Run two commands from command line with different input options
+<
+2017-01-01 investment
+   assets:cash  -$100
+   expenses:food
+
+~ 2017-02-01  next month groceries
+   assets:cash  -$120
+   expenses:food
+$ hledger run -f- -- register cash -- echo '=====' -- register --forecast food
+>
+2017-01-01 investment           assets:cash                  $-100         $-100
+=====
+2017-01-01 investment           expenses:food                 $100          $100
+2017-02-01 next month grocer..  expenses:food                 $120          $220
+
+# ** 0. Run commands from file
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- run_cmds.txt
+>
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+
+# ** 0. Run commands from command line, and use nested "run" to run commands from file
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- echo "Accounts:" -- accounts -- run run_cmds.txt -- echo "Balance:" -- balance cash
+>
+Accounts:
+assets:cash
+expenses:food
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+Balance:
+               $-100  assets:cash
+--------------------
+               $-100  
+
+# ** 0. Run commands from stdin
+<
+echo 'Accounts:'
+accounts
+echo
+echo 'Assets:'
+balance assets
+$ hledger run -f sample.journal
+>
+Accounts:
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+
+Assets:
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+--------------------
+                 $-1  
+
+
+# ** 0. Run commands accept numeric options
+<
+echo 'Assets, depth 1:'
+balance assets -1
+echo
+echo 'Assets, depth 2:'
+balance assets -2
+$ hledger run -f sample.journal
+>
+Assets, depth 1:
+                 $-1  assets
+--------------------
+                 $-1  
+
+Assets, depth 2:
+                  $1  assets:bank
+                 $-2  assets:cash
+--------------------
+                 $-1  
+
+# ** 0. Run commands accept @ARGFILEs
+<
+echo 'Assets, depth 1:'
+balance @run.args
+echo
+echo 'Assets, depth 2:'
+balance assets -2
+$ hledger run -f sample.journal
+>
+Assets, depth 1:
+                 $-1  assets
+--------------------
+                 $-1  
+
+Assets, depth 2:
+                  $1  assets:bank
+                 $-2  assets:cash
+--------------------
+                 $-1  
