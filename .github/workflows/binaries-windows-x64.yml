@@ -147,14 +147,15 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp hledger/shell-completion/hledger-completion.bash hledger/embeddedfiles/*.{1,info} tmp
-        cd tmp
-        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe     .
-        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-ui.exe  .
-        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe .
-        strip hledger.exe
-        strip hledger-ui.exe
-        strip hledger-web.exe
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger.exe tmp
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-ui.exe tmp
+        cp /C/Users/runneradmin/AppData/Roaming/local/bin/hledger-web.exe tmp
+        cp hledger/embeddedfiles/*.1 tmp
+        cp hledger/embeddedfiles/*.info tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
+        strip tmp/hledger.exe
+        strip tmp/hledger-ui.exe
+        strip tmp/hledger-web.exe
              
     - name: Create binaries artifact
       uses: actions/upload-artifact@v4

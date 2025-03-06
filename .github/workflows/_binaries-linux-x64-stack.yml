@@ -1,6 +1,8 @@
-# TRIGGER: Runs on any push to binaries-linux-x64-stack branch. Not normally used.
-# ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc. May not work,
-# the cabal-based binaries-linux-x64.yml is normally used instead.
+# Alternate binaries-linux workflow, using stack like the others for consistency. May not work.
+# Currently the cabal-based binaries-linux-x64.yml is used instead, for cabal testing and for easier static building.
+#
+# TRIGGER: Runs on any push to binaries-linux-x64-stack branch.
+# ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc.
 
 name: binaries-linux-x64-stack
 on:
@@ -119,15 +121,16 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp hledger/shell-completion/hledger-completion.bash hledger/embeddedfiles/*.{1,info} tmp
-        cd tmp
-        cp ~/.local/bin/hledger .
-        cp ~/.local/bin/hledger-ui .
-        cp ~/.local/bin/hledger-web .
-        strip hledger
-        strip hledger-ui
-        strip hledger-web
-        tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web hledger-completion.bash
+        cp ~/.local/bin/hledger tmp
+        cp ~/.local/bin/hledger-ui tmp
+        cp ~/.local/bin/hledger-web tmp
+        cp hledger/embeddedfiles/*.1 tmp
+        cp hledger/embeddedfiles/*.info tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
+        strip tmp/hledger
+        strip tmp/hledger-ui
+        strip tmp/hledger-web
+        tar -C tmp cvf hledger-linux-x64.tar hledger hledger-ui hledger-web hledger-completion.bash
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.

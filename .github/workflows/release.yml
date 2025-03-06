@@ -97,17 +97,17 @@ jobs:
         allow_forks: false
         path: artifacts
 
-    - name: Get artifact from latest successful binaries-mac-x64 run
-      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
-      with:
-        workflow: binaries-mac-x64.yml
-        allow_forks: false
-        path: artifacts
-
     - name: Get artifact from latest successful binaries-mac-arm64 run
       uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
       with:
         workflow: binaries-mac-arm64.yml
+        allow_forks: false
+        path: artifacts
+
+    - name: Get artifact from latest successful binaries-mac-x64 run
+      uses: dawidd6/action-download-artifact@09f2f74827fd3a8607589e5ad7f9398816f540fe
+      with:
+        workflow: binaries-mac-x64.yml
         allow_forks: false
         path: artifacts
 

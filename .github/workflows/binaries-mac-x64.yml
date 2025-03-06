@@ -144,15 +144,16 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp hledger/shell-completion/hledger-completion.bash hledger/embeddedfiles/*.{1,info} tmp
-        cd tmp
-        cp ~/.local/bin/hledger .
-        cp ~/.local/bin/hledger-ui .
-        cp ~/.local/bin/hledger-web .
-        strip hledger
-        strip hledger-ui
-        strip hledger-web
-        tar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web hledger-completion.bash
+        cp ~/.local/bin/hledger tmp
+        cp ~/.local/bin/hledger-ui tmp
+        cp ~/.local/bin/hledger-web tmp
+        cp hledger/embeddedfiles/*.1 tmp
+        cp hledger/embeddedfiles/*.info tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
+        strip tmp/hledger
+        strip tmp/hledger-ui
+        strip tmp/hledger-web
+        tar -C tmp cvf hledger-mac-x64.tar hledger hledger-ui hledger-web hledger-completion.bash
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
