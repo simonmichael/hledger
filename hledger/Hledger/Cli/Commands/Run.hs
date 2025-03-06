@@ -229,14 +229,13 @@ withJournalCached defaultJournalOverride cliopts cmd = do
     -- it separately.
     readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
     readAndCacheJournalFile iopts fp = do
-      dbg1IO "readAndCacheJournalFile" fp
       modifyMVar journalCache $ \cache ->
         case Map.lookup (ioptsWithoutReportSpan,fp) cache of
           Just journal -> do
-            dbg1IO "readAndCacheJournalFile using cache" (fp, iopts)
+            dbg1IO ("readAndCacheJournalFile using cache for "++fp) iopts
             return (cache, journal)
           Nothing -> do
-            dbg1IO "readAndCacheJournalFile reading and caching journals" (fp, iopts)
+            dbg1IO ("readAndCacheJournalFile reading and caching "++fp) iopts
             journal <- runExceptT $ if snd (splitReaderPrefix fp) == "-" then readStdin else readJournalFile iopts fp
             either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
       where
