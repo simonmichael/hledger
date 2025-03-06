@@ -487,13 +487,15 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
     (traceOrLogAt verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
   -- XXX better error message when cmdargs fails (eg spaced/quoted/malformed flag values) ?
 
--- | cmdargs does not allow flags (options) to appear before the subcommand argument.
--- We prefer to hide this restriction from the user, making the CLI more forgiving.
--- So this tries to move flags, and their values if any, after the command argument.
--- If there is a "--" argument, only the args preceding that are rearranged
--- (everything from the first "--" onward is kept as-is).
--- Among the rearranged args, the relative order of flags is mostly preserved,
--- except that pre-command flags get moved to the end, after post-command flags.
+-- | cmdargs does not allow options to appear before the subcommand argument.
+-- We prefer to hide this restriction from the user, providing a more forgiving CLI.
+-- So this helper tries to move any pre-command flags/options, and their values if any, after the command argument.
+-- If there is a "--"" argument, only the preceding args are rearranged.
+-- So to be precise: pre-command options will be moved to the end of the part of the command line preceding the first -- argument.
+--
+-- The pre-command options' relative order will be preserved, but since they may be moved after post-command options,
+-- the overall order of options may change.
+--
 -- For convenience of the caller, this currently returns a triple:
 -- (
 --  the command, if one was found (or ""),
