@@ -89,7 +89,10 @@ run defaultJournalOverride findBuiltinCommand cliopts@CliOpts{rawopts_=rawopts} 
         allAreFiles <- and <$> mapM (doesFileExist . snd . splitReaderPrefix) args
         case allAreFiles of
           True  -> runFromFiles key findBuiltinCommand args
-          False -> runFromArgs  key findBuiltinCommand args
+          False ->
+            case args of
+              "--":_ -> runFromArgs  key findBuiltinCommand args
+              _ -> error' $ "'run' expects '--' before first command, found none"
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> CliOpts -> IO ()
