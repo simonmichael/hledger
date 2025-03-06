@@ -490,8 +490,18 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- | cmdargs does not allow flags (options) to appear before the subcommand argument.
 -- We prefer to hide this restriction from the user, making the CLI more forgiving.
 -- So this tries to move flags, and their values if any, after the command argument.
--- It also returns the (possibly empty) command argument and the other arguments,
--- separately for convenience.
+-- If there is a "--" argument, only the args preceding that are rearranged
+-- (everything from the first "--" onward is kept as-is).
+-- Among the rearranged args, the relative order of flags is mostly preserved,
+-- except that pre-command flags get moved to the end, after post-command flags.
+-- For convenience of the caller, this currently returns a triple:
+-- (
+--  the command, if one was found (or ""),
+--  the rearranged args without the command,
+--  the command followed by the rearranged args
+-- )
+--
+-- Notes:
 --
 -- Detecting the command argument is tricky because of the flexibility of traditional flag syntax.
 -- Short flags can be joined together, some flags can have a value or no value,
@@ -509,34 +519,27 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
 -- - it begins with a long requires-value flag followed by =; likewise
 -- - it begins with a long optional-value flag followed by =; likewise
 --
--- Notes:
+-- This hackery increases the risk of misleading errors, bugs, and confusion.
+-- It should be fairly robust now, being aware of all builtin flags.
+-- The main tests are in hledger/test/cli/cli.test, but they are not exhaustive.
 --
--- - This hackery increases the risk of misleading errors, bugs, and confusion.
---   It should be fairly robust now, being aware of all builtin flags.
---   The main tests are in hledger/test/cli/cli.test, but they are not exhaustive.
+-- All general and builtin command flags (and their values) will be moved. It's clearer to
+-- write command flags after the command, but if not we'll handle it (for greater robustness).
 --
--- - All general and builtin command flags (and their values) will be moved. It's clearer to
---   write command flags after the command, but if not we'll handle it (for greater robustness).
+-- Long flags should be spelled in full; abbreviated long flags might not get moved.
 --
--- - Long flags should be spelled in full; abbreviated long flags might not get moved.
---
--- - Unknown flags (from addons) are assumed to be valueless or have a joined value,
---   and will be moved - but later rejected by cmdargs.
---   Instead these should be written to the right of a "--" argument, which hides them.
---
--- - XXX Relative order of flags is mostly but not entirely preserved, currently:
---   pre-command flags get moved to the end, after post-command flags. 
---
---   XXX This function should rearrange only the args before the first --,
---   and leave the rest alone. This will avoid problems for the run command, eg.
+-- Unknown flags (from addons) are assumed to be valueless or have a joined value,
+-- and will be moved - but later rejected by cmdargs.
+-- Instead these should be written to the right of a "--" argument, which hides them.
 --
 moveFlagsAfterCommand :: [String] -> (String, [String], [String])
 moveFlagsAfterCommand args =
-  case moveFlagAndVal (args, []) of
-    ([],as)                      -> ("", as, as)
-    (unmoved@(('-':_):_), moved) -> ("", as, as) where as = unmoved<>moved
-    (cmdarg:unmoved, moved)      -> (cmdarg, as, cmdarg:as) where as = unmoved<>moved
+  case moveFlagAndVal (as1, []) of
+    ([],as1')                    -> ("", as, as) where as = as1' <> as2
+    (unmoved@(('-':_):_), moved) -> ("", as, as) where as = unmoved <> moved <> as2
+    (cmdarg:unmoved, moved)      -> (cmdarg, as, cmdarg:as) where as = unmoved <> moved <> as2
   where
+    (as1, as2) = break (== "--") args
     -- Move the next argument to the end if it is a movable flag, along with its subsequent value argument if any.
     moveFlagAndVal :: ([String], [String]) -> ([String], [String])
     moveFlagAndVal ((a:b:cs), moved) =
