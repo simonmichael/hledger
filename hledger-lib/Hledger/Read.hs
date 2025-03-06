@@ -218,7 +218,11 @@ type PrefixedFilePath = FilePath
 -- - a file extension in @mfile@
 --
 -- If none of these is available, or if the reader name is unrecognised,
--- we use the journal reader (for predictability).
+-- the journal reader is used.
+--
+-- If a file path is not provided, "-" is assumed (and may appear in error messages,
+-- `files` output etc, where it will be a slight lie: it will mean "not from a file",
+-- not necessarily "from standard input".
 --
 readJournal :: InputOpts -> Maybe FilePath -> Handle -> ExceptT String IO Journal
 readJournal iopts@InputOpts{strict_, _defer} mpath hdl = do
