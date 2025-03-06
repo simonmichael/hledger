@@ -1,3 +1,5 @@
+# For troubleshooting: git check-ignore -v --no-index PATHS
+
 # misc stuff
 _*
 *~
@@ -14,30 +16,20 @@ _*
 .vscode
 tags
 TAGS
-/debug.log
-/tools/pandoc-demote-headers
-/tools/pandoc-drop-html-blocks
-/tools/pandoc-drop-html-inlines
-/tools/pandoc-drop-links
-/tools/pandoc-drop-notes
-/tools/pandoc-drop-toc
-/tools/generatetimeclock
+.obsidian
+stylish-haskell.yaml
+*.m4-e
 
-# Tricksy rules ignoring some typical temp files.
-# For troubleshooting: git check-ignore --verbose PATHS...
-# 1- or 2-character filenames, maybe with an extension; but not directories
+# test files
+/[0-9]*
+*.j
 [a-z0-9]
 [a-z0-9].*
 [a-z0-9][a-z0-9]
-[a-z0-9][a-z0-9].*
 ![a-z0-9]/
 ![a-z0-9].*/
 ![a-z0-9][a-z0-9]/
 ![a-z0-9][a-z0-9].*/
-# files/directories beginning with a number
-/[0-9]*
-*.j
-*.sw[op]
 
 # haskell stuff
 *.dyn_hi
@@ -53,31 +45,42 @@ cabal.sandbox.config
 dist/
 dist-newstyle/
 .ghc.environment.*
+stack*.yaml.lock
+.stack-work/
 /Shake
 /.shake.html
-.stack-work/
-/lsp/
 Setup
+modules*.svg
+packages*.svg
+/*.packages
 
 # hledger stuff
+#*.webmanual.md
 old
-/.old
+.old
 /log
+*.log
 /profs/*
 /*.prof.*
+/tmp
+/bench*
 /bin/**
 !/bin/*.hs
 !/bin/*.sh
 !/bin/*.md
-/.latest.*
-hledger/test/cli/addons
-tools/generatejournal
-tools/simplebench
+/bin/*_.hs
 /examples/[1-9]*.journal
-*.webmanual.md
-*.m4-e
-stack*.yaml.lock
-bench
+/hledger/test/cli/addons
+/tools/generatejournal
+/tools/relnotes
+/tools/simplebench
+/tools/pandoc-demote-headers
+/tools/pandoc-drop-html-blocks
+/tools/pandoc-drop-html-inlines
+/tools/pandoc-drop-links
+/tools/pandoc-drop-notes
+/tools/pandoc-drop-toc
+/tools/generatetimeclock
 
 # hledger-web stuff
 /config
@@ -89,13 +92,10 @@ hledger-web/yesod-devel/
 .hledger-web_client_session_key.aes
 
 # sandstorm stuff
-.vagrant
-*.spk
+# .vagrant
+# *.spk
 
 # recent stuff
-/commands
-/.obsidian
-/.github/workflows/README
 /checks
 /headroom-templates
 .headroom.yaml
@@ -111,3 +111,4 @@ hledger-web/yesod-devel/
 /hledger-web/demo/
 /doc/ghrelnotes.md
 .aider*
+/doc/RELEASING2.md
