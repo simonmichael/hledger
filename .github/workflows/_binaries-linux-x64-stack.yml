@@ -4,7 +4,7 @@
 # TRIGGER: Runs on any push to binaries-linux-x64-stack branch.
 # ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc.
 
-name: binaries-linux-x64-stack
+name: binaries-linux-x64-_binaries
 on:
   push:
     branches: [ binaries-linux-x64-stack ]
@@ -101,7 +101,7 @@ jobs:
     - name: Install haskell tools with ghcup if needed
       run: |
         if [[ ! -x ~/.ghcup/bin/ghcup ]]; then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/stack ]]; then ~/.ghcup/bin/ghcup install stack 3.1.1   && ~/.ghcup/bin/ghcup set stack 3.1.1;   fi; printf "stack: "; stack --version
+        if [[ ! -x ~/.ghcup/bin/stack ]]; then ~/.ghcup/bin/ghcup install stack 3.3.1   && ~/.ghcup/bin/ghcup set stack 3.3.1;   fi; printf "stack: "; stack --version
 
     # --allow-different-user is needed because of #863 above (or because stack didn't notice we're in a docker container)
     - name: Install GHC with stack
@@ -114,9 +114,9 @@ jobs:
 
     - name: Build with stack and run unit tests
       run: |
-        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger      # || (echo "ERROR: building hledger failed"; false)
-        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
-        stack --allow-different-user build --test --ghc-options='-optl-static -fPIC' --ghc-options=-Werror hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
+        stack --allow-different-user build --test --ghc-options='-fPIC -optl-static -Werror' hledger      # || (echo "ERROR: building hledger failed"; false)
+        stack --allow-different-user build --test --ghc-options='-fPIC -optl-static -Werror' hledger-ui   # || (echo "ERROR: building hledger-ui failed"; false)
+        stack --allow-different-user build --test --ghc-options='-fPIC -optl-static -Werror' hledger-web  # || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
