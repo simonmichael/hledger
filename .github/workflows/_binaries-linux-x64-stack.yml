@@ -110,7 +110,7 @@ jobs:
 
     - name: List dep versions
       run: |
-        $stack exec -- ghc-pkg list
+        stack exec -- ghc-pkg list
 
     - name: Build with stack and run unit tests
       run: |
