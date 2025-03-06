@@ -179,7 +179,14 @@ journalCache :: MVar (Map.Map (InputOpts,PrefixedFilePath) Journal)
 journalCache = unsafePerformIO $ newMVar Map.empty
 {-# NOINLINE journalCache #-}
 
+-- | Cache of stdin contents, so that we can re-read it if InputOptions change
+stdinCache :: MVar (Maybe T.Text)
+stdinCache = unsafePerformIO $ newMVar Nothing
+{-# NOINLINE stdinCache #-}
+
 -- | Similar to `withJournal`, but uses caches all the journals it reads.
+-- When reading from stdin, caches the stdin contents so that we could reprocess
+-- it if a read with different InputOptions is requested.
 withJournalCached :: Maybe DefaultRunJournal -> CliOpts -> ((Journal, DefaultRunJournal) -> IO ()) -> IO ()
 withJournalCached defaultJournalOverride cliopts cmd = do
   (j,key) <- case defaultJournalOverride of
@@ -198,10 +205,6 @@ withJournalCached defaultJournalOverride cliopts cmd = do
     -- If the same file is requested with different InputOptions, we read it anew and cache
     -- it separately.
     readAndCacheJournalFile :: InputOpts -> PrefixedFilePath -> IO Journal
-    readAndCacheJournalFile iopts fp | snd (splitReaderPrefix fp) == "-" = do
-      dbg1IO "readAndCacheJournalFile using stdin, not cached" "-"
-      j <- runExceptT $ readJournalFile iopts "-"
-      either error' return j
     readAndCacheJournalFile iopts fp = do
       dbg1IO "readAndCacheJournalFile" fp
       modifyMVar journalCache $ \cache ->
@@ -211,11 +214,25 @@ withJournalCached defaultJournalOverride cliopts cmd = do
             return (cache, journal)
           Nothing -> do
             dbg1IO "readAndCacheJournalFile reading and caching journals" (fp, iopts)
-            journal <- runExceptT $ readJournalFile iopts fp
+            journal <- runExceptT $ if snd (splitReaderPrefix fp) == "-" then readStdin else readJournalFile iopts fp
             either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
       where
         -- InputOptions contain reportspan_ that is used to calculare forecast period,
         -- that is used by journalFinalise to insert forecast transactions.addHeaderBorders
         -- For the purposes of caching, we want to ignore this, as it is only used for forecast
         -- and it is sufficient to include forecast_ in the InputOptions that we use as a key.
-        ioptsWithoutReportSpan = iopts { reportspan_ = emptydatespan } 
+        ioptsWithoutReportSpan = iopts { reportspan_ = emptydatespan }
+        -- Read stdin, or if we read it alread, use a cache
+        -- readStdin :: InputOpts -> ExceptT String IO Journal
+        readStdin = do
+          stdinContent <- liftIO $ modifyMVar stdinCache $ \cache ->
+            case cache of
+              Just cached -> do
+                dbg1IO "readStdin using cached stdin" "-"
+                return (cache, cached)
+              Nothing -> do
+                dbg1IO "readStdin reading and caching stdin" "-"
+                stdinContent <- readFileOrStdinPortably "-"
+                return (Just stdinContent, stdinContent)
+          hndl <- liftIO $ inputToHandle stdinContent
+          readJournal iopts Nothing hndl
