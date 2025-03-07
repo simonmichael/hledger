@@ -19,6 +19,84 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 838dfb02
+
+Docs
+
+- new/updated:
+  ACHIEVEMENTS,
+  CREDITS,
+  FINANCE,
+  MOCKUPS,
+  REGRESSIONS,
+  RELEASING,
+  Scripts
+- examples/csv: pooltool-rewards.csv.rule cleanup
+- examples: some sample hledger run scripts
+- examples: test files for CSV encoding [#2319]
+
+Scripts/addons
+
+- hledger-balance-as-budget properly applies commodity styles now. (Dmitry Astapov)
+
+- hledger-jj is another another easy CLI for tracking hledger files in version control,
+  using newer tech (jj, ysh)
+
+- hledger-git: run pass-through commands in the right repo.
+
+- hledger-git: check for a git repo more robustly. (Lars Kellogg-Stedman)
+
+- hledger-move: doc edits
+
+- hledger-script-example.hs: improvements, cleanups
+
+Infrastructure/Misc
+
+- Unix bindists in github releases now include the man pages and info manuals. [#2309]
+
+- hledger-install: if installing third party packages fails, try again with bounds relaxed.
+  This makes hledger-iadd and hledger-interest more likely to install successfully,
+  even if their bounds have not yet been updated for a new hledger release.
+
+- just functest now fails if there are warnings.
+  (It does not force recompilation of already compiled modules,
+  but even so this should help catch more warnings before pushing them to CI.)
+
+- In github releases, both release notes and platform binary install docs are now collapsed by default again.
+  This makes the sequence of dates and releases clearer.
+  Github automatically expands the assets of the latest release, so those will be visible by default.
+  For a full text search of all release notes, the release notes page on hledger.org is still available.
+
+- new/changed recipes/tools:
+  bench*.sh,
+  changelogs-catchup,
+  changelogs-finalise,
+  changelogs-reset,
+  devtag,
+  ghrelnotes,
+  ghrelnotes-publish,
+  log-headtail, 
+  log-push,
+  log-save, 
+  modulediag,
+  modulediags,
+  modulediags-view,
+  packagediags,
+  packagediags-view,
+  releasediag,
+  relnotes
+  relprep -> relbranch,
+  reltags,
+  reltags-push,
+  showrelnotes,
+  site-manuals-snapshot,
+  site-watch,
+  time,
+  tldr-diff
+
+- gitignore cleanups.
+
+
 # 1.41 2024-12-09
 
 Docs
