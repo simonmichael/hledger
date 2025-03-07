@@ -217,9 +217,10 @@ executables:
     source-dirs: app
     main: hledger-cli.hs
     cpp-options: -DVERSION="1.41.99"
+    ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
-      ghc-options: -threaded -with-rtsopts=-T
+      ghc-options: -threaded
     dependencies:
     - hledger
 
