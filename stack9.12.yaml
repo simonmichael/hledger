@@ -2,7 +2,7 @@
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.12
 # https://downloads.haskell.org/ghc/9.12.1/docs/users_guide/9.12.1-notes.html
 
-resolver: nightly-2025-02-15
+resolver: nightly-2025-03-01
 compiler: ghc-9.12.1
 notify-if-ghc-untested: false
 notify-if-cabal-untested: false
