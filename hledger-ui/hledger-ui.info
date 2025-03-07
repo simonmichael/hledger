@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 7.1.1 from stdin.
+This is hledger-ui.info, produced by makeinfo version 7.2 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -514,9 +514,7 @@ File: hledger-ui.info,  Node: ENVIRONMENT,  Next: BUGS,  Prev: WATCH MODE,  Up: 
 6 ENVIRONMENT
 *************
 
-*COLUMNS* The screen width to use.  Default: the full terminal width.
-
-   *LEDGER_FILE* The main journal file to use when not specified with
+*LEDGER_FILE* The main journal file to use when not specified with
 '-f/--file'.  Default: '$HOME/.hledger.journal'.
 
 
@@ -543,22 +541,22 @@ above).
 
 
 Tag Table:
-Node: Top223
-Node: OPTIONS1874
-Node: MOUSE8548
-Node: KEYS8880
-Node: SCREENS13884
-Node: Menu screen14624
-Node: Cash accounts screen14940
-Node: Balance sheet accounts screen15301
-Node: Income statement accounts screen15637
-Node: All accounts screen16022
-Node: Register screen16385
-Node: Transaction screen18828
-Node: Error screen20403
-Node: WATCH MODE20769
-Node: ENVIRONMENT22345
-Node: BUGS22652
+Node: Top221
+Node: OPTIONS1872
+Node: MOUSE8546
+Node: KEYS8878
+Node: SCREENS13882
+Node: Menu screen14622
+Node: Cash accounts screen14938
+Node: Balance sheet accounts screen15299
+Node: Income statement accounts screen15635
+Node: All accounts screen16020
+Node: Register screen16383
+Node: Transaction screen18826
+Node: Error screen20401
+Node: WATCH MODE20767
+Node: ENVIRONMENT22343
+Node: BUGS22576
 
 End Tag Table
 

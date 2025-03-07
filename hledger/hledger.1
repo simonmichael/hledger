@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2024" "hledger-1.41.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "March 2025" "hledger-1.41.99 " "hledger User Manuals"
 
 
 
@@ -133,20 +133,26 @@ So we usually configure a different journal file, by setting the
 For more about how to do that on your system, see Common tasks > Setting
 LEDGER_FILE.
 .SS Text encoding
-Data files containing non\-ascii characters must use UTF\-8 encoding.
-An optional byte order mark (BOM) is allowed, at the beginning of the
-file (only).
+hledger input files containing non\-ascii characters must use UTF\-8
+encoding, with the exception of CSV (SSV, TSV..)
+files, which can be read from other encodings (see \f[CR]encoding\f[R]
+CSV rule).
 .PP
-Also, your system should be configured with a locale that can decode
-UTF\-8 text.
-On some unix systems, you may need set the \f[CR]LANG\f[R] environment
-variable, eg.
+In UTF\-8 input files, an optional byte order mark (BOM) at the
+beginning of the file is allowed.
+.PP
+Your system may need to be configured with a locale that understands the
+input file\[aq]s encoding.
+Eg on some unix systems, you may need set the \f[CR]LANG\f[R]
+environment variable.
 You can read more about this in Unicode characters, below.
 .PP
-On unix systems you can check a file\[aq]s encoding with the
-\f[CR]file\f[R] command.
-If you need to import from a UTF\-16\-encoded CSV file, say, you can
-convert it to UTF\-8 with the \f[CR]iconv\f[R] command.
+On some unix systems you can use the \f[CR]file\f[R] command to show a
+file\[aq]s text encoding.
+On mac, you\[aq]ll need the version from homebrew:
+\f[CR]brew install file\-formula\f[R].
+.PP
+hledger\[aq]s text output is always UTF\-8 encoded.
 .SS Data formats
 Usually the data file is in hledger\[aq]s journal format, but it can be
 in any of the supported file formats, which currently are:
@@ -904,12 +910,11 @@ To troubleshoot the effect of config files, run with
 The config file feature was added in hledger 1.40 and is considered
 \f[I]experimental\f[R].
 .SS Shell completions
-If you use the bash shell, you can optionally set up context\-sensitive
-autocompletions when you press TAB in a hledger command line.
-At a bash shell prompt, try pressing \f[CR]hledger<SPACE><TAB><TAB>\f[R]
-(should list all hledger commands) or
-\f[CR]hledger reg acct:<TAB><TAB>\f[R] (should list your top\-level
-account names).
+If you use the bash or zsh shells, you can optionally set up
+context\-sensitive autocompletion for hledger command lines.
+Try pressing \f[CR]hledger<SPACE><TAB><TAB>\f[R] (should list all
+hledger commands) or \f[CR]hledger reg acct:<TAB><TAB>\f[R] (should list
+your top\-level account names).
 If completions aren\[aq]t working, or for more details, see Install >
 Shell completions.
 .SH Output
@@ -1113,13 +1118,10 @@ If your data contains unicode or wide characters, you\[aq]ll need a
 terminal and font that render those correctly.
 (This can be challenging on MS Windows.)
 .PP
-Some reports (\f[CR]register\f[R], \f[CR]aregister\f[R]) will use the
-width indicated by the \f[CR]COLUMNS\f[R] environment variable.
-If your shell and terminal are working well, they will keep COLUMNS
-updated as you resize the window.
-So register reports normally will use the full window width.
-When this isn\[aq]t working or you want to override it, you can manually
-set COLUMNS, or use the \f[CR]\-w\f[R]/\f[CR]\-\-width\f[R] option.
+Some reports (\f[CR]register\f[R], \f[CR]aregister\f[R]) will normally
+use the full window width.
+If this isn\[aq]t working or you want to override it, you can use the
+\f[CR]\-w\f[R]/\f[CR]\-\-width\f[R] option.
 .PP
 Balance reports (\f[CR]balance\f[R], \f[CR]balancesheet\f[R],
 \f[CR]incomestatement\f[R]...)
@@ -1152,6 +1154,9 @@ or \f[CR]n\f[R]/\f[CR]no\f[R] value to force it on or off.
 .SS Paging
 In unix\-like environments, when displaying large output (in any output
 format) in the terminal, hledger tries to use a pager when appropriate.
+(You can disable this with the \f[CR]\-\-pager=no\f[R] option, perhaps
+in your config file.)
+.PP
 The pager shows one page of text at a time, and lets you scroll around
 to see more.
 While it is active, usually \f[CR]SPACE\f[R] shows the next page,
@@ -1177,7 +1182,7 @@ ANSI colour and a number of other conveniences.
 (At the time of writing: \-\-chop\-long\-lines \-\-hilite\-unread
 \-\-ignore\-case \-\-mouse \-\-no\-init \-\-quit\-at\-eof
 \-\-quit\-if\-one\-screen \-\-RAW\-CONTROL\-CHARS \-\-shift=8
-\-\-squeeze\-blank\-lines \-\-use\-backslash \-\-use\-color ).
+\-\-squeeze\-blank\-lines \-\-use\-backslash ).
 If these don\[aq]t work well, you can set your preferred options in the
 \f[CR]HLEDGER_LESS\f[R] variable, which will be used instead.
 .SS HTML output
@@ -1336,7 +1341,7 @@ shown:
 $ hledger print \-c \[aq]$1.000,0\[aq]
 .EE
 .PP
-This option can repeated to set the display style for multiple
+This option can be repeated to set the display style for multiple
 commodities/currencies.
 Its argument is as described in the commodity directive.
 .PP
@@ -1365,10 +1370,6 @@ hledger bal \-\-debug=3 2>hledger.log
 (This option doesn\[aq]t work in a config file yet.)
 .SH Environment
 These environment variables affect hledger:
-.PP
-\f[B]COLUMNS\f[R] This is normally set by your terminal; some hledger
-commands (\f[CR]register\f[R]) will format their output to this width.
-If not set, they will try to use the available terminal width.
 .PP
 \f[B]HLEDGER_LESS\f[R] If \f[CR]less\f[R] is your pager, this variable
 specifies the \f[CR]less\f[R] options hledger should use.
@@ -3113,7 +3114,7 @@ matching accounts as you expect, try troubleshooting with the accounts
 command, eg something like:
 .IP
 .EX
-$ hledger accounts \-\-alias assets=bassetts type:a
+$ hledger accounts \-\-types \-1 \-\-alias assets=bassetts
 .EE
 .SS \f[CR]commodity\f[R] directive
 The \f[CR]commodity\f[R] directive performs several functions:
@@ -3151,7 +3152,7 @@ and precise.
 .SS Commodity directive syntax
 A commodity directive is normally the word \f[CR]commodity\f[R] followed
 by a sample amount (and optionally a comment).
-Only the amount\[aq]s symbol and format is significant.
+Only the amount\[aq]s symbol and the number\[aq]s format is significant.
 Eg:
 .IP
 .EX
@@ -3880,14 +3881,15 @@ See also https://hledger.org/ledger.html for a detailed hledger/Ledger
 syntax comparison.
 .SS Other cost/lot notations
 A slight digression for Ledger and Beancount users.
-Ledger has a number of cost/lot\-related notations:
+.PP
+\f[B]Ledger\f[R] has a number of cost/lot\-related notations:
 .IP \[bu] 2
 \f[CR]\[at] UNITCOST\f[R] and \f[CR]\[at]\[at] TOTALCOST\f[R]
 .RS 2
 .IP \[bu] 2
 expresses a conversion rate, as in hledger
 .IP \[bu] 2
-when buying, also creates a lot than can be selected at selling time
+when buying, also creates a lot that can be selected at selling time
 .RE
 .IP \[bu] 2
 \f[CR](\[at]) UNITCOST\f[R] and \f[CR](\[at]\[at]) TOTALCOST\f[R]
@@ -3897,15 +3899,11 @@ when buying, also creates a lot than can be selected at selling time
 like the above, but also means \[dq]this cost was exceptional, don\[aq]t
 use it when inferring market prices\[dq].
 .RE
-.PP
-Currently, hledger treats the above like \f[CR]\[at]\f[R] and
-\f[CR]\[at]\[at]\f[R]; the parentheses are ignored.
 .IP \[bu] 2
-\f[CR]{=FIXEDUNITCOST}\f[R] and \f[CR]{{=FIXEDTOTALCOST}}\f[R] (fixed
-price)
+\f[CR]{=UNITCOST}\f[R] and \f[CR]{{=TOTALCOST}}\f[R] (fixed price)
 .RS 2
 .IP \[bu] 2
-when buying, means \[dq]this cost is also the fixed price, don\[aq]t let
+when buying, means \[dq]this cost is also the fixed value, don\[aq]t let
 it fluctuate in value reports\[dq]
 .RE
 .IP \[bu] 2
@@ -3915,11 +3913,12 @@ it fluctuate in value reports\[dq]
 can be used identically to \f[CR]\[at] UNITCOST\f[R] and
 \f[CR]\[at]\[at] TOTALCOST\f[R], also creates a lot
 .IP \[bu] 2
-when selling, combined with \f[CR]\[at] ...\f[R], specifies an
-investment lot by its cost basis; does not check if that lot is present
+when selling, combined with \f[CR]\[at] ...\f[R], selects an existing
+lot by its cost basis.
+Does not check if that lot is present.
 .RE
 .IP \[bu] 2
-and related: \f[CR][YYYY/MM/DD]\f[R] (lot date)
+\f[CR][YYYY/MM/DD]\f[R] (lot date)
 .RS 2
 .IP \[bu] 2
 when buying, attaches this acquisition date to the lot
@@ -3935,29 +3934,37 @@ when buying, attaches this note to the lot
 when selling, selects a lot by its note
 .RE
 .PP
-Currently, hledger accepts any or all of the above in any order after
-the posting amount, but ignores them.
+Currently, hledger
+.IP \[bu] 2
+accepts any or all of the above in any order after the posting amount
+.IP \[bu] 2
+supports \f[CR]\[at]\f[R] and \f[CR]\[at]\[at]\f[R]
+.IP \[bu] 2
+treats \f[CR](\[at])\f[R] and \f[CR](\[at]\[at])\f[R] as synonyms for
+\f[CR]\[at]\f[R] and \f[CR]\[at]\[at]\f[R]
+.IP \[bu] 2
+and ignores the rest.
 (This can break transaction balancing.)
 .PP
-For Beancount users, the notation and behaviour is different:
+\f[B]Beancount\f[R] has simpler notation and different behaviour:
 .IP \[bu] 2
 \f[CR]\[at] UNITCOST\f[R] and \f[CR]\[at]\[at] TOTALCOST\f[R]
 .RS 2
 .IP \[bu] 2
 expresses a cost without creating a lot, as in hledger
 .IP \[bu] 2
-when buying (augmenting) or selling (reducing) a lot, combined with
-\f[CR]{...}\f[R]: documents the cost/selling price (not used for
-transaction balancing)
+when buying (acquiring) or selling (disposing of) a lot, and combined
+with \f[CR]{...}\f[R]: is not used except to document the cost/selling
+price
 .RE
 .IP \[bu] 2
 \f[CR]{UNITCOST}\f[R] and \f[CR]{{TOTALCOST}}\f[R]
 .RS 2
 .IP \[bu] 2
-when buying (augmenting), expresses the cost for transaction balancing,
-and also creates a lot with this cost basis attached
+when buying, expresses the cost for transaction balancing, and also
+creates a lot with this cost basis attached
 .IP \[bu] 2
-when selling (reducing),
+when selling,
 .RS 2
 .IP \[bu] 2
 selects a lot by its cost basis
@@ -3968,15 +3975,24 @@ unambiguously (depending on booking method configured)
 expresses the selling price for transaction balancing
 .RE
 .RE
-.PP
-Currently, hledger accepts the
-\f[CR]{UNITCOST}\f[R]/\f[CR]{{TOTALCOST}}\f[R] notation but ignores it.
 .IP \[bu] 2
-variations: \f[CR]{}\f[R], \f[CR]{YYYY\-MM\-DD}\f[R],
-\f[CR]{\[dq]LABEL\[dq]}\f[R], \f[CR]{UNITCOST, \[dq]LABEL\[dq]}\f[R],
-\f[CR]{UNITCOST, YYYY\-MM\-DD, \[dq]LABEL\[dq]}\f[R] etc.
+\f[CR]{}\f[R], \f[CR]{YYYY\-MM\-DD}\f[R], \f[CR]{\[dq]LABEL\[dq]}\f[R],
+\f[CR]{UNITCOST, \[dq]LABEL\[dq]}\f[R],
+\f[CR]{UNITCOST, YYYY\-MM\-DD, \[dq]LABEL\[dq]}\f[R]
+.RS 2
+.IP \[bu] 2
+when selling, other combinations of date/cost/label, like the above, are
+accepted for selecting the lot.
+.RE
 .PP
-Currently, hledger rejects these.
+Currently, hledger
+.IP \[bu] 2
+supports \f[CR]\[at]\f[R] and \f[CR]\[at]\[at]\f[R]
+.IP \[bu] 2
+accepts the \f[CR]{UNITCOST}\f[R]/\f[CR]{{TOTALCOST}}\f[R] notation, but
+ignores it
+.IP \[bu] 2
+and rejects the rest.
 .PP
 .SH CSV
 hledger can read CSV files (Character Separated Value \- usually comma,
@@ -4044,6 +4060,11 @@ T{
 \f[B]\f[CB]source\f[B]\f[R]
 T}@T{
 optionally declare which file to read data from
+T}
+T{
+\f[B]\f[CB]encoding\f[B]\f[R]
+T}@T{
+optionally declare which text encoding the data has
 T}
 T{
 \f[B]\f[CB]separator\f[B]\f[R]
@@ -4152,6 +4173,26 @@ source Checking1*.csv
 .EE
 .PP
 See also \[dq]Working with CSV > Reading files specified by rule\[dq].
+.SS \f[CR]encoding\f[R]
+.IP
+.EX
+encoding ENCODING
+.EE
+.PP
+hledger normally expects non\-ascii text to be UTF8\-encoded.
+If you need to read CSV files which have some other encoding, you can do
+it by adding \f[CR]encoding ENCODING\f[R] to your CSV rules.
+Eg: \f[CR]encoding ISO88591\f[R].
+.PP
+The following encodings are supported (these names are
+case\-insensitive, and can be written with inner spaces or hyphens if
+you prefer): ASCII, UTF8, UTF16, UTF32, ISO88591, ISO88592, ISO88593,
+ISO88594, ISO88595, ISO88596, ISO88597, ISO88598, ISO88599, ISO885910,
+ISO885911, ISO885913, ISO885914, ISO885915, ISO885916, CP1250, CP1251,
+CP1252, CP1253, CP1254, CP1255, CP1256, CP1257, CP1258, KOI8R, KOI8U,
+GB18030, MacOSRoman, JISX0201, JISX0208, ISO2022JP, ShiftJIS, CP437,
+CP737, CP775, CP850, CP852, CP855, CP857, CP860, CP861, CP862, CP863,
+CP864, CP865, CP866, CP869, CP874, CP932.
 .SS \f[CR]separator\f[R]
 You can use the \f[CR]separator\f[R] rule to read other kinds of
 character\-separated data.
@@ -4697,12 +4738,20 @@ When an if block has multiple matchers, each on its own line,
 .IP \[bu] 2
 By default they are OR\[aq]d (any of them can match).
 .IP \[bu] 2
-Matcher lines beginning with \f[CR]&\f[R] (and optional space) are
-AND\[aq]ed with the matcher above (all in the AND\[aq]ed group must
-match).
+Matcher lines beginning with \f[CR]&\f[R] (or \f[CR]&&\f[R], \f[I]since
+1.42\f[R]) are AND\[aq]ed with the matcher above (all in the AND\[aq]ed
+group must match).
+.IP \[bu] 2
+Matcher lines beginning with \f[CR]& !\f[R] (\f[I]since 1.41\f[R], or
+\f[CR]&& !\f[R], \f[I]since 1.42\f[R]) are first negated and then
+AND\[aq]ed with the matcher above.
 .PP
-\f[I](Since 1.41:)\f[R] You can use a negated \f[CR]!\f[R] matcher on a
-\f[CR]&\f[R] line, meaning AND NOT.
+You can also combine multiple matchers one the same line separated by
+\f[CR]&&\f[R] (AND) or \f[CR]&& !\f[R] (AND NOT).
+Eg \f[CR]%description amazon && %date 2025\-01\-01\f[R] will match only
+when the description field contains \[dq]amazon\[dq] and the date field
+contains \[dq]2025\-01\-01\[dq].
+\f[I]Added in 1.42.\f[R]
 .SS Match groups
 \f[I]Added in 1.32\f[R]
 .PP
@@ -4739,9 +4788,9 @@ like this:
 .EX
 if,HLEDGERFIELD1,HLEDGERFIELD2,...
 MATCHERA,VALUE1,VALUE2,...
-MATCHERB,VALUE1,VALUE2,...
-; Comment line that explains MATCHERC
-MATCHERC,VALUE1,VALUE2,...
+MATCHERB && MATCHERC,VALUE1,VALUE2,...  (*since 1.42*)
+; Comment line that explains MATCHERD
+MATCHERD,VALUE1,VALUE2,...
 <empty line>
 .EE
 .PP
@@ -4761,10 +4810,11 @@ You can use the comment lines in the table body.
 The table must be terminated by an empty line (or end of file).
 .PP
 An if table like the above is interpreted as follows: try all of the
-matchers; whenever a matcher succeeds, assign all of the values on that
-line to the corresponding hledger fields; If multiple lines match, later
-lines will override fields assigned by the earlier ones \- just like the
-sequence of \f[CR]if\f[R] blocks would behave.
+lines with matchers; whenever a line with matchers succeeds, assign all
+of the values on that line to the corresponding hledger fields; If
+multiple lines match, later lines will override fields assigned by the
+earlier ones \- just like the sequence of \f[CR]if\f[R] blocks would
+behave.
 .PP
 If table presented above is equivalent to this sequence of if blocks:
 .IP
@@ -4774,13 +4824,13 @@ if MATCHERA
   HLEDGERFIELD2 VALUE2
   ...
 
-if MATCHERB
+if MATCHERB && MATCHERC
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
   ...
 
-; Comment line which explains MATCHERC
-if MATCHERC
+; Comment line which explains MATCHERD
+if MATCHERD
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
   ...
@@ -6767,21 +6817,38 @@ reports, \f[CR]cur:\f[R] and \f[CR]amt:\f[R] match the old commodity
 symbol and the old amount quantity, not the new ones.
 (Except in hledger 1.22, #1625.)
 .SH Pivoting
-Normally, hledger groups and sums amounts within each account.
-The \f[CR]\-\-pivot FIELD\f[R] option substitutes some other transaction
-field for account names, causing amounts to be grouped and summed by
-that field\[aq]s value instead.
-FIELD can be any of the transaction fields \f[CR]acct\f[R],
-\f[CR]status\f[R], \f[CR]code\f[R], \f[CR]desc\f[R], \f[CR]payee\f[R],
-\f[CR]note\f[R], or a tag name.
-When pivoting on a tag and a posting has multiple values of that tag,
-only the first value is displayed.
-Values containing \f[CR]colon:separated:parts\f[R] will be displayed
-hierarchically, like account names.
-Multiple, colon\-delimited fields can be pivoted simultaneously,
-generating a hierarchical account name.
+Normally, hledger groups amounts and displays their totals by account
+(name).
+With \f[CR]\-\-pivot PIVOTEXPR\f[R], some other field\[aq]s (or multiple
+fields\[aq]) value is used as a synthetic account name, causing
+different grouping and display.
+PIVOTEXPR can be
+.IP \[bu] 2
+any of these standard transaction or posting fields (their value is
+substituted): \f[CR]status\f[R], \f[CR]code\f[R], \f[CR]desc\f[R],
+\f[CR]payee\f[R], \f[CR]note\f[R], \f[CR]acct\f[R],
+\f[CR]comm\f[R]/\f[CR]cur\f[R], \f[CR]amt\f[R], \f[CR]cost\f[R]
+.IP \[bu] 2
+or a tag name
+.IP \[bu] 2
+or any combination of these, colon\-separated.
 .PP
-Some examples:
+Some special cases:
+.IP \[bu] 2
+Colons appearing in PIVOTEXPR or in a pivoted tag value will generate
+account hierarchy.
+.IP \[bu] 2
+When pivoting a posting has multiple values for a tag, the pivoted value
+of that tag will be the first value.
+.IP \[bu] 2
+When a posting has multiple commodities, the pivoted value of
+\[dq]comm\[dq]/\[dq]cur\[dq] will be \[dq]\[dq].
+Also when an unrecognised tag name or field is provided, its pivoted
+value will be \[dq]\[dq].
+(If this causes confusing output, consider excluding those postings from
+the report.)
+.PP
+Examples:
 .IP
 .EX
 2016/02/16 Yearly Dues Payment
@@ -6828,7 +6895,7 @@ $ hledger balance \-\-pivot member acct:.
               \-2 EUR
 .EE
 .PP
-Hierarchical reports can be generated with multiple pivots:
+Hierarchical reports can be generated with multiple pivot values:
 .IP
 .EX
 $ hledger balance Income:Dues \-\-pivot kind:member
@@ -7217,9 +7284,10 @@ In some transactions \- for example a currency conversion, or a purchase
 or sale of stock \- one commodity is exchanged for another.
 In these transactions there is a conversion rate, also called the cost
 (when buying) or selling price (when selling).
-In hledger docs we just say \[dq]cost\[dq], for convenience; feel free
-to mentally translate to \[dq]conversion rate\[dq] or \[dq]selling
-price\[dq] if helpful.
+(In hledger docs we just say \[dq]cost\[dq] generically for
+convenience.)
+With the \f[CR]\-B/\-\-cost\f[R] flag, hledger can show amounts \[dq]at
+cost\[dq], converted to the cost\[aq]s commodity.
 .SS Recording costs
 We\[aq]ll explore several ways of recording transactions involving
 costs.
@@ -7463,14 +7531,16 @@ alias h=\[dq]hledger \-\-infer\-equity \-\-infer\-costs\[dq]
 and let us know what problems you find.
 .PP
 .SH Value reporting
-Instead of reporting amounts in their original commodity, hledger can
-convert them to cost/sale amount (using the conversion rate recorded in
-the transaction), and/or to market value (using some market price on a
-certain date).
-This is controlled by the \f[CR]\-\-value=TYPE[,COMMODITY]\f[R] option,
-which will be described below.
-We also provide the simpler \f[CR]\-V\f[R] and \f[CR]\-X COMMODITY\f[R]
-options, and often one of these is all you need:
+hledger can also show amounts \[dq]at market value\[dq], converted to
+some other commodity using the market price or conversion rate on a
+certain date.
+.PP
+This is controlled by the \f[CR]\-\-value=TYPE[,COMMODITY]\f[R] option.
+We also provide simpler \f[CR]\-V\f[R] and \f[CR]\-X COMMODITY\f[R]
+aliases for this, which are often sufficient.
+The market prices are declared with a special \f[CR]P\f[R] directive,
+and/or they can be inferred from the costs recorded in transactions, by
+using the \f[CR]\-\-infer\-market\-prices\f[R] flag.
 .SS \-V: Value
 The \f[CR]\-V/\-\-market\f[R] flag converts amounts to market value in
 their default \f[I]valuation commodity\f[R], using the market prices in
@@ -8360,6 +8430,8 @@ $ hledger demo               # list available demos
 $ hledger demo 1             # play the first demo at default speed (2x)
 $ hledger demo install \-s4   # play the \[dq]install\[dq] demo at 4x speed
 .EE
+.PP
+This command is experimental: there aren\[aq]t many useful demos yet.
 .SH User interface commands
 .SS ui
 Runs hledger\-ui (if installed).
@@ -9019,13 +9091,14 @@ Flags:
      \-\-round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none \- show original decimal digits,
-                                   as in journal
+                                   as in journal (default)
                             soft \- just add or remove decimal zeros
-                                   to match precision (default)
+                                   to match precision
                             hard \- round posting amounts to precision
                                    (can unbalance transactions)
                             all  \- also round cost amounts to precision
                                    (can unbalance transactions)
+     \-\-invert               display all amounts with reversed sign
      \-\-new                  show only newer\-dated transactions added in each
                             file since last run
   \-m \-\-match=DESC           fuzzy search for one recent transaction with
@@ -9139,6 +9212,11 @@ Account aliases can generate bad account names.
 With \f[CR]\-B\f[R]/\f[CR]\-\-cost\f[R], amounts with costs are shown
 converted to cost.
 .PP
+With \f[CR]\-\-invert\f[R], posting amounts are shown with their sign
+flipped.
+It could be useful if you have accidentally recorded some transactions
+with the wrong signs.
+.PP
 With \f[CR]\-\-new\f[R], print shows only transactions it has not seen
 on a previous run.
 This uses the same deduplication system as the \f[CR]import\f[R]
@@ -9243,8 +9321,8 @@ Flags:
                             postings before report start date) (default)
      \-\-invert               display all amounts with reversed sign
      \-\-heading=YN           show heading row above table: yes (default) or no
-  \-w \-\-width=N              set output width (default: terminal width or
-                            $COLUMNS). \-wN,M sets description width as well.
+  \-w \-\-width=N              set output width (default: terminal width). \-wN,M
+                            sets description width as well.
      \-\-align\-all            guarantee alignment across all lines (slower)
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, html, csv, tsv, json.
@@ -9364,8 +9442,8 @@ Flags:
      \-\-sort=FIELDS          sort by: date, desc, account, amount, absamount,
                             or a comma\-separated combination of these. For a
                             descending sort, prefix with \-. (Default: date)
-  \-w \-\-width=N              set output width (default: terminal width or
-                            $COLUMNS). \-wN,M sets description width as well.
+  \-w \-\-width=N              set output width (default: terminal width). \-wN,M
+                            sets description width as well.
      \-\-align\-all            guarantee alignment across all lines (slower)
      \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
                             with this prefix. (Usually the base url shown by
@@ -9502,10 +9580,10 @@ DESC should contain at least two characters.
 If there is no similar\-enough match, no posting will be shown and the
 program exit code will be non\-zero.
 .SS Custom register output
-register uses the full terminal width by default, except on windows.
-You can override this by setting the \f[CR]COLUMNS\f[R] environment
-variable (not a bash shell variable) or by using the
-\f[CR]\-\-width\f[R]/\f[CR]\-w\f[R] option.
+register normally uses the full terminal width (or 80 columns if it
+can\[aq]t detect that).
+You can override this with the \f[CR]\-\-width\f[R]/\f[CR]\-w\f[R]
+option.
 .PP
 The description and account columns normally share the space equally
 (about half of (width \- 40) each).
@@ -9524,10 +9602,7 @@ and some examples:
 .EX
 $ hledger reg                     # use terminal width (or 80 on windows)
 $ hledger reg \-w 100              # use width 100
-$ COLUMNS=100 hledger reg         # set with one\-time environment variable
-$ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg \-w 100,40           # set overall width 100, description width 40
-$ hledger reg \-w $COLUMNS,40      # use terminal width, & description width 40
 .EE
 .PP
 This command also supports the output destination and output format
@@ -10003,10 +10078,10 @@ Flags:
      \-\-transpose            switch rows and columns (use vertical time axis)
      \-\-layout=ARG           how to lay out multi\-commodity amounts and the
                             overall table:
-                            \[aq]wide[,WIDTH]\[aq]: commodities on one line
-                            \[aq]tall\[aq]        : commodities on separate lines
-                            \[aq]bare\[aq]        : commodity symbols in one column
-                            \[aq]tidy\[aq]        : every attribute in its own column
+                            \[aq]wide[,W]\[aq]: commodities on same line, up to W wide
+                            \[aq]tall\[aq]    : commodities on separate lines
+                            \[aq]bare\[aq]    : commodity symbols in a separate column
+                            \[aq]tidy\[aq]    : each data field in its own column
      \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
                             with this prefix. (Usually the base url shown by
                             hledger\-web; can also be relative.)
@@ -11354,26 +11429,24 @@ $ hledger activity \-\-quarterly
 .SS close
 (equity)
 .PP
-\f[CR]close\f[R] generates several kinds of \[dq]closing\[dq] and/or
-\[dq]opening\[dq] transactions, useful in certain situations, including
-migrating balances to a new journal file, retaining earnings into
-equity, consolidating balances, or viewing lots.
+\f[CR]close\f[R] prints several kinds of \[dq]closing\[dq] and/or
+\[dq]opening\[dq] transactions, useful in various situations: migrating
+balances to a new journal file, retaining earnings into equity,
+consolidating balances, viewing lot costs..
 Like \f[CR]print\f[R], it prints valid journal entries.
-You can append or copy these to your journal file(s) when you are happy
-with how they look.
+You can copy these into your journal file(s) when you are happy with how
+they look.
 .IP
 .EX
 Flags:
-     \-\-migrate[=NEW]        show closing and opening transactions, for Asset
-                            and Liability accounts by default, tagged for easy
-                            matching. The tag\[aq]s default value can be overridden
-                            by providing NEW.
-     \-\-close[=NEW]          (default) show a closing transaction
-     \-\-open[=NEW]           show an opening transaction
-     \-\-assign[=NEW]         show opening balance assignments
-     \-\-assert[=NEW]         show closing balance assertions
-     \-\-retain[=NEW]         show a retain earnings transaction, for Revenue
-                            and Expense accounts by default
+     \-\-clopen[=TAGVAL]      show closing and opening balances transactions,
+                            for AL accounts by default
+     \-\-close[=TAGVAL]       show just a closing balances transaction
+     \-\-open[=TAGVAL]        show just an opening balances transaction
+     \-\-assert[=TAGVAL]      show a balance assertions transaction
+     \-\-assign[=TAGVAL]      show a balance assignments transaction
+     \-\-retain[=TAGVAL]      show a retain earnings transaction, for RX
+                            accounts by default
   \-x \-\-explicit             show all amounts explicitly
      \-\-show\-costs           show amounts with different costs separately
      \-\-interleaved          show source and destination postings together
@@ -11385,97 +11458,116 @@ Flags:
      \-\-round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none \- show original decimal digits,
-                                   as in journal
+                                   as in journal (default)
                             soft \- just add or remove decimal zeros
-                                   to match precision (default)
+                                   to match precision
                             hard \- round posting amounts to precision
                                    (can unbalance transactions)
                             all  \- also round cost amounts to precision
                                    (can unbalance transactions)
 .EE
 .PP
-\f[CR]close\f[R] currently has six modes, selected by a single mode
-flag:
-.SS close \-\-migrate
-This is the most common mode.
-It prints a \[dq]closing balances\[dq] transaction that zeroes out all
-asset and liability balances (by default), and an opposite \[dq]opening
-balances\[dq] transaction that restores them again.
-The balancing account will be \f[CR]equity:opening/closing balances\f[R]
-(or another specified by \f[CR]\-\-close\-acct\f[R] or
-\f[CR]\-\-open\-acct\f[R]).
+\f[CR]close\f[R] has six modes, selected by choosing one of the mode
+flags (\f[CR]\-\-close\f[R] is the default).
+They all do much the same operation, but with different defaults, useful
+in different situations.
+.SS close \-\-clopen
+This is useful if migrating balances to a new journal file at the start
+of a new year.
+It prints a \[dq]closing balances\[dq] transaction that zeroes out
+account balances (Asset and Liability accounts, by default), and an
+opposite \[dq]opening balances\[dq] transaction that restores them
+again.
+Typically, you would run
+.IP
+.EX
+hledger close \-\-clopen \-e NEWYEAR >> $LEDGER_FILE
+.EE
 .PP
-This is useful when migrating balances to a new journal file at the
-start of a new year.
-Essentially, you run
-\f[CR]hledger close \-\-migrate=NEWYEAR \-e NEWYEAR\f[R] and then copy
-the closing transaction to the end of the old file and the opening
-transaction to the start of the new file.
-The opening transaction sets correct starting balances in the new file
-when it is used alone, and the closing transaction keeps balances
-correct when you use both old and new files together, by cancelling out
-the following opening transaction and preventing buildup of duplicated
-opening balances.
-Think of the closing/opening pair as \[dq]moving the balances into the
-next file\[dq].
+and then move the opening transaction from the old file to the new file
+(and probably also update your LEDGER_FILE environment variable).
 .PP
-You can close a different set of accounts by providing a query.
-Eg if you want to include equity, you can add
-\f[CR]assets liabilities equity\f[R] or \f[CR]type:ALE\f[R] arguments.
-(The balancing account is always excluded.)
-Revenues and expenses usually are not migrated to a new file directly;
-see \f[CR]\-\-retain\f[R] below.
+Why might you do this ?
+If your reports are fast, you may not need it.
+But at some point you will probably want to partition your data by time,
+for performance or data integrity or regulatory reasons.
+A new file or set of files per year is common.
+Then, having each file/fileset \[dq]bookended\[dq] with opening and
+closing balance transactions will allow you to freely pick and choose
+which files to read \- just the current year, any past year, any
+sequence of years, or all of them \- while showing correct account
+balances in each case.
+The earliest opening balances transaction sets correct starting
+balances, and any later closing/opening pairs will harmlessly cancel
+each other out.
 .PP
-The generated transactions will have a \f[CR]start:\f[R] tag, with its
-value set to \f[CR]\-\-migrate\f[R]\[aq]s \f[CR]NEW\f[R] argument if
-any, for easier matching or exclusion.
-When \f[CR]NEW\f[R] is not specified, it will be inferred if possible by
-incrementing a number (eg a year number) within the default
-journal\[aq]s main file name.
-The other modes behave similarly.
+The balances will be transferred to and from
+\f[CR]equity:opening/closing balances\f[R] by default.
+You can override this by using \f[CR]\-\-close\-acct\f[R] and/or
+\f[CR]\-\-open\-acct\f[R].
+.PP
+You can select a different set of accounts to close/open by providing an
+account query.
+Eg to add Equity accounts, provide arguments like
+\f[CR]assets liabilities equity\f[R] or \f[CR]type:ALE\f[R].
+When migrating to a new file, you\[aq]ll usually want to bring along the
+AL or ALE accounts, but not the RX accounts (Revenue, Expense).
+.PP
+Assertions will be added indicating and checking the new balances of the
+closed/opened accounts.
+.PP
+The generated transactions will have a \f[CR]clopen:\f[R] tag.
+If the main journal\[aq]s base file name contains a number (eg a year
+number), the tag\[aq]s value will be that base file name with the number
+incremented.
+Or you can choose the tag value yourself, by using
+\f[CR]\-\-clopen=TAGVAL\f[R].
 .SS close \-\-close
 This prints just the closing balances transaction of
-\f[CR]\-\-migrate\f[R].
-It is the default behaviour if you specify no mode flag.
-Using the customisation options below, you can move balances from any
-set of accounts to a different account.
+\f[CR]\-\-clopen\f[R].
+It is the default if you don\[aq]t specify a mode.
+.PP
+More customisation options are described below.
+Among other things, you can use \f[CR]close \-\-close\f[R] to generate a
+transaction moving the balances from any set of accounts, to a different
+account.
+(If you need to move just a portion of the balance, see hledger\-move.)
 .SS close \-\-open
 This prints just the opening balances transaction of
-\f[CR]\-\-migrate\f[R].
-It is similar to Ledger\[aq]s equity command.
+\f[CR]\-\-clopen\f[R].
+(It is similar to Ledger\[aq]s equity command.)
 .SS close \-\-assert
-This prints a \[dq]closing balances\[dq] transaction (with
-\f[CR]balances:\f[R] tag), that just declares balance assertions for the
-current balances without changing them.
+This prints a transaction that asserts the account balances as they are
+on the end date (and adds an \f[CR]assert:\f[R] tag).
 It could be useful as documention and to guard against changes.
 .SS close \-\-assign
-This prints an \[dq]opening balances\[dq] transaction that restores the
-account balances using balance assignments.
-Balance assignments work regardless of any previous balance, so a
-preceding closing balances transaction is not needed.
+This prints a transaction that assigns the account balances as they are
+on the end date (and adds an \[dq]assign:\[dq] tag).
+Unlike balance assertions, assignments will post changes to balances as
+needed to reach the specified amounts.
 .PP
-However, omitting the closing balances transaction would unbalance
-equity.
-This is relatively harmless for personal reports, but it disturbs the
-accounting equation, removing a source of error detection.
-So \f[CR]\-\-migrate\f[R] is generally the best way to set to set
-balances in new files, for now.
+This is another way to set starting balances when migrating to a new
+file, and it will set them correctly even in the presence of earlier
+files which do not have a closing balances transaction.
+However, it can hide errors, and disturb the accounting equation, so
+\f[CR]\-\-clopen\f[R] is usually recommended.
 .SS close \-\-retain
-This is like \f[CR]\-\-close\f[R] with different defaults: it prints a
-\[dq]retain earnings\[dq] transaction (with \f[CR]retain:\f[R] tag),
-that transfers revenue and expense balances to
-\f[CR]equity:retained earnings\f[R].
+This is like \f[CR]\-\-close\f[R], but it closes Revenue and Expense
+account balances by default.
+They will be transferred to \f[CR]equity:retained earnings\f[R], or
+another account specified with \f[CR]\-\-close\-acct\f[R].
 .PP
-This is a different kind of closing, called \[dq]retaining earnings\[dq]
-or \[dq]closing the books\[dq]; it is traditionally performed by
-businesses at the end of each accounting period, to consolidate revenues
-and expenses into the main equity balance.
-(\[dq]Revenues\[dq] and \[dq]expenses\[dq] are actually equity by
-another name, kept separate temporarily for reporting purposes.)
+Revenues and expenses correspond to changes in equity.
+They are categorised separately for reporting purposes, but
+traditionally at the end of each accounting period, businesses
+consolidate them into equity, This is called \[dq]retaining
+earnings\[dq], or \[dq]closing the books\[dq].
 .PP
-In personal accounting you generally don\[aq]t need to do this, unless
-you want the \f[CR]balancesheetequity\f[R] report to show a zero total,
-demonstrating that the accounting equation (A\-L=E) is satisfied.
+In personal accounting, there\[aq]s not much reason to do this, and most
+people don\[aq]t.
+(One reason to do it is to help the \f[CR]balancesheetequity\f[R] report
+show a zero total, demonstrating that the accounting equation (A\-L=E)
+is satisfied.)
 .SS close customisation
 In all modes, the following things can be overridden:
 .IP \[bu] 2
@@ -11577,7 +11669,7 @@ Close assets/liabilities on 2022\-12\-31 and re\-open them on
 2023\-01\-01:
 .IP
 .EX
-$ hledger close \-\-migrate \-f 2022.journal \-p 2022
+$ hledger close \-\-clopen \-f 2022.journal \-p 2022
 # copy/paste the closing transaction to the end of 2022.journal
 # copy/paste the opening transaction to the start of 2023.journal
 .EE
@@ -11590,15 +11682,15 @@ $ hledger \-f 2022.journal bs not:desc:\[aq]closing balances\[aq]
 .EE
 .PP
 For more flexibility, it helps to tag closing and opening transactions
-with eg \f[CR]start:NEWYEAR\f[R], then you can ensure correct balances
+with eg \f[CR]clopen:NEWYEAR\f[R], then you can ensure correct balances
 by excluding all opening/closing transactions except the first, like so:
 .IP
 .EX
-$ hledger bs \-Y \-f 2021.j \-f 2022.j \-f 2023.j expr:\[aq]tag:start=2021 or not tag:start\[aq]
-$ hledger bs \-Y \-f 2021.j \-f 2022.j           expr:\[aq]tag:start=2021 or not tag:start\[aq]
-$ hledger bs \-Y \-f 2022.j \-f 2023.j           expr:\[aq]tag:start=2022 or not tag:start\[aq]
-$ hledger bs \-Y \-f 2021.j                     expr:\[aq]tag:start=2021 or not tag:start\[aq]
-$ hledger bs \-Y \-f 2022.j                     expr:\[aq]tag:start=2022 or not tag:start\[aq]
+$ hledger bs \-Y \-f 2021.j \-f 2022.j \-f 2023.j expr:\[aq]tag:clopen=2021 or not tag:clopen\[aq]
+$ hledger bs \-Y \-f 2021.j \-f 2022.j           expr:\[aq]tag:clopen=2021 or not tag:clopen\[aq]
+$ hledger bs \-Y \-f 2022.j \-f 2023.j           expr:\[aq]tag:clopen=2022 or not tag:clopen\[aq]
+$ hledger bs \-Y \-f 2021.j                     expr:\[aq]tag:clopen=2021 or not tag:clopen\[aq]
+$ hledger bs \-Y \-f 2022.j                     expr:\[aq]tag:clopen=2022 or not tag:clopen\[aq]
 $ hledger bs \-Y \-f 2023.j                     # unclosed file, no query needed
 .EE
 .SS More detailed close examples
