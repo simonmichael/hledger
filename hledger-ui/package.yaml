@@ -134,6 +134,7 @@ executables:
     dependencies:
     - base >=4.14 && <4.21
     - hledger-ui
+    ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
-      ghc-options: -threaded -with-rtsopts=-T
+      ghc-options: -threaded
