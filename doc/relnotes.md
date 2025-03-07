@@ -73,8 +73,231 @@ Changes in hledger-install.sh are shown
 
 
 
+## 2025-03-07 hledger-1.42
+
+**run & repl commands, non-UTF8 CSV, same-line if matchers, more pivot targets, fixes.**
 
 
+### hledger 1.42
+
+
+Fixes
+
+- hledger's default options for the `less` pager no longer include --use-color, which caused older less versions (eg 551) to break. [#2335]
+
+- In balance --budget reports, costs no longer prevent display of percentages. [#2327]
+
+- In the balance command's HTML output, -H/--historical now suppresses the total heading.
+
+- print --help now shows the right default for --round. [#2318]
+
+- close --infer-costs no longer implies the -x/--explicit flag. [#1826]
+
+- add: Account names provided on the command line are no longer ignored. [#2305]
+
+- bs/bse/cf/is no longer show the unsupported --budget option in their help. [#2302]
+
+- The print command now ignores --depth entirely. Previously, a depth limit caused it to show only transactions referencing accounts as deep or deeper than that.
+
+- Week periods beginning in the previous year are now shown correctly. Eg the week beginning 2024-12-30 (which is week 1 of 2025 because the thursday falls in 2025) was previously shown as 2024-W01, and is now shown as 2025-W01. [#2304]
+
+Features
+
+- `run` and `repl` are new commands which run a multiple commands, without re-parsing data, so they run faster. `run` runs a commands from files or provided on the command line, and `repl` provides an interactive prompt with readline-style history. (Dmitry Astapov, Simon Michael, [#2323], [#2328])
+
+- `commands` is a new explicit command for showing the commands list; it's useful in the REPL. With --builtin, it shows only the builtin commands.
+
+- hledger can now read CSV/SSV/TSV data in encodings other than UTF8, using the new `encoding` CSV rule. (Joschua Kesper,  [#2319])
+
+- `if` matchers in CSV rules now allow multiple matchers to be combined on the same line, separated by `&&` (AND) or `&& !` (AND NOT).  This makes `if` tables more expressive.
+  Examples:
+
+  	if %description amazon && %date 2025-02-22
+  	    account2 expenses:books
+
+  	if,account2
+  	%description amazon && %date 2025-02-22, expenses:books
+
+  For consistency, the next-line `&` operator may now also be written as `&&`.
+  (Thomas Miedema, [#2333])
+
+Improvements
+
+- Two more file extensions are now recognised as possible hledger addon commands: `.osh` and `.ysh`.
+
+- Terminal width is now detected more robustly by using the POSIX API. This means eg that register commands use the proper terminal width in more environments, eg when $TERM or $COLUMNS do not have a correct/up-to-date value, and on Windows. hledger no longer uses COLUMNS.
+  (gesh, [#2332, #2340])
+
+- The print command now supports the --invert flag. [#2314]
+
+- --pivot can now also pivot on amount quantity (`amt`), amount cost (`cost`), and/or commodity symbol (`comm` or `cur`).
+
+- imp:close: omit file extension from tag value
+
+- close --migrate has been renamed to close --clopen.
+
+- The close command's start: tag has been renamed to `clopen:`. And its default value now excludes the file extension.
+
+- close --assign's tag has been renamed to `assign:`.
+
+- The roi command is now faster: it no longer checks every day with P directive, and the "one period per report interval" case has been optimised.
+  (Dmitry Astapov)
+
+- Error messages (first line) in the terminal are now shown in red (and bold), and warning messages are shown in yellow, when ANSI codes are supported and permitted.
+
+Docs
+
+- aregister: Drop an inconsistent newline from options help.
+- balance: improve --layout option help.
+- close: doc rewrites
+- shell completions: mention zsh; cleanups
+- cost/lot notations: clarify
+- cost, value reporting: edits
+- Directive effects: fix account types link [#126]
+- commodity styles: fix typo [hledger_site#123]
+- commodity directive: clarify
+- close: mention the balance assertions
+- pager: mention --pager=no
+- Aliases and account types: better troubleshooting command
+- Beancount output: mention limitations: P and balance assignments
+- Balance report output: drop outdated note about --tree and HTML [#1846]
+
+Scripts/addons
+
+API
+
+- Reader's rReadFn has changed type (for the new CSV text encoding feature); it now takes a `Handle` rather than a `Text`, allowing more flexibility.
+
+- lib: add dropRawOpt, cliOptsDropArgs
+
+- lib: showAmountCost(B): drop leading whitespace
+
+
+### hledger-ui 1.42
+
+
+Fixes
+
+- `a` key: don't pass initial CLI arguments to `add`. [#2313]
+
+Improvements
+
+- Allow vty 6.3.
+
+- Allow brick 2.8.
+
+Docs
+
+- Manual: remove obsolete mentions of COLUMNS. [#2340]
+
+
+### hledger-web 1.42
+
+
+Fixes
+
+- Fix a test suite build issue: -threaded is needed in test suite now also.
+
+
+### project changes 1.42
+
+
+Docs
+
+- new/updated:
+  ACHIEVEMENTS,
+  CREDITS,
+  FINANCE,
+  MOCKUPS,
+  REGRESSIONS,
+  RELEASING,
+  Scripts
+- examples/csv: pooltool-rewards.csv.rule cleanup
+- examples: some sample hledger run scripts
+- examples: test files for CSV encoding [#2319]
+
+Scripts/addons
+
+- hledger-balance-as-budget properly applies commodity styles now. (Dmitry Astapov)
+
+- hledger-jj is another another easy CLI for tracking hledger files in version control, using newer tech (jj, ysh)
+
+- hledger-git: run pass-through commands in the right repo.
+
+- hledger-git: check for a git repo more robustly. (Lars Kellogg-Stedman)
+
+- hledger-move: doc edits
+
+- hledger-script-example.hs: improvements, cleanups
+
+Infrastructure/Misc
+
+- Unix bindists in github releases now include the man pages and info manuals. [#2309]
+
+- hledger-install: if installing third party packages fails, try again with bounds relaxed. This makes hledger-iadd and hledger-interest more likely to install successfully, even if their bounds have not yet been updated for a new hledger release.
+
+- just functest now fails if there are warnings. (It does not force recompilation of already compiled modules, but even so this should help catch more warnings before pushing them to CI.)
+
+- In github releases, both release notes and platform binary install docs are now collapsed by default again. This makes the sequence of dates and releases clearer. Github automatically expands the assets of the latest release, so those will be visible by default. For a full text search of all release notes, the release notes page on hledger.org is still available.
+
+- new/changed recipes/tools:
+  bench*.sh,
+  changelogs-catchup,
+  changelogs-finalise,
+  changelogs-reset,
+  devtag,
+  ghrelnotes,
+  ghrelnotes-publish,
+  log-headtail, 
+  log-push,
+  log-save, 
+  modulediag,
+  modulediags,
+  modulediags-view,
+  packagediags,
+  packagediags-view,
+  releasediag,
+  relnotes
+  relprep -> relbranch,
+  reltags,
+  reltags-push,
+  showrelnotes,
+  site-manuals-snapshot,
+  site-watch,
+  time,
+  tldr-diff
+
+- gitignore cleanups.
+
+
+### credits 1.42
+
+
+Simon Michael (@simonmichael),
+Dmitry Astapov (@adept),
+gesh (@hseg),
+Thomas Miedema (@thomie),
+Joschua Kesper (@jokesper),
+Lars Kellogg-Stedman (@larks).
+
+
+[#126]:  https://github.com/simonmichael/hledger/issues/126
+[#1826]: https://github.com/simonmichael/hledger/issues/1826
+[#1846]: https://github.com/simonmichael/hledger/issues/1846
+[#2302]: https://github.com/simonmichael/hledger/issues/2302
+[#2304]: https://github.com/simonmichael/hledger/issues/2304
+[#2305]: https://github.com/simonmichael/hledger/issues/2305
+[#2309]: https://github.com/simonmichael/hledger/issues/2309
+[#2313]: https://github.com/simonmichael/hledger/issues/2313
+[#2314]: https://github.com/simonmichael/hledger/issues/2314
+[#2318]: https://github.com/simonmichael/hledger/issues/2318
+[#2319]: https://github.com/simonmichael/hledger/issues/2319
+[#2323]: https://github.com/simonmichael/hledger/issues/2323
+[#2327]: https://github.com/simonmichael/hledger/issues/2327
+[#2328]: https://github.com/simonmichael/hledger/issues/2328
+[#2333]: https://github.com/simonmichael/hledger/issues/2333
+[#2335]: https://github.com/simonmichael/hledger/issues/2335
+[#2340]: https://github.com/simonmichael/hledger/issues/2340
 
 
 ## 2024-12-09 hledger-1.41
@@ -373,7 +596,7 @@ Stephen Morgan (@Xitian9),
 Bas van Dijk (@basvandijk),
 Gal Lakovnik Gorenec,
 amano.kenji,
-gesh.
+gesh (@hseg).
 
 [#986]:  https://github.com/simonmichael/hledger/issues/986
 [#1846]: https://github.com/simonmichael/hledger/issues/1846
@@ -393,6 +616,7 @@ gesh.
 [#2292]: https://github.com/simonmichael/hledger/issues/2292
 [#2293]: https://github.com/simonmichael/hledger/issues/2293
 [#2295]: https://github.com/simonmichael/hledger/issues/2295
+
 
 
 ## 2024-09-09 hledger-1.40
@@ -9249,6 +9473,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
