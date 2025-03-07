@@ -6,10 +6,14 @@ m4_define({{_commands_}},
 {{
 # Help commands
 
-_command_({{Help}})
+_command_({{Commands}})
 _command_({{Demo}})
+_command_({{Help}})
 
 # User interface commands
+
+_command_({{Repl}})
+_command_({{Run}})
 
 ## ui
 
