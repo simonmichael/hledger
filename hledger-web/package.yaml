@@ -60,7 +60,7 @@ flags:
     default: true
     manual:  false
   debug:
-    description: Build with GHC 9.10+'s stack traces enabled
+    description: Build with GHC 9.10+'s stack traces enabled   # '
     default: false
     manual:  true
 # bitrotted
@@ -79,7 +79,7 @@ ghc-options:
 
 when:
 - condition: flag(threaded)
-  ghc-options: -threaded -with-rtsopts=-T
+  ghc-options: -threaded
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
 # This causes a warning when uploading to hackage:
@@ -162,6 +162,7 @@ executables:
     source-dirs: app
     main: main.hs
     cpp-options: -DVERSION="1.41.99"
+    ghc-options: -with-rtsopts=-T  # for stats command
     dependencies:
     - hledger-web
     when:
