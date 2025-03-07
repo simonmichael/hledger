@@ -22,6 +22,23 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# 838dfb02
+
+Improvements
+
+- readJournal, when not given a file name, now always assumes it is "-" rather than "(string)".
+  [#2328]
+- Make test/unittest.hs more buildable; remove PackageImports that was causing
+  trouble for ghci.
+  (Thomas Miedema, [#2337])
+- Added: postingNegate
+- Renamed: negatePostingAmount -> postingNegateMainAmount
+- Refactor Hledger.Write.Html etc, reducing Lucid references.
+  Clarify the HTML lib situation a bit, and clean up some imports.
+  [#2244]
+- Added: dropRawOpt, cliOptsDropArgs
+- Hledger.Data.Amount: showAmountCost(B) now drops leading whitespace.
+
 # 1.41 2024-12-09
 
 Breaking changes

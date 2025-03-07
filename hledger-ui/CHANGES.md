@@ -22,6 +22,22 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 838dfb02
+
+Fixes
+
+- `a` key: don't pass initial CLI arguments to `add`. [#2313]
+
+Improvements
+
+- Allow vty 6.3.
+
+- Allow brick 2.8.
+
+Docs
+
+- Manual: remove obsolete mentions of COLUMNS. [#2340]
+
 # 1.41 2024-12-09
 
 Breaking changes
