@@ -132,9 +132,8 @@ will be shown and the program exit code will be non-zero.
 
 Custom register output
 
-register uses the full terminal width by default, except on windows. You
-can override this by setting the COLUMNS environment variable (not a
-bash shell variable) or by using the --width/-w option.
+register normally uses the full terminal width (or 80 columns if it
+can't detect that). You can override this with the --width/-w option.
 
 The description and account columns normally share the space equally
 (about half of (width - 40) each). You can adjust this by adding a
@@ -149,10 +148,7 @@ and some examples:
 
 $ hledger reg                     # use terminal width (or 80 on windows)
 $ hledger reg -w 100              # use width 100
-$ COLUMNS=100 hledger reg         # set with one-time environment variable
-$ export COLUMNS=100; hledger reg # set till session end (or window resize)
 $ hledger reg -w 100,40           # set overall width 100, description width 40
-$ hledger reg -w $COLUMNS,40      # use terminal width, & description width 40
 
 This command also supports the output destination and output format
 options The output formats supported are txt, csv, tsv (Added in 1.32),

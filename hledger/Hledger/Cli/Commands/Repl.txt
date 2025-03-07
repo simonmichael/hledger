@@ -1,49 +1,67 @@
 repl
 
-Runs hledger commands interactively.
-
-This command is EXPERIMENTAL and could change in the future.
+Start an interactive prompt, where you can run any of hledger's
+commands. Data files are parsed just once, so the commands run faster.
 
 Flags:
 no command-specific flags
 
-This command starts a read-eval-print loop (REPL) where you can enter
-commands interactively. To exit REPL, use "exit" or "quit", or send EOF.
+This command is experimental and could change in the future.
 
-It could also accept commands from standard input, if you pipe commands
-into it.
+hledger repl starts a read-eval-print loop (REPL) where you can enter
+commands interactively. As with the run command, each input file (or
+each input file/input options combination) is parsed just once, so
+commands will run more quickly than if you ran them individually at the
+command line.
 
-The commands will run more quickly than if run individually, because the
-input files would be parsed only once.
+Also like run, the input file(s) specified for the repl command will be
+the default input for all interactive commands, you can override this
+temporarily by specifying an -f option in particular commands, and
+commands will not see any changes made to input files (eg by add) until
+you exit and restart the REPL.
 
-Syntax of the commands is intentionally simple: - each line is a single
-hledger command - empty lines are skipped - everything after # is
-considered to be a comment and will be ignored, and will not be printed
-out - echo <text> will print out <text>
+The command syntax is the same as with run:
 
-You can use single or double quotes to quote arguments that need it
-('like this' or "like this").
+-   enter one hledger command at a time, without the usual hledger first
+    word
+-   empty lines and comment text from # to end of line are ignored
+-   use single or double quotes to quote arguments when needed
+-   type exit or quit or control-D to exit the REPL.
 
-Caveats:
+While it is running, the REPL remembers your command history, and you
+can navigate in the usual ways: - Keypad or Emacs navigation keys to
+edit the current command line - UP/DOWN or control-P/control-N to step
+back/forward through history - control-R to search for a past command,
+etc.
 
--   Repl, like any other command, will load the input file(s) (specified
-    by LEDGER_FILE or by -f arguments). The contents of those files
-    would be used by all the commands that repl runs. If you want a
-    particular command to use a different input file, you can use -f
-    flag for that particular command. This will override (not add) the
-    input for that particular command. All the input files would be
-    cached, and would be read only once.
+The commands and help commands, and the command help flags (CMD --tldr,
+CMD -h/--help, CMD --info, CMD --man), work in the usual way, and can be
+useful.
 
-Examples:
+You can type control-C to cancel a long-running command (but only once;
+typing it a second time will exit the REPL).
 
-To start the REPL:
+And in most shells you can type control-Z to exit temporarily to the
+shell (and fg to return to the REPL).
+
+Caveats
+
+You may find some differences in behaviour between run command lines and
+normal hledger command lines. For example, in the REPL,
+
+-   the command name must be written first, options afterward
+-   full command names or official abbreviations (as in the command
+    list) must be used
+-   options parsing with addon commands might be less flexible than the
+    CLI
+-   the stats command gives false timings, currently
+
+Examples
+
+Start the REPL:
 
 hledger repl
 
 or
 
 hledger repl -f some.journal
-
-To pipe commands into REPL:
-
-(echo "files"; echo "stats") | hledger repl -f some.journal

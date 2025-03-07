@@ -1,74 +1,78 @@
 run
 
-Runs a sequence of hledger commands on the same input file(s), taking
-them from the command line or from file(s).
-
-This command is EXPERIMENTAL and syntax could change in the future.
+Run a sequence of hledger commands, provided as files or command line
+arguments. Data files are parsed just once, so the commands run faster.
 
 Flags:
 no command-specific flags
 
-The commands will run more quickly than if run individually, because the
-input files would be parsed only once.
+This command is experimental and could change in the future.
 
-"run" has three ways of invocation:
+You can use run in three ways:
 
--   when all positional arguments of "run" are valid file names, "run"
-    will read commands from these files, in order:
-    run -f some.journal file1.txt file2.txt file3.txt.
+-   hledger run -- CMD1 -- CMD2 -- CMD3 - read commands from the command
+    line, separated by --
+-   hledger run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or more
+    files
+-   cat SCRIPTFILE1 | hledger run - read commands from standard input.
 
--   commands could be specified directly on the command line. All
-    commands (including the very first one) should be preceded by
-    argument "--": run -f some.journal -- cmd1 -- cmd2 -- cmd3.
+run first loads the input file(s) specified by LEDGER_FILE or by -f
+options, in the usual way. Then it runs each command in turn, each using
+the same input data. But if you want a particular command to use
+different input, you can specify an -f option within that command. This
+will override (not add to) the default input, just for that command.
 
--   it could also accept commands from standard input, if you don't
-    provide an positional arguments and pipe commands into it.
+Each input file (more precisely, each combination of input file and
+input options) is parsed only once. This means that commands will not
+see any changes made to these files, until the next run. But the
+commands will run more quickly than if run individually (typically about
+twice as fast).
 
-Syntax of the command is intentionally simple: - each line read from a
-file is a single hledger command - empty lines are skipped - everything
-after # is considered to be a comment and will be ignored, and will not
-be printed out - echo <text> will print out <text> - run is a valid
-command to use as well, so you can have run call run if you want to.
+Command scripts, whether in a file or written on the command line, have
+a simple syntax:
 
-You can use single or double quotes to quote arguments that need it
-('like this' or "like this").
+-   each line may contain a single hledger command and its arguments,
+    without the usual hledger first word
+-   empty lines are ignored
+-   text from # to end of line is a comment, and ignored
+-   you can use single or double quotes to quote arguments when needed,
+    as on the command line
+-   these extra commands are available: echo TEXT prints some text, and
+    exit or quit ends the run.
 
-You can use #!/usr/bin/env hledger run in the first line of the file to
-make it a runnable script. If this complains about "binary hledger run
-not found", use /usr/bin/env -S hledger run.
+On unix systems you can use #!/usr/bin/env hledger run in the first line
+of a command file to make it a runnable script. If that gives an error,
+use #!/usr/bin/env -S hledger run.
 
-Caveats:
+It's ok to use the run command recursively within a command script.
 
--   If you meant to provide file name as an argument, but made a mistake
-    and a gave file name that does not exist, "run" will attempt to
-    interpret it as a command.
+Caveats
 
--   Run, like any other command, will load the input file(s) (specified
-    by LEDGER_FILE or by -f arguments). The contents of those files
-    would be used by all the commands that run runs. If you want a
-    particular command to use a different input file, you can use -f
-    flag for that particular command. This will override (not add) the
-    input for that particular command. All the input files would be
-    cached, and would be read only once.
+You may find some differences in behaviour between run command lines and
+normal hledger command lines. For example, with run,
 
-Examples:
+-   the command name must be written first, options afterward
+-   full command names or official abbreviations (as in the command
+    list) must be used
 
-Pipe commands into run, one per line:
+Examples
 
-(echo "files"; echo "stats") | hledger repl -f some.journal
+Run commands specified on the command line:
 
-To provide commands on the command line, separate them with --
-(including the first one):
-
-hledger run -f some.journal -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
+hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 
 This would load some.journal, run balance assets --depth 2 on it, then
 run balance liabilities --depth 3 --transpose on /some/other.journal,
-and finally will run stats on some.journal
+and finally run stats on some.journal
 
-To provide commands in the file, as a runnable scripts:
+Run commands from standard input:
+
+(echo "files"; echo "stats") | hledger -f some.journal run
+
+Provide commands as a runnable script:
 
 #!/usr/bin/env -S hledger run -f some.journal
+
 echo "List of accounts in some.journal"
 accounts
 
