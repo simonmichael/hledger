@@ -1,6 +1,6 @@
 # * run command
 
-# ** 0. Run requires -- before first command
+# ** 1. Run requires -- before first command
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -9,13 +9,13 @@ $ hledger run -f- aregister cash
 >2 /hledger: aregister: openFile: does not exist \(No such file or directory\)/
 >=1
 
-# ** 0. Run refuses to read input file and commands from stdin
+# ** 2. Run refuses to read input file and commands from stdin
 <
 $ hledger run -f-
 >2 /hledger: Error: 'run' can't read commands from stdin, as one of the input files was stdin as well/
 >=1
 
-# ** 0. Run one command from command line
+# ** 3. Run one command from command line
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -25,7 +25,7 @@ $ hledger run -f- -- register cash
 2017-01-01 groceries            assets:cash                  $-100         $-100
 
 
-# ** 0. Run two commands from command line
+# ** 4. Run two commands from command line
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -37,7 +37,7 @@ Cash:
 Food:
 2017-01-01 groceries            expenses:food                 $100          $100
 
-# ** 0. Run two commands from command line with different input options
+# ** 5. Run two commands from command line with different input options
 <
 2017-01-01 investment
    assets:cash  -$100
@@ -53,7 +53,7 @@ $ hledger run -f- -- register cash -- echo '=====' -- register --forecast food
 2017-01-01 investment           expenses:food                 $100          $100
 2017-02-01 next month grocer..  expenses:food                 $120          $220
 
-# ** 0. Run commands from file
+# ** 6. Run commands from file
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -65,7 +65,7 @@ Cash:
 Food:
 2017-01-01 groceries            expenses:food                 $100          $100
 
-# ** 0. Run commands from command line, and use nested "run" to run commands from file
+# ** 7. Run commands from command line, and use nested "run" to run commands from file
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -84,7 +84,7 @@ Balance:
 --------------------
                $-100  
 
-# ** 0. Run commands from stdin
+# ** 8. Run commands from stdin
 <
 echo 'Accounts:'
 accounts
@@ -110,7 +110,7 @@ Assets:
                  $-1  
 
 
-# ** 0. Run commands accept numeric options
+# ** 9. Run commands accept numeric options
 <
 echo 'Assets, depth 1:'
 balance assets -1
@@ -130,7 +130,7 @@ Assets, depth 2:
 --------------------
                  $-1  
 
-# ** 0. Run commands accept @ARGFILEs
+# ** 10. Run commands accept @ARGFILEs
 <
 echo 'Assets, depth 1:'
 balance @run.args
