@@ -29,7 +29,8 @@ While it is running, the REPL remembers your command history, and you can naviga
 
 - Keypad or Emacs navigation keys to edit the current command line
 - UP/DOWN or control-P/control-N to step back/forward through history
-- control-R to search for a past command, etc.
+- control-R to search for a past command
+- TAB completes file paths.
 
 The `commands` and `help` commands, and the command help flags (`CMD --tldr`, `CMD -h/--help`, `CMD --info`, `CMD --man`),
 work in the usual way, and can be useful.
