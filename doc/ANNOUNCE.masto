@@ -1,11 +1,10 @@
-hledger 1.42 is out, with many useful improvements.
+hledger 1.42 is out, with new run and repl commands.
 Thank you to contributors Dmitry Astapov, gesh, Thomas
 Miedema, Joschua Kesper, and Lars Kellogg-Stedman !
 
 - https://github.com/simonmichael/hledger/releases/1.42
 - https://hledger.org/relnotes.html#2025-03-07-hledger-142
 - https://hledger.org/install
-- https://hledger.org/support
 
 #hledger is free, robust, friendly, multicurrency, double-entry,
 #plaintextaccounting software for unix, mac, windows, and the web,
