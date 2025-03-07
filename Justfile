@@ -1505,14 +1505,51 @@ _on-master-branch:
 # Generate github release notes for the current release, on stdout and in clipboard. Run on release branch.
 @ghrelnotes:
     just _on-release-branch
-    doc/ghrelnotes `cat .version` | tee pbcopy
-    # echo "Github release notes for `cat .version` copied to clipboard"
+    doc/ghrelnotes `cat .version` | pbcopy
+    doc/ghrelnotes `cat .version`
+    # printf "\nGithub release notes for `cat .version`, copied to clipboard\n"
     # echo "Paste into release created by tags push"
     # echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
 
-# Generate github release notes and update the release on github with the latest text. Run on release branch.
-@ghrelnotes-publish:
-    just ghrelnotes | gh release edit -F- `cat .version`
+# Generate github release notes and (create/)update the draft release on github with the latest text. Run on release branch.
+@ghrelnotes-push:
+    just ghrelnotes | gh release edit -F- `cat .version` --draft
+
+# Get the id of the latest run of the named workflow.
+@ghrun-id WORKFLOW:
+    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
+
+# Browse the latest run of the named workflow.
+@ghrun-open WORKFLOW:
+    gh run view --web $(just ghrun-id {{ WORKFLOW }})
+
+# Browse the latest run of the main binary workflows.
+@ghruns-open:
+    just ghrun-open binaries-linux-x64
+    just ghrun-open binaries-mac-arm64
+    just ghrun-open binaries-mac-x64
+    just ghrun-open binaries-windows-x64
+
+# Download the binaries from the latest runs of the main binary workflows. Unzips them, unfortunately.
+@ghruns-download:
+    #!/usr/bin/env bash
+    cd tmp
+    gh run download $(just ghrun-id binaries-linux-x64)
+    gh run download $(just ghrun-id binaries-mac-arm64)
+    gh run download $(just ghrun-id binaries-mac-x64)
+    gh run download $(just ghrun-id binaries-windows-x64)
+
+# Gzip the downloaded binaries and upload to the specified github release. Run after ghruns-download.
+ghrelease-upload VER:
+    #gzip $(find tmp -name '*.tar')
+    gh release upload {{ VER }} tmp/hledger-linux-x64.tar.gz
+    gh release upload {{ VER }} tmp/hledger-mac-arm64.tar.gz
+    gh release upload {{ VER }} tmp/hledger-mac-x64.tar.gz
+    gh release upload {{ VER }} tmp/hledger-windows-x64.zip
+    # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
 
 # Make git tags for a full release today. Run on release branch.
 reltags:
