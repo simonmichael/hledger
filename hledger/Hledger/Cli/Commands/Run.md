@@ -38,8 +38,6 @@ If that gives an error, use `#!/usr/bin/env -S hledger run`.
 
 It's ok to use the `run` command recursively within a command script.
 
-### Caveats
-
 You may find some differences in behaviour between `run` command lines and normal hledger command lines.
 For example, with `run`,
 
@@ -48,7 +46,7 @@ For example, with `run`,
 
 ### Examples
 
-Run commands specified on the command line:
+Run commands from the command line:
 ```cli
 hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 ```
@@ -59,8 +57,9 @@ Run commands from standard input:
 (echo "files"; echo "stats") | hledger -f some.journal run
 ```
 
-Provide commands as a runnable script:
+Run commands as a script:
 ```cli
+$ cat report
 #!/usr/bin/env -S hledger run -f some.journal
 
 echo "List of accounts in some.journal"
@@ -74,4 +73,10 @@ balance liabilities -f /some/other.journal --depth 3 --transpose
 
 echo "Commands from another.script, applied to another.journal"
 run -f another.journal another.script
+```
+```cli
+$ chmod +x report
+$ ./report
+List of accounts in some.journal
+...
 ```

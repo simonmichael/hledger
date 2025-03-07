@@ -26,6 +26,7 @@ The command syntax is the same as with `run`:
 - type `exit` or `quit` or control-D to exit the REPL.
 
 While it is running, the REPL remembers your command history, and you can navigate in the usual ways:
+
 - Keypad or Emacs navigation keys to edit the current command line
 - UP/DOWN or control-P/control-N to step back/forward through history
 - control-R to search for a past command, etc.
@@ -37,8 +38,6 @@ You can type control-C to cancel a long-running command (but only once; typing i
 
 And in most shells you can type control-Z to exit temporarily to the shell (and `fg` to return to the REPL).
 
-### Caveats
-
 You may find some differences in behaviour between `run` command lines and normal hledger command lines.
 For example, in the REPL,
 
@@ -49,11 +48,29 @@ For example, in the REPL,
 
 ### Examples
 
-Start the REPL:
+Start the REPL and enter some commands:
 ```cli
-hledger repl
+$ hledger repl 
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+% stats
+Main file           : .../2025.journal
+...
+% stats -f 2024/2024.journal 
+Main file           : .../2024.journal
+...
+% stats
+Main file           : .../2025.journal
+...
 ```
-or
+
+or:
 ```cli
-hledger repl -f some.journal
+$ hledger repl -f some.journal
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+% bs
+...
+% print -b 'last week'
+...
+% bs -f other.journal
+...
 ```
