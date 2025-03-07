@@ -539,7 +539,6 @@ hlinttest hlint:
 
 # check cabal files' syntax
 @cabalfilestest:
-    just cabalfiles
     (for p in $PACKAGES; do (cd $p && printf "\nchecking $p.cabal:\n" && cabal check); done \
       && echo $@ PASSED) || (echo $@ FAILED; false)
 
