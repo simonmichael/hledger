@@ -6487,6 +6487,42 @@ PART 4: COMMANDS
        Next, these commands are described in detail.
 
 Help commands
+   commands
+       Show the hledger commands list.
+
+              Flags:
+                   --builtin             show only builtin commands, not addons
+
+   demo
+       Play demos of hledger usage in the terminal, if asciinema is installed.
+
+              Flags:
+                -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
+                                         is double, etc (default: 2))
+
+       Run  this  command with no argument to list the demos.  To play a demo,
+       write its number or a prefix or substring of its title.  Tips:
+
+       Make your terminal window large enough to see the demo clearly.
+
+       Use the -s/--speed SPEED option to set your preferred  playback  speed,
+       eg -s4 to play at 4x original speed or -s.5 to play at half speed.  The
+       default speed is 2x.
+
+       Other  asciinema  options  can  be added following a double dash, eg --
+       -i.1 to limit pauses or -- -h to list asciinema's other options.
+
+       During playback, several keys are available: SPACE to pause/unpause,  .
+       to step forward (while paused), CTRL-c quit.
+
+       Examples:
+
+              $ hledger demo               # list available demos
+              $ hledger demo 1             # play the first demo at default speed (2x)
+              $ hledger demo install -s4   # play the "install" demo at 4x speed
+
+       This command is experimental: there aren't many useful demos yet.
+
    help
        Show  the hledger user manual with info, man, or a pager.  With a (case
        insensitive) TOPIC argument, try to open it at that section heading.
@@ -6523,37 +6559,170 @@ Help commands
               $ hledger help 'time periods'     # show the manual's "Time periods" topic
               $ hledger help 'time periods' -m  # use man, even if info is installed
 
-   demo
-       Play demos of hledger usage in the terminal, if asciinema is installed.
+User interface commands
+   repl
+       Start  an  interactive  prompt, where you can run any of hledger's com-
+       mands.  Data files are parsed just once, so the commands run faster.
 
               Flags:
-                -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
-                                         is double, etc (default: 2))
+              no command-specific flags
 
-       Run  this  command with no argument to list the demos.  To play a demo,
-       write its number or a prefix or substring of its title.  Tips:
+       This command is experimental and could change in the future.
 
-       Make your terminal window large enough to see the demo clearly.
+       hledger repl starts a read-eval-print loop (REPL) where you  can  enter
+       commands  interactively.   As with the run command, each input file (or
+       each input file/input options combination) is parsed just once, so com-
+       mands will run more quickly than if you ran them  individually  at  the
+       command line.
 
-       Use the -s/--speed SPEED option to set your preferred  playback  speed,
-       eg -s4 to play at 4x original speed or -s.5 to play at half speed.  The
-       default speed is 2x.
+       Also like run, the input file(s) specified for the repl command will be
+       the  default  input for all interactive commands, you can override this
+       temporarily by specifying an -f option in particular commands, and com-
+       mands will not see any changes made to input files (eg  by  add)  until
+       you exit and restart the REPL.
 
-       Other  asciinema  options  can  be added following a double dash, eg --
-       -i.1 to limit pauses or -- -h to list asciinema's other options.
+       The command syntax is the same as with run:
 
-       During playback, several keys are available: SPACE to pause/unpause,  .
-       to step forward (while paused), CTRL-c quit.
+       o enter  one hledger command at a time, without the usual hledger first
+         word
 
-       Examples:
+       o empty lines and comment text from # to end of line are ignored
 
-              $ hledger demo               # list available demos
-              $ hledger demo 1             # play the first demo at default speed (2x)
-              $ hledger demo install -s4   # play the "install" demo at 4x speed
+       o use single or double quotes to quote arguments when needed
 
-       This command is experimental: there aren't many useful demos yet.
+       o type exit or quit or control-D to exit the REPL.
 
-User interface commands
+       While it is running, the REPL remembers your command history,  and  you
+       can  navigate  in  the usual ways: - Keypad or Emacs navigation keys to
+       edit the current command line - UP/DOWN or control-P/control-N to  step
+       back/forward  through history - control-R to search for a past command,
+       etc.
+
+       The commands and help commands, and the command help flags (CMD --tldr,
+       CMD -h/--help, CMD --info, CMD --man), work in the usual way,  and  can
+       be useful.
+
+       You can type control-C to cancel a long-running command (but only once;
+       typing it a second time will exit the REPL).
+
+       And  in  most  shells you can type control-Z to exit temporarily to the
+       shell (and fg to return to the REPL).
+
+   Caveats
+       You may find some differences in behaviour between  run  command  lines
+       and normal hledger command lines.  For example, in the REPL,
+
+       o the command name must be written first, options afterward
+
+       o full command names or official abbreviations (as in the command list)
+         must be used
+
+       o options  parsing  with addon commands might be less flexible than the
+         CLI
+
+       o the stats command gives false timings, currently
+
+   Examples
+       Start the REPL:
+
+              hledger repl
+
+       or
+
+              hledger repl -f some.journal
+
+   run
+       Run a sequence of hledger commands, provided as files or  command  line
+       arguments.   Data  files  are  parsed  just  once,  so the commands run
+       faster.
+
+              Flags:
+              no command-specific flags
+
+       This command is experimental and could change in the future.
+
+       You can use run in three ways:
+
+       o hledger run -- CMD1 -- CMD2 -- CMD3 - read commands from the  command
+         line, separated by --
+
+       o hledger  run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or more
+         files
+
+       o cat SCRIPTFILE1 | hledger run - read commands from standard input.
+
+       run first loads the input file(s) specified by LEDGER_FILE or by -f op-
+       tions, in the usual way.  Then it runs each command in turn, each using
+       the same input data.  But if you want a particular command to use  dif-
+       ferent  input,  you can specify an -f option within that command.  This
+       will override (not add to) the default input, just for that command.
+
+       Each input file (more precisely, each combination of input file and in-
+       put options) is parsed only once.  This means that  commands  will  not
+       see  any changes made to these files, until the next run.  But the com-
+       mands will run more quickly than if run individually  (typically  about
+       twice as fast).
+
+       Command scripts, whether in a file or written on the command line, have
+       a simple syntax:
+
+       o each  line  may  contain  a single hledger command and its arguments,
+         without the usual hledger first word
+
+       o empty lines are ignored
+
+       o text from # to end of line is a comment, and ignored
+
+       o you can use single or double quotes to quote arguments  when  needed,
+         as on the command line
+
+       o these  extra  commands are available: echo TEXT prints some text, and
+         exit or quit ends the run.
+
+       On unix systems you can use #!/usr/bin/env hledger  run  in  the  first
+       line  of a command file to make it a runnable script.  If that gives an
+       error, use #!/usr/bin/env -S hledger run.
+
+       It's ok to use the run command recursively within a command script.
+
+   Caveats
+       You may find some differences in behaviour between  run  command  lines
+       and normal hledger command lines.  For example, with run,
+
+       o the command name must be written first, options afterward
+
+       o full command names or official abbreviations (as in the command list)
+         must be used
+
+   Examples
+       Run commands specified on the command line:
+
+              hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
+
+       This  would load some.journal, run balance assets --depth 2 on it, then
+       run balance liabilities --depth 3 --transpose  on  /some/other.journal,
+       and finally run stats on some.journal
+
+       Run commands from standard input:
+
+              (echo "files"; echo "stats") | hledger -f some.journal run
+
+       Provide commands as a runnable script:
+
+              #!/usr/bin/env -S hledger run -f some.journal
+
+              echo "List of accounts in some.journal"
+              accounts
+
+              echo "Assets of some.journal"
+              balance assets --depth 2
+
+              echo "Liabilities from /some/other.journal"
+              balance liabilities -f /some/other.journal --depth 3 --transpose
+
+              echo "Commands from another.script, applied to another.journal"
+              run -f another.journal another.script
+
    ui
        Runs hledger-ui (if installed).
 

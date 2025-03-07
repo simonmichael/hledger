@@ -8064,13 +8064,60 @@ File: hledger.info,  Node: Help commands,  Next: User interface commands,  Prev:
 
 * Menu:
 
-* help::
+* commands::
 * demo::
+* help::
 
 
-File: hledger.info,  Node: help,  Next: demo,  Up: Help commands
+File: hledger.info,  Node: commands,  Next: demo,  Up: Help commands
 
-24.1 help
+24.1 commands
+=============
+
+Show the hledger commands list.
+
+Flags:
+     --builtin             show only builtin commands, not addons
+
+
+File: hledger.info,  Node: demo,  Next: help,  Prev: commands,  Up: Help commands
+
+24.2 demo
+=========
+
+Play demos of hledger usage in the terminal, if asciinema is installed.
+
+Flags:
+  -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
+                           is double, etc (default: 2))
+
+   Run this command with no argument to list the demos.  To play a demo,
+write its number or a prefix or substring of its title.  Tips:
+
+   Make your terminal window large enough to see the demo clearly.
+
+   Use the -s/-speed SPEED option to set your preferred playback speed,
+eg '-s4' to play at 4x original speed or '-s.5' to play at half speed.
+The default speed is 2x.
+
+   Other asciinema options can be added following a double dash, eg '--
+-i.1' to limit pauses or '-- -h' to list asciinema's other options.
+
+   During playback, several keys are available: SPACE to pause/unpause,
+.  to step forward (while paused), CTRL-c quit.
+
+   Examples:
+
+$ hledger demo               # list available demos
+$ hledger demo 1             # play the first demo at default speed (2x)
+$ hledger demo install -s4   # play the "install" demo at 4x speed
+
+   This command is experimental: there aren't many useful demos yet.
+
+
+File: hledger.info,  Node: help,  Prev: demo,  Up: Help commands
+
+24.3 help
 =========
 
 Show the hledger user manual with 'info', 'man', or a pager.  With a
@@ -8110,41 +8157,6 @@ $ hledger help 'time periods'     # show the manual's "Time periods" topic
 $ hledger help 'time periods' -m  # use man, even if info is installed
 
 
-File: hledger.info,  Node: demo,  Prev: help,  Up: Help commands
-
-24.2 demo
-=========
-
-Play demos of hledger usage in the terminal, if asciinema is installed.
-
-Flags:
-  -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
-                           is double, etc (default: 2))
-
-   Run this command with no argument to list the demos.  To play a demo,
-write its number or a prefix or substring of its title.  Tips:
-
-   Make your terminal window large enough to see the demo clearly.
-
-   Use the -s/-speed SPEED option to set your preferred playback speed,
-eg '-s4' to play at 4x original speed or '-s.5' to play at half speed.
-The default speed is 2x.
-
-   Other asciinema options can be added following a double dash, eg '--
--i.1' to limit pauses or '-- -h' to list asciinema's other options.
-
-   During playback, several keys are available: SPACE to pause/unpause,
-.  to step forward (while paused), CTRL-c quit.
-
-   Examples:
-
-$ hledger demo               # list available demos
-$ hledger demo 1             # play the first demo at default speed (2x)
-$ hledger demo install -s4   # play the "install" demo at 4x speed
-
-   This command is experimental: there aren't many useful demos yet.
-
-
 File: hledger.info,  Node: User interface commands,  Next: Data entry commands,  Prev: Help commands,  Up: Top
 
 25 User interface commands
@@ -8152,13 +8164,206 @@ File: hledger.info,  Node: User interface commands,  Next: Data entry commands, 
 
 * Menu:
 
+* repl::
+* run::
 * ui::
 * web::
 
 
-File: hledger.info,  Node: ui,  Next: web,  Up: User interface commands
+File: hledger.info,  Node: repl,  Next: run,  Up: User interface commands
 
-25.1 ui
+25.1 repl
+=========
+
+Start an interactive prompt, where you can run any of hledger's
+commands.  Data files are parsed just once, so the commands run faster.
+
+Flags:
+no command-specific flags
+
+   This command is experimental and could change in the future.
+
+   'hledger repl' starts a read-eval-print loop (REPL) where you can
+enter commands interactively.  As with the 'run' command, each input
+file (or each input file/input options combination) is parsed just once,
+so commands will run more quickly than if you ran them individually at
+the command line.
+
+   Also like 'run', the input file(s) specified for the 'repl' command
+will be the default input for all interactive commands, you can override
+this temporarily by specifying an '-f' option in particular commands,
+and commands will not see any changes made to input files (eg by 'add')
+until you exit and restart the REPL.
+
+   The command syntax is the same as with 'run':
+
+   * enter one hledger command at a time, without the usual 'hledger'
+     first word
+   * empty lines and comment text from '#' to end of line are ignored
+   * use single or double quotes to quote arguments when needed
+   * type 'exit' or 'quit' or control-D to exit the REPL.
+
+   While it is running, the REPL remembers your command history, and you
+can navigate in the usual ways: - Keypad or Emacs navigation keys to
+edit the current command line - UP/DOWN or control-P/control-N to step
+back/forward through history - control-R to search for a past command,
+etc.
+
+   The 'commands' and 'help' commands, and the command help flags ('CMD
+--tldr', 'CMD -h/--help', 'CMD --info', 'CMD --man'), work in the usual
+way, and can be useful.
+
+   You can type control-C to cancel a long-running command (but only
+once; typing it a second time will exit the REPL).
+
+   And in most shells you can type control-Z to exit temporarily to the
+shell (and 'fg' to return to the REPL).
+
+* Menu:
+
+* Caveats::
+* Examples::
+
+
+File: hledger.info,  Node: Caveats,  Next: Examples,  Up: repl
+
+25.1.1 Caveats
+--------------
+
+You may find some differences in behaviour between 'run' command lines
+and normal hledger command lines.  For example, in the REPL,
+
+   * the command name must be written first, options afterward
+   * full command names or official abbreviations (as in the command
+     list) must be used
+   * options parsing with addon commands might be less flexible than the
+     CLI
+   * the 'stats' command gives false timings, currently
+
+
+File: hledger.info,  Node: Examples,  Prev: Caveats,  Up: repl
+
+25.1.2 Examples
+---------------
+
+Start the REPL:
+
+hledger repl
+
+   or
+
+hledger repl -f some.journal
+
+
+File: hledger.info,  Node: run,  Next: ui,  Prev: repl,  Up: User interface commands
+
+25.2 run
+========
+
+Run a sequence of hledger commands, provided as files or command line
+arguments.  Data files are parsed just once, so the commands run faster.
+
+Flags:
+no command-specific flags
+
+   This command is experimental and could change in the future.
+
+   You can use 'run' in three ways:
+
+   * 'hledger run -- CMD1 -- CMD2 -- CMD3' - read commands from the
+     command line, separated by '--'
+   * 'hledger run SCRIPTFILE1 SCRIPTFILE2' - read commands from one or
+     more files
+   * 'cat SCRIPTFILE1 | hledger run' - read commands from standard
+     input.
+
+   'run' first loads the input file(s) specified by 'LEDGER_FILE' or by
+'-f' options, in the usual way.  Then it runs each command in turn, each
+using the same input data.  But if you want a particular command to use
+different input, you can specify an '-f' option within that command.
+This will override (not add to) the default input, just for that
+command.
+
+   Each input file (more precisely, each combination of input file and
+input options) is parsed only once.  This means that commands will not
+see any changes made to these files, until the next run.  But the
+commands will run more quickly than if run individually (typically about
+twice as fast).
+
+   Command scripts, whether in a file or written on the command line,
+have a simple syntax:
+
+   * each line may contain a single hledger command and its arguments,
+     without the usual 'hledger' first word
+   * empty lines are ignored
+   * text from '#' to end of line is a comment, and ignored
+   * you can use single or double quotes to quote arguments when needed,
+     as on the command line
+   * these extra commands are available: 'echo TEXT' prints some text,
+     and 'exit' or 'quit' ends the run.
+
+   On unix systems you can use '#!/usr/bin/env hledger run' in the first
+line of a command file to make it a runnable script.  If that gives an
+error, use '#!/usr/bin/env -S hledger run'.
+
+   It's ok to use the 'run' command recursively within a command script.
+
+* Menu:
+
+* Caveats: Caveats 2.
+* Examples: Examples 2.
+
+
+File: hledger.info,  Node: Caveats 2,  Next: Examples 2,  Up: run
+
+25.2.1 Caveats
+--------------
+
+You may find some differences in behaviour between 'run' command lines
+and normal hledger command lines.  For example, with 'run',
+
+   * the command name must be written first, options afterward
+   * full command names or official abbreviations (as in the command
+     list) must be used
+
+
+File: hledger.info,  Node: Examples 2,  Prev: Caveats 2,  Up: run
+
+25.2.2 Examples
+---------------
+
+Run commands specified on the command line:
+
+hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
+
+   This would load 'some.journal', run 'balance assets --depth 2' on it,
+then run 'balance liabilities --depth 3 --transpose' on
+'/some/other.journal', and finally run 'stats' on 'some.journal'
+
+   Run commands from standard input:
+
+(echo "files"; echo "stats") | hledger -f some.journal run
+
+   Provide commands as a runnable script:
+
+#!/usr/bin/env -S hledger run -f some.journal
+
+echo "List of accounts in some.journal"
+accounts
+
+echo "Assets of some.journal"
+balance assets --depth 2
+
+echo "Liabilities from /some/other.journal"
+balance liabilities -f /some/other.journal --depth 3 --transpose
+
+echo "Commands from another.script, applied to another.journal"
+run -f another.journal another.script
+
+
+File: hledger.info,  Node: ui,  Next: web,  Prev: run,  Up: User interface commands
+
+25.3 ui
 =======
 
 Runs hledger-ui (if installed).
@@ -8166,7 +8371,7 @@ Runs hledger-ui (if installed).
 
 File: hledger.info,  Node: web,  Prev: ui,  Up: User interface commands
 
-25.2 web
+25.4 web
 ========
 
 Runs hledger-web (if installed).
@@ -12642,121 +12847,128 @@ Node: Interaction of valuation and queries283814
 Node: Effect of valuation on reports284531
 Node: PART 4 COMMANDS292429
 Node: Help commands294645
-Node: help294818
-Node: demo296523
-Node: User interface commands297740
-Node: ui297934
-Node: web298059
-Node: Data entry commands298187
-Node: add298385
-Node: import300840
-Node: Import preview301874
-Node: Overlap detection302822
-Node: First import305708
-Node: Importing balance assignments306903
-Node: Import and commodity styles307958
-Node: Import special cases308396
-Node: Basic report commands309731
-Node: accounts310032
-Node: codes312905
-Node: commodities313927
-Node: descriptions314171
-Node: files314638
-Node: notes314935
-Node: payees315447
-Node: prices316231
-Node: stats317123
-Node: tags318864
-Node: Standard report commands320171
-Node: print320476
-Node: print explicitness323217
-Node: print amount style324137
-Node: print parseability325375
-Node: print other features326294
-Node: print output format327157
-Node: aregister330442
-Node: aregister and posting dates334901
-Node: register335802
-Node: Custom register output342977
-Node: balancesheet344162
-Node: balancesheetequity348932
-Node: cashflow354072
-Node: incomestatement358634
-Node: Advanced report commands363232
-Node: balance363440
-Node: balance features368616
-Node: Simple balance report370692
-Node: Balance report line format372502
-Node: Filtered balance report374862
-Node: List or tree mode375381
-Node: Depth limiting376894
-Node: Dropping top-level accounts377661
-Node: Showing declared accounts378171
-Node: Sorting by amount378901
-Node: Percentages379738
-Node: Multi-period balance report380445
-Node: Balance change end balance383197
-Node: Balance report types384834
-Node: Calculation type385513
-Node: Accumulation type386217
-Node: Valuation type387318
-Node: Combining balance report types388507
-Node: Budget report390539
-Node: Using the budget report392844
-Node: Budget date surprises395120
-Node: Selecting budget goals396484
-Node: Budgeting vs forecasting397432
-Node: Balance report layout399109
-Node: Wide layout400314
-Node: Tall layout402719
-Node: Bare layout404025
-Node: Tidy layout406089
-Node: Balance report output407633
-Node: Some useful balance reports408448
-Node: roi409708
-Node: Spaces and special characters in --inv and --pnl411955
-Node: Semantics of --inv and --pnl412681
-Node: IRR and TWR explained414768
-Node: Chart commands418179
-Node: activity418360
-Node: Data generation commands418857
-Node: close419063
-Node: close --clopen421626
-Node: close --close423800
-Node: close --open424324
-Node: close --assert424574
-Node: close --assign424901
-Node: close --retain425580
-Node: close customisation426437
-Node: close and balance assertions428081
-Node: close examples429603
-Node: Retain earnings429840
-Node: Migrate balances to a new file430343
-Node: More detailed close examples431705
-Node: rewrite431927
-Node: Re-write rules in a file434499
-Node: Diff output format435809
-Node: rewrite vs print --auto437082
-Node: Maintenance commands437796
-Node: check438005
-Node: Basic checks439087
-Node: Strict checks440040
-Node: Other checks440915
-Node: Custom checks442770
-Node: diff443225
-Node: test444432
-Node: PART 5 COMMON TASKS445304
-Node: Getting help445537
-Node: Constructing command lines446446
-Node: Starting a journal file447284
-Node: Setting LEDGER_FILE448668
-Node: Setting opening balances449926
-Node: Recording transactions453248
-Node: Reconciling453973
-Node: Reporting456362
-Node: Migrating to a new file460476
-Node: BUGS460925
-Node: Troubleshooting461890
+Node: commands294831
+Node: demo295039
+Node: help296273
+Node: User interface commands297978
+Node: repl298189
+Node: Caveats300205
+Node: Examples300730
+Node: run300897
+Node: Caveats 2303044
+Node: Examples 2303433
+Node: ui304416
+Node: web304553
+Node: Data entry commands304681
+Node: add304879
+Node: import307334
+Node: Import preview308368
+Node: Overlap detection309316
+Node: First import312202
+Node: Importing balance assignments313397
+Node: Import and commodity styles314452
+Node: Import special cases314890
+Node: Basic report commands316225
+Node: accounts316526
+Node: codes319399
+Node: commodities320421
+Node: descriptions320665
+Node: files321132
+Node: notes321429
+Node: payees321941
+Node: prices322725
+Node: stats323617
+Node: tags325358
+Node: Standard report commands326665
+Node: print326970
+Node: print explicitness329711
+Node: print amount style330631
+Node: print parseability331869
+Node: print other features332788
+Node: print output format333651
+Node: aregister336936
+Node: aregister and posting dates341395
+Node: register342296
+Node: Custom register output349471
+Node: balancesheet350656
+Node: balancesheetequity355426
+Node: cashflow360566
+Node: incomestatement365128
+Node: Advanced report commands369726
+Node: balance369934
+Node: balance features375110
+Node: Simple balance report377186
+Node: Balance report line format378996
+Node: Filtered balance report381356
+Node: List or tree mode381875
+Node: Depth limiting383388
+Node: Dropping top-level accounts384155
+Node: Showing declared accounts384665
+Node: Sorting by amount385395
+Node: Percentages386232
+Node: Multi-period balance report386939
+Node: Balance change end balance389691
+Node: Balance report types391328
+Node: Calculation type392007
+Node: Accumulation type392711
+Node: Valuation type393812
+Node: Combining balance report types395001
+Node: Budget report397033
+Node: Using the budget report399338
+Node: Budget date surprises401614
+Node: Selecting budget goals402978
+Node: Budgeting vs forecasting403926
+Node: Balance report layout405603
+Node: Wide layout406808
+Node: Tall layout409213
+Node: Bare layout410519
+Node: Tidy layout412583
+Node: Balance report output414127
+Node: Some useful balance reports414942
+Node: roi416202
+Node: Spaces and special characters in --inv and --pnl418449
+Node: Semantics of --inv and --pnl419175
+Node: IRR and TWR explained421262
+Node: Chart commands424673
+Node: activity424854
+Node: Data generation commands425351
+Node: close425557
+Node: close --clopen428120
+Node: close --close430294
+Node: close --open430818
+Node: close --assert431068
+Node: close --assign431395
+Node: close --retain432074
+Node: close customisation432931
+Node: close and balance assertions434575
+Node: close examples436097
+Node: Retain earnings436334
+Node: Migrate balances to a new file436837
+Node: More detailed close examples438199
+Node: rewrite438421
+Node: Re-write rules in a file440993
+Node: Diff output format442303
+Node: rewrite vs print --auto443576
+Node: Maintenance commands444290
+Node: check444499
+Node: Basic checks445581
+Node: Strict checks446534
+Node: Other checks447409
+Node: Custom checks449264
+Node: diff449719
+Node: test450926
+Node: PART 5 COMMON TASKS451798
+Node: Getting help452031
+Node: Constructing command lines452940
+Node: Starting a journal file453778
+Node: Setting LEDGER_FILE455162
+Node: Setting opening balances456420
+Node: Recording transactions459742
+Node: Reconciling460467
+Node: Reporting462856
+Node: Migrating to a new file466970
+Node: BUGS467419
+Node: Troubleshooting468384
 
 End Tag Table
 

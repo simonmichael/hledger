@@ -8349,6 +8349,49 @@ test \- run self tests
 .PP
 Next, these commands are described in detail.
 .SH Help commands
+.SS commands
+Show the hledger commands list.
+.IP
+.EX
+Flags:
+     \-\-builtin             show only builtin commands, not addons
+.EE
+.SS demo
+Play demos of hledger usage in the terminal, if asciinema is installed.
+.IP
+.EX
+Flags:
+  \-s \-\-speed=SPEED         playback speed (1 is original speed, .5 is half, 2
+                           is double, etc (default: 2))
+.EE
+.PP
+Run this command with no argument to list the demos.
+To play a demo, write its number or a prefix or substring of its title.
+Tips:
+.PP
+Make your terminal window large enough to see the demo clearly.
+.PP
+Use the \-s/\-\-speed SPEED option to set your preferred playback speed,
+eg \f[CR]\-s4\f[R] to play at 4x original speed or \f[CR]\-s.5\f[R] to
+play at half speed.
+The default speed is 2x.
+.PP
+Other asciinema options can be added following a double dash, eg
+\f[CR]\-\- \-i.1\f[R] to limit pauses or \f[CR]\-\- \-h\f[R] to list
+asciinema\[aq]s other options.
+.PP
+During playback, several keys are available: SPACE to pause/unpause, .
+to step forward (while paused), CTRL\-c quit.
+.PP
+Examples:
+.IP
+.EX
+$ hledger demo               # list available demos
+$ hledger demo 1             # play the first demo at default speed (2x)
+$ hledger demo install \-s4   # play the \[dq]install\[dq] demo at 4x speed
+.EE
+.PP
+This command is experimental: there aren\[aq]t many useful demos yet.
 .SS help
 Show the hledger user manual with \f[CR]info\f[R], \f[CR]man\f[R], or a
 pager.
@@ -8396,43 +8439,190 @@ $ hledger help                    # show the manual with info, man or $PAGER
 $ hledger help \[aq]time periods\[aq]     # show the manual\[aq]s \[dq]Time periods\[dq] topic
 $ hledger help \[aq]time periods\[aq] \-m  # use man, even if info is installed
 .EE
-.SS demo
-Play demos of hledger usage in the terminal, if asciinema is installed.
+.SH User interface commands
+.SS repl
+Start an interactive prompt, where you can run any of hledger\[aq]s
+commands.
+Data files are parsed just once, so the commands run faster.
 .IP
 .EX
 Flags:
-  \-s \-\-speed=SPEED         playback speed (1 is original speed, .5 is half, 2
-                           is double, etc (default: 2))
+no command\-specific flags
 .EE
 .PP
-Run this command with no argument to list the demos.
-To play a demo, write its number or a prefix or substring of its title.
-Tips:
+This command is experimental and could change in the future.
 .PP
-Make your terminal window large enough to see the demo clearly.
+\f[CR]hledger repl\f[R] starts a read\-eval\-print loop (REPL) where you
+can enter commands interactively.
+As with the \f[CR]run\f[R] command, each input file (or each input
+file/input options combination) is parsed just once, so commands will
+run more quickly than if you ran them individually at the command line.
 .PP
-Use the \-s/\-\-speed SPEED option to set your preferred playback speed,
-eg \f[CR]\-s4\f[R] to play at 4x original speed or \f[CR]\-s.5\f[R] to
-play at half speed.
-The default speed is 2x.
+Also like \f[CR]run\f[R], the input file(s) specified for the
+\f[CR]repl\f[R] command will be the default input for all interactive
+commands, you can override this temporarily by specifying an
+\f[CR]\-f\f[R] option in particular commands, and commands will not see
+any changes made to input files (eg by \f[CR]add\f[R]) until you exit
+and restart the REPL.
 .PP
-Other asciinema options can be added following a double dash, eg
-\f[CR]\-\- \-i.1\f[R] to limit pauses or \f[CR]\-\- \-h\f[R] to list
-asciinema\[aq]s other options.
+The command syntax is the same as with \f[CR]run\f[R]:
+.IP \[bu] 2
+enter one hledger command at a time, without the usual
+\f[CR]hledger\f[R] first word
+.IP \[bu] 2
+empty lines and comment text from \f[CR]#\f[R] to end of line are
+ignored
+.IP \[bu] 2
+use single or double quotes to quote arguments when needed
+.IP \[bu] 2
+type \f[CR]exit\f[R] or \f[CR]quit\f[R] or control\-D to exit the REPL.
 .PP
-During playback, several keys are available: SPACE to pause/unpause, .
-to step forward (while paused), CTRL\-c quit.
+While it is running, the REPL remembers your command history, and you
+can navigate in the usual ways: \- Keypad or Emacs navigation keys to
+edit the current command line \- UP/DOWN or control\-P/control\-N to
+step back/forward through history \- control\-R to search for a past
+command, etc.
 .PP
-Examples:
+The \f[CR]commands\f[R] and \f[CR]help\f[R]\ commands, and the command
+help flags (\f[CR]CMD \-\-tldr\f[R], \f[CR]CMD \-h/\-\-help\f[R],
+\f[CR]CMD \-\-info\f[R], \f[CR]CMD \-\-man\f[R]), work in the usual way,
+and can be useful.
+.PP
+You can type control\-C to cancel a long\-running command (but only
+once; typing it a second time will exit the REPL).
+.PP
+And in most shells you can type control\-Z to exit temporarily to the
+shell (and \f[CR]fg\f[R] to return to the REPL).
+.SS Caveats
+You may find some differences in behaviour between \f[CR]run\f[R]
+command lines and normal hledger command lines.
+For example, in the REPL,
+.IP \[bu] 2
+the command name must be written first, options afterward
+.IP \[bu] 2
+full command names or official abbreviations (as in the command list)
+must be used
+.IP \[bu] 2
+options parsing with addon commands might be less flexible than the CLI
+.IP \[bu] 2
+the \f[CR]stats\f[R] command gives false timings, currently
+.SS Examples
+Start the REPL:
 .IP
 .EX
-$ hledger demo               # list available demos
-$ hledger demo 1             # play the first demo at default speed (2x)
-$ hledger demo install \-s4   # play the \[dq]install\[dq] demo at 4x speed
+hledger repl
 .EE
 .PP
-This command is experimental: there aren\[aq]t many useful demos yet.
-.SH User interface commands
+or
+.IP
+.EX
+hledger repl \-f some.journal
+.EE
+.SS run
+Run a sequence of hledger commands, provided as files or command line
+arguments.
+Data files are parsed just once, so the commands run faster.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
+.PP
+This command is experimental and could change in the future.
+.PP
+You can use \f[CR]run\f[R] in three ways:
+.IP \[bu] 2
+\f[CR]hledger run \-\- CMD1 \-\- CMD2 \-\- CMD3\f[R] \- read commands
+from the command line, separated by \f[CR]\-\-\f[R]
+.IP \[bu] 2
+\f[CR]hledger run SCRIPTFILE1 SCRIPTFILE2\f[R] \- read commands from one
+or more files
+.IP \[bu] 2
+\f[CR]cat SCRIPTFILE1 | hledger run\f[R] \- read commands from standard
+input.
+.PP
+\f[CR]run\f[R] first loads the input file(s) specified by
+\f[CR]LEDGER_FILE\f[R] or by \f[CR]\-f\f[R] options, in the usual way.
+Then it runs each command in turn, each using the same input data.
+But if you want a particular command to use different input, you can
+specify an \f[CR]\-f\f[R] option within that command.
+This will override (not add to) the default input, just for that
+command.
+.PP
+Each input file (more precisely, each combination of input file and
+input options) is parsed only once.
+This means that commands will not see any changes made to these files,
+until the next run.
+But the commands will run more quickly than if run individually
+(typically about twice as fast).
+.PP
+Command scripts, whether in a file or written on the command line, have
+a simple syntax:
+.IP \[bu] 2
+each line may contain a single hledger command and its arguments,
+without the usual \f[CR]hledger\f[R] first word
+.IP \[bu] 2
+empty lines are ignored
+.IP \[bu] 2
+text from \f[CR]#\f[R] to end of line is a comment, and ignored
+.IP \[bu] 2
+you can use single or double quotes to quote arguments when needed, as
+on the command line
+.IP \[bu] 2
+these extra commands are available: \f[CR]echo TEXT\f[R] prints some
+text, and \f[CR]exit\f[R] or \f[CR]quit\f[R] ends the run.
+.PP
+On unix systems you can use \f[CR]#!/usr/bin/env hledger run\f[R] in the
+first line of a command file to make it a runnable script.
+If that gives an error, use \f[CR]#!/usr/bin/env \-S hledger run\f[R].
+.PP
+It\[aq]s ok to use the \f[CR]run\f[R] command recursively within a
+command script.
+.SS Caveats
+You may find some differences in behaviour between \f[CR]run\f[R]
+command lines and normal hledger command lines.
+For example, with \f[CR]run\f[R],
+.IP \[bu] 2
+the command name must be written first, options afterward
+.IP \[bu] 2
+full command names or official abbreviations (as in the command list)
+must be used
+.SS Examples
+Run commands specified on the command line:
+.IP
+.EX
+hledger \-f some.journal run \-\- balance assets \-\-depth 2 \-\- balance liabilities \-f /some/other.journal \-\-depth 3 \-\-transpose \-\- stats
+.EE
+.PP
+This would load \f[CR]some.journal\f[R], run
+\f[CR]balance assets \-\-depth 2\f[R] on it, then run
+\f[CR]balance liabilities \-\-depth 3 \-\-transpose\f[R] on
+\f[CR]/some/other.journal\f[R], and finally run \f[CR]stats\f[R] on
+\f[CR]some.journal\f[R]
+.PP
+Run commands from standard input:
+.IP
+.EX
+(echo \[dq]files\[dq]; echo \[dq]stats\[dq]) | hledger \-f some.journal run
+.EE
+.PP
+Provide commands as a runnable script:
+.IP
+.EX
+#!/usr/bin/env \-S hledger run \-f some.journal
+
+echo \[dq]List of accounts in some.journal\[dq]
+accounts
+
+echo \[dq]Assets of some.journal\[dq]
+balance assets \-\-depth 2
+
+echo \[dq]Liabilities from /some/other.journal\[dq]
+balance liabilities \-f /some/other.journal \-\-depth 3 \-\-transpose
+
+echo \[dq]Commands from another.script, applied to another.journal\[dq]
+run \-f another.journal another.script
+.EE
 .SS ui
 Runs hledger\-ui (if installed).
 .SS web
