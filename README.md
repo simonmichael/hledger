@@ -6,7 +6,7 @@
 [![](https://repology.org/badge/version-for-repo/stackage_lts/hledger.svg)](https://repology.org/metapackage/hledger)
 [![github issues](https://img.shields.io/github/issues/simonmichael/hledger.svg)](http://bugs.hledger.org)
 
-Welcome! This a brief intro to hledger. For a more detailed version, see the home page: **<https://hledger.org>**
+Welcome! This is a brief intro to hledger. For a more detailed version, see the home page: **<https://hledger.org>**
 
 hledger is lightweight, cross platform, multi-currency, double-entry accounting software.
 It lets you track money, investments, cryptocurrencies, invoices, time, inventory and more, 
