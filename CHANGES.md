@@ -19,53 +19,33 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 2025-03-07 1.42
+# 1.42 2025-03-07
 
 Docs
 
-- new/updated:
-  ACHIEVEMENTS,
-  CREDITS,
-  FINANCE,
-  MOCKUPS,
-  REGRESSIONS,
-  RELEASING,
-  Scripts
+- new/updated: ACHIEVEMENTS, CREDITS, FINANCE, MOCKUPS, REGRESSIONS, RELEASING, Scripts
 - examples/csv: pooltool-rewards.csv.rule cleanup
 - examples: some sample hledger run scripts
 - examples: test files for CSV encoding [#2319]
-
-Scripts/addons
-
-- hledger-balance-as-budget properly applies commodity styles now. (Dmitry Astapov)
-
-- hledger-jj is another another easy CLI for tracking hledger files in version control,
-  using newer tech (jj, ysh)
-
-- hledger-git: run pass-through commands in the right repo.
-
-- hledger-git: check for a git repo more robustly. (Lars Kellogg-Stedman)
-
-- hledger-move: doc edits
-
-- hledger-script-example.hs: improvements, cleanups
 
 Infrastructure/Misc
 
 - Unix bindists in github releases now include the man pages and info manuals. [#2309]
 
-- hledger-install: if installing third party packages fails, try again with bounds relaxed.
+- Unix bindists in github releases are now normal .tar.gz files, without the extra zip compression. [#2299]
+
+- Release notes and install instructions in github releases are now collapsed by default again.
+  This makes the sequence of dates and releases clearer.
+  Github automatically expands the assets of the latest release, so those will be visible by default.
+  For a full text search of all release notes, use the https://hledger.org/relnotes.html page.
+
+- hledger-install: if installing third party packages fails, it now tries again with bounds relaxed.
   This makes hledger-iadd and hledger-interest more likely to install successfully,
   even if their bounds have not yet been updated for a new hledger release.
 
 - just functest now fails if there are warnings.
   (It does not force recompilation of already compiled modules,
   but even so this should help catch more warnings before pushing them to CI.)
-
-- In github releases, both release notes and platform binary install docs are now collapsed by default again.
-  This makes the sequence of dates and releases clearer.
-  Github automatically expands the assets of the latest release, so those will be visible by default.
-  For a full text search of all release notes, the release notes page on hledger.org is still available.
 
 - new/changed recipes/tools:
   bench*.sh,

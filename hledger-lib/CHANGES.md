@@ -22,12 +22,14 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 2025-03-07 1.42
+# 1.42 2025-03-07
 
 Improvements
 
 - readJournal, when not given a file name, now always assumes it is "-" rather than "(string)".
   [#2328]
+- Reader's rReadFn has changed type (for the new CSV text encoding feature);
+  it now takes a `Handle` rather than a `Text`, allowing more flexibility.
 - Make test/unittest.hs more buildable; remove PackageImports that was causing
   trouble for ghci.
   (Thomas Miedema, [#2337])
@@ -38,6 +40,7 @@ Improvements
   [#2244]
 - Added: dropRawOpt, cliOptsDropArgs
 - Hledger.Data.Amount: showAmountCost(B) now drops leading whitespace.
+
 
 # 1.41 2024-12-09
 

@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 2025-03-07 1.42
+# 1.42 2025-03-07
 
 Fixes
 
@@ -34,7 +34,7 @@ Fixes
 
 - In the balance command's HTML output, -H/--historical now suppresses the total heading.
 
-- print --help now shows the right default for --round. [#2318]
+- print --help now shows the correct default for --round. [#2318]
 
 - close --infer-costs no longer implies the -x/--explicit flag. [#1826]
 
@@ -65,52 +65,48 @@ Features
 - hledger can now read CSV/SSV/TSV data in encodings other than UTF8,
   using the new `encoding` CSV rule. (Joschua Kesper,  [#2319])
 
-- `if` matchers in CSV rules now allow multiple matchers to be combined on the same line,
+- `if` matchers in CSV rules can now be combined on the same line,
   separated by `&&` (AND) or `&& !` (AND NOT).  This makes `if` tables more expressive.
   Examples:
 
-  	if %description amazon && %date 2025-02-22
-  	    account2 expenses:books
+      if %description amazon && %date 2025-02-22
+          account2 expenses:books
 
-  	if,account2
-  	%description amazon && %date 2025-02-22, expenses:books
+      if,account2
+      %description amazon && %date 2025-02-22, expenses:books
 
-  For consistency, the next-line `&` operator may now also be written as `&&`.
+  The next-line `&` operator also may now be written as `&&`, for consistency.
   (Thomas Miedema, [#2333])
 
 Improvements
 
-- Two more file extensions are now recognised as possible hledger addon
-  commands: `.osh` and `.ysh`.
+- Terminal width is now detected more robustly, using the POSIX API.
+  This means that register commands will more reliably use the proper terminal width,
+  eg when $TERM or $COLUMNS do not have a correct value, and on Windows.
+  hledger no longer uses $COLUMNS.
+  (gesh, [#2332], [#2340])
 
-- Terminal width is now detected more robustly by using the POSIX API.
-  This means eg that register commands use the proper terminal width in more environments,
-  eg when $TERM or $COLUMNS do not have a correct/up-to-date value, and on Windows.
-  hledger no longer uses COLUMNS.
-  (gesh, [#2332, #2340])
-
-- The print command now supports the --invert flag. [#2314]
+- Error messages (first line) in the terminal are now shown in red (and bold),
+  and warning messages are shown in yellow,
+  when ANSI codes are supported and permitted.
 
 - --pivot can now also pivot on amount quantity (`amt`),
   amount cost (`cost`), and/or commodity symbol (`comm` or `cur`).
 
-- imp:close: omit file extension from tag value
+- The close command's --migrate flag has been renamed to `--clopen`.
+  The start: tag has been renamed to `clopen:`,
+  and its default value now excludes the new file's extension.
+  And close --assign's tag has been renamed to `assign:`.
 
-- close --migrate has been renamed to close --clopen.
-
-- The close command's start: tag has been renamed to `clopen:`.
-  And its default value now excludes the file extension.
-
-- close --assign's tag has been renamed to `assign:`.
+- The print command now supports the --invert flag. [#2314]
 
 - The roi command is now faster:
   it no longer checks every day with P directive,
   and the "one period per report interval" case has been optimised.
   (Dmitry Astapov)
 
-- Error messages (first line) in the terminal are now shown in red (and bold),
-  and warning messages are shown in yellow,
-  when ANSI codes are supported and permitted.
+- Two more file extensions are now recognised as possible hledger addon
+  commands: `.osh` and `.ysh`.
 
 Docs
 
@@ -131,14 +127,16 @@ Docs
 
 Scripts/addons
 
-API
+- hledger-balance-as-budget properly applies commodity styles now. (Dmitry Astapov)
 
-- Reader's rReadFn has changed type (for the new CSV text encoding feature);
-  it now takes a `Handle` rather than a `Text`, allowing more flexibility.
+- hledger-git now runs pass-through git commands in the right repo.
 
-- lib: add dropRawOpt, cliOptsDropArgs
+- hledger-git now checks for a git repo more robustly. (Lars Kellogg-Stedman)
 
-- lib: showAmountCost(B): drop leading whitespace
+- hledger-jj is another another easy CLI for tracking hledger files in version control,
+  using newer tech (jujutsu and oil shell's ysh).
+
+- hledger-script-example.hs has had some cleanup.
 
 
 # 1.41 2024-12-09
