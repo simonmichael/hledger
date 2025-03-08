@@ -53,8 +53,8 @@ At the command line:
 
 ```
 cd /usr/local/bin
-curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.zip
-(unzip -p hledger-linux-x64.zip | tar xf -) && rm hledger-linux-x64.zip
+curl -fLOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.tar.gz
+tar xzf hledger-linux-x64.tar.gz
 cd
 hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
 ```
@@ -77,8 +77,8 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 - For ARM macs:
   ```
   cd /usr/local/bin
-  curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.zip
-  (unzip -p hledger-mac-arm64.zip | tar xf -) && rm hledger-mac-arm64.zip
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-arm64.tar.gz
+  tar xzf hledger-mac-arm64.tar.gz
   cd
   hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
   ```
@@ -86,8 +86,8 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 - For Intel macs:
   ```
   cd /usr/local/bin
-  curl -LOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-x64.tar.gz
-  (unzip -p hledger-mac-x64.tar.gz | tar xf -) && rm -f hledger-mac-x64.zip
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-mac-x64.tar.gz
+  tar xzf hledger-mac-x64.tar.gz
   cd
   hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
   ```
@@ -115,7 +115,7 @@ In a powershell window (press `WINDOWS-R`, `powershell`, `ENTER`):
     curl https://github.com/simonmichael/hledger/releases/download/$REL/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
     Expand-Archive hledger-windows-x64.zip -DestinationPath . -Force
     cd $HOME
-    hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
+    hledger --version; hledger-ui --version; hledger-web --version    # should show $REL; if not, check why: where.exe hledger
     ```
 
 3. Ensure a default journal file exists, and without a problematic encoding. 
