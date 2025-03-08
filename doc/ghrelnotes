@@ -36,12 +36,26 @@ Or you can build it from source yourself.
 Or you can install up to date binaries from this page, by following the appropriate instructions below.
 If you find problems with these instructions, please [let us know](https://hledger.org/support).
 
-
 <!--
 Updates to binaries:
 - YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
 -->
 
+<xdetails>
+<summary>
+
+### All platforms
+
+</summary>
+
+If you have [eget](https://github.com/zyedidia/eget), that's a convenient way to download the right binaries for your machine:
+```
+eget simonmichael/hledger --all
+```
+
+Otherwise:
+
+</xdetails>
 <xdetails>
 <summary>
 
