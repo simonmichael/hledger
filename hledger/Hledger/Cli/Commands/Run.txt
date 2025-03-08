@@ -46,18 +46,14 @@ use #!/usr/bin/env -S hledger run.
 
 It's ok to use the run command recursively within a command script.
 
-Caveats
-
 You may find some differences in behaviour between run command lines and
-normal hledger command lines. For example, with run,
-
--   the command name must be written first, options afterward
--   full command names or official abbreviations (as in the command
-    list) must be used
+normal hledger command lines. run is a little stricter; eg it requires
+full command names or official abbreviations (as seen in the commands
+list), and command options must be written after the command name.
 
 Examples
 
-Run commands specified on the command line:
+Run commands from the command line:
 
 hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 
@@ -69,8 +65,9 @@ Run commands from standard input:
 
 (echo "files"; echo "stats") | hledger -f some.journal run
 
-Provide commands as a runnable script:
+Run commands as a script:
 
+$ cat report
 #!/usr/bin/env -S hledger run -f some.journal
 
 echo "List of accounts in some.journal"
@@ -84,3 +81,8 @@ balance liabilities -f /some/other.journal --depth 3 --transpose
 
 echo "Commands from another.script, applied to another.journal"
 run -f another.journal another.script
+
+$ chmod +x report
+$ ./report
+List of accounts in some.journal
+...
