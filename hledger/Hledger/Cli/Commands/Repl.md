@@ -14,9 +14,9 @@ This command is experimental and could change in the future.
 As with the `run` command, each input file (or each input file/input options combination) is parsed just once,
 so commands will run more quickly than if you ran them individually at the command line.
 
-Also like `run`, the input file(s) specified for the `repl` command will be the default input for all interactive commands,
-you can override this temporarily by specifying an `-f` option in particular commands,
-and commands will not see any changes made to input files (eg by `add`) until you exit and restart the REPL.
+Also like `run`, the input file(s) specified for the `repl` command will be the default input for all interactive commands.
+You can override this temporarily by specifying an `-f` option in particular commands.
+But note that commands will not see any changes made to input files (eg by `add`) until you exit and restart the REPL.
 
 The command syntax is the same as with `run`:
 
@@ -37,9 +37,9 @@ work in the usual way, and can be useful.
 
 You can type control-C to cancel a long-running command (but only once; typing it a second time will exit the REPL).
 
-And in most shells you can type control-Z to exit temporarily to the shell (and `fg` to return to the REPL).
+And in most shells you can type control-Z to temporarily exit to the shell (and `fg` to bring it back to foreground and return to the REPL).
 
-You may find some differences in behaviour between `run` command lines and normal hledger command lines.
+You may find some differences in behaviour between `repl` command lines and normal hledger command lines.
 For example, in the REPL,
 
 - the command name must be written first, options afterward
