@@ -1566,11 +1566,7 @@ reltags:
 reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
-# List git tags approximately most recent first (grouped by package). The available fields vary over time.
-tags:
-    git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
-
-# Tag the new dev cycle start and update version strings/manuals. Run on master.
+# Tag the new dev cycle start and update version strings/manuals. Run on master. VER should be a dev version like A.B.99.
 @devtag VER:
     set -euo pipefail
     just _on-master-branch
@@ -1579,6 +1575,17 @@ tags:
     ./Shake mandates
     ./Shake manuals -c
     echo "master's tag, version strings and manuals have been updated to {{ VER }}."
+
+# Push the dev tag configured in .version. Run on master after just devtag.
+devtag-push:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-master-branch
+    git push origin $(cat .version)
+
+# List git tags approximately most recent first (grouped by package). The available fields vary over time.
+tags:
+    git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
 
 # XXX Run this only after .version has been updated to NEWVER
 # @reltagmaster:
