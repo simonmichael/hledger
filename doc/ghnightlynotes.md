@@ -1,0 +1,115 @@
+Here you can find "nightly" binaries, if any, more recent than the current hledger release.
+By using these and providing feedback, eg in the [#hledger chat](https://hledger.org/support.html), you help us make the next release better.
+To see what's new, click the commits link above.
+
+<details>
+<summary>
+
+## Install
+
+</summary>
+
+<xdetails>
+<summary>
+
+### All platforms
+
+</summary>
+
+If you have [eget](https://github.com/zyedidia/eget), that's a convenient way to download the right binaries for your machine:
+```
+eget simonmichael/hledger --all --tag nightly
+```
+
+Otherwise:
+
+</xdetails>
+<xdetails>
+<summary>
+
+### GNU/Linux, 64-bit Intel
+
+</summary>
+
+At the command line:
+
+```
+cd /usr/local/bin
+curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-linux-x64.tar.gz
+tar xzf hledger-linux-x64.tar.gz
+cd
+hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
+```
+
+</xdetails>
+<xdetails>
+<summary>
+
+### Mac, 64-bit ARM or Intel
+
+</summary>
+
+In a terminal window (don't use your web browser to download, it won't authorise the binaries):
+<!--
+(Hopefully these commands are all installed by default; 
+if not, install [XCode Command Line Tools](https://mac.install.guide/commandlinetools/) 
+and/or [Homebrew](https://brew.sh), and let me know.)
+-->
+
+For ARM macs:
+  ```
+  cd /usr/local/bin
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-mac-arm64.tar.gz
+  tar xzf hledger-mac-arm64.tar.gz
+  cd
+  hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
+  ```
+
+For Intel macs:
+  ```
+  cd /usr/local/bin
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-mac-x64.tar.gz
+  tar xzf hledger-mac-x64.tar.gz
+  cd
+  hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
+  ```
+
+</xdetails>
+<xdetails>
+<summary>
+
+### Windows, 64-bit ARM or Intel
+
+</summary>
+
+In a powershell window (press `WINDOWS-R`, `powershell`, `ENTER`):
+
+1. Make a place to keep installed binaries. You only need to do this once, not for every release:
+    ```
+    mkdir -force $HOME\bin >$null
+    $ENV:PATH += ";"+$HOME+"\bin"
+    [Environment]::SetEnvironmentVariable("Path", [Environment]::GetEnvironmentVariable("Path", [EnvironmentVariableTarget]::User)+";"+$HOME+"\bin", [EnvironmentVariableTarget]::User)
+    ```
+
+2. Download and install the release binaries:
+    ```
+    cd $HOME\bin
+    curl https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+    Expand-Archive hledger-windows-x64.zip -DestinationPath . -Force
+    cd $HOME
+    hledger --version; hledger-ui --version; hledger-web --version    # should show refs/tags/1.42.99; if not, check why: where.exe hledger
+    ```
+
+3. Ensure a default journal file exists, and without a problematic encoding. 
+This will allow you to start hledger-web by double-clicking on its icon if you wish.
+    ```
+    out-file -append -encoding ascii $HOME/.hledger.journal
+    ```
+    (I'm not sure why "ascii" is needed here - hledger likes utf8 and understands utf8 BOM headers,
+    but the state of [our unicode support on Windows](https://github.com/simonmichael/hledger/issues?q=is%3Aissue+label%3A%22platform%3A+windows%22+label%3Ai18n)
+    is really unknown, your feedback is welcome.)
+
+</xdetails>
+<xdetails>
+
+</details>

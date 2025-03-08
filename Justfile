@@ -1519,9 +1519,13 @@ _on-master-branch:
     # echo "Paste into release created by tags push"
     # echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
 
-# Generate github release notes and (create/)update the draft release on github with the latest text. Run on release branch.
+# Generate github release notes and push them to the github release named by .version. Run on release branch. Note, might also create or publish the release.
 @ghrelnotes-push:
-    just ghrelnotes | gh release edit -F- `cat .version`
+    just ghrelnotes | gh release edit `cat .version` -F-
+
+# Push the prerelease notes to the github nightly prerelease.
+@ghnightlynotes-push:
+    gh release edit nightly -F doc/ghnightlynotes.md
 
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
