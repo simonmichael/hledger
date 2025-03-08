@@ -1530,22 +1530,24 @@ _on-master-branch:
     just ghrun-open binaries-mac-x64
     just ghrun-open binaries-windows-x64
 
-# Download the binaries from the latest runs of the main binary workflows. Unzips them, unfortunately.
-@ghruns-download:
-    #!/usr/bin/env bash
-    cd tmp
-    gh run download $(just ghrun-id binaries-linux-x64)
-    gh run download $(just ghrun-id binaries-mac-arm64)
-    gh run download $(just ghrun-id binaries-mac-x64)
-    gh run download $(just ghrun-id binaries-windows-x64)
+# Download any new binaries from the latest runs of the main binary github workflows, and recompress them.
+ghruns-download:
+    cd tmp; rm -rf hledger-*64
+    cd tmp; gh run download $(just ghrun-id binaries-linux-x64)
+    cd tmp; gh run download $(just ghrun-id binaries-mac-arm64)
+    cd tmp; gh run download $(just ghrun-id binaries-mac-x64)
+    cd tmp; gh run download $(just ghrun-id binaries-windows-x64)
+    cd tmp; mv */*.tar .; gzip -f *.tar
+    cd tmp; zip -j hledger-windows-x64.zip hledger-windows-x64/*
+    cd tmp; rm -rf hledger-*64
 
-# Gzip the downloaded binaries and upload to the specified github release. Run after ghruns-download.
+# Upload the downloaded binaries to the specified github release. Run after ghruns-download.
 ghrelease-upload VER:
-    gzip $(find tmp -name '*.tar')
-    gh release upload {{ VER }} tmp/hledger-linux-x64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-mac-arm64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-mac-x64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-windows-x64.zip
+    @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
+    gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-windows-x64.zip
     # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
