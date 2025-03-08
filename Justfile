@@ -1527,16 +1527,24 @@ _on-master-branch:
 @ghnightlynotes-push:
     gh release edit nightly -F doc/ghnightlynotes.md
 
+# Browse the latest github release.
+@ghrel:
+    gh release view -w
+
+# Browse the github nightly prerelease.
+@ghnightly:
+    gh release view -w nightly
+
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
     gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
 
 # Browse the latest run of the named workflow.
-@ghrun-open WORKFLOW:
+@ghrun WORKFLOW:
     gh run view --web $(just ghrun-id {{ WORKFLOW }})
 
 # Browse the latest run of the main binary workflows.
-@ghruns-open:
+@ghruns:
     just ghrun-open binaries-linux-x64
     just ghrun-open binaries-mac-arm64
     just ghrun-open binaries-mac-x64
