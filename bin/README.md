@@ -431,6 +431,17 @@ shows balance reports for two different periods side by side.
 [`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-balance-as-budget.hs)
 uses one balance report to set budget goals for another balance report.
 
+This is useful for compare-and-contrast reports. You can, for example, use a previous year as a budget for this year, and see
+how this year spending compares to your past spending.
+
+### hledger-balance-as-budget-multi
+
+[`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-balance-as-budget-multi.hs)
+uses one balance report to set budget goals for another balance report, and allows you to run multiple balance commands on them.
+
+Like `hledger run`, this will load journals only once, and will be significantly faster than calling `hledger-balance-as-budget`
+multiple times.
+
 ### hledger-smooth
 
 [`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-smooth.hs)
