@@ -6576,14 +6576,14 @@ User interface commands
        command line.
 
        Also like run, the input file(s) specified for the repl command will be
-       the default input for all interactive commands, you can  override  this
-       temporarily by specifying an -f option in particular commands, and com-
-       mands  will  not  see any changes made to input files (eg by add) until
-       you exit and restart the REPL.
+       the default input for all interactive commands.  You can override  this
+       temporarily  by  specifying  an  -f option in particular commands.  But
+       note that commands will not see any changes made to input files (eg  by
+       add) until you exit and restart the REPL.
 
        The command syntax is the same as with run:
 
-       o enter one hledger command at a time, without the usual hledger  first
+       o enter  one hledger command at a time, without the usual hledger first
          word
 
        o empty lines and comment text from # to end of line are ignored
@@ -6592,7 +6592,7 @@ User interface commands
 
        o type exit or quit or control-D to exit the REPL.
 
-       While  it  is running, the REPL remembers your command history, and you
+       While it is running, the REPL remembers your command history,  and  you
        can navigate in the usual ways:
 
        o Keypad or Emacs navigation keys to edit the current command line
@@ -6601,30 +6601,21 @@ User interface commands
 
        o control-R to search for a past command
 
-       o TAB completes file paths.
+       o TAB to complete file paths.
+
+       Generally  repl  command lines should feel much like the normal hledger
+       CLI, but you may find differences.  repl is a little  stricter;  eg  it
+       requires  full  command names or official abbreviations (as seen in the
+       commands list).
 
        The commands and help commands, and the command help flags (CMD --tldr,
-       CMD -h/--help, CMD --info, CMD --man), work in the usual way,  and  can
-       be useful.
+       CMD -h/--help, CMD --info, CMD --man), can be useful.
 
        You can type control-C to cancel a long-running command (but only once;
        typing it a second time will exit the REPL).
 
-       And  in  most  shells you can type control-Z to exit temporarily to the
-       shell (and fg to return to the REPL).
-
-       You may find some differences in behaviour between  run  command  lines
-       and normal hledger command lines.  For example, in the REPL,
-
-       o the command name must be written first, options afterward
-
-       o full command names or official abbreviations (as in the command list)
-         must be used
-
-       o options  parsing  with addon commands might be less flexible than the
-         CLI
-
-       o the stats command gives false timings, currently
+       And in most shells you can type control-Z to temporarily  exit  to  the
+       shell (and then fg to return to the REPL).
 
    Examples
        Start the REPL and enter some commands:
@@ -6653,8 +6644,8 @@ User interface commands
               ...
 
    run
-       Run a sequence of hledger commands, provided as files or  command  line
-       arguments.   Data  files  are  parsed  just  once,  so the commands run
+       Run  a  sequence of hledger commands, provided as files or command line
+       arguments.  Data files are  parsed  just  once,  so  the  commands  run
        faster.
 
               Flags:
@@ -6664,55 +6655,53 @@ User interface commands
 
        You can use run in three ways:
 
-       o hledger run -- CMD1 -- CMD2 -- CMD3 - read commands from the  command
+       o hledger  run -- CMD1 -- CMD2 -- CMD3 - read commands from the command
          line, separated by --
 
-       o hledger  run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or more
+       o hledger run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or  more
          files
 
        o cat SCRIPTFILE1 | hledger run - read commands from standard input.
 
        run first loads the input file(s) specified by LEDGER_FILE or by -f op-
        tions, in the usual way.  Then it runs each command in turn, each using
-       the same input data.  But if you want a particular command to use  dif-
-       ferent  input,  you can specify an -f option within that command.  This
+       the  same input data.  But if you want a particular command to use dif-
+       ferent input, you can specify an -f option within that  command.   This
        will override (not add to) the default input, just for that command.
 
        Each input file (more precisely, each combination of input file and in-
-       put options) is parsed only once.  This means that  commands  will  not
-       see  any changes made to these files, until the next run.  But the com-
-       mands will run more quickly than if run individually  (typically  about
+       put  options)  is  parsed only once.  This means that commands will not
+       see any changes made to these files, until the next run.  But the  com-
+       mands  will  run more quickly than if run individually (typically about
        twice as fast).
 
        Command scripts, whether in a file or written on the command line, have
        a simple syntax:
 
-       o each  line  may  contain  a single hledger command and its arguments,
+       o each line may contain a single hledger  command  and  its  arguments,
          without the usual hledger first word
 
        o empty lines are ignored
 
        o text from # to end of line is a comment, and ignored
 
-       o you can use single or double quotes to quote arguments  when  needed,
+       o you  can  use single or double quotes to quote arguments when needed,
          as on the command line
 
-       o these  extra  commands are available: echo TEXT prints some text, and
+       o these extra commands are available: echo TEXT prints some  text,  and
          exit or quit ends the run.
 
-       On unix systems you can use #!/usr/bin/env hledger  run  in  the  first
-       line  of a command file to make it a runnable script.  If that gives an
+       On  unix  systems  you  can use #!/usr/bin/env hledger run in the first
+       line of a command file to make it a runnable script.  If that gives  an
        error, use #!/usr/bin/env -S hledger run.
 
        It's ok to use the run command recursively within a command script.
 
-       You may find some differences in behaviour between  run  command  lines
-       and normal hledger command lines.  For example, with run,
-
-       o the command name must be written first, options afterward
-
-       o full command names or official abbreviations (as in the command list)
-         must be used
+       You  may  find  some differences in behaviour between run command lines
+       and normal hledger command lines.  run is a little stricter; eg it  re-
+       quires  full  command  names  or official abbreviations (as seen in the
+       commands list), and command options must be written after  the  command
+       name.
 
    Examples
        Run commands from the command line:
