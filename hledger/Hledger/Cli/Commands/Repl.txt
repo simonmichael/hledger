@@ -34,27 +34,21 @@ can navigate in the usual ways:
 -   Keypad or Emacs navigation keys to edit the current command line
 -   UP/DOWN or control-P/control-N to step back/forward through history
 -   control-R to search for a past command
--   TAB completes file paths.
+-   TAB to complete file paths.
 
-The commands and help commands, and the command help flags (CMD --tldr,
-CMD -h/--help, CMD --info, CMD --man), work in the usual way, and can be
-useful.
+Generally repl command lines should feel much like the normal hledger
+CLI, but you may find differences. repl is a little stricter; eg it
+requires full command names or official abbreviations (as seen in the
+commands list).
+
+The commands and help commands, and the command help flags (CMD --tldr,
+CMD -h/--help, CMD --info, CMD --man), can be useful.
 
 You can type control-C to cancel a long-running command (but only once;
 typing it a second time will exit the REPL).
 
 And in most shells you can type control-Z to temporarily exit to the
-shell (and fg to bring it back to foreground and return to the REPL).
-
-You may find some differences in behaviour between repl command lines
-and normal hledger command lines. For example, in the REPL,
-
--   the command name must be written first, options afterward
--   full command names or official abbreviations (as in the command
-    list) must be used
--   options parsing with addon commands might be less flexible than the
-    CLI
--   the stats command gives false timings, currently
+shell (and then fg to return to the REPL).
 
 Examples
 
