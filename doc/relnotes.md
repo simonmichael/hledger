@@ -190,7 +190,7 @@ Scripts/addons
 
 - hledger-git now checks for a git repo more robustly. (Lars Kellogg-Stedman)
 
-- hledger-jj is another another easy CLI for tracking hledger files in version control,
+- hledger-jj is another easy CLI for keeping hledger files in version control,
   using newer tech (jujutsu and oil shell's ysh).
 
 - hledger-script-example.hs has had some cleanup.
