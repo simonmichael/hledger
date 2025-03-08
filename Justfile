@@ -1513,7 +1513,7 @@ _on-master-branch:
 
 # Generate github release notes and (create/)update the draft release on github with the latest text. Run on release branch.
 @ghrelnotes-push:
-    just ghrelnotes | gh release edit -F- `cat .version` --draft
+    just ghrelnotes | gh release edit -F- `cat .version`
 
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
