@@ -103,7 +103,8 @@ Fixes
 
 Features
 
-- `run` and `repl` are new commands which run a multiple commands, without re-parsing data, so they run faster. `run` runs a commands from files or provided on the command line, and `repl` provides an interactive prompt with readline-style history. (Dmitry Astapov, Simon Michael, [#2323], [#2328])
+- `run` and `repl` are new commands which run multiple commands without re-parsing data files, so they run faster. `run` runs a sequence of commands from files or command line arguments, and `repl` provides an interactive prompt with readline-style history.
+  (Dmitry Astapov, Simon Michael, [#2323], [#2328])
 
 - `commands` is a new explicit command for showing the commands list; it's useful in the REPL. With --builtin, it shows only the builtin commands.
 
