@@ -1216,10 +1216,18 @@ relbranch VER:
 #    # echo "Updating CHANGES.md files with latest commits..."
 #    # ./Shake changelogs $COMMIT
 
-# Push the current branch to github to generate release binaries.
+# Push the current branch to github and generate release binaries from it.
 @relbin:
     # assumes the github remote is named "origin"
     git push -f origin HEAD:binaries
+
+# Push master to github and generate platform binaries from it.
+@binaries:
+    git push -f origin master:binaries
+
+# Upload the last-built platform binaries to the "nightly" prerelease. Run binaries first.
+@nightly:
+    gh workflow run nightly
 
 # Show last release date (of hledger package).
 @reldate:
@@ -1568,7 +1576,7 @@ reltags:
 reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
-# Tag the new dev cycle start and update version strings/manuals. Run on master. VER should be a dev version like A.B.99.
+# Tag the start of the new dev cycle, and update version strings/manuals. Run on master. VER should be a dev version like A.B.99.
 @devtag VER:
     set -euo pipefail
     just _on-master-branch
@@ -1578,12 +1586,17 @@ reltags-push VER:
     ./Shake manuals -c
     echo "master's tag, version strings and manuals have been updated to {{ VER }}."
 
-# Push the dev tag configured in .version. Run on master after just devtag.
+# Push the dev tag configured in .version. Run on master after devtag.
 devtag-push:
     #!/usr/bin/env bash
     set -euo pipefail
     just _on-master-branch
     git push origin $(cat .version)
+
+# Move the nightly tag (base for the "nightly" prerelease) to the given REF, and force push it to github. REF should be the same as the dev cycle tag perhaps.
+nightlytag REF:
+    git tag -f nightly {{ REF }} && git push -f origin nightly
+    # Unfortunately, with this name github releases page shows it below the latest release.
 
 # List git tags approximately most recent first (grouped by package). The available fields vary over time.
 tags:
