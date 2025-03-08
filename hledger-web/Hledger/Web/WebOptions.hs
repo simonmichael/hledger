@@ -2,6 +2,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hledger.Web.WebOptions where
 
@@ -54,13 +55,17 @@ prognameandversion =
 webflags :: [Flag RawOpts]
 webflags =
   [ flagNone
+      ["serve-browse"]
+      (setboolopt "serve-browse")
+      (serveprefix ++ "serve the web UI and JSON API, and open a browser, and exit if inactive for 2m (default)")
+  , flagNone
       ["serve"]
       (setboolopt "serve")
-      "serve and log requests, don't browse or auto-exit"
+      (serveprefix ++ "just serve the web UI and JSON API")
   , flagNone
       ["serve-api"]
       (setboolopt "serve-api")
-      "like --serve, but serve only the JSON web API, not the web UI"
+      (serveprefix ++ "just serve the JSON API")
   , flagReq
       ["allow"]
       (\s opts -> Right $ setopt "allow" s opts)
@@ -85,7 +90,7 @@ webflags =
       ["socket"]
       (\s opts -> Right $ setopt "socket" s opts)
       "SOCKET"
-      "listen on the given unix socket instead of an IP address and port (unix only; implies --serve)"
+      "listen on the given unix socket instead of an IP address and port (only on unix)"
   , flagReq
       ["base-url"]
       (\s opts -> Right $ setopt "base-url" s opts)
@@ -102,6 +107,8 @@ webflags =
       (setboolopt "test")
       "run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help"
   ]
+  where
+    serveprefix = ""
 
 webmode :: Mode RawOpts
 webmode =
@@ -116,16 +123,17 @@ webmode =
       { groupUnnamed = webflags
       , groupHidden = hiddenflags
           ++
-          [flagNone ["server"] (setboolopt "serve") "old flag, use --serve instead"
+          [flagNone ["server"] (setboolopt "serve") "old flag, use --serve instead"]
       , groupNamed = mkgeneralflagsgroups1 helpflags
       }
   , modeHelpSuffix = []
   }
 
+data ServerMode = ServeBrowse | Serve | ServeJson deriving (Show, Eq)
+
 -- hledger-web options, used in hledger-web and above
 data WebOpts = WebOpts
-  { serve_              :: !Bool
-  , serve_api_          :: !Bool
+  { server_mode_        :: !ServerMode
   , cors_               :: !(Maybe String)
   , host_               :: !String
   , port_               :: !Int
@@ -138,8 +146,7 @@ data WebOpts = WebOpts
 
 defwebopts :: WebOpts
 defwebopts = WebOpts
-  { serve_              = False
-  , serve_api_          = False
+  { server_mode_        = ServeBrowse
   , cors_               = Nothing
   , host_               = ""
   , port_               = def
@@ -174,10 +181,7 @@ rawOptsToWebOpts rawopts =
               Left err -> error' ("Unknown access level: " ++ err)  -- PARTIAL:
     return
       defwebopts
-      { serve_ = case sock of
-          Just _ -> True
-          Nothing -> boolopt "serve" rawopts
-      , serve_api_ = boolopt "serve-api" rawopts
+      { server_mode_ = servermodeopt rawopts
       , cors_ = maybestringopt "cors" rawopts
       , host_ = h
       , port_ = p
@@ -189,6 +193,16 @@ rawOptsToWebOpts rawopts =
       }
   where
     stripTrailingSlash = reverse . dropWhile (== '/') . reverse -- yesod don't like it
+
+servermodeopt :: RawOpts -> ServerMode
+servermodeopt =
+  fromMaybe ServeBrowse . choiceopt parse
+ where
+  parse = \case
+    "serve-browse" -> Just ServeBrowse
+    "serve"        -> Just Serve
+    "serve-api"    -> Just ServeJson
+    _ -> Nothing
 
 checkWebOpts :: WebOpts -> WebOpts
 checkWebOpts wopts@WebOpts{..}

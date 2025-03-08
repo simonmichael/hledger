@@ -269,8 +269,8 @@ getViewData = do
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
-  VD{opts=WebOpts{serve_api_}} <- getViewData
-  when serve_api_ $
+  VD{opts=WebOpts{server_mode_}} <- getViewData
+  when (server_mode_ == ServeJson) $
     -- this one gives 500 internal server error when called from defaultLayout:
     --  permissionDenied "server-side UI is disabled due to --serve-api"
     sendResponseStatus status403 ("server-side UI is disabled due to --serve-api" :: Text)

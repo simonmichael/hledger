@@ -50,14 +50,15 @@ Like hledger, it _inputfileswithptr_
 
 hledger-web can be run in three modes:
 
-- Transient mode (the default):
-  your default web browser will be opened to show the app if possible,
-  and the app exits automatically after two minutes of inactivity
-  (no requests received and no open browser windows viewing it).
+- `--serve-browse` mode (the default):
+  the app serves the web UI and JSON API,
+  and opens your default web browser to show the app if possible,
+  and exits automatically after two minutes of inactivity
+  (with no requests received and no open browser windows viewing it).
 
-- With `--serve`: the app runs without stopping, and without opening a browser.
+- `--serve`: the app just serves the web UI and JSON API.
 
-- With `--serve-api`: only the JSON API is served.
+- `--serve-api`: the app just serves the JSON API.
 
 In all cases hledger-web runs as a foreground process, logging requests to stdout.
 

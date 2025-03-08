@@ -105,8 +105,9 @@ web opts j = do
 
   -- show configuration
   let
-    services | serve_api_ opts = "json API"
-             | otherwise       = "web UI and json API"
+    services
+      | server_mode_ opts == ServeJson = "json API"
+      | otherwise                      = "web UI and json API"
     prettyip ip
         | ip == "127.0.0.1" = ip ++ " (local access)"
         | ip == "0.0.0.0"   = ip ++ " (all interfaces)"
@@ -121,8 +122,15 @@ web opts j = do
     Nothing -> pure ()
 
   -- start server and maybe browser
-  if serve_ opts || serve_api_ opts
+  if server_mode_ opts == ServeBrowse
     then do
+      putStrLn "This server will exit after 2m with no browser windows open (or press ctrl-c)"
+      putStrLn "Opening web browser..."
+      hFlush stdout
+      -- exits after 2m of inactivity (hardcoded)
+      Network.Wai.Handler.Launch.runHostPortFullUrl h p u app
+
+    else do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
       let warpsettings = setHost (fromString h) (setPort p defaultSettings)
@@ -148,11 +156,4 @@ web opts j = do
               exitFailure
 
         Nothing -> Network.Wai.Handler.Warp.runSettings warpsettings app
-
-    else do
-      putStrLn "This server will exit after 2m with no browser windows open (or press ctrl-c)"
-      putStrLn "Opening web browser..."
-      hFlush stdout
-      -- exits after 2m of inactivity (hardcoded)
-      Network.Wai.Handler.Launch.runHostPortFullUrl h p u app
 

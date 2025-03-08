@@ -29,7 +29,7 @@ import Hledger.Web.Handler.UploadR
 import Hledger.Web.Handler.JournalR
 import Hledger.Web.Handler.RegisterR
 import Hledger.Web.Import
-import Hledger.Web.WebOptions (WebOpts(serve_,serve_api_), corsPolicy)
+import Hledger.Web.WebOptions (ServerMode(..), WebOpts(server_mode_), corsPolicy)
 
 -- mkYesodDispatch creates our YesodDispatch instance. 
 -- It complements the mkYesodData call in App.hs,
@@ -47,7 +47,7 @@ makeApplication opts' j' conf' = do
     (logWare . (corsPolicy opts')) <$> toWaiApp app
   where
     logWare | development  = logStdoutDev
-            | serve_ opts' || serve_api_ opts' = logStdout
+            | server_mode_ opts' `elem` [Serve, ServeJson] = logStdout
             | otherwise    = id
 
 makeApp :: AppConfig DefaultEnv Extra -> WebOpts -> IO App
