@@ -8460,10 +8460,11 @@ run more quickly than if you ran them individually at the command line.
 .PP
 Also like \f[CR]run\f[R], the input file(s) specified for the
 \f[CR]repl\f[R] command will be the default input for all interactive
-commands, you can override this temporarily by specifying an
-\f[CR]\-f\f[R] option in particular commands, and commands will not see
-any changes made to input files (eg by \f[CR]add\f[R]) until you exit
-and restart the REPL.
+commands.
+You can override this temporarily by specifying an \f[CR]\-f\f[R] option
+in particular commands.
+But note that commands will not see any changes made to input files (eg
+by \f[CR]add\f[R]) until you exit and restart the REPL.
 .PP
 The command syntax is the same as with \f[CR]run\f[R]:
 .IP \[bu] 2
@@ -8496,10 +8497,11 @@ and can be useful.
 You can type control\-C to cancel a long\-running command (but only
 once; typing it a second time will exit the REPL).
 .PP
-And in most shells you can type control\-Z to exit temporarily to the
-shell (and \f[CR]fg\f[R] to return to the REPL).
+And in most shells you can type control\-Z to temporarily exit to the
+shell (and \f[CR]fg\f[R] to bring it back to foreground and return to
+the REPL).
 .PP
-You may find some differences in behaviour between \f[CR]run\f[R]
+You may find some differences in behaviour between \f[CR]repl\f[R]
 command lines and normal hledger command lines.
 For example, in the REPL,
 .IP \[bu] 2
