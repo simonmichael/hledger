@@ -315,7 +315,7 @@ import qualified Hledger.Write.Spreadsheet as Ods
 balancemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Balance.txt")
   (
-    -- https://hledger.org/dev/hledger.html#calculation-type :
+    -- https://hledger.org/dev/hledger.html#calculation-mode :
     [flagNone ["sum"] (setboolopt "sum")
       (calcprefix ++ "show sum of posting amounts (default)")
     ,flagNone ["valuechange"] (setboolopt "valuechange")
@@ -333,7 +333,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["count"] (setboolopt "count")
       (calcprefix ++ "show the count of postings")
 
-    -- https://hledger.org/dev/hledger.html#accumulation-type :
+    -- https://hledger.org/dev/hledger.html#accumulation-mode :
     ,flagNone ["change"] (setboolopt "change")
       (accumprefix ++ "accumulate amounts from column start to column end (in multicolumn reports, default)")
     ,flagNone ["cumulative"] (setboolopt "cumulative")

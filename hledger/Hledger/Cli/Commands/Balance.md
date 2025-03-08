@@ -100,11 +100,11 @@ Many of these work with the higher-level commands as well.
 
 - balance changes (the default)
 - or actual and planned balance changes ([`--budget`](#budget-report))
-- or value of balance changes ([`-V`](#valuation-type))
-- or change of balance values ([`--valuechange`](#balance-report-types))
-- or unrealised capital gain/loss ([`--gain`](#balance-report-types))
+- or value of balance changes ([`-V`](#valuation-mode))
+- or change of balance values ([`--valuechange`](#balance-report-modes))
+- or unrealised capital gain/loss ([`--gain`](#balance-report-modes))
 - or balance changes from sibling postings (`--related`/`-r`)
-- or postings count ([`--count`](#balance-report-types))
+- or postings count ([`--count`](#balance-report-modes))
 
 ..in..
 
@@ -114,16 +114,16 @@ Many of these work with the higher-level commands as well.
 ..either..
 
 - per period (the default)
-- or accumulated since report start date ([`--cumulative`](#accumulation-type))
-- or accumulated since account creation ([`--historical/-H`](#accumulation-type))
+- or accumulated since report start date ([`--cumulative`](#accumulation-mode))
+- or accumulated since account creation ([`--historical/-H`](#accumulation-mode))
 
 ..possibly converted to..
 
-- cost ([`--value=cost[,COMM]`/`--cost`/`-B`](#valuation-type))
-- or market value, as of transaction dates ([`--value=then[,COMM]`](#valuation-type))
-- or at period ends ([`--value=end[,COMM]`](#valuation-type))
-- or now ([`--value=now`](#valuation-type))
-- or at some other date ([`--value=YYYY-MM-DD`](#valuation-type))
+- cost ([`--value=cost[,COMM]`/`--cost`/`-B`](#valuation-mode))
+- or market value, as of transaction dates ([`--value=then[,COMM]`](#valuation-mode))
+- or at period ends ([`--value=end[,COMM]`](#valuation-mode))
+- or now ([`--value=now`](#valuation-mode))
+- or at some other date ([`--value=YYYY-MM-DD`](#valuation-mode))
 
 ..with..
 
@@ -483,7 +483,7 @@ To see accurate historical end balances:
    or by using the `-H/--historical` flag.
    (`-H` causes report start date to be ignored when summing postings.)
 
-### Balance report types
+### Balance report modes
 
 The balance command is quite flexible; here is the full detail on how to control what it reports.
 If the following seems complicated, don't worry - this is for advanced reporting,
@@ -491,9 +491,9 @@ and it does take time and experimentation to get familiar with all the report mo
 
 There are three important option groups:
 
-`hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...`
+`hledger balance [CALCULATIONMODE] [ACCUMULATIONMODE] [VALUATIONMODE] ...`
 
-#### Calculation type
+#### Calculation mode
 
 The basic calculation to perform for each table cell.
 It is one of:
@@ -506,7 +506,7 @@ It is one of:
   minus each amount's original cost)
 - `--count` : show the count of postings
 
-#### Accumulation type
+#### Accumulation mode
 
 How amounts should accumulate across a report's subperiods/columns.
 Another way to say it: which time period's postings should contribute to each cell's calculation.
@@ -525,12 +525,14 @@ It is one of:
   Typically used to see historical end balances of assets/liabilities/equity.
   (**default for balancesheet, balancesheetequity**)
 
-#### Valuation type
+#### Valuation mode
 
 Which kind of value or cost conversion should be applied, if any, before displaying the report.
-It is one of:
+See [Cost reporting](#cost-reporting) and [Value reporting](#value-reporting) for more about conversions.
 
-- no valuation type           : don't convert to cost or value (**default**)
+A valuation (or cost) mode can be selected with the --value option:
+
+- no conversion               : don't convert to cost or value (**default**)
 - `--value=cost[,COMM]`       : convert amounts to cost (then optionally to some other commodity)
 - `--value=then[,COMM]`       : convert amounts to market value on transaction dates
 - `--value=end[,COMM]`        : convert amounts to market value on period end date(s)\
@@ -538,17 +540,18 @@ It is one of:
 - `--value=now[,COMM]`        : convert amounts to market value on today's date
 - `--value=YYYY-MM-DD[,COMM]` : convert amounts to market value on another date
 
-or one of the equivalent simpler flags:
+or with the legacy -B/-V/-X options, which are equivalent and easier to type:
 
-- `-B/--cost`               : like --value=cost (though, note --cost and --value are independent options which can both be used at once)
-- `-V/--market`             : like --value=end
-- `-X COMM/--exchange COMM` : like --value=end,COMM
+- `-B`/`--cost`               : like --value=cost
+- `-V`/`--market`             : like --value=end
+- `-X COMM`/`--exchange COMM` : like --value=end,COMM
 
-See [Cost reporting](#cost-reporting) and [Value reporting](#value-reporting) for more about these.
+Note that --value can also convert to cost, as a convenience;
+but actually --cost and --value are independent options, and could be used together.
 
-#### Combining balance report types
+#### Combining balance report modes
 
-Most combinations of these options should produce reasonable reports,
+Most combinations of these modes should produce reasonable reports,
 but if you find any that seem wrong or misleading, let us know.
 The following restrictions are applied:
 
@@ -566,7 +569,7 @@ For reference, here is what the combinations of accumulation and valuation show:
 
 ### Budget report
 
-The `--budget` report type is like a regular balance report, but with two main differences:
+The `--budget` report is like a regular balance report, but with two main differences:
 
 - Budget goals and performance percentages are also shown, in brackets
 - Accounts which don't have budget goals are hidden by default.

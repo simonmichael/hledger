@@ -70,7 +70,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
    cbcdoc
    -- keep roughly consistent order with Balance.hs. XXX refactor
    (
-    -- https://hledger.org/dev/hledger.html#calculation-type :
+    -- https://hledger.org/dev/hledger.html#calculation-mode :
     [flagNone ["sum"] (setboolopt "sum")
       (calcprefix ++ "show sum of posting amounts (default)")
     ,flagNone ["valuechange"] (setboolopt "valuechange")
@@ -82,7 +82,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   --     (calcprefix ++ "show sum of posting amounts compared to budget goals defined by periodic transactions")
    ,flagNone ["count"] (setboolopt "count") (calcprefix ++ "show the count of postings")
 
-    -- https://hledger.org/dev/hledger.html#accumulation-type :
+    -- https://hledger.org/dev/hledger.html#accumulation-mode :
    ,flagNone ["change"] (setboolopt "change")
       (accumprefix ++ "accumulate amounts from column start to column end (in multicolumn reports)" ++ defaultMarker PerPeriod)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
