@@ -64,7 +64,7 @@ Release readiness and the release process go from the bottom of this diagram to 
 
 This is the guide for doing a hledger release.
 It should correspond to the diagram above, but includes more detail of waypoints, required artifacts, and relevant commands.
-It should be updated and improved each time it is used.
+It should be improved each time it is used.
 
 - [ ] product
   - [ ] blocking defects resolved
@@ -105,7 +105,6 @@ It should be updated and improved each time it is used.
       `just relnotes`,  
       select & transform with `md-issue-refs`,  
       uniquify issue refs,  
-      (unwrap long lines, ?)  
       add author github nicks,  
       commit
   - [ ] github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
@@ -171,7 +170,7 @@ It should be updated and improved each time it is used.
         propagate
   - [ ] new dev tag/versions/man dates in master  
       `j devtag VER.99`
-  - [ ]y pta.o project stats updated
+  - [ ] pta.o project stats updated
   - [ ] process notes updated/cleaned
   - [ ] monitor/support/handle issues:  
       [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
