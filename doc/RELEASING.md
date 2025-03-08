@@ -9,16 +9,19 @@ Notes for hledger release managers and maintainers.
 
 ## Goals
 
+**2025**
+[ ] Make releasing easier
+\
 **2024**
-- [x] Make releasing easier
-
+[x] Make releasing easier
+\
 **2023**
-- [x] Make releasing eas<s>y</s>ier
-
+[x] Make releasing eas<s>y</s>ier
+\
 **2022**
-- [x] Update/consolidate release process docs
-- [x] Establish routine <s>monthly</s> release cadence
-- [ ] Make releasing easy
+[x] Update/consolidate release process docs,
+[x] Establish routine <s>monthly</s> release cadence,
+[ ] Make releasing easy
 
 ## Release types
 
@@ -183,7 +186,8 @@ Waypoints and required artifacts.
   - [ ] release branch
   - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
   - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
-        `just relbranch`
+        `just relbranch VER`,
+        `just cabalfilestest`
   - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)
   - [ ] embedded manuals x 3
     - [ ] generaloptions macro (in doc/common.m4)
@@ -214,28 +218,50 @@ Waypoints and required artifacts.
       unwrap long lines,  
       add author github nicks,  
       commit
-  - [ ] github binary install docs up to date and pre-tested (doc/ghrelnotes.md)
-  - [ ] hledger-install up to date and pre-tested (hledger-install/hledger-install.sh)  
-      `./Shake hledger-install-version`,  
+  - [ ] github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
+  - [ ] hledger-install/hledger-install.sh up to date and pre-tested  
+      (`./Shake hledger-install-version` ?),
       check/update dep versions,  
       select/test snapshot version
-  - [ ] hledger.org Install page up to date and pre-tested (site/src/install.md)
+  - [ ] Install page (site/src/install.md) up to date and pre-tested
   - [ ] draft announcement for chat / mail list (doc/ANNOUNCE)
   - [ ] draft announcement for mastodon (doc/ANNOUNCE.masto)
   - [ ] release tags  
       `just reltags`
   - [ ] release binaries built from tag  
       `just relbin`
+  - [ ] Install page (site/src/install.md) --version examples match release binaries
 - [ ] published
+  - [ ] relevant release branch work cherry-picked to master branch  
+      changelogs
+      relnotes
+      hledger-install
+      announcements
   - [ ] all packages uploaded correctly to hackage  
-      `just hackageupload`
-  - [ ] hledger-install merged to master and pushed to github
-  - [ ] site repo pushed to github and hledger.org, new manuals rendering correctly
-  - [ ] release branch and tags pushed to github  
-      `just reltags-push`
-  - [ ] github release with release binaries attached (https://github.com/simonmichael/hledger/releases/new)  
-      should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new,
-      `just ghrelnotes`, paste, download release binaries, upload release binaries, review  
+      `just hackageupload`, check versions, confirm, check all uploads successful
+  - [ ] master branch pushed to github
+  - [ ] new manuals published and rendering/redirecting correctly  
+    - [ ] site repo pushed to github
+    - [ ] main and site repos  auto-pulled to hledger.org, site rebuilt
+        `hledgerorgsh grep release.= /opt/hledger/site/out/js/site.js`  
+    - [ ] https://www.hledger.org/js/site.js showing latest version
+        `curl -s https://hledger.org/js/site.js | grep release.=`  
+        purge cache at https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration
+    - [ ] default manual urls redirecting to latest version  
+        `hledgerorgsh sh -c 'systemctl stop caddy; systemctl start caddy'`  
+        `curl -sI https://hledger.org/hledger.html | grep location`
+  - [ ] release branch pushed to github  
+  - [ ] release tags pushed to github  
+      `just reltags-push VER`
+  - [ ] github draft release with release binaries attached  
+      should be autocreated by the above; if not,  
+      (https://github.com/simonmichael/hledger/releases/new)  
+      `just ghrelnotes-push`  
+      (`just ghruns-download`, too slow)  
+      instead: `just ghruns-open`, download to tmp/, unzip the unix ones  
+      `just ghrelease-upload`  
+  - [ ] github release published  
+      review,
       publish
   - [ ] install instructions tested and working
     - [ ] hledger-install
@@ -247,13 +273,15 @@ Waypoints and required artifacts.
     - [ ] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
     - [ ] matrix
     - [ ] irc
-    - [ ] pta forum
     - [ ] mastodon
+    - [ ] pta forum
 - [ ] cleanup and support
-  - [ ] remaining relevant release branch work merged to master
+  - [ ] review/polish relnotes, changelogs  
+        review, edit  
+        propagate
   - [ ] new dev tag/versions/man dates in master  
-      `j devtag`
-  - [ ] pta.o project stats updated
+      `j devtag VER.99`
+  - [ ]y pta.o project stats updated
   - [ ] process notes updated/cleaned
   - [ ] monitor/support/handle issues:  
       [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
