@@ -460,8 +460,10 @@ General help flags:
    Usually hledger accepts any unambiguous flag prefix, eg you can write
 '--tl' instead of '--tldr' or '--dry' instead of '--dry-run'.
 
-   If the same option appears more than once in a command, usually the
-last (right-most) wins.
+   If the same option appears more than once in a command line, usually
+the last (right-most) wins.  Similarly, if mutually exclusive flags are
+used together, the right-most wins.  (When flags are mutually exclusive,
+they'll usually have a group prefix in -help.)
 
    With most commands, arguments are interpreted as a hledger query
 which filter the data.  Some queries can be expressed either with
@@ -8731,8 +8733,9 @@ Flags:
      --find                 find the first account matched by the first
                             argument (a case-insensitive infix regexp or
                             account name)
-  -l --flat                 show accounts as a flat list (default)
-  -t --tree                 show accounts as a tree
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default)
+  -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 
    This command lists account names.  By default it shows all known
@@ -9303,9 +9306,11 @@ Flags:
                             date. Warning: this can show a wrong running
                             balance.
      --no-elide             don't show only 2 commodities per amount
-     --cumulative           show running total from report start date
-  -H --historical           show historical running total/balance (includes
-                            postings before report start date) (default)
+     --cumulative           accumulation mode: show running total from report
+                            start date
+  -H --historical           accumulation mode: show historical running
+                            total/balance (includes postings before report
+                            start date) (default)
      --invert               display all amounts with reversed sign
      --heading=YN           show heading row above table: yes (default) or no
   -w --width=N              set output width (default: terminal width). -wN,M
@@ -9418,10 +9423,11 @@ File: hledger.info,  Node: register,  Next: balancesheet,  Prev: aregister,  Up:
    Show postings and their running total.
 
 Flags:
-     --cumulative           show running total from report start date
-                            (default)
-  -H --historical           show historical running total/balance (includes
-                            postings before report start date)
+     --cumulative           accumulation mode: show running total from report
+                            start date (default)
+  -H --historical           accumulation mode: show historical running
+                            total/balance (includes postings before report
+                            start date)
   -A --average              show running average of posting amounts instead
                             of total (implies --empty)
   -m --match=DESC           fuzzy search for one recent posting with
@@ -9592,26 +9598,28 @@ shown with normal positive sign, as in conventional financial
 statements.
 
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of period-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
+     --sum                  calculation mode: show sum of posting amounts
                             (default)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               flat mode: omit N leading account name parts
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date) (default)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -9620,8 +9628,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -9692,26 +9699,28 @@ balances of asset, liability and equity accounts.  Amounts are shown
 with normal positive sign, as in conventional financial statements.
 
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of period-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
+     --sum                  calculation mode: show sum of posting amounts
                             (default)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               flat mode: omit N leading account name parts
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date) (default)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -9720,8 +9729,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -9800,25 +9808,29 @@ assets.  Amounts are shown with normal positive sign, as in conventional
 financial statements.
 
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of period-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports) (default)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               flat mode: omit N leading account name parts
+     --sum                  calculation mode: show sum of posting amounts
+                            (default)
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+                            (default)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -9827,8 +9839,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -9896,25 +9907,29 @@ Amounts are shown with normal positive sign, as in conventional
 financial statements.
 
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of period-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports) (default)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               flat mode: omit N leading account name parts
+     --sum                  calculation mode: show sum of posting amounts
+                            (default)
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+                            (default)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -9923,8 +9938,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -10006,32 +10020,36 @@ some kind of numeric data.  This can be balance changes per period, end
 balances, budget performance, unrealised capital gains, etc.
 
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of value of period-end
-                            historical balances (caused by deposits,
+     --sum                  calculation mode: show sum of posting amounts
+                            (default)
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
                             withdrawals, market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --budget[=DESCPAT]     show sum of posting amounts together with budget
-                            goals defined by periodic
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --budget[=DESCPAT]     calculation mode: show sum of posting amounts
+                            together with budget goals defined by periodic
                             transactions. With a DESCPAT argument (must be
                             separated by = not space),
                             use only periodic transactions with matching
                             description
                             (case insensitive substring match).
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports, default)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               omit N leading account name parts (in flat mode)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports,
+                            default)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -10040,8 +10058,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name (in
                             flat mode). With multiple columns, sorts by the row
@@ -12600,377 +12617,377 @@ Node: Strict mode9301
 Node: Commands10135
 Node: Add-on commands11321
 Node: Options12539
-Node: Special characters19113
-Node: Escaping shell special characters20063
-Node: Escaping on Windows21307
-Node: Escaping regular expression special characters22040
-Node: Escaping add-on arguments23027
-Node: Escaping in other situations24056
-Node: Using a wild card25015
-Node: Unicode characters25394
-Node: Regular expressions27058
-Node: hledger's regular expressions30317
-Node: Argument files31958
-Node: Config files32661
-Node: Shell completions35814
-Node: Output36303
-Node: Output destination36494
-Node: Output format37052
-Node: Text output38838
-Node: Box-drawing characters39817
-Node: Colour40317
-Node: Paging40903
-Node: HTML output42429
-Node: CSV / TSV output42883
-Node: FODS output43137
-Node: Beancount output43941
-Node: Beancount account names45396
-Node: Beancount commodity names45937
-Node: Beancount virtual postings46584
-Node: Beancount metadata46900
-Node: Beancount costs47680
-Node: Beancount operating currency48096
-Node: SQL output48546
-Node: JSON output49337
-Node: Commodity styles50154
-Node: Debug output51041
-Node: Environment51873
-Node: PART 2 DATA FORMATS52530
-Node: Journal52673
-Node: Journal cheatsheet55151
-Node: Comments61365
-Node: Transactions62309
-Node: Dates63446
-Node: Simple dates63598
-Node: Posting dates64214
-Node: Status65301
-Node: Code67067
-Node: Description67402
-Node: Payee and note68089
-Node: Transaction comments69180
-Node: Postings69696
-Node: Debits and credits70859
-Node: The two space delimiter71469
-Node: Account names72034
-Node: Amounts73838
-Node: Decimal marks74867
-Node: Digit group marks75971
-Node: Commodity76606
-Node: Costs77723
-Node: Balance assertions79975
-Node: Assertions and ordering81238
-Node: Assertions and multiple included files81966
-Node: Assertions and multiple -f files82726
-Node: Assertions and costs83368
-Node: Assertions and commodities84018
-Node: Assertions and subaccounts85677
-Node: Assertions and status86337
-Node: Assertions and virtual postings86757
-Node: Assertions and auto postings87122
-Node: Assertions and precision87997
-Node: Posting comments88448
-Node: Transaction balancing88988
-Node: Tags90990
-Node: Querying with tags92284
-Node: Displaying tags93083
-Node: When to use tags ?93479
-Node: Tag names94143
-Node: Special tags94696
-Node: Directives96261
-Node: Directives and multiple files97718
-Node: Directive effects98663
-Node: account directive101819
-Node: Account comments103269
-Node: Account error checking103928
-Node: Account display order105465
-Node: Account types106663
-Node: alias directive110437
-Node: Basic aliases111648
-Node: Regex aliases112523
-Node: Combining aliases113570
-Node: Aliases and multiple files115024
-Node: end aliases directive115807
-Node: Aliases can generate bad account names116175
-Node: Aliases and account types117008
-Node: commodity directive117900
-Node: Commodity directive syntax119487
-Node: Commodity error checking121136
-Node: decimal-mark directive121611
-Node: include directive122190
-Node: P directive123266
-Node: payee directive124300
-Node: tag directive124922
-Node: Periodic transactions125534
-Node: Periodic rule syntax127688
-Node: Periodic rules and relative dates128511
-Node: Two spaces between period expression and description!129288
-Node: Auto postings130249
-Node: Auto postings and multiple files133409
-Node: Auto postings and dates133814
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions134255
-Node: Auto posting tags135101
-Node: Auto postings on forecast transactions only135996
-Node: Other syntax136466
-Node: Balance assignments137238
-Node: Balance assignments and costs138766
-Node: Balance assignments and multiple files139188
-Node: Bracketed posting dates139611
-Node: D directive140309
-Node: apply account directive142082
-Node: Y directive142949
-Node: Secondary dates143937
-Node: Star comments145422
-Node: Valuation expressions146114
-Node: Virtual postings146413
-Node: Other Ledger directives148037
-Node: Other cost/lot notations148799
-Node: CSV151640
-Node: CSV rules cheatsheet153736
-Node: source155763
-Node: encoding156763
-Node: separator157702
-Node: skip158355
-Node: date-format159005
-Node: timezone159848
-Node: newest-first160974
-Node: intra-day-reversed161687
-Node: decimal-mark162287
-Node: fields list162767
-Node: Field assignment164575
-Node: Field names165794
-Node: date field167126
-Node: date2 field167290
-Node: status field167485
-Node: code field167675
-Node: description field167863
-Node: comment field168080
-Node: account field168637
-Node: amount field169355
-Node: currency field172194
-Node: balance field172602
-Node: if block173125
-Node: Matchers174652
-Node: Multiple matchers176642
-Node: Match groups177450
-Node: if table178343
-Node: balance-type180406
-Node: include181233
-Node: Working with CSV181802
-Node: Rapid feedback182354
-Node: Valid CSV182937
-Node: File Extension183813
-Node: Reading CSV from standard input184548
-Node: Reading multiple CSV files184934
-Node: Reading files specified by rule185410
-Node: Valid transactions186807
-Node: Deduplicating importing187632
-Node: Setting amounts188861
-Node: Amount signs191388
-Node: Setting currency/commodity192453
-Node: Amount decimal places193829
-Node: Referencing other fields195086
-Node: How CSV rules are evaluated196194
-Node: Well factored rules197862
-Node: CSV rules examples198352
-Node: Bank of Ireland198550
-Node: Coinbase200147
-Node: Amazon201330
-Node: Paypal203172
-Node: Timeclock210922
-Node: Timedot213191
-Node: Timedot examples216668
-Node: PART 3 REPORTING CONCEPTS218945
-Node: Time periods219109
-Node: Report start & end date219382
-Node: Smart dates220858
-Node: Report intervals222801
-Node: Date adjustments223375
-Node: Start date adjustment223595
-Node: End date adjustment224498
-Node: Period headings225243
-Node: Period expressions226176
-Node: Period expressions with a report interval228081
-Node: More complex report intervals228529
-Node: Multiple weekday intervals230645
-Node: Depth231656
-Node: Queries233491
-Node: Query types235189
-Node: acct query235606
-Node: amt query235917
-Node: code query236534
-Node: cur query236729
-Node: desc query237335
-Node: date query237518
-Node: date2 query237914
-Node: depth query238205
-Node: expr query238541
-Node: not query238922
-Node: note query239262
-Node: payee query239528
-Node: real query239809
-Node: status query240014
-Node: type query240254
-Node: tag query240787
-Node: Combining query terms241416
-Node: Queries and command options243156
-Node: Queries and account aliases243610
-Node: Queries and valuation243935
-Node: Pivoting244297
-Node: Generating data246573
-Node: Forecasting248373
-Node: --forecast249029
-Node: Inspecting forecast transactions250130
-Node: Forecast reports251463
-Node: Forecast tags252572
-Node: Forecast period in detail253192
-Node: Forecast troubleshooting254280
-Node: Budgeting255351
-Node: Amount formatting255911
-Node: Commodity display style256155
-Node: Rounding257996
-Node: Trailing decimal marks258601
-Node: Amount parseability259534
-Node: Cost reporting261115
-Node: Recording costs261946
-Node: Reporting at cost263673
-Node: Equity conversion postings264438
-Node: Inferring equity conversion postings267083
-Node: Combining costs and equity conversion postings268225
-Node: Requirements for detecting equity conversion postings269450
-Node: Infer cost and equity by default ?270972
-Node: Value reporting271409
-Node: -V Value272345
-Node: -X Value in specified commodity272672
-Node: Valuation date273022
-Node: Finding market price273982
-Node: --infer-market-prices market prices from transactions275362
-Node: Valuation commodity278406
-Node: --value Flexible valuation279839
-Node: Valuation examples281682
-Node: Interaction of valuation and queries283814
-Node: Effect of valuation on reports284531
-Node: PART 4 COMMANDS292429
-Node: Help commands294645
-Node: commands294831
-Node: demo295039
-Node: help296273
-Node: User interface commands297978
-Node: repl298189
-Node: Examples300453
-Node: run301011
-Node: Examples 2303426
-Node: ui304450
-Node: web304587
-Node: Data entry commands304715
-Node: add304913
-Node: import307368
-Node: Import preview308402
-Node: Overlap detection309350
-Node: First import312236
-Node: Importing balance assignments313431
-Node: Import and commodity styles314486
-Node: Import special cases314924
-Node: Basic report commands316259
-Node: accounts316560
-Node: codes319433
-Node: commodities320455
-Node: descriptions320699
-Node: files321166
-Node: notes321463
-Node: payees321975
-Node: prices322759
-Node: stats323651
-Node: tags325392
-Node: Standard report commands326699
-Node: print327004
-Node: print explicitness329745
-Node: print amount style330665
-Node: print parseability331903
-Node: print other features332822
-Node: print output format333685
-Node: aregister336970
-Node: aregister and posting dates341429
-Node: register342330
-Node: Custom register output349505
-Node: balancesheet350690
-Node: balancesheetequity355460
-Node: cashflow360600
-Node: incomestatement365162
-Node: Advanced report commands369760
-Node: balance369968
-Node: balance features375144
-Node: Simple balance report377220
-Node: Balance report line format379030
-Node: Filtered balance report381390
-Node: List or tree mode381909
-Node: Depth limiting383422
-Node: Dropping top-level accounts384189
-Node: Showing declared accounts384699
-Node: Sorting by amount385429
-Node: Percentages386266
-Node: Multi-period balance report386973
-Node: Balance change end balance389725
-Node: Balance report types391362
-Node: Calculation type392041
-Node: Accumulation type392745
-Node: Valuation type393846
-Node: Combining balance report types395035
-Node: Budget report397067
-Node: Using the budget report399372
-Node: Budget date surprises401648
-Node: Selecting budget goals403012
-Node: Budgeting vs forecasting403960
-Node: Balance report layout405637
-Node: Wide layout406842
-Node: Tall layout409247
-Node: Bare layout410553
-Node: Tidy layout412617
-Node: Balance report output414161
-Node: Some useful balance reports414976
-Node: roi416236
-Node: Spaces and special characters in --inv and --pnl418483
-Node: Semantics of --inv and --pnl419209
-Node: IRR and TWR explained421296
-Node: Chart commands424707
-Node: activity424888
-Node: Data generation commands425385
-Node: close425591
-Node: close --clopen428154
-Node: close --close430328
-Node: close --open430852
-Node: close --assert431102
-Node: close --assign431429
-Node: close --retain432108
-Node: close customisation432965
-Node: close and balance assertions434609
-Node: close examples436131
-Node: Retain earnings436368
-Node: Migrate balances to a new file436871
-Node: More detailed close examples438233
-Node: rewrite438455
-Node: Re-write rules in a file441027
-Node: Diff output format442337
-Node: rewrite vs print --auto443610
-Node: Maintenance commands444324
-Node: check444533
-Node: Basic checks445615
-Node: Strict checks446568
-Node: Other checks447443
-Node: Custom checks449298
-Node: diff449753
-Node: test450960
-Node: PART 5 COMMON TASKS451832
-Node: Getting help452065
-Node: Constructing command lines452974
-Node: Starting a journal file453812
-Node: Setting LEDGER_FILE455196
-Node: Setting opening balances456454
-Node: Recording transactions459776
-Node: Reconciling460501
-Node: Reporting462890
-Node: Migrating to a new file467004
-Node: BUGS467453
-Node: Troubleshooting468418
+Node: Special characters19282
+Node: Escaping shell special characters20232
+Node: Escaping on Windows21476
+Node: Escaping regular expression special characters22209
+Node: Escaping add-on arguments23196
+Node: Escaping in other situations24225
+Node: Using a wild card25184
+Node: Unicode characters25563
+Node: Regular expressions27227
+Node: hledger's regular expressions30486
+Node: Argument files32127
+Node: Config files32830
+Node: Shell completions35983
+Node: Output36472
+Node: Output destination36663
+Node: Output format37221
+Node: Text output39007
+Node: Box-drawing characters39986
+Node: Colour40486
+Node: Paging41072
+Node: HTML output42598
+Node: CSV / TSV output43052
+Node: FODS output43306
+Node: Beancount output44110
+Node: Beancount account names45565
+Node: Beancount commodity names46106
+Node: Beancount virtual postings46753
+Node: Beancount metadata47069
+Node: Beancount costs47849
+Node: Beancount operating currency48265
+Node: SQL output48715
+Node: JSON output49506
+Node: Commodity styles50323
+Node: Debug output51210
+Node: Environment52042
+Node: PART 2 DATA FORMATS52699
+Node: Journal52842
+Node: Journal cheatsheet55320
+Node: Comments61534
+Node: Transactions62478
+Node: Dates63615
+Node: Simple dates63767
+Node: Posting dates64383
+Node: Status65470
+Node: Code67236
+Node: Description67571
+Node: Payee and note68258
+Node: Transaction comments69349
+Node: Postings69865
+Node: Debits and credits71028
+Node: The two space delimiter71638
+Node: Account names72203
+Node: Amounts74007
+Node: Decimal marks75036
+Node: Digit group marks76140
+Node: Commodity76775
+Node: Costs77892
+Node: Balance assertions80144
+Node: Assertions and ordering81407
+Node: Assertions and multiple included files82135
+Node: Assertions and multiple -f files82895
+Node: Assertions and costs83537
+Node: Assertions and commodities84187
+Node: Assertions and subaccounts85846
+Node: Assertions and status86506
+Node: Assertions and virtual postings86926
+Node: Assertions and auto postings87291
+Node: Assertions and precision88166
+Node: Posting comments88617
+Node: Transaction balancing89157
+Node: Tags91159
+Node: Querying with tags92453
+Node: Displaying tags93252
+Node: When to use tags ?93648
+Node: Tag names94312
+Node: Special tags94865
+Node: Directives96430
+Node: Directives and multiple files97887
+Node: Directive effects98832
+Node: account directive101988
+Node: Account comments103438
+Node: Account error checking104097
+Node: Account display order105634
+Node: Account types106832
+Node: alias directive110606
+Node: Basic aliases111817
+Node: Regex aliases112692
+Node: Combining aliases113739
+Node: Aliases and multiple files115193
+Node: end aliases directive115976
+Node: Aliases can generate bad account names116344
+Node: Aliases and account types117177
+Node: commodity directive118069
+Node: Commodity directive syntax119656
+Node: Commodity error checking121305
+Node: decimal-mark directive121780
+Node: include directive122359
+Node: P directive123435
+Node: payee directive124469
+Node: tag directive125091
+Node: Periodic transactions125703
+Node: Periodic rule syntax127857
+Node: Periodic rules and relative dates128680
+Node: Two spaces between period expression and description!129457
+Node: Auto postings130418
+Node: Auto postings and multiple files133578
+Node: Auto postings and dates133983
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions134424
+Node: Auto posting tags135270
+Node: Auto postings on forecast transactions only136165
+Node: Other syntax136635
+Node: Balance assignments137407
+Node: Balance assignments and costs138935
+Node: Balance assignments and multiple files139357
+Node: Bracketed posting dates139780
+Node: D directive140478
+Node: apply account directive142251
+Node: Y directive143118
+Node: Secondary dates144106
+Node: Star comments145591
+Node: Valuation expressions146283
+Node: Virtual postings146582
+Node: Other Ledger directives148206
+Node: Other cost/lot notations148968
+Node: CSV151809
+Node: CSV rules cheatsheet153905
+Node: source155932
+Node: encoding156932
+Node: separator157871
+Node: skip158524
+Node: date-format159174
+Node: timezone160017
+Node: newest-first161143
+Node: intra-day-reversed161856
+Node: decimal-mark162456
+Node: fields list162936
+Node: Field assignment164744
+Node: Field names165963
+Node: date field167295
+Node: date2 field167459
+Node: status field167654
+Node: code field167844
+Node: description field168032
+Node: comment field168249
+Node: account field168806
+Node: amount field169524
+Node: currency field172363
+Node: balance field172771
+Node: if block173294
+Node: Matchers174821
+Node: Multiple matchers176811
+Node: Match groups177619
+Node: if table178512
+Node: balance-type180575
+Node: include181402
+Node: Working with CSV181971
+Node: Rapid feedback182523
+Node: Valid CSV183106
+Node: File Extension183982
+Node: Reading CSV from standard input184717
+Node: Reading multiple CSV files185103
+Node: Reading files specified by rule185579
+Node: Valid transactions186976
+Node: Deduplicating importing187801
+Node: Setting amounts189030
+Node: Amount signs191557
+Node: Setting currency/commodity192622
+Node: Amount decimal places193998
+Node: Referencing other fields195255
+Node: How CSV rules are evaluated196363
+Node: Well factored rules198031
+Node: CSV rules examples198521
+Node: Bank of Ireland198719
+Node: Coinbase200316
+Node: Amazon201499
+Node: Paypal203341
+Node: Timeclock211091
+Node: Timedot213360
+Node: Timedot examples216837
+Node: PART 3 REPORTING CONCEPTS219114
+Node: Time periods219278
+Node: Report start & end date219551
+Node: Smart dates221027
+Node: Report intervals222970
+Node: Date adjustments223544
+Node: Start date adjustment223764
+Node: End date adjustment224667
+Node: Period headings225412
+Node: Period expressions226345
+Node: Period expressions with a report interval228250
+Node: More complex report intervals228698
+Node: Multiple weekday intervals230814
+Node: Depth231825
+Node: Queries233660
+Node: Query types235358
+Node: acct query235775
+Node: amt query236086
+Node: code query236703
+Node: cur query236898
+Node: desc query237504
+Node: date query237687
+Node: date2 query238083
+Node: depth query238374
+Node: expr query238710
+Node: not query239091
+Node: note query239431
+Node: payee query239697
+Node: real query239978
+Node: status query240183
+Node: type query240423
+Node: tag query240956
+Node: Combining query terms241585
+Node: Queries and command options243325
+Node: Queries and account aliases243779
+Node: Queries and valuation244104
+Node: Pivoting244466
+Node: Generating data246742
+Node: Forecasting248542
+Node: --forecast249198
+Node: Inspecting forecast transactions250299
+Node: Forecast reports251632
+Node: Forecast tags252741
+Node: Forecast period in detail253361
+Node: Forecast troubleshooting254449
+Node: Budgeting255520
+Node: Amount formatting256080
+Node: Commodity display style256324
+Node: Rounding258165
+Node: Trailing decimal marks258770
+Node: Amount parseability259703
+Node: Cost reporting261284
+Node: Recording costs262115
+Node: Reporting at cost263842
+Node: Equity conversion postings264607
+Node: Inferring equity conversion postings267252
+Node: Combining costs and equity conversion postings268394
+Node: Requirements for detecting equity conversion postings269619
+Node: Infer cost and equity by default ?271141
+Node: Value reporting271578
+Node: -V Value272514
+Node: -X Value in specified commodity272841
+Node: Valuation date273191
+Node: Finding market price274151
+Node: --infer-market-prices market prices from transactions275531
+Node: Valuation commodity278575
+Node: --value Flexible valuation280008
+Node: Valuation examples281851
+Node: Interaction of valuation and queries283983
+Node: Effect of valuation on reports284700
+Node: PART 4 COMMANDS292598
+Node: Help commands294814
+Node: commands295000
+Node: demo295208
+Node: help296442
+Node: User interface commands298147
+Node: repl298358
+Node: Examples300622
+Node: run301180
+Node: Examples 2303595
+Node: ui304619
+Node: web304756
+Node: Data entry commands304884
+Node: add305082
+Node: import307537
+Node: Import preview308571
+Node: Overlap detection309519
+Node: First import312405
+Node: Importing balance assignments313600
+Node: Import and commodity styles314655
+Node: Import special cases315093
+Node: Basic report commands316428
+Node: accounts316729
+Node: codes319662
+Node: commodities320684
+Node: descriptions320928
+Node: files321395
+Node: notes321692
+Node: payees322204
+Node: prices322988
+Node: stats323880
+Node: tags325621
+Node: Standard report commands326928
+Node: print327233
+Node: print explicitness329974
+Node: print amount style330894
+Node: print parseability332132
+Node: print other features333051
+Node: print output format333914
+Node: aregister337199
+Node: aregister and posting dates341752
+Node: register342653
+Node: Custom register output349894
+Node: balancesheet351079
+Node: balancesheetequity356044
+Node: cashflow361379
+Node: incomestatement366192
+Node: Advanced report commands371041
+Node: balance371249
+Node: balance features376686
+Node: Simple balance report378762
+Node: Balance report line format380572
+Node: Filtered balance report382932
+Node: List or tree mode383451
+Node: Depth limiting384964
+Node: Dropping top-level accounts385731
+Node: Showing declared accounts386241
+Node: Sorting by amount386971
+Node: Percentages387808
+Node: Multi-period balance report388515
+Node: Balance change end balance391267
+Node: Balance report types392904
+Node: Calculation type393583
+Node: Accumulation type394287
+Node: Valuation type395388
+Node: Combining balance report types396577
+Node: Budget report398609
+Node: Using the budget report400914
+Node: Budget date surprises403190
+Node: Selecting budget goals404554
+Node: Budgeting vs forecasting405502
+Node: Balance report layout407179
+Node: Wide layout408384
+Node: Tall layout410789
+Node: Bare layout412095
+Node: Tidy layout414159
+Node: Balance report output415703
+Node: Some useful balance reports416518
+Node: roi417778
+Node: Spaces and special characters in --inv and --pnl420025
+Node: Semantics of --inv and --pnl420751
+Node: IRR and TWR explained422838
+Node: Chart commands426249
+Node: activity426430
+Node: Data generation commands426927
+Node: close427133
+Node: close --clopen429696
+Node: close --close431870
+Node: close --open432394
+Node: close --assert432644
+Node: close --assign432971
+Node: close --retain433650
+Node: close customisation434507
+Node: close and balance assertions436151
+Node: close examples437673
+Node: Retain earnings437910
+Node: Migrate balances to a new file438413
+Node: More detailed close examples439775
+Node: rewrite439997
+Node: Re-write rules in a file442569
+Node: Diff output format443879
+Node: rewrite vs print --auto445152
+Node: Maintenance commands445866
+Node: check446075
+Node: Basic checks447157
+Node: Strict checks448110
+Node: Other checks448985
+Node: Custom checks450840
+Node: diff451295
+Node: test452502
+Node: PART 5 COMMON TASKS453374
+Node: Getting help453607
+Node: Constructing command lines454516
+Node: Starting a journal file455354
+Node: Setting LEDGER_FILE456738
+Node: Setting opening balances457996
+Node: Recording transactions461318
+Node: Reconciling462043
+Node: Reporting464432
+Node: Migrating to a new file468546
+Node: BUGS468995
+Node: Troubleshooting469960
 
 End Tag Table
 

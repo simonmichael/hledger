@@ -447,8 +447,12 @@ Usually hledger accepts any unambiguous flag prefix, eg you can write
 \f[CR]\-\-tl\f[R] instead of \f[CR]\-\-tldr\f[R] or \f[CR]\-\-dry\f[R]
 instead of \f[CR]\-\-dry\-run\f[R].
 .PP
-If the same option appears more than once in a command, usually the last
-(right\-most) wins.
+If the same option appears more than once in a command line, usually the
+last (right\-most) wins.
+Similarly, if mutually exclusive flags are used together, the
+right\-most wins.
+(When flags are mutually exclusive, they\[aq]ll usually have a group
+prefix in \-\-help.)
 .PP
 With most commands, arguments are interpreted as a hledger query which
 filter the data.
@@ -8975,8 +8979,9 @@ Flags:
      \-\-find                 find the first account matched by the first
                             argument (a case\-insensitive infix regexp or
                             account name)
-  \-l \-\-flat                 show accounts as a flat list (default)
-  \-t \-\-tree                 show accounts as a tree
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default)
+  \-t \-\-tree                 list/tree mode: show accounts as a tree
      \-\-drop=N               flat mode: omit N leading account name parts
 .EE
 .PP
@@ -9525,9 +9530,11 @@ Flags:
                             date. Warning: this can show a wrong running
                             balance.
      \-\-no\-elide             don\[aq]t show only 2 commodities per amount
-     \-\-cumulative           show running total from report start date
-  \-H \-\-historical           show historical running total/balance (includes
-                            postings before report start date) (default)
+     \-\-cumulative           accumulation mode: show running total from report
+                            start date
+  \-H \-\-historical           accumulation mode: show historical running
+                            total/balance (includes postings before report
+                            start date) (default)
      \-\-invert               display all amounts with reversed sign
      \-\-heading=YN           show heading row above table: yes (default) or no
   \-w \-\-width=N              set output width (default: terminal width). \-wN,M
@@ -9638,10 +9645,11 @@ Show postings and their running total.
 .IP
 .EX
 Flags:
-     \-\-cumulative           show running total from report start date
-                            (default)
-  \-H \-\-historical           show historical running total/balance (includes
-                            postings before report start date)
+     \-\-cumulative           accumulation mode: show running total from report
+                            start date (default)
+  \-H \-\-historical           accumulation mode: show historical running
+                            total/balance (includes postings before report
+                            start date)
   \-A \-\-average              show running average of posting amounts instead
                             of total (implies \-\-empty)
   \-m \-\-match=DESC           fuzzy search for one recent posting with
@@ -9826,26 +9834,28 @@ financial statements.
 .IP
 .EX
 Flags:
-     \-\-sum                  show sum of posting amounts (default)
-     \-\-valuechange          show total change of period\-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     \-\-count                show the count of postings
-     \-\-change               accumulate amounts from column start to column
-                            end (in multicolumn reports)
-     \-\-cumulative           accumulate amounts from report start (specified
-                            by e.g. \-b/\-\-begin) to column end
-  \-H \-\-historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
+     \-\-sum                  calculation mode: show sum of posting amounts
                             (default)
-  \-l \-\-flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth\-clipped.
-  \-t \-\-tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-valuechange          calculation mode: show total change of value of
+                            period\-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     \-\-count                calculation mode: show the count of postings
+     \-\-change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+     \-\-cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date) (default)
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth\-clipped.
+  \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     \-\-drop=N               in list mode, omit N leading account name parts
      \-\-declared             include non\-parent declared accounts (best used
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
@@ -9854,8 +9864,7 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
-                            mode)
+     \-\-no\-elide             in tree mode, don\[aq]t squash boring parent accounts
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\[aq]s
@@ -9928,26 +9937,28 @@ financial statements.
 .IP
 .EX
 Flags:
-     \-\-sum                  show sum of posting amounts (default)
-     \-\-valuechange          show total change of period\-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     \-\-count                show the count of postings
-     \-\-change               accumulate amounts from column start to column
-                            end (in multicolumn reports)
-     \-\-cumulative           accumulate amounts from report start (specified
-                            by e.g. \-b/\-\-begin) to column end
-  \-H \-\-historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
+     \-\-sum                  calculation mode: show sum of posting amounts
                             (default)
-  \-l \-\-flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth\-clipped.
-  \-t \-\-tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-valuechange          calculation mode: show total change of value of
+                            period\-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     \-\-count                calculation mode: show the count of postings
+     \-\-change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+     \-\-cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date) (default)
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth\-clipped.
+  \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     \-\-drop=N               in list mode, omit N leading account name parts
      \-\-declared             include non\-parent declared accounts (best used
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
@@ -9956,8 +9967,7 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
-                            mode)
+     \-\-no\-elide             in tree mode, don\[aq]t squash boring parent accounts
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\[aq]s
@@ -10038,25 +10048,29 @@ financial statements.
 .IP
 .EX
 Flags:
-     \-\-sum                  show sum of posting amounts (default)
-     \-\-valuechange          show total change of period\-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     \-\-count                show the count of postings
-     \-\-change               accumulate amounts from column start to column
-                            end (in multicolumn reports) (default)
-     \-\-cumulative           accumulate amounts from report start (specified
-                            by e.g. \-b/\-\-begin) to column end
-  \-H \-\-historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  \-l \-\-flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth\-clipped.
-  \-t \-\-tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-sum                  calculation mode: show sum of posting amounts
+                            (default)
+     \-\-valuechange          calculation mode: show total change of value of
+                            period\-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     \-\-count                calculation mode: show the count of postings
+     \-\-change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+                            (default)
+     \-\-cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth\-clipped.
+  \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     \-\-drop=N               in list mode, omit N leading account name parts
      \-\-declared             include non\-parent declared accounts (best used
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
@@ -10065,8 +10079,7 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
-                            mode)
+     \-\-no\-elide             in tree mode, don\[aq]t squash boring parent accounts
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\[aq]s
@@ -10137,25 +10150,29 @@ financial statements.
 .IP
 .EX
 Flags:
-     \-\-sum                  show sum of posting amounts (default)
-     \-\-valuechange          show total change of period\-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     \-\-count                show the count of postings
-     \-\-change               accumulate amounts from column start to column
-                            end (in multicolumn reports) (default)
-     \-\-cumulative           accumulate amounts from report start (specified
-                            by e.g. \-b/\-\-begin) to column end
-  \-H \-\-historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  \-l \-\-flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth\-clipped.
-  \-t \-\-tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     \-\-drop=N               flat mode: omit N leading account name parts
+     \-\-sum                  calculation mode: show sum of posting amounts
+                            (default)
+     \-\-valuechange          calculation mode: show total change of value of
+                            period\-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     \-\-gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     \-\-count                calculation mode: show the count of postings
+     \-\-change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+                            (default)
+     \-\-cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth\-clipped.
+  \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     \-\-drop=N               in list mode, omit N leading account name parts
      \-\-declared             include non\-parent declared accounts (best used
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
@@ -10164,8 +10181,7 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
-                            mode)
+     \-\-no\-elide             in tree mode, don\[aq]t squash boring parent accounts
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\[aq]s
@@ -10240,32 +10256,36 @@ performance, unrealised capital gains, etc.
 .IP
 .EX
 Flags:
-     \-\-sum                  show sum of posting amounts (default)
-     \-\-valuechange          show total change of value of period\-end
-                            historical balances (caused by deposits,
+     \-\-sum                  calculation mode: show sum of posting amounts
+                            (default)
+     \-\-valuechange          calculation mode: show total change of value of
+                            period\-end historical balances (caused by deposits,
                             withdrawals, market price fluctuations)
-     \-\-gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     \-\-budget[=DESCPAT]     show sum of posting amounts together with budget
-                            goals defined by periodic
+     \-\-gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     \-\-budget[=DESCPAT]     calculation mode: show sum of posting amounts
+                            together with budget goals defined by periodic
                             transactions. With a DESCPAT argument (must be
                             separated by = not space),
                             use only periodic transactions with matching
                             description
                             (case insensitive substring match).
-     \-\-count                show the count of postings
-     \-\-change               accumulate amounts from column start to column
-                            end (in multicolumn reports, default)
-     \-\-cumulative           accumulate amounts from report start (specified
-                            by e.g. \-b/\-\-begin) to column end
-  \-H \-\-historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
-  \-l \-\-flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth\-clipped.
-  \-t \-\-tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     \-\-drop=N               omit N leading account name parts (in flat mode)
+     \-\-count                calculation mode: show the count of postings
+     \-\-change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports,
+                            default)
+     \-\-cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. \-b/\-\-begin) to column end
+  \-H \-\-historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date)
+  \-l \-\-flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth\-clipped.
+  \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     \-\-drop=N               in list mode, omit N leading account name parts
      \-\-declared             include non\-parent declared accounts (best used
                             with \-E)
   \-A \-\-average              show a row average column (in multicolumn
@@ -10274,8 +10294,7 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             don\[aq]t squash boring parent accounts (in tree
-                            mode)
+     \-\-no\-elide             in tree mode, don\[aq]t squash boring parent accounts
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name (in
                             flat mode). With multiple columns, sorts by the row

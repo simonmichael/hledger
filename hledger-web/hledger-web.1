@@ -51,15 +51,14 @@ with a date field.
 .PP
 hledger\-web can be run in three modes:
 .IP \[bu] 2
-Transient mode (the default): your default web browser will be opened to
-show the app if possible, and the app exits automatically after two
-minutes of inactivity (no requests received and no open browser windows
-viewing it).
+\f[CR]\-\-serve\-browse\f[R] mode (the default): the app serves the web
+UI and JSON API, and opens your default web browser to show the app if
+possible, and exits automatically after two minutes of inactivity (with
+no requests received and no open browser windows viewing it).
 .IP \[bu] 2
-With \f[CR]\-\-serve\f[R]: the app runs without stopping, and without
-opening a browser.
+\f[CR]\-\-serve\f[R]: the app just serves the web UI and JSON API.
 .IP \[bu] 2
-With \f[CR]\-\-serve\-api\f[R]: only the JSON API is served.
+\f[CR]\-\-serve\-api\f[R]: the app just serves the JSON API.
 .PP
 In all cases hledger\-web runs as a foreground process, logging requests
 to stdout.
