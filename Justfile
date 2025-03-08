@@ -1541,7 +1541,7 @@ _on-master-branch:
 
 # Gzip the downloaded binaries and upload to the specified github release. Run after ghruns-download.
 ghrelease-upload VER:
-    #gzip $(find tmp -name '*.tar')
+    gzip $(find tmp -name '*.tar')
     gh release upload {{ VER }} tmp/hledger-linux-x64.tar.gz
     gh release upload {{ VER }} tmp/hledger-mac-arm64.tar.gz
     gh release upload {{ VER }} tmp/hledger-mac-x64.tar.gz
