@@ -5,10 +5,11 @@ register
 Show postings and their running total.
 
 Flags:
-     --cumulative           show running total from report start date
-                            (default)
-  -H --historical           show historical running total/balance (includes
-                            postings before report start date)
+     --cumulative           accumulation mode: show running total from report
+                            start date (default)
+  -H --historical           accumulation mode: show historical running
+                            total/balance (includes postings before report
+                            start date)
   -A --average              show running average of posting amounts instead
                             of total (implies --empty)
   -m --match=DESC           fuzzy search for one recent posting with

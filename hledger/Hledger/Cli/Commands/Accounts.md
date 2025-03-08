@@ -14,8 +14,9 @@ Flags:
      --find                 find the first account matched by the first
                             argument (a case-insensitive infix regexp or
                             account name)
-  -l --flat                 show accounts as a flat list (default)
-  -t --tree                 show accounts as a tree
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default)
+  -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 ```
 

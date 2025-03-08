@@ -7,26 +7,28 @@ Amounts are shown with normal positive sign, as in conventional financial statem
 
 ```flags
 Flags:
-     --sum                  show sum of posting amounts (default)
-     --valuechange          show total change of period-end historical
-                            balance value (caused by deposits, withdrawals,
-                            market price fluctuations)
-     --gain                 show unrealised capital gain/loss (historical
-                            balance value minus cost basis)
-     --count                show the count of postings
-     --change               accumulate amounts from column start to column
-                            end (in multicolumn reports)
-     --cumulative           accumulate amounts from report start (specified
-                            by e.g. -b/--begin) to column end
-  -H --historical           accumulate amounts from journal start to column
-                            end (includes postings before report start date)
+     --sum                  calculation mode: show sum of posting amounts
                             (default)
-  -l --flat                 show accounts as a flat list (default). Amounts
-                            exclude subaccount amounts, except where the
-                            account is depth-clipped.
-  -t --tree                 show accounts as a tree. Amounts include
-                            subaccount amounts.
-     --drop=N               flat mode: omit N leading account name parts
+     --valuechange          calculation mode: show total change of value of
+                            period-end historical balances (caused by deposits,
+                            withdrawals, market price fluctuations)
+     --gain                 calculation mode: show unrealised capital
+                            gain/loss (historical balance value minus cost
+                            basis)
+     --count                calculation mode: show the count of postings
+     --change               accumulation mode: accumulate amounts from column
+                            start to column end (in multicolumn reports)
+     --cumulative           accumulation mode: accumulate amounts from report
+                            start (specified by e.g. -b/--begin) to column end
+  -H --historical           accumulation mode: accumulate amounts from
+                            journal start to column end (includes postings
+                            before report start date) (default)
+  -l --flat                 list/tree mode: show accounts as a flat list
+                            (default). Amounts exclude subaccount amounts,
+                            except where the account is depth-clipped.
+  -t --tree                 list/tree mode: show accounts as a tree. Amounts
+                            include subaccount amounts.
+     --drop=N               in list mode, omit N leading account name parts
      --declared             include non-parent declared accounts (best used
                             with -E)
   -A --average              show a row average column (in multicolumn
@@ -35,8 +37,7 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             don't squash boring parent accounts (in tree
-                            mode)
+     --no-elide             in tree mode, don't squash boring parent accounts
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
