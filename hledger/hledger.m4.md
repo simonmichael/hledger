@@ -266,7 +266,8 @@ _generaloptions_
 Usually hledger accepts any unambiguous flag prefix,
 eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
 
-If the same option appears more than once in a command, usually the last (right-most) wins.
+If the same option appears more than once in a command line, usually the last (right-most) wins.
+Similarly, if mutually exclusive flags are used together, the right-most wins.
 
 With most commands, arguments are interpreted as a hledger [query](hledger.md#queries) which filter the data.
 Some queries can be expressed either with options or with arguments.
