@@ -164,3 +164,33 @@ readAndCacheJournalFile reading and caching -:
 readAndCacheJournalFile reading and caching sample.journal:
 readAndCacheJournalFile using cache for -:
 readAndCacheJournalFile using cache for sample.journal:
+
+# ** 12. Run commands with forecast properly honor reporting interval
+<
+2025-01-01  Buy beans
+    expenses:food   $2
+    assets         -$2
+
+~ every 14 days from 2025-01-01  Buy soylent green
+    expenses:food:not people   $1
+    assets                    -$1
+$ hledger run -f- -- echo "Till Feb" -- register --forecast -b 2025-01 -e 2025-02 -- echo "Till Mar" -- register --forecast -b 2025-01 -e 2025-03
+>
+Till Feb
+2025-01-01 Buy beans            expenses:food                   $2            $2
+                                assets                         $-2             0
+2025-01-15 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-01-29 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+Till Mar
+2025-01-01 Buy beans            expenses:food                   $2            $2
+                                assets                         $-2             0
+2025-01-15 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-01-29 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-02-12 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-02-26 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
