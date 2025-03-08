@@ -39,10 +39,9 @@ If that gives an error, use `#!/usr/bin/env -S hledger run`.
 It's ok to use the `run` command recursively within a command script.
 
 You may find some differences in behaviour between `run` command lines and normal hledger command lines.
-For example, with `run`,
-
-- the command name must be written first, options afterward
-- full command names or official abbreviations (as in the command list) must be used
+`run` is a little stricter;
+eg it requires full command names or official abbreviations (as seen in the commands list),
+and command options must be written after the command name.
 
 ### Examples
 
