@@ -71,6 +71,9 @@ old
 /bin/*_.hs
 /examples/[1-9]*.journal
 /hledger/test/cli/addons
+/hledger/hledger.md
+/hledger-ui/hledger-ui.md
+/hledger-web/hledger-web.md
 /tools/generatejournal
 /tools/relnotes
 /tools/simplebench
