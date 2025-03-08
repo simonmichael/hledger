@@ -47,9 +47,9 @@ import qualified System.IO as IO
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")
   ([flagNone ["cumulative"] (setboolopt "cumulative")
-     "show running total from report start date (default)"
+     (accumprefix ++ "show running total from report start date (default)")
   ,flagNone ["historical","H"] (setboolopt "historical")
-     "show historical running total/balance (includes postings before report start date)"
+     (accumprefix ++ "show historical running total/balance (includes postings before report start date)")
   ,flagNone ["average","A"] (setboolopt "average")
      "show running average of posting amounts instead of total (implies --empty)"
   ,let arg = "DESC" in
@@ -77,6 +77,8 @@ registermode = hledgerCommandMode
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
+  where
+    accumprefix = "accumulation mode: "
 
 -- | Print a (posting) register report.
 register :: CliOpts -> Journal -> IO ()

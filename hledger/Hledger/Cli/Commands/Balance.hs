@@ -317,39 +317,40 @@ balancemode = hledgerCommandMode
   (
     -- https://hledger.org/dev/hledger.html#calculation-type :
     [flagNone ["sum"] (setboolopt "sum")
-      "show sum of posting amounts (default)"
+      (calcprefix ++ "show sum of posting amounts (default)")
     ,flagNone ["valuechange"] (setboolopt "valuechange")
-      "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)"
+      (calcprefix ++ "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)")
     ,flagNone ["gain"] (setboolopt "gain")
-      "show unrealised capital gain/loss (historical balance value minus cost basis)"
+      (calcprefix ++ "show unrealised capital gain/loss (historical balance value minus cost basis)")
     -- XXX --budget[=DESCPAT], --forecast[=PERIODEXP], could be more consistent
     ,flagOpt "" ["budget"] (\s opts -> Right $ setopt "budget" s opts) "DESCPAT"
       (unlines
-      [ "show sum of posting amounts together with budget goals defined by periodic"
+      [ calcprefix ++ "show sum of posting amounts together with budget goals defined by periodic"
       , "transactions. With a DESCPAT argument (must be separated by = not space),"
       , "use only periodic transactions with matching description"
       , "(case insensitive substring match)."
       ])
-    ,flagNone ["count"] (setboolopt "count") "show the count of postings"
+    ,flagNone ["count"] (setboolopt "count")
+      (calcprefix ++ "show the count of postings")
 
     -- https://hledger.org/dev/hledger.html#accumulation-type :
     ,flagNone ["change"] (setboolopt "change")
-      "accumulate amounts from column start to column end (in multicolumn reports, default)"
+      (accumprefix ++ "accumulate amounts from column start to column end (in multicolumn reports, default)")
     ,flagNone ["cumulative"] (setboolopt "cumulative")
-      "accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
+      (accumprefix ++ "accumulate amounts from report start (specified by e.g. -b/--begin) to column end")
     ,flagNone ["historical","H"] (setboolopt "historical")
-      "accumulate amounts from journal start to column end (includes postings before report start date)"
+      (accumprefix ++ "accumulate amounts from journal start to column end (includes postings before report start date)")
     ]
 
     -- other options specific to this command:
     ++ flattreeflags True ++
-    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts (in flat mode)"
+    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
     ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
@@ -378,6 +379,10 @@ balancemode = hledgerCommandMode
       "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
     ])
   ([], Just $ argsFlag "[QUERY]")
+
+  where
+    calcprefix = "calculation mode: "
+    accumprefix = "accumulation mode: "
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()

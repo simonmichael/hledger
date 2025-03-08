@@ -49,9 +49,9 @@ aregistermode = hledgerCommandMode
      "filter strictly by transaction date, not posting date. Warning: this can show a wrong running balance."
   ,flagNone ["no-elide"] (setboolopt "no-elide") "don't show only 2 commodities per amount"
   ,flagNone ["cumulative"] (setboolopt "cumulative")
-     "show running total from report start date"
+     (accumprefix ++ "show running total from report start date")
   ,flagNone ["historical","H"] (setboolopt "historical")
-     "show historical running total/balance (includes postings before report start date) (default)"
+     (accumprefix ++ "show historical running total/balance (includes postings before report start date) (default)")
   -- ,flagNone ["average","A"] (setboolopt "average")
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
@@ -74,6 +74,8 @@ aregistermode = hledgerCommandMode
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "ACCTPAT [QUERY]")
+  where
+    accumprefix = "accumulation mode: "
 
 -- based on Hledger.UI.RegisterScreen:
 

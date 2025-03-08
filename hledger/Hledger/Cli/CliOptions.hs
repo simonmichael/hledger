@@ -183,11 +183,11 @@ reportflags = [
   -- report period, interval, dates
   flagReq  ["begin","b"]     (\s opts -> Right $ setopt "begin" s opts) "DATE" "include postings/transactions on/after this date"
  ,flagReq  ["end","e"]       (\s opts -> Right $ setopt "end" s opts) "DATE" "include postings/transactions before this date (with a report interval, will be adjusted to following subperiod end)"
- ,flagNone ["daily","D"]     (setboolopt "daily")     "multiperiod report with 1 day interval"
- ,flagNone ["weekly","W"]    (setboolopt "weekly")    "multiperiod report with 1 week interval"
- ,flagNone ["monthly","M"]   (setboolopt "monthly")   "multiperiod report with 1 month interval"
- ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "multiperiod report with 1 quarter interval"
- ,flagNone ["yearly","Y"]    (setboolopt "yearly")    "multiperiod report with 1 year interval"
+ ,flagNone ["daily","D"]     (setboolopt "daily")     "set report interval: 1 day"
+ ,flagNone ["weekly","W"]    (setboolopt "weekly")    "set report interval: 1 week"
+ ,flagNone ["monthly","M"]   (setboolopt "monthly")   "set report interval: 1 month"
+ ,flagNone ["quarterly","Q"] (setboolopt "quarterly") "set report interval: 1 quarter"
+ ,flagNone ["yearly","Y"]    (setboolopt "yearly")    "set report interval: 1 year"
  ,flagReq  ["period","p"]    (\s opts -> Right $ setopt "period" s opts) "PERIODEXP" "set begin date, end date, and/or report interval, with more flexibility"
  ,flagReq  ["today"]         (\s opts -> Right $ setopt "today" s opts) "DATE" "override today's date (affects relative dates)"
  ,flagNone ["date2"]         (setboolopt "date2") "match/use secondary dates instead (deprecated)"  -- see also hiddenflags
@@ -257,11 +257,13 @@ terminalflags = [
 flattreeflags :: Bool -> [Flag RawOpts]
 flattreeflags showamounthelp = [
    flagNone ["flat","l"] (setboolopt "flat")
-     ("show accounts as a flat list (default)"
+     (prefix ++ "show accounts as a flat list (default)"
       ++ if showamounthelp then ". Amounts exclude subaccount amounts, except where the account is depth-clipped." else "")
   ,flagNone ["tree","t"] (setboolopt "tree")
-    ("show accounts as a tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
+    (prefix ++ "show accounts as a tree" ++ if showamounthelp then ". Amounts include subaccount amounts." else "")
   ]
+  where
+    prefix = "list/tree mode: "
 
 -- | hledger CLI's --conf/--no-conf flags.
 confflags = [

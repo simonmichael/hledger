@@ -69,37 +69,36 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
    cbcdoc
    -- keep roughly consistent order with Balance.hs. XXX refactor
-
-   ([flagNone ["sum"] (setboolopt "sum")
-      "show sum of posting amounts (default)"
-   ,flagNone ["valuechange"] (setboolopt "valuechange")
-      "show total change of period-end historical balance value (caused by deposits, withdrawals, market price fluctuations)"
+   (
+    -- https://hledger.org/dev/hledger.html#calculation-type :
+    [flagNone ["sum"] (setboolopt "sum")
+      (calcprefix ++ "show sum of posting amounts (default)")
+    ,flagNone ["valuechange"] (setboolopt "valuechange")
+      (calcprefix ++ "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)")
     ,flagNone ["gain"] (setboolopt "gain")
-      "show unrealised capital gain/loss (historical balance value minus cost basis)"
+      (calcprefix ++ "show unrealised capital gain/loss (historical balance value minus cost basis)")
   -- currently not supported by compound balance commands:
   --  ,flagNone ["budget"] (setboolopt "budget")
-  --     "show sum of posting amounts compared to budget goals defined by periodic transactions"
-   ,flagNone ["count"] (setboolopt "count") "show the count of postings"
+  --     (calcprefix ++ "show sum of posting amounts compared to budget goals defined by periodic transactions")
+   ,flagNone ["count"] (setboolopt "count") (calcprefix ++ "show the count of postings")
 
+    -- https://hledger.org/dev/hledger.html#accumulation-type :
    ,flagNone ["change"] (setboolopt "change")
-       ("accumulate amounts from column start to column end (in multicolumn reports)"
-           ++ defaultMarker PerPeriod)
+      (accumprefix ++ "accumulate amounts from column start to column end (in multicolumn reports)" ++ defaultMarker PerPeriod)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
-       ("accumulate amounts from report start (specified by e.g. -b/--begin) to column end"
-           ++ defaultMarker Cumulative)
+      (accumprefix ++ "accumulate amounts from report start (specified by e.g. -b/--begin) to column end" ++ defaultMarker Cumulative)
     ,flagNone ["historical","H"] (setboolopt "historical")
-       ("accumulate amounts from journal start to column end (includes postings before report start date)"
-           ++ defaultMarker Historical)
+      (accumprefix ++ "accumulate amounts from journal start to column end (includes postings before report start date)" ++ defaultMarker Historical)
     ]
 
     ++ flattreeflags True ++
-    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
+    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
     ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
@@ -123,9 +122,11 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
       ])
     ([], Just $ argsFlag "[QUERY]")
  where
-   defaultMarker :: BalanceAccumulation -> String
-   defaultMarker bacc | bacc == cbcaccum = " (default)"
-                      | otherwise        = ""
+  calcprefix = "calculation mode: "
+  accumprefix = "accumulation mode: "
+  defaultMarker :: BalanceAccumulation -> String
+  defaultMarker bacc | bacc == cbcaccum = " (default)"
+                     | otherwise        = ""
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())

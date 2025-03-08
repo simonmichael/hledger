@@ -45,11 +45,11 @@ prognameandversion =
 uiflags = [
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
-  ,flagNone ["cash"] (setboolopt "cash") "start in the cash accounts screen"
-  ,flagNone ["bs"] (setboolopt "bs") "start in the balance sheet accounts screen"
-  ,flagNone ["is"] (setboolopt "is") "start in the income statement accounts screen"
-  ,flagNone ["all"] (setboolopt "all") "start in the all accounts screen"
-  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first matched) account's register"
+  ,flagNone ["cash"] (setboolopt "cash") "start in: the cash accounts screen"
+  ,flagNone ["bs"] (setboolopt "bs") "start in: the balance sheet accounts screen"
+  ,flagNone ["is"] (setboolopt "is") "start in: the income statement accounts screen"
+  ,flagNone ["all"] (setboolopt "all") "start in: the all accounts screen"
+  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in: the (first matched) account's register"
   ,flagNone ["change"] (setboolopt "change")
     "show period balances (changes) at startup instead of historical balances"
   -- ,flagNone ["cumulative"] (setboolopt "cumulative")

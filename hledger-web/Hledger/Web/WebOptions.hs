@@ -108,7 +108,7 @@ webflags =
       "run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help"
   ]
   where
-    serveprefix = ""
+    serveprefix = "server mode: "
 
 webmode :: Mode RawOpts
 webmode =

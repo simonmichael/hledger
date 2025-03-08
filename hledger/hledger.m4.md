@@ -268,6 +268,7 @@ eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
 
 If the same option appears more than once in a command line, usually the last (right-most) wins.
 Similarly, if mutually exclusive flags are used together, the right-most wins.
+(When flags are mutually exclusive, they'll usually have a group prefix in --help.)
 
 With most commands, arguments are interpreted as a hledger [query](hledger.md#queries) which filter the data.
 Some queries can be expressed either with options or with arguments.
