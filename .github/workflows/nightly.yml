@@ -135,7 +135,7 @@ jobs:
       # permissions:
       #   contents: write
       with:
-        tag_name: 1.42.99      
+        tag_name: nightly      
         files: |
           artifacts/*.zip
           artifacts/*.tar.gz
