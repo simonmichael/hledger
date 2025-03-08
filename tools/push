@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# push [INTERVALSECS] - push to github CI branch, watch for a successful run, then push to master
+# push [INTERVALSECS] - push master to github CI branch, watch for a successful run, then push to github master
 
 set -e
 

@@ -1221,12 +1221,17 @@ relbranch VER:
     # assumes the github remote is named "origin"
     git push -f origin HEAD:binaries
 
-# Push master to github and generate platform binaries from it.
-@binaries:
-    git push -f origin master:binaries
+# Push master to github, and if successful move the nightly tag there and generate new platform binaries.
+nightlybin:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just push
+    git tag -f nightly master
+    git push -f origin nightly
+    git push origin master:binaries
 
-# Upload the last-built platform binaries to the "nightly" prerelease. Run binaries first.
-@nightly:
+# Upload the last-built platform binaries to the "nightly" prerelease. Run nightlybin and wait for it to complete first.
+@ghnightly-bin:
     gh workflow run nightly
 
 # Show last release date (of hledger package).
@@ -1510,21 +1515,13 @@ _on-master-branch:
 @showrelnotes VER:
     awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
 
-# Generate github release notes for the current release, on stdout and in clipboard. Run on release branch.
-@ghrelnotes:
+# Generate github release notes for the current release branch and push them to the corresponding github release. Run on release branch. Note, might also create or publish the release.
+@ghrel-notes:
     just _on-release-branch
-    doc/ghrelnotes `cat .version` | pbcopy
-    doc/ghrelnotes `cat .version`
-    # printf "\nGithub release notes for `cat .version`, copied to clipboard\n"
-    # echo "Paste into release created by tags push"
-    # echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
-
-# Generate github release notes and push them to the github release named by .version. Run on release branch. Note, might also create or publish the release.
-@ghrelnotes-push:
-    just ghrelnotes | gh release edit `cat .version` -F-
+    doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
 # Push the prerelease notes to the github nightly prerelease.
-@ghnightlynotes-push:
+@ghnightly-notes:
     gh release edit nightly -F doc/ghnightlynotes.md
 
 # Browse the latest github release.
@@ -1562,7 +1559,7 @@ ghruns-download:
     cd tmp; rm -rf hledger-*64
 
 # Upload the downloaded binaries to the specified github release. Run after ghruns-download.
-ghrelease-upload VER:
+ghrel-upload VER:
     @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
     gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
     gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
@@ -1605,11 +1602,6 @@ devtag-push:
     just _on-master-branch
     git push origin $(cat .version)
 
-# Move the nightly tag (base for the "nightly" prerelease) to the given REF, and force push it to github. REF should be the same as the dev cycle tag perhaps.
-nightlytag REF:
-    git tag -f nightly {{ REF }} && git push -f origin nightly
-    # Unfortunately, with this name github releases page shows it below the latest release.
-
 # List git tags approximately most recent first (grouped by package). The available fields vary over time.
 tags:
     git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
@@ -1636,7 +1628,7 @@ MISC:
     echo "Recent branches (commits):"
     jj log -n 40 -r 'log_default ~ @'
 
-# push to github CI, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to master.
+# push master to github ci, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to github master.
 @push *INTERVAL:
     tools/push {{ INTERVAL }}
 
