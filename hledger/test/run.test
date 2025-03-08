@@ -150,7 +150,7 @@ Assets, depth 2:
 --------------------
                  $-1  
 
-# ** 0. Run caches input files, and re-parses files when InputOptions change
+# ** 11. Run caches input files, and re-parses files when InputOptions change
 <
 2017-01-01 groceries
    assets:cash  -$100
@@ -158,7 +158,6 @@ Assets, depth 2:
 $ hledger run --debug 1 -f- -- accounts -- balance -f sample.journal -- balance cash --forecast -- balance cash -f sample.journal --forecast -- register -- register -f sample.journal 2>&1 | grep readAndCacheJournalFile | sed -e "s#$(pwd)/##"
 >
 readAndCacheJournalFile reading and caching -:
-readAndCacheJournalFile using cache for -:
 readAndCacheJournalFile reading and caching sample.journal:
 readAndCacheJournalFile reading and caching -:
 readAndCacheJournalFile reading and caching sample.journal:
