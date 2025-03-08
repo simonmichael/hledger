@@ -8487,32 +8487,22 @@ UP/DOWN or control\-P/control\-N to step back/forward through history
 .IP \[bu] 2
 control\-R to search for a past command
 .IP \[bu] 2
-TAB completes file paths.
+TAB to complete file paths.
 .PP
-The \f[CR]commands\f[R] and \f[CR]help\f[R]\ commands, and the command
+Generally \f[CR]repl\f[R] command lines should feel much like the normal
+hledger CLI, but you may find differences.
+\f[CR]repl\f[R] is a little stricter; eg it requires full command names
+or official abbreviations (as seen in the commands list).
+.PP
+The \f[CR]commands\f[R] and \f[CR]help\f[R] commands, and the command
 help flags (\f[CR]CMD \-\-tldr\f[R], \f[CR]CMD \-h/\-\-help\f[R],
-\f[CR]CMD \-\-info\f[R], \f[CR]CMD \-\-man\f[R]), work in the usual way,
-and can be useful.
+\f[CR]CMD \-\-info\f[R], \f[CR]CMD \-\-man\f[R]), can be useful.
 .PP
 You can type control\-C to cancel a long\-running command (but only
 once; typing it a second time will exit the REPL).
 .PP
 And in most shells you can type control\-Z to temporarily exit to the
-shell (and \f[CR]fg\f[R] to bring it back to foreground and return to
-the REPL).
-.PP
-You may find some differences in behaviour between \f[CR]repl\f[R]
-command lines and normal hledger command lines.
-For example, in the REPL,
-.IP \[bu] 2
-the command name must be written first, options afterward
-.IP \[bu] 2
-full command names or official abbreviations (as in the command list)
-must be used
-.IP \[bu] 2
-options parsing with addon commands might be less flexible than the CLI
-.IP \[bu] 2
-the \f[CR]stats\f[R] command gives false timings, currently
+shell (and then \f[CR]fg\f[R] to return to the REPL).
 .SS Examples
 Start the REPL and enter some commands:
 .IP
@@ -8605,12 +8595,9 @@ command script.
 .PP
 You may find some differences in behaviour between \f[CR]run\f[R]
 command lines and normal hledger command lines.
-For example, with \f[CR]run\f[R],
-.IP \[bu] 2
-the command name must be written first, options afterward
-.IP \[bu] 2
-full command names or official abbreviations (as in the command list)
-must be used
+\f[CR]run\f[R] is a little stricter; eg it requires full command names
+or official abbreviations (as seen in the commands list), and command
+options must be written after the command name.
 .SS Examples
 Run commands from the command line:
 .IP
