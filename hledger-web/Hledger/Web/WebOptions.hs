@@ -54,7 +54,7 @@ prognameandversion =
 webflags :: [Flag RawOpts]
 webflags =
   [ flagNone
-      ["serve", "server"]
+      ["serve"]
       (setboolopt "serve")
       "serve and log requests, don't browse or auto-exit"
   , flagNone
@@ -115,6 +115,8 @@ webmode =
       Group
       { groupUnnamed = webflags
       , groupHidden = hiddenflags
+          ++
+          [flagNone ["server"] (setboolopt "serve") "old flag, use --serve instead"
       , groupNamed = mkgeneralflagsgroups1 helpflags
       }
   , modeHelpSuffix = []
