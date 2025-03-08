@@ -26,7 +26,7 @@ accounting and a simple, editable file format.  hledger is inspired by
 and largely compatible with ledger(1), and largely interconvertible with
 beancount(1).
 
-   This manual is for hledger's command line interface, version 1.41.99.
+   This manual is for hledger's command line interface, version 1.42.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.  It might accidentally teach you some
 bookkeeping/accounting as well!  You don't need to know everything in
@@ -8204,10 +8204,12 @@ until you exit and restart the REPL.
    * type 'exit' or 'quit' or control-D to exit the REPL.
 
    While it is running, the REPL remembers your command history, and you
-can navigate in the usual ways: - Keypad or Emacs navigation keys to
-edit the current command line - UP/DOWN or control-P/control-N to step
-back/forward through history - control-R to search for a past command,
-etc.
+can navigate in the usual ways:
+
+   * Keypad or Emacs navigation keys to edit the current command line
+   * UP/DOWN or control-P/control-N to step back/forward through history
+   * control-R to search for a past command
+   * TAB completes file paths.
 
    The 'commands' and 'help' commands, and the command help flags ('CMD
 --tldr', 'CMD -h/--help', 'CMD --info', 'CMD --man'), work in the usual
@@ -8219,19 +8221,8 @@ once; typing it a second time will exit the REPL).
    And in most shells you can type control-Z to exit temporarily to the
 shell (and 'fg' to return to the REPL).
 
-* Menu:
-
-* Caveats::
-* Examples::
-
-
-File: hledger.info,  Node: Caveats,  Next: Examples,  Up: repl
-
-25.1.1 Caveats
---------------
-
-You may find some differences in behaviour between 'run' command lines
-and normal hledger command lines.  For example, in the REPL,
+   You may find some differences in behaviour between 'run' command
+lines and normal hledger command lines.  For example, in the REPL,
 
    * the command name must be written first, options afterward
    * full command names or official abbreviations (as in the command
@@ -8240,19 +8231,40 @@ and normal hledger command lines.  For example, in the REPL,
      CLI
    * the 'stats' command gives false timings, currently
 
-
-File: hledger.info,  Node: Examples,  Prev: Caveats,  Up: repl
+* Menu:
 
-25.1.2 Examples
+* Examples::
+
+
+File: hledger.info,  Node: Examples,  Up: repl
+
+25.1.1 Examples
 ---------------
 
-Start the REPL:
+Start the REPL and enter some commands:
 
-hledger repl
+$ hledger repl 
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+% stats
+Main file           : .../2025.journal
+...
+% stats -f 2024/2024.journal 
+Main file           : .../2024.journal
+...
+% stats
+Main file           : .../2025.journal
+...
 
-   or
+   or:
 
-hledger repl -f some.journal
+$ hledger repl -f some.journal
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+% bs
+...
+% print -b 'last week'
+...
+% bs -f other.journal
+...
 
 
 File: hledger.info,  Node: run,  Next: ui,  Prev: repl,  Up: User interface commands
@@ -8308,31 +8320,24 @@ error, use '#!/usr/bin/env -S hledger run'.
 
    It's ok to use the 'run' command recursively within a command script.
 
-* Menu:
-
-* Caveats: Caveats 2.
-* Examples: Examples 2.
-
-
-File: hledger.info,  Node: Caveats 2,  Next: Examples 2,  Up: run
-
-25.2.1 Caveats
---------------
-
-You may find some differences in behaviour between 'run' command lines
-and normal hledger command lines.  For example, with 'run',
+   You may find some differences in behaviour between 'run' command
+lines and normal hledger command lines.  For example, with 'run',
 
    * the command name must be written first, options afterward
    * full command names or official abbreviations (as in the command
      list) must be used
 
-
-File: hledger.info,  Node: Examples 2,  Prev: Caveats 2,  Up: run
+* Menu:
 
-25.2.2 Examples
+* Examples: Examples 2.
+
+
+File: hledger.info,  Node: Examples 2,  Up: run
+
+25.2.1 Examples
 ---------------
 
-Run commands specified on the command line:
+Run commands from the command line:
 
 hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 
@@ -8344,8 +8349,9 @@ then run 'balance liabilities --depth 3 --transpose' on
 
 (echo "files"; echo "stats") | hledger -f some.journal run
 
-   Provide commands as a runnable script:
+   Run commands as a script:
 
+$ cat report
 #!/usr/bin/env -S hledger run -f some.journal
 
 echo "List of accounts in some.journal"
@@ -8359,6 +8365,11 @@ balance liabilities -f /some/other.journal --depth 3 --transpose
 
 echo "Commands from another.script, applied to another.journal"
 run -f another.journal another.script
+
+$ chmod +x report
+$ ./report
+List of accounts in some.journal
+...
 
 
 File: hledger.info,  Node: ui,  Next: web,  Prev: run,  Up: User interface commands
@@ -12852,123 +12863,121 @@ Node: demo295039
 Node: help296273
 Node: User interface commands297978
 Node: repl298189
-Node: Caveats300205
-Node: Examples300730
-Node: run300897
-Node: Caveats 2303044
-Node: Examples 2303433
-Node: ui304416
-Node: web304553
-Node: Data entry commands304681
-Node: add304879
-Node: import307334
-Node: Import preview308368
-Node: Overlap detection309316
-Node: First import312202
-Node: Importing balance assignments313397
-Node: Import and commodity styles314452
-Node: Import special cases314890
-Node: Basic report commands316225
-Node: accounts316526
-Node: codes319399
-Node: commodities320421
-Node: descriptions320665
-Node: files321132
-Node: notes321429
-Node: payees321941
-Node: prices322725
-Node: stats323617
-Node: tags325358
-Node: Standard report commands326665
-Node: print326970
-Node: print explicitness329711
-Node: print amount style330631
-Node: print parseability331869
-Node: print other features332788
-Node: print output format333651
-Node: aregister336936
-Node: aregister and posting dates341395
-Node: register342296
-Node: Custom register output349471
-Node: balancesheet350656
-Node: balancesheetequity355426
-Node: cashflow360566
-Node: incomestatement365128
-Node: Advanced report commands369726
-Node: balance369934
-Node: balance features375110
-Node: Simple balance report377186
-Node: Balance report line format378996
-Node: Filtered balance report381356
-Node: List or tree mode381875
-Node: Depth limiting383388
-Node: Dropping top-level accounts384155
-Node: Showing declared accounts384665
-Node: Sorting by amount385395
-Node: Percentages386232
-Node: Multi-period balance report386939
-Node: Balance change end balance389691
-Node: Balance report types391328
-Node: Calculation type392007
-Node: Accumulation type392711
-Node: Valuation type393812
-Node: Combining balance report types395001
-Node: Budget report397033
-Node: Using the budget report399338
-Node: Budget date surprises401614
-Node: Selecting budget goals402978
-Node: Budgeting vs forecasting403926
-Node: Balance report layout405603
-Node: Wide layout406808
-Node: Tall layout409213
-Node: Bare layout410519
-Node: Tidy layout412583
-Node: Balance report output414127
-Node: Some useful balance reports414942
-Node: roi416202
-Node: Spaces and special characters in --inv and --pnl418449
-Node: Semantics of --inv and --pnl419175
-Node: IRR and TWR explained421262
-Node: Chart commands424673
-Node: activity424854
-Node: Data generation commands425351
-Node: close425557
-Node: close --clopen428120
-Node: close --close430294
-Node: close --open430818
-Node: close --assert431068
-Node: close --assign431395
-Node: close --retain432074
-Node: close customisation432931
-Node: close and balance assertions434575
-Node: close examples436097
-Node: Retain earnings436334
-Node: Migrate balances to a new file436837
-Node: More detailed close examples438199
-Node: rewrite438421
-Node: Re-write rules in a file440993
-Node: Diff output format442303
-Node: rewrite vs print --auto443576
-Node: Maintenance commands444290
-Node: check444499
-Node: Basic checks445581
-Node: Strict checks446534
-Node: Other checks447409
-Node: Custom checks449264
-Node: diff449719
-Node: test450926
-Node: PART 5 COMMON TASKS451798
-Node: Getting help452031
-Node: Constructing command lines452940
-Node: Starting a journal file453778
-Node: Setting LEDGER_FILE455162
-Node: Setting opening balances456420
-Node: Recording transactions459742
-Node: Reconciling460467
-Node: Reporting462856
-Node: Migrating to a new file466970
-Node: BUGS467419
-Node: Troubleshooting468384
+Node: Examples300659
+Node: run301217
+Node: Examples 2303634
+Node: ui304658
+Node: web304795
+Node: Data entry commands304923
+Node: add305121
+Node: import307576
+Node: Import preview308610
+Node: Overlap detection309558
+Node: First import312444
+Node: Importing balance assignments313639
+Node: Import and commodity styles314694
+Node: Import special cases315132
+Node: Basic report commands316467
+Node: accounts316768
+Node: codes319641
+Node: commodities320663
+Node: descriptions320907
+Node: files321374
+Node: notes321671
+Node: payees322183
+Node: prices322967
+Node: stats323859
+Node: tags325600
+Node: Standard report commands326907
+Node: print327212
+Node: print explicitness329953
+Node: print amount style330873
+Node: print parseability332111
+Node: print other features333030
+Node: print output format333893
+Node: aregister337178
+Node: aregister and posting dates341637
+Node: register342538
+Node: Custom register output349713
+Node: balancesheet350898
+Node: balancesheetequity355668
+Node: cashflow360808
+Node: incomestatement365370
+Node: Advanced report commands369968
+Node: balance370176
+Node: balance features375352
+Node: Simple balance report377428
+Node: Balance report line format379238
+Node: Filtered balance report381598
+Node: List or tree mode382117
+Node: Depth limiting383630
+Node: Dropping top-level accounts384397
+Node: Showing declared accounts384907
+Node: Sorting by amount385637
+Node: Percentages386474
+Node: Multi-period balance report387181
+Node: Balance change end balance389933
+Node: Balance report types391570
+Node: Calculation type392249
+Node: Accumulation type392953
+Node: Valuation type394054
+Node: Combining balance report types395243
+Node: Budget report397275
+Node: Using the budget report399580
+Node: Budget date surprises401856
+Node: Selecting budget goals403220
+Node: Budgeting vs forecasting404168
+Node: Balance report layout405845
+Node: Wide layout407050
+Node: Tall layout409455
+Node: Bare layout410761
+Node: Tidy layout412825
+Node: Balance report output414369
+Node: Some useful balance reports415184
+Node: roi416444
+Node: Spaces and special characters in --inv and --pnl418691
+Node: Semantics of --inv and --pnl419417
+Node: IRR and TWR explained421504
+Node: Chart commands424915
+Node: activity425096
+Node: Data generation commands425593
+Node: close425799
+Node: close --clopen428362
+Node: close --close430536
+Node: close --open431060
+Node: close --assert431310
+Node: close --assign431637
+Node: close --retain432316
+Node: close customisation433173
+Node: close and balance assertions434817
+Node: close examples436339
+Node: Retain earnings436576
+Node: Migrate balances to a new file437079
+Node: More detailed close examples438441
+Node: rewrite438663
+Node: Re-write rules in a file441235
+Node: Diff output format442545
+Node: rewrite vs print --auto443818
+Node: Maintenance commands444532
+Node: check444741
+Node: Basic checks445823
+Node: Strict checks446776
+Node: Other checks447651
+Node: Custom checks449506
+Node: diff449961
+Node: test451168
+Node: PART 5 COMMON TASKS452040
+Node: Getting help452273
+Node: Constructing command lines453182
+Node: Starting a journal file454020
+Node: Setting LEDGER_FILE455404
+Node: Setting opening balances456662
+Node: Recording transactions459984
+Node: Reconciling460709
+Node: Reporting463098
+Node: Migrating to a new file467212
+Node: BUGS467661
+Node: Troubleshooting468626
 
 End Tag Table
 

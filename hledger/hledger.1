@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2025" "hledger-1.41.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "March 2025" "hledger-1.42.99 " "hledger User Manuals"
 
 
 
@@ -33,7 +33,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.41.99.
+1.42.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -8478,10 +8478,15 @@ use single or double quotes to quote arguments when needed
 type \f[CR]exit\f[R] or \f[CR]quit\f[R] or control\-D to exit the REPL.
 .PP
 While it is running, the REPL remembers your command history, and you
-can navigate in the usual ways: \- Keypad or Emacs navigation keys to
-edit the current command line \- UP/DOWN or control\-P/control\-N to
-step back/forward through history \- control\-R to search for a past
-command, etc.
+can navigate in the usual ways:
+.IP \[bu] 2
+Keypad or Emacs navigation keys to edit the current command line
+.IP \[bu] 2
+UP/DOWN or control\-P/control\-N to step back/forward through history
+.IP \[bu] 2
+control\-R to search for a past command
+.IP \[bu] 2
+TAB completes file paths.
 .PP
 The \f[CR]commands\f[R] and \f[CR]help\f[R]\ commands, and the command
 help flags (\f[CR]CMD \-\-tldr\f[R], \f[CR]CMD \-h/\-\-help\f[R],
@@ -8493,7 +8498,7 @@ once; typing it a second time will exit the REPL).
 .PP
 And in most shells you can type control\-Z to exit temporarily to the
 shell (and \f[CR]fg\f[R] to return to the REPL).
-.SS Caveats
+.PP
 You may find some differences in behaviour between \f[CR]run\f[R]
 command lines and normal hledger command lines.
 For example, in the REPL,
@@ -8507,16 +8512,33 @@ options parsing with addon commands might be less flexible than the CLI
 .IP \[bu] 2
 the \f[CR]stats\f[R] command gives false timings, currently
 .SS Examples
-Start the REPL:
+Start the REPL and enter some commands:
 .IP
 .EX
-hledger repl
+$ hledger repl 
+Enter hledger commands. To exit, enter \[aq]quit\[aq] or \[aq]exit\[aq], or send EOF.
+% stats
+Main file           : .../2025.journal
+\&...
+% stats \-f 2024/2024.journal 
+Main file           : .../2024.journal
+\&...
+% stats
+Main file           : .../2025.journal
+\&...
 .EE
 .PP
-or
+or:
 .IP
 .EX
-hledger repl \-f some.journal
+$ hledger repl \-f some.journal
+Enter hledger commands. To exit, enter \[aq]quit\[aq] or \[aq]exit\[aq], or send EOF.
+% bs
+\&...
+% print \-b \[aq]last week\[aq]
+\&...
+% bs \-f other.journal
+\&...
 .EE
 .SS run
 Run a sequence of hledger commands, provided as files or command line
@@ -8578,7 +8600,7 @@ If that gives an error, use \f[CR]#!/usr/bin/env \-S hledger run\f[R].
 .PP
 It\[aq]s ok to use the \f[CR]run\f[R] command recursively within a
 command script.
-.SS Caveats
+.PP
 You may find some differences in behaviour between \f[CR]run\f[R]
 command lines and normal hledger command lines.
 For example, with \f[CR]run\f[R],
@@ -8588,7 +8610,7 @@ the command name must be written first, options afterward
 full command names or official abbreviations (as in the command list)
 must be used
 .SS Examples
-Run commands specified on the command line:
+Run commands from the command line:
 .IP
 .EX
 hledger \-f some.journal run \-\- balance assets \-\-depth 2 \-\- balance liabilities \-f /some/other.journal \-\-depth 3 \-\-transpose \-\- stats
@@ -8606,9 +8628,10 @@ Run commands from standard input:
 (echo \[dq]files\[dq]; echo \[dq]stats\[dq]) | hledger \-f some.journal run
 .EE
 .PP
-Provide commands as a runnable script:
+Run commands as a script:
 .IP
 .EX
+$ cat report
 #!/usr/bin/env \-S hledger run \-f some.journal
 
 echo \[dq]List of accounts in some.journal\[dq]
@@ -8622,6 +8645,13 @@ balance liabilities \-f /some/other.journal \-\-depth 3 \-\-transpose
 
 echo \[dq]Commands from another.script, applied to another.journal\[dq]
 run \-f another.journal another.script
+.EE
+.IP
+.EX
+$ chmod +x report
+$ ./report
+List of accounts in some.journal
+\&...
 .EE
 .SS ui
 Runs hledger\-ui (if installed).
