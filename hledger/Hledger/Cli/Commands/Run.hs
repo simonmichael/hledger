@@ -43,6 +43,7 @@ import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
 import Hledger.Cli.Utils (journalTransform)
 import Text.Printf (printf)
 import System.Process (system)
+import Data.Maybe (isJust)
 
 -- | Command line options for this command.
 runmode = hledgerCommandMode
@@ -80,28 +81,28 @@ newtype DefaultRunJournal = DefaultRunJournal (NE.NonEmpty String) deriving (Sho
 -- | The actual run command.
 run :: Maybe DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> CliOpts -> IO ()
 run defaultJournalOverride findBuiltinCommand addons cliopts@CliOpts{rawopts_=rawopts} = do
-  withJournalCached defaultJournalOverride cliopts $ \(_,key) -> do
-    let args = dbg1 "args" $ listofstringopt "args" rawopts
-    isTerminal <- isStdinTerminal
-    if args == [] && not isTerminal
-      then do
-        inputFiles <- journalFilePathFromOpts cliopts
-        let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
-        if journalFromStdin
-        then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-        else runREPL key findBuiltinCommand addons
-      else do
-        -- Check if arguments start with "--".
-        -- If not, assume that they are files with commands
-          case args of
-            "--":_ -> runFromArgs  key findBuiltinCommand addons args
-            _      -> runFromFiles key findBuiltinCommand addons args
+  jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault defaultJournalOverride cliopts
+  let args = dbg1 "args" $ listofstringopt "args" rawopts
+  isTerminal <- isStdinTerminal
+  if args == [] && not isTerminal
+    then do
+      inputFiles <- journalFilePathFromOpts cliopts
+      let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
+      if journalFromStdin
+      then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
+      else runREPL jpaths findBuiltinCommand addons
+    else do
+      -- Check if arguments start with "--".
+      -- If not, assume that they are files with commands
+        case args of
+          "--":_ -> runFromArgs  jpaths findBuiltinCommand addons args
+          _      -> runFromFiles jpaths findBuiltinCommand addons args
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> CliOpts -> IO ()
 repl findBuiltinCommand addons cliopts = do
-  withJournalCached Nothing cliopts $ \(_,key) -> do
-    runREPL key findBuiltinCommand addons
+  jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
+  runREPL jpaths findBuiltinCommand addons
 
 -- | Run commands from files given to "run".
 runFromFiles :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> IO ()
@@ -155,9 +156,9 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
                 | otherwise -> do
-                  withJournalCached (Just defaultJournalOverride) opts $ \(j,key) -> do
+                  withJournalCached (Just defaultJournalOverride) opts $ \(j,jpaths) -> do
                     if cmdname == "run" -- allow "run" to call "run"
-                      then run (Just key) findBuiltinCommand addons opts
+                      then run (Just jpaths) findBuiltinCommand addons opts
                       else cmdaction opts j
         Nothing | cmdname `elem` addons ->
           system (printf "%s-%s %s" progname cmdname (unwords' args)) >>= exitWith
@@ -207,23 +208,28 @@ stdinCache :: MVar (Maybe T.Text)
 stdinCache = unsafePerformIO $ newMVar Nothing
 {-# NOINLINE stdinCache #-}
 
+-- | Get the journal(s) to read, either from the defaultJournalOverride or from the cliopts
+journalFilePathFromOptsOrDefault :: Maybe DefaultRunJournal -> CliOpts -> IO (NE.NonEmpty PrefixedFilePath)
+journalFilePathFromOptsOrDefault defaultJournalOverride cliopts = do
+  case defaultJournalOverride of
+    Nothing -> journalFilePathFromOpts cliopts
+    Just (DefaultRunJournal defaultFiles) -> do
+      mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
+      case mbjournalpaths of
+        Nothing -> return defaultFiles -- use the journal(s) given to the "run" itself
+        Just journalpaths -> return journalpaths
+
 -- | Similar to `withJournal`, but uses caches all the journals it reads.
 -- When reading from stdin, caches the stdin contents so that we could reprocess
 -- it if a read with different InputOptions is requested.
 withJournalCached :: Maybe DefaultRunJournal -> CliOpts -> ((Journal, DefaultRunJournal) -> IO ()) -> IO ()
 withJournalCached defaultJournalOverride cliopts cmd = do
-  (j,key) <- case defaultJournalOverride of
-    Nothing -> journalFilePathFromOpts cliopts >>= readFiles
-    Just (DefaultRunJournal defaultFiles) -> do
-      mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
-      case mbjournalpaths of
-        Nothing -> readFiles defaultFiles -- use the journal(s) given to the "run" itself
-        Just journalpaths -> readFiles journalpaths
-  cmd (j,key)
+  journalpaths <- journalFilePathFromOptsOrDefault defaultJournalOverride cliopts
+  j <- readFiles journalpaths
+  cmd (j,DefaultRunJournal journalpaths)
   where
-    readFiles journalpaths = do
-      j <- journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
-      return (j, DefaultRunJournal journalpaths)
+    readFiles journalpaths =
+      journalTransform cliopts . sconcat <$> mapM (readAndCacheJournalFile (inputopts_ cliopts)) journalpaths
     -- | Read a journal file, caching it (and InputOptions used to read it) if it has not been seen before.
     -- If the same file is requested with different InputOptions, we read it anew and cache
     -- it separately.
@@ -240,10 +246,9 @@ withJournalCached defaultJournalOverride cliopts cmd = do
             either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
       where
         -- InputOptions contain reportspan_ that is used to calculare forecast period,
-        -- that is used by journalFinalise to insert forecast transactions.addHeaderBorders
-        -- For the purposes of caching, we want to ignore this, as it is only used for forecast
-        -- and it is sufficient to include forecast_ in the InputOptions that we use as a key.
-        ioptsWithoutReportSpan = iopts { reportspan_ = emptydatespan }
+        -- that is used by journalFinalise to insert forecast transactions.
+        -- For the purposes of caching, we want to ignore this when --forecast is not given.
+        ioptsWithoutReportSpan = if isJust (forecast_ iopts) then iopts else iopts { reportspan_ = emptydatespan }
         -- Read stdin, or if we read it alread, use a cache
         -- readStdin :: InputOpts -> ExceptT String IO Journal
         readStdin = do
