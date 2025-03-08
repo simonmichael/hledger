@@ -22,11 +22,12 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 2025-03-07 1.42
+# 1.42 2025-03-07
 
 Fixes
 
-- Fix a test suite build issue: -threaded is needed in test suite now also.
+- Fix a test suite build issue: build it with -threaded.
+
 
 # 1.41 2024-12-09
 
