@@ -43,6 +43,7 @@ import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
 import Hledger.Cli.Utils (journalTransform)
 import Text.Printf (printf)
 import System.Process (system)
+import Data.Maybe (isJust)
 
 -- | Command line options for this command.
 runmode = hledgerCommandMode
@@ -240,10 +241,9 @@ withJournalCached defaultJournalOverride cliopts cmd = do
             either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
       where
         -- InputOptions contain reportspan_ that is used to calculare forecast period,
-        -- that is used by journalFinalise to insert forecast transactions.addHeaderBorders
-        -- For the purposes of caching, we want to ignore this, as it is only used for forecast
-        -- and it is sufficient to include forecast_ in the InputOptions that we use as a key.
-        ioptsWithoutReportSpan = iopts { reportspan_ = emptydatespan }
+        -- that is used by journalFinalise to insert forecast transactions.
+        -- For the purposes of caching, we want to ignore this when --forecast is not given.
+        ioptsWithoutReportSpan = if isJust (forecast_ iopts) then iopts else iopts { reportspan_ = emptydatespan }
         -- Read stdin, or if we read it alread, use a cache
         -- readStdin :: InputOpts -> ExceptT String IO Journal
         readStdin = do
