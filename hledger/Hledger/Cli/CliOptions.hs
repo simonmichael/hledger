@@ -226,7 +226,7 @@ reportflags = [
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
-    "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."
+    "Use box-drawing characters in text output? The optional 'y'/'yes' or 'n'/'no' arg requires =."
  ]
   where
     valuationprefix = "valuation mode: "
