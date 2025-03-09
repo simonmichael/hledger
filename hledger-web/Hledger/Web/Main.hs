@@ -33,8 +33,10 @@ import Yesod.Default.Config
 import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli (withJournalDo)
+import Hledger.Cli.CliOptions hiding (progname,prognameandversion)
 import Hledger.Web.Application (makeApplication)
+import Hledger.Web.DocFiles
 import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.Test (hledgerWebTest)
 import Hledger.Web.WebOptions
@@ -75,8 +77,8 @@ hledgerWebMain = withGhcDebug' $ do
   if
     | boolopt "help"            rawopts_ -> runPager $ showModeUsage webmode ++ "\n"
     | boolopt "tldr"            rawopts_ -> runTldrForPage "hledger-web"
-    | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
-    | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
+    | boolopt "info"            rawopts_ -> runInfoForTopic Nothing
+    | boolopt "man"             rawopts_ -> runManForTopic  Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
     | boolopt "test"            rawopts_ -> do
