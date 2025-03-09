@@ -153,8 +153,8 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
               if
                 | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
                 | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
-                | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
-                | manFlag   -> runManForTopic "hledger"  mmodecmdname
+                | infoFlag  -> runInfoForTopic mmodecmdname
+                | manFlag   -> runManForTopic  mmodecmdname
                 | otherwise -> do
                   withJournalCached (Just defaultJournalOverride) opts $ \(j,jpaths) -> do
                     if cmdname == "run" -- allow "run" to call "run"
