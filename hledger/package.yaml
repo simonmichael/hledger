@@ -43,19 +43,11 @@ extra-source-files:
 - embeddedfiles/hledger-import.md
 - embeddedfiles/hledger-incomestatement.md
 - embeddedfiles/hledger-print.md
-- embeddedfiles/hledger-ui.md
-- embeddedfiles/hledger-web.md
 - embeddedfiles/hledger.md
 
 - embeddedfiles/hledger.1
 - embeddedfiles/hledger.txt
 - embeddedfiles/hledger.info
-- embeddedfiles/hledger-ui.1
-- embeddedfiles/hledger-ui.txt
-- embeddedfiles/hledger-ui.info
-- embeddedfiles/hledger-web.1
-- embeddedfiles/hledger-web.txt
-- embeddedfiles/hledger-web.info
 
 - Hledger/Cli/Commands/Accounts.txt
 - Hledger/Cli/Commands/Activity.txt

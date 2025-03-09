@@ -2,7 +2,6 @@ These files are embedded into the hledger executable at compile time.
 They include:
 
 - symbolic links to all the main hledger manuals in several formats, for embedding in Hledger/Cli/DocFiles.hs.
-  (Having the hledger-ui/hledger-web files also symlinked here within the hledger package allows embedding them without using absolute paths.)
 
 - symbolic links to all the hledger tldr pages.
 

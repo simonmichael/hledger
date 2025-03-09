@@ -385,8 +385,8 @@ main = withGhcDebug' $ do
     -- 6.1. no command and a help/doc flag found - show general help/docs
     | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
-    | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
-    | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
+    | nocmdprovided && infoFlag -> runInfoForTopic Nothing
+    | nocmdprovided && manFlag  -> runManForTopic  Nothing
 
     -- 6.2. --version flag found and none of these other conditions - show version
     | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
@@ -409,8 +409,8 @@ main = withGhcDebug' $ do
         -- 6.5.1. help/doc flag - show command help/docs
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
         | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
-        | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
-        | manFlag   -> runManForTopic "hledger"  mmodecmdname
+        | infoFlag  -> runInfoForTopic mmodecmdname
+        | manFlag   -> runManForTopic  mmodecmdname
 
         -- 6.5.2. builtin command which should not require or read the journal - run it
         | cmdname `elem` ["commands","demo","help","test"] ->
