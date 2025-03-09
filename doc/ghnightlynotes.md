@@ -1,6 +1,6 @@
-Here you can find "nightly" binaries, if any, more recent than the current hledger release.
-By using these and providing feedback, eg in the [#hledger chat](https://hledger.org/support.html), you help us make the next release better.
-To see what's new, click the commits link above.
+Here you can find unreleased "nightly" binaries, if any. By using these and providing feedback, eg in [chat](https://hledger.org/support.html), you will be helping to make the next hledger release better.
+
+Here's what's new since hledger 1.42: [commits](https://github.com/simonmichael/hledger/compare/1.42...nightly)
 
 <details>
 <summary>
