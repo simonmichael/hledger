@@ -24,11 +24,12 @@ stability   : stable
 tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.5, GHC==9.6.2
 
 extra-source-files:
-  - CHANGES.md
-  - README.md
-  - hledger-ui.1
-  - hledger-ui.txt
-  - hledger-ui.info
+- CHANGES.md
+- README.md
+- embeddedfiles/hledger-ui.md
+- embeddedfiles/hledger-ui.1
+- embeddedfiles/hledger-ui.txt
+- embeddedfiles/hledger-ui.info
 
 #data-files:
 
@@ -95,6 +96,7 @@ library:
   - hledger >=1.42.99 && <1.43
   - ansi-terminal >=0.9
   - async
+  - bytestring
   - cmdargs >=0.8
   - containers >=0.5.9
   - data-default

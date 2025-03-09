@@ -35,7 +35,9 @@ import Brick hiding (bsDraw)
 import qualified Brick.BChan as BC
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli (withJournalDo)
+import Hledger.Cli.CliOptions hiding (progname,prognameandversion)
+import Hledger.UI.DocFiles
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
@@ -100,8 +102,8 @@ hledgerUiMain = withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hle
   case True of
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
-    _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
-    _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
+    _ | boolopt "info"    rawopts -> runInfoForTopic Nothing
+    _ | boolopt "man"     rawopts -> runManForTopic  Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournalDo copts' (runBrickUi opts)

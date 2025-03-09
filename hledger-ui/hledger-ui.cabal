@@ -31,9 +31,10 @@ tested-with:
 extra-source-files:
     CHANGES.md
     README.md
-    hledger-ui.1
-    hledger-ui.txt
-    hledger-ui.info
+    embeddedfiles/hledger-ui.md
+    embeddedfiles/hledger-ui.1
+    embeddedfiles/hledger-ui.txt
+    embeddedfiles/hledger-ui.info
 
 source-repository head
   type: git
@@ -59,6 +60,7 @@ library
       Hledger.UI.AccountsScreen
       Hledger.UI.BalancesheetScreen
       Hledger.UI.CashScreen
+      Hledger.UI.DocFiles
       Hledger.UI.Editor
       Hledger.UI.ErrorScreen
       Hledger.UI.IncomestatementScreen
@@ -79,6 +81,7 @@ library
     , async
     , base >=4.14 && <4.21
     , brick >=2.1.1 && <2.3.2 || >2.3.2 && <2.9
+    , bytestring
     , cmdargs >=0.8
     , containers >=0.5.9
     , data-default
