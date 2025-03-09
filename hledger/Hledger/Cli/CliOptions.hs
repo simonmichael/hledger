@@ -78,9 +78,6 @@ module Hledger.Cli.CliOptions (
   -- | For register:
   registerWidthsFromOpts,
 
-  -- * Other utils
-  topicForMode,
-
 --  -- * Convenience re-exports
 --  module Data.String.Here,
 --  module System.Console.CmdArgs.Explicit,
@@ -114,7 +111,6 @@ import Text.Megaparsec
 import Text.Megaparsec.Char
 
 import Hledger
-import Hledger.Cli.DocFiles
 import Hledger.Cli.Version
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.List (isPrefixOf, isSuffixOf)
@@ -511,15 +507,6 @@ highlightHelp
       --   ,"General flags"
       --   ,"Examples"
       --   ]
--- | Get the most appropriate documentation topic for a mode.
--- Currently, that is either the hledger, hledger-ui or hledger-web
--- manual.
-topicForMode :: Mode a -> Topic
-topicForMode m
-  | n == "hledger-ui"  = "ui"
-  | n == "hledger-web" = "web"
-  | otherwise          = "cli"
-  where n = headDef "" $ modeNames m
 
 -- | Add command aliases to the command's help string.
 withAliases :: String -> [String] -> String
