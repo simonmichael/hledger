@@ -76,6 +76,7 @@ dependencies:
 - tabular >=0.2
 - tasty >=1.2.3
 - tasty-hunit >=0.10.0.2
+- temporary
 - template-haskell
 - terminal-size >=0.3.3
 - text >=1.2.4.1
@@ -172,6 +173,7 @@ library:
   - Hledger.Reports.PostingsReport
   - Hledger.Utils
   - Hledger.Utils.Debug
+  - Hledger.Utils.DocFiles
   - Hledger.Utils.IO
   - Hledger.Utils.Parse
   - Hledger.Utils.Regex
