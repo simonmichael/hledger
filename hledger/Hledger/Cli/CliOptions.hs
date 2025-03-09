@@ -201,20 +201,21 @@ reportflags = [
  ,flagReq  ["depth"]         (\s opts -> Right $ setopt "depth" s opts) "DEPTHEXP" "if a number (or -NUM): show only top NUM levels of accounts. If REGEXP=NUM, only apply limiting to accounts matching the regular expression."
 
   -- valuation
- ,flagNone ["B","cost"]      (setboolopt "B") "show amounts converted to their cost/sale amount"
+ ,flagNone ["B","cost"]      (setboolopt "B") "convert amounts to their cost/sale amount (@/@@)"
+    -- ^ no "valuation mode:" prefix for this one, it's not mutually exclusive
  ,flagNone ["V","market"]    (setboolopt "V")
-    (unlines
-      ["Show amounts converted to their value at period end(s) in their default valuation commodity."
-      ,"Equivalent to --value=end."
+    (unwords
+      [valuationprefix ++ "show amounts converted to market value at period end(s) in their default valuation commodity."
+      ,"Short for --value=end."
       ])
  ,flagReq ["X","exchange"]   (\s opts -> Right $ setopt "X" s opts) "COMM"
-    (unlines
-      ["Show amounts converted to their value at period end(s) in the specified commodity."
-      ,"Equivalent to --value=end,COMM."
+    (unwords
+      [valuationprefix ++ "show amounts converted to market value at period end(s) in the specified commodity."
+      ,"Short for --value=end,COMM."
       ])
  ,flagReq  ["value"]         (\s opts -> Right $ setopt "value" s opts) "WHEN[,COMM]"
     (unlines
-      ["show amounts converted to their value on the specified date(s) in their default valuation commodity or a specified commodity. WHEN can be:"
+      [valuationprefix ++ "show amounts converted to market value on the specified date(s) in their default valuation commodity or a specified commodity. WHEN can be:"
       ,"'then':     value on transaction dates"
       ,"'end':      value at period end(s)"
       ,"'now':      value today"
@@ -227,6 +228,8 @@ reportflags = [
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? Can be\n'y'/'yes' or 'n'/'no'.\nIf YN is specified, the equals is required."
  ]
+  where
+    valuationprefix = "valuation mode: "
 
 helpflags :: [Flag RawOpts]
 helpflags = [
