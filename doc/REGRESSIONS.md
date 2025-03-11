@@ -105,10 +105,10 @@ If you find and fix the regression, you get both bounties.
 [#2352]: https://github.com/simonmichael/hledger/issues/2352
 
 <!-- 
-This table keeps evolving. Bold things are unresolved. The flow is this:
+This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
      (unclaimed)                (submitted)               (paid)
 **NAME FINDORFIXDATE** -> **[NAME](EXPENSEPAGE)** -> [NAME](EXPENSEPAGE)
-                                                  -> NAME donated
+                                               or -> NAME donated
 -->
 
 | hledger&nbsp;version, <br>regressions&nbsp;found | Finder&nbsp;bounties <br>(since 2021-06-14)              | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
@@ -180,4 +180,4 @@ This table keeps evolving. Bold things are unresolved. The flow is this:
 | [#2225]                  | Bas van Dijk donated                                                             | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.41** 2024-12-09      | ---                                                                              | ---
 | **1.42** 2025-03-07      | ---                                                                              | ---
-| [#2352]                  | gassmatt                                                                         | 
+| [#2352]                  | **gassmatt**                                                                     | 
