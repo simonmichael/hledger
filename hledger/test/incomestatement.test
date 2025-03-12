@@ -282,7 +282,7 @@ Quarterly Income Statement 2008
  expenses:food     ||       0   50.0 %       0       0   50.0 %   50.0 % 
  expenses:supplies ||       0   50.0 %       0       0   50.0 %   50.0 % 
 
-# ** 9. With --declared, declared leaf accounts are included, and in the right place.
+# ** 9. With --declared, declared accounts are included, and in the right place.
 <
 account revenues
 account revenues:aa
@@ -296,6 +296,7 @@ Income Statement ..
 =================++====
  Revenues        ||    
 -----------------++----
+ revenues        ||  0 
  revenues:aa     ||  0 
  revenues:ab     ||  0 
  revenues:ac:aca ||  0 
