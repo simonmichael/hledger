@@ -1203,6 +1203,33 @@ $  ./csvtest.sh
 
 >=0
 
+# ** 62. Matchers can contain '&', either escaped or unescaped  (#2352)
+<
+2025-01-01,STOP & SHOP,100
+2025-01-01,H & M,100
+
+RULES
+fields date,description,amount
+
+if
+%description STOP & SHOP
+    account1 expenses:food
+
+if
+%description H \& M
+    account1 expenses:clothing
+
+$  ./csvtest.sh
+2025-01-01 STOP & SHOP
+    expenses:food              100
+    income:unknown            -100
+
+2025-01-01 H & M
+    expenses:clothing             100
+    income:unknown               -100
+
+>=
+
 # ** .
 #<
 #$  ./csvtest.sh
