@@ -281,7 +281,7 @@ acctChanges ReportSpec{_rsQuery=query,_rsReportOpts=ReportOpts{accountlistmode_,
       where
         declaredacctps =
           [nullposting{paccount=a}
-          | a <- journalLeafAccountNamesDeclared j
+          | a <- journalAccountNamesDeclared j
           , matchesAccountExtra (journalAccountType j) (journalAccountTags j) accttypetagsq a
           ]
           where

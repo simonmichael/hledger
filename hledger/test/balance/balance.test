@@ -173,26 +173,15 @@ $ hledger -f - balance -NE --declared --tree --depth 2 a
                    0    aa
                    0    ab
 
-# ** 11. In list mode we can see that non-leaf declared accounts are excluded.
-<
-account a
-account a:aa
-account a:ab
-account a:ac:aca
-account b
+# ** 11. In list mode we can see that declared accounts are included, even if they have no postings.
 $ hledger -f - balance -NE --declared --flat
+                   0  a
                    0  a:aa
                    0  a:ab
                    0  a:ac:aca
                    0  b
 
 # ** 12. not:ACCT queries work with declared accounts.
-<
-account a
-account a:aa
-account a:ab
-account a:ac:aca
-account b
 $ hledger -f - balance -NE --declared not:a
                    0  b
 
