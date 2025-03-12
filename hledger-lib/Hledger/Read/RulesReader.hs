@@ -723,7 +723,7 @@ regexp end = do
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
   where
-    double_ampersand = lookAhead . void $ char '&' >> char '&'
+    double_ampersand = lookAhead . void $ string "&&"
 
 -- -- A match operator, indicating the type of match to perform.
 -- -- Currently just ~ meaning case insensitive infix regex match.
@@ -1596,9 +1596,14 @@ tests_RulesReader = testGroup "RulesReader" [
    --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
    ]
 
+
   ,testGroup "regexp" [
     testCase "regexp.ends-before-&&" $
-      parseWithState' defrules (regexp empty) "A A && xxx" @?= (Right $ toRegexCI' "A A")
+      parseWithState' defrules (regexp eof) "A A && xxx" @?= (Right $ toRegexCI' "A A")
+   ,testCase "regexp contains &" $
+      parseWithState' defrules (regexp eof) "A & B" @?= (Right $ toRegexCI' "A & B")
+   ,testCase "regexp contains escaped &" $
+      parseWithState' defrules (regexp eof) "A \\& B" @?= (Right $ toRegexCI' "A \\& B")
    ]
 
   , let matchers = [RecordMatcher Or (toRegexCI' "A"), RecordMatcher And (toRegexCI' "B")]
