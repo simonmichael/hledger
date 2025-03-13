@@ -143,12 +143,10 @@ It should be improved each time it is used.
   - [ ] release tags pushed to github  
       `just reltags-push VER`
   - [ ] github draft release with release binaries attached  
-      should be autocreated by the above; if not,  
-      (https://github.com/simonmichael/hledger/releases/new)  
+      (should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new)  
       `just ghrelnotes-push`  
-      (`just ghruns-download`, too slow)  
-      instead: `just ghruns-open`, download to tmp/, unzip the unix ones  
-      `just ghrelease-upload`  
+      `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
+      `just ghrel-upload VER`  
   - [ ] github release published  
       review,
       publish
