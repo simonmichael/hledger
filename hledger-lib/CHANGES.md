@@ -22,6 +22,9 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# 9182e47b
+
+
 # 1.42 2025-03-07
 
 Improvements

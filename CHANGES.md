@@ -19,14 +19,16 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 9182e47b
+
+Infrastructure/Misc
+
+- Tools updates
+
+- Fix cabalfilestest: test all cabal files before any hackage upload.
+
+
 # 1.42 2025-03-07
-
-Docs
-
-- new/updated: ACHIEVEMENTS, CREDITS, FINANCE, MOCKUPS, REGRESSIONS, RELEASING, Scripts
-- examples/csv: pooltool-rewards.csv.rule cleanup
-- examples: some sample hledger run scripts
-- examples: test files for CSV encoding [#2319]
 
 Infrastructure/Misc
 

@@ -22,6 +22,11 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 9182e47b
+
+- Build with hledger 1.42.1.
+
+
 # 1.42 2025-03-07
 
 Fixes
