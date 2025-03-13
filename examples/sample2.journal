@@ -14,9 +14,9 @@
     revenues:salary
     assets:bank:checking     1000 USD
 
-2025-01-03 pay off credit card
+2025-01-03 pay half of credit card balance
     assets:bank:checking
-    liabilities:credit card   400 USD = 0 USD
+    liabilities:credit card   200 USD = -200 USD
 
 2025-01-04 shopping
     assets:bank:checking
