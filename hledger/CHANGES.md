@@ -23,6 +23,24 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 9182e47b
+
+Fixes
+
+- Fix a regression in the parsing of single ampersands (&) in csv rules.
+  (Thomas Miedema, [#2352])
+
+- The run and repl commands no longer cache data wrongly when using the --forecast option.
+  (Dmitry Astapov, [#2345])
+
+- The run and repl commands no longer miss a caching opportunity when using --forecast with a period argument.
+  (Stephen Morgan)
+
+Docs
+
+- run, repl: doc fixes (Pranesh Prakash, Simon Michael)
+
+
 # 1.42 2025-03-07
 
 Fixes
@@ -124,6 +142,10 @@ Docs
 - Aliases and account types: better troubleshooting command
 - Beancount output: mention limitations: P and balance assignments
 - Balance report output: drop outdated note about --tree and HTML [#1846]
+- new/updated: ACHIEVEMENTS, CREDITS, FINANCE, MOCKUPS, REGRESSIONS, RELEASING, Scripts
+- examples/csv: pooltool-rewards.csv.rule cleanup
+- examples: some sample hledger run scripts
+- examples: test files for CSV encoding [#2319]
 
 Scripts/addons
 

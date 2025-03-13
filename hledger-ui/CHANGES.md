@@ -22,6 +22,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 9182e47b
+
+- allow vty 6.4
+
+
 # 1.42 2025-03-07
 
 Fixes
