@@ -80,32 +80,41 @@ reader = Reader
   {rFormat     = Timeclock
   ,rExtensions = ["timeclock"]
   ,rReadFn     = handleReadFnToTextReadFn parse
-  ,rParser    = timeclockfilep
+  ,rParser     = timeclockfilep definputopts
   }
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
 -- format, saving the provided file path and the current time, or give an
 -- error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts fp t = initialiseAndParseJournal timeclockfilep iopts fp t
+parse iopts fp t = initialiseAndParseJournal (timeclockfilep iopts) iopts fp t
                    >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
                    >>= journalFinalise iopts fp t
 
 --- ** parsers
 
-timeclockfilep :: MonadIO m => JournalParser m ParsedJournal
-timeclockfilep = do many timeclockitemp
-                    eof
-                    j@Journal{jparsetimeclockentries=es} <- get
-                    -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
-                    -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
-                    -- but it simplifies code above.
-                    now <- liftIO getCurrentLocalTime
-                    -- entries have been parsed in reverse order. timeclockEntriesToTransactions
-                    -- expects them to be in normal order, then we must reverse again since
-                    -- journalFinalise expects them in reverse order
-                    let j' = j{jtxns = reverse $ timeclockEntriesToTransactions now $ reverse es, jparsetimeclockentries = []}
-                    return j'
+-- timeclockfilepspecial :: InputOpts -> JournalParser m ParsedJournal
+-- timeclockfilepspecial args = 
+-- timeclockfilep args
+
+timeclockfilep :: MonadIO m => InputOpts -> JournalParser m ParsedJournal
+timeclockfilep iopts = do many timeclockitemp
+                          eof
+                          j@Journal{jparsetimeclockentries=es} <- get
+                          -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
+                          -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
+                          -- but it simplifies code above.
+                          now <- liftIO getCurrentLocalTime
+                          -- journalFinalise expects the transactions in reverse order, so reverse the output in either case
+                          let j' = if (_oldtimeclock iopts) then 
+                                -- timeclockEntriesToTransactionsSingle expects the entries to be in normal order, 
+                                -- but they have been parsed in reverse order, so reverse them before calling
+                                j{jtxns = reverse $ timeclockEntriesToTransactionsSingle now $ reverse es, jparsetimeclockentries = []}
+                              else 
+                                -- We don't need to reverse these transactions 
+                                -- since they are sorted inside of timeclockEntiresToTransactions
+                                j{jtxns = reverse $ timeclockEntriesToTransactions now es, jparsetimeclockentries = []}
+                          return j'
     where
       -- As all ledger line types can be distinguished by the first
       -- character, excepting transactions versus empty (blank or

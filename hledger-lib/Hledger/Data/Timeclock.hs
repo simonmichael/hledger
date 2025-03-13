@@ -10,10 +10,12 @@ converted to 'Transactions' and queried like a ledger.
 
 module Hledger.Data.Timeclock (
    timeclockEntriesToTransactions
+  ,timeclockEntriesToTransactionsSingle
   ,tests_Timeclock
 )
 where
 
+import Data.List (partition, sortBy, uncons)
 import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import Data.Time.Calendar (addDays)
@@ -47,12 +49,97 @@ instance Read TimeclockCode where
     readsPrec _ ('O' : xs) = [(FinalOut, xs)]
     readsPrec _ _ = []
 
+data Session = Session
+    { in' :: TimeclockEntry,
+      out :: TimeclockEntry
+    }
+
+data Sessions = Sessions
+    { completed :: [Session],
+      active :: [TimeclockEntry]
+    }
+
+-- Find the relevant clockin in the actives list that should be paired with this clockout.
+-- If there is a session that has the same account name, then use that.
+-- Otherwise, if there is an active anonymous session, use that.
+-- Otherwise, raise an error.
+findInForOut :: TimeclockEntry -> ([TimeclockEntry], [TimeclockEntry]) -> (TimeclockEntry, [TimeclockEntry])
+findInForOut _ (matchingout : othermatches, rest) = (matchingout, othermatches <> rest)
+findInForOut o ([], activeins) =
+    if emptyname then (first, rest) else error' errmsg
+    where
+        l = show $ unPos $ sourceLine $ tlsourcepos o
+        c = unPos $ sourceColumn $ tlsourcepos o
+        emptyname = tlaccount o == ""
+        (first, rest) = case uncons activeins of
+            Just (hd, tl) -> (hd, tl)
+            Nothing -> error' errmsg
+        errmsg =
+            printf
+              "%s:\n%s\n%s\n\nCould not find previous clockin to match this clockout."
+              (sourcePosPretty $ tlsourcepos o)
+              (l ++ " | " ++ show o)
+              (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
+
+-- Assuming that entries has been sorted, we go through each time log entry.
+-- We collect all of the "i" in the list "actives," and each time we encounter
+-- an "o," we look for the corresponding "i" in actives.
+-- If we cannot find it, then it is an error (since the list is sorted).
+-- If the "o" is recorded on a different day than the "i," then we close the
+-- active entry at the end of its day, replace it in the active list
+-- with a start at midnight on the next day, and try again.
+-- This raises an error if any outs cannot be paired with an in.
+pairClockEntries :: [TimeclockEntry] -> [TimeclockEntry] -> [Session] -> Sessions
+pairClockEntries [] actives sessions = Sessions {completed = sessions, active = actives}
+pairClockEntries (entry : rest) actives sessions
+    | tlcode entry == In = pairClockEntries rest inentries sessions
+    | tlcode entry == Out = pairClockEntries rest' actives' sessions'
+    | otherwise = pairClockEntries rest actives sessions
+    where
+        (inentry, newactive) = findInForOut entry (partition (\e -> tlaccount e == tlaccount entry) actives)
+        (itime, otime) = (tldatetime inentry, tldatetime entry)
+        (idate, odate) = (localDay itime, localDay otime)
+        omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
+        imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
+        (sessions', actives', rest') = if odate > idate then
+              (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
+            else
+              (Session {in' = inentry, out = entry} : sessions, newactive, rest)
+        l = show $ unPos $ sourceLine $ tlsourcepos entry
+        c = unPos $ sourceColumn $ tlsourcepos entry
+        inentries =
+          if any (\e -> tlaccount e == tlaccount entry) actives
+            then error' $
+                printf
+                  "%s:\n%s\n%s\n\nEncountered clockin entry for session \"%s\" that is already active."
+                  (sourcePosPretty $ tlsourcepos entry)
+                  (l ++ " | " ++ show entry)
+                  (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
+                  (tlaccount entry)
+            else entry : actives
+
 -- | Convert time log entries to journal transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing
 -- midnight are split into days to give accurate per-day totals.
+-- If any entries cannot be paired as expected, then an error is raised.
 timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
-timeclockEntriesToTransactions _ [] = []
-timeclockEntriesToTransactions now [i]
+timeclockEntriesToTransactions now entries = transactions
+  where
+    sessions = pairClockEntries (sortBy (\e1 e2 -> compare (tldatetime e1) (tldatetime e2)) entries) [] []
+    transactionsFromSession s = entryFromTimeclockInOut (in' s) (out s)
+    -- If any "in" sessions are in the future, then set their out time to the initial time
+    outtime te = max now (tldatetime te)
+    createout te = TimeclockEntry (tlsourcepos te) Out (outtime te) (tlaccount te) "" "" []
+    outs = map createout (active sessions)
+    stillopen = pairClockEntries ((active sessions) <> outs) [] []
+    transactions = map transactionsFromSession $ sortBy (\s1 s2 -> compare (in' s1) (in' s2)) (completed sessions ++ completed stillopen)
+
+-- | Convert time log entries to journal transactions, expecting the entries to be
+-- a strict in/out cycle. When there is no clockout, add one with the provided current time. 
+-- Sessions crossing midnight are split into days to give accurate per-day totals.
+timeclockEntriesToTransactionsSingle :: LocalTime -> [TimeclockEntry] -> [Transaction]
+timeclockEntriesToTransactionsSingle _ [] = []
+timeclockEntriesToTransactionsSingle now [i]
     | tlcode i /= In = errorExpectedCodeButGot In i
     | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now [i',o]
     | otherwise = [entryFromTimeclockInOut i o]
@@ -63,7 +150,7 @@ timeclockEntriesToTransactions now [i]
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-timeclockEntriesToTransactions now (i:o:rest)
+timeclockEntriesToTransactionsSingle now (i:o:rest)
     | tlcode i /= In  = errorExpectedCodeButGot In i
     | tlcode o /= Out = errorExpectedCodeButGot Out o
     | odate > idate   = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
@@ -98,6 +185,8 @@ entryFromTimeclockInOut i o
     | otherwise =
       -- Clockout time earlier than clockin is an error.
       -- (Clockin earlier than preceding clockin/clockout is allowed.)
+      -- We should never encounter this case now that we sort the entries,
+      -- but let's leave it in case of error.
       error' $ printf
         ("%s:\n%s\nThis clockout time (%s) is earlier than the previous clockin.\n"
         ++"Please adjust it to be later than %s.")
@@ -155,6 +244,7 @@ tests_Timeclock = testGroup "Timeclock" [
           nowstr = showtime now
           yesterday = prevday today
           clockin = TimeclockEntry (initialPos "") In
+          clockout = TimeclockEntry (initialPos "") Out
           mktime d = LocalTime d . fromMaybe midnight .
                      parseTimeM True defaultTimeLocale "%H:%M:%S"
           showtime = formatTime defaultTimeLocale "%H:%M"
@@ -169,4 +259,14 @@ tests_Timeclock = testGroup "Timeclock" [
       txndescs [clockin (mktime today "00:00:00") "" "" "" []] @?= ["00:00-"++nowstr]
       step "use the clockin time for auto-clockout if it's in the future"
       txndescs [clockin future "" "" "" []] @?= [printf "%s-%s" futurestr futurestr]
+      step "multiple open sessions"
+      txndescs
+        [ clockin (mktime today "00:00:00") "a" "" "" [],
+          clockin (mktime today "01:00:00") "b" "" "" [],
+          clockin (mktime today "02:00:00") "c" "" "" [],
+          clockout (mktime today "03:00:00") "b" "" "" [],
+          clockout (mktime today "04:00:00") "a" "" "" [],
+          clockout (mktime today "05:00:00") "c" "" "" []
+        ]
+        @?= ["00:00-04:00", "01:00-03:00", "02:00-05:00"]
  ]

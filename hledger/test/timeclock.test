@@ -3,7 +3,7 @@
 # ** 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting.
 <
 i 2009/1/1 08:00:00
-o 2009/1/1 09:00:00 stuff on checkout record  is ignored
+o 2009/1/1 09:00:00
 
 i 2009/1/2 08:00:00 account name
 o 2009/1/2 09:00:00
@@ -43,19 +43,19 @@ $ hledger -f timeclock:- balance
 > /./
 >=
 
-# ** 4. For a log not starting with clock-out, print error
+# ** 4. For a log not starting with clock-in, print error
 <
 o 2020/1/1 08:00
 $ hledger -f timeclock:- balance
->2 /Expected a timeclock i entry/
+>2 /Could not find previous clockin to match this clockout./
 >= !0
 
-# ** 5. For two consecutive clock-ins, print error
+# ** 5. For two consecutive anonymous clock-ins, print error
 <
 i 2020/1/1 08:00
 i 2020/1/1 09:00
 $ hledger -f timeclock:- balance
->2 /Expected a timeclock o entry/
+>2 /Encountered clockin entry for session "" that is already active./
 >= !0
 
 # ** 6. Timeclock amounts are always rounded to two decimal places, 
@@ -87,6 +87,88 @@ $ hledger -f timeclock:- accounts
 acct 1
 acct 2
 
+# ** 9. Support multiple sessions simultaneously clocked in.
+<
+i 2025-03-10 08:00:00 multi:1  description 1
+i 2025-03-10 09:00:00 multi:2  description 2 ; note that these entries are both active
+o 2025-03-10 12:00:00 multi:1
+o 2025-03-10 15:00:00 multi:2
+$ hledger -f timeclock:- print
+>
+2025-03-10 * description 1
+    (multi:1)           4.00h
+
+2025-03-10 * description 2  ; note that these entries are both active
+    (multi:2)           6.00h
+
+>=
+
+# ** 10. Implicit clockouts apply to the correct session.
+# The first 'o' here applies to multi:3, the next explicitly to multi:1, and the third to multi:2.
+<
+i 2025-03-10 08:00:00 multi:1  description 1
+i 2025-03-10 09:00:00 multi:2  description 2
+i 2025-03-10 10:00:00 multi:3  description 3
+o 2025-03-10 11:00:00
+o 2025-03-10 12:00:00 multi:1
+o 2025-03-10 15:00:00
+$ hledger -f timeclock:- print
+>
+2025-03-10 * description 1
+    (multi:1)           4.00h
+
+2025-03-10 * description 2
+    (multi:2)           6.00h
+
+2025-03-10 * description 3
+    (multi:3)           1.00h
+
+>=
+
+# ** 11. Multiple active sessions can span multiple days.
+< 
+i 2025-03-11 19:00:00 multi:1
+i 2025-03-11 20:00:00 multi:2
+o 2025-03-12 08:00:00
+o 2025-03-12 09:00:00
+$ hledger -f timeclock:- print
+>
+2025-03-11 * 19:00-23:59
+    (multi:1)           5.00h
+
+2025-03-11 * 20:00-23:59
+    (multi:2)           4.00h
+
+2025-03-12 * 00:00-09:00
+    (multi:1)           9.00h
+
+2025-03-12 * 00:00-08:00
+    (multi:2)           8.00h
+
+>=
+
+# ** 12. The --timeclock-old flag reverts to the old behavior.
+<
+i 2009/1/1 08:00:00
+o 2009/1/1 09:00:00 stuff on checkout record  is ignored
+
+i 2009/1/2 08:00:00 account name
+o 2009/1/2 09:00:00
+i 2009/1/3 08:00:00 some:account name  and a description
+o 2009/1/3 09:00:00
+
+$ hledger --timeclock-old -f timeclock:- print
+>
+2009-01-01 * 08:00-09:00
+    ()           1.00h
+
+2009-01-02 * 08:00-09:00
+    (account name)           1.00h
+
+2009-01-03 * and a description
+    (some:account name)           1.00h
+
+>=
 
 ## TODO
 ## multi-day sessions get a new transaction for each day
