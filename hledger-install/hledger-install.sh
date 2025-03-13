@@ -3,16 +3,16 @@
 # This was based on get-stack.sh which was copyright (c) 2015-2017, Stack contributors.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20250307
+HLEDGER_INSTALL_VERSION=20250312
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.42
-HLEDGER_VERSION=1.42
-HLEDGER_UI_VERSION=1.42
-HLEDGER_WEB_VERSION=1.42
+HLEDGER_LIB_VERSION=1.42.1
+HLEDGER_VERSION=1.42.1
+HLEDGER_UI_VERSION=1.42.1
+HLEDGER_WEB_VERSION=1.42.1
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.21
 HLEDGER_INTEREST_VERSION=1.6.7
