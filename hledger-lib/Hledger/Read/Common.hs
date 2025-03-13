@@ -231,6 +231,7 @@ rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
                                }
       ,strict_            = boolopt "strict" rawopts
       ,_ioDay             = day
+      ,_oldtimeclock      = boolopt "oldtimeclock" rawopts
       }
 
 handleReadFnToTextReadFn :: (InputOpts -> FilePath -> Text -> ExceptT String IO Journal) -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal

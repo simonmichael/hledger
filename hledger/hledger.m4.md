@@ -4606,12 +4606,19 @@ i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; option
 o 2015/03/30 09:20:00
 i 2015/03/31 22:21:45 another:account
 o 2015/04/01 02:00:34
+i 2015/04/02 12:00:00 another:account  ; this demonstrates multple sessions being clocked in
+i 2015/04/02 13:00:00 some account
+o 2015/04/02 14:00:00
+o 2015/04/02 15:00:00 another:account
 ```
 
 hledger treats each clock-in/clock-out pair as a transaction posting
-some number of hours to an account. Or if the session spans more than
-one day, it is split into several transactions, one for each day. For
-the above time log, `hledger print` generates these journal entries:
+some number of hours to an account. Entries are paired by the account
+name if the same name is given for a clock-in/clock-out pair. If no 
+name is given for a clock-out, then it is paired with the most recent 
+clock-in entry. If the session spans more than one day, it is split into 
+several transactions, one for each day. For the above time log, 
+`hledger print` generates these journal entries:
 
 ```cli
 $ hledger -f t.timeclock print
@@ -4623,6 +4630,12 @@ $ hledger -f t.timeclock print
 
 2015-04-01 * 00:00-02:00
     (another:account)           2.01h
+
+2015-04-02 * 12:00-15:00  ; this demonstrates multiple sessions being clocked in
+    (another:account)           3.00h
+
+2015-04-02 * 13:00-14:00
+    (some account)           1.00h
 
 ```
 

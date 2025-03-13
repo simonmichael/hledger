@@ -44,6 +44,7 @@ data InputOpts = InputOpts {
     ,strict_            :: Bool                 -- ^ do extra correctness checks ?
     ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
+    ,_oldtimeclock      :: Bool                 -- ^ parse with the old timeclock pairing rules?
  } deriving (Eq, Ord, Show)
 
 definputopts :: InputOpts
@@ -66,6 +67,7 @@ definputopts = InputOpts
     , strict_            = False
     , _defer             = False
     , _ioDay             = nulldate
+    , _oldtimeclock      = False
     }
 
 -- | Get the Maybe the DateSpan to generate forecast options from.

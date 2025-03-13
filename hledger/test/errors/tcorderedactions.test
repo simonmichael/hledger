@@ -3,8 +3,6 @@ $$$ hledger check -f  tcorderedactions.timeclock
 8 \| i 2022-01-01 00:01:00   
   \| \^
 
-Expected a timeclock o entry but got i.
-Only one session may be clocked in at a time.
-Please alternate i and o, beginning with i.
+Encountered clockin entry for session "" that is already active.
 /
 >>>= 1
