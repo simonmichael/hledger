@@ -6398,7 +6398,7 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 
 **[Help commands](#help-commands)**
 
-- [commands](#commands)                            - show the hledger commands list (default)
+- [commands](#commands-1)                          - show the hledger commands list (default)
 - [demo](#demo)                                    - show small hledger demos in the terminal
 - [help](#help)                                    - show the hledger manual with info, man, or pager
 
