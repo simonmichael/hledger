@@ -6398,11 +6398,14 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 
 **[Help commands](#help-commands)**
 
-- [help](#help)                                    - show the hledger manual with info/man/pager
+- [commands](#commands)                            - show the hledger commands list (default)
 - [demo](#demo)                                    - show small hledger demos in the terminal
+- [help](#help)                                    - show the hledger manual with info, man, or pager
 
 **[User interface commands](#user-interface-commands)**
 
+- [repl](#repl)                                    - run commands from an interactive prompt
+- [run](#run)                                      - run commands from a script
 - [ui](hledger-ui.html)                            - (if installed) run hledger's terminal UI
 - [web](hledger-web.html)                          - (if installed) run hledger's web UI
 
