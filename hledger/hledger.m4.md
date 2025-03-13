@@ -3201,7 +3201,7 @@ $ hledger print -f basic.csv
 
 ```
 
-There's an introductory [Importing CSV data](/import-csv.html) tutorial on hledger.org,
+There's an introductory [Tutorial: Import CSV data](/import-csv.html) on hledger.org,
 and more [CSV rules examples](#csv-rules-examples) below,
 and a larger collection at <https://github.com/simonmichael/hledger/tree/master/examples/csv>.
 
