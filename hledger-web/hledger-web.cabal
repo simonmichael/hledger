@@ -143,6 +143,7 @@ library
   other-modules:
       Hledger.Web.App
       Hledger.Web.Handler.AddR
+      Hledger.Web.Handler.BalanceR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
       Hledger.Web.Handler.MiscR
@@ -184,6 +185,7 @@ library
     , http-client
     , http-conduit
     , http-types
+    , lucid
     , megaparsec >=7.0.0 && <9.8
     , mtl >=2.2.1
     , network
