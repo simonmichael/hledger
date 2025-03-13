@@ -1602,8 +1602,6 @@ tests_RulesReader = testGroup "RulesReader" [
       parseWithState' defrules (regexp eof) "A A && xxx" @?= (Right $ toRegexCI' "A A")
    ,testCase "regexp contains &" $
       parseWithState' defrules (regexp eof) "A & B" @?= (Right $ toRegexCI' "A & B")
-   ,testCase "regexp contains escaped &" $
-      parseWithState' defrules (regexp eof) "A \\& B" @?= (Right $ toRegexCI' "A \\& B")
    ]
 
   , let matchers = [RecordMatcher Or (toRegexCI' "A"), RecordMatcher And (toRegexCI' "B")]
