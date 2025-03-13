@@ -74,13 +74,61 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2025-03-07 hledger-1.42
 
-**run & repl commands, non-UTF8 CSV, same-line if matchers, more pivot targets, fixes.**
+## 2025-03-12  hledger-1.42.1
+
+### hledger 1.42.1
+
+Fixes
+
+- Fix a regression in the parsing of single ampersands (&) in csv rules.
+  (Thomas Miedema, [#2352])
+
+- The run and repl commands no longer cache data wrongly when using the --forecast option.
+  (Dmitry Astapov, [#2345])
+
+- The run and repl commands no longer miss a caching opportunity when using --forecast with a period argument.
+  (Stephen Morgan)
+
+- run, repl: doc fixes (Pranesh Prakash, Simon Michael)
+
+
+### hledger-ui 1.42.1
+
+- Allow vty 6.4.
+
+
+### hledger-web 1.42.1
+
+
+### project changes 1.42.1
+
+
+Infrastructure/Misc
+
+- Tools updates
+
+- Fix cabalfilestest: test all cabal files before any hackage upload.
+
+
+### credits 1.42.1
+
+Simon Michael (@simonmichael),
+Dmitry Astapov (@adept),
+Pranesh Prakash (@the-solipsist),
+Stephen Morgan (@Xitian9),
+Thomas Miedema (@thomie).
+
+[#2345]: https://github.com/simonmichael/hledger/issues/2345
+[#2352]: https://github.com/simonmichael/hledger/issues/2352
+
+
+## 2025-03-07 hledger-1.42
 
 
 ### hledger 1.42
 
+**run & repl commands, non-UTF8 CSV, same-line if matchers, more pivot targets, fixes.**
 
 Fixes
 
@@ -305,6 +353,7 @@ Lars Kellogg-Stedman (@larks).
 [#2333]: https://github.com/simonmichael/hledger/issues/2333
 [#2335]: https://github.com/simonmichael/hledger/issues/2335
 [#2340]: https://github.com/simonmichael/hledger/issues/2340
+
 
 
 ## 2024-12-09 hledger-1.41
@@ -9480,6 +9529,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
