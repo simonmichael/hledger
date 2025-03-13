@@ -56,6 +56,7 @@ module Hledger.Utils (
 
   -- * Other
   module Hledger.Utils.Debug,
+  module Hledger.Utils.DocFiles,
   module Hledger.Utils.Parse,
   module Hledger.Utils.IO,
   module Hledger.Utils.Regex,
@@ -83,6 +84,7 @@ import Lens.Micro ((&), (.~))
 import Lens.Micro.TH (DefName(TopName), lensClass, lensField, makeLensesWith, classyRules)
 
 import Hledger.Utils.Debug
+import Hledger.Utils.DocFiles
 import Hledger.Utils.Parse
 import Hledger.Utils.IO
 import Hledger.Utils.Regex
