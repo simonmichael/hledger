@@ -30,11 +30,13 @@ module Hledger.Data.Account
 , clipAccountsAndAggregate
 , pruneAccounts
 , flattenAccounts
+, mergeAccounts
 , accountSetDeclarationInfo
 , sortAccountNamesByDeclaration
 , sortAccountTreeByAmount
 ) where
 
+import Control.Applicative ((<|>))
 import qualified Data.HashSet as HS
 import qualified Data.HashMap.Strict as HM
 import Data.List (find, sortOn)
@@ -46,6 +48,7 @@ import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Ord (Down(..))
 import qualified Data.Text as T
+import Data.These (These(..))
 import Data.Time (Day)
 import Safe (headMay)
 import Text.Printf (printf)
@@ -264,6 +267,35 @@ filterAccounts :: (Account' a -> Bool) -> Account' a -> [Account' a]
 filterAccounts p a
     | p a       = a : concatMap (filterAccounts p) (asubs a)
     | otherwise = concatMap (filterAccounts p) (asubs a)
+
+-- | Merge two account trees and their subaccounts.
+--
+-- This assumes that the top-level 'Account's have the same name.
+--
+-- Unless the 'Account's and all their subaccounts have the same collection of
+-- 'Day' keys, it will probably produce unhelpful output: do not do this unless
+-- you really know what you're doing. Merging two accounts with unequal
+-- 'Day' keys can be useful when they have the same Intervals but not
+-- necessarily equal spans, as in the budget reports.
+mergeAccounts :: Account' a -> Account' b -> Account' (These a b)
+mergeAccounts a = tieAccountParents . merge a
+  where
+    merge acct1 acct2 = acct1
+       { adeclarationinfo = adeclarationinfo acct1 <|> adeclarationinfo acct2
+       , aparent = Nothing
+       , aboring = aboring acct1 && aboring acct2
+       , abalances = mergeBalances (abalances acct1) (abalances acct2)
+       , asubs = mergeSubs (sortOn aname $ asubs acct1) (sortOn aname $ asubs acct2)
+       }
+
+    mergeSubs (x:xs) (y:ys) = case compare (aname x) (aname y) of
+      EQ -> merge x y : mergeSubs xs ys
+      LT -> fmap This x : mergeSubs xs (y:ys)
+      GT -> fmap That y : mergeSubs (x:xs) ys
+    mergeSubs xs [] = map (fmap This) xs
+    mergeSubs [] ys = map (fmap That) ys
+
+    mergeBalances = mergeAccountBalances These (fmap This) (fmap That)
 
 -- | Sort each group of siblings in an account tree by inclusive amount,
 -- so that the accounts with largest normal balances are listed first.
