@@ -217,3 +217,19 @@ $ hledger -f- bal --count -1
                    1  b
 --------------------
                    3  
+
+# ** 16. balance --flat --empty does not display accounts which have not been
+# seen, even if they're implied, but does show accounts that have been seen
+# with 0 balance.
+$ hledger -f sample.journal balance --flat --empty
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+
