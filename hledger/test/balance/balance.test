@@ -217,3 +217,20 @@ $ hledger -f- bal --count -1
                    1  b
 --------------------
                    3  
+
+# ** 16. Make sure that balance --flat --empty does not display implied
+# accounts (i.e. those with no postings, like "assets", here), but does show
+# accounts that have postings with zero balance (like "assets:bank:checking"
+# here).
+$ hledger -f sample.journal balance --flat --empty
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities:debts
+--------------------
+                   0  
+
