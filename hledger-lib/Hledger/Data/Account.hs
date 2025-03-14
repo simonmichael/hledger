@@ -35,7 +35,7 @@ module Hledger.Data.Account
 , accountSetDeclarationInfo
 , sortAccountNamesByDeclaration
 , sortAccountTreeByDeclaration
-, sortAccountTreeByAmount
+, sortAccountTreeOn
 -- -- * Tests
 , tests_Account
 ) where
@@ -51,7 +51,6 @@ import Data.List (foldl')
 import Data.List.NonEmpty (NonEmpty(..), groupWith)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
-import Data.Ord (Down(..))
 import qualified Data.Text as T
 import Data.These (These(..))
 import Data.Time (Day(..), fromGregorian)
@@ -315,19 +314,10 @@ mergeAccounts a = tieAccountParents . merge a
 
     mergeBalances = mergeAccountBalances These (fmap This) (fmap That)
 
--- | Sort each group of siblings in an account tree by inclusive amount,
--- so that the accounts with largest normal balances are listed first.
--- The provided normal balance sign determines whether normal balances
--- are negative or positive, affecting the sort order. Ie,
--- if balances are normally negative, then the most negative balances
--- sort first, and vice versa.
-sortAccountTreeByAmount :: NormalSign -> Account -> Account
-sortAccountTreeByAmount normalsign = mapAccounts $ \a -> a{asubs=sortSubs $ asubs a}
-  where
-    sortSubs = case normalsign of
-        NormallyPositive -> sortOn (\a -> (Down $ amt a, aname a))
-        NormallyNegative -> sortOn (\a -> (amt a, aname a))
-    amt = mixedAmountStripCosts . foldMap abibalance . abalances
+-- | Sort each group of siblings in an account tree by projecting through
+-- a provided function.
+sortAccountTreeOn :: Ord b => (Account' a -> b) -> Account' a -> Account' a
+sortAccountTreeOn f = mapAccounts $ \a -> a{asubs=sortOn f $ asubs a}
 
 -- | Add extra info for this account derived from the Journal's
 -- account directives, if any (comment, tags, declaration order..).

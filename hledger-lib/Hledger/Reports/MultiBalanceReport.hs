@@ -395,7 +395,15 @@ generateMultiBalanceReport ropts colspans acct =
     -- Calculate column totals from the inclusive balances of the root account
     totalsrow = dbg5 "totalsrow" $ makePeriodicReportRow ropts abibalance () acct
 
-    sortTreeByAmount = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts)
+    sortTreeByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
+        NormallyPositive -> sortAccountTreeOn (\r -> (Down $ amt r, aname r))
+        NormallyNegative -> sortAccountTreeOn (\r -> (amt r, aname r))
+      where
+        amt = mixedAmountStripCosts . sortKey . fmap abibalance . abdatemap . abalances
+        sortKey = case balanceaccum_ ropts of
+          PerPeriod -> maSum
+          _         -> maybe nullmixedamt snd . IM.lookupMax
+
     sortFlatByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
         NormallyNegative -> sortOn (\r -> (amt r, prrFullName r))
@@ -465,7 +473,6 @@ reportPercent ropts report@(PeriodicReport spans rows totalrow)
         (perdivide rowtotal $ prrTotal totalrow)
         (perdivide rowavg $ prrAverage totalrow)
 
-
 -- | Sort the rows by amount or by account declaration order.
 sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
 sortRows ropts j
@@ -486,8 +493,17 @@ sortRows ropts j
         setibalance a = a{abalances = (abalances a){abhistorical = hist}}
           where
             hist = (abhistorical $ abalances a){abibalance = maybe (maSum . map (abibalance . abhistorical . abalances) $ asubs a) prrTotal $ HM.lookup (aname a) rowMap}
-        sortedaccounttree = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts) accounttreewithbals
+        sortedaccounttree = sortAccountTreeByAmount accounttreewithbals
         sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
+
+        sortAccountTreeByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
+            NormallyPositive -> sortAccountTreeOn (\r -> (Down $ amt r, aname r))
+            NormallyNegative -> sortAccountTreeOn (\r -> (amt r, aname r))
+          where
+            amt = mixedAmountStripCosts . sortKey . fmap abibalance . abdatemap . abalances
+            sortKey = case balanceaccum_ ropts of
+              PerPeriod -> maSum
+              _         -> maybe nullmixedamt snd . IM.lookupMax
 
     -- Sort the report rows, representing a flat account list, by row total (and then account name).
     sortFlatMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
