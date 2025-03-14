@@ -1,6 +1,7 @@
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE RankNTypes          #-}
 {-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections       #-}
@@ -20,14 +21,12 @@ module Hledger.Reports.MultiBalanceReport (
   compoundBalanceReport,
   compoundBalanceReportWith,
 
-  sortRows,
-  sortRowsLike,
-
   -- * Helper functions
   makeReportQuery,
   getPostings,
   generateMultiBalanceAccount,
-  generateMultiBalanceReport,
+  generatePeriodicReport,
+  makePeriodicReportRow,
 
   -- -- * Tests
   tests_MultiBalanceReport
@@ -38,14 +37,11 @@ import Control.Monad (guard)
 import Data.Foldable (toList)
 import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
-import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
 import qualified Data.IntMap.Strict as IM
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
-import Data.Set (Set)
-import qualified Data.Set as Set
 import Data.These (these)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Traversable (mapAccumL)
@@ -94,7 +90,7 @@ type MultiBalanceReportRow = PeriodicReportRow DisplayName MixedAmount
 -- by the balance command (in multiperiod mode) and (via compoundBalanceReport)
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
-multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j) mempty
+multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
   where infer = infer_prices_ $ _rsReportOpts rspec
 
 -- | A helper for multiBalanceReport. This one takes some extra arguments,
@@ -102,8 +98,8 @@ multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle 
 -- 'AccountName's which should not be elided. Commands which run multiple
 -- reports (bs etc.) can generate the price oracle just once for efficiency,
 -- passing it to each report by calling this function directly.
-multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> Set AccountName -> MultiBalanceReport
-multiBalanceReportWith rspec' j priceoracle unelidableaccts = report
+multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> MultiBalanceReport
+multiBalanceReportWith rspec' j priceoracle = report
   where
     -- Queries, report/column dates.
     (reportspan, colspans) = dbg5 "reportSpan" $ reportSpan j rspec'
@@ -115,7 +111,7 @@ multiBalanceReportWith rspec' j priceoracle unelidableaccts = report
     ps = dbg5 "ps" $ getPostings rspec j priceoracle reportspan
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them and mark which are uninteresting
-    acct = dbg5 "acct" $ generateMultiBalanceAccount rspec j priceoracle unelidableaccts colspans ps
+    acct = dbg5 "acct" $ generateMultiBalanceAccount rspec j priceoracle colspans ps
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
     report = dbg4 "multiBalanceReportWith" $ generateMultiBalanceReport (_rsReportOpts rspec) colspans acct
@@ -154,7 +150,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             -- XXX in non-thorough way, consider updateReportSpec ?
             rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [cbcsubreportquery, _rsQuery rspec]}
             -- Account representing this subreport
-            acct = generateMultiBalanceAccount rspecsub j priceoracle mempty colspans $
+            acct = generateMultiBalanceAccount rspecsub j priceoracle colspans $
                      filter (matchesPostingExtra (journalAccountType j) cbcsubreportquery) ps
 
     -- Sum the subreport totals by column. Handle these cases:
@@ -228,14 +224,14 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
 
 -- | Generate the 'Account' for the requested multi-balance report from a list
 -- of 'Posting's.
-generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> Set AccountName -> [DateSpan] -> [Posting] -> Account
-generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle unelidableaccts colspans =
+generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account
+generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans =
     -- Add declared accounts if called with --declared and --empty
     (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
     -- Negate amounts if applicable
     . (if invert_ ropts then fmap (applyAccountBalance maNegate) else id)
     -- Mark which accounts are boring and which are interesting
-    . markAccountBoring rspec unelidableaccts
+    . markAccountBoring rspec
     -- Set account declaration info (for sorting purposes)
     . mapAccounts (accountSetDeclarationInfo j)
     -- Process changes into normal, cumulative, or historical amounts, plus value them
@@ -329,8 +325,8 @@ accountBalancesValuation ropts j priceoracle colspans =
         makeJustFst _ = error "calculateReportAccount: expected initial span to have an end date"
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
-markAccountBoring :: ReportSpec -> Set AccountName -> Account -> Account
-markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
+markAccountBoring :: ReportSpec -> Account -> Account
+markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
     -- If depth 0, only the top-level account is interesting
     | qdepthIsZero = markBoring False . mapAccounts (markBoring True)
     -- Otherwise, an account is interesting if it is interesting on its own, or
@@ -342,8 +338,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
     isInteresting :: Account -> Bool
     isInteresting acct =
         d <= qdepth                                 -- Throw out anything too deep
-        && ( name `Set.member` unelidableaccts      -- Unelidable accounts should be kept unless too deep
-           || (empty_ ropts && keepWhenEmpty acct)  -- Keep empty accounts when called with --empty
+        && ( (empty_ ropts && keepWhenEmpty acct)   -- Keep empty accounts when called with --empty
            || not (isZeroRow balance amts)          -- Keep everything with a non-zero balance in the row
            )
       where
@@ -379,27 +374,40 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
     markBoringBy f a = a{aboring = f a}
 
 
+
+-- | Build a report row.
+--
+-- Calculate the column totals. These are always the sum of column amounts.
+generateMultiBalanceReport :: ReportOpts -> [DateSpan] -> Account -> MultiBalanceReport
+generateMultiBalanceReport ropts colspans =
+    reportPercent ropts . generatePeriodicReport makeMultiBalanceReportRow abibalance id ropts colspans
+
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateMultiBalanceReport :: ReportOpts -> [DateSpan] -> Account -> MultiBalanceReport
-generateMultiBalanceReport ropts colspans acct =
-    reportPercent ropts $ PeriodicReport colspans (buildAndSort acct) totalsrow
+generatePeriodicReport :: Show c =>
+    (forall a. ReportOpts -> (AccountBalance -> MixedAmount) -> a -> Account' b -> PeriodicReportRow a c)
+    -> (b -> MixedAmount) -> (c -> MixedAmount)
+    -> ReportOpts -> [DateSpan] -> Account' b -> PeriodicReport DisplayName c
+generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
+    PeriodicReport colspans (buildAndSort acct) totalsrow
   where
     -- Build report rows and sort them
     buildAndSort = dbg5 "sortedrows" . case accountlistmode_ ropts of
-      ALTree | sort_amount_ ropts -> buildReportRows ropts . sortTreeByAmount
-      ALFlat | sort_amount_ ropts -> sortFlatByAmount . buildReportRows ropts
-      _                           -> buildReportRows ropts . sortAccountTreeByDeclaration
+        ALTree | sort_amount_ ropts -> buildRows . sortTreeByAmount
+        ALFlat | sort_amount_ ropts -> sortFlatByAmount . buildRows
+        _                           -> buildRows . sortAccountTreeByDeclaration
+
+    buildRows = buildReportRows makeRow ropts
 
     -- Calculate column totals from the inclusive balances of the root account
-    totalsrow = dbg5 "totalsrow" $ makePeriodicReportRow ropts abibalance () acct
+    totalsrow = dbg5 "totalsrow" $ makeRow ropts abibalance () acct
 
     sortTreeByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortAccountTreeOn (\r -> (Down $ amt r, aname r))
         NormallyNegative -> sortAccountTreeOn (\r -> (amt r, aname r))
       where
-        amt = mixedAmountStripCosts . sortKey . fmap abibalance . abdatemap . abalances
+        amt = mixedAmountStripCosts . sortKey . fmap treeAmt . abdatemap . abalances
         sortKey = case balanceaccum_ ropts of
           PerPeriod -> maSum
           _         -> maybe nullmixedamt snd . IM.lookupMax
@@ -407,16 +415,18 @@ generateMultiBalanceReport ropts colspans acct =
     sortFlatByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
         NormallyNegative -> sortOn (\r -> (amt r, prrFullName r))
-      where amt = mixedAmountStripCosts . prrTotal
+      where amt = mixedAmountStripCosts . flatAmt . prrTotal
 
 -- | Build the report rows.
 -- One row per account, with account name info, row amounts, row total and row average.
 -- Rows are sorted according to the order in the 'Account' tree.
-buildReportRows :: ReportOpts -> Account -> [MultiBalanceReportRow]
-buildReportRows ropts = mkRows True (-drop_ ropts) 0
+buildReportRows :: forall b c.
+                (ReportOpts -> (AccountBalance -> MixedAmount) -> DisplayName -> Account' b -> PeriodicReportRow DisplayName c)
+                -> ReportOpts -> Account' b -> [PeriodicReportRow DisplayName c]
+buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
   where
     -- Build the row for an account at a given depth with some number of boring parents
-    mkRows :: Bool -> Int -> Int -> Account -> [MultiBalanceReportRow]
+    mkRows :: Bool -> Int -> Int -> Account' b -> [PeriodicReportRow DisplayName c]
     mkRows isRoot d boringParents acct
         -- Account is a boring root account, and should be bypassed entirely
         | aboring acct && isRoot         = buildSubrows d 0
@@ -425,7 +435,7 @@ buildReportRows ropts = mkRows True (-drop_ ropts) 0
         -- Account is boring, and we can omit boring parents, so we should omit but keep track
         | aboring acct && canOmitParents = buildSubrows d (boringParents + 1)
         -- Account is not boring or otherwise should be displayed.
-        | otherwise = makePeriodicReportRow ropts balance displayname acct : buildSubrows (d + 1) 0
+        | otherwise = makeRow ropts balance displayname acct : buildSubrows (d + 1) 0
       where
         displayname = displayedName d boringParents $ aname acct
         buildSubrows i b = concatMap (mkRows False i b) $ asubs acct
@@ -446,20 +456,29 @@ buildReportRows ropts = mkRows True (-drop_ ropts) 0
                $ accountNameComponents droppedName
         droppedName = accountNameDrop (drop_ ropts) name
 
+
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-makePeriodicReportRow :: ReportOpts -> (b -> MixedAmount)
-                      -> a -> Account' b -> PeriodicReportRow a MixedAmount
-makePeriodicReportRow ropts balance name acct =
+makeMultiBalanceReportRow :: ReportOpts -> (AccountBalance -> MixedAmount)
+                          -> a -> Account -> PeriodicReportRow a MixedAmount
+makeMultiBalanceReportRow = makePeriodicReportRow nullmixedamt sumAndAverageMixedAmounts
+
+-- | Build a report row.
+--
+-- Calculate the column totals. These are always the sum of column amounts.
+makePeriodicReportRow :: c -> (IM.IntMap c -> (c, c))
+                      -> ReportOpts -> (b -> c)
+                      -> a -> Account' b -> PeriodicReportRow a c
+makePeriodicReportRow nullEntry totalAndAverage ropts balance name acct =
     PeriodicReportRow name (toList rowbals) rowtotal avg
   where
     rowbals = fmap balance . abdatemap $ abalances acct
-    (total, avg) = sumAndAverageMixedAmounts rowbals
+    (total, avg) = totalAndAverage rowbals
     -- Total for a cumulative/historical report is always the last column.
     rowtotal = case balanceaccum_ ropts of
         PerPeriod -> total
-        _         -> maybe nullmixedamt snd $ IM.lookupMax rowbals
+        _         -> maybe nullEntry snd $ IM.lookupMax rowbals
 
 -- | Map the report rows to percentages if needed
 reportPercent :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
@@ -472,57 +491,6 @@ reportPercent ropts report@(PeriodicReport spans rows totalrow)
         (zipWith perdivide rowvals $ prrAmounts totalrow)
         (perdivide rowtotal $ prrTotal totalrow)
         (perdivide rowavg $ prrAverage totalrow)
-
--- | Sort the rows by amount or by account declaration order.
-sortRows :: ReportOpts -> Journal -> [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-sortRows ropts j
-    | sort_amount_ ropts, ALTree <- accountlistmode_ ropts = sortTreeMBRByAmount
-    | sort_amount_ ropts, ALFlat <- accountlistmode_ ropts = sortFlatMBRByAmount
-    | otherwise                                            = sortMBRByAccountDeclaration
-  where
-    -- Sort the report rows, representing a tree of accounts, by row total at each level.
-    -- Similar to sortMBRByAccountDeclaration/sortAccountNamesByDeclaration.
-    sortTreeMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-    sortTreeMBRByAmount rows = mapMaybe (`HM.lookup` rowMap) sortedanames
-      where
-        accounttree = accountTree "root" $ map prrFullName rows
-        rowMap = HM.fromList $ map (\row -> (prrFullName row, row)) rows
-        -- Set the inclusive balance of an account from the rows, or sum the
-        -- subaccounts if it's not present
-        accounttreewithbals = mapAccounts setibalance accounttree
-        setibalance a = a{abalances = (abalances a){abhistorical = hist}}
-          where
-            hist = (abhistorical $ abalances a){abibalance = maybe (maSum . map (abibalance . abhistorical . abalances) $ asubs a) prrTotal $ HM.lookup (aname a) rowMap}
-        sortedaccounttree = sortAccountTreeByAmount accounttreewithbals
-        sortedanames = map aname $ drop 1 $ flattenAccounts sortedaccounttree
-
-        sortAccountTreeByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
-            NormallyPositive -> sortAccountTreeOn (\r -> (Down $ amt r, aname r))
-            NormallyNegative -> sortAccountTreeOn (\r -> (amt r, aname r))
-          where
-            amt = mixedAmountStripCosts . sortKey . fmap abibalance . abdatemap . abalances
-            sortKey = case balanceaccum_ ropts of
-              PerPeriod -> maSum
-              _         -> maybe nullmixedamt snd . IM.lookupMax
-
-    -- Sort the report rows, representing a flat account list, by row total (and then account name).
-    sortFlatMBRByAmount :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-    sortFlatMBRByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
-        NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
-        NormallyNegative -> sortOn (\r -> (amt r, prrFullName r))
-      where amt = mixedAmountStripCosts . prrTotal
-
-    -- Sort the report rows by account declaration order then account name.
-    sortMBRByAccountDeclaration :: [MultiBalanceReportRow] -> [MultiBalanceReportRow]
-    sortMBRByAccountDeclaration rows = sortRowsLike sortedanames rows
-      where
-        sortedanames = sortAccountNamesByDeclaration j (tree_ ropts) $ map prrFullName rows
-
--- | A sorting helper: sort a list of things (eg report rows) keyed by account name
--- to match the provided ordering of those same account names.
-sortRowsLike :: [AccountName] -> [PeriodicReportRow DisplayName b] -> [PeriodicReportRow DisplayName b]
-sortRowsLike sortedas rows = mapMaybe (`HM.lookup` rowMap) sortedas
-  where rowMap = HM.fromList $ map (\row -> (prrFullName row, row)) rows
 
 -- | A helper: what percentage is the second mixed amount of the first ?
 -- Keeps the sign of the first amount.
