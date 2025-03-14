@@ -40,6 +40,7 @@ import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
 import qualified Data.HashMap.Strict as HM
 import qualified Data.HashSet as HS
+import qualified Data.IntMap.Strict as IM
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
@@ -48,7 +49,6 @@ import qualified Data.Set as Set
 import Data.These (these)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Traversable (mapAccumL)
-import Safe (lastDef)
 
 import Hledger.Data
 import Hledger.Query
@@ -392,8 +392,8 @@ generateMultiBalanceReport ropts colspans acct =
       ALFlat | sort_amount_ ropts -> sortFlatByAmount . buildReportRows ropts
       _                           -> buildReportRows ropts . sortAccountTreeByDeclaration
 
-    -- Calculate column totals
-    totalsrow = dbg5 "totalsrow" $ calculateTotalsRow ropts acct
+    -- Calculate column totals from the inclusive balances of the root account
+    totalsrow = dbg5 "totalsrow" $ makePeriodicReportRow ropts abibalance () acct
 
     sortTreeByAmount = sortAccountTreeByAmount (fromMaybe NormallyPositive $ normalbalance_ ropts)
     sortFlatByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
@@ -417,19 +417,10 @@ buildReportRows ropts = mkRows True (-drop_ ropts) 0
         -- Account is boring, and we can omit boring parents, so we should omit but keep track
         | aboring acct && canOmitParents = buildSubrows d (boringParents + 1)
         -- Account is not boring or otherwise should be displayed.
-        | otherwise = PeriodicReportRow displayname rowbals rowtot rowavg : buildSubrows (d + 1) 0
+        | otherwise = makePeriodicReportRow ropts balance displayname acct : buildSubrows (d + 1) 0
       where
         displayname = displayedName d boringParents $ aname acct
-        rowbals = map balance . toList . abdatemap $ abalances acct
         buildSubrows i b = concatMap (mkRows False i b) $ asubs acct
-
-        -- The total and average for the row.
-        -- These are always simply the sum/average of the displayed row amounts.
-        -- Total for a cumulative/historical report is always the last column.
-        rowtot = case balanceaccum_ ropts of
-            PerPeriod -> maSum rowbals
-            _         -> lastDef nullmixedamt rowbals
-        rowavg = averageMixedAmounts rowbals
 
     canOmitParents = flat_ ropts || not (no_elide_ ropts)
     balance = case accountlistmode_ ropts of
@@ -447,23 +438,20 @@ buildReportRows ropts = mkRows True (-drop_ ropts) 0
                $ accountNameComponents droppedName
         droppedName = accountNameDrop (drop_ ropts) name
 
--- | Build the report totals row.
+-- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-calculateTotalsRow :: ReportOpts -> Account -> PeriodicReportRow () MixedAmount
-calculateTotalsRow ropts acct =
-    PeriodicReportRow () coltotals grandtotal grandaverage
+makePeriodicReportRow :: ReportOpts -> (b -> MixedAmount)
+                      -> a -> Account' b -> PeriodicReportRow a MixedAmount
+makePeriodicReportRow ropts balance name acct =
+    PeriodicReportRow name (toList rowbals) rowtotal avg
   where
-    -- Totals come from the inclusive balances of the root account.
-    coltotals = map abibalance . toList . abdatemap $ abalances acct
-
-    -- Calculate the grand total and average. These are always the sum/average
-    -- of the column totals.
+    rowbals = fmap balance . abdatemap $ abalances acct
+    (total, avg) = sumAndAverageMixedAmounts rowbals
     -- Total for a cumulative/historical report is always the last column.
-    grandtotal = case balanceaccum_ ropts of
-        PerPeriod -> maSum coltotals
-        _         -> lastDef nullmixedamt coltotals
-    grandaverage = averageMixedAmounts coltotals
+    rowtotal = case balanceaccum_ ropts of
+        PerPeriod -> total
+        _         -> maybe nullmixedamt snd $ IM.lookupMax rowbals
 
 -- | Map the report rows to percentages if needed
 reportPercent :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
