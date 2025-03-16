@@ -357,7 +357,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts} unelidableaccts
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     keepWhenEmpty = case accountlistmode_ ropts of
-        ALFlat -> const True    -- Keep all empty accounts in flat mode
+        ALFlat -> any ((0<) . abnumpostings) . abdatemap . abalances  -- Keep all accounts that have postings in flat mode
         ALTree -> null . asubs  -- Keep only empty leaves in tree mode
     maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
