@@ -161,7 +161,6 @@ $ hledger -f - balance -N --output-format=csv
 
 # ** 10. --declared includes all declared leaf accounts, even if they have no postings.
 # They are filtered, depth-clipped, and form trees like the others.
-# (XXX Here a:ac is not declared and so not shown, even though normally a balance report clipped to depth 2 would show it. Wrong ?)
 <
 account a
 account a:aa
@@ -172,6 +171,7 @@ $ hledger -f - balance -NE --declared --tree --depth 2 a
                    0  a
                    0    aa
                    0    ab
+                   0    ac
 
 # ** 11. In list mode we can see that declared accounts are included, even if they have no postings.
 $ hledger -f - balance -NE --declared --flat
