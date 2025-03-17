@@ -39,11 +39,13 @@ import Data.Foldable (toList)
 import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
 import qualified Data.HashMap.Strict as HM
+import qualified Data.HashSet as HS
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
 import Data.Set (Set)
 import qualified Data.Set as Set
+import Data.These (these)
 import Data.Time.Calendar (Day, addDays, fromGregorian)
 import Data.Traversable (mapAccumL)
 import Safe (lastDef)
@@ -186,8 +188,19 @@ makeReportQuery rspec reportspan
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [Posting]
 getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle reportspan =
-    processPostings rspec j . journalPostings $ journalValueAndFilterPostingsWith rspec' j priceoracle
+    map clipPosting
+    . setPostingsCount
+    . journalPostings
+    $ journalValueAndFilterPostingsWith rspec' j priceoracle
   where
+    -- Clip posting names to the requested depth
+    clipPosting p = p{paccount = clipOrEllipsifyAccountName depthSpec $ paccount p}
+
+    -- If doing --count, set all posting amounts to "1".
+    setPostingsCount = case balancecalc_ ropts of
+        CalcPostingsCount -> map (postingTransformAmount (const $ mixed [num 1]))
+        _                 -> id
+
     rspec' = rspec{_rsQuery=fullreportq,_rsReportOpts=ropts'}
     -- If we're re-valuing every period, we need to have the unvalued start
     -- balance, so we can do it ourselves later.
@@ -206,52 +219,50 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
     -- handles the hledger-ui+future txns case above).
     depthlessq = dbg3 "depthlessq" $ filterQuery (not . queryIsDepth) query
 
+    depthSpec  = dbg3 "depthSpec" . queryDepth $ filterQuery queryIsDepth query
+
     fullreportspan  = if requiresHistorical ropts then DateSpan Nothing (Exact <$> spanEnd reportspan) else reportspan
     fullreportspanq = (if date2_ ropts then Date2 else Date) $ case fullreportspan of
         DateSpan Nothing Nothing -> emptydatespan
         a -> a
 
--- | Process postings for depth, declared, and count.
-processPostings :: ReportSpec -> Journal -> [Posting] -> [Posting]
-processPostings ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j ps =
-    map clipPosting allps
-  where
-    -- Set postings count if needed, and add in declared accounts
-    allps = (if declared_ ropts then declaredacctps else []) ++ setPostingsCount ps
-
-    -- Clip posting names to the requested depth
-    clipPosting p = p{paccount = clipOrEllipsifyAccountName depthSpec $ paccount p}
-
-    -- If doing --count, set all posting amounts to "1".
-    setPostingsCount = case balancecalc_ ropts of
-        CalcPostingsCount -> map (postingTransformAmount (const $ mixed [num 1]))
-        _                 -> id
-
-    -- With --declared, add the query-matching declared accounts
-    -- (as dummy postings so they are processed like the rest).
-    -- This function is used for calculating both pre-start changes and column changes,
-    -- and the declared accounts are really only needed for the former,
-    -- but it's harmless to have them in the column changes as well.
-    declaredacctps =
-        map (\a -> nullposting{paccount = a})
-        . filter (matchesAccountExtra (journalAccountType j) (journalAccountTags j) accttypetagsq)
-        $ journalAccountNamesDeclared j
-
-    accttypetagsq  = dbg3 "accttypetagsq" $ filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) query
-    depthSpec      = dbg3 "depthSpec" . queryDepth $ filterQuery queryIsDepth query
-
 -- | Generate the 'Account' for the requested multi-balance report from a list
 -- of 'Posting's.
 generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> Set AccountName -> [DateSpan] -> [Posting] -> Account
 generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle unelidableaccts colspans =
+    -- Add declared accounts if called with --declared and --empty
+    (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
     -- Negate amounts if applicable
-    (if invert_ ropts then fmap (applyAccountBalance maNegate) else id)
+    . (if invert_ ropts then fmap (applyAccountBalance maNegate) else id)
     -- Mark which accounts are boring and which are interesting
     . markAccountBoring rspec unelidableaccts
     -- Set account declaration info (for sorting purposes)
     . mapAccounts (accountSetDeclarationInfo j)
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     . calculateReportAccount rspec j priceoracle colspans
+
+-- | Add declared accounts to the account tree.
+addDeclaredAccounts :: Monoid a => ReportSpec -> Journal -> Account' a -> Account' a
+addDeclaredAccounts rspec j acct =
+    these id id const <$> mergeAccounts acct declaredTree
+  where
+    declaredTree =
+        mapAccounts (\a -> a{aboring = not $ aname a `HS.member` HS.fromList declaredAccounts}) $
+          accountTreeFromBalanceAndNames "root" (mempty <$ abalances acct) declaredAccounts
+
+    -- With --declared, add the query-matching declared accounts (as dummy postings
+    -- so they are processed like the rest).
+    declaredAccounts =
+      map (clipOrEllipsifyAccountName depthSpec) .
+      filter (matchesAccountExtra (journalAccountType j) (journalAccountTags j) accttypetagsq) $
+      journalAccountNamesDeclared j
+
+    accttypetagsq  = dbg3 "accttypetagsq" .
+      filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) $
+      _rsQuery rspec
+
+    depthSpec = queryDepth . filterQuery queryIsDepth $ _rsQuery rspec
+
 
 -- | Gather the account balance changes into a regular matrix, then
 -- accumulate and value amounts, as specified by the report options.
