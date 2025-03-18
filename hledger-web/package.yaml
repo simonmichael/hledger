@@ -42,9 +42,10 @@ extra-source-files:
 - static/hledger.js
 - static/js/*.js
 - templates/*.hamlet
-- hledger-web.1
-- hledger-web.txt
-- hledger-web.info
+- embeddedfiles/hledger-web.md
+- embeddedfiles/hledger-web.1
+- embeddedfiles/hledger-web.txt
+- embeddedfiles/hledger-web.info
 
 flags:
   library-only:

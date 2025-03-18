@@ -64,7 +64,7 @@ import Lens.Micro.Platform
 
 import Hledger
 -- import Hledger.Cli.CliOptions (CliOpts(reportspec_))
-import Hledger.Cli.DocFiles
+import Hledger.UI.DocFiles
 -- import Hledger.UI.UIOptions (UIOpts(uoCliOpts))
 import Hledger.UI.UITypes
 
@@ -228,9 +228,9 @@ helpHandle ev = do
   let ui' = ui{aMode=Normal}
   case ev of
     VtyEvent e | e `elem` closeHelpEvents -> put' ui'
-    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume (runPagerForTopic "hledger-ui" Nothing >> return ui')
-    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume (runManForTopic   "hledger-ui" Nothing >> return ui')
-    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume (runInfoForTopic  "hledger-ui" Nothing >> return ui')
+    VtyEvent (EvKey (KChar 'p') []) -> suspendAndResume (runPagerForTopic Nothing >> return ui')
+    VtyEvent (EvKey (KChar 'm') []) -> suspendAndResume (runManForTopic   Nothing >> return ui')
+    VtyEvent (EvKey (KChar 'i') []) -> suspendAndResume (runInfoForTopic  Nothing >> return ui')
     _ -> return ()
   where
     closeHelpEvents = moveLeftEvents ++ [EvKey KEsc [], EvKey (KChar '?') [], EvKey (KChar 'q') []]
