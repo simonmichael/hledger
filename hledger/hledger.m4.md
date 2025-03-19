@@ -1802,6 +1802,12 @@ Eg a [commodity directive](#commodity-directive)
 may limit the display precision, but this will not affect balance assertions.
 Balance assertion failure messages show exact amounts.
 
+### Assertions and hledger add
+
+Balance assertions can be included in the amounts given in `add`. 
+All types of assertions are supported, and assertions can be used as 
+in a normal journal file.
+
 ## Posting comments
 
 Text following `;`, at the end of a posting line, 
