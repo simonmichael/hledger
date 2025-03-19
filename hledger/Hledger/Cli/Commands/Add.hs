@@ -36,7 +36,7 @@ import Safe (headDef, headMay, atMay)
 import System.Console.CmdArgs.Explicit (flagNone)
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
 import System.Console.Haskeline.Completion (CompletionFunc, completeWord, isFinished, noCompletion, simpleCompletion)
-import System.Console.Wizard (Wizard, defaultTo, line, output, retryMsg, linePrewritten, nonEmpty, parser, run)
+import System.Console.Wizard (Wizard, defaultTo, line, output, outputLn, retryMsg, linePrewritten, nonEmpty, parser, run)
 import System.Console.Wizard.Haskeline
 import System.IO ( stderr, hPutStr, hPutStrLn )
 import Text.Megaparsec
@@ -231,16 +231,33 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       confirmedTransactionWizard prevInput es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
-    Just (amt, comment) -> do
+    Just (amt, assertion, (comment, tags, pdate1, pdate2)) -> do
+      -- This check is necessary because we cons a ';' in the comment parser above,
+      -- and we don't want to add an empty comment here if it wasn't given.
+      let pcomment = if T.length comment == 1 then "" else comment
       let p = nullposting{paccount=T.pack $ stripbrackets account
                           ,pamount=mixedAmount amt
-                          ,pcomment=comment
+                          ,pcomment=pcomment
                           ,ptype=accountNamePostingType $ T.pack account
+                          ,pbalanceassertion = assertion
+                          ,pdate=pdate1
+                          ,pdate2=pdate2
+                          ,ptags=tags
                           }
           amountAndCommentString = showAmount amt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
           es' = es{esPostings=esPostings++[p], esArgs=drop 1 esArgs}
-      confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
+          -- Include a dummy posting to balance the unfinished transation in assertion checking
+          dummytxn = nulltransaction{tpostings = esPostings ++ [p, post "" missingamt]
+                                     ,tdate = txnDate txnParams
+                                     ,tdescription = txnDesc txnParams }
+          validated = balanceTransaction defbalancingopts dummytxn >>= checkAssertions defbalancingopts esJournal
+      case validated of
+        Left err -> do
+          liftIO (hPutStrLn stderr err)
+          confirmedTransactionWizard prevInput es (EnterAmountAndComment txnParams account : stack)
+        Right _ -> 
+          confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
     Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
   EndStage t -> do
@@ -324,7 +341,10 @@ accountWizard PrevInput{..} EntryState{..} = do
                             | otherwise = Just t
       dbg' = id -- strace
 
-amountAndCommentWizard PrevInput{..} EntryState{..} = do
+type Comment = (Text, [Tag], Maybe Day, Maybe Day)
+
+amountAndCommentWizard :: PrevInput -> EntryState -> Wizard Haskeline (Maybe (Amount, Maybe BalanceAssertion, Comment))
+amountAndCommentWizard previnput@PrevInput{..} entrystate@EntryState{..} = do
   let pnum = length esPostings + 1
       (mhistoricalp,followedhistoricalsofar) =
           case esSimilarTransaction of
@@ -339,26 +359,36 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
           | Just hp <- mhistoricalp, followedhistoricalsofar    = showamt $ pamount hp
           | pnum > 1 && not (mixedAmountLooksZero balancingamt) = showamt balancingamtfirstcommodity
           | otherwise                                           = ""
-  retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
-   parser parseAmountAndComment $
+  retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $ 
+   parser' parseAmountAndComment $
    withCompletion (amountCompleter def) $
    defaultTo' def $
    nonEmpty $
    linePrewritten (green' $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length esPostings) ""
     where
-      parseAmountAndComment s = if s == "<" then return Nothing else either (const Nothing) (return . Just) $
-                                runParser
-                                  (evalStateT (amountandcommentp <* eof) nodefcommodityj)
-                                  ""
-                                  (T.pack s)
+      -- Custom parser that combines with Wizard to use IO via outputLn
+      parser' f a = a >>= \input ->
+        case f input of
+          Left err -> do
+            outputLn (customErrorBundlePretty err)
+            amountAndCommentWizard previnput entrystate
+          Right res -> pure res
+      parseAmountAndComment s = 
+        if s == "<" then Right Nothing else 
+         Just <$> runParser 
+            (evalStateT (amountandcommentp <* eof) nodefcommodityj)
+            ""
+            (T.pack s)
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: JournalParser Identity (Amount, Text)
+      amountandcommentp :: JournalParser Identity (Amount, Maybe BalanceAssertion, Comment)
       amountandcommentp = do
         a <- amountp
         lift skipNonNewlineSpaces
-        c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
-        -- eof
-        return (a,c)
+        assertion <- optional balanceassertionp
+        com <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
+        case rtp (postingcommentp Nothing) (T.cons ';' com) of
+          Left err -> fail $ customErrorBundlePretty err
+          Right comment -> return $ (a, assertion, comment)
       balancingamt = maNegate . sumPostings $ filter isReal esPostings
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision

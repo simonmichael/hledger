@@ -114,7 +114,96 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Amount  3 \[-0.75\]:/
 >2 //
 
-## 10. shouldn't add decimals if there aren't any
+## 10. Balance assertions with ==
+
+< 
+2025-05-01
+x
+a
+50 USD
+b
+-50 USD  == 50 USD
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> //
+>2 /Balance assertion failed in b/
+
+## 11. Balance assertions with =
+
+< 
+2025-05-01
+x
+a
+\$10
+a
+10 EUR
+a
+-10 EUR = 0 EUR
+a
+\$-10 = $0
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> /Save this transaction to the journal/
+>2 //
+
+## 12. Assertions with subaccounts
+
+<
+2025-05-01
+x
+a:b
+1000 JPY
+a
+-500 JPY ==* 500 JPY
+c
+-500 JPY
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> /Save this transaction to the journal/
+>2 //
+
+## 13. Assertions with posting dates
+
+<
+2025-05-01
+x
+a
+50 USD  ; date:2025-05-10
+b
+-50 USD
+.
+y
+2025-05-05
+x2
+a
+10 USD  == 10 USD
+c
+-10 USD
+.
+# Check the output with c to make sure we get to the final transaction display 
+# (anything generic is also in the first transaction)
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> /c[[:space:]]+-10 USD/
+>2 //
+
+## 14. Multi-commodity subaccount assertions
+<
+2025-05-01
+x
+a:b
+50 EUR
+a:c
+500 MXN
+a
+-50 EUR  =* 0 EUR
+a
+-500 MXN =* 0 MXN
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> /Save this transaction to the journal/
+>2 //
+
+## 15. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <
 #
@@ -124,4 +213,3 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 # b
 # $ hledger -f /dev/null add
 # > /amount  2 \[-1\]/
-
