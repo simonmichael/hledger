@@ -231,16 +231,27 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       confirmedTransactionWizard prevInput es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
-    Just (amt, comment) -> do
+    Just (amt, assertion, comment) -> do
       let p = nullposting{paccount=T.pack $ stripbrackets account
                           ,pamount=mixedAmount amt
                           ,pcomment=comment
                           ,ptype=accountNamePostingType $ T.pack account
+                          ,pbalanceassertion = assertion
                           }
           amountAndCommentString = showAmount amt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
           es' = es{esPostings=esPostings++[p], esArgs=drop 1 esArgs}
-      confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
+          -- Include a dummy posting to balance the unfinished transation in assertion checking
+          dummytxn = nulltransaction{tpostings = esPostings ++ [p, post "" missingamt]
+                                     ,tdate = txnDate txnParams
+                                     ,tdescription = txnDesc txnParams }
+          validated = balanceTransaction defbalancingopts dummytxn >>= checkAssertions defbalancingopts esJournal
+      case validated of
+        Left err -> do
+          liftIO (hPutStrLn stderr err)
+          confirmedTransactionWizard prevInput es (EnterAmountAndComment txnParams account : stack)
+        Right _ -> 
+          confirmedTransactionWizard prevInput{prevAmountAndCmnt=prevAmountAndCmnt'} es' (EnterNewPosting txnParams (Just posting) : stack)
     Nothing -> confirmedTransactionWizard prevInput es (drop 1 stack)
 
   EndStage t -> do
@@ -352,13 +363,14 @@ amountAndCommentWizard PrevInput{..} EntryState{..} = do
                                   ""
                                   (T.pack s)
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: JournalParser Identity (Amount, Text)
+      amountandcommentp :: JournalParser Identity (Amount, Maybe BalanceAssertion, Text)
       amountandcommentp = do
         a <- amountp
         lift skipNonNewlineSpaces
+        assertion <- optional balanceassertionp
         c <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         -- eof
-        return (a,c)
+        return (a, assertion, c)
       balancingamt = maNegate . sumPostings $ filter isReal esPostings
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision
