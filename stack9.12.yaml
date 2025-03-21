@@ -16,7 +16,6 @@ packages:
 # To minimise problems, use the versions shipped with GHC 9.10.1 when possible.
 # See https://github.com/haskell/unix/issues/329.
 extra-deps:
-# - base-compat-0.14.0
 
  # for hledger-lib
 # - Cabal-3.12.0.0
