@@ -129,7 +129,7 @@ dependencies:
 - data-default >=0.5
 - Decimal >=0.5.1
 - directory
-- extra >=1.6.3
+- extra >=1.7.11
 - filepath
 - githash >=0.1.6.2
 - haskeline >=0.6

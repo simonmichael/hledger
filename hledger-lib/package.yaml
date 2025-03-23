@@ -85,7 +85,7 @@ dependencies:
 - unordered-containers >=0.2
 - uglymemo
 - utf8-string >=0.3.5
-- extra >=1.6.3
+- extra >=1.7.11
 - Glob >= 0.9
 
 ghc-options:
