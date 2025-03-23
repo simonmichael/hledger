@@ -142,7 +142,7 @@ library
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , encoding >=0.10
-    , extra >=1.6.3
+    , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
@@ -202,7 +202,7 @@ test-suite doctest
     , doclayout >=0.3 && <0.6
     , doctest >=0.18.1
     , encoding >=0.10
-    , extra >=1.6.3
+    , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1
@@ -263,7 +263,7 @@ test-suite unittest
     , directory >=1.2.6.1
     , doclayout >=0.3 && <0.6
     , encoding >=0.10
-    , extra >=1.6.3
+    , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
     , hashtables >=1.2.3.1

@@ -99,7 +99,7 @@ library:
   - data-default
   - directory
   - doclayout >=0.3 && <0.6
-  - extra >=1.6.3
+  - extra >=1.7.11
   - filepath
   - fsnotify >=0.4 && <0.5
   - githash >=0.1.6.2
