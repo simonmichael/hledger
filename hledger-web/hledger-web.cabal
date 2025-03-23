@@ -174,7 +174,7 @@ library
     , containers >=0.5.9
     , data-default
     , directory >=1.2.3.0
-    , extra >=1.6.3
+    , extra >=1.7.11
     , filepath
     , githash >=0.1.6.2
     , hjsmin
