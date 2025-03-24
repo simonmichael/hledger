@@ -45,6 +45,7 @@ import Data.List.NonEmpty (NonEmpty(..), groupWith)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
 import Data.Ord (Down(..))
+import qualified Data.Text as T
 import Data.Time (Day)
 import Safe (headMay)
 import Text.Printf (printf)
@@ -56,13 +57,16 @@ import Hledger.Data.Types
 
 
 -- deriving instance Show Account
-instance Show (Account' a) where
-    show Account{..} = printf "Account %s (boring:%s, postings:%d, ebalance:%s, ibalance:%s)"
-                       aname
-                       (if aboring then "y" else "n" :: String)
-                       (0 :: Int)  -- anumpostings
-                       ("test" :: String)  -- (wbUnpack $ showMixedAmountB defaultFmt aebalance)
-                       ("test" :: String)  -- (wbUnpack $ showMixedAmountB defaultFmt aibalance)
+instance Show a => Show (Account' a) where
+  showsPrec d acct =
+    showParen (d > 10) $
+       showString "Account "
+      . showString (T.unpack $ aname acct)
+      . showString " (boring:"
+      . showString (if aboring acct then "y" else "n")
+      . showString ", abalances:"
+      . shows (abalances acct)
+      . showChar ')'
 
 instance Eq (Account' a) where
   (==) a b = aname a == aname b -- quick equality test for speed
