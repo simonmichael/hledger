@@ -37,6 +37,15 @@ import Hledger.Data.Amount
 import Hledger.Data.Types
 
 
+instance Show a => Show (AccountBalances a) where
+  showsPrec d (AccountBalances h ds) =
+    showParen (d > 10) $
+        showString "AccountBalances"
+      . showString "{ abhistorical = " . shows h
+      . showString ", abdatemap = "
+      . showString "fromList " . shows (map (\(day, x) -> (ModifiedJulianDay $ toInteger day, x)) $ IM.toList ds)
+      . showChar '}'
+
 instance Foldable AccountBalances where
   foldr f z (AccountBalances h as) = foldr f (f h z) as
   foldl f z (AccountBalances h as) = foldl f (f z h) as
@@ -93,6 +102,15 @@ mergeAccountBalances f only1 only2 = \(AccountBalances h1 as1) (AccountBalances 
   where
     merge = IM.mergeWithKey (\_ x1 x2 -> Just $ f x1 x2) only1 only2
 
+
+instance Show AccountBalance where
+  showsPrec d (AccountBalance n e i) =
+    showParen (d > 10) $
+        showString "AccountBalance"
+      . showString "{ abnumpostings = " . shows n
+      . showString ", abebalance = " . showString (wbUnpack (showMixedAmountB defaultFmt e))
+      . showString ", abibalance = " . showString (wbUnpack (showMixedAmountB defaultFmt i))
+      . showChar '}'
 
 instance Semigroup AccountBalance where
   AccountBalance n e i <> AccountBalance n' e' i' = AccountBalance (n + n') (maPlus e e') (maPlus i i')

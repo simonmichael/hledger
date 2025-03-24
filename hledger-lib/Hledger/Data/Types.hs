@@ -757,7 +757,7 @@ data Account' a = Account {
 data AccountBalances a = AccountBalances {
    abhistorical :: a            -- ^ historical balance information
   ,abdatemap    :: IM.IntMap a  -- ^ balance information associated to a start day
-  } deriving (Eq, Show, Functor, Generic)
+  } deriving (Eq, Functor, Generic)
 
 -- | A component of an 'Account' containing the number of postings,
 -- balance excluding subaccounts, and balance including subaccounts
@@ -765,7 +765,7 @@ data AccountBalance = AccountBalance {
    abnumpostings :: Int          -- ^ the number of postings to this account
   ,abebalance    :: MixedAmount  -- ^ this account's balance, excluding subaccounts
   ,abibalance    :: MixedAmount  -- ^ this account's balance, including subaccounts
-  } deriving (Eq, Show, Generic)
+  } deriving (Eq, Generic)
 
 -- | Whether an account's balance is normally a positive number (in
 -- accounting terms, a debit balance) or a negative number (credit balance).
