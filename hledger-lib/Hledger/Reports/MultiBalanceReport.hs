@@ -327,44 +327,43 @@ accountBalancesValuation ropts j priceoracle colspans =
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
 markAccountBoring :: ReportSpec -> Account -> Account
 markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
-    -- If depth 0, only the top-level account is interesting
+    -- If depth 0, all accounts except the top-level account are boring
     | qdepthIsZero = markBoring False . mapAccounts (markBoring True)
-    -- Otherwise, an account is interesting if it is interesting on its own, or
-    -- is a fork for interesting subaccounts (but the top-level root account is
-    -- never interesting)
-    | otherwise    = markBoring True . mapAccounts (markBoringBy (\a -> not $ isInteresting a || isInterestingFork a))
+    -- Otherwise the top level account is boring, and subaccounts are boring if
+    -- they are both boring in and of themselves and are boring parents
+    | otherwise    = markBoring True . mapAccounts (markBoringBy (liftA2 (&&) isBoring isBoringParent))
   where
-    -- Accounts interesting for their own sake
-    isInteresting :: Account -> Bool
-    isInteresting acct =
-        d <= qdepth                                 -- Throw out anything too deep
-        && ( (empty_ ropts && keepWhenEmpty acct)   -- Keep empty accounts when called with --empty
-           || not (isZeroRow balance amts)          -- Keep everything with a non-zero balance in the row
-           )
+    -- Accounts boring on their own
+    isBoring :: Account -> Bool
+    isBoring acct = tooDeep || allZeros
       where
-        name = aname acct
-        amts = abdatemap $ abalances acct
-        d = accountNameLevel name
+        tooDeep = d > qdepth                                       -- Throw out anything too deep
+        allZeros = isZeroRow balance amts && not keepEmptyAccount  -- Throw away everything with a zero balance in the row, unless..
+        keepEmptyAccount = empty_ ropts && keepWhenEmpty acct      -- We are keeping empty rows and this row meets the criteria
 
-        qdepth = fromMaybe maxBound $ getAccountNameClippedDepth depthspec name
+        amts = abdatemap $ abalances acct
+        d = accountNameLevel $ aname acct
+
+        qdepth = fromMaybe maxBound . getAccountNameClippedDepth depthspec $ aname acct
         balance = maybeStripPrices . case accountlistmode_ ropts of
             ALTree | d == qdepth -> abibalance
             _                    -> abebalance
 
-    -- Accounts interesting because they are a fork for interesting subaccounts
-    isInterestingFork :: Account -> Bool
-    isInterestingFork acct = case accountlistmode_ ropts of
-        ALTree -> hasEnoughSubs
-        ALFlat -> False
+    -- Accounts which don't have enough interesting subaccounts
+    isBoringParent :: Account -> Bool
+    isBoringParent acct = case accountlistmode_ ropts of
+        ALTree -> notEnoughSubs || droppedAccount
+        ALFlat -> True
       where
-        hasEnoughSubs = length interestingSubs >= minimumSubs && accountNameLevel (aname acct) > drop_ ropts
+        notEnoughSubs = length interestingSubs < minimumSubs
+        droppedAccount = accountNameLevel (aname acct) <= drop_ ropts
         interestingSubs = filter (anyAccounts (not . aboring)) $ asubs acct
         minimumSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     keepWhenEmpty = case accountlistmode_ ropts of
         ALFlat -> any ((0<) . abnumpostings) . abdatemap . abalances  -- Keep all accounts that have postings in flat mode
-        ALTree -> null . asubs  -- Keep only empty leaves in tree mode
+        ALTree -> null . asubs                                        -- Keep only empty leaves in tree mode
     maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
     qdepthIsZero = depthspec == DepthSpec (Just 0) []
@@ -372,7 +371,6 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
 
     markBoring   v a = a{aboring = v}
     markBoringBy f a = a{aboring = f a}
-
 
 
 -- | Build a report row.
