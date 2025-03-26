@@ -224,7 +224,7 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
 
 -- | Generate the 'Account' for the requested multi-balance report from a list
 -- of 'Posting's.
-generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account
+generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account AccountBalance
 generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans =
     -- Add declared accounts if called with --declared and --empty
     (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
@@ -238,7 +238,7 @@ generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle 
     . calculateReportAccount rspec j priceoracle colspans
 
 -- | Add declared accounts to the account tree.
-addDeclaredAccounts :: Monoid a => ReportSpec -> Journal -> Account' a -> Account' a
+addDeclaredAccounts :: Monoid a => ReportSpec -> Journal -> Account a -> Account a
 addDeclaredAccounts rspec j acct =
     these id id const <$> mergeAccounts acct declaredTree
   where
@@ -263,7 +263,7 @@ addDeclaredAccounts rspec j acct =
 -- | Gather the account balance changes into a regular matrix, then
 -- accumulate and value amounts, as specified by the report options.
 -- Makes sure all report columns have an entry.
-calculateReportAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account
+calculateReportAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account AccountBalance
 calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans ps =  -- PARTIAL:
     -- Ensure all columns have entries, including those with starting balances
     mapAccounts (\a -> a{abalances = rowbals $ abalances a}) changesAcct
@@ -325,7 +325,7 @@ accountBalancesValuation ropts j priceoracle colspans =
         makeJustFst _ = error "calculateReportAccount: expected initial span to have an end date"
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
-markAccountBoring :: ReportSpec -> Account -> Account
+markAccountBoring :: ReportSpec -> Account AccountBalance -> Account AccountBalance
 markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
     -- If depth 0, all accounts except the top-level account are boring
     | qdepthIsZero = markBoring False . mapAccounts (markBoring True)
@@ -334,7 +334,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
     | otherwise    = markBoring True . mapAccounts (markBoringBy (liftA2 (&&) isBoring isBoringParent))
   where
     -- Accounts boring on their own
-    isBoring :: Account -> Bool
+    isBoring :: Account AccountBalance -> Bool
     isBoring acct = tooDeep || allZeros
       where
         tooDeep = d > qdepth                                       -- Throw out anything too deep
@@ -350,7 +350,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
             _                    -> abebalance
 
     -- Accounts which don't have enough interesting subaccounts
-    isBoringParent :: Account -> Bool
+    isBoringParent :: Account a -> Bool
     isBoringParent acct = case accountlistmode_ ropts of
         ALTree -> notEnoughSubs || droppedAccount
         ALFlat -> True
@@ -376,7 +376,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-generateMultiBalanceReport :: ReportOpts -> [DateSpan] -> Account -> MultiBalanceReport
+generateMultiBalanceReport :: ReportOpts -> [DateSpan] -> Account AccountBalance -> MultiBalanceReport
 generateMultiBalanceReport ropts colspans =
     reportPercent ropts . generatePeriodicReport makeMultiBalanceReportRow abibalance id ropts colspans
 
@@ -384,9 +384,9 @@ generateMultiBalanceReport ropts colspans =
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
 generatePeriodicReport :: Show c =>
-    (forall a. ReportOpts -> (AccountBalance -> MixedAmount) -> a -> Account' b -> PeriodicReportRow a c)
+    (forall a. ReportOpts -> (AccountBalance -> MixedAmount) -> a -> Account b -> PeriodicReportRow a c)
     -> (b -> MixedAmount) -> (c -> MixedAmount)
-    -> ReportOpts -> [DateSpan] -> Account' b -> PeriodicReport DisplayName c
+    -> ReportOpts -> [DateSpan] -> Account b -> PeriodicReport DisplayName c
 generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
     PeriodicReport colspans (buildAndSort acct) totalsrow
   where
@@ -419,12 +419,12 @@ generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
 -- One row per account, with account name info, row amounts, row total and row average.
 -- Rows are sorted according to the order in the 'Account' tree.
 buildReportRows :: forall b c.
-                (ReportOpts -> (AccountBalance -> MixedAmount) -> DisplayName -> Account' b -> PeriodicReportRow DisplayName c)
-                -> ReportOpts -> Account' b -> [PeriodicReportRow DisplayName c]
+                (ReportOpts -> (AccountBalance -> MixedAmount) -> DisplayName -> Account b -> PeriodicReportRow DisplayName c)
+                -> ReportOpts -> Account b -> [PeriodicReportRow DisplayName c]
 buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
   where
     -- Build the row for an account at a given depth with some number of boring parents
-    mkRows :: Bool -> Int -> Int -> Account' b -> [PeriodicReportRow DisplayName c]
+    mkRows :: Bool -> Int -> Int -> Account b -> [PeriodicReportRow DisplayName c]
     mkRows isRoot d boringParents acct
         -- Account is a boring root account, and should be bypassed entirely
         | aboring acct && isRoot         = buildSubrows d 0
@@ -459,7 +459,7 @@ buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
 --
 -- Calculate the column totals. These are always the sum of column amounts.
 makeMultiBalanceReportRow :: ReportOpts -> (AccountBalance -> MixedAmount)
-                          -> a -> Account -> PeriodicReportRow a MixedAmount
+                          -> a -> Account AccountBalance -> PeriodicReportRow a MixedAmount
 makeMultiBalanceReportRow = makePeriodicReportRow nullmixedamt sumAndAverageMixedAmounts
 
 -- | Build a report row.
@@ -467,7 +467,7 @@ makeMultiBalanceReportRow = makePeriodicReportRow nullmixedamt sumAndAverageMixe
 -- Calculate the column totals. These are always the sum of column amounts.
 makePeriodicReportRow :: c -> (IM.IntMap c -> (c, c))
                       -> ReportOpts -> (b -> c)
-                      -> a -> Account' b -> PeriodicReportRow a c
+                      -> a -> Account b -> PeriodicReportRow a c
 makePeriodicReportRow nullEntry totalAndAverage ropts balance name acct =
     PeriodicReportRow name (toList rowbals) rowtotal avg
   where
@@ -504,11 +504,11 @@ perdivide a b = fromMaybe (error' errmsg) $ do  -- PARTIAL:
   where errmsg = "Cannot calculate percentages if accounts have different commodities (Hint: Try --cost, -V or similar flags.)"
 
 -- | Calculate a cumulative sum from a list of period changes.
-cumulativeSum :: AccountBalances AccountBalance -> AccountBalances AccountBalance
+cumulativeSum :: Traversable t => t AccountBalance -> t AccountBalance
 cumulativeSum = snd . mapAccumL (\prev new -> let z = prev <> new in (z, z)) mempty
 
 -- | Extract period changes from a cumulative list.
-periodChanges :: AccountBalances AccountBalance -> AccountBalances AccountBalance
+periodChanges :: Traversable t => t AccountBalance -> t AccountBalance
 periodChanges = snd . mapAccumL (\prev new -> (new, opAccountBalance maMinus new prev)) mempty
 
 -- tests

@@ -735,16 +735,14 @@ nullaccountdeclarationinfo = AccountDeclarationInfo {
   ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
-type Account = Account' AccountBalance
-
 -- | An account, with its balances, parent/subaccount relationships, etc.
 -- Only the name is required; the other fields are added when needed.
-data Account' a = Account {
+data Account a = Account {
    aname                     :: AccountName         -- ^ this account's full name
   ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives
   -- relationships in the tree
-  ,asubs                     :: [Account' a]        -- ^ this account's sub-accounts
-  ,aparent                   :: Maybe (Account' a)  -- ^ parent account
+  ,asubs                     :: [Account a]        -- ^ this account's sub-accounts
+  ,aparent                   :: Maybe (Account a)  -- ^ parent account
   ,aboring                   :: Bool                -- ^ used in the accounts report to label elidable parents
   -- balance information
   ,abalances                 :: AccountBalances a   -- ^ historical and date-associated account balances.
@@ -780,7 +778,7 @@ data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Eq)
 -- account is the root of the tree and always exists.
 data Ledger = Ledger {
    ljournal  :: Journal
-  ,laccounts :: [Account]
+  ,laccounts :: [Account AccountBalance]
   } deriving (Generic)
 
 instance NFData AccountAlias
