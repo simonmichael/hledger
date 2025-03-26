@@ -163,7 +163,7 @@ instance ToJSON a => ToJSON (AccountBalances a) where
     , "abdatemap"    .= map (\(d, x) -> (ModifiedJulianDay (toInteger d), x)) (IM.toList $ abdatemap a)
     ]
 
-instance ToJSON a => ToJSON (Account' a) where
+instance ToJSON a => ToJSON (Account a) where
   toJSON = object . accountKV
   toEncoding = pairs . mconcat . accountKV
 
@@ -173,7 +173,7 @@ accountKV ::
 #else
   (KeyValue kv, ToJSON a)
 #endif
-  => Account' a -> [kv]
+  => Account a -> [kv]
 accountKV a =
     [ "aname"            .= aname a
     , "adeclarationinfo" .= adeclarationinfo a
@@ -185,7 +185,7 @@ accountKV a =
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
     -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    , "asubs"            .= ([]::[Account])
+    , "asubs"            .= ([]::[Account AccountBalance])
     , "aboring"          .= aboring a
     , "abalances"        .= abalances a
     ]
@@ -231,7 +231,7 @@ instance FromJSON a => FromJSON (AccountBalances a) where
 -- XXX The ToJSON instance replaces subaccounts with just names.
 -- Here we should try to make use of those to reconstruct the
 -- parent-child relationships.
-instance FromJSON a => FromJSON (Account' a)
+instance FromJSON a => FromJSON (Account a)
 
 -- Decimal, various attempts
 --

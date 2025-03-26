@@ -1053,7 +1053,7 @@ instance HasAmounts AccountBalance where
 instance HasAmounts a => HasAmounts (AccountBalances a) where
   styleAmounts styles = fmap (styleAmounts styles)
 
-instance HasAmounts a => HasAmounts (Account' a) where
+instance HasAmounts a => HasAmounts (Account a) where
   styleAmounts styles acct@Account{abalances} =
     acct{abalances = styleAmounts styles <$> abalances}
 
