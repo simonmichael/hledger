@@ -180,4 +180,4 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2225]                  | Bas van Dijk donated                                                             | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.41** 2024-12-09      | ---                                                                              | ---
 | **1.42** 2025-03-07      | ---                                                                              | ---
-| [#2352]                  | **[Matt Gass](https://opencollective.com/hledger/expenses/242346)**              | N/A
+| [#2352]                  | [Matt Gass](https://opencollective.com/hledger/expenses/242346)                  | N/A
