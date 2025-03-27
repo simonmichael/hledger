@@ -39,11 +39,12 @@ import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
 import qualified Data.HashSet as HS
 import qualified Data.IntMap.Strict as IM
+import qualified Data.IntSet as IS
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
 import Data.These (these)
-import Data.Time.Calendar (Day, addDays, fromGregorian)
+import Data.Time.Calendar (Day(..), addDays, fromGregorian)
 import Data.Traversable (mapAccumL)
 
 import Hledger.Data
@@ -291,13 +292,18 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colsp
         cumulative = cumulativeSum changes{abhistorical = mempty}
         avalue = accountBalancesValuation ropts j priceoracle colspans
 
-    changesAcct = dbg5With (\x -> "multiBalanceReport changesAcct\n" ++ showAccounts x) $
-        accountFromPostings getDate intervalStarts ps
+    changesAcct = dbg5With (\x -> "multiBalanceReport changesAcct\n" ++ showAccounts x) .
+        mapAccounts (\a -> a{abalances = padAccountBalances intervalStarts $ abalances a}) $
+        accountFromPostings getIntervalStartDate ps
 
-    getDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
-    intervalStarts = case mapMaybe spanStart colspans of
+    getIntervalStartDate p = intToDay <$> IS.lookupLE (dayToInt $ getPostingDate p) intervalStarts
+    getPostingDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
+
+    intervalStarts = IS.fromList . map dayToInt $ case mapMaybe spanStart colspans of
       [] -> [nulldate]  -- Deal with the case of the empty journal
       xs -> xs
+    dayToInt = fromInteger . toModifiedJulianDay
+    intToDay = ModifiedJulianDay . toInteger
 
 -- | The valuation function to use for the chosen report options.
 accountBalancesValuation :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]

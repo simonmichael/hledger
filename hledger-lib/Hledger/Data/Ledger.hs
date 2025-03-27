@@ -63,7 +63,7 @@ ledgerFromJournal q j = nullledger{ljournal=j'', laccounts=as}
     j'  = filterJournalAmounts (filterQuery queryIsSym q) $ -- remove amount parts which the query's sym: terms would exclude
           filterJournalPostings q' j
     -- Ledger does not use date-separated balances, so dates are left empty
-    as  = accountsFromPostings (const nulldate) [] $ journalPostings j'
+    as  = accountsFromPostings (const $ Just nulldate) $ journalPostings j'
     j'' = filterJournalPostings depthq j'
 
 -- | List a ledger's account names.
