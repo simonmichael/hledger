@@ -7,13 +7,13 @@ for given date ranges.
 
 -}
 module Hledger.Data.AccountBalance
-( emptyAccountBalances
-, accountBalancesFromList
+( accountBalancesFromList
 
 , lookupAccountBalance
 , insertAccountBalances
 , opAccountBalances
 , mergeAccountBalances
+, padAccountBalances
 
 , applyAccountBalance
 , opAccountBalance
@@ -25,6 +25,7 @@ module Hledger.Data.AccountBalance
 
 import Data.Foldable1 (Foldable1(..))
 import qualified Data.IntMap.Strict as IM
+import qualified Data.IntSet as IS
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -68,7 +69,7 @@ instance Semigroup a => Semigroup (AccountBalances a) where
 instance Monoid a => Monoid (AccountBalances a) where
   mempty = AccountBalances mempty mempty
 
--- | Construct an empty 'AccountBalance' from a list of boundary days.
+-- | Construct an empty 'AccountBalances' from a list of boundary days.
 emptyAccountBalances :: Monoid a => [Day] -> AccountBalances a
 emptyAccountBalances = accountBalancesFromList mempty . map (\d -> (d, mempty))
 
@@ -82,10 +83,10 @@ lookupAccountBalance d (AccountBalances h as) =
     maybe h snd $ IM.lookupLE (fromInteger $ toModifiedJulianDay d) as
 
 -- | Add the 'AccountBalance' to the appropriate location in 'AccountBalances'.
-insertAccountBalances :: Semigroup a => Day -> a -> AccountBalances a -> AccountBalances a
-insertAccountBalances day b balances = case IM.lookupLE (fromInteger $ toModifiedJulianDay day) (abdatemap balances) of
-    Nothing     -> balances{abhistorical = b <> abhistorical balances}
-    Just (d, a) -> balances{abdatemap = IM.insert d (b <> a) $ abdatemap balances}
+insertAccountBalances :: Semigroup a => Maybe Day -> a -> AccountBalances a -> AccountBalances a
+insertAccountBalances mday b balances = case mday of
+    Nothing  -> balances{abhistorical = abhistorical balances <> b}
+    Just day -> balances{abdatemap = IM.insertWith (<>) (fromInteger $ toModifiedJulianDay day) b $ abdatemap balances}
 
 -- | Performs an operation on the contents of two 'AccountBalances'.
 --
@@ -101,6 +102,10 @@ mergeAccountBalances f only1 only2 = \(AccountBalances h1 as1) (AccountBalances 
     AccountBalances (f h1 h2) $ merge as1 as2
   where
     merge = IM.mergeWithKey (\_ x1 x2 -> Just $ f x1 x2) only1 only2
+
+-- | Pad out the datemap of an 'AccountBalances' so that every key from a set is present.
+padAccountBalances :: Monoid a => IS.IntSet -> AccountBalances a -> AccountBalances a
+padAccountBalances keys bal = bal{abdatemap = abdatemap bal <> IM.fromSet (const mempty) keys}
 
 
 instance Show AccountBalance where

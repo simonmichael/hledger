@@ -107,20 +107,20 @@ accountFromBalances name bal = Account
 -- The accounts are returned as a list in flattened tree order,
 -- and also reference each other as a tree.
 -- (The first account is the root of the tree.)
-accountsFromPostings :: (Posting -> Day) -> [Day] -> [Posting] -> [Account AccountBalance]
-accountsFromPostings getPostingDate days = flattenAccounts . accountFromPostings getPostingDate days
+accountsFromPostings :: (Posting -> Maybe Day) -> [Posting] -> [Account AccountBalance]
+accountsFromPostings getPostingDate = flattenAccounts . accountFromPostings getPostingDate
 
 -- | Derive 1. an account tree and 2. each account's total exclusive
 -- and inclusive changes from a list of postings.
 -- This is the core of the balance command (and of *ledger).
 -- The accounts are returned as tree.
-accountFromPostings :: (Posting -> Day) -> [Day] -> [Posting] -> Account AccountBalance
-accountFromPostings getPostingDate days ps =
+accountFromPostings :: (Posting -> Maybe Day) -> [Posting] -> Account AccountBalance
+accountFromPostings getPostingDate ps =
     tieAccountParents . sumAccounts $ mapAccounts setBalance acctTree
   where
     -- The special name "..." is stored in the root of the tree
     acctTree     = accountTree "root" . HM.keys $ HM.delete "..." accountMap
-    setBalance a = a{abalances = HM.lookupDefault emptyMap name accountMap}
+    setBalance a = a{abalances = HM.lookupDefault mempty name accountMap}
       where name = if aname a == "root" then "..." else aname a
     accountMap   = processPostings ps
 
@@ -130,9 +130,7 @@ accountFromPostings getPostingDate days ps =
         processAccountName p = HM.alter (updateAccountBalance p) (paccount p)
         updateAccountBalance p = Just
                                . insertAccountBalances (getPostingDate p) (AccountBalance 1 (pamount p) nullmixedamt)
-                               . fromMaybe emptyMap
-
-    emptyMap = emptyAccountBalances days
+                               . fromMaybe mempty
 
 -- | Convert a list of account names to a tree of Account objects,
 -- with just the account names filled in.
@@ -208,12 +206,11 @@ sumAccounts a = a{asubs = subs, abalances = setInclusiveBalances $ abalances a}
     subtotals = foldMap abalances subs
 
     setInclusiveBalances :: AccountBalances AccountBalance -> AccountBalances AccountBalance
-    setInclusiveBalances = if null subs
-      then fmap setibal
-      else opAccountBalances addibal subtotals
+    setInclusiveBalances = mergeAccountBalances combineChildren (fmap onlyChildren) (fmap noChildren) subtotals
 
-    setibal bal@(AccountBalance _ ebal _) = bal{abibalance = ebal}
-    addibal (AccountBalance _ _ ibal) bal@(AccountBalance _ ebal _) = bal{abibalance = ebal <> ibal}
+    combineChildren children this = this  {abibalance = abebalance this <> abibalance children}
+    onlyChildren    children      = mempty{abibalance = abibalance children}
+    noChildren               this = this  {abibalance = abebalance this}
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account a -> Account a
@@ -288,12 +285,6 @@ filterAccounts p a
 -- | Merge two account trees and their subaccounts.
 --
 -- This assumes that the top-level 'Account's have the same name.
---
--- Unless the 'Account's and all their subaccounts have the same collection of
--- 'Day' keys, it will probably produce unhelpful output: do not do this unless
--- you really know what you're doing. Merging two accounts with unequal
--- 'Day' keys can be useful when they have the same Intervals but not
--- necessarily equal spans, as in the budget reports.
 mergeAccounts :: Account a -> Account b -> Account (These a b)
 mergeAccounts a = tieAccountParents . merge a
   where
@@ -384,9 +375,9 @@ showAccountDebug a = printf "%-25s %s %4s"
 tests_Account = testGroup "Account" [
     testGroup "accountFromPostings" [
       testCase "no postings, no days" $
-        accountFromPostings undefined [] [] @?= accountTree "root" []
+        accountFromPostings undefined [] @?= accountTree "root" []
      ,testCase "no postings, only 2000-01-01" $
          allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . IM.keys . abdatemap . abalances)
-                     (accountFromPostings undefined [fromGregorian 2000 01 01] []) @? "Not all abalances have exactly 2000-01-01"
+                     (accountFromPostings undefined []) @? "Not all abalances have exactly 2000-01-01"
     ]
   ]
