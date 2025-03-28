@@ -15,9 +15,8 @@ module Hledger.Data.AccountBalance
 , mergeAccountBalances
 , padAccountBalances
 
-, applyAccountBalance
+, mapAccountBalance
 , opAccountBalance
-, op2AccountBalance
 
 , tests_AccountBalance
 , tests_AccountBalances
@@ -69,10 +68,6 @@ instance Semigroup a => Semigroup (AccountBalances a) where
 instance Monoid a => Monoid (AccountBalances a) where
   mempty = AccountBalances mempty mempty
 
--- | Construct an empty 'AccountBalances' from a list of boundary days.
-emptyAccountBalances :: Monoid a => [Day] -> AccountBalances a
-emptyAccountBalances = accountBalancesFromList mempty . map (\d -> (d, mempty))
-
 -- | Construct an 'AccountBalances' from a list.
 accountBalancesFromList :: a -> [(Day, a)] -> AccountBalances a
 accountBalancesFromList h = AccountBalances h . IM.fromList . map (\(d, a) -> (fromInteger $ toModifiedJulianDay d, a))
@@ -123,21 +118,13 @@ instance Semigroup AccountBalance where
 instance Monoid AccountBalance where
   mempty = AccountBalance 0 nullmixedamt nullmixedamt
 
--- | Apply the same operation to both 'MixedAmount' in an 'AccountBalance'.
-applyAccountBalance :: (MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance
-applyAccountBalance f = apply2AccountBalance f f
+-- | Apply an operation to both 'MixedAmount' in an 'AccountBalance'.
+mapAccountBalance :: (MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance
+mapAccountBalance f a = a{abebalance = f $ abebalance a, abibalance = f $ abibalance a}
 
--- | Apply functions to both 'MixedAmount' in an 'AccountBalance'.
-apply2AccountBalance :: (MixedAmount -> MixedAmount) -> (MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance
-apply2AccountBalance f g a = a{abebalance = f $ abebalance a, abibalance = g $ abibalance a}
-
--- | Perform the same operation on the 'MixedAmount' in two 'AccountBalance'.
+-- | Perform an operation on the 'MixedAmount' in two 'AccountBalance'.
 opAccountBalance :: (MixedAmount -> MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance -> AccountBalance
-opAccountBalance f = op2AccountBalance f f
-
--- | Perform operations on the exclusive and inclusive amounts in two 'AccountBalance's.
-op2AccountBalance :: (MixedAmount -> MixedAmount -> MixedAmount) -> (MixedAmount -> MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance -> AccountBalance
-op2AccountBalance f g a b = a{abebalance = f (abebalance a) (abebalance b), abibalance = g (abibalance a) (abibalance b)}
+opAccountBalance f a b = a{abebalance = f (abebalance a) (abebalance b), abibalance = f (abibalance a) (abibalance b)}
 
 
 -- tests

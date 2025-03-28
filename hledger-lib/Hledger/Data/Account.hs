@@ -24,6 +24,7 @@ module Hledger.Data.Account
 , parentAccounts
 , accountsLevels
 , mapAccounts
+, mapAccountBalances
 , anyAccounts
 , filterAccounts
 , sumAccounts
@@ -185,6 +186,10 @@ accountsLevels = takeWhile (not . null) . iterate (concatMap asubs) . (:[])
 -- | Map a (non-tree-structure-modifying) function over this and sub accounts.
 mapAccounts :: (Account a -> Account a) -> Account a -> Account a
 mapAccounts f a = f a{asubs = map (mapAccounts f) $ asubs a}
+
+-- | Apply a function to all 'AccountBalances' within this and sub accounts.
+mapAccountBalances :: (AccountBalances a -> AccountBalances a) -> Account a -> Account a
+mapAccountBalances f = mapAccounts (\a -> a{abalances = f $ abalances a})
 
 -- | Is the predicate true on any of this account or its subaccounts ?
 anyAccounts :: (Account a -> Bool) -> Account a -> Bool

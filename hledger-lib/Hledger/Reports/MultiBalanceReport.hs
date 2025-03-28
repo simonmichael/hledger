@@ -230,7 +230,7 @@ generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle 
     -- Add declared accounts if called with --declared and --empty
     (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
     -- Negate amounts if applicable
-    . (if invert_ ropts then fmap (applyAccountBalance maNegate) else id)
+    . (if invert_ ropts then fmap (mapAccountBalance maNegate) else id)
     -- Mark which accounts are boring and which are interesting
     . markAccountBoring rspec
     -- Set account declaration info (for sorting purposes)
@@ -266,8 +266,7 @@ addDeclaredAccounts rspec j acct =
 -- Makes sure all report columns have an entry.
 calculateReportAccount :: ReportSpec -> Journal -> PriceOracle -> [DateSpan] -> [Posting] -> Account AccountBalance
 calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans ps =  -- PARTIAL:
-    -- Ensure all columns have entries, including those with starting balances
-    mapAccounts (\a -> a{abalances = rowbals $ abalances a}) changesAcct
+    mapAccountBalances rowbals changesAcct
   where
     -- The valued row amounts to be displayed: per-period changes,
     -- zero-based cumulative totals, or
@@ -293,7 +292,7 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colsp
         avalue = accountBalancesValuation ropts j priceoracle colspans
 
     changesAcct = dbg5With (\x -> "multiBalanceReport changesAcct\n" ++ showAccounts x) .
-        mapAccounts (\a -> a{abalances = padAccountBalances intervalStarts $ abalances a}) $
+        mapAccountBalances (padAccountBalances intervalStarts) $
         accountFromPostings getIntervalStartDate ps
 
     getIntervalStartDate p = intToDay <$> IS.lookupLE (dayToInt $ getPostingDate p) intervalStarts
@@ -312,7 +311,7 @@ accountBalancesValuation ropts j priceoracle colspans =
     opAccountBalances valueAccountBalance accountBalancePeriodEnds
   where
     valueAccountBalance :: Day -> AccountBalance -> AccountBalance
-    valueAccountBalance d = applyAccountBalance (valueMixedAmount d)
+    valueAccountBalance d = mapAccountBalance (valueMixedAmount d)
 
     valueMixedAmount :: Day -> MixedAmount -> MixedAmount
     valueMixedAmount = mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
