@@ -211,7 +211,7 @@ sumAccounts a = a{asubs = subs, abalances = setInclusiveBalances $ abalances a}
     subtotals = foldMap abalances subs
 
     setInclusiveBalances :: AccountBalances AccountBalance -> AccountBalances AccountBalance
-    setInclusiveBalances = mergeAccountBalances combineChildren (fmap onlyChildren) (fmap noChildren) subtotals
+    setInclusiveBalances = mergeAccountBalances onlyChildren noChildren combineChildren subtotals
 
     combineChildren children this = this  {abibalance = abebalance this <> abibalance children}
     onlyChildren    children      = mempty{abibalance = abibalance children}
@@ -308,7 +308,7 @@ mergeAccounts a = tieAccountParents . merge a
     mergeSubs xs [] = map (fmap This) xs
     mergeSubs [] ys = map (fmap That) ys
 
-    mergeBalances = mergeAccountBalances These (fmap This) (fmap That)
+    mergeBalances = mergeAccountBalances This That These
 
 -- | Sort each group of siblings in an account tree by projecting through
 -- a provided function.

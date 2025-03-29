@@ -90,13 +90,15 @@ opAccountBalances :: (a -> b -> c) -> AccountBalances a -> AccountBalances b -> 
 opAccountBalances f (AccountBalances h1 as1) (AccountBalances h2 as2) =
     AccountBalances (f h1 h2) $ IM.intersectionWith f as1 as2
 
--- | Performs an operation on the contents of two 'AccountBalances'.
-mergeAccountBalances :: (a -> b -> c) -> (IM.IntMap a -> IM.IntMap c) -> (IM.IntMap b -> IM.IntMap c)
+-- | Performs an operation on the contents of two 'AccountBalances', with
+-- separate treatments for those only in the first, only in the second, or in
+-- both 'AccountBalance's.
+mergeAccountBalances :: (a -> c) -> (b -> c) -> (a -> b -> c)
                      -> AccountBalances a -> AccountBalances b -> AccountBalances c
-mergeAccountBalances f only1 only2 = \(AccountBalances h1 as1) (AccountBalances h2 as2) ->
+mergeAccountBalances only1 only2 f = \(AccountBalances h1 as1) (AccountBalances h2 as2) ->
     AccountBalances (f h1 h2) $ merge as1 as2
   where
-    merge = IM.mergeWithKey (\_ x1 x2 -> Just $ f x1 x2) only1 only2
+    merge = IM.mergeWithKey (\_ x y -> Just $ f x y) (fmap only1) (fmap only2)
 
 -- | Pad out the datemap of an 'AccountBalances' so that every key from a set is present.
 padAccountBalances :: Monoid a => IS.IntSet -> AccountBalances a -> AccountBalances a
