@@ -3269,17 +3269,65 @@ encoding ENCODING
 hledger normally expects non-ascii text to be UTF8-encoded.
 If you need to read CSV files which have some other encoding,
 you can do it by adding `encoding ENCODING` to your CSV rules.
-Eg: `encoding ISO88591`.
+Eg: `encoding iso-8859-1`.
 
 The following encodings are supported
-(these names are case-insensitive, and can be written with inner spaces or hyphens if you prefer):
-ASCII, UTF8, UTF16, UTF32, ISO88591, ISO88592, ISO88593, ISO88594,
-ISO88595, ISO88596, ISO88597, ISO88598, ISO88599, ISO885910,
-ISO885911, ISO885913, ISO885914, ISO885915, ISO885916, CP1250, CP1251,
-CP1252, CP1253, CP1254, CP1255, CP1256, CP1257, CP1258, KOI8R, KOI8U,
-GB18030, MacOSRoman, JISX0201, JISX0208, ISO2022JP, ShiftJIS, CP437,
-CP737, CP775, CP850, CP852, CP855, CP857, CP860, CP861, CP862, CP863,
-CP864, CP865, CP866, CP869, CP874, CP932.
+(some other names and spellings are also accepted, but [not consistently](https://github.com/dmwit/encoding/issues/28))
+:
+
+ascii,
+utf-8,
+utf-16,
+utf-32,
+iso-8859-1,
+iso-8859-2,
+iso-8859-3,
+iso-8859-4,
+iso-8859-5,
+iso-8859-6,
+iso-8859-7,
+iso-8859-8,
+iso-8859-9,
+iso-8859-10,
+iso-8859-11,
+iso-8859-13,
+iso-8859-14,
+iso-8859-15,
+iso-8859-16,
+cp1250,
+cp1251,
+cp1252,
+cp1253,
+cp1254,
+cp1255,
+cp1256,
+cp1257,
+cp1258,
+koi8-r,
+koi8-u,
+gb18030,
+macintosh,
+jis-x-0201,
+jis-x-0208,
+iso-2022-jp,
+shift-jis,
+cp437,
+cp737,
+cp775,
+cp850,
+cp852,
+cp855,
+cp857,
+cp860,
+cp861,
+cp862,
+cp863,
+cp864,
+cp865,
+cp866,
+cp869,
+cp874,
+cp932.
 
 
 ## `separator`
