@@ -22,7 +22,6 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.5
 
 extra-source-files:
 - CHANGES.md
@@ -93,6 +92,8 @@ when:
 #   cpp-options: -DGHCDEBUG
 #   dependencies:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
+
+tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
 
 dependencies:
 - base >=4.14 && <4.21

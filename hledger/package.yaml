@@ -21,7 +21,6 @@ github: simonmichael/hledger
 homepage: http://hledger.org
 bug-reports: http://bugs.hledger.org
 stability: stable
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.5, GHC==9.6.2
 
 extra-source-files:
 - CHANGES.md
@@ -117,6 +116,8 @@ ghc-options:
 - -Wno-unused-do-bind
 # avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
 - -optP-Wno-nonportable-include-path
+
+tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
 
 dependencies:
 - base >=4.14 && <4.21
