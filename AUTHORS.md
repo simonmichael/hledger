@@ -1,9 +1,7 @@
 Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
+See also doc/CREDITS.md (<https://hledger.org/CREDITS.html>).
 
-See also:
-
-- doc/CREDITS.md (<https://hledger.org/CREDITS.html>)
-- LICENSE
+SPDX-License-Identifier: GPL-3.0-or-later
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -15,3 +13,6 @@ without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 See the GNU General Public License for more details.
 You should have received a copy of the GNU General Public License along with this program.
 If not, see <https://www.gnu.org/licenses/>.
+
+The above text is here rather than in LICENSE to assist github's license detector
+at <https://github.com/simonmichael/hledger>.
