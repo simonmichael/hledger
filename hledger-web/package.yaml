@@ -1,6 +1,15 @@
-name: hledger-web
-version: 1.42.99
-synopsis: Web user interface for the hledger accounting system
+name:          hledger-web
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance
+synopsis:      Web user interface for the hledger accounting system
 description: |
   A simple web user interface for the hledger accounting system,
   providing a more modern UI than the command-line or terminal interfaces.
@@ -13,15 +22,6 @@ description: |
   interfaces. It is a Haskell rewrite of Ledger, and one of the leading
   implementations of Plain Text Accounting. Read more at:
   <https://hledger.org>
-
-category: Finance
-license: GPL-3.0-or-later
-author: Simon Michael <simon@joyful.com>
-maintainer: Simon Michael <simon@joyful.com>
-github: simonmichael/hledger
-homepage: http://hledger.org
-bug-reports: http://bugs.hledger.org
-stability: stable
 
 extra-source-files:
 - CHANGES.md
@@ -62,7 +62,6 @@ flags:
     description: Build with GHC 9.10+'s stack traces enabled   # '
     default: false
     manual:  true
-# bitrotted
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false
@@ -92,8 +91,6 @@ when:
 #   cpp-options: -DGHCDEBUG
 #   dependencies:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
-
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
 
 dependencies:
 - base >=4.14 && <4.21

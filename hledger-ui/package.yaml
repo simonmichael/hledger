@@ -1,7 +1,16 @@
-name        : hledger-ui
-version     : 1.42.99
-synopsis    : Terminal interface for the hledger accounting system
-description : |
+name:          hledger-ui
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance, Console
+synopsis:      Terminal interface for the hledger accounting system
+description: |
   A simple terminal user interface for the hledger accounting system.
   It can be a more convenient way to browse your accounts than the CLI.
   
@@ -12,15 +21,6 @@ description : |
   implementations of Plain Text Accounting. Read more at:
   <https://hledger.org>
 
-category    : Finance, Console
-license     : GPL-3.0-or-later
-author      : Simon Michael <simon@joyful.com>
-maintainer  : Simon Michael <simon@joyful.com>
-github      : simonmichael/hledger
-homepage    : http://hledger.org
-bug-reports : http://bugs.hledger.org
-stability   : stable
-
 extra-source-files:
   - CHANGES.md
   - README.md
@@ -28,45 +28,19 @@ extra-source-files:
   - hledger-ui.txt
   - hledger-ui.info
 
-#data-files:
-
 flags:
-  threaded:
-    description: Build with support for multithreaded execution
-    default: true
-    manual:  false
   debug:
     description: Build with GHC 9.10+'s stack traces enabled
     default: false
     manual:  true
-# bitrotted
+  threaded:
+    description: Build with support for multithreaded execution
+    default: true
+    manual:  false
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false
 #    manual:  true
-
-cpp-options: -DVERSION="1.42.99"
-
-ghc-options:
-- -Wall
-- -Wno-incomplete-uni-patterns
-- -Wno-missing-signatures
-- -Wno-orphans
-- -Wno-type-defaults
-- -Wno-unused-do-bind
-
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
-
-dependencies:
-- base >=4.14 && <4.21
-
-when:
-- condition: (flag(debug))
-  cpp-options: -DDEBUG
-# - condition: (flag(ghcdebug))
-#   cpp-options: -DGHCDEBUG
-#   dependencies:
-#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
  # curses is required to build terminfo for vty for hledger-ui.
  # On POSIX systems it might be not present.
@@ -81,6 +55,27 @@ when:
  # note on windows: the vty-windows (and hence hledger-ui) will reliably work only on the newer backends
  # like Windows Terminal.
  # mintty-based backends (default for cygwin/gitbash/msys2) are not supported (yet)
+
+cpp-options: -DVERSION="1.42.99"
+
+ghc-options:
+- -Wall
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+
+when:
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
+
+dependencies:
+- base >=4.14 && <4.21
 
 library:
   source-dirs: .
@@ -125,7 +120,6 @@ library:
         dependencies: vty-windows >= 0.2.0.1 && < 0.3.0.0
       else:
         dependencies: unix
-
 
 executables:
   hledger-ui:

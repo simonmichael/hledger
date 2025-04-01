@@ -1,6 +1,15 @@
-name: hledger-lib
-version: 1.42.99
-synopsis: A library providing the core functionality of hledger
+name:          hledger-lib
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance
+synopsis:      A library providing the core functionality of hledger
 description: |
   This library contains hledger's core functionality.
   It is used by most hledger* packages so that they support the same
@@ -20,24 +29,21 @@ description: |
   
   - https://hackage.haskell.org/package/hledger-lib/docs/Hledger.html - starting point for hledger's haddock docs
 
-category: Finance
-license: GPL-3.0-or-later
-author: Simon Michael <simon@joyful.com>
-maintainer: Simon Michael <simon@joyful.com>
-github: simonmichael/hledger
-homepage: http://hledger.org
-bug-reports: http://bugs.hledger.org
-stability: stable
-
 extra-source-files:
 - CHANGES.md
 - README.md
 - test/unittest.hs
 - test/doctests.hs
 
-#data-files:
-
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
+flags:
+  debug:
+    description: Build with GHC 9.10+'s stack traces enabled
+    default: false
+    manual:  true
+#  ghcdebug:
+#    description: Build with support for attaching a ghc-debug client
+#    default: false
+#    manual:  true
 
 dependencies:
 - base >=4.14 && <4.21
@@ -95,17 +101,6 @@ ghc-options:
 - -Wno-orphans
 - -Wno-type-defaults
 - -Wno-unused-do-bind
-
-flags:
-  debug:
-    description: Build with GHC 9.10+'s stack traces enabled
-    default: false
-    manual:  true
-# bitrotted
-#  ghcdebug:
-#    description: Build with support for attaching a ghc-debug client
-#    default: false
-#    manual:  true
 
 when:
 - condition: (flag(debug))

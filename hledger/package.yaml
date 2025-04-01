@@ -1,6 +1,15 @@
-name: hledger
-version: 1.42.99
-synopsis: Command-line interface for the hledger accounting system
+name:          hledger
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance, Console
+synopsis:      Command-line interface for the hledger accounting system
 description: |
   The command-line interface for the hledger accounting system.
   Its basic function is to read a plain text file describing
@@ -12,15 +21,6 @@ description: |
   interfaces. It is a Haskell rewrite of Ledger, and one of the leading
   implementations of Plain Text Accounting. Read more at:
   <https://hledger.org>
-
-category: Finance, Console
-license: GPL-3.0-or-later
-author: Simon Michael <simon@joyful.com>
-maintainer: Simon Michael <simon@joyful.com>
-github: simonmichael/hledger
-homepage: http://hledger.org
-bug-reports: http://bugs.hledger.org
-stability: stable
 
 extra-source-files:
 - CHANGES.md
@@ -89,9 +89,6 @@ extra-source-files:
 - Hledger/Cli/Commands/Tags.txt
 - Hledger/Cli/Commands/Test.txt
 
-
-#data-files:
-
 flags:
   threaded:
     description: Build with support for multithreaded execution
@@ -101,7 +98,6 @@ flags:
     description: Build with GHC 9.10+'s stack traces enabled
     default: false
     manual:  true
-# bitrotted
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false
@@ -117,7 +113,13 @@ ghc-options:
 # avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
 - -optP-Wno-nonportable-include-path
 
-tested-with: GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
+when:
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
 - base >=4.14 && <4.21
@@ -155,14 +157,6 @@ dependencies:
 - utf8-string >=0.3.5
 - utility-ht >=0.0.13
 - wizards >=1.0
-
-when:
-- condition: (flag(debug))
-  cpp-options: -DDEBUG
-# - condition: (flag(ghcdebug))
-#   cpp-options: -DGHCDEBUG
-#   dependencies:
-#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 library:
   cpp-options: -DVERSION="1.42.99"
