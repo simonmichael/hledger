@@ -26,7 +26,7 @@ license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    GHC==8.10.7, GHC==9.0.2, GHC==9.2.8, GHC==9.4.8, GHC==9.6.7, GHC==9.8.4, GHC==9.10.1
+    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
 extra-source-files:
     CHANGES.md
     README.md
