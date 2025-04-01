@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
 -- This file has been generated from package.yaml by hpack version 0.38.0.
 --
@@ -30,7 +30,7 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
-license:        GPL-3
+license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
@@ -115,6 +115,8 @@ library
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:
+      Paths_hledger_lib
+  autogen-modules:
       Paths_hledger_lib
   hs-source-dirs:
       ./

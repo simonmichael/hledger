@@ -1,4 +1,4 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
 -- This file has been generated from package.yaml by hpack version 0.38.0.
 --
@@ -23,7 +23,7 @@ homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
-license:        GPL-3
+license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
@@ -149,6 +149,8 @@ library
       Hledger.Cli.Version
   other-modules:
       Paths_hledger
+  autogen-modules:
+      Paths_hledger
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.42.99"
   build-depends:
@@ -198,6 +200,8 @@ library
 executable hledger
   main-is: hledger-cli.hs
   other-modules:
+      Paths_hledger
+  autogen-modules:
       Paths_hledger
   hs-source-dirs:
       app

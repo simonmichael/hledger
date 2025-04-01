@@ -21,7 +21,7 @@ description: |
   - https://hackage.haskell.org/package/hledger-lib/docs/Hledger.html - starting point for hledger's haddock docs
 
 category: Finance
-license: GPL-3
+license: GPL-3.0-or-later
 author: Simon Michael <simon@joyful.com>
 maintainer: Simon Michael <simon@joyful.com>
 github: simonmichael/hledger
