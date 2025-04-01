@@ -3,8 +3,8 @@ This is the root of the @hledger-lib@ package and the @Hledger.*@ module hierarc
 hledger-lib is the core engine used by various hledger UIs and tools,
 providing the main data types, file format parsers, reporting logic, and utilities.
 
-Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 SPDX-License-Identifier: GPL-3.0-or-later
+Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

@@ -56,8 +56,8 @@ or ghci:
 etc.
 
 
-Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 SPDX-License-Identifier: GPL-3.0-or-later
+Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
