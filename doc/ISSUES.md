@@ -117,10 +117,7 @@ By topic and type.
 | [tools](https://github.com/simonmichael/hledger/issues?q=is:open+label:tools)                           | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:tools)              | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:tools)              | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:tools)              | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:tools)              |
 | [valuation](https://github.com/simonmichael/hledger/issues?q=is:open+label:valuation)                   | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:valuation)          | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:valuation)          | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:valuation)          | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:valuation)          |
 
-See also:
-
-[severity4-major](
-<!-- https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20(%20label%3Aseverity4-major%20OR%20label%3Aseverity5-critical%20) -->
+Other:
 
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
