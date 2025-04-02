@@ -26,6 +26,8 @@ Misc. issue queries:
 - [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
+(Most older issues don't have impact/severity labels, so those reports are recent-biased)
+
 Open issues grouped by topic/type:
 
 <!-- 
@@ -131,34 +133,25 @@ In the github issue tracker we use [labels](https://github.com/simonmichael/hled
 - PR blockers (grey)
 - miscellaneous (white)
 
-The subcomponent names are also used in [commit message prefixes](#commit-messages), in issue titles, etc.
+The subcomponent names are also used in [commit message prefixes](COMMITS.html), in issue title prefixes, etc.
 
-## Conventions
+Some other loose conventions:
 
-Some loose conventions:
-
-- We can prefix bug titles (especially regressions) with the hledger version(s) affected.
+- We sometimes prefix bug titles (especially regressions) with the hledger version(s) affected.
   This allows searches like
   [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22)
   and
   [regressions in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22+label%3Aregression)
 
-## Estimates
+- In the past we tracked some time estimates in brackets after the issue title.
+  The format was something like `[ESTIMATEDTOTALTASKTIME|TIMESPENTSOFAR]`. Eg:
 
-You might see some old experiments in estimate tracking, where issue titles have a suffix noting estimated and spent time.
-Basic format: `[ESTIMATEDTOTALTASKTIME|TIMESPENTSOFAR]`.
-Examples:
-
-- `[2]` two hours estimated, no time spent
-- `[..]` half an hour estimated (a dot is ~a quarter hour, as in timedot format)
-- `[1d]` one day estimated (a day is ~4 hours)
-- `[1w]` one week estimated (a week is ~5 days or ~20 hours)
-- `[3|2]` three hours estimated, about two hours spent so far
-- `[1|1w|2d]` first estimate one hour, second estimate one week, about two days spent so far
-
-Estimates are always for the total time cost (not time remaining).
-Estimates are not usually changed, a new estimate is added instead.
-Numbers are very approximate, but better than nothing.
+  - `[2]` two hours estimated, no time spent yet
+  - `[..]` half an hour estimated (a dot is ~a quarter hour, as in timedot format)
+  - `[1d]` one day estimated (a day is ~4 hours)
+  - `[1w]` one week estimated (a week is ~5 days or ~20 hours)
+  - `[3|2]` three hours estimated, about two hours spent so far
+  - `[1|1w|2d]` initially estimated as one hour, later estimated as one week, two days spent so far
 
 ## Prioritising
 
