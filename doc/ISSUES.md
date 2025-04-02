@@ -47,11 +47,11 @@ By topic and type.
 | severity2-minor                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity2-minor)
 | severity1-trivial                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity1-trivial)
 | **Impact:**                                                                                             |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
-| impact5-most                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact5-most)
-| impact4-many                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact4-many)
-| impact3-few                                                                                             | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact3-few)
-| impact2-devs                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact2-devs)
-| impact1-noone                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact1-noone)
+| affects5-most                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects5-most)
+| affects4-many                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects4-many)
+| affects3-few                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects3-few)
+| affects2-devs                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects2-devs)
+| affects1-noone                                                                                          | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects1-noone)
 | **UIs/apps:**                                                                                           |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
 | [install](https://github.com/simonmichael/hledger/issues?q=is:open+label:install)                       | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:install)            | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:install)            | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:install)            | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:install)            |
 | [cli](https://github.com/simonmichael/hledger/issues?q=is:open+label:cli)                               | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:cli)                | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:cli)                | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:cli)                | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:cli)                |
@@ -119,7 +119,7 @@ By topic and type.
 
 Other:
 
-- [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aseverity5-critical%20OR%20label%3Aseverity4-major)%20(label%3Aimpact5-most%20%20OR%20label%3Aimpact4-many)%20)
+- [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aseverity5-critical%20OR%20label%3Aseverity4-major)%20(label%3Aaffects5-most%20%20OR%20label%3Aaffects4-many)%20)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
 
@@ -128,22 +128,25 @@ Other:
 In the github issue tracker we use various <https://github.com/simonmichael/hledger/labels>,
 some which appear above, to categorise things like:
 
-- whether an issue is a bug (red) or a wish (pink)
+- whether an issue is a bug (red) or a wish (purple)
+- bug severity (light pink)
+- bug impact (light yellow)
 - which subcomponents (tools, commands, input/output formats) are involved (light blue)
-- which platforms are involved (light purple)
-- whether a bounty has been offered (bright green)
+- which platforms are involved (blue)
+- regressions (black)
+- security-related (bright red)
+- bounty-related (bright green)
+- needs release (yellow)
 - what is blocking an issue (grey)
-- bug impact and severity (light orange and light pink, see below)
-- miscellaneous things like security (bright red), regressions (black), release needed (orange)
-- etc.
+- miscellaneous (white)
 
-These labels also get used as prefixes in [commit messages](#commit-messages), in issue/PR titles, etc.
+The subcomponent names are also used in [commit message prefixes](#commit-messages), in issue titles, etc.
 
 ## Conventions
 
 Some loose conventions:
 
-- We can prefix bug titles (especially regressions) with the hledger version in which the bug first appeared.
+- We can prefix bug titles (especially regressions) with the hledger version(s) affected.
   This allows searches like
   [new issues in 1.22](https://github.com/simonmichael/hledger/issues?q=in%3Atitle+1.22)
   and
@@ -178,17 +181,17 @@ Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to b
 
 **Impact**
 
-Who may be impacted by this bug ?
+Who may be affected by this bug ?
 
-- impact1: Affects almost no one.
-- impact2: Affects packagers or developers.
-- impact3: Affects just a few users.
-- impact4: Affects more than a few users.
-- impact5: Affects most or all users.
+- affects1: Affects almost no one.
+- affects2: Affects packagers or developers.
+- affects3: Affects just a few users.
+- affects4: Affects a significant number of users.
+- affects5: Affects most or all users.
 
 **Severity**
 
-To people impacted, how serious is this bug ?
+To people affected, how serious is this bug ?
 
 - severity1: Cleanliness/consistency/developer bug. Only perfectionists care.
 - severity2: Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
