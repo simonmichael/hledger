@@ -119,7 +119,7 @@ By topic and type.
 
 Other:
 
-- [critical bugs, and major bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
+- [critical bugs, and major bugs affecting many users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
 - [major bugs affecting fewer users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20label%3Aannoyance4-major%20label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%20)
 - [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
 - [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
@@ -128,19 +128,18 @@ Other:
 
 ## Labels
 
-In the github issue tracker we use various <https://github.com/simonmichael/hledger/labels>,
-some which appear above, to categorise things like:
+In the github issue tracker we use [labels](https://github.com/simonmichael/hledger/labels) to categorise things like:
 
 - whether an issue is a bug (red) or a wish (purple)
-- bug severity (light pink)
-- bug impact (light yellow)
+- bug impact - who is affected (light yellow)
+- bug severity - how annoying is it (light pink)
 - which subcomponents (tools, commands, input/output formats) are involved (light blue)
 - which platforms are involved (blue)
 - regressions (black)
-- security-related (bright red)
-- bounty-related (bright green)
-- needs release (yellow)
-- what is blocking an issue (grey)
+- security issues (bright red)
+- issues with bounties (bright green)
+- PRs needing release (yellow)
+- PR blockers (grey)
 - miscellaneous (white)
 
 The subcomponent names are also used in [commit message prefixes](#commit-messages), in issue titles, etc.
@@ -178,11 +177,11 @@ Numbers are very approximate, but better than nothing.
 describes an interesting method of ranking issues by a single "User Pain" metric.
 What adaptation of this might be useful for the hledger project ?
 
-Here's a simplified version, currently being tested in the hledger issue tracker:
+Here's a simplified version that we are using in the hledger issue tracker:
 
 Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to bug reports,
 each with levels from 1 to 5,
-and beginning with a to group near the front of label lists:
+each beginning with the letter a so as to appear near the front of label lists:
 
 **Impact**
 
@@ -212,7 +211,7 @@ Then, practices like these are possible:
 
 - All open bugs can be listed in order of User Pain (AKA priority).
 - Developers can check the Pain List daily and fix the highest pain bugs on the list.
-- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 15 pain.” 
+- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 0.5 pain.”
 - If there are no bugs left above the current quality bar, they can work on feature work.
 - If a bug is found that will take more than a week to fix, it can be flagged as a ‘killer’ bug, for special treatment.
 
