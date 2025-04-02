@@ -157,47 +157,91 @@ Some other loose conventions:
 
 <https://lostgarden.home.blog/2008/05/20/improving-bug-triage-with-user-pain/> 
 describes an interesting method of ranking issues by a single "User Pain" metric.
-What adaptation of this might be useful for the hledger project ?
-
-Here's a simplified version that we are using in the hledger issue tracker:
+Here's the simplified version that we are using in the hledger issue tracker:
 
 Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to bug reports,
-each with levels from 1 to 5,
-each beginning with the letter a so as to appear near the front of label lists:
+each beginning with the letter `a` so as to appear near the front of label lists,
+each with a level from 1 to 5:
 
 **Impact**
 
 Who may be affected by this bug ?
 
-- affects1: Affects almost no one.
-- affects2: Affects packagers or developers.
-- affects3: Affects just a few users.
-- affects4: Affects a significant number of users.
-- affects5: Affects most or all users.
+- affects1-noone: Affects almost no one.
+- affects2-devs:  Affects packagers or developers.
+- affects3-few:   Affects just a few users.
+- affects4-many:  Affects potentially a significant number of users.
+- affects5-most:  Affects most or all users.
 
 **Severity**
 
 To people affected, how serious is this bug ?
 
-- annoyance1: Cleanliness/consistency/developer bug. Only perfectionists care.
-- annoyance2: Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
-- annoyance3: New user experience or installability bug. A potential user could fail to get started.
-- annoyance4: Major usability/doc bug, crash, or any regression.
-- annoyance5: Any loss of user's data, privacy, security, or trust.
+- annoyance1-trivial:  Cleanliness/consistency/developer bug. Only perfectionists care.
+- annoyance2-minor:    Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
+- annoyance3-blocker:  New user experience or installability bug. A potential user could fail to get started.
+- annoyance4-major:    Major usability/doc bug, or any regression or crash.
+- annoyance5-critical: Any loss of user's data, privacy, security, or trust.
 
 **User Pain**
 
-The bug's User Pain score is **Impact * Severity / 25**, ranging from 0.04 to 1.
+The bug's User Pain score is **Impact * Severity * 4**, so ranging from 4 to 100.
 
 Then, practices like these are possible:
 
 - All open bugs can be listed in order of User Pain (AKA priority).
 - Developers can check the Pain List daily and fix the highest pain bugs on the list.
-- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 0.5 pain.”
+- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 50 pain.”
 - If there are no bugs left above the current quality bar, they can work on feature work.
 - If a bug is found that will take more than a week to fix, it can be flagged as a ‘killer’ bug, for special treatment.
 
 <!--
+
+$ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s x 4 = " `ruby -e "p $i*$s*4"`; done; done
+
+1 x 1 x 4 =  4
+1 x 2 x 4 =  8
+1 x 3 x 4 =  12
+1 x 4 x 4 =  16
+1 x 5 x 4 =  20
+2 x 1 x 4 =  8
+2 x 2 x 4 =  16
+2 x 3 x 4 =  24
+2 x 4 x 4 =  32
+2 x 5 x 4 =  40
+3 x 1 x 4 =  12
+3 x 2 x 4 =  24
+3 x 3 x 4 =  36
+3 x 4 x 4 =  48
+3 x 5 x 4 =  60
+4 x 1 x 4 =  16
+4 x 2 x 4 =  32
+4 x 3 x 4 =  48
+4 x 4 x 4 =  64
+4 x 5 x 4 =  80
+5 x 1 x 4 =  20
+5 x 2 x 4 =  40
+5 x 3 x 4 =  60
+5 x 4 x 4 =  80
+5 x 5 x 4 =  100
+
+$ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%3.f\n") $ nub $ sort [i*s*100/(maximum is * maximum ss) | i<-is, s<-ss]'
+  4
+  8
+ 12
+ 16
+ 20
+ 24
+ 32
+ 36
+ 40
+ 48
+ 60
+ 64
+ 80
+100
+
+
 $ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s / 25 = " `ruby -e "p $i*$s/25.0"`; done; done
 
 1 x 1 / 25 =  0.04
