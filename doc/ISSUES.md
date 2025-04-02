@@ -5,15 +5,9 @@
 <!-- toc -->
 </div>
 
-The hledger project\'s issue tracker is on github. It contains:
+The hledger project\'s issue tracker is on github.
 
--   BUG issues - failures in some part of the hledger project (the main
-    hledger packages, docs, website..)
--   WISH issues - feature proposals, enhancement requests
--   uncategorised issues - we don\'t know what these are yet
--   pull requests - proposed changes to code and docs
-
-Here are some shortcut urls:
+Convenience urls:
 
 - <https://issues.hledger.org>       - all issues, open or closed
 - <https://bugs.hledger.org>         - open BUGs
@@ -24,28 +18,31 @@ Here are some shortcut urls:
 - <https://bugs.hledger.org/new>     - report a new issue
 - <https://hledger.org/regressions>  - how to claim regression bounties
 
-In 2017 we experimented with Github projects, in 2018 with Github milestones.
-Long ago we collected some wishlist items in a [trello board](https://trello.hledger.org) (trello.hledger.org).
+Misc. issue queries:
 
-## Open issues
+- [critical bugs, and major bugs affecting many users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
+- [major bugs affecting fewer users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20label%3Aannoyance4-major%20label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%20)
+- [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
+- [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
+- [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
+
+Open issues grouped by topic/type:
 
 <!-- 
-This table doesn't have to be aligned, but it helps.
-Editing it may require editor support, search/replace etc.
-Syntax: https://www.pandoc.org/MANUAL.html#tables -> pipe_tables
+Table syntax is https://www.pandoc.org/MANUAL.html#tables -> pipe_tables.
+Columns don't have to be aligned, but it's helpful for editing.
+Emacs markdown-mode can do that, but it's super slow, avoid it otherwise.
 -->
-
-By topic and type.
 
 | COMPONENT/TOPIC                                                                                         | BUGS                                                                                                           | WISHES                                                                                                            | PRS                                                                                            | OTHER                                                                                                                          |
 |---------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | [all](https://github.com/simonmichael/hledger/issues?q=is:open)                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG)                          | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH)                          | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr)                          | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH)                          |
 | **Severity:**                                                                                           |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
-| annoyance5-critical                                                                                      | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance5-critical)
-| annoyance4-major                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance4-major)
-| annoyance3-blocker                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance3-blocker)
-| annoyance2-minor                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance2-minor)
-| annoyance1-trivial                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance1-trivial)
+| annoyance5-critical                                                                                     | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance5-critical)
+| annoyance4-major                                                                                        | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance4-major)
+| annoyance3-blocker                                                                                      | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance3-blocker)
+| annoyance2-minor                                                                                        | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance2-minor)
+| annoyance1-trivial                                                                                      | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance1-trivial)
 | **Impact:**                                                                                             |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
 | affects5-most                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects5-most)
 | affects4-many                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects4-many)
@@ -116,14 +113,6 @@ By topic and type.
 | [site](https://github.com/simonmichael/hledger/issues?q=is:open+label:site)                             | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:site)               | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:site)               | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:site)               | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:site)               |
 | [tools](https://github.com/simonmichael/hledger/issues?q=is:open+label:tools)                           | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:tools)              | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:tools)              | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:tools)              | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:tools)              |
 | [valuation](https://github.com/simonmichael/hledger/issues?q=is:open+label:valuation)                   | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG+label:valuation)          | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH+label:valuation)          | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr+label:valuation)          | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH+label:valuation)          |
-
-Other:
-
-- [critical bugs, and major bugs affecting many users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
-- [major bugs affecting fewer users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20label%3Aannoyance4-major%20label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%20)
-- [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
-- [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
-- [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
 
 ## Labels
@@ -287,4 +276,10 @@ Older ideas
 
 - Custodians for particular components/topics
   ("If you are interested in helping with a particular component for a while, please add yourself as a custodian in the Open Issues table. A custodian\'s job is to help manage the issues, rally the troops, and drive the open issue count towards zero. The more custodians, the better! By dividing up the work this way, we can scale and make forward progress.")
+
+## Other
+
+In 2017 we experimented with Github projects, in 2018 with Github milestones.
+
+Long ago we collected some wishlist items in a [trello board](https://trello.hledger.org) (trello.hledger.org).
 
