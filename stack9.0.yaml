@@ -31,7 +31,7 @@ extra-deps:
 - vty-unix-0.2.0.0
 - vty-windows-0.2.0.2
 - text-zipper-0.13
-- fsnotify-0.4.1.0
+- fsnotify-0.4.2.0
 # for hledger-web:
 # for Shake.hs:
 
