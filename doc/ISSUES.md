@@ -41,11 +41,11 @@ By topic and type.
 |---------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------|
 | [all](https://github.com/simonmichael/hledger/issues?q=is:open)                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-BUG)                          | [wishes](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+label:A-WISH)                          | [PRs](https://github.com/simonmichael/hledger/issues?q=is:open+is:pr)                          | [other](https://github.com/simonmichael/hledger/issues?q=is:open+is:issue+-label:A-BUG+-label:A-WISH)                          |
 | **Severity:**                                                                                           |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
-| severity5-critical                                                                                      | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity5-critical)
-| severity4-major                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity4-major)
-| severity3-newuser                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity3-newuser)
-| severity2-minor                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity2-minor)
-| severity1-trivial                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity1-trivial)
+| annoyance5-critical                                                                                      | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance5-critical)
+| annoyance4-major                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance4-major)
+| annoyance3-blocker                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance3-blocker)
+| annoyance2-minor                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance2-minor)
+| annoyance1-trivial                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aannoyance1-trivial)
 | **Impact:**                                                                                             |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
 | affects5-most                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects5-most)
 | affects4-many                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aaffects4-many)
@@ -119,7 +119,7 @@ By topic and type.
 
 Other:
 
-- [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aseverity5-critical%20OR%20label%3Aseverity4-major)%20(label%3Aaffects5-most%20%20OR%20label%3Aaffects4-many)%20)
+- [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aannoyance5-critical%20OR%20label%3Aannoyance4-major)%20(label%3Aaffects5-most%20%20OR%20label%3Aaffects4-many)%20)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
 
@@ -177,7 +177,9 @@ What adaptation of this might be useful for the hledger project ?
 
 Here's a simplified version, currently being tested in the hledger issue tracker:
 
-Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to bug reports, each with levels from 1 to 5:
+Two [labels](https://github.com/simonmichael/hledger/labels) can be applied to bug reports,
+each with levels from 1 to 5,
+and beginning with a to group near the front of label lists:
 
 **Impact**
 
@@ -193,11 +195,11 @@ Who may be affected by this bug ?
 
 To people affected, how serious is this bug ?
 
-- severity1: Cleanliness/consistency/developer bug. Only perfectionists care.
-- severity2: Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
-- severity3: New user experience or installability bug. A potential user could fail to get started.
-- severity4: Major usability/doc bug, crash, or any regression.
-- severity5: Any loss of user's data, privacy, security, or trust.
+- annoyance1: Cleanliness/consistency/developer bug. Only perfectionists care.
+- annoyance2: Minor to moderate usability/doc bug, reasonably easy to avoid or tolerate.
+- annoyance3: New user experience or installability bug. A potential user could fail to get started.
+- annoyance4: Major usability/doc bug, crash, or any regression.
+- annoyance5: Any loss of user's data, privacy, security, or trust.
 
 **User Pain**
 
