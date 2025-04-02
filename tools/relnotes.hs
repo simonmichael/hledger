@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2024-12-19 --compile
+{- stack script --resolver nightly-2025-04-01 --compile
 --package process
 --package split
 -}
