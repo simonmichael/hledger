@@ -120,8 +120,8 @@ By topic and type.
 Other:
 
 - [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aannoyance5-critical%20OR%20label%3Aannoyance4-major)%20(label%3Aaffects5-most%20%20OR%20label%3Aaffects4-many)%20)
-- [bugs without an affects* label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
-- [bugs without an annoyance* label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
+- [bugs without an impact label (affects*)](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
+- [bugs without a severity label (annoyance*)](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
 
