@@ -47,8 +47,8 @@ By topic and type.
 | severity2-minor                                                                                         | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity2-minor)
 | severity1-trivial                                                                                       | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aseverity1-trivial)
 | **Impact:**                                                                                             |                                                                                                                |                                                                                                                   |                                                                                                |                                                                                                                                |
-| impact5-many                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact5-many)
-| impact4-some                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact4-some)
+| impact5-most                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact5-most)
+| impact4-many                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact4-many)
 | impact3-few                                                                                             | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact3-few)
 | impact2-devs                                                                                            | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact2-devs)
 | impact1-noone                                                                                           | [bugs](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20state%3Aopen%20label%3Aimpact1-noone)
@@ -119,6 +119,7 @@ By topic and type.
 
 Other:
 
+- [major or critical bugs affecting many or most users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20(label%3Aseverity5-critical%20OR%20label%3Aseverity4-major)%20(label%3Aimpact5-most%20%20OR%20label%3Aimpact4-many)%20)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
 
 
