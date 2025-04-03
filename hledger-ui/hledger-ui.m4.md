@@ -334,10 +334,10 @@ eg to toggle cleared mode, or to explore the history.
 - It may not work at all for you, depending on platform or system configuration.
   On some unix systems, increasing fs.inotify.max_user_watches or fs.file-max parameters in /etc/sysctl.conf might help.
   ([#836](https://github.com/simonmichael/hledger/issues/836))
-- It will not detect file changes made by certain editors, such as VS Code, Jetbrains IDEs, or `gedit`.
+- It may not detect file changes made by certain editors, such as Jetbrains IDEs, or `gedit`.
   ([#1617](https://github.com/simonmichael/hledger/issues/1617))
-- It will not detect file changes on certain less common filesystems.
-- It will not detect changes made from outside a virtual machine, ie by an editor running on the host system.
+- It may not detect file changes on certain less common filesystems.
+- It may not detect changes made from outside a virtual machine, ie by an editor running on the host system.
 - It may use increasing CPU and RAM over time, especially with large files.
   (This is probably not --watch specific, you may be able to reproduce it by pressing `g` repeatedly.)
   ([#1825](https://github.com/simonmichael/hledger/issues/1825))
