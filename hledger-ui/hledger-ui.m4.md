@@ -329,15 +329,15 @@ eg to toggle cleared mode, or to explore the history.
 
 ## --watch problems
 
-*However.* There are currently a number of limitations/unresolved bugs with `--watch`:
+*However.* There are limitations/unresolved bugs with `--watch`:
 
 - It may not work at all for you, depending on platform or system configuration.
   On some unix systems, increasing fs.inotify.max_user_watches or fs.file-max parameters in /etc/sysctl.conf might help.
   ([#836](https://github.com/simonmichael/hledger/issues/836))
-- It may not detect file changes made by certain editors, such as Jetbrains IDEs, or `gedit`.
+- It may not detect file changes made by certain tools, such as Jetbrains IDEs or gedit.
   ([#1617](https://github.com/simonmichael/hledger/issues/1617))
-- It may not detect file changes on certain less common filesystems.
 - It may not detect changes made from outside a virtual machine, ie by an editor running on the host system.
+- It may not detect file changes on certain less common filesystems.
 - It may use increasing CPU and RAM over time, especially with large files.
   (This is probably not --watch specific, you may be able to reproduce it by pressing `g` repeatedly.)
   ([#1825](https://github.com/simonmichael/hledger/issues/1825))
