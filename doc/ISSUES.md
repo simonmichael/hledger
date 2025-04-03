@@ -186,20 +186,66 @@ To people affected, how serious is this bug ?
 
 **User Pain**
 
-The bug's User Pain score is **Impact * Severity * 4**, so ranging from 4 to 100.
+The bug's User Pain score is **Impact * Severity** (1 to 25).
 
 Then, practices like these are possible:
 
-- All open bugs can be listed in order of User Pain (AKA priority).
-- Developers can check the Pain List daily and fix the highest pain bugs on the list.
-- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 50 pain.”
+- Open bugs can be prioritised in order of User Pain.
+- The team can set easy-to-understand quality bars. For example, they could say “In order to release, we must have no open bugs with more than 15 pain.”
 - If there are no bugs left above the current quality bar, they can work on feature work.
 - If a bug is found that will take more than a week to fix, it can be flagged as a ‘killer’ bug, for special treatment.
 
 <!--
 
-$ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s x 4 = " `ruby -e "p $i*$s*4"`; done; done
+0..25:
 
+for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s = " `ruby -e "p $i*$s"`; done; done
+1 x 1 =  1
+1 x 2 =  2
+1 x 3 =  3
+1 x 4 =  4
+1 x 5 =  5
+2 x 1 =  2
+2 x 2 =  4
+2 x 3 =  6
+2 x 4 =  8
+2 x 5 =  10
+3 x 1 =  3
+3 x 2 =  6
+3 x 3 =  9
+3 x 4 =  12
+3 x 5 =  15
+4 x 1 =  4
+4 x 2 =  8
+4 x 3 =  12
+4 x 4 =  16
+4 x 5 =  20
+5 x 1 =  5
+5 x 2 =  10
+5 x 3 =  15
+5 x 4 =  20
+5 x 5 =  25
+
+ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%3d\n") $ nub $ sort [i*s | i<-is, s<-ss]'
+  1
+  2
+  3
+  4
+  5
+  6
+  8
+  9
+ 10
+ 12
+ 15
+ 16
+ 20
+ 25
+
+
+0..100:
+
+for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s x 4 = " `ruby -e "p $i*$s*4"`; done; done
 1 x 1 x 4 =  4
 1 x 2 x 4 =  8
 1 x 3 x 4 =  12
@@ -226,7 +272,7 @@ $ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s x 4 = " `ruby -e "
 5 x 4 x 4 =  80
 5 x 5 x 4 =  100
 
-$ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%3.f\n") $ nub $ sort [i*s*100/(maximum is * maximum ss) | i<-is, s<-ss]'
+ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%3.f\n") $ nub $ sort [i*s*100/(maximum is * maximum ss) | i<-is, s<-ss]'
   4
   8
  12
@@ -242,9 +288,9 @@ $ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' 
  80
 100
 
+0..1:
 
-$ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s / 25 = " `ruby -e "p $i*$s/25.0"`; done; done
-
+for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s / 25 = " `ruby -e "p $i*$s/25.0"`; done; done
 1 x 1 / 25 =  0.04
 1 x 2 / 25 =  0.08
 1 x 3 / 25 =  0.12
@@ -271,7 +317,7 @@ $ for i in `seq 1 5`; do for s in `seq 1 5`; do echo "$i x $s / 25 = " `ruby -e 
 5 x 4 / 25 =  0.8
 5 x 5 / 25 =  1.0 
 
-$ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%.2f\n") $ nub $ sort [i*s/(maximum is * maximum ss) | i<-is, s<-ss]'
+ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e 'let (is,ss) = ([1..5],[1..5]) in mapM_ (printf "%.2f\n") $ nub $ sort [i*s/(maximum is * maximum ss) | i<-is, s<-ss]'
 0.04
 0.08
 0.12
