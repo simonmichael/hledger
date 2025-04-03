@@ -21,7 +21,7 @@ Convenience urls:
 Misc. issue queries:
 
 - [critical bugs, and major bugs affecting many users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
-  ([open](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20is:open%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
+  ([open](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20is:open%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20))
 - [major bugs affecting fewer users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20label%3Aannoyance4-major%20label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%20)
 - [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
 - [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
