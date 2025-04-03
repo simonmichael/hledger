@@ -332,6 +332,7 @@ eg to toggle cleared mode, or to explore the history.
 *However.* There are currently a number of limitations/unresolved bugs with `--watch`:
 
 - It may not work at all for you, depending on platform or system configuration.
+  On some unix systems, increasing fs.inotify.max_user_watches or fs.file-max parameters in /etc/sysctl.conf might help.
   ([#836](https://github.com/simonmichael/hledger/issues/836))
 - It will not detect file changes made by certain editors, such as VS Code, Jetbrains IDEs, or `gedit`.
   ([#1617](https://github.com/simonmichael/hledger/issues/1617))
