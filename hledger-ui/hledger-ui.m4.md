@@ -327,23 +327,26 @@ This leaves more mental bandwidth for your accounting.
 Of course you can still interact with hledger-ui when needed,
 eg to toggle cleared mode, or to explore the history.
 
-There are currently some limitations with `--watch`:
+## --watch problems
 
-It may not work correctly for you, depending on platform or system configuration.
-(Eg [#836](https://github.com/simonmichael/hledger/issues/836).)
+*However.* There are currently a number of limitations/unresolved bugs with `--watch`:
 
-At least on mac, there can be a slow build-up of CPU usage over time,
-until the program is restarted (or, suspending and restarting with
-`CTRL-z` `fg` may be enough).
+- It may not work at all for you, depending on platform or system configuration.
+  ([#836](https://github.com/simonmichael/hledger/issues/836))
+- It will not detect file changes made by certain editors, such as VS Code, Jetbrains IDEs, or `gedit`.
+  ([#1617](https://github.com/simonmichael/hledger/issues/1617))
+- It will not detect file changes on certain less common filesystems.
+- It will not detect changes made from outside a virtual machine, ie by an editor running on the host system.
+- It may use increasing CPU and RAM over time, especially with large files.
+  (This is probably not --watch specific, you may be able to reproduce it by pressing `g` repeatedly.)
+  ([#1825](https://github.com/simonmichael/hledger/issues/1825))
 
-It will not detect file changes made
-by certain editors, such as Jetbrains IDEs or `gedit`,
-or on certain less common filesystems.
-(To work around, press `g` to reload manually,
-or try [#1617](https://github.com/simonmichael/hledger/issues/1617)'s `fs.inotify.max_user_watches` workaround and let us know.)
+Tips/workarounds:
 
-If you are viewing files mounted from another machine, the system
-clocks on both machines should be roughly in agreement.
+- If --watch won't work for you, press `g` to reload data manually instead.
+- If --watch is leaking resources over time, quit and restart (or suspend and resume) hledger-ui when you're not using it.
+- When running hledger-ui inside a VM, also make file changes inside the VM.
+- When working with files mounted from another machine, make sure the system clocks on both machines are roughly in agreement.
 
 # ENVIRONMENT
 
@@ -359,9 +362,10 @@ Some known issues:
 
 `-f-` doesn't work (hledger-ui can't read from stdin).
 
-If you press `g` with large files, there could be a noticeable pause.
+`--watch` is not robust, especially with large files (see WATCH MODE above).
 
-The Transaction screen does not update from file changes
-until you exit and re-endter it (see SCREENS > Transaction above).
+The Transaction screen does not update after file changes, even if you press `g`,
+until you exit and re-enter it.
+([#2288](https://github.com/simonmichael/hledger/issues/2288))
 
-`--watch` is not yet fully robust on all platforms (see Watch mode above).
+If you press `g` with large files, there could be a noticeable pause with the UI unresponsive.
