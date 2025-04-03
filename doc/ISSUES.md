@@ -131,7 +131,7 @@ In the github issue tracker we use [labels](https://github.com/simonmichael/hled
 - security issues (bright red)
 - issues with bounties (bright green)
 - PRs needing release (yellow)
-- PR blockers (grey)
+- PR/issue blockers (grey)
 - miscellaneous (white)
 
 The subcomponent names are also used in [commit message prefixes](COMMITS.html), in issue title prefixes, etc.
