@@ -55,7 +55,7 @@ m4_dnl
 m4_dnl Bug reporting info for the manuals' BUGS sections. '
 m4_dnl
 m4_define({{_reportbugs_}},
-{{We welcome bug reports in the hledger issue tracker (shortcut: <https://bugs.hledger.org>),
+{{We welcome bug reports in the hledger issue tracker (<https://bugs.hledger.org>),
 or on the hledger chat or mail list (<https://hledger.org/support>).}} )m4_dnl
 m4_dnl
 m4_dnl
