@@ -7,6 +7,13 @@
 
 This is the home for the hledger project's finances. (Shortcut: [hledger.org/finance](https://hledger.org/finance))
 
+## Reports
+
+We log the hledger project's financial transactions and generate reports in the hledger_finance repo.
+You can review our financial reports there:
+
+https://github.com/simonmichael/hledger_finance?tab=readme-ov-file#reports
+
 ## Money and the hledger project
 
 Classic gift-economy FOSS communities are a beautiful and precious thing.
@@ -17,8 +24,6 @@ And in many ways this project is ideal for that.
 So money is part of the hledger project, we welcome it, and we experiment with it, cautiously, to see what works.
 The CFO is SM; help is welcome.
 <!-- I know we would enjoy having more bugs resolved, more and better features, and a faster rate of improvement. -->
-
-You can review our [Financial reports](https://github.com/simonmichael/hledger_finance?tab=readme-ov-file#reports) here.
 
 You can [Sponsor hledger](sponsor.md) to support and grow this project.
 
