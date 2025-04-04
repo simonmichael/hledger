@@ -1,6 +1,6 @@
-; A detailed forecast budget, defined with periodic transaction rules.
+; A budget with detailed goals defined by periodic transaction rules.
 
-; all amount are imaginary and will be either 1000 or 100 or 10
+; all amounts are imaginary and will be either 1000 or 100 or 10
 
 ; monthly wages and monthy expenses (which get deducted as a single transaction per month)
 ~ every 1st day of month from 2017-01-01

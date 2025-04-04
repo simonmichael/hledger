@@ -1,4 +1,4 @@
-; A budget defined by periodic transaction rules :
+; A budget with goals defined by multiple periodic transaction rules :
 ; one recurring monthly, one yearly, and one non-recurring.
 ; This would show up in a report like:
 ; $ hledger balance --budget Income Expenses -M

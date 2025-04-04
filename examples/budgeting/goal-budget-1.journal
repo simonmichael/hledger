@@ -1,4 +1,4 @@
-; A minimal "forecast budget", defined with a periodic transaction rule.
+; A minimal "goal budget", where budget goals are defined by a periodic transaction rule.
 
 ; We forecast/plan to spend $500 on food each month in 2020:
 ~ monthly in 2020
