@@ -104,9 +104,10 @@ extra-source-files:
     templates/manage.hamlet
     templates/register.hamlet
     templates/upload-form.hamlet
-    hledger-web.1
-    hledger-web.txt
-    hledger-web.info
+    embeddedfiles/hledger-web.md
+    embeddedfiles/hledger-web.1
+    embeddedfiles/hledger-web.txt
+    embeddedfiles/hledger-web.info
 
 source-repository head
   type: git
@@ -142,6 +143,7 @@ library
       Hledger.Web.Test
   other-modules:
       Hledger.Web.App
+      Hledger.Web.DocFiles
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR

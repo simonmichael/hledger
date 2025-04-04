@@ -67,4 +67,4 @@ help' opts _ = do
       | "less"    `elem` exes           = pager
       | otherwise                       = cat
 
-  viewer "hledger" mtopic
+  viewer mtopic
