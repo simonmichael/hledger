@@ -840,7 +840,7 @@ If you plan to export to Beancount often, you may want to follow its [convention
 - use Beancount-friendly account names
 - use currency codes instead of currency symbols
 - use cost notation instead of equity conversion postings
-- avoid virtual postings
+- avoid virtual postings, balance assignments, and secondary dates.
 
 [conventions]: https://plaintextaccounting.org/#other-features
 
@@ -852,8 +852,8 @@ as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob
 
 2024-12-20: Some more things not yet handled for you:
 
-- P directives are not converted automatically - convert those yourself
-- Balance assignments are not converted (Beancount doesnt support them) - replace those with explicit amounts
+- P directives are not converted automatically - convert those yourself.
+- Balance assignments are not converted (Beancount doesn't support them) - replace those with explicit amounts.
 
 #### Beancount account names
 
