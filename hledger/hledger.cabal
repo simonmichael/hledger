@@ -158,7 +158,7 @@ library
     , Diff >=0.2
     , aeson >=1 && <2.3
     , ansi-terminal >=0.9
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -211,7 +211,7 @@ executable hledger
       Decimal >=0.5.1
     , aeson >=1 && <2.3
     , ansi-terminal >=0.9
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -261,7 +261,7 @@ test-suite unittest
       Decimal >=0.5.1
     , aeson >=1 && <2.3
     , ansi-terminal >=0.9
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9
@@ -308,7 +308,7 @@ benchmark bench
       Decimal >=0.5.1
     , aeson >=1 && <2.3
     , ansi-terminal >=0.9
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , bytestring
     , cmdargs >=0.10
     , containers >=0.5.9

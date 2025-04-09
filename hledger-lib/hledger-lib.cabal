@@ -128,7 +128,7 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
@@ -186,7 +186,7 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
@@ -247,7 +247,7 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.21
+    , base >=4.14 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
