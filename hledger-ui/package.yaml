@@ -75,7 +75,7 @@ when:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
-- base >=4.14 && <4.21
+- base >=4.14 && <4.22
 
 library:
   source-dirs: .
@@ -126,7 +126,6 @@ executables:
     source-dirs: app
     main: hledger-ui.hs
     dependencies:
-    - base >=4.14 && <4.21
     - hledger-ui
     ghc-options: -with-rtsopts=-T  # for stats command
     when:

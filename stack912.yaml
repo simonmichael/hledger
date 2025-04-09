@@ -1,40 +1,18 @@
-# draft stack build plan using GHC 9.12.2
+# stack build plan using GHC 9.12.2
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.12
 # https://downloads.haskell.org/ghc/9.12.1/docs/users_guide/9.12.1-notes.html
-
-resolver: nightly-2025-04-01
-compiler: ghc-9.12.2
-notify-if-ghc-untested: false
-notify-if-cabal-untested: false
+# https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/9.12.2-notes.html
 
 packages:
 - hledger-lib
-# - hledger
-# - hledger-ui
-# - hledger-web
+- hledger
+- hledger-ui
+- hledger-web
 
-# To minimise problems, use the versions shipped with GHC 9.10.1 when possible.
-# See https://github.com/haskell/unix/issues/329.
-extra-deps:
-
- # for hledger-lib
-# - Cabal-3.12.0.0
-# - Cabal-syntax-3.12.0.0
-# #- directory-1.3.8.3
-# #- filepath-1.5.2.0
-# - directory-1.3.9.0
-# - filepath-1.4.301.0
-# - ghc-boot-9.10.1@rev:1
-# - process-1.6.19.0
-# - time-1.12.2
-# - unix-2.8.5.1
-# # for windows
-# - Win32-2.14.0.0
-
-# # for hledger
-# - haskeline-0.8.2.1
-# # to silence a warning
-# - wizards-1.0.3@rev:3
+resolver: nightly-2025-04-01
+compiler: ghc-9.12.2
+notify-if-ghc-untested:   false
+notify-if-cabal-untested: false
 
 nix:
   pure: false

@@ -46,7 +46,7 @@ flags:
 #    manual:  true
 
 dependencies:
-- base >=4.14 && <4.21
+- base >=4.14 && <4.22
 - aeson >=1 && <2.3
 - aeson-pretty
 - ansi-terminal >=0.9
