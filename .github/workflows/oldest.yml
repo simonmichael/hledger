@@ -21,7 +21,7 @@ jobs:
       # XXX supposed to be interpolated by $ghc below, but this is not working
       ghc: 8107
       # stack config for this ghc:
-      stack: stack --stack-yaml=stack8.10.yaml
+      stack: stack --stack-yaml=stack810.yaml
 
     steps:
 
