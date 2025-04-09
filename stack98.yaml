@@ -10,6 +10,7 @@ packages:
 
 extra-deps:
 - encoding-0.10
+- fsnotify-0.4.2.0
 
 nix:
   pure: false

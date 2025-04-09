@@ -9,8 +9,10 @@ packages:
 - hledger-web
 
 extra-deps:
-- vty-windows-0.2.0.1
 - encoding-0.10
+- fsnotify-0.4.2.0
+- hfsevents-0.1.8
+- vty-windows-0.2.0.1
 
 nix:
   pure: false

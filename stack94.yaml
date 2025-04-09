@@ -9,13 +9,15 @@ packages:
 - hledger-web
 
 extra-deps:
-- safe-0.3.21
 - brick-2.3.1
+- encoding-0.10
+- fsnotify-0.4.2.0
+- hfsevents-0.1.8
+- safe-0.3.21
 - vty-6.2
 - vty-crossplatform-0.4.0.0
 - vty-unix-0.2.0.0
 - vty-windows-0.2.0.2
-- encoding-0.10
 
 nix:
   pure: false

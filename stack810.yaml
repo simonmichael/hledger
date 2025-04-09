@@ -31,6 +31,7 @@ extra-deps:
 - brick-2.3.1
 - bimap-0.5.0
 - fsnotify-0.4.2.0
+- hfsevents-0.1.8
 - text-zipper-0.13
 - vty-6.2
 - vty-crossplatform-0.4.0.0
