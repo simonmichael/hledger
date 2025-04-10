@@ -21,7 +21,7 @@ setEnv "NO_COLOR" "1"
 -- :def R \_ -> return ":reload\n:script .ghci2"
 
 -- Reload (to pick up code changes and flush cached unsafePerformIO values) and run main with the given args
-:def rmain \args -> return $ ":reload\n:main "<>args
+:def! rmain \args -> return $ ":reload\n:main "<>args
 
 -- -- run commands from a file, .ghci2 by default
 -- :def s \f -> readFile $ if null f then ".ghci2" else f
