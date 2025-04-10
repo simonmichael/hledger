@@ -143,10 +143,9 @@ import Data.Time (Day)
 import Safe (headDef, headMay)
 import System.Directory (doesFileExist, getHomeDirectory)
 import System.Environment (getEnv)
-import System.Exit (exitFailure)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
 import System.Info (os)
-import System.IO (Handle, hPutStr, stderr)
+import System.IO (Handle, hPutStrLn, stderr)
 
 import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
 import Hledger.Data.Types
@@ -348,23 +347,22 @@ requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
 requireJournalFileExists f = do
   exists <- doesFileExist f
-  unless exists $ do
-    hPutStr stderr $ "The hledger data file \"" <> f <> "\" was not found.\n"
-    hPutStr stderr "Please create it first, eg with \"hledger add\" or a text editor.\n"
-    hPutStr stderr "Or, specify an existing data file with -f or $LEDGER_FILE.\n"
-    exitFailure
+  unless exists $ error' $ unlines
+    [ "data file \"" <> f <> "\" was not found."
+    ,"Please create it first, eg with \"hledger add\" or a text editor."
+    ,"Or, specify an existing data file with -f or $LEDGER_FILE."
+    ]
 
 -- | Ensure there is a journal file at the given path, creating an empty one if needed.
 -- On Windows, also ensure that the path contains no trailing dots
 -- which could cause data loss (see 'isWindowsUnsafeDotPath').
 ensureJournalFileExists :: FilePath -> IO ()
 ensureJournalFileExists f = do
-  when (os=="mingw32" && isWindowsUnsafeDotPath f) $ do
-    hPutStr stderr $ "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
-    exitFailure
+  when (os=="mingw32" && isWindowsUnsafeDotPath f) $
+    error' $ "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
   exists <- doesFileExist f
   unless exists $ do
-    hPutStr stderr $ "Creating hledger journal file " <> show f <> ".\n"
+    hPutStrLn stderr $ "Creating hledger journal file " <> show f
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
     newJournalContent >>= T.writeFile f

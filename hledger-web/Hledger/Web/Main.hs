@@ -37,7 +37,6 @@ import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings
 import Network.Wai.Handler.Launch (runHostPortFullUrl)
 import System.Directory (removeFile)
 import System.Environment ( getArgs, withArgs )
-import System.Exit (exitFailure)
 import System.IO (hFlush, stdout)
 import System.PosixCompat.Files (getFileStatus, isSocket)
 import Text.Printf (printf)
@@ -162,10 +161,10 @@ web opts j = do
                   when (isSocket sockstat) $ removeFile s
               )
               (\sock -> Network.Wai.Handler.Warp.runSettingsSocket warpsettings sock app)
-            else do
-              putStrLn "Unix domain sockets are not available on your operating system"
-              putStrLn "Please try again without --socket"
-              exitFailure
+            else error $ unlines
+              ["Unix domain sockets are not available on your operating system."
+              ,"Please try again without --socket."
+              ]
 
         Nothing -> Network.Wai.Handler.Warp.runSettings warpsettings app
 

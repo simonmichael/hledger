@@ -1,4 +1,4 @@
 $$$ hledger check -f  csvskipvalue.csv
->>>2 /hledger: Error: could not parse skip value: "badval"
+>>>2 /hledger: Error: could not parse skip value: badval
 /
 >>>= 1

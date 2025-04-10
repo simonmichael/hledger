@@ -38,9 +38,6 @@ module Hledger.Cli.Commands.Demo (
  ,demo
 ) where
 
-import Hledger
-import Hledger.Cli.CliOptions
-import System.Exit (exitFailure)
 import Text.Printf
 import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
@@ -55,6 +52,9 @@ import Safe (tailMay)
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)
 import System.Console.CmdArgs.Explicit (flagReq)
+
+import Hledger
+import Hledger.Cli.CliOptions
 
 demos :: [Demo]
 demos = map readDemo [
@@ -93,14 +93,14 @@ demo :: CliOpts -> Journal -> IO ()
 demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
   -- demos <- getCurrentDirectory >>= readDemos
   case listofstringopt "args" rawopts of
-    [] -> putStrLn usagestr >> printDemos
+    [] -> putStrLn usagestr >> putStr listDemos
     (a:as) ->
       case findDemo demos a of
-        Nothing -> do
-          putStrLn $ "No demo \"" <> a <> "\" was found."
-          putStrLn usagestr
-          printDemos
-          exitFailure
+        Nothing -> error' $ unlines
+          ["No demo \"" <> a <> "\" was found."
+          ,usagestr
+          ,listDemos
+          ]
         Just (Demo t c) -> do
           let
             -- try to preserve the original pauses a bit while also moving things along
@@ -139,8 +139,8 @@ findDemo ds s =
   where
     sl = lowercase s
 
-printDemos :: IO ()
-printDemos = putStrLn $ unlines $
+listDemos :: String
+listDemos = unlines $
   "Demos:" :
   -- "" :
   [show i <> ") " <> bold' t | (i, Demo t _) <- zip [(1::Int)..] demos]
@@ -160,12 +160,15 @@ runAsciinemaPlay speed idlelimit content args =
       ,[f]
       ,args
       ])
-      `catchIOError` \err -> do
-        putStrLn $ "\n" <> show err
-        putStrLn "Error: running asciinema failed. Trying 'asciinema --version':"
-        callProcess "asciinema" ["--version"] `catchIOError` \_ ->
-          putStrLn "This also failed. Check that asciinema is installed in your PATH."
-        exitFailure
+    `catchIOError` \err -> do
+      printError $ unlines
+        [""
+        ,show err
+        ,"Running asciinema failed. Trying 'asciinema --version':"
+        ]
+      callProcess "asciinema" ["--version"]
+      `catchIOError` \_ ->
+        error' "This also failed. Check that asciinema is installed in your PATH."
   where
     showwithouttrailingzero = dropWhileEnd (=='.') . dropWhileEnd (=='0') . show
 

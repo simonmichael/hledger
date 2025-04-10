@@ -435,7 +435,7 @@ hledgerCommandMode :: CommandHelpStr -> [Flag RawOpts] -> [(String, [Flag RawOpt
   -> [Flag RawOpts] -> ([Arg RawOpts], Maybe (Arg RawOpts)) -> Mode RawOpts
 hledgerCommandMode helpstr unnamedflaggroup namedflaggroups hiddenflaggroup argsdescr =
   case parseCommandHelp helpstr of
-    Nothing -> error' $ "Could not parse command doc:\n"++helpstr++"\n"  -- PARTIAL:
+    Nothing -> error' $ "could not parse command doc:\n"++helpstr++"\n"  -- PARTIAL:
     Just CommandHelp{cmdName, mcmdShortName, cmdHelpPreamble, cmdHelpPostamble} ->
       (defCommandMode $ cmdName : maybeToList mcmdShortName) {
          modeHelp        = cmdHelpPreamble

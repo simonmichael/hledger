@@ -16,7 +16,6 @@ module Hledger.Cli.Commands.Roi (
 ) where
 
 import Control.Monad
-import System.Exit
 import Data.Time.Calendar
 import Text.Printf
 import Data.Bifunctor (second)
@@ -92,9 +91,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     filteredj = filterJournalTransactions investmentsQuery j
     trans = dbg3 "investments" $ jtxns filteredj
 
-  when (null trans) $ do
-    putStrLn "No relevant transactions found. Check your investments query"
-    exitFailure
+  when (null trans) $
+    error' "No relevant transactions found. Check your investments query"
 
   let (fullPeriod, spans) = reportSpan filteredj rspec
 

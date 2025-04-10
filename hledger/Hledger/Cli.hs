@@ -457,7 +457,7 @@ main = exitOnExceptions $ withGhcDebug' $ do
         system shellcmd >>= exitWith
 
     -- deprecated command found
-    -- cmdname == "convert" = error' (modeHelp oldconvertmode) >> exitFailure
+    -- cmdname == "convert" = error' (modeHelp oldconvertmode)
 
     -- 6.7. something else (shouldn't happen) - show an error
     | otherwise -> usageError $

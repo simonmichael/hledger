@@ -1,5 +1,5 @@
 $$$ hledger check -f  csvdateparse.csv
->>>2 /hledger: Error: error: could not parse "baddate" as a date using date format "%Y-%m-%d"
+>>>2 /hledger: Error: could not parse "baddate" as a date using date format "%Y-%m-%d"
 CSV record: "baddate","b"
 the date rule is:   %1
 the date-format is: %Y-%m-%d

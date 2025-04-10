@@ -31,7 +31,6 @@ import qualified Data.Text.Lazy.Builder as TB
 import Lens.Micro ((^.), _Just, has)
 import Safe (lastMay, minimumDef)
 import System.Console.CmdArgs.Explicit
-import System.Exit (exitFailure)
 
 import Hledger
 import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
@@ -124,7 +123,7 @@ print' opts j = do
       -- XXX should match similarly to register --match
       case journalSimilarTransaction opts j' (dbg1 "finding best match for description" $ T.pack desc) of
         Just t  -> printEntries opts j'{jtxns=[t]}
-        Nothing -> putStrLn "no matches found." >> exitFailure
+        Nothing -> error' $ "no transactions found with descriptions like " <> show desc
 
 printEntries :: CliOpts -> Journal -> IO ()
 printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =

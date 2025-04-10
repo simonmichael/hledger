@@ -1,5 +1,5 @@
 $$$ hledger check -f  csvbalanceparse.csv
->>>2 /hledger: Error: error: could not parse "badbalance" as balance1 amount
+>>>2 /hledger: Error: could not parse "badbalance" as balance1 amount
 CSV record: "2022-01-03","badbalance"
 the balance rule is: %2
 the date rule is: %1
