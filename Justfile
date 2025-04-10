@@ -38,14 +38,14 @@
 # https://github.com/casey/just/discussions
 #
 # Other tools used below include:
-# - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
-# - shelltestrunner (hackage, runs functional tests)
-# - quickbench (hackage/stackage, runs benchmarks)
-# - ghcid (hackage/stackage, recompiles and optionally runs tests on file change)
-# - hasktags (hackage, generates tag files for code navigation)
-# - profiterole (hackage/stackage, simplifies profiles)
-# - profiteur (hackage/stackage, renders profiles as html)
-# - dateround (from dateutils)
+# - stack           - installs libs and runs ghc
+# - shelltestrunner - runs functional tests
+# - quickbench      - runs benchmarks
+# - ghcid           - recompiles and optionally runs tests on file change
+# - hasktags        - generates tag files for code navigation
+# - profiterole     - simplifies profiles
+# - profiteur       - renders profiles as html
+# - dateround       - from dateutils
 
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
@@ -137,20 +137,7 @@ PROFRTSFLAGS := '-P'
 # Which stack command (and in particular, stack yaml/GHC version) to use for building etc. ?
 
 STACK := 'stack'
-
-#STACK := 'stack --stack-yaml=stack8.10.yaml'
-# Or override temporarily with an env var:
-# STACK := '"stack --stack-yaml=stack8.10.yaml" make functest'
-# if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
-# it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
-#STACK := 'stack --with-hpack=hpack-0.20'
-# --threads := '16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless'
-# --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
-# slow hackage index or compiler setup on first build, etc.
-# Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
-
-STACKGHCI := STACK
-#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
+#STACK := 'stack --stack-yaml=stack912.yaml'
 
 PACKAGES := '
     hledger-lib
@@ -158,12 +145,6 @@ PACKAGES := '
     hledger-ui
     hledger-web
     '
-
-# BINARIES := '
-#     hledger
-#     hledger-ui
-#     hledger-web
-#     '
 
 INCLUDEPATHS := '
     -ihledger-lib
@@ -352,16 +333,16 @@ TESTING:
 
 # run ghci on hledger-lib + hledger
 @ghci *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # echo the full command that just ghci would run
 @ghci-echo *GHCIARGS:
-    echo $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    echo $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof *GHCIARGS:
     stack build --profile hledger --only-dependencies
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    $STACK exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghcitui on hledger-lib + hledger
 @ghcitui *GHCITUIARGS:
@@ -369,25 +350,25 @@ TESTING:
 
 # # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
-#     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+#     $STACK exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 # run ghci on hledger-lib + hledger + hledger-ui
 @ghci-ui *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web
 @ghci-web *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/app/main.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/app/main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
 @ghci-web-test *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/test/test.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/test/test.hs
 
 # # better than stack exec ?
 # # XXX does not see changes to files
 # # run ghci on hledger-lib + test runner
 # ghci-lib-test:
-#     $STACKGHCI ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
+#     $STACK ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
 # run ghci on all the hledger
 # ghci-all:
 #     $STACK exec -- $GHCI $BUILDFLAGS \
@@ -396,7 +377,7 @@ TESTING:
 
 # run ghci on hledger-lib doctests
 @ghci-doctest:
-    cd hledger-lib; $STACKGHCI ghci hledger-lib:test:doctest
+    cd hledger-lib; $STACK ghci hledger-lib:test:doctest
 
 # run ghci on Shake.hs
 @ghci-shake:
