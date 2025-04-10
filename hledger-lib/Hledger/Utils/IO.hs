@@ -22,6 +22,10 @@ module Hledger.Utils.IO (
   error',
   usageError,
   warn,
+  ansiFormatError,
+  ansiFormatWarning,
+  exitOnExceptions,
+  exitWithError,
 
   -- * Time
   getCurrentLocalTime,
@@ -111,9 +115,9 @@ module Hledger.Utils.IO (
 where
 
 import           Control.Concurrent (forkIO)
-import           Control.Exception (catch, evaluate, throwIO)
+import           Control.Exception
 import           Control.Monad (when, forM, guard, void)
-import           Data.Char (toLower)
+import           Data.Char (toLower, isSpace)
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.Colour.SRGB (sRGB)
@@ -130,7 +134,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
 import           Data.Word (Word16)
-import           Debug.Trace (trace)
+import           Debug.Trace
 import           Foreign.C.Error (Errno(..), ePIPE)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
@@ -138,11 +142,12 @@ import           Safe (headMay, maximumDef)
 import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..))
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
-import           System.Environment (getArgs, lookupEnv, setEnv)
+import           System.Environment (getArgs, lookupEnv, setEnv, getProgName)
+import           System.Exit (exitFailure)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
-import           System.IO (Handle, IOMode (..), hGetEncoding, hSetEncoding, hSetNewlineMode, openFile, stdin, stdout, stderr, universalNewlineMode, utf8_bom, hIsTerminalDevice, hPutStr, hClose)
+import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom)
 import qualified System.IO.Encoding as Enc
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, shell, waitForProcess, withCreateProcess)
@@ -196,38 +201,76 @@ pprint' = pPrintOpt NoCheckColorTty prettyoptsNoColor
 -- Errors
 
 -- | Call errorWithoutStackTrace, prepending a "Error:" label.
--- Also do some ANSI styling of the first line when allowed (using unsafe IO).
 error' :: String -> a
-error' =
-  if useColorOnStderrUnsafe
-  then  -- color the program name as well
-    unsafePerformIO $ do
-      putStr fmt
-      return $ errorWithoutStackTrace . modifyFirstLine ((<>sgrresetall) . (label<>))
-  else
-    errorWithoutStackTrace . modifyFirstLine (label<>)
-  where
-    label = "Error: "
-    fmt = sgrbrightred <> sgrbold
+error' = errorWithoutStackTrace . ("Error: "<>)
 
 -- | Like error', but add a hint about using -h.
 usageError :: String -> a
 usageError = error' . (++ " (use -h to see usage)")
 
+-- | Apply standard ANSI SGR formatting (red, bold) suitable for console error text.
+ansiFormatError :: String -> String
+ansiFormatError = (<> sgrresetall) . ((sgrbrightred <> sgrbold) <>)
+
 -- | Show a message, with "Warning:" label, on stderr before returning the given value.
--- Also do some ANSI styling of the first line when we detect that's supported (using unsafe IO).
+-- Also do some ANSI styling of the first line when allowed (using unsafe IO).
 -- Currently we use this very sparingly in hledger; we prefer to either quietly work,
 -- or loudly raise an error. (Varying output can make scripting harder.)
 warn :: String -> a -> a
-warn msg = trace (modifyFirstLine f (label <> msg))
+warn msg = trace msg'
   where
-    label = "Warning: "
-    f = if useColorOnStderrUnsafe then ((<>sgrresetall).(fmt<>)) else id
-      where
-        fmt = sgrbrightyellow <> sgrbold
+    msg' =
+      (if useColorOnStderrUnsafe then modifyFirstLine ansiFormatWarning else id) $
+      "Warning: "<> msg
+
+-- | Apply standard ANSI SGR formatting (yellow, bold) suitable for console warning text.
+ansiFormatWarning :: String -> String
+ansiFormatWarning = (<> sgrresetall) . ((sgrbrightyellow <> sgrbold) <>)
 
 -- Transform a string's first line.
-modifyFirstLine f s = unlines $ map f l <> ls where (l,ls) = splitAt 1 $ lines s  -- total
+-- Note, this won't add a trailing newline if there isn't one,
+-- and it will remove one if there is one or more.
+modifyFirstLine :: (String -> String) -> String -> String
+modifyFirstLine f s = intercalate "\n" $ map f l <> ls where (l,ls) = splitAt 1 $ lines s  -- total
+
+-- | This wraps a program's main routine, to handle program-terminating exceptions
+-- in a consistent compiler-independent way.
+-- In particular it catches @error'@/@error@/@errorWithoutStackTrace@ calls and IO errors,
+-- strips any outer whitespace from their output, and passes this to exitWithErrorMsg.
+-- This prevents GHC 9.10's trailing newlines and GHC 9.12's "uncaught exception" output,
+-- while exitWithErrorMsg ensures a consistent prefix, and styles the first line if allowed.
+--
+-- Some program-terminating exceptions this does not handle:
+-- ExitCode (triggered by a call to exitSuccess, exitFailure, or exitWith)
+-- and UserInterrupt (triggered by control-C).
+--
+exitOnExceptions :: IO () -> IO ()
+exitOnExceptions = flip catches
+  [Handler (\(e::ErrorCall) -> exitWithError $ rstrip $ show e)
+  ,Handler (\(e::IOError)   -> exitWithError $ rstrip $ show e)
+  -- ,Handler (\(x::ExitCode)  -> exitWith x)   -- falls through
+  -- ,Handler (\UserInterrupt  -> exitFailure)  -- falls through
+  ]
+  where
+    rstrip = reverse . dropWhile isSpace . reverse
+
+-- | Print an error message on stderr, with a standard program name prefix,
+-- and styling the first line with ansiFormatError if that's allowed;
+-- then exit the program with a non-zero exit code.
+exitWithError :: String -> IO ()
+exitWithError msg = do
+  progname <- getProgName
+  usecolor <- useColorOnStderr
+  let
+    style = if usecolor then modifyFirstLine ansiFormatError else id
+    prefix = progname <> ": "
+      -- error' prepends an "Error: " prefix. But that seems to have been removed when I catch the ErrorCall exception - unless I'm running in GHCI.
+      -- Is it possible something in GHC or base is removing it ?
+      -- Use a stupid heuristic for now: add it again unless already there.
+      <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
+  hPutStrLn stderr $ style $ prefix <> msg
+  exitFailure
+
 
 -- Time
 

@@ -12,7 +12,6 @@ $ hledger -f - print
   \|     \^
 unexpected newline
 expecting date separator or digit
-
 /
 >=1
 # XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116

@@ -200,7 +200,7 @@ confflagsmode = defMode{
 -- implementing that would simplify hledger's CLI processing a lot.
 --
 main :: IO ()
-main = withGhcDebug' $ do
+main = exitOnExceptions $ withGhcDebug' $ do
 
 #if MIN_VERSION_base(4,20,0)
   -- Control ghc 9.10+'s stack traces.

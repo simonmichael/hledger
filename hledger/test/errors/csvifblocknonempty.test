@@ -5,6 +5,5 @@ $$$ hledger check -f  csvifblocknonempty.csv
   \| \^
 start of conditional block found, but no assignment rules afterward
 \(assignment rules in a conditional block should be indented\)
-
 /
 >>>= 1

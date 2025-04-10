@@ -10,6 +10,5 @@ Consider adding a commodity directive. Examples:
 
 commodity A1000.00
 commodity 1.000,00 A
-
 /
 >>>= 1

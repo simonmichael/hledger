@@ -6,6 +6,5 @@ $$$ hledger check -f parseable-regexps.j
 
 This regular expression is invalid or unsupported, please correct it:
 \(
-
 /
 >>>= 1

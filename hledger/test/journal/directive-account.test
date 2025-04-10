@@ -79,7 +79,6 @@ $ hledger -f- accounts
   \|         \^
 unexpected '\('
 expecting account name without brackets
-
 /
 >=1
 # XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
@@ -95,7 +94,6 @@ $ hledger -f- accounts
   \|         \^
 unexpected '\['
 expecting account name without brackets
-
 /
 >=1
 # XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116

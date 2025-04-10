@@ -62,7 +62,7 @@ hledgerWebDev =
 
 -- Run normally.
 hledgerWebMain :: IO ()
-hledgerWebMain = withGhcDebug' $ do
+hledgerWebMain = exitOnExceptions $ withGhcDebug' $ do
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
 
 #if MIN_VERSION_base(4,20,0)

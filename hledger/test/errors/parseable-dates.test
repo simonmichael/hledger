@@ -5,6 +5,5 @@ $$$ hledger check -f parseable-dates.j
   \| \^\^\^\^\^\^\^\^\^
 
 This is not a valid date, please fix it.
-
 /
 >>>= 1
