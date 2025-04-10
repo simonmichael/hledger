@@ -10,7 +10,5 @@ the parse error is:      1:11:
   \|           \^
 unexpected end of input
 expecting '\+', '-', or number
-
-
 /
 >>>= 1

@@ -6,7 +6,5 @@ the parse error is:      1:1:
   \| \^
 unexpected 'b'
 expecting '!', '\*', or end of input
-
-
 /
 >>>= 1

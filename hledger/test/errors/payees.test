@@ -9,6 +9,5 @@ payee "p" has not been declared.
 Consider adding a payee directive. Examples:
 
 payee p
-
 /
 >>>= 1

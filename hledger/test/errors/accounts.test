@@ -9,6 +9,5 @@ account "a" has not been declared.
 Consider adding an account directive. Examples:
 
 account a
-
 /
 >>>= 1

@@ -4,6 +4,5 @@ $$$ hledger check -f  csviftablenonempty.csv
 2 \| if,date,description,comment
   \| \^
 start of conditional table found, but no assignment rules afterward
-
 /
 >>>= 1

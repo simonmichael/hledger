@@ -5,6 +5,5 @@ $$$ hledger check -f parseable.j
   \|  \^
 unexpected newline
 expecting date separator or digit
-
 /
 >>>= 1

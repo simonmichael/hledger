@@ -3,7 +3,5 @@ $$$ hledger check -f  csvbalancetypeparse.csv
 CSV record: "2022-01-01","1"
 the balance rule is: %2
 the date rule is: %1
-
-
 /
 >>>= 1
