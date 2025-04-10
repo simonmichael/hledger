@@ -1,5 +1,5 @@
 $$$ hledger print -f  csvdateformat.csv
->>>2 /hledger: Error: error: could not parse "a" as a date using date format "YYYY\/M\/D", "YYYY-M-D" or "YYYY.M.D"
+>>>2 /hledger: Error: could not parse "a" as a date using date format "YYYY\/M\/D", "YYYY-M-D" or "YYYY.M.D"
 CSV record: "a","b"
 the date rule is:   %1
 the date-format is: unspecified

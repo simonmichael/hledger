@@ -942,7 +942,7 @@ readJournalFromCsv merulesfile csvfile csvhandle sep = do
     skiplines <- case getDirective "skip" rules of
                       Nothing -> return 0
                       Just "" -> return 1
-                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ show s) return . readMay $ T.unpack s
+                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ T.unpack s) return . readMay $ T.unpack s
     let csvlines2 = dbg9 "csvlines2" $ drop skiplines csvlines1
 
     -- convert back to text and parse as csv records
@@ -1117,7 +1117,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     mdateformat = rule "date-format"
     parsedate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
     mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
-      ["error: could not parse \""<>datevalue<>"\" as a date using date format "
+      ["could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
       ,showRecord record
       ,"the "<>datefield<>" rule is:   "<>(fromMaybe "required, but missing" $ field datefield)
@@ -1147,7 +1147,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
         Just s  -> either statuserror id $ runParser (statusp <* eof) "" s
           where
             statuserror err = error' . T.unpack $ T.unlines
-              ["error: could not parse \""<>s<>"\" as a cleared status (should be *, ! or empty)"
+              ["could not parse status value \""<>s<>"\" (should be *, ! or empty)"
               ,"the parse error is:      "<>T.pack (customErrorBundlePretty err)
               ]
     code        = maybe "" singleline' $ fieldval "code"
@@ -1362,7 +1362,7 @@ parseAmount rules record currency s =
   where
     journalparsestate = nulljournal{jparsedecimalmark=parseDecimalMark rules}
     mkerror e = error' . T.unpack $ T.unlines
-      ["error: could not parse \"" <> s <> "\" as an amount"
+      ["could not parse \"" <> s <> "\" as an amount"
       ,showRecord record
       ,showRules rules record
       -- ,"the default-currency is: "++fromMaybe "unspecified" (getDirective "default-currency" rules)
@@ -1395,7 +1395,7 @@ parseBalanceAmount rules record currency n s =
   where
     journalparsestate = nulljournal{jparsedecimalmark=parseDecimalMark rules}
     mkerror n' s' e = error' . T.unpack $ T.unlines
-      ["error: could not parse \"" <> s' <> "\" as balance"<> T.pack (show n') <> " amount"
+      ["could not parse \"" <> s' <> "\" as balance"<> T.pack (show n') <> " amount"
       ,showRecord record
       ,showRules rules record
       -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency

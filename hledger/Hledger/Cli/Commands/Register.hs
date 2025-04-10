@@ -41,7 +41,6 @@ import qualified Lucid
 import Data.List (sortBy)
 import Data.Char (toUpper)
 import Data.List.Extra (intersect)
-import System.Exit (exitFailure)
 import qualified System.IO as IO
 
 registermode = hledgerCommandMode
@@ -88,7 +87,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
   | Just desc <- maybestringopt "match" rawopts = do
       let ps = [p | (_,_,_,p,_) <- rpt]
       case similarPosting ps desc of
-        Nothing -> putStrLn "no matches found." >> exitFailure
+        Nothing -> error' $ "no postings found with description like " <> show desc
         Just p  -> TL.putStr $ postingsReportAsText opts [pri]
                   where pri = (Just (postingDate p)
                               ,Nothing

@@ -21,7 +21,6 @@ import Data.Either (partitionEithers)
 import qualified Data.Text.IO as T
 import Lens.Micro (set)
 import Safe (headDef)
-import System.Exit (exitFailure)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -114,6 +113,4 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = d
   putStrLn "These transactions are in the second file only:\n"
   mapM_ (T.putStr . showTransaction) unmatchedtxn2
 
-diff _ _ = do
-  putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"
-  exitFailure
+diff _ _ = error' "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

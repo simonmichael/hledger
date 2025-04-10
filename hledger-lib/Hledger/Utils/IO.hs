@@ -26,6 +26,7 @@ module Hledger.Utils.IO (
   ansiFormatWarning,
   exitOnExceptions,
   exitWithError,
+  printError,
 
   -- * Time
   getCurrentLocalTime,
@@ -254,11 +255,16 @@ exitOnExceptions = flip catches
   where
     rstrip = reverse . dropWhile isSpace . reverse
 
--- | Print an error message on stderr, with a standard program name prefix,
--- and styling the first line with ansiFormatError if that's allowed;
+-- | Print an error message with printError, 
 -- then exit the program with a non-zero exit code.
 exitWithError :: String -> IO ()
-exitWithError msg = do
+exitWithError msg = printError msg >> exitFailure
+
+-- | Print an error message to stderr,
+-- with a standard program name prefix,
+-- and styling the first line with ansiFormatError if that's allowed.
+printError :: String -> IO ()
+printError msg = do
   progname <- getProgName
   usecolor <- useColorOnStderr
   let
@@ -269,8 +275,6 @@ exitWithError msg = do
       -- Use a stupid heuristic for now: add it again unless already there.
       <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
   hPutStrLn stderr $ style $ prefix <> msg
-  exitFailure
-
 
 -- Time
 
