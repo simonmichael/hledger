@@ -488,9 +488,14 @@ Notes (as of 1.6.7):
 - Use the <https://github.com/peti/hledger-interest#readme>, it's better than the command line help or hackage description.
 - hledger-interest silently ignores $LEDGER_FILE, so be sure to provide a file name explicitly with -f.
 
+### hledger-sankeymatic
+
+[hledger-sankeymatic](https://github.com/victormihalache/hledger-sankeymatic) helps export hledger data to make flow diagrams at <https://sankeymatic.com>.
+See also [Charts](charts.md).
+
 ### Other
 
-- [hledger-stockquotes](https://hackage.haskell.org/package/hledger-stockquotes) fetches market prices. Not widely used, consider pricehist instead.
+- [hledger-stockquotes](https://hackage.haskell.org/package/hledger-stockquotes) fetches market prices. Not widely used, use pricehist instead.
 - [hledger-diff](https://hackage.haskell.org/package/hledger-diff) compares two journal files. It's now built in to hledger, so you don't need it.
 
 
