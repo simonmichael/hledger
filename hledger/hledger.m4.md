@@ -6722,7 +6722,7 @@ $ git commit -m 'initial balances' 2023.journal
 
 As you spend or receive money, you can record these transactions
 using one of the methods above (text editor, hledger add)
-or by using the [hledger-iadd](#iadd) or [hledger-web](#web) add-ons,
+or by using the [hledger-iadd](scripts.md#iadd) or [hledger-web](#web) add-ons,
 or by using the [import command](#import) to convert CSV data downloaded from your bank.
 
 Here are some simple transactions, see the hledger_journal(5) manual
