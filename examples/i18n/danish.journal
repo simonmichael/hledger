@@ -1,9 +1,0 @@
-account aktiver                          ; type:A
-account aktiver:bank                     ; type:C
-account aktiver:bank:checkkonto
-account aktiver:bank:opsparingskonto
-account aktiver:kontanter                ; type:C
-account passiver                         ; type:L
-account egenkapital                      ; type:E
-account indtægter                        ; type:R
-account udgifter                         ; type:X

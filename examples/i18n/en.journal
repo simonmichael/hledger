@@ -1,0 +1,10 @@
+; Top level account types. Subaccounts will inherit these.
+; (machine translated)
+account assets                     ; type:A
+account assets:bank                ; type:C
+account assets:cash                ; type:C
+account liabilities                ; type:L
+account equity                     ; type:E
+account equity:conversion          ; type:V
+account revenues                   ; type:R
+account expenses                   ; type:X

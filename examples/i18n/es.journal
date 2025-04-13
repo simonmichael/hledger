@@ -1,0 +1,10 @@
+; Tipos de cuenta de nivel superior. Las subcuentas heredarán estos.
+; (traducido automáticamente)
+account activos                           ; type:A
+account activos:banco                     ; type:C
+account activos:caja                      ; type:C
+account pasivos                           ; type:L
+account patrimonio                        ; type:E
+account patrimonio:diferencias de cambio  ; type:V
+account ingresos                          ; type:R
+account gastos                            ; type:X
