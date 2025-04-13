@@ -6,5 +6,5 @@ account assets:cash                ; type:C
 account liabilities                ; type:L
 account equity                     ; type:E
 account equity:conversion          ; type:V
-account revenues                   ; type:R
+account income                     ; type:R
 account expenses                   ; type:X
