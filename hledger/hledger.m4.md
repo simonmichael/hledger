@@ -4038,11 +4038,13 @@ journal. It is idempotent, so you don't have to remember how many
 times you ran it or with which version of the CSV.
 (It keeps state in a hidden `.latest.FILE.csv` file.)
 This is the easiest way to import CSV data. Eg:
+
 ```cli
 # download the latest CSV files, then run this command.
 # Note, no -f flags needed here.
 $ hledger import *.csv [--dry]
 ```
+
 This method works for most CSV files.
 (Where records have a stable chronological order, and new records appear only at the new end.)
 
@@ -4226,6 +4228,7 @@ comment %amount1
 ```
 
 Here, since there's no CSV amount1 field, %amount1 will produce a literal "amount1":
+
 ```rules
 fields date,description,csvamount
 amount1 %csvamount USD
@@ -4236,6 +4239,7 @@ comment %amount1
 When there are multiple field assignments to the same hledger field,
 only the last one takes effect. Here, comment's value will be be B,
 or C if "something" is matched, but never A:
+
 ```rules
 comment A
 comment B
@@ -4871,35 +4875,6 @@ $ hledger -f a.timedot --alias '/\./=:' bal -t
 --------------------
                 4.50
 ```
-
-<!--
-Another sample, download from 
-https://raw.github.com/simonmichael/hledger/master/examples/sample.timedot and try:
-```cli
-$ hledger -f sample.timedot balance                               # current time balances
-$ hledger -f sample.timedot register -p 2009/3                    # sessions in march 2009
-$ hledger -f sample.timedot register -p weekly --depth 1 --empty  # time summary by week
-```
-```timedot
-# sample.timedot
-# This is a comment line
-; Also a comment line
-* Org headings before the first date are also comment lines
-
-2023-01-01 transaction description
-biz:research  ....
-inc:client1   .... ..
-
-2023-01-01 different transaction, same day ; with a comment and transaction-tag:
-; more transaction comment lines ? currently ignored
-fos:haskell  .... ; a posting comment and posting-tag:
-; more posting comment lines ? currently ignored
-per:admin    ....
-
-** 2023-01-02  ; dates are allowed to be org headings
-```
--->
-
 
 # PART 3: REPORTING CONCEPTS
 
