@@ -4255,7 +4255,8 @@ If you get a confusing error while reading a CSV file, it may help to try to und
 1. Any [included](#include) rules files are inlined, from top to bottom, depth first
    (scanning each included file for further includes, recursively, before proceeding).
 
-2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` at top level, etc) are processed, top to bottom.
+2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` at top level, etc)
+   are read, top to bottom.
    If a rule occurs more than once, the last one wins;
    except for `skip`/`end` rules, where the first one wins.
 
