@@ -4249,7 +4249,8 @@ if something
 
 ### How CSV rules are evaluated
 
-Here's how to think of CSV rules being evaluated:
+Here's how to think of CSV rules being evaluated.
+If you get a confusing error while reading a CSV file, it may help to try to understand which of these steps is failing:
 
 1. Any [included](#include) rules files are inlined, from top to bottom, depth first
    (scanning each included file for further includes, recursively, before proceeding).
@@ -4257,14 +4258,20 @@ Here's how to think of CSV rules being evaluated:
 2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` at top level, etc) are processed, top to bottom.
    If a rule occurs more than once, the last one wins;
    except for `skip`/`end` rules, where the first one wins.
-   `skip [N]` immediately skips the current or next N CSV records.
+
+3. The CSV file is read as text.
+   Any non-ascii characters will be decoded using the text encoding specified by the `encoding` rule,
+   otherwise the system locale's text encoding.
+
+4. Any top-level skip or end rule is applied.
+   `skip [N]` immediately skips the current or next N CSV records;
    `end` immediately skips all remaining CSV records.
 
-3. Now CSV records are processed. For each remaining CSV record, in file order:
+5. Now the remaining CSV records are processed. For CSV record, in file order:
 
-   - Is there a skip/end rule that applies for this record ?
+   - Is there a conditional skip/end rule that applies for this record ?
      Search the `if` blocks, from top to bottom, for a succeeding one containing a `skip` or `end` rule.
-     If found, immediately skip the specified number of CSV records, then continue at 3.\
+     If found, skip the specified number of CSV records, then continue at 5.\
      Otherwise...
  
    - Do some basic validation on this CSV record (eg, check that it has at least two fields).
@@ -4281,9 +4288,9 @@ Here's how to think of CSV rules being evaluated:
         or by choosing a default value if there was no assignment.
 
    - Generate a hledger transaction from the hledger field values,
-     parsing them as needed (eg from text to an amount).
+     parsing them if needed (eg from text to an amount).
 
-This is all part of the CSV reader, one of several readers hledger can use to read transactions from an input file.
+This is all done by the CSV reader, one of several readers hledger can use to read transactions from an input file.
 When all input files have been read successfully,
 their transactions are passed to whichever hledger command the user specified.
 
