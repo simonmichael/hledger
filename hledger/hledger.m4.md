@@ -4255,8 +4255,8 @@ If you get a confusing error while reading a CSV file, it may help to try to und
 1. Any [included](#include) rules files are inlined, from top to bottom, depth first
    (scanning each included file for further includes, recursively, before proceeding).
 
-2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` at top level, etc)
-   are read, top to bottom.
+2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` etc) are read, top to bottom.
+   "Top level rules" means non-conditional rules.
    If a rule occurs more than once, the last one wins;
    except for `skip`/`end` rules, where the first one wins.
 
@@ -4266,9 +4266,9 @@ If you get a confusing error while reading a CSV file, it may help to try to und
 
 4. Any top-level skip or end rule is applied.
    `skip [N]` immediately skips the current or next N CSV records;
-   `end` immediately skips all remaining CSV records.
+   `end` immediately skips all remaining CSV records (not normally used at top level).
 
-5. Now the remaining CSV records are processed. For CSV record, in file order:
+5. Now any remaining CSV records are processed. For each CSV record, in file order:
 
    - Is there a conditional skip/end rule that applies for this record ?
      Search the `if` blocks, from top to bottom, for a succeeding one containing a `skip` or `end` rule.
