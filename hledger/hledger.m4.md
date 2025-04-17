@@ -4279,13 +4279,13 @@ If you get a confusing error while reading a CSV file, it may help to try to und
 
    - For each hledger field (`date`, `description`, `account1`, etc.):
  
-     1. Collect all assignments to this field,
+     1. Get the field's assigned value,
         first searching top level assignments, made directly or by the `fields` rule,
         then assignments made inside succeeding `if` blocks.
         If there are more than one, the last one wins.
 
      2. Compute the field's actual value (as text),
-        by interpolating any %CSVFIELD references within the assigned value,
+        by interpolating any %CSVFIELD references within the assigned value;
         or by choosing a default value if there was no assignment.
 
    - Generate a hledger transaction from the hledger field values,
