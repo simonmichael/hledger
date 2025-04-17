@@ -4251,38 +4251,41 @@ if something
 
 Here's how to think of CSV rules being evaluated:
 
-1. Any `include`d rules files are inlined, from top to bottom, depth first
-   (scanning each included file for further includes recursively before proceeding).
+1. Any [included](#include) rules files are inlined, from top to bottom, depth first
+   (scanning each included file for further includes, recursively, before proceeding).
 
 2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` at top level, etc) are processed, top to bottom.
-   With most rules, if it is seen more than once, the last/bottom-most wins.
-   But with `skip`/`end` rules, the first/top-most wins.
+   If a rule occurs more than once, the last one wins;
+   except for `skip`/`end` rules, where the first one wins.
    `skip [N]` immediately skips the current or next N CSV records.
    `end` immediately skips all remaining CSV records.
 
-3. For each CSV record in turn:
+3. Now CSV records are processed. For each remaining CSV record, in file order:
 
-   a. Search the `if` blocks, from top to bottom, for a succeeding one containing a `skip` or `end` rule.
-      If found, immediately skip the specified number of CSV records.
+   - Is there a skip/end rule that applies for this record ?
+     Search the `if` blocks, from top to bottom, for a succeeding one containing a `skip` or `end` rule.
+     If found, immediately skip the specified number of CSV records, then continue at 3.\
+     Otherwise...
  
-   b. Otherwise, compute hledger field values for this record.
-      For each hledger field (`date`, `description`, `account1`, etc.):
- 
-    - Collect all assignments to this field, whether
-      top level assignments made by the `fields` rule,
-      top level direct assignments,
-      or conditional assignments made inside succeeding `if` blocks.
-      The last/bottom-most assignment wins.
+   - Do some basic validation on this CSV record (eg, check that it has at least two fields).
 
-    - Compute the field's actual value,
-      by interpolating any %CSVFIELD references within the assigned value,
-      or by choosing a default value if there was no assignment.
+   - For each hledger field (`date`, `description`, `account1`, etc.):
  
-   c. Generate a hledger transaction (journal entry), from all the hledger field values.
+     1. Collect all assignments to this field,
+        first searching top level assignments, made directly or by the `fields` rule,
+        then assignments made inside succeeding `if` blocks.
+        If there are more than one, the last one wins.
+
+     2. Compute the field's actual value (as text),
+        by interpolating any %CSVFIELD references within the assigned value,
+        or by choosing a default value if there was no assignment.
+
+   - Generate a hledger transaction from the hledger field values,
+     parsing them as needed (eg from text to an amount).
 
 This is all part of the CSV reader, one of several readers hledger can use to read transactions from an input file.
-hledger may be reading multiple input files; when all have been read successfully, 
-their transactions are passed as input to whichever hledger command the user specified.
+When all input files have been read successfully,
+their transactions are passed to whichever hledger command the user specified.
 
 
 <a name="timeclock-format"></a>
