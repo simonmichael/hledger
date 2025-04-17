@@ -295,7 +295,7 @@ commandsList progversion othercmds =
   ," diff                     compare an account's transactions in two journals"
   ,"+git                      save or view journal file history simply in git"       -- hledger-git
   ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
-  ," setup                    check and help set up various installation things"
+  ," setup                    check and show the status of the hledger installation"
   ," test                     run some self tests"
   ,""
     -----------------------------------------80-------------------------------------

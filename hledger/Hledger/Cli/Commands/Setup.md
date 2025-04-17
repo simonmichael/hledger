@@ -1,6 +1,6 @@
 ## setup
 
-Check and help set up various installation things.
+Check and show the status of the hledger installation.
 
 ```flags
 Flags:

@@ -6515,7 +6515,7 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 
 - [check](#check)                                  - check for various kinds of error in the data
 - [diff](#diff)                                    - compare account transactions in two journal files
-- [setup](#setup)                                  - check and help set up various installation things
+- [setup](#setup)                                  - check and show the status of the hledger installation
 - [test](#test)                                    - run self tests
 
 
