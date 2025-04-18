@@ -249,7 +249,7 @@ setupTags = do
 getLatestHledgerVersion :: IO (Either String String)
 getLatestHledgerVersion = do
   result <- try $ runReq defaultHttpConfig{httpConfigRedirectCount=0} $
-    req GET (https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: "") NoReqBody bsResponse mempty
+    req HEAD (https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: "") NoReqBody bsResponse mempty
   case result of
     Right _ -> return $ Left "no redirect"
     Left (VanillaHttpException (HttpExceptionRequest _ (StatusCodeException rsp _))) -> do
