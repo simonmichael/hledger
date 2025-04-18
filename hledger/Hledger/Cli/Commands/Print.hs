@@ -60,7 +60,7 @@ printmode = hledgerCommandMode
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
-  ,flagNone ["l", "location"] (setboolopt "location") "add file/line number tags to print output"
+  ,flagNone ["location"] (setboolopt "location") "add file/line number tags to print output"
   ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
@@ -366,7 +366,6 @@ postingToSpreadsheet fmt baseUrl query p =
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = T.strip $ pcomment p
 
--- from hledger/bin/hledger-print-location.hs
 addLocationTag :: Transaction -> Transaction
 addLocationTag t = t{tcomment = tcomment t `commentAddTagNextLine` loctag}
   where
