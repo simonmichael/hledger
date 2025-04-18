@@ -366,20 +366,6 @@ It has the same structure as most of the add-ons here:
 - providing command line help
 - accepting common hledger options
 
-### hledger-print-location
-
-[`hledger-print-location.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-print-location.hs)
-is a variant of hledger's `print` command
-that adds the file and line number to every transaction, as a tag:
-```cli
-$ hledger print-location -f hledger/examples/sample.journal desc:eat
-2008/06/03 * eat & shop
-  ; location: /Users/simon/src/hledger/examples/sample.journal:30
-  expenses:food                  $1
-  expenses:supplies              $1
-  assets:cash
-```
-
 ### hledger-swap-dates
 
 [`hledger-swap-dates.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-swap-dates.hs)
