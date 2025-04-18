@@ -60,6 +60,7 @@ printmode = hledgerCommandMode
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+  ,flagNone ["l", "location"] (setboolopt "location") "add file/line number tags to print output"
   ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
@@ -102,7 +103,7 @@ amountStylesSetRoundingFromRawOpts rawopts styles =
 
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
-print' opts j = do
+print' opts@CliOpts{rawopts_=rawopts} j = do
   -- The print command should show all amounts with their original decimal places,
   -- but as part of journal reading the posting amounts have already been normalised
   -- according to commodity display styles, and currently it's not easy to avoid
@@ -115,6 +116,7 @@ print' opts j = do
       -- & dbg9With (lbl "amounts before setting full precision".showJournalAmountsDebug)
       & journalMapPostingAmounts mixedAmountSetFullPrecision
       -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalAmountsDebug)
+      & if boolopt "location" rawopts then journalMapTransactions addLocationTag else id
 
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
@@ -363,3 +365,9 @@ postingToSpreadsheet fmt baseUrl query p =
     status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
     comment = T.strip $ pcomment p
+
+-- from hledger/bin/hledger-print-location.hs
+addLocationTag :: Transaction -> Transaction
+addLocationTag t = t{tcomment = tcomment t `commentAddTagNextLine` loctag}
+  where
+    loctag = ("location", T.pack . sourcePosPairPretty $ tsourcepos t)
