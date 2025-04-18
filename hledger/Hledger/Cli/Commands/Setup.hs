@@ -26,10 +26,10 @@ import Control.Exception
 import Control.Monad
 import Data.Functor ((<&>))
 import Data.Maybe
-import Data.Text (Text)
+-- import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-import qualified Data.Text.IO as T
+-- import qualified Data.Text.IO as T
 import Network.HTTP.Client
 import Network.HTTP.Types (statusCode, hLocation)
 import Network.HTTP.Req
@@ -38,7 +38,7 @@ import System.Directory
 import System.Exit
 import System.FilePath
 import System.Info
-import System.IO
+-- import System.IO
 import System.Process
 import Text.Megaparsec.Error (errorBundlePretty)
 import Text.Printf (printf)
@@ -61,9 +61,9 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
   putStrLn "checking setup..."
-  setupHledger
-  setupConfig
-  -- setupFiles
+  -- setupHledger
+  -- setupConfig
+  setupFiles
   -- setupAccounts
   -- setupCommodities
   -- setupTags
@@ -216,11 +216,11 @@ setupConfig = do
 
 setupFiles = do
   pgroup "files"
-  -- pdesc "default journal file exists ?"
-  -- pdesc "\n"
+
+  pdesc "default journal file exists ?"
+
   -- pdesc "default journal file readable ?"
-  -- pdesc "\n"
-  -- pdesc "\n"
+
 
 setupAccounts = do
   pgroup "accounts"
@@ -267,30 +267,30 @@ getLatestHledgerVersion = do
         else return $ Left $ "non-redirect status code: " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
-{- | Ensure there is a journal file at the given path, creating an empty one if needed.
-On Windows, also ensure that the path contains no trailing dots
-which could cause data loss (see 'isWindowsUnsafeDotPath').
--}
-_ensureJournalFileExists :: FilePath -> IO ()
-_ensureJournalFileExists f = do
-  when (os == "mingw32" && isWindowsUnsafeDotPath f) $
-    error' $
-      "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
-  exists <- doesFileExist f
-  unless exists $ do
-    hPutStrLn stderr $ "Creating hledger journal file " <> show f
-    -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
-    -- we currently require unix line endings on all platforms.
-    newJournalContent >>= T.writeFile f
+-- {- | Ensure there is a journal file at the given path, creating an empty one if needed.
+-- On Windows, also ensure that the path contains no trailing dots
+-- which could cause data loss (see 'isWindowsUnsafeDotPath').
+-- -}
+-- _ensureJournalFileExists :: FilePath -> IO ()
+-- _ensureJournalFileExists f = do
+--   when (os == "mingw32" && isWindowsUnsafeDotPath f) $
+--     error' $
+--       "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
+--   exists <- doesFileExist f
+--   unless exists $ do
+--     hPutStrLn stderr $ "Creating hledger journal file " <> show f
+--     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
+--     -- we currently require unix line endings on all platforms.
+--     newJournalContent >>= T.writeFile f
 
-{- | Does any part of this path contain non-. characters and end with a . ?
-Such paths are not safe to use on Windows (cf #1056).
--}
-isWindowsUnsafeDotPath :: FilePath -> Bool
-isWindowsUnsafeDotPath = any (\x -> last x == '.' && any (/= '.') x) . splitDirectories
+-- {- | Does any part of this path contain non-. characters and end with a . ?
+-- Such paths are not safe to use on Windows (cf #1056).
+-- -}
+-- isWindowsUnsafeDotPath :: FilePath -> Bool
+-- isWindowsUnsafeDotPath = any (\x -> last x == '.' && any (/= '.') x) . splitDirectories
 
--- | Give the content for a new auto-created journal file.
-newJournalContent :: IO Text
-newJournalContent = do
-  d <- getCurrentDay
-  return $ "; journal created " <> T.pack (show d) <> " by hledger\n"
+-- -- | Give the content for a new auto-created journal file.
+-- newJournalContent :: IO Text
+-- newJournalContent = do
+--   d <- getCurrentDay
+--   return $ "; journal created " <> T.pack (show d) <> " by hledger\n"
