@@ -615,6 +615,8 @@ This is useful when using hledger in scripts, or when troubleshooting.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
 
 To inspect the processing of config files, use `--debug` or `--debug=8`.
+Or, run the `setup` command, which will display any active config files.
+(Apart from this, `setup` is not affected by config files, unlike other commands.)
 
 **Warning!**
 

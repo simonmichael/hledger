@@ -271,7 +271,9 @@ main = exitOnExceptions $ withGhcDebug' $ do
   -- Read extra general and command-specific args/opts from the config file, if any.
   (conf, mconffile) <-
     seq cliconfrawopts $  -- order debug output
-    getConf cliconfrawopts
+    if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
+      then return (nullconf,Nothing)
+      else getConf cliconfrawopts
 
   ---------------------------------------------------------------
   dbgIO "\n3. Identify a command name from config file or command line" ()
