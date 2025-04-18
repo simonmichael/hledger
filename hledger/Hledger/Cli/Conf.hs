@@ -8,7 +8,14 @@ Read extra CLI arguments from a hledger config file.
 
 module Hledger.Cli.Conf (
    getConf
+  ,nullconf
   ,confLookup
+  ,activeConfFile
+  ,activeLocalConfFile
+  ,activeUserConfFile
+  ,confFiles
+  ,userConfFiles
+  ,parseConf
 )
 where
 
@@ -19,6 +26,7 @@ import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
+import Safe (headMay)
 import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist, getCurrentDirectory)
 import System.FilePath ((</>), takeDirectory)
 import Text.Megaparsec
@@ -99,12 +107,9 @@ getConf rawopts = do
     NoConfFile     -> return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
     SomeConfFile f -> getCurrentDirectory >>= flip expandPath f >>= readConfFile . dbg1 "using specified config file"
     AutoConfFile   -> do
-      defconfpaths <- defaultConfFilePaths
-      conffiles <- fmap catMaybes $ forM defconfpaths $ \f -> do
-        exists <- doesFileExist f
-        return $ if exists then Just f else Nothing
-      case conffiles of
-        f:_ -> dbg8IO "found config files" conffiles >> dbg1IO "using nearest config file" f >> readConfFile f
+      fs <- confFiles
+      case fs of
+        f:_ -> dbg8IO "found config files" fs >> dbg1IO "using nearest config file" f >> readConfFile f
         []  -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
 
 -- | Read this config file and parse its contents, or raise an error.
@@ -113,7 +118,6 @@ readConfFile f = do
   -- avoid GHC 9.10.1's ugly stack trace when calling readFile on a nonexistent file
   exists <- doesFileExist f
   when (not exists) $ error' $ f <> " does not exist"
-
   ecs <- readFile f <&> parseConf f . T.pack
   case ecs of
     Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
@@ -125,17 +129,67 @@ readConfFile f = do
       Just f
       )
 
--- | Get the possible paths for a hledger config file, depending on the current directory.
-defaultConfFilePaths :: IO [FilePath]
-defaultConfFilePaths = do
-  ds   <- confDirs
+-- | Get the highest precedence config file, based on the current directory.
+activeConfFile :: IO (Maybe FilePath)
+activeConfFile = headMay <$> confFiles
+
+-- | Get the highest precedence local config file: 
+-- a config file in the current directory or above, that is not a user-wide config file.
+activeLocalConfFile :: IO (Maybe FilePath)
+activeLocalConfFile = do
+  ufs <- userConfFiles
+  mf <- headMay <$> confFiles
+  return $ case mf of
+    Just f | f `notElem` ufs -> Just f
+    _ -> Nothing
+
+-- | Get the highest precedence user-wide config file, based on the current directory.
+-- (This may not be the active config file.)
+activeUserConfFile :: IO (Maybe FilePath)
+activeUserConfFile = headMay <$> userConfFiles
+
+-- | Get the possibleConfFiles which exist, based on the current directory.
+confFiles :: IO [FilePath]
+confFiles = possibleConfFiles >>= existingFiles
+
+-- | Get the possibleUserConfFiles which exist, based on the current directory.
+userConfFiles :: IO [FilePath]
+userConfFiles = possibleUserConfFiles >>= existingFiles
+
+-- | Filter a list of paths to just the existing files.
+existingFiles :: [FilePath] -> IO [FilePath]
+existingFiles fs =
+  fmap catMaybes $ forM fs $ \f -> do
+    exists <- doesFileExist f
+    return $ if exists then Just f else Nothing
+
+-- | Get the possible paths for a hledger config file, highest precedence first:
+-- hledger.conf in the current directory, 
+-- hledger.conf in any parent directory, 
+-- .hledger.conf in the home directory,
+-- or hledger.conf in the XdgConfig directory.
+possibleConfFiles :: IO [FilePath]
+possibleConfFiles = do
+  ds   <- possibleConfDirs
   home <- getHomeDirectory
   return $ dbg8 "possible config file paths" $
     flip map ds $ \d -> d </> if d==home then ".hledger.conf" else "hledger.conf"
 
--- | Get the directories to check for a hledger config file.
-confDirs :: IO [FilePath]
-confDirs = do
+-- | Like possibleConfFiles, but consider only user-wide hledger config files:
+-- .hledger.conf in the home directory,
+-- or hledger.conf in the XdgConfig directory.
+possibleUserConfFiles :: IO [FilePath]
+possibleUserConfFiles = do
+  home <- getHomeDirectory
+  xdgc <- getXdgDirectory XdgConfig "hledger"
+  let ds = [home,xdgc]
+  return $ dbg8 "possible user config file paths" $
+    flip map ds $ \d -> d </> if d==home then ".hledger.conf" else "hledger.conf"
+
+-- | Get the directories where a hledger config file could be, highest precedence first:
+-- the current directory, any parent directory, the home directory, or the XdgConfig directory.
+possibleConfDirs :: IO [FilePath]
+possibleConfDirs = do
   xdgc <- getXdgDirectory XdgConfig "hledger"
   home <- getHomeDirectory
   here <- getCurrentDirectory
