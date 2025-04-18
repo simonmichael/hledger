@@ -29,6 +29,7 @@ Flags:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+  -l --location             add file/line number tags to print output.
 ```
 
 The print command displays full journal entries (transactions) 
