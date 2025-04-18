@@ -21,8 +21,11 @@ module Hledger.Cli.Commands.Setup (
 )
 where
 
+import Control.Applicative ((<|>))
 import Control.Exception
 import Control.Monad
+import Data.Functor ((<&>))
+import Data.Maybe
 import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -37,9 +40,12 @@ import System.FilePath
 import System.Info
 import System.IO
 import System.Process
+import Text.Megaparsec.Error (errorBundlePretty)
+import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Conf
 
 setupmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Setup.txt")
@@ -48,7 +54,7 @@ setupmode = hledgerCommandMode
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
--- | Check and show the status of various aspects of the hledger installation.
+-- | Test and print the status of various aspects of the hledger installation.
 -- Also show extra info and hints on how to fix problems.
 setup :: CliOpts -> Journal -> IO ()
 setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
@@ -56,25 +62,48 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- instead detect it ourselves when we are ready.
   putStrLn "checking setup..."
   setupHledger
-  -- setupConfig
+  setupConfig
   -- setupFiles
   -- setupAccounts
   -- setupCommodities
   -- setupTags
 
--- | Print a check's status, and optional messages if it's ok or not ok.
+-- | Print a test's pass or fail status, in green/red if supported, and optional messages if it's ok or not ok.
 p :: Bool -> String -> String -> IO ()
 p ok ymsg nmsg =
   putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
   where
-    y = "yes ✅"
-    n = "no ❌"
+    y = bold' $ brightGreen' "yes" -- ✅ apple emojis - won't work everywhere
+    n = bold' $ brightRed'   "no" -- ❌
+
+-- | Like p, but display both statuses as a warning message, in yellow if supported.
+w :: Bool -> String -> String -> IO ()
+w ok ymsg nmsg =
+  putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
+  where
+    y = bold' $ brightYellow' "yes" -- ⚠️
+    n = bold' $ brightYellow' "no" -- ⚠️
+
+-- | Like p, but display both statuses as an info message, in blue if supported.
+i :: Bool -> String -> String -> IO ()
+i ok ymsg nmsg =
+  putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
+  where
+    y = bold' $ brightBlue' "yes" -- ℹ️
+    n = bold' $ brightBlue' "no" -- ℹ️
+
+-- | Print a setup test group's heading.
+pgroup s = putStr $ bold' $ "\n" <> s <> ":\n"
+
+-- | Print a setup test's description, formatting and padding it to a fixed width.
+pdesc :: String -> IO ()
+pdesc s = printf "- %-38s" s
 
 setupHledger :: IO ()
 setupHledger = do
-  putStrLn "hledger:"
+  pgroup "hledger"
 
-  putStr "- is in PATH ?"
+  pdesc "is in PATH ?"
   pathexes <- findExecutables progname
   home <- getHomeDirectory
   appdata <- getXdgDirectory XdgData ""
@@ -105,7 +134,7 @@ setupHledger = do
   -- If hledger was found in PATH, run more checks
   when ok $ do
 
-    putStr "- runs ?"
+    pdesc "runs ?"
     let arg = "--version"
     (exit,out,err) <- readProcessWithExitCode progname [arg] ""
     let
@@ -116,7 +145,7 @@ setupHledger = do
 
     -- If hledger runs, run more checks
     when ok $ do
-      putStr "- is a native binary ?"
+      pdesc "is a native binary ?"
       let
         exearch = case drop 2 verparts of
           w:_ -> w
@@ -130,7 +159,7 @@ setupHledger = do
         hint = "installed binary is for " <> exearch <> ", system is " <> sysarch
       p ok "" hint
 
-      putStr "- is up to date ?"
+      pdesc "is up to date ?"
       elatestver <- getLatestHledgerVersion
       let
         latestver = case elatestver of
@@ -146,55 +175,76 @@ setupHledger = do
           | otherwise = exever <> " installed, latest release is " <> latestver
       p ok msg msg
 
-  -- putStr "- eget installed ?"
+  -- pdesc "eget installed ?"
 
 setupConfig = do
-  putStrLn "config:"
-  -- putStr "- user config file exists ?"
-  -- putStr "\n"
-  -- putStr "- local config masking user config ?"
-  -- putStr "\n"
-  -- putStr "- config file readable ?"
-  -- putStr "\n"
-  -- putStr "- common general options configured ?"
-  -- putStr "\n"
-  -- putStr "  --pretty --ignore-assertions --infer-costs"
-  -- putStr "\n"
-  -- putStr "  print --explicit --show-costs"
-  -- putStr "\n"
-  -- putStr "\n"
+  pgroup "config"
+
+  pdesc "user has a config file ?"
+  muf <- activeUserConfFile
+  let
+    (ok, msg) = case muf of
+      Just f  -> (True, f)
+      Nothing -> (False, "")
+  i ok msg msg
+
+  pdesc "a local config file exists ?"
+  mlf <- activeLocalConfFile
+  let
+    (ok, msg) = case mlf of
+      Just f  -> (True, f) -- <> if isJust muf then " (masking user config)" else "")
+      Nothing -> (False, "")
+  i ok msg msg
+
+  when (isJust muf && isJust mlf) $ do
+    pdesc "local config is masking user config ?"
+    i True "" ""
+
+  let mf = mlf <|> muf
+  case mf of
+    Nothing -> return ()
+    Just f -> do
+      pdesc "config file is readable ?"
+      ecs <- readFile f <&> parseConf f . T.pack
+      case ecs of
+        Right _ -> p True "" ""
+        Left e  -> p False "" (errorBundlePretty e)
+
+  -- pdesc "common general options configured ?"
+  -- --pretty --ignore-assertions --infer-costs"
+  -- print --explicit --show-costs"
 
 setupFiles = do
-  putStrLn "files:"
-  -- putStr "- default journal file exists ?"
-  -- putStr "\n"
-  -- putStr "- default journal file readable ?"
-  -- putStr "\n"
-  -- putStr "\n"
+  pgroup "files"
+  -- pdesc "default journal file exists ?"
+  -- pdesc "\n"
+  -- pdesc "default journal file readable ?"
+  -- pdesc "\n"
+  -- pdesc "\n"
 
 setupAccounts = do
-  putStrLn "accounts:"
-  -- putStr "- all account types declared or detected ?"
-  -- putStr "\n"
-  -- putStr "  asset, liability, equity, revenue, expense, cash, conversion"
-  -- putStr "\n"
-  -- putStr "- untyped accounts ?"
-  -- putStr "\n"
-  -- putStr "- all used accounts declared ?"
-  -- putStr "\n"
-  -- putStr "\n"
+  pgroup "accounts"
+  -- pdesc "all account types declared or detected ?"
+  -- pdesc "\n"
+  -- pdesc "  asset, liability, equity, revenue, expense, cash, conversion"
+  -- pdesc "\n"
+  -- pdesc "untyped accounts ?"
+  -- pdesc "\n"
+  -- pdesc "all used accounts declared ?"
+  -- pdesc "\n"
+  -- pdesc "\n"
 
 setupCommodities = do
-  putStrLn "commodities:"
-  -- putStr "- all used commodities declared ?"
-  -- putStr "\n"
-  -- putStr "\n"
+  pgroup "commodities"
+  -- pdesc "all used commodities declared ?"
+  -- pdesc "\n"
+  -- pdesc "\n"
 
 setupTags = do
-  putStrLn "tags:"
-  -- putStr "- all used tags declared ?"
-  -- putStr "\n"
-  -- putStr "\n"
+  pgroup "tags"
+  -- pdesc "all used tags declared ?"
+  -- pdesc "\n"
+  -- pdesc "\n"
 
 getLatestHledgerVersion :: IO (Either String String)
 getLatestHledgerVersion = do
