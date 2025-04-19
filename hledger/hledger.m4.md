@@ -5240,29 +5240,31 @@ The same would be true with the argument `--depth assets=1 --depth savings=2`.
 
 # Queries
 
-One of hledger's strengths is being able to quickly report on a precise subset of your data. 
-Most hledger commands accept query arguments, to restrict their scope.
-Multiple query terms can be provided to build up a more complex query.
+Most hledger commands accept query arguments, which restrict their scope and let you report on a precise subset of your data. 
+Here's a quick overview of hledger's query language:
 
-- By default, a query term is interpreted as a case-insensitive substring pattern for matching [account names](#account-names):
+- An argument with no recognised query prefix is interpreted as
+  a case-insensitive substring pattern for matching [account names](#account-names).
+  Eg:
 
-  `car:fuel`\
   `dining groceries`\
+  `car:fuel`\
 
 - Patterns containing spaces or other [special characters](#special-characters) must be enclosed in single or double quotes:
 
   `'personal care'`\
 
-- These patterns are actually regular expressions,
+- Patterns are actually regular expressions,
   so you can add regexp metacharacters for more precision
-  (see "[Regular expressions](#regular-expressions)" above for details):
+  (or you may need to backslash-escape certain characters;
+  see "[Regular expressions](#regular-expressions)" above):
 
   `'^expenses\b'`\
   `'food$'`\
   `'fuel|repair'`\
   `'accounts (payable|receivable)'`\
 
-- To match something other than account name, add one of the query type prefixes described in "Query types" below:
+- To match something other than the account name, you can add a query type prefix, such as:
 
   `date:202312-`\
   `status:`\
@@ -5271,25 +5273,23 @@ Multiple query terms can be provided to build up a more complex query.
   `cur:\\$`\
   `amt:'>0'`\
 
-- Add a `not:` prefix to negate a term:
+- To negate a query, add a `not:` prefix:
 
   `not:status:'*'`\
   `not:desc:'opening|closing'`\
   `not:cur:USD`\
 
-- Terms with different types are AND-ed, terms with the same type are OR-ed (mostly; see "Combining query terms" below).
-  The following query:
-
-  `date:2022 desc:amazon desc:amzn`
-  
-  is interpreted as:
-  
-  *date is in 2022 AND ( transaction description contains "amazon" OR "amzn" )*
+- If you provide multiple query terms as command line arguments,
+  the terms with different types will be AND-ed, while
+  the terms with the same type will be OR-ed (mostly).\
+  So, `hledger print date:2022 desc:amazon desc:amzn`
+  means "show transactions where the date is in 2022 AND the description contains (amazon OR amzn)".
+  More flexible query combining is described below.
 
 
 ## Query types
 
-Here are the types of query term available.
+Here are the query types available:
 
 ### acct: query
 **`acct:REGEX`**, or just **`REGEX`**\
@@ -5339,18 +5339,6 @@ Match (or display, depending on command) accounts at or above this depth,
 optionally only for accounts matching a provided regular expression.
 See [Depth](#depth) for detailed rules.
 
-### expr: query
-**`expr:'QUERYEXPR'`**\
-`expr` lets you write more complicated query expressions with AND, OR, NOT, and parentheses.\
-Eg: `expr:'date:lastmonth and not (food or rent)'`\
-The expression should be enclosed in quotes. See [Combining query terms](#combining-query-terms) below.
-
-### not: query
-**`not:QUERYTERM`**\
-You can prepend **`not:`** to any other query term to negate the match.\
-Eg: `not:equity`, `not:desc:apple`\
-(Also, a trick: `not:not:...` can sometimes solve query problems conveniently..)
-
 ### note: query
 **`note:REGEX`**\
 Match transaction [notes](#payee-and-note)
@@ -5390,7 +5378,15 @@ Match by tag name, and optionally also by tag value. Note:
 - Postings also inherit the tags of their account and their transaction .
 - Transactions also acquire the tags of their postings.
 
-## Combining query terms
+## Negative queries
+
+### not: query
+**`not:QUERY`**\
+You can prepend **`not:`** to a query to negate the match.\
+Eg: `not:equity`, `not:desc:apple`\
+(Also, a trick: `not:not:...` can sometimes solve query problems conveniently.)
+
+## Space-separated queries
 
 When given multiple space-separated query terms, most commands select things which match:
 
@@ -5406,32 +5402,49 @@ The [print](#print) command is a little different, showing transactions which:
 - have no postings matching any of the negative account terms AND
 - match all the other terms.
 
-We also support more complex boolean queries with the `expr:` prefix.
-This allows one to combine query terms using `and`, `or`, `not` keywords (case insensitive),
-and to group them by enclosing in parentheses.
+## Boolean queries
 
+These are more complicated query expressions made by combining smaller queries
+with AND, OR, NOT (case insensitive), and parentheses for grouping.
+The query expression must be written inside quotes, following a prefix (not as separate command line arguments).
+Also, there is a restriction: `date:` queries may not be used inside OR expressions.
+<!-- That would allow disjoint report periods or unclear semantics for our reports. -->
+
+There are three types of boolean query: `expr:`, `any:`, and `all:`.
+
+### expr: query
+**`expr:'QUERYEXPR'`**\
 Some examples:
 
-- Exclude account names containing 'food':
+`expr:'date:lastmonth AND NOT (food OR rent)'` means
+"match things which are dated in the last month and do not have food or rent in the account name".
+(AND is the default, so could be omitted here.)
 
-  `expr:"not food"`  (`not:food` is equivalent)
+`expr:'expenses:food or (expenses:drink tag:A)'` means
+"match things which reference the "expenses:food" account,
+or which reference the "expenses:drink" account and also have a tag with an A in its name".
 
-- Match things which have 'cool' in the description and the 'A' tag:
+When using `expr:` with transaction-oriented commands like `print`,
+note that posting-oriented query terms like `acct:` and `amt:` are considered to match the transaction
+if they match any of its postings.\
+So, `hledger print expr:'cash and amt:>0'`
+means "show transactions with (at least one posting involving a cash account) and (at least one posting with a positive amount)".
 
-  `expr:"desc:cool and tag:A"`  (`expr:"desc:cool tag:A"` is equivalent)
+### any: query
+**`any:'QUERYEXPR'`**\
+Like `expr:`, but when used with transaction-oriented commands like `print`,
+it matches the transaction only if a posting can be matched by all of QUERYEXPR.\
+So, `hledger print any:'cash and amt:>0'`
+means "show transactions where at least one posting posts a positive amount to a cash account".
 
-- Match things which either do not reference the 'expenses:food' account, or do have the 'A' tag:
-
-  `expr:"not expenses:food or tag:A"`
-
-- Match things which either do not reference the 'expenses:food' account,
-  or which reference the 'expenses:drink' account and also have the 'A' tag:
-
-  `expr:"expenses:food or (expenses:drink and tag:A)"`
-
-`expr:` has a restriction: `date:` queries may not be used inside `or` expressions.
-That would allow disjoint report periods or disjoint result sets, with unclear semantics for our reports.
-
+### all: query
+**`all:'QUERYEXPR'`**\
+Like `expr:`, but when used with transaction-oriented commands like `print`,
+it matches the transaction only if all postings are matched by all of QUERYEXPR.\
+So, `hledger print all:'cash and amt:0'`
+means "show transactions where all postings involve a cash account and have a zero amount".\
+Or, `hledger print all:'cash or checking'`
+means "show transactions which touch only cash and/or checking accounts".
 
 ## Queries and command options
 
