@@ -139,16 +139,7 @@ DESC should contain at least two characters.
 If there is no similar-enough match, 
 no transaction will be shown and the program exit code will be non-zero.
 
-With `--location`, print adds the file and line number to every transaction, as a tag:
-
-```cli
-$ hledger print-location -f hledger/examples/sample.journal desc:eat
-2008/06/03 * eat & shop
-  ; location: /Users/simon/src/hledger/examples/sample.journal:30
-  expenses:food                  $1
-  expenses:supplies              $1
-  assets:cash
-```
+With `--location`, print adds the source file and line number to every transaction, as a tag.
 
 ### print output format
 
