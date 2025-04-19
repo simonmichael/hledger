@@ -5410,21 +5410,15 @@ The query expression must be written inside quotes, following a prefix (not as s
 Also, there is a restriction: `date:` queries may not be used inside OR expressions.
 <!-- That would allow disjoint report periods or unclear semantics for our reports. -->
 
-There are three types of boolean query: `expr:`, `any:`, and `all:`.
+There are three types of boolean query: `expr:`, `any:`, `all:`.
 
 ### expr: query
 **`expr:'QUERYEXPR'`**\
-Some examples:
-
-`expr:'date:lastmonth AND NOT (food OR rent)'` means
+For example, `expr:'date:lastmonth AND NOT (food OR rent)'` means
 "match things which are dated in the last month and do not have food or rent in the account name".
 (AND is the default, so could be omitted here.)
 
-`expr:'expenses:food or (expenses:drink tag:A)'` means
-"match things which reference the "expenses:food" account,
-or which reference the "expenses:drink" account and also have a tag with an A in its name".
-
-When using `expr:` with transaction-oriented commands like `print`,
+With transaction-oriented commands like `print`,
 note that posting-oriented query terms like `acct:` and `amt:` are considered to match the transaction
 if they match any of its postings.\
 So, `hledger print expr:'cash and amt:>0'`
