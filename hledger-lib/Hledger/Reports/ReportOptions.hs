@@ -582,8 +582,7 @@ flat_ = not . tree_
 -- | Convert a 'Journal''s amounts to cost and/or to value (see
 -- 'journalApplyValuationFromOpts'), and filter by the 'ReportSpec' 'Query'.
 --
--- We make sure to first filter by amt: and cur: terms, then value the
--- 'Journal', then filter by the remaining terms.
+-- #2371 This no longer pre-filters by amt: and cur: before valuation; it broke boolean queries.
 journalValueAndFilterPostings :: ReportSpec -> Journal -> Journal
 journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec j priceoracle
   where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
@@ -591,18 +590,24 @@ journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec 
 -- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
 journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
 journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
-    -- Filter by the remainder of the query
-      filterJournal reportq
+    -- Filter by the full query
+    filterJournal reportq
     -- Apply valuation and costing
     . journalApplyValuationFromOptsWith rspec
-    -- Filter by amount and currency, so it matches pre-valuation/costing
-      (if queryIsNull amtsymq then j else filterJournalAmounts amtsymq j)
+    -- #2371 This no longer pre-filters by amt: and cur:, it broke boolean queries.
+    -- XXX safe/useful to pre-filter with the full query here ?
+    -- (if queryIsNull reportq then j else filterJournalAmounts reportq j)
+    -- Pre-filter by amount and currency, so it matches pre-valuation/costing
+    -- (if queryIsNull amtsymq then j else filterJournalAmounts amtsymq j)
+    j
   where
     -- with -r, replace each posting with its sibling postings
     filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
-    amtsymq = dbg3 "amtsymq" $ filterQuery queryIsAmtOrSym q
-    reportq = dbg3 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
-    queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
+    reportq = dbg3 "reportq" q
+    -- amtsymq = dbg0 "amtsymq" q
+    -- amtsymq = dbg3 "amtsymq" $ filterQuery queryIsAmtOrSym q
+    -- reportq = dbg3 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
+    -- queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
 
 -- | Convert this journal's postings' amounts to cost and/or to value, if specified
 -- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This

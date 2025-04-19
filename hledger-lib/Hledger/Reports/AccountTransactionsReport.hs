@@ -103,10 +103,12 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     -- Queries on currency or amount are also ignored at this stage; they are handled earlier, before valuation.
     reportq = simplifyQuery $ And [aregisterq, periodq]
       where
-        aregisterq = filterQuery (not . queryIsCurOrAmt) . filterQuery (not . queryIsDepth) $ _rsQuery rspec
+        -- #2371: don't remove amt:/cur: from the register query, it breaks boolean queries
+        -- aregisterq = filterQuery (not . queryIsCurOrAmt) . filterQuery (not . queryIsDepth) $ _rsQuery rspec
+        aregisterq = filterQuery (not . queryIsDepth) $ _rsQuery rspec
         periodq = Date . periodAsDateSpan $ period_ ropts
-    amtq = filterQuery queryIsCurOrAmt $ _rsQuery rspec
-    queryIsCurOrAmt q = queryIsSym q || queryIsAmt q
+    -- amtq = filterQuery queryIsCurOrAmt $ _rsQuery rspec
+    -- queryIsCurOrAmt q = queryIsSym q || queryIsAmt q
     wd = whichDate ropts
 
     -- Note that within this function, we are only allowed limited
@@ -129,8 +131,13 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec
         . traceOrLogAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
+
+        -- #2371: don't try to prefilter (before valuation) with just the amt:/cur: from the register query; it breaks with boolean queries.
+        -- Use the whole query.
+        -- . (if queryIsNull reportq then id else filterJournalAmounts reportq)
         -- apply any cur: or amt: filters in reportq
-        . (if queryIsNull amtq then id else filterJournalAmounts amtq)
+        -- . (if queryIsNull amtq then id else filterJournalAmounts amtq)
+
         -- only consider transactions which match thisacctq (possibly excluding postings
         -- which are not real or have the wrong status)
         . traceOrLogAt 3 ("thisacctq: "++show thisacctq)
