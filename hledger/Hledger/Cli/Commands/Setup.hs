@@ -50,9 +50,9 @@ import Hledger.Cli.Conf
 setupmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Setup.txt")
   []
-  cligeneralflagsgroups1
-  hiddenflags
-  ([], Just $ argsFlag "[QUERY]")
+  [generalflagsgroup3]
+  []
+  ([], Nothing)
 
 -- | Test and print the status of various aspects of the hledger installation.
 -- Also show extra info and hints on how to fix problems.
