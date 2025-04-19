@@ -5418,8 +5418,8 @@ For example, `expr:'date:lastmonth AND NOT (food OR rent)'` means
 "match things which are dated in the last month and do not have food or rent in the account name".
 (AND is the default, so could be omitted here.)
 
-With transaction-oriented commands like `print`,
-note that posting-oriented query terms like `acct:` and `amt:` are considered to match the transaction
+When using `expr:` with transaction-oriented commands like `print`,
+posting-oriented query terms like `acct:` and `amt:` are considered to match the transaction
 if they match any of its postings.\
 So, `hledger print expr:'cash and amt:>0'`
 means "show transactions with (at least one posting involving a cash account) and (at least one posting with a positive amount)".
