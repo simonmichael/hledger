@@ -38,8 +38,9 @@ entriesReport rspec@ReportSpec{_rsReportOpts=ropts} =
       sortBy (comparing $ transactionDateFn ropts)
     . map  (if invert_ ropts then transactionNegate else id)
     . jtxns
-    . journalApplyValuationFromOpts (setDefaultConversionOp NoConversionOp rspec)
+    -- #2371: filter after valuation not before - even though it's safe to do here - for consistency with postingsReport
     . filterJournalTransactions (filterQuery (not.queryIsDepth) $ _rsQuery rspec)
+    . journalApplyValuationFromOpts (setDefaultConversionOp NoConversionOp rspec)
 
 tests_EntriesReport = testGroup "EntriesReport" [
   testGroup "entriesReport" [
