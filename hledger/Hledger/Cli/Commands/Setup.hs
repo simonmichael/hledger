@@ -69,13 +69,14 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- setupCommodities
   -- setupTags
 
+
 -- | Print a test's pass or fail status, in green/red if supported, and optional messages if it's ok or not ok.
 p :: Bool -> String -> String -> IO ()
 p ok ymsg nmsg =
   putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
   where
     y = bold' $ brightGreen' "yes" -- ✅ apple emojis - won't work everywhere
-    n = bold' $ brightRed'   "no" -- ❌
+    n = bold' $ brightRed'   "no " -- ❌
 
 -- | Like p, but display both statuses as a warning message, in yellow if supported.
 w :: Bool -> String -> String -> IO ()
@@ -83,7 +84,7 @@ w ok ymsg nmsg =
   putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
   where
     y = bold' $ brightYellow' "yes" -- ⚠️
-    n = bold' $ brightYellow' "no" -- ⚠️
+    n = bold' $ brightYellow' "no " -- ⚠️
 
 -- | Like p, but display both statuses as an info message, in blue if supported.
 i :: Bool -> String -> String -> IO ()
@@ -91,14 +92,41 @@ i ok ymsg nmsg =
   putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
   where
     y = bold' $ brightBlue' "yes" -- ℹ️
-    n = bold' $ brightBlue' "no" -- ℹ️
+    n = bold' $ brightBlue' "no " -- ℹ️
+
+
 
 -- | Print a setup test group's heading.
+pgroup :: String -> IO ()
 pgroup s = putStr $ bold' $ "\n" <> s <> ":\n"
 
 -- | Print a setup test's description, formatting and padding it to a fixed width.
 pdesc :: String -> IO ()
 pdesc s = printf "- %-38s" s
+
+-- yes, no, unknown
+data YNU = Y | N | U deriving (Eq)
+
+-- Show status, in red/green/yellow if supported.
+instance Show YNU where
+  show Y = bold' (brightGreen'  "yes")    -- ✅ apple emojis - won't work everywhere
+  show N = bold' (brightRed'    "no ")    -- ❌
+  show U = bold' (brightYellow' " ? ")
+
+-- Show status, in blue/yellow if supported.
+showInfo Y = bold' (brightBlue'   "yes")  -- ℹ️
+showInfo N = bold' (brightBlue'   "no ")  -- ℹ️
+showInfo U = bold' (brightYellow' " ? ")
+
+-- | Print a test's pass or fail status, as "yes" or "no" or "",
+-- in green/red if supported, and the (possibly empty) provided message.
+p' :: YNU -> String -> IO ()
+p' ok msg = putStrLn $ unwords ["", show ok, "", msg]
+
+-- | Like p, but display the status as info, in neutral blue.
+i' :: YNU -> String -> IO ()
+i' ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
+
 
 setupHledger :: IO ()
 setupHledger = do
@@ -164,19 +192,19 @@ setupHledger = do
       elatestver <- getLatestHledgerVersion
       let
         (ok,msg) = case elatestver of
-          Left e -> (False, "could not check latest version: " <> e)
+          Left e -> (U, "could not get " <> latestHledgerVersionUrlStr <> " : " <> e)
           Right latestver ->
             case drop 1 verparts of
-              []  -> (False, "could not parse --version output")
+              []  -> (U, "could not parse --version output")
               w:_ -> (ok, msg)
                 where
                   exever = takeWhile (`elem` ("0123456789."::String)) w
-                  ok = splitAtElement '.' exever >= splitAtElement '.' latestver
+                  ok = if splitAtElement '.' exever >= splitAtElement '.' latestver then Y else N
                   msg =
                     if exever == latestver 
                     then exever 
                     else exever <> " installed, latest release is " <> latestver
-      w ok msg msg
+      p' ok msg
 
   -- pdesc "eget installed ?"
 
@@ -218,7 +246,7 @@ setupConfig = do
   -- print --explicit --show-costs"
 
 setupFiles = do
-  pgroup "files"
+  pgroup "file"
 
   pdesc "a home directory journal exists ?"
   mh <- getHomeSafe
@@ -296,27 +324,30 @@ setupTags = do
   -- pdesc "\n"
   -- pdesc "\n"
 
+latestHledgerVersionUrl = https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: ""
+latestHledgerVersionUrlStr = "https://hackage.haskell.org/package/hledger/docs"
+
 -- | Get the current hledger release version from the internet.
 -- Currently requests the latest doc page from Hackage and inspects the redirect path.
 -- Should catch all normal errors, and times out after 10 seconds.
 getLatestHledgerVersion :: IO (Either String String)
 getLatestHledgerVersion = do
   result <- try $ runReq defaultHttpConfig{httpConfigRedirectCount=0} $
-    req HEAD (https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: "") NoReqBody bsResponse (R.responseTimeout 10000000)  -- 10s
+    req HEAD latestHledgerVersionUrl NoReqBody bsResponse (R.responseTimeout 10000000) -- 10s
   case result of
-    Right _ -> return $ Left "no redirect"
+    Right _ -> return $ Left "expected a redirect"
     Left (VanillaHttpException (HttpExceptionRequest _ (StatusCodeException rsp _))) -> do
       let status = statusCode $ responseStatus rsp
       if status >= 300 && status < 400
         then do
           let locationHeader = lookup hLocation (responseHeaders rsp)
           case fmap T.decodeUtf8 locationHeader of
-            Nothing       -> return $ Left "redirect response with no Location header"
+            Nothing       -> return $ Left "no Location header"
             Just location -> do
               let packagename = take 1 $ drop 1 $ reverse $ T.splitOn "/" location
               case packagename of
                 [n] -> return $ Right $ dropWhile (`notElem` ['0'..'9']) $ T.unpack n
-                _   -> return $ Left "failed to parse version from Location header"
-        else return $ Left $ "expected redirect, got HTTP status " ++ show status
+                _   -> return $ Left "could not parse Location"
+        else return $ Left $ "HTTP status " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
