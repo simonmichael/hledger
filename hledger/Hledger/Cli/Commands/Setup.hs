@@ -63,7 +63,7 @@ setup :: CliOpts -> Journal -> IO ()
 setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
-  putStrLn "checking..."
+  putStrLn "Checking your hledger setup.."
   setupHledger
   setupConfig
   setupFiles
@@ -78,7 +78,7 @@ pgroup s = putStr $ bold' $ "\n" <> s <> ":\n"
 
 -- | Print a setup test's description, formatting and padding it to a fixed width.
 pdesc :: String -> IO ()
-pdesc s = printf "- %-38s" s
+pdesc s = printf "* %-38s" s
 
 -- yes, no, unknown
 data YNU = Y | N | U deriving (Eq)
@@ -181,7 +181,7 @@ setupHledger = do
                   msg =
                     if exever == latestver 
                     then exever 
-                    else exever <> " installed, latest release is " <> latestver
+                    else exever <> " installed, latest is " <> latestver
       p ok msg
 
   -- pdesc "eget installed ?"
@@ -189,7 +189,7 @@ setupHledger = do
 setupConfig = do
   pgroup "config"
 
-  pdesc "user has a config file ?"
+  pdesc "a user config file exists ? (optional)"
   muf <- activeUserConfFile
   let
     (ok, msg) = case muf of
@@ -226,7 +226,7 @@ setupConfig = do
 setupFiles = do
   pgroup "file"
 
-  pdesc "a home directory journal exists ?"
+  pdesc "a home directory journal file exists ?"
   mh <- getHomeSafe
   (ok,msg) <- case mh of
     Just h -> do
@@ -253,7 +253,7 @@ setupFiles = do
 
   -- when (isJust mh && isJust mf) $ do
   --   pdesc "$LEDGER_FILE is masking home journal ?"
-  --   i True "" ""
+  --   i Y ""
 
   pdesc "default journal file exists ?"
   jfile <- defaultJournalPath
