@@ -46,6 +46,7 @@ import Text.Printf (printf)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
+import System.Environment (lookupEnv)
 
 setupmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Setup.txt")
@@ -61,8 +62,8 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
   putStrLn "checking setup..."
-  -- setupHledger
-  -- setupConfig
+  setupHledger
+  setupConfig
   setupFiles
   -- setupAccounts
   -- setupCommodities
@@ -217,10 +218,57 @@ setupConfig = do
 setupFiles = do
   pgroup "files"
 
+  pdesc "a home directory journal exists ?"
+  mh <- getHomeSafe
+  (ok,msg) <- case mh of
+    Just h -> do
+      let f = h </> journalDefaultFilename
+      e <- doesFileExist f
+      return (e, if e then f else "")
+    Nothing -> return (False, "")
+  i ok msg msg
+
+  pdesc "LEDGER_FILE variable is defined ?"
+  mf <- lookupEnv journalEnvVar
+  let
+    (ok,msg) = case mf of
+      Just f  -> (True, f)
+      Nothing -> (False, "")
+  i ok msg msg
+
+  -- case mf of
+  --   Nothing -> return ()
+  --   Just f -> do
+  --     pdesc "$LEDGER_FILE journal exists ?"
+  --     e <- doesFileExist f
+  --     i e "" ""
+
+  -- when (isJust mh && isJust mf) $ do
+  --   pdesc "$LEDGER_FILE is masking home journal ?"
+  --   i True "" ""
+
   pdesc "default journal file exists ?"
+  jfile <- defaultJournalPath
+  exists <- doesFileExist jfile
+  p exists jfile ""
 
-  -- pdesc "default journal file readable ?"
+  when exists $ do
+    
+    when (os == "mingw32") $ do
+      pdesc "default journal file path is safe for Windows ?"
+      let
+        (ok,msg) =
+          -- like ensureJournalFileExists:
+          if isWindowsUnsafeDotPath jfile
+          then (False, "the file name ends with a dot, this is unsafe on Windows")
+          else (True, "")
+      p ok msg msg
 
+    pdesc "default journal file is readable ?"
+    ej <- runExceptT $ readJournalFile definputopts jfile  -- like defaultJournal
+    case ej of
+      Right _ -> p True "" ""
+      Left e -> p False "" e
 
 setupAccounts = do
   pgroup "accounts"
@@ -267,30 +315,3 @@ getLatestHledgerVersion = do
         else return $ Left $ "non-redirect status code: " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
--- {- | Ensure there is a journal file at the given path, creating an empty one if needed.
--- On Windows, also ensure that the path contains no trailing dots
--- which could cause data loss (see 'isWindowsUnsafeDotPath').
--- -}
--- _ensureJournalFileExists :: FilePath -> IO ()
--- _ensureJournalFileExists f = do
---   when (os == "mingw32" && isWindowsUnsafeDotPath f) $
---     error' $
---       "Part of file path \"" <> show f <> "\"\n ends with a dot, which is unsafe on Windows; please use a different path.\n"
---   exists <- doesFileExist f
---   unless exists $ do
---     hPutStrLn stderr $ "Creating hledger journal file " <> show f
---     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
---     -- we currently require unix line endings on all platforms.
---     newJournalContent >>= T.writeFile f
-
--- {- | Does any part of this path contain non-. characters and end with a . ?
--- Such paths are not safe to use on Windows (cf #1056).
--- -}
--- isWindowsUnsafeDotPath :: FilePath -> Bool
--- isWindowsUnsafeDotPath = any (\x -> last x == '.' && any (/= '.') x) . splitDirectories
-
--- -- | Give the content for a new auto-created journal file.
--- newJournalContent :: IO Text
--- newJournalContent = do
---   d <- getCurrentDay
---   return $ "; journal created " <> T.pack (show d) <> " by hledger\n"
