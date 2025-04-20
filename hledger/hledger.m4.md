@@ -129,7 +129,7 @@ Usually the data file is in hledger's journal format, but it can be in any of th
 | [`journal`](#journal)     | hledger journal files and some Ledger journals, for transactions | `.journal` `.j` `.hledger` `.ledger`          |
 | [`timeclock`](#timeclock) | timeclock files, for precise time logging                        | `.timeclock`                                  |
 | [`timedot`](#timedot)     | timedot files, for approximate time logging                      | `.timedot`                                    |
-| [`csv`](#csv)             | Comma or other character separated values, for data import       | `.csv`                                        |
+| [`csv`](#csv)             | Comma- or other delimiter-separated values, for data import      | `.csv`                                        |
 | [`ssv`](#csv)             | Semicolon separated values                                       | `.ssv`                                        |
 | [`tsv`](#csv)             | Tab separated values                                             | `.tsv`                                        |
 | [`rules`](#csv)           | CSV/SSV/TSV/other separated values, alternate way                | `.rules`                                      |
@@ -3159,17 +3159,16 @@ Currently, hledger
 
 # CSV
 
-hledger can read [CSV](http://en.wikipedia.org/wiki/Comma-separated_values) files
-(Character Separated Value - usually comma, semicolon, or tab) containing dated records,
-automatically converting each record into a transaction.
+hledger can read transactions from CSV (comma-separated values) files.
+More precisely, it can read [DSV](https://en.wikipedia.org/wiki/Delimiter-separated_values) (delimiter-separated values),
+from a file or standard input.
+Comma-separated, semicolon-separated and tab-separated are the most common variants,
+and hledger will recognise these three automatically based on a `.csv`, `.ssv` or `.tsv`
+file name extension or a `csv:`, `ssv:` or `tsv:` file path prefix.
 
-(To learn about *writing* CSV, see [CSV output](#csv-output).)
+(To learn about producing CSV or TSV *output*, see [CSV output](#csv-output).)
 
-For best error messages when reading CSV/TSV/SSV files,
-make sure they have a corresponding `.csv`, `.tsv` or `.ssv` file extension
-or use a hledger file prefix (see [File Extension](#file-extension) below).
-
-Each CSV file must be described by a corresponding *rules file*.  
+Each CSV file must be described by a corresponding *rules file*.
 This contains rules describing the CSV data (header line, fields
 layout, date format etc.), how to construct hledger transactions from
 it, and how to categorise transactions based on description or other
