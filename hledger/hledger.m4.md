@@ -3166,7 +3166,7 @@ Comma-separated, semicolon-separated and tab-separated are the most common varia
 and hledger will recognise these three automatically based on a `.csv`, `.ssv` or `.tsv`
 file name extension or a `csv:`, `ssv:` or `tsv:` file path prefix.
 
-(To learn about producing CSV or TSV *output*, see [CSV output](#csv-output).)
+(To learn about producing CSV or TSV *output*, see [Output format](#output-format).)
 
 Each CSV file must be described by a corresponding *rules file*.
 This contains rules describing the CSV data (header line, fields
