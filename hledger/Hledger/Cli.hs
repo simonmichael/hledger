@@ -271,7 +271,9 @@ main = exitOnExceptions $ withGhcDebug' $ do
   -- Read extra general and command-specific args/opts from the config file, if any.
   (conf, mconffile) <-
     seq cliconfrawopts $  -- order debug output
-    getConf cliconfrawopts
+    if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
+      then return (nullconf,Nothing)
+      else getConf cliconfrawopts
 
   ---------------------------------------------------------------
   dbgIO "\n3. Identify a command name from config file or command line" ()
@@ -421,7 +423,7 @@ main = exitOnExceptions $ withGhcDebug' $ do
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
 
         -- 6.5.2. builtin command which should not require or read the journal - run it
-        | cmdname `elem` ["commands","demo","help","test"] ->
+        | cmdname `elem` ["commands","demo","help","setup","test"] ->
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.5.3. builtin command which should create the journal if missing - do that and run it

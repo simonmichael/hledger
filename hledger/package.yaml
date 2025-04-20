@@ -85,6 +85,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Repl.txt
 - Hledger/Cli/Commands/Roi.txt
 - Hledger/Cli/Commands/Run.txt
+- Hledger/Cli/Commands/Setup.txt
 - Hledger/Cli/Commands/Stats.txt
 - Hledger/Cli/Commands/Tags.txt
 - Hledger/Cli/Commands/Test.txt
@@ -196,6 +197,7 @@ library:
   - Hledger.Cli.Commands.Rewrite
   - Hledger.Cli.Commands.Roi
   - Hledger.Cli.Commands.Run
+  - Hledger.Cli.Commands.Setup
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand

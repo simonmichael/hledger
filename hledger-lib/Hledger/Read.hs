@@ -92,6 +92,9 @@ module Hledger.Read (
   defaultJournalPath,
   requireJournalFileExists,
   ensureJournalFileExists,
+  journalEnvVar,
+  -- journalEnvVar2,
+  journalDefaultFilename,
 
   -- * Journal parsing
   runExceptT,
@@ -110,6 +113,7 @@ module Hledger.Read (
   -- * Misc
   saveLatestDates,
   saveLatestDatesForFiles,
+  isWindowsUnsafeDotPath,
 
   -- * Re-exported
   JournalReader.tmpostingrulep,
@@ -141,7 +145,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import Data.Time (Day)
 import Safe (headDef, headMay)
-import System.Directory (doesFileExist, getHomeDirectory)
+import System.Directory (doesFileExist)
 import System.Environment (getEnv)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
 import System.Info (os)
@@ -196,7 +200,7 @@ defaultJournalPath = do
          `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
                                             `C.catch` (\(_::C.IOException) -> return ""))
       defpath = do
-        home <- getHomeDirectory `C.catch` (\(_::C.IOException) -> return "")
+        home <- fromMaybe "" <$> getHomeSafe
         return $ home </> journalDefaultFilename
 
 -- | A file path optionally prefixed by a reader name and colon

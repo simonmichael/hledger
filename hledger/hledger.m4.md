@@ -615,6 +615,8 @@ This is useful when using hledger in scripts, or when troubleshooting.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
 
 To inspect the processing of config files, use `--debug` or `--debug=8`.
+Or, run the `setup` command, which will display any active config files.
+(Apart from this, `setup` is not affected by config files, unlike other commands.)
 
 **Warning!**
 
@@ -702,6 +704,7 @@ Here are those commands and the formats currently supported:
 | prices                |     |     |      |      |     |
 | rewrite               |     |     |      |      |     |
 | roi                   |     |     |      |      |     |
+| setup                 |     |     |      |      |     |
 | stats                 |     |     |      |      |     |
 | stockquotes           |     |     |      |      |     |
 | tags                  |     |     |      |      |     |
@@ -6513,6 +6516,7 @@ If you have installed more [add-on commands](../scripts.md), they also will be l
 
 - [check](#check)                                  - check for various kinds of error in the data
 - [diff](#diff)                                    - compare account transactions in two journal files
+- [setup](#setup)                                  - check and show the status of the hledger installation
 - [test](#test)                                    - run self tests
 
 

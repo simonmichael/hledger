@@ -70,6 +70,7 @@ _command_({{Rewrite}})
 
 _command_({{Check}})
 _command_({{Diff}})
+_command_({{Setup}})
 _command_({{Test}})
 
 }})m4_dnl
