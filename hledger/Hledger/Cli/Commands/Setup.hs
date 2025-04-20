@@ -61,42 +61,16 @@ setup :: CliOpts -> Journal -> IO ()
 setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
-  putStrLn "checking setup..."
+  putStrLn "checking..."
   setupHledger
   setupConfig
   setupFiles
   -- setupAccounts
   -- setupCommodities
   -- setupTags
+  putStr "\n"
 
-
--- | Print a test's pass or fail status, in green/red if supported, and optional messages if it's ok or not ok.
-p :: Bool -> String -> String -> IO ()
-p ok ymsg nmsg =
-  putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
-  where
-    y = bold' $ brightGreen' "yes" -- ✅ apple emojis - won't work everywhere
-    n = bold' $ brightRed'   "no " -- ❌
-
--- | Like p, but display both statuses as a warning message, in yellow if supported.
-w :: Bool -> String -> String -> IO ()
-w ok ymsg nmsg =
-  putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
-  where
-    y = bold' $ brightYellow' "yes" -- ⚠️
-    n = bold' $ brightYellow' "no " -- ⚠️
-
--- | Like p, but display both statuses as an info message, in blue if supported.
-i :: Bool -> String -> String -> IO ()
-i ok ymsg nmsg =
-  putStrLn $ unwords $ if ok then ["", y, "", ymsg] else ["", n, "", nmsg]
-  where
-    y = bold' $ brightBlue' "yes" -- ℹ️
-    n = bold' $ brightBlue' "no " -- ℹ️
-
-
-
--- | Print a setup test group's heading.
+-- | Print a setup test groups heading.
 pgroup :: String -> IO ()
 pgroup s = putStr $ bold' $ "\n" <> s <> ":\n"
 
@@ -120,12 +94,12 @@ showInfo U = bold' (brightYellow' " ? ")
 
 -- | Print a test's pass or fail status, as "yes" or "no" or "",
 -- in green/red if supported, and the (possibly empty) provided message.
-p' :: YNU -> String -> IO ()
-p' ok msg = putStrLn $ unwords ["", show ok, "", msg]
+p :: YNU -> String -> IO ()
+p ok msg = putStrLn $ unwords ["", show ok, "", msg]
 
 -- | Like p, but display the status as info, in neutral blue.
-i' :: YNU -> String -> IO ()
-i' ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
+i :: YNU -> String -> IO ()
+i ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
 
 
 setupHledger :: IO ()
@@ -147,33 +121,34 @@ setupHledger = do
     ++ [appdata </> "local/bin" | os == "mingw32"]
     ++ [appdata </> "cabal/bin" | os == "mingw32"]
   let
-    ok = not $ null pathexes
+    ok = if null pathexes then N else Y
     pathexe  = quoteIfNeeded $ headDef (error' "showing nonexistent executable") pathexes
     otherexe = quoteIfNeeded $ headDef (error' "showing nonexistent executable") otherexes
     otherdir = takeDirectory otherexe
-    hint = if null otherexes
-      then ("Add " <> progname <> "'s directory to your shell's PATH.")
-      else unlines
-        ["Add " <> otherdir <> " to PATH in your shell config."
-        ,"  Eg on unix: echo 'export PATH=" <> otherdir <> ":$PATH' >> ~/.profile"
-        ,"  and start a new shell session."
-        ]
-  p ok pathexe hint
+    msg
+      | ok == Y = pathexe
+      | null otherexes = "Add " <> progname <> "'s directory to your shell's PATH."
+      | otherwise = unlines
+          ["Add " <> otherdir <> " to PATH in your shell config."
+          ,"  Eg on unix: echo 'export PATH=" <> otherdir <> ":$PATH' >> ~/.profile"
+          ,"  and start a new shell session."
+          ]
+  p ok msg
 
   -- If hledger was found in PATH, run more checks
-  when ok $ do
+  when (ok==Y) $ do
 
     pdesc "runs ?"
     let arg = "--version"
     (exit,out,err) <- readProcessWithExitCode progname [arg] ""
     let
-      ok = exit == ExitSuccess
-      hint = "'" <> progname <> " " <> arg <> "' failed: \n" <> err
-    p ok "" hint
+      ok = if exit == ExitSuccess then Y else N
+      msg = if ok==Y then "" else "'" <> progname <> " " <> arg <> "' failed: \n" <> err
+    p ok msg
     let verparts = words out  -- use below
 
     -- If hledger runs, run more checks
-    when ok $ do
+    when (ok==Y) $ do
       pdesc "is a native binary ?"
       let
         exearch = case drop 2 verparts of
@@ -184,14 +159,15 @@ setupHledger = do
           | os == "mingw32" = "windows"
           | otherwise       = os
         sysarch = os' <> "-" <> arch
-        ok = exearch == sysarch
-        hint = "installed binary is for " <> exearch <> ", system is " <> sysarch
-      p ok "" hint
+        (ok, msg)
+          | exearch == sysarch = (Y, "")
+          | otherwise = (N, "installed binary is for " <> exearch <> ", system is " <> sysarch)
+      p ok msg
 
       pdesc "is up to date ?"
       elatestver <- getLatestHledgerVersion
       let
-        (ok,msg) = case elatestver of
+        (ok, msg) = case elatestver of
           Left e -> (U, "could not get " <> latestHledgerVersionUrlStr <> " : " <> e)
           Right latestver ->
             case drop 1 verparts of
@@ -204,7 +180,7 @@ setupHledger = do
                     if exever == latestver 
                     then exever 
                     else exever <> " installed, latest release is " <> latestver
-      p' ok msg
+      p ok msg
 
   -- pdesc "eget installed ?"
 
@@ -215,21 +191,21 @@ setupConfig = do
   muf <- activeUserConfFile
   let
     (ok, msg) = case muf of
-      Just f  -> (True, f)
-      Nothing -> (False, "")
-  i ok msg msg
+      Just f  -> (Y, f)
+      Nothing -> (N, "")
+  i ok msg
 
   pdesc "a local config file exists ?"
   mlf <- activeLocalConfFile
   let
     (ok, msg) = case mlf of
-      Just f  -> (True, f) -- <> if isJust muf then " (masking user config)" else "")
-      Nothing -> (False, "")
-  i ok msg msg
+      Just f  -> (Y, f) -- <> if isJust muf then " (masking user config)" else "")
+      Nothing -> (N, "")
+  i ok msg
 
   when (isJust muf && isJust mlf) $ do
     pdesc "local config is masking user config ?"
-    i True "" ""
+    i Y ""
 
   let mf = mlf <|> muf
   case mf of
@@ -238,8 +214,8 @@ setupConfig = do
       pdesc "config file is readable ?"
       ecs <- readFile f <&> parseConf f . T.pack
       case ecs of
-        Right _ -> p True "" ""
-        Left e  -> p False "" (errorBundlePretty e)
+        Right _ -> p Y ""
+        Left e  -> p N (errorBundlePretty e)
 
   -- pdesc "common general options configured ?"
   -- --pretty --ignore-assertions --infer-costs"
@@ -254,17 +230,17 @@ setupFiles = do
     Just h -> do
       let f = h </> journalDefaultFilename
       e <- doesFileExist f
-      return (e, if e then f else "")
-    Nothing -> return (False, "")
-  i ok msg msg
+      return (if e then Y else N, if e then f else "")
+    Nothing -> return (N, "")
+  i ok msg
 
   pdesc "LEDGER_FILE variable is defined ?"
   mf <- lookupEnv journalEnvVar
   let
-    (ok,msg) = case mf of
-      Just f  -> (True, f)
-      Nothing -> (False, "")
-  i ok msg msg
+    (ok, msg) = case mf of
+      Just f  -> (Y, f)
+      Nothing -> (N, "")
+  i ok msg
 
   -- case mf of
   --   Nothing -> return ()
@@ -280,25 +256,26 @@ setupFiles = do
   pdesc "default journal file exists ?"
   jfile <- defaultJournalPath
   exists <- doesFileExist jfile
-  p exists jfile ""
+  let (ok, msg) = (if exists then Y else N, if exists then jfile else "")
+  p ok msg
 
   when exists $ do
     
     when (os == "mingw32") $ do
       pdesc "default journal file path is safe for Windows ?"
       let
-        (ok,msg) =
+        (ok, msg) =
           -- like ensureJournalFileExists:
           if isWindowsUnsafeDotPath jfile
-          then (False, "the file name ends with a dot, this is unsafe on Windows")
-          else (True, "")
-      p ok msg msg
+          then (N, "the file name ends with a dot, this is unsafe on Windows")
+          else (Y, "")
+      p ok msg
 
     pdesc "default journal file is readable ?"
     ej <- runExceptT $ readJournalFile definputopts jfile  -- like defaultJournal
     case ej of
-      Right _ -> p True "" ""
-      Left e -> p False "" e
+      Right _ -> p Y ""
+      Left  e -> p N e
 
 setupAccounts = do
   pgroup "accounts"
