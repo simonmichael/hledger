@@ -47,6 +47,8 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import System.Environment (lookupEnv)
+import Data.Char
+import Data.List
 
 setupmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Setup.txt")
@@ -168,7 +170,7 @@ setupHledger = do
       elatestver <- getLatestHledgerVersion
       let
         (ok, msg) = case elatestver of
-          Left e -> (U, "could not get " <> latestHledgerVersionUrlStr <> " : " <> e)
+          Left e -> (U, "could not read " <> latestHledgerVersionUrlStr <> " : " <> e)
           Right latestver ->
             case drop 1 verparts of
               []  -> (U, "could not parse --version output")
@@ -301,16 +303,20 @@ setupTags = do
   -- pdesc "\n"
   -- pdesc "\n"
 
-latestHledgerVersionUrl = https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: ""
-latestHledgerVersionUrlStr = "https://hackage.haskell.org/package/hledger/docs"
+(getLatestHledgerVersion, latestHledgerVersionUrlStr) =
+  -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")
+  (getLatestHledgerVersionFromHledgerOrg, "https://hledger.org/install.html")
+
+httptimeout = 10000000  -- 10s
 
 -- | Get the current hledger release version from the internet.
 -- Currently requests the latest doc page from Hackage and inspects the redirect path.
--- Should catch all normal errors, and times out after 10 seconds.
-getLatestHledgerVersion :: IO (Either String String)
-getLatestHledgerVersion = do
+-- Should catch all normal errors, and time out after 10 seconds.
+getLatestHledgerVersionFromHackage :: IO (Either String String)
+getLatestHledgerVersionFromHackage = do
+  let url = https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: ""
   result <- try $ runReq defaultHttpConfig{httpConfigRedirectCount=0} $
-    req HEAD latestHledgerVersionUrl NoReqBody bsResponse (R.responseTimeout 10000000) -- 10s
+    req HEAD url NoReqBody bsResponse (R.responseTimeout httptimeout)
   case result of
     Right _ -> return $ Left "expected a redirect"
     Left (VanillaHttpException (HttpExceptionRequest _ (StatusCodeException rsp _))) -> do
@@ -328,3 +334,19 @@ getLatestHledgerVersion = do
         else return $ Left $ "HTTP status " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
+-- | Like the above, but get the version from the first number on the hledger.org Install page.
+getLatestHledgerVersionFromHledgerOrg :: IO (Either String String)
+getLatestHledgerVersionFromHledgerOrg = do
+  let url = https "hledger.org" /: "install.html"
+  result <- try $ runReq defaultHttpConfig $
+    req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
+  case result of
+    Left (e :: R.HttpException) -> return $ Left $ show e
+    Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
+      Left e  -> return $ Left $ show e
+      Right t -> return $
+        if null version then Left "could not parse version" else Right version
+        where
+          -- keep synced
+          versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
+          version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
