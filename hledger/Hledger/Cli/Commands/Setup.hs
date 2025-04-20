@@ -147,13 +147,16 @@ setupHledger = do
       ok = if exit == ExitSuccess then Y else N
       msg = if ok==Y then "" else "'" <> progname <> " " <> arg <> "' failed: \n" <> err
     p ok msg
-    let verparts = words out  -- use below
+    -- save output, used below
+    let
+      versionstr = rstrip out
+      versionstrparts = words versionstr
 
     -- If hledger runs, run more checks
     when (ok==Y) $ do
       pdesc "is a native binary ?"
       let
-        exearch = case drop 2 verparts of
+        exearch = case drop 2 versionstrparts of
           w:_ -> w
           _   -> error' "couldn't parse arch from --version output"
         os'  -- keep synced: Version.hs
@@ -162,7 +165,7 @@ setupHledger = do
           | otherwise       = os
         sysarch = os' <> "-" <> arch
         (ok, msg)
-          | exearch == sysarch = (Y, "")
+          | exearch == sysarch = (Y, versionstr)
           | otherwise = (N, "installed binary is for " <> exearch <> ", system is " <> sysarch)
       p ok msg
 
@@ -172,7 +175,7 @@ setupHledger = do
         (ok, msg) = case elatestver of
           Left e -> (U, "could not read " <> latestHledgerVersionUrlStr <> " : " <> e)
           Right latestver ->
-            case drop 1 verparts of
+            case drop 1 versionstrparts of
               []  -> (U, "could not parse --version output")
               w:_ -> (ok, msg)
                 where
