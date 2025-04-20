@@ -32,7 +32,7 @@ import qualified Data.Text.Encoding as T
 -- import qualified Data.Text.IO as T
 import Network.HTTP.Client
 import Network.HTTP.Types (statusCode, hLocation)
-import Network.HTTP.Req
+import Network.HTTP.Req as R
 import Safe
 import System.Directory
 import System.Exit
@@ -163,18 +163,20 @@ setupHledger = do
       pdesc "is up to date ?"
       elatestver <- getLatestHledgerVersion
       let
-        latestver = case elatestver of
-          Left e -> error' $ "failed to detect latest hledger version: " <> e
-          Right v -> v
-        exedetailedver = case drop 1 verparts of
-          w:_ -> w
-          _   -> error' "couldn't parse detailed version from --version output"
-        exever = takeWhile (`elem` ("0123456789."::String)) exedetailedver
-        ok = splitAtElement '.' exever >= splitAtElement '.' latestver
-        msg
-          | exever == latestver = exever
-          | otherwise = exever <> " installed, latest release is " <> latestver
-      p ok msg msg
+        (ok,msg) = case elatestver of
+          Left e -> (False, "could not check latest version: " <> e)
+          Right latestver ->
+            case drop 1 verparts of
+              []  -> (False, "could not parse --version output")
+              w:_ -> (ok, msg)
+                where
+                  exever = takeWhile (`elem` ("0123456789."::String)) w
+                  ok = splitAtElement '.' exever >= splitAtElement '.' latestver
+                  msg =
+                    if exever == latestver 
+                    then exever 
+                    else exever <> " installed, latest release is " <> latestver
+      w ok msg msg
 
   -- pdesc "eget installed ?"
 
@@ -294,10 +296,13 @@ setupTags = do
   -- pdesc "\n"
   -- pdesc "\n"
 
+-- | Get the current hledger release version from the internet.
+-- Currently requests the latest doc page from Hackage and inspects the redirect path.
+-- Should catch all normal errors, and times out after 10 seconds.
 getLatestHledgerVersion :: IO (Either String String)
 getLatestHledgerVersion = do
   result <- try $ runReq defaultHttpConfig{httpConfigRedirectCount=0} $
-    req HEAD (https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: "") NoReqBody bsResponse mempty
+    req HEAD (https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: "") NoReqBody bsResponse (R.responseTimeout 10000000)  -- 10s
   case result of
     Right _ -> return $ Left "no redirect"
     Left (VanillaHttpException (HttpExceptionRequest _ (StatusCodeException rsp _))) -> do
@@ -312,6 +317,6 @@ getLatestHledgerVersion = do
               case packagename of
                 [n] -> return $ Right $ dropWhile (`notElem` ['0'..'9']) $ T.unpack n
                 _   -> return $ Left "failed to parse version from Location header"
-        else return $ Left $ "non-redirect status code: " ++ show status
+        else return $ Left $ "expected redirect, got HTTP status " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
