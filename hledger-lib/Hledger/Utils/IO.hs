@@ -33,6 +33,7 @@ module Hledger.Utils.IO (
   getCurrentZonedTime,
 
   -- * Files
+  getHomeSafe,
   embedFileRelative,
   expandHomePath,
   expandPath,
@@ -293,6 +294,10 @@ getCurrentZonedTime = do
 
 
 -- Files
+
+-- | Like getHomeDirectory, but in case of IO error (home directory not found, not understood, etc.), returns "".
+getHomeSafe :: IO (Maybe FilePath)
+getHomeSafe = fmap Just getHomeDirectory `catch` (\(_ :: IOException) -> return Nothing)
 
 -- | Expand a tilde (representing home directory) at the start of a file path.
 -- ~username is not supported. Can raise an error.
