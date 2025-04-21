@@ -66,43 +66,13 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   putStrLn "Checking your hledger setup.."
   setupHledger
   setupConfig
-  setupFiles
+  setupFile
   -- setupAccounts
   -- setupCommodities
   -- setupTags
   putStr "\n"
 
--- | Print a setup test groups heading.
-pgroup :: String -> IO ()
-pgroup s = putStr $ bold' $ "\n" <> s <> ":\n"
-
--- | Print a setup test's description, formatting and padding it to a fixed width.
-pdesc :: String -> IO ()
-pdesc s = printf "* %-38s" s
-
--- yes, no, unknown
-data YNU = Y | N | U deriving (Eq)
-
--- Show status, in red/green/yellow if supported.
-instance Show YNU where
-  show Y = bold' (brightGreen'  "yes")    -- ✅ apple emojis - won't work everywhere
-  show N = bold' (brightRed'    "no ")    -- ❌
-  show U = bold' (brightYellow' " ? ")
-
--- Show status, in blue/yellow if supported.
-showInfo Y = bold' (brightBlue'   "yes")  -- ℹ️
-showInfo N = bold' (brightBlue'   "no ")  -- ℹ️
-showInfo U = bold' (brightYellow' " ? ")
-
--- | Print a test's pass or fail status, as "yes" or "no" or "",
--- in green/red if supported, and the (possibly empty) provided message.
-p :: YNU -> String -> IO ()
-p ok msg = putStrLn $ unwords ["", show ok, "", msg]
-
--- | Like p, but display the status as info, in neutral blue.
-i :: YNU -> String -> IO ()
-i ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
-
+------------------------------------------------------------------------------
 
 setupHledger :: IO ()
 setupHledger = do
@@ -189,6 +159,8 @@ setupHledger = do
 
   -- pdesc "eget installed ?"
 
+------------------------------------------------------------------------------
+
 setupConfig = do
   pgroup "config"
 
@@ -226,7 +198,9 @@ setupConfig = do
   -- --pretty --ignore-assertions --infer-costs"
   -- print --explicit --show-costs"
 
-setupFiles = do
+------------------------------------------------------------------------------
+
+setupFile = do
   pgroup "file"
 
   pdesc "a home directory journal file exists ?"
@@ -282,17 +256,20 @@ setupFiles = do
       Right _ -> p Y ""
       Left  e -> p N e
 
+------------------------------------------------------------------------------
+
 setupAccounts = do
   pgroup "accounts"
-  -- pdesc "all account types declared or detected ?"
-  -- pdesc "\n"
+
+  pdesc "all account types declared or detected ?"
+
   -- pdesc "  asset, liability, equity, revenue, expense, cash, conversion"
-  -- pdesc "\n"
+
   -- pdesc "untyped accounts ?"
-  -- pdesc "\n"
+
   -- pdesc "all used accounts declared ?"
-  -- pdesc "\n"
-  -- pdesc "\n"
+
+------------------------------------------------------------------------------
 
 setupCommodities = do
   pgroup "commodities"
@@ -300,11 +277,46 @@ setupCommodities = do
   -- pdesc "\n"
   -- pdesc "\n"
 
+------------------------------------------------------------------------------
+
 setupTags = do
   pgroup "tags"
   -- pdesc "all used tags declared ?"
   -- pdesc "\n"
   -- pdesc "\n"
+
+------------------------------------------------------------------------------
+
+-- yes, no, unknown
+data YNU = Y | N | U deriving (Eq)
+
+-- Show status, in red/green/yellow if supported.
+instance Show YNU where
+  show Y = bold' (brightGreen'  "yes")    -- ✅ apple emojis - won't work everywhere
+  show N = bold' (brightRed'    "no ")    -- ❌
+  show U = bold' (brightYellow' " ? ")
+
+-- Show status, in blue/yellow if supported.
+showInfo Y = bold' (brightBlue'   "yes")  -- ℹ️
+showInfo N = bold' (brightBlue'   "no ")  -- ℹ️
+showInfo U = bold' (brightYellow' " ? ")
+
+-- | Print a test's pass or fail status, as "yes" or "no" or "",
+-- in green/red if supported, and the (possibly empty) provided message.
+p :: YNU -> String -> IO ()
+p ok msg = putStrLn $ unwords ["", show ok, "", msg]
+
+-- | Like p, but display the status as info, in neutral blue.
+i :: YNU -> String -> IO ()
+i ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
+
+-- | Print a setup test groups heading.
+pgroup :: String -> IO ()
+pgroup s = putStrLn $ "\n" <> bold' s
+
+-- | Print a setup test's description, formatting and padding it to a fixed width.
+pdesc :: String -> IO ()
+pdesc s = printf "* %-38s" s
 
 (getLatestHledgerVersion, latestHledgerVersionUrlStr) =
   -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")
