@@ -5406,19 +5406,37 @@ The [print](#print) command is a little different, showing transactions which:
 
 ## Boolean queries
 
-These are more complicated query expressions made by combining smaller queries
-with AND, OR, NOT (case insensitive), and parentheses for grouping.
-The query expression must be written inside quotes, following a prefix (not as separate command line arguments).
-Also, there is a restriction: `date:` queries may not be used inside OR expressions.
+You can write more complicated "boolean" query expressions, enclosed in quotes and prefixed with `expr:`.
+These can combine subqueries with NOT, AND, OR operators (case insensitive), and parentheses for grouping.
+Eg, to show transactions involving both cash and expense accounts:
+
+```cli
+hledger print expr:'cash AND expenses'
+```
+
+The prefix and enclosing quotes are required, so don't write `hledger print cash AND expenses`.
+That would be a [space-separated query](#space-separated-queries)
+showing transactions involving accounts with any of "cash", "and", "expenses" in their names.
+
+You can write space-separated queries *inside* a boolean query,
+and they will combine as described above, but it might be confusing and best avoided.
+Eg these are equivalent, showing transactions involving cash or expenses accounts:
+
+```cli
+hledger print expr:'cash expenses'
+hledger print cash expenses
+```
+
+There is a restriction with `date:` queries: they may not be used inside OR expressions.
 <!-- That would allow disjoint report periods or unclear semantics for our reports. -->
 
-There are three types of boolean query: `expr:`, `any:`, `all:`.
+Actually, there are three types of boolean query:
+`expr:` for general use, and `any:` and `all:` variants which can be useful with `print`.
 
 ### expr: query
 **`expr:'QUERYEXPR'`**\
 For example, `expr:'date:lastmonth AND NOT (food OR rent)'` means
 "match things which are dated in the last month and do not have food or rent in the account name".
-(AND is the default, so could be omitted here.)
 
 When using `expr:` with transaction-oriented commands like `print`,
 posting-oriented query terms like `acct:` and `amt:` are considered to match the transaction
