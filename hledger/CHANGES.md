@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 2025-03-12 1.42.1
+# 1.42.1 2025-03-12
 
 Fixes
 
@@ -3412,15 +3412,15 @@ Migration notes:
 
 - new --invert option flips sign of amounts in reports
 
-# 1.13.2 (2019/02/04)
+# 1.13.2 2019-02-04
 
 - print, register: restore the accidentally dropped -o, -O flags (#967)
 
-# 1.13.1 (2019/02/02)
+# 1.13.1 2019-02-02
 
 - stop depending on here to avoid haskell-src-meta/stackage blockage.
 
-# 1.13 (2019/02/01)
+# 1.13 2019-02-01
 
 - cli: reorganised commands list. Addons now have a + prefix.
 
@@ -3477,12 +3477,12 @@ Migration notes:
 - journal: fixed a periodic transaction parsing failure (#942) (Dmitry
   Astapov)
 
-# 1.12.1 (2018/12/03)
+# 1.12.1 2018-12-03
 
 -   roi: use math-functions lib instead of statistics,
     be more stackage nightly compatible
 
-# 1.12 (2018/12/02)
+# 1.12 2018-12-02
 
 -   install script: ensure a new-enough version of stack; more informative output
 
@@ -3578,12 +3578,12 @@ Migration notes:
     Ie when a default year Y is in effect, they resolve partial or relative
     dates using Y/1/1 as the reference date, rather than today's date.
 
-# 1.11.1 (2018/10/06)
+# 1.11.1 2018-10-06
 
 -   fix wrong transaction rendering in balance assertion errors and when
     using the add command
 
-# 1.11 (2018/9/30)
+# 1.11 2018-09-30
 
 -   The default display order of accounts is now influenced by
     the order of account directives. Accounts declared by account
@@ -3637,7 +3637,7 @@ Migration notes:
 
 -   upper-case day/month names in period expressions no longer give an error (#847, #852)
 
-# 1.10 (2018/6/30)
+# 1.10 2018-06-30
 
 -   journal: many parse error messages have become more informative, and
     some now show the source line and error location.
@@ -3699,7 +3699,7 @@ Migration notes:
 
 -   use hledger-lib 1.10
 
-# 1.9.1 (2018/4/30)
+# 1.9.1 2018-04-30
 
 -   use hledger-lib 1.9.1
 
@@ -3748,7 +3748,7 @@ Migration notes:
 -   journal: when checking for balanced transactions, amount styles declared with
     commodity directives are also used (previously only inferred amount styles were).
 
-# 1.9 (2018/3/31)
+# 1.9 2018-03-31
 
 -   support ghc 8.4, latest deps
 
@@ -3815,7 +3815,7 @@ Migration notes:
     any begin date (it always closes historical end balances). It also
     ignores --date2.
 
-# 1.5 (2017/12/31)
+# 1.5 2017-12-31
 
 -   --auto adds Ledger-style automated postings to transactions (Dmitry Astapov, Mykola Orliuk)
 
@@ -3841,7 +3841,7 @@ Migration notes:
 
 -   remove upper bounds on all but hledger* and base (experimental)
 
-# 1.4 (2017/9/30)
+# 1.4 2017-09-30
 
 -   cli: a @FILE argument reads flags & args from FILE, one per line
 
@@ -3919,7 +3919,7 @@ Migration notes:
 
 -   deps: remove ghc < 7.6 support
 
-# 1.3.1 (2017/8/25)
+# 1.3.1 2017-08-25
 
 -   bs/is: don't let an empty subreport disable the grand totals (#588)
 
@@ -3929,7 +3929,7 @@ Migration notes:
 
 -   restore upper bounds on hledger packages
 
-# 1.3 (2017/6/30)
+# 1.3 2017-06-30
 
 The "uncleared" transaction/posting status, and associated UI flags
 and keys, have been renamed to "unmarked" to remove ambiguity and
@@ -3957,7 +3957,7 @@ Also there will now be a space between the mark and account name.
 print: amounts are now better aligned, eg when there are posting
 status marks or virtual postings
 
-# 1.2 (2017/3/31)
+# 1.2 2017-03-31
 
 ## CLI
 
@@ -4078,7 +4078,7 @@ Fix an example in Cli/Main.hs (Steven R. Baker)
 
 Allow megaparsec 5.2 (#503)
 
-# 1.1 (2016/12/31)
+# 1.1 2016-12-31
 
 ## balance
 
@@ -4092,13 +4092,13 @@ Allow megaparsec 5.2 (#503)
 
 -   extra/hledger-equity.hs now generates valid journal format when there are multiple commodities
 
-# 1.0.1 (2016/10/27)
+# 1.0.1 2016-10-27
 
 -   allow megaparsec 5.0 or 5.1
 
 -   fix benchmark build failure (#423)
 
-# 1.0 (2016/10/26)
+# 1.0 2016-10-26
 
 ## add
 
@@ -4233,7 +4233,7 @@ Allow megaparsec 5.2 (#503)
 
 -   parsing an argument-less --debug option is more robust
 
-0.27 (2015/10/30)
+# 0.27 2015-10-30
 
 Account aliases:
 
@@ -4349,7 +4349,7 @@ register:
 -   Amount columns now resize automatically, using more space if it's
     needed and available.
 
-0.26 (2015/7/12)
+# 0.26 2015-07-12
 
 Account aliases:
 
@@ -4495,11 +4495,11 @@ Miscellaneous:
 
 -   The deprecated shakespeare-text dependency has been removed more thoroughly.
 
-0.25.1 (2015/4/29)
+# 0.25.1 2015-04-29
 
 -   timelog: support the description field (#247)
 
-0.25 (2015/4/7)
+# 0.25 2015-04-07
 
 -   GHC 7.10 compatibility (#239)
 
@@ -4561,7 +4561,7 @@ Miscellaneous:
     As in Ledger. This means you can embed emacs org/outline-mode nodes in
     your journal file and manipulate it like an outline.
 
-0.24.1 (2015/3/15)
+# 0.24.1 2015-03-15
 
 -   journal: fix balance accumulation across assertions (#195)
 
@@ -4579,7 +4579,7 @@ Miscellaneous:
 
 -   allow utf8-string-1 (fpco/stackage/#426)
 
-0.24 (2014/12/25)
+# 0.24 2014-12-25
 
 General:
 
@@ -4676,15 +4676,15 @@ Extra commands:
 -   hledger-equity: fix end date in title; print closing entry too
 -   hledger-check-dates: added
 
-0.23.3 (2014/9/12)
+# 0.23.3 2014-09-12
 
 -   allow text 1.2+ (#207)
 
-0.23.2 (2014/5/8)
+# 0.23.2 2014-05-08
 
 -   register: also fix date sorting of postings (#184)
 
-0.23.1 (2014/5/7)
+# 0.23.1 2014-05-07
 
 -   register: fix a refactoring-related regression that the tests
     missed: if transactions were not ordered by date in the journal,
@@ -4695,7 +4695,7 @@ Extra commands:
 -   csv: allow the first name in a fields list to be empty (#178)
 -   csv: don't validate fields count in skipped lines (#177)
 
-0.23 (2014/5/1)
+# 0.23 2014-05-01
 
 Journal format:
 
@@ -4779,10 +4779,12 @@ Miscellaneous:
 -   New add-on example: extra/hledger-rewrite.hs, adds postings to matched entries.
 -   Compatible with GHC 7.2 (#155) - GHC 7.8, shakespeare 2
 
-0.22.2 (2014/4/16)
+# 0.22.2 2014-04-16
 
 -   display years before 1000 with four digits, not three
 -   avoid pretty-show to build with GHC < 7.4
 -   allow text 1.1, drop data-pprint to build with GHC 7.8.x
 
-0.22.1 (2014/1/6) and older: see https://hledger.org/release-notes or doc/release-notes.md.
+# 0.22.1 2014-01-06 and older
+
+See <https://hledger.org/relnotes.html> (or doc/relnotes.md).
