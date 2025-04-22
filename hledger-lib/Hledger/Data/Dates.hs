@@ -38,7 +38,7 @@ module Hledger.Data.Dates (
   nulldate,
   spanContainsDate,
   periodContainsDate,
-  parsedateM,
+  parsedate,
   showDate,
   showEFDate,
   showDateSpan,
@@ -778,8 +778,8 @@ advanceToNthWeekday n wd s =
 -- parsing
 
 -- -- | Parse a couple of date-time string formats to a time type.
--- parsedatetimeM :: String -> Maybe LocalTime
--- parsedatetimeM s = asum [
+-- parsedatetime :: String -> Maybe LocalTime
+-- parsedatetime s = asum [
 --     parseTimeM TruedefaultTimeLocale "%Y/%m/%d %H:%M:%S" s,
 --     parseTimeM TruedefaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
@@ -787,14 +787,14 @@ advanceToNthWeekday n wd s =
 -- | Try to parse a couple of date string formats:
 -- `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros required.
 -- For internal use, not quite the same as the journal's "simple dates".
--- >>> parsedateM "2008/02/03"
+-- >>> parsedate "2008/02/03"
 -- Just 2008-02-03
--- >>> parsedateM "2008/02/03/"
+-- >>> parsedate "2008/02/03/"
 -- Nothing
--- >>> parsedateM "2008/02/30"
+-- >>> parsedate "2008/02/30"
 -- Nothing
-parsedateM :: String -> Maybe Day
-parsedateM s = asum [
+parsedate :: String -> Maybe Day
+parsedate s = asum [
      parseTimeM True defaultTimeLocale "%Y-%m-%d" s,
      parseTimeM True defaultTimeLocale "%Y/%m/%d" s,
      parseTimeM True defaultTimeLocale "%Y.%m.%d" s

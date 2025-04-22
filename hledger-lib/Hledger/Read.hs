@@ -151,7 +151,7 @@ import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileN
 import System.Info (os)
 import System.IO (Handle, hPutStrLn, stderr)
 
-import Hledger.Data.Dates (getCurrentDay, parsedateM, showDate)
+import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import Hledger.Read.InputOptions
@@ -419,7 +419,7 @@ previousLatestDates f = do
   let nls = zip [1::Int ..] $ T.lines t
   fmap catMaybes $ forM nls $ \(n,l) -> do
     let s = T.unpack $ T.strip l
-    case (s, parsedateM s) of
+    case (s, parsedate s) of
       ("", _)       -> return Nothing
       (_,  Nothing) -> error' (printf "%s:%d: invalid date: \"%s\"" latestfile n s)
       (_,  Just d)  -> return $ Just d

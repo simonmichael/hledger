@@ -516,7 +516,7 @@ valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directval) of
       | t `elem` ["then" ,"t"] = Just $ AtThen mc
       | t `elem` ["end" ,"e"]  = Just $ AtEnd  mc
       | t `elem` ["now" ,"n"]  = Just $ AtNow  mc
-      | otherwise = case parsedateM t of
+      | otherwise = case parsedate t of
             Just d  -> Just $ AtDate d mc
             Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: then|end|now|t|e|n|YYYY-MM-DD"
       where
