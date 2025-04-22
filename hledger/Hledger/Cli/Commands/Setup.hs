@@ -92,17 +92,20 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   case mversion of
     Nothing -> return ()
     Just (_, version) -> do
-      when (supportsConfig version) setupConfig
+      setupConfig version
       setupFile version
       -- setupAccounts version
       -- setupCommodities version
       -- setupTags version
       return ()
-
   putStr "\n"
 
-supportsIgnoreAssertions = (>= 0 :| [24])  -- hledger 0.24+ supports --ignore-assertions
-supportsConfig           = (>= 1 :| [40])  -- hledger 1.40+ supports config files
+-- Test a hledger version for support of various features.
+supportsIgnoreAssertions      = (>= 0 :| [24])  -- --ignore-assertions, 2014
+supportsAccountTypes          = (>= 1 :| [13])  -- ALERX account types, type: tag, 2019
+supportsCashAccountType       = (>= 1 :| [19])  -- C/Cash account type, 2020
+supportsConversionAccountType = (>= 1 :| [25])  -- V/Conversion account type, accounts --types, 2022
+supportsConfigFiles           = (>= 1 :| [40])  -- config files, 2024
 
 ------------------------------------------------------------------------------
 
@@ -205,43 +208,49 @@ setupHledger = do
 
 ------------------------------------------------------------------------------
 
-setupConfig = do
+setupConfig version = do
   pgroup "config"
 
-  pdesc "a user config file exists ? (optional)"
-  muf <- activeUserConfFile
-  let
-    (ok, msg) = case muf of
-      Just f  -> (Y, f)
-      Nothing -> (N, "")
-  i ok msg
+  pdesc "this hledger supports config files ?"
+  if (not $ supportsConfigFiles version)
+  then p N "hledger 1.40+ needed"
+  else do
+    p Y ""
 
-  pdesc "a local config file exists ?"
-  mlf <- activeLocalConfFile
-  let
-    (ok, msg) = case mlf of
-      Just f  -> (Y, f) -- <> if isJust muf then " (masking user config)" else "")
-      Nothing -> (N, "")
-  i ok msg
+    pdesc "a user config file exists ? (optional)"
+    muf <- activeUserConfFile
+    let
+      (ok, msg) = case muf of
+        Just f  -> (Y, f)
+        Nothing -> (N, "")
+    i ok msg
 
-  when (isJust muf && isJust mlf) $ do
-    pdesc "local config is masking user config ?"
-    i Y ""
+    pdesc "a local config file exists ?"
+    mlf <- activeLocalConfFile
+    let
+      (ok, msg) = case mlf of
+        Just f  -> (Y, f) -- <> if isJust muf then " (masking user config)" else "")
+        Nothing -> (N, "")
+    i ok msg
 
-  let mf = mlf <|> muf
-  case mf of
-    Nothing -> return ()
-    Just _ -> do
-      pdesc "this hledger can read the config file ?"
-      -- Test config file readability, without requiring journal file readability, forward compatibly.
-      (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
-      case exit of
-        ExitSuccess   -> p Y ""
-        ExitFailure _ -> p N ("\n"<>err)
+    when (isJust muf && isJust mlf) $ do
+      pdesc "local config is masking user config ?"
+      i Y ""
 
-  -- pdesc "common general options configured ?"
-  -- --pretty --ignore-assertions --infer-costs"
-  -- print --explicit --show-costs"
+    let mf = mlf <|> muf
+    case mf of
+      Nothing -> return ()
+      Just _ -> do
+        pdesc "this hledger can read the config file ?"
+        -- Test config file readability, without requiring journal file readability, forward compatibly.
+        (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
+        case exit of
+          ExitSuccess   -> p Y ""
+          ExitFailure _ -> p N ("\n"<>err)
+
+    -- pdesc "common general options configured ?"
+    -- --pretty --ignore-assertions --infer-costs"
+    -- print --explicit --show-costs"
 
 ------------------------------------------------------------------------------
 
@@ -303,7 +312,7 @@ setupFile version = do
       args = concat [
         ["print"],
         ["--ignore-assertions" | supportsIgnoreAssertions version],
-        ["--no-conf" | supportsConfig version]
+        ["--no-conf" | supportsConfigFiles version]
         ]
     (exit, _, err) <- readProcessWithExitCode progname args ""
     case exit of
