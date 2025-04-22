@@ -175,35 +175,23 @@ setupHledger = do
             _ -> p U $ "couldn't detect arch in --version output"
 
           pdesc "is up to date ?"
-          elatestversionnumstr <- getLatestHledgerVersion
-          case elatestversionnumstr of
-            Right latestversionnumstr ->
-              case drop 1 versionwords of
-                []  -> p U "couldn't parse --version output" >> return Nothing
-                detailedversionstr:_ -> do
-                  let
-                    versionnumstr  = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
-                    mversion       = toVersion versionnumstr
-                    mlatestversion = toVersion latestversionnumstr
-                  case (mversion, mlatestversion) of
-                    (Nothing, _) -> p U "couldn't parse --version's version number" >> return Nothing
-                    (_, Nothing) -> p U "couldn't parse latest version number" >> return Nothing
-                    (Just version, Just latest) -> do
-                      p (if version >= latest then Y else N) (versionnumstr <> " installed, latest is " <> latestversionnumstr)
-                      return (Just (versionoutput, version))
-            Left e -> do
-              -- couldn't detect the latest version, but still return version info for the installed version
-              -- XXX duplication, refactor
-              case drop 1 versionwords of
-                []  -> p U "couldn't parse --version output" >> return Nothing
-                detailedversionstr:_ -> do
-                  let
-                    versionnumstr  = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
-                    mversion       = toVersion versionnumstr
-                  p U ("couldn't read " <> latestHledgerVersionUrlStr <> " : " <> e)
-                  return $ case mversion of
-                    Nothing -> Nothing
-                    Just version -> Just (versionoutput, version) 
+          case drop 1 versionwords of
+            [] -> p U "couldn't parse --version output" >> return Nothing
+            detailedversionstr:_ -> do
+              let
+                versionnumstr = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
+                mversion      = toVersion versionnumstr
+              case mversion of
+                Nothing -> p U "couldn't parse --version's version number" >> return Nothing
+                Just version -> do
+                  elatestversionnumstr <- getLatestHledgerVersion
+                  case elatestversionnumstr of
+                    Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
+                    Right latestversionnumstr ->
+                      case toVersion latestversionnumstr of
+                        Nothing -> p U "couldn't parse latest version number"
+                        Just latest -> p (if version >= latest then Y else N) (versionnumstr <> " installed, latest is " <> latestversionnumstr)
+                  return $ Just (versionoutput, version) 
 
 
 ------------------------------------------------------------------------------
