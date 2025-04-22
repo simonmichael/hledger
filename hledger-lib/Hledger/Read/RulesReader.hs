@@ -1115,7 +1115,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
     field    = hledgerField      rules record :: HledgerFieldName -> Maybe FieldTemplate
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
     mdateformat = rule "date-format"
-    parsedate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
+    parseDate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
     mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
       ["could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
@@ -1138,9 +1138,9 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
 
     date        = fromMaybe "" $ fieldval "date"
     -- PARTIAL:
-    date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parsedate date
+    date'       = fromMaybe (error' $ mkdateerror "date" date mdateformat) $ parseDate date
     mdate2      = fieldval "date2"
-    mdate2'     = (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parsedate) =<< mdate2
+    mdate2'     = (maybe (error' $ mkdateerror "date2" (fromMaybe "" mdate2) mdateformat) Just . parseDate) =<< mdate2
     status      =
       case fieldval "status" of
         Nothing -> Unmarked
