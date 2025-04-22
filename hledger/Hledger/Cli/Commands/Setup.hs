@@ -13,6 +13,7 @@ Check and show the status of the hledger installation.
 
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
+{-# LANGUAGE MultiWayIf #-}
 -- {-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Hledger.Cli.Commands.Setup (
@@ -24,31 +25,29 @@ where
 import Control.Applicative ((<|>))
 import Control.Exception
 import Control.Monad
-import Data.Functor ((<&>))
+import Data.Char
+import Data.List
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Maybe
--- import Data.Text (Text)
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
--- import qualified Data.Text.IO as T
 import Network.HTTP.Client
 import Network.HTTP.Types (statusCode, hLocation)
 import Network.HTTP.Req as R
 import Safe
 import System.Directory
+import System.Environment (lookupEnv)
 import System.Exit
 import System.FilePath
 import System.Info
--- import System.IO
 import System.Process
-import Text.Megaparsec.Error (errorBundlePretty)
 import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
-import System.Environment (lookupEnv)
-import Data.Char
-import Data.List
+import Hledger.Cli.Version (Version, toVersion)
+
 
 setupmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Setup.txt")
@@ -57,31 +56,68 @@ setupmode = hledgerCommandMode
   []
   ([], Nothing)
 
--- | Test and print the status of various aspects of the hledger installation.
--- Also show extra info and hints on how to fix problems.
+
+{- | Test and print the status of various aspects of the hledger installation.
+May also show extra info and hints on how to fix problems.
+The goal is to detect and show as much useful information as possible,
+and to complete this task reliably regardless of what we find,
+without premature termination or misformatting.
+
+The tests are grouped into setup* routines, so named because they might do more
+than just test in future.
+
+The first group of tests checks the hledger executable found in PATH.
+Note, later tests which require running hledger should use this executable,
+rather than the API of the hledger currently running (in case they're different).
+
+This hledger executable could be old; we can't assume it has modern flags/commands.
+Eg its --version output may be less than usual, or it may not have the check command.
+
+Or it may not accept -n/--no-conf, which we may need to avoid disruption from config files.
+Eg there's an inconvenient bug in hledger 1.40-1.42ish: without -n, a bad config file
+breaks pretty much everything, including --version, --help, and test.
+
+So we first try hledger --version -n; if this fails, we try hledger --version.
+(For absolute precision we should perhaps check the failure output for "Unknown flag: -n"..)
+If we are able to detect the version, we use that to decide how and whether to run
+later tests. Eg, for hledger <1.40, we won't run config tests, and won't use -n.
+
+-}
 setup :: CliOpts -> Journal -> IO ()
 setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
   putStrLn "Checking your hledger setup.."
-  setupHledger
-  setupConfig
-  setupFile
-  -- setupAccounts
-  -- setupCommodities
-  -- setupTags
+  mversion <- setupHledger
+  case mversion of
+    Nothing -> return ()
+    Just (_, version) -> do
+      when (supportsConfig version) setupConfig
+      setupFile version
+      -- setupAccounts version
+      -- setupCommodities version
+      -- setupTags version
+      return ()
+
   putStr "\n"
+
+supportsIgnoreAssertions = (>= 0 :| [24])  -- hledger 0.24+ supports --ignore-assertions
+supportsConfig           = (>= 1 :| [40])  -- hledger 1.40+ supports config files
 
 ------------------------------------------------------------------------------
 
-setupHledger :: IO ()
+-- | This first test group looks for a "hledger" executable in PATH;
+-- if found, tests it in various ways;
+-- and if it ran successfully, returns the full --version output
+-- and the numeric Version parsed from that.
+setupHledger :: IO (Maybe (String, Version))
 setupHledger = do
   pgroup "hledger"
 
   pdesc "is in PATH ?"
-  pathexes <- findExecutables progname
-  home <- getHomeDirectory
-  appdata <- getXdgDirectory XdgData ""
+  pathexes  <- findExecutables progname
+  home      <- getHomeDirectory
+  appdata   <- getXdgDirectory XdgData ""
   otherexes <- flip findExecutablesInDirectories progname $
     [home </> ".local/bin"
     ,home </> ".cabal/bin"
@@ -92,72 +128,80 @@ setupHledger = do
     ]
     ++ [appdata </> "local/bin" | os == "mingw32"]
     ++ [appdata </> "cabal/bin" | os == "mingw32"]
-  let
-    ok = if null pathexes then N else Y
-    pathexe  = quoteIfNeeded $ headDef (error' "showing nonexistent executable") pathexes
-    otherexe = quoteIfNeeded $ headDef (error' "showing nonexistent executable") otherexes
-    otherdir = takeDirectory otherexe
-    msg
-      | ok == Y = pathexe
-      | null otherexes = "Add " <> progname <> "'s directory to your shell's PATH."
-      | otherwise = unlines
-          ["Add " <> otherdir <> " to PATH in your shell config."
-          ,"  Eg on unix: echo 'export PATH=" <> otherdir <> ":$PATH' >> ~/.profile"
-          ,"  and start a new shell session."
-          ]
-  p ok msg
+  case (pathexes, otherexes) of
+    ([], []) -> do
+      p N $ "Move the " <> progname <> " binary to a directory in your shell's PATH"
+      return Nothing
+    ([], otherexe:_) -> do
+      let otherdir = takeDirectory otherexe
+      p N $ unlines
+        ["Add " <> otherdir <> " to PATH in your shell config."
+        ,"  Eg on unix: echo 'export PATH=" <> otherdir <> ":$PATH' >> ~/.profile"
+        ,"  and start a new shell session."
+        ]
+      return Nothing
+    (pathexe:_, _) -> do
+      p Y (quoteIfNeeded pathexe)
 
-  -- If hledger was found in PATH, run more checks
-  when (ok==Y) $ do
+      -- If hledger was found in PATH, do more checks
 
-    pdesc "runs ?"
-    let arg = "--version"
-    (exit,out,err) <- readProcessWithExitCode progname [arg] ""
-    let
-      ok = if exit == ExitSuccess then Y else N
-      msg = if ok==Y then "" else "'" <> progname <> " " <> arg <> "' failed: \n" <> err
-    p ok msg
-    -- save output, used below
-    let
-      versionstr = rstrip out
-      versionstrparts = words versionstr
+      pdesc "runs ?"
+      eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
+      case eerrout of
+        Left  err -> p N ("'" <> progname <> " --version' failed: \n" <> err) >> return Nothing
+        Right out -> do
+          p Y ""
 
-    -- If hledger runs, run more checks
-    when (ok==Y) $ do
-      pdesc "is a native binary ?"
-      let
-        exearch = case drop 2 versionstrparts of
-          w:_ -> w
-          _   -> error' "couldn't parse arch from --version output"
-        os'  -- keep synced: Version.hs
-          | os == "darwin"  = "mac"
-          | os == "mingw32" = "windows"
-          | otherwise       = os
-        sysarch = os' <> "-" <> arch
-        (ok, msg)
-          | exearch == sysarch = (Y, versionstr)
-          | otherwise = (N, "installed binary is for " <> exearch <> ", system is " <> sysarch)
-      p ok msg
+          -- If it runs, do more checks
+          let
+            versionoutput = rstrip out
+            versionwords = words versionoutput
 
-      pdesc "is up to date ?"
-      elatestver <- getLatestHledgerVersion
-      let
-        (ok, msg) = case elatestver of
-          Left e -> (U, "could not read " <> latestHledgerVersionUrlStr <> " : " <> e)
-          Right latestver ->
-            case drop 1 versionstrparts of
-              []  -> (U, "could not parse --version output")
-              w:_ -> (ok, msg)
-                where
-                  exever = takeWhile (`elem` ("0123456789."::String)) w
-                  ok = if splitAtElement '.' exever >= splitAtElement '.' latestver then Y else N
-                  msg =
-                    if exever == latestver 
-                    then exever 
-                    else exever <> " installed, latest is " <> latestver
-      p ok msg
+          pdesc "is a native binary ?"
+          let
+            sysarch = os' <> "-" <> arch
+              where
+                os' -- keep synced: Version.hs
+                  | os == "darwin" = "mac"
+                  | os == "mingw32" = "windows"
+                  | otherwise = os
+          case drop 2 versionwords of
+            exearch:_ -> if exearch == sysarch
+              then p Y versionoutput
+              else p N $ "installed binary is for " <> exearch <> ", system is " <> sysarch
+            _ -> p U $ "couldn't detect arch in --version output"
 
-  -- pdesc "eget installed ?"
+          pdesc "is up to date ?"
+          elatestversionnumstr <- getLatestHledgerVersion
+          case elatestversionnumstr of
+            Right latestversionnumstr ->
+              case drop 1 versionwords of
+                []  -> p U "couldn't parse --version output" >> return Nothing
+                detailedversionstr:_ -> do
+                  let
+                    versionnumstr  = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
+                    mversion       = toVersion versionnumstr
+                    mlatestversion = toVersion latestversionnumstr
+                  case (mversion, mlatestversion) of
+                    (Nothing, _) -> p U "couldn't parse --version's version number" >> return Nothing
+                    (_, Nothing) -> p U "couldn't parse latest version number" >> return Nothing
+                    (Just version, Just latest) -> do
+                      p (if version >= latest then Y else N) (versionnumstr <> " installed, latest is " <> latestversionnumstr)
+                      return (Just (versionoutput, version))
+            Left e -> do
+              -- couldn't detect the latest version, but still return version info for the installed version
+              -- XXX duplication, refactor
+              case drop 1 versionwords of
+                []  -> p U "couldn't parse --version output" >> return Nothing
+                detailedversionstr:_ -> do
+                  let
+                    versionnumstr  = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
+                    mversion       = toVersion versionnumstr
+                  p U ("couldn't read " <> latestHledgerVersionUrlStr <> " : " <> e)
+                  return $ case mversion of
+                    Nothing -> Nothing
+                    Just version -> Just (versionoutput, version) 
+
 
 ------------------------------------------------------------------------------
 
@@ -187,12 +231,13 @@ setupConfig = do
   let mf = mlf <|> muf
   case mf of
     Nothing -> return ()
-    Just f -> do
-      pdesc "config file is readable ?"
-      ecs <- readFile f <&> parseConf f . T.pack
-      case ecs of
-        Right _ -> p Y ""
-        Left e  -> p N (errorBundlePretty e)
+    Just _ -> do
+      pdesc "this hledger can read the config file ?"
+      -- Test config file readability, without requiring journal file readability, forward compatibly.
+      (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
+      case exit of
+        ExitSuccess   -> p Y ""
+        ExitFailure _ -> p N ("\n"<>err)
 
   -- pdesc "common general options configured ?"
   -- --pretty --ignore-assertions --infer-costs"
@@ -200,7 +245,7 @@ setupConfig = do
 
 ------------------------------------------------------------------------------
 
-setupFile = do
+setupFile version = do
   pgroup "file"
 
   pdesc "a home directory journal file exists ?"
@@ -250,11 +295,21 @@ setupFile = do
           else (Y, "")
       p ok msg
 
-    pdesc "default journal file is readable ?"
-    ej <- runExceptT $ readJournalFile definputopts jfile  -- like defaultJournal
-    case ej of
-      Right _ -> p Y ""
-      Left  e -> p N e
+    pdesc "this hledger can read default journal ?"
+    -- Basic readability check: ignoring config files if it's hledger >=1.40,
+    -- and balance assertions if possible (can't if it's hledger <=0.23),
+    -- try read the file (ie do the parseable and autobalanced checks pass).
+    let
+      args = concat [
+        ["print"],
+        ["--ignore-assertions" | supportsIgnoreAssertions version],
+        ["--no-conf" | supportsConfig version]
+        ]
+    (exit, _, err) <- readProcessWithExitCode progname args ""
+    case exit of
+      ExitSuccess   -> p Y ""
+      ExitFailure _ -> p N ("\n"<>err)
+
 
 ------------------------------------------------------------------------------
 
@@ -293,12 +348,12 @@ data YNU = Y | N | U deriving (Eq)
 -- Show status, in red/green/yellow if supported.
 instance Show YNU where
   show Y = bold' (brightGreen'  "yes")    -- ✅ apple emojis - won't work everywhere
-  show N = bold' (brightRed'    "no ")    -- ❌
+  show N = bold' (brightRed'    " no")    -- ❌
   show U = bold' (brightYellow' " ? ")
 
 -- Show status, in blue/yellow if supported.
 showInfo Y = bold' (brightBlue'   "yes")  -- ℹ️
-showInfo N = bold' (brightBlue'   "no ")  -- ℹ️
+showInfo N = bold' (brightBlue'   " no")  -- ℹ️
 showInfo U = bold' (brightYellow' " ? ")
 
 -- | Print a test's pass or fail status, as "yes" or "no" or "",
@@ -316,7 +371,7 @@ pgroup s = putStrLn $ "\n" <> bold' s
 
 -- | Print a setup test's description, formatting and padding it to a fixed width.
 pdesc :: String -> IO ()
-pdesc s = printf "* %-38s" s
+pdesc s = printf "* %-40s" s
 
 (getLatestHledgerVersion, latestHledgerVersionUrlStr) =
   -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")
@@ -345,7 +400,7 @@ getLatestHledgerVersionFromHackage = do
               let packagename = take 1 $ drop 1 $ reverse $ T.splitOn "/" location
               case packagename of
                 [n] -> return $ Right $ dropWhile (`notElem` ['0'..'9']) $ T.unpack n
-                _   -> return $ Left "could not parse Location"
+                _   -> return $ Left "couldn't parse Location"
         else return $ Left $ "HTTP status " ++ show status
     Left err -> return $ Left $ "other exception: " ++ show err
 
@@ -353,15 +408,37 @@ getLatestHledgerVersionFromHackage = do
 getLatestHledgerVersionFromHledgerOrg :: IO (Either String String)
 getLatestHledgerVersionFromHledgerOrg = do
   let url = https "hledger.org" /: "install.html"
-  result <- try $ runReq defaultHttpConfig $
-    req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
-  case result of
-    Left (e :: R.HttpException) -> return $ Left $ show e
-    Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
-      Left e  -> return $ Left $ show e
-      Right t -> return $
-        if null version then Left "could not parse version" else Right version
-        where
-          -- keep synced
-          versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
-          version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
+  do
+    result <- try $ runReq defaultHttpConfig $ req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
+    case result of
+      Left (e :: R.HttpException) -> return $ Left $ show e
+      Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
+        Left e  -> return $ Left $ show e
+        Right t -> return $
+          if null version then Left "couldn't parse version" else Right version
+          where
+            -- keep synced
+            versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
+            version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
+  -- work around potential failure on mac (& possible security issue, reported upstream)
+  `catch` (\(_ :: IOError) -> return $ Left "req failed (mac PATH issue ?)")
+
+-- | Try to run the hledger in PATH with one or more sets of command line arguments.
+-- Returns the output from the first set of arguments that runs successfully,
+-- or the error output from the last set.
+tryHledgerArgs :: [[String]] -> IO (Either String String)
+tryHledgerArgs [] = pure $ Left "tryHledgerArgs: no arguments provided"
+tryHledgerArgs (args:rest) = do
+  eresult <- runHledger args
+  case eresult of
+    Right out -> pure $ Right out
+    Left err -> if null rest then pure $ Left err else tryHledgerArgs rest
+
+-- | Run the hledger in PATH with the given command line arguments,
+-- returning the output on success or the error output on failure.
+runHledger :: [String] -> IO (Either String String)
+runHledger args = do
+  (exit, out, err) <- readProcessWithExitCode "hledger" args ""
+  pure $ case exit of
+    ExitSuccess -> Right out
+    ExitFailure _ -> Left err
