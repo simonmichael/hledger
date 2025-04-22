@@ -5,8 +5,10 @@ Version number-related utilities. See also the Makefile.
 
 module Hledger.Cli.Version (
   ProgramName,
-  PackageVersion,
-  VersionString,
+  PackageVersionString,
+  Version,
+  DetailedVersionString,
+  toVersion,
   packageversion,
   packagemajorversion,
   versionStringWith,
@@ -16,17 +18,31 @@ where
 import GitHash (GitInfo, giHash, giCommitDate)  -- giDirty
 import System.Info (os, arch)
 import Data.List (intercalate)
-import Data.Maybe (fromMaybe)
+import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Data.List.Split (splitOn)
+import Data.Maybe
+import Text.Read (readMaybe)
 
 import Hledger.Utils (ghcDebugSupportedInLib, splitAtElement)
 
 type ProgramName    = String
-type PackageVersion = String
-type VersionString  = String
+
+type PackageVersionString  = String         -- ^ A Cabal/Hackage-compatible package version string: one or more dot-separated integers.
+type Version               = NonEmpty Int   -- ^ The number parts parsed from a PackageVersionString.
+type DetailedVersionString = String         -- ^ A hledger version string, including a package version and other info like a git hash.
+
+-- | Parse a valid Cabal/Hackage-compatible package version.
+toVersion :: PackageVersionString -> Maybe Version
+toVersion s =
+  let parts = map readMaybe $ splitOn "." s :: [Maybe Int]
+  in
+    if null parts || any isNothing parts
+    then Nothing
+    else nonEmpty $ catMaybes parts
 
 -- | The VERSION string defined with -D in this package's package.yaml/.cabal file 
 -- (by Shake setversion), if any. Normally a dotted number string with 1-3 components.
-packageversion :: PackageVersion
+packageversion :: PackageVersionString
 packageversion =
 #ifdef VERSION
   VERSION
@@ -35,7 +51,7 @@ packageversion =
 #endif
 
 -- | Just the first 1-2 components of packageversion.
-packagemajorversion :: PackageVersion
+packagemajorversion :: PackageVersionString
 packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
 
 -- | Given possible git state info from the build directory (or a git error, which is ignored),
@@ -70,7 +86,7 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 -- This is used indirectly by at least hledger, hledger-ui, and hledger-web,
 -- so output should be suitable for all of those.
 --
-versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersion -> VersionString
+versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersionString -> DetailedVersionString
 versionStringWith egitinfo ghcDebugSupportedInThisPackage progname packagever =
   concat $
     [ progname , " " , version , ", " , os' , "-" , arch ]

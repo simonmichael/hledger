@@ -26,7 +26,7 @@ import Data.List (isPrefixOf)
 
 -- cf Hledger.Cli.Version
 
-packageversion :: PackageVersion
+packageversion :: PackageVersionString
 packageversion =
 #ifdef VERSION
   VERSION

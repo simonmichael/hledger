@@ -16,7 +16,7 @@ import Hledger.UI.Theme (themes, themeNames)
 
 -- cf Hledger.Cli.Version
 
-packageversion :: PackageVersion
+packageversion :: PackageVersionString
 packageversion =
 #ifdef VERSION
   VERSION
