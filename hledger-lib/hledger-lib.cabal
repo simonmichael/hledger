@@ -116,6 +116,7 @@ library
       Text.WideString
   other-modules:
       Hledger.Data.AccountBalance
+      Hledger.Data.AccountBalances
       Paths_hledger_lib
   autogen-modules:
       Paths_hledger_lib
