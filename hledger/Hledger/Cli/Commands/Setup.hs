@@ -158,7 +158,7 @@ setupHledger = do
 
       -- hledger was found in PATH, continue
 
-      pdesc "runs, --version looks like hledger ?"
+      pdesc "runs and --version looks like hledger ?"
       eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
       case eerrout of
         Left  err ->
@@ -189,7 +189,7 @@ setupHledger = do
                       (if binversion >= latestversion then Y else N)
                       (showVersion hbinPackageVersion <> " installed, latest is " <> latestversionnumstr)
 
-              pdesc "is the hledger running setup the same ?"
+              pdesc "is same as the hledger checking setup ?"
               if prognameandversion == hbinVersionOutput
               then i Y ""
               else i N prognameandversion
@@ -202,7 +202,7 @@ setupHledger = do
 setupConfig version = do
   pgroup "config"
 
-  pdesc "that hledger supports config files ?"
+  pdesc "it supports config files ?"
   if (not $ supportsConfigFiles version)
   then p N "hledger 1.40+ needed"
   else do
@@ -232,7 +232,7 @@ setupConfig version = do
     case mf of
       Nothing -> return ()
       Just _ -> do
-        pdesc "that hledger can read the config file ?"
+        pdesc "it can read the config file ?"
         -- Test config file readability, without requiring journal file readability, forward compatibly.
         (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
         case exit of
@@ -261,7 +261,7 @@ setupFile version = do
     Nothing -> return (N, "")
   i ok msg
 
-  pdesc "LEDGER_FILE variable is defined ?"
+  pdesc "the LEDGER_FILE variable is defined ?"
   mf <- lookupEnv journalEnvVar
   let
     (ok, msg) = case mf of
@@ -280,7 +280,7 @@ setupFile version = do
   --   pdesc "$LEDGER_FILE is masking home journal ?"
   --   i Y ""
 
-  pdesc "default journal file exists ?"
+  pdesc "a default journal file exists ?"
   jfile <- defaultJournalPath
   exists <- doesFileExist jfile
   let (ok, msg) = (if exists then Y else N, if exists then jfile else "")
@@ -298,7 +298,7 @@ setupFile version = do
           else (Y, "")
       p ok msg
 
-    pdesc "that hledger can read default journal ?"
+    pdesc "it can read the default journal ?"
     -- Basic readability check: ignoring config files if it's hledger >=1.40,
     -- and balance assertions if possible (can't if it's hledger <=0.23),
     -- try read the file (ie do the parseable and autobalanced checks pass).
@@ -319,13 +319,13 @@ setupFile version = do
 setupAccounts version = do
   pgroup "accounts"
 
-  pdesc "supports account types (ALERXCV) ?"
+  pdesc "it supports all account types ?"  --  (ALERXCV)
   if not $ supportsConversionAccountType version
   then p N "hledger 1.25+ needed"
   else do
     p Y ""
 
-    pdesc "Asset account(s) declared ?"    
+    pdesc "Asset accounts declared ?"    
     -- Read journal file in-process, to get accurate declaration info.
     -- There's the possibility this could read the journal differently from the hledger in PATH,
     -- if this currently running hledger is a different version.
@@ -344,22 +344,22 @@ setupAccounts version = do
             _ -> False
         if hasdeclaredaccts Asset then i Y "" else i N ""
 
-        pdesc "Liability account(s) declared ?"
+        pdesc "Liability accounts declared ?"
         if hasdeclaredaccts Liability then i Y "" else i N ""
 
-        pdesc "Equity account(s) declared ?"
+        pdesc "Equity accounts declared ?"
         if hasdeclaredaccts Equity then i Y "" else i N ""
 
-        pdesc "Revenue account(s) declared ?"
+        pdesc "Revenue accounts declared ?"
         if hasdeclaredaccts Revenue then i Y "" else i N ""
 
-        pdesc "Expense account(s) declared ?"
+        pdesc "Expense accounts declared ?"
         if hasdeclaredaccts Expense then i Y "" else i N ""
 
-        pdesc "Cash account(s) declared ?"
+        pdesc "Cash accounts declared ?"
         if hasdeclaredaccts Cash then i Y "" else i N ""
 
-        pdesc "Conversion account(s) declared ?"
+        pdesc "Conversion accounts declared ?"
         if hasdeclaredaccts Conversion then i Y "" else i N ""  -- ("--infer-equity will use a default conversion account name")
 
         -- XXX hard to detect accounts where type was inferred from name
