@@ -89,13 +89,14 @@ type GitHash = String
 -- intended operating machine and machine architecture, if we can detect these.
 -- Also, a copy of the --version output from which it was parsed.
 data HledgerBinaryVersion = HledgerBinaryVersion {
-    hbinVersionOutput :: String
-  , hbinProgramName :: ProgramName
-  , hbinPackageVersion :: Version 
-  , hbinGitHash :: Maybe GitHash
-  , hbinReleaseDate :: Maybe Day
-  , hbinOs :: Maybe OsName
-  , hbinArch :: Maybe ArchName
+    hbinVersionOutput     :: String
+  , hbinProgramName       :: ProgramName
+  , hbinPackageVersion    :: Version 
+  , hbinPackageVersionStr :: String
+  , hbinGitHash           :: Maybe GitHash
+  , hbinReleaseDate       :: Maybe Day
+  , hbinOs                :: Maybe OsName
+  , hbinArch              :: Maybe ArchName
 } deriving (Show, Eq)
 
 type Parser = Parsec Void String
@@ -147,6 +148,7 @@ hledgerversionp = do
     { hbinVersionOutput = ""
     , hbinProgramName = progName
     , hbinPackageVersion = pkgversion
+    , hbinPackageVersionStr = showVersion pkgversion
     , hbinGitHash = mgithash
     , hbinReleaseDate = mreldate
     , hbinOs = mos
