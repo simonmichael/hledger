@@ -4,11 +4,16 @@ Version number-related utilities. See also the Makefile.
 -}
 
 module Hledger.Cli.Version (
-  ProgramName,
   PackageVersionString,
   Version,
-  DetailedVersionString,
   toVersion,
+  showVersion,
+  HledgerVersionString,
+  HledgerBinaryVersion(..),
+  ProgramName,
+  GitHash,
+  ArchName,
+  parseHledgerVersion,
   packageversion,
   packagemajorversion,
   versionStringWith,
@@ -18,18 +23,29 @@ where
 import GitHash (GitInfo, giHash, giCommitDate)  -- giDirty
 import System.Info (os, arch)
 import Data.List (intercalate)
-import Data.List.NonEmpty (NonEmpty, nonEmpty)
+import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty, toList)
 import Data.List.Split (splitOn)
 import Data.Maybe
 import Text.Read (readMaybe)
 
-import Hledger.Utils (ghcDebugSupportedInLib, splitAtElement)
+import Hledger.Utils (ghcDebugSupportedInLib, splitAtElement, rstrip)
+import Data.Time (Day)
+import Text.Megaparsec
+import Data.Void (Void)
+import Text.Megaparsec.Char
+import qualified Text.Megaparsec.Char.Lexer as L
+import Hledger.Data.Dates (parsedate)
+import Data.Bifunctor
 
-type ProgramName    = String
 
-type PackageVersionString  = String         -- ^ A Cabal/Hackage-compatible package version string: one or more dot-separated integers.
-type Version               = NonEmpty Int   -- ^ The number parts parsed from a PackageVersionString.
-type DetailedVersionString = String         -- ^ A hledger version string, including a package version and other info like a git hash.
+-- | A Cabal/Hackage-compatible package version string: one or more dot-separated integers.
+type PackageVersionString = String
+
+-- | The number parts parsed from a PackageVersionString.
+type Version = NonEmpty Int
+
+showVersion :: Version -> String
+showVersion = intercalate "." . map show . toList
 
 -- | Parse a valid Cabal/Hackage-compatible package version.
 toVersion :: PackageVersionString -> Maybe Version
@@ -39,6 +55,110 @@ toVersion s =
     if null parts || any isNothing parts
     then Nothing
     else nonEmpty $ catMaybes parts
+
+-- | A hledger version string, as shown by hledger --version.
+-- This can vary; some examples:
+--
+-- * dev builds:     hledger 1.42.99-g2288f5193-20250422, mac-aarch64
+--
+-- * release builds: hledger 1.42.1, mac-aarch64
+--
+-- * older versions: hledger 1.21
+type HledgerVersionString = String
+
+-- | The program name from a hledger version string: hledger, hledger-ui, hledger-web..
+type ProgramName = String
+
+-- | The operating system name from a hledger version string.
+-- This the value of @System.Info.os@ modified for readability:
+-- mac, windows, linux, linux-android, freebsd, netbsd, openbsd..
+type OsName = String
+
+-- | The machine architecture from a hledger version string.
+-- This is the value of @System.Info.arch@, eg:
+-- aarch64, alpha, arm, hppa, hppa1_1, i386, ia64, loongarch32, loongarch64, m68k,
+-- mips, mipseb, mipsel, nios2, powerpc, powerpc64, powerpc64le, riscv32, riscv64,
+-- rs6000, s390, s390x, sh4, sparc, sparc64, vax, x86_64..
+type ArchName = String
+
+-- | The git hash from a hledger version string, excluding the g prefix.
+type GitHash = String
+
+-- | The name and package version of a hledger binary,
+-- and the build's git hash, the release date, and the binary's 
+-- intended operating machine and machine architecture, if we can detect these.
+-- Also, a copy of the --version output from which it was parsed.
+data HledgerBinaryVersion = HledgerBinaryVersion {
+    hbinVersionOutput :: String
+  , hbinProgramName :: ProgramName
+  , hbinPackageVersion :: Version 
+  , hbinGitHash :: Maybe GitHash
+  , hbinReleaseDate :: Maybe Day
+  , hbinOs :: Maybe OsName
+  , hbinArch :: Maybe ArchName
+} deriving (Show, Eq)
+
+type Parser = Parsec Void String
+
+-- | Parse hledger's --version output.
+--
+-- >>> isRight $ parseHledgerVersion "hledger 1.21"
+-- True
+-- >>> isRight $ parseHledgerVersion "hledger 1.42.1, mac-aarch64"
+-- True
+-- >>> isRight $ parseHledgerVersion "hledger 1.42.99-g2288f5193-20250422, mac-aarch64"
+-- True
+--
+parseHledgerVersion :: HledgerVersionString -> Either String HledgerBinaryVersion
+parseHledgerVersion s = 
+  case parse hledgerversionp "" s of
+  Left err -> Left $ errorBundlePretty err
+  Right v  -> Right v{hbinVersionOutput=rstrip s}
+
+-- Parser for hledger --version output: a program name beginning with "hledger" and a package version;
+-- possibly followed by a git hash and release date;
+-- possibly followed by the binary's intended operating system and architecture
+-- (see HledgerVersionString and versionStringWith).
+-- The hbinVersionOutput field is left blank here; parseHledgerVersion sets it.
+hledgerversionp :: Parser HledgerBinaryVersion
+hledgerversionp = do
+  progName <- (<>) <$> string "hledger" <*> many (letterChar <|> char '-')
+  some $ char ' '
+  pkgversion <- packageversionp
+  mgithash <- optional $ try $ string "-g" *> some hexDigitChar
+  mreldate <- optional $ do
+    string "-"
+    datestr <- (:) <$> digitChar <*> some (digitChar <|> char '-')
+    maybe (fail "invalid date") pure $ parsedate $ datestr
+  -- Oh oh. hledger --version prints OS-ARCH, but it turns out OS can contain hyphens (eg linux-android).
+  -- Based on the "common values" in System.Info docs, it seems ARCH typically does not contain hyphens;
+  -- we'll assume that here, and split at the rightmost hyphen.
+  mosarch <- optional $ do
+    string ","
+    some (char ' ')
+    some (letterChar <|> digitChar <|> char '-' <|> char '_')
+  let
+    (march, mos) = case mosarch of
+      Nothing -> (Nothing, Nothing)
+      Just osarch -> bimap (Just . reverse) (Just . reverse) $ second (drop 1) $ break (== '-') $ reverse osarch
+  many spaceChar
+  eof
+  return $ HledgerBinaryVersion
+    { hbinVersionOutput = ""
+    , hbinProgramName = progName
+    , hbinPackageVersion = pkgversion
+    , hbinGitHash = mgithash
+    , hbinReleaseDate = mreldate
+    , hbinOs = mos
+    , hbinArch = march
+    }
+
+-- | Parser for Cabal package version numbers, one or more dot-separated integers. Eg "1.42.1".
+packageversionp :: Parser Version
+packageversionp = do
+  firstNum <- L.decimal
+  rest <- many (char '.' *> L.decimal)
+  return $ firstNum :| rest
 
 -- | The VERSION string defined with -D in this package's package.yaml/.cabal file 
 -- (by Shake setversion), if any. Normally a dotted number string with 1-3 components.
@@ -86,7 +206,7 @@ packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversi
 -- This is used indirectly by at least hledger, hledger-ui, and hledger-web,
 -- so output should be suitable for all of those.
 --
-versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersionString -> DetailedVersionString
+versionStringWith :: Either String GitInfo -> Bool -> ProgramName -> PackageVersionString -> HledgerVersionString
 versionStringWith egitinfo ghcDebugSupportedInThisPackage progname packagever =
   concat $
     [ progname , " " , version , ", " , os' , "-" , arch ]

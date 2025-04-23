@@ -14,6 +14,7 @@ Check and show the status of the hledger installation.
 {-# OPTIONS_GHC -Wno-name-shadowing #-}
 {-# OPTIONS_GHC -Wno-unused-top-binds #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE RecordWildCards #-}
 -- {-# OPTIONS_GHC -Wno-unused-matches #-}
 
 module Hledger.Cli.Commands.Setup (
@@ -46,7 +47,7 @@ import Text.Printf (printf)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
-import Hledger.Cli.Version (Version, toVersion)
+import Hledger.Cli.Version
 
 
 setupmode = hledgerCommandMode
@@ -88,10 +89,18 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   -- This command is not given a journal and should not use _ignoredj;
   -- instead detect it ourselves when we are ready.
   putStrLn "Checking your hledger setup.."
+  color <- useColorOnStdout
+  when color $ 
+    putStrLn $ "Legend: " <> intercalate ", " [
+       good    "good"
+      ,neutral "neutral"
+      ,warning "warning"
+      ,bad     "bad"
+      ]
   mversion <- setupHledger
   case mversion of
     Nothing -> return ()
-    Just (_, version) -> do
+    Just HledgerBinaryVersion{hbinPackageVersion=version} -> do
       setupConfig version
       setupFile version
       -- setupAccounts version
@@ -113,7 +122,7 @@ supportsConfigFiles           = (>= 1 :| [40])  -- config files, 2024
 -- if found, tests it in various ways;
 -- and if it ran successfully, returns the full --version output
 -- and the numeric Version parsed from that.
-setupHledger :: IO (Maybe (String, Version))
+setupHledger :: IO (Maybe HledgerBinaryVersion)
 setupHledger = do
   pgroup "hledger"
 
@@ -146,52 +155,45 @@ setupHledger = do
     (pathexe:_, _) -> do
       p Y (quoteIfNeeded pathexe)
 
-      -- If hledger was found in PATH, do more checks
+      -- hledger was found in PATH, continue
 
-      pdesc "runs ?"
+      pdesc "runs, --version looks like hledger ?"
       eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
       case eerrout of
-        Left  err -> p N ("'" <> progname <> " --version' failed: \n" <> err) >> return Nothing
-        Right out -> do
-          p Y ""
+        Left  err ->
+          p N (progname <> " --version failed: " <> err) >> return Nothing
+        Right out | versionoutput <- rstrip out -> do
+          case parseHledgerVersion versionoutput of
+            Left  _ -> p N (progname <> " --version shows: " <> rstrip out) >> return Nothing
+            Right bininfo@HledgerBinaryVersion{..} -> do
+              p Y versionoutput
 
-          -- If it runs, do more checks
-          let
-            versionoutput = rstrip out
-            versionwords = words versionoutput
+              -- It runs and --version output looks ok, continue
 
-          pdesc "is a native binary ?"
-          let
-            sysarch = os' <> "-" <> arch
-              where
-                os' -- keep synced: Version.hs
-                  | os == "darwin" = "mac"
-                  | os == "mingw32" = "windows"
-                  | otherwise = os
-          case drop 2 versionwords of
-            exearch:_ -> if exearch == sysarch
-              then p Y versionoutput
-              else p N $ "installed binary is for " <> exearch <> ", system is " <> sysarch
-            _ -> p U $ "couldn't detect arch in --version output"
+              pdesc "is a native binary ?"
+              case hbinArch of
+                Nothing -> p U $ "couldn't detect arch in --version output"
+                Just binarch | binarch /= arch -> p N $ "installed binary is for " <> binarch <> ", system is " <> arch
+                Just binarch -> p Y binarch
 
-          pdesc "is up to date ?"
-          case drop 1 versionwords of
-            [] -> p U "couldn't parse --version output" >> return Nothing
-            detailedversionstr:_ -> do
-              let
-                versionnumstr = takeWhile (`elem` ("0123456789." :: String)) detailedversionstr
-                mversion      = toVersion versionnumstr
-              case mversion of
-                Nothing -> p U "couldn't parse --version's version number" >> return Nothing
-                Just version -> do
-                  elatestversionnumstr <- getLatestHledgerVersion
-                  case elatestversionnumstr of
-                    Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
-                    Right latestversionnumstr ->
-                      case toVersion latestversionnumstr of
-                        Nothing -> p U "couldn't parse latest version number"
-                        Just latest -> p (if version >= latest then Y else N) (versionnumstr <> " installed, latest is " <> latestversionnumstr)
-                  return $ Just (versionoutput, version) 
+              pdesc "is up to date ?"
+              let binversion = hbinPackageVersion
+              elatestversionnumstr <- getLatestHledgerVersion
+              case elatestversionnumstr of
+                Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
+                Right latestversionnumstr ->
+                  case toVersion latestversionnumstr of
+                    Nothing -> p U "couldn't parse latest version number"
+                    Just latestversion -> p
+                      (if binversion >= latestversion then Y else N)
+                      (showVersion hbinPackageVersion <> " installed, latest is " <> latestversionnumstr)
+
+              pdesc "is the hledger running setup the same ?"
+              if prognameandversion == hbinVersionOutput
+              then i Y ""
+              else i N prognameandversion
+
+              return $ Just bininfo
 
 
 ------------------------------------------------------------------------------
@@ -342,16 +344,22 @@ setupTags = do
 -- yes, no, unknown
 data YNU = Y | N | U deriving (Eq)
 
+-- ANSI styles
+good    = bold' . brightGreen'
+neutral = bold' . brightBlue'
+warning = bold' . brightYellow'
+bad     = bold' . brightRed'
+
 -- Show status, in red/green/yellow if supported.
 instance Show YNU where
-  show Y = bold' (brightGreen'  "yes")    -- ✅ apple emojis - won't work everywhere
-  show N = bold' (brightRed'    " no")    -- ❌
-  show U = bold' (brightYellow' " ? ")
+  show Y = good    "yes"    -- ✅ apple emojis - won't work everywhere
+  show N = bad     " no"    -- ❌
+  show U = warning " ? "
 
 -- Show status, in blue/yellow if supported.
-showInfo Y = bold' (brightBlue'   "yes")  -- ℹ️
-showInfo N = bold' (brightBlue'   " no")  -- ℹ️
-showInfo U = bold' (brightYellow' " ? ")
+showInfo Y = neutral "yes"  -- ℹ️
+showInfo N = neutral " no"  -- ℹ️
+showInfo U = warning " ? "
 
 -- | Print a test's pass or fail status, as "yes" or "no" or "",
 -- in green/red if supported, and the (possibly empty) provided message.
