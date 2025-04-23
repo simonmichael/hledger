@@ -26,9 +26,9 @@ where
 import Control.Applicative ((<|>))
 import Control.Exception
 import Control.Monad
+import qualified Data.ByteString as B
 import Data.Char
 import Data.List
-import Data.List.NonEmpty (NonEmpty ((:|)))
 import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Text as T
@@ -45,10 +45,11 @@ import System.Info
 import System.Process
 import Text.Printf (printf)
 
-import Hledger
+import Hledger hiding (setupPager)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Version
+import Data.Default (def)
 
 
 setupmode = hledgerCommandMode
@@ -95,27 +96,40 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
     putStrLn $ "Legend: " <> intercalate ", " [
        good    "good"
       ,neutral "neutral"
-      ,warning "warning"
-      ,bad     "bad"
+      ,warning "unknown"
+      ,bad     "warning"
       ]
   mversion <- setupHledger
   case mversion of
     Nothing -> return ()
     Just HledgerBinaryVersion{hbinPackageVersion=version} -> do
-      setupConfig version
-      setupFile version
-      setupAccounts version
-      -- setupCommodities version
-      -- setupTags version
+      setupLocale
+      conf <- fromMaybe nullconf <$> setupConfig version
+      setupColor version conf
+      setupPager version conf
+      setupPretty version conf
+      setupCompletions version
+      ej <- setupJournal version
+      let mj = either (const Nothing) Just ej
+      setupAccounts version mj
+      setupCommodities version mj
       return ()
   putStr "\n"
 
 -- Test a hledger version for support of various features.
-supportsIgnoreAssertions      = (>= 0 :| [24])  -- --ignore-assertions, 2014
-supportsAccountTypes          = (>= 1 :| [13])  -- ALERX account types, type: tag, 2019
-supportsCashAccountType       = (>= 1 :| [19])  -- C/Cash account type, 2020
-supportsConversionAccountType = (>= 1 :| [25])  -- V/Conversion account type, accounts --types, 2022
-supportsConfigFiles           = (>= 1 :| [40])  -- config files, 2024
+ver >=! str = ver >= (fromJust $ toVersion str)
+supportsIgnoreAssertions      = (>=! "0.24")  -- --ignore-assertions (2014)
+supportsCommodityDirective    = (>=! "1.0")   -- commodity directive (2016)
+supportsPretty                = (>=! "1.2")   -- --pretty, to use box-drawing characters (2017)
+supportsAccountDirective      = (>=! "1.9")   -- account directive (2018)
+supportsAccountTypes          = (>=! "1.13")  -- ALERX account types, type: tag (2019)
+supportsCashAccountType       = (>=! "1.19")  -- C/Cash account type (2020)
+supportsBasicColor            = (>=! "1.19")  -- basic color detection/control (2020)
+supportsConversionAccountType = (>=! "1.25")  -- V/Conversion account type, accounts --types (2022)
+supportsConfigFiles           = (>=! "1.40")  -- config files (2024)
+supportsColor                 = (>=! "1.41")  -- robust color detection/control (2024)
+supportsPager                 = (>=! "1.41")  -- use a pager for all output (2024)
+supportsBashCompletions       = (>=! "1.41")  -- up to date bash shell completions (2024)
 
 ------------------------------------------------------------------------------
 
@@ -189,7 +203,7 @@ setupHledger = do
                       (if binversion >= latestversion then Y else N)
                       (showVersion hbinPackageVersion <> " installed, latest is " <> latestversionnumstr)
 
-              pdesc "is same as the hledger checking setup ?"
+              pdesc "is same as the hledger running setup ?"
               if prognameandversion == hbinVersionOutput
               then i Y ""
               else i N prognameandversion
@@ -199,12 +213,13 @@ setupHledger = do
 
 ------------------------------------------------------------------------------
 
+setupConfig :: Version -> IO (Maybe Conf)
 setupConfig version = do
   pgroup "config"
 
-  pdesc "it supports config files ?"
+  pdesc "hledger supports config files ?"
   if (not $ supportsConfigFiles version)
-  then p N "hledger 1.40+ needed"
+  then p N "hledger 1.40+ needed" >> return Nothing
   else do
     p Y ""
 
@@ -230,26 +245,175 @@ setupConfig version = do
 
     let mf = mlf <|> muf
     case mf of
-      Nothing -> return ()
+      Nothing -> return Nothing
       Just _ -> do
-        pdesc "it can read the config file ?"
+        pdesc "hledger can read the config file ?"
         -- Test config file readability, without requiring journal file readability, forward compatibly.
         (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
         case exit of
-          ExitSuccess   -> p Y ""
-          ExitFailure _ -> p N ("\n"<>err)
+          ExitFailure _ -> p N ("\n"<>err) >> return Nothing
+          ExitSuccess   -> do
+            p Y ""
 
-    -- (if needed) Read config file in-process:
-    -- econfsections <- readFile f <&> parseConf f . T.pack
+            -- Read config file ourselves for closer inspection
+            -- econfsections <- readFile f <&> parseConf f . T.pack
+            econf <- getConf def  -- safer; should agree with file detection above
+            case econf of
+              Left _ -> return Nothing
+              Right (conf, _) -> do
 
-    -- pdesc "common general options configured ?"
-    -- --pretty --ignore-assertions --infer-costs"
-    -- print --explicit --show-costs"
+                -- pdesc "common general options configured ?"
+                -- --pretty --ignore-assertions --infer-costs"
+                -- print --explicit --show-costs"
+
+                return $ Just conf
 
 ------------------------------------------------------------------------------
 
-setupFile version = do
-  pgroup "file"
+setupLocale = do
+  pgroup "locale"
+
+  -- pdesc "a locale is set to allow UTF-8 text ?"
+  -- pdesc "the locale allows decoding UTF-8 text ?"
+  pdesc "the locale allows handling UTF-8 text ?"
+  case T.decodeUtf8' $ B.pack [0xC3, 0xA9] of  -- é
+    Left _  -> p N "hint: set a UTF-8 locale / enable UTF-8 text"
+    Right t -> p Y (T.unpack t)
+  --- XXX also recognise non-utf8 locales I guess, as long as some text encoding is supported
+
+------------------------------------------------------------------------------
+
+setupColor version conf = do
+  pgroup "color"
+
+  pdesc "hledger supports robust color output ?"
+  if not $ supportsColor version then p N "hledger 1.41+ needed"
+  else do
+    p Y ""
+
+    pdesc "the NO_COLOR variable is defined ?"
+    mnocolor <- lookupEnv "NO_COLOR"
+    case mnocolor of
+      Nothing -> i N ""
+      Just _  -> i Y ""
+
+    meconfigcolor <- do
+      pdesc "color is configured in the config file ?"  -- we check the general section only
+      let
+        confgenargs = confLookup "general" conf
+        mcolorarg = find (\a -> any (`isPrefixOf` a) ["--color", "--colour"]) confgenargs
+      case mcolorarg of
+        Nothing -> i N "" >> return Nothing
+        Just a  -> do
+          i Y a
+          let
+            arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
+          return $ Just $ parseYNA arg
+
+    pdesc "hledger will use color when possible ?"
+    case (meconfigcolor, isJust mnocolor) of
+      (Just (Right Yes), _)     -> i Y ""
+      (Just (Right No),  _)     -> i N ""
+      (_,                True)  -> i N ""
+      (_,                False) -> i Y ""
+
+------------------------------------------------------------------------------
+
+setupPager version conf = do
+  pgroup "pager"
+  
+  pdesc "hledger supports paged output ?"
+  if not $ supportsPager version then p N "hledger 1.41+ needed"
+  else do
+    p Y ""
+
+    pdesc "the PAGER variable is defined ?"
+    mv <- lookupEnv "PAGER"
+    case mv of
+      Nothing -> i N ""
+      Just v  -> i Y v
+
+    pdesc "pager is configured in the config file ?"
+    let
+      confgenargs = confLookup "general" conf
+      mpagerarg = find ("--pager" `isPrefixOf`) confgenargs
+    meconfpager <- case mpagerarg of
+      Nothing -> i N "" >> return Nothing
+      Just a  -> do
+        i Y a
+        let arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
+        return $ Just $ parseYNA arg
+
+    pdesc "it will use a pager for large output ?"
+    mpager <- findPager
+    case mpager of
+      Nothing    -> p N "no pager was found"
+      Just pager ->
+        case meconfpager of
+          Just (Right No) -> p N ""
+          _ -> do
+            p Y pager
+
+            when (map toLower (takeBaseName pager) == "more") $ do
+              pdesc "the MORE variable is defined ?"
+              mv <- lookupEnv "MORE"
+              case mv of
+                Nothing -> i N ""
+                Just v  -> i Y v
+
+            when (map toLower (takeBaseName pager) == "less") $ do
+              pdesc "the LESS variable is defined ?"
+              mLESS <- lookupEnv "LESS"
+              case mLESS of
+                Nothing -> i N ""
+                Just _  -> i Y ""
+
+              pdesc "the HLEDGER_LESS variable is defined ?"
+              mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
+              case mHLEDGER_LESS of
+                Nothing -> i N ""
+                Just v  -> i Y v
+
+              when (isNothing mHLEDGER_LESS) $ do
+                pdesc "adjusting LESS variable for color etc. ?"
+                usecolor <- useColorOnStdout
+                i (if usecolor then Y else N) ""
+
+
+------------------------------------------------------------------------------
+
+setupPretty version conf = do
+  pgroup "pretty"
+
+  pdesc "hledger supports pretty table borders ?"
+  if not $ supportsPretty version then p N "hledger 1.2+ needed"
+  else do
+    p Y ""
+
+    pdesc "--pretty is enabled in the config file ?"
+    let
+      confgenargs = confLookup "general" conf
+      confpretty = isJust $ find ("--pretty" ==) confgenargs
+    i (if confpretty then Y else N) ""
+
+------------------------------------------------------------------------------
+
+setupCompletions version = do
+  pgroup "completions"
+
+  pdesc "up to date bash completions available ?"
+  if not $ supportsBashCompletions version then p N "hledger 1.41+ needed"
+  else do
+    p Y ""
+
+    pdesc "bash shell completions are installed ?"
+    p U ""
+
+------------------------------------------------------------------------------
+
+setupJournal :: Version -> IO (Either String Journal)
+setupJournal version = do
+  pgroup "journal"
 
   pdesc "a home directory journal file exists ?"
   mh <- getHomeSafe
@@ -298,7 +462,7 @@ setupFile version = do
           else (Y, "")
       p ok msg
 
-    pdesc "it can read the default journal ?"
+    pdesc "hledger can read the default journal ?"
     -- Basic readability check: ignoring config files if it's hledger >=1.40,
     -- and balance assertions if possible (can't if it's hledger <=0.23),
     -- try read the file (ie do the parseable and autobalanced checks pass).
@@ -313,93 +477,112 @@ setupFile version = do
       ExitSuccess   -> p Y ""
       ExitFailure _ -> p N ("\n"<>err)
 
+  -- Try to read the journal ourselves for closer inspection later.
+  -- There's the possibility this could read the journal differently from the hledger in PATH,
+  -- if that's  a different version.
+  -- Also we assume defaultJournalPath will detect the same file as the logic above.
+  defaultJournalSafely
+
 
 ------------------------------------------------------------------------------
 
-setupAccounts version = do
+setupAccounts version mj = do
   pgroup "accounts"
 
-  pdesc "it supports all account types ?"  --  (ALERXCV)
-  if not $ supportsConversionAccountType version
-  then p N "hledger 1.25+ needed"
+  pdesc "hledger supports account directives ?"
+  if not $ supportsAccountDirective version
+  then p N "hledger 1.9+ needed"
   else do
     p Y ""
 
-    pdesc "Asset accounts declared ?"    
-    -- Read journal file in-process, to get accurate declaration info.
-    -- There's the possibility this could read the journal differently from the hledger in PATH,
-    -- if this currently running hledger is a different version.
-    -- Also we assume defaultJournalPath will detect the same file as the logic above.
-    f  <- defaultJournalPath
-    ej <- defaultJournalSafely
-    case ej of
-      Left  e -> p U $ "could not read default journal " <> f <> ": " <> e
-      Right j@Journal{..} -> do
-        let
-          accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
-          acctswithdeclaredorinferredtype = nub (M.keys jaccounttypes)
-          usedacctswithnotype = journalAccountNamesUsed j \\ acctswithdeclaredorinferredtype
-          hasdeclaredaccts t = case M.lookup t jdeclaredaccounttypes of
-            Just (_ : _) -> True
-            _ -> False
-        if hasdeclaredaccts Asset then i Y "" else i N ""
+    pdesc "hledger supports all account types ?"  --  (ALERXCV)
+    if not $ supportsConversionAccountType version
+    then p N "hledger 1.25+ needed"
+    else do
+      p Y ""
 
-        pdesc "Liability accounts declared ?"
-        if hasdeclaredaccts Liability then i Y "" else i N ""
+      case mj of
+        Nothing -> return ()
+        Just j@Journal{..} -> do
 
-        pdesc "Equity accounts declared ?"
-        if hasdeclaredaccts Equity then i Y "" else i N ""
+          let
+            accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
+            typesdeclaredorinferred = nub $ M.elems jaccounttypes
+            acctswithdeclaredorinferredtype = nub (M.keys jaccounttypes)
+            untypedaccts = journalAccountNames j \\ acctswithdeclaredorinferredtype
+            undeclaredaccts = journalAccountNamesUsed j \\ journalAccountNamesDeclared j
+            hasdeclaredaccts t = case M.lookup t jdeclaredaccounttypes of
+              Just (_ : _) -> True
+              _ -> False
 
-        pdesc "Revenue accounts declared ?"
-        if hasdeclaredaccts Revenue then i Y "" else i N ""
+          pdesc "Asset accounts declared ?"    
+          if hasdeclaredaccts Asset then i Y "" else i N ""
 
-        pdesc "Expense accounts declared ?"
-        if hasdeclaredaccts Expense then i Y "" else i N ""
+          pdesc "Liability accounts declared ?"
+          if hasdeclaredaccts Liability then i Y "" else i N ""
 
-        pdesc "Cash accounts declared ?"
-        if hasdeclaredaccts Cash then i Y "" else i N ""
+          pdesc "Equity accounts declared ?"
+          if hasdeclaredaccts Equity then i Y "" else i N ""
 
-        pdesc "Conversion accounts declared ?"
-        if hasdeclaredaccts Conversion then i Y "" else i N ""  -- ("--infer-equity will use a default conversion account name")
+          pdesc "Revenue accounts declared ?"
+          if hasdeclaredaccts Revenue then i Y "" else i N ""
 
-        -- XXX hard to detect accounts where type was inferred from name
-        -- unless arealltypesdeclared $ do
-        -- let
-        --   acctswithdeclaredtype           = concat (M.elems jdeclaredaccounttypes)
-        --   acctswithinferredtype           = acctswithdeclaredorinferredtype \\ acctswithdeclaredtype
-        --   arealltypesdeclared = all hasdeclaredaccts accttypes
-        --   typesinferredfromnames =
-        --     if arealltypesdeclared then []
-        --     else sort $ nub $ catMaybes $ map (flip M.lookup jaccounttypes) acctswithinferredtype
-        -- pdesc "types detected from account names ?"
-        -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
+          pdesc "Expense accounts declared ?"
+          if hasdeclaredaccts Expense then i Y "" else i N ""
 
-        pdesc "all types either declared or inferred  ?"
-        let
-          typesdeclaredorinferred = nub $ M.elems jaccounttypes
-        if all (`elem` typesdeclaredorinferred) accttypes then p Y "" else p N ""
+          pdesc "Cash accounts declared ?"
+          if hasdeclaredaccts Cash then i Y "" else i N ""
 
+          pdesc "Conversion accounts declared ?"
+          if hasdeclaredaccts Conversion then i Y "" else i N ""  -- ("--infer-equity will use a default conversion account name")
 
-        pdesc "untyped accounts detected ?"
-        if null usedacctswithnotype then i N "" else i Y ("("<>show (length usedacctswithnotype)<>")")
+          -- XXX hard to detect accounts where type was inferred from name
+          -- unless arealltypesdeclared $ do
+          -- let
+          --   acctswithdeclaredtype           = concat (M.elems jdeclaredaccounttypes)
+          --   acctswithinferredtype           = acctswithdeclaredorinferredtype \\ acctswithdeclaredtype
+          --   arealltypesdeclared = all hasdeclaredaccts accttypes
+          --   typesinferredfromnames =
+          --     if arealltypesdeclared then []
+          --     else sort $ nub $ catMaybes $ map (flip M.lookup jaccounttypes) acctswithinferredtype
+          -- pdesc "types detected from account names ?"
+          -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
 
-        -- pdesc "all used accounts declared ?"
+          pdesc "an account of each type was detected ?"
+          if all (`elem` typesdeclaredorinferred) accttypes
+          then p Y ""
+          else p N "reports like bs, cf, is may be empty"
+
+          pdesc "all accounts have types ?"
+          if null untypedaccts then i Y "" else i N ""
+
+          pdesc "all used accounts are declared ?"
+          if null undeclaredaccts then i Y "" else i N ""
 
 ------------------------------------------------------------------------------
 
-setupCommodities = do
+setupCommodities version mj = do
   pgroup "commodities"
-  -- pdesc "all used commodities declared ?"
-  -- pdesc "\n"
-  -- pdesc "\n"
+
+  pdesc "hledger supports commodity directives ?"
+  if not $ supportsCommodityDirective version
+  then p N "hledger 1.0+ needed"
+  else do
+    p Y ""
+
+    case mj of
+      Nothing -> return ()
+      Just j -> do
+
+        pdesc "all used commodities are declared ?"
+        let undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
+        if null undeclaredcommodities then p Y "" else p N "declaring helps set their precision"
 
 ------------------------------------------------------------------------------
 
-setupTags = do
-  pgroup "tags"
-  -- pdesc "all used tags declared ?"
-  -- pdesc "\n"
-  -- pdesc "\n"
+-- setupX = do
+--   pgroup "x"
+--   pdesc "x ?"
 
 ------------------------------------------------------------------------------
 
