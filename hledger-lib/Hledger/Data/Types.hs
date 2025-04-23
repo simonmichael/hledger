@@ -735,8 +735,9 @@ nullaccountdeclarationinfo = AccountDeclarationInfo {
   ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
--- | An account, with its balances, parent/subaccount relationships, etc.
--- Only the name is required; the other fields are added when needed.
+-- | An account within a hierarchy, with its balances, parent/subaccount
+-- relationships, etc. Only the name is required; the other fields are added
+-- when needed.
 data Account a = Account {
    aname                     :: AccountName         -- ^ this account's full name
   ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives

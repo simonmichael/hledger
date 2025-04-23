@@ -58,7 +58,8 @@ import Data.Time (Day(..), fromGregorian)
 import Safe (headMay)
 import Text.Printf (printf)
 
-import Hledger.Data.AccountBalance
+import Hledger.Data.AccountBalance ()
+import Hledger.Data.AccountBalances
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Types
@@ -134,13 +135,14 @@ accountFromPostings getPostingDate ps =
                                . fromMaybe mempty
 
 -- | Convert a list of account names to a tree of Account objects,
--- with just the account names filled in.
+-- with just the account names filled in and an empty balance.
 -- A single root account with the given name is added.
 accountTree :: Monoid a => AccountName -> [AccountName] -> Account a
 accountTree rootname = accountTreeFromBalanceAndNames rootname mempty
 
 -- | Convert a list of account names to a tree of Account objects,
--- with just the account names and a constant balance filled in.
+-- with just the account names filled in. Each account is given the same
+-- supplied balance.
 -- A single root account with the given name is added.
 accountTreeFromBalanceAndNames :: AccountName -> AccountBalances a -> [AccountName] -> Account a
 accountTreeFromBalanceAndNames rootname bals as =
