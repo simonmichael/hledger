@@ -784,20 +784,41 @@ advanceToNthWeekday n wd s =
 --     parseTimeM TruedefaultTimeLocale "%Y-%m-%d %H:%M:%S" s
 --     ]
 
--- | Try to parse a couple of date string formats:
--- `YYYY-MM-DD`, `YYYY/MM/DD` or `YYYY.MM.DD`, with leading zeros required.
--- For internal use, not quite the same as the journal's "simple dates".
+-- | A simple date parsing helper: parses these YMD date string formats:
+-- `YYYY-MM-DD`, `YYYY/MM/DD`, `YYYY.MM.DD` or `YYYYMMDD`,
+-- where the month and day each have two digits and the year has one or more.
+--
+-- This is different from the Smart Dates of the CLI and period expressions ("smartdate", below)
+-- and not quite the same as the Simple Dates of the journal ("datep", in Hledger.Read.Common).
+-- It's mainly for internal or interactive use, eg when debugging - 
+-- but currently is also used in a few user-facing places, such as:
+-- parsing --value's argument, 
+-- parsing .latest files,
+-- and parsing hledger's --version output (which uses unseparated dates).
+--
+-- Unseparated dates were added in 2025 for convenience.
+-- Note it means many integers will now parse successfully.
+--
 -- >>> parsedate "2008/02/03"
 -- Just 2008-02-03
 -- >>> parsedate "2008/02/03/"
 -- Nothing
 -- >>> parsedate "2008/02/30"
 -- Nothing
+-- >>> parsedate "2025-01-01"
+-- Just 2025-01-01
+-- >>> parsedate "2025.01.01"
+-- Just 2025-01-01
+-- >>> parsedate "20250101"
+-- Just 2025-01-01
+-- >>> parsedate "00101"
+-- Just 0000-01-01
 parsedate :: String -> Maybe Day
 parsedate s = asum [
      parseTimeM True defaultTimeLocale "%Y-%m-%d" s,
      parseTimeM True defaultTimeLocale "%Y/%m/%d" s,
-     parseTimeM True defaultTimeLocale "%Y.%m.%d" s
+     parseTimeM True defaultTimeLocale "%Y.%m.%d" s,
+     parseTimeM True defaultTimeLocale "%Y%m%d" s
      ]
 
 {-|
