@@ -29,6 +29,7 @@ import Control.Monad
 import Data.Char
 import Data.List
 import Data.List.NonEmpty (NonEmpty ((:|)))
+import qualified Data.Map as M
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
@@ -103,7 +104,7 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
     Just HledgerBinaryVersion{hbinPackageVersion=version} -> do
       setupConfig version
       setupFile version
-      -- setupAccounts version
+      setupAccounts version
       -- setupCommodities version
       -- setupTags version
       return ()
@@ -201,7 +202,7 @@ setupHledger = do
 setupConfig version = do
   pgroup "config"
 
-  pdesc "this hledger supports config files ?"
+  pdesc "that hledger supports config files ?"
   if (not $ supportsConfigFiles version)
   then p N "hledger 1.40+ needed"
   else do
@@ -231,12 +232,15 @@ setupConfig version = do
     case mf of
       Nothing -> return ()
       Just _ -> do
-        pdesc "this hledger can read the config file ?"
+        pdesc "that hledger can read the config file ?"
         -- Test config file readability, without requiring journal file readability, forward compatibly.
         (exit, _, err) <- readProcessWithExitCode progname ["print", "-f-"] ""
         case exit of
           ExitSuccess   -> p Y ""
           ExitFailure _ -> p N ("\n"<>err)
+
+    -- (if needed) Read config file in-process:
+    -- econfsections <- readFile f <&> parseConf f . T.pack
 
     -- pdesc "common general options configured ?"
     -- --pretty --ignore-assertions --infer-costs"
@@ -294,7 +298,7 @@ setupFile version = do
           else (Y, "")
       p ok msg
 
-    pdesc "this hledger can read default journal ?"
+    pdesc "that hledger can read default journal ?"
     -- Basic readability check: ignoring config files if it's hledger >=1.40,
     -- and balance assertions if possible (can't if it's hledger <=0.23),
     -- try read the file (ie do the parseable and autobalanced checks pass).
@@ -312,16 +316,74 @@ setupFile version = do
 
 ------------------------------------------------------------------------------
 
-setupAccounts = do
+setupAccounts version = do
   pgroup "accounts"
 
-  pdesc "all account types declared or detected ?"
+  pdesc "supports account types (ALERXCV) ?"
+  if not $ supportsConversionAccountType version
+  then p N "hledger 1.25+ needed"
+  else do
+    p Y ""
 
-  -- pdesc "  asset, liability, equity, revenue, expense, cash, conversion"
+    pdesc "Asset account(s) declared ?"    
+    -- Read journal file in-process, to get accurate declaration info.
+    -- There's the possibility this could read the journal differently from the hledger in PATH,
+    -- if this currently running hledger is a different version.
+    -- Also we assume defaultJournalPath will detect the same file as the logic above.
+    f  <- defaultJournalPath
+    ej <- defaultJournalSafely
+    case ej of
+      Left  e -> p U $ "could not read default journal " <> f <> ": " <> e
+      Right j@Journal{..} -> do
+        let
+          accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
+          acctswithdeclaredorinferredtype = nub (M.keys jaccounttypes)
+          usedacctswithnotype = journalAccountNamesUsed j \\ acctswithdeclaredorinferredtype
+          hasdeclaredaccts t = case M.lookup t jdeclaredaccounttypes of
+            Just (_ : _) -> True
+            _ -> False
+        if hasdeclaredaccts Asset then i Y "" else i N ""
 
-  -- pdesc "untyped accounts ?"
+        pdesc "Liability account(s) declared ?"
+        if hasdeclaredaccts Liability then i Y "" else i N ""
 
-  -- pdesc "all used accounts declared ?"
+        pdesc "Equity account(s) declared ?"
+        if hasdeclaredaccts Equity then i Y "" else i N ""
+
+        pdesc "Revenue account(s) declared ?"
+        if hasdeclaredaccts Revenue then i Y "" else i N ""
+
+        pdesc "Expense account(s) declared ?"
+        if hasdeclaredaccts Expense then i Y "" else i N ""
+
+        pdesc "Cash account(s) declared ?"
+        if hasdeclaredaccts Cash then i Y "" else i N ""
+
+        pdesc "Conversion account(s) declared ?"
+        if hasdeclaredaccts Conversion then i Y "" else i N ""  -- ("--infer-equity will use a default conversion account name")
+
+        -- XXX hard to detect accounts where type was inferred from name
+        -- unless arealltypesdeclared $ do
+        -- let
+        --   acctswithdeclaredtype           = concat (M.elems jdeclaredaccounttypes)
+        --   acctswithinferredtype           = acctswithdeclaredorinferredtype \\ acctswithdeclaredtype
+        --   arealltypesdeclared = all hasdeclaredaccts accttypes
+        --   typesinferredfromnames =
+        --     if arealltypesdeclared then []
+        --     else sort $ nub $ catMaybes $ map (flip M.lookup jaccounttypes) acctswithinferredtype
+        -- pdesc "types detected from account names ?"
+        -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
+
+        pdesc "all types either declared or inferred  ?"
+        let
+          typesdeclaredorinferred = nub $ M.elems jaccounttypes
+        if all (`elem` typesdeclaredorinferred) accttypes then p Y "" else p N ""
+
+
+        pdesc "untyped accounts detected ?"
+        if null usedacctswithnotype then i N "" else i Y ("("<>show (length usedacctswithnotype)<>")")
+
+        -- pdesc "all used accounts declared ?"
 
 ------------------------------------------------------------------------------
 
