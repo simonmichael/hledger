@@ -89,6 +89,9 @@ module Hledger.Read (
   -- * Journal files
   PrefixedFilePath,
   defaultJournal,
+  defaultJournalWith,
+  defaultJournalSafely,
+  defaultJournalSafelyWith,
   defaultJournalPath,
   requireJournalFileExists,
   ensureJournalFileExists,
@@ -175,9 +178,25 @@ journalEnvVar           = "LEDGER_FILE"
 journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
 
--- | Read the default journal file specified by the environment, or raise an error.
+-- | Read the default journal file specified by the environment, 
+-- with default input options, or raise an error.
 defaultJournal :: IO Journal
-defaultJournal = defaultJournalPath >>= runExceptT . readJournalFile definputopts >>= either error' return  -- PARTIAL:
+defaultJournal = defaultJournalSafely >>= either error' return -- PARTIAL:
+
+-- | Read the default journal file specified by the environment,
+-- with the given input options, or raise an error.
+defaultJournalWith :: InputOpts -> IO Journal
+defaultJournalWith iopts = defaultJournalSafelyWith iopts >>= either error' return -- PARTIAL:
+
+-- | Read the default journal file specified by the environment,
+-- with default input options, or return an error message.
+defaultJournalSafely :: IO (Either String Journal)
+defaultJournalSafely = defaultJournalSafelyWith definputopts
+
+-- | Read the default journal file specified by the environment,
+-- with the given input options, or return an error message.
+defaultJournalSafelyWith :: InputOpts -> IO (Either String Journal)
+defaultJournalSafelyWith iopts = defaultJournalPath >>= runExceptT . readJournalFile iopts
 
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
