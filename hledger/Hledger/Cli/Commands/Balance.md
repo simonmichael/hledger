@@ -72,8 +72,7 @@ for listing account balances, balance changes, values, value changes and more,
 during one time period or many.
 Generally it shows a table, with rows representing accounts, and columns representing periods. 
 
-Note there are some higher-level variants of the `balance` command
-with convenient defaults, which can be simpler to use:
+Note there are some variants of the `balance` command with convenient defaults, which are simpler to use:
 [`balancesheet`](#balancesheet),
 [`balancesheetequity`](#balancesheetequity),
 [`cashflow`](#cashflow) and
@@ -84,7 +83,7 @@ When you need more control, then use `balance`.
 
 Here's a quick overview of the `balance` command's features,
 followed by more detailed descriptions and examples.
-Many of these work with the higher-level commands as well.
+Many of these work with the other balance-like commands as well (`bs`, `cf`, `is`..).
 
 `balance` can show..
 
@@ -361,7 +360,8 @@ is treated as 0).
 
 Revenues and liability balances are typically negative, however, so `-S` shows these in reverse order.
 To work around this, you can add `--invert` to flip the signs.
-(Or, use one of the higher-level reports, which flip the sign automatically. Eg: `hledger incomestatement -MAS`).
+Or you could use one of the higher-level balance reports (`bs`, `is`..), which flip the sign automatically
+(eg: `hledger is -MAS`).
 
 <a name="tree-mode"></a>
 
