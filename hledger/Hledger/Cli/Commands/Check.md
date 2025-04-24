@@ -34,23 +34,23 @@ These important checks are performed by default, by almost all hledger commands:
   This ensures that all files exist and are readable.
 
 - **autobalanced** - all transactions are [balanced](#postings),
-  after inferring missing amounts and conversion [costs] where possible,
-  and then converting to cost.
+  after automatically inferring missing amounts and conversion rates
+  and then converting  amounts to cost.
   This ensures that each transaction's entry is well formed.
 
 - **assertions** - all [balance assertions] in the journal are passing.
   Balance assertions are a strong defense against errors; they help catch many problems.
-  You can disable this check by adding `-I`/`--ignore-assertions` to a command or to your config file.
-  When you want to re-enable it, use `-s`/`--strict` or `hledger check assertions`.
+  (You can disable this check by adding `-I`/`--ignore-assertions` to a command or to your config file.
+  When you want to re-enable it, use `-s`/`--strict` or `hledger check assertions`.)
 
 ### Strict checks
 
-These additional checks are performed by any command when the `-s`/`--strict` flag is used ([strict mode]). 
+These additional checks are performed by all commands when the `-s`/`--strict` flag is used ([strict mode]). 
 Strict mode also always enables the `assertions` check.
-These provide extra error-catching power when you are serious about keeping your data clean and free of typos:
+These provide extra error-catching power to keep your data clean and correct:
 
-- **balanced** - more strict than `autobalanced`: any commodity conversions must be explicit,
-  using either [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
+- **balanced** - like `autobalanced`, but all conversions between commodities must
+  use explicit [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
   This prevents wrong conversions caused by typos.
 
 - **commodities** - all commodity symbols used must be [declared](#commodity-error-checking).
