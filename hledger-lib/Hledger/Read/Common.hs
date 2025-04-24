@@ -197,7 +197,16 @@ instance Show (Reader m) where show r = show (rFormat r) ++ " reader"
 rawOptsToInputOpts :: Day -> Bool -> Bool -> RawOpts -> InputOpts
 rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
 
-    let noinferbalancingcosts = boolopt "strict" rawopts || stringopt "args" rawopts == "balanced"
+    let
+        -- Allow/disallow implicit-cost conversion transactions, according to policy in Check.md.
+        -- Disallow them if we see the --strict flag, or if we see a "balanced" argument,
+        -- which we assume means the user is running "hledger check balanced".
+        -- XXX #2377 The check was originally named "balancednoautoconversion",
+        -- but later it was renamed, so this is no longer good; any command with "balanced"
+        -- as an argument will also enable this check, normally enabled only in strict mode.
+        noinferbalancingcosts =  -- keep synced with Check.*
+             boolopt "strict" rawopts 
+          || stringopt "args" rawopts == "balanced"
 
         -- Do we really need to do all this work just to get the requested end date? This is duplicating
         -- much of reportOptsToSpec.
