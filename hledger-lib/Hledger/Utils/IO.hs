@@ -65,6 +65,7 @@ module Hledger.Utils.IO (
 
   -- * Pager output
   setupPager,
+  findPager,
   runPager,
 
   -- * ANSI colour/styles
@@ -426,23 +427,23 @@ splitFlagsAndVals = concatMap $
 toFlag [c] = ['-',c]
 toFlag s   = '-':'-':s
 
--- | Parse y/yes/always or n/no/never to true or false, or with any other value raise an error.
-parseYN :: String -> Bool
+-- | Parse y/yes/always or n/no/never to true or false, or return an error message.
+parseYN :: String -> Either String Bool
 parseYN s
-  | l `elem` ["y","yes","always"] = True
-  | l `elem` ["n","no","never"]   = False
-  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
+  | l `elem` ["y","yes","always"] = Right True
+  | l `elem` ["n","no","never"]   = Right False
+  | otherwise = Left $ "value should be one of " <> (intercalate ", " ["y","yes","n","no"])
   where l = map toLower s
 
 data YNA = Yes | No | Auto deriving (Eq,Show)
 
--- | Parse y/yes/always or n/no/never or a/auto to a YNA choice, or with any other value raise an error.
-parseYNA :: String -> YNA
+-- | Parse y/yes/always or n/no/never or a/auto to a YNA choice, or return an error message.
+parseYNA :: String -> Either String YNA
 parseYNA s
-  | l `elem` ["y","yes","always"] = Yes
-  | l `elem` ["n","no","never"]   = No
-  | l `elem` ["a","auto"]         = Auto
-  | otherwise = error' $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
+  | l `elem` ["y","yes","always"] = Right Yes
+  | l `elem` ["n","no","never"]   = Right No
+  | l `elem` ["a","auto"]         = Right Auto
+  | otherwise = Left $ "value should be one of " <> (intercalate ", " ["y","yes","n","no","a","auto"])
   where l = map toLower s
 
 -- | Is there a --output-file or -o option in the command line arguments ?
@@ -549,7 +550,7 @@ setupPager = do
   setEnv "LESS" $
     case (mhledgerless, mless) of
       (Just hledgerless, _) -> hledgerless
-      (_, Just less)        -> unwords [less, deflessopts]
+      (_, Just less)        -> if deflessopts `isInfixOf` less then less else unwords [less, deflessopts]
       _                     -> deflessopts
 
 -- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
@@ -588,6 +589,7 @@ runPager s = do
 -- Or INSIDE_EMACS is set, to something other than "vterm".
 -- Or the terminal's current height and width can't be detected.
 -- Or the output text is less wide and less tall than the terminal.
+-- Throws an error if the --pager option's value could not be parsed.
 maybePagerFor :: String -> IO (Maybe String)
 maybePagerFor output = do
   let
@@ -595,7 +597,7 @@ maybePagerFor output = do
     oh = length ls
     ow = maximumDef 0 $ map length ls
     windows = os == "mingw32"
-  pagerno    <- maybe False (not.parseYN) <$> getOpt ["pager"]
+  pagerno    <- maybe False (not . either error' id . parseYN) <$> getOpt ["pager"]
   outputfile <- hasOutputFile
   emacsterm  <- lookupEnv "INSIDE_EMACS" <&> (`notElem` [Nothing, Just "vterm"])
   mhw        <- getTerminalHeightWidth
@@ -625,8 +627,9 @@ findPager = do
 -- hledger-specific:
 
 -- | Get the value of the rightmost --color or --colour option from the program's command line arguments.
+-- Throws an error if the option's value could not be parsed.
 colorOption :: IO YNA
-colorOption = maybe Auto parseYNA <$> getOpt ["color","colour"]
+colorOption = maybe Auto (either error' id . parseYNA) <$> getOpt ["color","colour"]
 
 -- | Should ANSI color and styles be used with this output handle ?
 -- Considers colorOption, the NO_COLOR environment variable, and hSupportsANSIColor.
