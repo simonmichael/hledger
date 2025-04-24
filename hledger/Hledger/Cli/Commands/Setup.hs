@@ -344,7 +344,7 @@ setupPager version conf = do
         let arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
         return $ Just $ parseYNA arg
 
-    pdesc "it will use a pager for large output ?"
+    pdesc "hledger will use a pager when needed ?"
     mpager <- findPager
     case mpager of
       Nothing    -> p N "no pager was found"
@@ -556,7 +556,7 @@ setupAccounts version mj = do
           pdesc "all accounts have types ?"
           if null untypedaccts then i Y "" else i N ""
 
-          pdesc "all used accounts are declared ?"
+          pdesc "all accounts are declared ?"
           if null undeclaredaccts then i Y "" else i N ""
 
 ------------------------------------------------------------------------------
@@ -574,7 +574,7 @@ setupCommodities version mj = do
       Nothing -> return ()
       Just j -> do
 
-        pdesc "all used commodities are declared ?"
+        pdesc "all commodities are declared ?"
         let undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
         if null undeclaredcommodities then p Y "" else p N "declaring helps set their precision"
 
