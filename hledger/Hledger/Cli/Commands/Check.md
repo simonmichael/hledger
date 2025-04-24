@@ -36,59 +36,59 @@ These important checks are performed by default, by almost all hledger commands:
 - **autobalanced** - all transactions are [balanced](#postings),
   after inferring missing amounts and conversion [costs] where possible,
   and then converting to cost.
-  This ensures that each individual transaction is well formed.
+  This ensures that each transaction's entry is well formed.
 
 - **assertions** - all [balance assertions] in the journal are passing.
-  Balance assertions are like canaries in your journal, they catch many problems.
-  They can get in the way sometimes; you can disable them temporarily with `-I`/`--ignore-assertions`
-  (unless overridden with `-s`/`--strict` or `hledger check assertions`).
+  Balance assertions are a strong defense against errors; they help catch many problems.
+  You can disable this check by adding `-I`/`--ignore-assertions` to a command or to your config file.
+  When you want to re-enable it, use `-s`/`--strict` or `hledger check assertions`.
 
 ### Strict checks
 
 These additional checks are performed by any command when the `-s`/`--strict` flag is used ([strict mode]). 
-Strict mode always enables the balance assertions check, also.
+Strict mode also always enables the `assertions` check.
 These provide extra error-catching power when you are serious about keeping your data clean and free of typos:
 
-- **balanced** - like `autobalanced`, but in [conversion transactions](#recording-costs),
-  costs must be written explicitly. This ensures some redundancy in the entry, which helps prevent typos.
+- **balanced** - more strict than `autobalanced`: any commodity conversions must be explicit,
+  using either [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
+  This prevents wrong conversions caused by typos.
 
-- **commodities** - all commodity symbols used [must be declared](#commodity-error-checking).
+- **commodities** - all commodity symbols used must be [declared](#commodity-error-checking).
   This guards against mistyping or omitting commodity symbols.
+  commodity declarations also set their precision for display and transaction balancing.
 
-- **accounts** - all account names used [must be declared](#account-error-checking).
+- **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
 
 ### Other checks
 
-These other checks are not wanted by everyone, but can be run using the `check` command:
+These are not wanted by everyone, but can be run using the `check` command:
 
-- **ordereddates** - within each file, transactions are ordered by date.
-  This is a simple and effective error catcher, and you should use it.
-  Alas! not everyone wants it. If you do, use `hledger check -s ordereddates`.
-  When enabled, this check is performed early, before balance assertions
-  (because copy-pasted dates are often the root cause of balance assertion failures).
+- **tags** - all tags used must be [declared](#tag-directive).
+  This prevents mis-spelled tag names.
+  Note hledger fairly often finds unintended tags in comments.
 
-- **payees** - all payees used by transactions [must be declared](#payee-directive).
-  This will force you to always use known/declared payee names. 
-  For most people this is a bit too restrictive.
+- **payees** - all payees used in transactions must be [declared](#payee-directive).
+  This will force you to declare any new payee name before using it.
+  Most people will probably find this a bit too strict.
 
-- **tags** - all tags used by transactions [must be declared](#tag-directive).
-  This prevents mistyped tag names.
+- **ordereddates** - within each file, transactions must be ordered by date.
+  This is a simple and effective error catcher. It's not included in strict mode,
+  but you can add it by running `hledger check -s ordereddates`.
+  If enabled, this check is performed before balance assertions.
 
-- **recentassertions** - all accounts with balance assertions must have
-  a balance assertion within the last 7 days before their latest posting.
-  This encourages you to add balance assertions fairly regularly for
-  your active asset/liability accounts, which in turn should encourage
-  you to check and reconcile with their real world balances fairly regularly.
-  [`close --assert`](#close---assert) can be helpful.
-  (The older balance assertions become redundant; you can remove them
-  periodically, or leave them in place, perhaps commented, as documentation.)
+- **recentassertions** - all accounts with balance assertions must have one that's
+  within the 7 days before their latest posting.
+  This will encourage adding balance assertions for your active asset/liability accounts,
+  which in turn should encourage you to reconcile regularly with those real world balances -
+  another strong defense against errors.
+  [`hledger close --assert`](#close---assert) can help generate assertion entries.
+  Over time the older assertions become somewhat redundant, and you can remove them if you like
+  (they don't affect performance much, but they add some noise to the journal).
 
-- **uniqueleafnames** - no two accounts may have the same leaf name.
-  The leaf name is the last colon-separated part of an account name, eg
-  `checking` in `assets:bank:checking`.
-  This encourages you to keep those unique, effectively giving each account
-  a short name which is easier to remember and to type in reporting commands.
+- **uniqueleafnames** - no two accounts may have the same last account name part
+  (eg the `checking` in `assets:bank:checking`).
+  This ensures each account can be matched by a unique short name, easier to remember and to type.
 
 ### Custom checks
 
