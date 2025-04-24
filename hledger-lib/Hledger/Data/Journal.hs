@@ -74,6 +74,7 @@ module Hledger.Data.Journal (
   journalTagsUsed,
   journalTagsDeclaredOrUsed,
   journalCommoditiesDeclared,
+  journalCommoditiesUsed,
   journalCommodities,
   journalDateSpan,
   journalDateSpanBothDates,
@@ -405,6 +406,10 @@ showJournalAmountsDebug = show.map showMixedAmountOneLine.journalPostingAmounts
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
 journalCommoditiesDeclared :: Journal -> [CommoditySymbol]
 journalCommoditiesDeclared = M.keys . jdeclaredcommodities
+
+-- | Sorted unique commodity symbols used in this journal.
+journalCommoditiesUsed :: Journal -> [CommoditySymbol]
+journalCommoditiesUsed = S.elems . S.fromList . concatMap (map acommodity . amounts) . journalPostingAmounts
 
 -- | Sorted unique commodity symbols mentioned in this journal.
 journalCommodities :: Journal -> S.Set CommoditySymbol
