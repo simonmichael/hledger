@@ -273,7 +273,7 @@ main = exitOnExceptions $ withGhcDebug' $ do
     seq cliconfrawopts $  -- order debug output
     if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
       then return (nullconf,Nothing)
-      else getConf cliconfrawopts
+      else getConf' cliconfrawopts
 
   ---------------------------------------------------------------
   dbgIO "\n3. Identify a command name from config file or command line" ()

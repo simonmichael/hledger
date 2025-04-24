@@ -7,7 +7,10 @@ Read extra CLI arguments from a hledger config file.
 {-# LANGUAGE MultiWayIf #-}
 
 module Hledger.Cli.Conf (
-   getConf
+   Conf
+  ,SectionName
+  ,getConf
+  ,getConf'
   ,nullconf
   ,confLookup
   ,activeConfFile
@@ -19,24 +22,24 @@ module Hledger.Cli.Conf (
 )
 where
 
-import Control.Monad (void, forM, when)
+import Control.Exception (handle)
+import Control.Monad (void, forM)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
 import qualified Data.Map as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T (pack)
-import Safe (headMay)
+import Safe (headMay, lastDef)
 import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist, getCurrentDirectory)
 import System.FilePath ((</>), takeDirectory)
-import Text.Megaparsec
+import Text.Megaparsec as M
 import Text.Megaparsec.Char
 
 import Hledger (error', strip, words', RawOpts, expandPath)
 import Hledger.Read.Common
 import Hledger.Utils.Parse
 import Hledger.Utils.Debug
-import Safe (lastDef)
 import Hledger.Data.RawOptions (collectopts)
 
 
@@ -97,37 +100,47 @@ confLookup cmd Conf{confSections} =
 -- | Try to read a hledger config from a config file specified by --conf,
 -- or the first config file found in any of several default file paths.
 -- If --no-conf was used, or if no file was specified or found, this returns a null Conf.
--- If a specified file, or the first file found, can not be read or parsed, this raises an error.
+-- If a specified file, or the first file found, can not be read or parsed, this returns an error message.
 -- Otherwise this returns the parsed Conf, and the file path.
-getConf :: RawOpts -> IO (Conf, Maybe FilePath)
+getConf :: RawOpts -> IO (Either String (Conf, Maybe FilePath))
 getConf rawopts = do
   -- As in Cli.hs, conf debug output always goes to stderr;
   -- that's ok as conf is a hledger cli feature for now.
   case confFileSpecFromRawOpts rawopts of
-    NoConfFile     -> return $ traceAt 1 "ignoring config files" (nullconf, Nothing)
+    NoConfFile     -> return $ Right $ traceAt 1 "ignoring config files" (nullconf, Nothing)
     SomeConfFile f -> getCurrentDirectory >>= flip expandPath f >>= readConfFile . dbg1 "using specified config file"
     AutoConfFile   -> do
       fs <- confFiles
       case fs of
         f:_ -> dbg8IO "found config files" fs >> dbg1IO "using nearest config file" f >> readConfFile f
-        []  -> return $ traceAt 1 "no config file found" (nullconf, Nothing)
+        []  -> return $ Right $ traceAt 1 "no config file found" (nullconf, Nothing)
 
--- | Read this config file and parse its contents, or raise an error.
-readConfFile :: FilePath -> IO (Conf, Maybe FilePath)
-readConfFile f = do
+-- | Like getConf but throws an error on failure.
+getConf' :: RawOpts -> IO (Conf, Maybe FilePath)
+getConf' rawopts = getConf rawopts >>= either (error' . show) return
+
+-- | Read this config file and parse its contents, or return an error message.
+readConfFile :: FilePath -> IO (Either String (Conf, Maybe FilePath))
+readConfFile f = handle (\(e::IOError) -> return $ Left $ show e) $ do
   -- avoid GHC 9.10.1's ugly stack trace when calling readFile on a nonexistent file
   exists <- doesFileExist f
-  when (not exists) $ error' $ f <> " does not exist"
-  ecs <- readFile f <&> parseConf f . T.pack
-  case ecs of
-    Left err -> error' $ errorBundlePretty err -- customErrorBundlePretty err
-    Right cs -> return (nullconf{
-       confFile     = f
-      ,confFormat   = 1
-      ,confSections = cs
-      },
-      Just f
-      )
+  case exists of
+    False -> return $ Left $ f <> " does not exist"
+    True -> do
+      ecs <- readFile f <&> parseConf f . T.pack
+      case ecs of
+        Left err -> return $ Left $ errorBundlePretty err -- customErrorBundlePretty err
+        Right cs -> return $ Right (nullconf{
+          confFile     = f
+          ,confFormat   = 1
+          ,confSections = cs
+          },
+          Just f
+          )
+
+-- -- | Like readConf, but throw an error on failure.
+-- readConfFile' :: FilePath -> IO (Conf, Maybe FilePath)
+-- readConfFile' f = readConfFile f >>= either (error' . show) return
 
 -- | Get the highest precedence config file, based on the current directory.
 activeConfFile :: IO (Maybe FilePath)
