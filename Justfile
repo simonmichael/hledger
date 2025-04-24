@@ -1209,7 +1209,7 @@ nightlybin:
     just push
     git tag -f nightly master
     git push -f origin nightly
-    git push origin master:binaries
+    git push -f origin master:binaries
 
 # Upload the last-built platform binaries to the "nightly" prerelease. Run nightlybin and wait for it to complete first.
 @ghnightly-bin:
