@@ -103,8 +103,10 @@ accountFromBalances name bal = Account
   , abalances        = bal
   }
 
--- | Derive 1. an account tree and 2. each account's total exclusive
--- and inclusive changes from a list of postings.
+-- | Derive 1. an account tree and 2. each account's total exclusive and
+-- inclusive changes associated with dates from a list of postings and a
+-- function for associating a date to each posting (usually representing the
+-- start dates of report subperiods).
 -- This is the core of the balance command (and of *ledger).
 -- The accounts are returned as a list in flattened tree order,
 -- and also reference each other as a tree.
@@ -113,9 +115,11 @@ accountsFromPostings :: (Posting -> Maybe Day) -> [Posting] -> [Account AccountB
 accountsFromPostings getPostingDate = flattenAccounts . accountFromPostings getPostingDate
 
 -- | Derive 1. an account tree and 2. each account's total exclusive
--- and inclusive changes from a list of postings.
+-- and inclusive changes associated with dates from a list of postings and a
+-- function for associating a date to each posting (usually representing the
+-- start dates of report subperiods).
 -- This is the core of the balance command (and of *ledger).
--- The accounts are returned as tree.
+-- The accounts are returned as a tree.
 accountFromPostings :: (Posting -> Maybe Day) -> [Posting] -> Account AccountBalance
 accountFromPostings getPostingDate ps =
     tieAccountParents . sumAccounts $ mapAccounts setBalance acctTree

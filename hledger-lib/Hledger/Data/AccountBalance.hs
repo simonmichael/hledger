@@ -40,7 +40,7 @@ instance Monoid AccountBalance where
 mapAccountBalance :: (MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance
 mapAccountBalance f a = a{abebalance = f $ abebalance a, abibalance = f $ abibalance a}
 
--- | Perform an operation on the 'MixedAmount' in two 'AccountBalance'.
+-- | Merge two 'AccountBalance', using the given operation to combine their amounts.
 opAccountBalance :: (MixedAmount -> MixedAmount -> MixedAmount) -> AccountBalance -> AccountBalance -> AccountBalance
 opAccountBalance f a b = a{abebalance = f (abebalance a) (abebalance b), abibalance = f (abibalance a) (abibalance b)}
 
