@@ -40,14 +40,15 @@ These important checks are performed by default, by almost all hledger commands:
 
 - **assertions** - all [balance assertions] in the journal are passing.
   Balance assertions are a strong defense against errors; they help catch many problems.
-  (You can disable this check by adding `-I`/`--ignore-assertions` to a command or to your config file.
-  When you want to re-enable it, use `-s`/`--strict` or `hledger check assertions`.)
+  If this check gets in your way, you can disable it with `-I`/`--ignore-assertions`.
+  Or you can add that to your config file to disable it by default
+  (and then use `-s`/`--strict` or `hledger check assertions` to enable it).
 
 ### Strict checks
 
 These additional checks are performed by all commands when the `-s`/`--strict` flag is used ([strict mode]). 
+They provide extra error-catching power to keep your data clean and correct.
 Strict mode also always enables the `assertions` check.
-These provide extra error-catching power to keep your data clean and correct:
 
 - **balanced** - like `autobalanced`, but all conversions between commodities must
   use explicit [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
@@ -55,7 +56,7 @@ These provide extra error-catching power to keep your data clean and correct:
 
 - **commodities** - all commodity symbols used must be [declared](#commodity-error-checking).
   This guards against mistyping or omitting commodity symbols.
-  commodity declarations also set their precision for display and transaction balancing.
+  Declaring commodities also sets their precision for display and transaction balancing.
 
 - **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
