@@ -105,8 +105,9 @@ setupHledger = do
   pgroup "hledger"
 
   pdesc "is a released version ?"
-  let isreleased = if isReleaseVersion $ hbinPackageVersion binaryinfo then Y else N
-  i isreleased prognameandversion
+  if isReleaseVersion $ hbinPackageVersion binaryinfo
+  then p Y prognameandversion
+  else i N prognameandversion
 
   pdesc "is up to date ?"
   elatestversionnumstr <- getLatestHledgerVersion
@@ -289,7 +290,7 @@ setupTerminal conf = do
     confgenargs = confLookup "general" conf
     confpretty = isJust $ find ("--pretty" ==) confgenargs
   if confpretty
-  then i Y "tables will use box-drawing characters"
+  then p Y "tables will use box-drawing characters"
   else i N "tables will use ASCII characters"
 
   pdesc "bash shell completions are installed ?" >> p U ""
@@ -409,10 +410,10 @@ setupJournal = do
       -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
 
       pdesc "all accounts are declared ?"
-      if null undeclaredaccts then i Y (show numaccts) else i N (show (length undeclaredaccts) <> " undeclared")
+      if null undeclaredaccts then p Y (show numaccts) else i N (show (length undeclaredaccts) <> " undeclared")
 
       pdesc "all accounts have types ?"
-      if null untypedaccts then i Y "" else i N (show (length untypedaccts) <> " untyped")
+      if null untypedaccts then p Y "" else i N (show (length untypedaccts) <> " untyped")
 
       pdesc "accounts of each type were detected ?"
       if null typesnotfound
