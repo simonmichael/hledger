@@ -52,6 +52,9 @@ prognameandversion =
   progname
   packageversion
 
+binaryinfo :: HledgerBinaryVersion
+Right binaryinfo = parseHledgerVersion prognameandversion
+
 webflags :: [Flag RawOpts]
 webflags =
   [ flagNone

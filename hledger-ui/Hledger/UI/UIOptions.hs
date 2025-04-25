@@ -41,6 +41,9 @@ prognameandversion =
   progname
   packageversion
 
+binaryinfo :: HledgerBinaryVersion
+Right binaryinfo = parseHledgerVersion prognameandversion
+
 
 uiflags = [
    flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"

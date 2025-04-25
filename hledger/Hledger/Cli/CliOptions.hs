@@ -18,6 +18,7 @@ related utilities used by hledger commands.
 module Hledger.Cli.CliOptions (
   progname,
   prognameandversion,
+  binaryinfo,
 
   -- * cmdargs flags & modes
   inputflags,
@@ -137,6 +138,9 @@ prognameandversion =
 #endif
   progname
   packageversion
+
+binaryinfo :: HledgerBinaryVersion
+Right binaryinfo = parseHledgerVersion prognameandversion
 
 -- Common options.
 -- keep synced: the docs macro in doc/common.m4
