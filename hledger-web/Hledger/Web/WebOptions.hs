@@ -23,6 +23,7 @@ import Hledger.Web.Settings (defhost, defport, defbaseurl)
 import qualified Data.Text as T
 import Data.Char (toLower)
 import Data.List (isPrefixOf)
+import Data.Either (fromRight)
 
 -- cf Hledger.Cli.Version
 
@@ -52,8 +53,8 @@ prognameandversion =
   progname
   packageversion
 
-binaryinfo :: HledgerBinaryVersion
-Right binaryinfo = parseHledgerVersion prognameandversion
+binaryinfo :: HledgerBinaryInfo
+binaryinfo = fromRight nullbinaryinfo $ parseHledgerVersion prognameandversion
 
 webflags :: [Flag RawOpts]
 webflags =

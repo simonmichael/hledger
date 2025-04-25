@@ -139,8 +139,12 @@ prognameandversion =
   progname
   packageversion
 
-binaryinfo :: HledgerBinaryVersion
+binaryinfo :: HledgerBinaryInfo
 Right binaryinfo = parseHledgerVersion prognameandversion
+-- ui and web use nullbinaryinfo for a parse failure here to silence an inexhaustive pattern warning.
+-- I can't reproduce that warning right now, so here I've stuck with the original approach,
+-- which will force a compile error if prognameandversion is ever malformed, eg from unexpected
+-- git output.
 
 -- Common options.
 -- keep synced: the docs macro in doc/common.m4

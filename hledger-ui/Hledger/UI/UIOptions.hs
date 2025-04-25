@@ -4,6 +4,7 @@
 module Hledger.UI.UIOptions where
 
 import Data.Default (def)
+import Data.Either (fromRight)
 import Data.List (intercalate)
 import qualified Data.Map as M
 import Data.Maybe (fromMaybe)
@@ -41,8 +42,8 @@ prognameandversion =
   progname
   packageversion
 
-binaryinfo :: HledgerBinaryVersion
-Right binaryinfo = parseHledgerVersion prognameandversion
+binaryinfo :: HledgerBinaryInfo
+binaryinfo = fromRight nullbinaryinfo $ parseHledgerVersion prognameandversion
 
 
 uiflags = [

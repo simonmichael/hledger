@@ -6,10 +6,13 @@ Version number-related utilities. See also the Makefile.
 module Hledger.Cli.Version (
   PackageVersionString,
   Version,
+  nullversion,
   toVersion,
   showVersion,
+  isReleaseVersion,
   HledgerVersionString,
-  HledgerBinaryVersion(..),
+  HledgerBinaryInfo(..),
+  nullbinaryinfo,
   ProgramName,
   GitHash,
   ArchName,
@@ -36,6 +39,7 @@ import Text.Megaparsec.Char
 import qualified Text.Megaparsec.Char.Lexer as L
 import Hledger.Data.Dates (parsedate)
 import Data.Bifunctor
+import qualified Data.List.NonEmpty as NE
 
 
 -- | A Cabal/Hackage-compatible package version string: one or more dot-separated integers.
@@ -43,6 +47,8 @@ type PackageVersionString = String
 
 -- | The number parts parsed from a PackageVersionString.
 type Version = NonEmpty Int
+
+nullversion = NE.fromList [0]
 
 showVersion :: Version -> String
 showVersion = intercalate "." . map show . toList
@@ -55,6 +61,9 @@ toVersion s =
     if null parts || any isNothing parts
     then Nothing
     else nonEmpty $ catMaybes parts
+
+isReleaseVersion :: Version -> Bool
+isReleaseVersion v = NE.last v < 98   -- .99 and possibly .98 are dev
 
 -- | A hledger version string, as shown by hledger --version.
 -- This can vary; some examples:
@@ -88,7 +97,7 @@ type GitHash = String
 -- and the build's git hash, the release date, and the binary's 
 -- intended operating machine and machine architecture, if we can detect these.
 -- Also, a copy of the --version output from which it was parsed.
-data HledgerBinaryVersion = HledgerBinaryVersion {
+data HledgerBinaryInfo = HledgerBinaryInfo {
     hbinVersionOutput     :: String
   , hbinProgramName       :: ProgramName
   , hbinPackageVersion    :: Version 
@@ -98,6 +107,17 @@ data HledgerBinaryVersion = HledgerBinaryVersion {
   , hbinOs                :: Maybe OsName
   , hbinArch              :: Maybe ArchName
 } deriving (Show, Eq)
+
+nullbinaryinfo = HledgerBinaryInfo {
+    hbinVersionOutput     = ""
+  , hbinProgramName       = ""
+  , hbinPackageVersion    = nullversion
+  , hbinPackageVersionStr = ""
+  , hbinGitHash           = Nothing
+  , hbinReleaseDate       = Nothing
+  , hbinOs                = Nothing
+  , hbinArch              = Nothing
+}
 
 type Parser = Parsec Void String
 
@@ -110,7 +130,7 @@ type Parser = Parsec Void String
 -- >>> isRight $ parseHledgerVersion "hledger 1.42.99-g2288f5193-20250422, mac-aarch64"
 -- True
 --
-parseHledgerVersion :: HledgerVersionString -> Either String HledgerBinaryVersion
+parseHledgerVersion :: HledgerVersionString -> Either String HledgerBinaryInfo
 parseHledgerVersion s = 
   case parse hledgerversionp "" s of
   Left err -> Left $ errorBundlePretty err
@@ -121,7 +141,7 @@ parseHledgerVersion s =
 -- possibly followed by the binary's intended operating system and architecture
 -- (see HledgerVersionString and versionStringWith).
 -- The hbinVersionOutput field is left blank here; parseHledgerVersion sets it.
-hledgerversionp :: Parser HledgerBinaryVersion
+hledgerversionp :: Parser HledgerBinaryInfo
 hledgerversionp = do
   progName <- (<>) <$> string "hledger" <*> many (letterChar <|> char '-')
   some $ char ' '
@@ -144,7 +164,7 @@ hledgerversionp = do
       Just osarch -> bimap (Just . reverse) (Just . reverse) $ second (drop 1) $ break (== '-') $ reverse osarch
   many spaceChar
   eof
-  return $ HledgerBinaryVersion
+  return $ HledgerBinaryInfo
     { hbinVersionOutput = ""
     , hbinProgramName = progName
     , hbinPackageVersion = pkgversion
