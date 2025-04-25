@@ -24,9 +24,9 @@ module Hledger.Utils.IO (
   warn,
   ansiFormatError,
   ansiFormatWarning,
-  exitOnExceptions,
-  exitWithError,
   printError,
+  exitWithErrorMessage,
+  exitOnError,
 
   -- * Time
   getCurrentLocalTime,
@@ -247,8 +247,6 @@ modifyFirstLine f s = intercalate "\n" $ map f l <> ls where (l,ls) = splitAt 1 
 -- ExitCode (triggered by a call to exitSuccess, exitFailure, or exitWith)
 -- and UserInterrupt (triggered by control-C).
 --
-exitOnExceptions :: IO () -> IO ()
-exitOnExceptions = flip catches
   [Handler (\(e::ErrorCall) -> exitWithError $ rstrip $ show e)
   ,Handler (\(e::IOError)   -> exitWithError $ rstrip $ show e)
   -- ,Handler (\(x::ExitCode)  -> exitWith x)   -- falls through
@@ -259,8 +257,6 @@ exitOnExceptions = flip catches
 
 -- | Print an error message with printError, 
 -- then exit the program with a non-zero exit code.
-exitWithError :: String -> IO ()
-exitWithError msg = printError msg >> exitFailure
 
 -- | Print an error message to stderr,
 -- with a standard program name prefix,
@@ -278,6 +274,10 @@ printError msg = do
       <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
   hPutStrLn stderr $ style $ prefix <> msg
 
+exitWithErrorMessage :: String -> IO ()
+exitWithErrorMessage msg = printError msg >> exitFailure
+exitOnError :: IO () -> IO ()
+exitOnError = flip catches
 -- Time
 
 getCurrentLocalTime :: IO LocalTime
