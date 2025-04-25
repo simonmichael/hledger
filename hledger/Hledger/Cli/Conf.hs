@@ -227,7 +227,7 @@ parseConf = runParser confp
 
 dp :: String -> TextParser m ()
 dp = const $ return ()  -- no-op
--- dp = dbgparse 1  -- trace parse state at this --debug level
+-- dp = dbgparse 0  -- trace parse state at this --debug level
 
 whitespacep, commentlinesp, restoflinep :: TextParser Identity ()
 whitespacep   = void $ {- dp "whitespacep"   >> -} many spacenonewline
@@ -274,7 +274,7 @@ arglinep = do
   -- dp "arglinep3"
   a <- some $ noneOf "#\n"
   -- dp "arglinep4"
-  restoflinep
+  restoflinep <|> whitespacep  -- whitespace / same-line comment, possibly with no newline
   commentlinesp
   return $ strip a
 

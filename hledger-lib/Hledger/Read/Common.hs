@@ -426,7 +426,7 @@ getYear = fmap jparsedefaultyear get
 
 dp :: String -> TextParser m ()
 dp = const $ return ()  -- no-op
--- dp = dbgparse 1  -- trace parse state at this --debug level
+-- dp = dbgparse 0  -- trace parse state at this --debug level
 
 -- | Get the decimal mark that has been specified for parsing, if any
 -- (eg by the CSV decimal-mark rule, or possibly a future journal directive).
@@ -1299,6 +1299,7 @@ emptyorcommentlinep = do
 
 -- | A newer comment line parser.
 -- Parses a line which is empty, all blanks, or whose first non-blank character is one of those provided.
+-- A final newline is optional.
 emptyorcommentlinep2 :: [Char] -> TextParser m ()
 emptyorcommentlinep2 cs =
   label ("empty line or comment line beginning with "++cs) $ do
@@ -1308,7 +1309,7 @@ emptyorcommentlinep2 cs =
     where
       commentp = do
         choice (map (some.char) cs)
-        takeWhileP Nothing (/='\n') <* newline
+        takeWhileP Nothing (/='\n') <* optional newline
 
 -- | Is this a character that, as the first non-whitespace on a line,
 -- starts a comment line ?
