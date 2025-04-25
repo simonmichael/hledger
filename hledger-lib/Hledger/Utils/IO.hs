@@ -420,25 +420,33 @@ readFileOrStdinPortably = readFileOrStdinPortably' Nothing
 readFileOrStdinPortably' :: Maybe DynEncoding -> String -> IO T.Text
 readFileOrStdinPortably' c f = openFileOrStdin f >>= readHandlePortably' c
 
+-- | Open a file for reading, using the standard System.IO.openFile.
+-- This opens the handle in text mode, using the initial system locale's text encoding.
 openFileOrStdin :: String -> IO Handle
 openFileOrStdin "-" = return stdin
 openFileOrStdin f' = openFile f' ReadMode
 
+-- readHandlePortably' with no text encoding specified.
 readHandlePortably :: Handle -> IO T.Text
 readHandlePortably = readHandlePortably' Nothing
 
+-- | Read text from a handle with a specified encoding, using the encoding package.
+-- Or if no encoding is specified, it uses the handle's current encoding,
+-- after first changing it to UTF-8BOM if it was UTF-8, to allow a Byte Order Mark at the start.
+-- Also it converts Windows line endings to newlines.
+-- If decoding fails, this throws an IOException (or possibly a UnicodeException or something else from the encoding package).
 readHandlePortably' :: Maybe DynEncoding -> Handle -> IO T.Text
 readHandlePortably' Nothing h = do
   hSetNewlineMode h universalNewlineMode
   menc <- hGetEncoding h
-  when (fmap show menc == Just "UTF-8") $  -- XXX no Eq instance, rely on Show
-    hSetEncoding h utf8_bom
+  when (fmap show menc == Just "UTF-8") $ hSetEncoding h utf8_bom
   T.hGetContents h
 readHandlePortably' (Just e) h =
-  -- We need to manually apply the newline mode
-  -- Since we already have a Text
+  -- convert newlines manually, because Enc.hGetContents uses bytestring's hGetContents
   T.replace "\r\n" "\n" . T.pack <$> let ?enc = e in Enc.hGetContents h
 
+-- | Create a handle from which the given text can be read.
+-- Its encoding will be UTF-8BOM.
 inputToHandle :: T.Text -> IO Handle
 inputToHandle t = do
   (r, w) <- createPipe
