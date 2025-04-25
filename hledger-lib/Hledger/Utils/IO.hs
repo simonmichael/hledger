@@ -131,6 +131,7 @@ import           Data.List hiding (uncons)
 import           Data.Maybe (isJust, catMaybes)
 import           Data.Ord (comparing, Down (Down))
 import qualified Data.Text as T
+import           Data.Text.Encoding.Error (UnicodeException)
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.Builder as TB
@@ -139,6 +140,7 @@ import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, 
 import           Data.Word (Word16)
 import           Debug.Trace
 import           Foreign.C.Error (Errno(..), ePIPE)
+import           GHC.IO.Encoding (getLocaleEncoding, textEncodingName)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
 import           Safe (headMay, maximumDef)
@@ -157,7 +159,6 @@ import           System.Process (CreateProcess(..), StdStream(CreatePipe), creat
 import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
-
 
 
 -- Pretty showing/printing
@@ -236,48 +237,120 @@ ansiFormatWarning = (<> sgrresetall) . ((sgrbrightyellow <> sgrbold) <>)
 modifyFirstLine :: (String -> String) -> String -> String
 modifyFirstLine f s = intercalate "\n" $ map f l <> ls where (l,ls) = splitAt 1 $ lines s  -- total
 
--- | This wraps a program's main routine, to handle program-terminating exceptions
--- in a consistent compiler-independent way.
--- In particular it catches @error'@/@error@/@errorWithoutStackTrace@ calls and IO errors,
--- strips any outer whitespace from their output, and passes this to exitWithErrorMsg.
--- This prevents GHC 9.10's trailing newlines and GHC 9.12's "uncaught exception" output,
--- while exitWithErrorMsg ensures a consistent prefix, and styles the first line if allowed.
---
--- Some program-terminating exceptions this does not handle:
--- ExitCode (triggered by a call to exitSuccess, exitFailure, or exitWith)
--- and UserInterrupt (triggered by control-C).
---
-  [Handler (\(e::ErrorCall) -> exitWithError $ rstrip $ show e)
-  ,Handler (\(e::IOError)   -> exitWithError $ rstrip $ show e)
-  -- ,Handler (\(x::ExitCode)  -> exitWith x)   -- falls through
-  -- ,Handler (\UserInterrupt  -> exitFailure)  -- falls through
-  ]
-  where
-    rstrip = reverse . dropWhile isSpace . reverse
-
--- | Print an error message with printError, 
--- then exit the program with a non-zero exit code.
-
--- | Print an error message to stderr,
--- with a standard program name prefix,
--- and styling the first line with ansiFormatError if that's allowed.
+{- | Print an error message to stderr, with a consistent "programname: " prefix,
+and applying ANSI styling (bold bright red) to the first line if that is supported and allowed.
+-}
 printError :: String -> IO ()
 printError msg = do
   progname <- getProgName
   usecolor <- useColorOnStderr
   let
     style = if usecolor then modifyFirstLine ansiFormatError else id
-    prefix = progname <> ": "
-      -- error' prepends an "Error: " prefix. But that seems to have been removed when I catch the ErrorCall exception - unless I'm running in GHCI.
-      -- Is it possible something in GHC or base is removing it ?
-      -- Use a stupid heuristic for now: add it again unless already there.
-      <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
+    prefix =
+      progname
+        <> ": "
+        -- error' prepends an "Error: " prefix. But that seems to have been removed when I catch the ErrorCall exception - unless I'm running in GHCI.
+        -- Is it possible something in GHC or base is removing it ?
+        -- Use a stupid heuristic for now: add it again unless already there.
+        <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
   hPutStrLn stderr $ style $ prefix <> msg
 
+{- | Print an error message with printError,
+then exit the program with a non-zero exit code.
+-}
 exitWithErrorMessage :: String -> IO ()
 exitWithErrorMessage msg = printError msg >> exitFailure
+
+-- | This wraps a program's main routine so as to display more consistent
+-- and useful error output for some common program-terminating exceptions,
+-- independent of compiler version. It catches:
+--
+-- - UnicodeException - unicode errors in pure code
+--
+-- - IOException AKA IOError - I/O errors, including unicode errors during I/O
+--
+-- - ErrorCall - @error@ / @errorWithoutStackTrace@ calls
+--
+-- and:
+-- 
+-- - removes the trailing newlines added by some GHC 9.10.*
+--
+-- - removes "uncaught exception" output added by some GHC 9.12.*
+--
+-- - ensures a consistent "programname: " prefix
+--
+-- - applies ANSI styling (bold bright red) to the first line if that is supported and allowed
+--
+-- - for unicode exceptions, and I/O exceptions which look like they were
+--   caused by a unicode error (usually text decoding failure),
+--   it adds (english) text explaining the problem and what to do.
+--
+-- Some exceptions this does not handle:
+-- ExitCode (exitSuccess / exitFailure / exitWith calls)
+-- and UserInterrupt (control-C).
+--
 exitOnError :: IO () -> IO ()
 exitOnError = flip catches
+  [Handler (\(e::UnicodeException) -> exitUnicode e)
+  ,Handler (\(e::IOException) -> if isUnicodeError e then exitUnicode e else exitOther e)
+  ,Handler (\(e::ErrorCall) -> exitOther e)
+  ]
+
+  where
+    isUnicodeError :: Exception e => e -> Bool
+    isUnicodeError ex = any (`isInfixOf` msg) unicodeerrorpatterns
+      where
+        msg = map toLower $ show ex
+        unicodeerrorpatterns = [  -- keep updated
+            "illegal byte sequence"
+          , "invalid byte sequence"
+          , "invalid character"
+          , "invalid or incomplete multibyte"
+          , "mkTextEncoding: invalid argument"
+          ]
+
+    exitUnicode :: Exception e => e -> IO ()
+    exitUnicode ex = do
+      enc <- getSystemEncoding
+      let
+        noencoding = map toLower enc == "ascii"
+        msg = unlines $ [
+            rstrip $ show ex
+          , "Some text could not be decoded/encoded with the system text encoding: " <> enc
+          ] ++
+          if noencoding
+          then [
+            "Please configure a system locale with a text encoding to handle non-ascii text"
+          ]
+          else [
+            -- advice suitable for programs which always use the system text encoding:
+            "Please convert all data to the system encoding (eg with iconv),"
+          , "or configure the system encoding to match your data (eg by setting LANG)."
+          ]
+      exitWithErrorMessage msg
+
+    exitOther :: Exception e => e -> IO ()
+    exitOther = exitWithErrorMessage . rstrip . show
+
+    rstrip = reverse . dropWhile isSpace . reverse
+
+-- I18n
+
+-- encoding has a similar getSystemEncoding :: IO (Maybe DynEncoding)
+-- but it returns Nothing on Windows or if there's an error.
+
+-- | Get the name of the text encoding used by the current locale, using GHC's API.
+getSystemEncoding :: IO String
+getSystemEncoding = do
+  localeEncoding <- getLocaleEncoding
+  return $ textEncodingName localeEncoding
+
+-- -- | Get the name of the text encoding currently configured for stdout, using GHC's API.
+-- getStdoutEncoding :: IO (Maybe String)
+-- getStdoutEncoding = do
+--   mEncoding <- hGetEncoding stdout
+--   return $ fmap textEncodingName mEncoding
+
 -- Time
 
 getCurrentLocalTime :: IO LocalTime
