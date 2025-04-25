@@ -88,19 +88,16 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
       ,warning "unknown"
       ,bad     "warning"
       ]
-  conf <- fromMaybe nullconf <$> setupHledger
-  setupTerminal conf
-  setupJournal
-  -- setupStrictness conf
+  meconf <- setupHledger
+  setupTerminal meconf
+  setupJournal meconf
   putStr "\n"
 
 ------------------------------------------------------------------------------
 
--- | This first test group looks for a "hledger" executable in PATH;
--- if found, tests it in various ways;
--- and if it ran successfully, returns the full --version output
--- and the numeric Version parsed from that.
-setupHledger :: IO (Maybe Conf)
+-- Returns Nothing if no config file was found,
+-- or Just the read error or config if it was found.
+setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
 
@@ -128,7 +125,7 @@ setupHledger = do
 
   pdesc "is installed in PATH ?"
   pathexes  <- findExecutables progname
-  let msg = "please install this hledger in PATH and run setup again"
+  let msg = "To see more, please install this hledger in PATH and run hledger setup again."
   case pathexes of
     [] -> p N msg >> exitFailure
     exe:_ -> do
@@ -143,8 +140,9 @@ setupHledger = do
               if pathversion /= prognameandversion
               then p N (unlines [
                  ""
-                ,"PATH hledger is " <> pathversion <> " (" <> exe <> ")"
-                ,"this hledger is " <> prognameandversion
+                ,"found in PATH: " <> exe
+                ,"PATH hledger is: " <> pathversion
+                ,"this hledger is: " <> prognameandversion
                 ,msg
                 ]) >> exitFailure
               else p Y exe
@@ -152,8 +150,8 @@ setupHledger = do
   pdesc "has a system text encoding configured ?"
   let encoding = localeEncoding  -- the initial system encoding
   if map toLower (show encoding) == "ascii"
-  then p N (show encoding <> " - please configure an encoding to handle non-ascii text")
-  else p Y (show encoding)
+  then p N (show encoding <> ", please configure an encoding for non-ascii data")
+  else p Y (show encoding <> ", data files should use this encoding")
 
   -- pdesc "can handle UTF-8 text ?"
   -- let
@@ -190,7 +188,7 @@ setupHledger = do
     pdesc "the config file is readable ?"
     econf <- getConf def
     case econf of
-      Left e -> p N (show e) >> return Nothing
+      Left e -> p N e >> return (Just $ Left e)
       Right (conf, f) -> do
         p Y (fromMaybe "" f)
 
@@ -198,14 +196,19 @@ setupHledger = do
         -- --infer-costs"
         -- print --explicit --show-costs"
 
-        return $ Just conf
+        return $ Just $ Right conf
   else
     return Nothing
 
 ------------------------------------------------------------------------------
 
-setupTerminal conf = do
+setupTerminal meconf = do
   pgroup "terminal"
+  let
+    -- Find the last opt/arg matched by a predicate in the general config, if there is one.
+    conflookup predicate = case meconf of
+      Just (Right conf) -> find predicate $ reverse $ confLookup "general" conf
+      _ -> Nothing
 
   pdesc "the NO_COLOR variable is defined ?"
   mnocolor <- lookupEnv "NO_COLOR"
@@ -214,10 +217,8 @@ setupTerminal conf = do
     Just _  -> i Y ""
 
   meconfigcolor <- do
-    pdesc "color is configured in the config file ?"  -- we check the general section only
-    let
-      confgenargs = confLookup "general" conf
-      mcolorarg = find (\a -> any (`isPrefixOf` a) ["--color", "--colour"]) confgenargs
+    pdesc "--color is configured by config file ?"
+    let mcolorarg = conflookup (\a -> any (`isPrefixOf` a) ["--color", "--colour"])
     case mcolorarg of
       Nothing -> i N "" >> return Nothing
       Just a  -> do
@@ -239,10 +240,8 @@ setupTerminal conf = do
     Nothing -> i N ""
     Just v  -> i Y v
 
-  pdesc "pager is configured in the config file ?"
-  let
-    confgenargs = confLookup "general" conf
-    mpagerarg = find ("--pager" `isPrefixOf`) confgenargs
+  pdesc "--pager is configured by config file ?"
+  let mpagerarg = conflookup ("--pager" `isPrefixOf`)
   meconfpager <- case mpagerarg of
     Nothing -> i N "" >> return Nothing
     Just a  -> do
@@ -285,11 +284,8 @@ setupTerminal conf = do
               usecolor <- useColorOnStdout
               i (if usecolor then Y else N) ""
 
-  pdesc "--pretty is enabled in the config file ?"
-  let
-    confgenargs = confLookup "general" conf
-    confpretty = isJust $ find ("--pretty" ==) confgenargs
-  if confpretty
+  pdesc "--pretty is enabled by config file ?"
+  if isJust $ conflookup ("--pretty"==)
   then p Y "tables will use box-drawing characters"
   else i N "tables will use ASCII characters"
 
@@ -298,9 +294,13 @@ setupTerminal conf = do
 
 ------------------------------------------------------------------------------
 
-setupJournal :: IO (Either String Journal)
-setupJournal = do
+setupJournal meconf = do
   pgroup "journal"
+  let
+    -- Find the last opt/arg matched by a predicate in the general config, if there is one.
+    conflookup predicate = case meconf of
+      Just (Right conf) -> find predicate $ reverse $ confLookup "general" conf
+      _ -> Nothing
 
   -- pdesc "a home directory journal file exists ?"
   -- mh <- getHomeSafe
@@ -344,9 +344,7 @@ setupJournal = do
   -- XXX can this ignore assertions and config files, like the above ?
   ej <- defaultJournalSafely
   case ej of
-    Left e -> do
-      p N (jfile <> ":\n" <> show e)
-      return $ Left e
+    Left e -> p N (jfile <> ":\n" <> show e)
     Right j@Journal{..} -> do
       p Y jfile
 
@@ -420,15 +418,19 @@ setupJournal = do
       then p Y (concatMap show accttypes)
       else p N (concatMap show typesnotfound <> "not found; type: queries, bs/cf/is reports may not work")
 
-      return $ Right j
+      pdesc "balance assertions are checked ?"
+      let 
+        ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
+        strict           = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
+      if 
+        | ignoreassertions && not strict -> i N "use -s to check assertions"
+        | not strict -> i Y "use -I to ignore assertions"
+        | otherwise -> i Y "can't ignore assertions (-s in config file)"
 
-------------------------------------------------------------------------------
-
-setupStrictness = do
-  pgroup "strictness"
-  pdesc "balance assertions are checked by default ?"
-  -- ignore-assertions
-  pdesc "commodities/conversions/accounts are checked by default ?"
+      pdesc "commodities/accounts are checked ?"
+      if strict
+      then i Y "commodities and accounts must be declared"
+      else i N "use -s to check commodities/accounts"
 
 ------------------------------------------------------------------------------
 
