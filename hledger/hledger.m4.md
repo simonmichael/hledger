@@ -1676,28 +1676,32 @@ Note this is different from Ledger, which checks assertions always in parse orde
 This means in hledger you can freely reorder transactions, postings, or files, and balance assertions will usually keep working.
 The exception is when you reorder multiple postings on the same day, to the same account, which have balance assertions; those will likely need updating.
 
-### Assertions and multiple included files
+### Assertions and multiple files
 
-Multiple files included with the [`include` directive](#include-directive)
-are processed as if concatenated into one file, preserving
-their order and the posting order within each file.
-It means that balance assertions in later files will see balance from earlier files.
+If an account has transactions appearing in multiple files, balance assertions can still work - 
+but *only if those files are in a parent-child relationship, using [include directives](#include-directive)*.
 
-And if you have multiple postings to an account on the same day, split
-across multiple files, and you want to assert the account's balance on
-that day, you'll need to put the assertion in the right file - the
-last one in the sequence, probably.
+If the same files are siblings, the assertions will not work.
+For example if you specify them with two `-f` options on the command line,
+the assertions in one will not see the balances from the other.
 
-### Assertions and multiple -f files
+But also, if a parent file includes the two subfiles with two side-by-side `include` directives,
+this too will fail (I think I have that right).
+Assertions in one subfile will not see the balances from the other.
 
-Unlike `include`, when multiple files are specified on the command
-line with multiple `-f/--file` options, balance assertions will not
-see balance from earlier files. This can be useful when you do not
-want problems in earlier files to disrupt valid assertions in later
-files.
+To work around this, arrange your files in parent child relationships with `include`.
+Eg make one subfile `include`` the other (it doesn't matter which way round).
 
-If you do want assertions to see balance from earlier files, use
-`include`, or concatenate the files temporarily.
+Or, you could concatenate the files temporarily, and process them like one big file.
+Eg, `hledger print -I | hledger -f- CMD`
+
+Why does it work this way ? 
+IIRC it might be related to hledger's goal of stable predictable reports.
+File hierarchy is considered "permanent" - it's part of your data.
+Whereas the order of sibling files (on the command line at least) is transient - it can change from one command to the next.
+We don't want transient changes to be able to change the meaning of the data.
+Eg it would be frustrating if tomorrow all your balance assertions broke because you wrote command line arguments in a different order.
+Feel free to discuss this more.
 
 ### Assertions and costs
 
