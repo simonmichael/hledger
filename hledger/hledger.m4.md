@@ -93,7 +93,7 @@ You can specify a file with `-f`, like so
 $ hledger -f FILE [-f FILE2 ...] print
 ```
 
-Files are most often in hledger's journal format, with the `.journal` file extension (`.hledger` or `.j` also work);
+Files are most often in hledger's [journal format](#journal), with the `.journal` file extension (`.hledger` or `.j` also work);
 these files describe transactions, like an accounting general journal.
 
 When no file is specified, hledger looks for `.hledger.journal` in your home directory.
@@ -2117,26 +2117,36 @@ An account directive both declares an account as a valid posting target, and dec
 
 ### Account types
 
-hledger knows that accounts come in several types: assets, liabilities, expenses and so on. 
-This enables easy reports like [balancesheet] and [incomestatement], and filtering by account type with the [`type:` query](#queries). 
+hledger knows that [in accounting](https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts) there are three main account types:
 
-As a convenience, hledger will detect these account types automatically if you are using common english-language top-level account names (described below). 
-But it's more robust to declare accounts' types explicitly, by adding `type:` [tags](#tags) to their account directives.
-The tag's value should be one of the [five main account types]:
+||||
+|-|-|-|
+| `Assets` | `A` | things you own |
+| `Liabilities` | `L` | things you owe |
+| `Equity` | `E` | owner's investment, balances the two above |
 
-- `A` or `Asset`		(things you own)
-- `L` or `Liability`	(things you owe)
-- `E` or `Equity`		(investment/ownership; balanced counterpart of assets & liabilities)
-- `R` or `Revenue`		(what you received money from, AKA income; technically part of Equity)
-- `X` or `Expense`		(what you spend money on; technically part of Equity)
+and two more representing changes in these:
 
-or, it can be (these are used less often):
+||||
+|-|-|-|
+| `Revenues` | `R` | inflows  (also known as `Income`) |
+| `Expenses` | `X` | outflows |
 
-- `C` or `Cash`			(a subtype of Asset, indicating [liquid assets][CCE] for the [cashflow] report)
-- `V` or `Conversion`	(a subtype of Equity, for conversions (see [Cost reporting](#cost-reporting)).)
+hledger also uses a couple of subtypes:
 
-Subaccounts inherit their parent's type, or they can override it.
-Here is a typical set of account type declarations:
+||||
+|-|-|-|
+| `Cash` | `C` | liquid assets |
+| `Conversion` | `V` | equity used to balance commodity conversions |
+
+<!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
+
+As a convenience, hledger will detect these types automatically from english account names.
+But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
+The tag's value can be any of the types or one-letter abbreviations above.
+
+Here is a typical set of account type declarations.
+Subaccounts will inherit their parent's type, or can override it:
 
 ```journal
 account assets             ; type: A
@@ -2151,19 +2161,23 @@ account assets:cash        ; type: C
 account equity:conversion  ; type: V
 ```
 
-[five main account types]:      https://en.wikipedia.org/wiki/Chart_of_accounts#Types_of_accounts
-[CCE]:                 https://en.wikipedia.org/wiki/Cash_and_cash_equivalents
-[account directive]:   #account
+This enables the easy [balancesheet], [balancesheetequity], [cashflow] and [incomestatement] reports, and querying by [type:](#queries).
 
-Here are some tips for working with account types.
+Tips:
 
-- The rules for inferring types from account names are as follows.
-  These are just a convenience that sometimes help new users get going;
-  if they don't work for you, just ignore them and declare your account types.
-  See also [Regular expressions](#regular-expressions).
+- You can list accounts and their types, for troubleshooting:
+  ```cli
+  $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH] [--positions]
+  ```
+
+- It's a good idea to declare at least one account for each account type.
+  Having some types declared and some inferred can disrupt certain reports.
+
+- The rules for inferring types from account names are as follows (using [Regular expressions](#regular-expressions)). \
+  If they don't work for you, just ignore them and declare your types with `type:` tags.
   <!-- monospace to work around https://github.com/simonmichael/hledger/issues/1573 -->
   ```
-  If account's name contains this (CI) regular expression:            | its type is:
+  If account's name contains this case insensitive regular expression | its type is
   --------------------------------------------------------------------|-------------
   ^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$) | Cash
   ^assets?(:|$)                                                       | Asset
@@ -2174,14 +2188,8 @@ Here are some tips for working with account types.
   ^expenses?(:|$)                                                     | Expense
   ```
 
-- If you declare any account types, it's a good idea to declare an account for all of the
-  account types, because a mixture of declared and name-inferred types can disrupt certain reports.
-
-- Certain uses of [account aliases](#alias-directive) can disrupt account types.
-  See [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
-
 - As mentioned above, subaccounts will inherit a type from their parent account. 
-  More precisely, an account's type is decided by the first of these that exists:
+  To be precise, an account's type is decided by the first of these that exists:
 
   1. A `type:` declaration for this account.
   2. A `type:` declaration in the parent accounts above it, preferring the nearest.
@@ -2189,10 +2197,7 @@ Here are some tips for working with account types.
   4. An account type inferred from a parent account's name, preferring the nearest parent.
   5. Otherwise, it will have no type.
 
-- For troubleshooting, you can list accounts and their types with:
-  ```cli
-  $ hledger accounts --types [ACCTPAT] [-DEPTH] [type:TYPECODES]
-  ```
+- [Account aliases](#alias-directive) can [disrupt](#aliases-and-account-types) account types.
 
 ## `alias` directive
 
