@@ -196,8 +196,13 @@ defaultJournalSafely = defaultJournalSafelyWith definputopts
 -- | Read the default journal file specified by the environment,
 -- with the given input options, or return an error message.
 defaultJournalSafelyWith :: InputOpts -> IO (Either String Journal)
-defaultJournalSafelyWith iopts = defaultJournalPath >>= runExceptT . readJournalFile iopts
-
+defaultJournalSafelyWith iopts = (do
+  f <- defaultJournalPath
+  runExceptT $ readJournalFile iopts f
+  ) `C.catches` [  -- XXX
+     C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ rstrip $ show e)
+    ,C.Handler (\(e :: C.IOException) -> return $ Left $ rstrip $ show e)
+    ]
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
 -- variable, and if that does not exist, for the legacy LEDGER
@@ -256,6 +261,8 @@ readJournal iopts@InputOpts{strict_, _defer} mpath hdl = do
 
 -- | Read a Journal from this file, or from stdin if the file path is -,
 -- with strict checks if enabled, or return an error message.
+-- XXX or, calls error if the file does not exist.
+--
 -- (Note strict checks are disabled temporarily here when this is called by readJournalFiles).
 -- The file path can have a READER: prefix.
 --
@@ -364,7 +371,7 @@ readJournalFiles' = orDieTrying . readJournalFiles definputopts
 orDieTrying :: MonadIO m => ExceptT String m a -> m a
 orDieTrying a = either (liftIO . fail) return =<< runExceptT a
 
--- | If the specified journal file does not exist (and is not "-"), give a helpful error and quit.
+-- | If the specified journal file does not exist (and is not "-"), call error with an informative message.
 -- (Using "journal file" generically here; it could be in any of hledger's supported formats.)
 requireJournalFileExists :: FilePath -> IO ()
 requireJournalFileExists "-" = return ()
