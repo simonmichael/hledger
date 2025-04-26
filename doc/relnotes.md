@@ -695,7 +695,7 @@ Fixes
 
 Features
 
-- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-files), to be added to your hledger commands either on demand or automatically. (This supersedes the older arguments files feature.) This has been a popular feature request. It has pros and cons, and is experimental; your testing and feedback is welcome. It changes the nature of hledger somewhat, which I have marked by giving this release a more memorable version number (1.40).
+- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-file), to be added to your hledger commands either on demand or automatically. (This supersedes the older arguments files feature.) This has been a popular feature request. It has pros and cons, and is experimental; your testing and feedback is welcome. It changes the nature of hledger somewhat, which I have marked by giving this release a more memorable version number (1.40).
 - The balance commands can now output in FODS format, a spreadsheet file format accepted by LibreOffice Calc. If you use LibreOffice this is better than CSV because it works across locales (decimal point vs. decimal comma, character encoding stored in XML header), and it supports fixed header rows and columns, cell types (string vs. number vs. date), separation of number and currency, styles (bold), and borders. You can still extract CSV from FODS/ODS with the ods2csv utility from Hackage. (Henning Thielemann)
 - The `register` report can now be sorted by date, description, account, amount, absolute amount, or a combination of these. (Michael Rees, [#2211])
 

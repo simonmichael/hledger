@@ -402,7 +402,7 @@ For example, backslash-quoting generally does not work there. Here are some more
 | In `ghci` (the Haskell REPL)  | Use double quotes, and enclose the whole argument
 
 [argument file]: #argument-files
-[config file]: #config-files
+[config file]: #config-file
 
 ### Using a wild card
 

@@ -414,7 +414,7 @@ Fixes
 
 Features
 
-- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-files),
+- You can now save command line options in a [config file](https://hledger.org/hledger.html#config-file),
   to be added to your hledger commands either on demand or automatically.
   (This supersedes the older arguments files feature.)
 
