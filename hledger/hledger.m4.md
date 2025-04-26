@@ -2121,23 +2121,23 @@ hledger knows that [in accounting](https://en.wikipedia.org/wiki/Chart_of_accoun
 
 ||||
 |-|-|-|
-| `Assets` | `A` | things you own |
-| `Liabilities` | `L` | things you owe |
+| `Asset` | `A` | things you own |
+| `Liability` | `L` | things you owe |
 | `Equity` | `E` | owner's investment, balances the two above |
 
 and two more representing changes in these:
 
 ||||
 |-|-|-|
-| `Revenues` | `R` | inflows  (also known as `Income`) |
-| `Expenses` | `X` | outflows |
+| `Revenue` | `R` | inflows  (also known as `Income`) |
+| `Expense` | `X` | outflows |
 
 hledger also uses a couple of subtypes:
 
 ||||
 |-|-|-|
 | `Cash` | `C` | liquid assets |
-| `Conversion` | `V` | equity used to balance commodity conversions |
+| `Conversion` | `V` | commodity conversions equity |
 
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
