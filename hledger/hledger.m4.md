@@ -1685,23 +1685,22 @@ If the same files are siblings, the assertions will not work.
 For example if you specify them with two `-f` options on the command line,
 the assertions in one will not see the balances from the other.
 
-But also, if a parent file includes the two subfiles with two side-by-side `include` directives,
-this too will fail (I think I have that right).
+But also, if a parent file includes the two subfiles with two side-by-side `include` directives, this too will fail (I think I have that right).
 Assertions in one subfile will not see the balances from the other.
 
 To work around this, arrange your files in parent child relationships with `include`.
-Eg make one subfile `include`` the other (it doesn't matter which way round).
+Eg make one subfile include the other (it doesn't matter which way round).
 
-Or, you could concatenate the files temporarily, and process them like one big file.
-Eg, `hledger print -I | hledger -f- CMD`
+Or, you could concatenate the files temporarily, and process them like one big file. Eg:\
+`hledger print -I | hledger -f- CMD`
 
 Why does it work this way ? 
-IIRC it might be related to hledger's goal of stable predictable reports.
+It might be related to hledger's goal of stable predictable reports.
 File hierarchy is considered "permanent" - it's part of your data.
 Whereas the order of sibling files (on the command line at least) is transient - it can change from one command to the next.
 We don't want transient changes to be able to change the meaning of the data.
 Eg it would be frustrating if tomorrow all your balance assertions broke because you wrote command line arguments in a different order.
-Feel free to discuss this more.
+(Discussion welcome.)
 
 ### Assertions and costs
 
