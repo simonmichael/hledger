@@ -200,8 +200,8 @@ defaultJournalSafelyWith iopts = (do
   f <- defaultJournalPath
   runExceptT $ readJournalFile iopts f
   ) `C.catches` [  -- XXX
-     C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ rstrip $ show e)
-    ,C.Handler (\(e :: C.IOException) -> return $ Left $ rstrip $ show e)
+     C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ show e)
+    ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
     ]
 -- | Get the default journal file path specified by the environment.
 -- Like ledger, we look first for the LEDGER_FILE environment
