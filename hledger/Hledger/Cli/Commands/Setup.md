@@ -1,9 +1,61 @@
 ## setup
 
-Check and show the status of various aspects of the hledger installation.
+Check the status of the hledger installation.
 
 ```flags
 Flags:
 no command-specific flags
 ```
 
+`setup` tests your hledger installation and prints a list of results, sometimes with helpful hints.
+This is a good first command to run after installing hledger.
+Also after upgrading, or when something's not working, or just when you want a reminder of where things are.
+
+It makes one network request to detect the latest hledger release version. It's ok if this fails or times out.
+It will use ANSI color by default, unless disabled by NO_COLOR or --color=n.
+It does not use a pager or a config file.
+
+It expects that the hledger version you are running is installed in your PATH.
+If not, it will stop until you have done that (to keep things simple).
+
+Example:
+```
+$ hledger setup
+Checking your hledger setup..
+Legend: good, neutral, unknown, warning
+
+hledger
+* is a released version ?                   no  hledger 1.42.99-gbca4b39c5-20250425, mac-aarch64
+* is up to date ?                          yes  1.42.99 installed, latest is 1.42.1
+* is a native binary for this machine ?    yes  aarch64
+* is installed in PATH ?                   yes  /Users/simon/.local/bin/hledger
+* has a system text encoding configured ?  yes  UTF-8, data files should use this encoding
+* has a user config file ? (optional)       no  
+* current directory has a local config ?   yes  /Users/simon/src/hledger/hledger.conf
+* the config file is readable ?            yes  /Users/simon/src/hledger/hledger.conf
+
+terminal
+* the NO_COLOR variable is defined ?        no  
+* --color is configured by config file ?    no  
+* hledger will use color by default ?      yes  
+* the PAGER variable is defined ?          yes  less
+* --pager is configured by config file ?    no  
+* hledger will use a pager when needed ?   yes  /opt/homebrew/bin/less
+* the LESS variable is defined ?           yes  
+* the HLEDGER_LESS variable is defined ?    no  
+* adjusting LESS variable for color etc. ? yes  
+* --pretty is enabled by config file ?      no  tables will use ASCII characters
+* bash shell completions are installed ?     ?  
+* zsh shell completions are installed ?      ?  
+
+journal
+* the LEDGER_FILE variable is defined ?    yes  /Users/simon/finance/2025/2025.journal
+* a default journal file is readable ?     yes  /Users/simon/finance/2025/2025.journal
+* it includes additional files ?           yes  15
+* all commodities are declared ?           yes  10
+* all accounts are declared ?              yes  160
+* all accounts have types ?                 no  14 untyped
+* accounts of each type were detected ?    yes  ALERXCV
+* commodities/accounts are checked ?        no  use -s to check commodities/accounts
+* balance assertions are checked ?         yes  use -I to ignore assertions
+```
