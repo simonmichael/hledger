@@ -5812,7 +5812,7 @@ format amounts a little bit differently to suit different consumers:
 **1. "hledger-readable output" - should be readable by hledger (and by humans)**
 
   - This is produced by reports that show full journal entries: `print`, `import`, `close`, `rewrite` etc.
-  - It shows amounts with their original journal precisions, which may not be consistent.
+  - It shows amounts with their original journal precisions, which may not be consistent from one amount to the next.
   - It adds a trailing decimal mark when needed to avoid showing ambiguous amounts.
   - It can be parsed reliably (by hledger and ledger2beancount at least, but perhaps not by Ledger..)
 
