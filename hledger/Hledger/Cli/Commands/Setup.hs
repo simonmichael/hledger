@@ -333,7 +333,6 @@ setupJournal meconf = do
 
   pdesc "a default journal file is readable ?"
   jfile <- defaultJournalPath
-
   -- let
   --   args = concat [
   --     ["print"],
@@ -344,7 +343,7 @@ setupJournal meconf = do
   -- XXX can this ignore assertions and config files, like the above ?
   ej <- defaultJournalSafely
   case ej of
-    Left e -> p N (jfile <> ":\n" <> show e)
+    Left estr -> p N (jfile <> ":\n" <> estr)
     Right j@Journal{..} -> do
       p Y jfile
 
@@ -418,25 +417,18 @@ setupJournal meconf = do
       then p Y (concatMap show accttypes)
       else p N (concatMap show typesnotfound <> "not found; type: queries, bs/cf/is reports may not work")
 
-      pdesc "balance assertions are checked ?"
-      let 
-        ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
-        strict           = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
-      if 
-        | ignoreassertions && not strict -> i N "use -s to check assertions"
-        | not strict -> i Y "use -I to ignore assertions"
-        | otherwise -> i Y "can't ignore assertions (-s in config file)"
-
       pdesc "commodities/accounts are checked ?"
+      let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
       then i Y "commodities and accounts must be declared"
       else i N "use -s to check commodities/accounts"
 
-------------------------------------------------------------------------------
-
--- setupX = do
---   pgroup "x"
---   pdesc "x ?"
+      pdesc "balance assertions are checked ?"
+      let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
+      if 
+        | ignoreassertions && not strict -> i N "use -s to check assertions"
+        | not strict -> i Y "use -I to ignore assertions"
+        | otherwise -> i Y "can't ignore assertions (-s in config file)"
 
 ------------------------------------------------------------------------------
 
