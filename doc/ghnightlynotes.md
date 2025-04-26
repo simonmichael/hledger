@@ -18,8 +18,9 @@ Here's what's new since hledger 1.42: [commits](https://github.com/simonmichael/
 
 If you have [eget](https://github.com/zyedidia/eget), that's a convenient way to download the right binaries for your machine:
 ```
-eget simonmichael/hledger --all --tag nightly
+eget simonmichael/hledger --pre-release --all
 ```
+<!-- eget simonmichael/hledger --tag nightly --all -->
 
 Otherwise:
 
