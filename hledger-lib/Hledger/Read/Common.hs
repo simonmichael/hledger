@@ -1340,8 +1340,7 @@ isSameLineCommentStart _   = False
 -- Right "\n\n"
 --
 followingcommentp :: TextParser m Text
-followingcommentp =
-  fst <$> followingcommentpWith (void $ takeWhileP Nothing (/= '\n'))  -- XXX support \r\n ?
+followingcommentp = fst <$> followingcommentpWith (void $ takeWhileP Nothing (/= '\n'))
 
 {-# INLINABLE followingcommentp #-}
 

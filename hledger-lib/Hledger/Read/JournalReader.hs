@@ -289,18 +289,22 @@ directivep = (do
 -- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
+  -- parse
   string "include"
   lift skipNonNewlineSpaces1
-  prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (/= '\n') -- don't consume newline yet
+  prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
+  lift followingcommentp
+  -- save the position (does sequencing wrt newline matter ? seems not)
   parentoff <- getOffset
   parentpos <- getSourcePos
+  -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
   paths <- getFilePaths parentoff parentpos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
+  -- parse them inline
   forM_ prefixedpaths $ parseChild parentpos
-  void newline
 
   where
     getFilePaths
