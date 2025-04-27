@@ -1,4 +1,4 @@
-; assertions1.j
+# assertions1.j
 
 2025-01-01
   (a)    1 = 1

@@ -1,4 +1,4 @@
-; assertions11.j
+# assertions11.j
 
 2025-01-11
   (a)    11 = 11  ; first assertion
