@@ -226,4 +226,4 @@ If you find that adding --fast makes this any faster, please update this.
 
 ### Rerun a single functional test as you change it:
 
-    watchexec -w hledger/test/journal/balance-assertions.test just functest -i budget.*19
+    watchexec -w hledger/test/journal/assertions.test just functest -i budget.*19

@@ -527,7 +527,7 @@ journalBalanceTransactions bopts' j' =
         ts' <- lift $ getElems balancedtxns
         return j{jtxns=ts'}
 
--- Before #2039: "Costs are removed, which helps eg balance-assertions.test: 15. Mix different commodities and assignments."
+-- Before #2039: "Costs are removed, which helps eg assertions.test: 15. Mix different commodities and assignments."
 
 -- | This function is called statefully on each of a date-ordered sequence of
 -- 1. fully explicit postings from already-balanced transactions and

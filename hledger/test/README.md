@@ -55,10 +55,10 @@ Some explanation:
 - `--threads=N` runs tests in parallel which is much faster.
 - `-x` is another spelling of --exclude
 
-Run only the tests matching a regular expression (here, the 19th test in the balance-assertions.test file):
+Run only the tests matching a regular expression (here, the 19th test in the assertions.test file):
 
     $ just functest -i balance-assertions.*19
-    :hledger/test/journal/balance-assertions.test:19: [OK]
+    :hledger/test/journal/assertions.test:19: [OK]
 
              Test Cases  Total      
      Passed  1           1          
@@ -67,7 +67,7 @@ Run only the tests matching a regular expression (here, the 19th test in the bal
 
 Run a specific test repeatedly as its file is changed:
 
-    $ watchexec -w hledger/test/journal/balance-assertions.test just functest -i balance-assertions.*19
+    $ watchexec -w hledger/test/journal/assertions.test just functest -i balance-assertions.*19
     :hledger/test/cli/query-args.test:1: [OK]
 
              Test Cases  Total      
