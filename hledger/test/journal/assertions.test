@@ -493,3 +493,12 @@ $ hledger -f - check -I -s
 $ hledger -f - check assertions -I
 >2 /Balance assertion failed/
 >=1
+
+# ** 32. Assertions don't see balances from previous sibling -f files
+$ hledger check assertions -f assertions1.j -f assertions2.j
+>2 /assertion failed/
+>= 1
+
+# ** 33. Assertions do see balances from parents and previous siblings/children in an include hierarchy
+$ hledger check assertions -f assertions11.j
+

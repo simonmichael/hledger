@@ -1679,25 +1679,17 @@ The exception is when you reorder multiple postings on the same day, to the same
 ### Assertions and multiple files
 
 If an account has transactions appearing in multiple files, balance assertions can still work - 
-but *only if those files are in a parent-child relationship, using [include directives](#include-directive)*.
+but *only if those files are part of a hierarchy made by [include directives](#include-directive)*.
 
-If the same files are siblings, the assertions will not work.
-For example if you specify them with two `-f` options on the command line,
-the assertions in one will not see the balances from the other.
+If the same files are specified with two `-f` options on the command line,
+the assertions in the second will not see the balances from the first.
 
-But also, if a parent file includes the two subfiles with two side-by-side `include` directives, this too will fail (I think I have that right).
-Assertions in one subfile will not see the balances from the other.
-
-To work around this, arrange your files in parent child relationships with `include`.
-Eg make one subfile include the other (it doesn't matter which way round).
-
-Or, you could concatenate the files temporarily, and process them like one big file. Eg:\
-`hledger print -I | hledger -f- CMD`
+To work around this, arrange your files in a hierarchy with `include`.
+Or, you could concatenate the files temporarily, and process them like one big file.
 
 Why does it work this way ? 
 It might be related to hledger's goal of stable predictable reports.
-File hierarchy is considered "permanent" - it's part of your data.
-Whereas the order of sibling files (on the command line at least) is transient - it can change from one command to the next.
+File hierarchy is considered "permanent", part of your data, while the order of command line options/arguments is not.
 We don't want transient changes to be able to change the meaning of the data.
 Eg it would be frustrating if tomorrow all your balance assertions broke because you wrote command line arguments in a different order.
 (Discussion welcome.)
