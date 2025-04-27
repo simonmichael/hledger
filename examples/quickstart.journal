@@ -1,24 +1,29 @@
 ; keep synced: site/src/index.md > Quick start
 
+commodity $1000.00
+
 account assets                   ; type:A
 account assets:bank              ; type:C
 account assets:bank:checking
 account assets:bank:savings
 account assets:cash              ; type:C
+
 account liabilities              ; type:L
 account liabilities:credit card
+
 account equity                   ; type:E
 account equity:conversion        ; type:V
 account equity:opening/closing
+
 account income                   ; type:R
 account income:salary
 account income:gifts
+
 account expenses                 ; type:X
 account expenses:rent
 account expenses:food
 account expenses:gifts
 
-commodity $1000.00
 
 2023-01-01 opening balances            ; <- First transaction sets starting balances.
     assets:bank:checking        $1000  ; <- Account names can be anything.
