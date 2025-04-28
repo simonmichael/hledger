@@ -23,6 +23,7 @@ For more detailed documentation on each type, see the corresponding modules.
 {-# LANGUAGE OverloadedStrings    #-}
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE StandaloneDeriving   #-}
+{-# LANGUAGE StrictData           #-}
 
 module Hledger.Data.Types (
   module Hledger.Data.Types,
