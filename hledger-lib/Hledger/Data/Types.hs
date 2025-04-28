@@ -34,6 +34,7 @@ module Hledger.Data.Types (
 where
 
 import GHC.Generics (Generic)
+import Control.DeepSeq (NFData(..))
 import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
@@ -762,3 +763,39 @@ data Ledger = Ledger {
    ljournal  :: Journal
   ,laccounts :: [Account]
   } deriving (Generic)
+
+instance NFData AccountAlias
+instance NFData AccountDeclarationInfo
+instance NFData AccountType
+instance NFData Amount
+instance NFData AmountCost
+instance NFData AmountPrecision
+instance NFData AmountStyle
+instance NFData BalanceAssertion
+instance NFData Commodity
+instance NFData DateSpan
+instance NFData DigitGroupStyle
+instance NFData EFDay
+instance NFData Interval
+instance NFData Journal
+instance NFData MarketPrice
+instance NFData MixedAmount
+instance NFData MixedAmountKey
+instance NFData Rounding
+instance NFData PayeeDeclarationInfo
+instance NFData PeriodicTransaction
+instance NFData PostingType
+instance NFData PriceDirective
+instance NFData Side
+instance NFData Status
+instance NFData TagDeclarationInfo
+instance NFData TimeclockCode
+instance NFData TimeclockEntry
+instance NFData TMPostingRule
+instance NFData Transaction
+instance NFData TransactionModifier
+
+instance NFData Posting where
+  -- Do not call rnf on the parent transaction to avoid recursive loops
+  rnf (Posting d d2 s n a c t ta b mt op) =
+      rnf d `seq` rnf d2 `seq` rnf s `seq` rnf n `seq` rnf a `seq` rnf c `seq` rnf t `seq` rnf ta `seq` rnf b `seq` mt `seq` rnf op `seq` ()

@@ -64,6 +64,7 @@ module Hledger.Utils.Regex (
   )
 where
 
+import Control.DeepSeq (NFData(..), rwhnf)
 import Control.Monad (foldM)
 import Data.Aeson (ToJSON(..), Value(String))
 import Data.Array ((!), elems, indices)
@@ -128,6 +129,8 @@ instance RegexLike Regexp String where
 instance RegexContext Regexp String String where
   match = match . reCompiled
   matchM = matchM . reCompiled
+
+instance NFData Regexp where rnf = rwhnf
 
 -- Convert a Regexp string to a compiled Regex, or return an error message.
 toRegex :: Text -> Either RegexError Regexp
