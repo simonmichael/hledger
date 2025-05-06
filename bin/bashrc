@@ -1,8 +1,8 @@
 # Some hledger/PTA-related bash scripts. See also Justfile.
 
 alias hl='hledger'
-alias acc='hledger accounts'
-alias act='hledger activity'
+alias accounts='hledger accounts'
+alias activity='hledger activity'
 alias add='hledger add'
 alias areg='hledger aregister'
 alias bal='hledger balance'
