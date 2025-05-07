@@ -1,47 +1,72 @@
-# Symlink this as hie.yaml to make HLS use the stack yaml/ghc mentioned below.
-# This works better than relying on the implicit cradle, which doesn't
-# work with multi-package projects (opening a file from a second package breaks HLS).
-
-# Circa HLS 1.9.1.0, this one (using GHC 9.4) does not work.
+# Symlink this as hie.yaml to force HLS to use the stack yaml/ghc mentioned below.
+# This works better than relying on HLS's implicit cradle, which doesn't work well
+# with multi-package projects (opening a file from a second package breaks HLS).
+# XXX Circa HLS 1.9.1.0 and GHC 9.4, this does not work.
+#
+# Does it force HLS to use stack in all cases ? Even if cabal's dist* directories are present ?
+# More on cradle selection:
+# > the heuristic is `cabal.project + dist-newstyle > stack.yaml + .stack-work > cabal.project > stack.yaml > .cabal file`
+# > would it ever switch to cabal because it's having trouble building with stack ?
+# > no, the heuristic only accounts for static things, such as which binaries are installed, the existence of these project files and pre-existing compilation artefacts.
+#
+# Here's a more recent one: https://github.com/keithfancher/tvmv/blob/master/hie.yaml
 
 cradle:
   stack:
+
+    # You can specify one of the other stack*.yaml files/GHC versions here if you prefer.
     stackYaml: "stack.yaml"
 
-    # since there is a hie.yaml, these must be listed explicitly 
-    # (a current limitation of hls with a multi-package stack project):
+    # Declare which component the various files/directories belong to.
+    # When there is a hie.yaml, this must be done explicitly
+    # (a current limitation of HLS with multi-package stack projects).
+
+    # The components: line is necessary when stackYaml: is defined above, apparently.
     components:
+
     - path: "hledger-lib/"
       component: "hledger-lib:lib"
+
     - path: "hledger-lib/test/doctests.hs"
       component: "hledger-lib:test:doctest"
+
     - path: "hledger-lib/test/unittest.hs"
       component: "hledger-lib:test:unittest"
 
+
     - path: "hledger/"
       component: "hledger:lib"
+
     - path: "hledger/app/"
       component: "hledger:exe:hledger"
+
     - path: "hledger/test/unittest.hs"
       component: "hledger:test:unittest"
+
     - path: "hledger/bench/"
       component: "hledger:bench:bench"
+
 
     - path: "hledger-ui/"
       component: "hledger-ui:exe:hledger-ui"
 
+
     - path: "hledger-web/"
       component: "hledger-web:lib"
+
     - path: "hledger-web/app/"
       component: "hledger-web:exe:hledger-web"
+
     - path: "hledger-web/test/"
       component: "hledger-web:test:test"
 
+
     - path: "bin/"
       component: "hledger:lib"
+
     - path: "tools/"
       component: "hledger:lib"
 
-    # silences hls error for Shake.hs, but I think also ignores actual errors
+    # silences HLS error for Shake.hs, but I think also ignores actual errors
     - path: "Shake.hs"
       component: "hledger:lib"
