@@ -64,9 +64,9 @@ h2, h2:last-child > h3 { margin-top:4em; }
 </style>
 
 Major releases and user-visible changes, collected from the changelogs (
-[hledger](http://hackage.haskell.org/package/hledger-1.24.1/changelog),
-[hledger-ui](http://hackage.haskell.org/package/hledger-ui-1.24.1/changelog),
-[hledger-web](http://hackage.haskell.org/package/hledger-web-1.24.1/changelog)
+[hledger](http://hackage.haskell.org/package/hledger/changelog),
+[hledger-ui](http://hackage.haskell.org/package/hledger-ui/changelog),
+[hledger-web](http://hackage.haskell.org/package/hledger-web/changelog)
 ).
 Changes in hledger-install.sh are shown
 [here](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
