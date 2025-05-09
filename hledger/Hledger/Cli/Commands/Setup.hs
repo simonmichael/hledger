@@ -3,6 +3,34 @@
 Check and show the status of the hledger installation.
 
 -}
+{-
+Old design notes:
+
+## Goals
+- Make getting started with hledger and PTA easier and quicker, to
+  (a) make this practical for more people (non techies, busy techies..)
+  (b) free up more time and energy for learning and doing PTA and finance
+
+Subgoals:
+- Reduce the special knowledge and docs needed after install, to get a standard setup working (especially on windows)
+- Help with discovery and setup of advanced quality of life terminal features
+- Assist with setting up a first or new journal file
+- Deliver relevant install/setup/config expertise more efficiently, freeing up dev and support time
+
+## Design
+Why a built in command and not a shell script, haskell script, or docs ?
+So it is available and runs reliably anywhere a hledger executable runs, and so it can detect more context-specific advice.
+(Optionally use shell or haskell scripts for prototyping, if that's helpful)
+
+## Setup checks
+Somewhat ordered.
+These deal with the complexities of terminals, the shell, GHC, hledger, and the user's machine, locale, and data.
+Initially just informational hints.
+Later, add automated or interactive diagnosis and repair attempts,
+and semi-persistent state (invalidated at suitable times).
+These checks are a necessary evil/stopgap; long term, automate/replace/remove them whenever possible.
+
+-}
 
 -- {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE OverloadedStrings #-}
