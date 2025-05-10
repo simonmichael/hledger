@@ -82,7 +82,7 @@ keeping the output parseable.
 Amounts are shown right-aligned within each transaction
 (but not aligned across all transactions; you can do that with ledger-mode in Emacs). 
 
-Amounts will be (mostly) normalised to their [commodity display style](#commodity-display-styles):
+Amounts will be (mostly) normalised to their [commodity display style](#commodity-display-style):
 their symbol placement, decimal mark, and digit group marks will be made consistent.
 By default, decimal digits are shown as they are written in the journal.
 
