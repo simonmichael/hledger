@@ -18,6 +18,7 @@ For more detailed documentation on each type, see the corresponding modules.
 
 -- {-# LANGUAGE DeriveAnyClass #-}  -- https://hackage.haskell.org/package/deepseq-1.4.4.0/docs/Control-DeepSeq.html#v:rnf
 {-# LANGUAGE CPP        #-}
+{-# LANGUAGE DeriveFunctor        #-}
 {-# LANGUAGE DeriveGeneric        #-}
 {-# LANGUAGE FlexibleInstances    #-}
 {-# LANGUAGE OverloadedStrings    #-}
@@ -39,6 +40,7 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
+import qualified Data.IntMap.Strict as IM
 import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
@@ -733,20 +735,36 @@ nullaccountdeclarationinfo = AccountDeclarationInfo {
   ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
--- | An account, with its balances, parent/subaccount relationships, etc.
--- Only the name is required; the other fields are added when needed.
-data Account = Account {
-   aname                     :: AccountName    -- ^ this account's full name
+-- | An account within a hierarchy, with its balances, parent/subaccount
+-- relationships, etc. Only the name is required; the other fields are added
+-- when needed.
+data Account a = Account {
+   aname                     :: AccountName         -- ^ this account's full name
   ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives
   -- relationships in the tree
-  ,asubs                     :: [Account]      -- ^ this account's sub-accounts
-  ,aparent                   :: Maybe Account  -- ^ parent account
-  ,aboring                   :: Bool           -- ^ used in the accounts report to label elidable parents
+  ,asubs                     :: [Account a]        -- ^ this account's sub-accounts
+  ,aparent                   :: Maybe (Account a)  -- ^ parent account
+  ,aboring                   :: Bool                -- ^ used in the accounts report to label elidable parents
   -- balance information
-  ,anumpostings              :: Int            -- ^ the number of postings to this account
-  ,aebalance                 :: MixedAmount    -- ^ this account's balance, excluding subaccounts
-  ,aibalance                 :: MixedAmount    -- ^ this account's balance, including subaccounts
-  } deriving (Generic)
+  ,abalances                 :: AccountBalances a   -- ^ historical and date-associated account balances.
+                                                    -- These can be either "end balances" (at the end of a period)
+                                                    -- or "balance changes" (within a period).
+  } deriving (Generic, Functor)
+
+-- | A component of an 'Account' containing historical 'AccountBalance', and a
+-- map of start dates to 'AccountBalance'.
+data AccountBalances a = AccountBalances {
+   abhistorical :: a            -- ^ historical balance information
+  ,abdatemap    :: IM.IntMap a  -- ^ balance information associated to a start day
+  } deriving (Eq, Functor, Generic)
+
+-- | A component of an 'Account' containing the number of postings,
+-- balance excluding subaccounts, and balance including subaccounts
+data AccountBalance = AccountBalance {
+   abnumpostings :: Int          -- ^ the number of postings to this account
+  ,abebalance    :: MixedAmount  -- ^ this account's balance, excluding subaccounts
+  ,abibalance    :: MixedAmount  -- ^ this account's balance, including subaccounts
+  } deriving (Eq, Generic)
 
 -- | Whether an account's balance is normally a positive number (in
 -- accounting terms, a debit balance) or a negative number (credit balance).
@@ -761,7 +779,7 @@ data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Eq)
 -- account is the root of the tree and always exists.
 data Ledger = Ledger {
    ljournal  :: Journal
-  ,laccounts :: [Account]
+  ,laccounts :: [Account AccountBalance]
   } deriving (Generic)
 
 instance NFData AccountAlias
