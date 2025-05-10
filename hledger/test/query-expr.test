@@ -158,3 +158,15 @@ $ hledger -f- reg expr:'date:2023 OR date:2024'
 >2 /using date: in OR expressions is not supported/
 >=1
 
+# ** 12. #2371 boolean query which hledger <=1.42.1 gets wrong: register
+$ hledger -f sample2.journal reg expr:'(checking and amt:>0) or credit'
+2025-01-01 starting balances    assets:bank:checking   1000.00 USD   1000.00 USD
+                                li:credit card         -400.00 USD    600.00 USD
+2025-01-02 salary               assets:bank:checking   1000.00 USD   1600.00 USD
+2025-01-03 pay half of credi..  li:credit card          200.00 USD   1800.00 USD
+
+# # ** 13. aregister
+# $ hledger -f sample2.journal areg expr:'(checking and amt:>0) or credit'
+
+# # ** 14. print
+# $ hledger -f sample2.journal reg expr:'(checking and amt:>0) or credit'
