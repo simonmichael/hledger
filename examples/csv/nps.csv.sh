@@ -6,7 +6,7 @@
 # removes all lines before the last 'Date'
 # substitutes certain descriptions
 # outputs to a temporary file
-# runs hledger csv import as a dry-run with nps-transactions.rules.
+# runs hledger csv import as a dry-run with nps.csv.rules.
 
 cat "$1" \
   | awk 's{s=s"\n"$0;} /Date/{s=$0;} END{print s;}' \
