@@ -198,6 +198,7 @@ ones listed above and some more.
 hledger provides various subcommands for getting things done.
 Most of these commands do not change the journal file; they just read it and output a report.
 A few commands assist with adding data and file management.
+Some often-used commands are `add`, `print`, `register`, `balancesheet` and `incomestatement`.
 
 To show a summary of commands, run `hledger` with no arguments.
 You can see the same commands summary at the start of [PART 4: COMMANDS](#part-4-commands) below.
