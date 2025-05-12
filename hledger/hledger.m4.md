@@ -5243,11 +5243,11 @@ The same would be true with the argument `--depth assets=1 --depth savings=2`.
 
 # Queries
 
-Most hledger commands accept query arguments, which restrict their scope and let you report on a precise subset of your data. 
-Here's a quick overview of hledger's query language:
+Many hledger commands accept query arguments,
+which restrict their scope  and let you report on a precise subset of your data.
+Here's a quick overview of hledger's queries:
 
-- An argument with no recognised query prefix is interpreted as
-  a case-insensitive substring pattern for matching [account names](#account-names).
+- By default, a query argument is treated as a case-insensitive substring pattern for matching [account names](#account-names).
   Eg:
 
   `dining groceries`\
@@ -5275,6 +5275,7 @@ Here's a quick overview of hledger's query language:
   `cur:USD`\
   `cur:\\$`\
   `amt:'>0'`\
+  `acct:groceries`  (but `acct:` is the default, so we usually don't bother writing it) \
 
 - To negate a query, add a `not:` prefix:
 
@@ -5282,13 +5283,30 @@ Here's a quick overview of hledger's query language:
   `not:desc:'opening|closing'`\
   `not:cur:USD`\
 
-- If you provide multiple query terms as command line arguments,
-  the terms with different types will be AND-ed, while
-  the terms with the same type will be OR-ed (mostly).\
-  So, `hledger print date:2022 desc:amazon desc:amzn`
-  means "show transactions where the date is in 2022 AND the description contains (amazon OR amzn)".
-  More flexible query combining is described below.
+- Multiple query terms can be combined, as [space-separated queries](#space-separated-queries)
+  Eg: `hledger print date:2022 desc:amazon desc:amzn`
+  (show transactions dated in 2022 whose description contains "amazon" or "amzn").\
 
+- Or more flexibly as [boolean queries](#boolean-queries).
+  Eg: `hledger print expr:'date:2022 and (desc:amazon or desc:amzn) and not date:202210'`\
+
+All hledger commands use the same query language, but different commands may interpret the query in different ways,
+and this is worth keeping in mind.
+We haven't described the commands yet (that's coming in [PART 4: COMMANDS](#part-4-commands) below)
+but here's the gist of it:
+
+- Transaction-oriented commands
+  (`print`, `aregister`, `close`, `import`, `descriptions`..)
+  try to match [transactions](#transactions) (including the transaction's postings).
+
+- Posting-oriented commands
+  (`register`, `balance`, `balancesheet`, `incomestatement`, `accounts`..)
+  try to match [postings](#postings).
+  Postings inherit their transaction's attributes for querying purposes,
+  so transaction fields like date or description can still be referenced in a posting query.
+
+- A few commands match in more specific ways.
+  (Eg `aregister`, which has a special first argument.)
 
 ## Query types
 
