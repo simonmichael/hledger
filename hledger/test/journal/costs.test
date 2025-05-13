@@ -624,3 +624,23 @@ $ hledger -f- print
     Assets:BOG:Personal                209.60 GEL
 
 >=
+
+# ** 42. Make sure --cost interacts properly with interval reports with an early end date (#2385)
+<
+2025-03-02
+    expenses   $1
+    assets
+
+2025-04-02
+    expenses   $2
+    assets
+
+$ hledger -f- balance -M -X $ -e 2025-04 -N
+Balance changes in 2025-03, valued at period ends:
+
+          || Mar 
+==========++=====
+ assets   || $-1 
+ expenses ||  $1 
+>=0
+
