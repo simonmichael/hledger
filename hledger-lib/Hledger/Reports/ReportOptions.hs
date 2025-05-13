@@ -590,19 +590,11 @@ journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec 
 
 -- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
 journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
-journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
-    -- Filter by the remainder of the query
-      filterJournal reportq
-    -- Apply valuation and costing
-    . journalApplyValuationFromOptsWith rspec
-    -- Filter by amount and currency, so it matches pre-valuation/costing
-      (if queryIsNull amtsymq then j else filterJournalAmounts amtsymq j)
+journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} =
+    journalApplyValuationFromOptsWith rspec . filterJournal q
   where
     -- with -r, replace each posting with its sibling postings
     filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
-    amtsymq = dbg3 "amtsymq" $ filterQuery queryIsAmtOrSym q
-    reportq = dbg3 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
-    queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
 
 -- | Convert this journal's postings' amounts to cost and/or to value, if specified
 -- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
