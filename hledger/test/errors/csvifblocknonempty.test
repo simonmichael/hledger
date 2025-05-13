@@ -1,5 +1,5 @@
 $$$ hledger check -f  csvifblocknonempty.csv
->>>2 /hledger: Error: .*csvifblocknonempty.csv.rules:2:1:
+>>>2 /Error: .*csvifblocknonempty.csv.rules:2:1:
   \|
 2 \| if foo
   \| \^

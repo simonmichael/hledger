@@ -1,5 +1,5 @@
 $$$ hledger check -f  csviftablevaluecount.csv
->>>2 /hledger: Error: .*csviftablevaluecount.csv.rules:4:1:
+>>>2 /Error: .*csviftablevaluecount.csv.rules:4:1:
   \|
 4 \| one,val1
   \| \^

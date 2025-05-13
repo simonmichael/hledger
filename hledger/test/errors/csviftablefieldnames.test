@@ -1,5 +1,5 @@
 $$$ hledger check -f  csviftablefieldnames.csv
->>>2 /hledger: Error: .*csviftablefieldnames.csv.rules:2:9:
+>>>2 /Error: .*csviftablefieldnames.csv.rules:2:9:
   \|
 2 \| if,date,nosuchfield,description
   \|         \^\^\^\^\^\^\^\^\^\^\^\^

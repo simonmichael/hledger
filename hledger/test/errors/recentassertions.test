@@ -1,5 +1,5 @@
 $$$ hledger check recentassertions -f recentassertions.j
->>>2 /hledger: Error: .*recentassertions.j:18:
+>>>2 /Error: .*recentassertions.j:18:
    \| 2022-01-09 bad1
 18 \|     a               0
    \|     \^

@@ -1,5 +1,5 @@
 $$$ hledger check commodities -f commodities.j
->>>2 /hledger: Error: .*commodities.j:6:
+>>>2 /Error: .*commodities.j:6:
   \| 2022-01-01
 6 \|     \(a\)             A 1
   \|                     \^\^\^

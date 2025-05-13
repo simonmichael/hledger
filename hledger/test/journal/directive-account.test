@@ -73,7 +73,7 @@ Expenses:Food
 account (a)
 
 $ hledger -f- accounts
->2 /hledger: Error: -:1:9:
+>2 /Error: -:1:9:
   \|
 1 \| account \(a\)
   \|         \^
@@ -88,7 +88,7 @@ expecting account name without brackets
 account [a]
 
 $ hledger -f- accounts
->2 /hledger: Error: -:1:9:
+>2 /Error: -:1:9:
   \|
 1 \| account \[a\]
   \|         \^

@@ -1,5 +1,5 @@
 $$$ hledger check -f assertions.j
->>>2 /hledger: Error: .*assertions.j:4:8:
+>>>2 /Error: .*assertions.j:4:8:
   \| 2022-01-01
 4 \|     a               0 = 1
   \|                       \^\^\^

@@ -1,5 +1,5 @@
 $$$ hledger check -f autobalanced.j
->>>2 /hledger: Error: .*autobalanced.j:3-4:
+>>>2 /Error: .*autobalanced.j:3-4:
 3 \| 2022-01-01
   \|     a               1
 

@@ -1,5 +1,5 @@
 $$$ hledger check -f parseable.j
->>>2 /hledger: Error: .*parseable.j:3:2:
+>>>2 /Error: .*parseable.j:3:2:
   \|
 3 \| 1
   \|  \^

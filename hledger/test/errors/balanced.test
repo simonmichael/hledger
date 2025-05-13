@@ -1,5 +1,5 @@
 $$$ hledger check balanced -f balanced.j
->>>2 /hledger: Error: .*balanced.j:5-7:
+>>>2 /Error: .*balanced.j:5-7:
 5 \| 2022-01-01
   \|     a             1 A
   \|     b            -1 B

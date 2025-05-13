@@ -1,5 +1,5 @@
 $$$ hledger print -f  csvstatusparse.csv
->>>2 /hledger: Error: could not parse status value "badstatus" \(should be \*, ! or empty\)
+>>>2 /Error: could not parse status value "badstatus" \(should be \*, ! or empty\)
 the parse error is:      1:1:
   \|
 1 \| badstatus
