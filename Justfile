@@ -812,9 +812,9 @@ changelogs-finalise:
     just _on-release-branch
     date=`gdate -I`
     for p in $PACKAGES; do \
-      sed -i "0,/^# /s/^# .*$/# $date `cat $p/.version`/" $p/CHANGES.md; \
+      sed -i "0,/^# /s/^# .*$/# `cat $p/.version` $date/" $p/CHANGES.md; \
     done
-    sed -i "0,/^# /s/^# .*$/# $date `cat .version`/" CHANGES.md
+    sed -i "0,/^# /s/^# .*$/# `cat .version` $date/" CHANGES.md
     git commit -m ";doc: finalise changelogs for `cat .version` on $date" CHANGES.md */CHANGES.md
 
 # see also Shake.hs
