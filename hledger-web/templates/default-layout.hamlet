@@ -38,6 +38,7 @@ $if elem ViewPermission perms
     <div .modal-content>
       <div .modal-header>
         <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <span style="float:right; margin-right:4em;">#{progname} #{packageversion}
         <h3 .modal-title #helpLabel>Help
       <div .modal-body>
         <div .row>
@@ -64,17 +65,19 @@ $if elem ViewPermission perms
             <p>
               <b>Search
               <ul>
-                <li> <code>acct:REGEXP</code> - filter on to/from account
-                <li> <code>desc:REGEXP</code> - filter on description
-                <li> <code>date:PERIODEXP</code>, <code>date2:PERIODEXP</code> - filter on date or secondary date
-                <li> <code>code:REGEXP</code> - filter on transaction's code (eg check number)
-                <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - filter on transaction's cleared status (cleared, pending, uncleared)
-                <!-- <li> <code>empty:BOOL</code> - filter on whether amount is zero -->
-                <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
-                <li> <code>cur:REGEXP</code> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <code>\$</code>
-                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - filter on tag name, or tag name and value
-                <!-- <li> <code>depth:N</code> - filter out accounts below this depth -->
-                <li> <code>real:BOOL</code> - filter on postings' real/virtual-ness
-                <li> Enclose search patterns containing spaces in single or double quotes
-                <li> Prepend <code>not:</code> to negate a search term
-                <li> Description, account, status query terms are OR'ed, others are AND'ed.
+                <li> Search patterns with spaces should be enclosed in quotes.
+                <li> <code>REGEXP</code> - match account names
+                <li> <code>date:PERIODEXP</code> - match dates
+                <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - match status
+                <li> <code>code:REGEXP</code> - match transaction codes
+                <li> <code>desc:REGEXP</code> - match transaction descriptions
+                <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - match unsigned magnitudes, or with signed N, signed amounts. For single-commodity amounts only.
+                <li> <code>cur:REGEXP</code> - match currencies/commodities. Must match the whole symbol/name. To match dollar sign, write <code>\$</code>
+                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tag names, or name and value
+                <li> <code>real:BOOL</code> - match postings' realness/virtualness
+                <li> <code>not:QUERY</code> - prepend not: to negate a search term
+                <li> <code>expr:'EXPR'</code> - match with a boolean query expression
+                <li>  <code>any:'EXPR'</code> - match transactions where any posting matches
+                <li>  <code>all:'EXPR'</code> - match transactions where all postings match
+                <li> <code>depth:N</code> - trim account names at this depth
+                $# <li> Description, account, status query terms are OR'ed, others are AND'ed.
