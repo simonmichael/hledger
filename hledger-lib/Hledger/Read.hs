@@ -345,13 +345,11 @@ readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
   return (maybe def sconcat $ nonEmpty js, catMaybes lastdates)
 
--- | An easy version of 'readJournal' which assumes default options, and fails
--- in the IO monad.
+-- | An easy version of 'readJournal' which assumes default options, and fails in the IO monad.
 readJournal' :: Handle -> IO Journal
 readJournal' = orDieTrying . readJournal definputopts Nothing
 
--- | An even easier version of 'readJournal' which additionally to 'readJournal''
--- also takes a 'Text' instead of a 'Handle'.
+-- | An even easier version of readJournal' which takes a 'Text' instead of a 'Handle'.
 readJournal'' :: Text -> IO Journal
 readJournal'' = readJournal' <=< inputToHandle
 
