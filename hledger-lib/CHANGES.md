@@ -22,6 +22,11 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# dbcb400e
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+
 # 1.42.1 2025-03-12
 
 

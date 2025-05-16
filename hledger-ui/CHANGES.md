@@ -22,6 +22,22 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# dbcb400e
+
+Fixes
+
+- Require fsnotify-0.4.2.0+/hfsevents-0.1.8+, which fixes some events
+  being ignored on mac (see https://github.com/luite/hfsevents/pull/19),
+  which should help `hledger-ui --watch` a little.
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+Docs
+
+- Update --watch notes
+- Drop obsolete Windows non-support note
+
+
 # 1.42.1 2025-03-12
 
 - allow vty 6.4

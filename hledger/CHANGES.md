@@ -23,6 +23,23 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# dbcb400e
+
+Fixes
+
+- The test command can pass options to tasty again (this broke in 1.42).
+  Also, any arguments before -- are now passed to tasty as test-selecting -p options.
+  [#2386]
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+Docs
+
+- CSV encoding: fix inaccurate list of encoding names. [#2354]
+- Fix broken links to "Commodity display style". (Simon Michael, J.B. Rainsberger [hledger_site#132])
+- Misc. edits/fixes: beancount output, commands list, balance command, hledger-iadd link, csv tutorial link
+
+
 # 1.42.1 2025-03-12
 
 Fixes

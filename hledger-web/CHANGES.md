@@ -22,6 +22,15 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# dbcb400e
+
+Fixes
+
+- Don't hang when saving a large file (this broke in 1.42). [#2319]
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+
 # 1.42.1 2025-03-12
 
 - Build with hledger 1.42.1.
