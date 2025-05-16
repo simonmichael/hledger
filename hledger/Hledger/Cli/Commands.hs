@@ -474,9 +474,9 @@ testmode = hledgerCommandMode
   []
   ([], Just $ argsFlag "[-- TASTYOPTS]")
 
--- | The test command, which runs the hledger and hledger-lib
--- packages' unit tests. This command also accepts tasty test runner
--- options, written after a -- (double hyphen).
+-- | The test command, which runs the hledger and hledger-lib packages' unit tests.
+-- Arguments following a -- argument will be passed to the tasty test runner,
+-- and any arguments before -- will be passed as test-selecting -p patterns.
 --
 -- Unlike most hledger commands, this one does not read the user's journal.
 -- A 'Journal' argument remains in the type signature, but it should
@@ -484,7 +484,11 @@ testmode = hledgerCommandMode
 --
 testcmd :: CliOpts -> Journal -> IO ()
 testcmd opts _undefined = do
-  withArgs (listofstringopt "args" $ rawopts_ opts) $
+  let
+    args = listofstringopt "args" $ rawopts_ opts
+    (hledgerargs, tastyargs0) = break (== "--") args
+    tastyargs = dbg1 "tastyargs" $ ["-p " <> a | a <- hledgerargs] ++ drop 1 tastyargs0
+  withArgs tastyargs $
     Test.Tasty.defaultMain $ testGroup "hledger" [
        tests_Hledger
       ,tests_Hledger_Cli

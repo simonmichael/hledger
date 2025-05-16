@@ -16,11 +16,12 @@ sanity-check the installed hledger executable on your platform. All
 tests are expected to pass - if you ever see a failure, please report
 as a bug!
 
-This command also accepts tasty test runner options, written after a
--- (double hyphen). Eg to run only the tests in Hledger.Data.Amount,
-with ANSI colour codes disabled:
-```cli
-$ hledger test -- -pData.Amount --color=never
+Any arguments before a `--` argument will be passed to the `tasty` test runner as test-selecting -p patterns,
+and any arguments after `--` will be passed to tasty unchanged.
+
+Examples:
 ```
-For help on these, see https://github.com/feuerbach/tasty#options 
-(`-- --help` currently doesn't show them).
+$ hledger test               # run all unit tests
+$ hledger test balance       # run tests with "balance" in their name
+$ hledger test -- -h         # show tasty's options
+```
