@@ -12,7 +12,7 @@ if [[ $BRANCH =~ ^[0-9.]*-(branch|release) ]]; then
     read -rp "Ok ? Press enter to confirm, ctrl-c to abort: "
     # last chance check (would cabal upload )
     for P in $PACKAGES; do
-        cabal check
+        (cd "$P"; cabal check)
     done
     for P in $PACKAGES; do 
         stack upload "$P"
