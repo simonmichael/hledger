@@ -66,13 +66,13 @@ $if elem ViewPermission perms
               <b>Search
               <ul>
                 <li> Search patterns with spaces should be enclosed in quotes.
-                <li> <code>REGEXP</code> - match account names
+                <li> <code>REGEX</code> - match account names
                 <li> <code>date:PERIODEXP</code> - match dates
                 <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - match status
-                <li> <code>code:REGEXP</code> - match transaction codes
-                <li> <code>desc:REGEXP</code> - match transaction descriptions
+                <li> <code>code:REGEX</code> - match transaction codes
+                <li> <code>desc:REGEX</code> - match transaction descriptions
                 <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - match unsigned magnitudes, or with signed N, signed amounts. For single-commodity amounts only.
-                <li> <code>cur:REGEXP</code> - match currencies/commodities. Must match the whole symbol/name. To match dollar sign, write <code>\$</code>
+                <li> <code>cur:REGEX</code> - match currencies/commodities. Must match the whole symbol/name. To match dollar sign, write <code>\$</code>
                 <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tag names, or name and value
                 <li> <code>real:BOOL</code> - match postings' realness/virtualness
                 <li> <code>not:QUERY</code> - prepend not: to negate a search term
