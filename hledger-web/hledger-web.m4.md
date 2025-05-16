@@ -144,7 +144,7 @@ You can restrict who can reach it, by
 
 - setting the IP address it listens on (see `--host` above).
   By default it listens on 127.0.0.1, accessible to users on the local machine only.
-- putting it behind an authenticating proxy, using eg apache or nginx
+- putting it behind an authenticating proxy, such as caddy or apache
 - putting it behind a firewall
 
 And you can restrict what the users reaching it can do,
