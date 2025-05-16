@@ -76,8 +76,8 @@ $if elem ViewPermission perms
                 <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tag names, or name and value
                 <li> <code>real:BOOL</code> - match postings' realness/virtualness
                 <li> <code>not:QTERM</code> - prepend not: to negate a search term
-                <li> <code>expr:'QEXPR'</code> - match with a boolean query expression
+                <li> <code>expr:'QEXPR'</code> - match with a boolean query (and, or, not, (..))
                 <li>  <code>any:'QEXPR'</code> - match transactions where any posting matches
                 <li>  <code>all:'QEXPR'</code> - match transactions where all postings match
-                <li> <code>depth:N</code> - trim account names at this depth
+                <li> <code>depth:N</code> - clip account names at this depth
                 $# <li> Description, account, status query terms are OR'ed, others are AND'ed.
