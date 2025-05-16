@@ -75,8 +75,69 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2025-03-12  hledger-1.42.1
+## 2025-05-16 hledger-1.42.2
 
+### hledger 1.42.2
+
+Fixes
+
+- The test command can pass options to tasty again (this broke in 1.42).
+  Also, any arguments before -- are now passed to tasty as test-selecting -p options.
+  [#2386]
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+Docs
+
+- CSV encoding: fix inaccurate list of encoding names. [#2354]
+- Fix broken links to "Commodity display style". (Simon Michael, J.B. Rainsberger [hledger_site#132])
+- Misc. edits/fixes: beancount output, commands list, balance command, hledger-iadd link, csv tutorial link
+
+
+### hledger-ui 1.42.2
+
+Fixes
+
+- Require fsnotify-0.4.2.0+/hfsevents-0.1.8+, which fixes some events
+  being ignored on mac (see https://github.com/luite/hfsevents/pull/19),
+  which should help `hledger-ui --watch` a little.
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+Docs
+
+- Update --watch notes
+- Drop obsolete Windows non-support note
+
+
+### hledger-web 1.42.2
+
+Fixes
+
+- Don't hang when saving a large file (this broke in 1.42). [#2319]
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+
+### project changes 1.42.2
+
+Docs
+
+- relnotes: fix links to hackage changelogs
+
+
+### credits 1.42.2
+
+Simon Michael (@simonmichael),
+Thomas Miedema (@thomie).
+
+[#2319]: https://github.com/simonmichael/hledger/issues/2319
+[#2354]: https://github.com/simonmichael/hledger/issues/2354
+[#2386]: https://github.com/simonmichael/hledger/issues/2386
+[hledger_site#132]: https://github.com/simonmichael/hledger_site/issues/132
+
+
+## 2025-03-12  hledger-1.42.1
 ### hledger 1.42.1
 
 Fixes
@@ -121,6 +182,7 @@ Thomas Miedema (@thomie).
 
 [#2345]: https://github.com/simonmichael/hledger/issues/2345
 [#2352]: https://github.com/simonmichael/hledger/issues/2352
+
 
 
 ## 2025-03-07 hledger-1.42
@@ -9529,6 +9591,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
