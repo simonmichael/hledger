@@ -22,7 +22,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# dbcb400e
+# 1.42.2 2025-05-16
 
 Fixes
 

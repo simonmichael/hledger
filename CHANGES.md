@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# dbcb400e
+# 1.42.2 2025-05-16
 
 Docs
 

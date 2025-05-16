@@ -23,7 +23,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# dbcb400e
+# 1.42.2 2025-05-16
 
 Fixes
 
