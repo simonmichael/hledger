@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2025" "hledger-1.42.1 " "hledger User Manuals"
+.TH "HLEDGER" "1" "May 2025" "hledger-1.42.2 " "hledger User Manuals"
 
 
 
@@ -32,7 +32,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version 1.42.1.
+This manual is for hledger\[aq]s command line interface, version 1.42.2.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -1227,7 +1227,7 @@ use currency codes instead of currency symbols
 .IP \[bu] 2
 use cost notation instead of equity conversion postings
 .IP \[bu] 2
-avoid virtual postings
+avoid virtual postings, balance assignments, and secondary dates.
 .PP
 There is one big adjustment you must handle yourself: for Beancount, the
 top level account names must be \f[CR]Assets\f[R],
@@ -1238,10 +1238,10 @@ if needed, as in this hledger2beancount.conf config file.
 .PP
 2024\-12\-20: Some more things not yet handled for you:
 .IP \[bu] 2
-P directives are not converted automatically \- convert those yourself
+P directives are not converted automatically \- convert those yourself.
 .IP \[bu] 2
-Balance assignments are not converted (Beancount doesnt support them) \-
-replace those with explicit amounts
+Balance assignments are not converted (Beancount doesn\[aq]t support
+them) \- replace those with explicit amounts.
 .SS Beancount account names
 Aside from the top\-level names, hledger will adjust your account names
 to make valid Beancount account names, by capitalising each part,
@@ -4044,7 +4044,7 @@ $ hledger print \-f basic.csv
     income:unknown            \-10.23
 .EE
 .PP
-There\[aq]s an introductory Importing CSV data tutorial on hledger.org,
+There\[aq]s an introductory Tutorial: Import CSV data on hledger.org,
 and more CSV rules examples below, and a larger collection at
 https://github.com/simonmichael/hledger/tree/master/examples/csv.
 .SS CSV rules cheatsheet
@@ -4181,17 +4181,32 @@ encoding ENCODING
 hledger normally expects non\-ascii text to be UTF8\-encoded.
 If you need to read CSV files which have some other encoding, you can do
 it by adding \f[CR]encoding ENCODING\f[R] to your CSV rules.
-Eg: \f[CR]encoding ISO88591\f[R].
+Eg: \f[CR]encoding iso\-8859\-1\f[R].
 .PP
-The following encodings are supported (these names are
-case\-insensitive, and can be written with inner spaces or hyphens if
-you prefer): ASCII, UTF8, UTF16, UTF32, ISO88591, ISO88592, ISO88593,
-ISO88594, ISO88595, ISO88596, ISO88597, ISO88598, ISO88599, ISO885910,
-ISO885911, ISO885913, ISO885914, ISO885915, ISO885916, CP1250, CP1251,
-CP1252, CP1253, CP1254, CP1255, CP1256, CP1257, CP1258, KOI8R, KOI8U,
-GB18030, MacOSRoman, JISX0201, JISX0208, ISO2022JP, ShiftJIS, CP437,
-CP737, CP775, CP850, CP852, CP855, CP857, CP860, CP861, CP862, CP863,
-CP864, CP865, CP866, CP869, CP874, CP932.
+The following encodings are supported (some alternate names and
+spellings also work, but inconsistently) :
+.PP
+\f[CR]ascii\f[R], \f[CR]utf\-8\f[R], \f[CR]utf\-16\f[R],
+\f[CR]utf\-32\f[R], \f[CR]iso\-8859\-1\f[R], \f[CR]iso\-8859\-2\f[R],
+\f[CR]iso\-8859\-3\f[R], \f[CR]iso\-8859\-4\f[R],
+\f[CR]iso\-8859\-5\f[R], \f[CR]iso\-8859\-6\f[R],
+\f[CR]iso\-8859\-7\f[R], \f[CR]iso\-8859\-8\f[R],
+\f[CR]iso\-8859\-9\f[R], \f[CR]iso\-8859\-10\f[R],
+\f[CR]iso\-8859\-11\f[R], \f[CR]iso\-8859\-13\f[R],
+\f[CR]iso\-8859\-14\f[R], \f[CR]iso\-8859\-15\f[R],
+\f[CR]iso\-8859\-16\f[R], \f[CR]cp1250\f[R], \f[CR]cp1251\f[R],
+\f[CR]cp1252\f[R], \f[CR]cp1253\f[R], \f[CR]cp1254\f[R],
+\f[CR]cp1255\f[R], \f[CR]cp1256\f[R], \f[CR]cp1257\f[R],
+\f[CR]cp1258\f[R], \f[CR]koi8\-r\f[R], \f[CR]koi8\-u\f[R],
+\f[CR]gb18030\f[R], \f[CR]macintosh\f[R], \f[CR]jis\-x\-0201\f[R],
+\f[CR]jis\-x\-0208\f[R], \f[CR]iso\-2022\-jp\f[R],
+\f[CR]shift\-jis\f[R], \f[CR]cp437\f[R], \f[CR]cp737\f[R],
+\f[CR]cp775\f[R], \f[CR]cp850\f[R], \f[CR]cp852\f[R], \f[CR]cp855\f[R],
+\f[CR]cp857\f[R], \f[CR]cp860\f[R], \f[CR]cp861\f[R], \f[CR]cp862\f[R],
+\f[CR]cp863\f[R], \f[CR]cp864\f[R], \f[CR]cp865\f[R], \f[CR]cp866\f[R],
+\f[CR]cp869\f[R], \f[CR]cp874\f[R], \f[CR]cp932\f[R].
+.PP
+\f[I]Added in 1.42.\f[R]
 .SS \f[CR]separator\f[R]
 You can use the \f[CR]separator\f[R] rule to read other kinds of
 character\-separated data.
@@ -8268,11 +8283,17 @@ If you have installed more add\-on commands, they also will be listed.
 .PP
 \f[B]Help commands\f[R]
 .IP \[bu] 2
-help \- show the hledger manual with info/man/pager
+commands \- show the hledger commands list (default)
 .IP \[bu] 2
 demo \- show small hledger demos in the terminal
+.IP \[bu] 2
+help \- show the hledger manual with info, man, or pager
 .PP
 \f[B]User interface commands\f[R]
+.IP \[bu] 2
+repl \- run commands from an interactive prompt
+.IP \[bu] 2
+run \- run commands from a script
 .IP \[bu] 2
 ui \- (if installed) run hledger\[aq]s terminal UI
 .IP \[bu] 2
@@ -10305,15 +10326,16 @@ changes and more, during one time period or many.
 Generally it shows a table, with rows representing accounts, and columns
 representing periods.
 .PP
-Note there are some higher\-level variants of the \f[CR]balance\f[R]
-command with convenient defaults, which can be simpler to use:
-\f[CR]balancesheet\f[R], \f[CR]balancesheetequity\f[R],
-\f[CR]cashflow\f[R] and \f[CR]incomestatement\f[R].
+Note there are some variants of the \f[CR]balance\f[R] command with
+convenient defaults, which are simpler to use: \f[CR]balancesheet\f[R],
+\f[CR]balancesheetequity\f[R], \f[CR]cashflow\f[R] and
+\f[CR]incomestatement\f[R].
 When you need more control, then use \f[CR]balance\f[R].
 .SS balance features
 Here\[aq]s a quick overview of the \f[CR]balance\f[R] command\[aq]s
 features, followed by more detailed descriptions and examples.
-Many of these work with the higher\-level commands as well.
+Many of these work with the other balance\-like commands as well
+(\f[CR]bs\f[R], \f[CR]cf\f[R], \f[CR]is\f[R]..).
 .PP
 \f[CR]balance\f[R] can show..
 .IP \[bu] 2
@@ -10619,9 +10641,9 @@ Revenues and liability balances are typically negative, however, so
 \f[CR]\-S\f[R] shows these in reverse order.
 To work around this, you can add \f[CR]\-\-invert\f[R] to flip the
 signs.
-(Or, use one of the higher\-level reports, which flip the sign
-automatically.
-Eg: \f[CR]hledger incomestatement \-MAS\f[R]).
+Or you could use one of the higher\-level balance reports
+(\f[CR]bs\f[R], \f[CR]is\f[R]..), which flip the sign automatically (eg:
+\f[CR]hledger is \-MAS\f[R]).
 .PP
 .SS Percentages
 With \f[CR]\-%/\-\-percent\f[R], balance reports show each account\[aq]s
@@ -12230,17 +12252,17 @@ sanity\-check the installed hledger executable on your platform.
 All tests are expected to pass \- if you ever see a failure, please
 report as a bug!
 .PP
-This command also accepts tasty test runner options, written after a
-\-\- (double hyphen).
-Eg to run only the tests in Hledger.Data.Amount, with ANSI colour codes
-disabled:
+Any arguments before a \f[CR]\-\-\f[R] argument will be passed to the
+\f[CR]tasty\f[R] test runner as test\-selecting \-p patterns, and any
+arguments after \f[CR]\-\-\f[R] will be passed to tasty unchanged.
+.PP
+Examples:
 .IP
 .EX
-$ hledger test \-\- \-pData.Amount \-\-color=never
+$ hledger test               # run all unit tests
+$ hledger test balance       # run tests with \[dq]balance\[dq] in their name
+$ hledger test \-\- \-h         # show tasty\[aq]s options
 .EE
-.PP
-For help on these, see https://github.com/feuerbach/tasty#options
-(\f[CR]\-\- \-\-help\f[R] currently doesn\[aq]t show them).
 .PP
 .SH PART 5: COMMON TASKS
 Here are some quick examples of how to do some basic tasks with hledger.
