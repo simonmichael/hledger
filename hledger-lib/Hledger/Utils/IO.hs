@@ -452,8 +452,8 @@ inputToHandle t = do
   (r, w) <- createPipe
   hSetEncoding r utf8_bom
   hSetEncoding w utf8_bom
-  T.hPutStr w t
-  hClose w
+  -- use a separate thread so that we don't deadlock if we can't write all of the text at once
+  forkIO $ T.hPutStr w t >> hClose w
   return r
 
 -- | Like embedFile, but takes a path relative to the package directory.
