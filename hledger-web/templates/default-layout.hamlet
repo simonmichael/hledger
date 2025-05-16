@@ -73,11 +73,11 @@ $if elem ViewPermission perms
                 <li> <code>desc:REGEX</code> - match transaction descriptions
                 <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - match unsigned magnitudes, or with signed N, signed amounts. For single-commodity amounts only.
                 <li> <code>cur:REGEX</code> - match currencies/commodities. Must match the whole symbol/name. To match dollar sign, write <code>\$</code>
-                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tag names, or name and value
+                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tags, or tag and value
                 <li> <code>real:BOOL</code> - match postings' realness/virtualness
                 <li> <code>not:QTERM</code> - prepend not: to negate a search term
                 <li> <code>expr:'QEXPR'</code> - match with a boolean query (and, or, not, (..))
                 <li>  <code>any:'QEXPR'</code> - match transactions where any posting matches
                 <li>  <code>all:'QEXPR'</code> - match transactions where all postings match
-                <li> <code>depth:N</code> - clip account names at this depth
+                <li style="margin-top:1em;"> <code>depth:N</code> - clip account names at this depth
                 $# <li> Description, account, status query terms are OR'ed, others are AND'ed.
