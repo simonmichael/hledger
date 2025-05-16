@@ -140,25 +140,23 @@ If this is not working see [Install > Shell completions](install.html#shell-comp
 By default, hledger-web allows anyone who can reach it to view the journal
 and to add new transactions, but not to change existing data.
 
-You can restrict who can reach it by
+You can restrict who can reach it, by
 
 - setting the IP address it listens on (see `--host` above).
-  By default it listens on 127.0.0.1, accessible to all users on the local machine.
+  By default it listens on 127.0.0.1, accessible to users on the local machine only.
 - putting it behind an authenticating proxy, using eg apache or nginx
-- custom firewall rules
+- putting it behind a firewall
 
-You can restrict what the users who reach it can do, by
+And you can restrict what the users reaching it can do,
+by specifying the `--allow=ACCESSLEVEL` option at startup.
+ACCESSLEVEL is one of:
 
-- using the `--capabilities=CAP[,CAP..]` flag when you start it,
-  enabling one or more of the following capabilities. The default value is `view,add`:
-  - `view`   - allows viewing the journal file and all included files
-  - `add`    - allows adding new transactions to the main journal file
-  - `manage` - allows editing, uploading or downloading the main or included files
+- `view` - allows viewing the journal file(s)
+- `add`  - also allows adding new transactions to the main journal file
+- `edit` - also allows editing, uploading or downloading the journal file(s)
+- `sandstorm` - (for the hledger-web Sandstorm app:) allows whichever of `view`, `add`, or `edit` are specified in the `X-Sandstorm-Permissions` HTTP header
 
-- using the `--capabilities-header=HTTPHEADER` flag to specify a HTTP header
-  from which it will read capabilities to enable. hledger-web on Sandstorm
-  uses the X-Sandstorm-Permissions header to integrate with Sandstorm's permissions.
-  This is disabled by default.
+The default access level is `add`.
 
 # EDITING, UPLOADING, DOWNLOADING
 
