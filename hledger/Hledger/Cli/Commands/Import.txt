@@ -77,35 +77,34 @@ Overlap detection is automatic, and shouldn't require much attention
 from you, except perhaps at first import (see below). But here's how it
 works:
 
--   For each FILE being imported from:
+- For each FILE being imported from:
 
-    1.  hledger reads a file named .latest.FILE file in the same
-        directory, if any. This file contains the latest record date
-        previously imported from FILE, in YYYY-MM-DD format. If multiple
-        records with that date were imported, the date is repeated on N
-        lines.
+  1.  hledger reads a file named .latest.FILE file in the same
+      directory, if any. This file contains the latest record date
+      previously imported from FILE, in YYYY-MM-DD format. If multiple
+      records with that date were imported, the date is repeated on N
+      lines.
 
-    2.  hledger reads records from FILE. If a latest date was found in
-        step 1, any records before that date, and the first N records on
-        that date, are skipped.
+  2.  hledger reads records from FILE. If a latest date was found in
+      step 1, any records before that date, and the first N records on
+      that date, are skipped.
 
--   After a successful import from all FILEs, without error and without
-    --dry-run, hledger updates each FILE's .latest.FILE for next time.
+- After a successful import from all FILEs, without error and without
+  --dry-run, hledger updates each FILE's .latest.FILE for next time.
 
 If this goes wrong, it's relatively easy to repair:
 
--   You'll notice it before import when you preview with
-    import --dry-run.
--   Or after import when you try to reconcile your hledger account
-    balances with your bank.
--   hledger print -f FILE.csv will show all recently downloaded
-    transactions. Compare these with your journal. Copy/paste if needed.
--   Update your conversion rules and print again, if needed.
--   You can manually update or remove the .latest file, or use
-    import --catchup FILE.
--   Download and import more often, eg twice a week, at least while you
-    are learning. It's easier to review and troubleshoot when there are
-    fewer transactions.
+- You'll notice it before import when you preview with import --dry-run.
+- Or after import when you try to reconcile your hledger account
+  balances with your bank.
+- hledger print -f FILE.csv will show all recently downloaded
+  transactions. Compare these with your journal. Copy/paste if needed.
+- Update your conversion rules and print again, if needed.
+- You can manually update or remove the .latest file, or use
+  import --catchup FILE.
+- Download and import more often, eg twice a week, at least while you
+  are learning. It's easier to review and troubleshoot when there are
+  fewer transactions.
 
 First import
 
@@ -188,7 +187,7 @@ Here are two kinds of "deduplication" which import does not handle (and
 generally should not, since these can happen legitimately in financial
 data):
 
--   Two or more of the new CSV records are identical, and generate
-    identical new journal entries.
--   A new CSV record generates a journal entry identical to one(s)
-    already in the journal.
+- Two or more of the new CSV records are identical, and generate
+  identical new journal entries.
+- A new CSV record generates a journal entry identical to one(s) already
+  in the journal.

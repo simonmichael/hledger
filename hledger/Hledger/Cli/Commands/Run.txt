@@ -10,11 +10,11 @@ This command is experimental and could change in the future.
 
 You can use run in three ways:
 
--   hledger run -- CMD1 -- CMD2 -- CMD3 - read commands from the command
-    line, separated by --
--   hledger run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or more
-    files
--   cat SCRIPTFILE1 | hledger run - read commands from standard input.
+- hledger run -- CMD1 -- CMD2 -- CMD3 - read commands from the command
+  line, separated by --
+- hledger run SCRIPTFILE1 SCRIPTFILE2 - read commands from one or more
+  files
+- cat SCRIPTFILE1 | hledger run - read commands from standard input.
 
 run first loads the input file(s) specified by LEDGER_FILE or by -f
 options, in the usual way. Then it runs each command in turn, each using
@@ -31,14 +31,14 @@ twice as fast).
 Command scripts, whether in a file or written on the command line, have
 a simple syntax:
 
--   each line may contain a single hledger command and its arguments,
-    without the usual hledger first word
--   empty lines are ignored
--   text from # to end of line is a comment, and ignored
--   you can use single or double quotes to quote arguments when needed,
-    as on the command line
--   these extra commands are available: echo TEXT prints some text, and
-    exit or quit ends the run.
+- each line may contain a single hledger command and its arguments,
+  without the usual hledger first word
+- empty lines are ignored
+- text from # to end of line is a comment, and ignored
+- you can use single or double quotes to quote arguments when needed, as
+  on the command line
+- these extra commands are available: echo TEXT prints some text, and
+  exit or quit ends the run.
 
 On unix systems you can use #!/usr/bin/env hledger run in the first line
 of a command file to make it a runnable script. If that gives an error,
