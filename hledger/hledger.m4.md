@@ -5290,8 +5290,7 @@ Here's a quick overview of hledger's queries:
 - Or more flexibly as [boolean queries](#boolean-queries).
   Eg: `hledger print expr:'date:2022 and (desc:amazon or desc:amzn) and not date:202210'`\
 
-All hledger commands use the same query language, but different commands may interpret the query in different ways,
-and this is worth keeping in mind.
+All hledger commands use the same query language, but different commands may interpret the query in different ways.
 We haven't described the commands yet (that's coming in [PART 4: COMMANDS](#part-4-commands) below)
 but here's the gist of it:
 
