@@ -36,16 +36,16 @@
 #  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # This install script's version.
-HLEDGER_INSTALL_VERSION=20250312
+HLEDGER_INSTALL_VERSION=20250516
 
 # Package versions to be installed by this install script.
 # Keep synced with the tools above.
 # When changing remember to also bump HLEDGER_INSTALL_VERSION.
 # Official:
-HLEDGER_LIB_VERSION=1.42.1
-HLEDGER_VERSION=1.42.1
-HLEDGER_UI_VERSION=1.42.1
-HLEDGER_WEB_VERSION=1.42.1
+HLEDGER_LIB_VERSION=1.42.2
+HLEDGER_VERSION=1.42.2
+HLEDGER_UI_VERSION=1.42.2
+HLEDGER_WEB_VERSION=1.42.2
 # Third-party:
 HLEDGER_IADD_VERSION=1.3.21
 HLEDGER_INTEREST_VERSION=1.6.7
@@ -58,7 +58,7 @@ PRICEHIST_VERSION=1.4.12
 # You can try specifying a different stackage version here, or
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACKAGE_SNAPSHOT=nightly-2025-03-01
+STACKAGE_SNAPSHOT=nightly-2025-04-01
 
 # If any required haskell dependencies aren't in the above stackage snapshot,
 # list them here in this format: "PKG1-VER1 PKG2-VER2.."
