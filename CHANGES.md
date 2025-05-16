@@ -19,7 +19,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 2025-03-12 1.42.1
+# 1.42.1 2025-03-12
 
 Infrastructure/Misc
 
