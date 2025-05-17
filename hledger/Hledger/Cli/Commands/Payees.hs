@@ -19,7 +19,7 @@ module Hledger.Cli.Commands.Payees (
 import Data.Monoid
 #endif
 import Data.List.Extra (nubSortBy)
-import qualified Data.Text.ICU as T
+import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -40,6 +40,7 @@ payees CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      payees = nubSortBy (T.compare [T.CompareIgnoreCase]) $ map transactionPayee ts
+      collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
+      payees = nubSortBy (Collate.compare collator) $ map transactionPayee ts
 
   mapM_ T.putStrLn payees

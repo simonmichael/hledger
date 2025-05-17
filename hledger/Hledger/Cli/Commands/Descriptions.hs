@@ -19,7 +19,7 @@ module Hledger.Cli.Commands.Descriptions (
 import Data.Monoid
 #endif
 import Data.List.Extra (nubSortBy)
-import qualified Data.Text.ICU as T
+import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -40,6 +40,7 @@ descriptions CliOpts{reportopts_=ropts} j = do
   d <- getCurrentDay
   let q  = queryFromOpts d ropts
       ts = entriesReport ropts q j
-      descriptions = nubSortBy (T.compare [T.CompareIgnoreCase]) $ map tdescription ts
+      collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
+      descriptions = nubSortBy (Collate.compare collator) $ map tdescription ts
 
   mapM_ T.putStrLn descriptions

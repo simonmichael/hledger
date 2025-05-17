@@ -180,10 +180,10 @@ library
     , tabular >=0.2
     , temporary
     , text >=0.11
-    , text-icu
     , time >=1.5
     , timeit
     , transformers
+    , unicode-collation
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
