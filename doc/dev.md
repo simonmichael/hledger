@@ -56,6 +56,8 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 <http://prs.hledger.org>,
 <http://draftprs.hledger.org>,
 <http://readyprs.hledger.org>,
+<http://assignedprs.hledger.org>,
+<http://unassignedprs.hledger.org>,
 [all issues](https://github.com/simonmichael/hledger/issues?q=)\
 [issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty),
 [bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20),
