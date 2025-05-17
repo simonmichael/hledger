@@ -72,6 +72,7 @@ more: [PULLREQUESTS](PULLREQUESTS.md)\
 | 2018 | #53 |
 | 2017 | #54 |
 | 2016 | #71 |
+
 [![Github topic: #hledger](https://img.shields.io/badge/Github_topic-%23hledger-green)](https://github.com/topics/hledger?o=desc&s=updated)\
 [![Github topic: #plaintext-accounting](https://img.shields.io/badge/Github_topic-%23plaintext--accounting-green)](https://github.com/topics/plaintext-accounting?o=desc&s=updated)\
 [![Github topics: *accounting*](https://img.shields.io/badge/Github_topics-%2Aaccounting%2A-green)](https://github.com/search?type=topics&q=accounting)\
