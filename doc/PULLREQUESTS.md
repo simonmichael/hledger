@@ -5,6 +5,21 @@
 <!-- toc -->
 </div>
 
+Shortcut urls:
+
+- <http://prs.hledger.org>
+- <http://draftprs.hledger.org>
+- <http://readyprs.hledger.org>
+- <http://assignedprs.hledger.org>
+- <http://unassignedprs.hledger.org>
+
+<!--
+Misc. PR queries:
+
+- ...
+-->
+
+
 Most contributed hledger code (and some of the project maintainer's code)
 is submitted and reviewed via Github pull requests.
 Here are some tips for contributing PRs to hledger.

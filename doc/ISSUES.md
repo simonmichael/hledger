@@ -7,14 +7,11 @@
 
 The hledger project\'s issue tracker is on github.
 
-Convenience urls:
+Shortcut urls:
 
 - <https://issues.hledger.org>       - all issues, open or closed
 - <https://bugs.hledger.org>         - open BUGs
 - <https://wishes.hledger.org>       - open WISHes
-- <https://prs.hledger.org>          - open pull requests
-- <https://readyprs.hledger.org>     - open pull requests ready for review
-- <https://draftprs.hledger.org>     - open draft pull requests
 - <https://bugs.hledger.org/new>     - report a new issue
 - <https://hledger.org/regressions>  - how to claim regression bounties
 
@@ -26,6 +23,9 @@ Misc. issue queries:
 - [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
 - [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
 - [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
+- [issues of unknown type](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A%20BUG%22%20-label%3A%22A%20WISH%22%20),
+- [assigned open issues](https://github.com/simonmichael/hledger/issues?q=is%3Aopen%20assignee%3A*%20%20is%3Aissue),
+
 
 (Most older issues don't have impact/severity labels, so those reports are recent-biased)
 
@@ -35,6 +35,7 @@ Open issues grouped by topic/type:
 Table syntax is https://www.pandoc.org/MANUAL.html#tables -> pipe_tables.
 Columns don't have to be aligned, but it's helpful for editing.
 Emacs markdown-mode can do that, but it's super slow, avoid it otherwise.
+
 -->
 
 | COMPONENT/TOPIC                                                                                         | BUGS                                                                                                           | WISHES                                                                                                            | PRS                                                                                            | OTHER                                                                                                                          |
