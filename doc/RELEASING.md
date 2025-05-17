@@ -78,7 +78,9 @@ It should be improved each time it is used.
   - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
         `just relbranch VER`,
         `just cabalfilestest`
-  - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)
+  - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)  
+        `stack build`
+        `./Shake cmddocs -c`
   - [ ] embedded manuals x 3
     - [ ] generaloptions macro (in doc/common.m4)
     - [ ] tool specific options in manuals (hledger*/hledger*.m4.md > # Options)
@@ -86,6 +88,7 @@ It should be improved each time it is used.
     - [ ] man  (hledger*/hledger*.1)
     - [ ] info (hledger*/hledger*.info)
     - [ ] text (hledger*/hledger*.txt)  
+        `./Shake mandates`
         `./Shake manuals -c`
   - [ ] embedded tldr pages synced with upstream (doc/tldr/*)  
         `just tldr-diff`
@@ -98,9 +101,9 @@ It should be improved each time it is used.
 - [ ] release docs and artifacts
   - [ ] draft binaries building started  
       `just relbin`
-  - [ ] hledger.org html manuals x 3 (site/src/VER/*.md)  
-        `just site-manuals-snapshot VER`  
-        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
+  - [ ] hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
+        `just site-manuals-snapshot MAJORVER` (creates or updates)  
+        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
   - [ ] release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes`,  
       select & transform with `md-issue-refs`,  
@@ -135,16 +138,16 @@ It should be improved each time it is used.
         `hledgerorgsh grep release.= /opt/hledger/site/out/js/site.js`  
     - [ ] https://www.hledger.org/js/site.js showing latest version
         `curl -s https://hledger.org/js/site.js | grep release.=`  
-        purge cache at https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration
-    - [ ] default manual urls redirecting to latest version  
+        purge cache at https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration (major release only)
+    - [ ] default manual urls redirecting to latest version (major release only)  
         `hledgerorgsh sh -c 'systemctl stop caddy; systemctl start caddy'`  
         `curl -sI https://hledger.org/hledger.html | grep location`
   - [ ] release branch pushed to github  
   - [ ] release tags pushed to github  
       `just reltags-push VER`
   - [ ] github draft release with release binaries attached  
-      (should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new)  
-      `just ghrelnotes-push`  
+      (should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new; and/or by..  
+      `just ghrel-notes`  
       `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
       `just ghrel-upload VER`  
   - [ ] github release published  
@@ -166,7 +169,7 @@ It should be improved each time it is used.
   - [ ] review/polish relnotes, changelogs  
         review, edit  
         propagate
-  - [ ] new dev tag/versions/man dates in master  
+  - [ ] new dev tag/versions/man dates in master (major version only)  
       `j devtag VER.99`
   - [ ] pta.o project stats updated
   - [ ] process notes updated/cleaned
