@@ -14,7 +14,8 @@ module Hledger.Cli.Commands.Descriptions (
  ,descriptions
 ) where
 
-import Data.List.Extra (nubSort)
+import Data.List.Extra (nubSortBy)
+import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -33,6 +34,7 @@ descriptionsmode = hledgerCommandMode
 descriptions :: CliOpts -> Journal -> IO ()
 descriptions CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
-      descs = nubSort $ map tdescription ts
+      collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
+      descs = nubSort (Collate.compare collator) $ map tdescription ts
 
   mapM_ T.putStrLn descs
