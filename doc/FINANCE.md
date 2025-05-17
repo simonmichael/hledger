@@ -47,8 +47,9 @@ Feel free to suggest issues which might benefit from this.
 When you complete an OC bounty, submit an expense reimbursement request to [hledger's open collective](https://opencollective.com/hledger),
 similar to claiming a [regression bounty](REGRESSIONS.md).
 
-Our bounty amounts have so far been small, but they help us experiment with process and establish a principle of sustainability.
-When you earn a bounty we encourage you to claim it. But if you prefer, you can offer it as a new bounty on an issue of your choice.
+Our bounty amounts have been relatively small so far, but they help us experiment with process and establish a principle of sustainability.
+When you are awarded a bounty, we encourage you to claim it.
+But if you prefer, you can donate it back to the project, or declare it as a new bounty on an issue of your choice.
 
 ## Funded projects
 
