@@ -38,14 +38,14 @@
 # https://github.com/casey/just/discussions
 #
 # Other tools used below include:
-# - stack (http://haskell-lang.org/get-started, installs libs and runs ghc)
-# - shelltestrunner (hackage, runs functional tests)
-# - quickbench (hackage/stackage, runs benchmarks)
-# - ghcid (hackage/stackage, recompiles and optionally runs tests on file change)
-# - hasktags (hackage, generates tag files for code navigation)
-# - profiterole (hackage/stackage, simplifies profiles)
-# - profiteur (hackage/stackage, renders profiles as html)
-# - dateround (from dateutils)
+# - stack           - installs libs and runs ghc
+# - shelltestrunner - runs functional tests
+# - quickbench      - runs benchmarks
+# - ghcid           - recompiles and optionally runs tests on file change
+# - hasktags        - generates tag files for code navigation
+# - profiterole     - simplifies profiles
+# - profiteur       - renders profiles as html
+# - dateround       - from dateutils
 
 # ** Helpers ------------------------------------------------------------
 HELPERS: help
@@ -137,20 +137,7 @@ PROFRTSFLAGS := '-P'
 # Which stack command (and in particular, stack yaml/GHC version) to use for building etc. ?
 
 STACK := 'stack'
-
-#STACK := 'stack --stack-yaml=stack8.10.yaml'
-# Or override temporarily with an env var:
-# STACK := '"stack --stack-yaml=stack8.10.yaml" make functest'
-# if using an unreleased stack with a newer hpack than the one mentioned in */*.cabal,
-# it will give warnings. To silence these, put the old hpack-X.Y in $PATH and uncomment:
-#STACK := 'stack --with-hpack=hpack-0.20'
-# --threads := '16 sometimes gives "commitAndReleaseBuffer: resource vanished (Broken pipe)" but seems harmless'
-# --timeout := 'N is not much use here - can be defeated by multiple threads, unoptimised builds, '
-# slow hackage index or compiler setup on first build, etc.
-# Which stack command (stack yaml, GHC version) to use for ghci[d] operations ?
-
-STACKGHCI := STACK
-#STACKGHCI := 'stack --stack-yaml=stack9.2.yaml'
+#STACK := 'stack --stack-yaml=stack912.yaml'
 
 PACKAGES := '
     hledger-lib
@@ -158,12 +145,6 @@ PACKAGES := '
     hledger-ui
     hledger-web
     '
-
-# BINARIES := '
-#     hledger
-#     hledger-ui
-#     hledger-web
-#     '
 
 INCLUDEPATHS := '
     -ihledger-lib
@@ -352,16 +333,16 @@ TESTING:
 
 # run ghci on hledger-lib + hledger
 @ghci *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # echo the full command that just ghci would run
 @ghci-echo *GHCIARGS:
-    echo $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    echo $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghci on hledger-lib + hledger with profiling/call stack information
 @ghci-prof *GHCIARGS:
     stack build --profile hledger --only-dependencies
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
+    $STACK exec -- $GHCI $BUILDFLAGS -fexternal-interpreter -prof -fprof-auto {{ GHCIARGS }} hledger/Hledger/Cli.hs
 
 # run ghcitui on hledger-lib + hledger
 @ghcitui *GHCITUIARGS:
@@ -369,25 +350,25 @@ TESTING:
 
 # # run ghci on hledger-lib + hledger + dev.hs script
 # @ghci-dev:
-#     $STACKGHCI exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
+#     $STACK exec -- $GHCI $BUILDFLAGS -fno-warn-unused-imports -fno-warn-unused-binds dev.hs
 
 # run ghci on hledger-lib + hledger + hledger-ui
 @ghci-ui *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web
 @ghci-web *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/app/main.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/app/main.hs
 
 # run ghci on hledger-lib + hledger + hledger-web + hledger-web test suite
 @ghci-web-test *GHCIARGS:
-    $STACKGHCI exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/test/test.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-web/test/test.hs
 
 # # better than stack exec ?
 # # XXX does not see changes to files
 # # run ghci on hledger-lib + test runner
 # ghci-lib-test:
-#     $STACKGHCI ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
+#     $STACK ghci --ghc-options="\'-rtsopts {{ WARNINGS }} -ihledger-lib  -DDEVELOPMENT -DVERSION=\"1.26.99\"\'" hledger-lib/test/unittest.hs
 # run ghci on all the hledger
 # ghci-all:
 #     $STACK exec -- $GHCI $BUILDFLAGS \
@@ -396,7 +377,7 @@ TESTING:
 
 # run ghci on hledger-lib doctests
 @ghci-doctest:
-    cd hledger-lib; $STACKGHCI ghci hledger-lib:test:doctest
+    cd hledger-lib; $STACK ghci hledger-lib:test:doctest
 
 # run ghci on Shake.hs
 @ghci-shake:
@@ -1216,10 +1197,23 @@ relbranch VER:
 #    # echo "Updating CHANGES.md files with latest commits..."
 #    # ./Shake changelogs $COMMIT
 
-# Push the current branch to github to generate release binaries.
+# Push the current branch to github and generate release binaries from it.
 @relbin:
     # assumes the github remote is named "origin"
     git push -f origin HEAD:binaries
+
+# Push master to github, and if successful move the nightly tag there and generate new platform binaries.
+nightlybin:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just push
+    git tag -f nightly master
+    git push -f origin nightly
+    git push -f origin master:binaries
+
+# Upload the last-built platform binaries to the "nightly" prerelease. Run nightlybin and wait for it to complete first.
+@ghnightly-bin:
+    gh workflow run nightly
 
 # Show last release date (of hledger package).
 @reldate:
@@ -1502,50 +1496,56 @@ _on-master-branch:
 @showrelnotes VER:
     awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
 
-# Generate github release notes for the current release, on stdout and in clipboard. Run on release branch.
-@ghrelnotes:
+# Generate github release notes for the current release branch and push them to the corresponding github release. Run on release branch. Note, might also create or publish the release.
+@ghrel-notes:
     just _on-release-branch
-    doc/ghrelnotes `cat .version` | pbcopy
-    doc/ghrelnotes `cat .version`
-    # printf "\nGithub release notes for `cat .version`, copied to clipboard\n"
-    # echo "Paste into release created by tags push"
-    # echo "Or if that failed, create it manually: https://github.com/simonmichael/hledger/releases/new"
+    doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# Generate github release notes and (create/)update the draft release on github with the latest text. Run on release branch.
-@ghrelnotes-push:
-    just ghrelnotes | gh release edit -F- `cat .version`
+# Push the prerelease notes to the github nightly prerelease.
+@ghnightly-notes:
+    gh release edit nightly -F doc/ghnightlynotes.md
+
+# Browse the latest github release.
+@ghrel:
+    gh release view -w
+
+# Browse the github nightly prerelease.
+@ghnightly:
+    gh release view -w nightly
 
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
     gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
 
 # Browse the latest run of the named workflow.
-@ghrun-open WORKFLOW:
+@ghrun WORKFLOW:
     gh run view --web $(just ghrun-id {{ WORKFLOW }})
 
 # Browse the latest run of the main binary workflows.
-@ghruns-open:
+@ghruns:
     just ghrun-open binaries-linux-x64
     just ghrun-open binaries-mac-arm64
     just ghrun-open binaries-mac-x64
     just ghrun-open binaries-windows-x64
 
-# Download the binaries from the latest runs of the main binary workflows. Unzips them, unfortunately.
-@ghruns-download:
-    #!/usr/bin/env bash
-    cd tmp
-    gh run download $(just ghrun-id binaries-linux-x64)
-    gh run download $(just ghrun-id binaries-mac-arm64)
-    gh run download $(just ghrun-id binaries-mac-x64)
-    gh run download $(just ghrun-id binaries-windows-x64)
+# Download any new binaries from the latest runs of the main binary github workflows, and recompress them.
+ghruns-download:
+    cd tmp; rm -rf hledger-*64
+    cd tmp; gh run download $(just ghrun-id binaries-linux-x64)
+    cd tmp; gh run download $(just ghrun-id binaries-mac-arm64)
+    cd tmp; gh run download $(just ghrun-id binaries-mac-x64)
+    cd tmp; gh run download $(just ghrun-id binaries-windows-x64)
+    cd tmp; mv */*.tar .; gzip -f *.tar
+    cd tmp; zip -j hledger-windows-x64.zip hledger-windows-x64/*
+    cd tmp; rm -rf hledger-*64
 
-# Gzip the downloaded binaries and upload to the specified github release. Run after ghruns-download.
-ghrelease-upload VER:
-    #gzip $(find tmp -name '*.tar')
-    gh release upload {{ VER }} tmp/hledger-linux-x64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-mac-arm64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-mac-x64.tar.gz
-    gh release upload {{ VER }} tmp/hledger-windows-x64.zip
+# Upload the downloaded binaries to the specified github release. Run after ghruns-download.
+ghrel-upload VER:
+    @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
+    gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-windows-x64.zip
     # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
@@ -1566,11 +1566,7 @@ reltags:
 reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
-# List git tags approximately most recent first (grouped by package). The available fields vary over time.
-tags:
-    git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
-
-# Tag the new dev cycle start and update version strings/manuals. Run on master.
+# Tag the start of the new dev cycle, and update version strings/manuals. Run on master. VER should be a dev version like A.B.99.
 @devtag VER:
     set -euo pipefail
     just _on-master-branch
@@ -1579,6 +1575,17 @@ tags:
     ./Shake mandates
     ./Shake manuals -c
     echo "master's tag, version strings and manuals have been updated to {{ VER }}."
+
+# Push the dev tag configured in .version. Run on master after devtag.
+devtag-push:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-master-branch
+    git push origin $(cat .version)
+
+# List git tags approximately most recent first (grouped by package). The available fields vary over time.
+tags:
+    git tag -l --sort=-tag --format='%(refname:short) taggerdate:%(taggerdate:iso8601) committerdate:%(committerdate:iso8601)}'
 
 # XXX Run this only after .version has been updated to NEWVER
 # @reltagmaster:
@@ -1602,7 +1609,7 @@ MISC:
     echo "Recent branches (commits):"
     jj log -n 40 -r 'log_default ~ @'
 
-# push to github CI, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to master.
+# push master to github ci, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to github master.
 @push *INTERVAL:
     tools/push {{ INTERVAL }}
 
