@@ -114,7 +114,7 @@ Docs
 
 Fixes
 
-- Don't hang when saving a large file (this broke in 1.42). [#2319]
+- Don't hang when saving a large file (this broke in 1.42). [#2389]
 
 - Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
 
@@ -131,9 +131,9 @@ Docs
 Simon Michael (@simonmichael),
 Thomas Miedema (@thomie).
 
-[#2319]: https://github.com/simonmichael/hledger/issues/2319
 [#2354]: https://github.com/simonmichael/hledger/issues/2354
 [#2386]: https://github.com/simonmichael/hledger/issues/2386
+[#2389]: https://github.com/simonmichael/hledger/issues/2389
 [hledger_site#132]: https://github.com/simonmichael/hledger_site/issues/132
 
 
