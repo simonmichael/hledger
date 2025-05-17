@@ -52,17 +52,18 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 <http://ci.hledger.org>\
 <http://bugs.hledger.org>,
 <http://wishes.hledger.org>,
-[unknown issues](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A%20BUG%22%20-label%3A%22A%20WISH%22%20),
+[all issues](https://github.com/simonmichael/hledger/issues?q=),
+[ISSUES](ISSUES.md),\
+[issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty),
+[bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20),
+[codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill),
+[codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund)\
 <http://prs.hledger.org>,
 <http://draftprs.hledger.org>,
 <http://readyprs.hledger.org>,
 <http://assignedprs.hledger.org>,
 <http://unassignedprs.hledger.org>,
-[all issues](https://github.com/simonmichael/hledger/issues?q=)\
-[issues with bounty tag](https://github.com/simonmichael/hledger/issues?q=label:bounty),
-[bountysource bounties](https://github.com/simonmichael/hledger/issues?q=%22Add%20to%20the%20bounty%20at%20Bountysource%22%20OR%20%22claim%20the%20bounty%20on%20Bountysource%22%20OR%20%22bounty%20on%20this%20issue%20has%20been%20claimed%20at%20Bountysource%22%20),
-[codemill bounties](https://github.com/simonmichael/hledger/issues?q=codemill),
-[codefund bounties](https://github.com/simonmichael/hledger/issues?utf8=✓&q=codefund)\
+[PULLREQUESTS](PULLREQUESTS.md),\
 [projects.hledger.org](http://projects.hledger.org)\
 [star-history.com](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date) PTA apps' github star history\
 [stars.hledger.org](http://stars.hledger.org) our rank among github-starred haskell projects:\
