@@ -1,0 +1,227 @@
+# Some hledger/PTA-related bash scripts. See also Justfile.
+
+alias hl='hledger'
+alias accounts='hledger accounts'
+alias activity='hledger activity'
+alias add='hledger add'
+alias areg='hledger aregister'
+alias bal='hledger balance'
+alias bar='hledger bar'
+alias bs='hledger balancesheet'
+alias bse='hledger balancesheetequity'
+alias budget='hledger balance --budget'
+alias cf='hledger cashflow'
+alias check='hledger check'
+alias close='hledger close'
+alias codes='hledger codes'
+alias commodities='hledger commodities'
+alias desc='hledger descriptions'
+alias files='hledger files'
+alias iadd='hledger-iadd'
+alias interest='hledger interest'
+alias import='hledger import'
+alias is='hledger incomestatement'
+alias lots='hledger lots'
+alias notes='hledger notes'
+alias payees='hledger payees'
+alias plot='hledger plot'
+alias prices='hledger prices'
+alias print='hledger print'
+alias reg='hledger register'
+alias repl='hledger repl'
+alias rewrite='hledger rewrite'
+alias roi='hledger roi'
+alias run='hledger run'
+alias stats='hledger stats'
+alias tags='hledger tags'
+alias ui='hledger ui'
+alias web='hledger web'
+
+export FINDIR=~/finance
+export LEDGER_FILE=$FINDIR/2024/2024.journal
+alias f=$FINDIR/justfile
+alias bser='hledger -f $LEDGER_FILE -f <(hledger close --retain) bse'
+alias all='hledger -f $FINDIR/all.journal'
+alias 2020='hledger -f $FINDIR/2020/2020.journal'
+alias 2021='hledger -f $FINDIR/2021/2021.journal'
+alias 2022='hledger -f $FINDIR/2022/2022.journal'
+alias 2023='hledger -f $FINDIR/2023/2023.journal'
+alias 2024='hledger -f $FINDIR/2024/2024.journal'
+alias jan="hledger -p jan"
+alias feb="hledger -p feb"
+alias mar="hledger -p mar"
+alias apr="hledger -p apr"
+alias may="hledger -p may"
+alias jun="hledger -p jun"
+alias jul="hledger -p jul"
+alias aug="hledger -p aug"
+alias sep="hledger -p sep"
+alias oct="hledger -p oct"
+alias nov="hledger -p nov"
+alias dec="hledger -p dec"
+
+# query hledger with sqlite
+hq() {
+    (hledger print -O sql; echo "$1") | sqlite3 -column -header;
+}
+
+# list likely hledger-readable files in current directory
+hledgerfiles() {
+    ls $@ *.{journal,j,timelog,csv,ledger,lgr,dat} 2>/dev/null
+}
+
+# helpers for working with yearly files.
+
+# yearfiles [N] - print the paths of all or the last N yearly journals.
+# Adjust to suit your files.
+yearfiles() {
+    FIRSTYEAR=2006
+    N="$1"; shift
+    YEAR=$(date +%Y)
+    if [[ -n "$N" ]]; then
+	START=$(( "$YEAR" - "$N" + 1))
+    else
+	START=$FIRSTYEAR
+    fi
+    for ((y="$START"; y<="$YEAR"; y++)); do echo "$FINDIR/$y/$y.journal"; done
+}
+
+# yearopts [N] - print -f options for all or the last N yearly journals
+yearopts() {
+    for y in $(yearfiles "$1"); do
+	echo -f"$y"
+    done
+}
+
+# years [N] CMD.. - run hledger CMD on all or just the last N yearly journals combined
+# eg:
+# years stats
+# years 2 stats
+years() {
+    N="$1"
+    if [[ "$N" =~ ^[0-9]+$ ]]; then
+	shift
+    else
+	N=
+    fi
+    # shellcheck disable=SC2046
+    hledger $(yearopts "$N" | xargs) "$@"
+}
+
+alias 10y='years 10'
+alias 9y='years 9'
+alias 5y='years 5'
+alias 2y='years 2'
+
+# eachyear [N] [n|p|P] "SHELLCMD" - run SHELLCMD with $LEDGER_FILE set,
+# for each or just the last N yearly journals,
+# optionally printing the file name with 0, 1 or 2 line breaks.
+# Accepts shell commands, extra quoting may be needed.
+# eg:
+# eachyear 10 hledger bal -0 -N cur:\\\\$
+# eachyear p files
+# eachyear P 'files | wc -l'
+# eachyear 5 P 5 'hledger stats | tail -1'
+# eachyear 7 p 'comm | rg ^...$'
+eachyear() {
+    N="$1"
+    if [[ "$N" =~ ^[0-9]+$ ]]; then
+	shift
+    else
+	N=
+    fi
+    P="$1"
+    if [[ "$P" =~ ^[npP]$ ]]; then
+	shift
+    else
+	P=
+    fi
+    for f in $(yearfiles "$N"); do
+	if [[ -n "$P" ]]; then
+            if [[ $P == P ]]; then echo; fi
+            printf "%s: " "$(basename "$f")"
+            if [[ $P != n ]]; then echo; fi
+        fi
+	bash -ic "(LEDGER_FILE=$f; $*)"  # XXX loses some quoting
+    done
+}
+
+# time
+
+#export TIMELOG=$FINDIR/time.journal
+export TIMELOG=$FINDIR/time/time-2024.journal
+export TIMEDOT=$FINDIR/time/time-2024.timedot
+
+alias hours="hledger -f $TIMELOG"
+alias today='hours -p today'
+alias yesterday='hours -p yesterday'
+alias thisweek='hours -p thisweek'
+alias lastweek='hours -p lastweek'
+alias thismonth='hours -p thismonth'
+alias lastmonth='hours -p lastmonth'
+alias thisyear='hours -p thisyear'
+alias lastyear='hours -p lastyear'
+alias janhours="hours -p jan"
+alias febhours="hours -p feb"
+alias marhours="hours -p mar"
+alias aprhours="hours -p apr"
+alias mayhours="hours -p may"
+alias junhours="hours -p jun"
+alias julhours="hours -p jul"
+alias aughours="hours -p aug"
+alias sephours="hours -p sep"
+alias octhours="hours -p oct"
+alias novhours="hours -p nov"
+alias dechours="hours -p dec"
+
+# old ledger 2.6 scripts
+
+BalanceSheet() {
+    echo "Balance sheet as of `date`"
+    echo "totals include sub-accounts"
+    echo
+    ledger -n --balance-format '%10T  %2_%-a\n' --display "l<=3" --basis --subtotal $* balance assets
+    echo
+    ledger -n --balance-format '%10T  %2_%-a\n' --display "l<=3" --basis --subtotal $* balance liabilities
+    echo
+    ledger -nE --balance-format '%10T  %2_%-a\n' --display "l<=4" --basis --subtotal $* balance equity
+    echo
+    echo "`ledger --balance-format '%10T  %2_%-a\n' --basis $* balance liabilities equity | tail -1`liabilities + equity"
+    echo
+    ledger --balance-format '%10T  %2_%-a\n' --basis $* balance assets liabilities | tail -2
+}
+
+IncomeStatement() {
+    echo "Income statement for `date +%Y` as of `date`"
+    echo "totals include sub-accounts"
+    echo
+    ledger -n --balance-format '%10(-T)  %2_%-a\n' --display "l<=3" --basis --subtotal $* balance income
+    echo
+    ledger -n --balance-format '%10(-T)  %2_%-a\n' --display "l<=2" --basis --subtotal $* balance expenses -equity
+    echo
+    ledger --balance-format '%10(-T)  %2_%-a\n' --basis $* balance income expenses -equity | tail -2
+}
+
+# function CashflowStatement () {
+#     echo "Cashflow statement for `date +%Y`"
+#     #echo "(totals include sub-accounts)"
+#     echo
+#     cat <<EOF
+# cash flows from operating activities
+#   net income as on income statement
+#   add: depreciation
+#   add: allowance for doubtful accounts
+#   deduct: increase in inventory
+#   deduct: increase in prepaid expenses
+#   deduct: decrease in accounts payable
+# cash flows from investing activities
+#   cash received from investments sold
+#   less: cash paid for store equipment
+# cash flows from financing activities
+#   cash paid for dividends
+#
+# Increase in cash: 
+# Cash at the beginning of the year:
+# Cash at the end of the year:
+# EOF
+# }

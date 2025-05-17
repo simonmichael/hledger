@@ -1,0 +1,3 @@
+skip 2
+date %1
+date-format %Y-%m-%d

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Watch hledger account names, updating on file change under the current directory.
+# Arguments are passed to hledger. Useful when cleaning up accounts.
+# Requires watchexec.
+# Examples:
+# watchaccounts expenses -2
+# watchaccounts -f time.journal client1 date:thismonth -l
+
+watchexec -c -- "echo ==; hledger accounts -t" $@

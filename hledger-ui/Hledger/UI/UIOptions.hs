@@ -1,115 +1,146 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE DeriveDataTypeable #-}
-{-|
+{-# LANGUAGE TemplateHaskell #-}
 
--}
+module Hledger.UI.UIOptions where
 
-module Hledger.UI.UIOptions
-where
-import Data.Data (Data)
-import Data.Default
-import Data.Typeable (Typeable)
+import Data.Default (def)
+import Data.Either (fromRight)
 import Data.List (intercalate)
-import System.Environment
+import qualified Data.Map as M
+import Data.Maybe (fromMaybe)
+import GitHash (tGitInfoCwdTry)
+import Lens.Micro (set)
+import System.Environment (getArgs)
 
-import Hledger.Cli hiding (progname,version,prognameandversion)
-import Hledger.UI.Theme (themeNames)
+import Hledger.Cli hiding (packageversion, progname, prognameandversion)
+import Hledger.UI.Theme (themes, themeNames)
 
-progname, version :: String
-progname = "hledger-ui"
+-- cf Hledger.Cli.Version
+
+packageversion :: PackageVersionString
+packageversion =
 #ifdef VERSION
-version = VERSION
+  VERSION
 #else
-version = ""
+  ""
 #endif
+
+progname :: ProgramName
+progname = "hledger-ui"
+
+-- | Generate the version string for this program.
+-- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
 prognameandversion :: String
-prognameandversion = progname ++ " " ++ version :: String
+prognameandversion =
+  versionStringWith
+  $$tGitInfoCwdTry
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+  progname
+  packageversion
+
+binaryinfo :: HledgerBinaryInfo
+binaryinfo = fromRight nullbinaryinfo $ parseHledgerVersion prognameandversion
+
 
 uiflags = [
-  -- flagNone ["debug-ui"] (setboolopt "rules-file") "run with no terminal output, showing console"
-   flagNone ["watch"] (setboolopt "watch") "watch for data and date changes and reload automatically"
+   flagNone ["watch","w"] (setboolopt "watch") "watch for data and date changes and reload automatically"
   ,flagReq  ["theme"] (\s opts -> Right $ setopt "theme" s opts) "THEME" ("use this custom display theme ("++intercalate ", " themeNames++")")
-  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in the (first) matched account's register"
+  ,flagNone ["cash"] (setboolopt "cash") "start in: the cash accounts screen"
+  ,flagNone ["bs"] (setboolopt "bs") "start in: the balance sheet accounts screen"
+  ,flagNone ["is"] (setboolopt "is") "start in: the income statement accounts screen"
+  ,flagNone ["all"] (setboolopt "all") "start in: the all accounts screen"
+  ,flagReq  ["register"] (\s opts -> Right $ setopt "register" s opts) "ACCTREGEX" "start in: the (first matched) account's register"
   ,flagNone ["change"] (setboolopt "change")
     "show period balances (changes) at startup instead of historical balances"
   -- ,flagNone ["cumulative"] (setboolopt "cumulative")
   --   "show balance change accumulated across periods (in multicolumn reports)"
   -- ,flagNone ["historical","H"] (setboolopt "historical")
   --   "show historical ending balance in each period (includes postings before report start date)\n "
-  ,flagNone ["flat","F"] (setboolopt "flat") "show accounts as a list (default)"
-  ,flagNone ["tree","T"] (setboolopt "tree") "show accounts as a tree"
+  ]
+  ++ flattreeflags False
 --  ,flagNone ["present"] (setboolopt "present") "exclude transactions dated later than today (default)"
-  ,flagNone ["future"] (setboolopt "future") "show transactions dated later than today (normally hidden)"
   -- ,flagReq ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "with --flat, omit this many leading account name components"
   -- ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format"
   -- ,flagNone ["no-elide"] (setboolopt "no-elide") "don't compress empty parent accounts on one line"
- ]
 
---uimode :: Mode [([Char], [Char])]
-uimode =  (mode "hledger-ui" [("command","ui")]
-            "browse accounts, postings and entries in a full-window curses interface"
-            (argsFlag "[PATTERNS]") []){
-              modeGroupFlags = Group {
-                                groupUnnamed = uiflags
-                               ,groupHidden = hiddenflags
-                               ,groupNamed = [(generalflagsgroup1)]
-                               }
-             ,modeHelpSuffix=[
-                  -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window curses ui."
-                 ]
-           }
+--uimode :: Mode RawOpts
+uimode =
+  (mode "hledger-ui" (setopt "command" "ui" def)
+    "browse accounts, postings and entries in a full-window TUI"
+    (argsFlag "[--cash|--bs|--is|--all|--register=ACCT] [QUERY]") [])
+  {modeGroupFlags = Group {
+       groupUnnamed = uiflags
+      ,groupHidden = hiddenflags
+        ++
+        [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
+        ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
+        ]
+      ,groupNamed = mkgeneralflagsgroups1 helpflags
+      }
+  ,modeHelpSuffix=[
+    -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."
+  ]
+  }
 
 -- hledger-ui options, used in hledger-ui and above
-data UIOpts = UIOpts {
-     watch_   :: Bool
-    ,change_  :: Bool
-    ,presentorfuture_  :: PresentOrFutureOpt
-    ,cliopts_ :: CliOpts
- } deriving (Show)
+data UIOpts = UIOpts
+  { uoWatch    :: Bool
+  , uoTheme    :: Maybe String
+  , uoRegister :: Maybe String
+  , uoCliOpts  :: CliOpts
+  } deriving (Show)
 
 defuiopts = UIOpts
-    def
-    def
-    def
-    def
+  { uoWatch    = False
+  , uoTheme    = Nothing
+  , uoRegister = Nothing
+  , uoCliOpts  = defcliopts
+  }
 
--- instance Default CliOpts where def = defcliopts
-
+-- | Process a RawOpts into a UIOpts.
+-- An invalid --theme name will raise an error.
 rawOptsToUIOpts :: RawOpts -> IO UIOpts
-rawOptsToUIOpts rawopts = checkUIOpts <$> do
-  cliopts <- rawOptsToCliOpts rawopts
-  return defuiopts {
-              watch_   = boolopt "watch" rawopts
-             ,change_  = boolopt "change" rawopts
-             ,presentorfuture_ = presentorfutureopt rawopts
-             ,cliopts_ = cliopts
-             }
-
--- | Should transactions dated later than today be included ? 
--- Like flat/tree mode, there are three states, and the meaning of default can vary by command.
-data PresentOrFutureOpt = PFDefault | PFPresent | PFFuture deriving (Eq, Show, Data, Typeable)
-instance Default PresentOrFutureOpt where def = PFDefault
-
-presentorfutureopt :: RawOpts -> PresentOrFutureOpt
-presentorfutureopt rawopts =
-  case reverse $ filter (`elem` ["present","future"]) $ map fst rawopts of
-    ("present":_) -> PFPresent
-    ("future":_)  -> PFFuture
-    _             -> PFDefault
-
-checkUIOpts :: UIOpts -> UIOpts
-checkUIOpts opts =
-  either usageError (const opts) $ do
-    case maybestringopt "theme" $ rawopts_ $ cliopts_ opts of
-      Just t | not $ elem t themeNames -> Left $ "invalid theme name: "++t
-      _                                -> Right ()
+rawOptsToUIOpts rawopts = do
+  cliopts <- set balanceaccum accum <$> rawOptsToCliOpts rawopts
+  return
+    defuiopts {
+       uoWatch    = boolopt "watch" rawopts
+      ,uoTheme    = checkTheme <$> maybestringopt "theme" rawopts
+      ,uoRegister = maybestringopt "register" rawopts
+      ,uoCliOpts  = cliopts
+      }
+  where
+    -- show historical balance by default (unlike hledger)
+    accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
+    checkTheme t = if t `M.member` themes then t else usageError $ "invalid theme name: " ++ t
 
 -- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts
---getHledgerUIOpts = processArgs uimode >>= return . decodeRawOpts >>= rawOptsToUIOpts
+--getHledgerUIOpts = processArgs uimode >>= return >>= rawOptsToUIOpts
 getHledgerUIOpts = do
   args <- getArgs >>= expandArgsAt
-  let args' = replaceNumericFlags args 
+  let args' = ensureDebugFlagHasVal $ replaceNumericFlags args
   let cmdargopts = either usageError id $ process uimode args'
-  rawOptsToUIOpts $ decodeRawOpts cmdargopts 
+  rawOptsToUIOpts cmdargopts
 
+instance HasCliOpts UIOpts where
+    cliOpts f uiopts = (\x -> uiopts{uoCliOpts=x}) <$> f (uoCliOpts uiopts)
+
+instance HasInputOpts UIOpts where
+    inputOpts = cliOpts.inputOpts
+
+instance HasBalancingOpts UIOpts where
+    balancingOpts = cliOpts.balancingOpts
+
+instance HasReportSpec UIOpts where
+    reportSpec = cliOpts.reportSpec
+
+instance HasReportOptsNoUpdate UIOpts where
+    reportOptsNoUpdate = cliOpts.reportOptsNoUpdate
+
+instance HasReportOpts UIOpts where
+    reportOpts = cliOpts.reportOpts

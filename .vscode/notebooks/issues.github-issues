@@ -1,0 +1,57 @@
+[
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "# hledger issues notebook\n\n- https://hledger.org/ISSUES.html\n\n<!-- -->\n- https://github.com/microsoft/vscode-github-issue-notebooks#readme\n- https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests\n- https://docs.github.com/en/search-github/getting-started-with-searching-on-github/sorting-search-results"
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## hledger repo"
+  },
+  {
+    "kind": 2,
+    "language": "github-issues",
+    "value": "$repo=repo:simonmichael/hledger\n$repo is:open sort:created-desc"
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## hledger_site repo"
+  },
+  {
+    "kind": 2,
+    "language": "github-issues",
+    "value": "repo:simonmichael/hledger_site is:open sort:created-desc"
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## hledger_finance repo"
+  },
+  {
+    "kind": 2,
+    "language": "github-issues",
+    "value": "repo:simonmichael/hledger_finance is:open sort:created-desc"
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## hledger mentions in other projects"
+  },
+  {
+    "kind": 2,
+    "language": "github-issues",
+    "value": "-repo:simonmichael/hledger -repo:simonmichael/hledger_site -repo:simonmichael/hledger_finance hledger is:open sort:created-desc"
+  },
+  {
+    "kind": 1,
+    "language": "markdown",
+    "value": "## other plaintextaccounting mentions in other projects\n(should exclude things already found by \"hledger\", doesn't)"
+  },
+  {
+    "kind": 2,
+    "language": "github-issues",
+    "value": "-repo:simonmichael/hledger -repo:simonmichael/hledger_site -repo:simonmichael/hledger_finance plaintextaccounting -hledger -repo:commercialhaskell/stack is:open sort:created-desc"
+  }
+]

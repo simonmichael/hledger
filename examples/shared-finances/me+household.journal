@@ -1,0 +1,17 @@
+# me+household.journal
+
+2024-01-01 my contribution
+    me:assets:bank                              -100.00 EUR
+    me:expenses:household                        100.00 EUR
+    household:equity:me                         -100.00 EUR
+    household:assets:bank                        100.00 EUR
+
+2024-01-01 my partner contribution
+    household:equity:partner                    -100.00 EUR
+    household:assets:bank                        100.00 EUR
+
+2024-01-02 pay shared bill
+    household:assets:bank                       -100.00 EUR
+    household:equity:me                           50.00 EUR
+    household:equity:partner                      50.00 EUR
+

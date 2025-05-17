@@ -1,0 +1,10 @@
+; Kontotyper på øverste niveau. Underkonti vil arve disse.
+; (maskinoversat)
+account aktiver                    ; type:A
+account aktiver:bank               ; type:C
+account aktiver:kontanter          ; type:C
+account passiver                   ; type:L
+account egenkapital                ; type:E
+account egenkapital:omregning      ; type:V
+account indtægter                  ; type:R
+account udgifter                   ; type:X

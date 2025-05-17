@@ -22,18 +22,20 @@ incomestatementSpec = CompoundBalanceCommandSpec {
   cbcqueries  = [
      CBCSubreportSpec{
       cbcsubreporttitle="Revenues"
-     ,cbcsubreportquery=journalRevenueAccountQuery
-     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportquery=Type [Revenue]
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Expenses"
-     ,cbcsubreportquery=journalExpenseAccountQuery
-     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportquery=Type [Expense]
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+     ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=False
      }
     ],
-  cbctype     = PeriodChange
+  cbcaccum     = PerPeriod
 }
 
 incomestatementmode :: Mode RawOpts
@@ -41,3 +43,20 @@ incomestatementmode = compoundBalanceCommandMode incomestatementSpec
 
 incomestatement :: CliOpts -> Journal -> IO ()
 incomestatement = compoundBalanceCommand incomestatementSpec
+{- 
+Summary of code flow, 2021-11:
+
+incomestatement
+ compoundBalanceCommand
+  compoundBalanceReport
+   compoundBalanceReportWith
+    colps = getPostingsByColumn
+    startps = startingPostings
+    generateSubreport
+     startbals = startingBalances (startps restricted to this subreport)
+     generateMultiBalanceReport startbals (colps restricted to this subreport)
+      matrix = calculateReportMatrix startbals colps
+      displaynames = displayedAccounts
+      buildReportRows displaynames matrix
+ -}
+ 

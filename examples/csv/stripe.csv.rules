@@ -1,0 +1,33 @@
+# example: https://paste.tomsmeding.com/fOTKscYN
+
+# Stripe "Balance change from activity" CSV, default fields:
+fields balance_transaction_id, created_utc, available_on_utc, currency, gross, fee, net, reporting_category, description
+skip 1
+date %created_utc
+date-format %Y-%m-%d %H:%M:%S
+code %balance_transaction_id
+
+# use currency field as currency symbol, with a space
+currency %currency 
+# but show usd as $
+if ,usd,
+ currency $ 
+
+# the first posting is money leaving/entering my balance
+# (negative means leaving my account, in all amount fields)
+account1 assets:online:stripe
+amount1  %net
+
+# the second posting is money sent to/received from other party
+# we'll set generic account names based on sign and reporting_category
+amount2 -%gross
+if %gross ^-
+ account2 expenses:%reporting_category
+if %gross ^[^-]
+ account2 revenues:%reporting_category
+
+# if there's a non-zero fee, add a third posting
+if %fee [1-9]
+ account3 expenses:banking:stripe
+ amount3  -%fee
+

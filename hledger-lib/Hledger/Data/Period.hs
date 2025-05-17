@@ -5,14 +5,17 @@ a richer abstraction than DateSpan. See also Types and Dates.
 
 -}
 
+{-# LANGUAGE OverloadedStrings #-}
+
 module Hledger.Data.Period (
    periodAsDateSpan
   ,dateSpanAsPeriod
   ,simplifyPeriod
   ,isLastDayOfMonth
   ,isStandardPeriod
+  ,periodTextWidth
   ,showPeriod
-  ,showPeriodMonthAbbrev
+  ,showPeriodAbbrev
   ,periodStart
   ,periodEnd
   ,periodNext
@@ -23,6 +26,7 @@ module Hledger.Data.Period (
   ,periodGrow
   ,periodShrink
   ,mondayBefore
+  ,thursdayOfWeekContaining
   ,yearMonthContainingWeekStarting
   ,quarterContainingMonth
   ,firstMonthOfQuarter
@@ -30,6 +34,8 @@ module Hledger.Data.Period (
 )
 where
 
+import Data.Text (Text)
+import qualified Data.Text as T
 import Data.Time.Calendar
 import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate
@@ -39,38 +45,38 @@ import Text.Printf
 
 import Hledger.Data.Types
 
--- | Convert Periods to DateSpans.
+-- | Convert Periods to exact DateSpans.
 --
--- >>> periodAsDateSpan (MonthPeriod 2000 1) == DateSpan (Just $ fromGregorian 2000 1 1) (Just $ fromGregorian 2000 2 1)
+-- >>> periodAsDateSpan (MonthPeriod 2000 1) == DateSpan (Just $ Flex $ fromGregorian 2000 1 1) (Just $ Flex $ fromGregorian 2000 2 1)
 -- True
 periodAsDateSpan :: Period -> DateSpan
-periodAsDateSpan (DayPeriod d) = DateSpan (Just d) (Just $ addDays 1 d)
-periodAsDateSpan (WeekPeriod b) = DateSpan (Just b) (Just $ addDays 7 b)
-periodAsDateSpan (MonthPeriod y m) = DateSpan (Just $ fromGregorian y m 1) (Just $ fromGregorian y' m' 1)
+periodAsDateSpan (DayPeriod d) = DateSpan (Just $ Exact d) (Just $ Exact $ addDays 1 d)
+periodAsDateSpan (WeekPeriod b) = DateSpan (Just $ Flex b) (Just $ Flex $ addDays 7 b)
+periodAsDateSpan (MonthPeriod y m) = DateSpan (Just $ Flex $ fromGregorian y m 1) (Just $ Flex $ fromGregorian y' m' 1)
   where
     (y',m') | m==12     = (y+1,1)
             | otherwise = (y,m+1)
-periodAsDateSpan (QuarterPeriod y q) = DateSpan (Just $ fromGregorian y m 1) (Just $ fromGregorian y' m' 1)
+periodAsDateSpan (QuarterPeriod y q) = DateSpan (Just $ Flex $ fromGregorian y m 1) (Just $ Flex $ fromGregorian y' m' 1)
   where
     (y', q') | q==4      = (y+1,1)
              | otherwise = (y,q+1)
-    quarterAsMonth q = (q-1) * 3 + 1
+    quarterAsMonth q2 = (q2-1) * 3 + 1
     m  = quarterAsMonth q
     m' = quarterAsMonth q'
-periodAsDateSpan (YearPeriod y) = DateSpan (Just $ fromGregorian y 1 1) (Just $ fromGregorian (y+1) 1 1)
-periodAsDateSpan (PeriodBetween b e) = DateSpan (Just b) (Just e)
-periodAsDateSpan (PeriodFrom b) = DateSpan (Just b) Nothing
-periodAsDateSpan (PeriodTo e) = DateSpan Nothing (Just e)
+periodAsDateSpan (YearPeriod y) = DateSpan (Just $ Flex $ fromGregorian y 1 1) (Just $ Flex $ fromGregorian (y+1) 1 1)
+periodAsDateSpan (PeriodBetween b e) = DateSpan (Just $ Exact b) (Just $ Exact e)
+periodAsDateSpan (PeriodFrom b) = DateSpan (Just $ Exact b) Nothing
+periodAsDateSpan (PeriodTo e) = DateSpan Nothing (Just $ Exact e)
 periodAsDateSpan (PeriodAll) = DateSpan Nothing Nothing
 
 -- | Convert DateSpans to Periods.
 --
--- >>> dateSpanAsPeriod $ DateSpan (Just $ fromGregorian 2000 1 1) (Just $ fromGregorian 2000 2 1)
+-- >>> dateSpanAsPeriod $ DateSpan (Just $ Exact $ fromGregorian 2000 1 1) (Just $ Exact $ fromGregorian 2000 2 1)
 -- MonthPeriod 2000 1
 dateSpanAsPeriod :: DateSpan -> Period
-dateSpanAsPeriod (DateSpan (Just b) (Just e)) = simplifyPeriod $ PeriodBetween b e
-dateSpanAsPeriod (DateSpan (Just b) Nothing) = PeriodFrom b
-dateSpanAsPeriod (DateSpan Nothing (Just e)) = PeriodTo e
+dateSpanAsPeriod (DateSpan (Just b) (Just e)) = simplifyPeriod $ PeriodBetween (fromEFDay b) (fromEFDay e)
+dateSpanAsPeriod (DateSpan (Just b) Nothing) = PeriodFrom (fromEFDay b)
+dateSpanAsPeriod (DateSpan Nothing (Just e)) = PeriodTo (fromEFDay e)
 dateSpanAsPeriod (DateSpan Nothing Nothing) = PeriodAll
 
 -- | Convert PeriodBetweens to a more abstract period where possible.
@@ -151,35 +157,61 @@ isStandardPeriod = isStandardPeriod' . simplifyPeriod
     isStandardPeriod' (YearPeriod _) = True
     isStandardPeriod' _ = False
 
+-- | The width of a period of this type when displayed.
+periodTextWidth :: Period -> Int
+periodTextWidth = periodTextWidth' . simplifyPeriod
+  where
+    periodTextWidth' DayPeriod{}     = 10  -- 2021-01-01
+    periodTextWidth' WeekPeriod{}    = 13  -- 2021-01-01W52
+    periodTextWidth' MonthPeriod{}   = 7   -- 2021-01
+    periodTextWidth' QuarterPeriod{} = 6   -- 2021Q1
+    periodTextWidth' YearPeriod{}    = 4   -- 2021
+    periodTextWidth' PeriodBetween{} = 22  -- 2021-01-01..2021-01-07
+    periodTextWidth' PeriodFrom{}    = 12  -- 2021-01-01..
+    periodTextWidth' PeriodTo{}      = 12  -- ..2021-01-01
+    periodTextWidth' PeriodAll       = 2   -- ..
+
 -- | Render a period as a compact display string suitable for user output.
 --
 -- >>> showPeriod (WeekPeriod (fromGregorian 2016 7 25))
--- "2016/07/25w30"
-showPeriod (DayPeriod b)       = formatTime defaultTimeLocale "%0C%y/%m/%d" b     -- DATE
-showPeriod (WeekPeriod b)      = formatTime defaultTimeLocale "%0C%y/%m/%dw%V" b  -- STARTDATEwYEARWEEK
-showPeriod (MonthPeriod y m)   = printf "%04d/%02d" y m                           -- YYYY/MM
-showPeriod (QuarterPeriod y q) = printf "%04dq%d" y q                             -- YYYYqN
-showPeriod (YearPeriod y)      = printf "%04d" y                                  -- YYYY
-showPeriod (PeriodBetween b e) = formatTime defaultTimeLocale "%0C%y/%m/%d" b
-                                 ++ formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e) -- STARTDATE-INCLUSIVEENDDATE
-showPeriod (PeriodFrom b)      = formatTime defaultTimeLocale "%0C%y/%m/%d-" b                   -- STARTDATE-
-showPeriod (PeriodTo e)        = formatTime defaultTimeLocale "-%0C%y/%m/%d" (addDays (-1) e)    -- -INCLUSIVEENDDATE
-showPeriod PeriodAll           = "-"
+-- "2016-W30"
+-- >>> showPeriod (WeekPeriod (fromGregorian 2024 12 30))
+-- "2025-W01"
+showPeriod :: Period -> Text
+showPeriod (DayPeriod b)       = T.pack $ formatTime defaultTimeLocale "%F" b              -- DATE
+showPeriod (WeekPeriod b)      = T.pack $ y <> "-W" <> w                                   -- YYYY-Www
+  where
+    y = formatTime defaultTimeLocale "%0Y" $ thursdayOfWeekContaining b  -- be careful at year boundary
+    w = formatTime defaultTimeLocale "%V" b
+showPeriod (MonthPeriod y m)   = T.pack $ printf "%04d-%02d" y m                           -- YYYY-MM
+showPeriod (QuarterPeriod y q) = T.pack $ printf "%04dQ%d" y q                             -- YYYYQN
+showPeriod (YearPeriod y)      = T.pack $ printf "%04d" y                                  -- YYYY
+showPeriod (PeriodBetween b e) = T.pack $ formatTime defaultTimeLocale "%F" b
+                                 ++ formatTime defaultTimeLocale "..%F" (addDays (-1) e) -- STARTDATE..INCLUSIVEENDDATE
+showPeriod (PeriodFrom b)      = T.pack $ formatTime defaultTimeLocale "%F.." b                   -- STARTDATE..
+showPeriod (PeriodTo e)        = T.pack $ formatTime defaultTimeLocale "..%F" (addDays (-1) e)    -- ..INCLUSIVEENDDATE
+showPeriod PeriodAll           = ".."
 
--- | Like showPeriod, but if it's a month period show just 
--- the 3 letter month name abbreviation for the current locale.
-showPeriodMonthAbbrev (MonthPeriod _ m)                           -- Jan
-  | m > 0 && m <= length monthnames = snd $ monthnames !! (m-1)
+-- | Like showPeriod, but if it's a month or week period show
+-- an abbreviated form.
+-- >>> showPeriodAbbrev (WeekPeriod (fromGregorian 2016 7 25))
+-- "W30"
+-- >>> showPeriodAbbrev (WeekPeriod (fromGregorian 2024 12 30))
+-- "W01"
+showPeriodAbbrev :: Period -> Text
+showPeriodAbbrev (MonthPeriod _ m)                                              -- Jan
+  | m > 0 && m <= length monthnames = T.pack . snd $ monthnames !! (m-1)
   where monthnames = months defaultTimeLocale
-showPeriodMonthAbbrev p = showPeriod p
+showPeriodAbbrev (WeekPeriod b) = T.pack $ formatTime defaultTimeLocale "W%V" b -- Www
+showPeriodAbbrev p = showPeriod p
 
 periodStart :: Period -> Maybe Day
-periodStart p = mb
+periodStart p = fromEFDay <$> mb
   where
     DateSpan mb _ = periodAsDateSpan p
 
 periodEnd :: Period -> Maybe Day
-periodEnd p = me
+periodEnd p = fromEFDay <$> me
   where
     DateSpan _ me = periodAsDateSpan p
 
@@ -210,11 +242,12 @@ periodPrevious p = p
 -- | Move a standard period to the following period of same duration, staying within enclosing dates.
 -- Non-standard periods are unaffected.
 periodNextIn :: DateSpan -> Period -> Period
-periodNextIn (DateSpan _ (Just e)) p =
+periodNextIn (DateSpan _ (Just e0)) p =
   case mb of
     Just b -> if b < e then p' else p
     _      -> p
   where
+    e = fromEFDay e0
     p' = periodNext p
     mb = periodStart p'
 periodNextIn _ p = periodNext p
@@ -222,11 +255,12 @@ periodNextIn _ p = periodNext p
 -- | Move a standard period to the preceding period of same duration, staying within enclosing dates.
 -- Non-standard periods are unaffected.
 periodPreviousIn :: DateSpan -> Period -> Period
-periodPreviousIn (DateSpan (Just b) _) p =
+periodPreviousIn (DateSpan (Just b0) _) p =
   case me of
     Just e -> if e > b then p' else p
     _      -> p
   where
+    b = fromEFDay b0
     p' = periodPrevious p
     me = periodEnd p'
 periodPreviousIn _ p = periodPrevious p
@@ -295,9 +329,11 @@ periodShrink today (YearPeriod y)
 periodShrink today _ = YearPeriod y
   where (y,_,_) = toGregorian today
 
-mondayBefore d = addDays (fromIntegral (1 - wd)) d
+mondayBefore d = addDays (1 - toInteger wd) d
   where
     (_,_,wd) = toWeekDate d
+
+thursdayOfWeekContaining = (addDays 3).mondayBefore
 
 yearMonthContainingWeekStarting weekstart = (y,m)
   where

@@ -1,38 +1,56 @@
-# stack build plan using GHC 8.6.5
+# stack build plan using GHC 9.10.1
+# https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.10
+# https://downloads.haskell.org/ghc/9.10.1/docs/users_guide/9.10.1-notes.html
 
-resolver: lts-13.27
-#resolver: nightly-2019-07-07
+resolver: nightly-2025-04-01
 
 packages:
 - hledger-lib
 - hledger
 - hledger-ui
 - hledger-web
-- hledger-api
+
+# To minimise problems, use the versions shipped with GHC 9.10.1 when possible.
+# See https://github.com/haskell/unix/issues/329.
+extra-deps:
+# for hledger-lib
+# - Cabal-3.12.0.0
+# - Cabal-syntax-3.12.0.0
+# #- directory-1.3.8.3
+# #- filepath-1.5.2.0
+# - directory-1.3.9.0
+# - filepath-1.4.301.0
+# - ghc-boot-9.10.1@rev:1
+# - process-1.6.19.0
+# - time-1.12.2
+# - unix-2.8.5.1
+# # for windows
+# - Win32-2.14.0.0
+
+# # for hledger
+# - haskeline-0.8.2.1
+# # to silence a warning
+# - wizards-1.0.3@rev:3
 
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
 
-# allow-newer: true
+# ghc-options:
+#   "$locals": -Wno-x-partial
+#   "$locals": -fplugin Debug.Breakpoint
 
-extra-deps:
-# hledger-lib:
-# hledger:
-# hledger-ui:
-- brick-0.47
-- text-zipper-0.10.1
-- config-ini-0.2.4.0
-- data-clist-0.1.2.2
-- word-wrap-0.4.1
-# hledger-web:
-# hledger-api:
+# # for precise profiling, per https://www.tweag.io/posts/2020-01-30-haskell-profiling.html:
+# # apply-ghc-options: everything
+# # rebuild-ghc-options: true
+# # stack build --profile --ghc-options="-fno-prof-auto"
 
-# Workaround for https://github.com/commercialhaskell/stack/issues/3922
-# Try dropping this.. after stack 2 has been out a while ? Or now ? How about now ?
-#- haskell-src-exts-1.21.0
+# # tell GHC to write hie files, eg for weeder. Rumoured to be slow.
+# # ghc-options:
+# #   "$locals": -fwrite-ide-info
 
-# Use at least 0.46 to work around https://github.com/simonmichael/hledger/issues/1039
-# (hledger-web build failure with GHC 8.6 on Windows 7)
-# Might also be fixed by using GHC 8.6.5+, mixed reports
-#- unix-time-0.4.6
+# # ghc-options:
+# #   "$locals": -ddump-timings
+# #  "$targets": -Werror
+# #  "$everything": -O2
+# #  some-package: -DSOME_CPP_FLAG

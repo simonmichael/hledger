@@ -7,11 +7,12 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Web.Handler.MiscR
-  ( getAccountnamesR       
-  , getTransactionsR       
-  , getPricesR             
-  , getCommoditiesR        
-  , getAccountsR           
+  ( getVersionR
+  , getAccountnamesR
+  , getTransactionsR
+  , getPricesR
+  , getCommoditiesR
+  , getAccountsR
   , getAccounttransactionsR
   , getDownloadR
   , getFaviconR
@@ -25,74 +26,84 @@ import qualified Data.Text as T
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
-import Hledger.Web.Json ()
 import Hledger.Web.Import
+import Hledger.Web.WebOptions (packageversion)
 import Hledger.Web.Widget.Common (journalFile404)
 
 getRootR :: Handler Html
-getRootR = redirect JournalR
+getRootR = do
+  checkServerSideUiEnabled
+  redirect JournalR
 
 getManageR :: Handler Html
 getManageR = do
-  VD{caps, j} <- getViewData
-  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  checkServerSideUiEnabled
+  VD{j} <- getViewData
+  require EditPermission
   defaultLayout $ do
-    setTitle "Manage journal"
+    setTitle "Edit journal"
     $(widgetFile "manage")
 
 getDownloadR :: FilePath -> Handler TypedContent
 getDownloadR f = do
-  VD{caps, j} <- getViewData
-  when (CapManage `notElem` caps) (permissionDenied "Missing the 'manage' capability")
+  checkServerSideUiEnabled
+  VD{j} <- getViewData
+  require EditPermission
   (f', txt) <- journalFile404 f j
   addHeader "Content-Disposition" ("attachment; filename=\"" <> T.pack f' <> "\"")
   sendResponse ("text/plain" :: ByteString, toContent txt)
 
--- hledger-web equivalents of hledger-api's handlers
+-- hledger-web equivalents of the old hledger-api's handlers
+
+getVersionR :: Handler TypedContent
+getVersionR = do
+  require ViewPermission
+  selectRep $ provideJson $ packageversion
 
 getAccountnamesR :: Handler TypedContent
 getAccountnamesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
-  selectRep $ do
-    provideJson $ journalAccountNames j
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $ provideJson $ journalAccountNames j
 
 getTransactionsR :: Handler TypedContent
 getTransactionsR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
-  selectRep $ do
-    provideJson $ jtxns j
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $ provideJson $ jtxns j
 
 getPricesR :: Handler TypedContent
 getPricesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
-  selectRep $ do
+  VD{j} <- getViewData
+  require ViewPermission
+  selectRep $
     provideJson $ map priceDirectiveToMarketPrice $ jpricedirectives j
 
 getCommoditiesR :: Handler TypedContent
 getCommoditiesR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{j} <- getViewData
+  require ViewPermission
   selectRep $ do
-    provideJson $ (M.keys . jinferredcommodities) j
+    provideJson $ (M.keys . jinferredcommoditystyles) j
 
 getAccountsR :: Handler TypedContent
 getAccountsR = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{j} <- getViewData
+  require ViewPermission
   selectRep $ do
-    provideJson $ laccounts $ ledgerFromJournal Any j
+    provideJson $
+      styleAmounts (journalCommodityStylesWith HardRounding j) $
+      flattenAccounts $ mapAccounts (accountSetDeclarationInfo j) $ ledgerRootAccount $ ledgerFromJournal Any j
 
 getAccounttransactionsR :: Text -> Handler TypedContent
 getAccounttransactionsR a = do
-  VD{caps, j} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  VD{j} <- getViewData
+  require ViewPermission
   let
-    ropts = defreportopts
-    q = Any --filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
+    rspec = defreportspec
     thisacctq = Acct $ accountNameToAccountRegex a -- includes subs
   selectRep $ do
-    provideJson $ accountTransactionsReport ropts j q thisacctq
+    provideJson $
+      styleAmounts (journalCommodityStylesWith HardRounding j) $
+      accountTransactionsReport rspec{_rsQuery=Any} j thisacctq
 

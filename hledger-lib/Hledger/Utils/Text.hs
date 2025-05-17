@@ -2,97 +2,73 @@
 -- There may be better alternatives out there.
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 
 module Hledger.Utils.Text
   (
- -- -- * misc
- -- lowercase,
- -- uppercase,
- -- underline,
- -- stripbrackets,
+  -- * misc
+  textCapitalise,
+  -- underline,
+  -- stripbrackets,
   textUnbracket,
- -- -- quoting
+  wrap,
+  textChomp,
+  -- quoting
   quoteIfSpaced,
- -- quoteIfNeeded,
- -- singleQuoteIfNeeded,
- -- -- quotechars,
- -- -- whitespacechars,
+  textQuoteIfNeeded,
+  -- singleQuoteIfNeeded,
+  -- quotechars,
+  -- whitespacechars,
   escapeDoubleQuotes,
- -- escapeSingleQuotes,
- -- escapeQuotes,
- -- words',
- -- unwords',
+  escapeBackslash,
+  -- escapeSingleQuotes,
+  -- escapeQuotes,
+  -- words',
+  -- unwords',
   stripquotes,
- -- isSingleQuoted,
- -- isDoubleQuoted,
- -- -- * single-line layout
-  textstrip,
-  textlstrip,
-  textrstrip,
- -- chomp,
- -- elideLeft,
+  -- isSingleQuoted,
+  -- isDoubleQuoted,
+  -- * single-line layout
+  -- elideLeft,
   textElideRight,
- -- formatString,
- -- -- * multi-line layout
+  formatText,
+  -- * multi-line layout
   textConcatTopPadded,
- -- concatBottomPadded,
- -- concatOneLine,
- -- vConcatLeftAligned,
- -- vConcatRightAligned,
- -- padtop,
- -- padbottom,
- -- padleft,
- -- padright,
- -- cliptopleft,
- -- fitto,
+  textConcatBottomPadded,
   fitText,
- -- -- * wide-character-aware layout
-  textWidth,
+  linesPrepend,
+  linesPrepend2,
+  unlinesB,
+  -- * wide-character-aware layout
+  WideBuilder(..),
+  wbToText,
+  wbFromText,
+  wbUnpack,
   textTakeWidth,
- -- fitString,
- -- fitStringMulti,
-  textPadLeftWide,
-  textPadRightWide,
-  -- -- * tests
+  -- * Reading
+  readDecimal,
+  -- * tests
   tests_Text
   )
 where
 
--- import Data.Char
-import Data.List
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
+import Data.Char (digitToInt)
+import Data.Default (def)
+import Data.Maybe (catMaybes)
 import Data.Text (Text)
 import qualified Data.Text as T
--- import Text.Parsec
--- import Text.Printf (printf)
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
+import Text.DocLayout (charWidth, realLength)
 
--- import Hledger.Utils.Parse
--- import Hledger.Utils.Regex
-import Hledger.Utils.String (charWidth)
-import Hledger.Utils.Test
+import Test.Tasty (testGroup)
+import Test.Tasty.HUnit ((@?=), testCase)
+import Text.Tabular.AsciiWide
+  (Align(..), Header(..), Properties(..), TableOpts(..), renderRow, textCell)
+import Text.WideString (WideBuilder(..), wbToText, wbFromText, wbUnpack)
 
--- lowercase, uppercase :: String -> String
--- lowercase = map toLower
--- uppercase = map toUpper
 
--- | Remove leading and trailing whitespace.
-textstrip :: Text -> Text
-textstrip = textlstrip . textrstrip
-
--- | Remove leading whitespace.
-textlstrip :: Text -> Text
-textlstrip = T.dropWhile (`elem` (" \t" :: String)) :: Text -> Text -- XXX isSpace ?
-
--- | Remove trailing whitespace.
-textrstrip = T.reverse . textlstrip . T.reverse
-textrstrip :: Text -> Text
-
--- -- | Remove trailing newlines/carriage returns.
--- chomp :: String -> String
--- chomp = reverse . dropWhile (`elem` "\r\n") . reverse
+textCapitalise :: Text -> Text
+textCapitalise t = T.toTitle c <> cs where (c,cs) = T.splitAt 1 t
 
 -- stripbrackets :: String -> String
 -- stripbrackets = dropWhile (`elem` "([") . reverse . dropWhile (`elem` "])") . reverse :: String -> String
@@ -105,15 +81,23 @@ textElideRight :: Int -> Text -> Text
 textElideRight width t =
     if T.length t > width then T.take (width - 2) t <> ".." else t
 
--- -- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
--- -- Works on multi-line strings too (but will rewrite non-unix line endings).
--- formatString :: Bool -> Maybe Int -> Maybe Int -> String -> String
--- formatString leftJustified minwidth maxwidth s = intercalate "\n" $ map (printf fmt) $ lines s
---     where
---       justify = if leftJustified then "-" else ""
---       minwidth' = maybe "" show minwidth
---       maxwidth' = maybe "" (("."++).show) maxwidth
---       fmt = "%" ++ justify ++ minwidth' ++ maxwidth' ++ "s"
+-- | Wrap a Text with the surrounding Text.
+wrap :: Text -> Text -> Text -> Text
+wrap start end x = start <> x <> end
+
+-- | Remove trailing newlines/carriage returns.
+textChomp :: Text -> Text
+textChomp = T.dropWhileEnd (`elem` ['\r', '\n'])
+
+-- | Clip and pad a string to a minimum & maximum width, and/or left/right justify it.
+-- Works on multi-line strings too (but will rewrite non-unix line endings).
+formatText :: Bool -> Maybe Int -> Maybe Int -> Text -> Text
+formatText leftJustified minwidth maxwidth t =
+    T.intercalate "\n" . map (pad . clip) $ if T.null t then [""] else T.lines t
+  where
+    pad  = maybe id justify minwidth
+    clip = maybe id T.take maxwidth
+    justify n = if leftJustified then T.justifyLeft n ' ' else T.justifyRight n ' '
 
 -- underline :: String -> String
 -- underline s = s' ++ replicate (length s) '-' ++ "\n"
@@ -126,8 +110,8 @@ textElideRight width t =
 -- double-quoted.
 quoteIfSpaced :: T.Text -> T.Text
 quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
-                | not $ any (`elem` (T.unpack s)) whitespacechars = s
-                | otherwise = quoteIfNeeded s
+                | not $ any (\c -> T.any (==c) s) whitespacechars = s
+                | otherwise = textQuoteIfNeeded s
 
 -- -- | Wrap a string in double quotes, and \-prefix any embedded single
 -- -- quotes, if it contains whitespace and is not already single- or
@@ -139,9 +123,9 @@ quoteIfSpaced s | isSingleQuoted s || isDoubleQuoted s = s
 
 -- -- | Double-quote this string if it contains whitespace, single quotes
 -- -- or double-quotes, escaping the quotes as needed.
-quoteIfNeeded :: T.Text -> T.Text
-quoteIfNeeded s | any (`elem` T.unpack s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
-                | otherwise = s
+textQuoteIfNeeded :: T.Text -> T.Text
+textQuoteIfNeeded s | any (\c -> T.any (==c) s) (quotechars++whitespacechars) = "\"" <> escapeDoubleQuotes s <> "\""
+                    | otherwise = s
 
 -- -- | Single-quote this string if it contains whitespace or double-quotes.
 -- -- No good for strings containing single quotes.
@@ -155,6 +139,9 @@ whitespacechars = " \t\n\r"
 
 escapeDoubleQuotes :: T.Text -> T.Text
 escapeDoubleQuotes = T.replace "\"" "\\\""
+
+escapeBackslash :: T.Text -> T.Text
+escapeBackslash = T.replace "\\" "\\\\"
 
 -- escapeSingleQuotes :: T.Text -> T.Text
 -- escapeSingleQuotes = T.replace "'" "\'"
@@ -185,110 +172,35 @@ stripquotes s = if isSingleQuoted s || isDoubleQuoted s then T.init $ T.tail s e
 
 isSingleQuoted :: Text -> Bool
 isSingleQuoted s =
-  T.length (T.take 2 s) == 2 && T.head s == '\'' && T.last s == '\''
+  T.length s >= 2 && T.head s == '\'' && T.last s == '\''
 
 isDoubleQuoted :: Text -> Bool
 isDoubleQuoted s =
-  T.length (T.take 2 s) == 2 && T.head s == '"' && T.last s == '"'
+  T.length s >= 2 && T.head s == '"' && T.last s == '"'
 
+-- | Remove all matching pairs of square brackets and parentheses from the text.
 textUnbracket :: Text -> Text
-textUnbracket s
-    | (T.head s == '[' && T.last s == ']') || (T.head s == '(' && T.last s == ')') = T.init $ T.tail s
-    | otherwise = s
+textUnbracket s = T.drop stripN $ T.dropEnd stripN s
+  where
+    matchBracket :: Char -> Maybe Char
+    matchBracket '(' = Just ')'
+    matchBracket '[' = Just ']'
+    matchBracket _ = Nothing
+
+    expectedClosingBrackets = catMaybes $ takeWhile (/= Nothing) $ matchBracket <$> T.unpack s
+    stripN = length $ takeWhile (uncurry (==)) $ zip expectedClosingBrackets $ reverse $ T.unpack s
 
 -- | Join several multi-line strings as side-by-side rectangular strings of the same height, top-padded.
 -- Treats wide characters as double width.
 textConcatTopPadded :: [Text] -> Text
-textConcatTopPadded ts = T.intercalate "\n" $ map T.concat $ transpose padded
-    where
-      lss = map T.lines ts :: [[Text]]
-      h = maximum $ map length lss
-      ypad ls = replicate (difforzero h (length ls)) "" ++ ls
-      xpad ls = map (textPadLeftWide w) ls
-        where w | null ls = 0
-                | otherwise = maximum $ map textWidth ls
-      padded = map (xpad . ypad) lss :: [[Text]]
+textConcatTopPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
+                    . Group NoLine . map (Header . textCell BottomLeft)
 
--- -- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
--- -- Treats wide characters as double width.
--- concatBottomPadded :: [String] -> String
--- concatBottomPadded strs = intercalate "\n" $ map concat $ transpose padded
---     where
---       lss = map lines strs
---       h = maximum $ map length lss
---       ypad ls = ls ++ replicate (difforzero h (length ls)) ""
---       xpad ls = map (padRightWide w) ls where w | null ls = 0
---                                                 | otherwise = maximum $ map strWidth ls
---       padded = map (xpad . ypad) lss
-
-
--- -- | Join multi-line strings horizontally, after compressing each of
--- -- them to a single line with a comma and space between each original line.
--- concatOneLine :: [String] -> String
--- concatOneLine strs = concat $ map ((intercalate ", ").lines) strs
-
--- -- | Join strings vertically, left-aligned and right-padded.
--- vConcatLeftAligned :: [String] -> String
--- vConcatLeftAligned ss = intercalate "\n" $ map showfixedwidth ss
---     where
---       showfixedwidth = printf (printf "%%-%ds" width)
---       width = maximum $ map length ss
-
--- -- | Join strings vertically, right-aligned and left-padded.
--- vConcatRightAligned :: [String] -> String
--- vConcatRightAligned ss = intercalate "\n" $ map showfixedwidth ss
---     where
---       showfixedwidth = printf (printf "%%%ds" width)
---       width = maximum $ map length ss
-
--- -- | Convert a multi-line string to a rectangular string top-padded to the specified height.
--- padtop :: Int -> String -> String
--- padtop h s = intercalate "\n" xpadded
---     where
---       ls = lines s
---       sh = length ls
---       sw | null ls = 0
---          | otherwise = maximum $ map length ls
---       ypadded = replicate (difforzero h sh) "" ++ ls
---       xpadded = map (padleft sw) ypadded
-
--- -- | Convert a multi-line string to a rectangular string bottom-padded to the specified height.
--- padbottom :: Int -> String -> String
--- padbottom h s = intercalate "\n" xpadded
---     where
---       ls = lines s
---       sh = length ls
---       sw | null ls = 0
---          | otherwise = maximum $ map length ls
---       ypadded = ls ++ replicate (difforzero h sh) ""
---       xpadded = map (padleft sw) ypadded
-
-difforzero :: (Num a, Ord a) => a -> a -> a
-difforzero a b = maximum [(a - b), 0]
-
--- -- | Convert a multi-line string to a rectangular string left-padded to the specified width.
--- -- Treats wide characters as double width.
--- padleft :: Int -> String -> String
--- padleft w "" = concat $ replicate w " "
--- padleft w s = intercalate "\n" $ map (printf (printf "%%%ds" w)) $ lines s
-
--- -- | Convert a multi-line string to a rectangular string right-padded to the specified width.
--- -- Treats wide characters as double width.
--- padright :: Int -> String -> String
--- padright w "" = concat $ replicate w " "
--- padright w s = intercalate "\n" $ map (printf (printf "%%-%ds" w)) $ lines s
-
--- -- | Clip a multi-line string to the specified width and height from the top left.
--- cliptopleft :: Int -> Int -> String -> String
--- cliptopleft w h = intercalate "\n" . take h . map (take w) . lines
-
--- -- | Clip and pad a multi-line string to fill the specified width and height.
--- fitto :: Int -> Int -> String -> String
--- fitto w h s = intercalate "\n" $ take h $ rows ++ repeat blankline
---     where
---       rows = map (fit w) $ lines s
---       fit w = take w . (++ repeat ' ')
---       blankline = replicate w ' '
+-- | Join several multi-line strings as side-by-side rectangular strings of the same height, bottom-padded.
+-- Treats wide characters as double width.
+textConcatBottomPadded :: [Text] -> Text
+textConcatBottomPadded = TL.toStrict . renderRow def{tableBorders=False, borderSpaces=False}
+                       . Group NoLine . map (Header . textCell TopLeft)
 
 -- -- Functions below treat wide (eg CJK) characters as double-width.
 
@@ -304,10 +216,10 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
     clip s =
       case mmaxwidth of
         Just w
-          | textWidth s > w ->
-            case rightside of
-              True  -> textTakeWidth (w - T.length ellipsis) s <> ellipsis
-              False -> ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
+          | realLength s > w ->
+            if rightside
+              then textTakeWidth (w - T.length ellipsis) s <> ellipsis
+              else ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
           | otherwise -> s
           where
             ellipsis = if ellipsify then ".." else ""
@@ -317,37 +229,12 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
       case mminwidth of
         Just w
           | sw < w ->
-            case rightside of
-              True  -> s <> T.replicate (w - sw) " "
-              False -> T.replicate (w - sw) " " <> s
+            if rightside
+              then s <> T.replicate (w - sw) " "
+              else T.replicate (w - sw) " " <> s
           | otherwise -> s
         Nothing -> s
-      where sw = textWidth s
-
--- -- | A version of fitString that works on multi-line strings,
--- -- separate for now to avoid breakage.
--- -- This will rewrite any line endings to unix newlines.
--- fitStringMulti :: Maybe Int -> Maybe Int -> Bool -> Bool -> String -> String
--- fitStringMulti mminwidth mmaxwidth ellipsify rightside s =
---   (intercalate "\n" . map (fitString mminwidth mmaxwidth ellipsify rightside) . lines) s
-
--- | Left-pad a text to the specified width.
--- Treats wide characters as double width.
--- Works on multi-line texts too (but will rewrite non-unix line endings).
-textPadLeftWide :: Int -> Text -> Text
-textPadLeftWide w "" = T.replicate w " "
-textPadLeftWide w s  = T.intercalate "\n" $ map (fitText (Just w) Nothing False False) $ T.lines s
--- XXX not yet replaceable by
--- padLeftWide w = fitStringMulti (Just w) Nothing False False
-
--- | Right-pad a string to the specified width.
--- Treats wide characters as double width.
--- Works on multi-line strings too (but will rewrite non-unix line endings).
-textPadRightWide :: Int -> Text -> Text
-textPadRightWide w "" = T.replicate w " "
-textPadRightWide w s  = T.intercalate "\n" $ map (fitText (Just w) Nothing False True) $ T.lines s
--- XXX not yet replaceable by
--- padRightWide w = fitStringMulti (Just w) Nothing False True
+      where sw = realLength s
 
 -- | Double-width-character-aware string truncation. Take as many
 -- characters as possible from a string without exceeding the
@@ -362,72 +249,48 @@ textTakeWidth w t | not (T.null t),
                 = T.cons c $ textTakeWidth (w-cw) (T.tail t)
               | otherwise = ""
 
--- -- from Pandoc (copyright John MacFarlane, GPL)
--- -- see also http://unicode.org/reports/tr11/#Description
+-- | Add a prefix to each line of a string.
+linesPrepend :: Text -> Text -> Text
+linesPrepend prefix = T.unlines . map (prefix<>) . T.lines
 
--- | Calculate the designated render width of a string, taking into
--- account wide characters and line breaks (the longest line within a
--- multi-line string determines the width ).
-textWidth :: Text -> Int
-textWidth "" = 0
-textWidth s = maximum $ map (T.foldr (\a b -> charWidth a + b) 0) $ T.lines s
+-- | Add a prefix to the first line of a string, 
+-- and a different prefix to the remaining lines.
+linesPrepend2 :: Text -> Text -> Text -> Text
+linesPrepend2 prefix1 prefix2 s = T.unlines $ case T.lines s of
+    []   -> []
+    l:ls -> (prefix1<>l) : map (prefix2<>) ls
 
--- -- | Get the designated render width of a character: 0 for a combining
--- -- character, 1 for a regular character, 2 for a wide character.
--- -- (Wide characters are rendered as exactly double width in apps and
--- -- fonts that support it.) (From Pandoc.)
--- charWidth :: Char -> Int
--- charWidth c =
---   case c of
---       _ | c <  '\x0300'                    -> 1
---         | c >= '\x0300' && c <= '\x036F'   -> 0  -- combining
---         | c >= '\x0370' && c <= '\x10FC'   -> 1
---         | c >= '\x1100' && c <= '\x115F'   -> 2
---         | c >= '\x1160' && c <= '\x11A2'   -> 1
---         | c >= '\x11A3' && c <= '\x11A7'   -> 2
---         | c >= '\x11A8' && c <= '\x11F9'   -> 1
---         | c >= '\x11FA' && c <= '\x11FF'   -> 2
---         | c >= '\x1200' && c <= '\x2328'   -> 1
---         | c >= '\x2329' && c <= '\x232A'   -> 2
---         | c >= '\x232B' && c <= '\x2E31'   -> 1
---         | c >= '\x2E80' && c <= '\x303E'   -> 2
---         | c == '\x303F'                    -> 1
---         | c >= '\x3041' && c <= '\x3247'   -> 2
---         | c >= '\x3248' && c <= '\x324F'   -> 1 -- ambiguous
---         | c >= '\x3250' && c <= '\x4DBF'   -> 2
---         | c >= '\x4DC0' && c <= '\x4DFF'   -> 1
---         | c >= '\x4E00' && c <= '\xA4C6'   -> 2
---         | c >= '\xA4D0' && c <= '\xA95F'   -> 1
---         | c >= '\xA960' && c <= '\xA97C'   -> 2
---         | c >= '\xA980' && c <= '\xABF9'   -> 1
---         | c >= '\xAC00' && c <= '\xD7FB'   -> 2
---         | c >= '\xD800' && c <= '\xDFFF'   -> 1
---         | c >= '\xE000' && c <= '\xF8FF'   -> 1 -- ambiguous
---         | c >= '\xF900' && c <= '\xFAFF'   -> 2
---         | c >= '\xFB00' && c <= '\xFDFD'   -> 1
---         | c >= '\xFE00' && c <= '\xFE0F'   -> 1 -- ambiguous
---         | c >= '\xFE10' && c <= '\xFE19'   -> 2
---         | c >= '\xFE20' && c <= '\xFE26'   -> 1
---         | c >= '\xFE30' && c <= '\xFE6B'   -> 2
---         | c >= '\xFE70' && c <= '\xFEFF'   -> 1
---         | c >= '\xFF01' && c <= '\xFF60'   -> 2
---         | c >= '\xFF61' && c <= '\x16A38'  -> 1
---         | c >= '\x1B000' && c <= '\x1B001' -> 2
---         | c >= '\x1D000' && c <= '\x1F1FF' -> 1
---         | c >= '\x1F200' && c <= '\x1F251' -> 2
---         | c >= '\x1F300' && c <= '\x1F773' -> 1
---         | c >= '\x20000' && c <= '\x3FFFD' -> 2
---         | otherwise                        -> 1
+-- | Join a list of Text Builders with a newline after each item.
+unlinesB :: [TB.Builder] -> TB.Builder
+unlinesB = foldMap (<> TB.singleton '\n')
+
+-- | Read a decimal number from a Text. Assumes the input consists only of digit
+-- characters.
+readDecimal :: Text -> Integer
+readDecimal = T.foldl' step 0
+  where step a c = a * 10 + toInteger (digitToInt c)
 
 
-tests_Text = tests "Text" [
-   tests "quoteIfSpaced" [
-     quoteIfSpaced "a'a" `is` "a'a"
-    ,quoteIfSpaced "a\"a" `is` "a\"a"              
-    ,quoteIfSpaced "a a" `is` "\"a a\""               
-    ,quoteIfSpaced "mimi's cafe" `is` "\"mimi's cafe\""       
-    ,quoteIfSpaced "\"alex\" cafe" `is` "\"\\\"alex\\\" cafe\""     
-    ,quoteIfSpaced "le'shan's cafe" `is` "\"le'shan's cafe\""    
-    ,quoteIfSpaced "\"be'any's\" cafe" `is` "\"\\\"be'any's\\\" cafe\"" 
-    ] 
+tests_Text = testGroup "Text" [
+   testCase "quoteIfSpaced" $ do
+     quoteIfSpaced "a'a" @?= "a'a"
+     quoteIfSpaced "a\"a" @?= "a\"a"
+     quoteIfSpaced "a a" @?= "\"a a\""
+     quoteIfSpaced "mimi's cafe" @?= "\"mimi's cafe\""
+     quoteIfSpaced "\"alex\" cafe" @?= "\"\\\"alex\\\" cafe\""
+     quoteIfSpaced "le'shan's cafe" @?= "\"le'shan's cafe\""
+     quoteIfSpaced "\"be'any's\" cafe" @?= "\"\\\"be'any's\\\" cafe\"",
+   testCase "textUnbracket" $ do
+     textUnbracket "()" @?= ""
+     textUnbracket "(a)" @?= "a"
+     textUnbracket "(ab)" @?= "ab"
+     textUnbracket "[ab]" @?= "ab"
+     textUnbracket "([ab])" @?= "ab"
+     textUnbracket "(()b)" @?= "()b"
+     textUnbracket "[[]b]" @?= "[]b"
+     textUnbracket "[()b]" @?= "()b"
+     textUnbracket "[([]())]" @?= "[]()"
+     textUnbracket "[([[[()]]])]" @?= ""
+     textUnbracket "[([[[(]]])]" @?= "("
+     textUnbracket "[([[[)]]])]" @?= ")"
   ]

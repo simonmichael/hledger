@@ -1,0 +1,56 @@
+# * print command
+
+# ** 1. print preserves the commodity symbol of zero amounts.
+<
+2023-01-01
+  (a)    0 A @ 0 B == 0 A @ 0 B
+
+$ hledger -f- print
+2023-01-01
+    (a)       0 A @ 0 B == 0 A @ 0 B
+
+>=
+
+# ** 2. The inferred balancing amount for zeros in multiple commodities
+# is preserved and shown accurately, with a posting for each commodity.
+<
+2023-01-01
+  a   0 A
+  b   0 B
+  z
+
+$ hledger -f- print -x
+2023-01-01
+    a             0 A
+    b             0 B
+    z             0 A
+    z             0 B
+
+>=
+
+# ** 3. --depth does not affect print.
+<
+2023-01-01
+  A:AA   0 A
+
+$ hledger -f- print --depth 1
+2023-01-01
+    A:AA             0 A
+
+>=
+
+# ** 4. print --invert flips signs in postings' main and assertion/assignment amounts.
+<
+2025-01-01
+  a   1 A @ 2 B = 1 A @ 2 B
+  b             = -2 B
+  c   0 C       = 0
+
+$ hledger -f- print --invert -x
+2025-01-01
+    a      -1 A @ 2 B = -1 A @ 2 B
+    b             2 B = 2 B
+    c             0 C = 0
+
+>=
+

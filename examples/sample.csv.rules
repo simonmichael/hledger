@@ -1,20 +1,37 @@
 # hledger csv conversion rules for sample.csv
-# cf http://hledger.org/manual#csv-files
 
-account1 assets:bank:checking
+# skip the headings line:
+skip 1
 
+# use the first three CSV fields for hledger's transaction date, description and amount:
 fields date, description, amount
 
-#skip 1
+# specify the date field's format - not needed here since date is Y/M/D
+# date-format %-d/%-m/%Y
+# date-format %-m/%-d/%Y
+# date-format %Y-%h-%d
 
-#date-format %-d/%-m/%Y
-#date-format %-m/%-d/%Y
-#date-format %Y-%h-%d
+# since the CSV amounts have no currency symbol, add one:
+currency $
 
-#currency $
+# set the base account that this CSV file corresponds to
+account1 assets:bank:checking
 
-if ITUNES
- account2 expenses:entertainment
 
+# set account2 to this:
+# account2 Revenues:Misc
+
+# change it to Expenses:Misc if the csv "amount" field contains a minus sign:
+# if %amount -
+#  account2 Expenses:Misc
+
+# override it with more specific rules below...
+
+
+# the other account will default to expenses:unknown or income:unknown;
+# we can optionally refine it by matching patterns in the CSV record:
 if (TO|FROM) SAVINGS
- account2 assets:bank:savings
+  account2 assets:bank:savings
+
+if WHOLE FOODS
+  account2 expenses:food

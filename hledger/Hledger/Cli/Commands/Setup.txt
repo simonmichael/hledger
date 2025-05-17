@@ -1,0 +1,6 @@
+setup
+
+Check and help set up various installation things.
+
+Flags:
+no command-specific flags

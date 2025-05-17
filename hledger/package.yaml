@@ -1,70 +1,75 @@
-name: hledger
-version: 1.14.99
-synopsis: Command-line interface for the hledger accounting tool
+name:          hledger
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance, Console
+synopsis:      Command-line interface for the hledger accounting system
 description: |
-  This is hledger's command-line interface.
+  The command-line interface for the hledger accounting system.
   Its basic function is to read a plain text file describing
   financial transactions and produce useful reports.
 
-  hledger is a cross-platform program for tracking money, time, or
-  any other commodity, using double-entry accounting and a simple,
-  editable file format. It is inspired by and largely compatible
-  with ledger(1).  hledger provides command-line, curses and web
-  interfaces, and aims to be a reliable, practical tool for daily
-  use.
-category: Finance, Console
-license: GPL-3
-author: Simon Michael <simon@joyful.com>
-maintainer: Simon Michael <simon@joyful.com>
-github: simonmichael/hledger
-homepage: http://hledger.org
-bug-reports: http://bugs.hledger.org
-stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+  hledger is a robust, cross-platform set of tools for tracking money,
+  time, or any other commodity, using double-entry accounting and a
+  simple, editable file format, with command-line, terminal and web
+  interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+  implementations of Plain Text Accounting. Read more at:
+  <https://hledger.org>
 
 extra-source-files:
 - CHANGES.md
 - README.md
-- test/test.hs
 - bench/10000x1000x10.journal
-- hledger.1
-- hledger.txt
-- hledger.info
+- shell-completion/hledger-completion.bash
+- test/unittest.hs
+
+- embeddedfiles/add.cast
+- embeddedfiles/balance.cast
+- embeddedfiles/install.cast
+- embeddedfiles/print.cast
+
+- embeddedfiles/hledger-accounts.md
+- embeddedfiles/hledger-add.md
+- embeddedfiles/hledger-aregister.md
+- embeddedfiles/hledger-balance.md
+- embeddedfiles/hledger-balancesheet.md
+- embeddedfiles/hledger-import.md
+- embeddedfiles/hledger-incomestatement.md
+- embeddedfiles/hledger-print.md
+- embeddedfiles/hledger-ui.md
+- embeddedfiles/hledger-web.md
+- embeddedfiles/hledger.md
+
 - embeddedfiles/hledger.1
 - embeddedfiles/hledger.txt
 - embeddedfiles/hledger.info
-- embeddedfiles/hledger-api.1
-- embeddedfiles/hledger-api.txt
-- embeddedfiles/hledger-api.info
 - embeddedfiles/hledger-ui.1
 - embeddedfiles/hledger-ui.txt
 - embeddedfiles/hledger-ui.info
 - embeddedfiles/hledger-web.1
 - embeddedfiles/hledger-web.txt
 - embeddedfiles/hledger-web.info
-- embeddedfiles/hledger_journal.5
-- embeddedfiles/hledger_journal.txt
-- embeddedfiles/hledger_journal.info
-- embeddedfiles/hledger_csv.5
-- embeddedfiles/hledger_csv.txt
-- embeddedfiles/hledger_csv.info
-- embeddedfiles/hledger_timeclock.5
-- embeddedfiles/hledger_timeclock.txt
-- embeddedfiles/hledger_timeclock.info
-- embeddedfiles/hledger_timedot.5
-- embeddedfiles/hledger_timedot.txt
-- embeddedfiles/hledger_timedot.info
+
 - Hledger/Cli/Commands/Accounts.txt
 - Hledger/Cli/Commands/Activity.txt
 - Hledger/Cli/Commands/Add.txt
+- Hledger/Cli/Commands/Aregister.txt
 - Hledger/Cli/Commands/Balance.txt
 - Hledger/Cli/Commands/Balancesheet.txt
 - Hledger/Cli/Commands/Balancesheetequity.txt
 - Hledger/Cli/Commands/Cashflow.txt
-- Hledger/Cli/Commands/Checkdates.txt
-- Hledger/Cli/Commands/Checkdupes.txt
+- Hledger/Cli/Commands/Check.txt
 - Hledger/Cli/Commands/Close.txt
+- Hledger/Cli/Commands/Codes.txt
+- Hledger/Cli/Commands/Commands.txt
 - Hledger/Cli/Commands/Commodities.txt
+- Hledger/Cli/Commands/Demo.txt
 - Hledger/Cli/Commands/Descriptions.txt
 - Hledger/Cli/Commands/Diff.txt
 - Hledger/Cli/Commands/Files.txt
@@ -75,68 +80,80 @@ extra-source-files:
 - Hledger/Cli/Commands/Payees.txt
 - Hledger/Cli/Commands/Prices.txt
 - Hledger/Cli/Commands/Print.txt
-- Hledger/Cli/Commands/Printunique.txt
 - Hledger/Cli/Commands/Register.txt
-- Hledger/Cli/Commands/Registermatch.txt
 - Hledger/Cli/Commands/Rewrite.txt
+- Hledger/Cli/Commands/Repl.txt
 - Hledger/Cli/Commands/Roi.txt
+- Hledger/Cli/Commands/Run.txt
+- Hledger/Cli/Commands/Setup.txt
 - Hledger/Cli/Commands/Stats.txt
 - Hledger/Cli/Commands/Tags.txt
 - Hledger/Cli/Commands/Test.txt
 
-
-#data-files:
-
 flags:
-  terminfo:
-    description: On POSIX systems, build with the terminfo lib for detecting terminal width.
-    manual: false
-    default: true
   threaded:
     description: Build with support for multithreaded execution
-    manual: false
     default: true
+    manual:  false
+  debug:
+    description: Build with GHC 9.10+'s stack traces enabled
+    default: false
+    manual:  true
+#  ghcdebug:
+#    description: Build with support for attaching a ghc-debug client
+#    default: false
+#    manual:  true
 
 ghc-options:
 - -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
-# avoid "non-portable path" warning on mac, https://github.com/commercialhaskell/stack/issues/3918
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+# avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
 - -optP-Wno-nonportable-include-path
 
+when:
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
+
 dependencies:
-- hledger-lib >=1.14.99 && <1.15
-- ansi-terminal >=0.6.2.3
-- base >=4.8 && <4.13
-- base-compat-batteries >=0.10.1 && <0.11
+- base >=4.14 && <4.22
+- hledger-lib >=1.42.99 && <1.43
+- aeson >=1 && <2.3
+- ansi-terminal >=0.9
 - bytestring
 - cmdargs >=0.10
-- containers
+- containers >=0.5.9
 - data-default >=0.5
-- Decimal
+- Decimal >=0.5.1
 - directory
-- easytest >= 0.2.1 && <0.3
-- extra
+- extra >=1.7.11
 - filepath
+- githash >=0.1.6.2
 - haskeline >=0.6
-- megaparsec >=7.0.0 && <8
-- mtl
-- mtl-compat
-- old-time
-- parsec >=3
-- pretty-show >=1.6.4
+- http-client
+- http-types
+- megaparsec >=7.0.0 && <9.8
+- microlens >=0.4
+- mtl >=2.2.1
 - process
 - regex-tdfa
-- safe >=0.2
+- req
+- safe >=0.3.20
 - shakespeare >=2.0.2.2
 - split >=0.1
-- math-functions >=0.2.0.0
+- math-functions >=0.3.3.0
 - tabular >=0.2
+- tasty >=1.2.3
 - temporary
-- text >=0.11
+- text >=1.2.4.1
+- text-ansi >=0.2.1
 - time >=1.5
 - timeit
 - transformers
@@ -146,32 +163,27 @@ dependencies:
 - utility-ht >=0.0.13
 - wizards >=1.0
 
-when:
-- condition: (!(os(windows))) && (flag(terminfo))
-  dependencies:
-  - terminfo
-
 library:
-  cpp-options: -DVERSION="1.14.99"
+  cpp-options: -DVERSION="1.42.99"
   exposed-modules:
   - Hledger.Cli
-  - Hledger.Cli.Main
+  - Hledger.Cli.Anchor
+  - Hledger.Cli.Anon
   - Hledger.Cli.CliOptions
-  - Hledger.Cli.DocFiles
-  - Hledger.Cli.Utils
-  - Hledger.Cli.Version
   - Hledger.Cli.Commands
   - Hledger.Cli.Commands.Accounts
   - Hledger.Cli.Commands.Activity
   - Hledger.Cli.Commands.Add
+  - Hledger.Cli.Commands.Aregister
   - Hledger.Cli.Commands.Balance
   - Hledger.Cli.Commands.Balancesheet
   - Hledger.Cli.Commands.Balancesheetequity
   - Hledger.Cli.Commands.Cashflow
-  - Hledger.Cli.Commands.Checkdates
-  - Hledger.Cli.Commands.Checkdupes
+  - Hledger.Cli.Commands.Check
   - Hledger.Cli.Commands.Close
+  - Hledger.Cli.Commands.Codes
   - Hledger.Cli.Commands.Commodities
+  - Hledger.Cli.Commands.Demo
   - Hledger.Cli.Commands.Descriptions
   - Hledger.Cli.Commands.Diff
   - Hledger.Cli.Commands.Help
@@ -182,24 +194,31 @@ library:
   - Hledger.Cli.Commands.Payees
   - Hledger.Cli.Commands.Prices
   - Hledger.Cli.Commands.Print
-  - Hledger.Cli.Commands.Printunique
   - Hledger.Cli.Commands.Register
-  - Hledger.Cli.Commands.Registermatch
   - Hledger.Cli.Commands.Rewrite
   - Hledger.Cli.Commands.Roi
+  - Hledger.Cli.Commands.Run
+  - Hledger.Cli.Commands.Setup
   - Hledger.Cli.Commands.Stats
   - Hledger.Cli.Commands.Tags
   - Hledger.Cli.CompoundBalanceCommand
+  - Hledger.Cli.Conf
+  - Hledger.Cli.DocFiles
+  - Hledger.Cli.Script
+  - Hledger.Cli.Utils
+  - Hledger.Cli.Version
   dependencies:
-  - Diff
+  - Diff >=0.2
   - hashable >=1.2.4
   - lucid
+  - modern-uri >=0.3
 
 executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.14.99"
+    cpp-options: -DVERSION="1.42.99"
+    ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
@@ -207,19 +226,20 @@ executables:
     - hledger
 
 tests:
-  test:
+  unittest:
     source-dirs: test
-    main: test.hs
-    cpp-options: -DVERSION="1.14.99"
+    main: unittest.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+    cpp-options: -DVERSION="1.42.99"
     dependencies:
     - hledger
-    - test-framework
-    - test-framework-hunit
 
 benchmarks:
   bench:
+    buildable: false
     source-dirs: bench
     main: bench.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
     - hledger
     - criterion

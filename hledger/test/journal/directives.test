@@ -1,0 +1,49 @@
+# Miscellaneous directives not tested elsewhere
+
+# apply account, end apply account directives
+<
+apply account a
+2016/1/1
+    (b)  1
+end apply account
+apply account aa
+2016/1/1
+    (b)  1
+end apply account
+2016/1/2
+    (c)  1
+
+$ hledger -f - accounts
+a:b
+aa:b
+c
+
+# Y, year directives
+<
+Y 1111
+1/1
+year 2222
+2/2
+apply year 3333
+3/3
+$ hledger -f- print
+1111-01-01
+
+2222-02-02
+
+3333-03-03
+
+>=
+
+# Legacy ! and @ prefixes are accepted.
+<
+!Y 1111
+1/1
+@year 2222
+2/2
+$ hledger -f- print
+1111-01-01
+
+2222-02-02
+
+>=

@@ -1,0 +1,58 @@
+; A minimal "goal budget", where budget goals are defined by a periodic transaction rule.
+
+; We forecast/plan to spend $500 on food each month in 2020:
+~ monthly in 2020
+  (expenses:food)  $500
+
+; Some transactions:
+
+2020-01-15
+  expenses:food    $400
+  assets:checking
+
+2020-03-15
+  expenses:food    $600
+  assets:checking
+
+; Some examples of the balance --budget report,
+; which compares the actual (so far) and forecasted amounts.
+; There are still some UX issues.
+comment
+
+; Since 1.19.99, columns shrink to fit and can vary in width.
+; Note Jan is showing no budget goal here (since 1.16), because "~ monthly"
+; generates transactions on the first of each month, but the report's 
+; start date here is 1/15 (the earliest transaction date) so the 
+; january budget goal transaction is excluded. 
+$ hledger -f forecast-budget-1.journal bal --budget -M
+Budget performance in 2020Q1:
+
+               ||   Jan             Feb                   Mar 
+===============++=============================================
+ <unbudgeted>  || $-400  0               $-600                
+ expenses:food ||  $400  0 [0% of $500]   $600 [120% of $500] 
+---------------++---------------------------------------------
+               ||     0  0 [0% of $500]      0 [  0% of $500] 
+
+; You have to specify explicit report dates to work around, eg:
+$ hledger -f forecast-budget-1.journal bal --budget -M date:q1
+Budget performance in 2020Q1:
+
+               ||                 Jan             Feb                   Mar 
+===============++===========================================================
+ <unbudgeted>  || $-400                0               $-600                
+ expenses:food ||  $400 [80% of $500]  0 [0% of $500]   $600 [120% of $500] 
+---------------++-----------------------------------------------------------
+               ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
+
+; adding -E expands the <unbudgeted> account name for some reason
+$ hledger -f forecast-budget-1.journal bal --budget -ME
+Budget performance in 2020Q1:
+
+                              ||   Jan             Feb                   Mar 
+==============================++=============================================
+ <unbudgeted>:assets:checking || $-400  0               $-600                
+ expenses:food                ||  $400  0 [0% of $500]   $600 [120% of $500] 
+------------------------------++---------------------------------------------
+                              ||     0  0 [0% of $500]      0 [  0% of $500] 
+

@@ -1,16 +1,559 @@
+<!--
+              _
+__      _____| |__
+\ \ /\ / / _ \ '_ \
+ \ V  V /  __/ |_) |
+  \_/\_/ \___|_.__/
+
+Breaking changes
+
+Fixes
+
+Features
+
+Improvements
+
+Docs
+
+API
+
+-->
 User-visible changes in hledger-web.
 See also the hledger changelog.
 
-# 6a506970
 
-- web: register page: clip linked accounts to 40 characters (Henning Thielemann)
-  This was the behaviour before adding the links.
+# 1.42.2 2025-05-16
 
-- web: avoid spaces before commas in register account links (Henning Thielemann)
+Fixes
 
-- web: add links to accounts in register transactions (Henning Thielemann)
+- Don't hang when saving a large file (this broke in 1.42). [#2319]
 
-- web: fix "_create_locale could not be located" error on windows 7 (#1039)
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+
+# 1.42.1 2025-03-12
+
+- Build with hledger 1.42.1.
+
+
+# 1.42 2025-03-07
+
+Fixes
+
+- Fix a test suite build issue: build it with -threaded.
+
+
+# 1.41 2024-12-09
+
+Breaking changes
+
+- When built with ghc 9.10.1, error messages are displayed with two extra trailing newlines.
+
+Fixes
+
+- Autocompletions now work in newly created account fields. [#2215]
+
+- Bash shell completions are now up to date. [#986]
+
+Features
+
+Improvements
+
+- Added --pager and --color options as in hledger, affecting command line help.
+
+- Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
+  will show some kind of partial stack trace if the program exits with an error.
+  These will improve in future ghc versions.
+
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- allow megaparsec 9.7
+
+- ghc 9.10 / base 4.20 are now supported.
+
+Docs
+
+- Install, manual: new shell completions doc. [#986]
+
+
+
+# 1.40 2024-09-09
+
+Improvements
+
+- We now guess a more robust base url when `--base-url` is not specified.
+  Now relative links to js/css resources will use the same hostname etc.
+  that the main page was requested from, making them work better
+  when accessed via multiple IP addresses/hostnames
+  without an explicit `--base-url` setting.
+  A followup to [#2099], [#2100] and [#2127]. 
+
+- We now require a http[s] scheme in `--base-url`'s value.
+  Previously it accepted just a hostname, and generated bad links.
+
+
+# 1.34 2024-06-01
+
+Features
+
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
+  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+
+Improvements
+
+- The general flags in `--help` have been updated and grouped,
+  consistent with hledger.
+
+- When built with the `ghcdebug` flag and started with `--debug=-1`,
+  hledger-web can be controlled by [ghc-debug] clients like
+  ghc-debug-brick or a ghc-debug query script, for analysing
+  memory/profile info.
+
+Docs
+
+- A basic [OpenAPI specification][openapi.yaml] is provided for hledger-web's JSON-over-HTTP API.
+  This is also applicable to `hledger print`'s JSON output format.
+
+[ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
+[openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
+[tldr]: https://tldr.sh
+
+
+# 1.33.1 2024-05-02
+
+- Support base64 >=1.0
+
+
+# 1.33 2024-04-18
+
+Fixes
+
+- Exclude base64 >=1.0 to avoid compilation failure. [#2166]
+
+- Preserve line breaks when showing an error message. [#2163] (Martijn van der Ven)
+
+Improvements
+
+- Zero amounts are now shown with their commodity symbol.
+  This was mainly to make the sidebar more informative,
+  but also affects and hopefully helps amounts displayed elsewhere.
+  [#2140]
+
+- Amounts in the sidebar now also have the `amount` HTML class.
+
+- Allow building with GHC 9.8.
+
+- Require safe >=0.3.20.
+
+Docs
+
+- Mention the `-E/--empty` flag for hiding zeros,
+  the non-display of costs,
+  and non-zeros that look like zero because of hidden costs.
+
+[#2140]: https://github.com/simonmichael/hledger/issues/2140
+[#2163]: https://github.com/simonmichael/hledger/issues/2163
+[#2166]: https://github.com/simonmichael/hledger/issues/2166
+
+# 1.32.3 2024-01-28
+
+- Use hledger-1.32.3
+
+# 1.32.2 2023-12-31
+
+Fixes
+
+- The --base-url option works again. [#2127], [#2100]
+
+- Startup messages are more accurate and informative, eg with --socket. [#2127]
+
+- The non-working --file-url option has been dropped for now. [#2139]
+
+Improvements
+
+- Allow megaparsec 9.6
+
+- hledger-web's tests now respect and can test command line options.
+
+- hledger-web's tests now run the app at 127.0.0.1 and port 5000,
+  rather than "any of our IPv4 or IPv6 addresses" and 3000,
+
+# 1.32.1 2023-12-07
+- Use hledger-1.32.1
+
+# 1.32 2023-12-01
+
+Features
+
+- The hledger-web app on the Sandstorm cloud platform has been updated to
+  a recent version (Jacob Weisz, #2102), and now uses Sandstorm's access
+  control. (Jakub Zárybnický, #821)
+
+Improvements
+
+- The --capabilities and --capabilities-header options have been replaced
+  with an easier `--allow=view|add|edit|sandstorm` option.
+  `add` is the default access level, while `sandstorm` is for use on Sandstorm.
+  UI and docs now speak of "permissions" rather than "capabilities".
+  (#834)
+
+- The Sandstorm app's permissions and roles have been renamed for clarity. (#834)
+
+- Permissions are now checked earlier, before the web app is started,
+  producing clearer command line errors when appropriate.
+
+- Account's `adeclarationinfo` field is now included in JSON output. (#2097) (S. Zeid)
+
+Fixes
+
+- The app can now serve on address 0.0.0.0 (exposing it on all interfaces),
+  which previously didn't work.
+  (#2099) (Philipp Klocke)
+
+- The broken "File format help" link in the edit form has been fixed. (#2103)
+
+# 1.31 2023-09-03
+
+Improvements
+
+- Allow aeson 2.2, megaparsec 9.5
+
+# 1.30 2023-06-01
+
+Fixes
+
+- A command line depth limit now works properly.
+  (#1763)
+
+Docs
+
+- Miscellaneous manual cleanups.
+
+# 1.29.2 2023-04-07
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
+# 1.29.1 2023-03-16
+
+- Allow building with GHC 9.6.1 (#2011)
+
+# 1.29 2023-03-11
+
+- The add form's typeahead now shows non-ascii text correctly.
+  (#1961) (Arsen Arsenović)
+
+- In the manual, improve --base-url's description. (#1562)
+
+# 1.28 2022-12-01
+
+Improvements
+
+- --debug with no argument is now equivalent to --debug=1.
+
+- Allow megaparsec 9.3 (Felix Yan)
+
+- Support GHC 9.4
+
+# 1.27.1 2022-09-18
+
+Fixes
+
+- The add form no longer gives an error when there is just a single file and no file field showing. (#1932)
+
+# 1.27 2022-09-01
+
+Improvements
+
+- Improve the add form's layout and space usage.
+
+- Pre-fill the add form's date field.
+
+- Highlight today in the add form's date picker.
+
+- Focus the add form's description field by default.
+
+- Allow an empty description in the add form.
+
+- Use hledger 1.27
+
+Fixes
+
+- Respect the add form's file selector again.
+  (Simon Michael, Kerstin, #1229)
+
+# 1.26.1 2022-07-11
+
+- Uses hledger 1.26.1.
+
+# 1.26 2022-06-04
+
+Fixes
+
+- Don't add link URLs when printing.
+
+Improvements
+
+- Now builds with GHC 9.2.
+
+- Uses hledger 1.26.
+
+# 1.25 2022-03-04
+
+- Uses hledger 1.25.
+
+# 1.24.1 2021-12-10
+
+Fixes
+
+- More reliable --version output, with commit date and without patch level.
+
+# 1.24 2021-12-01
+
+Improvements
+
+- Allow megaparsec 9.2
+
+
+# 1.23 2021-09-21
+
+Improvements
+
+- Drop the obsolete hidden `--binary-filename` flag.
+
+- Require base >=4.11, preventing red squares on Hackage's build matrix.
+
+Fixes
+
+- Toggle showing zero items properly even when called with --empty. 
+  ([#1237](https://github.com/simonmichael/hledger/issues/1237), Stephen Morgan)
+
+- Do not hide empty accounts if they have non-empty subaccounts. 
+  ([#1237](https://github.com/simonmichael/hledger/issues/1237), Stephen Morgan)
+
+- Allow unbalanced postings (parenthesised account name) in the add transaction form. 
+  ([#1058](https://github.com/simonmichael/hledger/issues/1058), Stephen Morgan)
+
+- An XSS (cross-site scripting) vulnerability has been fixed.
+  Previously (since hledger-web 0.24), javascript code could be added 
+  to any autocompleteable field and could be executed automatically 
+  by subsequent visitors viewing the journal.
+  Thanks to Gaspard Baye and Hamidullah Muslih for reporting this vulnerability.
+  ([#1525](https://github.com/simonmichael/hledger/issues/1525), Arsen Arsenović)
+
+API changes
+
+- Renamed:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  ```
+
+# 1.22.2 2021-08-07
+
+- Use hledger 1.22.2.
+
+# 1.22.1 2021-08-02
+
+Improvements
+
+- deps: Allow megaparsec 9.1.
+
+Fixes
+
+- The register chart works again when there are multiple commodities and 
+  transaction prices (broken since 1.22). (#1597, Stephen Morgan)
+
+# 1.22 2021-07-03
+
+Improvements
+
+- The --version flag shows more detail (git tag/patchlevel/commit
+  hash, platform/architecture). (Stephen Morgan)
+
+- Allow yesod-form 1.7 (Felix Yan)
+
+- Add now-required lower bound on containers. (#1514)
+
+- GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
+  building hledger now requires GHC 8.6 or greater.
+
+Fixes
+
+- In the add form, fix a bug where extra posting rows were not added
+  when needed in certain web browsers. (charukiewicz)
+
+# 1.21 2021-03-10
+
+- Register: a date range can be selected by dragging over a region on
+  the chart. (Arnout Engelen, #1471)
+
+- Add form: the description field's autocompletions now also offer
+  declared and used payee names.
+
+- New flags `--man` and `--info` open the man page or info manual.
+  (See hledger changelog)
+
+# 1.20.4 2021-01-29
+
+- Use hledger 1.20.4.
+
+# 1.20.3 2021-01-14
+
+- Use hledger 1.20.3.
+
+# 1.20.2 2020-12-28
+
+- Fix the info manual's node structure.
+
+- Use hledger 1.20.2.
+
+# 1.20.1 2020-12-06
+
+- don't hang when reloading the journal, eg after adding a transaction
+  or editing the file. (#1409)
+
+# 1.20 2020-12-05
+
+- hledger-web's test suite is re-enabled, now included in the main executable.
+  hledger-web --test [-- HSPECARGS] runs it.
+
+- Fix --forecast, broken in hledger-web since 1.18 (#1390)
+
+- Fix unescaped slashes in hledger-web description on hackage  (TANIGUCHI Kohei)
+
+- The hledger-web version string is now provided at /version, as JSON (#1152)
+
+- The session file (hledger-web_client_session_key.aes) is now written in 
+  $XDG_DATA_DIR rather than the current directory.
+  Eg on non-Windows systems this is ~/.cache/ by default (cf
+  https://hackage.haskell.org/package/directory/docs/System-Directory.html#t:XdgDirectory).
+  (#1344) (Félix Sipma)
+
+# 1.19.1 2020-09-07
+
+- Allow megaparsec 9
+
+- Drop redundant semigroups dependency (Felix Yan)
+
+# 1.19 2020-09-01
+
+- Queries containing a malformed regular expression (eg the single
+  character `?`) now show a tidy error message instead "internal
+  server error" (Stephen Morgan, Simon Michael) (#1245)
+
+- In account registers, a transaction dated outside the report period
+  now is not shown even if it has postings dated inside the report
+  period.
+
+- Added a missing lower bound for aeson, making cabal installs more
+  reliable. (#1268)
+
+# 1.18.1 2020-06-21
+
+- fix some doc typos (Martin Michlmayr)
+
+# 1.18 2020-06-07
+
+- The filter query is now preserved when clicking a different account
+  in the sidebar. (Henning Thielemann)
+
+- Hyperlinks are now more robust when there are multiple journal
+  files, eg links from register to journal now work properly.
+  (#1041) (Henning Thielemann)
+
+## add form
+
+- Fixed a 2016 regression causing too many rows to be added by
+  keypresses in the last amount field or CTRL-plus (#422, #1059).
+
+- Always start with four rows when opened.
+
+- Drop unneeded C-minus/C-plus keys & related help text.
+
+
+# 1.17.1 2020-03-19
+
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 displayed with zero decimal places is "0").
+
+# 1.17 2020-03-01
+
+- Fonts have been improved on certain platforms. (David Zhang)
+
+- IPv6 is supported (Amarandus) (#1145)
+
+- The --host option can now take a local hostname (Amarandus) (#1145)
+
+- New --socket option to run hledger-web over an AF_UNIX socket file. (Carl Richard Theodor Schneider)
+  This allows running multiple instances of hledger-web on the same
+  system without having to manually choose a port for each instance,
+  which is helpful for running individual instances for multiple
+  users. In this scenario, the socket path is predictable, as it can
+  be derived from the username.
+
+- The edit and upload forms now normalise line endings, avoiding parse
+  errors (#1194). Summary of current behaviour:
+
+  - hledger add and import commands will append with (at least some)
+    unix line endings, possibly causing the file to have mixed line
+    endings
+
+  - hledger-web edit and upload forms will write the file with
+    the current system's native line endings, ie changing all
+    line endings if the file previously used foreign line endings.
+
+- Numbers in JSON output now provide a floating point Number
+  representation as well as our native Decimal object representation,
+  since the later can sometimes contain 255-digit integers. The
+  floating point numbers can have up to 10 decimal digits (and an
+  unbounded number of integer digits.)
+  Experimental, suggestions needed. (#1195)
+
+
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
+- fix add form completions (#1156)
+
+# 1.16.1 2019-12-03
+
+- Drop unnecessary json (#1190), mtl-compat dependencies
+
+- use hledger 1.16.1, fixing GHC 8.0/8.2 build
+
+# 1.16 2019-12-01
+
+- add support for GHC 8.8, base-compat 0.11 (#1090).
+  For now, hledger-web needs an unreleased version of json.
+
+- drop support for GHC 7.10
+
+- Weeks in the add form's date picker now start on Mondays (#1109)
+  (Timofey Zakrevskiy)
+
+- The --cors option allows simple cross-origin requests to hledger-web
+  (Alejandro García Montoro)
+
+- The test suite has been disabled for now.
+
+# 1.15 2019-09-01
+
+- --serve-api disables the usual server-side web UI (leaving only the API routes)
+
+- register page: account names are hyperlinked
+
+- ?sidebar= now hides the sidebar, same as ?sidebar=0
+
+- fix "_create_locale could not be located" error on windows 7 (#1039)
 
 - use hledger 1.15
 

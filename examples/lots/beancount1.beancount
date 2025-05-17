@@ -1,0 +1,45 @@
+option "operating_currency" "USD"
+
+2025-01-01 open Assets:Broker:Aaa
+2025-01-01 open Assets:Broker:Usd
+2025-01-01 open Income:Gains
+2025-01-01 open Income:Gifts
+
+2025-01-01 *
+    Assets:Broker:Usd
+    Assets:Broker:Aaa     10 AAA {1.10 USD}
+
+2025-01-01 *
+    Assets:Broker:Usd
+    Assets:Broker:Aaa     10 AAA {1.20 USD}
+
+2025-01-01 *
+    Assets:Broker:Usd
+    Assets:Broker:Aaa     10 AAA {1.20 USD}
+
+2025-02-01 *
+    Income:Gifts
+    Assets:Broker:Aaa     10 AAA {0.40 USD, 2021-01-01}
+
+2025-02-02 *
+    Income:Gifts
+    Assets:Broker:Aaa     10 AAA {0.50 USD, 2022-01-01}
+
+2025-03-01 *
+    Assets:Broker:Aaa     -5 AAA {0.40 USD}
+    Assets:Broker:Usd   6.55 USD
+    Income:Gains
+
+2025-03-02 *
+    Assets:Broker:Aaa     -5 AAA {0.40 USD}
+    Assets:Broker:Aaa    -10 AAA {0.50 USD}
+    Assets:Broker:Aaa     -9 AAA {1.10 USD}
+    Assets:Broker:Usd  31.68 USD
+    Income:Gains
+
+2025-03-03 *
+    Assets:Broker:Aaa     -1 AAA {1.10 USD}
+    Assets:Broker:Aaa     -9 AAA {1.20 USD}
+    Assets:Broker:Usd  13.30 USD
+    Income:Gains
+

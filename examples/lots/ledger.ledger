@@ -1,0 +1,41 @@
+# convert to ledger lot notation
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa    10 AAA {$1.10} (1)
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa    10 AAA {$1.20} (2)
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa    10 AAA {$1.20} (3)
+
+2025-02-01
+    revenues:gifts
+    assets:broker:aaa    10 AAA {$0.40} [2021-01-01]
+
+2025-02-02
+    revenues:gifts
+    assets:broker:aaa    10 AAA {$0.50} [2022-01-01]
+
+2025-03-01
+    assets:broker:aaa    -5 AAA {$0.40} [2021-01-01]
+    assets:broker:usd    $6.55
+    revenues:gains
+
+2025-03-02
+    assets:broker:aaa    -5 AAA {$0.40} [2021-01-01]
+    assets:broker:aaa   -10 AAA {$0.50} [2022-01-01]
+    assets:broker:aaa    -9 AAA {$1.10} (1)
+    assets:broker:usd   $31.68
+    revenues:gains
+
+2025-03-03
+    assets:broker:aaa    -1 AAA {$1.10} (1)
+    assets:broker:aaa    -9 AAA {$1.20} (2)
+    assets:broker:usd   $13.30
+    revenues:gains
+
+comment

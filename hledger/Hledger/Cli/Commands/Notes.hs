@@ -1,6 +1,6 @@
 {-|
 
-The @notes@ command lists allpayees seen in transactions.
+The @notes@ command lists all unique notes (description part after a |) seen in transactions, sorted alphabetically.
 
 -}
 
@@ -15,9 +15,6 @@ module Hledger.Cli.Commands.Notes (
  ,notes
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.List.Extra (nubSortBy)
 import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
@@ -30,17 +27,14 @@ import Hledger.Cli.CliOptions
 notesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Notes.txt")
   []
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- | The notes command.
 notes :: CliOpts -> Journal -> IO ()
-notes CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+notes CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
       collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
-      notes = nubSortBy (Collate.compare collator) $ map transactionNote ts
-
-  mapM_ T.putStrLn notes
+      notes' = nubSortBy (Collate.compare collator) $ map transactionNote ts
+  mapM_ T.putStrLn notes'

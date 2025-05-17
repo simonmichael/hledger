@@ -30,4 +30,4 @@ getfields s = name:rest
 
 showheading fmt = format fmt ["cost centre","entries","%time","%alloc","%time-inh","%alloc-inh"]
 
-format fmt (s1:s2:s3:s4:s5:s6:[]) = printf fmt s1 s2 s3 s4 s5 s6
+format fmt [s1,s2,s3,s4,s5,s6] = printf fmt s1 s2 s3 s4 s5 s6

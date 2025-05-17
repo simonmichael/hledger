@@ -1,0 +1,195 @@
+# * run command
+
+# ** 1. Run requires -- before first command
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- aregister cash
+>2 /Error: aregister: openFile: does not exist \(No such file or directory\)/
+>=1
+
+# ** 2. Run refuses to read input file and commands from stdin
+<
+$ hledger run -f-
+>2 /Error: 'run' can't read commands from stdin, as one of the input files was stdin as well/
+>=1
+
+# ** 3. Run one command from command line
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- register cash
+>
+2017-01-01 groceries            assets:cash                  $-100         $-100
+
+
+# ** 4. Run two commands from command line
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- echo "Cash:" -- register cash -- echo 'Food:' -- register food
+>
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+
+# ** 5. Run two commands from command line with different input options
+<
+2017-01-01 investment
+   assets:cash  -$100
+   expenses:food
+
+~ 2017-02-01  next month groceries
+   assets:cash  -$120
+   expenses:food
+$ hledger run -f- -- register cash -- echo '=====' -- register --forecast food
+>
+2017-01-01 investment           assets:cash                  $-100         $-100
+=====
+2017-01-01 investment           expenses:food                 $100          $100
+2017-02-01 next month grocer..  expenses:food                 $120          $220
+
+# ** 6. Run commands from file
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- run_cmds.txt
+>
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+
+# ** 7. Run commands from command line, and use nested "run" to run commands from file
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run -f- -- echo "Accounts:" -- accounts -- run run_cmds.txt -- echo "Balance:" -- balance cash
+>
+Accounts:
+assets:cash
+expenses:food
+Cash:
+2017-01-01 groceries            assets:cash                  $-100         $-100
+Food:
+2017-01-01 groceries            expenses:food                 $100          $100
+Balance:
+               $-100  assets:cash
+--------------------
+               $-100  
+
+# ** 8. Run commands from stdin
+<
+echo 'Accounts:'
+accounts
+echo
+echo 'Assets:'
+balance assets
+$ hledger run -f sample.journal
+>
+Accounts:
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+
+Assets:
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+--------------------
+                 $-1  
+
+
+# ** 9. Run commands accept numeric options
+<
+echo 'Assets, depth 1:'
+balance assets -1
+echo
+echo 'Assets, depth 2:'
+balance assets -2
+$ hledger run -f sample.journal
+>
+Assets, depth 1:
+                 $-1  assets
+--------------------
+                 $-1  
+
+Assets, depth 2:
+                  $1  assets:bank
+                 $-2  assets:cash
+--------------------
+                 $-1  
+
+# ** 10. Run commands accept @ARGFILEs
+<
+echo 'Assets, depth 1:'
+balance @run.args
+echo
+echo 'Assets, depth 2:'
+balance assets -2
+$ hledger run -f sample.journal
+>
+Assets, depth 1:
+                 $-1  assets
+--------------------
+                 $-1  
+
+Assets, depth 2:
+                  $1  assets:bank
+                 $-2  assets:cash
+--------------------
+                 $-1  
+
+# ** 11. Run caches input files, and re-parses files when InputOptions change
+<
+2017-01-01 groceries
+   assets:cash  -$100
+   expenses:food
+$ hledger run --debug 1 -f- -- accounts -- balance -f sample.journal -- balance cash --forecast -- balance cash -f sample.journal --forecast -- register -- register -f sample.journal 2>&1 | grep readAndCacheJournalFile | sed -e "s#$(pwd)/##"
+>
+readAndCacheJournalFile reading and caching -:
+readAndCacheJournalFile reading and caching sample.journal:
+readAndCacheJournalFile reading and caching -:
+readAndCacheJournalFile reading and caching sample.journal:
+readAndCacheJournalFile using cache for -:
+readAndCacheJournalFile using cache for sample.journal:
+
+# ** 12. Run commands with forecast properly honor reporting interval
+<
+2025-01-01  Buy beans
+    expenses:food   $2
+    assets         -$2
+
+~ every 14 days from 2025-01-01  Buy soylent green
+    expenses:food:not people   $1
+    assets                    -$1
+$ hledger run -f- -- echo "Till Feb" -- register --forecast -b 2025-01 -e 2025-02 -- echo "Till Mar" -- register --forecast -b 2025-01 -e 2025-03
+>
+Till Feb
+2025-01-01 Buy beans            expenses:food                   $2            $2
+                                assets                         $-2             0
+2025-01-15 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-01-29 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+Till Mar
+2025-01-01 Buy beans            expenses:food                   $2            $2
+                                assets                         $-2             0
+2025-01-15 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-01-29 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-02-12 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0
+2025-02-26 Buy soylent green    ex:food:not people              $1            $1
+                                assets                         $-1             0

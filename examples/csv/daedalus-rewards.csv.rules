@@ -1,0 +1,8 @@
+skip 1
+fields wallet,balance,date
+date-format %Y-%m-%dT%s%Q%Z
+status *
+description ada staking rewards | received in wallet %wallet
+comment cc-ada-acquire:
+account1 assets:cc:daedalus:ada:%wallet:rewards
+account2 revenues:cc:ada:rewards

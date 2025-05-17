@@ -1,0 +1,16 @@
+; Some near-future dates are needed to test forecast period properly.
+; So when testing with this journal, set today's date to late 2021,
+; with --today=2021-09-01 or so.
+
+2020-01-01 past transaction
+    (a)    1
+
+2021-12-31 near future transaction
+    (a)    2
+
+~ monthly from 2021 to 2023  near future forecast transaction
+    (a)    3
+
+~ 9999-01-01  far future forecast transaction
+    (a)    4
+

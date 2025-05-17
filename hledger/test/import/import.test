@@ -1,0 +1,9 @@
+# import applies the receiving journal's commodity styles to imported amounts
+$ hledger -f a.j import --dry-run a.csv
+; would import 1 new transactions from a.csv:
+
+2020-01-01
+    expenses:unknown     1.000.000,00
+    income:unknown      -1.000.000,00
+
+>=

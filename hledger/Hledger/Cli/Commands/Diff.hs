@@ -12,18 +12,17 @@ module Hledger.Cli.Commands.Diff (
  ,diff
 ) where
 
-import Data.List
-import Data.Function
-import Data.Ord
-import Data.Maybe
-import Data.Time
-import Data.Either
-import qualified Data.Text as T
-import System.Exit
+import Data.List.Extra ((\\), groupSortOn, nubBy, sortBy)
+import Data.Function (on)
+import Data.Ord (comparing)
+import Data.Maybe (fromJust)
+import Data.Time (diffDays)
+import Data.Either (partitionEithers)
+import qualified Data.Text.IO as T
+import Lens.Micro (set)
+import Safe (headDef)
 
 import Hledger
-import Prelude hiding (putStrLn)
-import Hledger.Utils.UTF8IOCompat (putStrLn)
 import Hledger.Cli.CliOptions
 
 -- | Command line options for this command.
@@ -48,7 +47,7 @@ pptxn :: PostingWithPath -> Transaction
 pptxn = fromJust . ptransaction . ppposting
 
 ppamountqty :: PostingWithPath -> Quantity
-ppamountqty = aquantity . head . amounts . pamount . ppposting
+ppamountqty = aquantity . headDef nullamt . amounts . pamount . ppposting
 
 allPostingsWithPath :: Journal -> [PostingWithPath]
 allPostingsWithPath j = do
@@ -56,14 +55,11 @@ allPostingsWithPath j = do
     (pidx, p) <- zip [0..] $ tpostings txn
     return PostingWithPath { ppposting = p, pptxnidx = txnidx, pppidx = pidx }
 
-binBy :: Ord b => (a -> b) -> [a] -> [[a]]
-binBy f = groupBy ((==) `on` f) . sortBy (comparing f)
-
 combine :: ([a], [b]) -> [Either a b]
 combine (ls, rs) = map Left ls ++ map Right rs
 
 combinedBinBy :: Ord b => (a -> b) -> ([a], [a]) -> [([a], [a])]
-combinedBinBy f = map partitionEithers . binBy (either f f) . combine
+combinedBinBy f = map partitionEithers . groupSortOn (either f f) . combine
 
 greedyMaxMatching :: (Eq a, Eq b) => [(a,b)] -> [(a,b)]
 greedyMaxMatching = greedyMaxMatching' []
@@ -85,10 +81,6 @@ matching ppl ppr = do
     (left, right) <- combinedBinBy ppamountqty (ppl, ppr) -- TODO: probably not a correct choice of bins
     greedyMaxMatching $ sortBy (comparing dateCloseness) [ (l,r) | l <- left, r <- right ]
 
-readJournalFile' :: FilePath -> IO Journal
-readJournalFile' fn =
-    readJournalFile definputopts {ignore_assertions_ = True} fn >>= either error' return
-
 matchingPostings :: AccountName -> Journal -> [PostingWithPath]
 matchingPostings acct j = filter ((== acct) . paccount . ppposting) $ allPostingsWithPath j
 
@@ -102,11 +94,11 @@ unmatchedtxns s pp m =
 
 -- | The diff command.
 diff :: CliOpts -> Journal -> IO ()
-diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=acctName}} _ = do
-  j1 <- readJournalFile' f1
-  j2 <- readJournalFile' f2
+diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = do
+  j1 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f1
+  j2 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f2
 
-  let acct = T.pack acctName
+  let acct = reString acctRe
   let pp1 = matchingPostings acct j1
   let pp2 = matchingPostings acct j2
 
@@ -116,11 +108,9 @@ diff CliOpts{file_=[f1, f2], reportopts_=ReportOpts{query_=acctName}} _ = do
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
   putStrLn "These transactions are in the first file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn1
+  mapM_ (T.putStr . showTransaction) unmatchedtxn1
 
   putStrLn "These transactions are in the second file only:\n"
-  mapM_ (putStr . showTransaction) unmatchedtxn2
+  mapM_ (T.putStr . showTransaction) unmatchedtxn2
 
-diff _ _ = do
-  putStrLn "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"
-  exitFailure
+diff _ _ = error' "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

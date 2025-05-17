@@ -1,0 +1,4 @@
+$$$  sh csvstdinrules.sh
+>>>2 /Error: please use --rules when reading CSV from stdin
+/
+>>>= 1

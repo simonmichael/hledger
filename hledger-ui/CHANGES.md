@@ -1,9 +1,605 @@
+<!--
+       _
+ _   _(_)
+| | | | |
+| |_| | |
+ \__,_|_|
+
+Breaking changes
+
+Fixes
+
+Features
+
+Improvements
+
+Docs
+
+API
+
+-->
 User-visible changes in hledger-ui.
 See also the hledger changelog.
 
-# 6a506970
 
-- support brick >=0.47 also
+# 1.42.2 2025-05-16
+
+Fixes
+
+- Require fsnotify-0.4.2.0+/hfsevents-0.1.8+, which fixes some events
+  being ignored on mac (see https://github.com/luite/hfsevents/pull/19),
+  which should help `hledger-ui --watch` a little.
+
+- Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)
+
+Docs
+
+- Update --watch notes
+- Drop obsolete Windows non-support note
+
+
+# 1.42.1 2025-03-12
+
+- allow vty 6.4
+
+
+# 1.42 2025-03-07
+
+Fixes
+
+- Startup arguments provided at the CLI are no longer passed to `add` when pressing the `a` key. [#2313]
+
+Improvements
+
+- Allow vty 6.3.
+- Allow brick 2.8.
+
+
+# 1.41 2024-12-09
+
+Breaking changes
+
+- When built with ghc 9.10.1, error messages are displayed with two extra trailing newlines.
+
+Fixes
+
+- V (value) and C (cost) toggle keys once again reset each other as they should
+  (broken since 1.21).
+  (Gal Lakovnik Gorenec, [#2284])
+
+- Bash shell completions are now up to date. [#986]
+
+Features
+
+Improvements
+
+- Allow clipping depth to be configured per account (until adjusted in app, at least).
+  (Stephen Morgan, [#2292])
+
+- Added helix as a supported editor for the `e` key. (amano.kenji)
+
+- Added --pager and --color options as in hledger, affecting command line help.
+  Also --color=no forces use of the "terminal" theme.
+
+- Added a new `debug` build flag. Builds made with ghc 9.10+ and this flag
+  will show some kind of partial stack trace if the program exits with an error.
+  These will improve in future ghc versions.
+
+- Disabled the unused `ghcdebug` build flag and ghc-debug support, for now.
+
+- Allow megaparsec 9.7.
+
+- Allow brick 2.5, 2.6.
+
+- Avoid brick 2.3.2, which doesn't build on windows.
+
+- ghc 9.10 / base 4.20 are now supported.
+
+Docs
+
+- Mention that period navigation uses standard periods [#2293]
+- Install, manual: new shell completions doc. [#986]
+
+
+
+# 1.40 2024-09-09
+
+Improvements
+
+- The menu screen now supports the shift arrow and shift T keys,
+  and its header shows any narrowed time period in effect, like other screens.
+
+- Support brick 2.4.
+
+Docs
+
+- The description of the shift-T key (set period to today) has been fixed.
+- The shift arrow keys and period narrowing have been clarified
+
+
+# 1.34 2024-06-01
+
+Features
+
+- You can now get a quick list of example command lines by running with `--tldr` (or just `--tl`).
+  For best appearance, install the [`tldr`][tldr] client, though it's not required.
+
+Improvements
+
+- The general flags in `--help` have been updated and grouped,
+  consistent with hledger.
+
+- When built with the `ghcdebug` flag and started with `--debug=-1`,
+  hledger-ui can be controlled by [ghc-debug] clients like
+  ghc-debug-brick or a ghc-debug query script, for analysing
+  memory/profile info.
+
+[tldr]: https://tldr.sh
+[ghc-debug]: https://gitlab.haskell.org/ghc/ghc-debug
+
+
+# 1.33.1 2024-05-02
+
+- Require vty-windows-0.2.0.2+ to avoid display problems in recent
+  MS Terminal on Windows.
+
+- We no longer require process >=1.6.19.0, as it hurt installability
+  and seems not strictly needed.
+  [#2149]
+
+[#2149]: https://github.com/simonmichael/hledger/issues/2149
+
+
+# 1.33 2024-04-18
+
+Fixes
+
+- Require process 1.6.19.0+ to avoid any vulnerabilities on Windows from
+  [HSEC-2024-0003](https://haskell.github.io/security-advisories/advisory/HSEC-2024-0003.html).
+
+Features
+
+- Add a `dark` theme. (Jonathan Dowland)
+
+Improvements
+
+- Allow building with GHC 9.8.
+
+- Require safe >=0.3.20.
+
+# 1.32.3 2024-01-28
+
+- Use hledger-1.32.3
+
+- Allow vty 6.2, brick 2.3
+
+# 1.32.2 2023-12-31
+
+Features
+
+- hledger-ui is now available on Windows (ShrykeWindgrace)
+
+Improvements
+
+- Use Notepad as default editor on Windows (ShrykeWindgrace)
+
+- Allow brick 2.2 (Vekhir)
+
+- Allow megaparsec 9.6
+
+# 1.32.1 2023-12-07
+- Use hledger-1.32.1
+
+# 1.32 2023-12-01
+
+Fixes
+
+- The V key now preserves the valuation mode specified at the command
+  line, if any. (#2084)
+
+- The hledger-ui package no longer wastefully builds its modules
+  twice.
+
+- Add upper bounds for vty & brick.
+
+# 1.31 2023-09-03
+
+Improvements
+
+- Allow megaparsec 9.5
+
+# 1.30 2023-06-01
+
+Features
+
+- A "Cash accounts" screen has been added, showing
+  accounts of the `Cash` type.
+
+Improvements
+
+- The top-level menu screen is now the default screen.
+  Power users can use the `--cash`/`--bs`/`--is`/`--all`
+  flags to start up in another screen.
+
+- "All accounts" screen has been moved to the bottom of the list.
+
+- Screens' help footers have been improved.
+
+Docs
+
+- The transaction screen's inability to update is now noted.
+
+- Miscellaneous manual cleanups.
+
+# 1.29.2 2023-04-07
+
+Improvements
+
+- A pager is used to show --help output when needed, as in `hledger`.
+
+Fixes
+
+- The corruption in 1.29's info manual is fixed. (#2023)
+
+# 1.29.1 2023-03-16
+
+- Allow building with GHC 9.6.1 (#2011)
+
+# 1.29 2023-03-11
+
+- In the help dialog, mention that LEFT shows other screens.
+
+- In the manual, mention shift-up/down config needed for Terminal.app.
+
+# 1.28 2022-12-01
+
+Features
+
+- New "Balance sheet accounts" and "Income statement accounts" screens have been added,
+  along with a new top-level "Menu" screen for navigating between these and the
+  "All accounts" screen.
+
+- hledger-ui now starts in the "Balance sheet accounts" screen by default
+  (unless no asset/liability/equity accounts can be detected,
+  or command line account query arguments are provided).
+  This provides a more useful default view than the giant "All accounts" list.
+  Or, you can force a particular starting screen with the new --menu/--all/--bs/--is flags
+  (eg, `hledger-ui --all` to replicate the old behaviour).
+
+Improvements
+
+- The ENTER key is equivalent to RIGHT for navigation.
+
+- hledger-ui debug output is now always logged to ./hledger-ui.log rather than the console,
+  --debug with no argument is equivalent to --debug=1,
+  and debug output is much more informative.
+
+- Support GHC 9.4.
+
+- Support megaparsec 9.3 (Felix Yan)
+
+- Support (and require) brick 1.5, fsnotify 0.4.x.
+
+Fixes
+
+- Mouse-clicking in empty space below the last list item no longer navigates
+  back. It was too obtrusive, eg when you just want to focus the window. You can still navigate back with the mouse by clicking the left edge of the window.
+
+- A possible bug with detecting change of date while in --watch mode has been fixed.
+
+API
+
+- hledger-ui's internal types have been changed to allow fewer invalid states and make it easier  to develop and debug.
+  (#1889, #1919).
+
+- Debug logging helpers have been added and cleaned up in Hledger.Ui.UIUtils:
+  dbgui
+  dbguiIO
+  dbguiEv
+  dbguiScreensEv
+  mapScreens
+  screenId
+  screenRegisterDescriptions
+
+# 1.27.1 2022-09-18
+
+- Uses hledger-1.27.1
+
+# 1.27 2022-09-01
+
+Improvements
+
+- At --debug=2 and up, log debug output to ./debug.log.
+
+- Use/require brick 1.0+. (#1889)
+
+- Use hledger 1.27
+
+# 1.26.1 2022-07-11
+
+- support doclayout 0.4, brick 0.72+
+
+- require safe 0.3.19+ to avoid deprecation warning
+
+# 1.26 2022-06-04
+
+- Uses hledger 1.26.
+
+# 1.25 2022-03-04
+
+- Uses hledger 1.25.
+
+# 1.24.1 2021-12-10
+
+Fixes
+
+- An extra "root" account is no longer shown (a regression in 1.24).
+  (#1782)
+
+- Declared accounts are now filtered correctly by a not:ACCT query.
+  (#1783)
+
+- More reliable --version output, with commit date and without patch level.
+
+# 1.24 2021-12-01
+
+Features
+
+- hledger-ui can now be controlled with mouse or touchpad.
+  Click to enter things, click left margin or bottom blank area to return to
+  previous screen, and use mouse wheel / swipe to scroll.
+
+- In addition to accounts with postings, hledger-ui now also shows
+  declared accounts, even if they are empty (just leaf accounts, not
+  parents). The idea is to show a useful list of accounts out of the
+  box, when all you have is a starter file with account declarations.
+
+Improvements
+
+- The `Z` key for toggling display of zeroes is now the easier lower-case `z`.
+
+- The `--watch` feature now has a convenient short flag, `-w`.
+
+- Drop the base-compat-batteries dependency. (Stephen Morgan)
+
+- Allow megaparsec 9.2
+
+Fixes
+
+- When an invalid regular expression is entered at the `/` (filter) prompt,
+  we now display an error instead of silently ignoring it.
+  (#1394, Stephen Morgan)
+
+- Entering the register screen now always positions the selection mid-screen.
+  Previously it would be at bottom of screen on the first entry.
+
+- Report layout in the terminal is now robust with more kinds of wide
+  characters, such as emoji.
+  (#895, Stephen Morgan)
+  
+  
+  
+
+
+# 1.23 2021-09-21
+
+Improvements
+
+- Require base >=4.11, prevent red squares on Hackage's build matrix.
+
+Fixes
+
+- Do not display a screen full of .. when there are no transactions. (#822)
+
+API changes
+
+- Lenses are now available for UIState etc., saving a lot of boilerplate. (Stephen Morgan)
+
+- Renamed:
+  ```
+  version -> packageversion
+  versiondescription -> versionStringFor
+  UIOpts fields
+  ```
+
+# 1.22.2 2021-08-07
+
+- Use hledger 1.22.2.
+
+# 1.22.1 2021-08-02
+
+Improvements
+
+- Document watch mode and its limitations. (#1617, #911, #836)
+
+- Allow megaparsec 9.1.
+
+Fixes
+
+- Up/down keys work on the transaction screen again (broken since 1.22). 
+  (#1607, Stephen Morgan)
+
+- Fix a possible off-by-one bug with valuation date when using `V` key on
+  the transaction screen. (If it ever needs to use the journal's last day
+  as valuation date, use that day, not the day after.)
+
+# 1.22 2021-07-03
+
+Improvements
+
+- Don't reset the `B`/`V` (cost, value) state when reloading with `g`
+  or `--watch`. (Stephen Morgan)
+
+- The accounts screen is a little smarter at allocating space to
+  columns. (Stephen Morgan)
+
+- Add support for the kakoune editor, and improve the invocations of
+  some other editors. (crocket)
+
+- The `--version` flag shows more detail (git tag/patchlevel/commit
+  hash, platform/architecture). (Stephen Morgan)
+
+- GHC 9.0 is now officially supported, and GHC 8.0, 8.2, 8.4 are not;
+  building hledger now requires GHC 8.6 or greater.
+
+- Added a now-required lower bound on containers. (#1514)
+
+Fixes
+
+- Queries in the register screen work again (broken in 1.21). (#1523)
+  (Stephen Morgan)
+
+- Don't write to `./debug.log` when toggling value with `V`, or when
+  reloading with `g` or `--watch` in the Transaction screen. (#1556)
+  (Simon Michael, Stephen Morgan)
+
+# 1.21 2021-03-10
+
+- Register screen: also show transactions below the depth limit, as in
+  1.19, keeping the register balance in agreement with the balance
+  shown on the accounts screen. This regressed in 1.20. (#1468)
+
+- Transaction screen: all decimal places are now shown. On the
+  accounts screen and register screen we round amounts according to
+  commodity display styles, but when you drill down to a transaction
+  you probably want to see the unrounded amounts. (Like print, #cf
+  931.)
+
+- New flags `--man` and `--info` open the man page or info manual.
+  (See hledger changelog)
+
+# 1.20.4 2021-01-29
+
+- ui: register: show all txns in/under an account at the depth limit (#1468).
+  In 1.20-1.20.3, the register screen had stopped showing transactions 
+  in accounts below a depth limit. Now it properly shows all subaccount transactions,
+  even when there is a depth limit, ensuring that the register's final total 
+  matches the balance shown on the account screen.
+
+# 1.20.3 2021-01-14
+
+- Use hledger 1.20.3.
+
+# 1.20.2 2020-12-28
+
+- Fix loss of capitalisation in part of the manual. 
+
+- Fix the info manual's node structure.
+
+- Use hledger 1.20.2.
+
+# 1.20.1 2020-12-15
+
+- Fix the F key (toggle future/forecast transactions), which in 1.20 
+  would only work twice. (#1411)
+
+- Fix loss of forecasted transactions when the journal was reloaded
+  while they were hidden. (#1204)
+
+# 1.20 2020-12-05
+
+- When entering a query with `/`, malformed queries/regular expressions
+  no longer cause the program to exit. (Stephen Morgan)
+
+- Eliding of multicommodity amounts now makes better use of available space. (Stephen Morgan)
+
+- `E` now parses the `HLEDGER_UI_EDITOR` or `EDITOR` environment variable
+  correctly on Windows (ignoring the file extension), so if you have that set
+  it should be better at opening your editor at the correct line.
+
+- `E` now supports positioning when `HLEDGER_UI_EDITOR` or `EDITOR` 
+  is VS Code ("`code`") (#1359)
+
+- hledger-ui now has a (human-powered) test suite.
+
+
+# 1.19.1 2020-09-07
+
+- Allow megaparsec 9
+
+# 1.19 2020-09-01
+
+- The --color/--colour=WHEN command line option, support for the
+  NO_COLOR environment variable, and smarter autodetection of colour
+  terminals have been added (#1296)
+
+- -t and -l command line flags have been added as short forms of
+  --tree and --flat (#1286)
+
+- Flat (AKA list) mode is now the default
+
+- t now toggles tree mode, while T sets the "today" period (#1286)
+
+- register: multicommodity amounts containing more than two
+  commodities are now elided
+
+- register: a transaction dated outside the report period now is not
+  shown even if it has postings dated inside the report period.
+
+- ESC now restores exactly the app's state at startup, which includes
+  clearing any report period limit (#1286)
+
+- DEL/BS no longer changes the tree/list mode
+
+- q now exits help before exiting the app (#1286)
+
+- The help dialog's layout is improved
+
+# 1.18.1 2020-06-21
+
+- Fix regression in 'F' (#1255) (Dmitry Astapov)
+
+# 1.18 2020-06-07
+
+- builds with hledger 1.18
+
+# 1.17.1.1 2020-03-19
+
+- update bounds after some belated hledger-* version bumps
+
+# 1.17.1 2020-03-19
+
+- fix a regression, empty register of depth-limited account (fix #1208)
+
+- require newer Decimal, math-functions libs to ensure consistent
+  rounding behaviour, even when built with old GHCs/snapshots. 
+  hledger uses banker's rounding (rounds to nearest even number, eg
+  0.5 displayed with zero decimal places is "0").
+
+# 1.17 2020-03-01
+
+- don't enable --auto by default
+
+- don't enable --forecast by default; drop the --future flag (#1193)
+
+  Previously, periodic transactions occurring today were always shown,
+  in both "present" and "future" modes.
+
+  Now, generation of periodic transactions and display of future
+  transactions (all kinds) are combined as "forecast mode", which can
+  be enabled with --forecast and/or the F key.  The --future flag is
+  now a hidden alias for --forecast, and deprecated.
+
+# 1.16.2 2020-01-14
+
+- add support for megaparsec 8 (#1175)
+
+# 1.16.1 2019-12-03
+
+- use hledger 1.16.1, fixing GHC 8.0/8.2 build
+
+# 1.16 2019-12-01
+
+- add support for GHC 8.8, base-compat 0.11 (#1090)
+
+- drop support for GHC 7.10
+
+- the B and V keys toggle cost or value display (like the -B and -V
+  command line flags)
+
+# 1.15 2019-09-01
+
+- allow brick >=0.47
 
 - use hledger 1.15
 

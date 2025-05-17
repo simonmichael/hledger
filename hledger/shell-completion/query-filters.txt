@@ -1,0 +1,15 @@
+acct:
+amt:
+code:
+cur:
+date:
+date2:
+depth:
+desc:
+inacct:
+not:
+note:
+payee:
+real:
+status:
+tag:

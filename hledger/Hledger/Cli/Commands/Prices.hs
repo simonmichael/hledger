@@ -1,87 +1,113 @@
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell   #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Cli.Commands.Prices (
   pricesmode
  ,prices
-) 
+)
 where
 
-import Data.Maybe
 import Data.List
 import qualified Data.Text as T
-import Data.Time
+import qualified Data.Text.IO as T
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit
+import Data.Maybe (mapMaybe)
+import Data.Function ((&))
 
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
-  [flagNone ["costs"] (setboolopt "costs") "print transaction prices from postings"
-  ,flagNone ["inverted-costs"] (setboolopt "inverted-costs") "print transaction inverted prices from postings also"]
-  [generalflagsgroup1]
-  hiddenflags
+  [flagNone ["show-reverse"] (setboolopt "show-reverse")
+    "also show the prices inferred by reversing known prices"
+  ]
+  cligeneralflagsgroups1
+  (hiddenflags ++
+  [flagNone ["costs"]                (setboolopt "infer-market-prices") "deprecated, use --infer-market-prices instead"
+  ,flagNone ["inverted-costs"]       (setboolopt "show-reverse") "deprecated, use --show-reverse instead"
+  ,flagNone ["infer-reverse-prices"] (setboolopt "show-reverse") "deprecated, use --show-reverse instead"
+  ])
   ([], Just $ argsFlag "[QUERY]")
 
--- XXX the original hledger-prices script always ignored assertions 
+instance HasAmounts PriceDirective where
+  styleAmounts styles pd = pd{pdamount=styleAmounts styles $ pdamount pd}
+
+-- List market prices.
 prices opts j = do
-  d <- getCurrentDay
   let
-    q          = queryFromOpts d (reportopts_ opts)
-    ps         = filter (matchesPosting q) $ allPostings j
-    mprices    = jpricedirectives j
-    cprices    = concatMap postingCosts ps
-    icprices   = concatMap postingCosts . mapAmount invertPrice $ ps
-    allprices  = mprices ++ ifBoolOpt "costs" cprices ++ ifBoolOpt "inverted-costs" icprices
-  mapM_ (putStrLn . showPriceDirective) $
-    sortOn pddate $
-    filter (matchesPriceDirective q) $
-    allprices
+    styles = journalCommodityStyles j
+    q      = _rsQuery $ reportspec_ opts
+
+    -- XXX duplicates logic in Hledger.Data.Valuation.makePriceGraph, keep synced
+
+    declaredprices =
+      -- dbg0 "declaredprices" $
+      jpricedirectives j
+
+    pricesfromcosts =
+      -- dbg0 "pricesfromcosts" $
+      concatMap postingPriceDirectivesFromCost $
+      journalPostings j
+
+    forwardprices =
+      -- dbg0 "forwardprices" $
+      if boolopt "infer-market-prices" (rawopts_ opts)
+      then declaredprices `mergePriceDirectives` pricesfromcosts
+      else declaredprices
+
+    reverseprices =
+      -- dbg0 "reverseprices" $
+      mapMaybe reversePriceDirective forwardprices
+
+    allprices =
+      -- dbg0 "allprices" $
+      if boolopt "show-reverse" (rawopts_ opts)
+      then forwardprices `mergePriceDirectives` reverseprices
+      else forwardprices
+
+    filteredprices =
+      -- dbg0 "filtered unsorted" $
+      filter (matchesPriceDirective q) allprices
+
+  mapM_ (T.putStrLn . showPriceDirective . styleAmounts styles) $
+    sortOn pddate filteredprices
+
+-- XXX performance
+-- | Append any new price directives (with different from commodity,
+-- to commodity, or date) from the second list to the first.
+-- (Does not remove redundant prices from the first; just avoids adding more.)
+mergePriceDirectives :: [PriceDirective] -> [PriceDirective] -> [PriceDirective]
+mergePriceDirectives pds1 pds2 =
+  pds1 ++ [ pd | pd <- pds2 , pdid pd `notElem` pds1ids ]
   where
-    ifBoolOpt opt | boolopt opt $ rawopts_ opts = id
-                  | otherwise = const []
+    pds1ids = map pdid pds1
+    pdid PriceDirective{pddate,pdcommodity,pdamount} = (pddate, pdcommodity, acommodity pdamount)
 
-showPriceDirective :: PriceDirective -> String
-showPriceDirective mp = unwords ["P", show $ pddate mp, T.unpack . quoteCommoditySymbolIfNeeded $ pdcommodity mp, showAmountWithZeroCommodity $ pdamount mp]
+showPriceDirective :: PriceDirective -> T.Text
+showPriceDirective mp = T.unwords [
+  "P",
+  T.pack . show $ pddate mp,
+  quoteCommoditySymbolIfNeeded $ pdcommodity mp,
+  wbToText . showAmountB defaultFmt{displayZeroCommodity=True} $ pdamount mp
+  ]
 
-divideAmount' :: Quantity -> Amount -> Amount
-divideAmount' n a = a' where
-    a' = (n `divideAmount` a) { astyle = style' }
-    style' = (astyle a) { asprecision = precision' }
-    extPrecision = (1+) . floor . logBase 10 $ (realToFrac n :: Double)
-    precision' = extPrecision + asprecision (astyle a)
-
--- XXX
-
--- | Invert an amount's price for --invert-cost, somehow ? Unclear.
-invertPrice :: Amount -> Amount
-invertPrice a =
-    case aprice a of
-        Nothing -> a
-        Just (UnitPrice pa) -> invertPrice
-            -- normalize to TotalPrice
-            a { aprice = Just $ TotalPrice pa' } where
-                pa' = ((1 / aquantity a) `divideAmount` pa) { aprice = Nothing }
-        Just (TotalPrice pa) ->
-            a { aquantity = aquantity pa * signum (aquantity a), acommodity = acommodity pa, aprice = Just $ TotalPrice pa' } where
-                pa' = pa { aquantity = abs $ aquantity a, acommodity = acommodity a, aprice = Nothing, astyle = astyle a }
-
-amountCost :: Day -> Amount -> Maybe PriceDirective
-amountCost d a =
-    case aprice a of
-        Nothing -> Nothing
-        Just (UnitPrice pa) -> Just
-            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = pa }
-        Just (TotalPrice pa) -> Just
-            PriceDirective { pddate = d, pdcommodity = acommodity a, pdamount = abs (aquantity a) `divideAmount'` pa }
-
-postingCosts :: Posting -> [PriceDirective]
-postingCosts p = mapMaybe (amountCost date) . amounts $ pamount p  where
-   date = fromMaybe (tdate . fromJust $ ptransaction p) $ pdate p
-
-allPostings :: Journal -> [Posting]
-allPostings = concatMap tpostings . jtxns
-
-mapAmount :: (Amount -> Amount) -> [Posting] -> [Posting]
-mapAmount f = map pf where
-    pf p = p { pamount = mf (pamount p) }
-    mf = mixed . map f . amounts
+-- | Convert a market price directive to a corresponding one in the
+-- opposite direction, if possible. (A price directive with a zero
+-- price can't be reversed.)
+--
+-- The price's display precision will be set to show all significant
+-- decimal digits (or if they appear infinite, a smaller default precision (8).
+-- This is visible eg in the prices command's output.
+--
+reversePriceDirective :: PriceDirective -> Maybe PriceDirective
+reversePriceDirective pd@PriceDirective{pdcommodity=c, pdamount=a}
+  | amountIsZero a = Nothing
+  | otherwise      = Just pd{pdcommodity=acommodity a, pdamount=a'}
+    where
+      lbl = lbl_ "reversePriceDirective"
+      a' =
+        amountSetFullPrecisionUpTo (Just defaultMaxPrecision) $
+        invertAmount a{acommodity=c}
+        & dbg9With (lbl "calculated reverse price".showAmount)
+        -- & dbg9With (lbl "precision of reverse price".show.amountDisplayPrecision)

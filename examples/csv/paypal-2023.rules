@@ -1,0 +1,16 @@
+skip 1
+date-format %d-%m-%Y
+# date-format %F # I prefer to pre-process
+
+fields date,time,timezone,payee,type,status_,currency_,amount,reference,balance_
+
+currency %currency_
+if %currency_ EUR
+  currency €
+if %currency_ USD
+  currency $
+if %currency_ GBP
+  currency £
+
+description %payee | %type
+account1 assets:current:yourname:PayPal

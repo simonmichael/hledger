@@ -1,20 +1,131 @@
-{-# LANGUAGE FlexibleContexts, TypeFamilies #-}
--- | Debugging helpers
+{- | 
+
+Here are fancier versions of Debug.Trace, with these features:
+
+- unsafePerformIO-based for easy usage in pure code, IO code, and program startup code
+- reasonably short and memorable function names
+- pretty-printing haskell values, with or without colour, using pretty-simple
+- enabling/disabling debug output with --debug
+- multiple debug verbosity levels, from 1 to 9
+- sending debug output to stderr or to a log file
+- enabling logging based on program name
+
+The basic "trace" functions print to stderr.
+This debug output will be interleaved with the program's normal output, which can be
+useful for understanding when code executes.
+
+The "Log" functions log to a file instead.
+The need for these is arguable, since a technically savvy user can redirect
+stderr output to a log file, eg: @CMD 2>debug.log@.
+But here is how they currently work:
+
+The "traceLog" functions log to the program's debug log file,
+which is @PROGNAME.log@ in the current directory,
+where PROGNAME is the program name returned by @getProgName@.
+When using this logging feature you should call @withProgName@ explicitly
+at the start of your program to ensure a stable program name,
+otherwise it can change to "<interactive>" eg when running in GHCI.
+Eg: @main = withProgName "MYPROG" $ do ...@.
+
+The "OrLog" functions can either print to stderr or log to a file.
+
+- By default, they print to stderr.
+
+- If the program name has been set (with @withProgName) to something ending with ".log", they log to that file instead.
+  This can be useful for programs which should never print to stderr, eg TUI programs like hledger-ui.
+
+The "At" functions produce output only when the program was run with a 
+sufficiently high debug level, as set by a @--debug[=N]@ command line option.
+N ranges from 1 (least debug output) to 9 (most debug output),
+@--debug@ with no argument means 1.
+
+The "dbgN*" functions are intended to be the most convenient API, to be embedded
+at points of interest in your code. They combine the conditional output of "At",
+the conditional logging of "OrLog", pretty printing, and short searchable function names.
+
+Parsing the command line, detecting program name, and file logging is done with unsafePerformIO.
+If you are working in GHCI, changing the debug level requires editing and reloading this file
+(sometimes it's more convenient to add a dbg0 temporarily).
+
+In hledger, debug levels are used as follows:
+
+@
+Debug level:  What to show:
+------------  ---------------------------------------------------------
+0             normal command output only (no warnings, eg)
+1             useful warnings, most common troubleshooting info (config file args, valuation..)
+2             common troubleshooting info, more detail
+3             report options selection
+4             report generation
+5             report generation, more detail
+6             input file reading
+7             input file reading, more detail
+8             command line parsing
+9             any other rarely needed / more in-depth info
+@
+
+We don't yet have the ability to select debug output by topic. For now, here
+are some standardish topic strings to search for in hledger debug messages:
+
+acct
+arg
+budget
+calc
+csv
+journalFinalise
+multiBalanceReport
+opts
+precision
+price
+q
+style
+val
+
+-}
+
+-- Disabled until 0.1.2.0 is released with windows support:
+--  This module also exports Debug.Trace and the breakpoint package's Debug.Breakpoint.
 
 -- more:
 -- http://hackage.haskell.org/packages/archive/TraceUtils/0.1.0.2/doc/html/Debug-TraceUtils.html
 -- http://hackage.haskell.org/packages/archive/trace-call/0.1/doc/html/Debug-TraceCall.html
 -- http://hackage.haskell.org/packages/archive/htrace/0.1/doc/html/Debug-HTrace.html
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
+-- https://hackage.haskell.org/package/debug
+
+{-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Hledger.Utils.Debug (
-   pprint
-  ,pshow
-  ,ptrace
+
+   debugLevel
+
+  -- * Tracing to stderr
   ,traceWith
-  ,debugLevel
+  ,traceAt
+  ,traceAtWith
+  ,ptrace
   ,ptraceAt
-  ,ptraceAtWith
+  ,ptraceAtIO
+
+  -- * Logging to PROGNAME.log
+  ,traceLog
+  ,traceLogAt
+  ,traceLogIO
+  ,traceLogAtIO
+  ,traceLogWith
+  ,traceLogAtWith
+  ,ptraceLogAt
+  ,ptraceLogAtIO
+
+  -- * Tracing or logging based on shouldLog
+  ,traceOrLog
+  ,traceOrLogAt
+  ,ptraceOrLogAt
+  ,ptraceOrLogAtIO
+  ,traceOrLogAtWith
+
+  -- * Pretty tracing/logging in pure code
   ,dbg0
   ,dbg1
   ,dbg2
@@ -25,18 +136,9 @@ module Hledger.Utils.Debug (
   ,dbg7
   ,dbg8
   ,dbg9
-  ,dbg0With
-  ,dbg1With
-  ,dbg2With
-  ,dbg3With
-  ,dbg4With
-  ,dbg5With
-  ,dbg6With
-  ,dbg7With
-  ,dbg8With
-  ,dbg9With
   ,dbgExit
-  ,ptraceAtIO
+
+  -- * Pretty tracing/logging in IO
   ,dbg0IO
   ,dbg1IO
   ,dbg2IO
@@ -47,257 +149,403 @@ module Hledger.Utils.Debug (
   ,dbg7IO
   ,dbg8IO
   ,dbg9IO
-  ,plog
-  ,plogAt
-  ,traceParse
-  ,dbgparse
+
+  -- * Tracing/logging with a show function
+  ,dbg0With
+  ,dbg1With
+  ,dbg2With
+  ,dbg3With
+  ,dbg4With
+  ,dbg5With
+  ,dbg6With
+  ,dbg7With
+  ,dbg8With
+  ,dbg9With
+
+  -- * Utilities
+  ,ghcDebugSupportedInLib
+  ,GhcDebugMode(..)
+  ,ghcDebugMode
+  ,withGhcDebug'
+  ,ghcDebugPause'
+  ,lbl_
+  ,progName
+
+  -- * Re-exports
+  -- ,module Debug.Breakpoint
   ,module Debug.Trace
-)
+
+  )
 where
 
-import           Control.Monad (when)
-import           Control.Monad.IO.Class
-import           Data.List hiding (uncons)
-import qualified Data.Text as T
-import           Debug.Trace
-import           Hledger.Utils.Parse
-import           Safe (readDef)
-import           System.Environment (getArgs)
-import           System.Exit
-import           System.IO.Unsafe (unsafePerformIO)
-import           Text.Megaparsec
-import           Text.Printf
-import           Text.Show.Pretty (ppShow, pPrint)
+import Control.DeepSeq (force)
+import Control.Exception (evaluate)
+import Control.Monad.IO.Class (MonadIO, liftIO)
+import Data.List hiding (uncons)
+-- import Debug.Breakpoint
+import Debug.Trace (trace, traceIO, traceShowId)
+#ifdef GHCDEBUG
+import GHC.Debug.Stub (pause, withGhcDebug)
+#endif
+import Safe (readDef)
+import System.Environment (getProgName)
+import System.Exit (exitFailure)
+import System.IO.Unsafe (unsafePerformIO)
 
--- | Pretty print. Easier alias for pretty-show's pPrint.
-pprint :: Show a => a -> IO ()
-pprint = pPrint
+import Hledger.Utils.IO (progArgs, pshow, pshow')
 
--- | Pretty show. Easier alias for pretty-show's ppShow.
-pshow :: Show a => a -> String
-pshow = ppShow
+-- | The program name as returned by @getProgName@.
+-- It's best to set this explicitly at program startup with @withProgName@,
+-- otherwise when running in GHCI (eg) it will change to "<interactive>".
+-- Setting it with a ".log" suffix causes some functions below
+-- to log instead of trace.
+{-# NOINLINE modifiedProgName #-}
+modifiedProgName :: String
+modifiedProgName = unsafePerformIO getProgName
 
--- | Pretty trace. Easier alias for traceShowId + ppShow.
-ptrace :: Show a => a -> a
-ptrace = traceWith pshow
+-- | The progam name, with any ".log" suffix removed.
+progName :: String
+progName =
+  if ".log" `isSuffixOf` modifiedProgName
+  then reverse $ drop 4 $ reverse modifiedProgName
+  else modifiedProgName
 
--- | Trace (print to stderr) a showable value using a custom show function.
-traceWith :: (a -> String) -> a -> a
-traceWith f a = trace (f a) a
-
--- | Global debug level, which controls the verbosity of debug output
--- on the console. The default is 0 meaning no debug output. The
--- @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
--- a higher value (note: not @--debug N@ for some reason).  This uses
--- unsafePerformIO and can be accessed from anywhere and before normal
--- command-line processing. When running with :main in GHCI, you must
--- touch and reload this module to see the effect of a new --debug option.
--- After command-line processing, it is also available as the @debug_@
--- field of 'Hledger.Cli.CliOptions.CliOpts'.
--- {-# OPTIONS_GHC -fno-cse #-} 
--- {-# NOINLINE debugLevel #-}
+-- | The programs debug output verbosity. The default is 0 meaning no debug output.
+-- The @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
+-- a higher value (the = is required). Uses unsafePerformIO. 
+-- When running in GHCI, changing this requires reloading this module.
 debugLevel :: Int
-debugLevel = case snd $ break (=="--debug") args of
-               "--debug":[]  -> 1
+debugLevel = case dropWhile (/="--debug") progArgs of
+               ["--debug"]   -> 1
                "--debug":n:_ -> readDef 1 n
                _             ->
-                 case take 1 $ filter ("--debug" `isPrefixOf`) args of
+                 case take 1 $ filter ("--debug" `isPrefixOf`) progArgs of
                    ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
                    _                                   -> 0
 
-    where
-      args = unsafePerformIO getArgs
+-- | Whether ghc-debug support is included in this build, and if so, how it will behave.
+-- When hledger is built with the @ghcdebug@ cabal flag (off by default, because of extra deps),
+-- it can listen (on unix ?) for connections from ghc-debug clients like ghc-debug-brick,
+-- for pausing/resuming the program and inspecting memory usage and profile information.
+--
+-- With a ghc-debug-supporting build, ghc-debug can be enabled by running hledger with
+-- a negative --debug level. There are three different modes:
+-- --debug=-1 - run normally (can be paused/resumed by a ghc-debug client),
+-- --debug=-2 - pause and await client commands at program start (not useful currently),
+-- --debug=-3 - pause and await client commands at program end.
+data GhcDebugMode =
+    GDNotSupported
+  | GDDisabled
+  | GDNoPause
+  | GDPauseAtStart
+  | GDPauseAtEnd
+  -- keep synced with ghcDebugMode
+  deriving (Eq,Ord,Show)
+
+-- | Is the hledger-lib package built with ghc-debug support ?
+ghcDebugSupportedInLib :: Bool
+ghcDebugSupportedInLib =
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+
+-- | Should the program open a socket allowing control by ghc-debug-brick or similar ghc-debug client ?
+-- See GhcDebugMode.
+ghcDebugMode :: GhcDebugMode
+ghcDebugMode =
+#ifdef GHCDEBUG
+  case debugLevel of
+    _ | not ghcDebugSupportedInLib -> GDNotSupported
+    (-1) -> GDNoPause
+    (-2) -> GDPauseAtStart
+    (-3) -> GDPauseAtEnd
+    _    -> GDDisabled
+    -- keep synced with GhcDebugMode
+#else
+  GDNotSupported
+#endif
+
+-- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
+-- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.
+withGhcDebug' =
+#ifdef GHCDEBUG
+  if ghcDebugMode > GDDisabled then withGhcDebug else id
+#else
+  id
+#endif
+
+-- | When ghc-debug support has been built into the program, this calls ghc-debug's pause, otherwise it's a no-op.
+ghcDebugPause' :: IO ()
+ghcDebugPause' =
+#ifdef GHCDEBUG
+  pause
+#else
+  return ()
+#endif
+
+-- | Trace a value with the given show function before returning it.
+traceWith :: (a -> String) -> a -> a
+traceWith f a = trace (f a) a
+
+-- | Pretty-trace a showable value before returning it.
+-- Like Debug.Trace.traceShowId, but pretty-printing and easier to type.
+ptrace :: Show a => a -> a
+ptrace = traceWith pshow
+
+-- | Trace (print to stderr) a string if the global debug level is at
+-- or above the specified level. At level 0, always prints. Otherwise,
+-- uses unsafePerformIO.
+traceAt :: Int -> String -> a -> a
+traceAt level
+    | level > 0 && debugLevel < level = const id
+    | otherwise = trace
+
+-- | Trace (print to stderr) a showable value using a custom show function,
+-- if the global debug level is at or above the specified level.
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
+traceAtWith :: Int -> (a -> String) -> a -> a
+traceAtWith level f a = traceAt level (f a) a
 
 -- | Pretty-print a label and a showable value to the console
 -- if the global debug level is at or above the specified level.
 -- At level 0, always prints. Otherwise, uses unsafePerformIO.
 ptraceAt :: Show a => Int -> String -> a -> a
 ptraceAt level
-    | level > 0 && debugLevel < level = flip const
-    | otherwise = \s a -> let p = ppShow a
-                              ls = lines p
-                              nlorspace | length ls > 1 = "\n"
-                                        | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-                              ls' | length ls > 1 = map (" "++) ls
-                                  | otherwise     = ls
-                          in trace (s++":"++nlorspace++intercalate "\n" ls') a
+    | level > 0 && debugLevel < level = const id
+    | otherwise = \lbl a -> trace (labelledPretty True lbl a) a
 
--- | Like ptraceAt, but takes a custom show function instead of a label.
-ptraceAtWith :: Show a => Int -> (a -> String) -> a -> a
-ptraceAtWith level f
-    | level > 0 && debugLevel < level = id
-    | otherwise = \a -> let p = f a
-                            -- ls = lines p
-                            -- nlorspace | length ls > 1 = "\n"
-                            --           | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-                            -- ls' | length ls > 1 = map (" "++) ls
-                            --     | otherwise     = ls
-                        -- in trace (s++":"++nlorspace++intercalate "\n" ls') a
-                        in trace p a
+-- Pretty-print a showable value with a label, with or without allowing ANSI color.
+labelledPretty :: Show a => Bool -> String -> a -> String
+labelledPretty allowcolour lbl a = lbl ++ ":" ++ nlorspace ++ intercalate "\n" ls'
+  where
+    ls = lines $ (if allowcolour then pshow else pshow') a
+    nlorspace | length ls > 1 = "\n"
+              | otherwise     = replicate (max 1 $ 11 - length lbl) ' '
+    ls' | length ls > 1 = map (' ':) ls
+        | otherwise     = ls
 
--- "dbg" would clash with megaparsec.
--- | Pretty-print a label and the showable value to the console, then return it.
+-- | Like ptraceAt, but convenient to insert in an IO monad and
+-- enforces monadic sequencing.
+ptraceAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+ptraceAtIO level label a =
+  if level > 0 && debugLevel < level
+  then return ()
+  else liftIO $ traceIO (labelledPretty True label a)
+
+-- | Should the "trace or log" functions output to a file instead of stderr ?
+-- True if the program name ends with ".log".
+shouldLog :: Bool
+shouldLog = ".log" `isSuffixOf` modifiedProgName
+
+-- | The debug log file: PROGNAME.log in the current directory.
+-- See modifiedProgName.
+debugLogFile :: FilePath
+debugLogFile = progName ++ ".log"
+
+-- -- | The debug log file: debug.log in the current directory.
+-- debugLogFile :: FilePath
+-- debugLogFile = "debug.log"
+
+-- | Log a string to the debug log before returning the second argument.
+-- Uses unsafePerformIO.
+traceLog :: String -> a -> a
+traceLog s x = unsafePerformIO $ do
+  evaluate (force s)  -- to complete any previous logging before we attempt more
+  appendFile debugLogFile (s ++ "\n")
+  return x
+
+-- | Log a string to the debug log before returning the second argument,
+-- if the global debug level is at or above the specified level.
+-- At level 0, always logs. Otherwise, uses unsafePerformIO.
+traceLogAt :: Int -> String -> a -> a
+traceLogAt level str
+  | level > 0 && debugLevel < level = id
+  | otherwise = traceLog str
+
+-- | Like traceLog but sequences properly in IO.
+traceLogIO :: MonadIO m => String -> m ()
+traceLogIO s = do
+  liftIO $ evaluate (force s)  -- to complete any previous logging before we attempt more
+  liftIO $ appendFile debugLogFile (s ++ "\n")
+
+-- | Like traceLogAt, but convenient to use in IO.
+traceLogAtIO :: MonadIO m => Int -> String -> m ()
+traceLogAtIO level str
+  | level > 0 && debugLevel < level = return ()
+  | otherwise = traceLogIO str
+
+-- | Log a value to the debug log with the given show function before returning it.
+traceLogWith :: (a -> String) -> a -> a
+traceLogWith f a = traceLog (f a) a
+
+-- | Log a string to the debug log before returning the second argument,
+-- if the global debug level is at or above the specified level.
+-- At level 0, always logs. Otherwise, uses unsafePerformIO.
+traceLogAtWith :: Int -> (a -> String) -> a -> a
+traceLogAtWith level f a = traceLogAt level (f a) a
+
+-- | Pretty-log a label and showable value to the debug log,
+-- if the global debug level is at or above the specified level. 
+-- At level 0, always prints. Otherwise, uses unsafePerformIO.
+ptraceLogAt :: Show a => Int -> String -> a -> a
+ptraceLogAt level
+  | level > 0 && debugLevel < level = const id
+  | otherwise = \lbl a -> traceLog (labelledPretty False lbl a) a
+
+-- | Like ptraceAt, but convenient to insert in an IO monad and
+-- enforces monadic sequencing.
+ptraceLogAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+ptraceLogAtIO level label a =
+  if level > 0 && debugLevel < level
+  then return ()
+  else traceLogIO (labelledPretty False label a)
+
+-- | Trace or log a string depending on shouldLog,
+-- before returning the second argument.
+traceOrLog :: String -> a -> a
+traceOrLog = if shouldLog then traceLog else trace
+
+-- | Trace or log a string depending on shouldLog,
+-- when global debug level is at or above the specified level,
+-- before returning the second argument.
+traceOrLogAt :: Int -> String -> a -> a
+traceOrLogAt = if shouldLog then traceLogAt else traceAt
+
+-- | Pretty-trace or log depending on shouldLog, when global debug level
+-- is at or above the specified level.
+ptraceOrLogAt :: Show a => Int -> String -> a -> a
+ptraceOrLogAt = if shouldLog then ptraceLogAt else ptraceAt
+
+-- | Like ptraceOrLogAt, but convenient in IO.
+ptraceOrLogAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
+ptraceOrLogAtIO = if shouldLog then ptraceLogAtIO else ptraceAtIO
+
+-- | Trace or log, with a show function, depending on shouldLog.
+traceOrLogAtWith :: Int -> (a -> String) -> a -> a
+traceOrLogAtWith = if shouldLog then traceLogAtWith else traceAtWith
+
+-- | Pretty-trace to stderr (or log to debug log) a label and showable value,
+-- then return it.
 dbg0 :: Show a => String -> a -> a
-dbg0 = ptraceAt 0
+dbg0 = ptraceOrLogAt 0
 
--- | Pretty-print a label and the showable value to the console when the global debug level is >= 1, then return it.
+-- | Pretty-trace to stderr (or log to debug log) a label and showable value
+-- if the --debug level is high enough, then return the value.
 -- Uses unsafePerformIO.
 dbg1 :: Show a => String -> a -> a
-dbg1 = ptraceAt 1
+dbg1 = ptraceOrLogAt 1
 
 dbg2 :: Show a => String -> a -> a
-dbg2 = ptraceAt 2
+dbg2 = ptraceOrLogAt 2
 
 dbg3 :: Show a => String -> a -> a
-dbg3 = ptraceAt 3
+dbg3 = ptraceOrLogAt 3
 
 dbg4 :: Show a => String -> a -> a
-dbg4 = ptraceAt 4
+dbg4 = ptraceOrLogAt 4
 
 dbg5 :: Show a => String -> a -> a
-dbg5 = ptraceAt 5
+dbg5 = ptraceOrLogAt 5
 
 dbg6 :: Show a => String -> a -> a
-dbg6 = ptraceAt 6
+dbg6 = ptraceOrLogAt 6
 
 dbg7 :: Show a => String -> a -> a
-dbg7 = ptraceAt 7
+dbg7 = ptraceOrLogAt 7
 
 dbg8 :: Show a => String -> a -> a
-dbg8 = ptraceAt 8
+dbg8 = ptraceOrLogAt 8
 
 dbg9 :: Show a => String -> a -> a
-dbg9 = ptraceAt 9
-
--- | Like dbg0, but takes a custom show function instead of a label.
-dbg0With :: Show a => (a -> String) -> a -> a
-dbg0With = ptraceAtWith 0
-
-dbg1With :: Show a => (a -> String) -> a -> a
-dbg1With = ptraceAtWith 1
-
-dbg2With :: Show a => (a -> String) -> a -> a
-dbg2With = ptraceAtWith 2
-
-dbg3With :: Show a => (a -> String) -> a -> a
-dbg3With = ptraceAtWith 3
-
-dbg4With :: Show a => (a -> String) -> a -> a
-dbg4With = ptraceAtWith 4
-
-dbg5With :: Show a => (a -> String) -> a -> a
-dbg5With = ptraceAtWith 5
-
-dbg6With :: Show a => (a -> String) -> a -> a
-dbg6With = ptraceAtWith 6
-
-dbg7With :: Show a => (a -> String) -> a -> a
-dbg7With = ptraceAtWith 7
-
-dbg8With :: Show a => (a -> String) -> a -> a
-dbg8With = ptraceAtWith 8
-
-dbg9With :: Show a => (a -> String) -> a -> a
-dbg9With = ptraceAtWith 9
+dbg9 = ptraceOrLogAt 9
 
 -- | Like dbg0, but also exit the program. Uses unsafePerformIO.
 dbgExit :: Show a => String -> a -> a
-dbgExit msg = const (unsafePerformIO exitFailure) . dbg0 msg
+dbgExit label a = unsafePerformIO $ dbg0IO label a >> exitFailure
 
--- | Like ptraceAt, but convenient to insert in an IO monad (plus
--- convenience aliases).
--- XXX These have a bug; they should use
--- traceIO, not trace, otherwise GHC can occasionally over-optimise
--- (cf lpaste a few days ago where it killed/blocked a child thread).
-ptraceAtIO :: (MonadIO m, Show a) => Int -> String -> a -> m ()
-ptraceAtIO lvl lbl x = liftIO $ ptraceAt lvl lbl x `seq` return ()
-
--- XXX Could not deduce (a ~ ())
--- ptraceAtM :: (Monad m, Show a) => Int -> String -> a -> m a
--- ptraceAtM lvl lbl x = ptraceAt lvl lbl x `seq` return x
-
+-- | Like dbgN, but convenient to use in IO.
 dbg0IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg0IO = ptraceAtIO 0
+dbg0IO = ptraceOrLogAtIO 0
 
 dbg1IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg1IO = ptraceAtIO 1
+dbg1IO = ptraceOrLogAtIO 1
 
 dbg2IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg2IO = ptraceAtIO 2
+dbg2IO = ptraceOrLogAtIO 2
 
 dbg3IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg3IO = ptraceAtIO 3
+dbg3IO = ptraceOrLogAtIO 3
 
 dbg4IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg4IO = ptraceAtIO 4
+dbg4IO = ptraceOrLogAtIO 4
 
 dbg5IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg5IO = ptraceAtIO 5
+dbg5IO = ptraceOrLogAtIO 5
 
 dbg6IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg6IO = ptraceAtIO 6
+dbg6IO = ptraceOrLogAtIO 6
 
 dbg7IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg7IO = ptraceAtIO 7
+dbg7IO = ptraceOrLogAtIO 7
 
 dbg8IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg8IO = ptraceAtIO 8
+dbg8IO = ptraceOrLogAtIO 8
 
 dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
-dbg9IO = ptraceAtIO 9
+dbg9IO = ptraceOrLogAtIO 9
 
--- | Log a label and a pretty-printed showable value to ./debug.log, then return it.
--- Can fail, see plogAt.
-plog :: Show a => String -> a -> a
-plog = plogAt 0
+-- | Like dbgN, but taking a show function instead of a label.
+dbg0With :: (a -> String) -> a -> a
+dbg0With = traceOrLogAtWith 0
 
--- | Log a label and a pretty-printed showable value to ./debug.log, 
--- if the global debug level is at or above the specified level.
--- At level 0, always logs. Otherwise, uses unsafePerformIO.
--- Tends to fail if called more than once, at least when built with -threaded
--- (Exception: debug.log: openFile: resource busy (file is locked)).
-plogAt :: Show a => Int -> String -> a -> a
-plogAt lvl
-    | lvl > 0 && debugLevel < lvl = flip const
-    | otherwise = \s a -> 
-        let p = ppShow a
-            ls = lines p
-            nlorspace | length ls > 1 = "\n"
-                      | otherwise     = " " ++ take (10 - length s) (repeat ' ')
-            ls' | length ls > 1 = map (" "++) ls
-                | otherwise     = ls
-            output = s++":"++nlorspace++intercalate "\n" ls'++"\n"
-        in unsafePerformIO $ appendFile "debug.log" output >> return a
+dbg1With :: Show a => (a -> String) -> a -> a
+dbg1With = traceOrLogAtWith 1
 
--- XXX redundant ? More/less robust than plogAt ?
--- -- | Like dbg, but writes the output to "debug.log" in the current directory.
--- dbglog :: Show a => String -> a -> a
--- dbglog label a =
---   (unsafePerformIO $
---     appendFile "debug.log" $ label ++ ": " ++ ppShow a ++ "\n")
---   `seq` a
+dbg2With :: Show a => (a -> String) -> a -> a
+dbg2With = traceOrLogAtWith 2
 
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console. (See also megaparsec's dbg.)
-traceParse :: String -> TextParser m ()
-traceParse msg = do
-  pos <- getSourcePos
-  next <- (T.take peeklength) `fmap` getInput
-  let (l,c) = (sourceLine pos, sourceColumn pos)
-      s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
-      s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
-  trace s' $ return ()
-  where
-    peeklength = 30
+dbg3With :: Show a => (a -> String) -> a -> a
+dbg3With = traceOrLogAtWith 3
 
--- | Print the provided label (if non-null) and current parser state
--- (position and next input) to the console if the global debug level
--- is at or above the specified level. Uses unsafePerformIO.
--- (See also megaparsec's dbg.)
-traceParseAt :: Int -> String -> TextParser m ()
-traceParseAt level msg = when (level <= debugLevel) $ traceParse msg
+dbg4With :: Show a => (a -> String) -> a -> a
+dbg4With = traceOrLogAtWith 4
 
--- | Convenience alias for traceParseAt
-dbgparse :: Int -> String -> TextParser m ()
-dbgparse level msg = traceParseAt level msg
+dbg5With :: Show a => (a -> String) -> a -> a
+dbg5With = traceOrLogAtWith 5
 
+dbg6With :: Show a => (a -> String) -> a -> a
+dbg6With = traceOrLogAtWith 6
+
+dbg7With :: Show a => (a -> String) -> a -> a
+dbg7With = traceOrLogAtWith 7
+
+dbg8With :: Show a => (a -> String) -> a -> a
+dbg8With = traceOrLogAtWith 8
+
+dbg9With :: Show a => (a -> String) -> a -> a
+dbg9With = traceOrLogAtWith 9
+
+-- | Helper for producing debug messages:
+-- concatenates a name (eg a function name),
+-- short description of the value being logged,
+-- and string representation of the value.
+lbl_ :: String -> String -> String -> String
+lbl_ name desc val = name <> ": " <> desc <> ":" <> " " <> val
+
+-- XXX the resulting function is constrained to only one value type
+-- -- | A new helper for defining a local "dbg" function.
+-- -- Given a debug level and a topic string (eg, a function name),
+-- -- it generates a function which takes
+-- -- - a description string,
+-- -- - a value-to-string show function,
+-- -- - and a value to be inspected,
+-- -- debug-logs the topic, description and result of calling the show function on the value,
+-- -- formatted nicely, at the specified debug level or above,
+-- -- then returns the value.
+-- dbg_ :: forall a. Show a => Int -> String -> (String -> (a -> String) -> a -> a)
+-- dbg_ level topic =
+--   \desc showfn val ->
+--     traceOrLogAtWith level (lbl_ topic desc . showfn) val
+-- {-# HLINT ignore "Redundant lambda" #-}

@@ -1,0 +1,10 @@
+; أنواع الحسابات الرئيسية. الحسابات الفرعية سترثها.
+; (ترجمة آلية)
+account الأصول                     ; type:A
+account الأصول:البنك                ; type:C
+account الأصول:النقدية              ; type:C
+account المطلوبات                  ; type:L
+account حقوق الملكية               ; type:E
+account حقوق الملكية:فروق الصرف    ; type:V
+account الإيرادات                   ; type:R
+account المصروفات                  ; type:X

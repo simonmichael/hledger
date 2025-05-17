@@ -1,8 +1,19 @@
-rewrite\
+## rewrite
+
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print --auto.
 
-_FLAGS_
+```flags
+Flags:
+     --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
+                                    parenthesised. AMTEXPR is either a literal
+                                    amount, or *N which means the transaction's
+                                    first matched amount multiplied by N (a
+                                    decimal number). Two spaces separate ACCT
+                                    and AMTEXPR.
+     --diff                         generate diff suitable as an input for
+                                    patch tool
+```
 
 This is a start at a generic rewriter of transaction entries.
 It reads the default journal and prints the transactions, like print,
@@ -10,7 +21,7 @@ but adds one or more specified postings to any transactions matching QUERY.
 The posting amounts can be fixed, or a multiplier of the existing transaction's first posting amount. 
 
 Examples:
-```shell
+```cli
 $ hledger-rewrite.hs ^income --add-posting '(liabilities:tax)  *.33  ; income tax' --add-posting '(reserve:gifts)  $100'
 $ hledger-rewrite.hs expenses:gifts --add-posting '(reserve:gifts)  *-1"'
 $ hledger-rewrite.hs -f rewrites.hledger
@@ -27,7 +38,7 @@ and the two spaces between account and amount.
 
 More:
 
-```shell
+```cli
 $ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
 $ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
 $ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
@@ -41,14 +52,14 @@ amount of original matched posting.  If the amount includes a commodity name,
 the new posting amount will be in the new commodity; otherwise, it will be in
 the matched posting amount's commodity.
 
-#### Re-write rules in a file
+### Re-write rules in a file
 
 During the run this tool will execute so called
 ["Automated Transactions"](http://ledger-cli.org/3.0/doc/ledger3.html#Automated-Transactions)
 found in any journal it process. I.e instead of specifying this operations in
 command line you can put them in a journal file.
 
-```shell
+```cli
 $ rewrite-rules.journal
 ```
 
@@ -67,13 +78,13 @@ Note that `'='` (equality symbol) that is used instead of date in transactions
 you usually write. It indicates the query by which you want to match the
 posting to add new ones.
 
-```shell
+```cli
 $ hledger rewrite -- -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
 ```
 
 This is something similar to the commands pipeline:
 
-```shell
+```cli
 $ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
   | hledger rewrite -- -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
                                                 --add-posting 'assets:budget  *1'       \
@@ -83,12 +94,12 @@ $ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)
 It is important to understand that relative order of such entries in journal is
 important. You can re-use result of previously added postings.
 
-#### Diff output format
+### Diff output format
 
 To use this tool for batch modification of your journal files you may find
 useful output in form of unified diff.
 
-```shell
+```cli
 $ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
 ```
 
@@ -123,7 +134,7 @@ See also:
 
 https://github.com/simonmichael/hledger/issues/99
 
-#### rewrite vs. print --auto
+### rewrite vs. print --auto
 
 This command predates print --auto, and currently does much the same thing,
 but with these differences:

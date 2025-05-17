@@ -1,0 +1,63 @@
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA ; @ 1.10 USD
+    [Lot::2025/01/01:10AAA@1.1USD]		-10 AAA ; :BUY: (inventory)
+    [Lot::2025/01/01:10AAA@1.1USD]		11 USD 	; :BUY: (basis)
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA ; @ 1.20 USD
+    [Lot::2025/01/01:10AAA@1.2USD]		-10 AAA ; :BUY: (inventory)
+    [Lot::2025/01/01:10AAA@1.2USD]		12 USD 	; :BUY: (basis)
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA ; @ 1.20 USD
+    [Lot::2025/01/01:10AAA@1.2USD]		-10 AAA ; :BUY: (inventory)
+    [Lot::2025/01/01:10AAA@1.2USD]		12 USD 	; :BUY: (basis)
+
+2025-02-01
+    revenues:gifts
+    assets:broker:aaa   10 AAA ; @ 0.40 USD
+    [Lot::2025/02/01:10AAA@0.4USD]		-10 AAA ; :BUY: (inventory)
+    [Lot::2025/02/01:10AAA@0.4USD]		4 USD 	; :BUY: (basis)
+
+2025-02-02
+    revenues:gifts
+    assets:broker:aaa   10 AAA ; @ 0.50 USD
+    [Lot::2025/02/02:10AAA@0.5USD]		-10 AAA ; :BUY: (inventory)
+    [Lot::2025/02/02:10AAA@0.5USD]		5 USD 	; :BUY: (basis)
+
+2025-03-01
+    assets:broker:aaa   -5 AAA ; @ 0.40 USD
+    assets:broker:usd    6.55 USD
+    revenues:gains
+    [Lot::2025/01/01:10AAA@1.1USD]		5 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/01/01:10AAA@1.1USD]		-5.5 USD 	; :SELL: (basis consumed)
+    [Lot:Income:short term gain]		 3.5 USD 	; :GAIN:SHORTTERM: (loss)
+
+2025-03-02
+    assets:broker:aaa   -5 AAA ; @ 0.40 USD
+    assets:broker:aaa  -10 AAA ; @ 0.50 USD
+    assets:broker:aaa   -9 AAA ; @ 1.10 USD
+    assets:broker:usd   31.68 USD
+    revenues:gains
+    [Lot::2025/01/01:10AAA@1.1USD]		5 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/01/01:10AAA@1.1USD]		-5.5 USD 	; :SELL: (basis consumed)
+    [Lot::2025/01/01:10AAA@1.2USD]		10 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/01/01:10AAA@1.2USD]		-12 USD 	; :SELL: (basis consumed)
+    [Lot::2025/01/01:10AAA@1.2USD]		9 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/01/01:10AAA@1.2USD]		-10.8 USD 	; :SELL: (basis consumed)
+    [Lot:Income:short term gain]		 11.4 USD 	; :GAIN:SHORTTERM: (loss)
+
+2025-03-03
+    assets:broker:aaa   -1 AAA ; @ 1.10 USD
+    assets:broker:aaa   -9 AAA ; @ 1.20 USD
+    assets:broker:usd   13.30 USD
+    revenues:gains
+    [Lot::2025/01/01:10AAA@1.2USD]		1 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/01/01:10AAA@1.2USD]		-1.2 USD 	; :SELL: (basis consumed)
+    [Lot::2025/02/01:10AAA@0.4USD]		9 AAA 		; :SELL: (inventory consumed)
+    [Lot::2025/02/01:10AAA@0.4USD]		-3.6 USD 	; :SELL: (basis consumed)
+    [Lot:Income:short term gain]		 -7.1 USD 	; :GAIN:SHORTTERM: (gain)
+

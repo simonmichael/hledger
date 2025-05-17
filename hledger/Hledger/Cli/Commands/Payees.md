@@ -1,13 +1,26 @@
-payees
-Show payee names.
+## payees
 
-_FLAGS_
+List the unique payee/payer names that appear in transactions.
 
-This command lists all payee names that appear in transactions.
+```flags
+Flags:
+     --declared             show payees declared with payee directives
+     --used                 show payees referenced by transactions
+```
 
-Examples:
+This command lists unique payee/payer names which have been 
+declared with payee directives (--declared), 
+used in transaction descriptions (--used), 
+or both (the default).
 
-```shell
+The payee/payer is the part of the transaction description before a | character 
+(or if there is no |, the whole description).
+
+You can add query arguments to select a subset of transactions. This implies --used.
+
+
+Example:
+```cli
 $ hledger payees
 Store Name
 Gas Station

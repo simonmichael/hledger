@@ -1,0 +1,4 @@
+@dircategory User Applications
+@direntry
+* hledger-ui: (hledger-ui).  Terminal UI for the hledger accounting tool.
+@end direntry

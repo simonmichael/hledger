@@ -7,7 +7,6 @@
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Core.html#g:5
 -- http://hackage.haskell.org/package/brick-0.1/docs/Brick-Widgets-Border.html
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 
 module Hledger.UI.Theme (
@@ -20,14 +19,12 @@ where
 
 import qualified Data.Map as M
 import Data.Maybe
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Graphics.Vty
 import Brick
+import Safe (headErr)
 
 defaultTheme :: AttrMap
-defaultTheme = fromMaybe (snd $ head themesList) $ getTheme "white"
+defaultTheme = fromMaybe (snd $ headErr themesList) $ getTheme "white"  -- PARTIAL headErr succeeds because themesList is non-null
   -- the theme named here should exist;
   -- otherwise it will take the first one from the list,
   -- which must be non-empty.
@@ -69,42 +66,65 @@ select = black `on` selectbg
 themesList :: [(String, AttrMap)]
 themesList = [
    ("default", attrMap (black `on` white) [
-     ("border"                                        , white `on` black & dim)
-    ,("border" <> "bold"                              , currentAttr & bold)
-    ,("border" <> "depth"                             , active)
-    ,("border" <> "filename"                          , currentAttr)
-    ,("border" <> "key"                               , active)  
-    ,("border" <> "minibuffer"                        , white `on` black & bold)
-    ,("border" <> "query"                             , active)
-    ,("border" <> "selected"                          , active)
-    ,("error"                                         , fg red)
-    ,("help"                                          , white `on` black & dim)
-    ,("help" <> "heading"                             , fg yellow)
-    ,("help" <> "key"                                 , active)
-    -- ,("list"                                          , black `on` white)
-    -- ,("list" <> "amount"                              , currentAttr)
-    ,("list" <> "amount" <> "decrease"                , fg red)
-    -- ,("list" <> "amount" <> "increase"                , fg green)
-    ,("list" <> "amount" <> "decrease" <> "selected"  , red `on` selectbg & bold)
-    -- ,("list" <> "amount" <> "increase" <> "selected"  , green `on` selectbg & bold)
-    ,("list" <> "balance"                             , currentAttr & bold)
-    ,("list" <> "balance" <> "negative"               , fg red)
-    ,("list" <> "balance" <> "positive"               , fg black)
-    ,("list" <> "balance" <> "negative" <> "selected" , red `on` selectbg & bold)
-    ,("list" <> "balance" <> "positive" <> "selected" , select & bold)
-    ,("list" <> "selected"                            , select)
-    -- ,("list" <> "accounts"                         , white `on` brightGreen)
-    -- ,("list" <> "selected"                         , black `on` brightYellow)
+     (attrName "border"                                        , white `on` black & dim)
+    ,(attrName "border" <> attrName "bold"                              , currentAttr & bold)
+    ,(attrName "border" <> attrName "depth"                             , active)
+    ,(attrName "border" <> attrName "filename"                          , currentAttr)
+    ,(attrName "border" <> attrName "key"                               , active)
+    ,(attrName "border" <> attrName "minibuffer"                        , white `on` black & bold)
+    ,(attrName "border" <> attrName "query"                             , active)
+    ,(attrName "border" <> attrName "selected"                          , active)
+    ,(attrName "error"                                         , fg red)
+    ,(attrName "help"                                          , white `on` black & dim)
+    ,(attrName "help" <> attrName "heading"                             , fg yellow)
+    ,(attrName "help" <> attrName "key"                                 , active)
+    -- ,(attrName "list"                                          , black `on` white)
+    -- ,(attrName "list" <> attrName "amount"                              , currentAttr)
+    ,(attrName "list" <> attrName "amount" <> attrName "decrease"                , fg red)
+    -- ,(attrName "list" <> attrName "amount" <> attrName "increase"                , fg green)
+    ,(attrName "list" <> attrName "amount" <> attrName "decrease" <> attrName "selected"  , red `on` selectbg & bold)
+    -- ,(attrName "list" <> attrName "amount" <> attrName "increase" <> attrName "selected"  , green `on` selectbg & bold)
+    ,(attrName "list" <> attrName "balance"                             , currentAttr & bold)
+    ,(attrName "list" <> attrName "balance" <> attrName "negative"               , fg red)
+    ,(attrName "list" <> attrName "balance" <> attrName "positive"               , fg black)
+    ,(attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` selectbg & bold)
+    ,(attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , select & bold)
+    ,(attrName "list" <> attrName "selected"                            , select)
+    -- ,(attrName "list" <> attrName "accounts"                         , white `on` brightGreen)
+    -- ,(attrName "list" <> attrName "selected"                         , black `on` brightYellow)
   ])
 
   ,("greenterm", attrMap (green `on` black) [
-    ("list" <> "selected"                             , black `on` green)
+    (attrName "list" <> attrName "selected"                             , black `on` green)
   ])
 
   ,("terminal", attrMap defAttr [
-    ("border"                                         , white `on` black),
-    ("list"                                           , defAttr),
-    ("list" <> "selected"                             , defAttr & reverseVideo)
+    (attrName "border"                                         , white `on` black),
+    (attrName "list"                                           , defAttr),
+    (attrName "list" <> attrName "selected"                             , defAttr & reverseVideo)
+  ])
+
+  ,("dark", attrMap (white `on` black & dim) [
+      (attrName "border"                                                                   , white `on` black)
+    , (attrName "border" <> attrName "bold"                                                , currentAttr & bold)
+    , (attrName "border" <> attrName "depth"                                               , active)
+    , (attrName "border" <> attrName "filename"                                            , currentAttr)
+    , (attrName "border" <> attrName "key"                                                 , active)
+    , (attrName "border" <> attrName "minibuffer"                                          , white `on` black & bold)
+    , (attrName "border" <> attrName "query"                                               , active)
+    , (attrName "border" <> attrName "selected"                                            , active)
+    , (attrName "error"                                                                    , fg red)
+    , (attrName "help"                                                                     , currentAttr & bold)
+    , (attrName "help" <> attrName "heading"                                               , fg blue)
+    , (attrName "help" <> attrName "key"                                                   , active)
+    , (attrName "list" <> attrName "amount" <> attrName "decrease"                         , fg red)
+    , (attrName "list" <> attrName "amount" <> attrName "decrease" <> attrName "selected"  , red `on` black & bold)
+    , (attrName "list" <> attrName "balance"                                               , currentAttr)
+    , (attrName "list" <> attrName "balance" <> attrName "negative"                        , fg red)
+    , (attrName "list" <> attrName "balance" <> attrName "positive"                        , fg white)
+    , (attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` black    & bold)
+    , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , yellow `on` black & bold)
+    , (attrName "list" <> attrName "selected"                                              , yellow `on` black & bold)
   ])
 
   ]

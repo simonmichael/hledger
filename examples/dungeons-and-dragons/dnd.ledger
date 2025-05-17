@@ -1,0 +1,373 @@
+include commodities.ledger
+include prices.ledger
+
+2023-04-01 * Rikdu Creation
+    assets:rikdu:cash         50 gp
+    assets:rikdu:gear          1 backpack
+    assets:rikdu:gear          1 "light armor, studded leather"
+    assets:rikdu:gear          1 rapier
+    assets:rikdu:gear          2 dagger
+    assets:rikdu:gear      1,000 "ball bearings"
+    assets:rikdu:gear         20 caltrops
+    assets:rikdu:gear          1 hammer
+    assets:rikdu:gear         10 piton
+    assets:rikdu:gear          1 "mirror, steel"
+    assets:rikdu:gear          1 "rope, silk (50 feet)"
+    assets:rikdu:gear          1 "thieves' tools"
+    assets:rikdu:spellbook:0   1 "spell, booming blade"
+    equity:eric
+
+2023-04-01 * Pyrite Creation
+    assets:pyrite:gear         1 backpack
+    assets:pyrite:gear         1 shortsword
+    assets:pyrite:gear         1 dart
+    assets:pyrite:gear         1 "rope, hempen (50 feet)"
+    equity:katrina
+
+2023-04-01 * Thunk Creation
+    assets:thunk:gear          1 backpack
+    assets:thunk:gear          1 drum
+    assets:thunk:gear          1 "disguise kit"
+    assets:thunk:gear          1 "rope, hempen (50 feet)"
+    equity:andrew
+
+2023-04-14 * Item grant
+    assets:rikdu:cash         15 gp
+    assets:rikdu:story         1 "rare book"
+    assets:rikdu:gear          1 void
+    assets:rikdu:gear          1 "belt of stone giant strength"
+    assets:rikdu:gear          1 "sending stone"
+    equity:eric
+
+2023-04-14 * Havel Creation
+    assets:havel:cash         10 gp
+    assets:havel:gear          1 longbow
+    assets:havel:gear          1 quiver
+    assets:havel:gear         20 arrows
+    assets:havel:gear          1 robes
+    assets:havel:gear          1 backpack
+    assets:havel:gear          1 spellbook
+    assets:havel:gear          1 "component pouch"
+    assets:havel:gear          1 "woodcarver's tools"
+    assets:havel:spellbook:0   1 "spell, minor illusion"
+    assets:havel:spellbook:0   1 "spell, prestidigitation"
+    assets:havel:spellbook:0   1 "spell, shape water"
+    assets:havel:spellbook:1   1 "spell, comprehend languages"
+    assets:havel:spellbook:1   1 "spell, detect magic"
+    assets:havel:spellbook:1   1 "spell, find familiar"
+    assets:havel:spellbook:1   1 "spell, shield"
+    assets:havel:spellbook:1   1 "spell, sleep"
+    assets:havel:spellbook:1   1 "spell, thunderwave"
+    equity:eric
+
+2023-04-16 * Road to Candlekeep: Jackalweres
+    assets:havel:gear         -2 arrows
+    equity:eric
+
+2023-04-16 * Road to Candlekeep: Fur Traders
+    assets:rikdu:cash          3 gp
+    equity:eric
+
+2023-04-16 * Road to Candlekeep: A Good Night's Rest
+    assets:havel:gear          2 arrows
+    equity:eric
+
+2023-04-18 * Entry into Candlekeep
+    assets:rikdu:story        -1 "rare book"
+    equity:eric
+
+P 2023-04-18 "jeweled letter opener, 20 gp" ₲20
+2023-04-18 * The Joy of Extra-dimensional Spaces: The library
+    assets:rikdu:story         1 "puzzle book, R"
+    assets:rikdu:story         1 "jeweled letter opener, 20 gp"
+    equity:eric
+
+2023-04-18 * The Joy of Extra-dimensional Spaces: Study
+    assets:rikdu:story         1 "puzzle book, I"
+    equity:eric
+
+P 2023-04-19 "alchemical materials, 50 gp" ₲50
+2023-04-19 * The Joy of Extra-dimensional Spaces: Alchemy Lab
+    assets:rikdu:story         1 "puzzle book, B"
+    assets:rikdu:story         1 "alchemical materials, 50 gp"
+    assets:rikdu:gear          1 "potion of healing"
+    assets:havel:gear          1 "potion of healing"
+    equity:eric
+
+P 2023-04-19 "silverware, 20 gp" ₲20
+2023-04-19 * The Joy of Extra-dimensional Spaces: Dining Room
+    assets:rikdu:story         1 "silverware, 20 gp"
+    assets:havel:gear         -1 arrows
+    equity:eric
+
+2023-04-20 * The Joy of Extra-dimensional Spaces: Attic
+    assets:rikdu:story         1 "puzzle book, L"
+    assets:havel:gear          1 "flail, +1"
+    assets:havel:gear         -1 arrows
+    equity:eric
+
+2023-04-20 * The Joy of Extra-dimensional Spaces: Laboratory
+    assets:rikdu:story         1 "puzzle book, T"
+    equity:eric
+
+2023-04-20 * The Joy of Extra-dimensional Spaces: Parlor
+    assets:rikdu:story         1 "puzzle book, Y"
+    assets:havel:gear         -1 arrows
+    equity:eric
+
+2023-04-20 * The Joy of Extra-dimensional Spaces: Parlor
+    assets:rikdu:story         1 "puzzle book, E"
+    equity:eric
+
+2023-04-20 * The Joy of Extra-dimensional Spaces: Balcony
+    assets:rikdu:story        -1 "puzzle book, L"
+    assets:rikdu:story        -1 "puzzle book, I"
+    assets:rikdu:story        -1 "puzzle book, B"
+    assets:rikdu:story        -1 "puzzle book, E"
+    assets:rikdu:story        -1 "puzzle book, R"
+    assets:rikdu:story        -1 "puzzle book, T"
+    assets:rikdu:story        -1 "puzzle book, Y"
+    equity:eric
+
+2023-04-20 * Havel Riverthorn | Level 2
+    assets:havel:spellbook:1   1 "spell, absorb elements"
+    assets:havel:spellbook:1   1 "spell, magic missile"
+    equity:eric
+
+2023-04-23 * Chromatic Orb research
+    assets:havel:spellbook:1   1 "spell, chromatic orb"
+    assets:rikdu:story        -1 "alchemical materials, 50 gp"
+    equity:eric
+
+2023-04-23 * Diamond purchase
+    assets:havel:gear          1 "diamond, 1/4 carat"
+    assets:rikdu:story        -1 "silverware, 20 gp"
+    assets:rikdu:story        -1 "jeweled letter opener, 20 gp"
+    assets:havel:cash        -10 gp
+    equity:eric
+
+2023-04-23 * Mazfroth's Mighty Digressions: Gingwatzim attack
+    assets:havel:gear         -1 arrows
+    equity:eric
+
+2023-04-23 * Mazfroth's Mighty Digressions: Travel
+    assets:havel:gear          4 arrows
+    equity:eric
+
+2023-04-25 * Transfer
+    assets:havel:cash         50 gp
+    assets:rikdu:cash
+
+2023-04-25 * Wizards of The Wide | Scroll purchase
+    assets:havel:gear          1 "spell scroll, unseen servant"
+    assets:havel:cash        -25 gp
+    equity:eric
+
+2023-04-25 * Successfully copy Unseen Servant scroll to spellbook
+    assets:havel:gear         -1 "spell scroll, unseen servant"
+    assets:havel:spellbook:1   1 "spell, unseen servant"
+    equity:eric
+
+2023-04-25 * Wizards of The Wide | Scroll barter
+    assets:havel:gear          1 "spell scroll, feather fall"
+    assets:havel:gear         -1 "potion of healing"
+    equity:eric
+
+2023-04-25 * Successfully copied Feather Fall scroll to spellbook
+    assets:havel:gear         -1 "spell scroll, feather fall"
+    assets:havel:spellbook:1   1 "spell, feather fall"
+    equity:eric
+
+2023-04-25 * Recovered rare books
+    assets:rikdu:story         1 "book, mazfroth's mighty digressions"
+    assets:rikdu:story         1 "book, the dark hunger"
+    assets:rikdu:story         1 "book, fallen tethyamar"
+    equity:eric
+
+2023-04-25 * Selling Martial Attack Techniques
+    assets:havel:cash        -25 gp
+    assets:havel:cash        600 gp
+    assets:havel:gear         -1 "flail, +1"
+    equity:eric
+
+2023-04-25 * Buying tools
+    assets:havel:cash        -10 gp
+    assets:havel:gear          1 "leatherworker's tools"
+    assets:havel:gear          1 "herbalism kit"
+    equity:eric
+
+2023-04-26 * Mazfroth's Mighty Digressions: Completion
+    assets:rikdu:story        -1 "book, mazfroth's mighty digressions"
+    assets:rikdu:story        -1 "book, the dark hunger"
+    assets:rikdu:story        -1 "book, fallen tethyamar"
+    assets:havel:gear          1 "helm of comprehending languages"
+    equity:eric
+
+2023-04-26 * Havel Riverthorn | Level 3
+    assets:havel:spellbook:2   1 "spell, dragon's breath"
+    assets:havel:spellbook:2   1 "spell, enhance ability"
+    equity:eric
+
+2023-04-26 * Crafting an Arcane Grimoire
+    assets:havel:cash       -200 gp
+    assets:havel:gear         -1 spellbook
+    assets:havel:gear          1 "arcane grimoire, +1"
+    equity:eric
+
+2023-04-26 * Cantrip Formulas
+    assets:havel:spellbook:0  -1 "spell, prestidigitation"
+    assets:havel:spellbook:0   1 "spell, fire bolt"
+    equity:eric
+
+2023-05-07 * Druid ambush
+    assets:rikdu:gear          1 "slippers of spider climbing"
+    assets:rikdu:story         1 "vial of pure arsenic"
+    equity:eric
+
+2023-05-07 * Bugbears and the Faerie Dragon
+    assets:rikdu:cash         15 gp
+    assets:havel:cash         15 gp
+    equity:eric
+
+2023-05-07 * Bugbears and the Faerie Dragon
+    assets:rikdu:cash          5 sp
+    assets:havel:cash          5 sp
+    equity:eric
+
+P 2023-05-10 "holy symbol of sune, 25 gp" ₲25
+2023-05-10 * Brontifax Chalet | Well diving
+    assets:rikdu:story         1 "holy symbol of sune, 25 gp"
+    equity:eric
+
+2023-05-11 * Brontifax Chalet | Study desk
+    assets:rikdu:gear          1 "calligrapher's supplies"
+    equity:eric
+
+2023-05-11 * Brontifax Chalet | Amulet activation
+    assets:rikdu:story        -1 "holy symbol of sune, 25 gp"
+    assets:rikdu:gear          1 "charm of heroism"
+    equity:eric
+
+2023-05-12 * Brontifax Chalet | Midnight Return
+    assets:rikdu:story         1 "orcus figurine"
+    assets:rikdu:gear          1 "potion of mind reading"
+    equity:eric
+
+2023-05-12 * Havel Riverthorn | Level 4
+    assets:havel:spellbook:0   1 "spell, mage hand"
+    assets:havel:spellbook:2   1 "spell, invisibility"
+    assets:havel:spellbook:2   1 "spell, web"
+    equity:eric
+
+2023-05-12 * Sending loot to the dragon
+    assets:rikdu:story        -1 "orcus figurine"
+    assets:rikdu:story        -1 "vial of pure arsenic"
+    equity:eric
+
+2023-05-25 * Bored Weasel | Lodging
+    assets:rikdu:cash         -5 sp
+    assets:havel:cash         -5 sp
+    equity:eric
+
+2023-05-25 * Maerin | Supplies
+    assets:rikdu:gear          6 "rations (1 day)"
+    assets:rikdu:cash         -3 gp
+    assets:havel:gear          6 "rations (1 day)"
+    assets:havel:cash         -3 gp
+    equity:eric
+
+2023-05-25 * Traveling
+    assets:rikdu:gear         -1 "rations (1 day)"
+    assets:havel:gear         -1 "rations (1 day)"
+    equity:eric
+
+2023-05-25 * Red Dragon | Tip
+    assets:havel:cash         10 gp
+    equity:eric
+
+2023-05-25 * Traveling
+    assets:rikdu:gear         -1 "rations (1 day)"
+    assets:havel:gear         -1 "rations (1 day)"
+    equity:eric
+
+2023-05-25 * Traveling
+    assets:rikdu:gear         -1 "rations (1 day)"
+    assets:havel:gear         -1 "rations (1 day)"
+    equity:eric
+
+2023-05-25 * Vermeillon | Merchant cart
+    assets:rikdu:cash         15 gp
+    equity:eric
+
+P 2023-05-25 "lukas's pendant, 20 gp" ₲20
+2023-05-25 * Vermeillon | Pendant in tree
+    assets:rikdu:story         1 "lukas's pendant, 20 gp"
+    equity:eric
+
+P 2023-05-25 "platinum chunk, 25 gp" ₲25
+P 2023-05-25 "signet ring, 75 gp" ₲75
+2023-05-25 * Vermeillon | Mayor's house
+    assets:rikdu:story         1 "platinum chunk, 25 gp"
+    assets:rikdu:story         1 "signet ring, 75 gp"
+    assets:havel:story         1 "vermeillon mayor's journal"
+    equity:eric
+
+P 2023-05-25 "platinum inlaid shortsword, 25 gp" ₲25
+P 2023-05-25 "platinum inlaid shield, 50 gp" ₲25
+2023-05-25 * Vermeillon | Blacksmith
+    assets:rikdu:story         2 "platinum inlaid shortsword, 25 gp"
+    assets:rikdu:story         1 "platinum inlaid shield, 50 gp"
+    equity:eric
+
+2023-05-25 * Platinum mines | Corroded dagger
+    assets:rikdu:gear         -1 dagger
+    equity:eric
+
+P 2023-05-25 "ivory drinking horn, 120 gp" ₲120
+2023-05-25 * Vermeillon | Meenlock treasure
+    assets:rikdu:story         1 "ivory drinking horn, 120 gp"
+    assets:rikdu:gear          1 "goggles of night"
+    assets:rikdu:cash         50 gp
+    equity:eric
+
+2023-05-25 * Traveling
+    assets:rikdu:gear         -3 "rations (1 day)"
+    assets:havel:gear         -3 "rations (1 day)"
+    equity:eric
+
+2023-05-25 * Maerin | Returning the pendant
+    assets:rikdu:story        -1 "lukas's pendant, 20 gp"
+    equity:eric
+
+2023-05-25 * Maerin | Selling loot
+    assets:rikdu:story        -2 "platinum inlaid shortsword, 25 gp"
+    assets:rikdu:story        -1 "platinum inlaid shield, 50 gp"
+    assets:rikdu:story        -1 "platinum chunk, 25 gp"
+    assets:rikdu:story        -1 "ivory drinking horn, 120 gp"
+    assets:rikdu:story        -1 "signet ring, 75 gp"
+    assets:rikdu:cash        320 gp
+    equity:eric
+
+2023-05-25 * Maerin | Replacement dagger
+    assets:rikdu:gear          1 dagger
+    assets:rikdu:cash         -2 gp
+    equity:eric
+
+2023-05-25 * Candlekeep | Journal donation
+    assets:havel:story        -1 "vermeillon mayor's journal"
+    equity:eric
+
+2023-05-25 * Havel Riverthorn | Level 5
+    assets:havel:spellbook:3   1 "spell, fireball"
+    assets:havel:spellbook:3   1 "spell, hypnotic pattern"
+    equity:eric
+
+2023-05-25 * Havel Riverthorn | Copying spellbooks
+    assets:havel:spellbook:3   1 "spell, leomund's tiny hut"
+    assets:havel:spellbook:3   1 "spell, phantom steed"
+    assets:havel:cash       -300 gp
+    equity:eric
+
+2023-05-25 * Avowed | Reward
+    assets:havel:gear          1 "bag of holding"
+    equity:eric

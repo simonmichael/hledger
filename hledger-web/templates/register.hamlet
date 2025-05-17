@@ -2,7 +2,7 @@
   #{header}
 
 <div .hidden-xs>
-  ^{registerChartHtml $ transactionsReportByCommodity r}
+  ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
 
 <div.table-responsive>
   <table .table.table-striped.table-condensed>
@@ -15,13 +15,13 @@
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
         <th style="text-align:right; white-space:normal;">
-          #{balancelabel'}
+          #{balancelabel}
 
     <tbody>
       $forall (torig, tacct, split, _acct, amt, bal) <- items
         <tr ##{tindex torig} title="#{showTransaction torig}" style="vertical-align:top;">
           <td .date>
-            <a href="@{JournalR}#transaction-#{tindex torig}">
+            <a href="@?{(JournalR, [("q", T.unwords $ removeInacct qparam)])}##{transactionFrag torig}">
               #{show (tdate tacct)}
           <td>
             #{textElideRight 30 (tdescription tacct)}
@@ -30,10 +30,10 @@
               <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
                 #{summName}</a>#{comma}
           <td .amount style="text-align:right; white-space:nowrap;">
-            $if not split || not (isZeroMixedAmount amt)
+            $if not split || not (mixedAmountLooksZero amt)
               ^{mixedAmountAsHtml amt}
           <td style="text-align:right;">
             ^{mixedAmountAsHtml bal}
 
-$if elem CapAdd caps
+$if elem AddPermission perms
   ^{addModal AddR j today}

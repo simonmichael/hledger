@@ -1,3 +1,4 @@
+# coinbase-common.rules
 # Common hledger CSV rules for coinbase per-account reports
 # (https://www.coinbase.com/reports, type: transaction history)
 # Sample:

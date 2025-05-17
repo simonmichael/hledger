@@ -1,0 +1,80 @@
+# Here's a (verbose) hledger config file, providing extra options/arguments.
+# You can try it with --conf CONFFILE, or save it as ~/.hledger.conf
+# (or ~/.config/hledger/hledger.conf, or hledger.conf in/above current directory),
+# and hledger will use it automatically.
+# Note automatic config files are convenient, but it's easy to confuse yourself,
+# disrupt reports, or break hledger-using scripts/applications.
+# If a command is not working as expected, try it with -n to disable config files,
+# or run it with --debug or --debug=8 to troubleshoot.
+# https://hledger.org/dev/hledger.html#config-files
+
+
+# 1. General options. These will be used with all commands which support them.
+
+# https://hledger.org/dev/hledger.html#output
+# If you need to turn off any of these, I'd like to hear details:
+--pretty     # Show prettier tables in reports ? Recommended on most systems.
+#--color=no  # Disable ANSI color and font styling in the terminal ?
+#--pager=no  # Disable paging of long output in the terminal ?
+
+# Postpone balance assertions until you use -s or `hledger check assertions` ?
+# It means less need to add -I while piping or fixing problems.
+--ignore-assertions    # https://hledger.org/hledger.html#balance-assertions
+
+# Always infer these things ? Why not.
+# https://hledger.org/hledger.html#--infer-market-prices-market-prices-from-transactions
+# https://hledger.org/hledger.html#equity-conversion-postings
+# https://hledger.org/hledger.html#inferring-equity-conversion-postings
+--infer-market-prices
+--infer-costs
+#--infer-equity
+#
+# If you enable --infer-equity and use hledger check accounts or hledger check -s,
+# you might need to add account declarations to your journal, something like:
+# account equity:conversion:CUR1-CUR2:CUR1
+# account equity:conversion:CUR1-CUR2:CUR2
+
+
+# 2. Command-specific options.
+
+# https://hledger.org/hledger.html#print
+[print]
+--explicit     # show inferred amounts
+--show-costs   # show inferred costs
+
+# https://hledger.org/hledger.html#help
+[help]
+#--man          # if you prefer man over info
+
+# Set some defaults for the balance commands ?
+# You can override these by adding more options on the command line.
+# [balance]            --layout=bare --tree --depth 3
+# [balancesheet]       --layout=bare --tree --depth 3
+# [balancesheetequity] --layout=bare --tree --depth 3
+# [cashflow]           --layout=bare --tree --depth 3
+# [incomestatement]    --layout=bare --tree --depth 3
+
+
+# You can also set options for add-on commands here. This works only if
+# you run them with hledger (`hledger ui ...`, not `hledger-ui ...`).
+# Note they will also respect the general options above
+# (hledger-ui and hledger-web will, at least).
+
+# https://hledger.org/hledger-ui.html
+# Start in the "Cash accounts" screen, with a depth limit,
+# hiding zeros and equity accounts, and watch for file changes.
+[ui] --cash -3 -E not:type:e --watch
+
+# https://hledger.org/hledger-web.html
+[web] --port 5050 --allow edit
+
+# https://hledger.org/scripts.html#hledger-iadd
+[iadd] --date-format %Y-%m-%d
+
+# https://hledger.org/scripts.html#hledger-interest
+#[interest]
+# --annual 0.05
+# --30-360
+# --source SRCACCT
+# --target DSTACCT
+# ACCT

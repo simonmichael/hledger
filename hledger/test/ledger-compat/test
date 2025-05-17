@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# run all the ledger compatibility tests and log the results as an org file
+
+set -e
+mkdir -p log
+time \
+    shelltest extra ledger-baseline ledger-regress --execdir -j8 --hide-successes \
+    | tee log/latest
+
+(echo "* Tested $(date +%Y-%m-%d) with $(hledger --version)"; \
+ echo "** failures") >log/latest.org
+perl -p -e 's/^:/*** ..\//' log/latest \
+    | perl -p -e 's/ +Test Cases +Total +/** Summary/' \
+      >>log/latest.org
+cat >>log/latest.org <<EOF
+
+# Local Variables:
+# eval: (highlight-lines-matching-regexp "^\\*\\*\\* " 'hi-black-b)
+# eval: (highlight-lines-matching-regexp "|" 'hi-pink)
+# End:
+EOF
+cp log/latest.org log/"$(date +%Y%m%d)".org

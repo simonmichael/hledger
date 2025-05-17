@@ -1,20 +1,24 @@
-{- 
+{-
 Run doctests in Hledger source files under the current directory
 (./Hledger.hs, ./Hledger/**, ./Text/**) using the doctest runner.
+
+https://github.com/sol/doctest#readme
 
 Arguments are case-insensitive file path substrings, to limit the files searched.
 --verbose shows files being searched for doctests and progress while running.
 --slow reloads ghci between each test (https://github.com/sol/doctest#a-note-on-performance).
 
 Eg, in hledger source dir:
- 
+
 $ make ghci-doctest, :main [--verbose] [--slow] [CIFILEPATHSUBSTRINGS]
 
 or:
 
-$ stack test hledger-lib:test:doctests [--test-arguments '[--verbose] [--slow] [CIFILEPATHSUBSTRINGS]']
+$ stack test hledger-lib:test:doctest --test-arguments="--verbose --slow [CIFILEPATHSUBSTRINGS]"
 
 -}
+-- This file can't be called doctest.hs ("File name does not match module name")
+
 
 {-# LANGUAGE PackageImports #-}
 
@@ -25,6 +29,7 @@ import System.Environment
 import "Glob" System.FilePath.Glob
 import Test.DocTest
 
+main :: IO ()
 main = do
   args <- getArgs
   let
@@ -40,20 +45,20 @@ main = do
     ]
 
   -- filter by patterns (case insensitive infix substring match)
-  let 
+  let
     fs | null pats = sourcefiles
        | otherwise = [f | f <- sourcefiles, let f' = map toLower f, any (`isInfixOf` f') pats']
           where pats' = map (map toLower) pats
     fslen = length fs
-  
+
   if (null fs)
   then do
     putStrLn $ "No file paths found matching: " ++ unwords pats
 
   else do
-    putStrLn $ 
-      "Loading and searching for doctests in " 
-      ++ show fslen 
+    putStrLn $
+      "Loading and searching for doctests in "
+      ++ show fslen
       ++ if fslen > 1 then " files, plus any files they import:" else " file, plus any files it imports:"
     when verbose $ putStrLn $ unwords fs
 

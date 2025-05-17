@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# push [INTERVALSECS] - push master to github CI branch, watch for a successful run, then push to github master
+
+set -e
+
+INTERVAL="${1:-10}"
+
+LOCALBRANCH=master
+REMOTE=origin
+REMOTECIBRANCH=ci
+REMOTEMAINBRANCH=master
+NUMRUNS=3
+NUMCOMMITS=5
+CISTARTDELAY=5   # between ci push and run start
+MAINPUSHDELAY=5  # between run end and master push
+
+gitlog() {
+    REF=$1
+    git log --format='%ad %h %s%d' --date=short -$NUMCOMMITS ${REF:+"$REF"}
+}
+
+runlog() {
+    echo "latest runs are:"
+    gh run list -L$NUMRUNS
+}
+
+ciwait() {
+    runlog
+    echo "waiting for CI to start..."
+    sleep $CISTARTDELAY
+    runlog
+    echo "waiting for CI to finish..."
+    ciwatch "$INTERVAL"
+    runlog
+    echo "waiting for master to notice CI success..."
+    sleep $MAINPUSHDELAY
+}
+
+# ensure git's output paging doesn't stop progress
+export PAGER=cat
+
+echo "latest local commits are:"
+gitlog
+echo "force-pushing $LOCALBRANCH to $REMOTE/$REMOTECIBRANCH"
+git push -f $REMOTE $LOCALBRANCH:$REMOTECIBRANCH
+ciwait
+echo "pushing CI-passing $LOCALBRANCH to $REMOTE/$REMOTEMAINBRANCH"
+git push $REMOTE $LOCALBRANCH:$REMOTEMAINBRANCH
+echo "latest commits on $REMOTE/$REMOTEMAINBRANCH are:"
+gitlog $REMOTE/$REMOTEMAINBRANCH
+echo "done"

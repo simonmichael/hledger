@@ -1,0 +1,358 @@
+# * valuation tests, part 2.
+
+<
+; some market prices
+P 2019-01-01 B   10 A
+P 2019-01-01 C    2 B
+P 2019-01-01 A  100 D
+P 2019-01-01 E    3 D
+
+; a transaction with both amounts in B
+2019-06-01
+    a  1 B
+    b
+
+; tests follow. This comment directive makes this file readable
+; by hledger, as well as shelltest; useful when troubleshooting.
+comment
+
+# ** 1. normal unvalued output
+$ hledger -f- print -x
+2019-06-01
+    a             1 B
+    b            -1 B
+
+>=
+
+# ** 2. current market value in default valuation commodity
+$ hledger -f- print -x -V
+2019-06-01
+    a            10 A
+    b           -10 A
+
+>=
+
+# ** 3. same as above, but request commodity A explicitly
+$ hledger -f- print -x --value=now,A
+2019-06-01
+    a            10 A
+    b           -10 A
+
+>=
+
+# ** 4. request commodity B - no effect
+$ hledger -f- print -x --value=now,B
+2019-06-01
+    a             1 B
+    b            -1 B
+
+>=
+
+# ** 5. request commodity we don't have prices for - no effect
+$ hledger -f- print -x --value=now,Z
+2019-06-01
+    a             1 B
+    b            -1 B
+
+>=
+
+# ** 6. request commodity C - uses reverse of C->B price.
+# There's nothing setting C display style, so the default style is used,
+# but the precision is increased to show all significant decimal digits
+# (otherwise it would show C0).
+$ hledger -f- print -x --value=now,C
+2019-06-01
+    a            C0.5
+    b           C-0.5
+
+>=
+
+# ** 7. request commodity D - chains B->A, A->D prices
+$ hledger -f- print -x --value=now,D
+2019-06-01
+    a          1000 D
+    b         -1000 D
+
+>=
+
+# ** 8. request commodity E - chains B->A, A->D, reverse of D->E prices.
+# As with C above, E gets the default display style, but with the precision
+# increased to show the decimal digits, but no more than 8.
+$ hledger -f- print -x --value=now,E
+2019-06-01
+    a     E333.33333333
+    b    E-333.33333333
+
+>=
+
+# Document some print behaviour. 
+# I think I've forgotten some other weird cases meant for here.
+# First an example with no market price, just a transaction price.
+# ** 9. Normal print output.
+<
+2000/01/01
+    a         -1A @ 1B
+    b          1B
+
+$ hledger -f- print
+2000-01-01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# ** 10. Valuing in a commodity with no market price has no effect.
+$ hledger -f- print -XZ
+2000-01-01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# ** 11. -B converts to the transaction price's commodity.
+$ hledger -f- print -B
+2000-01-01
+    a             -1B
+    b              1B
+
+>=0
+
+# ** 12. Note the -XZ does not nullify the -B here.
+# (-B -XZ is equivalent to --cost --value=end,Z).
+$ hledger -f- print -B -XZ
+2000-01-01
+    a             -1B
+    b              1B
+
+>=0
+
+# With a market price: same as above.
+<
+P 2000/1/1 A 1B
+
+2000/01/01
+    a         -1A @ 1B
+    b          1B
+
+# ** 13. 
+$ hledger -f- print
+2000-01-01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# ** 14. 
+$ hledger -f- print -XZ
+2000-01-01
+    a        -1A @ 1B
+    b              1B
+
+>=0
+
+# ** 15. 
+$ hledger -f- print -B
+2000-01-01
+    a             -1B
+    b              1B
+
+>=0
+
+# ** 16. 
+$ hledger -f- print -B -XA
+2000-01-01
+    a             -1A
+    b              1A
+
+>=0
+
+# A few more tests for -V (and -X, which should work similarly). #1083.
+<
+P 2000/01/01 A  2 B
+P 2002/01/01 A  3 B
+
+2000/01/01
+  (a)      1 A
+
+# ** 17. -V uses today as the default valuation date, unlike --value=end.
+$ hledger -f- reg -V
+2000-01-01                      (a)                            3 B           3 B
+
+# ** 18. -V uses the report end date, if specified, as valuation date.
+$ hledger -f- reg -V -e 2001
+2000-01-01                      (a)                            2 B           2 B
+
+# ** 19. In balance reports too.
+$ hledger -f- bal -N -V
+                 3 B  a
+
+# ** 20.
+$ hledger -f- bal -N -V -e 2001
+                 2 B  a
+
+#
+<
+P 2001/01/01 A  1 B
+P 2002/01/01 A  2 B
+
+2000-01-01
+  (a)  1 A
+
+# ** 21. The valuation date is the last day of the report period. In
+# other words, the report end date is exclusive with respect to price
+# directives. This is a change from older hledger and Ledger, where it
+# was inclusive.
+$ hledger -f- bal -N -V -e 2002-01-01
+                 1 B  a
+
+# Test market prices inferred from transactions.
+
+# ** 22. Market price is not inferred from transactions by default.
+<
+2020-01-01
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V
+                 1 A  a
+
+# ** 23. Market price is inferred from transactions with --infer-market-prices,
+# and -V can work with no P directives.
+$ hledger -f- bal -N -V --infer-market-prices
+                  B2  a
+
+# ** 24. A P-declared market price on the same date as a transaction price has precedence.
+<
+P 2020-01-01 A  1 B
+
+2020-01-01
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V --infer-market-prices
+                 1 B  a
+
+# ** 25. A transaction-inferred price newer than a P-declared price has precedence.
+<
+P 2020-01-01 A  1 B
+
+2020-01-02
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V --infer-market-prices
+                 2 B  a
+
+# ** 26. A later-dated P directive sets the valuation commodity even if parsed out of order.
+<
+P 2020-02-01 A  1 C
+P 2020-01-01 A  1 B
+
+2020-02-01
+  (a)   1 A @ 2 B
+
+$ hledger -f- bal -N -V
+                 1 C  a
+
+# ** 27. A later-dated transaction price sets the valuation commodity even if parsed out of order.
+<
+2020-01-01
+  (a)   1 A @ 1 C  ; date: 2020-01-02
+  (a)   1 A @ 1 D  ; date: 2020-01-02
+  (a)   1 A @ 1 B
+
+$ hledger -f- bal -N -V --infer-market-prices
+                  D3  a
+
+# ** 28. #1402 It should pick the direct (forward) A 3.00 price for B here,
+# not the reverse price.
+<
+2020-11-10 
+    (a)  B 1.00
+
+P 2020-11-01 B A 3.00
+P 2020-11-02 A B 0.40
+
+$ hledger -f- bal -N -e 2020-11-20 -X A
+              A 3.00  a
+
+# ** 29. #1402 It should pick the direct B->A price here, not the indirect B->C->A price.
+<
+2020-11-10
+    (a)  B 1.00
+
+P 2020-11-01 B C 2
+P 2020-11-02 C A 3
+P 2020-11-03 B A 5
+
+$ hledger -f- bal -N -e 2020-11-20 -X A
+                 A 5  a
+
+# ** 30. #1439 Lots of price edges like the below should not cause any slowdown.
+<
+2020-01-01
+  (a)  1A
+
+P 2020-01-01 Z 1A
+P 2020-01-01 A 10Y
+P 2020-01-01 B 20Y
+P 2020-01-01 C 30Y
+P 2020-01-01 D 40Y
+P 2020-01-01 E 50Y
+P 2020-01-01 F 60Y
+P 2020-01-01 G 70Y
+P 2020-01-01 H 80Y
+P 2020-01-01 I 90Y
+P 2020-01-01 J 100Y
+P 2020-01-01 K 120Y
+P 2020-01-01 L 130Y
+P 2020-01-01 M 140Y
+
+$ hledger -f- bal -N -X Z
+                  Z1  a
+
+# ** 31. #1443 It should always pick the shortest price path, A>P>Z here.
+<
+2020-01-01
+  (a)  1A
+
+P 2020-01-01 A 1B
+P 2020-01-01 B 1C
+P 2020-01-01 C 1D
+P 2020-01-01 D 1Z
+
+P 2020-01-01 A 1P
+P 2020-01-01 P 100Z
+
+$ hledger -f- bal -N -X Z
+                100Z  a
+
+# ** 32. #1851 It should use posting date 2 if requested.
+<
+2019-12-31 FOO
+    Assets:A        $1.00
+    Income:B
+
+2020-01-01=2019-12-30 BAR
+    Assets:A        $1.00
+    Income:B
+
+$ hledger -f- bal -Y --date2 -V -N
+Balance changes in 2019, valued at period ends:
+
+          ||   2019 
+==========++========
+ Assets:A ||  $2.00 
+ Income:B || $-2.00 
+
+# ** 33. #2254 Conversion rates should not be display-rounded during value calculation.
+# 100 * 10.5 * 100.5 = 105525
+<
+P 2000-01-01 A   10.5 B
+P 2000-01-01 B  100.5 C
+
+2000-01-01
+    (a)    100 A
+
+$ hledger -f- print -X C
+2000-01-01
+    (a)        105525 C
+
+>=

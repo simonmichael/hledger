@@ -2,7 +2,7 @@
   Your journal's files
 
 <div.row>
-  <div .col-xs-12.col-sm-8.col-md-6>
+  <div .col-md-6.col-sm-8.col-xs-12>
     <table .table.table-condensed>
       <thead>
         <th>

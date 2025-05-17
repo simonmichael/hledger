@@ -1,0 +1,10 @@
+; 最上位の勘定タイプ。サブアカウントはこれらを継承します。
+; (機械翻訳)
+account 資産                       ; type:A
+account 資産:銀行預金              ; type:C
+account 資産:現金                  ; type:C
+account 負債                       ; type:L
+account 純資産                     ; type:E
+account 純資産:為替差損益          ; type:V
+account 収益                       ; type:R
+account 費用                       ; type:X

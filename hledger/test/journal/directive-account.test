@@ -1,0 +1,107 @@
+# * account directive
+
+# ** 1. "apply account" and "alias" affect "account" directives.
+<
+apply account c
+alias c:a=b
+account a
+$ hledger -f - accounts
+b
+
+# ** 2. account directives can declare account type.
+# Here "asset" is a liability, despite the name. So are its subaccounts.
+# "b" is a liability. "b:bb" is an asset.
+<
+; a liability
+account asset  ; type:L
+; an asset
+account b:bb   ; type:A
+; a liability
+account b      ; type:L
+
+2018/1/1
+  (asset:a)  1
+  (b)        2
+  (b:bb)     3
+
+$ hledger -f - bs -N --flat
+Balance Sheet 2018-01-01
+
+             || 2018-01-01 
+=============++============
+ Assets      ||            
+-------------++------------
+ b:bb        ||          3 
+=============++============
+ Liabilities ||            
+-------------++------------
+ asset:a     ||         -1 
+ b           ||         -2 
+
+# ** 3. Tree mode. A little weird, b appears twice.
+# It must be shown above bb, but since not an asset, its balance is excluded there.
+# It is shown again in the liabilities section, this time with balance.
+$ hledger -f - bs -N
+Balance Sheet 2018-01-01
+
+             || 2018-01-01 
+=============++============
+ Assets      ||            
+-------------++------------
+ b:bb        ||          3 
+=============++============
+ Liabilities ||            
+-------------++------------
+ asset:a     ||         -1 
+ b           ||         -2 
+
+# ** 4. It ignores subdirectives.
+<
+account Expenses:Food
+    note This account is all about the chicken!
+    alias food
+    payee ^(KFC|Popeyes)$
+    check commodity == "$"
+    assert commodity == "$"
+    eval print("Hello!")
+    default
+$ hledger -f- accounts
+Expenses:Food
+
+# ** 5. It does not allow parentheses in names.
+<
+account (a)
+
+$ hledger -f- accounts
+>2 /Error: -:1:9:
+  \|
+1 \| account \(a\)
+  \|         \^
+unexpected '\('
+expecting account name without brackets
+/
+>=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
+
+# ** 6. It does not allow brackets in names.
+<
+account [a]
+
+$ hledger -f- accounts
+>2 /Error: -:1:9:
+  \|
+1 \| account \[a\]
+  \|         \^
+unexpected '\['
+expecting account name without brackets
+/
+>=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
+
+# TODO
+# a trailing : should give a clear error
+# 2009/1/1
+#  a:  1
+# $ hledger -f - print
+# >2 /accountname seems ill-formed: a:/
+# >= 1

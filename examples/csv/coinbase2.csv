@@ -1,0 +1,7 @@
+Timestamp,Balance,Amount,Currency,To,Notes,Instantly Exchanged,Transfer Total,Transfer Total Currency,Transfer Fee,Transfer Fee Currency,Transfer Payment Method,Transfer ID,Order Price,Order Currency,Order BTC,Order Tracking Code,Order Custom Parameter,Order Paid Out,Recurring Payment ID,Coinbase ID (visit https://www.coinbase.com/transactions/[ID] in your browser),Bitcoin Hash (visit https://www.coinbase.com/tx/[HASH] in your browser for more info)
+2017-09-29 15:40:00 -0700,0.00314664,0.00314664,BTC,12345.0,Bought 0.00314664 BTC for £10.99 GBP.,false,10.00,GBP,0.99,GBP,Visa debit ********1234,1111.0,,,,,,,,1111.0,
+2017-09-29 15:40:00 -0700,,,,12345.0,Coinbase Fee,false,0.99,GBP,,,Visa debit ********1234,1111.0,,,,,,,,1111.0,
+2017-10-04 16:20:00 -0700,0.00621194,0.0030653,BTC,12345.0,Bought 0.0030653 BTC for £10.99 GBP.,false,10.00,GBP,0.99,GBP,Visa debit ********1234,2222.0,,,,,,,,2222.0,
+2017-10-04 16:20:00 -0700,,,,12345.0,Coinbase Fee,false,0.99,GBP,,,Visa debit ********1234,2222.0,,,,,,,,2222.0,
+2017-11-01 16:00:00 -0700,0.00797348,0.00176154,BTC,12345.0,Bought 0.00176154 BTC for £10.00 GBP.,false,9.01,GBP,0.99,GBP,Visa debit ********1234,3333.0,,,,,,,,3333.0,
+2017-11-01 16:00:00 -0700,,,,12345.0,Coinbase Fee,false,0.99,GBP,,,Visa debit ********1234,3333.0,,,,,,,,3333.0,

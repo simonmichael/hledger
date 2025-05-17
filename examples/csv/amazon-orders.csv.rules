@@ -1,0 +1,36 @@
+# amazon-orders.csv.rules
+
+# skip one header line
+skip 1
+
+# name the csv fields, and assign the transaction's date, amount and code.
+# Avoided the "status" and "amount" hledger field names to prevent confusion.
+fields date, _, toorfrom, name, amzstatus, amzamount, fees, code
+
+# how to parse the date
+date-format %b %-d, %Y
+
+# combine two fields to make the description
+description %toorfrom %name
+
+# save the status as a tag
+comment     status:%amzstatus
+
+# set the base account for all transactions
+account1    assets:amazon
+# leave amount1 blank so it can balance the other(s).
+# I'm assuming amzamount excludes the fees, don't remember
+
+# set a generic account2
+account2    expenses:misc
+amount2     %amzamount
+# and maybe refine it further:
+#include categorisation.rules
+
+# add a third posting for fees, but only if they are non-zero.
+# Commas in the data makes counting fields hard, so count from the right instead.
+# (Regex translation: "a field containing a non-zero dollar amount, 
+# immediately before the 1 right-most fields")
+if %fees [1-9]
+ account3    expenses:fees
+ amount3     %fees

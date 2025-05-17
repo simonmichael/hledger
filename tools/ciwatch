@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# ciwatch [INTERVALSECS] - watch the latest Github actions run until it completes, returning the exit status
+
+INTERVAL="${1:-10}"
+
+LATESTRUNNING=$(gh run list --json status,databaseId -q '.[] | select(.status | in({"in_progress":0,"queued":0,"requested":0,"waiting":0})).databaseId' | head -1)
+
+if [[ -n $LATESTRUNNING ]]; then
+    gh run watch -i"$INTERVAL" "$LATESTRUNNING" --exit-status
+else
+    echo "no runs in progress, attempting push"
+fi

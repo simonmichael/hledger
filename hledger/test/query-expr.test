@@ -1,0 +1,193 @@
+# * expr: (boolean) queries
+
+<
+2022-01-01 Transaction 1       ; transactiontag:A
+    assets:bank:main       -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2       ; transactiontag:A
+    assets:bank:main       -1
+    assets:bank:secondary  -1  ; atag:a
+    expenses:food
+
+2022-01-01 Transaction 3       ; transactiontag:B
+    assets:bank:main       -1  ; A comment
+    expenses:drink
+
+2022-01-01 Transaction 4       ; transactiontag:B
+    assets:bank:main       -1  ; A comment
+    expenses:food           2
+    expenses:drink
+
+# ** 1. Simple queries can be directly embedded in expression queries
+$ hledger -f - print expr:"tag:transactiontag=B"
+2022-01-01 Transaction 3  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:drink
+
+2022-01-01 Transaction 4  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:food                  2
+    expenses:drink
+
+>=
+
+# ** 2. Simple queries can be encased in an arbitrary number of parentheses
+$ hledger -f - print "expr:(((tag:transactiontag=B)))"
+2022-01-01 Transaction 3  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:drink
+
+2022-01-01 Transaction 4  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:food                  2
+    expenses:drink
+
+>=
+
+# ** 3. Simple boolean AND query works
+$ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3"
+2022-01-01 Transaction 3  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:drink
+
+>=
+
+# ** 4. AND + OR works without parentheses
+$ hledger -f - print expr:"tag:'transactiontag=B' AND desc:3 OR desc:1"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 3  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:drink
+
+>=
+
+# ** 5. Unnecessary NOT + OR works without parentheses
+$ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:1"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+>=
+
+# ** 6. Necessary NOT + OR works without parentheses
+$ hledger -f - print expr:"NOT tag:'transactiontag=B' OR desc:4"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+2022-01-01 Transaction 4  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:food                  2
+    expenses:drink
+
+>=
+
+# ** 7. Boolean expression query keywords are case insensitive
+$ hledger -f - print expr:"NoT tag:'transactiontag=B' OR desc:4"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+2022-01-01 Transaction 4  ; transactiontag:B
+    assets:bank:main              -1  ; A comment
+    expenses:food                  2
+    expenses:drink
+
+>=
+
+# ** 8. Lower case not is not confused with existing not: queries
+$ hledger -f - print expr:"not tag:transactiontag=B"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+>=
+
+# ** 9. Having parentheses directly follow 'not' sees 'not' as part of a query.
+$ hledger -f - print expr:"not(tag:transactiontag=B)"
+>2 /Error: This regular expression is invalid or unsupported, please correct it:
+not\(tag:transactiontag=B
+/
+>=1
+# XXX regex needed for error tests with ghc 9.10, https://gitlab.haskell.org/ghc/ghc/-/issues/25116
+
+# ** 10. ... whereas parentheses with a space between 'not' and '(' is fine.
+$ hledger -f - print expr:"not (tag:transactiontag=B)"
+2022-01-01 Transaction 1  ; transactiontag:A
+    assets:bank:main              -1  ; A comment
+    expenses:food
+
+2022-01-01 Transaction 2  ; transactiontag:A
+    assets:bank:main                   -1
+    assets:bank:secondary              -1  ; atag:a
+    expenses:food
+
+>=
+
+# ** 11. With expr:, it's possible for a query (with OR) to specify multiple different date periods. 
+# This is problematic for report semantics in several ways. For example,
+# expr:'(date:2023 AND drinks) OR (date:2024 AND food)' produces two disjoint result sets, and
+# expr:'date:feb or date:may or date:nov' produces three disjoint report periods with holes between them.
+# Can all of our reports handle holes properly, calculate historical starting balances properly, etc ?
+# For now the answer is no and therefore OR-ing of date periods must be disallowed. (#2178)
+$ hledger -f- reg expr:'date:2023 OR date:2024'
+>2 /using date: in OR expressions is not supported/
+>=1
+
+# ** 12. #2371 boolean query with amt: or cur: which hledger <=1.42.1 gets wrong: register
+$ hledger -f sample2.journal reg expr:'(checking and amt:>0) or credit'
+2025-01-01 starting balances    assets:bank:checking   1000.00 USD   1000.00 USD
+                                li:credit card         -400.00 USD    600.00 USD
+2025-01-02 salary               assets:bank:checking   1000.00 USD   1600.00 USD
+2025-01-03 pay half of credi..  li:credit card          200.00 USD   1800.00 USD
+
+# ** 13. #2371 aregister
+$ hledger -f sample2.journal areg assets any:'(checking and amt:>0) or credit'
+Transactions in assets and subaccounts (matching query):
+2025-01-01 starting balances    li:credit card            1000 USD      1000 USD
+2025-01-02 salary               as:ba:checking            1000 USD      2000 USD
+2025-01-03 pay half of credi..  li:credit card            -200 USD      1800 USD
+
+# ** 14. #2371 print
+$ hledger -f sample2.journal print -x any:'(checking and amt:>0) or credit'
+2025-01-01 starting balances
+    assets:cash                         100 USD = 100 USD
+    assets:bank:checking               1000 USD = 1000 USD
+    assets:broker:usd                  1000 USD = 1000 USD
+    assets:broker:aaa          1 AAA @ 1.20 USD = 1 AAA @ 1.20 USD
+    liabilities:credit card            -400 USD = -400 USD
+    equity:start                   -1701.20 USD
+
+2025-01-02 salary
+    revenues:salary            -1000 USD
+    assets:bank:checking        1000 USD
+
+2025-01-03 pay half of credit card balance
+    assets:bank:checking           -200 USD
+    liabilities:credit card         200 USD = -200 USD
+
+>=

@@ -1,0 +1,116 @@
+# * balance command --no-total and --no-elide flags
+#
+<
+2010/04/01 tr1
+  a   16$
+  b   -16$
+
+2010/04/02 tr2
+  a   -16$
+  b   16$
+
+# ** 1. One commodity. Zero accounts should be elided but the final total should not.
+$ hledger -f - balance
+>
+--------------------
+                   0  
+>=0
+
+<
+1/1
+  (a:b)   1
+
+# ** 2. An uninteresting parent account (with same balance as its single subaccount) is elided by default, like ledger
+$ hledger -f - balance --no-total --tree
+>
+                   1  a:b
+>=0
+
+# ** 3. But not with --no-elide
+$ hledger -f - balance --no-total --tree --no-elide
+>
+                   1  a
+                   1    b
+>=0
+
+<
+1/1
+  (a:b)    1
+  (a:c)   -1
+
+# ** 4. Nor when it has more than one subaccount
+$ hledger -f - balance --tree --no-total
+>
+                   0  a
+                   1    b
+                  -1    c
+>2
+>=0
+
+<
+2020/1/1
+ (a)          1
+ (a:aa)       1
+ (a:aa)      -1
+ (a:aa:aaa)   1
+ (a:aa:aaa)  -1
+
+# ** 5. Zero-balance leaves should also be hidden by default.
+$ hledger -f - balance --tree --no-total
+                   1  a
+
+# ** 6. Zero-balance leaves should be displayed in tree mode when --empty
+# is called, but zero-balance uninteresting parent accounts are elided
+# by default.
+$ hledger -f - balance --tree --no-total --empty
+                   1  a
+                   0    aa:aaa
+
+# ** 7. But displayed with --no-elide
+$ hledger -f - balance --tree --no-total --empty --no-elide
+                   1  a
+                   0    aa
+                   0      aaa
+
+# ** 8. Same as 5 for multiperiod
+$ hledger -f - balance --tree --no-total -Y
+Balance changes in 2020:
+
+   || 2020 
+===++======
+ a ||    1 
+
+# ** 9. Same as 6 for mulitperiod
+$ hledger -f - balance --tree --no-total -Y --empty
+Balance changes in 2020:
+
+          || 2020 
+==========++======
+ a        ||    1 
+   aa:aaa ||    0 
+
+# ** 10. Same as 7 for multiperiod
+$ hledger -f - balance --tree --no-total -Y --empty --no-elide
+Balance changes in 2020:
+
+         || 2020 
+=========++======
+ a       ||    1 
+   aa    ||    0 
+     aaa ||    0 
+
+# ** 11. In flat mode, display all zero-balance accounts, including non-leaves
+$ hledger -f - balance --flat --no-total --empty
+                   1  a
+                   0  a:aa
+                   0  a:aa:aaa
+
+# ** 12. Same as 11 for multiperiod
+$ hledger -f - balance --flat --no-total -Y --empty
+Balance changes in 2020:
+
+          || 2020 
+==========++======
+ a        ||    1 
+ a:aa     ||    0 
+ a:aa:aaa ||    0 

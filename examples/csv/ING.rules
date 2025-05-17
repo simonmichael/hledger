@@ -1,0 +1,22 @@
+skip 1
+date-format %Y%m%d
+
+fields date, payee, bank_number, bank_other, code_, af_bij, amount_, type_, description_,
+code           %bank_other
+description    %payee | %description_
+currency1      €
+status         *
+decimal-mark   ,
+
+account1 assets:current:yourname:ING:checking
+
+if %af_bij Af
+  amount1 -%amount_
+
+if %af_bij Bij
+  amount1 %amount_
+
+if %af_bij Af
+  account2 expenses:unknown
+if %af_bij Bij
+  account2 income:unknown

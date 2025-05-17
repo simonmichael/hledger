@@ -1,0 +1,21 @@
+# this is the format that capital one returns if you export
+# data as .csv as of July 9 2022
+
+account1 liabilities:credit cards:capital one
+
+# first rows are headers
+skip 1
+
+# columns are Transaction Date in yyyy-mmm-dd, Posted Date, Card no.,
+# Description, Category, Debit, Credit
+fields date, posting-date, _, description, _, amount-out, amount-in
+
+currency  $
+
+# create the posting date per:
+# https://hledger.org/1.26/hledger.html#posting-dates
+comment1 date:%posting-date
+
+# example autopay entry; fill in your bank and uncomment if helpful
+# if CAPITAL ONE AUTOPAY PYMT
+#   account2 assets:bank:yours:checking

@@ -1,0 +1,40 @@
+#!/bin/bash
+# Download recent transaction history from Paypal as JSON,
+# and print on stdout.
+#
+# Requirements: a Paypal developer account, curl, jq (optional, just for pretty-printing)
+#
+# brew install jq
+#
+# Limitations: 
+# - sees only the last 30 days of history (within the current timezone)
+# - gets only the first page of results (no more than 500 transactions)
+#
+# Paypal API doc: https://developer.paypal.com/docs/api/transaction-search/v1
+
+# credentials for an API app which you have created in https://developer.paypal.com
+CLIENT_ID=$PAYPAL_CLIENT_ID
+SECRET=$PAYPAL_SECRET
+
+# GNU date (gdate on mac)
+date() 
+{ 
+    if hash gdate 2>/dev/null; then gdate "$@"; else date "$@"; fi
+}
+
+# max date range is 31d
+START=`date +%Y-%m-%dT00:00:00Z -d '-30 days'`
+END=`date +%Y-%m-%dT00:00:00Z -d '+1 day'`
+# for testing:
+# START=2021-05-21T00:00:00-0000
+# END=2021-05-22T00:00:00-0000
+
+# get a token allowing temporary access to the API
+TOKEN=`curl -s https://api-m.paypal.com/v1/oauth2/token -d "grant_type=client_credentials" -u "$CLIENT_ID:$SECRET" | jq .access_token -r`
+
+# 1. fetch json from paypal
+# 2. prettify it with jq
+curl -s -H "Authorization: Bearer $TOKEN" "https://api.paypal.com/v1/reporting/transactions?start_date=$START&end_date=$END&fields=all&page_size=500&page=1" \
+| jq
+
+echo

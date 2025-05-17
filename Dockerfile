@@ -8,12 +8,11 @@ COPY ./stack*.yaml ./
 RUN stack setup
 
 # Pre-cache dependencies
-RUN mkdir hledger-lib hledger hledger-ui hledger-web hledger-api
+RUN mkdir hledger-lib hledger hledger-ui hledger-web
 COPY hledger-lib/package.yaml hledger-lib/package.yaml
 COPY hledger/package.yaml hledger/package.yaml
 COPY hledger-ui/package.yaml hledger-ui/package.yaml
 COPY hledger-web/package.yaml hledger-web/package.yaml
-COPY hledger-api/package.yaml hledger-api/package.yaml
 RUN stack install --dependencies-only
 
 # Actually compile sources
@@ -22,7 +21,7 @@ RUN stack install
 
 FROM debian:stable-slim
 
-RUN apt-get update && apt-get install libgmp10 && rm -rf /var/lib/apt/lists
+RUN apt-get update && apt-get install libtinfo5 libgmp10 && rm -rf /var/lib/apt/lists
 
 COPY --from=dev /root/.local/bin/hledger* /usr/bin/
 

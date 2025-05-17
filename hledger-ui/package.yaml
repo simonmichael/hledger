@@ -1,71 +1,47 @@
-name        : hledger-ui
-version     : 1.14.99
-synopsis    : Curses-style user interface for the hledger accounting tool
-description : |
-  This is hledger's curses-style interface.
-  It is simpler and more convenient for browsing data than the command-line interface,
-  but lighter and faster than hledger-web.
-
-  hledger is a cross-platform program for tracking money, time, or
-  any other commodity, using double-entry accounting and a simple,
-  editable file format. It is inspired by and largely compatible
-  with ledger(1).  hledger provides command-line, curses and web
-  interfaces, and aims to be a reliable, practical tool for daily
-  use.
-category    : Finance, Console
-license     : GPL-3
-author      : Simon Michael <simon@joyful.com>
-maintainer  : Simon Michael <simon@joyful.com>
-github      : simonmichael/hledger
-homepage    : http://hledger.org
-bug-reports : http://bugs.hledger.org
-stability   : stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+name:          hledger-ui
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance, Console
+synopsis:      Terminal interface for the hledger accounting system
+description: |
+  A simple terminal user interface for the hledger accounting system.
+  It can be a more convenient way to browse your accounts than the CLI.
+  
+  hledger is a robust, cross-platform set of tools for tracking money,
+  time, or any other commodity, using double-entry accounting and a
+  simple, editable file format, with command-line, terminal and web
+  interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+  implementations of Plain Text Accounting. Read more at:
+  <https://hledger.org>
 
 extra-source-files:
   - CHANGES.md
-  - README
+  - README.md
   - hledger-ui.1
   - hledger-ui.txt
   - hledger-ui.info
 
-#data-files:
-
 flags:
+  debug:
+    description: Build with GHC 9.10+'s stack traces enabled
+    default: false
+    manual:  true
   threaded:
     description: Build with support for multithreaded execution
-    manual: false
     default: true
+    manual:  false
+#  ghcdebug:
+#    description: Build with support for attaching a ghc-debug client
+#    default: false
+#    manual:  true
 
-cpp-options: -DVERSION="1.14.99"
-
-dependencies:
-- hledger-lib >=1.14.99 && <1.15
-- hledger >=1.14.99 && <1.15
-- ansi-terminal >=0.6.2.3
-- async
-- base >=4.8 && <4.13
-- base-compat-batteries >=0.10.1 && <0.11
-- cmdargs >=0.8
-- containers
-- data-default
-- directory
-- filepath
-- fsnotify >=0.2.1.2 && <0.4
-- microlens >=0.4
-- microlens-platform >=0.2.3.1
-- megaparsec >=7.0.0 && <8
-- pretty-show >=1.6.4
-- process >=1.2
-- safe >=0.2
-- split >=0.1
-- text >=1.2
-- text-zipper >=0.4
-- time >=1.5
-- transformers
-- vector
-
-when:
  # curses is required to build terminfo for vty for hledger-ui.
  # On POSIX systems it might be not present.
  # On windows it's very likely not present, but possibly it could be.
@@ -75,27 +51,83 @@ when:
  #  curses
  #    default: True
  #    description:
- # For now, just don't build hledger-ui on windows
- - condition: os(windows)
-   then:
-     buildable: false
-   else:
-     dependencies:
-       - brick >=0.23
-       - unix
-       - vty >=5.5
+ #
+ # note on windows: the vty-windows (and hence hledger-ui) will reliably work only on the newer backends
+ # like Windows Terminal.
+ # mintty-based backends (default for cygwin/gitbash/msys2) are not supported (yet)
+
+cpp-options: -DVERSION="1.42.99"
+
+ghc-options:
+- -Wall
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+
+when:
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
+
+dependencies:
+- base >=4.14 && <4.22
+
+library:
+  source-dirs: .
+  cpp-options: -DVERSION="1.42.99"
+  exposed-modules:
+  - Hledger.UI
+  - Hledger.UI.Main
+  - Hledger.UI.Theme
+  - Hledger.UI.UIOptions
+  dependencies:
+  - hledger-lib >=1.42.99 && <1.43
+  - hledger >=1.42.99 && <1.43
+  - ansi-terminal >=0.9
+  - async
+  - cmdargs >=0.8
+  - containers >=0.5.9
+  - data-default
+  - directory
+  - doclayout >=0.3 && <0.6
+  - extra >=1.7.11
+  - filepath
+  - fsnotify >=0.4.2.0 && <0.5
+  - githash >=0.1.6.2
+  - microlens >=0.4
+  - microlens-platform >=0.2.3.1
+  - megaparsec >=7.0.0 && <9.8
+  - mtl >=2.2.1
+  - process >=1.2
+  - safe >=0.3.20
+  - split >=0.1
+  - text >=1.2.4.1
+  - text-zipper >=0.4
+  - time >=1.5
+  - transformers
+  - vector
+  - brick >=2.1.1 && <2.3.2 || >2.3.2 && < 2.9
+  - vty >=6.1 && <6.5
+  - vty-crossplatform >= 0.4.0.0 && < 0.5.0.0
+  when:
+    - condition: os(windows)
+      then:
+        dependencies: vty-windows >= 0.2.0.1 && < 0.3.0.0
+      else:
+        dependencies: unix
 
 executables:
   hledger-ui:
-    source-dirs: .
+    source-dirs: app
     main: hledger-ui.hs
-    ghc-options:
-      -Wall
-      -fno-warn-unused-do-bind
-      -fno-warn-name-shadowing
-      -fno-warn-missing-signatures
-      -fno-warn-type-defaults
-      -fno-warn-orphans
+    dependencies:
+    - hledger-ui
+    ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
       ghc-options: -threaded

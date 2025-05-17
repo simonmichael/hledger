@@ -2,7 +2,7 @@ $if(has-tables)$
 .\"t
 $endif$
 
-.TH "$title$" "$section$" "$date$" "$footer$" "hledger User Manuals"
+.TH "$title/nowrap/uppercase$" "$section/nowrap$" "$date/nowrap$" "$footer/nowrap$" "hledger User Manuals"
 
 $for(header-includes)$
 $header-includes$
@@ -18,26 +18,21 @@ $for(include-after)$
 $include-after$
 $endfor$
 
-.SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org
-(or on the #hledger IRC channel or hledger mail list)
-
 .SH AUTHORS
 $if(author)$
 $for(author)$$author$$sep$; $endfor$.
 $else$
-Simon Michael <simon@joyful.com> and contributors
+Simon Michael <simon@joyful.com> and contributors.
+.br
+See http://hledger.org/CREDITS.html
 $endif$
 
 .SH COPYRIGHT
+Copyright 2007-2023 Simon Michael and contributors.
 
-Copyright (C) 2007-2016 Simon Michael.
-.br
+.SH LICENSE
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
-hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_timedot(5),
-ledger(1)
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)
 
-http://hledger.org

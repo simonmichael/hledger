@@ -17,11 +17,11 @@ const pkgdef :Spk.PackageDefinition = (
     # This manifest is included in your app package to tell Sandstorm
     # about your app.
 
-    appTitle = (defaultText = "HLedger Web"),
+    appTitle = (defaultText = "Hledger Web"),
 
-    appVersion = 3,  # Increment this for every release.
+    appVersion = 5,  # Increment this for every release.
 
-    appMarketingVersion = (defaultText = "1.9.2"),
+    appMarketingVersion = (defaultText = "1.31"),
     # Human-readable representation of appVersion. Should match the way you
     # identify versions of your app in documentation and marketing.
 
@@ -48,13 +48,14 @@ const pkgdef :Spk.PackageDefinition = (
       # https://github.com/sandstorm-io/sandstorm/blob/master/src/sandstorm/package.capnp
       icons = (
         # Various icons to represent the app in various contexts.
+        # XXX better to use the coins image from https://hledger.org probably. Must it be svg ?
         appGrid = (svg = embed "appGrid.svg"),
         grain = (svg = embed "grain.svg"),
         market = (svg = embed "market.svg"),
         #marketBig = (svg = embed "path/to/market-big-300x300.svg"),
       ),
 
-      website = "http://hledger.org",
+      website = "https://hledger.org",
       # This should be the app's main website url.
 
       codeUrl = "https://github.com/simonmichael/hledger",
@@ -92,7 +93,7 @@ const pkgdef :Spk.PackageDefinition = (
         # Further details including how to set up GPG and how to use keybase.io can be found
         # at https://docs.sandstorm.io/en/latest/developing/publishing-apps/#verify-your-identity
 
-        upstreamAuthor = "HLedger Team",
+        upstreamAuthor = "Hledger Team",
         # Name of the original primary author of this app, if it is different from the person who
         # produced the Sandstorm package. Setting this implies that the author connected to the PGP
         # signature only "packaged" the app for Sandstorm, rather than developing the app.
@@ -204,41 +205,38 @@ const pkgdef :Spk.PackageDefinition = (
           description = (defaultText = "grants ability to append transactions to the ledger"),
         ),
         (
-          name = "manage",
-          title = (defaultText = "manage"),
-          description = (defaultText = "grants ability to modify or replace the entire ledger"),
+          name = "edit",
+          title = (defaultText = "edit"),
+          description = (defaultText = "grants ability to modify transactions and directives or erase the entire ledger"),
         ),
       ],
       roles = [
         # Roles are logical collections of permissions.  For instance, your app may have
         # a "viewer" role and an "editor" role
         (
-          title = (defaultText = "manager"),
           # Name of the role.  Shown in the Sandstorm UI to indicate which users have which roles.
-
-          permissions  = [true, true, true],
+          title = (defaultText = "viewer"),
           # An array indicating which permissions this role carries.
           # It should be the same length as the permissions array in
           # viewInfo, and the order of the lists must match.
-
-          verbPhrase = (defaultText = "has full access to the ledger"),
+          permissions  = [true, false, false],
           # Brief explanatory text to show in the sharing UI indicating
           # what a user assigned this role will be able to do with the grain.
-
-          description = (defaultText = "managers can modify the ledger in any way."),
+          verbPhrase = (defaultText = "can view the ledger"),
           # Prose describing what this role means, suitable for a tool tip or similar help text.
+          description = (defaultText = "viewers can only view the ledger."),
+        ),
+        (
+          title = (defaultText = "adder"),
+          permissions  = [true, true, false],
+          verbPhrase = (defaultText = "can append new transactions"),
+          description = (defaultText = "adders can view the ledger and add new transactions to it."),
         ),
         (
           title = (defaultText = "editor"),
-          permissions  = [true, true, false],
-          verbPhrase = (defaultText = "can append new transactions"),
-          description = (defaultText = "editors can view the ledger or append new transactions to it."),
-        ),
-        (
-          title = (defaultText = "viewer"),
-          permissions  = [true, false, false],
-          verbPhrase = (defaultText = "can view the ledger"),
-          description = (defaultText = "viewers can only view the ledger."),
+          permissions  = [true, true, true],
+          verbPhrase = (defaultText = "has full access to the ledger"),
+          description = (defaultText = "editors can change or erase transactions and directives."),
         ),
       ],
     ),
@@ -256,6 +254,7 @@ const myCommand :Spk.Manifest.Command = (
   environ = [
     # Note that this defines the *entire* environment seen by your app.
     (key = "PATH", value = "/usr/local/bin:/usr/bin:/bin"),
+    (key = "HOME", value = "/var/lib/hledger"),
     (key = "SANDSTORM", value = "1"),
     # Export SANDSTORM=1 into the environment, so that apps running within Sandstorm
     # can detect if $SANDSTORM="1" at runtime, switching UI and/or backend to use

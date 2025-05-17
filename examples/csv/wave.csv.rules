@@ -1,0 +1,16 @@
+# hledger csv rules for waveapps.com transactions CSV
+# waveapps.com -> Reports -> Account Transactions (General Ledger) -> Export
+#
+# Warning, Wave's CSV includes multiple reports one after the other.
+# These rules convert the first report, between the first pair of "Starting Balance"
+# and "Totals and Ending Balance" lines. Unfortunately, this may not always
+# be the main report including all transactions, so you should check this.
+
+skip 7
+
+if Totals and Ending Balance
+ end
+
+fields accountno,date,description,amount-in,amount-out,balance
+
+account1 assets:online:wave:personal

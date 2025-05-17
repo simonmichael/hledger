@@ -1,13 +1,18 @@
-descriptions
-Show descriptions.
+## descriptions
 
-_FLAGS_
+List the unique descriptions that appear in transactions.
 
-This command lists all descriptions that appear in transactions.
+```flags
+Flags:
+no command-specific flags
+```
 
-Examples:
+This command lists the unique descriptions that appear in transactions,
+in alphabetic order.
+You can add a query to select a subset of transactions.
 
-```shell
+Example:
+```cli
 $ hledger descriptions
 Store Name
 Gas Station | Petrol

@@ -1,5 +1,3 @@
-import Prelude              (IO)
-
 import Hledger.Web.Main
 
 main :: IO ()

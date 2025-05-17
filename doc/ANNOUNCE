@@ -1,33 +1,28 @@
-I'm pleased to announce the release of hledger 1.14!
-Thank you release contributors Jakob Schöttl and Jakub Zárybnický.
+I'm pleased to announce hledger 1.42 !
+This release brings
 
-hledger is a robust, cross-platform plain text accounting tool, for
-tracking money, time, stocks, cryptocurrencies or any other commodity,
-using double-entry accounting, private or shared plain text files,
-revision control, and command-line, curses or web UIs.
-Find out more at http://hledger.org and http://plaintextaccounting.org.
+- run and repl commands
+- non-UTF8 CSV support
+- same-line if matchers
+- more pivot targets
 
-Release notes summary:
-----------------------
-Inclusive balance assertions, commodities command, --invert option,
-JSON get/add support in hledger-web.
+..and more. Thank you to contributors Dmitry Astapov, gesh, Thomas
+Miedema, Joschua Kesper, and Lars Kellogg-Stedman.
 
-For full details, see http://hledger.org/release-notes.
-
-Getting started:
-----------------
-
-All install methods are described at http://hledger.org/download .
-(system packages, windows binaries, docker, nix, cabal, stack,
-hledger-install bash script..) Some of these might take a few days to
-become up to date.
-
-Tutorials and all docs and support options are linked at http://hledger.org .
-Get help via chat in #hledger on Freenode: http://irc.hledger.org
-Or connect via Matrix: http://riot.hledger.org
-
-New and old users, contributors, sponsors, positive/negative feedback,
-always welcome!
-
-Best,
+Best wishes,
 -Simon
+
+- https://github.com/simonmichael/hledger/releases/1.42
+- https://hledger.org/relnotes.html#2025-03-07-hledger-142
+- https://hledger.org/install
+
+
+hledger is free, robust, friendly, multicurrency, double-entry,
+plain text accounting software for unix, mac, windows, and the web.
+
+Written in Haskell for reliability, it is built around human-readable,
+version-controllable plain text files. It is inspired by and largely
+compatible with Ledger CLI, and convertible to and from Beancount.
+
+For more info or help, see https://hledger.org and the support page.
+Newcomers, experts, contributors, sponsors, feedback are welcome!

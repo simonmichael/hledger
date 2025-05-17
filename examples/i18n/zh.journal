@@ -1,0 +1,10 @@
+; 顶级账户类型。子账户将继承这些。
+; (机器翻译)
+account 资产                       ; type:A
+account 资产:银行存款              ; type:C
+account 资产:现金                  ; type:C
+account 负债                       ; type:L
+account 权益                       ; type:E
+account 权益:汇兑损益              ; type:V
+account 收入                       ; type:R
+account 费用                       ; type:X

@@ -1,0 +1,10 @@
+; 최상위 계정 유형. 하위 계정은 이것들을 상속받습니다.
+; (기계 번역)
+account 자산                       ; type:A
+account 자산:은행예금              ; type:C
+account 자산:현금                  ; type:C
+account 부채                       ; type:L
+account 자본                       ; type:E
+account 자본:외환차손익            ; type:V
+account 수익                       ; type:R
+account 비용                       ; type:X

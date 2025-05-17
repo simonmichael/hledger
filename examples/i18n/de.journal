@@ -1,0 +1,10 @@
+; Kontotypen der obersten Ebene. Unterkonten erben diese.
+; (maschinell übersetzt)
+account aktiva                        ; type:A
+account aktiva:bank                   ; type:C
+account aktiva:kasse                  ; type:C
+account passiva                       ; type:L
+account eigenkapital                  ; type:E
+account eigenkapital:kursdifferenzen  ; type:V
+account erträge                       ; type:R
+account aufwendungen                  ; type:X

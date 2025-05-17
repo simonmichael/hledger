@@ -19,26 +19,27 @@ import Yesod
 import Hledger
 import Hledger.Cli.Commands.Add (appendToJournalFileOrStdout, journalAddTransaction)
 import Hledger.Web.Import
-import Hledger.Web.Json ()
 import Hledger.Web.WebOptions (WebOpts(..))
 import Hledger.Web.Widget.AddForm (addForm)
 
 getAddR :: Handler ()
-getAddR = postAddR
+getAddR = do
+  checkServerSideUiEnabled
+  postAddR
 
 postAddR :: Handler ()
 postAddR = do
-  VD{caps, j, today} <- getViewData
-  when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
+  checkServerSideUiEnabled
+  VD{j, today} <- getViewData
+  require AddPermission
 
   ((res, view), enctype) <- runFormPost $ addForm j today
   case res of
-    FormSuccess res' -> do
-      let t = txnTieKnot res'
-      -- XXX(?) move into balanceTransaction
-      liftIO $ ensureJournalFileExists (journalFilePath j)
-      -- XXX why not journalAddTransaction ?
-      liftIO $ appendToJournalFileOrStdout (journalFilePath j) (showTransaction t)
+    FormSuccess (t,f) -> do
+      let t' = txnTieKnot t
+      liftIO $ do
+        ensureJournalFileExists f
+        appendToJournalFileOrStdout f (showTransaction t')
       setMessage "Transaction added."
       redirect JournalR
     FormMissing -> showForm view enctype
@@ -50,20 +51,20 @@ postAddR = do
       sendResponse =<< defaultLayout [whamlet|
         <h2>Add transaction
         <div .row style="margin-top:1em">
-          <form#addform.form.col-xs-12.col-md-8 method=post enctype=#{enctype}>
+          <form#addform.form.col-xs-12.col-sm-11 method=post enctype=#{enctype}>
             ^{view}
       |]
 
 -- Add a single new transaction, send as JSON via PUT, to the journal.
--- The web form handler above should probably use PUT as well.  
+-- The web form handler above should probably use PUT as well.
 putAddR :: Handler RepJson
 putAddR = do
-  VD{caps, j, opts} <- getViewData
-  when (CapAdd `notElem` caps) (permissionDenied "Missing the 'add' capability")
+  VD{j, opts} <- getViewData
+  require AddPermission
 
   (r :: Result Transaction) <- parseCheckJsonBody
   case r of
     Error err -> sendStatusJSON status400 ("could not parse json: " ++ err ::String)
     Success t -> do
       void $ liftIO $ journalAddTransaction j (cliopts_ opts) t
-      sendResponseCreated TransactionsR 
+      sendResponseCreated TransactionsR

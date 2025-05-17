@@ -1,6 +1,6 @@
 {-|
 
-The @descriptions@ command lists allpayees seen in transactions.
+The @descriptions@ command lists all unique descriptions seen in transactions, sorted alphabetically.
 
 -}
 
@@ -8,16 +8,12 @@ The @descriptions@ command lists allpayees seen in transactions.
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 
 module Hledger.Cli.Commands.Descriptions (
   descriptionsmode
  ,descriptions
 ) where
 
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
 import Data.List.Extra (nubSortBy)
 import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
@@ -30,17 +26,15 @@ import Hledger.Cli.CliOptions
 descriptionsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Descriptions.txt")
   []
-  [generalflagsgroup1]
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 -- | The descriptions command.
 descriptions :: CliOpts -> Journal -> IO ()
-descriptions CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q  = queryFromOpts d ropts
-      ts = entriesReport ropts q j
+descriptions CliOpts{reportspec_=rspec} j = do
+  let ts = entriesReport rspec j
       collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
-      descriptions = nubSortBy (Collate.compare collator) $ map tdescription ts
+      descs = nubSort (Collate.compare collator) $ map tdescription ts
 
-  mapM_ T.putStrLn descriptions
+  mapM_ T.putStrLn descs

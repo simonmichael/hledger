@@ -1,0 +1,1 @@
+account B  ; type: Expense

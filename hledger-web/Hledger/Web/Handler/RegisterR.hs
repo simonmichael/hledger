@@ -1,15 +1,17 @@
 -- | /register handlers.
 
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE NamedFieldPuns      #-}
+{-# LANGUAGE OverloadedStrings   #-}
+{-# LANGUAGE QuasiQuotes         #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell     #-}
+{-# LANGUAGE TupleSections       #-}
 
 module Hledger.Web.Handler.RegisterR where
 
 import Data.List (intersperse, nub, partition)
 import qualified Data.Text as T
+import Safe (tailSafe)
 import Text.Hamlet (hamletFile)
 
 import Hledger
@@ -17,32 +19,41 @@ import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.Widget.Common (accountQuery, mixedAmountAsHtml)
+import Hledger.Web.Widget.Common
+             (accountQuery, mixedAmountAsHtml,
+              transactionFragment, removeDates, removeInacct, replaceInacct)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
-  VD{caps, j, m, opts, qopts, today} <- getViewData
-  when (CapView `notElem` caps) (permissionDenied "Missing the 'view' capability")
+  checkServerSideUiEnabled
+  VD{perms, j, q, opts, qparam, qopts, today} <- getViewData
+  require ViewPermission
 
   let (a,inclsubs) = fromMaybe ("all accounts",True) $ inAccount qopts
       s1 = if inclsubs then "" else " (excluding subaccounts)"
-      s2 = if m /= Any then ", filtered" else ""
+      s2 = if q /= Any then ", filtered" else ""
       header = a <> s1 <> s2
 
-  let ropts = reportopts_ (cliopts_ opts)
+  let rspec = reportspec_ (cliopts_ opts)
       acctQuery = fromMaybe Any (inAccountQuery qopts)
-      acctlink acc = (RegisterR, [("q", accountQuery acc)])
+      acctlink acc = (RegisterR, [("q", replaceInacct qparam $ accountQuery acc)])
       otherTransAccounts =
           map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
-          addCommas . preferReal . otherTransactionAccounts m acctQuery
+          addCommas . preferReal . otherTransactionAccounts q acctQuery
       addCommas xs =
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
-          tail $ (", "<$xs) ++ [""]
-      r@(balancelabel,items) = accountTransactionsReport ropts j m acctQuery
-      balancelabel' = if isJust (inAccount qopts) then balancelabel else "Total"
+          tailSafe (", "<$xs) ++ [""]
+      items =
+        styleAmounts (journalCommodityStylesWith HardRounding j) $
+        accountTransactionsReport rspec{_rsQuery=q} j acctQuery
+      balancelabel
+        | isJust (inAccount qopts), balanceaccum_ (_rsReportOpts rspec) == Historical = "Historical Total"
+        | isJust (inAccount qopts) = "Period Total"
+        | otherwise                = "Total"
+      transactionFrag = transactionFragment j
   defaultLayout $ do
     setTitle "register - hledger-web"
     $(widgetFile "register")
@@ -71,7 +82,7 @@ preferReal ps
 elideRightDecorated :: Int -> [(Maybe d, Char)] -> [(Maybe d, Char)]
 elideRightDecorated width s =
     if length s > width
-        then take (width - 2) s ++ map ((,) Nothing) ".."
+        then take (width - 2) s ++ map (Nothing,) ".."
         else s
 
 undecorateLinks :: [(Maybe acct, char)] -> [(acct, ([char], [char]))]
@@ -82,28 +93,26 @@ undecorateLinks xs0@(x:_) =
             let (link, xs1) = span (isJust . fst) xs0
                 (comma, xs2) = span (isNothing . fst) xs1
             in (acct, (map snd link, map snd comma)) : undecorateLinks xs2
-        _ -> error "link name not decorated with account"
+        _ -> error "link name not decorated with account"  -- PARTIAL:
 
 decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
-decorateLinks =
-    concatMap
-        (\(acct, (name, comma)) ->
-            map ((,) (Just acct)) name ++ map ((,) Nothing) comma)
+decorateLinks = concatMap $ \(acct, (name, comma)) ->
+    map (Just acct,) name ++ map (Nothing,) comma
 
 -- | Generate javascript/html for a register balance line chart based on
--- the provided "TransactionsReportItem"s.
-registerChartHtml :: [(CommoditySymbol, (String, [TransactionsReportItem]))] -> HtmlUrl AppRoute
-registerChartHtml percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+-- the provided "AccountTransactionsReportItem"s.
+registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
+registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
-   charttitle = case maybe "" (fst . snd) $ listToMaybe percommoditytxnreports of
-     "" -> ""
-     s  -> s <> ":"
+   charttitle = if null title then "" else title ++ ":"
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
-   simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts
+   simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
+   showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
    shownull c = if null c then " " else c
+   nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
 dayToJsTimestamp :: Day -> Integer
 dayToJsTimestamp d =

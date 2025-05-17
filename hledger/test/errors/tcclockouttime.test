@@ -1,0 +1,8 @@
+$$$ hledger check -f tcclockouttime.timeclock
+>>>2 /Error: .*tcclockouttime.timeclock:5:1:
+5 \| o 2022-01-01 00:00:00   
+  \| \^
+
+Could not find previous clockin to match this clockout.
+/
+>>>= 1

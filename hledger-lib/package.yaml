@@ -1,104 +1,114 @@
-name: hledger-lib
-version: 1.14.99
-synopsis: Core data types, parsers and functionality for the hledger accounting tools
+name:          hledger-lib
+version:       1.42.99
+license:       GPL-3.0-or-later
+maintainer:    Simon Michael <simon@joyful.com>
+author:        Simon Michael <simon@joyful.com>
+stability:     stable
+tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
+homepage:      http://hledger.org
+bug-reports:   http://bugs.hledger.org
+github:        simonmichael/hledger
+category:      Finance
+synopsis:      A library providing the core functionality of hledger
 description: |
-  This is a reusable library containing hledger's core functionality.
+  This library contains hledger's core functionality.
+  It is used by most hledger* packages so that they support the same
+  command line options, file formats, reports, etc.
 
-  hledger is a cross-platform program for tracking money, time, or
-  any other commodity, using double-entry accounting and a simple,
-  editable file format. It is inspired by and largely compatible
-  with ledger(1).  hledger provides command-line, curses and web
-  interfaces, and aims to be a reliable, practical tool for daily
-  use.
-category: Finance
-license: GPL-3
-author: Simon Michael <simon@joyful.com>
-maintainer: Simon Michael <simon@joyful.com>
-github: simonmichael/hledger
-homepage: http://hledger.org
-bug-reports: http://bugs.hledger.org
-stability: stable
-tested-with: GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
+  hledger is a robust, cross-platform set of tools for tracking money,
+  time, or any other commodity, using double-entry accounting and a
+  simple, editable file format, with command-line, terminal and web
+  interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+  implementations of Plain Text Accounting.
+
+  See also:
+
+  - https://hledger.org - hledger's home page
+  
+  - https://hledger.org/dev.html - starting point for hledger's developer docs
+  
+  - https://hackage.haskell.org/package/hledger-lib/docs/Hledger.html - starting point for hledger's haddock docs
 
 extra-source-files:
 - CHANGES.md
-- README
-- hledger_csv.5
-- hledger_csv.txt
-- hledger_csv.info
-- hledger_journal.5
-- hledger_journal.txt
-- hledger_journal.info
-- hledger_timedot.5
-- hledger_timedot.txt
-- hledger_timedot.info
-- hledger_timeclock.5
-- hledger_timeclock.txt
-- hledger_timeclock.info
+- README.md
+- test/unittest.hs
+- test/doctests.hs
 
-#data-files:
+flags:
+  debug:
+    description: Build with GHC 9.10+'s stack traces enabled
+    default: false
+    manual:  true
+#  ghcdebug:
+#    description: Build with support for attaching a ghc-debug client
+#    default: false
+#    manual:  true
 
 dependencies:
-- base >=4.8 && <4.13
-- base-compat-batteries >=0.10.1 && <0.11
-- ansi-terminal >=0.6.2.3
+- base >=4.14 && <4.22
+- aeson >=1 && <2.3
+- aeson-pretty
+- ansi-terminal >=0.9
 - array
 - blaze-markup >=0.5.1
+- blaze-html
 - bytestring
 - call-stack
 - cmdargs >=0.10
-- containers
+- containers >=0.5.9
 - cassava
 - cassava-megaparsec
+- colour >=2.3.6
 - data-default >=0.5
-- Decimal
 - deepseq
-- directory
-- easytest >= 0.2.1 && <0.3
-- fgl >=5.5.4.0
+- Decimal >=0.5.1
+- directory >=1.2.6.1
+- doclayout >=0.3 && <0.6
+- encoding >=0.10
 - file-embed >=0.0.10
 - filepath
 - hashtables >=1.2.3.1
-- megaparsec >=7.0.0 && <8
-- mtl
-- mtl-compat
-- old-time
-- parsec >=3
+- lucid
+- megaparsec >=7.0.0 && <9.8
+- microlens >=0.4
+- microlens-th >=0.4
+- mtl >=2.2.1
 - parser-combinators >=0.4.0
-- pretty-show >=1.6.4
+- pretty-simple >4 && <5
+- process
 - regex-tdfa
-- safe >=0.2
-- split >=0.1
+- safe >=0.3.20
 - tabular >=0.2
+- tasty >=1.2.3
+- tasty-hunit >=0.10.0.2
 - template-haskell
-- text >=1.2
+- terminal-size >=0.3.3
+- text >=1.2.4.1
 - time >=1.5
+- timeit
 - transformers >=0.2
+- unordered-containers >=0.2
 - uglymemo
 - utf8-string >=0.3.5
-- extra >=1.6.3
+- extra >=1.7.11
 - Glob >= 0.9
-# for ledger-parse:
-#- parsers >=0.5
-#- system-filepath
-#- trifecta >=0.91
-
-when:
-- condition: (!impl(ghc >= 8.0))
-  dependencies:
-  - semigroups == 0.18.*
 
 ghc-options:
 - -Wall
-- -fno-warn-unused-do-bind
-- -fno-warn-name-shadowing
-- -fno-warn-missing-signatures
-- -fno-warn-type-defaults
-- -fno-warn-orphans
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
 
-source-dirs: 
-#- other/ledger-parse
-- .
+when:
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 library:
   exposed-modules:
@@ -107,9 +117,15 @@ library:
   - Hledger.Data.Account
   - Hledger.Data.AccountName
   - Hledger.Data.Amount
-  - Hledger.Data.Commodity
+  - Hledger.Data.Balancing
+  - Hledger.Data.Currency
   - Hledger.Data.Dates
+  - Hledger.Data.Errors
   - Hledger.Data.Journal
+  - Hledger.Data.JournalChecks
+  - Hledger.Data.JournalChecks.Ordereddates
+  - Hledger.Data.JournalChecks.Uniqueleafnames
+  - Hledger.Data.Json
   - Hledger.Data.Ledger
   - Hledger.Data.Period
   - Hledger.Data.PeriodicTransaction
@@ -125,10 +141,21 @@ library:
   - Hledger.Read
   - Hledger.Read.Common
   - Hledger.Read.CsvReader
+  - Hledger.Read.InputOptions
   - Hledger.Read.JournalReader
+  - Hledger.Read.RulesReader
 #  - Hledger.Read.LedgerReader
   - Hledger.Read.TimedotReader
   - Hledger.Read.TimeclockReader
+  - Hledger.Write.Beancount
+  - Hledger.Write.Csv
+  - Hledger.Write.Ods
+  - Hledger.Write.Html
+  - Hledger.Write.Html.Attribute
+  - Hledger.Write.Html.Blaze
+  - Hledger.Write.Html.Lucid
+  - Hledger.Write.Html.HtmlCommon
+  - Hledger.Write.Spreadsheet
   - Hledger.Reports
   - Hledger.Reports.ReportOptions
   - Hledger.Reports.ReportTypes
@@ -138,54 +165,58 @@ library:
   - Hledger.Reports.EntriesReport
   - Hledger.Reports.MultiBalanceReport
   - Hledger.Reports.PostingsReport
-  - Hledger.Reports.TransactionsReport
   - Hledger.Utils
-  - Hledger.Utils.Color
   - Hledger.Utils.Debug
+  - Hledger.Utils.IO
   - Hledger.Utils.Parse
   - Hledger.Utils.Regex
   - Hledger.Utils.String
   - Hledger.Utils.Test
   - Hledger.Utils.Text
-  - Hledger.Utils.Tree
-  - Hledger.Utils.UTF8IOCompat
   - Text.Tabular.AsciiWide
+  - Text.WideString
 #  other-modules:
 #  - Ledger.Parser.Text
+  source-dirs: 
+  #- other/ledger-parse
+  - .
 
+
+# "cabal test hledger-lib" currently fails, see doctest suite below
 tests:
 
-  doctests:
-    main: doctests.hs
+  unittest:
+    buildable: true
     source-dirs: test
+    main: unittest.hs
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
+    - hledger-lib
+
+  # Note when run by cabal, doctest requires a ghc environment file,
+  # so we ensure this is generated, see cabal.project.
+  # https://github.com/simonmichael/hledger/issues/1139
+  doctest:
+    source-dirs: test
+    main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
+    other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
+    dependencies:
+    # prefer the latest doctest
+    - doctest >=0.18.1
     - Glob >=0.7
-    # Use a doctest new enough to support --fast and --verbose.
-    - doctest >=0.16
-    # Note: doctest with ghc 8.4+ on mac breaks, needs this workaround:
+
+    when:
+    # disable doctest with GHC 9.0, https://github.com/sol/doctest/issues/301
+    - condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
+      buildable: false
+
+    # ghc 8.4+ on mac needs this workaround. See
+    # https://github.com/sol/doctest/issues/199
+    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 :
     #  ~$ locate HSinteger-gmp-1.0.2.0.o
     #  /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
     #  ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
-    # See https://github.com/sol/doctest/issues/199,
-    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 .
-    # Should probably disable it by default, but I think my testing convenience
-    # outweighs the small number of folks who'll hit this.. if I'm wrong let me know.
+    # Should probably disable it by default:
     #when:
     # - condition: os(darwin) && impl(ghc >= 8.4)
     #   buildable: false
-
-    # 201907 hard-to-debug doctest breakages
-    # ghc 7.10 on linux:
-    #  doctests: <command line>: Can't parse package flag: package-db /home/simon/.stack/snapshots/i386-linux/026d718ac4d5f70d983bbeebb712f79d402a8e7003bbfe787f9e853573ed7ed6/7.10.3/pkgdb
-    # ghc 8.0 on linux:
-    #  Hledger/Read/JournalReader.hs:126: failure in expression `rejp (journalp <* eof) "2015/1/1\n a  0\n"' ... Variable not in scope: rejp :: f0 a0 -> [Char] -> t
-    when:
-    - condition: (impl(ghc < 8.2))
-      buildable: false
-
-
-  easytests:
-    main: easytests.hs
-    source-dirs: test
-    dependencies:
-    - hledger-lib

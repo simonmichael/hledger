@@ -1,4 +1,6 @@
-{-# LANGUAGE RecordWildCards, OverloadedStrings #-}
+{-# LANGUAGE CPP               #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-|
 
 
@@ -8,31 +10,53 @@ account, and subaccounting-excluding and -including balances.
 -}
 
 module Hledger.Data.Account
-where
-import Data.List
-import Data.List.Extra (groupSort, groupOn)
-import Data.Maybe
-import Data.Ord
-import qualified Data.Map as M
-import Data.Text (pack,unpack)
-import Safe (headMay, lookupJustDef)
-import Text.Printf
+( nullacct
+, accountsFromPostings
+, accountTree
+, showAccounts
+, showAccountsBoringFlag
+, printAccounts
+, lookupAccount
+, parentAccounts
+, accountsLevels
+, mapAccounts
+, anyAccounts
+, filterAccounts
+, sumAccounts
+, clipAccounts
+, clipAccountsAndAggregate
+, pruneAccounts
+, flattenAccounts
+, accountSetDeclarationInfo
+, sortAccountNamesByDeclaration
+, sortAccountTreeByAmount
+) where
 
-import Hledger.Data.AccountName
+import qualified Data.HashSet as HS
+import qualified Data.HashMap.Strict as HM
+import Data.List (find, sortOn)
+#if !MIN_VERSION_base(4,20,0)
+import Data.List (foldl')
+#endif
+import Data.List.Extra (groupOn)
+import qualified Data.Map as M
+import Data.Ord (Down(..))
+import Safe (headMay)
+import Text.Printf (printf)
+
+import Hledger.Data.AccountName (expandAccountName, clipOrEllipsifyAccountName)
 import Hledger.Data.Amount
-import Hledger.Data.Posting()
 import Hledger.Data.Types
-import Hledger.Utils
 
 
 -- deriving instance Show Account
 instance Show Account where
     show Account{..} = printf "Account %s (boring:%s, postings:%d, ebalance:%s, ibalance:%s)"
-                       (pack $ regexReplace ":" "_" $ unpack aname)  -- hide : so pretty-show doesn't break line
+                       aname
                        (if aboring then "y" else "n" :: String)
                        anumpostings
-                       (showMixedAmount aebalance)
-                       (showMixedAmount aibalance)
+                       (wbUnpack $ showMixedAmountB defaultFmt aebalance)
+                       (wbUnpack $ showMixedAmountB defaultFmt aibalance)
 
 instance Eq Account where
   (==) a b = aname a == aname b -- quick equality test for speed
@@ -64,30 +88,46 @@ nullacct = Account
 accountsFromPostings :: [Posting] -> [Account]
 accountsFromPostings ps =
   let
-    grouped = groupSort [(paccount p,pamount p) | p <- ps]
-    counted = [(aname, length amts) | (aname, amts) <- grouped]
-    summed =  [(aname, sumStrict amts) | (aname, amts) <- grouped]  -- always non-empty
-    acctstree      = accountTree "root" $ map fst summed
-    acctswithnumps = mapAccounts setnumps    acctstree      where setnumps    a = a{anumpostings=fromMaybe 0 $ lookup (aname a) counted}
-    acctswithebals = mapAccounts setebalance acctswithnumps where setebalance a = a{aebalance=lookupJustDef nullmixedamt (aname a) summed}
+    summed = foldr (\p -> HM.insertWith addAndIncrement (paccount p) (1, pamount p)) mempty ps
+      where addAndIncrement (n, a) (m, b) = (n + m, a `maPlus` b)
+    acctstree      = accountTree "root" $ HM.keys summed
+    acctswithebals = mapAccounts setnumpsebalance acctstree
+      where setnumpsebalance a = a{anumpostings=numps, aebalance=total}
+              where (numps, total) = HM.lookupDefault (0, nullmixedamt) (aname a) summed
     acctswithibals = sumAccounts acctswithebals
     acctswithparents = tieAccountParents acctswithibals
     acctsflattened = flattenAccounts acctswithparents
   in
     acctsflattened
 
--- | Convert a list of account names to a tree of Account objects, 
--- with just the account names filled in. 
+-- | Convert a list of account names to a tree of Account objects,
+-- with just the account names filled in.
 -- A single root account with the given name is added.
 accountTree :: AccountName -> [AccountName] -> Account
 accountTree rootname as = nullacct{aname=rootname, asubs=map (uncurry accountTree') $ M.assocs m }
   where
     T m = treeFromPaths $ map expandAccountName as :: FastTree AccountName
-    accountTree' a (T m) =
+    accountTree' a (T m') =
       nullacct{
         aname=a
-       ,asubs=map (uncurry accountTree') $ M.assocs m
+       ,asubs=map (uncurry accountTree') $ M.assocs m'
        }
+
+-- | An efficient-to-build tree suggested by Cale Gibbard, probably
+-- better than accountNameTreeFrom.
+newtype FastTree a = T (M.Map a (FastTree a))
+  deriving (Show, Eq, Ord)
+
+mergeTrees :: (Ord a) => FastTree a -> FastTree a -> FastTree a
+mergeTrees (T m) (T m') = T (M.unionWith mergeTrees m m')
+
+treeFromPath :: [a] -> FastTree a
+treeFromPath []     = T M.empty
+treeFromPath (x:xs) = T (M.singleton x (treeFromPath xs))
+
+treeFromPaths :: (Ord a) => [[a]] -> FastTree a
+treeFromPaths = foldl' mergeTrees (T M.empty) . map treeFromPath
+
 
 -- | Tie the knot so all subaccounts' parents are set correctly.
 tieAccountParents :: Account -> Account
@@ -123,7 +163,7 @@ sumAccounts a
   | otherwise      = a{aibalance=ibal, asubs=subs}
   where
     subs = map sumAccounts $ asubs a
-    ibal = sum $ aebalance a : map aibalance subs
+    ibal = maSum $ aebalance a : map aibalance subs
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account -> Account
@@ -134,11 +174,13 @@ clipAccounts d a = a{asubs=subs}
 
 -- | Remove subaccounts below the specified depth, aggregating their balance at the depth limit
 -- (accounts at the depth limit will have any sub-balances merged into their exclusive balance).
-clipAccountsAndAggregate :: Int -> [Account] -> [Account]
-clipAccountsAndAggregate d as = combined
+-- If the depth is Nothing, return the original accounts
+clipAccountsAndAggregate :: DepthSpec -> [Account] -> [Account]
+clipAccountsAndAggregate (DepthSpec Nothing []) as = as
+clipAccountsAndAggregate d                      as = combined
     where
       clipped  = [a{aname=clipOrEllipsifyAccountName d $ aname a} | a <- as]
-      combined = [a{aebalance=sum (map aebalance same)}
+      combined = [a{aebalance=maSum $ map aebalance same}
                  | same@(a:_) <- groupOn aname clipped]
 {-
 test cases, assuming d=1:
@@ -184,7 +226,7 @@ pruneAccounts p = headMay . prune
 -- tree's structure remains intact and can still be used. It's a tree/list!
 flattenAccounts :: Account -> [Account]
 flattenAccounts a = squish a []
-  where squish a as = a : Prelude.foldr squish as (asubs a)
+  where squish a' as = a' : Prelude.foldr squish as (asubs a')
 
 -- | Filter an account tree (to a list).
 filterAccounts :: (Account -> Bool) -> Account -> [Account]
@@ -193,20 +235,18 @@ filterAccounts p a
     | otherwise = concatMap (filterAccounts p) (asubs a)
 
 -- | Sort each group of siblings in an account tree by inclusive amount,
--- so that the accounts with largest normal balances are listed first.  
+-- so that the accounts with largest normal balances are listed first.
 -- The provided normal balance sign determines whether normal balances
 -- are negative or positive, affecting the sort order. Ie,
 -- if balances are normally negative, then the most negative balances
 -- sort first, and vice versa.
 sortAccountTreeByAmount :: NormalSign -> Account -> Account
-sortAccountTreeByAmount normalsign a
-  | null $ asubs a = a
-  | otherwise      = a{asubs=
-                        sortBy (maybeflip $ comparing (normaliseMixedAmountSquashPricesForDisplay . aibalance)) $
-                        map (sortAccountTreeByAmount normalsign) $ asubs a}
+sortAccountTreeByAmount normalsign = mapAccounts $ \a -> a{asubs=sortSubs $ asubs a}
   where
-    maybeflip | normalsign==NormallyNegative = id
-              | otherwise                  = flip
+    sortSubs = case normalsign of
+        NormallyPositive -> sortOn (\a -> (Down $ amt a, aname a))
+        NormallyNegative -> sortOn (\a -> (amt a, aname a))
+    amt = mixedAmountStripCosts . aibalance
 
 -- | Add extra info for this account derived from the Journal's
 -- account directives, if any (comment, tags, declaration order..).
@@ -217,32 +257,32 @@ accountSetDeclarationInfo j a@Account{..} =
 -- | Sort account names by the order in which they were declared in
 -- the journal, at each level of the account tree (ie within each
 -- group of siblings). Undeclared accounts are sorted last and
--- alphabetically. 
+-- alphabetically.
 -- This is hledger's default sort for reports organised by account.
 -- The account list is converted to a tree temporarily, adding any
--- missing parents; these can be kept (suitable for a tree-mode report) 
+-- missing parents; these can be kept (suitable for a tree-mode report)
 -- or removed (suitable for a flat-mode report).
 --
 sortAccountNamesByDeclaration :: Journal -> Bool -> [AccountName] -> [AccountName]
 sortAccountNamesByDeclaration j keepparents as =
-  (if keepparents then id else filter (`elem` as)) $  -- maybe discard missing parents that were added
-  map aname $                                         -- keep just the names
-  drop 1 $                                            -- drop the root node that was added
-  flattenAccounts $                                   -- convert to an account list
-  sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
-  mapAccounts (accountSetDeclarationInfo j) $         -- add declaration order info
-  accountTree "root"                                  -- convert to an account tree
-  as
+    (if keepparents then id else filter (`HS.member` HS.fromList as)) $  -- maybe discard missing parents that were added
+    map aname $                                         -- keep just the names
+    drop 1 $                                            -- drop the root node that was added
+    flattenAccounts $                                   -- convert to an account list
+    sortAccountTreeByDeclaration $                      -- sort by declaration order (and name)
+    mapAccounts (accountSetDeclarationInfo j) $         -- add declaration order info
+    accountTree "root"                                  -- convert to an account tree
+    as
 
 -- | Sort each group of siblings in an account tree by declaration order, then account name.
--- So each group will contain first the declared accounts, 
--- in the same order as their account directives were parsed, 
--- and then the undeclared accounts, sorted by account name. 
+-- So each group will contain first the declared accounts,
+-- in the same order as their account directives were parsed,
+-- and then the undeclared accounts, sorted by account name.
 sortAccountTreeByDeclaration :: Account -> Account
 sortAccountTreeByDeclaration a
   | null $ asubs a = a
   | otherwise      = a{asubs=
-      sortOn accountDeclarationOrderAndName $ 
+      sortOn accountDeclarationOrderAndName $
       map sortAccountTreeByDeclaration $ asubs a
       }
 
@@ -266,6 +306,6 @@ showAccountsBoringFlag = unlines . map (show . aboring) . flattenAccounts
 
 showAccountDebug a = printf "%-25s %4s %4s %s"
                      (aname a)
-                     (showMixedAmount $ aebalance a)
-                     (showMixedAmount $ aibalance a)
+                     (wbUnpack . showMixedAmountB defaultFmt $ aebalance a)
+                     (wbUnpack . showMixedAmountB defaultFmt $ aibalance a)
                      (if aboring a then "b" else " " :: String)

@@ -1,0 +1,12 @@
+2008/12/31 Market
+   Expenses:Food           ($10,00 + $2,50)
+   Assets:Cash
+
+$ hledger -f- check
+
+#test print --decimal-comma
+#2008/12/31 Market
+#    Expenses:Food                       ($10,00 + $2,50)
+#    Assets:Cash
+#end test
+#

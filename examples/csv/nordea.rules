@@ -1,0 +1,25 @@
+skip 1
+separator ;
+fields date_or_status, amount, from, to, name, note, code, balance, currency
+newest-first
+decimal-mark ,
+date-format %Y/%m/%d
+status *
+
+description %from | %to %note
+
+# Nordea's transaction CSV has two sections:
+#
+# 1. A list of pending transactions where the date field has the value
+#    "Varaus" (in the Finnish version of the Netbank).
+#
+# 2. List of cleared transactions.
+#
+# Skip the pending transactions and import only cleared.
+if %date_or_status Varaus
+	skip
+
+date %date_or_status
+
+if %currency EUR
+	currency €

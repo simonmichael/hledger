@@ -1,7 +1,11 @@
+# For troubleshooting: git check-ignore -v --no-index PATHS
+
 # misc stuff
 _*
 *~
 *.o
+\#*
+.\#*
 
 # dev stuff
 .build
@@ -12,31 +16,20 @@ _*
 .vscode
 tags
 TAGS
-/debug.log
-/tools/pandoc-demote-headers
-/tools/pandoc-drop-html-blocks
-/tools/pandoc-drop-html-inlines
-/tools/pandoc-drop-links
-/tools/pandoc-drop-notes
-/tools/pandoc-drop-toc
-/tools/generatetimeclock
+.obsidian
+stylish-haskell.yaml
+*.m4-e
 
-# Tricksy rules ignoring some typical temp files.
-# For troubleshooting: git check-ignore --verbose PATHS...
-# 1- or 2-character filenames, maybe with an extension; but not directories
+# test files
+/[0-9]*
+#*.j
 [a-z0-9]
-[a-z0-9].*
+#[a-z0-9].*
 [a-z0-9][a-z0-9]
-[a-z0-9][a-z0-9].*
 ![a-z0-9]/
 ![a-z0-9].*/
 ![a-z0-9][a-z0-9]/
 ![a-z0-9][a-z0-9].*/
-# files/directories beginning with a number
-/[0-9]*
-#
-*.j
-*.sw[op]
 
 # haskell stuff
 *.dyn_hi
@@ -44,6 +37,7 @@ TAGS
 *.hi
 *.p_o
 *.hp
+package.yaml-e
 .cabal-sandbox/
 cabal-dev*
 cabal.project.local
@@ -51,22 +45,45 @@ cabal.sandbox.config
 dist/
 dist-newstyle/
 .ghc.environment.*
+stack*.yaml.lock
+.stack-work/
 /Shake
 /.shake.html
-.stack-work/
+Setup
+modules*.svg
+packages*.svg
+/*.packages
 
 # hledger stuff
+#*.webmanual.md
 old
+.old
 /log
+*.log
 /profs/*
 /*.prof.*
+/tmp
+/bench*
 /bin/**
-/.latest.*
-test.hs
-tests/addons/hledger-*
-tools/generatejournal
-tools/simplebench
-/examples/10*.journal
+!/bin/*.hs
+!/bin/*.sh
+!/bin/*.md
+/bin/*_.hs
+/examples/[1-9]*.journal
+/hledger/test/cli/addons
+/hledger/hledger.md
+/hledger-ui/hledger-ui.md
+/hledger-web/hledger-web.md
+/tools/generatejournal
+/tools/relnotes
+/tools/simplebench
+/tools/pandoc-demote-headers
+/tools/pandoc-drop-html-blocks
+/tools/pandoc-drop-html-inlines
+/tools/pandoc-drop-links
+/tools/pandoc-drop-notes
+/tools/pandoc-drop-toc
+/tools/generatetimeclock
 
 # hledger-web stuff
 /config
@@ -78,7 +95,23 @@ hledger-web/yesod-devel/
 .hledger-web_client_session_key.aes
 
 # sandstorm stuff
-.vagrant
-*.spk
+# .vagrant
+# *.spk
 
 # recent stuff
+/checks
+/headroom-templates
+.headroom.yaml
+*.prof
+/artifacts/
+/tools/docshelltest
+/hledger-lib/test/doctests
+/examples/edk-hledger-ui-mobile.gif
+/examples/tty-ui-1.gif
+/site
+/finance
+/examples/demo/
+/hledger-web/demo/
+/doc/ghrelnotes.md
+.aider*
+/doc/RELEASING2.md

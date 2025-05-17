@@ -1,0 +1,19 @@
+# household2.journal, tracking expense categories
+
+2024-01-01 me contribution
+    equity:me                       -100.00 EUR
+    assets:bank                      100.00 EUR
+
+2024-01-01 partner contribution
+    equity:partner                  -100.00 EUR
+    assets:bank                      100.00 EUR
+
+2024-01-02 pay shared bill
+    assets:bank                     -100.00 EUR
+    expenses:foo                     100.00 EUR
+
+2024-01-31 retain earnings (keeping 50-50 split)
+    expenses                                    ==* 0 EUR
+    equity:me                         50 EUR
+    equity:partner                    50 EUR
+

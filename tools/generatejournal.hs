@@ -1,4 +1,5 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env stack
+-- stack runghc
 {-
 generatejournal.hs NUMTXNS NUMACCTS ACCTDEPTH [--chinese|--mixed]
 
@@ -13,10 +14,12 @@ with --mixed it uses both.
 module Main
 where
 import Data.Char
+import Data.Decimal
 import Data.List
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Numeric
+import Safe (tailErr)
 import System.Environment
 import Text.Printf
 -- import Hledger.Utils.Debug
@@ -30,20 +33,25 @@ main = do
   let d = fromGregorian 2000 1 1
   let dates = iterate (addDays 1) d
   let accts = pair $ cycle $ take numaccts $ uniqueAccountNames opts acctdepth
-  mapM_ (\(n,d,(a,b)) -> putStr $ showtxn n d a b) $ take numtxns $ zip3 [1..] dates accts
+  let comms  = cycle ['A'..'Z']
   let rates = [0.70, 0.71 .. 1.3]
-  mapM_ (\(d,rate) -> putStr $ showmarketprice d rate) $ take numtxns $ zip dates (cycle $ rates ++ init (tail (reverse rates)))
-  return ()
+  mapM_ (\(n,d,(a,b),c,p) -> putStr $ showtxn n d a b c p) $ take numtxns $ zip5 [1..] dates accts comms (drop 1 comms)
+  mapM_ (\(d,rate) -> putStr $ showmarketprice d rate) $ take numtxns $ zip dates (cycle $ rates ++ init (tailErr (reverse rates)))  -- PARTIAL tailErr succeeds because non-null rates list
 
-showtxn :: Int -> Day -> String -> String -> String
-showtxn txnno date acct1 acct2 =
-    printf "%s transaction %d\n  %-40s  %2d A\n  %-40s  %2d A\n\n" d txnno acct1 amt acct2 (-amt)
+showtxn :: Int -> Day -> String -> String -> Char -> Char -> String
+showtxn txnno date acct1 acct2 comm pricecomm =
+    printf "%s transaction %d\n  %-40s  %2d %c%s\n  %-40s  %s %c\n\n" d txnno acct1 amt comm pricesymbol acct2 (show amt2) amt2comm
     where
       d = show date
       amt = txnno
+      (amt2, amt2comm, pricesymbol)
+        | txnno `rem` 3 == 0 = (fromIntegral (-amt) :: Decimal, comm, "")
+        | txnno `rem` 3 == 1 = (fromIntegral (-amt) * rate, pricecomm, printf " @ %s %c" (show rate) pricecomm)
+        | otherwise         = (fromIntegral (-amt), pricecomm, printf " @@ %s %c" (show amt) pricecomm)
+      rate = 0.70 + 0.01 * fromIntegral (txnno `rem` 60) :: Decimal
 
 showmarketprice :: Day -> Double -> String
-showmarketprice date rate = printf "P %s A  %.2f B\n" (show date) rate
+showmarketprice date = printf "P %s A  %.2f B\n" (show date)
 
 uniqueAccountNames :: [String] -> Int -> [String]
 uniqueAccountNames opts depth =
@@ -72,7 +80,7 @@ sequences :: Show a => Int -> [a] -> [[a]]
 sequences n l = go l
   where
     go [] = []
-    go l' = s : go (tail l')
+    go l' = s : go (tailErr l')  -- PARTIAL tailErr succeeds because of pattern
       where
         s' = take n l'
         s | length s' == n = s'

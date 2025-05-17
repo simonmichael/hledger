@@ -1,71 +1,78 @@
 <script>
+
   jQuery(document).ready(function() {
-    descriptionsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr descriptions},
+
+    // Set up global completers which can be attached to appropriate inputs when needed
+
+    globalThis.descriptionsCompleter = new Bloodhound({
+      local:#{toBloodhoundJson (toList descriptions)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
     });
-    descriptionsSuggester.initialize();
+    globalThis.descriptionsCompleter.initialize();
 
-    accountsSuggester = new Bloodhound({
-      local:#{listToJsonValueObjArrayStr (journalAccountNamesDeclaredOrImplied j)},
+    globalThis.accountsCompleter = new Bloodhound({
+      local:#{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)},
       limit:100,
       datumTokenizer: function(d) { return [d.value]; },
       queryTokenizer: function(q) { return [q]; }
     });
-    accountsSuggester.initialize();
+    globalThis.accountsCompleter.initialize();
 
-    jQuery('input[name=description]').typeahead({ highlight: true }, { source: descriptionsSuggester.ttAdapter() });
-    jQuery('input[name=account]').typeahead({ highlight: true }, { source: accountsSuggester.ttAdapter() });
+    // Attach the completers to the initial form inputs.
+    jQuery('input[name=description]').typeahead({ highlight: true }, { source: globalThis.descriptionsCompleter.ttAdapter() });
+    jQuery('input[name=account]'    ).typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
   });
+
+  const utf8textdecoder = new TextDecoder();
+  function decodeBase64EncodedText(b64) {
+      const unb64 = window.atob(b64);
+      const arr = new Uint8Array(unb64.length);
+      for (let i = 0; i < arr.length; i++) {
+          arr[i] = unb64.charCodeAt(i);
+      }
+      return utf8textdecoder.decode(arr);
+  }
+
 ^{extra}
 
-<div .form-group>
-  <div .row>
-    <div .col-md-3 .col-xs-6 .col-sm-6 :isJust (fvErrors dateView):.has-error>
-      <div #dateWrap .form-group.input-group.date>
-        ^{fvInput dateView}
-        <div .input-group-addon>
-          <span .glyphicon .glyphicon-th>
-      $maybe err <- fvErrors dateView
-        <span .help-block .error-block>#{err}
-    <div .col-md-9 .col-xs-6 .col-sm-6 :isJust (fvErrors descView):.has-error>
-      <div .form-group>
-        ^{fvInput descView}
-      $maybe err <- fvErrors descView
-        <span .help-block .error-block>#{err}
-  <div .row>
-    <div .col-md-3 .col-xs-6 .col-sm-6>
-    <div .col-md-9 .col-xs-6 .col-sm-6>
+<div .row>
+  <div .col-md-3.col-sm-5.col-xs-6 :isJust (fvErrors dateView):.has-error>
+    <div #dateWrap .form-group.input-group.date>
+      ^{fvInput dateView}
+      <div .input-group-addon>
+        <span .glyphicon .glyphicon-th>
+    $maybe err <- fvErrors dateView
+      <span .help-block .error-block>#{err}
+  <div .col-md-9.col-sm-7.col-xs-6 :isJust (fvErrors descView):.has-error>
+    <div .form-group>
+      ^{fvInput descView}
+    $maybe err <- fvErrors descView
+      <span .help-block .error-block>#{err}
 
 <div .account-postings>
   $forall (n, (acc, amt, accE, amtE)) <- displayRows
-    <div .form-group .row .account-group>
-      <div .col-md-8 .col-xs-8 .col-sm-8 :isJust accE:.has-error>
+    <div .form-group .row .account-group style="padding-left:1em;">
+      <div .col-sm-9.col-xs-9 :isJust accE:.has-error>
         <input .account-input.form-control.input-lg.typeahead type=text
           name=account placeholder="Account #{n}" value="#{acc}">
         $maybe err <- accE
           <span .help-block .error-block>_{err}
-      <div .col-md-4 .col-xs-4 .col-sm-4 :isJust amtE:.has-error>
+      <div .col-sm-3.col-xs-3 :isJust amtE:.has-error>
         <input .amount-input.form-control.input-lg type=text
           name=amount placeholder="Amount #{n}" value="#{amt}">
         $maybe err <- amtE
           <span .help-block .error-block>_{err}
 
 <div .row>
-  <div .col-md-8 .col-xs-8 .col-sm-8>
-  <div .col-md-4 .col-xs-4 .col-sm-4>
-    <button type=submit .btn .btn-default .btn-lg name=submit>add
-
-$if length journals > 1
-  <br>
-  <span .input-lg>to:
-    <select #journalselect .form-control.input-lg name=journal style="width:auto; display:inline-block;">
-      $forall p <- journals
-        <option value=#{p}>#{p}
-<span .small style="padding-left:2em;">
-  Enter a value in the last field for #
-  <a href="#" onclick="addformAddPosting(); return false;">
-    more
-  \ (or ctrl +, ctrl -)
+  <div .col-sm-9.col-xs-9>
+    $if length files > 1
+      Add to:
+      &nbsp;
+      <div style="display:inline-block; width:auto;" .form-group :isJust (fvErrors fileView):.has-error>
+        ^{fvInput fileView}
+        $maybe err <- fvErrors fileView
+          <span .help-block .error-block>#{err}
+  <div .col-sm-3.col-xs-3 style="text-align:right;">
+    <button type=submit .btn .btn-default .btn-lg name=submit style="font-weight:bold;">Save

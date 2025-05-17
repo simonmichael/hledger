@@ -1,0 +1,10 @@
+; Kontotyper på toppnivå. Underkontoer vil arve disse.
+; (maskinoversatt)
+account Eiendeler                      ; type:A
+account Eiendeler:Bank                 ; type:C
+account Eiendeler:Kasse                ; type:C
+account Gjeld                          ; type:L
+account Egenkapital                    ; type:E
+account Egenkapital:Valutadifferanser  ; type:V
+account Inntekter                      ; type:R
+account Kostnader                      ; type:X

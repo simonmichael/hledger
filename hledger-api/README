@@ -1,2 +1,0 @@
-A web API server for hledger data, and some client-side app examples.
-This is an alternative to hledger-web, and for variety uses servant instead of yesod.

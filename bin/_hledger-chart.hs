@@ -56,7 +56,7 @@ cmdmode = hledgerCommandMode
   [here| chart
 Generate a pie chart for the top account balances with the same sign,
 in SVG format.
- 
+
 Based on the old hledger-chart package, this is not yet useful.
 It's supposed to show only balances of one sign, but this might be broken.
   |]
@@ -100,7 +100,7 @@ main = do
   let balreport = balanceReportFromMultiBalanceReport ropts (queryFromOpts d ropts) j
   let go -- | "--help" `elem` (rawopts_ $ cliopts_ chopts)    = putStr (showModeHelp chartmode) >> exitSuccess
          -- | "--version" `elem` (rawopts_ $ cliopts_ chopts) = putStrLn progversion >> exitSuccess
-         | otherwise                                       = withJournalAndChartOptsDo chopts (writeChart balreport)
+                                                           = withJournalAndChartOptsDo chopts (writeChart balreport)
   go
 
 -- copied from hledger-web
@@ -147,7 +147,7 @@ genPie opts (items, _total) = def { _pie_background = solidFillStyle $ opaque $ 
       (samesignitems, sign) = sameSignNonZero items
       top n t = topn ++ [other]
           where
-            (topn,rest) = splitAt n $ reverse $ sortBy (comparing snd) t
+            (topn,rest) = splitAt n $ sortBy (flip $ comparing snd) t
             other = ("other", sum $ map snd rest)
       num = chart_items_ opts
       hue = if sign > 0 then red else green where (red, green) = (0, 110)
@@ -162,7 +162,7 @@ sameSignNonZero is
  | otherwise = (map pos $ filter (test.fourth4) nzs, sign)
  where
    nzs = filter ((/=0).fourth4) is
-   pos (acct,_,_,Mixed as) = (acct, abs $ read $ show $ maybe 0 aquantity $ headMay as)
+   pos (acct,_,_,as) = (acct, abs $ read $ show $ maybe 0 aquantity $ headMay $ amounts as)
    sign = if fourth4 (head nzs) >= 0 then 1 else (-1)
    test = if sign > 0 then (>0) else (<0)
 
@@ -183,7 +183,7 @@ sameSignNonZero is
 
 -- | Build a single pie chart item
 accountPieItem :: AccountName -> Double -> PieItem
-accountPieItem accname balance = PieItem (T.unpack accname) offset balance where offset = 0
+accountPieItem accname = PieItem (T.unpack accname) offset where offset = 0
 
 -- | Generate an infinite color list suitable for charts.
 mkColours :: Double -> [AlphaColour Double]

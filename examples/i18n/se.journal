@@ -1,0 +1,10 @@
+; Kontotyper på toppnivå. Underkonton kommer att ärva dessa.
+; (maskinöversatt)
+account tillgångar                 ; type:A
+account tillgångar:bank            ; type:C
+account tillgångar:kassa           ; type:C
+account skulder                    ; type:L
+account eget kapital               ; type:E
+account eget kapital:omräkning     ; type:V
+account intäkter                   ; type:R
+account kostnader                  ; type:X

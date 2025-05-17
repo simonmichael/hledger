@@ -1,83 +1,74 @@
 -- The transaction screen, showing a single transaction's general journal entry.
 
-{-# LANGUAGE OverloadedStrings, TupleSections, RecordWildCards #-} -- , FlexibleContexts
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TupleSections     #-}
+{-# OPTIONS_GHC -Wno-incomplete-record-updates #-}
 
 module Hledger.UI.TransactionScreen
- (transactionScreen
- ,rsSelect
- )
-where
+(tsNew
+,tsUpdate
+,tsDraw
+,tsHandle
+) where
 
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-#if !(MIN_VERSION_base(4,11,0))
-import Data.Monoid
-#endif
+import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
-import Graphics.Vty (Event(..),Key(..),Modifier(..))
+import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
 import Brick
 import Brick.Widgets.List (listMoveTo)
 
 import Hledger
-import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli hiding (mode, prices, progname,prognameandversion)
 import Hledger.UI.UIOptions
--- import Hledger.UI.Theme
 import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
+import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen
-
-transactionScreen :: Screen
-transactionScreen = TransactionScreen{
-   sInit   = tsInit
-  ,sDraw   = tsDraw
-  ,sHandle = tsHandle
-  ,tsTransaction  = (1,nulltransaction)
-  ,tsTransactions = [(1,nulltransaction)]
-  ,tsAccount      = ""
-  }
-
-tsInit :: Day -> Bool -> UIState -> UIState
-tsInit _d _reset ui@UIState{aopts=UIOpts{cliopts_=CliOpts{reportopts_=_ropts}}
-                                           ,ajournal=_j
-                                           ,aScreen=TransactionScreen{..}} = ui
-tsInit _ _ _ = error "init function called with wrong screen type, should not happen"
+import Brick.Widgets.Edit (editorText, renderEditor)
+import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions, uiReloadJournal)
 
 tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-              ,aScreen=TransactionScreen{tsTransaction=(i,t)
-                                        ,tsTransactions=nts
-                                        ,tsAccount=acct
-                                        }
+tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+              ,ajournal=j
+              ,aScreen=TS TSS{_tssTransaction=(i,t')
+                              ,_tssTransactions=nts
+                              ,_tssAccount=acct
+                              }
               ,aMode=mode
               } =
   case mode of
-    Help       -> [helpDialog copts, maincontent]
-    -- Minibuffer e -> [minibuffer e, maincontent]
+    Help       -> [helpDialog, maincontent]
     _          -> [maincontent]
   where
-    maincontent = Widget Greedy Greedy $ do
-      render $ defaultLayout toplabel bottomlabel $ str $
-        showTransactionUnelidedOneLineAmounts $
-        -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
-        t
+    maincontent = Widget Greedy Greedy $ render $ defaultLayout toplabel bottomlabel txneditor
       where
+        -- as with print, show amounts with all of their decimal places
+        t = transactionMapPostingAmounts mixedAmountSetFullPrecision t'
+
+        -- XXX would like to shrink the editor to the size of the entry,
+        -- so handler can more easily detect clicks below it
+        txneditor =
+          renderEditor (vBox . map txt) False $
+          editorText TransactionEditor Nothing $
+          showTxn ropts rspec j t
+
         toplabel =
           str "Transaction "
           -- <+> withAttr ("border" <> "bold") (str $ "#" ++ show (tindex t))
           -- <+> str (" ("++show i++" of "++show (length nts)++" in "++acct++")")
           <+> (str $ "#" ++ show (tindex t))
           <+> str " ("
-          <+> withAttr ("border" <> "bold") (str $ show i)
+          <+> withAttr (attrName "border" <> attrName "bold") (str $ show i)
           <+> str (" of "++show (length nts))
           <+> togglefilters
-          <+> borderQueryStr (query_ ropts)
+          <+> borderQueryStr (unwords . map (quoteIfNeeded . T.unpack) $ querystring_ ropts)
           <+> str (" in "++T.unpack (replaceHiddenAccountsNameWith "All" acct)++")")
-          <+> (if ignore_assertions_ $ inputopts_ copts then withAttr ("border" <> "query") (str " ignoring balance assertions") else str "")
+          <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions") else str "")
           where
             togglefilters =
               case concat [
@@ -86,107 +77,116 @@ tsDraw UIState{aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
                   ,if empty_ ropts then [] else ["nonzero"]
                   ] of
                 [] -> str ""
-                fs -> withAttr ("border" <> "query") (str $ " " ++ intercalate ", " fs)
+                fs -> withAttr (attrName "border" <> attrName "query") (str $ " " ++ intercalate ", " fs)
 
-        bottomlabel = case mode of
+        bottomlabel = quickhelp
+                        -- case mode of
                         -- Minibuffer ed -> minibuffer ed
-                        _             -> quickhelp
+                        -- _             -> quickhelp
           where
             quickhelp = borderKeysStr [
-               ("?", "help")
-              ,("LEFT", "back")
-              ,("UP/DOWN", "prev/next")
+               ("LEFT", "back")
+              ,("UP/DOWN", "prev/next txn")
               --,("ESC", "cancel/top")
               -- ,("a", "add")
-              ,("E", "editor")
+              ,("E", "edit")
               ,("g", "reload")
-              ,("q", "quit")
+              ,("?", "help")
+              -- ,("q", "quit")
               ]
 
-tsDraw _ = error "draw function called with wrong screen type, should not happen"
+tsDraw _ = errorWrongScreenType "draw function"  -- PARTIAL:
 
-tsHandle :: UIState -> BrickEvent Name AppEvent -> EventM Name (Next UIState)
-tsHandle ui@UIState{aScreen=s@TransactionScreen{tsTransaction=(i,t)
-                                               ,tsTransactions=nts
-                                               ,tsAccount=acct
-                                               }
-                   ,aopts=UIOpts{cliopts_=copts@CliOpts{reportopts_=ropts}}
-                   ,ajournal=j
-                   ,aMode=mode
-                   }
-         ev =
-  case mode of
-    Help ->
-      case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _                    -> helpHandle ui ev
+-- Render a transaction suitably for the transaction screen.
+showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
+showTxn ropts rspec j t =
+      showTransactionOneLineAmounts
+    $ maybe id (transactionApplyValuation prices styles periodlast (_rsDay rspec)) (value_ ropts)
+    $ maybe id transactionToCost (conversionop_ ropts) t
+    -- (if real_ ropts then filterTransactionPostings (Real True) else id) -- filter postings by --real
+  where
+    prices = journalPriceOracle (infer_prices_ ropts) j
+    styles = journalCommodityStyles j
+    periodlast =
+      fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
+      reportPeriodOrJournalLastDay rspec j
 
-    _ -> do
-      d <- liftIO getCurrentDay
-      let
-        (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
-        (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
-      case ev of
-        VtyEvent (EvKey (KChar 'q') []) -> halt ui
-        VtyEvent (EvKey KEsc        []) -> continue $ resetScreens d ui
-        VtyEvent (EvKey (KChar c)   []) | c `elem` ['?'] -> continue $ setMode Help ui
-        VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
-          where
-            (pos,f) = case tsourcepos t of
-                        GenericSourcePos f l c    -> (Just (l, Just c),f)
-                        JournalSourcePos f (l1,_) -> (Just (l1, Nothing),f) 
-        AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-          continue $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-          where
-            p = reportPeriod ui
-        e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
+tsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
+tsHandle ev = do
+  ui0 <- get'
+  case ui0 of
+    ui@UIState{aScreen=TS TSS{_tssTransaction=(i,t), _tssTransactions=nts}
+              ,aopts=UIOpts{uoCliOpts=copts}
+              ,ajournal=j
+              ,aMode=mode
+              } ->
+      case mode of
+        Help ->
+          case ev of
+            -- VtyEvent (EvKey (KChar 'q') []) -> halt
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
+            VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
+            _ -> helpHandle ev
+
+        _ -> do
           d <- liftIO getCurrentDay
-          ej <- liftIO $ journalReload copts
-          case ej of
-            Left err -> continue $ screenEnter d errorScreen{esError=err} ui
-            Right j' -> do
-              -- got to redo the register screen's transactions report, to get the latest transactions list for this screen
-              -- XXX duplicates rsInit
-              let
-                ropts' = ropts {depth_=Nothing
-                               ,balancetype_=HistoricalBalance
-                               }
-                q = filterQuery (not . queryIsDepth) $ queryFromOpts d ropts'
-                thisacctq = Acct $ accountNameToAccountRegex acct -- includes subs
-                items = reverse $ snd $ accountTransactionsReport ropts j' q thisacctq
-                ts = map first6 items
-                numberedts = zip [1..] ts
-                -- select the best current transaction from the new list
-                -- stay at the same index if possible, or if we are now past the end, select the last, otherwise select the first
-                (i',t') = case lookup i numberedts
-                          of Just t'' -> (i,t'')
-                             Nothing | null numberedts -> (0,nulltransaction)
-                                     | i > fst (last numberedts) -> last numberedts
-                                     | otherwise -> head numberedts
-                ui' = ui{aScreen=s{tsTransaction=(i',t')
-                                  ,tsTransactions=numberedts
-                                  ,tsAccount=acct}}
-              continue $ regenerateScreens j' d ui'
-        VtyEvent (EvKey (KChar 'I') []) -> continue $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
-        -- if allowing toggling here, we should refresh the txn list from the parent register screen
-        -- EvKey (KChar 'E') [] -> continue $ regenerateScreens j d $ stToggleEmpty ui
-        -- EvKey (KChar 'C') [] -> continue $ regenerateScreens j d $ stToggleCleared ui
-        -- EvKey (KChar 'R') [] -> continue $ regenerateScreens j d $ stToggleReal ui
-        VtyEvent e | e `elem` moveUpEvents   -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(iprev,tprev)}}
-        VtyEvent e | e `elem` moveDownEvents -> continue $ regenerateScreens j d ui{aScreen=s{tsTransaction=(inext,tnext)}}
-        VtyEvent e | e `elem` moveLeftEvents -> continue ui''
-          where
-            ui'@UIState{aScreen=scr} = popScreen ui
-            ui'' = ui'{aScreen=rsSelect (fromIntegral i) scr}
-        VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw ui
-        VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
-        _ -> continue ui
+          let
+            (iprev,tprev) = maybe (i,t) ((i-1),) $ lookup (i-1) nts
+            (inext,tnext) = maybe (i,t) ((i+1),) $ lookup (i+1) nts
+          case ev of
+            VtyEvent (EvKey (KChar 'q') []) -> halt
+            VtyEvent (EvKey KEsc        []) -> put' $ resetScreens d ui
+            VtyEvent (EvKey (KChar c)   []) | c == '?' -> put' $ setMode Help ui
+            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
+              where
+                (pos,f) = case tsourcepos t of
+                            (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
+            AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
+              put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+              where
+                p = reportPeriod ui
 
-tsHandle _ _ = error "event handler called with wrong screen type, should not happen"
+            -- Reload. Warning, this updates parent screens but not the transaction screen itself (see tsUpdate).
+            -- To see the updated transaction, one must exit and re-enter the transaction screen.
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
+              liftIO (uiReloadJournal copts d ui) >>= put'
+                -- debugging.. leaving these here because they were hard to find
+                -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
+                -- \UIState{aScreen=TS tss} -> error $ pshow $ _tssTransaction tss
+
+            VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+
+            -- for toggles that may change the current/prev/next transactions,
+            -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
+            -- EvKey (KChar 'E') [] -> put' $ regenerateScreens j d $ stToggleEmpty ui
+            -- EvKey (KChar 'C') [] -> put' $ regenerateScreens j d $ stToggleCleared ui
+            -- EvKey (KChar 'R') [] -> put' $ regenerateScreens j d $ stToggleReal ui
+            VtyEvent (EvKey (KChar 'B') []) -> put' . regenerateScreens j d $ toggleConversionOp ui
+            VtyEvent (EvKey (KChar 'V') []) -> put' . regenerateScreens j d $ toggleValue ui
+
+            VtyEvent e | e `elem` moveUpEvents   -> put' $ tsSelect iprev tprev ui
+            VtyEvent e | e `elem` moveDownEvents -> put' $ tsSelect inext tnext ui
+
+            -- exit screen on LEFT
+            VtyEvent e | e `elem` moveLeftEvents -> put' . popScreen $ tsSelect i t ui  -- Probably not necessary to tsSelect here, but it's safe.
+            -- or on a click in the app's left margin.
+            VtyEvent (EvMouseUp x _y (Just BLeft)) | x==0 -> put' . popScreen $ tsSelect i t ui
+
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
+            VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
+            _ -> return ()
+
+    _ -> errorWrongScreenType "event handler"
+
+-- | Select a new transaction and update the previous register screen
+tsSelect :: Integer -> Transaction -> UIState -> UIState
+tsSelect i t ui@UIState{aScreen=TS sst} = case aPrevScreens ui of
+    x:xs -> ui'{aPrevScreens=rsSelect i x : xs}
+    []   -> ui'
+  where ui' = ui{aScreen=TS sst{_tssTransaction=(i,t)}}
+tsSelect _ _ ui = ui
 
 -- | Select the nth item on the register screen.
-rsSelect i scr@RegisterScreen{..} = scr{rsList=l'}
-  where l' = listMoveTo (i-1) rsList
+rsSelect :: Integer -> Screen -> Screen
+rsSelect i (RS sst@RSS{..}) = RS sst{_rssList=listMoveTo (fromInteger $ i-1) _rssList}
 rsSelect _ scr = scr

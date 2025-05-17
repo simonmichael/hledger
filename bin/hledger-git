@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+set -e
+
+# * About
+usage() { line80; cat <<EOF # keep synced with Commands below
+hledger-git - easyish version control for your hledger journal, using git.
+
+An experimental prototype, currently works for the default journal only.
+A git repo in the main file's directory will be autocreated if needed.
+
+Subcommands:
+
+hledger git [-h|--help]  - show this help
+hledger git record [MSG] - record changes to journal's files (as listed by 'files')
+hledger git status       - show unrecorded changes in journal's files (after first record)
+hledger git log          - list recorded changes in journal's files (after first record)
+hledger git GITARGS      - run another git command in this repo, on all files
+
+The shorter r, s, l command aliases may be used instead.
+Extra/unrecognised arguments are passed to git. Git-specific flags should be preceded by --.
+
+You can install this as more convenient top-level commands by creating
+hledger-record, hledger-status, hledger-log scripts like:
+
+    #!/bin/sh
+    hledger-git record "\$@"
+
+Examples:
+
+$ hledger git s               # briefly show status of journal's files
+$ hledger git l -10           # briefly list last 10 commits to journal's files
+$ hledger git l -- --stat     # list commits to journal's files, with summaries
+$ hledger git r 'txns' -- -n  # commit changes, ignoring any pre-commit hooks
+
+EOF
+}
+
+# * Utils
+
+line80() { cat <<EOF
+--------------------------------------------------------------------------------
+EOF
+}
+
+no_repo_msg() {
+    echo "Try this again after 'record'."
+}
+
+MAINFILE=$LEDGER_FILE
+FILES=$(hledger -f "$MAINFILE" files)
+DIR=$(dirname "$MAINFILE")
+# executable name, just one word
+GIT=git
+
+ensure_git() {
+    if ! hash $GIT 2>/dev/null; then
+        cat >&2 <<EOF
+This command requires '$GIT', but it's not installed in \$PATH.
+Please install it (see https://git.org/downloads) and try again.
+EOF
+        exit 1
+    fi
+}
+
+ensure_git_repo() {
+  if [[ $($GIT -C "$DIR" rev-parse --is-inside-work-tree 2> /dev/null) != true ]];  then
+      $GIT init "$DIR"
+      echo "Created git repo in $DIR"
+  fi
+}
+
+# * Commands
+# keep synced with usage() above
+
+record() {
+    ensure_git
+    ensure_git_repo
+    cd "$DIR"
+    for F in $FILES; do $GIT add "$F"; done || echo "(ignored)" >&2
+    MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}
+    if [ $# -ge 1 ]; then
+        shift
+    fi
+    $GIT commit -m "$MSG" "$@" || (echo "error: commit failed" >&2; $GIT reset -q)
+}
+r() { record "$@"; }
+
+status() {
+    ensure_git
+    # short status
+    $GIT --work-tree "$DIR" status -sb "$@" -- $FILES
+    echo
+    # diff
+    $GIT --work-tree "$DIR" diff "$@" -- $FILES
+}
+s() { status "$@"; }
+
+log() {
+    ensure_git
+    # ensure_git_repo
+    # $GIT --work-tree "$DIR" log --format='%C(yellow)%ad %Cred%h%Creset %s%C(bold blue)%d%Creset' --date=short -1000000 "$@"
+    cd "$DIR"
+    # TODO: limit to hledger files
+    $GIT log --format='%ad %h %s' --date=short "$@"
+}
+l() { log "$@"; }
+
+# * Main
+
+# NOTE intended to run Commands but will run any function above
+if [[ "$1" == "-h" ||  "$1" == "--help" || $# == 0 ]]; then usage
+elif declare -f "$1" > /dev/null; then "$@"
+else
+    ensure_git
+    $GIT -C "$DIR" "$@"
+fi

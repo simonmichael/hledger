@@ -1,0 +1,2 @@
+include sample.csv.rules
+encoding iso8859-1

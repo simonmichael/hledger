@@ -1,0 +1,8 @@
+* hledger-web extra tests
+
+Additional, manual tests for hledger-web.
+These should be moved to the automated test suite when possible
+(Hledger/Web/Test.hs, `stack test hledger-web`).
+
+** hledger-web -f/dev/null, a, submit a transaction: should succeed
+Adding to a single file, with no file field showing in the add form, should work. (#1932)

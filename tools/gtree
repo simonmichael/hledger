@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+# Display git-tracked files (or with -d, just directories) as a compact tree.
+# With -u, show untracked files instead.
+# With -u -I, show all untracked files, including ignored ones.
+# With a REGEX argument, show only the paths it matches.
+# Requires hledger (with a version <1.40, remove the -n below).
+
+set -e
+
+usage() {
+    cat <<EOF
+gtree [-d] [REGEX] - list some or all git-tracked files as an indented tree.
+Directories are shown with a trailing slash.
+REGEX is a case-insensitive grep regexp matching the relative file paths.
+-d: show directories only
+-u: show untracked files instead
+-I: with -u, also show ignored untracked files
+
+Examples:
+gtree
+gtree -d
+gtree -u
+gtree yaml
+gtree '(^|/)((bsd)?m|sh)ake'
+EOF
+    exit
+}
+
+ARGS=()
+while [[ $# -gt 0 ]]; do
+    key="$1"
+    case $key in
+        -h|--help)
+            HELP=1
+            shift
+            ;;
+        -d)
+            D=1
+            shift
+            ;;
+        -u)
+            U=1
+            shift
+            ;;
+        -I)
+            I=1
+            shift
+            ;;
+        *)
+            if [[ "$1" != -* ]]
+            then
+                ARGS+=("$1")
+                shift
+            else
+                >&2 echo "Error: unknown option $1"
+                exit 1
+            fi
+            ;;
+    esac
+done
+if [[ $HELP = 1 ]]; then usage; exit; fi
+
+REGEX="${ARGS[0]:-.}"
+ROOT=$(pwd)
+GITLS="git ls-files ${U:+-o $(if [[ $I = 1 ]]; then echo ''; else echo '--exclude-standard'; fi)}"
+# XXX the hledger accounts trick doesn't work for paths with double spaces in them
+$GITLS \
+    | grep -iE "$REGEX" \
+    | sed -e 's%/%/:%g' -e "s%^%account $ROOT/:%" \
+    | hledger -n -f- accounts -t \
+    | grep -E "$(if [[ $D = 1 ]]; then echo '/$'; else echo '.'; fi)"

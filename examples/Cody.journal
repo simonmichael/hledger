@@ -1,0 +1,272 @@
+# Cody.journal from http://prudent.me
+
+# Hi, this is Coby 🐿 and this is my journal of
+# prudence...😱✌️
+
+# Let's start with what I have
+
+2018/01/01 *Opening balances
+    Assets:Savings  $30000
+    Assets:Property:MiCasa  $180000
+    Equity
+
+# As I am saving this, the report on my right 👉 
+# will auto-refresh to reflect my latest changes
+
+# I can define exchange rates for any commodity 
+
+P 2018/01/02 15:50:00 USD $1.36
+
+# This is in relations to my base currency, $, 
+# although you can define any currency as base
+
+# Everything that has a value can be defined
+
+P 2018/01/02 16:23:00 BTC $10800
+
+# I can also use anything to define a commodity
+
+P 2018/01/02 17:35:00 🐑 $1080
+
+# I bought 2 sheeps for my farm
+
+2018/01/03 *Poe & Mary
+    Assets:Farm  2 
+    Assets:Savings  $-600
+
+;Report considers transactions in all currencies 
+;and commodity but shows totals in a base currency.
+
+# Prudent also points me to where I made a mistake
+# and tell me what this mistake is about
+
+;Yabapalooza ; uncomment to show error
+
+;There are other
+;% ways
+;|of
+*commenting
+
+;Here's my salary for 2018
+
+2018/01/25 *Manatee Subs Co.
+    Assets:Current  $7300
+    Income:Salary
+    
+2018/02/25
+    Assets:Current  $7300
+    Income:Salary    
+2018/03/25
+    Assets:Current  $10000
+    Income:Salary    
+2018/04/25
+    Assets:Current  $7300
+    Income:Salary    
+2018/05/25
+    Assets:Current  $7300
+    Income:Salary    
+2018/06/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/07/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/08/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/09/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/10/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/11/25
+    Assets:Current  $7800
+    Income:Salary    
+2018/12/25
+    Assets:Current  $7800
+    Income:Salary    
+
+;%At this point, I'll like to introduce you to 
+;%search (and replace).
+
+;%Let's say you want to replace all instances of 
+;%Assets:Current with Assets:Savings, press
+;%Command-F, followed by the + sign
+
+;Here's a few of my monthly expenses
+
+2018/01/27 *Banco Leoporidad
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+
+2018/02/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/03/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/04/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current    
+2018/05/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/06/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current    
+2018/07/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/08/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/09/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/10/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current    
+2018/11/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current
+2018/12/27
+    Expenses:Mortgage:Interest  $1200
+    Assets:Current        
+
+;Let's buy some shares
+
+#You can either declare the price of a share 
+#like this
+
+P 2018/01/02 15:50:00 APPL $2300
+
+#And you can buy a share like this
+
+2018/01/05
+    Assets:Shares  5 APPL@$2000
+    Assets:Savings
+
+#Shares can be purchased at different prices.
+#(Also, another way to specify purchase price)
+
+2018/01/06
+    Assets:Shares  5 APPL
+    Assets:Savings  -$3000
+
+#But the report will be based on the latest 
+#available price of the share, which in this case 
+#is the price of the purchase above. The right 
+#amount (the purchased price) is dedcuted from
+#the account where payment for the purchase is made.
+
+;When you use savings to buy a share, you can see
+;your Ca - De go down on the report 👉
+;Ca - De denotes Cash - Debt 
+;As shares are not considered cash, your total 
+;Ca - De will decrease naturally
+;This simply means you have less liquid cash 
+;now. Shares, although quite liquid, is riskier 
+;than cash in most situation. If you have a 
+;mortgage at a certain amount, you can be sure that
+;a certain amount of cash can be used to pay back
+;the debt provided that the currency of cash is 
+;similar to the currency of the debt. You cannot 
+;be sure of the price of shares as it is in a 
+;different denomination than the mortgage.
+
+#Ah, speaking of mortgage, I shouldn't forget 
+#that amount I owe to the bank
+
+2018/01/01
+    Liabilities:Mortgage  -$28000
+    Equity:Opening
+
+;You may had noticed by now that I am using an 
+;earlier date in this transaction. The order of
+;the date doesn't matter in this journal. 
+
+#You can use any kind of sub-accounts you 
+#want but these root accounts matters:
+#
+#Assets
+#Assets:Savings
+#Assets:Current
+#Liabilities
+#Equity
+#Income
+#Expenses
+#
+#These are the basis of how Prudent produces 
+#the report
+
+#Let's have a few random expenses to illustrate
+#this point,
+
+2018/01/21 *Yay mart
+    Assets:Savings  -$230
+    Expenses:Groceries
+    
+2018/02/21
+    Assets:Savings  -$135
+    Expenses:Utilities:ElectricCompany
+    
+2018/03/21
+    Assets:Savings  -$186
+    Expenses:Clothes
+    
+2018/04/21
+    Assets:Savings  -$863
+    Expenses:Travel
+    
+2018/05/21
+    Assets:Savings  -$210
+    Expenses:Car:Maintenance
+    
+2018/06/21
+    Assets:Savings  -$900
+    Expenses:Insurance
+    
+2018/07/21
+    Assets:Savings  -$150
+    Expenses:Utilities:Broadband
+    
+2018/08/21
+    Assets:Savings  -$550
+    Expenses:Gift 
+    
+2018/09/21
+    Assets:Savings  -$318
+    Expenses:Shoes   
+    
+2018/10/21
+    Assets:Savings  -$1600
+    Expenses:Children:School         
+    
+2018/11/21
+    Assets:Savings  -$7938
+    Expenses:Taxes
+
+2018/12/21
+    Assets:Savings  -$6800
+    Expenses:Hotel         
+    
+#Oh, look! I won the lotteries! Wow... what a 
+#windfall...
+
+2018/10/11
+    Assets:Savings  $18,000,000
+    Income:Gift
+
+#Wow, look at what 18M in the bank gives me 
+#in interest
+
+2018/11/03
+    Assets:Savings  $75000
+    Income:Interest
+
+2018/12/03
+    Assets:Savings  $75316
+    Income:Interest    
+    
+#Life is good with Prudent! 

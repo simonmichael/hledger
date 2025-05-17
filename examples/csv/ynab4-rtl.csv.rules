@@ -1,0 +1,28 @@
+skip 1
+fields account, flag, check_number, date, payee, category, master_category, sub_category, memo, outflow, inflow, cleared, running_balance
+if %cleared C
+ status *
+
+description %payee | %memo
+account1    %account
+#account2    %category
+
+# the RTL currency symbol breaks these somehow
+#amount-out  %outflow
+#amount-in   %inflow
+#balance1    %running_balance
+#currency د.ا.‏
+
+# so extract the amounts with regex groups
+
+if %inflow ([0-9]+\.[0-9]+)
+ amount-in \1
+
+if %outflow ([0-9]+\.[0-9]+)
+ amount-out \1
+
+if %running_balance ([0-9]+\.[0-9]+)
+ balance1 \1
+
+# and use the ISO-4217 code instead
+currency JOD 

@@ -1,15 +1,21 @@
 ---
 name:  A wish
-about: A request for something new to improve hledger software, documentation, etc.
+about: A request or proposal for improving hledger or the project.
 labels: A WISH
 ---
 
-Thank you for your input!
+Thanks for your suggestion! Here are some tips (please delete them before submitting):
 
-Note, we try to not clutter the bug tracker with wishlist items and ideas.
-Often it's best to raise these first on the #hledger IRC chat room or the mail list:
+- Have you looked for related features in the hledger manuals ? Eg:
+  https://hledger.org/dev/hledger.html
 
-http://irc.hledger.org   (quickest; no chat client needed)
-http://list.hledger.org  (most eyeballs)
+- We try to not clutter the bug tracker with too many wishes, since ideas are endless and developers are few.
+  Often it's better to discuss and build interest on chat or the mail list first:
+  https://hledger.org/support.html
 
-to discuss solutions and attract interest. Use your best judgement.
+- Not required, but any of these help to move things forward:
+  - A draft of user manual content and suggested location.
+  - A draft of command line help.
+  - A small mockup or example of intended output or UI.
+  - Appropriate topic labels, if you have the access level to set those.
+    (If not, feel free to write them in the issue title, eg as a prefix.)

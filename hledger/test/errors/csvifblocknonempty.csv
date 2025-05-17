@@ -1,0 +1,3 @@
+#!/usr/bin/env -S hledger check -f 
+# Rules have an empty conditional block.
+a,b

@@ -1,0 +1,218 @@
+# * tag: queries
+
+# ** 1. we parse metadata tags in transaction and posting comments. Currently,
+# - they can be on the same line and/or separate lines
+# - they are always printed on separate lines
+<
+2010/01/01  ; txntag1: txn val 1
+  ; txntag2: txn val 2
+  a             1
+  ; posting1tag1: posting 1 val 1
+  ; posting1tag2: 
+  b            -1   ; posting-2-tag-1: posting 2 val 1
+  ; posting-2-tag-2:
+; non-metadata:
+$ hledger -f - print
+2010-01-01  ; txntag1: txn val 1
+    ; txntag2: txn val 2
+    a               1
+    ; posting1tag1: posting 1 val 1
+    ; posting1tag2:
+    b              -1  ; posting-2-tag-1: posting 2 val 1
+    ; posting-2-tag-2:
+
+>=
+
+# ** 2. reports can filter by tag existence
+<
+2010/01/01  ; foo:bar
+  a             1
+  b            -1
+
+2010/01/02  ; foo:baz
+  c             1
+  d            -1
+
+2010/01/03
+    e             1
+    f            -1
+$ hledger -f - print tag:foo
+2010-01-01  ; foo:bar
+    a               1
+    b              -1
+
+2010-01-02  ; foo:baz
+    c               1
+    d              -1
+
+>=
+
+# ** 3. or tag value
+<
+2010/01/01  ; foo:bar
+  a             1
+  b            -1
+
+2010/01/02
+  ; foo:baz
+  c             1
+  d            -1
+
+2010/01/03
+    e             1
+    f            -1
+$ hledger -f - print tag:foo=bar
+2010-01-01  ; foo:bar
+    a               1
+    b              -1
+
+>=
+
+# ** 4. postings inherit their transaction's tags
+<
+2010/01/01
+  a             1  ; foo:bar
+  b            -1
+
+2010/01/02  ; foo:baz
+  c             1
+  d            -1
+
+2010/01/03  ; foo:bar
+  e             1
+  f            -1
+$ hledger -f - register tag:foo=bar
+2010-01-01                      a                                1             1
+2010-01-03                      e                                1             2
+                                f                               -1             1
+
+# ** 5. look for transactions without tags
+<
+2010/01/01 desc
+  a             1
+  b            -1
+
+2010/01/02
+  ; foo:some tag
+  c             2
+  d            -2
+
+2010/01/03
+    e             3
+    f            -3
+
+2010/01/04 (code)
+    g             4
+    h            -4
+$ hledger -f - print not:tag:.
+2010-01-01 desc
+    a               1
+    b              -1
+
+2010-01-03
+    e               3
+    f              -3
+
+2010-01-04 (code)
+    g               4
+    h              -4
+
+>=
+
+# ** 6. query is not affected by implicit tags (XXX ?)
+$ hledger -f ../../examples/sample.journal reg tag:d
+
+# Querying accounts by tag.
+<
+account a   ; type:A
+account l   ; type:Liability
+account r   ; type:R
+account o   ; othertag:
+account u
+
+2022-01-01
+  (r)        1
+
+2022-01-02
+  (a)        1
+  (l)        1
+
+# ** 7. We can match declared accounts by having a tag,
+$ hledger -f- accounts --declared tag:.
+a
+l
+r
+o
+
+# ** 8. not having a tag,
+$ hledger -f- accounts --declared not:tag:.
+u
+
+# ** 9. or a tag and it's value. Tag values are matched infix.
+$ hledger -f- accounts --declared tag:type=a
+a
+l
+
+# ** 10. So we must anchor the regex to match single-letter account types.
+$ hledger -f- accounts --declared tag:type=^a$
+a
+
+# ** 11. But if account type was declared in the long form, matching just one letter fails
+$ hledger -f- accounts --declared tag:type=^l$
+
+# ** 12. so we need to match more loosely
+$ hledger -f- accounts --declared tag:type=^l
+l
+
+# ** 13. In the same way, we can match used accounts by tag.
+$ hledger -f- accounts --used tag:type=r
+r
+
+# ** 14. We can match postings by their account's tags.
+$ hledger -f- register -w80 tag:type=^a
+2022-01-02                      (a)                              1             1
+
+# ** 15. We can match transactions by their accounts' tags.
+$ hledger -f- print tag:type=^a
+2022-01-02
+    (a)               1
+    (l)               1
+
+>=
+
+# ** 16. And negatively match them by tag.
+$ hledger -f- print tag:type=^a not:tag:type=^l
+
+# ** 17. We can filter balance reports by account tags.
+$ hledger -f- bal tag:type=^a
+                   1  a
+--------------------
+                   1  
+
+# ** 18. Postingless declared accounts in balance reports are also filtered.
+$ hledger -f- bal -N --declared -E o u tag:othertag
+                   0  o
+
+# ** 19. Accounts inherit the tags of their parents.
+<
+account a    ; type:A
+account a:aa
+
+$ hledger -f- accounts tag:type=a
+a
+a:aa
+
+# ** 20.
+<
+account a    ; type:A
+account a:aa
+
+2022-01-01
+  (a:aa)    1
+
+$ hledger -f- bal -N tag:type=a
+                   1  a:aa
+
+# ** 21.
+$ hledger -f- reg -w80 tag:type=a
+2022-01-01                      (a:aa)                           1             1

@@ -7,7 +7,7 @@
 <div#topbar .col-md-8 .col-sm-8 .col-xs-10>
   <h1>#{takeFileName (journalFilePath j)}
 
-$if elem CapView caps
+$if elem ViewPermission perms
   <div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
     <table .main-menu .table>
       ^{accounts}
@@ -15,17 +15,17 @@ $if elem CapView caps
 <div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
   $maybe m <- msg
     <div #message .alert.alert-info>#{m}
-  $if elem CapView caps
+  $if elem ViewPermission perms
     <form#searchform.input-group method=GET>
-      <input .form-control name=q value=#{q} placeholder="Search"
+      <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">
       <div .input-group-btn>
-        $if not (T.null q)
+        $if not (T.null qparam)
           <a href=@{here} .btn .btn-default title="Clear search terms">
             <span .glyphicon .glyphicon-remove-circle>
         <button .btn .btn-default type=submit title="Apply search terms">
           <span .glyphicon .glyphicon-search>
-        $if elem CapManage caps
+        $if elem EditPermission perms
           <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
             <span .glyphicon .glyphicon-wrench>
         <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
@@ -38,6 +38,7 @@ $if elem CapView caps
     <div .modal-content>
       <div .modal-header>
         <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <span style="float:right; margin-right:4em;">#{progname} #{packageversion}
         <h3 .modal-title #helpLabel>Help
       <div .modal-body>
         <div .row>
@@ -64,18 +65,22 @@ $if elem CapView caps
             <p>
               <b>Search
               <ul>
-                <li> <code>acct:REGEXP</code> - filter on to/from account
-                <li> <code>desc:REGEXP</code> - filter on description
-                <li> <code>date:PERIODEXP</code>, <code>date2:PERIODEXP</code> - filter on date or secondary date
-                <li> <code>code:REGEXP</code> - filter on transaction's code (eg check number)
-                <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - filter on transaction's cleared status (cleared, pending, uncleared)
-                <!-- <li> <code>empty:BOOL</code> - filter on whether amount is zero -->
-                <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - filter on the unsigned amount magnitude. Or with a sign before N, filter on the signed value. (Single-commodity amounts only.)
-                <li> <code>cur:REGEXP</code> - filter on the currency/commodity symbol (must match all of it). Dollar sign must be written as <code>\$</code>
-                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - filter on tag name, or tag name and value
-                <!-- <li> <code>depth:N</code> - filter out accounts below this depth -->
-                <li> <code>real:BOOL</code> - filter on postings' real/virtual-ness
-                <li> Enclose search patterns containing spaces in single or double quotes
-                <li> Prepend <code>not:</code> to negate a search term
-                <li> Multiple search terms on different fields are AND'ed, multiple search terms on the same field are OR'ed
-                <li> These search terms also work with command-line hledger
+                <li> Search patterns with spaces should be enclosed in quotes.
+                <li> <code>REGEX</code> - match account names
+                <li> <code>type:TYPE</code> - match account types
+                <li> <code>date:PERIODEXP</code> - match dates
+                <li> <code>status:*</code>, <code>status:!</code>, <code>status:</code> - match status
+                <li> <code>code:REGEX</code> - match transaction codes
+                <li> <code>desc:REGEX</code> - match transaction descriptions
+                <li> <code>payee:REGEX</code> - match payee part of descriptions
+                <li> <code>note:REGEX</code> - match note part of descriptions
+                <li> <code>amt:N</code>, <code>amt:&lt;N</code>, <code>amt:&gt;N</code> - match unsigned magnitudes, or with signed N, signed amounts. For single-commodity amounts only.
+                <li> <code>cur:REGEX</code> - match currencies/commodities. Must match the whole symbol/name. To match dollar sign, write <code>\$</code>
+                <li> <code>tag:NAME</code>, <code>tag:NAME=REGEX</code> - match tags, or tag and value
+                <li> <code>real:BOOL</code> - match postings' realness/virtualness
+                <li> <code>not:QTERM</code> - prepend not: to negate a search term
+                <li> <code>expr:'QEXPR'</code> - match with a boolean query (and, or, not, (..))
+                <li>  <code>any:'QEXPR'</code> - match transactions where any posting matches
+                <li>  <code>all:'QEXPR'</code> - match transactions where all postings match
+                <li style="margin-top:1em;"> <code>depth:N</code> - clip account names at this depth
+                $# <li> Description, account, status query terms are OR'ed, others are AND'ed.

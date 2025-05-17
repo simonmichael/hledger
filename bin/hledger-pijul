@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+set -e
+
+# * About
+usage() { line80; cat <<EOF # keep synced with Commands below
+hledger-pijul - easy version control for your hledger journal.
+
+An experimental prototype, currently works for the default journal only.
+This uses pijul, the VCS most likely to support a simple just-works UI.
+A pijul repo in the main file's directory, and a pijul commit-signing key,
+will be autocreated if needed.
+
+Subcommands: 
+
+hledger pijul record [MSG] - record the journal's files (as listed by 'files')
+hledger pijul status       - show unrecorded changes (after first record)
+hledger pijul log          - list the journal's change history (after record)
+hledger pijul              - show this help
+
+Extra arguments are passed to pijul (pijul flags should be preceded by --).
+You can install these as more convenient top-level commands by creating 
+hledger-record, hledger-status, hledger-log scripts like:
+
+    #!/bin/sh
+    hledger-pijul record "\$@"
+
+EOF
+}
+
+# * Utils
+
+line80() { cat <<EOF
+--------------------------------------------------------------------------------
+EOF
+}
+
+no_repo_msg() {
+    echo "Try this again after 'record'."
+}
+
+MAINFILE=$LEDGER_FILE
+FILES=$(hledger -f "$MAINFILE" files)
+DIR=$(dirname "$MAINFILE")
+# pijul executable name, just one word
+PIJUL=pijul
+
+ensure_pijul() {
+    if ! hash $PIJUL 2>/dev/null; then
+        cat >&2 <<EOF
+This command requires '$PIJUL', but it's not installed in \$PATH.
+Please install it (see https://pijul.org/downloads) and try again.
+EOF
+        exit 1
+    fi
+}
+
+# TODO: also look in parent directories
+ensure_pijul_repo() {
+    if [[ ! -d "$DIR/.pijul" ]]; then
+        $PIJUL init "$DIR"
+        echo "Created pijul repo in $DIR"
+    fi
+}
+
+ensure_pijul_key() {
+    PIJULDIR=$(pijul_config_dir)
+    if [[ ! -e $PIJULDIR/publickey.json ]]; then
+        echo "Creating a pijul commit signing key in $PIJULDIR"
+        echo "If you set a password below, you'll have to enter it every time you record."
+        #     --------------------------------------------------------------------------------
+        $PIJUL key generate "$USER"
+    fi
+}
+
+pijul_config_dir() {
+    if [[ $(uname) == Darwin ]]; then
+        echo "$HOME/Library/Application Support/pijul"
+    else
+        echo "$HOME/.config/pijul"  # guess
+    fi
+}
+
+# * Commands
+# keep synced with usage() above
+
+record() {
+    ensure_pijul
+    ensure_pijul_repo
+    ensure_pijul_key
+    cd "$DIR"
+    for F in $FILES; do $PIJUL add -f "$F"; done
+    MSG=${1:-$(date +'%Y-%m-%d %H:%M:%S %Z')}; shift || true
+    $PIJUL record -m "$MSG" "$@"
+}
+
+status() {
+    ensure_pijul
+    $PIJUL diff --repository "$DIR" "$@" #| sed -n '/^# Hunks/,$ p'
+}
+
+log() {
+    ensure_pijul
+    # ensure_pijul_repo
+    $PIJUL log --repository "$DIR" "$@"
+}
+
+# * Main
+
+# NOTE intended to run Commands but will run any function above
+if declare -f "$1" > /dev/null; then "$@"; else usage; fi

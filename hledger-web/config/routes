@@ -12,6 +12,7 @@
 /upload/#FilePath   UploadR         GET POST
 /download/#FilePath DownloadR       GET
 
+/version                           VersionR              GET
 /accountnames                      AccountnamesR         GET
 /transactions                      TransactionsR         GET
 /prices                            PricesR               GET

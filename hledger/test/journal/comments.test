@@ -1,0 +1,77 @@
+# * file, transaction and posting comments
+
+# ** 1. several comment characters allowed for file characters; 
+# print shows in-transaction & posting comments;
+# comment line is preserved, starting column is not.
+<
+; file comments, ignored
+# file comment using a hash
+* file comment using a star (org node)
+ ; file comments need not
+ # start in
+ * column 0
+
+; pre-transaction comment, ignored
+2009/1/1 x ; transaction same line comment
+      ; transaction new line comment
+    a  1  ; posting 1 same line comment
+    ; posting 1 new line comment
+    a
+      ; posting 2 new line comment
+; file comment right after the transaction, ignored
+
+; trailing file comment, ignored
+$ hledger -f - print
+2009-01-01 x  ; transaction same line comment
+    ; transaction new line comment
+    a               1  ; posting 1 same line comment
+    ; posting 1 new line comment
+    a
+    ; posting 2 new line comment
+
+>= 0
+
+# ** 2. Same-line transaction comments start only with ;. The description can contain # or *.
+<
+2017/1/1 this # and * are not ; the comment
+$ hledger -f - print
+2017-01-01 this # and * are not  ; the comment
+
+>= 0
+
+# ** 3. Same-line posting comments start only with ;.
+<
+2017/1/1
+  a  0  # posting comments can't start with # or *
+
+$ hledger -f - print
+> //
+>2 //
+>= 1
+
+# ** 4. Postings can be commented by a ; or a non-indented # (indented # or * does not start a comment).
+# Account names can contain # or (not at start) *.
+<
+2024-01-01
+  #a   1  ; posting to #a account
+  b*  -1  ; posting to b* account
+  *c   0  ; posting to c account, with * status mark
+  ;d   0  ; a comment line attached to the c posting above, part of the transcction
+; e    0  ; top level comment line, not part of the transaction
+# f    0  ; top level comment line, not part of the transaction
+
+$ hledger -f - accounts
+#a
+b*
+c
+
+# ** 5. register does not show comments.
+<
+2010/1/1 x
+    a  1 ; comment
+    b
+
+$ hledger -f - register
+2010-01-01 x                    a                                1             1
+                                b                               -1             0
+

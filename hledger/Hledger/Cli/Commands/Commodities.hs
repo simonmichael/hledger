@@ -12,9 +12,7 @@ module Hledger.Cli.Commands.Commodities (
  ,commodities
 ) where
 
-import Control.Monad
-import Data.List
-import qualified Data.Map as M
+import qualified Data.Set as S
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -30,7 +28,6 @@ commoditiesmode = hledgerCommandMode
   ([], Nothing)
 
 commodities :: CliOpts -> Journal -> IO ()
-commodities _copts j = do
-  let cs = filter (/= "AUTO") $
-           nub $ sort $ M.keys (jcommodities j) ++ M.keys (jinferredcommodities j)
-  forM_ cs T.putStrLn
+commodities _copts =
+  -- TODO support --declared/--used like accounts, payees
+  mapM_ T.putStrLn . S.filter (/= "AUTO") . journalCommodities

@@ -4,229 +4,384 @@ Options common to most hledger reports.
 
 -}
 
-{-# LANGUAGE OverloadedStrings, RecordWildCards, DeriveDataTypeable #-}
+{-# LANGUAGE FlexibleContexts      #-}
+{-# LANGUAGE FlexibleInstances     #-}
+{-# LANGUAGE LambdaCase            #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE RankNTypes            #-}
+{-# LANGUAGE RecordWildCards       #-}
+{-# LANGUAGE TemplateHaskell       #-}
+{-# LANGUAGE TypeFamilies          #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Hledger.Reports.ReportOptions (
   ReportOpts(..),
-  BalanceType(..),
+  HasReportOptsNoUpdate(..),
+  HasReportOpts(..),
+  ReportSpec(..),
+  HasReportSpec(..),
+  SortField(..),
+  SortSpec,
+  sortKeysDescription,
+  overEither,
+  setEither,
+  BalanceCalculation(..),
+  BalanceAccumulation(..),
   AccountListMode(..),
   ValuationType(..),
-  FormatStr,
+  Layout(..),
   defreportopts,
   rawOptsToReportOpts,
-  checkReportOpts,
+  defreportspec,
+  defsortspec,
+  setDefaultConversionOp,
+  reportOptsToSpec,
+  updateReportSpec,
+  updateReportSpecWith,
+  rawOptsToReportSpec,
+  balanceAccumulationOverride,
   flat_,
   tree_,
   reportOptsToggleStatus,
   simplifyStatuses,
-  whichDateFromOpts,
-  journalSelectingAmountFromOpts,
+  whichDate,
+  journalValueAndFilterPostings,
+  journalValueAndFilterPostingsWith,
+  journalApplyValuationFromOpts,
+  journalApplyValuationFromOptsWith,
+  mixedAmountApplyValuationAfterSumFromOptsWith,
+  valuationAfterSum,
   intervalFromRawOpts,
-  queryFromOpts,
-  queryFromOptsOnly,
-  queryOptsFromOpts,
+  queryFromFlags,
   transactionDateFn,
   postingDateFn,
   reportSpan,
+  reportSpanBothDates,
   reportStartDate,
   reportEndDate,
-  specifiedStartEndDates,
-  specifiedStartDate,
-  specifiedEndDate,
   reportPeriodStart,
   reportPeriodOrJournalStart,
   reportPeriodLastDay,
   reportPeriodOrJournalLastDay,
-  valuationTypeIsCost,
-
-  tests_ReportOptions
+  reportPeriodName
 )
 where
 
-import Control.Applicative ((<|>))
-import Data.Data (Data)
-import Data.List
-import Data.Maybe
+import Prelude hiding (Applicative(..))
+import Control.Applicative (Applicative(..), Const(..), (<|>))
+import Control.Monad ((<=<), guard, join)
+import Data.Char (toLower)
+import Data.Either (fromRight)
+import Data.Either.Extra (eitherToMaybe)
+import Data.Functor.Identity (Identity(..))
+import Data.List (partition)
+import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import qualified Data.Text as T
-import Data.Typeable (Typeable)
-import Data.Time.Calendar
-import Data.Default
-import Safe
-import System.Console.ANSI (hSupportsANSI)
-import System.IO (stdout)
-import Text.Megaparsec.Custom
+import Data.Time.Calendar (Day, addDays)
+import Data.Default (Default(..))
+import Safe (headMay, lastDef, lastMay, maximumMay, readMay)
 
 import Hledger.Data
 import Hledger.Query
 import Hledger.Utils
+import Data.Function ((&))
 
+-- | What to calculate for each cell in a balance report.
+-- "Balance report types -> Calculation type" in the hledger manual.
+data BalanceCalculation =
+    CalcChange        -- ^ Sum of posting amounts in the period.
+  | CalcBudget        -- ^ Sum of posting amounts and the goal for the period.
+  | CalcValueChange   -- ^ Change from previous period's historical end value to this period's historical end value.
+  | CalcGain          -- ^ Change from previous period's gain, i.e. valuation minus cost basis.
+  | CalcPostingsCount -- ^ Number of postings in the period.
+  deriving (Eq, Show)
 
-type FormatStr = String
+instance Default BalanceCalculation where def = CalcChange
 
--- | Which "balance" is being shown in a balance report.
-data BalanceType = PeriodChange      -- ^ The change of balance in each period.
-                 | CumulativeChange  -- ^ The accumulated change across multiple periods.
-                 | HistoricalBalance -- ^ The historical ending balance, including the effect of
-                                     --   all postings before the report period. Unless altered by,
-                                     --   a query, this is what you would see on a bank statement.
-  deriving (Eq,Show,Data,Typeable)
+-- | How to accumulate calculated values across periods (columns) in a balance report.
+-- "Balance report types -> Accumulation type" in the hledger manual.
+data BalanceAccumulation =
+    PerPeriod   -- ^ No accumulation. Eg, shows the change of balance in each period.
+  | Cumulative  -- ^ Accumulate changes across periods, starting from zero at report start.
+  | Historical  -- ^ Accumulate changes across periods, including any from before report start.
+                --   Eg, shows the historical end balance of each period.
+  deriving (Eq,Show)
 
-instance Default BalanceType where def = PeriodChange
+instance Default BalanceAccumulation where def = PerPeriod
 
 -- | Should accounts be displayed: in the command's default style, hierarchically, or as a flat list ?
-data AccountListMode = ALDefault | ALTree | ALFlat deriving (Eq, Show, Data, Typeable)
+data AccountListMode = ALFlat | ALTree deriving (Eq, Show)
 
-instance Default AccountListMode where def = ALDefault
+instance Default AccountListMode where def = ALFlat
+
+data Layout = LayoutWide (Maybe Int)
+            | LayoutTall
+            | LayoutBare
+            | LayoutTidy
+  deriving (Eq, Show)
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain
--- commands, as noted below. 
+-- commands, as noted below.
 data ReportOpts = ReportOpts {
-     today_          :: Maybe Day  -- ^ The current date. A late addition to ReportOpts.
-                                   -- Optional, but when set it may affect some reports:
-                                   -- Reports use it when picking a -V valuation date.
-                                   -- This is not great, adds indeterminacy.
-    ,period_         :: Period
-    ,interval_       :: Interval
-    ,statuses_       :: [Status]  -- ^ Zero, one, or two statuses to be matched
-    ,value_          :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
-    ,depth_          :: Maybe Int
-    ,display_        :: Maybe DisplayExp  -- XXX unused ?
-    ,date2_          :: Bool
-    ,empty_          :: Bool
-    ,no_elide_       :: Bool
-    ,real_           :: Bool
-    ,format_         :: Maybe FormatStr
-    ,query_          :: String -- all arguments, as a string
+     -- for most reports:
+     period_           :: Period
+    ,interval_         :: Interval
+    ,statuses_         :: [Status]  -- ^ Zero, one, or two statuses to be matched
+    ,conversionop_     :: Maybe ConversionOp  -- ^ Which operation should we apply to conversion transactions?
+    ,value_            :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
+    ,infer_prices_     :: Bool      -- ^ Infer market prices from transactions ?
+    ,depth_            :: DepthSpec
+    ,date2_            :: Bool
+    ,empty_            :: Bool
+    ,no_elide_         :: Bool
+    ,real_             :: Bool
+    ,format_           :: StringFormat
+    ,balance_base_url_ :: Maybe T.Text
+    ,pretty_           :: Bool
+    ,querystring_      :: [T.Text]
     --
-    ,average_        :: Bool
-    -- register command only
-    ,related_        :: Bool
-    -- balance-type commands only
-    ,balancetype_    :: BalanceType
-    ,accountlistmode_ :: AccountListMode
-    ,drop_           :: Int
-    ,row_total_      :: Bool
-    ,no_total_       :: Bool
-    ,pretty_tables_  :: Bool
-    ,sort_amount_    :: Bool
-    ,invert_         :: Bool  -- ^ if true, flip all amount signs in reports
-    ,normalbalance_  :: Maybe NormalSign
+    ,average_          :: Bool
+    -- for posting reports (register)
+    ,related_          :: Bool
+    -- for sorting reports (register)
+    ,sortspec_             :: SortSpec
+    -- for account transactions reports (aregister)
+    ,txn_dates_        :: Bool
+    -- for balance reports (bal, bs, cf, is)
+    ,balancecalc_      :: BalanceCalculation  -- ^ What to calculate in balance report cells
+    ,balanceaccum_     :: BalanceAccumulation -- ^ How to accumulate balance report values over time
+    ,budgetpat_        :: Maybe T.Text  -- ^ A case-insensitive description substring
+                                        --   to select periodic transactions for budget reports.
+                                        --   (Not a regexp, nor a full hledger query, for now.)
+    ,accountlistmode_  :: AccountListMode
+    ,drop_             :: Int
+    ,declared_         :: Bool  -- ^ Include accounts declared but not yet posted to ?
+    ,row_total_        :: Bool
+    ,no_total_         :: Bool
+    ,summary_only_     :: Bool
+    ,show_costs_       :: Bool  -- ^ Show costs for reports which normally don't show them ?
+    ,sort_amount_      :: Bool
+    ,percent_          :: Bool
+    ,invert_           :: Bool  -- ^ Flip all amount signs in reports ?
+    ,normalbalance_    :: Maybe NormalSign
       -- ^ This can be set when running balance reports on a set of accounts
       --   with the same normal balance type (eg all assets, or all incomes).
       -- - It helps --sort-amount know how to sort negative numbers
-      --   (eg in the income section of an income statement) 
-      -- - It helps compound balance report commands (is, bs etc.) do  
-      --   sign normalisation, converting normally negative subreports to 
-      --   normally positive for a more conventional display.   
-    ,color_          :: Bool
-    ,forecast_       :: Bool
-    ,transpose_      :: Bool
- } deriving (Show, Data, Typeable)
+      --   (eg in the income section of an income statement)
+      -- - It helps compound balance report commands (is, bs etc.) do
+      --   sign normalisation, converting normally negative subreports to
+      --   normally positive for a more conventional display.
+    ,color_            :: Bool
+      -- ^ Whether to use ANSI color codes in text output.
+      --   Influenced by the --color/colour flag (cf CliOptions),
+      --   whether stdout is an interactive terminal, and the value of
+      --   TERM and existence of NO_COLOR environment variables.
+    ,transpose_        :: Bool
+    ,layout_           :: Layout
+ } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
 
 defreportopts :: ReportOpts
 defreportopts = ReportOpts
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-    def
-
-rawOptsToReportOpts :: RawOpts -> IO ReportOpts
-rawOptsToReportOpts rawopts = checkReportOpts <$> do
-  let rawopts' = checkRawOpts rawopts
-  d <- getCurrentDay
-  color <- hSupportsANSI stdout
-  return defreportopts{
-     today_       = Just d
-    ,period_      = periodFromRawOpts d rawopts'
-    ,interval_    = intervalFromRawOpts rawopts'
-    ,statuses_    = statusesFromRawOpts rawopts'
-    ,value_       = valuationTypeFromRawOpts rawopts'
-    ,depth_       = maybeintopt "depth" rawopts'
-    ,display_     = maybedisplayopt d rawopts'
-    ,date2_       = boolopt "date2" rawopts'
-    ,empty_       = boolopt "empty" rawopts'
-    ,no_elide_    = boolopt "no-elide" rawopts'
-    ,real_        = boolopt "real" rawopts'
-    ,format_      = maybestringopt "format" rawopts' -- XXX move to CliOpts or move validation from Cli.CliOptions to here
-    ,query_       = unwords $ listofstringopt "args" rawopts' -- doesn't handle an arg like "" right
-    ,average_     = boolopt "average" rawopts'
-    ,related_     = boolopt "related" rawopts'
-    ,balancetype_ = balancetypeopt rawopts'
-    ,accountlistmode_ = accountlistmodeopt rawopts'
-    ,drop_        = intopt "drop" rawopts'
-    ,row_total_   = boolopt "row-total" rawopts'
-    ,no_total_    = boolopt "no-total" rawopts'
-    ,sort_amount_ = boolopt "sort-amount" rawopts'
-    ,invert_      = boolopt "invert" rawopts'
-    ,pretty_tables_ = boolopt "pretty-tables" rawopts'
-    ,color_       = color
-    ,forecast_    = boolopt "forecast" rawopts'
-    ,transpose_   = boolopt "transpose" rawopts'
+    { period_           = PeriodAll
+    , interval_         = NoInterval
+    , statuses_         = []
+    , conversionop_     = Nothing
+    , value_            = Nothing
+    , infer_prices_     = False
+    , depth_            = DepthSpec Nothing []
+    , date2_            = False
+    , empty_            = False
+    , no_elide_         = False
+    , real_             = False
+    , format_           = def
+    , balance_base_url_ = Nothing
+    , pretty_           = False
+    , querystring_      = []
+    , average_          = False
+    , related_          = False
+    , sortspec_         = defsortspec 
+    , txn_dates_        = False
+    , balancecalc_      = def
+    , balanceaccum_     = def
+    , budgetpat_        = Nothing
+    , accountlistmode_  = ALFlat
+    , drop_             = 0
+    , declared_         = False
+    , row_total_        = False
+    , no_total_         = False
+    , summary_only_     = False
+    , show_costs_       = False
+    , sort_amount_      = False
+    , percent_          = False
+    , invert_           = False
+    , normalbalance_    = Nothing
+    , color_            = False
+    , transpose_        = False
+    , layout_           = LayoutWide Nothing
     }
 
--- | Do extra validation of raw option values, raising an error if there's a problem.
-checkRawOpts :: RawOpts -> RawOpts
-checkRawOpts rawopts
--- our standard behaviour is to accept conflicting options actually,
--- using the last one - more forgiving for overriding command-line aliases
---   | countopts ["change","cumulative","historical"] > 1
---     = usageError "please specify at most one of --change, --cumulative, --historical"
---   | countopts ["flat","tree"] > 1
---     = usageError "please specify at most one of --flat, --tree"
---   | countopts ["daily","weekly","monthly","quarterly","yearly"] > 1
---     = usageError "please specify at most one of --daily, "
-  | otherwise = rawopts
---   where
---     countopts = length . filter (`boolopt` rawopts)
+-- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
+-- This will fail with a usage error if it is passed
+-- - an invalid --format argument,
+-- - an invalid --value argument,
+-- - if --valuechange is called with a valuation type other than -V/--value=end.
+-- - an invalid --pretty argument,
+rawOptsToReportOpts :: Day -> Bool -> RawOpts -> ReportOpts
+rawOptsToReportOpts d usecoloronstdout rawopts =
 
--- | Do extra validation of report options, raising an error if there's a problem.
-checkReportOpts :: ReportOpts -> ReportOpts
-checkReportOpts ropts@ReportOpts{..} =
-  either usageError (const ropts) $ do
-    case depth_ of
-      Just d | d < 0 -> Left "--depth should have a positive number"
-      _              -> Right ()
+    let formatstring = T.pack <$> maybestringopt "format" rawopts
+        querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
+        pretty = fromMaybe False $ ynopt "pretty" rawopts
+
+        format = case parseStringFormat <$> formatstring of
+            Nothing         -> defaultBalanceLineFormat
+            Just (Right x)  -> x
+            Just (Left err) -> usageError $ "could not parse format option: " ++ err
+
+    in defreportopts
+          {period_           = periodFromRawOpts d rawopts
+          ,interval_         = intervalFromRawOpts rawopts
+          ,statuses_         = statusesFromRawOpts rawopts
+          ,conversionop_     = conversionOpFromRawOpts rawopts
+          ,value_            = valuationTypeFromRawOpts rawopts
+          ,infer_prices_     = boolopt "infer-market-prices" rawopts
+          ,depth_            = depthFromRawOpts rawopts
+          ,date2_            = boolopt "date2" rawopts
+          ,empty_            = boolopt "empty" rawopts
+          ,no_elide_         = boolopt "no-elide" rawopts
+          ,real_             = boolopt "real" rawopts
+          ,format_           = format
+          ,balance_base_url_ = T.pack <$> maybestringopt "base-url" rawopts
+          ,querystring_      = querystring
+          ,average_          = boolopt "average" rawopts
+          ,related_          = boolopt "related" rawopts
+          ,sortspec_         = getSortSpec rawopts
+          ,txn_dates_        = boolopt "txn-dates" rawopts
+          ,balancecalc_      = balancecalcopt rawopts
+          ,balanceaccum_     = balanceaccumopt rawopts
+          ,budgetpat_        = maybebudgetpatternopt rawopts
+          ,accountlistmode_  = accountlistmodeopt rawopts
+          ,drop_             = posintopt "drop" rawopts
+          ,declared_         = boolopt "declared" rawopts
+          ,row_total_        = boolopt "row-total" rawopts
+          ,no_total_         = boolopt "no-total" rawopts
+          ,summary_only_     = boolopt "summary-only" rawopts
+          ,show_costs_       = boolopt "show-costs" rawopts
+          ,sort_amount_      = boolopt "sort-amount" rawopts
+          ,percent_          = boolopt "percent" rawopts
+          ,invert_           = boolopt "invert" rawopts
+          ,pretty_           = pretty
+          ,color_            = usecoloronstdout
+          ,transpose_        = boolopt "transpose" rawopts
+          ,layout_           = layoutopt rawopts
+          }
+
+-- | A fully-determined set of report parameters 
+-- (report options with all partial values made total, eg the begin and end
+-- dates are known, avoiding date/regex errors; plus the reporting date),
+-- and the query successfully calculated from them.
+--
+-- If you change the report options or date in one of these, you should
+-- use `reportOptsToSpec` to regenerate the whole thing, avoiding inconsistency.
+--
+data ReportSpec = ReportSpec
+  { _rsReportOpts :: ReportOpts  -- ^ The underlying ReportOpts used to generate this ReportSpec
+  , _rsDay        :: Day         -- ^ The Day this ReportSpec is generated for
+  , _rsQuery      :: Query       -- ^ The generated Query for the given day
+  , _rsQueryOpts  :: [QueryOpt]  -- ^ A list of QueryOpts for the given day
+  } deriving (Show)
+
+instance Default ReportSpec where def = defreportspec
+
+defreportspec :: ReportSpec
+defreportspec = ReportSpec
+    { _rsReportOpts = def
+    , _rsDay        = nulldate
+    , _rsQuery      = Any
+    , _rsQueryOpts  = []
+    }
+
+-- | Set the default ConversionOp.
+setDefaultConversionOp :: ConversionOp -> ReportSpec -> ReportSpec
+setDefaultConversionOp defop rspec@ReportSpec{_rsReportOpts=ropts} =
+    rspec{_rsReportOpts=ropts{conversionop_=conversionop_ ropts <|> Just defop}}
 
 accountlistmodeopt :: RawOpts -> AccountListMode
-accountlistmodeopt rawopts =
-  case reverse $ filter (`elem` ["tree","flat"]) $ map fst rawopts of
-    ("tree":_) -> ALTree
-    ("flat":_) -> ALFlat
-    _          -> ALDefault
+accountlistmodeopt =
+  fromMaybe ALFlat . choiceopt parse where
+    parse = \case
+      "tree" -> Just ALTree
+      "flat" -> Just ALFlat
+      _      -> Nothing
 
-balancetypeopt :: RawOpts -> BalanceType
-balancetypeopt rawopts =
-  case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
-    ("historical":_) -> HistoricalBalance
-    ("cumulative":_) -> CumulativeChange
-    _                -> PeriodChange
+-- Get the argument of the --budget option if any, or the empty string.
+maybebudgetpatternopt :: RawOpts -> Maybe T.Text
+maybebudgetpatternopt = fmap T.pack . maybestringopt "budget"
+
+balancecalcopt :: RawOpts -> BalanceCalculation
+balancecalcopt =
+  fromMaybe CalcChange . choiceopt parse where
+    parse = \case
+      "sum"         -> Just CalcChange
+      "valuechange" -> Just CalcValueChange
+      "gain"        -> Just CalcGain
+      "budget"      -> Just CalcBudget
+      "count"       -> Just CalcPostingsCount
+      _             -> Nothing
+
+balanceaccumopt :: RawOpts -> BalanceAccumulation
+balanceaccumopt = fromMaybe PerPeriod . balanceAccumulationOverride
+
+ynopt :: String -> RawOpts -> Maybe Bool
+ynopt opt rawopts = case maybestringopt opt rawopts of
+    Just "always" -> Just True
+    Just "yes"    -> Just True
+    Just "y"      -> Just True
+    Just "never"  -> Just False
+    Just "no"     -> Just False
+    Just "n"      -> Just False
+    Just _        -> usageError "this argument should be one of y, yes, n, no"
+    _             -> Nothing
+
+balanceAccumulationOverride :: RawOpts -> Maybe BalanceAccumulation
+balanceAccumulationOverride rawopts = choiceopt parse rawopts <|> reportbal
+  where
+    parse = \case
+      "historical" -> Just Historical
+      "cumulative" -> Just Cumulative
+      "change"     -> Just PerPeriod
+      _            -> Nothing
+    reportbal = case balancecalcopt rawopts of
+      CalcValueChange -> Just PerPeriod
+      _               -> Nothing
+
+layoutopt :: RawOpts -> Layout
+layoutopt rawopts = fromMaybe (LayoutWide Nothing) $ layout <|> column
+  where
+    layout = parse <$> maybestringopt "layout" rawopts
+    column = LayoutBare <$ guard (boolopt "commodity-column" rawopts)
+
+    parse opt = maybe err snd $ guard (not $ null s) *> find (isPrefixOf s . fst) checkNames
+      where
+        checkNames = [ ("wide", LayoutWide w)
+                     , ("tall", LayoutTall)
+                     , ("bare", LayoutBare)
+                     , ("tidy", LayoutTidy)
+                     ]
+        -- For `--layout=elided,n`, elide to the given width
+        (s,n) = break (==',') $ map toLower opt
+        w = case drop 1 n of
+              "" -> Nothing
+              c | Just w' <- readMay c -> Just w'
+              _ -> usageError "width in --layout=wide,WIDTH must be an integer"
+
+        err = usageError "--layout's argument should be \"wide[,WIDTH]\", \"tall\", \"bare\", or \"tidy\""
 
 -- Get the period specified by any -b/--begin, -e/--end and/or -p/--period
 -- options appearing in the command line.
@@ -239,29 +394,28 @@ periodFromRawOpts d rawopts =
     (Nothing, Nothing) -> PeriodAll
     (Just b, Nothing)  -> PeriodFrom b
     (Nothing, Just e)  -> PeriodTo e
-    (Just b, Just e)   -> simplifyPeriod $
-                          PeriodBetween b e
+    (Just b, Just e)   -> simplifyPeriod $ PeriodBetween b e
   where
     mlastb = case beginDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   bs -> Just $ last bs
+                   bs -> Just $ fromEFDay $ last bs
     mlaste = case endDatesFromRawOpts d rawopts of
                    [] -> Nothing
-                   es -> Just $ last es
+                   es -> Just $ fromEFDay $ last es
 
 -- Get all begin dates specified by -b/--begin or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
-beginDatesFromRawOpts :: Day -> RawOpts -> [Day]
-beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
+beginDatesFromRawOpts :: Day -> RawOpts -> [EFDay]
+beginDatesFromRawOpts d = collectopts (begindatefromrawopt d)
   where
-    begindatefromrawopt d (n,v)
+    begindatefromrawopt d' (n,v)
       | n == "begin" =
           either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
-          fixSmartDateStrEither' d (T.pack v)
+          fixSmartDateStrEither' d' (T.pack v)
       | n == "period" =
         case
           either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
-          parsePeriodExpr d (stripquotes $ T.pack v)
+          parsePeriodExpr d' (stripquotes $ T.pack v)
         of
           (_, DateSpan (Just b) _) -> Just b
           _                        -> Nothing
@@ -269,17 +423,17 @@ beginDatesFromRawOpts d = catMaybes . map (begindatefromrawopt d)
 
 -- Get all end dates specified by -e/--end or -p/--period options, in order,
 -- using the given date to interpret relative date expressions.
-endDatesFromRawOpts :: Day -> RawOpts -> [Day]
-endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
+endDatesFromRawOpts :: Day -> RawOpts -> [EFDay]
+endDatesFromRawOpts d = collectopts (enddatefromrawopt d)
   where
-    enddatefromrawopt d (n,v)
+    enddatefromrawopt d' (n,v)
       | n == "end" =
           either (\e -> usageError $ "could not parse "++n++" date: "++customErrorBundlePretty e) Just $
-          fixSmartDateStrEither' d (T.pack v)
+          fixSmartDateStrEither' d' (T.pack v)
       | n == "period" =
         case
           either (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e) id $
-          parsePeriodExpr d (stripquotes $ T.pack v)
+          parsePeriodExpr d' (stripquotes $ T.pack v)
         of
           (_, DateSpan _ (Just e)) -> Just e
           _                        -> Nothing
@@ -289,14 +443,16 @@ endDatesFromRawOpts d = catMaybes . map (enddatefromrawopt d)
 -- -D/--daily, -W/--weekly, -M/--monthly etc. options.
 -- An interval from --period counts only if it is explicitly defined.
 intervalFromRawOpts :: RawOpts -> Interval
-intervalFromRawOpts = lastDef NoInterval . catMaybes . map intervalfromrawopt
+intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
   where
     intervalfromrawopt (n,v)
       | n == "period" =
           either
             (\e -> usageError $ "could not parse period option: "++customErrorBundlePretty e)
             extractIntervalOrNothing $
-            parsePeriodExpr undefined (stripquotes $ T.pack v) -- reference date does not affect the interval
+            parsePeriodExpr
+              (error' "intervalFromRawOpts: did not expect to need today's date here")  -- PARTIAL: should not happen; we are just getting the interval, which does not use the reference date
+              (stripquotes $ T.pack v)
       | n == "daily"     = Just $ Days 1
       | n == "weekly"    = Just $ Weeks 1
       | n == "monthly"   = Just $ Months 1
@@ -314,7 +470,7 @@ extractIntervalOrNothing (interval, _) = Just interval
 -- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
 -- so this returns a list of 0-2 unique statuses.
 statusesFromRawOpts :: RawOpts -> [Status]
-statusesFromRawOpts = simplifyStatuses . catMaybes . map statusfromrawopt
+statusesFromRawOpts = simplifyStatuses . collectopts statusfromrawopt
   where
     statusfromrawopt (n,_)
       | n == "unmarked"  = Just Unmarked
@@ -328,7 +484,7 @@ simplifyStatuses l
   | length l' >= numstatuses = []
   | otherwise                = l'
   where
-    l' = nub $ sort l 
+    l' = nubSort l
     numstatuses = length [minBound .. maxBound :: Status]
 
 -- | Add/remove this status from the status list. Used by hledger-ui.
@@ -336,26 +492,33 @@ reportOptsToggleStatus s ropts@ReportOpts{statuses_=ss}
   | s `elem` ss = ropts{statuses_=filter (/= s) ss}
   | otherwise   = ropts{statuses_=simplifyStatuses (s:ss)}
 
--- | Parse the type of valuation to be performed, if any, specified by
--- -B/--cost, -V, -X/--exchange, or --value flags. If there's more
--- than one of these, the rightmost flag wins.
+-- | Parse the type of valuation to be performed, if any, specified by -V,
+-- -X/--exchange, or --value flags. If there's more than one valuation type,
+-- the rightmost flag wins. This will fail with a usage error if an invalid
+-- argument is passed to --value, or if --valuechange is called with a
+-- valuation type other than -V/--value=end.
 valuationTypeFromRawOpts :: RawOpts -> Maybe ValuationType
-valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromrawopt
+valuationTypeFromRawOpts rawopts = case (balancecalcopt rawopts, directval) of
+    (CalcValueChange, Nothing       ) -> Just $ AtEnd Nothing  -- If no valuation requested for valuechange, use AtEnd
+    (CalcValueChange, Just (AtEnd _)) -> directval             -- If AtEnd valuation requested, use it
+    (CalcValueChange, _             ) -> usageError "--valuechange only produces sensible results with --value=end"
+    (CalcGain,        Nothing       ) -> Just $ AtEnd Nothing  -- If no valuation requested for gain, use AtEnd
+    (_,               _             ) -> directval             -- Otherwise, use requested valuation
   where
+    directval = lastMay $ collectopts valuationfromrawopt rawopts
     valuationfromrawopt (n,v)  -- option name, value
-      | n == "B"     = Just $ AtCost Nothing
-      | n == "V"     = Just $ AtDefault Nothing
-      | n == "X"     = Just $ AtDefault (Just $ T.pack v)
-      | n == "value" = Just $ valuation v
+      | n == "V"     = Just $ AtEnd Nothing
+      | n == "X"     = Just $ AtEnd (Just $ T.pack v)
+      | n == "value" = valueopt v
       | otherwise    = Nothing
-    valuation v
-      | t `elem` ["cost","c"] = AtCost mc
-      | t `elem` ["end" ,"e"] = AtEnd  mc
-      | t `elem` ["now" ,"n"] = AtNow  mc
-      | otherwise =
-          case parsedateM t of
-            Just d  -> AtDate d mc
-            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: cost|end|now|c|e|n|YYYY-MM-DD"
+    valueopt v
+      | t `elem` ["cost","c"]  = AtEnd . Just <$> mc  -- keep supporting --value=cost,COMM for now
+      | t `elem` ["then" ,"t"] = Just $ AtThen mc
+      | t `elem` ["end" ,"e"]  = Just $ AtEnd  mc
+      | t `elem` ["now" ,"n"]  = Just $ AtNow  mc
+      | otherwise = case parsedate t of
+            Just d  -> Just $ AtDate d mc
+            Nothing -> usageError $ "could not parse \""++t++"\" as valuation type, should be: then|end|now|t|e|n|YYYY-MM-DD"
       where
         -- parse --value's value: TYPE[,COMM]
         (t,c') = break (==',') v
@@ -363,20 +526,35 @@ valuationTypeFromRawOpts = lastDef Nothing . filter isJust . map valuationfromra
                    "" -> Nothing
                    c  -> Just $ T.pack c
 
-valuationTypeIsCost :: ReportOpts -> Bool
-valuationTypeIsCost ropts =
-  case value_ ropts of
-    Just (AtCost _) -> True
-    _               -> False
+-- | Parse the type of costing to be performed, if any, specified by -B/--cost
+-- or --value flags. If there's more than one costing type, the rightmost flag
+-- wins. This will fail with a usage error if an invalid argument is passed to
+-- --cost or if a costing type is requested with --gain.
+conversionOpFromRawOpts :: RawOpts -> Maybe ConversionOp
+conversionOpFromRawOpts rawopts
+    | isJust costFlag && balancecalcopt rawopts == CalcGain = usageError "--gain cannot be combined with --cost"
+    | otherwise = costFlag
+  where
+    costFlag = lastMay $ collectopts conversionopfromrawopt rawopts
+    conversionopfromrawopt (n,v)  -- option name, value
+      | n == "B"                                    = Just ToCost
+      | n == "value", takeWhile (/=',') v `elem` ["cost", "c"] = Just ToCost  -- keep supporting --value=cost for now
+      | otherwise                                   = Nothing
 
-type DisplayExp = String
-
-maybedisplayopt :: Day -> RawOpts -> Maybe DisplayExp
-maybedisplayopt d rawopts =
-    maybe Nothing (Just . regexReplaceBy "\\[.+?\\]" fixbracketeddatestr) $ maybestringopt "display" rawopts
-    where
-      fixbracketeddatestr "" = ""
-      fixbracketeddatestr s = "[" ++ fixSmartDateStr d (T.pack $ init $ tail s) ++ "]"
+-- | Parse the depth arguments. This can be either a flat depth that applies to
+-- all accounts, or a regular expression and depth, which only matches certain
+-- accounts. If an account name is matched by a regular expression, then the
+-- smallest depth is used. Otherwise, if no regular expressions match, then the
+-- flat depth is used. If more than one flat depth is supplied, use only the
+-- last one.
+depthFromRawOpts :: RawOpts -> DepthSpec
+depthFromRawOpts rawopts = lastDef mempty flats <> mconcat regexps
+  where
+    (flats, regexps) = partition (\(DepthSpec f rs) -> isJust f && null rs) depthSpecs
+    depthSpecs = case mapM (parseDepthSpec . T.pack) depths of
+      Right d -> d
+      Left err -> usageError $ "Unable to parse depth specification: " ++ err
+    depths = listofstringopt "depth" rawopts
 
 -- | Select the Transaction date accessor based on --date2.
 transactionDateFn :: ReportOpts -> (Transaction -> Day)
@@ -387,160 +565,401 @@ postingDateFn :: ReportOpts -> (Posting -> Day)
 postingDateFn ReportOpts{..} = if date2_ then postingDate2 else postingDate
 
 -- | Report which date we will report on based on --date2.
-whichDateFromOpts :: ReportOpts -> WhichDate
-whichDateFromOpts ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
+whichDate :: ReportOpts -> WhichDate
+whichDate ReportOpts{..} = if date2_ then SecondaryDate else PrimaryDate
 
 -- | Legacy-compatible convenience aliases for accountlistmode_.
 tree_ :: ReportOpts -> Bool
-tree_ = (==ALTree) . accountlistmode_
+tree_ ReportOpts{accountlistmode_ = ALTree} = True
+tree_ ReportOpts{accountlistmode_ = ALFlat} = False
 
 flat_ :: ReportOpts -> Bool
-flat_ = (==ALFlat) . accountlistmode_
+flat_ = not . tree_
 
 -- depthFromOpts :: ReportOpts -> Int
 -- depthFromOpts opts = min (fromMaybe 99999 $ depth_ opts) (queryDepth $ queryFromOpts nulldate opts)
 
--- | Convert this journal's postings' amounts to cost using their
--- transaction prices, if specified by options (-B/--value=cost).
--- Maybe soon superseded by newer valuation code.
-journalSelectingAmountFromOpts :: ReportOpts -> Journal -> Journal
-journalSelectingAmountFromOpts opts =
-  case value_ opts of
-    Just (AtCost _) -> journalConvertAmountsToCost
-    _               -> id
+-- | Convert a 'Journal''s amounts to cost and/or to value (see
+-- 'journalApplyValuationFromOpts'), and filter by the 'ReportSpec' 'Query'.
+--
+-- We make sure to first filter by amt: and cur: terms, then value the
+-- 'Journal', then filter by the remaining terms.
+journalValueAndFilterPostings :: ReportSpec -> Journal -> Journal
+journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec j priceoracle
+  where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
 
--- | Convert report options and arguments to a query.
-queryFromOpts :: Day -> ReportOpts -> Query
-queryFromOpts d ReportOpts{..} = simplifyQuery $ And $ [flagsq, argsq]
+{- [Querying before valuation]
+This helper is used by multiBalanceReport (all balance reports).
+Previously, at least since #1625 (2021), it was filtering with the cur:/amt: parts
+of the query before valuation, and with the other parts after valuation.
+Now, since #2387 (2025), it does all filtering before valuation.
+This avoids breaking boolean queries (#2371), avoids a strictness bug (#2385),
+is simpler, and we think it's otherwise equivalent.
+-}
+-- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
+journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
+journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} =
+    journalApplyValuationFromOptsWith rspec . filterJournal q
   where
-    flagsq = And $
-              [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
-              ++ (if real_ then [Real True] else [])
-              ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ statuses_]
-              ++ (maybe [] ((:[]) . Depth) depth_)
-    argsq = fst $ parseQuery d (T.pack query_)
+    -- with -r, replace each posting with its sibling postings
+    filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
+
+-- | Convert this journal's postings' amounts to cost and/or to value, if specified
+-- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
+-- should be the main stop for performing costing and valuation. The exception is
+-- whenever you need to perform valuation _after_ summing up amounts, as in a
+-- historical balance report with --value=end. valuationAfterSum will check for this
+-- condition.
+journalApplyValuationFromOpts :: ReportSpec -> Journal -> Journal
+journalApplyValuationFromOpts rspec j =
+  journalApplyValuationFromOptsWith rspec j priceoracle
+  where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
+
+-- | Like journalApplyValuationFromOpts, but takes PriceOracle as an argument.
+journalApplyValuationFromOptsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
+journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle =
+  costfn j
+  & journalMapPostings (\p -> p
+    & dbg9With (lbl "before calc".showMixedAmountOneLine.pamount)
+    & postingTransformAmount (calcfn p)
+    & dbg9With (lbl (show calc).showMixedAmountOneLine.pamount)
+    )
+  where
+    lbl = lbl_ "journalApplyValuationFromOptsWith"
+    -- Which custom calculation to do for balance reports. For all other reports, it will be CalcChange.
+    calc = balancecalc_ ropts
+    calcfn = case calc of
+      CalcGain -> \p -> maybe id (mixedAmountApplyGain      priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+      _        -> \p -> maybe id (mixedAmountApplyValuation priceoracle styles (postingperiodend p) (_rsDay rspec) (postingDate p)) (value_ ropts)
+    costfn = case calc of
+      CalcGain -> id
+      _        -> journalToCost costop where costop = fromMaybe NoConversionOp $ conversionop_ ropts
+
+    -- Find the end of the period containing this posting
+    postingperiodend  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)
+    mPeriodEnd = case interval_ ropts of
+        NoInterval -> const . spanEnd . fst $ reportSpan j rspec
+        _          -> spanEnd <=< latestSpanContaining (historical : spans)
+    historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
+    spans = snd $ reportSpanBothDates j rspec
+    styles = journalCommodityStyles j
+    err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
+
+-- | Select the Account valuation functions required for performing valuation after summing
+-- amounts. Used in MultiBalanceReport to value historical and similar reports.
+mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle
+                                              -> (DateSpan -> MixedAmount -> MixedAmount)
+mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
+    case valuationAfterSum ropts of
+        Just mc -> case balancecalc_ ropts of
+            CalcGain -> gain mc
+            _        -> \spn -> valuation mc spn . costing
+        Nothing      -> const id
+  where
+    valuation mc spn = mixedAmountValueAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
+    gain mc spn = mixedAmountGainAtDate priceoracle styles mc (maybe err (addDays (-1)) $ spanEnd spn)
+    costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
+        NoConversionOp -> id
+        ToCost         -> styleAmounts styles . mixedAmountCost
+    styles = journalCommodityStyles j
+    err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
+
+-- | If the ReportOpts specify that we are performing valuation after summing amounts,
+-- return Just of the commodity symbol we're converting to, Just Nothing for the default,
+-- and otherwise return Nothing.
+-- Used for example with historical reports with --value=end.
+valuationAfterSum :: ReportOpts -> Maybe (Maybe CommoditySymbol)
+valuationAfterSum ropts = case value_ ropts of
+    Just (AtEnd mc) | valueAfterSum -> Just mc
+    _                               -> Nothing
+  where valueAfterSum = balancecalc_  ropts == CalcValueChange
+                     || balancecalc_  ropts == CalcGain
+                     || balanceaccum_ ropts /= PerPeriod
+
 
 -- | Convert report options to a query, ignoring any non-flag command line arguments.
-queryFromOptsOnly :: Day -> ReportOpts -> Query
-queryFromOptsOnly _d ReportOpts{..} = simplifyQuery flagsq
+queryFromFlags :: ReportOpts -> Query
+queryFromFlags ReportOpts{..} = simplifyQuery $ And flagsq
   where
-    flagsq = And $
-              [(if date2_ then Date2 else Date) $ periodAsDateSpan period_]
-              ++ (if real_ then [Real True] else [])
-              ++ (if empty_ then [Empty True] else []) -- ?
-              ++ [Or $ map StatusQ statuses_]
-              ++ (maybe [] ((:[]) . Depth) depth_)
+    flagsq = consIf   Real  real_
+           . consJust Depth flatDepth
+           $ map (uncurry DepthAcct) regexpDepths
+           ++  [ (if date2_ then Date2 else Date) $ periodAsDateSpan period_
+               , Or $ map StatusQ statuses_
+               ]
+    consIf f b = if b then (f True:) else id
+    DepthSpec flatDepth regexpDepths = depth_
+    consJust f = maybe id ((:) . f)
 
--- | Convert report options and arguments to query options.
-queryOptsFromOpts :: Day -> ReportOpts -> [QueryOpt]
-queryOptsFromOpts d ReportOpts{..} = flagsqopts ++ argsqopts
-  where
-    flagsqopts = []
-    argsqopts = snd $ parseQuery d (T.pack query_)
+-- Methods/types needed for --sort argument
+
+-- Possible arguments taken by the --sort command
+-- Each of these takes a bool, which shows if it has been inverted
+-- (True -> has been inverted, reverse the order)
+data SortField
+    = AbsAmount' Bool
+    | Account' Bool
+    | Amount' Bool
+    | Date' Bool
+    | Description' Bool
+    deriving (Show, Eq)
+type SortSpec = [SortField]
+
+-- By default, sort by date in ascending order
+defsortspec :: SortSpec
+defsortspec = [Date' False]
+
+-- Load a SortSpec from the argument given to --sort
+-- If there is no spec given, then sort by [Date' False] by default
+getSortSpec :: RawOpts -> SortSpec
+getSortSpec opts = 
+    let opt = maybestringopt "sort" opts
+        optParser s = 
+          let terms = map strip $ splitAtElement ',' s 
+              termParser t = case trimmed of
+                "date"        -> Date'        isNegated
+                "desc"        -> Description' isNegated
+                "description" -> Description' isNegated
+                "account"     -> Account'     isNegated
+                "amount"      -> Amount'      isNegated
+                "absamount"   -> AbsAmount'   isNegated
+                _ -> error' $ "unknown --sort key " ++ t ++ ". Supported keys are: " <> sortKeysDescription <> "."
+                where isNegated = isPrefixOf "-" t
+                      trimmed = fromMaybe t (stripPrefix "-" t)
+          in map termParser terms
+    in maybe defsortspec optParser opt 
+
+-- for option's help and parse error message
+sortKeysDescription = "date, desc, account, amount, absamount"  -- 'description' is also accepted
 
 -- Report dates.
 
 -- | The effective report span is the start and end dates specified by
--- options or queries, or otherwise the earliest and latest transaction or 
+-- options or queries, or otherwise the earliest and latest transaction or
 -- posting dates in the journal. If no dates are specified by options/queries
 -- and the journal is empty, returns the null date span.
--- Needs IO to parse smart dates in options/queries.
-reportSpan :: Journal -> ReportOpts -> IO DateSpan
-reportSpan j ropts = do
-  (mspecifiedstartdate, mspecifiedenddate) <-
-    dbg2 "specifieddates" <$> specifiedStartEndDates ropts
-  let
-    DateSpan mjournalstartdate mjournalenddate =
-      dbg2 "journalspan" $ journalDateSpan False j  -- ignore secondary dates
-    mstartdate = mspecifiedstartdate <|> mjournalstartdate
-    menddate   = mspecifiedenddate   <|> mjournalenddate
-  return $ dbg1 "reportspan" $ DateSpan mstartdate menddate
+-- Also return the intervals if they are requested.
+reportSpan :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
+reportSpan = reportSpanHelper False
 
-reportStartDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportStartDate j ropts = spanStart <$> reportSpan j ropts
+-- | Like reportSpan, but uses both primary and secondary dates when calculating
+-- the span.
+reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
+reportSpanBothDates = reportSpanHelper True
 
-reportEndDate :: Journal -> ReportOpts -> IO (Maybe Day)
-reportEndDate j ropts = spanEnd <$> reportSpan j ropts
+-- | A helper for reportSpan, which takes a Bool indicating whether to use both
+-- primary and secondary dates.
+reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, [DateSpan])
+reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
+    (reportspan, intervalspans)
+  where
+    -- The date span specified by -b/-e/-p options and query args if any.
+    requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
+    -- If we are requesting period-end valuation, the journal date span should
+    -- include price directives after the last transaction
+    journalspan = dbg3 "journalspan" $ if bothdates then journalDateSpanBothDates j else journalDateSpan (date2_ ropts) j
+    pricespan = dbg3 "pricespan" . DateSpan Nothing $ case value_ ropts of
+        Just (AtEnd _) -> fmap (Exact . addDays 1) . maximumMay . map pddate $ jpricedirectives j
+        _              -> Nothing
+    -- If the requested span is open-ended, close it using the journal's start and end dates.
+    -- This can still be the null (open) span if the journal is empty.
+    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanDefaultsFrom` (journalspan `spanExtend` pricespan)
+    -- The list of interval spans enclosing the requested span.
+    -- This list can be empty if the journal was empty,
+    -- or if hledger-ui has added its special date:-tomorrow to the query
+    -- and all txns are in the future.
+    intervalspans  = dbg3 "intervalspans" $ splitSpan adjust (interval_ ropts) requestedspan'
+      where
+        -- When calculating report periods, we will adjust the start date back to the nearest interval boundary
+        -- unless a start date was specified explicitly.
+        adjust = isNothing $ spanStart requestedspan
+    -- The requested span enlarged to enclose a whole number of intervals.
+    -- This can be the null span if there were no intervals.
+    reportspan = dbg3 "reportspan" $ DateSpan (fmap Exact . spanStart =<< headMay intervalspans)
+                                              (fmap Exact . spanEnd =<< lastMay intervalspans)
 
--- | The specified report start/end dates are the dates specified by options or queries, if any.
--- Needs IO to parse smart dates in options/queries.
-specifiedStartEndDates :: ReportOpts -> IO (Maybe Day, Maybe Day)
-specifiedStartEndDates ropts = do
-  today <- getCurrentDay
-  let
-    q = queryFromOpts today ropts
-    mspecifiedstartdate = queryStartDate False q
-    mspecifiedenddate   = queryEndDate   False q
-  return (mspecifiedstartdate, mspecifiedenddate)
+reportStartDate :: Journal -> ReportSpec -> Maybe Day
+reportStartDate j = spanStart . fst . reportSpan j
 
-specifiedStartDate :: ReportOpts -> IO (Maybe Day)
-specifiedStartDate ropts = fst <$> specifiedStartEndDates ropts
-
-specifiedEndDate :: ReportOpts -> IO (Maybe Day)
-specifiedEndDate ropts = snd <$> specifiedStartEndDates ropts
+reportEndDate :: Journal -> ReportSpec -> Maybe Day
+reportEndDate j = spanEnd . fst . reportSpan j
 
 -- Some pure alternatives to the above. XXX review/clean up
 
 -- Get the report's start date.
 -- If no report period is specified, will be Nothing.
--- Will also be Nothing if ReportOpts does not have today_ set,
--- since we need that to get the report period robustly
--- (unlike reportStartDate, which looks up the date with IO.)
-reportPeriodStart :: ReportOpts -> Maybe Day
-reportPeriodStart ropts@ReportOpts{..} = do
-  t <- today_
-  queryStartDate False $ queryFromOpts t ropts
+reportPeriodStart :: ReportSpec -> Maybe Day
+reportPeriodStart = queryStartDate False . _rsQuery
 
 -- Get the report's start date, or if no report period is specified,
 -- the journal's start date (the earliest posting date). If there's no
 -- report period and nothing in the journal, will be Nothing.
-reportPeriodOrJournalStart :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalStart ropts@ReportOpts{..} j =
-  reportPeriodStart ropts <|> journalStartDate False j
+reportPeriodOrJournalStart :: ReportSpec -> Journal -> Maybe Day
+reportPeriodOrJournalStart rspec j =
+  reportPeriodStart rspec <|> journalStartDate False j
 
 -- Get the last day of the overall report period.
--- This the inclusive end date (one day before the 
+-- This the inclusive end date (one day before the
 -- more commonly used, exclusive, report end date).
 -- If no report period is specified, will be Nothing.
--- Will also be Nothing if ReportOpts does not have today_ set,
--- since we need that to get the report period robustly
--- (unlike reportEndDate, which looks up the date with IO.)
-reportPeriodLastDay :: ReportOpts -> Maybe Day
-reportPeriodLastDay ropts@ReportOpts{..} = do
-  t <- today_
-  let q = queryFromOpts t ropts
-  qend <- queryEndDate False q
-  return $ addDays (-1) qend
+reportPeriodLastDay :: ReportSpec -> Maybe Day
+reportPeriodLastDay = fmap (addDays (-1)) . queryEndDate False . _rsQuery
 
 -- Get the last day of the overall report period, or if no report
 -- period is specified, the last day of the journal (ie the latest
--- posting date). If there's no report period and nothing in the
+-- posting date). If we're doing period-end valuation, include price
+-- directive dates. If there's no report period and nothing in the
 -- journal, will be Nothing.
-reportPeriodOrJournalLastDay :: ReportOpts -> Journal -> Maybe Day
-reportPeriodOrJournalLastDay ropts@ReportOpts{..} j =
-  reportPeriodLastDay ropts <|> journalEndDate False j
+reportPeriodOrJournalLastDay :: ReportSpec -> Journal -> Maybe Day
+reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPriceEnd
+  where
+    journalOrPriceEnd = case value_ $ _rsReportOpts rspec of
+        Just (AtEnd _) -> max (journalLastDay False j) lastPriceDirective
+        _              -> journalLastDay False j
+    lastPriceDirective = fmap (addDays 1) . maximumMay . map pddate $ jpricedirectives j
 
--- tests
+-- | Make a name for the given period in a multiperiod report, given
+-- the type of balance being reported and the full set of report
+-- periods. This will be used as a column heading (or row heading, in
+-- a register summary report). We try to pick a useful name as follows:
+--
+-- - ending-balance reports: the period's end date
+--
+-- - balance change reports where the periods are months and all in the same year:
+--   the short month name in the current locale
+--
+-- - all other balance change reports: a description of the datespan,
+--   abbreviated to compact form if possible (see showDateSpan).
+reportPeriodName :: BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
+reportPeriodName balanceaccumulation spans =
+  case balanceaccumulation of
+    PerPeriod -> if multiyear then showDateSpan else showDateSpanAbbrev
+      where
+        multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
+    _ -> maybe "" (showDate . prevday) . spanEnd
 
-tests_ReportOptions = tests "ReportOptions" [
-   tests "queryFromOpts" [
-      (queryFromOpts nulldate defreportopts) `is` Any
-     ,(queryFromOpts nulldate defreportopts{query_="a"}) `is` (Acct "a")
-     ,(queryFromOpts nulldate defreportopts{query_="desc:'a a'"}) `is` (Desc "a a")
-     ,(queryFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01"),query_="date:'to 2013'" }) 
-      `is` (Date $ mkdatespan "2012/01/01" "2013/01/01")
-     ,(queryFromOpts nulldate defreportopts{query_="date2:'in 2012'"}) `is` (Date2 $ mkdatespan "2012/01/01" "2013/01/01")
-     ,(queryFromOpts nulldate defreportopts{query_="'a a' 'b"}) `is` (Or [Acct "a a", Acct "'b"])
-     ]
+-- lenses
 
-  ,tests "queryOptsFromOpts" [
-      (queryOptsFromOpts nulldate defreportopts) `is` []
-     ,(queryOptsFromOpts nulldate defreportopts{query_="a"}) `is` []
-     ,(queryOptsFromOpts nulldate defreportopts{period_=PeriodFrom (parsedate "2012/01/01")
-                                                                   ,query_="date:'to 2013'"
-                                                                   })
-      `is` []
-    ]
- ]
+-- Reportable functors are so that we can create special lenses which can fail
+-- and report on their failure.
+class Functor f => Reportable f e where
+    report :: a -> f (Either e a) -> f a
 
+instance Reportable (Const r) e where
+    report _ (Const x) = Const x
+
+instance Reportable Identity e where
+    report a (Identity i) = Identity $ fromRight a i
+
+instance Reportable Maybe e where
+    report _ = (eitherToMaybe =<<)
+
+instance (e ~ a) => Reportable (Either a) e where
+    report _ = join
+
+-- | Apply a function over a lens, but report on failure.
+overEither :: ((a -> Either e b) -> s -> Either e t) -> (a -> b) -> s -> Either e t
+overEither l f = l (pure . f)
+
+-- | Set a field using a lens, but report on failure.
+setEither :: ((a -> Either e b) -> s -> Either e t) -> b -> s -> Either e t
+setEither l = overEither l . const
+
+type ReportableLens' s a = forall f. Reportable f String => (a -> f a) -> s -> f s
+
+-- | Lenses for ReportOpts.
+
+-- Implement HasReportOptsNoUpdate, the basic lenses for ReportOpts.
+makeHledgerClassyLenses ''ReportOpts
+makeHledgerClassyLenses ''ReportSpec
+
+-- | Special lenses for ReportOpts which also update the Query and QueryOpts in ReportSpec.
+-- Note that these are not true lenses, as they have a further restriction on
+-- the functor. This will work as a normal lens for all common uses, but since they
+-- don't obey the lens laws for some fancy cases, they may fail in some exotic circumstances.
+--
+-- Note that setEither/overEither should only be necessary with
+-- querystring and reportOpts: the other lenses should never fail.
+--
+-- === Examples:
+-- >>> import Lens.Micro (set)
+-- >>> _rsQuery <$> setEither querystring ["assets"] defreportspec
+-- Right (Acct (RegexpCI "assets"))
+-- >>> _rsQuery <$> setEither querystring ["(assets"] defreportspec
+-- Left "This regular expression is invalid or unsupported, please correct it:\n(assets"
+-- >>> _rsQuery $ set querystring ["assets"] defreportspec
+-- Acct (RegexpCI "assets")
+-- >>> _rsQuery $ set period (MonthPeriod 2021 08) defreportspec
+-- Date DateSpan 2021-08
+--
+-- XXX testing error output isn't working since adding color to it:
+-- > import System.Environment
+-- > setEnv "NO_COLOR" "1" >> return (_rsQuery $ set querystring ["(assets"] defreportspec)
+-- *** Exception: Error: Updating ReportSpec failed: try using overEither instead of over or setEither instead of set
+class HasReportOptsNoUpdate a => HasReportOpts a where
+    reportOpts :: ReportableLens' a ReportOpts
+    reportOpts = reportOptsNoUpdate
+    {-# INLINE reportOpts #-}
+
+    -- XXX these names are a bit clashy
+
+    period :: ReportableLens' a Period
+    period = reportOpts.periodNoUpdate
+    {-# INLINE period #-}
+
+    statuses :: ReportableLens' a [Status]
+    statuses = reportOpts.statusesNoUpdate
+    {-# INLINE statuses #-}
+
+    depth :: ReportableLens' a DepthSpec
+    depth = reportOpts.depthNoUpdate
+    {-# INLINE depth #-}
+
+    date2 :: ReportableLens' a Bool
+    date2 = reportOpts.date2NoUpdate
+    {-# INLINE date2 #-}
+
+    real :: ReportableLens' a Bool
+    real = reportOpts.realNoUpdate
+    {-# INLINE real #-}
+
+    querystring :: ReportableLens' a [T.Text]
+    querystring = reportOpts.querystringNoUpdate
+    {-# INLINE querystring #-}
+
+instance HasReportOpts ReportOpts
+
+instance HasReportOptsNoUpdate ReportSpec where
+    reportOptsNoUpdate = rsReportOpts
+
+instance HasReportOpts ReportSpec where
+    reportOpts f rspec = report (error' "Updating ReportSpec failed: try using overEither instead of over or setEither instead of set") $  -- PARTIAL:
+      reportOptsToSpec (_rsDay rspec) <$> f (_rsReportOpts rspec)
+    {-# INLINE reportOpts #-}
+
+-- | Generate a ReportSpec from a set of ReportOpts on a given day.
+reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
+reportOptsToSpec day ropts = do
+    (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
+    return ReportSpec
+      { _rsReportOpts = ropts
+      , _rsDay        = day
+      , _rsQuery      = simplifyQuery $ And [queryFromFlags ropts, argsquery]
+      , _rsQueryOpts  = queryopts
+      }
+
+-- | Update the ReportOpts and the fields derived from it in a ReportSpec,
+-- or return an error message if there is a problem such as missing or
+-- unparseable options data. This is the safe way to change a ReportSpec,
+-- ensuring that all fields (_rsQuery, _rsReportOpts, querystring_, etc.) are in sync.
+updateReportSpec :: ReportOpts -> ReportSpec -> Either String ReportSpec
+updateReportSpec = setEither reportOpts
+
+-- | Like updateReportSpec, but takes a ReportOpts-modifying function.
+updateReportSpecWith :: (ReportOpts -> ReportOpts) -> ReportSpec -> Either String ReportSpec
+updateReportSpecWith = overEither reportOpts
+
+-- | Generate a ReportSpec from RawOpts and a provided day, or return an error
+-- string if there are regular expression errors.
+rawOptsToReportSpec :: Day -> Bool -> RawOpts -> Either String ReportSpec
+rawOptsToReportSpec day coloronstdout = reportOptsToSpec day . rawOptsToReportOpts day coloronstdout

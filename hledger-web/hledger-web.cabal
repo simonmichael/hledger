@@ -1,37 +1,37 @@
-cabal-version: 1.12
+cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.38.0.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 47eb47613f96ddaa3c112f5a71f59c7a4b0fab92a5aa040e7f46989b1441481f
 
 name:           hledger-web
-version:        1.14.99
-synopsis:       Web interface for the hledger accounting tool
-description:    This is hledger's web interface.
-                It provides a more user-friendly and collaborative UI than the
-                command-line or curses-style interfaces.
+version:        1.42.99
+synopsis:       Web user interface for the hledger accounting system
+description:    A simple web user interface for the hledger accounting system,
+                providing a more modern UI than the command-line or terminal interfaces.
+                It can be used as a local single-user UI, or as a multi-user UI for
+                viewing\/adding\/editing on the web.
                 .
-                hledger is a cross-platform program for tracking money, time, or
-                any other commodity, using double-entry accounting and a simple,
-                editable file format. It is inspired by and largely compatible
-                with ledger(1).  hledger provides command-line, curses and web
-                interfaces, and aims to be a reliable, practical tool for daily
-                use.
+                hledger is a robust, cross-platform set of tools for tracking money,
+                time, or any other commodity, using double-entry accounting and a
+                simple, editable file format, with command-line, terminal and web
+                interfaces. It is a Haskell rewrite of Ledger, and one of the leading
+                implementations of Plain Text Accounting. Read more at:
+                <https://hledger.org>
 category:       Finance
 stability:      stable
 homepage:       http://hledger.org
 bug-reports:    http://bugs.hledger.org
 author:         Simon Michael <simon@joyful.com>
 maintainer:     Simon Michael <simon@joyful.com>
-license:        GPL-3
+license:        GPL-3.0-or-later
 license-file:   LICENSE
-tested-with:    GHC==7.10.3, GHC==8.0.2, GHC==8.2.2, GHC==8.4.3, GHC==8.6.5
 build-type:     Simple
+tested-with:
+    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.1
 extra-source-files:
     CHANGES.md
-    README
+    README.md
     config/favicon.ico
     config/keter.yaml
     config/robots.txt
@@ -112,6 +112,11 @@ source-repository head
   type: git
   location: https://github.com/simonmichael/hledger
 
+flag debug
+  description: Build with GHC 9.10+'s stack traces enabled
+  manual: True
+  default: False
+
 flag dev
   description: Turn on development settings, like auto-reload templates.
   manual: False
@@ -130,32 +135,35 @@ flag threaded
 library
   exposed-modules:
       Hledger.Web
+      Hledger.Web.Main
+      Hledger.Web.WebOptions
       Hledger.Web.Application
-      Hledger.Web.Foundation
+      Hledger.Web.Import
+      Hledger.Web.Test
+  other-modules:
+      Hledger.Web.App
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
       Hledger.Web.Handler.MiscR
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
-      Hledger.Web.Import
-      Hledger.Web.Json
-      Hledger.Web.Main
       Hledger.Web.Settings
       Hledger.Web.Settings.StaticFiles
-      Hledger.Web.WebOptions
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
-  other-modules:
+      Paths_hledger_web
+  autogen-modules:
       Paths_hledger_web
   hs-source-dirs:
-      ./.
-  ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.14.99"
+      ./
+  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
+  cpp-options: -DVERSION="1.42.99"
   build-depends:
-      Decimal
-    , aeson
-    , base >=4.8 && <4.13
+      Decimal >=0.5.1
+    , aeson >=1 && <2.3
+    , base >=4.14 && <4.22
+    , base64
     , blaze-html
     , blaze-markup
     , bytestring
@@ -164,67 +172,93 @@ library
     , cmdargs >=0.10
     , conduit
     , conduit-extra >=1.1
-    , containers
+    , containers >=0.5.9
     , data-default
-    , directory
+    , directory >=1.2.3.0
+    , extra >=1.7.11
     , filepath
+    , githash >=0.1.6.2
     , hjsmin
-    , hledger >=1.14.99 && <1.15
-    , hledger-lib >=1.14.99 && <1.15
+    , hledger >=1.42.99 && <1.43
+    , hledger-lib >=1.42.99 && <1.43
+    , hspec
     , http-client
     , http-conduit
     , http-types
-    , json
-    , megaparsec >=7.0.0 && <8
-    , mtl
-    , semigroups
+    , megaparsec >=7.0.0 && <9.8
+    , mtl >=2.2.1
+    , network
+    , safe >=0.3.20
     , shakespeare >=2.0.2.2
     , template-haskell
-    , text >=1.2
+    , text >=1.2.4.1
     , time >=1.5
     , transformers
+    , unix-compat
+    , unordered-containers
+    , utf8-string
     , wai
+    , wai-cors
     , wai-extra
-    , wai-handler-launch >=1.3
+    , wai-handler-launch >=3.0.3
     , warp
     , yaml
+    , yesod >=1.4 && <1.7
+    , yesod-core >=1.4 && <1.7
+    , yesod-form >=1.4 && <1.8
+    , yesod-static >=1.4 && <1.7
+    , yesod-test
+  default-language: Haskell2010
+  if flag(threaded)
+    ghc-options: -threaded
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if impl(ghc >=8)
-    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
-  if os(darwin) && impl(ghc < 8.0)
-    buildable: False
-  else
-    build-depends:
-        yesod >=1.4 && <1.7
-      , yesod-core >=1.4 && <1.7
-      , yesod-form >=1.4 && <1.7
-      , yesod-static >=1.4 && <1.7
-  default-language: Haskell2010
+  if (flag(debug))
+    cpp-options: -DDEBUG
 
 executable hledger-web
   main-is: main.hs
   other-modules:
       Paths_hledger_web
+  autogen-modules:
+      Paths_hledger_web
   hs-source-dirs:
       app
-  ghc-options: -Wall -fwarn-tabs
-  cpp-options: -DVERSION="1.14.99"
+  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns -with-rtsopts=-T
+  cpp-options: -DVERSION="1.42.99"
   build-depends:
-      base
+      base >=4.14 && <4.22
     , hledger-web
+  default-language: Haskell2010
+  if flag(threaded)
+    ghc-options: -threaded
   if (flag(dev)) || (flag(library-only))
     cpp-options: -DDEVELOPMENT
   if flag(dev)
     ghc-options: -O0
-  if impl(ghc >=8)
-    ghc-options: -Wcompat -Wincomplete-uni-patterns -Wincomplete-record-updates -Wredundant-constraints
+  if (flag(debug))
+    cpp-options: -DDEBUG
   if flag(library-only)
     buildable: False
+
+test-suite test
+  type: exitcode-stdio-1.0
+  main-is: test.hs
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
+  cpp-options: -DVERSION="1.42.99"
+  build-depends:
+      base >=4.14 && <4.22
+    , hledger-web
+  default-language: Haskell2010
   if flag(threaded)
     ghc-options: -threaded
-  if os(darwin) && impl(ghc < 8.0)
-    buildable: False
-  default-language: Haskell2010
+  if (flag(dev)) || (flag(library-only))
+    cpp-options: -DDEVELOPMENT
+  if flag(dev)
+    ghc-options: -O0
+  if (flag(debug))
+    cpp-options: -DDEBUG

@@ -1,0 +1,137 @@
+# * type: queries
+# Similar to the tag:type tests in query-tags.test.
+<
+account a   ; type:A
+account l   ; type:Liability
+account r   ; type:R
+account o   ; othertag:
+account u
+
+2022-01-01
+  (r)        1
+
+2022-01-02
+  (a)        1
+  (l)        1
+
+# ** 1. We can match declared accounts by type, using short type codes
+# regardless of whether account's type was declared in short or long form.
+$ hledger -f- accounts --declared type:AL
+a
+l
+
+# ** 2. Order and case of type codes doesn't matter.
+$ hledger -f- accounts --declared type:la
+a
+l
+
+# ** 3. Matching used accounts works the same way.
+$ hledger -f- accounts --used type:AL
+a
+l
+
+# ** 4. We can match postings by their account's type.
+$ hledger -f- register -w80 type:A
+2022-01-02                      (a)                              1             1
+
+# ** 5. We can match transactions by their accounts' types.
+$ hledger -f- print type:A
+2022-01-02
+    (a)               1
+    (l)               1
+
+>=
+
+# ** 6. And negatively match them.
+$ hledger -f- print type:a not:type:l
+
+# ** 7. We can filter balance reports by account type.
+$ hledger -f- bal type:a
+                   1  a
+--------------------
+                   1  
+
+# ** 8. Postingless declared accounts in balance reports are also filtered.
+<
+account a  ; type:A
+account l  ; type:L
+
+$ hledger -f- bal -N --declared -E type:A
+                   0  a
+
+# ** 9. type: is aware of account type inheritance.
+<
+account a    ; type:A
+account a:aa
+
+$ hledger -f- accounts type:a
+a
+a:aa
+
+# ** 10. type: is aware of inferred account types.
+<
+account assets
+account assets:cash
+account liabilities
+
+$ hledger -f- accounts type:a
+assets
+assets:cash
+
+# ** 11. type: can identify cash accounts in the default case
+<
+account assets
+account assets:cash
+account liabilities
+
+$ hledger -f- accounts type:c
+assets:cash
+
+# ** 12. type: can identify conversion accounts in the default case
+<
+account equity
+account equity:conversion
+account equity:trading
+account equity:trade
+
+$ hledger -f- accounts type:v
+equity:conversion
+equity:trading
+equity:trade
+
+# ** 13. type: can be used in and can match auto postings
+<
+account assets  ; type:a
+
+= type:a
+  (assets:b)   1
+
+2022-02-02 Test
+  (assets)   2
+
+$ hledger -f- reg --auto type:a
+2022-02-02 Test                 (assets)                         2             2
+                                (assets:b)                       1             3
+
+# ** 14. type: can be used in and can match auto postings with no known parents
+<
+= type:a
+  (expenses:b)   1
+
+2022-02-02 Test
+  (assets)       2
+
+$ hledger -f- reg --auto type:x
+2022-02-02 Test                 (expenses:b)                     1             1
+
+# ** 15. type:a matches cash accounts and type:e matches conversion accounts
+<
+2022-02-02 Test
+  (assets:cash)        1
+  (equity:conversion)  2
+  (equity:conversion)  -2
+
+$ hledger -f- reg type:ae
+2022-02-02 Test                 (assets:cash)                    1             1
+                                (equity:conversion)              2             3
+                                (equity:conversion)             -2             1

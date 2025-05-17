@@ -5,170 +5,368 @@ A ledger-compatible @print@ command.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Cli.Commands.Print (
   printmode
  ,print'
  -- ,entriesReportAsText
- ,originalTransaction
+ ,roundFlag
+ ,roundFromRawOpts
+ ,amountStylesSetRoundingFromRawOpts
+ ,transactionWithMostlyOriginalPostings
 )
 where
 
+
+import Data.Function ((&))
+import Data.List (intersperse, intercalate)
+import Data.List.Extra (nubSort)
 import Data.Text (Text)
+import Data.Map (Map)
+import qualified Data.Map as Map
 import qualified Data.Text as T
+import qualified Data.Text.Lazy as TL
+import qualified Data.Text.Lazy.Builder as TB
+import Lens.Micro ((^.), _Just, has)
+import Safe (lastMay, minimumDef)
 import System.Console.CmdArgs.Explicit
-import Hledger.Read.CsvReader (CSV, printCSV)
 
 import Hledger
+import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Ods (printFods)
+import Hledger.Write.Html.Lucid (styledTableHtml)
+import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Cli.Commands.Add ( transactionsSimilarTo )
-
+import Hledger.Cli.Anchor (setAccountAnchor)
+import qualified Lucid
+import qualified System.IO as IO
+import Data.Maybe (isJust, catMaybes, fromMaybe)
+import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
-  ([let arg = "STR" in
-   flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
-    ("show the transaction whose description is most similar to "++arg++", and is most recent")
-  ,flagNone ["explicit","x"] (setboolopt "explicit")
+  ([flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
+  ,flagNone ["show-costs"] (setboolopt "show-costs")
+    "show transaction prices even with conversion postings"
+  ,roundFlag
+  ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["new"] (setboolopt "new")
     "show only newer-dated transactions added in each file since last run"
-  ] ++ outputflags)
-  [generalflagsgroup1]
+  ,let arg = "DESC" in
+   flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
+    ("fuzzy search for one recent transaction with description closest to "++arg)
+  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+  ,flagNone ["location"] (setboolopt "location") "add file/line number tags to print output"
+  ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
+  ,outputFileFlag
+  ])
+  cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
+roundFlag = flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
+  intercalate "\n"
+  ["how much rounding or padding should be done when displaying amounts ?"
+  ,"none - show original decimal digits,"
+  ,"       as in journal (default)"
+  ,"soft - just add or remove decimal zeros"
+  ,"       to match precision"
+  ,"hard - round posting amounts to precision"
+  ,"       (can unbalance transactions)"
+  ,"all  - also round cost amounts to precision"
+  ,"       (can unbalance transactions)"
+  ]
+
+-- | Get the --round option's value, if any. Can fail with a parse error.
+roundFromRawOpts :: RawOpts -> Maybe Rounding
+roundFromRawOpts = lastMay . collectopts roundfromrawopt
+  where
+    roundfromrawopt (n,v)
+      | n=="round", v=="none" = Just NoRounding
+      | n=="round", v=="soft" = Just SoftRounding
+      | n=="round", v=="hard" = Just HardRounding
+      | n=="round", v=="all"  = Just AllRounding
+      | n=="round"            = error' $ "--round's value should be none, soft, hard or all; got: "++v
+      | otherwise             = Nothing
+
+-- | Set these amount styles' rounding strategy when they are being applied to amounts,
+-- according to the value of the --round option, if any.
+amountStylesSetRoundingFromRawOpts :: RawOpts -> Map CommoditySymbol AmountStyle -> Map CommoditySymbol AmountStyle
+amountStylesSetRoundingFromRawOpts rawopts styles =
+  case roundFromRawOpts rawopts of
+    Just r  -> amountStylesSetRounding r styles
+    Nothing -> styles
+
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
-print' opts j = do
+print' opts@CliOpts{rawopts_=rawopts} j = do
+  -- The print command should show all amounts with their original decimal places,
+  -- but as part of journal reading the posting amounts have already been normalised
+  -- according to commodity display styles, and currently it's not easy to avoid
+  -- that. For now we try to reverse it by increasing all amounts' decimal places 
+  -- sufficiently to show the amount exactly. The displayed amounts may have minor
+  -- differences from the originals, such as trailing zeroes added.
+  let
+    -- lbl = lbl_ "print'"
+    j' = j
+      -- & dbg9With (lbl "amounts before setting full precision".showJournalAmountsDebug)
+      & journalMapPostingAmounts mixedAmountSetFullPrecision
+      -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalAmountsDebug)
+      & if boolopt "location" rawopts then journalMapTransactions addLocationTag else id
+
   case maybestringopt "match" $ rawopts_ opts of
-    Nothing   -> printEntries opts j
-    Just desc -> printMatch opts j $ T.pack desc
+    Nothing   -> printEntries opts j'
+    Just desc -> 
+      -- match mode, prints one recent transaction most similar to given description
+      -- XXX should match similarly to register --match
+      case journalSimilarTransaction opts j' (dbg1 "finding best match for description" $ T.pack desc) of
+        Just t  -> printEntries opts j'{jtxns=[t]}
+        Nothing -> error' $ "no transactions found with descriptions like " <> show desc
 
 printEntries :: CliOpts -> Journal -> IO ()
-printEntries opts@CliOpts{reportopts_=ropts} j = do
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-      fmt = outputFormatFromOpts opts
-      (render, ropts') = case fmt of
-        "csv"  -> ((++"\n") . printCSV . entriesReportAsCsv, ropts{accountlistmode_=ALFlat})
-        "html" -> (const $ error' "Sorry, HTML output is not yet implemented for this kind of report.", ropts{accountlistmode_=ALFlat})  -- TODO
-        _      -> (entriesReportAsText opts,                 ropts)
-  writeOutput opts $ render $ entriesReport ropts' q j
-
-entriesReportAsText :: CliOpts -> EntriesReport -> String
-entriesReportAsText opts = concatMap (showTransactionUnelided . gettxn) 
+printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
+  writeOutputLazyText opts $ render $ entriesReport rspec j
   where
-    gettxn | useexplicittxn = id                   -- use fully inferred amounts & txn prices 
-           | otherwise      = originalTransaction  -- use original as-written amounts/txn prices
-    -- Original vs inferred transactions/postings were causing problems here, disabling -B (#551).
-    -- Use the explicit one if -B or -x are active.
-    -- This passes tests; does it also mean -B sometimes shows missing amounts unnecessarily ?  
-    useexplicittxn = boolopt "explicit" (rawopts_ opts) || (valuationTypeIsCost $ reportopts_ opts)
+    -- print does user-specified rounding or (by default) no rounding, in all output formats
+    styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
 
--- Replace this transaction's postings with the original postings if any, but keep the
--- current possibly rewritten account names.
-originalTransaction t = t { tpostings = map originalPostingPreservingAccount $ tpostings t }
+    fmt = outputFormatFromOpts opts
+    baseUrl = balance_base_url_ $ _rsReportOpts rspec
+    query = querystring_ $ _rsReportOpts rspec
+    render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
+           | fmt=="json"      = toJsonText                    . styleAmounts styles
+           | fmt=="sql"       = entriesReportAsSql            . styleAmounts styles
+           | fmt=="html" =
+                (<>"\n") . Lucid.renderText . styledTableHtml .
+                map (map (fmap Lucid.toHtml)) .
+                entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
+                styleAmounts styles
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Print" .
+                (,) (1,0) .
+                entriesReportAsSpreadsheet oneLineNoCostFmt baseUrl query .
+                styleAmounts styles
+           | otherwise = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
+      where
+        maybeoriginalamounts
+          -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
+          -- with -x/--explicit:
+          | boolopt "explicit" (rawopts_ opts) = id
+          -- with --show-costs:
+          -- XXX infer_costs is --infer-costs not --show-costs. And where is show-costs used anyway ?
+          | opts ^. infer_costs = id
+          -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
+          | has (value . _Just) opts = id
+          -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
+          | otherwise = transactionWithMostlyOriginalPostings
 
--- Get the original posting if any, but keep the current possibly rewritten account name.
-originalPostingPreservingAccount p = (originalPosting p) { paccount = paccount p }
+-- | Replace this transaction's postings with the original postings if any, but keep the
+-- current possibly rewritten account names, and the inferred values of any auto postings.
+-- This is mainly for showing transactions with the amounts in their original journal format.
+transactionWithMostlyOriginalPostings :: Transaction -> Transaction
+transactionWithMostlyOriginalPostings = transactionMapPostings postingMostlyOriginal
+  where
+    postingMostlyOriginal p = orig
+        { paccount = paccount p
+        , pamount = pamount $ if isGenerated then p else orig }
+      where
+        orig = originalPosting p
+        isGenerated = "_generated-posting" `elem` map fst (ptags p)
 
--- XXX
--- tests_showTransactions = [
---   "showTransactions" ~: do
+entriesReportAsText :: EntriesReport -> TL.Text
+entriesReportAsText = entriesReportAsTextHelper showTransaction
 
---    -- "print expenses" ~:
---    do
---     let opts = defreportopts{query_="expenses"}
---     d <- getCurrentDay
---     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
---      ["2008/06/03 * eat & shop"
---      ,"    expenses:food                $1"
---      ,"    expenses:supplies            $1"
---      ,"    assets:cash                 $-2"
---      ,""
---      ]
+entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text
+entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showtxn)
 
---   -- , "print report with depth arg" ~:
---    do
---     let opts = defreportopts{depth_=Just 2}
---     d <- getCurrentDay
---     showTransactions opts (queryFromOpts d opts) samplejournal `is` unlines
---       ["2008/01/01 income"
---       ,"    assets:bank:checking            $1"
---       ,"    income:salary                  $-1"
---       ,""
---       ,"2008/06/01 gift"
---       ,"    assets:bank:checking            $1"
---       ,"    income:gifts                   $-1"
---       ,""
---       ,"2008/06/03 * eat & shop"
---       ,"    expenses:food                $1"
---       ,"    expenses:supplies            $1"
---       ,"    assets:cash                 $-2"
---       ,""
---       ,"2008/12/31 * pay off"
---       ,"    liabilities:debts               $1"
---       ,"    assets:bank:checking           $-1"
---       ,""
---       ]
---  ]
+-- | This generates Beancount-compatible journal output, transforming/encoding the data
+-- in various ways when necessary (see Beancount.hs). It renders:
+-- account open directives for each account used (on their earliest posting dates),
+-- operating_currency directives (based on currencies used in costs),
+-- and transaction entries.
+-- Transaction and posting tags are converted to metadata lines.
+-- Account tags are not propagated to the open directive, currently.
+entriesReportAsBeancount ::  Map AccountName [Tag] -> EntriesReport -> TL.Text
+entriesReportAsBeancount atags ts =
+  -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
+  TL.concat [
+     TL.fromStrict operatingcurrencydirectives
+    ,TL.fromStrict openaccountdirectives
+    ,"\n"
+    ,entriesReportAsTextHelper showTransactionBeancount ts3
+    ]
+  where
+    -- Remove any virtual postings.
+    ts2 = [t{tpostings=filter isReal $ tpostings t} | t <- ts]
+
+    -- Remove any conversion postings that are redundant with costs.
+    -- It would be easier to remove the costs instead,
+    -- but those are more useful to Beancount than conversion postings.
+    ts3 =
+      [ t{tpostings=filter (not . isredundantconvp) $ tpostings t}
+      | t <- ts2
+      -- XXX But conversion-posting tag is on non-redundant postings too, so how to do it ?
+      -- Assume the simple case of no more than one cost + conversion posting group in each transaction.
+      -- Actually that seems to be required by hledger right now.
+      , let isredundantconvp p =
+              matchesPosting (Tag (toRegex' "conversion-posting") Nothing) p
+              && any (any (isJust.acost) . amounts . pamount) (tpostings t)
+      ]
+
+    -- https://fava.pythonanywhere.com/example-beancount-file/help/beancount_syntax
+    -- https://fava.pythonanywhere.com/example-beancount-file/help/options
+    -- "conversion-currencies
+    -- When set, the currency conversion select dropdown in all charts will show the list of currencies specified in this option.
+    -- By default, Fava lists all operating currencies and those currencies that match ISO 4217 currency codes."
+
+    -- http://furius.ca/beancount/doc/syntax
+    -- http://furius.ca/beancount/doc/options
+    -- "This option may be supplied multiple times ...
+    -- A list of currencies that we single out during reporting and create dedicated columns for ...
+    -- we use this to display these values in table cells without their associated unit strings ...
+    -- This is used to indicate the main currencies that you work with in real life"
+    -- We use: all currencies used in costs.
+    operatingcurrencydirectives
+      | null basecurrencies = ""
+      | otherwise = T.unlines (map (todirective . commodityToBeancount) basecurrencies) <> "\n"
+      where
+        todirective c = "option \"operating_currency\" \"" <> c <> "\""
+        basecurrencies = allcostcurrencies
+          where
+            allcostcurrencies = nubSort $ map acommodity costamounts
+              where
+                costamounts =
+                  map (\c -> case c of
+                              UnitCost  a -> a
+                              TotalCost a -> a
+                              ) $ 
+                  catMaybes $
+                  map acost $
+                  concatMap (amounts . pamount) $
+                  concatMap tpostings
+                  ts3
+
+    -- http://furius.ca/beancount/doc/syntax
+    -- "there exists an “Open” directive that is used to provide the start date of each account. 
+    -- That can be located anywhere in the file, it does not have to appear in the file somewhere before you use an account name.
+    -- You can just start using account names in transactions right away,
+    -- though all account names that receive postings to them will eventually have to have
+    -- a corresponding Open directive with a date that precedes all transactions posted to the account in the input file."
+    openaccountdirectives
+      | null ts = ""
+      | otherwise = T.unlines [
+          T.intercalate "\n" $
+            firstdate <> " open " <> accountNameToBeancount a :
+            mdlines
+          | a <- nubSort $ concatMap (map paccount.tpostings) ts3
+          , let mds      = tagsToBeancountMetadata $ fromMaybe [] $ Map.lookup a atags
+          , let maxwidth = maximum' $ map (T.length . fst) mds
+          , let mdlines  = map (postingIndent . showBeancountMetadata (Just maxwidth)) mds
+          ]
+        where
+          firstdate = showDate $ minimumDef err $ map tdate ts3
+            where err = error' "entriesReportAsBeancount: should not happen"
+
+entriesReportAsSql :: EntriesReport -> TL.Text
+entriesReportAsSql txns = TB.toLazyText $ mconcat
+    [ TB.fromText "create table if not exists postings(id serial,txnidx int,date1 date,date2 date,status text,code text,description text,comment text,account text,amount numeric,commodity text,credit numeric,debit numeric,posting_status text,posting_comment text);\n"
+    , TB.fromText "insert into postings(txnidx,date1,date2,status,code,description,comment,account,amount,commodity,credit,debit,posting_status,posting_comment) values\n"
+    , mconcat . intersperse (TB.fromText ",") $ map values csv
+    , TB.fromText ";\n"
+    ]
+  where
+    values vs = TB.fromText "(" <> mconcat (intersperse (TB.fromText ",") $ map toSql vs) <> TB.fromText ")\n"
+    toSql "" = TB.fromText "NULL"
+    toSql s  = TB.fromText "'" <> TB.fromText (T.replace "'" "''" s) <> TB.fromText "'"
+    csv =
+        Spr.rawTableContent . transactionToSpreadsheet machineFmt Nothing [] .
+        transactionMapPostingAmounts (mapMixedAmount setDecimalPoint)
+            =<< txns
+      where
+        setDecimalPoint a = a{astyle=(astyle a){asdecimalmark=Just '.'}}
 
 entriesReportAsCsv :: EntriesReport -> CSV
-entriesReportAsCsv txns =
-  ["txnidx","date","date2","status","code","description","comment","account","amount","commodity","credit","debit","posting-status","posting-comment"] :
-  concatMap transactionToCSV txns
+entriesReportAsCsv =
+  Spr.rawTableContent . entriesReportAsSpreadsheet machineFmt Nothing []
 
--- | Generate one CSV record per posting, duplicating the common transaction fields.
+entriesReportAsSpreadsheet ::
+  AmountFormat -> Maybe Text -> [Text] ->
+  EntriesReport -> [[Spr.Cell Spr.NumLines Text]]
+entriesReportAsSpreadsheet fmt baseUrl query txns =
+  Spr.addHeaderBorders
+    (map Spr.headerCell
+        ["txnidx","date","date2","status","code","description","comment",
+         "account","amount","commodity","credit","debit",
+         "posting-status","posting-comment"])
+  :
+  concatMap (transactionToSpreadsheet fmt baseUrl query) txns
+
+-- | Generate one record per posting, duplicating the common transaction fields.
 -- The txnidx field (transaction index) allows postings to be grouped back into transactions.
-transactionToCSV :: Transaction -> CSV
-transactionToCSV t =
-  map (\p -> show idx:date:date2:status:code:description:comment:p)
-   (concatMap postingToCSV $ tpostings t)
+transactionToSpreadsheet ::
+  AmountFormat -> Maybe Text -> [Text] ->
+  Transaction -> [[Spr.Cell Spr.NumLines Text]]
+transactionToSpreadsheet fmt baseUrl query t =
+  addRowSpanHeader (idx:d:d2:status:code:description:comment:[])
+    (postingToSpreadsheet fmt baseUrl query =<< tpostings t)
   where
-    idx = tindex t
-    description = T.unpack $ tdescription t
-    date = showDate (tdate t)
-    date2 = maybe "" showDate (tdate2 t)
-    status = show $ tstatus t
-    code = T.unpack $ tcode t
-    comment = chomp $ strip $ T.unpack $ tcomment t
+    cell = Spr.defaultCell
+    idx = Spr.integerCell $ tindex t
+    description = cell $ tdescription t
+    dateCell date =
+        (Spr.defaultCell $ showDate date) {Spr.cellType = Spr.TypeDate}
+    d = dateCell $ tdate t
+    d2 = maybe Spr.emptyCell dateCell $ tdate2 t
+    status = cell $ T.pack . show $ tstatus t
+    code = cell $ tcode t
+    comment = cell $ T.strip $ tcomment t
 
-postingToCSV :: Posting -> CSV
-postingToCSV p =
+addRowSpanHeader ::
+    [Spr.Cell border text] ->
+    [[Spr.Cell border text]] -> [[Spr.Cell border text]]
+addRowSpanHeader common rows =
+    case rows of
+        [] -> []
+        [row] -> [common++row]
+        _ ->
+            let setSpan spn cell = cell{Spr.cellSpan = spn} in
+            zipWith (++)
+                (map (setSpan $ Spr.SpanVertical $ length rows) common :
+                 repeat (map (setSpan Spr.Covered) common))
+                rows
+
+postingToSpreadsheet ::
+  (Spr.Lines border) =>
+  AmountFormat -> Maybe Text -> [Text] ->
+  Posting -> [[Spr.Cell border Text]]
+postingToSpreadsheet fmt baseUrl query p =
   map (\(a@(Amount {aquantity=q,acommodity=c})) ->
-    let a_ = a{acommodity=""} in
-    let amount = showAmount a_ in
-    let commodity = T.unpack c in
-    let credit = if q < 0 then showAmount $ negate a_ else "" in
-    let debit  = if q >= 0 then showAmount a_ else "" in
-    [account, amount, commodity, credit, debit, status, comment])
-   amounts
+    -- commodity goes into separate column, so we suppress it, along with digit group
+    -- separators and prices
+    let a_ = amountStripCost a{acommodity=""} in
+    let credit = if q < 0 then amountCell $ negate a_ else Spr.emptyCell in
+    let debit  = if q >= 0 then amountCell a_ else Spr.emptyCell in
+    [setAccountAnchor baseUrl query (paccount p) $ cell account,
+     amountCell a_, cell c,
+     credit, debit, cell status, cell comment])
+    . amounts $ pamount p
   where
-    Mixed amounts = pamount p
-    status = show $ pstatus p
+    cell = Spr.defaultCell
+    amountCell amt =
+      Spr.cellFromAmount fmt
+        (Spr.Class "amount", (wbToText $ showAmountB machineFmt amt, amt))
+    status = T.pack . show $ pstatus p
     account = showAccountName Nothing (ptype p) (paccount p)
-    comment = chomp $ strip $ T.unpack $ pcomment p
+    comment = T.strip $ pcomment p
 
--- --match
-
--- | Print the transaction most closely and recently matching a description
--- (and the query, if any).
-printMatch :: CliOpts -> Journal -> Text -> IO ()
-printMatch CliOpts{reportopts_=ropts} j desc = do
-  d <- getCurrentDay
-  let q = queryFromOpts d ropts
-  case similarTransaction' j q desc of
-                Nothing -> putStrLn "no matches found."
-                Just t  -> putStr $ showTransactionUnelided t
-
+addLocationTag :: Transaction -> Transaction
+addLocationTag t = t{tcomment = tcomment t `commentAddTagNextLine` loctag}
   where
-    -- Identify the closest recent match for this description in past transactions.
-    similarTransaction' :: Journal -> Query -> Text -> Maybe Transaction
-    similarTransaction' j q desc
-      | null historymatches = Nothing
-      | otherwise           = Just $ snd $ head historymatches
-      where
-        historymatches = transactionsSimilarTo j q desc
+    loctag = ("location", T.pack . sourcePosPairPretty $ tsourcepos t)

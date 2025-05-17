@@ -1,0 +1,766 @@
+# * balance --budget tests
+
+2016/12/01
+    expenses:food  $10
+    assets:cash
+
+2016/12/02
+    expenses:food  $9
+    assets:cash
+
+2016/12/03
+    expenses:food  $11
+    assets:cash
+
+2016/12/02
+    expenses:leisure  $5
+    assets:cash
+
+2016/12/03
+    expenses:movies  $25
+    assets:cash
+
+2016/12/03
+    expenses:cab  $15
+    assets:cash
+
+~ daily from 2016/1/1
+    expenses:food     $10
+    expenses:leisure  $15
+    assets:cash
+
+
+# ** 1. Test --budget switch
+$ hledger -f- bal -D -b 2016-12-01 -e 2016-12-04 --budget
+Budget performance in 2016-12-01..2016-12-03:
+
+                  ||          2016-12-01          2016-12-02           2016-12-03 
+==================++==============================================================
+ assets:cash      || $-10 [ 40% of $-25]  $-14 [56% of $-25]  $-51 [204% of $-25] 
+ expenses         ||  $10 [ 40% of  $25]   $14 [56% of  $25]   $51 [204% of  $25] 
+ expenses:food    ||  $10 [100% of  $10]    $9 [90% of  $10]   $11 [110% of  $10] 
+ expenses:leisure ||    0 [  0% of  $15]    $5 [33% of  $15]     0 [  0% of  $15] 
+------------------++--------------------------------------------------------------
+                  ||    0 [           0]     0 [          0]     0 [           0] 
+
+# ** 2. -E
+$ hledger -f- bal -D -b 2016-12-01 -e 2016-12-04 --budget -E
+Budget performance in 2016-12-01..2016-12-03:
+
+                  ||          2016-12-01          2016-12-02           2016-12-03 
+==================++==============================================================
+ assets:cash      || $-10 [ 40% of $-25]  $-14 [56% of $-25]  $-51 [204% of $-25] 
+ expenses         ||  $10 [ 40% of  $25]   $14 [56% of  $25]   $51 [204% of  $25] 
+ expenses:cab     ||    0                    0                 $15                
+ expenses:food    ||  $10 [100% of  $10]    $9 [90% of  $10]   $11 [110% of  $10] 
+ expenses:leisure ||    0 [  0% of  $15]    $5 [33% of  $15]     0 [  0% of  $15] 
+ expenses:movies  ||    0                    0                 $25                
+------------------++--------------------------------------------------------------
+                  ||    0 [           0]     0 [          0]     0 [           0] 
+
+# ** 3. Test that budget works with mix of commodities
+# XXX Here $'s precision is increased to 1 by the third transaction's
+# $11.0 balancing amount. Is that ok ? What if it was $11.1 ?
+<
+2016/12/01
+    expenses:food  £10 @@ $15
+    assets:cash
+
+2016/12/02
+    expenses:food  10 CAD @ $1
+    assets:cash
+
+2016/12/02
+    expenses:food  10 CAD @ $1.1
+    assets:cash
+
+2016/12/03
+    expenses:food  $11
+    assets:cash
+
+2016/12/02
+    expenses:leisure  $5
+    assets:cash
+
+2016/12/03
+    expenses:movies  $25
+    assets:cash
+
+2016/12/03
+    expenses:cab  $15
+    assets:cash
+
+~ daily from 2016/1/1
+    expenses:food     $10
+    expenses:leisure  $15
+    assets:cash
+
+$ hledger -f- bal -D -b 2016-12-01 -e 2016-12-04 --budget
+Budget performance in 2016-12-01..2016-12-03:
+
+                  ||                  2016-12-01                       2016-12-02               2016-12-03 
+==================++=======================================================================================
+ assets:cash      ||      $-15.0 [60% of $-25.0]          $-26.0 [104% of $-25.0]  $-51.0 [204% of $-25.0] 
+ expenses         ||         £10 [        $25.0]    $5.0, 20 CAD [         $25.0]   $51.0 [204% of  $25.0] 
+ expenses:food    ||         £10 [        $10.0]          20 CAD [         $10.0]   $11.0 [110% of  $10.0] 
+ expenses:leisure ||           0 [ 0% of  $15.0]            $5.0 [ 33% of  $15.0]       0 [  0% of  $15.0] 
+------------------++---------------------------------------------------------------------------------------
+                  || $-15.0, £10 [            0]  $-21.0, 20 CAD [             0]       0 [             0] 
+
+# ** 4. --budget with no interval shows total budget for the journal period
+# (in tabular format). 
+<
+~ daily
+  (a)  10
+
+~weekly
+  (b)  100
+
+~weekly
+  (c)  1000
+
+2018/1/1
+  (a)  1
+  (b)  1
+  (c)  1
+
+2018/1/3
+  (a)  1
+  (b)  1
+  (c)  1
+
+$ hledger -f- bal --budget
+Budget performance in 2018-01-01..2018-01-03:
+
+   || 2018-01-01..2018-01-03 
+===++========================
+ a ||         2 [7% of   30] 
+ b ||         2 [2% of  100] 
+ c ||         2 [0% of 1000] 
+---++------------------------
+   ||         6 [1% of 1130] 
+
+# ** 5. Multiple periodic transactions with different intervals are combined. 
+# Budget goals with lower frequency than the report are posted in the 
+# appropriate intermittent periods. 
+$ hledger -f- bal --budget -D
+Budget performance in 2018-01-01..2018-01-03:
+
+   ||      2018-01-01    2018-01-02     2018-01-03 
+===++==============================================
+ a || 1 [10% of   10]  0 [0% of 10]  1 [10% of 10] 
+ b || 1 [ 1% of  100]  0 [       0]  1 [        0] 
+ c || 1 [ 0% of 1000]  0 [       0]  1 [        0] 
+---++----------------------------------------------
+   || 3 [ 0% of 1110]  0 [0% of 10]  3 [30% of 10] 
+
+# ** 6. Budget goals with higher frequency than the report get added up appropriately.
+$ hledger -f- bal --budget -W
+Budget performance in 2018-W01:
+
+   ||            W01 
+===++================
+ a || 2 [3% of   70] 
+ b || 2 [2% of  100] 
+ c || 2 [0% of 1000] 
+---++----------------
+   || 6 [1% of 1170] 
+
+# ** 7. A bounded two day budget. The end date is exclusive as usual.
+<
+~ daily from 2018/1/2 to 2018/1/4
+  (a)  1
+
+2018/1/1
+  (a)  1
+  (b)  1
+
+2018/1/2
+  (a)  1
+  (b)  1
+
+2018/1/3
+  (a)  1
+  (b)  1
+
+2018/1/4
+  (a)  1
+  (b)  1
+
+$ hledger -f- bal --budget -D
+Budget performance in 2018-01-01..2018-01-04:
+
+              || 2018-01-01     2018-01-02     2018-01-03  2018-01-04 
+==============++======================================================
+ <unbudgeted> ||          1  1              1                       1 
+ a            ||          1  1 [100% of 1]  1 [100% of 1]           1 
+--------------++------------------------------------------------------
+              ||          2  2 [200% of 1]  2 [200% of 1]           2 
+
+# ** 8. Multiple bounded budgets.
+<
+~ daily from 2018/1/1 to 2018/1/3
+  (a)  1
+
+~ daily from 2018/1/3 to 2018/1/5
+  (a)  10
+
+2018/1/1
+  (a)  1
+
+2018/1/2
+  (a)  1
+
+2018/1/3
+  (a)  1
+
+2018/1/4
+  (a)  1
+
+$ hledger -f- bal --budget -D
+Budget performance in 2018-01-01..2018-01-04:
+
+   ||    2018-01-01     2018-01-02     2018-01-03     2018-01-04 
+===++============================================================
+ a || 1 [100% of 1]  1 [100% of 1]  1 [10% of 10]  1 [10% of 10] 
+---++------------------------------------------------------------
+   || 1 [100% of 1]  1 [100% of 1]  1 [10% of 10]  1 [10% of 10] 
+
+# ** 9. A "from A to B" budget should not be included in a report beginning on B.
+$ hledger -f- bal --budget -D -b 2018/1/3
+Budget performance in 2018-01-03..2018-01-04:
+
+   ||    2018-01-03     2018-01-04 
+===++==============================
+ a || 1 [10% of 10]  1 [10% of 10] 
+---++------------------------------
+   || 1 [10% of 10]  1 [10% of 10] 
+
+<
+~ daily
+  (a)  1
+
+2018/1/2
+  (a)  2
+
+2018/1/2
+  (a)  -2
+
+# ** 10. accounts with non-zero budget should be shown by default 
+# even if there are no actual transactions in the period,
+# or if the actual amount is zero.
+$ hledger -f- bal --budget -D date:2018/1/1-2018/1/3
+Budget performance in 2018-01-01..2018-01-02:
+
+   ||  2018-01-01   2018-01-02 
+===++==========================
+ a || 0 [0% of 1]  0 [0% of 1] 
+---++--------------------------
+   || 0 [0% of 1]  0 [0% of 1] 
+
+# ** 11. With -E, zeroes are shown
+$ hledger -f- bal --budget -D date:2018/1/1-2018/1/3 -E
+Budget performance in 2018-01-01..2018-01-02:
+
+   ||  2018-01-01   2018-01-02 
+===++==========================
+ a || 0 [0% of 1]  0 [0% of 1] 
+---++--------------------------
+   || 0 [0% of 1]  0 [0% of 1] 
+
+# ** 12. subaccounts of budgeted accounts count towards budget
+<
+~ daily
+  (a)      1
+
+2018/1/1
+  (a:b)    1
+
+$ hledger -f- bal --budget -N
+Budget performance in 2018-01-01:
+
+   ||    2018-01-01 
+===++===============
+ a || 1 [100% of 1] 
+
+# ** 13. budget goals on both parent and subaccounts are counted
+<
+~ daily
+  (a)        100
+  (a:b:c)      1
+
+2018/1/1
+  (a)          1
+  (a:b:c)      1
+
+$ hledger -f- bal --budget
+Budget performance in 2018-01-01:
+
+       ||      2018-01-01 
+=======++=================
+ a     || 2 [  2% of 101] 
+ a:b:c || 1 [100% of   1] 
+-------++-----------------
+       || 2 [  2% of 101] 
+
+# ** 14. tree mode
+$ hledger -f- bal --budget --tree
+Budget performance in 2018-01-01:
+
+       ||      2018-01-01 
+=======++=================
+ a     || 2 [  2% of 101] 
+   b:c || 1 [100% of   1] 
+-------++-----------------
+       || 2 [  2% of 101] 
+
+# TODO: respect hierarchy when sorting in tree mode
+
+# TODO: respect --sort-amount
+
+# ** 15. respect --value
+<
+P 2018/01/26 SHARE €10
+
+2018/05/17 Dividend
+    revenue:dividend       €-10
+    assets:pension          €10
+
+2018/05/17 Buy
+    assets:pension:shares   1 SHARE @ €10
+    assets:pension          €-10
+
+~ monthly from 2018/06 to 2018/07
+    assets:pension                    €1
+    assets:bank
+
+$ hledger -f - bal -M --budget --cumulative --forecast -V
+Budget performance in 2018-05-01..2018-06-30, valued at period ends:
+
+                || 2018-05-31           2018-06-30 
+================++=================================
+ <unbudgeted>   ||       €-10  €-10                
+ assets         ||        €10   €10 [           0] 
+ assets:bank    ||          0   €-1 [ 100% of €-1] 
+ assets:pension ||        €10   €11 [1100% of  €1] 
+----------------++---------------------------------
+                ||          0     0 [           0] 
+
+# ** 16. With subaccounts, child accounts are properly included in the parent balance when budget is checked
+<
+~ monthly from 2019/01
+    expenses:personal             $1000.00
+    liabilities
+
+2019/01/01 Google home hub and home mini x2
+    expenses:personal:electronics          $10.00
+    liabilities                           $-10.00
+
+2019/01/02 Google Home Hub Permium Subscription
+    expenses:personal:electronics:upgrades          $10.00
+    liabilities                           $-10.00
+
+2019/01/03 Something else
+    expenses:personal          $30.00
+    liabilities                           $-30.00
+
+$ hledger -f- bal --budget
+Budget performance in 2019-01-01..2019-01-03:
+
+                   ||    2019-01-01..2019-01-03 
+===================++===========================
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
+ liabilities       || $-50.00 [5% of $-1000.00] 
+-------------------++---------------------------
+                   ||       0 [              0] 
+
+# ** 17.
+$ hledger -f- bal --budget -E
+Budget performance in 2019-01-01..2019-01-03:
+
+                                        ||    2019-01-01..2019-01-03 
+========================================++===========================
+ expenses:personal                      ||  $50.00 [5% of  $1000.00] 
+ expenses:personal:electronics          ||  $20.00                   
+ expenses:personal:electronics:upgrades ||  $10.00                   
+ liabilities                            || $-50.00 [5% of $-1000.00] 
+----------------------------------------++---------------------------
+                                        ||       0 [              0] 
+
+# ** 18.
+$ hledger -f- bal --budget --tree
+Budget performance in 2019-01-01..2019-01-03:
+
+                   ||    2019-01-01..2019-01-03 
+===================++===========================
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
+ liabilities       || $-50.00 [5% of $-1000.00] 
+-------------------++---------------------------
+                   ||       0 [              0] 
+
+# ** 19.
+$ hledger -f- bal --budget --tree -E
+Budget performance in 2019-01-01..2019-01-03:
+
+                   ||    2019-01-01..2019-01-03 
+===================++===========================
+ expenses:personal ||  $50.00 [5% of  $1000.00] 
+   electronics     ||  $20.00                   
+     upgrades      ||  $10.00                   
+ liabilities       || $-50.00 [5% of $-1000.00] 
+-------------------++---------------------------
+                   ||       0 [              0] 
+
+# ** 20. Also should work when there are no postings directly in budgeted parents (#1800)
+$ hledger -f- bal -e 2019-01-02 --budget -E 
+Budget performance in 2019-01-01:
+
+                               ||                2019-01-01 
+===============================++===========================
+ expenses:personal             ||  $10.00 [1% of  $1000.00] 
+ expenses:personal:electronics ||  $10.00                   
+ liabilities                   || $-10.00 [1% of $-1000.00] 
+-------------------------------++---------------------------
+                               ||       0 [              0] 
+
+# ** 21. Also should work when there are no postings directly in budgeted parents with --tree (#1800)
+$ hledger -f- bal -e 2019-01-02 --budget --tree -E 
+Budget performance in 2019-01-01:
+
+                   ||                2019-01-01 
+===================++===========================
+ expenses:personal ||  $10.00 [1% of  $1000.00] 
+   electronics     ||  $10.00                   
+ liabilities       || $-10.00 [1% of $-1000.00] 
+-------------------++---------------------------
+                   ||       0 [              0] 
+
+# ** 22. Subaccounts + nested budgets
+<
+~ monthly from 2019/01
+    expenses:personal             $1000.00
+    expenses:personal:electronics  $100.00
+    liabilities
+
+2019/01/01 Google home hub and home mini x2
+    expenses:personal:electronics          $10.00
+    liabilities                           $-10.00
+
+2019/01/02 Google Home Hub Permium Subscription
+    expenses:personal:electronics:upgrades          $10.00
+    liabilities                           $-10.00
+
+2019/01/03 Something else
+    expenses:personal          $30.00
+    liabilities                           $-30.00
+
+$ hledger -f- bal --budget
+Budget performance in 2019-01-01..2019-01-03:
+
+                               ||     2019-01-01..2019-01-03 
+===============================++============================
+ expenses:personal             ||  $50.00 [ 5% of  $1100.00] 
+ expenses:personal:electronics ||  $20.00 [20% of   $100.00] 
+ liabilities                   || $-50.00 [ 5% of $-1100.00] 
+-------------------------------++----------------------------
+                               ||       0 [               0] 
+
+# ** 23.
+$ hledger -f- bal --budget -E
+Budget performance in 2019-01-01..2019-01-03:
+
+                                        ||     2019-01-01..2019-01-03 
+========================================++============================
+ expenses:personal                      ||  $50.00 [ 5% of  $1100.00] 
+ expenses:personal:electronics          ||  $20.00 [20% of   $100.00] 
+ expenses:personal:electronics:upgrades ||  $10.00                    
+ liabilities                            || $-50.00 [ 5% of $-1100.00] 
+----------------------------------------++----------------------------
+                                        ||       0 [               0] 
+
+# ** 24.
+$ hledger -f- bal --budget --tree
+Budget performance in 2019-01-01..2019-01-03:
+
+                   ||     2019-01-01..2019-01-03 
+===================++============================
+ expenses:personal ||  $50.00 [ 5% of  $1100.00] 
+   electronics     ||  $20.00 [20% of   $100.00] 
+ liabilities       || $-50.00 [ 5% of $-1100.00] 
+-------------------++----------------------------
+                   ||       0 [               0] 
+
+# ** 25.
+$ hledger -f- bal --budget --tree -E
+Budget performance in 2019-01-01..2019-01-03:
+
+                   ||     2019-01-01..2019-01-03 
+===================++============================
+ expenses:personal ||  $50.00 [ 5% of  $1100.00] 
+   electronics     ||  $20.00 [20% of   $100.00] 
+     upgrades      ||  $10.00                    
+ liabilities       || $-50.00 [ 5% of $-1100.00] 
+-------------------++----------------------------
+                   ||       0 [               0] 
+
+# ** 26. Zero budget == no budget
+<
+~ monthly from 2019-01
+  expenses:bills     $100  ; bills has a $100 budget of its own, separate from subaccounts
+  expenses:bills:a    $20  ; a has non-zero budget and non-zero posted amount
+  expenses:bills:b   $200  ; b's budget is larger than bills'; we can see it's added to, not part of, that
+  expenses:bills:c    $50  ; c has a budget but no postings
+  expenses:bills:f     $0  ; f has an explicit zero budget
+  income:cash              ; cash has a negative $370 budget balancing the above
+
+2019-01-01 transaction1
+  income:cash
+  expenses:bills:a    $10
+  expenses:bills:b    $40
+  expenses:bills:d    $20  ; d has postings but no budget
+  expenses:bills:e    $10  ; e has postings summing to zero, and no budget
+  expenses:bills:f    $10
+
+2019-01-02 transaction2
+  income:cash
+  expenses:bills:e    -$10
+
+# By default it hides d (because no budget) and e (because zero posted amount).
+# f is shown though its budget is zero, it probably shouldn't be.
+$ hledger bal -f- --budget 
+Budget performance in 2019-01-01..2019-01-02:
+
+                  || 2019-01-01..2019-01-02 
+==================++========================
+ expenses:bills   ||     $80 [22% of  $370] 
+ expenses:bills:a ||     $10 [50% of   $20] 
+ expenses:bills:b ||     $40 [20% of  $200] 
+ expenses:bills:c ||       0 [ 0% of   $50] 
+ expenses:bills:f ||     $10 [           0] 
+ income:cash      ||    $-80 [22% of $-370] 
+------------------++------------------------
+                  ||       0 [           0] 
+
+# ** 27. -E shows d and e
+$ hledger bal -f- --budget -E
+Budget performance in 2019-01-01..2019-01-02:
+
+                  || 2019-01-01..2019-01-02 
+==================++========================
+ expenses:bills   ||     $80 [22% of  $370] 
+ expenses:bills:a ||     $10 [50% of   $20] 
+ expenses:bills:b ||     $40 [20% of  $200] 
+ expenses:bills:c ||       0 [ 0% of   $50] 
+ expenses:bills:d ||     $20                
+ expenses:bills:e ||       0                
+ expenses:bills:f ||     $10 [           0] 
+ income:cash      ||    $-80 [22% of $-370] 
+------------------++------------------------
+                  ||       0 [           0] 
+
+# ** 28. The totals row shows correct totals.
+# -T/--total and -A/--average adds those columns.
+$ hledger bal -f- --budget -TA not:income
+Budget performance in 2019-01-01..2019-01-02:
+
+                  || 2019-01-01..2019-01-02              Total            Average 
+==================++==============================================================
+ expenses:bills   ||      $80 [22% of $370]  $80 [22% of $370]  $80 [22% of $370] 
+ expenses:bills:a ||      $10 [50% of  $20]  $10 [50% of  $20]  $10 [50% of  $20] 
+ expenses:bills:b ||      $40 [20% of $200]  $40 [20% of $200]  $40 [20% of $200] 
+ expenses:bills:c ||        0 [ 0% of  $50]    0 [ 0% of  $50]    0 [ 0% of  $50] 
+ expenses:bills:f ||      $10 [          0]  $10 [          0]  $10 [          0] 
+------------------++--------------------------------------------------------------
+                  ||      $80 [22% of $370]  $80 [22% of $370]  $80 [22% of $370] 
+
+# ** 29. CSV output works.
+$ hledger bal -f- --budget -TA not:income -O csv
+"Account","2019-01-01..2019-01-02","budget","Total","budget","Average","budget"
+"expenses:bills","$80","$370","$80","$370","$80","$370"
+"expenses:bills:a","$10","$20","$10","$20","$10","$20"
+"expenses:bills:b","$40","$200","$40","$200","$40","$200"
+"expenses:bills:c","0","$50","0","$50","0","$50"
+"expenses:bills:f","$10","0","$10","0","$10","0"
+"Total:","$80","$370","$80","$370","$80","$370"
+
+# ** 30. TSV output works.
+$ hledger bal -f- --budget -TA not:income -O tsv
+Account	2019-01-01..2019-01-02	budget	Total	budget	Average	budget
+expenses:bills	$80	$370	$80	$370	$80	$370
+expenses:bills:a	$10	$20	$10	$20	$10	$20
+expenses:bills:b	$40	$200	$40	$200	$40	$200
+expenses:bills:c	0	$50	0	$50	0	$50
+expenses:bills:f	$10	0	$10	0	$10	0
+Total:	$80	$370	$80	$370	$80	$370
+
+# ** 31. You would expect this to show a budget goal in jan, feb, mar.
+# But by the usual report date logic, which picks the oldest and newest 
+# transaction date (1/15 and 3/15) as start and end date by default, 
+# and since "monthly" generates transactions on the 1st,
+# the january budget goal transaction is excluded. Make sure we entend so
+# they're included.
+<
+~ monthly in 2020
+  (expenses:food)  $500
+
+2020-01-15
+  expenses:food    $400
+  assets:checking
+
+2020-03-15
+  expenses:food    $600
+  assets:checking
+
+$ hledger -f- bal --budget -M
+Budget performance in 2020Q1:
+
+               ||                 Jan             Feb                   Mar 
+===============++===========================================================
+ <unbudgeted>  || $-400                0               $-600                
+ expenses:food ||  $400 [80% of $500]  0 [0% of $500]   $600 [120% of $500] 
+---------------++-----------------------------------------------------------
+               ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
+
+# ** 32. Specifying the report period works around it.
+$ hledger -f- bal --budget -M date:2020q1
+Budget performance in 2020Q1:
+
+               ||                 Jan             Feb                   Mar 
+===============++===========================================================
+ <unbudgeted>  || $-400                0               $-600                
+ expenses:food ||  $400 [80% of $500]  0 [0% of $500]   $600 [120% of $500] 
+---------------++-----------------------------------------------------------
+               ||     0 [ 0% of $500]  0 [0% of $500]      0 [  0% of $500] 
+
+# ** 33, 34. Select from multiple named budgets.
+<
+~ weekly   weekly budget
+  (aaa)   1
+
+~ monthly  monthly budget
+  (bbb)   10
+
+$ hledger -f- bal --budget=weekly -p 2021-01
+> /aaa/
+>=
+
+$ hledger -f- bal --budget=monthly -p 2021-01
+> !/aaa/
+>=
+
+# ** 35. Cumulative budget report.
+<
+~ monthly
+  (a)  10
+
+2022-01-05
+  (a)   10
+
+2022-02-03
+  (a)   5
+
+$ hledger -f- bal --budget -M --cumulative
+Budget performance in 2022-01-01..2022-02-28:
+
+   ||      2022-01-31      2022-02-28 
+===++=================================
+ a || 10 [100% of 10]  15 [75% of 20] 
+---++---------------------------------
+   || 10 [100% of 10]  15 [75% of 20] 
+
+# ** 36. Historical budget report.
+$ hledger -f- bal --budget -MH -b 2022-02-01
+Budget performance in 2022-02:
+
+   ||     2022-02-28 
+===++================
+ a || 15 [75% of 20] 
+---++----------------
+   || 15 [75% of 20] 
+
+# ** 37. Historical budget report where the periodic transaction has date bounds.
+<
+~ every february 2nd from 2020/01
+    (a)  1
+
+$ hledger -f- bal --budget -MH -p 2020q1
+Budget performance in 2020Q1:
+
+   || 2020-01-31   2020-02-29   2020-03-31 
+===++======================================
+ a ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
+---++--------------------------------------
+   ||      0 [0]  0 [0% of 1]  0 [0% of 1] 
+
+# ** 38. Budget report applies command line commodity styles to goal amounts (#1905).
+<
+~ daily
+    (a)  1
+
+2022-01-01
+    (a)  1
+
+$ hledger -f- bal --budget -c "1.0"
+Budget performance in 2022-01-01:
+
+   ||        2022-01-01 
+===++===================
+ a || 1.0 [100% of 1.0] 
+---++-------------------
+   || 1.0 [100% of 1.0] 
+
+# ** 39. Tall budget report adds per-column zeroes properly.
+<
+2020-01-15
+  (a)    A 100
+
+2020-02-15
+  (a)    A 200
+  (b)    B 200
+
+$ hledger -f- bal --budget -M --layout=tall
+Budget performance in 2020-01-01..2020-02-29:
+
+              ||   Jan    Feb 
+==============++==============
+ <unbudgeted> || A 100  A 200 
+ <unbudgeted> ||     0  B 200 
+--------------++--------------
+              || A 100  A 200 
+              ||     0  B 200 
+
+# ** 40. In tree-mode budget reports, parent accounts with no actual or goal amounts
+# are still shown, to preserve the tree structure. The effect is similar to --no-elide. (#2071)
+<
+2023-07-01
+    expenses:rent                  $100
+    income:gifts:cash
+
+~ monthly 2023-08
+    (income:employment)           $-100
+    (income:gifts:cash)           $-100
+
+$ hledger -f- bal --budget -p 202308 --tree
+Budget performance in 2023-08:
+
+              ||             Aug 
+==============++=================
+ income       || 0 [0% of $-200] 
+   employment || 0 [0% of $-100] 
+   gifts      || 0               
+     cash     || 0 [0% of $-100] 
+--------------++-----------------
+              || 0 [0% of $-200] 
+
+# ** 41. But, not exactly the same; notice --no-elide shows a goal amount for gifts. (#2071)
+$ hledger -f- bal --budget -p 202308 --tree --no-elide
+Budget performance in 2023-08:
+
+              ||             Aug 
+==============++=================
+ income       || 0 [0% of $-200] 
+   employment || 0 [0% of $-100] 
+   gifts      || 0 [0% of $-100] 
+     cash     || 0 [0% of $-100] 
+--------------++-----------------
+              || 0 [0% of $-200] 

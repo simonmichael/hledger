@@ -1,0 +1,26 @@
+; 2022-closed.journal
+
+2022-01-01 opening balances  ; start:2022
+    assets                    21 = 21
+    equity:opening/closing balances
+
+2022-07-01 income
+    income
+    assets               1
+
+2022-08-01 currency conversion
+    income                             -1 A
+    equity:conversion:A-B:A             1 A
+    equity:conversion:A-B:B            -1 B
+    expenses                            1 B
+
+2022-12-31 retain earnings
+    expenses                            -1 B = 0 B
+    income                                 1 = 0
+    income                               1 A = 0 A
+    equity:retained earnings
+
+2022-12-31 closing balances  ; start:2023
+    assets                                      -22 = 0
+    equity:opening/closing balances
+

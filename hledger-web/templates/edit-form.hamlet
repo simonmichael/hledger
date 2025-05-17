@@ -11,7 +11,7 @@
   <tr>
     <td style="border:0">
       <span.help>
-        ^{helplink "file-format" "File format help"}
+        ^{helplink "data-formats" "File format help"}
     <td .text-right style="border:0">
       <a.btn.btn-default href="@{ManageR}">Go back
       <input.btn.btn-default type=submit value="Save">

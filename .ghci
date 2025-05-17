@@ -1,4 +1,13 @@
 :set prompt "ghci> "
+import System.Environment
+setEnv "NO_COLOR" "1"
+-- TEMP
+-- :m +*Hledger.Cli.Commands
+
+-- https://github.com/cdepillabout/pretty-simple
+-- If not using a cabal environment file with pretty-simple added, this adds itK here:
+-- :set -package pretty-simple
+:set -interactive-print=Text.Pretty.Simple.pPrintNoColor
 
 -- ghci commands to be run once at ghci startup
 -- http://www.haskell.org/ghc/docs/7.6.3/html/users_guide/ghci-commands.html
@@ -10,6 +19,9 @@
 
 -- -- :reload and run commands in .ghci2
 -- :def R \_ -> return ":reload\n:script .ghci2"
+
+-- Reload (to pick up code changes and flush cached unsafePerformIO values) and run main with the given args
+:def! rmain \args -> return $ ":reload\n:main "<>args
 
 -- -- run commands from a file, .ghci2 by default
 -- :def s \f -> readFile $ if null f then ".ghci2" else f

@@ -22,7 +22,7 @@ staticSite :: IO Static
 staticSite =
   if development
    then (do
-            putStrLn ("Using web files from: " ++ staticDir ++ "/") >> hFlush stdout
+            putStrLn ("Running in dev mode, will read static files from " ++ staticDir ++ "/") >> hFlush stdout
             staticDevel staticDir)
    else (do
             -- putStrLn "Using built-in web files" >> hFlush stdout

@@ -4,15 +4,20 @@
 // STARTUP
 
 $(document).ready(function() {
+
+  // add form helpers XXX move to addForm ?
+
   // date picker
   // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
   var dateEl = $('#dateWrap').datepicker({
     showOnFocus: false,
     autoclose: true,
-    format: 'yyyy-mm-dd'
+    format: 'yyyy-mm-dd',
+    todayHighlight: true,
+    weekStart: 1 // Monday
   });;
 
-  // ensure add form always focuses its first field
+  // focus and pre-fill the add form whenever it is shown
   $('#addmodal')
     .on('shown.bs.modal', function() {
       addformFocus();
@@ -20,6 +25,12 @@ $(document).ready(function() {
     .on('hidden.bs.modal', function() {
       // close the date picker if open
       dateEl.datepicker('hide');
+    });
+
+  // ensure that the keypress listener on the final amount input is always active
+  $('#addform')
+    .on('focus', '.amount-input:last', function() {
+      addformLastAmountBindKey();
     });
 
   // keyboard shortcuts
@@ -32,11 +43,6 @@ $(document).ready(function() {
   $('body').bind('keydown', 'a',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'n',       function(){ addformShow(); return false; });
   $('body').bind('keydown', 'f',       function(){ $('#searchform input').focus(); return false; });
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl++',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+shift+=', addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+=',       addformAddPosting);
-  $('body, #addform input, #addform select').bind('keydown', 'ctrl+-',       addformDeletePosting);
-  $('.amount-input:last').keypress(addformAddPosting);
 
   // highlight the entry from the url hash
   if (window.location.hash && $(window.location.hash)[0]) {
@@ -62,7 +68,10 @@ function registerChart($container, series) {
     { /* general chart options */
       xaxis: {
         mode: "time",
-        timeformat: "%Y/%m/%d"
+        timeformat: "%Y/%m/%d",
+      },
+      selection: {
+        mode: "x"
       },
       legend: {
         position: 'sw'
@@ -137,21 +146,35 @@ function addformShow(showmsg) {
   $('#addmodal').modal('show');
 }
 
-// Make sure the add form is empty and clean for display.
+// Make sure the add form is empty and clean and has the default number of rows.
 function addformReset(showmsg) {
   showmsg = typeof showmsg !== 'undefined' ? showmsg : false;
   if ($('form#addform').length > 0) {
     if (!showmsg) $('div#message').html('');
-    $('form#addform')[0].reset();
+    $('#addform .account-group.added-row').remove();
+    addformLastAmountBindKey();
+    $('#addform')[0].reset();
     // reset typehead state (though not fetched completions)
     $('.typeahead').typeahead('val', '');
     $('.tt-dropdown-menu').hide();
   }
 }
 
-// Focus the first add form field.
+// Set the add-new-row-on-keypress handler on the add form's current last amount field, only.
+// (NB: removes all other keypress handlers from all amount fields).
+function addformLastAmountBindKey() {
+  $('input[name=amount]').off('keypress');
+  $('input[name=amount]:last').keypress(addformAddPosting);
+}
+
+// Pre-fill today's date and focus the description field in the add form.
 function addformFocus() {
-  focus($('#addform input#date'));
+  $('#addform input[name=date]').val(isoDate());
+  focus($('#addform input[name=description]'));
+}
+
+function isoDate() {
+  return new Date().toLocaleDateString("sv");  // https://stackoverflow.com/a/58633651/84401
 }
 
 // Focus a jquery-wrapped element, working around http://stackoverflow.com/a/7046837.
@@ -163,31 +186,30 @@ function focus($el) {
 
 // Insert another posting row in the add form.
 function addformAddPosting() {
-  if (!$('#addform').is(':visible')) {
-    return;
-  }
+  if (!$('#addform').is(':visible')) { return; }
 
-  var prevLastRow = $('#addform .account-group:last');
-  prevLastRow.off('keypress');
+  // Clone the last row.
+  var newrow = $('#addform .account-group:last').clone().addClass('added-row');
+  var newnum = $('#addform .account-group').length + 1;
 
-  // Clone the currently last row
-  $('#addform .account-postings').append(prevLastRow.clone());
-  var num = $('#addform .account-group').length;
+  // Clear the new account and amount fields and update their placeholder text.
+  var accountfield = newrow.find('input[name=account]');
+  var amountfield  = newrow.find('input[name=amount]');
+  accountfield.val('').prop('placeholder', 'Account '+newnum);
+  amountfield.val('').prop('placeholder', 'Amount '+newnum);
 
-  // clear and renumber the field, add keybindings
-  // XXX Enable typehead on dynamically created inputs
-  $('.amount-input:last')
-    .val('')
-    .prop('placeholder','Amount ' + num)
-    .keypress(addformAddPosting);
+  // Enable autocomplete in the new account field.
+  // We must first remove these typehead helper elements cloned from the old row,
+  // or it will recursively add helper elements for those, causing confusion (#2215).
+  newrow.find('.tt-hint').remove();
+  newrow.find('.tt-input').removeClass('tt-input');
+  accountfield.typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
 
-  $('.account-input:last')
-    .val('')
-    .prop('placeholder', 'Account ' + num)
-    .bind('keydown', 'ctrl++', addformAddPosting)
-    .bind('keydown', 'ctrl+shift+=', addformAddPosting)
-    .bind('keydown', 'ctrl+=', addformAddPosting)
-    .bind('keydown', 'ctrl+-', addformDeletePosting);
+  // Add the new row to the page.
+  $('#addform .account-postings').append(newrow);
+
+  // And move the keypress handler to the new last amount field.
+  addformLastAmountBindKey();
 }
 
 // Remove the add form's last posting row, if empty, keeping at least two.
@@ -204,8 +226,8 @@ function addformDeletePosting() {
   if (focuslost) {
     focus($('.account-input:last'));
   }
-  // Rebind keypress
-  $('.amount-input:last').keypress(addformAddPosting);
+  // move the keypress handler to the new last amount field
+  addformLastAmountBindKey();
 }
 
 //----------------------------------------------------------------------

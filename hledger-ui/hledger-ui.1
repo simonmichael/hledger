@@ -1,323 +1,334 @@
 
-.TH "hledger-ui" "1" "March 2019" "hledger-ui 1.14.99" "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "March 2025" "hledger-ui-1.42.99 " "hledger User Manuals"
 
 
 
 .SH NAME
-.PP
-hledger-ui - curses-style interface for the hledger accounting tool
+hledger\-ui \- terminal interface (TUI) for \f[CR]hledger\f[R], a
+robust, friendly plain text accounting app.
 .SH SYNOPSIS
-.PP
-\f[C]hledger-ui [OPTIONS] [QUERYARGS]\f[R]
+\f[CR]hledger\-ui    [OPTS] [QUERYARGS]\f[R]
 .PD 0
 .P
 .PD
-\f[C]hledger ui -- [OPTIONS] [QUERYARGS]\f[R]
+or
+.PD 0
+.P
+.PD
+\f[CR]hledger ui \-\- [OPTS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
+This manual is for hledger\[aq]s terminal interface, version 1.42.99.
+See also the hledger manual for common concepts and file formats.
 .PP
-hledger is a cross-platform program for tracking money, time, or any
-other commodity, using double-entry accounting and a simple, editable
-file format.
-hledger is inspired by and largely compatible with ledger(1).
+hledger is a robust, user\-friendly, cross\-platform set of programs for
+tracking money, time, or any other commodity, using double\-entry
+accounting and a simple, editable file format.
+hledger is inspired by and largely compatible with ledger(1), and
+largely interconvertible with beancount(1).
 .PP
-hledger-ui is hledger\[aq]s curses-style interface, providing an
-efficient full-window text UI for viewing accounts and transactions, and
-some limited data entry capability.
-It is easier than hledger\[aq]s command-line interface, and sometimes
+hledger\-ui is hledger\[aq]s terminal interface, providing an efficient
+full\-window text UI for viewing accounts and transactions, and some
+limited data entry capability.
+It is easier than hledger\[aq]s command\-line interface, and sometimes
 quicker and more convenient than the web interface.
 .PP
-Note hledger-ui has some different defaults (experimental):
-.IP \[bu] 2
-it generates rule-based transactions and postings by default (--forecast
-and --auto are always on).
-.IP \[bu] 2
-it hides transactions dated in the future by default (change this with
---future or the F key).
+Like hledger, it reads from (and appends to) a journal file specified by
+the \f[CR]LEDGER_FILE\f[R] environment variable (defaulting to
+\f[CR]$HOME/.hledger.journal\f[R]); or you can specify files with
+\f[CR]\-f\f[R] options.
+It can also read timeclock files, timedot files, or any CSV/SSV/TSV file
+with a date field.
+(See hledger(1) \-> Input for details.)
 .PP
-Like hledger, it reads data from one or more files in hledger journal,
-timeclock, timedot, or CSV format specified with \f[C]-f\f[R], or
-\f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
-For more about this see hledger(1), hledger_journal(5) etc.
+Unlike hledger, hledger\-ui hides all future\-dated transactions by
+default.
+They can be revealed, along with any rule\-generated periodic
+transactions, by pressing the F key (or starting with \-\-forecast) to
+enable \[dq]forecast mode\[dq].
 .SH OPTIONS
+Any arguments are interpreted as a hledger query which filters the data.
+hledger\-ui provides the following options:
+.IP
+.EX
+Flags:
+  \-w \-\-watch                watch for data and date changes and reload
+                            automatically
+     \-\-theme=THEME          use this custom display theme (default,
+                            greenterm, terminal, dark)
+     \-\-cash                 start in the cash accounts screen
+     \-\-bs                   start in the balance sheet accounts screen
+     \-\-is                   start in the income statement accounts screen
+     \-\-all                  start in the all accounts screen
+     \-\-register=ACCTREGEX   start in the (first matched) account\[aq]s register
+     \-\-change               show period balances (changes) at startup instead
+                            of historical balances
+  \-l \-\-flat                 show accounts as a flat list (default)
+  \-t \-\-tree                 show accounts as a tree
+.EE
 .PP
-Note: if invoking hledger-ui as a hledger subcommand, write \f[C]--\f[R]
-before options as shown above.
+and also supports many of hledger\[aq]s general options:
+.IP
+.EX
+General input/data transformation flags:
+  \-f \-\-file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is \-,
+                            inferring format from extension or a FMT: prefix.
+                            Can be specified more than once. If not specified,
+                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+     \-\-rules=RULESFILE      Use rules defined in this rules file for
+                            converting subsequent CSV/SSV/TSV files. If not
+                            specified, uses FILE.csv.rules for each FILE.csv.
+     \-\-alias=A=B|/RGX/=RPL  transform account names from A to B, or by
+                            replacing regular expression matches
+     \-\-auto                 generate extra postings by applying auto posting
+                            rules (\[dq]=\[dq]) to all transactions
+     \-\-forecast[=PERIOD]    Generate extra transactions from periodic rules
+                            (\[dq]\[ti]\[dq]), from after the latest ordinary transaction
+                            until 6 months from now. Or, during the specified
+                            PERIOD (the equals is required). Auto posting rules
+                            will also be applied to these transactions. In
+                            hledger\-ui, also make future\-dated transactions
+                            visible at startup.
+  \-I \-\-ignore\-assertions    don\[aq]t check balance assertions by default
+     \-\-infer\-costs          infer conversion equity postings from costs
+     \-\-infer\-equity         infer costs from conversion equity postings
+     \-\-infer\-market\-prices  infer market prices from costs
+     \-\-pivot=TAGNAME        use a different field or tag as account names
+  \-s \-\-strict               do extra error checks (and override \-I)
+     \-\-verbose\-tags         add tags indicating generated/modified data
+
+General output/reporting flags (supported by some commands):
+  \-b \-\-begin=DATE           include postings/transactions on/after this date
+  \-e \-\-end=DATE             include postings/transactions before this date
+                            (with a report interval, will be adjusted to
+                            following subperiod end)
+  \-D \-\-daily                multiperiod report with 1 day interval
+  \-W \-\-weekly               multiperiod report with 1 week interval
+  \-M \-\-monthly              multiperiod report with 1 month interval
+  \-Q \-\-quarterly            multiperiod report with 1 quarter interval
+  \-Y \-\-yearly               multiperiod report with 1 year interval
+  \-p \-\-period=PERIODEXP     set begin date, end date, and/or report interval,
+                            with more flexibility
+     \-\-today=DATE           override today\[aq]s date (affects relative dates)
+     \-\-date2                match/use secondary dates instead (deprecated)
+  \-U \-\-unmarked             include only unmarked postings/transactions
+  \-P \-\-pending              include only pending postings/transactions
+  \-C \-\-cleared              include only cleared postings/transactions
+                            (\-U/\-P/\-C can be combined)
+  \-R \-\-real                 include only non\-virtual postings
+  \-E \-\-empty                Show zero items, which are normally hidden.
+                            In hledger\-ui & hledger\-web, do the opposite.
+     \-\-depth=DEPTHEXP       if a number (or \-NUM): show only top NUM levels
+                            of accounts. If REGEXP=NUM, only apply limiting to
+                            accounts matching the regular expression.
+  \-B \-\-cost                 show amounts converted to their cost/sale amount
+  \-V \-\-market               Show amounts converted to their value at period
+                            end(s) in their default valuation commodity.
+                            Equivalent to \-\-value=end.
+  \-X \-\-exchange=COMM        Show amounts converted to their value at period
+                            end(s) in the specified commodity.
+                            Equivalent to \-\-value=end,COMM.
+     \-\-value=WHEN[,COMM]    show amounts converted to their value on the
+                            specified date(s) in their default valuation
+                            commodity or a specified commodity. WHEN can be:
+                            \[aq]then\[aq]:     value on transaction dates
+                            \[aq]end\[aq]:      value at period end(s)
+                            \[aq]now\[aq]:      value today
+                            YYYY\-MM\-DD: value on given date
+  \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
+                            Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
+     \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
+                            \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
+                            If YN is specified, the equals is required.
+
+General help flags:
+  \-h \-\-help                 show command line help
+     \-\-tldr                 show command examples with tldr
+     \-\-info                 show the manual with info
+     \-\-man                  show the manual with man
+     \-\-version              show version information
+     \-\-debug=[1\-9]          show this much debug output (default: 1)
+     \-\-pager=YN             use a pager when needed ? y/yes (default) or n/no
+     \-\-color=YNA \-\-colour   use ANSI color ? y/yes, n/no, or auto (default)
+.EE
 .PP
-Any QUERYARGS are interpreted as a hledger search query which filters
-the data.
-.TP
-.B \f[C]--watch\f[R]
-watch for data and date changes and reload automatically
-.TP
-.B \f[C]--theme=default|terminal|greenterm\f[R]
-use this custom display theme
-.TP
-.B \f[C]--register=ACCTREGEX\f[R]
-start in the (first) matched account\[aq]s register screen
-.TP
-.B \f[C]--change\f[R]
-show period balances (changes) at startup instead of historical balances
-.TP
-.B \f[C]-F --flat\f[R]
-show accounts as a list (default)
-.TP
-.B \f[C]-T --tree\f[R]
-show accounts as a tree
-.TP
-.B \f[C]--future\f[R]
-show transactions dated later than today (normally hidden)
+With hledger\-ui, the \f[CR]\-\-debug\f[R] option sends debug output to
+a \f[CR]hledger\-ui.log\f[R] file in the current directory.
 .PP
-hledger input options:
-.TP
-.B \f[C]-f FILE --file=FILE\f[R]
-use a different input file.
-For stdin, use - (default: \f[C]$LEDGER_FILE\f[R] or
-\f[C]$HOME/.hledger.journal\f[R])
-.TP
-.B \f[C]--rules-file=RULESFILE\f[R]
-Conversion rules file to use when reading CSV (default: FILE.rules)
-.TP
-.B \f[C]--separator=CHAR\f[R]
-Field separator to expect when reading CSV (default: \[aq],\[aq])
-.TP
-.B \f[C]--alias=OLD=NEW\f[R]
-rename accounts named OLD to NEW
-.TP
-.B \f[C]--anon\f[R]
-anonymize accounts and payees
-.TP
-.B \f[C]--pivot FIELDNAME\f[R]
-use some other field or tag for the account name
-.TP
-.B \f[C]-I --ignore-assertions\f[R]
-ignore any failing balance assertions
-.PP
-hledger reporting options:
-.TP
-.B \f[C]-b --begin=DATE\f[R]
-include postings/txns on or after this date
-.TP
-.B \f[C]-e --end=DATE\f[R]
-include postings/txns before this date
-.TP
-.B \f[C]-D --daily\f[R]
-multiperiod/multicolumn report by day
-.TP
-.B \f[C]-W --weekly\f[R]
-multiperiod/multicolumn report by week
-.TP
-.B \f[C]-M --monthly\f[R]
-multiperiod/multicolumn report by month
-.TP
-.B \f[C]-Q --quarterly\f[R]
-multiperiod/multicolumn report by quarter
-.TP
-.B \f[C]-Y --yearly\f[R]
-multiperiod/multicolumn report by year
-.TP
-.B \f[C]-p --period=PERIODEXP\f[R]
-set start date, end date, and/or reporting interval all at once using
-period expressions syntax (overrides the flags above)
-.TP
-.B \f[C]--date2\f[R]
-match the secondary date instead (see command help for other effects)
-.TP
-.B \f[C]-U --unmarked\f[R]
-include only unmarked postings/txns (can combine with -P or -C)
-.TP
-.B \f[C]-P --pending\f[R]
-include only pending postings/txns
-.TP
-.B \f[C]-C --cleared\f[R]
-include only cleared postings/txns
-.TP
-.B \f[C]-R --real\f[R]
-include only non-virtual postings
-.TP
-.B \f[C]-NUM --depth=NUM\f[R]
-hide/aggregate accounts or postings more than NUM levels deep
-.TP
-.B \f[C]-E --empty\f[R]
-show items with zero amount, normally hidden (and vice-versa in
-hledger-ui/hledger-web)
-.TP
-.B \f[C]-B --cost\f[R]
-convert amounts to their cost at transaction time (using the transaction
-price, if any)
-.TP
-.B \f[C]-V --value\f[R]
-convert amounts to their market value on the report end date (using the
-most recent applicable market price, if any)
-.TP
-.B \f[C]--auto\f[R]
-apply automated posting rules to modify transactions.
-.TP
-.B \f[C]--forecast\f[R]
-apply periodic transaction rules to generate future transactions, to 6
-months from now or report end date.
-.PP
-When a reporting option appears more than once in the command line, the
-last one takes precedence.
-.PP
-Some reporting options can also be written as query arguments.
-.PP
-hledger help options:
-.TP
-.B \f[C]-h --help\f[R]
-show general usage (or after COMMAND, command usage)
-.TP
-.B \f[C]--version\f[R]
-show version
-.TP
-.B \f[C]--debug[=N]\f[R]
-show debug output (levels 1-9, default: 1)
-.PP
-A \[at]FILE argument will be expanded to the contents of FILE, which
-should contain one command line option/argument per line.
-(To prevent this, insert a \f[C]--\f[R] argument before.)
+If you use the bash shell, you can auto\-complete flags by pressing TAB
+in the command line.
+If this is not working see Install > Shell completions.
+.SH MOUSE
+In most modern terminals, you can navigate through the screens with a
+mouse or touchpad:
+.IP \[bu] 2
+Use mouse wheel or trackpad to scroll up and down
+.IP \[bu] 2
+Click on list items to go deeper
+.IP \[bu] 2
+Click on the left margin (column 0) to go back.
 .SH KEYS
+Keyboard gives more control.
 .PP
-\f[C]?\f[R] shows a help dialog listing all keys.
+\f[CR]?\f[R] shows a help dialog listing all keys.
 (Some of these also appear in the quick help at the bottom of each
-screen.) Press \f[C]?\f[R] again (or \f[C]ESCAPE\f[R], or
-\f[C]LEFT\f[R]) to close it.
+screen.)
+Press \f[CR]?\f[R] again (or \f[CR]ESCAPE\f[R], or \f[CR]LEFT\f[R], or
+\f[CR]q\f[R]) to close it.
 The following keys work on most screens:
 .PP
-The cursor keys navigate: \f[C]right\f[R] (or \f[C]enter\f[R]) goes
-deeper, \f[C]left\f[R] returns to the previous screen,
-\f[C]up\f[R]/\f[C]down\f[R]/\f[C]page up\f[R]/\f[C]page down\f[R]/\f[C]home\f[R]/\f[C]end\f[R]
+The cursor keys navigate: \f[CR]RIGHT\f[R] or \f[CR]ENTER\f[R] goes
+deeper, \f[CR]LEFT\f[R] returns to the previous screen,
+\f[CR]UP\f[R]/\f[CR]DOWN\f[R]/\f[CR]PGUP\f[R]/\f[CR]PGDN\f[R]/\f[CR]HOME\f[R]/\f[CR]END\f[R]
 move up and down through lists.
-Vi-style (\f[C]h\f[R]/\f[C]j\f[R]/\f[C]k\f[R]/\f[C]l\f[R]) and
-Emacs-style
-(\f[C]CTRL-p\f[R]/\f[C]CTRL-n\f[R]/\f[C]CTRL-f\f[R]/\f[C]CTRL-b\f[R])
+Emacs\-style
+(\f[CR]CTRL\-p\f[R]/\f[CR]CTRL\-n\f[R]/\f[CR]CTRL\-f\f[R]/\f[CR]CTRL\-b\f[R])
+and VI\-style (\f[CR]k\f[R],\f[CR]j\f[R],\f[CR]l\f[R],\f[CR]h\f[R])
 movement keys are also supported.
-A tip: movement speed is limited by your keyboard repeat rate, to move
+.PP
+(Tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.
-(If you\[aq]re on a mac, the Karabiner app is one way to do that.)
+On a mac, the Karabiner app is one way to do that.)
 .PP
-With shift pressed, the cursor keys adjust the report period, limiting
-the transactions to be shown (by default, all are shown).
-\f[C]shift-down/up\f[R] steps downward and upward through these standard
-report period durations: year, quarter, month, week, day.
-Then, \f[C]shift-left/right\f[R] moves to the previous/next period.
-\f[C]t\f[R] sets the report period to today.
-With the \f[C]--watch\f[R] option, when viewing a \[dq]current\[dq]
-period (the current day, week, month, quarter, or year), the period will
-move automatically to track the current date.
-To set a non-standard period, you can use \f[C]/\f[R] and a
-\f[C]date:\f[R] query.
-.PP
-\f[C]/\f[R] lets you set a general filter query limiting the data shown,
-using the same query terms as in hledger and hledger-web.
-While editing the query, you can use CTRL-a/e/d/k, BS, cursor keys;
-press \f[C]ENTER\f[R] to set it, or \f[C]ESCAPE\f[R]to cancel.
+\f[CR]/\f[R] lets you set a general filter query limiting the data
+shown, using the same query terms as in hledger and hledger\-web.
+While editing the query, you can use CTRL\-a/e/d/k, BS, cursor keys;
+press \f[CR]ENTER\f[R] to set it, or \f[CR]ESCAPE\f[R]to cancel.
 There are also keys for quickly adjusting some common filters like
 account depth and transaction status (see below).
-\f[C]BACKSPACE\f[R] or \f[C]DELETE\f[R] removes all filters, showing all
-transactions.
+\f[CR]BACKSPACE\f[R] or \f[CR]DELETE\f[R] removes all filters, showing
+all transactions.
 .PP
-As mentioned above, hledger-ui shows auto-generated periodic
-transactions, and hides future transactions (auto-generated or not) by
-default.
-\f[C]F\f[R] toggles showing and hiding these future transactions.
-This is similar to using a query like \f[C]date:-tomorrow\f[R], but more
-convenient.
-(experimental)
+As mentioned above, by default hledger\-ui hides future transactions \-
+both ordinary transactions recorded in the journal, and periodic
+transactions generated by rule.
+\f[CR]F\f[R] toggles forecast mode, in which future/forecasted
+transactions are shown.
 .PP
-\f[C]ESCAPE\f[R] removes all filters and jumps back to the top screen.
-Or, it cancels a minibuffer edit or help dialog in progress.
+Pressing \f[CR]SHIFT\-DOWN\f[R] narrows the report period, and pressing
+\f[CR]SHIFT\-UP\f[R] expands it again.
+When narrowed, the current report period is displayed in the header
+line, pressing \f[CR]SHIFT\-LEFT\f[R] or \f[CR]SHIFT\-RIGHT\f[R] moves
+to the previous or next period, and pressing \f[CR]T\f[R] sets the
+period to \[dq]today\[dq].
+If you are using \f[CR]\-w/\-\-watch\f[R] and viewing a narrowed period
+containing today, the view will follow any changes in system date
+(moving to the period containing the new date).
+(These keys work only with the standard Julian calendar
+year/quarter/month/week/day periods; they are not affected by a custom
+report interval specified at the command line.)
 .PP
-\f[C]CTRL-l\f[R] redraws the screen and centers the selection if
+You can also specify a non\-standard period with \f[CR]/\f[R] and a
+\f[CR]date:\f[R] query; in this case, the period is not movable with the
+arrow keys.
+.PP
+(Tip: arrow keys with Shift do not work out of the box in all terminal
+software.
+Eg in Apple\[aq]s Terminal, the SHIFT\-DOWN and SHIFT\-UP keys must be
+configured as follows: in Terminal\[aq]s preferences, click Profiles,
+select your current profile on the left, click Keyboard on the right,
+click + and add this for SHIFT\-DOWN: \f[CR]\[rs]033[1;2B\f[R], click +
+and add this for SHIFT\-UP: \f[CR]\[rs]033[1;2A\f[R].
+\ In other terminals (Windows Terminal ?)
+you might need to configure SHIFT\-RIGHT and SHIFT\-LEFT to emit
+\f[CR]\[rs]033[1;2C\f[R] and \f[CR]\[rs]033[1;2D\f[R] respectively.)
+.PP
+\f[CR]ESCAPE\f[R] resets the UI state and jumps back to the top screen,
+restoring the app\[aq]s initial state at startup.
+Or, it cancels minibuffer data entry or the help dialog.
+.PP
+\f[CR]CTRL\-l\f[R] redraws the screen and centers the selection if
 possible (selections near the top won\[aq]t be centered, since we
 don\[aq]t scroll above the top).
 .PP
-\f[C]g\f[R] reloads from the data file(s) and updates the current screen
-and any previous screens.
+\f[CR]g\f[R] reloads from the data file(s) and updates the current
+screen and any previous screens.
 (With large files, this could cause a noticeable pause.)
 .PP
-\f[C]I\f[R] toggles balance assertion checking.
+\f[CR]I\f[R] toggles balance assertion checking.
 Disabling balance assertions temporarily can be useful for
 troubleshooting.
 .PP
-\f[C]a\f[R] runs command-line hledger\[aq]s add command, and reloads the
-updated file.
+\f[CR]a\f[R] runs command\-line hledger\[aq]s add command, and reloads
+the updated file.
 This allows some basic data entry.
 .PP
-\f[C]A\f[R] is like \f[C]a\f[R], but runs the hledger-iadd tool, which
-provides a curses-style interface.
-This key will be available if \f[C]hledger-iadd\f[R] is installed in
-$PATH.
+\f[CR]A\f[R] is like \f[CR]a\f[R], but runs the hledger\-iadd tool,
+which provides a terminal interface.
+This key will be available if \f[CR]hledger\-iadd\f[R] is installed in
+$path.
 .PP
-\f[C]E\f[R] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
-(\f[C]emacsclient -a \[dq]\[dq] -nw\f[R]) on the journal file.
+\f[CR]E\f[R] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
+(\f[CR]emacsclient \-a \[dq]\[dq] \-nw\f[R]) on the journal file.
 With some editors (emacs, vi), the cursor will be positioned at the
 current transaction when invoked from the register and transaction
 screens, and at the error location (if possible) when invoked from the
 error screen.
 .PP
-\f[C]q\f[R] quits the application.
+\f[CR]B\f[R] toggles cost mode, showing amounts converted to their
+cost\[aq]s commodity (see hledger manual > Cost reporting.
 .PP
-Additional screen-specific keys are described below.
+\f[CR]V\f[R] toggles value mode, showing amounts converted to their
+market value (see hledger manual > Valuation flag).
+More specifically,
+.IP "1." 3
+By default, the \f[CR]V\f[R] key toggles showing end value
+(\f[CR]\-\-value=end\f[R]) on or off.
+The valuation date will be the report end date if specified, otherwise
+today.
+.IP "2." 3
+If you started hledger\-ui with some other valuation (such as
+\f[CR]\-\-value=then,EUR\f[R]), the \f[CR]V\f[R] key toggles that off or
+on.
+.PP
+Cost/value tips: \- When showing end value, you can change the report
+end date without restarting, by pressing \f[CR]/\f[R] and adding a query
+like \f[CR]date:..YYYY\-MM\-DD\f[R].
+\- Either cost mode, or value mode, can be active, but not both at once.
+Cost mode takes precedence.
+\- There\[aq]s not yet any visual indicator that cost or value mode is
+active, other than the amount values.
+.PP
+\f[CR]q\f[R] quits the application.
+.PP
+Additional screen\-specific keys are described below.
 .SH SCREENS
-.SS Accounts screen
+At startup, hledger\-ui shows a menu screen by default.
+From here you can navigate to other screens using the cursor keys:
+\f[CR]UP\f[R]/\f[CR]DOWN\f[R] to select, \f[CR]RIGHT\f[R] to move to the
+selected screen, \f[CR]LEFT\f[R] to return to the previous screen.
+Or you can use \f[CR]ESC\f[R] to return directly to the top menu screen.
 .PP
-This is normally the first screen displayed.
-It lists accounts and their balances, like hledger\[aq]s balance
-command.
-By default, it shows all accounts and their latest ending balances
-(including the balances of subaccounts).
-if you specify a query on the command line, it shows just the matched
-accounts and the balances from matched transactions.
-.PP
-Account names are shown as a flat list by default.
-Press \f[C]T\f[R] to toggle tree mode.
-In flat mode, account balances are exclusive of subaccounts, except
-where subaccounts are hidden by a depth limit (see below).
-In tree mode, all account balances are inclusive of subaccounts.
-.PP
-To see less detail, press a number key, \f[C]1\f[R] to \f[C]9\f[R], to
-set a depth limit.
-Or use \f[C]-\f[R] to decrease and \f[C]+\f[R]/\f[C]=\f[R] to increase
-the depth limit.
-\f[C]0\f[R] shows even less detail, collapsing all accounts to a single
-total.
-To remove the depth limit, set it higher than the maximum account depth,
-or press \f[C]ESCAPE\f[R].
-.PP
-\f[C]H\f[R] toggles between showing historical balances or period
-balances.
-Historical balances (the default) are ending balances at the end of the
-report period, taking into account all transactions before that date
-(filtered by the filter query if any), including transactions before the
-start of the report period.
-In other words, historical balances are what you would see on a bank
-statement for that account (unless disturbed by a filter query).
-Period balances ignore transactions before the report start date, so
-they show the change in balance during the report period.
-They are more useful eg when viewing a time log.
-.PP
-\f[C]U\f[R] toggles filtering by unmarked status, including or excluding
-unmarked postings in the balances.
-Similarly, \f[C]P\f[R] toggles pending postings, and \f[C]C\f[R] toggles
-cleared postings.
-(By default, balances include all postings; if you activate one or two
-status filters, only those postings are included; and if you activate
-all three, the filter is removed.)
-.PP
-\f[C]R\f[R] toggles real mode, in which virtual postings are ignored.
-.PP
-\f[C]Z\f[R] toggles nonzero mode, in which only accounts with nonzero
-balances are shown (hledger-ui shows zero items by default, unlike
-command-line hledger).
-.PP
-Press \f[C]right\f[R] or \f[C]enter\f[R] to view an account\[aq]s
-transactions register.
+You can also use a command line flag to specific a different startup
+screen (\f[CR]\-\-cs\f[R], \f[CR]\-\-bs\f[R], \f[CR]\-\-is\f[R],
+\f[CR]\-\-all\f[R], or \f[CR]\-\-register=ACCT\f[R]).
+.SS Menu screen
+This is the top\-most screen.
+From here you can navigate to several screens listing accounts of
+various types.
+Note some of these may not show anything until you have configured
+account types.
+.SS Cash accounts screen
+This screen shows \[dq]cash\[dq] (ie, liquid asset) accounts (like
+\f[CR]hledger balancesheet type:c\f[R]).
+It always shows balances (historical ending balances on the date shown
+in the title line).
+.SS Balance sheet accounts screen
+This screen shows asset, liability and equity accounts (like
+\f[CR]hledger balancesheetequity\f[R]).
+It always shows balances.
+.SS Income statement accounts screen
+This screen shows revenue and expense accounts (like
+\f[CR]hledger incomestatement\f[R]).
+It always shows changes (balance changes in the period shown in the
+title line).
+.SS All accounts screen
+This screen shows all accounts in your journal (unless filtered by a
+query; like \f[CR]hledger balance\f[R]).
+It shows balances by default; you can toggle showing changes with the
+\f[CR]H\f[R] key.
 .SS Register screen
-.PP
-This screen shows the transactions affecting a particular account, like
-a check register.
-Each line represents one transaction and shows:
+This screen shows the transactions affecting a particular account.
+Each line represents one transaction, and shows:
 .IP \[bu] 2
 the other account(s) involved, in abbreviated form.
 (If there are both real and virtual postings, it shows only the accounts
@@ -326,45 +337,50 @@ affected by real postings.)
 the overall change to the current account\[aq]s balance; positive for an
 inflow to this account, negative for an outflow.
 .IP \[bu] 2
-the running historical total or period total for the current account,
-after the transaction.
-This can be toggled with \f[C]H\f[R].
-Similar to the accounts screen, the historical total is affected by
-transactions (filtered by the filter query) before the report start
-date, while the period total is not.
-If the historical total is not disturbed by a filter query, it will be
-the running historical balance you would see on a bank register for the
-current account.
+the running total after the transaction.
+With the \f[CR]H\f[R] key you can toggle between
+.RS 2
+.IP \[bu] 2
+the period total, which is from just the transactions displayed
+.IP \[bu] 2
+or the historical total, which includes any undisplayed transactions
+before the start of the report period (and matching the filter query if
+any).
+This will be the running historical balance (what you would see on a
+bank\[aq]s website, eg) if not disturbed by a query.
+.RE
+.PP
+Note, this screen combines each transaction\[aq]s in\-period postings to
+a single line item, dated with the earliest in\-period transaction or
+posting date (like hledger\[aq]s \f[CR]aregister\f[R]).
+So custom posting dates can cause the running balance to be temporarily
+inaccurate.
+(See hledger manual > aregister and posting dates.)
 .PP
 Transactions affecting this account\[aq]s subaccounts will be included
 in the register if the accounts screen is in tree mode, or if it\[aq]s
-in flat mode but this account has subaccounts which are not shown due to
+in list mode but this account has subaccounts which are not shown due to
 a depth limit.
 In other words, the register always shows the transactions contributing
 to the balance shown on the accounts screen.
-.PD 0
-.P
-.PD
-Tree mode/flat mode can be toggled with \f[C]T\f[R] here also.
+Tree mode/list mode can be toggled with \f[CR]t\f[R] here also.
 .PP
-\f[C]U\f[R] toggles filtering by unmarked status, showing or hiding
+\f[CR]U\f[R] toggles filtering by unmarked status, showing or hiding
 unmarked transactions.
-Similarly, \f[C]P\f[R] toggles pending transactions, and \f[C]C\f[R]
+Similarly, \f[CR]P\f[R] toggles pending transactions, and \f[CR]C\f[R]
 toggles cleared transactions.
 (By default, transactions with all statuses are shown; if you activate
 one or two status filters, only those transactions are shown; and if you
 activate all three, the filter is removed.)
 .PP
-\f[C]R\f[R] toggles real mode, in which virtual postings are ignored.
+\f[CR]R\f[R] toggles real mode, in which virtual postings are ignored.
 .PP
-\f[C]Z\f[R] toggles nonzero mode, in which only transactions posting a
-nonzero change are shown (hledger-ui shows zero items by default, unlike
-command-line hledger).
+\f[CR]z\f[R] toggles nonzero mode, in which only transactions posting a
+nonzero change are shown (hledger\-ui shows zero items by default,
+unlike command\-line hledger).
 .PP
-Press \f[C]right\f[R] (or \f[C]enter\f[R]) to view the selected
-transaction in detail.
+Press \f[CR]RIGHT\f[R] to view the selected transaction in detail.
 .SS Transaction screen
-.PP
 This screen shows a single transaction, as a general journal entry,
 similar to hledger\[aq]s print command and journal format
 (hledger_journal(5)).
@@ -374,7 +390,7 @@ description, comments, along with all of its account postings are shown.
 Simple transactions have two postings, but there can be more (or in
 certain cases, fewer).
 .PP
-\f[C]up\f[R] and \f[C]down\f[R] will step through all transactions
+\f[CR]UP\f[R] and \f[CR]DOWN\f[R] will step through all transactions
 listed in the previous account register screen.
 In the title bar, the numbers in parentheses show your position within
 that account register.
@@ -383,67 +399,98 @@ They will vary depending on which account register you came from
 The #N number preceding them is the transaction\[aq]s position within
 the complete unfiltered journal, which is a more stable id (at least
 until the next reload).
-.SS Error screen
 .PP
+On this screen (and the register screen), the \f[CR]E\f[R] key will open
+your text editor with the cursor positioned at the current transaction
+if possible.
+.PP
+This screen has a limitation with showing file updates: it will not show
+them until you exit and re\-enter it.
+So eg to see the effect of using the \f[CR]E\f[R] key, currently you
+must: \- press \f[CR]E\f[R], edit and save the file, then exit the
+editor, returning to hledger\-ui \- press \f[CR]g\f[R] to reload the
+file (or use \f[CR]\-w/\-\-watch\f[R] mode) \- press \f[CR]LEFT\f[R]
+then \f[CR]RIGHT\f[R] to exit and re\-enter the transaction screen.
+.SS Error screen
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.
 Once you have fixed the problem, press g again to reload and resume
 normal operation.
 (Or, you can press escape to cancel the reload attempt.)
+.SH WATCH MODE
+One of hledger\-ui\[aq]s best features is the auto\-reloading
+\f[CR]\-w/\-\-watch\f[R] mode.
+With this flag, it will update the display automatically whenever
+changes are saved to the data files.
+.PP
+This is very useful when reconciling.
+A good workflow is to have your bank\[aq]s online register open in a
+browser window, for reference; the journal file open in an editor
+window; and hledger\-ui in watch mode in a terminal window, eg:
+.IP
+.EX
+$ hledger\-ui \-\-watch \-\-register checking \-C
+.EE
+.PP
+As you mark things cleared in the editor, you can see the effect
+immediately without having to context switch.
+This leaves more mental bandwidth for your accounting.
+Of course you can still interact with hledger\-ui when needed, eg to
+toggle cleared mode, or to explore the history.
+.PP
+There are currently some limitations with \f[CR]\-\-watch\f[R]:
+.PP
+It may not work correctly for you, depending on platform or system
+configuration.
+(Eg #836.)
+.PP
+At least on mac, there can be a slow build\-up of CPU usage over time,
+until the program is restarted (or, suspending and restarting with
+\f[CR]CTRL\-z\f[R] \f[CR]fg\f[R] may be enough).
+.PP
+It will not detect file changes made by certain editors, such as
+Jetbrains IDEs or \f[CR]gedit\f[R], or on certain less common
+filesystems.
+(To work around, press \f[CR]g\f[R] to reload manually, or try
+#1617\[aq]s \f[CR]fs.inotify.max_user_watches\f[R] workaround and let us
+know.)
+.PP
+If you are viewing files mounted from another machine, the system clocks
+on both machines should be roughly in agreement.
 .SH ENVIRONMENT
-.PP
-\f[B]COLUMNS\f[R] The screen width to use.
-Default: the full terminal width.
-.PP
-\f[B]LEDGER_FILE\f[R] The journal file path when not specified with
-\f[C]-f\f[R].
-Default: \f[C]\[ti]/.hledger.journal\f[R] (on windows, perhaps
-\f[C]C:/Users/USER/.hledger.journal\f[R]).
-.SH FILES
-.PP
-Reads data from one or more files in hledger journal, timeclock,
-timedot, or CSV format specified with \f[C]-f\f[R], or
-\f[C]$LEDGER_FILE\f[R], or \f[C]$HOME/.hledger.journal\f[R] (on windows,
-perhaps \f[C]C:/Users/USER/.hledger.journal\f[R]).
+\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
+with \f[CR]\-f/\-\-file\f[R].
+Default: \f[CR]$HOME/.hledger.journal\f[R].
 .SH BUGS
+We welcome bug reports in the hledger issue tracker (shortcut:
+https://bugs.hledger.org), or on the hledger chat or mail list
+(https://hledger.org/support).
 .PP
-The need to precede options with \f[C]--\f[R] when invoked from hledger
-is awkward.
+Some known issues:
 .PP
-\f[C]-f-\f[R] doesn\[aq]t work (hledger-ui can\[aq]t read from stdin).
+\f[CR]\-f\-\f[R] doesn\[aq]t work (hledger\-ui can\[aq]t read from
+stdin).
 .PP
-\f[C]-V\f[R] affects only the accounts screen.
+If you press \f[CR]g\f[R] with large files, there could be a noticeable
+pause.
 .PP
-When you press \f[C]g\f[R], the current and all previous screens are
-regenerated, which may cause a noticeable pause with large files.
-Also there is no visual indication that this is in progress.
+The Transaction screen does not update from file changes until you exit
+and re\-endter it (see SCREENS > Transaction above).
 .PP
-\f[C]--watch\f[R] is not yet fully robust.
-It works well for normal usage, but many file changes in a short time
-(eg saving the file thousands of times with an editor macro) can cause
-problems at least on OSX.
-Symptoms include: unresponsive UI, periodic resetting of the cursor
-position, momentary display of parse errors, high CPU usage eventually
-subsiding, and possibly a small but persistent build-up of CPU usage
-until the program is restarted.
+\f[CR]\-\-watch\f[R] is not yet fully robust on all platforms (see Watch
+mode above).
 
-
-.SH "REPORTING BUGS"
-Report bugs at http://bugs.hledger.org
-(or on the #hledger IRC channel or hledger mail list)
 
 .SH AUTHORS
-Simon Michael <simon@joyful.com> and contributors
+Simon Michael <simon@joyful.com> and contributors.
+.br
+See http://hledger.org/CREDITS.html
 
 .SH COPYRIGHT
+Copyright 2007-2023 Simon Michael and contributors.
 
-Copyright (C) 2007-2016 Simon Michael.
-.br
+.SH LICENSE
 Released under GNU GPL v3 or later.
 
 .SH SEE ALSO
-hledger(1), hledger\-ui(1), hledger\-web(1), hledger\-api(1),
-hledger_csv(5), hledger_journal(5), hledger_timeclock(5), hledger_timedot(5),
-ledger(1)
-
-http://hledger.org
+hledger(1), hledger\-ui(1), hledger\-web(1), ledger(1)

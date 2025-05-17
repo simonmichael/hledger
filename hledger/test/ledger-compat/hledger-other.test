@@ -1,0 +1,116 @@
+# * other syntax supported in hledger journal format
+# keep synced with hledger.m4.md
+
+# * 1. `apply account` set a default parent account
+<
+apply account per
+
+2022-01-01
+    expenses:food      1   ; parsed as per:expenses:food
+    assets:cash            ; parsed as per:assets:cash
+
+end apply account
+$ hledger -f- check
+
+# * 2. `D AMT` set a default commodity and its format
+<
+D $0.0
+$ hledger -f- check
+
+# * 3. star comment line
+<
+*
+$ hledger -f- check
+
+# * 4. `=` An automated transaction
+<
+= expenses:food
+    (budget:food)  *-1
+
+$ hledger -f- check
+
+# * 5. `Y`/`year` set the year for year-less dates
+<
+Y 1111
+1/1
+year 2222
+2/2
+apply year 3333
+3/3
+$ hledger -f- print
+1111-01-01
+
+2222-02-02
+
+3333-03-03
+
+>=
+
+# * 6. ignored directives
+<
+apply fixed CAD $0.90
+apply tag tag1:val1
+assert 1
+bucket Assets:Checking
+A Assets:Checking
+C $1 = USD 1
+C 1 "" = $1
+capture Expenses:Deductible:Medical Medical
+check 1
+define var_name=$100
+end apply fixed
+end apply tag
+end apply year
+end tag
+expr 1
+N USD
+tag Receipt
+  check value =~ /pattern/
+  assert value != "foobar"
+value some_func
+python
+    def option_pyfirst(context):
+        print("In --pyfirst (from %s)" % context)
+
+    def option_pysecond(context, val):
+        print("In --pysecond=%s (from %s)" % (val, context))
+eval foo
+--command-line-flag
+
+$ hledger -f- check
+
+# * 7. amount valuation, ignored
+<
+;; Lastly, you can specify the valuation function/value for any specific
+;; amount using the (( )) commodity annotation.
+2012-03-02 KFC
+    Expenses:Food               $1 ((2 EUR))
+    Assets:Cash
+$ hledger -f- check
+
+# * 8. lot notation 
+#    ,testCase "only lot price" $ assertParse (postingp Nothing) "  a  1A {1B}\n"
+#    ,testCase "fixed lot price" $ assertParse (postingp Nothing) "  a  1A {=1B}\n"
+#    ,testCase "total lot price" $ assertParse (postingp Nothing) "  a  1A {{1B}}\n"
+#    ,testCase "fixed total lot price, and spaces" $ assertParse (postingp Nothing) "  a  1A {{  =  1B }}\n"
+#    ,testCase "lot price before transaction price" $ assertParse (postingp Nothing) "  a  1A {1B} @ 1B\n"
+#    ,testCase "lot price after transaction price" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B}\n"
+#    ,testCase "lot price after balance assertion not allowed" $ assertParseError (postingp Nothing) "  a  1A @ 1B = 1A {1B}\n" "unexpected '{'"
+#    ,testCase "only lot date" $ assertParse (postingp Nothing) "  a  1A [2000-01-01]\n"
+#    ,testCase "transaction price, lot price, lot date" $ assertParse (postingp Nothing) "  a  1A @ 1B {1B} [2000-01-01]\n"
+#    ,testCase "lot date, lot price, transaction price" $ assertParse (postingp Nothing) "  a  1A [2000-01-01] {1B} @ 1B\n"
+#    Assets:Brokerage            -5 AAPL {$50.00} [2012-04-10] (Oh my!) @@ $375.00
+# 2022-01-01 buy 1 share of AAA at $2.50, saving cost basis of {$2}
+#     assets  $-5
+#     assets    1 AAA {$2} @ $2.50
+#     assets    1 AAA {{$2}} @ $2.50
+
+<
+2022-01-01 sell 5 AAPL acquired at $50 for $375, for a $125 gain
+    Assets:Brokerage:Cash       $375.00
+    Assets:Brokerage              -5 AAPL {$50.00} [2012-04-10] (a lot note) (($400)) (@@) $375.00  ; use lots of tricky syntax
+    Income:Capital Gains       $-125.00
+
+$ hledger -f- check
+>2 /transaction is unbalanced/
+>=1

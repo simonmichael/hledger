@@ -1,405 +1,403 @@
-{-# LANGUAGE OverloadedStrings, RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE LambdaCase #-}
 {-|
 
-Common helpers for making multi-section balance report commands 
+Common helpers for making multi-section balance report commands
 like balancesheet, cashflow, and incomestatement.
 
 -}
 
 module Hledger.Cli.CompoundBalanceCommand (
   CompoundBalanceCommandSpec(..)
- ,CBCSubreportSpec(..)
  ,compoundBalanceCommandMode
  ,compoundBalanceCommand
 ) where
 
-import Data.List (foldl')
-import Data.Maybe (fromMaybe,catMaybes)
-import qualified Data.Text as TS
+import Control.Monad (guard)
+import Data.Bifunctor (second)
+import Data.Function ((&))
+import Data.List.NonEmpty (NonEmpty((:|)))
+import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
+import qualified Data.Map as Map
+import qualified Data.List as List
+import qualified Data.List.NonEmpty as NonEmpty
+import qualified Data.Text as T
 import qualified Data.Text.Lazy as TL
-import System.Console.CmdArgs.Explicit as C
-import Hledger.Read.CsvReader (CSV, printCSV)
-import Lucid as L hiding (value_)
-import Text.Tabular as T
+import qualified Data.Text.Lazy.Builder as TB
+import Data.Time.Calendar (Day, addDays)
+import Lucid as L hiding (Html, value_)
+import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
+import qualified System.IO as IO
+import Text.Tabular.AsciiWide as Tabular hiding (render)
 
 import Hledger
 import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutput)
+import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Html (htmlAsLazyText, styledTableHtml, Html)
+import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
+import Hledger.Write.Ods (printFods)
+import qualified Hledger.Write.Spreadsheet as Spr
 
--- | Description of a compound balance report command, 
+-- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.
--- A compound balance report command shows one or more sections/subreports, 
--- each with its own title and subtotals row, in a certain order, 
+-- A compound balance report command shows one or more sections/subreports,
+-- each with its own title and subtotals row, in a certain order,
 -- plus a grand totals row if there's more than one section.
 -- Examples are the balancesheet, cashflow and incomestatement commands.
 --
--- Compound balance reports do sign normalisation: they show all account balances 
+-- Compound balance reports do sign normalisation: they show all account balances
 -- as normally positive, unlike the ordinary BalanceReport and most hledger commands
--- which show income/liability/equity balances as normally negative.  
+-- which show income/liability/equity balances as normally negative.
 -- Each subreport specifies the normal sign of its amounts, and whether
 -- it should be added to or subtracted from the grand total.
 --
 data CompoundBalanceCommandSpec = CompoundBalanceCommandSpec {
-  cbcdoc      :: CommandDoc,          -- ^ the command's name(s) and documentation
-  cbctitle    :: String,              -- ^ overall report title
-  cbcqueries  :: [CBCSubreportSpec],  -- ^ subreport details
-  cbctype     :: BalanceType          -- ^ the "balance" type (change, cumulative, historical) 
-                                      --   this report shows (overrides command line flags)
+  cbcdoc      :: CommandHelpStr,                  -- ^ the command's name(s) and documentation
+  cbctitle    :: String,                          -- ^ overall report title
+  cbcqueries  :: [CBCSubreportSpec DisplayName],  -- ^ subreport details
+  cbcaccum    :: BalanceAccumulation              -- ^ how to accumulate balances (per-period, cumulative, historical)
+                                                  --   (overrides command line flags)
 }
 
--- | Description of one subreport within a compound balance report.
-data CBCSubreportSpec = CBCSubreportSpec {
-   cbcsubreporttitle :: String
-  ,cbcsubreportquery :: Journal -> Query
-  ,cbcsubreportnormalsign :: NormalSign
-  ,cbcsubreportincreasestotal :: Bool
-}
-
--- | A compound balance report has:
---
--- * an overall title
---
--- * the period (date span) of each column
---
--- * one or more named, normal-positive multi balance reports, 
---   with columns corresponding to the above, and a flag indicating
---   whether they increased or decreased the overall totals
---
--- * a list of overall totals for each column, and their grand total and average
---
--- It is used in compound balance report commands like balancesheet, 
--- cashflow and incomestatement.
-type CompoundBalanceReport = 
-  ( String
-  , [DateSpan]
-  , [(String, MultiBalanceReport, Bool)]
-  , ([MixedAmount], MixedAmount, MixedAmount)
-  )
-
-
--- | Generate a cmdargs option-parsing mode from a compound balance command 
+-- | Generate a cmdargs option-parsing mode from a compound balance command
 -- specification.
 compoundBalanceCommandMode :: CompoundBalanceCommandSpec -> Mode RawOpts
 compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
   hledgerCommandMode
-    cbcdoc
-    [flagNone ["change"] (setboolopt "change")
-       ("show balance change in each period" ++ defType PeriodChange)
+   cbcdoc
+   -- keep roughly consistent order with Balance.hs. XXX refactor
+   (
+    -- https://hledger.org/dev/hledger.html#calculation-mode :
+    [flagNone ["sum"] (setboolopt "sum")
+      (calcprefix ++ "show sum of posting amounts (default)")
+    ,flagNone ["valuechange"] (setboolopt "valuechange")
+      (calcprefix ++ "show total change of value of period-end historical balances (caused by deposits, withdrawals, market price fluctuations)")
+    ,flagNone ["gain"] (setboolopt "gain")
+      (calcprefix ++ "show unrealised capital gain/loss (historical balance value minus cost basis)")
+  -- currently not supported by compound balance commands:
+  --  ,flagNone ["budget"] (setboolopt "budget")
+  --     (calcprefix ++ "show sum of posting amounts compared to budget goals defined by periodic transactions")
+   ,flagNone ["count"] (setboolopt "count") (calcprefix ++ "show the count of postings")
+
+    -- https://hledger.org/dev/hledger.html#accumulation-mode :
+   ,flagNone ["change"] (setboolopt "change")
+      (accumprefix ++ "accumulate amounts from column start to column end (in multicolumn reports)" ++ defaultMarker PerPeriod)
     ,flagNone ["cumulative"] (setboolopt "cumulative")
-       ("show balance change accumulated across periods (in multicolumn reports)"
-           ++ defType CumulativeChange
-       )
+      (accumprefix ++ "accumulate amounts from report start (specified by e.g. -b/--begin) to column end" ++ defaultMarker Cumulative)
     ,flagNone ["historical","H"] (setboolopt "historical")
-       ("show historical ending balance in each period (includes postings before report start date)"
-           ++ defType HistoricalBalance
-       )
-    ,flagNone ["flat"] (setboolopt "flat") "show accounts as a list"
-    ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"
-    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["tree"] (setboolopt "tree") "show accounts as a tree; amounts include subaccounts (default in simple reports)"
+      (accumprefix ++ "accumulate amounts from journal start to column end (includes postings before report start date)" ++ defaultMarker Historical)
+    ]
+
+    ++ flattreeflags True ++
+    [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
+    ,flagNone ["declared"] (setboolopt "declared") "include non-parent declared accounts (best used with -E)"
     ,flagNone ["average","A"] (setboolopt "average") "show a row average column (in multicolumn reports)"
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
-    ,flagNone ["no-elide"] (setboolopt "no-elide") "don't squash boring parent accounts (in tree mode)"
+    ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
+    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
-    ,flagNone ["pretty-tables"] (setboolopt "pretty-tables") "use unicode when displaying tables"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name"
-    ,outputFormatFlag
+    ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
+    ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
+      (unlines
+        ["how to show multi-commodity amounts:"
+        ,"'wide[,WIDTH]': all commodities on one line"
+        ,"'tall'        : each commodity on a new line"
+        ,"'bare'        : bare numbers, symbols in a column"
+        ])
+    ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate hyperlinks to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
+
+    ,outputFormatFlag ["txt","html","csv","tsv","json"]
     ,outputFileFlag
-    ]
-    [generalflagsgroup1]
-    hiddenflags
+
+    ])
+    cligeneralflagsgroups1
+    (hiddenflags ++
+      [ flagNone ["commodity-column"] (setboolopt "commodity-column")
+        "show commodity symbols in a separate column, amounts as bare numbers, one row per commodity"
+      ])
     ([], Just $ argsFlag "[QUERY]")
  where
-   defType :: BalanceType -> String
-   defType bt | bt == cbctype = " (default)"
-              | otherwise    = ""
+  calcprefix = "calculation mode: "
+  accumprefix = "accumulation mode: "
+  defaultMarker :: BalanceAccumulation -> String
+  defaultMarker bacc | bacc == cbcaccum = " (default)"
+                     | otherwise        = ""
 
 -- | Generate a runnable command from a compound balance command specification.
 compoundBalanceCommand :: CompoundBalanceCommandSpec -> (CliOpts -> Journal -> IO ())
-compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportopts_=ropts@ReportOpts{..}, rawopts_=rawopts} j = do
-    d <- getCurrentDay
-    let
-      -- use the default balance type for this report, unless the user overrides  
-      mBalanceTypeOverride =
-        case reverse $ filter (`elem` ["change","cumulative","historical"]) $ map fst rawopts of
-          "historical":_ -> Just HistoricalBalance
-          "cumulative":_ -> Just CumulativeChange
-          "change":_     -> Just PeriodChange
-          _              -> Nothing
-      balancetype = fromMaybe cbctype mBalanceTypeOverride
-      title =
-        cbctitle ++ " " ++ showDateSpan requestedspan
-        ++ maybe "" (' ':) mtitleclarification
-        ++ valuation
-        where
-          requestedspan = queryDateSpan date2_ userq `spanDefaultsFrom` journalDateSpan date2_ j
-          -- when user overrides, add an indication to the report title
-          mtitleclarification = flip fmap mBalanceTypeOverride $ \t ->
-            case t of
-              PeriodChange      -> "(Balance Changes)"
-              CumulativeChange  -> "(Cumulative Ending Balances)"
-              HistoricalBalance -> "(Historical Ending Balances)"
-          multiperiod = interval_ /= NoInterval
-          valuation = case value_ of
-            Just (AtCost _mc)   -> ", valued at cost"
-            Just (AtEnd _mc)    -> ", valued at period ends"
-            Just (AtNow _mc)    -> ", current value"
-            Just (AtDefault _mc) | multiperiod   -> ", valued at period ends"
-            Just (AtDefault _mc)    -> ", current value"
-            Just (AtDate d _mc) -> ", valued at "++showDate d
-            Nothing             -> ""
+compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=rspec, rawopts_=rawopts} j = do
+    writeOutputLazyText opts $ render $ styleAmounts styles cbr
+  where
+    styles = journalCommodityStylesWith HardRounding j
+    ropts@ReportOpts{..} = _rsReportOpts rspec
+    -- use the default balance type for this report, unless the user overrides
+    mbalanceAccumulationOverride = balanceAccumulationOverride rawopts
+    balanceaccumulation = fromMaybe cbcaccum mbalanceAccumulationOverride
+    -- Set balance type in the report options.
+    ropts' = ropts{balanceaccum_=balanceaccumulation}
 
-      -- Set balance type in the report options.
-      -- Also, use tree mode (by default, at least?) if --cumulative/--historical 
-      -- are used in single column mode, since in that situation we will be using 
-      -- balanceReportFromMultiBalanceReport which does not support eliding boring parents,
-      -- and tree mode hides this.. or something.. XXX 
-      ropts'
-        | not (flat_ ropts) && 
-          interval_==NoInterval && 
-          balancetype `elem` [CumulativeChange, HistoricalBalance]
-            = ropts{balancetype_=balancetype, accountlistmode_=ALTree}
-        | otherwise
-            = ropts{balancetype_=balancetype}
-      userq = queryFromOpts d ropts'
-      format = outputFormatFromOpts opts
+    title =
+         maybe "" (<>" ") mintervalstr
+      <> T.pack cbctitle
+      <> " "
+      <> titledatestr
+      <> maybe "" (" "<>) mtitleclarification
+      <> valuationdesc
+      where
 
-      -- make a CompoundBalanceReport
-      subreports = 
-        map (\CBCSubreportSpec{..} -> 
-                (cbcsubreporttitle
-                ,mbrNormaliseSign cbcsubreportnormalsign $ -- <- convert normal-negative to normal-positive
-                  compoundBalanceSubreport ropts' userq j cbcsubreportquery cbcsubreportnormalsign
-                ,cbcsubreportincreasestotal
-                ))
-            cbcqueries
-      subtotalrows = 
-        [(coltotals, increasesoveralltotal) 
-        | (_, MultiBalanceReport (_,_,(coltotals,_,_)), increasesoveralltotal) <- subreports
-        ]
-      -- Sum the subreport totals by column. Handle these cases:
-      -- - no subreports
-      -- - empty subreports, having no subtotals (#588)
-      -- - subreports with a shorter subtotals row than the others  
-      overalltotals = case subtotalrows of
-        [] -> ([], nullmixedamt, nullmixedamt)
-        rs ->
-          let
-            numcols = maximum $ map (length.fst) rs  -- partial maximum is ok, rs is non-null
-            paddedsignedsubtotalrows = 
-              [map (if increasesoveralltotal then id else negate) $  -- maybe flip the signs
-               take numcols $ as ++ repeat nullmixedamt              -- pad short rows with zeros 
-              | (as,increasesoveralltotal) <- rs
-              ]
-            coltotals = foldl' (zipWith (+)) zeros paddedsignedsubtotalrows  -- sum the columns
-              where zeros = replicate numcols nullmixedamt
-            grandtotal = sum coltotals
-            grandavg | null coltotals = nullmixedamt
-                     | otherwise      = fromIntegral (length coltotals) `divideMixedAmount` grandtotal 
-          in 
-            (coltotals, grandtotal, grandavg)
-      colspans =
-        case subreports of
-          (_, MultiBalanceReport (ds,_,_), _):_ -> ds
-          [] -> []
-      cbr =
-        (title
-        ,colspans
-        ,subreports
-        ,overalltotals
-        )
+        -- XXX #1078 the title of ending balance reports
+        -- (Historical) should mention the end date(s) shown as
+        -- column heading(s) (not the date span of the transactions).
+        -- Also the dates should not be simplified (it should show
+        -- "2008/01/01-2008/12/31", not "2008").
+        titledatestr = case balanceaccumulation of
+            Historical -> showEndDates enddates
+            _          -> showDateSpan requestedspan
+          where
+            enddates = map (addDays (-1)) . mapMaybe spanEnd $ cbrDates cbr  -- these spans will always have a definite end date
+            requestedspan = fst $ reportSpan j rspec
+
+        mintervalstr = showInterval interval_
+
+        -- when user overrides, add an indication to the report title
+        -- Do we need to deal with overridden BalanceCalculation?
+        mtitleclarification = case (balancecalc_, balanceaccumulation, mbalanceAccumulationOverride) of
+            (CalcValueChange, PerPeriod,  _              ) -> Just "(Period-End Value Changes)"
+            (CalcValueChange, Cumulative, _              ) -> Just "(Cumulative Period-End Value Changes)"
+            (CalcGain,        PerPeriod,  _              ) -> Just "(Incremental Gain)"
+            (CalcGain,        Cumulative, _              ) -> Just "(Cumulative Gain)"
+            (CalcGain,        Historical, _              ) -> Just "(Historical Gain)"
+            (_,               _,          Just PerPeriod ) -> Just "(Balance Changes)"
+            (_,               _,          Just Cumulative) -> Just "(Cumulative Ending Balances)"
+            (_,               _,          Just Historical) -> Just "(Historical Ending Balances)"
+            _                                              -> Nothing
+
+        valuationdesc =
+          (case conversionop_ of
+               Just ToCost -> ", converted to cost"
+               _           -> "")
+          <> (case value_ of
+               Just (AtThen _mc)       -> ", valued at posting date"
+               Just (AtEnd _mc) | changingValuation -> ""
+               Just (AtEnd _mc)        -> ", valued at period ends"
+               Just (AtNow _mc)        -> ", current value"
+               Just (AtDate today _mc) -> ", valued at " <> showDate today
+               Nothing                 -> "")
+
+        changingValuation = case (balancecalc_, balanceaccum_) of
+            (CalcValueChange, PerPeriod)  -> True
+            (CalcValueChange, Cumulative) -> True
+            _                             -> False
+
+    -- make a CompoundBalanceReport.
+    cbr' = compoundBalanceReport rspec{_rsReportOpts=ropts'} j cbcqueries
+    cbr  = cbr'{cbrTitle=title}
 
     -- render appropriately
-    writeOutput opts $
-      case format of
-        "csv"  -> printCSV (compoundBalanceReportAsCsv ropts cbr) ++ "\n"
-        "html" -> (++ "\n") $ TL.unpack $ L.renderText $ compoundBalanceReportAsHtml ropts cbr
-        _      -> compoundBalanceReportAsText ropts' cbr
+    render = case outputFormatFromOpts opts of
+      "txt"  -> compoundBalanceReportAsText ropts'
+      "csv"  -> printCSV . compoundBalanceReportAsCsv ropts'
+      "tsv"  -> printTSV . compoundBalanceReportAsCsv ropts'
+      "html" -> htmlAsLazyText . compoundBalanceReportAsHtml ropts'
+      "fods" -> printFods IO.localeEncoding .
+                fmap (second NonEmpty.toList) . uncurry Map.singleton .
+                compoundBalanceReportAsSpreadsheet
+                    oneLineNoCostFmt "Account" (Just "") ropts'
+      "json" -> toJsonText
+      x      -> error' $ unsupportedOutputFormatError x
 
--- | Run one subreport for a compound balance command in multi-column mode.
--- This returns a MultiBalanceReport.
-compoundBalanceSubreport :: ReportOpts -> Query -> Journal -> (Journal -> Query) -> NormalSign -> MultiBalanceReport
-compoundBalanceSubreport ropts@ReportOpts{..} userq j subreportqfn subreportnormalsign = r'
-  where
-    -- force --empty to ensure same columns in all sections
-    ropts' = ropts { empty_=True, normalbalance_=Just subreportnormalsign }
-    -- run the report
-    q = And [subreportqfn j, userq]
-    r@(MultiBalanceReport (dates, rows, totals)) = multiBalanceReport ropts' q j
-    -- if user didn't specify --empty, now remove the all-zero rows, unless they have non-zero subaccounts
-    -- in this report
-    r' | empty_    = r
-       | otherwise = MultiBalanceReport (dates, rows', totals) 
-          where
-            nonzeroaccounts =
-              dbg1 "nonzeroaccounts" $
-              catMaybes $ map (\(act,_,_,amts,_,_) ->
-                            if not (all isZeroMixedAmount amts) then Just act else Nothing) rows 
-            rows' = filter (not . emptyRow) rows
-              where
-                emptyRow (act,_,_,amts,_,_) =
-                  all isZeroMixedAmount amts && all (not . (act `isAccountNamePrefixOf`)) nonzeroaccounts
+-- | Show a simplified description of an Interval.
+showInterval :: Interval -> Maybe T.Text
+showInterval = \case
+  NoInterval -> Nothing
+  Days 1     -> Just "Daily"
+  Weeks 1    -> Just "Weekly"
+  Weeks 2    -> Just "Biweekly"
+  Months 1   -> Just "Monthly"
+  Months 2   -> Just "Bimonthly"
+  Months 3   -> Just "Quarterly"
+  Months 6   -> Just "Half-yearly"
+  Months 12  -> Just "Yearly"
+  Quarters 1 -> Just "Quarterly"
+  Quarters 2 -> Just "Half-yearly"
+  Years 1    -> Just "Yearly"
+  Years 2    -> Just "Biannual"
+  _          -> Just "Periodic"
+
+-- | Summarise one or more (inclusive) end dates, in a way that's
+-- visually different from showDateSpan, suggesting discrete end dates
+-- rather than a continuous span.
+showEndDates :: [Day] -> T.Text
+showEndDates es = case es of
+  -- cf showPeriod
+  (e:_:_) -> showDate e <> ".." <> showDate (last es)
+  [e]     -> showDate e
+  []      -> ""
 
 -- | Render a compound balance report as plain text suitable for console output.
 {- Eg:
 Balance Sheet
 
-             ||  2017/12/31    Total  Average 
+             ||  2017/12/31    Total  Average
 =============++===============================
- Assets      ||                               
+ Assets      ||
 -------------++-------------------------------
- assets:b    ||           1        1        1 
+ assets:b    ||           1        1        1
 -------------++-------------------------------
-             ||           1        1        1 
+             ||           1        1        1
 =============++===============================
- Liabilities ||                               
+ Liabilities ||
 -------------++-------------------------------
 -------------++-------------------------------
-             ||                               
+             ||
 =============++===============================
- Total       ||           1        1        1 
+ Total       ||           1        1        1
 
 -}
-compoundBalanceReportAsText :: ReportOpts -> CompoundBalanceReport -> String
-compoundBalanceReportAsText ropts (title, _colspans, subreports, (coltotals, grandtotal, grandavg)) =
-  title ++ "\n\n" ++ 
-  balanceReportTableAsText ropts bigtable'
+compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
+compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subreports totalsrow) =
+  TB.toLazyText $
+    TB.fromText title <> TB.fromText "\n\n" <>
+    multiBalanceReportTableAsText ropts bigtablewithtotalsrow
   where
-    singlesubreport = length subreports == 1
-    bigtable = 
-      case map (subreportAsTable ropts singlesubreport) subreports of
-        []   -> T.empty
-        r:rs -> foldl' concatTables r rs
-    bigtable'
-      | no_total_ ropts || singlesubreport = 
-          bigtable
-      | otherwise =
-          bigtable
-          +====+
-          row "Net:" (
-            coltotals
-            ++ (if row_total_ ropts then [grandtotal] else [])
-            ++ (if average_ ropts   then [grandavg]   else [])
-            )
+    bigtable =
+      case map (subreportAsTable ropts) subreports of
+        []   -> Tabular.empty
+        r:rs -> List.foldl' (concatTables tableInterSubreportBorder) r rs
+    bigtablewithtotalsrow =
+      if no_total_ ropts || length subreports == 1
+      then bigtable
+      else concatTables tableGrandTotalsTopBorder bigtable totalstable
+        where
+          -- Append the report's grand column totals at the bottom of the table.
+          -- Note "row" is confusingly overloaded here; *Report rows, Table rows,
+          -- and visually apparent table rows are all distinct.
+          -- With multiple currencies, in some layout modes, the column totals (a single report row)
+          -- occupy multiple lines, which currently we put into multiple table rows,
+          -- for convenience I guess, borderless so they look like a single visual row.
+          --
+          -- multiBalanceRowAsText gets a matrix of each line of each column total rendered as text
+          -- (actually as WideBuilders), in line-major-order:
+          --  [
+          --   [COL1LINE1, COL2LINE1]
+          --   [COL1LINE2, COL2LINE2]
+          --  ]
+          coltotalslines = multiBalanceRowAsText ropts totalsrow
+          totalstable = Table
+            (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
+            (Header [])     -- column headers, concatTables will discard these
+            coltotalslines  -- cell values         
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
-    subreportAsTable ropts singlesubreport (title, r, _) = t
+    subreportAsTable ropts1 (title1, r, _) = tablewithtitle
       where
-        -- unless there's only one section, always show the subtotal row
-        ropts' | singlesubreport = ropts
-               | otherwise       = ropts{ no_total_=False }
-        -- convert to table
-        Table lefthdrs tophdrs cells = balanceReportAsTable ropts' r
-        -- tweak the layout
-        t = Table (T.Group SingleLine [Header title, lefthdrs]) tophdrs ([]:cells)
+        tablewithtitle = Table
+          (Group tableSubreportTitleBottomBorder [Header title1, lefthdrs])  -- row headers
+          tophdrs     -- column headers
+          ([]:cells)  -- cell values
+          where
+            Table lefthdrs tophdrs cells = multiBalanceReportAsTable ropts1 r
 
--- | Add the second table below the first, discarding its column headings.
-concatTables (Table hLeft hTop dat) (Table hLeft' _ dat') =
-    Table (T.Group DoubleLine [hLeft, hLeft']) hTop (dat ++ dat')
+    tableSubreportTitleBottomBorder = SingleLine
+    tableInterSubreportBorder       = DoubleLine
+    tableGrandTotalsTopBorder       = DoubleLine
 
 -- | Render a compound balance report as CSV.
 -- Subreports' CSV is concatenated, with the headings rows replaced by a
 -- subreport title row, and an overall title row, one headings row, and an
 -- optional overall totals row is added.
-compoundBalanceReportAsCsv :: ReportOpts -> CompoundBalanceReport -> CSV
-compoundBalanceReportAsCsv ropts (title, colspans, subreports, (coltotals, grandtotal, grandavg)) =
-  addtotals $
-  padRow title :
-  ("Account" :
-   map showDateSpanMonthAbbrev colspans
-   ++ (if row_total_ ropts then ["Total"] else [])
-   ++ (if average_ ropts then ["Average"] else [])
-   ) :
-  concatMap (subreportAsCsv ropts singlesubreport) subreports
-  where
-    singlesubreport = length subreports == 1
-    -- | Add a subreport title row and drop the heading row.
-    subreportAsCsv ropts singlesubreport (subreporttitle, multibalreport, _) =
-      padRow subreporttitle :
-      tail (multiBalanceReportAsCsv ropts' multibalreport)
-      where
-        -- unless there's only one section, always show the subtotal row
-        ropts' | singlesubreport = ropts
-               | otherwise       = ropts{ no_total_=False }
-    padRow s = take numcols $ s : repeat ""
-      where
-        numcols
-          | null subreports = 1
-          | otherwise =
-            (3 +) $ -- account name & indent columns
-            (if row_total_ ropts then (1+) else id) $
-            (if average_ ropts then (1+) else id) $
-            maximum $ -- depends on non-null subreports
-            map (\(MultiBalanceReport (amtcolheadings, _, _)) -> length amtcolheadings) $ 
-            map second3 subreports
-    addtotals
-      | no_total_ ropts || length subreports == 1 = id
-      | otherwise = (++ 
-          ["Net:" :
-           map showMixedAmountOneLineWithoutPrice (
-             coltotals
-             ++ (if row_total_ ropts then [grandtotal] else [])
-             ++ (if average_ ropts   then [grandavg]   else [])
-             )
-          ])
+compoundBalanceReportAsCsv :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> CSV
+compoundBalanceReportAsCsv ropts cbr =
+    let spreadsheet =
+            snd $ snd $
+            compoundBalanceReportAsSpreadsheet
+                machineFmt "Account" Nothing ropts cbr
+    in  Spr.rawTableContent $
+        Spr.horizontalSpan (NonEmpty.head spreadsheet)
+           (Spr.headerCell (cbrTitle cbr)) :
+        NonEmpty.toList spreadsheet
 
 -- | Render a compound balance report as HTML.
-compoundBalanceReportAsHtml :: ReportOpts -> CompoundBalanceReport -> Html ()
+compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html
 compoundBalanceReportAsHtml ropts cbr =
+  let (title, (_fixed, cells)) =
+          compoundBalanceReportAsSpreadsheet
+              oneLineNoCostFmt "" (Just nbsp) ropts cbr
+      colspanattr = colspan_ $ T.pack $ show $ length $ NonEmpty.head cells
+  in do
+    link_ [rel_ "stylesheet", href_ "hledger.css"]
+    style_ $ stylesheet $
+      tableStyle ++ [
+      ("td:nth-child(1)", "white-space:nowrap"),
+      ("tr:nth-child(odd) td", "background-color:#eee")
+      ]
+    table_ $ do
+      tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
+      styledTableHtml $ NonEmpty.toList $ fmap (map (fmap L.toHtml)) cells
+
+-- | Render a compound balance report as Spreadsheet.
+compoundBalanceReportAsSpreadsheet ::
+  AmountFormat -> T.Text -> Maybe T.Text ->
+  ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount ->
+  (T.Text, ((Int, Int), NonEmpty [Spr.Cell Spr.NumLines T.Text]))
+compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
   let
-    (title, colspans, subreports, (coltotals, grandtotal, grandavg)) = cbr
-    colspanattr = colspan_ $ TS.pack $ show $ 
-      1 + length colspans + (if row_total_ ropts then 1 else 0) + (if average_ ropts then 1 else 0)
-    leftattr = style_ "text-align:left"
-    blankrow = tr_ $ td_ [colspanattr] $ toHtmlRaw ("&nbsp;"::String)
+    CompoundPeriodicReport title colspans subreports totalrow = cbr
+    leadingHeaders =
+      Spr.headerCell accountLabel :
+      case layout_ ropts of
+          LayoutTidy -> map Spr.headerCell tidyColumnLabels
+          LayoutBare -> [Spr.headerCell "Commodity"]
+          _ -> []
+    dataHeaders =
+      (guard (layout_ ropts /= LayoutTidy) >>) $
+      map (Spr.headerCell . reportPeriodName (balanceaccum_ ropts) colspans)
+        colspans ++
+      (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
+      (guard (average_   ropts) >> [Spr.headerCell "Average"])
+    headerrow = leadingHeaders ++ dataHeaders
 
-    titlerows =
-         [tr_ $ th_ [colspanattr, leftattr] $ h2_ $ toHtml title]
-      ++ [thRow $
-          "" :
-          map showDateSpanMonthAbbrev colspans
-          ++ (if row_total_ ropts then ["Total"] else [])
-          ++ (if average_ ropts then ["Average"] else [])
-          ]
+    blankrow =
+      fmap (Spr.horizontalSpan headerrow . Spr.defaultCell) maybeBlank
 
-    thRow :: [String] -> Html ()
-    thRow = tr_ . mconcat . map (th_ . toHtml)
-    
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
-    subreportrows :: (String, MultiBalanceReport, Bool) -> [Html ()]
+    subreportrows ::
+      (T.Text, MultiBalanceReport, Bool) -> [[Spr.Cell Spr.NumLines T.Text]]
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
-        (_,bodyrows,mtotalsrow) = multiBalanceReportHtmlRows ropts mbr
+        (_, bodyrows, mtotalsrows) =
+          multiBalanceReportAsSpreadsheetParts fmt ropts mbr
+
       in
-           [tr_ $ th_ [colspanattr, leftattr] $ toHtml subreporttitle]
-        ++ bodyrows
-        ++ maybe [] (:[]) mtotalsrow
-        ++ [blankrow]
+        Spr.horizontalSpan headerrow
+            ((Spr.defaultCell subreporttitle){
+                Spr.cellStyle = Spr.Body Spr.Total,
+                Spr.cellClass = Spr.Class "account"
+            }) :
+        bodyrows ++
+        mtotalsrows ++
+        maybeToList blankrow ++
+        []
 
-    totalrows | no_total_ ropts || length subreports == 1 = []
-              | otherwise =
-                  let defstyle = style_ "text-align:right"
-                  in
-                    [tr_ $ mconcat $
-                         th_ [class_ "", style_ "text-align:left"] "Net:"
-                       : [th_ [class_ "amount coltotal", defstyle] (toHtml $ showMixedAmountOneLineWithoutPrice a) | a <- coltotals]
-                      ++ (if row_total_ ropts then [th_ [class_ "amount coltotal", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandtotal] else [])
-                      ++ (if average_ ropts   then [th_ [class_ "amount colaverage", defstyle] $ toHtml $ showMixedAmountOneLineWithoutPrice $ grandavg] else [])
-                    ]
+    totalrows =
+      if no_total_ ropts || length subreports == 1 then []
+      else
+        multiBalanceRowAsCellBuilders fmt ropts colspans
+            Total simpleDateSpanCell totalrow
+                             -- make a table of rendered lines of the report totals row
+        & map (map (fmap wbToText))
+        & Spr.addRowSpanHeader
+            ((Spr.defaultCell "Net:") {Spr.cellClass = Spr.Class "account"})
+                             -- insert a headings column, with Net: on the first line only
+        & addTotalBorders    -- marking the first row for special styling
 
-  in do
-    style_ (TS.unlines [""
-      ,"td { padding:0 0.5em; }"
-      ,"td:nth-child(1) { white-space:nowrap; }"
-      ,"tr:nth-child(even) td { background-color:#eee; }"
-      ])
-    link_ [rel_ "stylesheet", href_ "hledger.css"]
-    table_ $ mconcat $
-         titlerows
-      ++ [blankrow]
-      ++ concatMap subreportrows subreports
-      ++ totalrows
-
+  in  (title,
+        ((1,1),
+            headerrow :| concatMap subreportrows subreports ++ totalrows))

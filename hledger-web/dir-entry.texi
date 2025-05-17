@@ -1,0 +1,4 @@
+@dircategory User Applications
+@direntry
+* hledger-web: (hledger-web).  Web UI/API for the hledger accounting tool.
+@end direntry

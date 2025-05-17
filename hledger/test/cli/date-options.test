@@ -1,0 +1,87 @@
+# * date options and arguments
+
+# Input for the following tests:
+
+2019-01-01
+    (a)   2
+
+2019-02-01
+    (a)   1
+
+# ** 0. Test the date output format.
+# If this one fails, we got a wrong regex and the inverted regex tests below
+# are also wrong.
+$ hledger -f- register
+> /2019-01-01/
+
+# ** 0. Show only February
+$ hledger -f- register -p 2019-02
+> !/2019-01-01/
+
+# ** 0. The last -b overrides the first -b
+# -> show only February
+$ hledger -f- register -b 2019 -b 2019-02
+> !/2019-01-01/
+
+# ** 0. The last -e overrides the first -e
+# Note that -e means: include posting/txns BEFORE this date.
+# -> show only January
+$ hledger -f- register -e 2020 -e 2019-02-01
+> !/2019-02-01/
+
+# ** 0. -p's begin overrides -b because it comes last
+# -> show only February
+$ hledger -f- register -b 2019-01-01 -p 2019-02
+> !/2019-01-01/
+
+# ** 0. -e overrides -p's end because it comes last
+# -> show only first part of January
+$ hledger -f- register -p 2019 -e 2019-01-20
+> !/2019-02-01/
+
+# ** 0. Date options and queries are AND'ed and produce the intersection independent of their order
+$ hledger -f- register date:2019-02 -p 2019
+> !/2019-01-01/
+$ hledger -f- register -p 2019 date:2019-02
+> !/2019-01-01/
+
+# ** 0. Date queries are AND'ed and produce the intersection independent of their order
+$ hledger -f- register date:2019 date:2019-02
+> !/2019-01-01/
+$ hledger -f- register date:2019-02 date:2019
+> !/2019-01-01/
+$ hledger -f- register date:2019-02 date:2019-01-01-
+> !/2019-01-01/
+
+## ** 0. Date options override date queries
+#$ hledger -f- register date:2019-02 -p 2019
+#> /2019-01-01/
+
+# ** 0. Smart dates https://github.com/simonmichael/hledger/issues/1079
+$ hledger -f- activity -b 2019-02-01 -e 'next year'
+> /2019-02-01 \*/
+
+# ** 0. Date ranges
+# Dotted range syntax, full dates
+$ hledger -f- reg date:2019-01-01..2019-02-01
+2019-01-01                      (a)                              2             2
+
+# ** 0. Dotted range syntax, partial dates
+$ hledger -f- reg date:2019-01..2019-02
+2019-01-01                      (a)                              2             2
+
+# ** 0. Dashed range syntax, full dates
+$ hledger -f- reg date:2019-01-01-2019-02-01
+2019-01-01                      (a)                              2             2
+
+# ** 0. Dashed range syntax, partial dates
+$ hledger -f- reg date:2019-01-2019-02
+2019-01-01                      (a)                              2             2
+
+# ** 0. A "every Nth day (of month)" periodic rule will generate occurrences only after the start date. (#2218)
+<
+~ every 31st day from 2024-07 to 2024-09
+  (a)  1
+$ hledger -f- reg --forecast=2024
+2024-07-31                      (a)                              1             1
+2024-08-31                      (a)                              1             2

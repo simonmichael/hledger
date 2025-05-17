@@ -1,0 +1,46 @@
+# This was once used for certain raspberry pi hardware, may need update.
+# TRIGGER: Runs on any push to binaries-linux-arm32v7 branch.
+# ACTION: Builds and saves linux arm32v7 static binaries, using docker-arm32v7/Dockerfile and cabal and the ghc specified there.
+# XXX Slow, may time out.
+
+name: binaries-linux-arm32v7
+on:
+  push:
+    branches: [ binaries-linux-arm32v7 ]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          file: ./docker-arm32v7/Dockerfile
+          platforms: linux/arm
+          tags: hledger-linux-arm32v7:latest
+          load: true
+
+      - name: Gather binaries from docker
+        run: |
+          container_id=$(docker create hledger-linux-arm32v7:latest)
+          docker cp $container_id:/root/hledger tmp
+          docker rm -v $container_id
+          cd tmp
+          tar cvf hledger-linux-arm32v7.tar hledger hledger-ui hledger-web
+        # could add extras like hledger/shell-completion/hledger-completion.bash here
+
+      # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+      # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
+      # Unfortunately it means users must both unzip and untar.
+      - name: Upload binaries artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: hledger-linux-arm32v7
+          path: tmp/hledger-linux-arm32v7.tar

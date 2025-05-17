@@ -1,0 +1,117 @@
+# * JSON output
+
+<
+2019-1-1
+  (a)  1.0 AAA
+
+# ** 1. Test the json output for register reports
+$ hledger -f- reg --output-format=json
+[
+  [
+    "2019-01-01",
+    null,
+    "",
+    {
+      "paccount": "a",
+      "pamount": [
+        {
+          "acommodity": "AAA",
+          "acost": null,
+          "aquantity": {
+            "decimalMantissa": 10,
+            "decimalPlaces": 1,
+            "floatingPoint": 1
+          },
+          "astyle": {
+            "ascommodityside": "R",
+            "ascommodityspaced": true,
+            "asdecimalmark": ".",
+            "asdigitgroups": null,
+            "asprecision": 1,
+            "asrounding": "HardRounding"
+          }
+        }
+      ],
+      "pbalanceassertion": null,
+      "pcomment": "",
+      "pdate": null,
+      "pdate2": null,
+      "poriginal": null,
+      "pstatus": "Unmarked",
+      "ptags": [],
+      "ptransaction_": "1",
+      "ptype": "VirtualPosting"
+    },
+    [
+      {
+        "acommodity": "AAA",
+        "acost": null,
+        "aquantity": {
+          "decimalMantissa": 10,
+          "decimalPlaces": 1,
+          "floatingPoint": 1
+        },
+        "astyle": {
+          "ascommodityside": "R",
+          "ascommodityspaced": true,
+          "asdecimalmark": ".",
+          "asdigitgroups": null,
+          "asprecision": 1,
+          "asrounding": "HardRounding"
+        }
+      }
+    ]
+  ]
+]
+
+# ** 2. Test the json output for balance reports
+$ hledger -f- bal --output-format=json
+[
+  [
+    [
+      "a",
+      "a",
+      0,
+      [
+        {
+          "acommodity": "AAA",
+          "acost": null,
+          "aquantity": {
+            "decimalMantissa": 10,
+            "decimalPlaces": 1,
+            "floatingPoint": 1
+          },
+          "astyle": {
+            "ascommodityside": "R",
+            "ascommodityspaced": true,
+            "asdecimalmark": ".",
+            "asdigitgroups": null,
+            "asprecision": 1,
+            "asrounding": "HardRounding"
+          }
+        }
+      ]
+    ]
+  ],
+  [
+    {
+      "acommodity": "AAA",
+      "acost": null,
+      "aquantity": {
+        "decimalMantissa": 10,
+        "decimalPlaces": 1,
+        "floatingPoint": 1
+      },
+      "astyle": {
+        "ascommodityside": "R",
+        "ascommodityspaced": true,
+        "asdecimalmark": ".",
+        "asdigitgroups": null,
+        "asprecision": 1,
+        "asrounding": "HardRounding"
+      }
+    }
+  ]
+]
+
+>=0

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# CAUTION: DO NOT MAKE CHANGES TO THIS FILE. The vagrant-spk upgradevm process will overwrite it.
+# App-specific setup should be done in the setup.sh file.
+
 # Set options for curl. Since we only want to show errors from these curl commands, we also use
 # 'cat' to buffer the output; for more information:
 # https://github.com/sandstorm-io/vagrant-spk/issues/158
@@ -9,9 +12,13 @@ CURL_OPTS="--silent --show-error"
 echo localhost > /etc/hostname
 hostname localhost
 
-# Install curl that is needed below.
+# Grub updates don't silent install well
+apt-mark hold grub-pc
 apt-get update
-apt-get install -y curl
+apt-get upgrade -y
+
+# Install curl needed below, and gnupg for package signing
+apt-get install -y curl gnupg
 
 # The following line copies stderr through stderr to cat without accidentally leaving it in the
 # output file. Be careful when changing. See: https://github.com/sandstorm-io/vagrant-spk/pull/159
@@ -27,7 +34,7 @@ if [[ ! -f /host-dot-sandstorm/caches/$SANDSTORM_PACKAGE ]] ; then
 fi
 if [ ! -e /opt/sandstorm/latest/sandstorm ] ; then
     echo -n "Installing Sandstorm version ${SANDSTORM_CURRENT_VERSION}..."
-    bash /host-dot-sandstorm/caches/install.sh -d -e "/host-dot-sandstorm/caches/$SANDSTORM_PACKAGE" >/dev/null
+    bash /host-dot-sandstorm/caches/install.sh -d -e -p 6090 "/host-dot-sandstorm/caches/$SANDSTORM_PACKAGE" >/dev/null
     echo "...done."
 fi
 modprobe ip_tables
@@ -38,6 +45,10 @@ usermod -a -G 'sandstorm' 'vagrant'
 sudo sed --in-place='' \
         --expression='s/^BIND_IP=.*/BIND_IP=0.0.0.0/' \
         /opt/sandstorm/sandstorm.conf
+
+# Force vagrant-spk to use the strict CSP, see sandstorm#3424 for details.
+echo 'ALLOW_LEGACY_RELAXED_CSP=false' >> /opt/sandstorm/sandstorm.conf
+
 sudo service sandstorm restart
 # Enable apt-cacher-ng proxy to make things faster if one appears to be running on the gateway IP
 GATEWAY_IP=$(ip route  | grep ^default  | cut -d ' ' -f 3)

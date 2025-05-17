@@ -1,0 +1,53 @@
+# * --anon flag
+
+# Input for the following tests:
+
+account assets
+account expenses
+alias tips=expenses:tips
+
+2019-01-01 (receipt)  ; signed
+    (assets)   2
+
+2019-02-01 borrow
+    (liabilities)   1
+    (tips)  3
+
+# ** 1.
+$ hledger -f- print --anon
+>2 /--anon does not give privacy/
+>=1
+
+# Basic tests on accounts
+
+# ** 2.
+$ hledger -f- print --obfuscate
+> !/assets|liabilities|expenses|tips/
+
+# ** 3.
+$ hledger -f- reg --obfuscate
+> !/assets|liabilities|expenses|tips/
+
+# ** 4.
+$ hledger -f- bal --obfuscate
+> !/assets|liabilities|expenses|tips/
+
+# ** 5.
+$ hledger -f- accounts --obfuscate
+> !/assets|liabilities|expenses|tips/
+
+# Basic tests on descriptions and comments
+
+# ** 6.
+$ hledger -f- print --obfuscate
+> !/borrow|signed/
+
+# ** 7.
+$ hledger -f- reg --obfuscate
+> !/borrow/
+
+# Basic tests on transaction code
+
+# ** 8.
+$ hledger -f- print --obfuscate
+> !/receipt/

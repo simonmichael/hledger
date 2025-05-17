@@ -1,0 +1,6 @@
+; Ledger expects the 5 EUR capital gain income here because selling a 10 EUR lot at 15 EUR.
+; hledger does not. Must leave that amount implicit to allow both to parse this.
+2019-03-01 Sell
+    Assets:Shares           -1 ETF {10 EUR} @ 15 EUR
+    Assets:Cash             15 EUR
+    Income:Capital Gains   ;-5 EUR

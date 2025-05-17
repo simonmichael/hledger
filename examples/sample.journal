@@ -15,6 +15,19 @@
 ; liabilities
 ;   debts
 
+; declare accounts:
+; account assets:bank:checking
+; account income:salary
+; account income:gifts
+; account assets:bank:saving
+; account assets:cash
+; account expenses:food
+; account expenses:supplies
+; account liabilities:debts
+
+; declare commodities:
+; commodity $
+
 2008/01/01 income
     assets:bank:checking  $1
     income:salary

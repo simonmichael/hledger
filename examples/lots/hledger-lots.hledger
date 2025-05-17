@@ -1,0 +1,49 @@
+#+hledger-lots avg_cost:false, check:true
+#+hledger-lots no_desc:
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.10 USD
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.20 USD
+
+2025-01-01
+    assets:broker:usd
+    assets:broker:aaa   10 AAA @ 1.20 USD
+
+2025-02-01
+    revenues:gifts
+    assets:broker:aaa   10 AAA @ 0.40 USD
+
+2025-02-02
+    revenues:gifts
+    assets:broker:aaa   10 AAA @ 0.50 USD
+
+2025-03-01 Sold AAA  ; cost_method:fifo
+    ; commodity:AAA, qtty:5.00, price:1.31
+    ; avg_cost:1.1000, xirr:1.85% annual percent rate 30/360US
+    assets:broker:usd              6.55 USD
+    assets:broker:aaa    -5.0 AAA @ 1.1 USD  ; buy_date:2025-01-01, base_cur:USD
+    revenues:gains                -1.05 USD
+
+
+2025-03-02 Sold AAA  ; cost_method:fifo
+    ; commodity:AAA, qtty:24.00, price:1.32
+    ; avg_cost:1.1792, xirr:0.95% annual percent rate 30/360US
+    assets:broker:usd             31.68 USD
+    assets:broker:aaa      -5 AAA @ 1.1 USD  ; buy_date:2025-01-01, base_cur:USD
+    assets:broker:aaa     -10 AAA @ 1.2 USD  ; buy_date:2025-01-01, base_cur:USD
+    assets:broker:aaa    -9.0 AAA @ 1.2 USD  ; buy_date:2025-01-01, base_cur:USD
+    revenues:gains                -3.38 USD
+
+
+2025-03-03 Sold AAA  ; cost_method:fifo
+    ; commodity:AAA, qtty:10.00, price:1.33
+    ; avg_cost:0.4800, xirr:6500.49% annual percent rate 30/360US
+    assets:broker:usd             13.30 USD
+    assets:broker:aaa      -1 AAA @ 1.2 USD  ; buy_date:2025-01-01, base_cur:USD
+    assets:broker:aaa    -9.0 AAA @ 0.4 USD  ; buy_date:2025-02-01, base_cur:USD
+    revenues:gains                -8.50 USD
+

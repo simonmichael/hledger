@@ -1,0 +1,361 @@
+#!/usr/bin/env just -f
+# * financial reports/scripts, managed with https://github.com/casey/just
+# ** PUBLIC:  the scripts below can be shared in hledger's bin/Justfile.
+
+# *** PREAMBLE ------------------------------------------------------------
+
+just := "just -f " + justfile()
+TODAY := `date +%Y-%m-%d`
+
+# list the commands available
+@help:
+    {{ just }} -ul --list-heading=$'{{ file_name(justfile()) }} commands:\n\
+    ARGS can be added to customise reports.\n\
+    '
+# XXX we don't quote ARGS properly, so each one must be free of spaces
+
+# XXX broken
+# # interactively pick a command with the default chooser. Eg: just pick -
+# pick:
+#     {{ just }} --choose
+
+# XXX be careful, runs each selected command immediately. Use mouse to select.
+# interactively view command outputs with fzf and bkt. Eg: just view - --black
+view *ARGS:
+    {{ just }} --choose --chooser="fzf --reverse --preview='bkt --ttl=15m --stale=15s -- just {}' {{ ARGS }}"
+
+# rerun the given command with watchexec whenever local files change
+watch CMD:
+    watchexec -- {{ just }} {{ CMD }}
+
+# *** IMPORT ------------------------------------------------------------
+
+# where to import most hledger transactions from
+# import sources:
+# 1. cash wallets
+# 2. wells fargo bank
+# 3. bank of ireland
+# 4. fidelity
+# 5. paypal
+IMPORTFILES := '\
+  wf-bchecking.csv.rules \
+  wf-pchecking.csv.rules \
+  wf-bsavings.csv.rules \
+  wf-psavings.csv.rules \
+  bofi-ichecking.csv.rules \
+  fidelity.csv.rules \
+  paypal.csv \
+  '
+
+# get auto-downloadable CSVs, and clean manually-downloaded CSVs
+csv:
+    #!/usr/bin/env bash
+
+    # latestcsv PARTIALFILEPATH - list latest non-cleaned CSV with this path
+    latestcsv() { ls -t "$1"*.csv | grep -v ".clean" | head -1; }
+
+    echo "cleaning fidelity csv"
+    # remove leading space
+    for f in $(latestcsv ~/Downloads/History_for_Account_); do
+      g=~/Downloads/$(basename $f csv)clean.csv
+      sed -e 's/^ //' $f >$g
+      # ls -l $g
+    done
+
+    echo "getting paypal csv..."
+    paypaljson | paypaljson2csv > paypal.csv
+    # ls -l paypal.csv
+
+# get CSVs, then import any new transactions from them to the journal, logging but not printing errors; add --dry to preview
+@csv-import *ARGS:
+    date >>import.log
+    {{ just }} csv 2>>import.log || echo "Failed, check import.log"
+    hledger import {{ IMPORTFILES }} {{ ARGS }} 2>>import.log || echo "Failed, check import.log"
+
+
+HOUSEHOLDEKRECENT := "household-recent.journal"
+
+# get a household adjustment transaction for last month
+household:
+    #!/usr/bin/env bash
+    echo "getting household google sheet..."
+    date=$(if [ "$(builtin type -p gdate)" ]; then echo gdate; else echo date; fi)
+    env household $($date --date -1month +%b) >{{ HOUSEHOLDEKRECENT }}
+
+# get a household adjustment transaction for last month, then import it if new; add --dry to preview
+@household-import *ARGS:
+    {{ just }} household 2>>import.log || echo "Failed, check import.log"
+    hledger import {{ HOUSEHOLDEKRECENT }} -I {{ ARGS }} 2>>import.log || echo "Failed, check import.log"
+
+
+# show the forecast transactions predicted recently and soon
+@forecast *ARGS:
+    hledger print --forecast=15daysago..15days tag:_generated --auto -I {{ ARGS }}
+
+# import any new forecast transactions; add --dry to preview
+@forecast-import *ARGS:
+    #!/usr/bin/env bash
+    echo "importing transactions from forecast rules"
+    hledger import forecast.journal --forecast=15daysago..15days --auto -I {{ ARGS }} 2>>import.log || echo "Failed, check import.log"
+    if [[ "$ARGS" != *"--dry"* ]]; then
+      echo "(remove any near-future transactions included for preview)"
+      echo "resetting .latest.forecast.journal to today's date"
+      date +%Y-%m-%d >.latest.forecast.journal
+    fi
+
+# get and import all the above; add --dry to preview
+@import *ARGS:
+    {{ just }} csv-import {{ ARGS }}
+    {{ just }} household-import {{ ARGS }}
+    {{ just }} forecast-import {{ ARGS }}
+
+
+# show prices for main commodities (default: today's)
+@get-prices *PHFETCHARGS:
+    (pricehist fetch -o ledger -s {{ TODAY }} alphavantage EUR/USD {{ PHFETCHARGS }} | sed -E 's/EUR/€/') &
+    (pricehist fetch -o ledger -s {{ TODAY }} alphavantage GBP/USD {{ PHFETCHARGS }} | sed -E 's/GBP/£/') &
+    (pricehist fetch -o ledger -s {{ TODAY }} alphavantage JPY/USD {{ PHFETCHARGS }} | sed -E 's/JPY/¥/')
+    # Parallelised for speed; do slowest last.
+    # Output order varies, can be sorted with LC_COLLATE=C.UTF-8 sort or hledger -f- prices.
+
+# *** REPORTS ------------------------------------------------------------
+
+PERIOD := "1/1..tomorrow"
+
+# show balance sheet
+bs *ARGS:
+    hledger bs --layout bare --pretty --drop 1 -p {{ PERIOD }} -E -5 {{ ARGS }}
+
+# show income statement
+is *ARGS:
+    hledger is --layout bare --pretty --drop 1 -p {{ PERIOD }} -S {{ ARGS }}
+
+# show assets
+a *ARGS:
+    hledger bal type:al -H --layout bare --pretty --drop 1 -p {{ PERIOD }} -E {{ ARGS }}
+
+# show revenues
+r *ARGS:
+    hledger bal type:r --layout bare --pretty --drop 1 -p {{ PERIOD }} -S --invert {{ ARGS }}
+
+# show expenses
+x *ARGS:
+    hledger bal type:x --layout bare --pretty --drop 1 -p {{ PERIOD }} -S --invert {{ ARGS }}
+
+# show assets bar chart
+ab *ARGS:
+    echo "Quarterly net worth:"
+    hledger-bar -v 200 -Q type:al -H {{ ARGS }}
+
+# show revenues bar chart
+rb *ARGS:
+    echo "Quarterly revenues:"
+    hledger-bar -v 40 -Q type:r --invert {{ ARGS }}
+
+# show expenses bar chart
+xb *ARGS:
+    echo "Quarterly expenses:"
+    hledger-bar -v 40 -Q type:x --invert {{ ARGS }}
+
+# XXX with partial workaround for https://github.com/gooofy/drawilleplot/issues/4
+
+# show assets line chart
+al *ARGS:
+    hledger plot -- bal --depth=1 type:a --historical  --terminal --rcParams '{"figure.figsize":[8,3]}' --no-today -q --title "hledger assets" {{ ARGS }} | sed 's/⠀/ /g'
+
+# show revenues line chart
+rl *ARGS:
+    hledger plot -- bal --depth=1 type:r --monthly --invert  --terminal --rcParams '{"figure.figsize":[8,3]}' --drawstyle 'steps-mid' --no-today -q --title "hledger monthly revenues" {{ ARGS }} | sed 's/⠀/ /g'
+
+# show expenses line chart
+xl *ARGS:
+    hledger plot -- bal --depth=1 type:x --monthly --terminal --rcParams '{"figure.figsize":[8,3]}' --drawstyle 'steps-mid' --no-today -q --title "hledger monthly expenses" {{ ARGS }} | sed 's/⠀/ /g'
+
+# show consulting revenue
+consulting *ARGS:
+    hledger reg --invert 'revenues:(cw|ah)' -p {{ PERIOD }} {{ ARGS }}
+
+# estimated-tax *ARGS :
+#   @echo "Federal estimated tax due for this year"
+#   $(HLEDGER) register liabilities:personal:tax:federal:$(YEAR) --width=130
+#   @echo State estimated tax due for this year:
+#   @$(HLEDGER) register liabilities:personal:tax:state:$(YEAR) --width=130
+#   @echo
+
+# *** TIME REPORTS ------------------------------------------------------------
+
+set export := true
+
+# The file where actual time data is logged, for dashboard's stats.
+# This might or might not be the top-level $TIMELOG file.
+#TIMELOGDATA=$TIMELOG
+
+YEAR := `date +%Y`
+TIMELOGDATA := 'time-' + YEAR + '.timedot'
+TIMELOGALL :=  `dirname "$TIMELOG"` + '/time-all.journal'
+
+# This redisplays only when a file listed by `hledger -f $TIMELOG files` is modified.
+# To force a per minute display as well, have $TIMELOG include a dummy file (.update)
+# and configure a cron job to touch that every minute.
+# (This is better than touching the timelog file itself, which confuses editors.)
+#
+
+# show time dashboard, redisplaying when timelog files change
+tdash *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir=$(dirname "$TIMELOG")
+    cd "$dir"
+    opts=  #--poll=10  # <- uncomment to fix symlinked files being ignored
+    watchexec $opts --no-vcs-ignore \
+      --filter-file=<(hledger -f "$TIMELOG" files | sed -E "s|$dir/||g") \
+      -c -r {{ just }} tstatus {{ ARGS }}
+
+# show time dashboard, redisplaying every minute with watch
+# dash-1m *ARGS:
+#     watch -n60 -c tt status
+# }
+
+# show current time status
+tstatus *ARGS:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    date=$(if [ "$(builtin type -p gdate)" ]; then echo gdate; else echo date; fi)
+    stat=$(if [ "$(builtin type -p gstat)" ]; then echo gstat; else echo stat; fi)
+    curtime=$($date +'%H:%M %Z, %a %b %-e %Y')
+    modtime=$($date +'%H:%M %Z' -r "$TIMELOGDATA")
+    modsecs=$($stat -c %Y "$TIMELOGDATA")
+    nowsecs=$($date +%s)
+    agesecs=$((nowsecs - modsecs))
+    agemins=$(python3 -c "print($agesecs/60)")
+    agehrs=$(python3 -c "print($agesecs/3600.0)")
+    ageqtrhrs=$(python3 -c "print(round($agesecs/900.0))")
+    agedots=$({{ just }} tdots "$ageqtrhrs")
+    printf "Current time:  %s\n" "$curtime"
+    # old, for osh: use env here to run the system printf, which supports floating point
+    env printf "Timelog saved: %s, %.0fm / %.1fh / %s ago\n" "$modtime" "$agemins" "$agehrs" "$agedots"
+    # Show the current day/week/month budget status.
+    printf "Time plans:\n"
+    # calculate each period's budget from daily budget
+    hledger -f "$TIMELOG" bal -1 -p 'daily today'        --budget=Daily {{ ARGS }} | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'weekly this week'   --budget=Daily {{ ARGS }} | tail +2
+    hledger -f "$TIMELOG" bal -1 -p 'monthly this month' --budget=Daily {{ ARGS }} | tail +2
+    # or use each period's specific budget
+    # hledger -f "$TIMELOG" bal -p 'daily today'        --budget=Daily   -1 | tail +2
+    # hledger -f "$TIMELOG" bal -p 'weekly this week'   --budget=Weekly  -1 | tail +2
+    # hledger -f "$TIMELOG" bal -p 'monthly this month' --budget=Monthly -1 | tail +2
+    echo
+    hledger -f "$TIMELOG" check -s tags ordereddates || true
+    # this comes last because it's slow and variable length
+    echo
+    printf "Display activity:\n"
+    wakelog today | tail -n 6
+
+# what happened ? Show largest time balances first, today and depth 1 by default
+@twhat *ARGS:
+    hledger -f "$TIMELOG" bal -S -1 -p today {{ ARGS }}
+
+# print line of N dots, grouped in 4s (suitable for timedot)
+tdots N:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    n={{ N }}
+    ndiv4=$((n/4))
+    nmod4=$((n-n/4*4))
+    sep=''
+    while [[ $ndiv4 -gt 0 ]]; do ndiv4=$((ndiv4-1)); echo -n "$sep...."; sep=' '; done
+    while [[ $nmod4 -gt 0 ]]; do nmod4=$((nmod4-1)); echo -n "$sep."; sep=''; done
+    echo
+
+RFLAGS := '-tM'
+
+# horizontal time summary this year, monthly by default
+@tx *ARGS:
+    hledger -f "$TIMELOG" bal -1 "$RFLAGS" {{ ARGS }}
+
+# vertical time summary this year, monthly by default
+@ty *ARGS:
+    hledger -f "$TIMELOG" bal -1 "$RFLAGS" --transpose {{ ARGS }}
+
+# horizontal time summary since 2007, yearly by default. Gaps in 2010-2015.
+@txall *ARGS:
+    hledger -f "$TIMELOGALL" bal -1 "$RFLAGS" -Y {{ ARGS }}
+
+# vertical time summary since 2007, yearly by default. Gaps in 2010-2015.
+@tyall *ARGS:
+    hledger -f "$TIMELOGALL" bal -1 "$RFLAGS" -Y --transpose {{ ARGS }}
+
+# horizontal hledger time summary, yearly by default. Gaps in 2010-2015.
+@txallhledger *ARGS:
+    {{ just }} txall hledger not:^ser.ek -AT {{ ARGS }}
+
+# show a bar chart of this year's time in hours, weekly by default. Bar resolution is 1h.
+@tbar *ARGS:
+    hledger-bar -v 1 -f "$TIMELOG" -W {{ ARGS }}
+
+# show a bar chart of time since 2007, monthly by default, with 10h bar resolution. Gaps in 2010-2015.
+@tbarall *ARGS:
+    hledger-bar -v 10 -f "$TIMELOGALL" -M not:cur: {{ ARGS }}
+# not:cur: because --layout=bare will add a row for no-symbol commodity if any periods are zero.
+
+# show a bar chart of time since 2007, yearly by default, with 100h bar resolution. Gaps in 2010-2015.
+@tbarally *ARGS:
+    hledger-bar -v 100 -f "$TIMELOGALL" -Y not:cur:'' {{ ARGS }}
+# not:cur: because --layout=bare will add a row for no-symbol commodity if any periods are zero.
+
+# this and last week's time budgets
+@tweekbudgets *ARGS:
+    printf "\nLast week, this week:\n"
+    timeweekly run
+
+# recent past weeks' time budgets
+@tweekbudgetspast *ARGS:
+    printf "\nPast weeks:\n"
+    timeweekly past
+
+# show unused / undeclared time accounts
+@taccunused *ARGS:
+    echo "Unused: (but declared)"
+    hledger -f "$TIMELOG" acc --unused {{ ARGS }} --directives | gsed -E 's/:(.)/.\1/g'
+    echo
+    echo "Undeclared: (but used)"
+    hledger -f "$TIMELOG" acc --undeclared {{ ARGS }} --directives | gsed -E 's/:(.)/.\1/g'
+
+# show unused / undeclared time accounts by category
+@taccunusedcat *ARGS:
+    for a in $(tt acc -1); do line; echo "$a":; tt unused "^$a"; echo; done; line
+
+# add declarations for all undeclared time accounts
+@taccadd *ARGS:
+    hledger -f "$TIMELOG" accounts --undeclared --directives | sed 's/:/./g' >>"$TIMELOG"
+
+# show monthly time budget performance this year
+@tbudgets *ARGS:
+    {{ just }} tx --budget=daily -M -p jan..tomorrow {{ ARGS }}
+
+# show monthly time budget performance this year, vertically
+@tbudgetsy *ARGS:
+    {{ just }} ty --budget=daily -M -p jan..tomorrow {{ ARGS }}
+
+# dedicated weekly reports, needed to set proper week start date, to ensure simple headings:
+
+# show weekly time budget performance this year
+@tbudgetsw *ARGS:
+    {{ just }} ty --budget=daily -W -p 3/27..tomorrow {{ ARGS }}
+
+# show weekly time budget performance this year, horizontally
+@tbudgetswx *ARGS:
+    {{ just }} tx --budget=daily -W -p 3/27..tomorrow {{ ARGS }}
+
+# show monthly time percentages
+@txpc *ARGS:
+    {{ just }} tx -% {{ ARGS }}
+
+# show monthly time tagged by activity type
+@txt *ARGS:
+    hledger -f "$TIMELOG" bal -b2023/5 -M tag:t -1 {{ ARGS }}
+
+# show monthly time tagged by activity type as percentages
+@txtpc *ARGS:
+    {{ just }} txt -% {{ ARGS }}
+

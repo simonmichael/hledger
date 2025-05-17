@@ -1,0 +1,4 @@
+skip 2
+date %1
+amount-in %2
+amount-out %3

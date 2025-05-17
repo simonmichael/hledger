@@ -22,4 +22,4 @@ set -euo pipefail
 # By default, this script does nothing.  You'll have to modify it as
 # appropriate for your application.
 apt-get install -y libtinfo-dev
-curl -ssl https://get.haskellstack.org/ | sh
+curl -ssl -L https://get.haskellstack.org/ | sh

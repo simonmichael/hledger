@@ -1,5 +1,7 @@
-{-# LANGUAGE QuasiQuotes, RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes       #-}
+{-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 {-|
 
 The @balancesheetequity@ command prints a simple balance sheet.
@@ -23,24 +25,27 @@ balancesheetequitySpec = CompoundBalanceCommandSpec {
   cbcqueries  = [
      CBCSubreportSpec{
       cbcsubreporttitle="Assets"
-     ,cbcsubreportquery=journalAssetAccountQuery
-     ,cbcsubreportnormalsign=NormallyPositive
+     ,cbcsubreportquery=Type [Asset]
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyPositive})
+     ,cbcsubreporttransform=id
      ,cbcsubreportincreasestotal=True
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Liabilities"
-     ,cbcsubreportquery=journalLiabilityAccountQuery
-     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportquery=Type [Liability]
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ,CBCSubreportSpec{
       cbcsubreporttitle="Equity"
-     ,cbcsubreportquery=journalEquityAccountQuery
-     ,cbcsubreportnormalsign=NormallyNegative
+     ,cbcsubreportquery=Type [Equity]
+     ,cbcsubreportoptions=(\ropts -> ropts{normalbalance_=Just NormallyNegative})
+     ,cbcsubreporttransform=fmap maNegate
      ,cbcsubreportincreasestotal=False
      }
     ],
-  cbctype     = HistoricalBalance
+  cbcaccum     = Historical
 }
 
 balancesheetequitymode :: Mode RawOpts

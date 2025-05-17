@@ -1,0 +1,42 @@
+; https://www.reddit.com/r/plaintextaccounting/comments/e5sl1m/advice_on_projectionsforecasts/
+;
+; I've been reading up in preparation for switching to pta in 2020
+; from my current ad hoc spreadsheet. The forecasting docs/tutorial
+; for hledger answer many of my questions but I'm wondering about how
+; to duplicate a forecasting page of my spreadsheet.
+; On this page, I list all my future expenses with estimates for each.
+; However I don't assign any dates to most of the expenses since they
+; don't really have an associated date. As the year progresses and I
+; book expenses against these accounts I update the page with an
+; actual vs. estimated amount. This is just a big picture view of a
+; year's expenses vs. expected revenue so I have a better idea of what
+; big purchases I can plan for or maybe have to delay until the
+; following year.
+; This doesn't seem to fit within the typical forecasting/budget
+; reports I've seen, does anyone have tips or examples that might help
+; me generate a similar report with a ledger-like (I haven't chosen
+; the software I'll use yet but probably ledger or hledger). Thanks!
+
+~ 2020
+  (expenses:rent)  $12000
+  (expenses:food)   $6000
+
+2020/1/1
+  expenses:rent     $1000
+  assets:checking
+
+2020/1/5
+  expenses:food      $100
+  assets:checking
+
+comment
+$ hledger bal expenses --budget -YS --tree
+Budget performance in 2020:
+
+          ||                    2020 
+==========++=========================
+ expenses || $1100 [   6% of $18000] 
+   rent   || $1000 [   8% of $12000] 
+   food   ||  $100 [   2% of  $6000] 
+----------++-------------------------
+          || $1100 [   6% of $18000] 

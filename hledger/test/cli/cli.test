@@ -1,0 +1,166 @@
+# * command line interface tests
+# See also addons.test.
+#
+# Quick guide to terms used here:
+#
+# - flag: a synonym for option. Or, just the first part of an option,
+#   which can be either a short flag (hyphen followed by a letter) or
+#   a long flag (double hyphen followed by a word).
+#
+# - option: a command modifier. An option consists of a short flag, a
+#   long flag, or both, and possibly an optional or required value.
+#   On the command line, an option's value can be joined to the flag by
+#   = (long flags) or nothing (short flags), or it can be the next argument.
+#   Each option has some effect on program execution, and is described
+#   in the command line help.
+#
+# - raw arguments: everything following the program name on the
+#   command line, ie what is returned by getArgs.
+#
+# - parsed arguments: all raw arguments that are not options.
+#
+# - command arguments: all parsed arguments after the first, which is
+#   the command name.
+#
+# - RawOpts: the command name, options, and arguments parsed by cmdargs,
+#   as an association list of strings. Eg:
+#   [("command","register"),("args","a"),("debug",""),("help","")]
+#
+# - CliOpts: a RawOpts, plus the same information with some additional
+#   cleanup in a more convenient data structure. Used throughout the
+#   hledger CLI code.
+#
+# - command line, shell command: what you type in the shell or
+#   terminal window to start a program.
+#
+# - hledger command, subcommand: one of hledger's modes of operation,
+#   named and selected by the first parsed argument. There are two kinds:
+#   - internal/builtin commands are part of the main hledger executable.
+#   - external/addon commands are provided by hledger-* executables in PATH.
+#
+# Description of existing/expected behaviour as of 2013/9/16:
+#
+# - general usage is hledger [CMD [OPTS] [ARGS] [-- ADDONOPTS]]
+# - (some?) general options may also go before the command: -f, --rules, --alias, --help, --version, --debug.
+# - usually the command must come first, followed by options and arguments in any order
+# - options specific to an addon command, not supported by hledger cli, should be preceded by a -- argument
+# - CMD is an exact command (incomestatement), one of the aliases displayed in the commands list (is), or any unique command prefix (inc)
+# - there are also a few hidden builtin commands
+# - when CMD is a non-unique prefix, all matched commands will be listed, including hidden ones (eg hledger c)
+# - an unrecognised command shows an error and gives non-zero exit status
+# - flags may be written in full or as a unique prefix
+# - the help/documentation flags have highest priority
+# - --help before CMD (or with no command) shows general help, including general options
+# - --help after CMD shows command-specific help, including command and general options
+
+# ** 1. --version shows version
+$ hledger --version
+> /^hledger [0-9]/
+
+# ** 2. --version also works after a command, if it's internal
+$ hledger balance --version
+> /^hledger [0-9]/
+
+# ** 3. with no command, show commands list
+$ hledger
+> /^Commands/
+
+# ** 4. commands list still works if there are flags, at least the common ones
+$ hledger -fsomefile
+> /^Commands/
+
+# ** 5. and also with a space between flag and value
+$ hledger -f somefile
+> /^Commands/
+
+# ** 6. with -h/--help, and possibly other common flags present, show general cli help
+$ hledger -h --version -f/dev/null
+> /^hledger \[COMMAND\]/
+
+# ** 6b. XXX our moveFlagsAfterCommand plus the way cmdargs' argument-requiring flags
+# consume a following flag rather than failing, means things like this go wrong
+# (args are rearranged to -f -h --version /dev/null, shows version when it should show help):
+#$ hledger -h --version -f /dev/null
+#> /^hledger \[COMMAND\]/
+
+# ** 7. with -h before a COMMAND, show command usage
+$ hledger -h balance --cost
+> /balance \[OPTIONS\]/
+
+# ** 8. with -h after a command, show command usage
+$ hledger balance -h
+> /balance \[OPTIONS\]/
+
+# ** 9. with an unrecognised command, give an error and non-zero exit status
+$ hledger nosuchcommand
+>2 /not recognized.*to see a list/
+>= 1
+
+# ** 10. general flags can go before command
+$ hledger -f /dev/null --alias foo --daily register
+
+# ** 11. or after it. And flags & values joined by = or nothing also work.
+$ hledger register -f/dev/null --alias=foo --daily
+
+# ** 12. command-specific flags (for builtin commands) can go after command
+$ hledger -f /dev/null print --explicit
+
+# ** 13. or before it
+$ hledger -f /dev/null --explicit print
+
+# ** 14. --no-conf works with builtin commands.
+$ hledger --no-conf check -f/dev/null
+
+# ** 15. --conf CONFFILE works with builtin commands.
+$ hledger --conf /dev/null check -f/dev/null
+
+# ** 16. --conf works with no command.
+$ hledger --conf /dev/null
+> /Commands/
+
+# ** 17. When moving options written before the command name:
+# if the flag name is used in general options and also one or more commands,
+# the general option's arity determines whether a value is expected.
+# Here -p is a help command flag taking no value, but also a general option requiring a value,
+# so the value ("today") is detected.
+$ hledger -p today check -f/dev/null
+
+# ** 18. The specially-handled --debug option is also moved properly, with no value:
+$ hledger --debug check -f/dev/null
+>2 //
+
+# ** 19. a joined value:
+$ hledger --debug=1 check -f/dev/null
+>2 //
+
+# ** 20. or a separate value:
+$ hledger --debug 1 check -f/dev/null
+>2 //
+
+# ** 21. A short flag with joined value, or multiple valueless short flags joined together, are moved properly.
+$ hledger -f/dev/null -BI check
+>2 //
+
+# ** 22. The rightmost --conf/--no-conf option wins.
+$ hledger -f /dev/null --conf nosuchfile --no-conf check
+
+# ** 23. The rightmost --conf/--no-conf option wins, 2.
+$ hledger -f /dev/null --no-conf --conf nosuchfile check
+>2 /nosuchfile does not exist/
+>=1
+
+# ** 24. --debug doesn't disturb the order of --conf and --no-conf.
+# This is a hard one to reproduce in GHCI.
+$ hledger --debug -f /dev/null --conf /dev/null --no-conf >/dev/null
+>2 /ignoring config files/
+
+# ** 25. Having general options in a conf file doesn't break cli command parsing.
+$  echo '--pretty' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null
+
+# ** 26. An initial non-flag general argument in a conf file is used as the command.
+$  echo 'files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+
+# ** 27. A non-flag general argument that's not first in the conf file is note used as the command.
+$  echo '--pretty files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+> /Runtime stats/

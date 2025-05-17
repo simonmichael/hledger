@@ -1,21 +1,12 @@
 ---
 name:  A bug
-about: Any problem that is most likely an error or weakness in hledger's software, documentation, web presence, usability etc.
+about: A weakness in the software, documentation, usability, or project
 labels: A BUG
 ---
 
-Thank you for helping to make hledger better!
+Thanks for reporting! Here are some tips (please remove this text before submitting):
 
-If you're not sure it's a bug, or if some discussion would help,
-contact us first on the #hledger IRC chat room or the mail list:
-
-http://irc.hledger.org  (best; no chat client needed)
-http://list.hledger.org
-
-Some details that may be helpful to include: 
-
-- a minimal reproducible example
-- what related documentation you found at http://hledger.org
-- your hledger version
-- how you installed it
-- what platform you're on.
+- Have you checked (the right version of) the manual ? Eg https://hledger.org/hledger.html
+- If some discussion would help, just ask in chat or mail list: https://hledger.org/support.html
+- Any of these are very helpful: a small reproducible example, hledger --version output,
+  what platform you're running on, a link to to any relevant doc that you found.

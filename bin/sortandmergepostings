@@ -1,0 +1,96 @@
+#!/usr/bin/awk -f
+# Script adapted from suggestions on https://unix.stackexchange.com/a/527004/1925
+#
+# Passed a ledger file, this will:
+# 1. Sort accretion postings before deductions
+# 2. Sort postings by account alphabetically
+# 3. Merge 1 set of postings with the same account and direction by clearing
+#    the amount field. Note all posting meta data must also match to merge.
+#
+# Suggested usage:
+# $ sortandmergepostings journal.ledger | hledger -f - print -x
+#
+# Given that each run will only merge and recalculate amounts on one account per
+# transaction it may need to be run multiple times to fully normalize a ledger.
+
+BEGIN { FS = "[[:space:]][[:space:]]+" }
+
+function dump() {
+    an = asorti(accretions, as)
+    dn = asorti(deductions, ds)
+    for (i=1; i<=an; i++) {
+        postings[length(postings)+1] = accretions[as[i]]
+    }
+    for (i=1; i<=dn; i++) {
+        postings[length(postings)+1] = deductions[ds[i]]
+    }
+    for (i in postings) {
+        posting = postings[i]
+        split(posting, parts, FS)
+        currency = parts[3]
+        gsub(/[[:digit:]., ]+/, "", currency)
+        if (!inferred && (!merge || merge == parts[2]) && seen[parts[2] currency parts[4]]>1 && parts[3] !~ /@/) {
+            if (!merge) merged[i] = "    " parts[2] "  " parts[4]
+            merge = parts[2]
+        } else {
+            merged[i] = posting
+        }
+    }
+    for (i in merged) print merged[i]
+    if (inferred) print inferred
+    inferred = ""
+    merge = ""
+    delete accretions
+    delete deductions
+    delete postings
+    delete merged
+    delete seen
+}
+
+!NF {
+    dump()
+    print
+    next
+}
+
+END {
+    dump()
+}
+
+/^[^[:space:]]/ {
+    dump()
+    print $0
+    next
+}
+
+{
+    postingct++
+    account = $2
+    amount = $3
+    comments = $4
+    currency = amount
+    gsub(/[[:digit:]., ]+/, "", currency)
+    sub(/^[*!] /, "", account)
+}
+
+account ~ /^;/ {
+    print
+    next
+}
+
+!amount {
+    inferred = $0
+    next
+}
+
+amount !~ /@/ {
+    seen[account currency comments]++
+}
+
+amount !~ /-/ {
+    accretions[account postingct] = $0
+}
+
+amount ~ /-/ {
+    deductions[account postingct] = $0
+}
