@@ -297,42 +297,27 @@ $ hledger -f- print cur: amt:1112
 
 >=
 
+# ** 22. cur: and amt: match currency before cost/value conversion #1625 (balance)
 <
-P 2021-01-01 A  1000 B
+P 2021-01-01 A  10 B
 2021-01-01
   (a)    1 A
 
-2021-01-02
-  (a)   10 A
+$ hledger -f- balance -NBV cur:A
+                10 B  a
 
-2021-01-03
-  (a)   10 A @ 0.1 B
+# ** 23. #1625 (register)
+$ hledger -f- register -BV cur:A
+2021-01-01                      (a)                           10 B          10 B
 
-2021-01-04
-  (a)    1 B @ 0.001 A
-
-2021-01-05
-  (a)    1 B
-
-# ** 22. balance report cur: and amt: query matches currency before valuation/cost
-$ hledger -f- balance -N -V -B cur:A "amt:<5"
-              1000 B  a
->=
-
-# ** 23. register report cur: and amt: query matches currency before valuation/cost
-$ hledger -f- register -V -B cur:A "amt:<5"
-2021-01-01                      (a)                         1000 B        1000 B
->=
-
-# ** 24. aregister report cur: and amt: query matches currency before valuation/cost
-$ hledger -f- aregister a -V -B cur:A "amt:<5"
+# ** 24. #1625 (aregister)
+$ hledger -f- aregister a -BV cur:A
 Transactions in a and subaccounts (matching query):
-2021-01-01                      a                           1000 B        1000 B
->=
+2021-01-01                      a                             10 B          10 B
 
-# ** 25. print report cur: and amt: query matches currency before valuation/cost
-$ hledger -f- print -V -B a cur:A "amt:<5"
+# ** 25. #1625 (print)
+$ hledger -f- print -BV cur:A
 2021-01-01
-    (a)          1000 B
+    (a)            10 B
 
 >=
