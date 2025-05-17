@@ -588,6 +588,14 @@ journalValueAndFilterPostings :: ReportSpec -> Journal -> Journal
 journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec j priceoracle
   where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
 
+{- [Querying before valuation]
+This helper is used by multiBalanceReport (all balance reports).
+Previously, at least since #1625 (2021), it was filtering with the cur:/amt: parts
+of the query before valuation, and with the other parts after valuation.
+Now, since #2387 (2025), it does all filtering before valuation.
+This avoids breaking boolean queries (#2371), avoids a strictness bug (#2385),
+is simpler, and we think it's otherwise equivalent.
+-}
 -- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
 journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
 journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} =
