@@ -1204,7 +1204,8 @@ include other.journal   ; Include another journal file here.
 2024-02-01 note some event, or a transaction not yet fully entered, on this date
     ; Postings are not required.
 
-; Some other date formats are allowed (but, consistent YYYY-MM-DD is useful).
+# Consistent YYYY-MM-DD date format is recommended,
+# but you can use . or / and omit leading zeros if you prefer.
 2024.01.01
 2024/1/1
 ```
