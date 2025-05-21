@@ -218,13 +218,10 @@ main = exitOnError $ withGhcDebug' $ do
   -- 0. let's go!
 
   let
-    -- Trace helpers. These always trace to stderr, even when running `hledger ui`;
-    -- that's ok as conf is a hledger cli feature for now.
-    dbgIO, dbgIO1, dbgIO2 :: Show a => String -> a -> IO ()  -- this signature is needed
-    dbgIO  = ptraceAtIO verboseDebugLevel
-    dbgIO1 = ptraceAtIO 1
-    dbgIO2 = ptraceAtIO 2
-  dbgIO "running" prognameandversion
+    dbgio :: Show a => String -> a -> IO ()
+    dbgio  = dbgIO verboseDebugLevel
+
+  dbgio "running" prognameandversion
   starttime <- getPOSIXTime
   -- give ghc-debug a chance to take control
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
@@ -235,7 +232,7 @@ main = exitOnError $ withGhcDebug' $ do
   addons <- addonCommandNames
 
   ---------------------------------------------------------------
-  dbgIO "\n1. Preliminary command line parsing" ()
+  dbgio "\n1. Preliminary command line parsing" ()
 
   -- Naming notes:
   -- "arg" often has the most general meaning, including things like: -f, --flag, flagvalue, arg, >file, &, etc.
@@ -252,15 +249,15 @@ main = exitOnError $ withGhcDebug' $ do
     (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
     (cliargsbeforecmd, cliargsaftercmd) = second (drop 1) $ break (==clicmdarg) cliargs
-  dbgIO  "cli args with preprocessing" cliargs
+  dbgio  "cli args with preprocessing" cliargs
   dbg1IO "cli args with preprocessing and options moved after command" cliargswithcmdfirst
-  dbgIO "cli command argument found" clicmdarg
-  dbgIO "cli args before command"    cliargsbeforecmd
-  dbgIO "cli args after command"     cliargsaftercmd
-  -- dbgIO "cli args without command"   cliargswithoutcmd
+  dbgio "cli command argument found" clicmdarg
+  dbgio "cli args before command"    cliargsbeforecmd
+  dbgio "cli args after command"     cliargsaftercmd
+  -- dbgio "cli args without command"   cliargswithoutcmd
 
   ---------------------------------------------------------------
-  dbgIO "\n2. Read the config file if any" ()
+  dbgio "\n2. Read the config file if any" ()
 
   -- Identify any --conf/--no-conf options.
   -- Run cmdargs on just the args that look conf-related.
@@ -276,7 +273,7 @@ main = exitOnError $ withGhcDebug' $ do
       else getConf' cliconfrawopts
 
   ---------------------------------------------------------------
-  dbgIO "\n3. Identify a command name from config file or command line" ()
+  dbgio "\n3. Identify a command name from config file or command line" ()
 
   -- Try to identify the subcommand name,
   -- from the first non-flag general argument in the config file,
@@ -310,15 +307,15 @@ main = exitOnError $ withGhcDebug' $ do
 
   when (isJust mconffile) $ do
     unless (null confcmdarg) $
-      dbgIO1 "using command name argument from config file" confcmdarg
-  dbgIO "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
-  dbgIO1 "command found" cmdname
-  dbgIO "no command provided" nocmdprovided
-  dbgIO "bad command provided" badcmdprovided
-  dbgIO "is addon command" isaddoncmd
+      dbg1IO "using command name argument from config file" confcmdarg
+  dbgio "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
+  dbg1IO "command found" cmdname
+  dbgio "no command provided" nocmdprovided
+  dbgio "bad command provided" badcmdprovided
+  dbgio "is addon command" isaddoncmd
 
   ---------------------------------------------------------------
-  dbgIO "\n4. Get applicable options/arguments from config file" ()
+  dbgio "\n4. Get applicable options/arguments from config file" ()
 
   -- Ignore any general opts or cli-specific opts not known to be supported by the command.
   let
@@ -337,13 +334,13 @@ main = exitOnError $ withGhcDebug' $ do
           & if isaddoncmd then ("--":) else id
 
   when (isJust mconffile) $ do
-    dbgIO1 "using general args from config file" confothergenargs
+    dbg1IO "using general args from config file" confothergenargs
     unless (null excludedgenargsfromconf) $
-      dbgIO1 "excluded general args from config file, not supported by this command" excludedgenargsfromconf
-    dbgIO1 "using subcommand args from config file" confcmdargs
+      dbg1IO "excluded general args from config file, not supported by this command" excludedgenargsfromconf
+    dbg1IO "using subcommand args from config file" confcmdargs
 
   ---------------------------------------------------------------
-  dbgIO "\n5. Combine config file and command line args" ()
+  dbgio "\n5. Combine config file and command line args" ()
 
   let
     finalargs =
@@ -355,7 +352,7 @@ main = exitOnError $ withGhcDebug' $ do
       & replaceNumericFlags                -- convert any -NUM opts from the config file
 
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
-  dbgIO1 "final args" finalargs
+  dbg1IO "final args" finalargs
 
   -- Run cmdargs on command name + supported conf general args + conf subcommand args + cli args to get the final options.
   -- A bad flag or flag argument will cause the program to exit with an error here.
@@ -363,7 +360,7 @@ main = exitOnError $ withGhcDebug' $ do
 
   ---------------------------------------------------------------
   seq rawopts $  -- order debug output
-    dbgIO "\n6. Select an action and run it" ()
+    dbgio "\n6. Select an action and run it" ()
 
   -- We check for the help/doc/version flags first, since they are a high priority.
   -- (A perfectionist might think they should be so high priority that adding -h
@@ -381,10 +378,10 @@ main = exitOnError $ withGhcDebug' $ do
 
   -- validate opts/args more and convert to CliOpts
   opts <- rawOptsToCliOpts rawopts >>= \opts0 -> return opts0{progstarttime_=starttime}
-  dbgIO2 "processed opts" opts
-  dbgIO "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
-  dbgIO "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
-  dbgIO "query from opts & args" (_rsQuery $ reportspec_ opts)
+  dbg2IO "processed opts" opts
+  dbgio "period from opts" (period_ . _rsReportOpts $ reportspec_ opts)
+  dbgio "interval from opts" (interval_ . _rsReportOpts $ reportspec_ opts)
+  dbgio "query from opts & args" (_rsQuery $ reportspec_ opts)
 
   -- Ensure that anything calling getArgs later will see all args, including config file args.
   -- Some things (--color, --debug, some checks in journalFinalise) are detected by unsafePerformIO,
@@ -406,13 +403,13 @@ main = exitOnError $ withGhcDebug' $ do
 
     -- 6.4. no command found, nothing else to do - show the commands list
     | nocmdprovided -> do
-        dbgIO1 "no command, showing commands list" ()
+        dbg1IO "no command, showing commands list" ()
         commands opts (ignoredjournal "commands")
 
     -- 6.5. builtin command found
     | Just (cmdmode, cmdaction) <- mbuiltincmdaction -> do
       let mmodecmdname = headMay $ modeNames cmdmode
-      dbgIO1 "running builtin command mode" $ fromMaybe "" mmodecmdname
+      dbg1IO "running builtin command mode" $ fromMaybe "" mmodecmdname
 
       -- run the builtin command according to its type
       if
@@ -453,9 +450,9 @@ main = exitOnError $ withGhcDebug' $ do
           addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> cliargswithoutcmd
           addonargs = dropCliSpecificOpts addonargs0
           shellcmd = printf "%s-%s %s" progname cmdname (unwords' addonargs) :: String
-        dbgIO "addon command selected" cmdname
-        dbgIO "addon command arguments after removing cli-specific opts" (map quoteIfNeeded addonargs)
-        dbgIO1 "running addon" shellcmd
+        dbgio "addon command selected" cmdname
+        dbgio "addon command arguments after removing cli-specific opts" (map quoteIfNeeded addonargs)
+        dbg1IO "running addon" shellcmd
         system shellcmd >>= exitWith
 
     -- deprecated command found
@@ -496,7 +493,7 @@ cmdargsParse :: String -> Mode RawOpts -> [String] -> RawOpts
 cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
   & either
     (\e -> error' $ e <> "\n* while parsing the following args, " <> desc <> ":\n*  " <> unwords (map quoteIfNeeded args0))
-    (traceOrLogAt verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
+    (dbgMsg verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
   -- XXX better error message when cmdargs fails (eg spaced/quoted/malformed flag values) ?
 
 -- | cmdargs does not allow options to appear before the subcommand argument.
@@ -558,12 +555,12 @@ moveFlagsAfterCommand args =
     moveFlagAndVal :: ([String], [String]) -> ([String], [String])
     moveFlagAndVal ((a:b:cs), moved) =
       case isMovableFlagArg a (Just b) of
-        2 -> traceOrLogAt lvl ("moving 2: "<>a<>" "<>b) $ moveFlagAndVal (cs, moved++[a,b])
-        1 -> traceOrLogAt lvl ("moving 1: "<>a) $ moveFlagAndVal (b:cs, moved++[a])
+        2 -> dbgMsg lvl ("moving 2: "<>a<>" "<>b) $ moveFlagAndVal (cs, moved++[a,b])
+        1 -> dbgMsg lvl ("moving 1: "<>a) $ moveFlagAndVal (b:cs, moved++[a])
         _ -> (a:b:cs, moved)
     moveFlagAndVal ([a], moved) =
       case isMovableFlagArg a Nothing of
-        1 -> traceOrLogAt lvl ("moving 1: "<>a) ([], moved++[a])
+        1 -> dbgMsg lvl ("moving 1: "<>a) ([], moved++[a])
         _ -> ([a], moved)
     moveFlagAndVal ([], moved) = ([], moved)
     lvl = 8

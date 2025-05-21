@@ -92,7 +92,7 @@ hledgerUiMain = exitOnError $ withGhcDebug' $ withProgName "hledger-ui.log" $ do
 #endif
 #endif
 
-  traceLogAtIO 1 "\n\n\n\n==== hledger-ui start"
+  dbg1MsgIO "\n\n\n\n==== hledger-ui start"
   dbg1IO "args" progArgs
   dbg1IO "debugLevel" debugLevel
 

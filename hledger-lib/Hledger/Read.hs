@@ -299,7 +299,7 @@ readJournalFileAndLatestDates iopts prefixedfile = do
     iopts' = iopts{mformat_=asum [mfmt, mformat_ iopts]}
   liftIO $ requireJournalFileExists f
   h <-
-    traceOrLogAt 6 ("readJournalFile: "++takeFileName f) $
+    dbg6Msg ("readJournalFile: "++takeFileName f) $
     liftIO $ openFileOrStdin f
     -- <- T.readFile f  -- or without line ending translation, for testing
   j <- readJournal iopts' (Just f) h
@@ -331,7 +331,7 @@ readJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
 readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
   let iopts' = iopts{_defer=True}
   (j, latestdatesforfiles) <-
-    traceOrLogAt 6 ("readJournalFiles: "++show prefixedfiles) $
+    dbg6Msg ("readJournalFiles: "++show prefixedfiles) $
     readJournalFilesAndLatestDates iopts' prefixedfiles
   when strict_ $ liftEither $ journalStrictChecks j
   when (new_ && new_save_) $ liftIO $ saveLatestDatesForFiles latestdatesforfiles

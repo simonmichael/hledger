@@ -107,13 +107,13 @@ getConf rawopts = do
   -- As in Cli.hs, conf debug output always goes to stderr;
   -- that's ok as conf is a hledger cli feature for now.
   case confFileSpecFromRawOpts rawopts of
-    NoConfFile     -> return $ Right $ traceAt 1 "ignoring config files" (nullconf, Nothing)
+    NoConfFile     -> return $ Right $ dbg1Msg "ignoring config files" (nullconf, Nothing)
     SomeConfFile f -> getCurrentDirectory >>= flip expandPath f >>= readConfFile . dbg1 "using specified config file"
     AutoConfFile   -> do
       fs <- confFiles
       case fs of
         f:_ -> dbg8IO "found config files" fs >> dbg1IO "using nearest config file" f >> readConfFile f
-        []  -> return $ Right $ traceAt 1 "no config file found" (nullconf, Nothing)
+        []  -> return $ Right $ dbg1Msg "no config file found" (nullconf, Nothing)
 
 -- | Like getConf but throws an error on failure.
 getConf' :: RawOpts -> IO (Conf, Maybe FilePath)

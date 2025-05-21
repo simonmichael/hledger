@@ -125,16 +125,16 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
         -- want to keep prices around, so we can toggle between cost and no cost quickly. We can use
         -- the show_costs_ flag to be efficient when we can, and detailed when we have to.
           (if show_costs_ ropts then id else journalMapPostingAmounts mixedAmountStripCosts)
-        . traceOrLogAtWith 5 (("ts3:\n"++).pshowTransactions.jtxns)
+        . dbg5With (("ts3:\n"++).pshowTransactions.jtxns)
         -- maybe convert these transactions to cost or value
         . journalApplyValuationFromOpts rspec
-        . traceOrLogAtWith 5 (("ts2:\n"++).pshowTransactions.jtxns)
+        . dbg5With (("ts2:\n"++).pshowTransactions.jtxns)
         -- apply any cur: or amt: filters in reportq
         . (if queryIsNull amtq then id else filterJournalAmounts amtq)
         -- only consider transactions which match thisacctq (possibly excluding postings
         -- which are not real or have the wrong status)
-        . traceOrLogAt 3 ("thisacctq: "++show thisacctq)
-        $ traceOrLogAtWith 5 (("ts1:\n"++).pshowTransactions.jtxns)
+        . dbg3Msg ("thisacctq: "++show thisacctq)
+        $ dbg5With (("ts1:\n"++).pshowTransactions.jtxns)
           j{jtxns = filter (matchesTransaction thisacctq . relevantPostings) $ jtxns j}
       where
         relevantPostings
@@ -159,7 +159,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
     items =
         accountTransactionsReportItems reportq thisacctq startbal maNegate (journalAccountType j)
       -- sort by the transaction's register date, then index, for accurate starting balance
-      . traceAtWith 5 (("ts4:\n"++).pshowTransactions.map snd)
+      . dbg5With (("ts4:\n"++).pshowTransactions.map snd)
       . sortBy (comparing (Down . fst) <> comparing (Down . tindex . snd))
       . map (\t -> (transactionRegisterDate wd reportq thisacctq t, t))
       . map (if invert_ ropts then (\t -> t{tpostings = map postingNegateMainAmount $ tpostings t}) else id)

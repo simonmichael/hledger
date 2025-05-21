@@ -97,7 +97,7 @@ journalPriceOracle infer Journal{jpricedirectives, jinferredmarketprices} =
     declaredprices = map priceDirectiveToMarketPrice jpricedirectives
     inferredprices =
       (if infer then jinferredmarketprices else [])
-      & traceOrLogAt 2 ("use prices inferred from costs? " <> if infer then "yes" else "no")
+      & dbg2Msg ("use prices inferred from costs? " <> if infer then "yes" else "no")
     makepricegraph = memo $ makePriceGraph declaredprices inferredprices
   in
     memo $ uncurry3 $ priceLookup makepricegraph
@@ -264,7 +264,7 @@ priceLookup makepricegraph d from mto =
               ,pgEdgesRev=allprices
               ,pgDefaultValuationCommodities=defaultdests
               } =
-      traceOrLogAt 1 ("valuation date: "++show d) $ makepricegraph d
+      dbg1Msg ("valuation date: "++show d) $ makepricegraph d
     mto' = mto <|> mdefaultto
       where
         mdefaultto = dbg1 ("default valuation commodity for "++T.unpack from) $
@@ -279,12 +279,12 @@ priceLookup makepricegraph d from mto =
         let
           msg = printf "seeking %s to %s price" (showCommoditySymbol from) (showCommoditySymbol to)
           prices =
-            (traceOrLogAt 2 (msg++" using forward prices") $
-             traceOrLogAt 2 ("forward prices:\n" <> showMarketPrices forwardprices) $
+            (dbg2Msg (msg++" using forward prices") $
+             dbg2Msg ("forward prices:\n" <> showMarketPrices forwardprices) $
              pricesShortestPath from to forwardprices)
             <|>
-            (traceOrLogAt 2 (msg++" using forward and reverse prices") $
-             traceOrLogAt 2 ("forward and reverse prices:\n" <> showMarketPrices allprices) $
+            (dbg2Msg (msg++" using forward and reverse prices") $
+             dbg2Msg ("forward and reverse prices:\n" <> showMarketPrices allprices) $
              pricesShortestPath from to $ dbg5 "all forward and reverse prices" allprices)
         in case prices of
           Nothing -> Nothing
@@ -375,13 +375,8 @@ pricesShortestPath start end edges =
       case concatMap extend paths of
         [] -> Nothing 
         _ | pathlength > maxpathlength -> 
-          -- XXX This is unusual:
-          -- 1. A warning, not an error, which we usually avoid
-          -- 2. Not a debug message (when triggered, we always print it)
-          -- 3. Printed either to stdout or (eg in hledger-ui) to the debug log file.
-          -- This is the only place we use traceOrLog like this.
-          -- Also before 1.32.2, traceOrLog was doing the opposite of what it should [#2134].
-          traceOrLog ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
+          -- Print a non-fatal warning to stderr, something we usually avoid.
+          warn ("gave up searching for a price chain at length "++show maxpathlength++", please report a bug")
           Nothing
           where 
             pathlength = 2 + maybe 0 (length . fst) (headMay paths)

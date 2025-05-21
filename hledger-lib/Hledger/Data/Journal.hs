@@ -311,7 +311,7 @@ journalRenumberAccountDeclarations j = j{jdeclaredaccounts=jdas'}
 -- (at debug level 5+).
 dbgJournalAcctDeclOrder :: String -> Journal -> Journal
 dbgJournalAcctDeclOrder prefix =
-  traceOrLogAtWith 5 ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
+  dbg5With ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
   where
     showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
     showAcctDeclsSummary adis

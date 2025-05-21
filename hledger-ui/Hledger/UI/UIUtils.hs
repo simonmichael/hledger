@@ -451,15 +451,15 @@ listScrollPushingSelection name listheight scrollamt = do
 -- logs the string to hledger-ui.log before returning the second argument.
 -- Uses unsafePerformIO.
 dbgui :: String -> a -> a
-dbgui = traceLogAt 1
+dbgui = dbg1Msg
 
 -- | Like dbgui, but convenient to use in IO.
 dbguiIO :: String -> IO ()
-dbguiIO = traceLogAtIO 1
+dbguiIO = dbg1MsgIO
 
 -- | Like dbgui, but convenient to use in EventM handlers.
 dbguiEv :: String -> EventM Name s ()
-dbguiEv s = dbgui s $ return ()
+dbguiEv s = dbg1Msg s $ return ()
 
 -- | Like dbguiEv, but log a compact view of the current screen stack.
 -- See showScreenStack.

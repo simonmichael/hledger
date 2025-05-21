@@ -386,7 +386,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)          -- With --infer-equity, infer equity postings from costs where possible
       <&> dbg9With (lbl "amounts after equity-inferring".showJournalAmountsDebug)
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
-      -- <&> traceOrLogAt 6 fname  -- debug logging
+      -- <&> dbg6Msg fname  -- debug logging
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
       <&> journalRenumberAccountDeclarations
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")

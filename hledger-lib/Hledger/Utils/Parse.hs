@@ -47,7 +47,6 @@ module Hledger.Utils.Parse (
 
   -- ** Trace the state of hledger parsers
   dbgparse,
-  traceOrLogParse,
 
   -- * More helpers, previously in Text.Megaparsec.Custom
 
@@ -111,7 +110,7 @@ import qualified Data.List.NonEmpty as NE
 import Data.Monoid (Alt(..))
 import qualified Data.Set as S
 
-import Hledger.Utils.Debug (debugLevel, traceOrLog)
+import Hledger.Utils.Debug (debugLevel, dbg0Msg)
 
 -- | A parser of string to some type.
 type SimpleStringParser a = Parsec HledgerParseErrorData String a
@@ -128,23 +127,17 @@ type TextParser m a = ParsecT HledgerParseErrorData Text m a
 -- | Trace to stderr or log to debug log the provided label (if non-null)
 -- and current parser state (position and next input),
 -- if the global debug level is at or above the specified level.
--- Uses unsafePerformIO.
-dbgparse :: Int -> String -> TextParser m ()
-dbgparse level msg = when (level <= debugLevel) $ traceOrLogParse msg
-
--- | Trace to stderr or log to debug log the provided label (if non-null)
--- and current parser state (position and next input).
 -- See also: Hledger.Utils.Debug, megaparsec's dbg.
 -- Uses unsafePerformIO.
 -- XXX Can be hard to make this evaluate.
-traceOrLogParse :: String -> TextParser m ()
-traceOrLogParse msg = do
+dbgparse :: Int -> String -> TextParser m ()
+dbgparse level msg = when (level <= debugLevel) $ do
   pos <- getSourcePos
   next <- (T.take peeklength) `fmap` getInput
   let (l,c) = (sourceLine pos, sourceColumn pos)
       s  = printf "at line %2d col %2d: %s" (unPos l) (unPos c) (show next) :: String
       s' = printf ("%-"++show (peeklength+30)++"s") s ++ " " ++ msg
-  traceOrLog s' $ return ()
+  dbg0Msg s' $ return ()
   where
     peeklength = 30
 
