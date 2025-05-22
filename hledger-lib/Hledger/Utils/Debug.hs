@@ -1,6 +1,6 @@
 {- | 
 
-Here are fancier versions of Debug.Trace, with these features:
+Here are fancier helpers built on Debug.Trace, with these features:
 
 - short, memorable, greppable function names
 - pretty-printing of haskell values, using pretty-simple
@@ -10,15 +10,15 @@ Here are fancier versions of Debug.Trace, with these features:
 - --debug detected with unsafePerformIO for easy use in pure/IO/startup code
 - debug output can be logged instead (for TUI apps)
 
-The "dbgN*" functions are intended to be the most convenient API, to be embedded
-at points of interest in your code. They combine the conditional output of "At",
-the conditional logging of "OrLog", pretty printing, and short searchable function names.
+The "dbg*" functions can be inserted temporarily at points of interest in your code
+while debugging; or embedded there permanently, to be activated by --debug [N] on the command line.
+They are intended to be relatively easy to remember, search for, and use.
 
-Parsing the command line, detecting program name, and file logging is done with unsafePerformIO.
-If you are working in GHCI, changing the debug level requires editing and reloading this file
-(sometimes it's more convenient to add a dbg0 temporarily).
+Parsing the command line, detecting the program name, and logging is done with unsafePerformIO,
+allowing these helpers to be used anywhere, eg before command line parsing or in pure code.
+If you are working in GHCI and want to change the debug level, you'll need to reload this module.
 
-In hledger, debug levels are used as follows:
+The meaning of debug levels is up to you. Eg hledger uses them as follows:
 
 @
 Debug level:  What to show:
@@ -35,22 +35,7 @@ Debug level:  What to show:
 9             any other rarely needed / more in-depth info
 @
 
-We don't yet have the ability to select debug output by topic. For now, here
-are some standardish topic strings to search for in hledger debug messages:
-
-acct
-arg
-budget
-calc
-csv
-journalFinalise
-multiBalanceReport
-opts
-precision
-price
-q
-style
-val
+It's not yet possible to select debug output by topic; that would be useful.
 
 -}
 
