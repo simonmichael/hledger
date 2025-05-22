@@ -78,7 +78,7 @@ selectNeg = yellow8 `on` red8 & reverseVideo -- & bold
 themesList :: [(String, AttrMap)]
 themesList = [
    -- the default theme, "light", defined in terms of the 240-color palette
-   ("default", attrMap (black8 `on` white8) [
+   ("light", attrMap (black8 `on` white8) [
       (attrName "border"                                                                   , white8 `on` black8 & dim)
     , (attrName "border" <> attrName "bold"                                                , currentAttr & bold)
     , (attrName "border" <> attrName "depth"                                               , active8)
