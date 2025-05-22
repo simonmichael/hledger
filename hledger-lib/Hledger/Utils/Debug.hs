@@ -1,30 +1,72 @@
 {- | 
 
-Here are fancier helpers built on Debug.Trace, with these features:
+Here are debug tracing/logging helpers built on Debug.Trace, extracted from the hledger project.
+Features:
 
-- short, memorable, greppable function names
-- pretty-printing of haskell values, using pretty-simple
-- optional ANSI colour
-- enabling/disabling debug output with --debug
-- debug output levels from 1 to 9, selected by --debug N option
-- --debug detected with unsafePerformIO for easy use in pure/IO/startup code
-- debug output can be logged instead (for TUI apps)
+- they can be built in to your program permanently, and activated by a --debug [LEVEL] option
+- they can optionally log to a file instead of stderr (for TUI apps)
+- they can be used in IO, pure, or startup code
+- values are printed with a label, and pretty-printed (using pretty-simple)
+- ANSI colour is used when appropriate.
 
-The "dbg*" functions can be inserted temporarily at points of interest in your code
-while debugging; or embedded there permanently, to be activated by --debug [N] on the command line.
-They are intended to be relatively easy to remember, search for, and use.
+Insert these @dbg*@ helpers at points of interest in your code,
+either temporarily while debugging,
+or permanently in production code, and activate them with @--debug [1-9]@ on the command line
+(@--debug@ with no value means level 1).
+For example, this expression:
 
-Parsing the command line, detecting the program name, and logging is done with unsafePerformIO,
-allowing these helpers to be used anywhere, eg before command line parsing or in pure code.
-If you are working in GHCI and want to change the debug level, you'll need to reload this module.
+> dbg4 "foo" foo
+
+will pretty-print foo with a "foo:" label when it is evaluated, but only if --debug's value is 4 or greater.
+In other words: use dbg1 for the most useful debug output, dbg9 for the most specialised/verbose.
+
+They are intended to be easy to use and to find in your code, with a consistent naming scheme:
+
+> dbg<LEVEL>Msg   STR    VAL  -- trace/log a string in pure code
+> dbg<LEVEL>MsgIO STR         -- trace/log a string in IO
+>
+> dbg<LEVEL>      STR    VAL  -- trace/log a showable value in pure code
+> dbg<LEVEL>IO    STR    VAL  -- trace/log a showable value in IO
+>
+> dbg<LEVEL>With  SHOWFN VAL  -- trace/log any value
+
+Or if you prefer you can ignore the numbered variants and write an extra argument:
+
+> dbgMsg   LEVEL  STR    VAL
+> dbgMsgIO LEVEL  STR
+>
+> dbg      LEVEL  STR    VAL
+> dbgIO    LEVEL  STR    VAL
+>
+> dbgWith  LEVEL  SHOWFN VAL
+
+Haskell values will be pretty-printed by default, using pretty-simple.
+
+ANSI color will also be used if appropriate,
+respecting output capabilities, @NO_COLOR@, and/or a @--color [YNA]@ (or @--colour@) command line option.
+
+These helpers normally print output on stderr, but can automatically log to a file instead,
+which can be useful for TUI apps which are redrawing the screen.
+To enable this logging mode, use @withProgName@ to add a ".log" suffix to the program name:
+
+> main = withProgName "PROGRAM.log" $ do ...
+
+Now all dbg calls will log to @PROGRAM.log@ in the current directory.
+
+Logging, and reading the command line\/program name\/output context use unsafePerformIO,
+so that these can be used anywhere, including early in your program before command line parsing is complete.
+As a consequence, if you are testing in GHCI and want to change the debug level, you'll need to reload this module.
+
+The @dbg@ function name clashes with the one in Text.Megaparsec.Debug, unfortunately; sorry about that.
+If you are also using that, use qualified imports, or our @dbg_@ alias, to avoid the clash.
 
 The meaning of debug levels is up to you. Eg hledger uses them as follows:
 
 @
 Debug level:  What to show:
 ------------  ---------------------------------------------------------
-0             normal command output only (no warnings, eg)
-1             useful warnings, most common troubleshooting info (config file args, valuation..)
+0             normal program output only
+1             useful warnings, most common troubleshooting info
 2             common troubleshooting info, more detail
 3             report options selection
 4             report generation
@@ -49,53 +91,46 @@ It's not yet possible to select debug output by topic; that would be useful.
 -- http://hackage.haskell.org/packages/archive/traced/2009.7.20/doc/html/Debug-Traced.html
 -- https://hackage.haskell.org/package/debug
 
+-- internal helpers, currently not exported:
+
+-- * Tracing to stderr
+-- These print to stderr.
+-- This output will be interleaved with the program's normal output,
+-- which can be helpful for understanding code execution.
+--
+-- ,traceWith
+-- ,traceAt
+-- ,traceAtWith
+-- ,ptrace
+-- ,ptraceAt
+-- ,ptraceAtIO
+
+-- * Logging to a log file
+-- These append to a PROGRAM.log file in the current directory.
+-- PROGRAM is normally the name of the executable, but it can change
+-- eg when running in GHCI. So when using these, you should call
+-- @withProgName@ to ensure a stable program name.
+-- Eg: @main = withProgName "PROGRAM" $ do ...@.
+--
+-- ,log'
+-- ,logAt
+-- ,logIO
+-- ,logAtIO
+-- ,logWith
+-- ,logAtWith
+-- ,plogAt
+-- ,plogAtIO
+
 {-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
 module Hledger.Utils.Debug (
 
-  -- * The program's debug level, from 0 (least debug output) to 9 (most).
-  -- This is parsed from a command line --debug N option, or --debug meaning 1.
+  -- * Debug level
+  -- | This is parsed from a command line --debug N option, or --debug meaning 1.
   -- The command line is read (once) by unsafePerformIO, allowing this to be used
   -- easily anywhere in your program.
   debugLevel
-
-  -- * Tracing to stderr
-  -- These print to stderr.
-  -- This output will be interleaved with the program's normal output,
-  -- which can be helpful for understanding code execution.
-  --
-  -- ,traceWith
-  -- ,traceAt
-  -- ,traceAtWith
-  -- ,ptrace
-  -- ,ptraceAt
-  -- ,ptraceAtIO
-
-  -- * Logging to a log file
-  -- These append to a PROGRAM.log file in the current directory.
-  -- PROGRAM is normally the name of the executable, but it can change
-  -- eg when running in GHCI. So when using these, you should call
-  -- @withProgName@ to ensure a stable program name.
-  -- Eg: @main = withProgName "PROGRAM" $ do ...@.
-  --
-  -- ,log'
-  -- ,logAt
-  -- ,logIO
-  -- ,logAtIO
-  -- ,logWith
-  -- ,logAtWith
-  -- ,plogAt
-  -- ,plogAtIO
-
-  -- All @dbg*@ functions normally trace to stderr,
-  -- but they will log to PROGRAM.log instead if the (internal) program name ends with ".log".
-  -- Eg: @main = withProgName "PROGRAM.log" $ do ...@.
-  -- This is intended for TUI programs where stderr output is hard to see.
-  --
-  -- They have an effect only when the program's debug level is at or above the
-  -- level specified by an argument or by the function name.
-  -- The many variants follow a consistent pattern and aim to reduce typing and cognitive load.
 
   -- * Trace/log a string
   ,dbgMsg
@@ -110,7 +145,7 @@ module Hledger.Utils.Debug (
   ,dbg8Msg
   ,dbg9Msg
 
-  -- * In IO
+  -- * Trace/log a string in IO
   ,dbgMsgIO
   ,dbg0MsgIO
   ,dbg1MsgIO
@@ -123,10 +158,9 @@ module Hledger.Utils.Debug (
   ,dbg8MsgIO
   ,dbg9MsgIO
 
-  -- * Trace/log a showable value, pretty-printed
-  -- @dbg@ here clashes with Text.Megaparsec.Debug (dbg), so that module or this one
-  -- should be imported qualified if you are using both.
+  -- * Trace/log a value
   ,dbg
+  ,dbg_
   ,dbg0
   ,dbg1
   ,dbg2
@@ -138,7 +172,7 @@ module Hledger.Utils.Debug (
   ,dbg8
   ,dbg9
 
-  -- * In IO
+  -- * Trace/log a value in IO
   ,dbgIO
   ,dbg0IO
   ,dbg1IO
@@ -151,7 +185,7 @@ module Hledger.Utils.Debug (
   ,dbg8IO
   ,dbg9IO
 
-  -- * With a custom show function
+  -- * Trace/log a value with a show function
   ,dbgWith
   ,dbg0With
   ,dbg1With
@@ -164,18 +198,18 @@ module Hledger.Utils.Debug (
   ,dbg8With
   ,dbg9With
 
-  -- * Utilities, ghc-debug
+  -- * Utilities
+  ,lbl_
+  ,progName
+
+  -- * ghc-debug helpers
   ,ghcDebugSupportedInLib
   ,GhcDebugMode(..)
   ,ghcDebugMode
   ,withGhcDebug'
   ,ghcDebugPause'
 
-  -- * Utilities, other
-  ,lbl_
-  ,progName
-
-  -- * Re-exports
+  -- * Re-exports: Debug.Trace
   -- ,module Debug.Breakpoint
   ,module Debug.Trace
 
@@ -196,6 +230,7 @@ import System.Environment (getProgName)
 import System.IO.Unsafe (unsafePerformIO)
 
 import Hledger.Utils.IO (progArgs, pshow, pshow')
+
 
 -- | The program name as returned by @getProgName@.
 -- It's best to set this explicitly at program startup with @withProgName@,
@@ -225,69 +260,6 @@ debugLevel = case dropWhile (/="--debug") progArgs of
                  case take 1 $ filter ("--debug" `isPrefixOf`) progArgs of
                    ['-':'-':'d':'e':'b':'u':'g':'=':v] -> readDef 1 v
                    _                                   -> 0
-
--- | Whether ghc-debug support is included in this build, and if so, how it will behave.
--- When hledger is built with the @ghcdebug@ cabal flag (off by default, because of extra deps),
--- it can listen (on unix ?) for connections from ghc-debug clients like ghc-debug-brick,
--- for pausing/resuming the program and inspecting memory usage and profile information.
---
--- With a ghc-debug-supporting build, ghc-debug can be enabled by running hledger with
--- a negative --debug level. There are three different modes:
--- --debug=-1 - run normally (can be paused/resumed by a ghc-debug client),
--- --debug=-2 - pause and await client commands at program start (not useful currently),
--- --debug=-3 - pause and await client commands at program end.
-data GhcDebugMode =
-    GDNotSupported
-  | GDDisabled
-  | GDNoPause
-  | GDPauseAtStart
-  | GDPauseAtEnd
-  -- keep synced with ghcDebugMode
-  deriving (Eq,Ord,Show)
-
--- | Is the hledger-lib package built with ghc-debug support ?
-ghcDebugSupportedInLib :: Bool
-ghcDebugSupportedInLib =
-#ifdef GHCDEBUG
-  True
-#else
-  False
-#endif
-
--- | Should the program open a socket allowing control by ghc-debug-brick or similar ghc-debug client ?
--- See GhcDebugMode.
-ghcDebugMode :: GhcDebugMode
-ghcDebugMode =
-#ifdef GHCDEBUG
-  case debugLevel of
-    _ | not ghcDebugSupportedInLib -> GDNotSupported
-    (-1) -> GDNoPause
-    (-2) -> GDPauseAtStart
-    (-3) -> GDPauseAtEnd
-    _    -> GDDisabled
-    -- keep synced with GhcDebugMode
-#else
-  GDNotSupported
-#endif
-
--- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
--- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.
-withGhcDebug' =
-#ifdef GHCDEBUG
-  if ghcDebugMode > GDDisabled then withGhcDebug else id
-#else
-  id
-#endif
-
--- | When ghc-debug support has been built into the program, this calls ghc-debug's pause, otherwise it's a no-op.
-ghcDebugPause' :: IO ()
-ghcDebugPause' =
-#ifdef GHCDEBUG
-  pause
-#else
-  return ()
-#endif
-
 
 -- | Trace (print to stderr) a string if the program debug level is at
 -- or above the specified level. At level 0, always prints. Otherwise,
@@ -484,9 +456,12 @@ dbg9MsgIO = dbgMsgIO 9
 -- | Trace or log a label and showable value, pretty-printed,
 -- if the program debug level is at or above the specified level;
 -- then return the value.
--- Traces to stderr or logs to a file depending on shouldLog.
 dbg :: (Show a) => Int -> String -> a -> a
 dbg = if shouldLog then plogAt else ptraceAt
+
+-- | Alias for dbg, can be used to avoid namespace clashes.
+dbg_ :: (Show a) => Int -> String -> a -> a
+dbg_ = dbg
 
 dbg0 :: Show a => String -> a -> a
 dbg0 = dbg 0
@@ -554,50 +529,53 @@ dbg9IO :: (MonadIO m, Show a) => String -> a -> m ()
 dbg9IO = dbgIO 9
 
 
--- | Like dbgWith, but with a custom show function.
+-- | Like dbg, but with a custom show function.
 dbgWith :: Int -> (a -> String) -> a -> a
 dbgWith = if shouldLog then logAtWith else traceAtWith
 
--- | Like dbgN, but taking a show function instead of a label.
 dbg0With :: (a -> String) -> a -> a
 dbg0With = dbgWith 0
 
-dbg1With :: Show a => (a -> String) -> a -> a
+dbg1With :: (a -> String) -> a -> a
 dbg1With = dbgWith 1
 
-dbg2With :: Show a => (a -> String) -> a -> a
+dbg2With :: (a -> String) -> a -> a
 dbg2With = dbgWith 2
 
-dbg3With :: Show a => (a -> String) -> a -> a
+dbg3With :: (a -> String) -> a -> a
 dbg3With = dbgWith 3
 
-dbg4With :: Show a => (a -> String) -> a -> a
+dbg4With :: (a -> String) -> a -> a
 dbg4With = dbgWith 4
 
-dbg5With :: Show a => (a -> String) -> a -> a
+dbg5With :: (a -> String) -> a -> a
 dbg5With = dbgWith 5
 
-dbg6With :: Show a => (a -> String) -> a -> a
+dbg6With :: (a -> String) -> a -> a
 dbg6With = dbgWith 6
 
-dbg7With :: Show a => (a -> String) -> a -> a
+dbg7With :: (a -> String) -> a -> a
 dbg7With = dbgWith 7
 
-dbg8With :: Show a => (a -> String) -> a -> a
+dbg8With :: (a -> String) -> a -> a
 dbg8With = dbgWith 8
 
-dbg9With :: Show a => (a -> String) -> a -> a
+dbg9With :: (a -> String) -> a -> a
 dbg9With = dbgWith 9
 
 -- | Helper for producing debug messages:
 -- concatenates a name (eg a function name),
 -- short description of the value being logged,
 -- and string representation of the value.
+--
+-- Eg: @let lbl = lbl_ "print"@,
+-- @dbg1With (lbl "part 1".show) ...@.
+--
 lbl_ :: String -> String -> String -> String
 lbl_ name desc val = name <> ": " <> desc <> ":" <> " " <> val
 
 -- XXX the resulting function is constrained to only one value type
--- -- | A new helper for defining a local "dbg" function.
+-- -- | A helper for defining a local "dbg" function.
 -- -- Given a debug level and a topic string (eg, a function name),
 -- -- it generates a function which takes
 -- -- - a description string,
@@ -606,8 +584,71 @@ lbl_ name desc val = name <> ": " <> desc <> ":" <> " " <> val
 -- -- debug-logs the topic, description and result of calling the show function on the value,
 -- -- formatted nicely, at the specified debug level or above,
 -- -- then returns the value.
--- dbg_ :: forall a. Show a => Int -> String -> (String -> (a -> String) -> a -> a)
+-- dbg_ :: forall a. Int -> String -> (String -> (a -> String) -> a -> a)
 -- dbg_ level topic =
 --   \desc showfn val ->
 --     dbgWith level (lbl_ topic desc . showfn) val
 -- {-# HLINT ignore "Redundant lambda" #-}
+
+
+-- | Whether ghc-debug support is included in this build, and if so, how it will behave.
+-- When hledger is built with the @ghcdebug@ cabal flag (off by default, because of extra deps),
+-- it can listen (on unix ?) for connections from ghc-debug clients like ghc-debug-brick,
+-- for pausing/resuming the program and inspecting memory usage and profile information.
+--
+-- With a ghc-debug-supporting build, ghc-debug can be enabled by running hledger with
+-- a negative --debug level. There are three different modes:
+-- --debug=-1 - run normally (can be paused/resumed by a ghc-debug client),
+-- --debug=-2 - pause and await client commands at program start (not useful currently),
+-- --debug=-3 - pause and await client commands at program end.
+data GhcDebugMode =
+    GDNotSupported
+  | GDDisabled
+  | GDNoPause
+  | GDPauseAtStart
+  | GDPauseAtEnd
+  -- keep synced with ghcDebugMode
+  deriving (Eq,Ord,Show)
+
+-- | Is the hledger-lib package built with ghc-debug support ?
+ghcDebugSupportedInLib :: Bool
+ghcDebugSupportedInLib =
+#ifdef GHCDEBUG
+  True
+#else
+  False
+#endif
+
+-- | Should the program open a socket allowing control by ghc-debug-brick or similar ghc-debug client ?
+-- See GhcDebugMode.
+ghcDebugMode :: GhcDebugMode
+ghcDebugMode =
+#ifdef GHCDEBUG
+  case debugLevel of
+    _ | not ghcDebugSupportedInLib -> GDNotSupported
+    (-1) -> GDNoPause
+    (-2) -> GDPauseAtStart
+    (-3) -> GDPauseAtEnd
+    _    -> GDDisabled
+    -- keep synced with GhcDebugMode
+#else
+  GDNotSupported
+#endif
+
+-- | When ghc-debug support has been built into the program and enabled at runtime with --debug=-N,
+-- this calls ghc-debug's withGhcDebug; otherwise it's a no-op.
+withGhcDebug' =
+#ifdef GHCDEBUG
+  if ghcDebugMode > GDDisabled then withGhcDebug else id
+#else
+  id
+#endif
+
+-- | When ghc-debug support has been built into the program, this calls ghc-debug's pause, otherwise it's a no-op.
+ghcDebugPause' :: IO ()
+ghcDebugPause' =
+#ifdef GHCDEBUG
+  pause
+#else
+  return ()
+#endif
