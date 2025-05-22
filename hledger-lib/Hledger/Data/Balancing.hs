@@ -154,7 +154,7 @@ checkAssertions :: BalancingOpts -> Journal -> Transaction -> Either String Tran
 checkAssertions bopts j t =
   if (ignore_assertions_ bopts) || noassertions t then Right t else do
     j' <- journalStyleAmounts j 
-    fmap (\_ -> t) $ journalBalanceTransactions defbalancingopts j'{jtxns = (t : (jtxns j')) }
+    fmap (\_ -> t) $ journalBalanceTransactions defbalancingopts j'{jtxns = jtxns j' ++ [ t ] }
   where
     noassertions = all (isNothing . pbalanceassertion) . tpostings
 
@@ -1082,6 +1082,32 @@ tests_Balancing =
               ,transaction (fromGregorian 2019 01 01) [ vpost' "a" (num 1)    (balassert (num 1)) ]
             ]}
 
+    ]
+
+    ,testGroup "checkAssertions" $ [
+      testCase "simple assertion on same day" $ do 
+        assertRight $ 
+          checkAssertions defbalancingopts nulljournal{ jtxns = [
+            transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) Nothing ]
+            ] } (transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) (balassert (usd 2)) ])
+
+      ,testCase "inclusive assertions" $ do 
+        assertRight $ 
+          checkAssertions defbalancingopts nulljournal{ jtxns = [
+            transaction (fromGregorian 2025 01 01) [ vpost' "a:a" (usd 1) Nothing ] 
+            ,transaction (fromGregorian 2025 01 02) [ vpost' "a:b" (usd 2) Nothing]
+            ,transaction (fromGregorian 2025 01 02) [ vpost' "a:c" (usd 5) Nothing]
+            ,transaction (fromGregorian 2025 01 03) [ vpost' "a:d" (eur 10) Nothing]
+            ] } (transaction (fromGregorian 2025 01 04) [ vpost' "a" (usd 2) (balassertParInc (usd 10))])
+
+      ,testCase "multicommodity assertion" $ do 
+        assertRight $ 
+          checkAssertions defbalancingopts nulljournal{ jtxns = [
+            transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) Nothing ] 
+            ,transaction (fromGregorian 2025 01 02) [ vpost' "a:b" (eur 2) Nothing ]
+            ,transaction (fromGregorian 2025 01 02) [ vpost' "a:c" (usd 5) Nothing ]
+            ,transaction (fromGregorian 2025 01 03) [ vpost' "a:b" (eur (-2)) Nothing ]
+            ] } (transaction (fromGregorian 2025 01 03) [ vpost' "a" (usd 2) (balassertTotInc (usd 8)) ])
     ]
 
     ,testGroup "commodityStylesFromAmounts" $ [
