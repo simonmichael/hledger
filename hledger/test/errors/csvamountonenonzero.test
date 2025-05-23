@@ -1,6 +1,6 @@
 $$$ hledger check -f  csvamountonenonzero.csv
 >>>2 /Error: in CSV rules:
-While processing CSV record: "2022-01-03","1","2"
+While processing record: 2022-01-03,1,2
 while calculating amount for posting 1
 rule "amount-in %2" assigned value "1"
 rule "amount-out %3" assigned value "2"

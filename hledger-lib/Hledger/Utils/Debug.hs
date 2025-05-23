@@ -127,9 +127,6 @@ It's not yet possible to select debug output by topic; that would be useful.
 module Hledger.Utils.Debug (
 
   -- * Debug level
-  -- | This is parsed from a command line --debug N option, or --debug meaning 1.
-  -- The command line is read (once) by unsafePerformIO, allowing this to be used
-  -- easily anywhere in your program.
   debugLevel
 
   -- * Trace/log a string
@@ -248,9 +245,11 @@ progName =
   then reverse $ drop 4 $ reverse modifiedProgName
   else modifiedProgName
 
--- | The programs debug output verbosity. The default is 0 meaning no debug output.
--- The @--debug@ command line flag sets it to 1, or @--debug=N@ sets it to
--- a higher value (the = is required). Uses unsafePerformIO. 
+-- | The program's debug output verbosity, from 0 to 9.
+-- The default is 0 meaning no debug output.
+-- This can be overridden by running the program with a --debug [1-9] command line option;
+-- a --debug flag with no value means 1.
+-- Uses unsafePerformIO to read the command line.
 -- When running in GHCI, changing this requires reloading this module.
 debugLevel :: Int
 debugLevel = case dropWhile (/="--debug") progArgs of

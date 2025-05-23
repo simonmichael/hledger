@@ -86,6 +86,7 @@ import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp,
 import Hledger.Write.Csv
 import System.Directory (doesFileExist, getHomeDirectory)
 import Data.Either (fromRight)
+import Control.DeepSeq (deepseq)
 
 --- ** doctest setup
 -- $setup
@@ -178,7 +179,8 @@ readRulesFile f =
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
 -- Included file paths may be relative to the directory of the provided file path.
--- This is done as a pre-parse step to simplify the CSV rules parser.
+-- Unlike with journal files, this is done as a pre-parse step to simplify the CSV rules parser.
+-- Unfortunately this means that the parser won't see accurate file paths and positions with included files.
 expandIncludes :: FilePath -> Text -> IO Text
 expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unlines
   where
@@ -315,10 +317,15 @@ type DateFormat       = Text
 -- interpreted or combined with other matchers.
 data MatcherPrefix =
     Or      -- ^ no prefix
-  | And     -- ^ &
+  | And     -- ^ &&
   | Not     -- ^ !
-  | AndNot  -- ^ & !
+  | AndNot  -- ^ && !
   deriving (Show, Eq)
+
+dbgShowMatcherPrefix Or = ""
+dbgShowMatcherPrefix And = "&&"
+dbgShowMatcherPrefix Not = "&&"
+dbgShowMatcherPrefix AndNot = "&& !"
 
 -- | A single test for matching a CSV record, in one way or another.
 data Matcher =
@@ -334,6 +341,11 @@ matcherSetPrefix :: MatcherPrefix -> Matcher -> Matcher
 matcherSetPrefix p (RecordMatcher _ r)  = RecordMatcher p r
 matcherSetPrefix p (FieldMatcher _ f r) = FieldMatcher p f r
 
+dbgShowMatcher (RecordMatcher Or r)  = show $ reString r
+dbgShowMatcher (RecordMatcher p r)  = unwords [dbgShowMatcherPrefix p, show $ reString r]
+dbgShowMatcher (FieldMatcher Or f r) = unwords [T.unpack f, show $ reString r]
+dbgShowMatcher (FieldMatcher p f r) = unwords [dbgShowMatcherPrefix p, T.unpack f, show $ reString r]
+
 -- | A conditional block: a set of CSV record matchers, and a sequence
 -- of rules which will be enabled only if one or more of the matchers
 -- succeeds.
@@ -345,6 +357,9 @@ data ConditionalBlock = CB {
    cbMatchers    :: [Matcher]
   ,cbAssignments :: [(HledgerFieldName, FieldTemplate)]
   } deriving (Show, Eq)
+
+dbgShowConditionalBlock :: ConditionalBlock -> String
+dbgShowConditionalBlock = unwords . map dbgShowMatcher . cbMatchers
 
 defrules :: CsvRulesParsed
 defrules = CsvRules' {
@@ -784,14 +799,21 @@ getEffectiveAssignment
 getEffectiveAssignment rules record f = lastMay assignments
   where
     -- all active assignments to field f, in order
-    assignments = dbg9 "csv assignments" $ toplevelassignments ++ conditionalassignments
+    assignments = toplevelassignments ++ conditionalassignments
     -- all top level field assignments
     toplevelassignments    = map (Left . snd) $ filter ((==f).fst) $ rassignments rules
     -- all conditional blocks assigning to field f and active for the current csv record
     conditionalassignments = map Right
                            $ filter (any (==f) . map fst . cbAssignments)
+                           $ dbg'
                            $ filter (isBlockActive rules record)
                            $ (rblocksassigning rules) f
+
+    dbg' [] = []
+    dbg' ms = dbg2Msg (
+      " for the " ++ T.unpack f ++ " field, these if rules matched:"
+      ++ concatMap (("\n  " ++) . dbgShowConditionalBlock) ms
+      ) ms
 
 -- does this conditional block match the current csv record ?
 isBlockActive :: CsvRules -> CsvRecord -> ConditionalBlock -> Bool
@@ -812,7 +834,7 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
     --
     matcherMatches :: Matcher -> Bool
     matcherMatches = \case
-      RecordMatcher prefix             pat -> maybeNegate prefix $ match pat $ T.intercalate "," record
+      RecordMatcher prefix             pat -> maybeNegate prefix $ match pat $ recordAsApproximateText record
       FieldMatcher  prefix csvfieldref pat -> maybeNegate prefix $ match pat $
         fromMaybe "" $ replaceCsvFieldReference rules record csvfieldref
         -- (warn msg "") where msg = "if "<>T.unpack csvfieldref<>": this should be a name declared with 'fields', or %NUM"
@@ -834,6 +856,13 @@ isBlockActive rules record CB{..} = any (all matcherMatches) $ groupedMatchers c
       where
         (andandnots, rest) = span (\a -> matcherPrefix a `elem` [And, AndNot]) ms
         ands = [matcherSetPrefix p a | a <- andandnots, let p = if matcherPrefix a == AndNot then Not else And]
+
+-- | Convert a CSV record to text, for whole-record matching.
+-- This will be only an approximation of the original record;
+-- values will always be comma-separated,
+-- and any enclosing quotes and whitespace outside those quotes will be removed.
+recordAsApproximateText :: CsvRecord -> Text
+recordAsApproximateText = T.intercalate ","
 
 -- | Render a field assignment's template, possibly interpolating referenced
 -- CSV field values or match groups. Outer whitespace is removed from interpolated values.
@@ -877,7 +906,7 @@ regexMatchValue rules record sgroup = let
 
 getMatchGroups :: CsvRules -> CsvRecord -> Matcher -> [Text]
 getMatchGroups _ record (RecordMatcher _ regex) =
-  regexMatchTextGroups regex $ T.intercalate "," record -- see caveats in matcherMatches
+  regexMatchTextGroups regex $ recordAsApproximateText record  -- groups might be wrong
 getMatchGroups rules record (FieldMatcher _ fieldref regex) =
   regexMatchTextGroups regex $ fromMaybe "" $ replaceCsvFieldReference rules record fieldref
 
@@ -1105,8 +1134,13 @@ validateCsv rs@(_first:_) =
 --- ** converting csv records to transactions
 
 transactionFromCsvRecord :: Bool -> Maybe TimeZone -> TimeZone -> SourcePos -> CsvRules -> CsvRecord -> Transaction
-transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record = t
+transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
+  -- log the record and all the transaction fields from this record
+  -- XXX avoid possibly-pessimising deepseq if not needed for debug output ?
+  dbg2Msg (T.unpack $ showRecord record) $ deepseq t
+  t
   where
+
     ----------------------------------------------------------------------
     -- 1. Define some helpers:
 
@@ -1375,10 +1409,6 @@ showRules rules record = T.unlines $ catMaybes
   [ (("the "<>fld<>" rule is: ")<>) <$>
     hledgerField rules record fld | fld <- journalfieldnames ]
 
--- | Show a (approximate) recreation of the original CSV record.
-showRecord :: CsvRecord -> Text
-showRecord r = "CSV record: "<>T.intercalate "," (map (wrap "\"" "\"") r)
-
 -- XXX unify these ^v
 
 -- | Almost but not quite the same as parseAmount.
@@ -1401,6 +1431,10 @@ parseBalanceAmount rules record currency n s =
       -- ,"the default-currency is: "++fromMaybe "unspecified" mdefaultcurrency
       ,"the parse error is:      "<> T.pack (customErrorBundlePretty e)
       ]
+
+-- | Show the approximation of the original CSV record, labelled, for debug output.
+showRecord :: CsvRecord -> Text
+showRecord = ("record: "<>) . recordAsApproximateText
 
 -- Read a valid decimal mark from the decimal-mark rule, if any.
 -- If the rule is present with an invalid argument, raise an error.
