@@ -2,6 +2,8 @@
 /robots.txt      RobotsR         GET
 /static          StaticR         Static getStatic
 
+/openapi.json    OpenApiR        GET
+
 /                RootR           GET
 /journal         JournalR        GET
 /register        RegisterR       GET

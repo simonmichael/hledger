@@ -123,6 +123,7 @@ library:
   - Decimal >=0.5.1
   - directory >=1.2.3.0
   - extra >=1.7.11
+  - file-embed >=0.0.16.0
   - filepath
   - githash >=0.1.6.2
   - hjsmin
