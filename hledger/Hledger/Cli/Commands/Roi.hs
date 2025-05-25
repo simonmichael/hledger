@@ -25,7 +25,7 @@ import Numeric.RootFinding
 import Data.Decimal
 import qualified Data.Text as T
 import qualified Data.Text.Lazy.IO as TL
-import Safe (headDef, lastMay)
+import Safe (headDef)
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular.AsciiWide as Tab
@@ -175,7 +175,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   TL.putStrLn $ Tab.render prettyTables id id id table
 
 -- Entry for TWR computation, capturing all cashflows that are potentially accompanied by pnl change on the same day (if not, it is zero)
-data TwrEntry = TwrEntry { twrDate :: Day, twrCashflow :: Decimal, twrValueAfter :: Decimal, twrPnl :: Decimal } deriving (Eq, Show)
+data TwrPeriod = TwrPeriod { twrStartDate :: Day, twrEndDate :: Day, twrStartValue :: Decimal, twrValueBeforeCashflow :: Decimal, twrPnl :: Decimal, twrCashflow :: Decimal, twrValueAfterCashflow :: Decimal } deriving (Eq, Show)
 
 timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan begin end valueBeforeAmt valueAfterAmt cashflows pnls) = do
   let datedCashflows =
@@ -188,8 +188,8 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
         $ map (second maNegate)
         $ cashflows
 
-      valueBefore = unMix valueBeforeAmt
-      valueAfter = unMix valueAfterAmt
+      valueBefore = dbg3 ("value at the start of the interval, "++show begin) $ unMix valueBeforeAmt
+      valueAfter = dbg3 ("value at the end of the interval, "++show end) $ unMix valueAfterAmt
       
       investmentPostings = concatMap (filter (matchesPosting investmentsQuery) . realPostings) trans
 
@@ -198,60 +198,51 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
       -- filter span is (-infinity, date+1), which gives us effectively (-infinity, date]
       valueAfterDate date = unMix $ mixedAmountValue end date $ totalInvestmentPostingsTill (addDays 1 date)
 
-      -- We are dividing the period [begin, end) into subperiods on each cashflow, and then compute
-      -- the rate of return for each subperiod. For this we need to know the value of the investment
-      -- at the beginning and end of each subperiod, adjusted for cashflow.
-      -- 
-      -- Subperiods are going to be [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter]
-      -- , where v_i is the value of investment computed immediately after cashflow c_i
-      addEnd cflows =
-        case lastMay cflows of
-          Nothing -> cflows
-          Just entry ->
-            let end_ = addDays (-1) end in
-              if twrDate entry < end_ then cflows++[TwrEntry end_ 0 valueAfter (pnlOn end_)] else cflows
-
       pnlOn date = unMix $ maNegate $ sum $ map snd $ filter ((==date).fst) pnls
 
-      twrEntries =
-        dbg3 "twrEntries"
-        $ addEnd
-        $ concatMap (\(date,cashflow) ->
-                        let pnl = pnlOn date
-                            cash = unMix cashflow
-                            value_ = valueAfterDate date - pnl - cash -- valueAfterDate includes both cashflow and pnl on date, if any
-                        in
-                        -- if we had PnL postings on the same day as cashflow,
-                        -- we want to account for them separately. If pnl is positive, we apply pnl first, and if pnl was negative
-                        -- we apply cashflow first, in an attempt to avoid having negative valuations and ugly debug output (and
-                        -- computations as well)
-                        if pnl == 0 then [TwrEntry date cash (value_ + cash) 0]
-                        else if pnl > 0  
-                             then [TwrEntry date 0 (value_ + pnl)   pnl, TwrEntry date cash (value_ + cash + pnl) 0]
-                             else [TwrEntry date cash (value_ + cash) 0, TwrEntry date 0    (value_ + cash + pnl) pnl]
-                    ) datedCashflows
-
+  -- We are dividing the period [begin, end) into subperiods on each cashflow, and then compute
+  -- the rate of return for each subperiod. For this we need to know the value of the investment
+  -- at the beginning and end of each subperiod, adjusted for cashflow.
+  -- 
+  -- Subperiods are going to be [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter]
+  -- , where v_i is the value of investment computed immediately after cashflow c_i
+  --
   -- Calculate interest for each subperiod, adjusting the value at the start of the period by the cashflow
   -- For subperiods [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter], the computation is going to be
   -- 1 + twr = (v_0 - c_0)/valueBefore + (v_1 - c_1) / v_0 +  ... + valueAfter/v_n
   -- See https://en.wikipedia.org/wiki/Time-weighted_return#Time-weighted_return_compensating_for_external_flows
-  let calculateSubPeriods _ [] = []
-      calculateSubPeriods  prev (curr:rest) =
-        let adjustedEnd = twrValueAfter curr - twrCashflow curr in
-          let subPeriodReturn =
-                if twrValueAfter prev == 0 || adjustedEnd == 0
-                then 1
-                else adjustedEnd / (twrValueAfter prev)
-          in (subPeriodReturn, (prev, curr)) : calculateSubPeriods curr rest
+  let calculateSubPeriods (startDate,startValue) [] =
+        let subPeriodReturn =
+              if startValue == 0 || valueAfter == 0
+              then 0
+              else valueAfter/startValue - 1
+        in
+        [(subPeriodReturn, TwrPeriod startDate end startValue valueAfter 0 0 valueAfter)]
+      calculateSubPeriods (startDate,startValue) ((date,cashflow):rest) =
+        let (valueBeforeCashflow, valueAfterCashflow, pnl) =
+              let valueAfterPrevDay = valueAfterDate (addDays (-1) date)
+                  pnlOnDay = pnlOn date
+              in
+                -- If value was zero at the start of the period, then any PnL on cashflow date would accrue after it, not before.
+                -- If there was some value already, we can assume that PnL contributes to this period's rate
+                if startValue == 0
+                then (valueAfterPrevDay, valueAfterDate date - pnlOnDay, 0)
+                else (valueAfterPrevDay + pnl, valueAfterDate date, pnlOnDay)
+            subPeriodReturn =
+              if valueBeforeCashflow == 0 || startValue == 0
+              then 0
+              else (valueBeforeCashflow / startValue) - 1
+        in
+        (subPeriodReturn, (TwrPeriod startDate date startValue valueBeforeCashflow pnl (unMix cashflow) valueAfterCashflow)) : calculateSubPeriods (date,valueAfterCashflow) rest
 
-  let subPeriods = dbg3 "subPeriods" $ calculateSubPeriods (TwrEntry begin 0 valueBefore (pnlOn begin)) twrEntries
+  let subPeriods = dbg3 "subPeriods" $ calculateSubPeriods (begin,valueBefore) datedCashflows
 
   -- Compute overall time-weighted rate of return
   let twr =
         dbg3 "twr" $
         if subPeriods == []
         then if valueBefore == 0 then 0 else (valueAfter - valueBefore)/valueBefore
-        else (product $ map fst subPeriods) - 1
+        else foldl (\acc periodRate -> (1+acc)*(1+periodRate)-1) 0 (map fst subPeriods)
       (startYear, _, _) = toGregorian begin
       years = fromIntegral (diffDays end begin) / (if isLeapYear startYear then 366 else 365) :: Double
       periodTWR = roundTo 2 $ 100 * twr
@@ -260,24 +251,16 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
   when showCashFlow $ do
     printf "\nTWR cash flow entries and subperiod rates for period %s - %s\n" (showDate begin) (showDate (addDays (-1) end))
     let showDecimalT = T.pack . showDecimal
-    let dates = map twrDate twrEntries
-    TL.putStrLn $ Tab.render prettyTables id id id
-      (Table
-       (Tab.Group Tab.NoLine (map (Header . showDate) dates))
-       (Tab.Group Tab.SingleLine [Header "Amount", Header "PnL on this day", Header "Value afterwards" ])
-       ( [ [ showDecimalT (twrCashflow e), showDecimalT (twrPnl e), showDecimalT (twrValueAfter e) ]
-         | e <- twrEntries ]))
-    
     TL.putStr $ Tab.render prettyTables T.pack id id
       (Table
        (Tab.Group Tab.NoLine [ Header (show n) | n <-[1..length subPeriods]])
-       (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Subperiod start", Tab.Header "Subperiod end"]
-                             , Tab.Group Tab.SingleLine [Tab.Header "Value at start", Tab.Header "Cashflow", Tab.Header "PnL postings", Tab.Header "Value at end"]
-                             , Tab.Group Tab.SingleLine [Tab.Header "Subperiod return rate"]])
-       [ [ showDate (twrDate prev), showDate (twrDate curr)
-         , showDecimalT (twrValueAfter prev - twrCashflow prev), showDecimalT (twrCashflow prev), showDecimalT (twrPnl prev), showDecimalT (twrValueAfter curr - twrCashflow curr)
-         , showDecimalT rate ]
-       | (rate, (prev, curr)) <-  subPeriods
+       (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Subperiod start", Tab.Header "Cashflow date"]
+                             , Tab.Group Tab.SingleLine [Tab.Header "Value at start", Tab.Header "Value before cashflow (inc PnL)", Tab.Header "PnL on day", Tab.Header "Cashflow",  Tab.Header "Value after cashflow"]
+                             , Tab.Group Tab.SingleLine [Tab.Header "Subperiod rate, %"]])
+       [ [ showDate (twrStartDate sp), showDate (twrEndDate sp)
+         , showDecimalT (twrStartValue sp), showDecimalT (twrValueBeforeCashflow sp), showDecimalT (twrPnl sp), showDecimalT (twrCashflow sp), showDecimalT (twrValueAfterCashflow sp)
+         , showDecimalT (roundTo 2 (100*rate)) ]
+       | (rate, sp) <-  subPeriods
        ])
 
     printf "Total period TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
