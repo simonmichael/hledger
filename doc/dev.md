@@ -103,7 +103,7 @@ reverse deps:
 [hledger](https://packdeps.haskellers.com/reverse/hledger),
 [hledger-ui](https://packdeps.haskellers.com/reverse/hledger-ui),
 [hledger-web](https://packdeps.haskellers.com/reverse/hledger-web)\
-[![Hackage](https://img.shields.io/hackage/v/hledger.svg?logo=Haskell&label=Hackage&colorB=brightgreen)](https://hackage.haskell.org/package/hledger)
+[![Hackage](https://img.shields.io/hackage/v/hledger.svg?logo=Haskell&label=Hackage&colorB=brightgreen)](https://hackage.haskell.org/package/hledger)\
 \
 **Stackage:**\
 [build-constraints.yaml](https://github.com/fpco/stackage/blob/master/build-constraints.yaml)\
@@ -212,9 +212,7 @@ binary packages:
 **Old trello planning board:** <https://trello.hledger.org>\
 \
 **hledger-web demo:** <https://demo.hledger.org>\
-
-
-<!-- hledger GHCJS demo      <https://hledger.alhur.es> -->
+**hledger GHCJS demo:** <https://hledger.fiatjaf.com>, <https://github.com/fiatjaf/hledger-web> \
 
 <!--
 hledger-api demo

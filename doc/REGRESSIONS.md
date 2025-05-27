@@ -184,4 +184,4 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | **1.42** 2025-03-07      | ---                                                                              | ---
 | [#2352]                  | [Matt Gass](https://opencollective.com/hledger/expenses/242346)                  | N/A
 | [#2386]                  | Simon Michael  N/A                                                               | N/A
-| [#2389]                  | **Simaex**                                                                       | **[Simon Michael](https://opencollective.com/hledger/expenses/250298)**
+| [#2389]                  | **Simaex**                                                                       | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
