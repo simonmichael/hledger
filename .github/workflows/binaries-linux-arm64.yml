@@ -9,12 +9,25 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: ubuntu-latest
-    # container: alpine:latest
-    # Use an alpine version for which ghcup can find a native binary of the GHC version specified below,
-    # otherwise it'll download a x86_64 binary ? See eg https://downloads.haskell.org/~ghc/9.12.2/ 
-    container: alpine:3.18
+    runs-on:   ubuntu-24.04-arm
+    # container: arm64v8/alpine:3.18
+    # https://github.com/actions/runner/issues/801#issuecomment-2394425757
+    container:
+      image: arm64v8/alpine:3.18
+      volumes:
+        - /:/host  # Jailbreak!
     steps:
+
+    - name: Patch native Alpine NodeJS into Runner environment
+      if: runner.os == 'Linux'
+      run: |
+        apk add nodejs
+        sed -i "s:ID=alpine:ID=NotpineForGHA:" /etc/os-release
+        cd /host/home/runner/runners/*/externals/
+        rm -rf node20/*
+        mkdir node20/bin
+        ln -s /usr/bin/node node20/bin/node
+      shell: sh  # No bash in Alpine by default
 
     - name: Check out
       uses: actions/checkout@v4
@@ -72,8 +85,9 @@ jobs:
         #     tag: Linux
         #   version: '3.18'
         # END
-        if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.12.2 -u https://downloads.haskell.org/~ghc/9.12.2/ghc-9.12.2-aarch64-alpine3_18-linux.tar.xz && ~/.ghcup/bin/ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
+        # if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.12.2 -u https://downloads.haskell.org/~ghc/9.12.2/ghc-9.12.2-aarch64-alpine3_18-linux.tar.xz && ~/.ghcup/bin/ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
 
+        if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc   9.12.2   && ~/.ghcup/bin/ghcup set ghc   9.12.2;   fi; printf "ghc: ";   ghc   --version
         if [[ ! -x ~/.ghcup/bin/cabal ]];      then ~/.ghcup/bin/ghcup install cabal 3.14.2.0 && ~/.ghcup/bin/ghcup set cabal 3.14.2.0; fi; printf "cabal: "; cabal --version
 
     - name: Display GHCup logs on error
