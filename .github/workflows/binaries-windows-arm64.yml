@@ -20,16 +20,7 @@ jobs:
       with: 
         fetch-depth: 0
 
-    # things to be cached/restored:
-
-    - name: process cache of stack global package db
-      id:   stack-global-package-db
-      uses: actions/cache@v4
-      with:
-        path: C:\Users\runneradmin\AppData\Roaming\stack\
-        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-             ${{ runner.os }}-appdata-roaming-stack
+    # caching
 
     - name: process cache of stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
@@ -42,7 +33,16 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
 
-    - name: process cache of .stack-work
+    - name: process cache of global stack dir
+      id:   stack-global-package-db
+      uses: actions/cache@v4
+      with:
+        path: C:\Users\runneradmin\AppData\Roaming\stack\
+        key: ${{ runner.os }}-appdata-roaming-stack-${{ hashFiles('**.yaml') }}
+        restore-keys: |
+             ${{ runner.os }}-appdata-roaming-stack
+
+    - name: process cache of ./.stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -101,27 +101,34 @@ jobs:
     #   env:
     #     stack: ${{ matrix.plan.stack }}
 
-    - name: Install stack
-      #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
-      # this step is needed to get stack.exe into PATH, for now
+    # - name: Install stack
+    #   #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
+    #   # this step is needed to get stack.exe into PATH, for now
+    #   # NB, no windows ARM binary for stack yet; the x86_64 one works, and builds x86_64 hledger binaries
+    #   run: |
+    #     curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
+    #     7z x stack.zip stack.exe
+    #     which stack
+    #     printf "stack: "; stack --version
+    #     which ./stack
+    #     printf "./stack: "; ./stack --version
+
+    # use preinstalled stack
+    - name: Check preinstalled stack version
       run: |
-        curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
-        7z x stack.zip stack.exe
         which stack
         printf "stack: "; stack --version
-        which ./stack
-        printf "./stack: "; ./stack --version
 
     - name: Install GHC
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |
-        ./stack --no-terminal setup --install-ghc
+        stack setup --install-ghc
 
     - name: Install haskell deps
       run: |
-        ./stack --no-terminal build --test --only-dependencies --dry-run
-        ./stack --no-terminal build --test --only-dependencies
+        stack build --test --only-dependencies --dry-run
+        stack build --test --only-dependencies
 
     # XXX ghc-pkg not in path
     # - name: List dep versions
@@ -130,7 +137,7 @@ jobs:
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        ./stack --no-terminal install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
       # --pedantic
 
