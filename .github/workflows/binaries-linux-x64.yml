@@ -45,26 +45,23 @@ jobs:
       run: |
         apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
-    - name: Add .ghcup/bin to PATH for following steps
-      run: |
-        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+    - name: Install haskell ghcup if needed
+      uses: haskell/ghcup-setup@v1
 
     - name: Install haskell tools with ghcup if needed
       run: |
-        if [[ ! -x ~/.ghcup/bin/ghcup ]];     then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/ghc-9.8.4 ]]; then ~/.ghcup/bin/ghcup install ghc 9.8.2      && ~/.ghcup/bin/ghcup set ghc 9.8.2;      fi; printf "ghc: "; ghc --version
-        if [[ ! -x ~/.ghcup/bin/cabal ]];     then ~/.ghcup/bin/ghcup install cabal 3.12.1.0 && ~/.ghcup/bin/ghcup set cabal 3.12.1.0; fi; printf "cabal: "; cabal --version
+        if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.12.2     && ~/.ghcup/bin/ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
+        if [[ ! -x ~/.ghcup/bin/cabal ]];      then ~/.ghcup/bin/ghcup install cabal 3.14.2.0 && ~/.ghcup/bin/ghcup set cabal 3.14.2.0; fi; printf "cabal: "; cabal --version
 
     - name: Update cabal package index
       run: |
         cabal update
 
     - name: Build with cabal
-      # - wai-extra < 3.1.17 # https://github.com/commercialhaskell/stackage/issues/7570
       run: |
-        cabal build --enable-executable-static --ghc-options=-Werror hledger     --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger failed"; false)
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui  --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger-ui failed"; false)
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-web --constraint='wai-extra <3.1.17' || (echo "ERROR: building hledger-web failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger     || (echo "ERROR: building hledger failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui  || (echo "ERROR: building hledger-ui failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-web || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
       run: |
