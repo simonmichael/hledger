@@ -2,7 +2,8 @@
 # Currently the cabal-based binaries-linux-x64.yml is used instead, for cabal testing and for easier static building.
 #
 # TRIGGER: Runs on any push to binaries-linux-x64-stack branch.
-# ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc.
+# ACTION: Builds, unit-tests and saves mac x64 static binaries with stack and the default ghc,
+# in an Alpine linux container which provides the statically-linkable musl.
 
 name: binaries-linux-x64-_binaries
 on:
