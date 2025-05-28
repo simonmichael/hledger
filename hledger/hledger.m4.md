@@ -3608,7 +3608,7 @@ Assigning to `date` sets the [transaction date](#simple-dates).
 
 ### description field
 
-`description` sets the transaction's [description](#description), if any.
+`description` sets the transaction's [description](#description-1), if any.
 
 ### comment field
 
