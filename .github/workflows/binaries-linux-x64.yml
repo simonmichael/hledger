@@ -19,7 +19,11 @@ jobs:
       with:
         fetch-depth: 0  
 
-    # things to be cached/restored:
+    - name: Install general tools with system package manager
+      run: |
+        apk add gmp-dev libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl
+
+    # things to be cached/restored (needs tar)
 
     - name: process cache of ghcup-installed tools
       id:   ghcup
@@ -41,15 +45,16 @@ jobs:
 
     # actions:
 
-    - name: Install general tools with system package manager
-      run: |
-        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
+    # - name: Install haskell ghcup
+    #   uses: haskell/ghcup-setup@v1
 
-    - name: Install haskell ghcup if needed
-      uses: haskell/ghcup-setup@v1
-
-    - name: Install haskell tools with ghcup if needed
+    - name: Add .ghcup/bin to PATH
       run: |
+        echo "$HOME/.ghcup/bin/" >> $GITHUB_PATH
+
+    - name: Install haskell tools if needed
+      run: |
+        if [[ ! -x ~/.ghcup/bin/ghcup ]];      then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
         if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.12.2     && ~/.ghcup/bin/ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
         if [[ ! -x ~/.ghcup/bin/cabal ]];      then ~/.ghcup/bin/ghcup install cabal 3.14.2.0 && ~/.ghcup/bin/ghcup set cabal 3.14.2.0; fi; printf "cabal: "; cabal --version
 
