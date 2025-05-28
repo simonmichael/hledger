@@ -6,8 +6,7 @@ name: docker
 
 on:
   push:
-    branches:
-      - docker
+    branches: [ docker ]
   workflow_dispatch:
 
 permissions:

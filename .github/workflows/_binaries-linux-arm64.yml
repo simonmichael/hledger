@@ -5,7 +5,7 @@
 name: binaries-linux-arm64
 on:
   push:
-    branches: [ binaries-linux-arm64, binaries ]
+    branches: [ binaries-linux-arm64 ]
   workflow_dispatch:
 jobs:
   build:
