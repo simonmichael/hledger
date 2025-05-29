@@ -291,19 +291,25 @@ exitWithErrorMessage msg = printError msg >> exitFailure
 --
 exitOnError :: IO () -> IO ()
 exitOnError = flip catches
-  [Handler (\(e::UnicodeException) -> exitUnicode e)
+  [-- Handler (\(e::SomeException) -> error' $ pshow e),  -- debug
+   Handler (\(e::UnicodeException) -> exitUnicode e)
   ,Handler (\(e::IOException) -> if isUnicodeError e then exitUnicode e else exitOther e)
   ,Handler (\(e::ErrorCall) -> exitOther e)
   ]
 
   where
+    -- Many decoding failures do not produce a UnicodeException, unfortunately.
+    -- So this fragile hack detects them from the error message.
+    -- But there are many variant wordings and they probably change over time.
+    -- It's not ideal.
     isUnicodeError :: Exception e => e -> Bool
     isUnicodeError ex = any (`isInfixOf` msg) unicodeerrorpatterns
       where
         msg = map toLower $ show ex
-        unicodeerrorpatterns = [  -- keep updated
+        unicodeerrorpatterns = [
             "illegal byte sequence"
           , "invalid byte sequence"
+          , "cannot decode byte sequence"
           , "invalid character"
           , "invalid or incomplete multibyte"
           , "mkTextEncoding: invalid argument"
