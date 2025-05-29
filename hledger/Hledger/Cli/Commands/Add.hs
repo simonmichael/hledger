@@ -248,7 +248,8 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
           dummytxn = nulltransaction{tpostings = esPostings ++ [p, post "" missingamt]
                                      ,tdate = txnDate txnParams
                                      ,tdescription = txnDesc txnParams }
-          validated = balanceTransaction defbalancingopts dummytxn >>= transactionCheckAssertions defbalancingopts esJournal
+          bopts = balancingopts_ (inputopts_ esOpts)
+          validated = balanceTransaction bopts dummytxn >>= transactionCheckAssertions bopts esJournal
       case validated of
         Left err -> do
           liftIO (hPutStrLn stderr err)

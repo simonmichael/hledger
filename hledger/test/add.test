@@ -220,8 +220,20 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /\(a\)[[:space:]]+3 = 3  ;  date:2025-05-01/
 >2 //
 
+## 16. Verify that -I skips assertions
+<
+2025-05-10
+x
+a
+10 USD  = 20 USD
+b
+-10 USD
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal -I add; rm -f nosuch.journal
+> /Save this transaction to the journal/
+>2 //
 
-## 16. shouldn't add decimals if there aren't any
+## 17. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <
 #

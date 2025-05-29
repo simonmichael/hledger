@@ -155,7 +155,7 @@ transactionCheckAssertions bopts j t =
   if (ignore_assertions_ bopts) || noassertions t then Right t else do
     j' <- journalStyleAmounts j 
     let newtxns = sortOn tdate (jtxns j' ++ [ t ])
-    case journalBalanceTransactions defbalancingopts j'{jtxns = newtxns} of
+    case journalBalanceTransactions bopts j'{jtxns = newtxns} of
       Right _ -> Right t
       Left e -> Left e
   where
