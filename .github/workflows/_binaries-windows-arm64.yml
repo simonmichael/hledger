@@ -36,7 +36,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
 
-    - name: process cache of global stack dir
+    - name: process cache of stack global dir
       id:   stack-global-package-db
       uses: actions/cache@v4
       with:
@@ -85,12 +85,9 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
 
-    - name: Check preinstalled stack version
-      run: |
-        which stack
-        printf "stack: "; stack --version
+    # actions
 
-    - name: Install GHC
+    - name: Install haskell tools if needed
       # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
       # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
       run: |

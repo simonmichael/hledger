@@ -12,6 +12,9 @@ jobs:
     defaults:
       run:
         shell: bash
+    env:
+      # use preinstalled ghc 9.12.2
+      stack: stack --system-ghc --no-install-ghc --stack-yaml stack912.yaml
     steps:
 
     - name: Check out
@@ -33,7 +36,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-appdata-local-programs-stack
 
-    - name: process cache of global stack dir
+    - name: process cache of stack global dir
       id:   stack-global-package-db
       uses: actions/cache@v4
       with:
@@ -82,51 +85,11 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
 
-    # - name: showStuff
-    #   run: |
-    #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
-    #     ls -lFRa /c/users/runneradmin/appdata/local/programs/stack
-
-    # actions:
-
-    # - name: Add stack local bin to PATH
-    #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
-
-    # - name: Install stack
-    #   run: |
-    #     mkdir -p ~/.local/bin
-    #     export PATH=~/.local/bin:$PATH
-    #     if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-    #     $stack --version
-    #   env:
-    #     stack: ${{ matrix.plan.stack }}
-
-    # - name: Install stack
-    #   #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
-    #   # this step is needed to get stack.exe into PATH, for now
-    #   run: |
-    #     curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
-    #     7z x stack.zip stack.exe
-    #     which stack
-    #     printf "stack: "; stack --version
-    #     which ./stack
-    #     printf "./stack: "; ./stack --version
-
-    - name: Check preinstalled stack version
-      run: |
-        which stack
-        printf "stack: "; stack --version
-
-    # - name: Install GHC
-    #   # if: steps.stack-programs-dir.outputs.cache-hit != 'true'
-    #   # set PATH=C:\Users\runneradmin\AppData\Local\Programs\stack\local\bin;%PATH%
-    #   run: |
-    #     stack setup --install-ghc
+    # actions
 
     - name: Install haskell deps
       run: |
-        stack build --test --only-dependencies --dry-run
-        stack build --test --only-dependencies
+        $stack build --test --only-dependencies --verbosity=error
 
     - name: List dep versions
       run: |
@@ -134,18 +97,8 @@ jobs:
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
-        stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
+        $stack install --test --force-dirty --ghc-options=-fforce-recomp --ghc-options=-Werror
       # --ghc-options=-split-sections doesn't work on windows, "too many sections"
-      # --pedantic
-
-    # - name: Install shelltestrunner
-    ## - export PATH=~/.local/bin:$PATH
-    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.10; fi
-    # - shelltest --version
-
-    # run hledger-lib/hledger functional tests, skipping the ones for addons
-    ## - export PATH=~/.local/bin:$PATH
-    #- COLUMNS=80 stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
 
     # artifacts:
 

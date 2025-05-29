@@ -25,7 +25,7 @@ jobs:
 
     # things to be cached/restored (needs tar)
 
-    - name: process cache of ghcup-installed tools
+    - name: process cache of ~/.ghcup
       id:   ghcup
       uses: actions/cache@v4
       with:
@@ -34,7 +34,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
-    - name: process cache of cabal-installed libs
+    - name: process cache of ~/.cabal
       id:   cabal
       uses: actions/cache@v4
       with:
@@ -44,6 +44,14 @@ jobs:
              ${{ runner.os }}-cabal
 
     # actions:
+
+    # - name: Check tool versions
+    #   run: |
+    #     which ghcup; ghcup --version
+    #     which stack; stack --version
+    #     which cabal; cabal --version
+    #     which ghc; ghc --version
+    # no preinstalled tools because using alpine container
 
     # - name: Install haskell ghcup
     #   uses: haskell/ghcup-setup@v1
@@ -55,8 +63,8 @@ jobs:
     - name: Install haskell tools if needed
       run: |
         if [[ ! -x ~/.ghcup/bin/ghcup ]];      then mkdir -p ~/.ghcup/bin && curl https://downloads.haskell.org/~ghcup/x86_64-linux-ghcup > ~/.ghcup/bin/ghcup && chmod +x ~/.ghcup/bin/ghcup; fi; printf "ghcup: "; ghcup --version
-        if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ~/.ghcup/bin/ghcup install ghc 9.12.2     && ~/.ghcup/bin/ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
-        if [[ ! -x ~/.ghcup/bin/cabal ]];      then ~/.ghcup/bin/ghcup install cabal 3.14.2.0 && ~/.ghcup/bin/ghcup set cabal 3.14.2.0; fi; printf "cabal: "; cabal --version
+        if [[ ! -x ~/.ghcup/bin/ghc-9.12.2 ]]; then ghcup install ghc 9.12.2     && ghcup set ghc 9.12.2;     fi; printf "ghc: ";   ghc   --version
+        if [[ ! -x ~/.ghcup/bin/cabal ]];      then ghcup install cabal 3.14.2.0 && ghcup set cabal 3.14.2.0; fi; printf "cabal: "; cabal --version
 
     - name: Update cabal package index
       run: |
@@ -82,6 +90,12 @@ jobs:
         strip tmp/hledger-web
         cd tmp
         tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        ldd hledger || true
+        ldd hledger-ui || true
+        ldd hledger-web || true
+        # file hledger
+        # file hledger-ui
+        # file hledger-web
         ./hledger --version
         ./hledger-ui --version
         ./hledger-web --version
