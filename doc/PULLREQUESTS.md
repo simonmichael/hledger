@@ -54,6 +54,12 @@ Smaller/more focussed PRs can be reviewed quicker and accepted (or rejected) qui
 
 Consider showing a draft of documentation first (more on this below).
 
+When you are not ready for the PR to be merged, please make it a Draft PR.
+Non-draft means "I think this is ready, you can merge any time".
+And just use a normal PR title, don't write "WIP:" or "Draft:" there.
+This helps with knowing PRs' status in a consistent way.
+
+
 ## The commit(s)
 
 Commits should be easy to review.
@@ -86,7 +92,7 @@ Rebase your commits against latest master for easiest review. Especially if they
 
 We like to use some conventions in commit messages when it makes sense. These aren't mandatory, but appreciated:
 
-- prepend a [label](ISSUES.md#labels) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
+- prepend a [topic label](ISSUES.md#labels) prefix, eg `cli: ` or `journal: `, for clarity and to help with changelog production
 - prepend a semicolon (`;`) to indicate commits that 
   - need not trigger a CI workflows, reducing wasteful carbon emissions
   - and probably need not be mentioned in changelogs/release notes
