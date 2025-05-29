@@ -32,7 +32,7 @@ jobs:
 
     # caching
 
-    - name: process cache of stack-installed ~/.local/bin
+    - name: Cache: stack-installed ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -41,7 +41,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-stack-programs
 
-    - name: process cache of ~/.stack
+    - name: Cache: ~/.stack
       id:   stack-global
       uses: actions/cache@v4
       with:
@@ -50,7 +50,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-stack-global
 
-    - name: process cache of ./.stack-work
+    - name: Cache: ./.stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -58,7 +58,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-stack-work
 
-    - name: process cache of hledger-lib/.stack-work
+    - name: Cache: hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -66,7 +66,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-hledger-lib-stack-work
 
-    - name: process cache of hledger/.stack-work
+    - name: Cache: hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -74,7 +74,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-hledger-stack-work
 
-    - name: process cache of hledger-ui/.stack-work
+    - name: Cache: hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -82,7 +82,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-hledger-ui-stack-work
 
-    - name: process cache of hledger-web/.stack-work
+    - name: Cache: hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work

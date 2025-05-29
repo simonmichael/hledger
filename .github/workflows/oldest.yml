@@ -34,7 +34,7 @@ jobs:
 
     # CACHES
 
-    - name: Cache - stack global package db
+    - name: Cache: stack global package db
       id:   stack-global
       uses: actions/cache@v4
       with:
@@ -46,7 +46,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-global-$ghc
 
-    - name: Cache - stack-installed programs in ~/.local/bin
+    - name: Cache: stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -55,7 +55,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-programs-$ghc
 
-    - name: Cache - .stack-work
+    - name: Cache: .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -63,7 +63,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-stack-work-$ghc
 
-    - name: Cache - hledger-lib/.stack-work
+    - name: Cache: hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -71,7 +71,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-lib-stack-work-$ghc
 
-    - name: Cache - hledger/.stack-work
+    - name: Cache: hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -79,7 +79,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-stack-work-$ghc
 
-    - name: Cache - hledger-ui/.stack-work
+    - name: Cache: hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -87,7 +87,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-ui-stack-work-$ghc
 
-    - name: Cache - hledger-web/.stack-work
+    - name: Cache: hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work

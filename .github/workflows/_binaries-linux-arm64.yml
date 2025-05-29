@@ -42,7 +42,7 @@ jobs:
 
     # things to be cached/restored:
 
-    - name: process cache of ghcup-installed tools
+    - name: Cache: ghcup-installed tools
       id:   ghcup
       uses: actions/cache@v4
       with:
@@ -51,7 +51,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
-    - name: process cache of cabal-installed libs
+    - name: Cache: cabal-installed libs
       id:   cabal
       uses: actions/cache@v4
       with:
