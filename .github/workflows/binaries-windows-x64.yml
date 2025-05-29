@@ -25,16 +25,17 @@ jobs:
 
     # caching
 
-    - name: Cache - stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
-      id:   stack-programs-dir
-      uses: actions/cache@v4
-      with:
-        path: C:\Users\runneradmin\AppData\Local\Programs\stack\
-        # which files signal a change in stack's global db ?
-        # **.yaml includes */package.yaml and stack.yaml* (too many), and hopefully no other changing yamls
-        key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
-        restore-keys: |
-             ${{ runner.os }}-appdata-local-programs-stack
+    # Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
+    # - name: Cache - stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
+    #   id:   stack-programs-dir
+    #   uses: actions/cache@v4
+    #   with:
+    #     path: C:\Users\runneradmin\AppData\Local\Programs\stack\
+    #     # which files signal a change in stack's global db ?
+    #     # **.yaml includes */package.yaml and stack.yaml* (too many), and hopefully no other changing yamls
+    #     key: ${{ runner.os }}-appdata-local-programs-stack-${{ hashFiles('**.yaml') }}
+    #     restore-keys: |
+    #          ${{ runner.os }}-appdata-local-programs-stack
 
     - name: Cache - stack global dir
       id:   stack-global-package-db

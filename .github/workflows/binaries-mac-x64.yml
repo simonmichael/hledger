@@ -120,7 +120,7 @@ jobs:
     - name: Install shelltestrunner
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
+        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install --verbosity=error shelltestrunner; fi
         shelltest --version
 
     - name: Test functional tests (excluding addons)
@@ -153,7 +153,8 @@ jobs:
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
-    # Unfortunately it means users must both unzip and untar.
+    # https://github.com/actions/upload-artifact?tab=readme-ov-file#limitations
+    # In release workflows, we repack these using the platform's native compression scheme.
     - name: Upload binaries artifact
       uses: actions/upload-artifact@v4
       with:

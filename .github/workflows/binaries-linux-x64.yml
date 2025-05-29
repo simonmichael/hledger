@@ -34,6 +34,7 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-ghcup
 
+    # XXX Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
     - name: Cache - ~/.cabal
       id:   cabal
       uses: actions/cache@v4
@@ -102,7 +103,8 @@ jobs:
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
-    # Unfortunately it means users must both unzip and untar.
+    # https://github.com/actions/upload-artifact?tab=readme-ov-file#limitations
+    # In release workflows, we repack these using the platform's native compression scheme.
     - name: Upload binaries
       uses: actions/upload-artifact@v4
       with:

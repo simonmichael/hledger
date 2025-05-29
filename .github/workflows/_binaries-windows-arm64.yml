@@ -25,6 +25,7 @@ jobs:
 
     # caching
 
+    # XXX Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
     - name: Cache - stack programs dir   # ghc, ghc-included packages and their haddocks, mingw, msys2
       id:   stack-programs-dir
       uses: actions/cache@v4
