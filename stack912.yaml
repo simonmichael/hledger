@@ -9,7 +9,7 @@ packages:
 - hledger-ui
 - hledger-web
 
-resolver: nightly-2025-04-01
+resolver: nightly-2025-05-01
 compiler: ghc-9.12.2
 notify-if-ghc-untested:   false
 notify-if-cabal-untested: false
