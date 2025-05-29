@@ -106,17 +106,18 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 
 ## Text encoding
 
-hledger input files containing non-ascii characters must use UTF-8 encoding,
-with the exception of CSV (SSV, TSV..) files, which can be read from other encodings (see [`encoding`](#encoding) CSV rule).
+hledger expects input to use the same text encoding that is configured in the system locale.
+(Except for CSV (SSV, TSV..) files, which can be read from other encodings by using the [`encoding`](#encoding) CSV rule.)
 
-In UTF-8 input files, an optional [byte order mark (BOM)](https://www.unicode.org/faq/utf_bom.html#BOM) at the beginning of the file is allowed.
+Trying to read files which have the wrong text encoding will fail.
+Also, trying to read non-ascii text on a system with no locale configured will fail.
+To fix it, configure your system locale appropriately,
+and/or convert the files to your system's encoding (with a tool like `iconv`).
+<https://hledger.org/install> has more advice.
 
-Your system may need to be configured with a locale that understands the input file's encoding.
-Eg on some unix systems, you may need set the `LANG` environment variable.
-You can read more about this in [Unicode characters](#unicode-characters), below.
+Note hledger's docs and example files mostly use UTF-8 encoding.
 
-On some unix systems you can use the `file` command to show a file's text encoding.
-On mac, you'll need the version from homebrew: `brew install file-formula`.
+In UTF-8 files, an optional [byte order mark (BOM)](https://www.unicode.org/faq/utf_bom.html#BOM) at the beginning of the file is allowed.
 
 hledger's text output is always UTF-8 encoded.
 
@@ -7032,18 +7033,19 @@ and/or open a new terminal window.
   A simple way is to close your terminal window and open a new one.
 
 **LANG issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-Programs compiled with GHC (hledger, haskell build tools, etc.) need the system locale to be UTF-8-aware,
-or they will fail when they encounter non-ascii characters.
-To fix it, set the LANG environment variable to a locale which supports UTF-8
-and which is installed on your system.
+Programs compiled with GHC (hledger, haskell build tools, etc.)
+need the system to be configured with a suitable locale for decoding your non-ascii text, or they will fail.
+[Text encoding](#text-encoding) and <https://hledger.org/install> give advice on this.
 
-On unix, `locale -a` lists the installed locales.
-Look for one which mentions `utf8`, `UTF-8` or similar.
-Some examples: `C.UTF-8`, `en_US.utf-8`, `fr_FR.utf8`.
-If necessary, use your system package manager to install one.
+Here is some more detail.
+Let's say you need to read files encoded as UTF-8, on unix.
+`locale -a` lists the installed locales.
+Look for one which mentions UTF-8 - eg `C.UTF-8`, `en_US.utf-8`, `fr_FR.utf8` or similar.
+If you don't see one, use your system package manager to install one.
 Then select it by setting the `LANG` environment variable.
-Note, exact spelling and capitalisation of the locale name may be important:
-Here's one common way to configure this permanently for your shell:
+Note, exact spelling and capitalisation of the locale name may be important.
+
+Here's one common way to configure `LANG` permanently for your shell:
 
 ```cli
 $ echo "export LANG=en_US.utf8" >>~/.profile
