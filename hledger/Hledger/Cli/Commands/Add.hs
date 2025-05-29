@@ -232,12 +232,9 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
     Just (amt, assertion, (comment, tags, pdate1, pdate2)) -> do
-      -- This check is necessary because we cons a ';' in the comment parser above,
-      -- and we don't want to add an empty comment here if it wasn't given.
-      let pcomment = if T.length comment == 1 then "" else comment
       let p = nullposting{paccount=T.pack $ stripbrackets account
                           ,pamount=mixedAmount amt
-                          ,pcomment=pcomment
+                          ,pcomment=T.dropAround isNewline comment
                           ,ptype=accountNamePostingType $ T.pack account
                           ,pbalanceassertion = assertion
                           ,pdate=pdate1
@@ -251,7 +248,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
           dummytxn = nulltransaction{tpostings = esPostings ++ [p, post "" missingamt]
                                      ,tdate = txnDate txnParams
                                      ,tdescription = txnDesc txnParams }
-          validated = balanceTransaction defbalancingopts dummytxn >>= checkAssertions defbalancingopts esJournal
+          validated = balanceTransaction defbalancingopts dummytxn >>= transactionCheckAssertions defbalancingopts esJournal
       case validated of
         Left err -> do
           liftIO (hPutStrLn stderr err)
@@ -388,7 +385,8 @@ amountAndCommentWizard previnput@PrevInput{..} entrystate@EntryState{..} = do
         com <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         case rtp (postingcommentp Nothing) (T.cons ';' com) of
           Left err -> fail $ customErrorBundlePretty err
-          Right comment -> return $ (a, assertion, comment)
+          -- Keep our original comment string from the user to add to the journal
+          Right (_, tags, date1', date2') -> return $ (a, assertion, (com, tags, date1', date2'))
       balancingamt = maNegate . sumPostings $ filter isReal esPostings
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision

@@ -19,7 +19,7 @@ module Hledger.Data.Balancing
 , balanceTransaction
 , balanceTransactionHelper
   -- * assertion validation
-, checkAssertions
+, transactionCheckAssertions
   -- * journal balancing
 , journalBalanceTransactions
   -- * tests
@@ -150,12 +150,14 @@ isTransactionBalanced bopts = null . transactionCheckBalanced bopts
 
 -- | Verify that any assertions in this transaction hold 
 -- when included in the larger journal.
-checkAssertions :: BalancingOpts -> Journal -> Transaction -> Either String Transaction
-checkAssertions bopts j t =
+transactionCheckAssertions :: BalancingOpts -> Journal -> Transaction -> Either String Transaction
+transactionCheckAssertions bopts j t =
   if (ignore_assertions_ bopts) || noassertions t then Right t else do
     j' <- journalStyleAmounts j 
     let newtxns = sortOn tdate (jtxns j' ++ [ t ])
-    fmap (\_ -> t) $ journalBalanceTransactions defbalancingopts j'{jtxns = newtxns}
+    case journalBalanceTransactions defbalancingopts j'{jtxns = newtxns} of
+      Right _ -> Right t
+      Left e -> Left e
   where
     noassertions = all (isNothing . pbalanceassertion) . tpostings
 
@@ -1085,16 +1087,16 @@ tests_Balancing =
 
     ]
 
-    ,testGroup "checkAssertions" $ [
+    ,testGroup "transactionCheckAssertions" $ [
       testCase "simple assertion on same day" $ do 
         assertRight $ 
-          checkAssertions defbalancingopts nulljournal{ jtxns = [
+          transactionCheckAssertions defbalancingopts nulljournal{ jtxns = [
             transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) Nothing ]
             ] } (transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) (balassert (usd 2)) ])
 
       ,testCase "inclusive assertions" $ do 
         assertRight $ 
-          checkAssertions defbalancingopts nulljournal{ jtxns = [
+          transactionCheckAssertions defbalancingopts nulljournal{ jtxns = [
             transaction (fromGregorian 2025 01 01) [ vpost' "a:a" (usd 1) Nothing ] 
             ,transaction (fromGregorian 2025 01 02) [ vpost' "a:b" (usd 2) Nothing]
             ,transaction (fromGregorian 2025 01 02) [ vpost' "a:c" (usd 5) Nothing]
@@ -1103,7 +1105,7 @@ tests_Balancing =
 
       ,testCase "multicommodity assertion" $ do 
         assertRight $ 
-          checkAssertions defbalancingopts nulljournal{ jtxns = [
+          transactionCheckAssertions defbalancingopts nulljournal{ jtxns = [
             transaction (fromGregorian 2025 01 01) [ vpost' "a" (usd 1) Nothing ] 
             ,transaction (fromGregorian 2025 01 02) [ vpost' "a:b" (eur 2) Nothing ]
             ,transaction (fromGregorian 2025 01 02) [ vpost' "a:c" (usd 5) Nothing ]
