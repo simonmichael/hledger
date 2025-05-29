@@ -55,9 +55,10 @@ Smaller/more focussed PRs can be reviewed quicker and accepted (or rejected) qui
 Consider showing a draft of documentation first (more on this below).
 
 When you are not ready for the PR to be merged, please make it a Draft PR.
-Non-draft means "I think this is ready, you can merge any time".
+(Non-draft means "I think this is ready, you can merge any time".)
+
 And just use a normal PR title, don't write "WIP:" or "Draft:" there.
-This helps with knowing PRs' status in a consistent way.
+These help with knowing PRs' status in a consistent way.
 
 
 ## The commit(s)
