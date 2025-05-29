@@ -1,10 +1,13 @@
 # TRIGGER: Runs on any push to binaries-windows-arm64 or binaries branches.
 # ACTION: Builds, unit-tests and saves windows arm64 binaries with stack and the default ghc.
+# XXX There's no windows ARM version of stack yet; the preinstalled stack,
+# the one installed by ghcup, and the one installed by stack's installer are all x86_64.
+# So currently this workflow just builds x86_64 hledger binaries, and is pointless.
 
 name: binaries-windows-arm64
 on:
   push:
-    branches: [ binaries-windows-arm64, binaries ]
+    branches: [ binaries-windows-arm64 ] # binaries
   workflow_dispatch:
 jobs:
   build:
@@ -82,38 +85,6 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work
 
-    # - name: showStuff
-    #   run: |
-    #     ls -lFRa /c/users/runneradmin/appdata/roaming/stack
-    #     ls -lFRa /c/users/runneradmin/appdata/local/programs/stack
-
-    # actions:
-
-    # - name: Add stack local bin to PATH
-    #   run: echo "::add-path::C:\Users\runneradmin\AppData\Roaming\stack\local\bin"
-
-    # - name: Install stack
-    #   run: |
-    #     mkdir -p ~/.local/bin
-    #     export PATH=~/.local/bin:$PATH
-    #     if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/linux-x86_64.tar.gz | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
-    #     $stack --version
-    #   env:
-    #     stack: ${{ matrix.plan.stack }}
-
-    # - name: Install stack
-    #   #if: steps.stack-programs-dir.outputs.cache-hit != 'true'
-    #   # this step is needed to get stack.exe into PATH, for now
-    #   # NB, no windows ARM binary for stack yet; the x86_64 one works, and builds x86_64 hledger binaries
-    #   run: |
-    #     curl -sL https://get.haskellstack.org/stable/windows-x86_64.zip -o stack.zip
-    #     7z x stack.zip stack.exe
-    #     which stack
-    #     printf "stack: "; stack --version
-    #     which ./stack
-    #     printf "./stack: "; ./stack --version
-
-    # use preinstalled stack
     - name: Check preinstalled stack version
       run: |
         which stack
@@ -129,11 +100,6 @@ jobs:
       run: |
         stack build --test --only-dependencies --dry-run
         stack build --test --only-dependencies
-
-    # XXX ghc-pkg not in path
-    # - name: List dep versions
-    #   run: |
-    #     $stack exec -- ghc-pkg list
 
     - name: Build all hledger modules warning free, optimised and minimised
       run: |
