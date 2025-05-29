@@ -130,7 +130,7 @@ jobs:
     # Can't uncache to /usr/bin:
     #  /usr/bin/tar -xf /home/runner/work/_temp/5cef703c-9831-41db-adb3-470b839f8a0e/cache.tzst -P -C /home/runner/work/hledger/hledger --use-compress-program unzstd
     #  /usr/bin/tar: ../../../../../usr/bin/rg: Cannot open: Permission denied
-    # - name: Cache: extra tools (ripgrep) in /usr/bin
+    # - name: Cache - extra tools (ripgrep) in /usr/bin
     #   id:   extratools
     #   uses: actions/cache@v4
     #   with:
@@ -147,7 +147,7 @@ jobs:
 
     # CACHES
 
-    - name: Cache: stack global package db
+    - name: Cache - stack global package db
       id:   stack-global
       uses: actions/cache@v4
       with:
@@ -160,7 +160,7 @@ jobs:
              ${{ runner.os }}-stack-global-$ghc
       if: env.do-all
 
-    - name: Cache: stack-installed programs in ~/.local/bin
+    - name: Cache - stack-installed programs in ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
@@ -170,7 +170,7 @@ jobs:
              ${{ runner.os }}-stack-programs-$ghc
       if: env.do-all
 
-    - name: Cache: .stack-work
+    - name: Cache - .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
@@ -179,7 +179,7 @@ jobs:
              ${{ runner.os }}-stack-work-$ghc
       if: env.do-all
 
-    - name: Cache: hledger-lib/.stack-work
+    - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
@@ -188,7 +188,7 @@ jobs:
              ${{ runner.os }}-hledger-lib-stack-work-$ghc
       if: env.do-all
 
-    - name: Cache: hledger/.stack-work
+    - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
@@ -197,7 +197,7 @@ jobs:
              ${{ runner.os }}-hledger-stack-work-$ghc
       if: env.do-all
 
-    - name: Cache: hledger-ui/.stack-work
+    - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
@@ -206,7 +206,7 @@ jobs:
              ${{ runner.os }}-hledger-ui-stack-work-$ghc
       if: env.do-all
 
-    - name: Cache: hledger-web/.stack-work
+    - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
