@@ -129,8 +129,8 @@ writeOutput opts s = do
 -- If writing to stdout, a pager is used when appropriate and possible.
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
-  f <- outputFileFromOpts opts
-  maybe (runPager . TL.unpack) TL.writeFile f s
+  mf <- outputFileFromOpts opts
+  maybe (runPager . TL.unpack) TL.writeFile mf s
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
