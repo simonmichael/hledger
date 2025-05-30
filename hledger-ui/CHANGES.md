@@ -22,6 +22,27 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 4913c222
+
+Fixes
+
+- Require fsnotify >=0.4.2.0, which fixes some events being ignored on mac,
+  possibly making hledger-ui --watch more reliable in this regard.
+
+- Require extra >=1.7.11, possibly fixing the stack810.yaml build. (Thomas Miedema)
+
+Improvements
+
+- CLI error messages now have consistent clean format independent of GHC version. [#2367]
+
+- Support GHC 9.12.
+
+Docs
+
+- Update --watch docs.
+- Drop obsolete mention of Windows non-support.
+
+
 # 1.42.2 2025-05-16
 
 Fixes

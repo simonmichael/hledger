@@ -22,6 +22,35 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 4913c222
+
+Features
+
+- Serve openapi.json, documenting the hledger-web HTTP API so that tools
+  like open-webui and LLMs can query hledger-web for context.
+  (Ben Sima)
+
+Improvements
+
+- The search help popup has been updated, and now shows the hledger-web version.
+
+- The default "serve and browse" mode now has an explicit `--serve-browse` mode flag, for consistency.
+
+- The old `--server` flag is now deprecated and hidden. Use `--serve` instead.
+
+- CLI error messages now have consistent clean format independent of GHC version. [#2367]
+
+- Fix capitalisation in Sandstorm app metadata.
+
+- Support GHC 9.12.
+
+- Drop base-compat dependency (Thomas Miedema)
+
+Docs
+
+- Fix outdated PERMISSIONS doc.
+
+
 # 1.42.2 2025-05-16
 
 Fixes
