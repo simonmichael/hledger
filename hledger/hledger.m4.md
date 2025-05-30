@@ -106,20 +106,21 @@ For more about how to do that on your system, see [Common tasks > Setting LEDGER
 
 ## Text encoding
 
-hledger expects input to use the same text encoding that is configured in the system locale.
-(Except for CSV (SSV, TSV..) files, which can be read from other encodings by using the [`encoding`](#encoding) CSV rule.)
+hledger expects non-ascii input to be decodable with the system locale's text encoding.
+(For CSV/SSV/TSV files, this can be overridden by the [`encoding`](#encoding) CSV rule.)
 
-Trying to read files which have the wrong text encoding will fail.
-Also, trying to read non-ascii text on a system with no locale configured will fail.
-To fix it, configure your system locale appropriately,
-and/or convert the files to your system's encoding (with a tool like `iconv`).
-<https://hledger.org/install> has more advice.
+So, trying to read non-ascii files which have the wrong text encoding,
+or when no system locale is configured, will fail.
+To fix this, configure your system locale appropriately,
+and/or convert the files to your system's text encoding (using `iconv` on unix, or powershell or notepad on Windows).
 
-Note hledger's docs and example files mostly use UTF-8 encoding.
+hledger's output will use the system locale's encoding.
 
-In UTF-8 files, an optional [byte order mark (BOM)](https://www.unicode.org/faq/utf_bom.html#BOM) at the beginning of the file is allowed.
+You may be able to override the system encoding for input or output temporarily, but it's platform-specific and can be tricky.
 
-hledger's text output is always UTF-8 encoded.
+See <https://hledger.org/install> for more tips.
+
+hledger's docs and example files mostly use UTF-8 encoding.
 
 ## Data formats
 
@@ -7032,31 +7033,11 @@ and/or open a new terminal window.
 - You may need to force your shell to see the new configuration.
   A simple way is to close your terminal window and open a new one.
 
-**LANG issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-Programs compiled with GHC (hledger, haskell build tools, etc.)
-need the system to be configured with a suitable locale for decoding your non-ascii text, or they will fail.
-[Text encoding](#text-encoding) and <https://hledger.org/install> give advice on this.
-
-Here is some more detail.
-Let's say you need to read files encoded as UTF-8, on unix.
-`locale -a` lists the installed locales.
-Look for one which mentions UTF-8 - eg `C.UTF-8`, `en_US.utf-8`, `fr_FR.utf8` or similar.
-If you don't see one, use your system package manager to install one.
-Then select it by setting the `LANG` environment variable.
-Note, exact spelling and capitalisation of the locale name may be important.
-
-Here's one common way to configure `LANG` permanently for your shell:
-
-```cli
-$ echo "export LANG=en_US.utf8" >>~/.profile
-# close and re-open terminal window
-```
-
-If you are using Nix (not NixOS) for GHC and Hledger, you might need to set the `LOCALE_ARCHIVE` variable:
-```cli
-$ echo "export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale-archive" >>~/.profile
-# close and re-open terminal window
-```
+**Text decoding issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
+Programs compiled with GHC (hledger, GHC itself, all haskell build tools..)
+need the system to be configured with a suitable locale for decoding non-ascii text,
+or they will fail when they encounter such text.
+See [Text encoding](#text-encoding) and <https://hledger.org/install>.
 
 **COMPATIBILITY ISSUES: hledger gives an error with my Ledger file**\
 Not all of Ledger's journal file syntax or feature set is supported.
