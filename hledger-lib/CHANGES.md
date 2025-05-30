@@ -22,6 +22,42 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# 4913c222
+
+- Support GHC 9.12.
+
+- Fix doctest suite with ghc-8.10.7 (Thomas Miedema)
+
+- Drop base-compat dependency (Thomas Miedema)
+
+- Added NFData instances for Journal and subcomponents. (Stephen Morgan)
+
+- Hledger.Data.Dates:
+  - renamed parsedateM -> parsedate.
+    M makes me think of monad and is awkward to type for this common helper.
+    Maybe is expected for a parser.
+  - parsedate now also accepts YYYYMMDD format, for convenience in ghci and for parseHledgerVersion.
+    This is more permissive, now parsing many integers successfully; hopefully that won't be a problem.
+    I noted but did not document two user-facing uses, which now also accept YYYYMMDD dates:
+    --value's argument, and import's .latest files.
+
+- Hledger.Data.Journal: journalCommoditiesUsed
+
+- Hledger.Read: more ways to read the default journal:
+  defaultJournalWith, defaultJournalSafely, defaultJournalSafelyWith
+
+- Hledger.Utils.Debug:
+  - Provide simpler, more consistent dbg* names.
+  - A few cases of hledger/hledger-ui debug output which were always
+    traced to stderr or always logged to a file, now consistently follow
+    the policy on whether to trace or log.
+
+- Hledger.Utils.IO:
+  - exitOnError, a helper to clean up unicode errors and GHC error output generally.
+  - make parseYN(A) total
+  - export findPager, getHomeSafe
+
+
 # 1.42.2 2025-05-16
 
 - Require extra >= 1.7.11, fixing the stack8.10.yaml build. (Thomas Miedema)

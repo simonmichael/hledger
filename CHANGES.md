@@ -7,9 +7,6 @@
 |_|           |__/
 
 Docs
-(some overlap with hledger changelog; doc updates are mostly mentioned in that one since it's more visible)
-
-Scripts/addons
 
 Infrastructure/Misc
 
@@ -17,6 +14,56 @@ Infrastructure/Misc
 
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
+
+
+# 4913c222
+
+Docs
+
+- Updated:
+  FILES,
+  FINANCE,
+  ISSUES,
+  PULLREQUESTS,
+  REGRESSIONS,
+  RELEASING,
+  ghrelnotes,
+  relnotes
+
+Infrastructure/Misc
+
+- issue labels updates, `severity*` -> `annoyance*`, `impact*` -> `affects*`
+- new shortcut urls: assignedprs.hledger.org, unassignedprs.hledger.org
+- clean up LICENSE files, main module licensing headers, add AUTHORS.md, try to fix github license detection
+- cabal files now specify GPLv3+ exactly. [#2359]
+- building the hledger packages now requires at least Cabal 2.2+ or stack built with Cabal 2.2+ (was 1.12+).
+- avoid a ghci warning if :rmain is defined in user's config.
+- simplify stack yaml file names
+- workflows updates:
+  - binaries\*: simplify, cleanup
+  - binaries-linux-x64: install ghcup only if not cached; fix cache
+  - windows: use preinstalled stack
+  - docker: draft of a docker image build/publish workflow (Doug Goldstein, [#2002])
+  - nightly: adds latest binaries to the "nightly" release
+- tools updated:
+  binaries,
+  devtag-push,
+  ghnightly,
+  ghnightly-bin,
+  ghnightlynotes-push,
+  ghrel,
+  ghrelease-upload,
+  ghrelnotes-push,
+  ghrun,
+  ghrun-id,
+  ghrun-open,
+  ghruns,
+  ghruns-download,
+  ghruns-open,
+  hackageupload,
+  nightly,
+  nightlybin,
+  nightlytag
 
 
 # 1.42.2 2025-05-16
