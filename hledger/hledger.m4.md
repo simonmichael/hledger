@@ -430,15 +430,12 @@ forms, etc.)
 
 This requires a well-configured environment. Here are some tips:
 
-- A system locale must be configured, and it must be one that can
-  decode the characters being used.
-  In bash, you can set a locale like this: `export LANG=en_US.UTF-8`.
-  There are some more details in [Troubleshooting](#troubleshooting).
-  This step is essential - without it, hledger will quit on encountering
-  a non-ascii character (as with all GHC-compiled programs).
+- A system locale must be configured, which can decode the characters being used.
+  This is essential - see [Text encoding](#text-encoding).
 
 - Your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode.
-  On Windows, you may need to use Windows Terminal and/or enable UTF-8 support.
+  On Windows, you may need to use Windows Terminal and/or enable UTF-8 support system-wide -
+  see [Install: Locale](install.md#locale).
 
 - The terminal must be using a font which includes the required unicode glyphs.
 
@@ -3272,14 +3269,12 @@ See also ["Working with CSV > Reading files specified by rule"](#reading-files-s
 encoding ENCODING
 ```
 
-hledger normally expects non-ascii text to be UTF8-encoded.
+hledger normally expects non-ascii text to be using the system locale's text encoding.
 If you need to read CSV files which have some other encoding,
 you can do it by adding `encoding ENCODING` to your CSV rules.
 Eg: `encoding iso-8859-1`.
 
-The following encodings are supported
-(some alternate names and spellings also work, but [inconsistently](https://github.com/dmwit/encoding/issues/28))
-:
+The following encodings are supported:
 
 `ascii`,
 `utf-8`,
@@ -7000,8 +6995,9 @@ Some known issues and limitations:
 The need to precede add-on command options with `--` when invoked from hledger is awkward.
 (See Command options, Constructing command lines.)
 
-A UTF-8-aware system locale must be configured to work with non-ascii data.
-(See Unicode characters, Troubleshooting.)
+A system locale with a text encoding must be configured to work with non-ascii data.
+hledger should try UTF-8 if no encoding is configured.
+(See Text encoding, Troubleshooting.)
 
 On Microsoft Windows, depending whether you are running in a CMD window or a Cygwin/MSYS/Mintty window
 and how you installed hledger,

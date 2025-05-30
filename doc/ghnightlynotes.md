@@ -101,14 +101,11 @@ In a powershell window (press `WINDOWS-R`, `powershell`, `ENTER`):
     hledger --version; hledger-ui --version; hledger-web --version    # should show refs/tags/1.42.99; if not, check why: where.exe hledger
     ```
 
-3. Ensure a default journal file exists, and without a problematic encoding. 
+3. Ensure a default journal file exists, and without a problematic encoding (I'm not sure if/why "ascii" was needed here).
 This will allow you to start hledger-web by double-clicking on its icon if you wish.
     ```
     out-file -append -encoding ascii $HOME/.hledger.journal
     ```
-    (I'm not sure why "ascii" is needed here - hledger likes utf8 and understands utf8 BOM headers,
-    but the state of [our unicode support on Windows](https://github.com/simonmichael/hledger/issues?q=is%3Aissue+label%3A%22platform%3A+windows%22+label%3Ai18n)
-    is really unknown, your feedback is welcome.)
 
 </xdetails>
 <xdetails>

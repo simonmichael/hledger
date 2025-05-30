@@ -882,8 +882,8 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layo
 ### Balance report output
 
 As noted in [Output format](#output-format),
-if you choose HTML output (by using `-O html` or `-o somefile.html`), it will use the UTF-8 text encoding,
-And you can create a `hledger.css` file in the same directory to customise the report's appearance.
+if you choose HTML output (by using `-O html` or `-o somefile.html`),
+you can create a `hledger.css` file in the same directory to customise the report's appearance.
 
 The HTML and [FODS] output formats can generate hyperlinks to a `hledger-web` register view for each account and period.
 E.g. if your `hledger-web` server is reachable at `http://localhost:5000`
