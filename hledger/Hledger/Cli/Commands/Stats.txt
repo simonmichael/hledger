@@ -16,13 +16,12 @@ included files, and commodity names.
 
 It also shows some run time statistics:
 
--   elapsed time
--   throughput: the number of transactions processed per second
--   live: the peak memory in use by the program to do its work
--   alloc: the peak memory allocation from the OS as seen by GHC.
-    Measuring this externally, eg with GNU time, is more accurate;
-    usually that will be a larger number; sometimes (with swapping?)
-    smaller.
+- elapsed time
+- throughput: the number of transactions processed per second
+- live: the peak memory in use by the program to do its work
+- alloc: the peak memory allocation from the OS as seen by GHC.
+  Measuring this externally, eg with GNU time, is more accurate; usually
+  that will be a larger number; sometimes (with swapping?) smaller.
 
 The stats command's run time is similar to that of a balance report.
 

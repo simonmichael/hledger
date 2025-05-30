@@ -22,19 +22,19 @@ until you exit and restart the REPL.
 
 The command syntax is the same as with run:
 
--   enter one hledger command at a time, without the usual hledger first
-    word
--   empty lines and comment text from # to end of line are ignored
--   use single or double quotes to quote arguments when needed
--   type exit or quit or control-D to exit the REPL.
+- enter one hledger command at a time, without the usual hledger first
+  word
+- empty lines and comment text from # to end of line are ignored
+- use single or double quotes to quote arguments when needed
+- type exit or quit or control-D to exit the REPL.
 
 While it is running, the REPL remembers your command history, and you
 can navigate in the usual ways:
 
--   Keypad or Emacs navigation keys to edit the current command line
--   UP/DOWN or control-P/control-N to step back/forward through history
--   control-R to search for a past command
--   TAB to complete file paths.
+- Keypad or Emacs navigation keys to edit the current command line
+- UP/DOWN or control-P/control-N to step back/forward through history
+- control-R to search for a past command
+- TAB to complete file paths.
 
 Generally repl command lines should feel much like the normal hledger
 CLI, but you may find differences. repl is a little stricter; eg it

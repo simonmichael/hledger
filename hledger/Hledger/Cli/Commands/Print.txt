@@ -24,6 +24,7 @@ Flags:
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
+     --location             add file/line number tags to print output
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
@@ -84,11 +85,11 @@ With the --round (Added in 1.32) option, print will try increasingly
 hard to display decimal digits according to the commodity display
 styles:
 
--   --round=none show amounts with original precisions (default)
--   --round=soft add/remove decimal zeros in amounts (except costs)
--   --round=hard round amounts (except costs), possibly hiding
-    significant digits
--   --round=all round all amounts and costs
+- --round=none show amounts with original precisions (default)
+- --round=soft add/remove decimal zeros in amounts (except costs)
+- --round=hard round amounts (except costs), possibly hiding significant
+  digits
+- --round=all round all amounts and costs
 
 soft is good for non-lossy cleanup, formatting amounts more consistently
 where it's safe to do so.
@@ -110,10 +111,10 @@ $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
 There are some situations where print's output can become unparseable:
 
--   Value reporting affects posting amounts but not balance assertion or
-    balance assignment amounts, potentially causing those to fail.
--   Auto postings can generate postings with too many missing amounts.
--   Account aliases can generate bad account names.
+- Value reporting affects posting amounts but not balance assertion or
+  balance assignment amounts, potentially causing those to fail.
+- Auto postings can generate postings with too many missing amounts.
+- Account aliases can generate bad account names.
 
 print, other features
 
@@ -132,6 +133,9 @@ description is most similar to DESC. DESC should contain at least two
 characters. If there is no similar-enough match, no transaction will be
 shown and the program exit code will be non-zero.
 
+With --location, print adds the source file and line number to every
+transaction, as a tag.
+
 print output format
 
 This command also supports the output destination and output format
@@ -141,28 +145,28 @@ csv, tsv (Added in 1.32), json and sql.
 The beancount format tries to produce Beancount-compatible output, as
 follows:
 
--   Transaction and postings with unmarked status are converted to
-    cleared (*) status.
--   Transactions' payee and note are backslash-escaped and
-    double-quote-escaped and wrapped in double quotes.
--   Transaction tags are copied to Beancount #tag format.
--   Commodity symbols are converted to upper case, and a small number of
-    currency symbols like $ are converted to the corresponding currency
-    names.
--   Account name parts are capitalised and unsupported characters are
-    replaced with -. If an account name part does not begin with a
-    letter, or if the first part is not Assets, Liabilities, Equity,
-    Income, or Expenses, an error is raised. (Use --alias options to
-    bring your accounts into compliance.)
--   An open directive is generated for each account used, on the
-    earliest transaction date.
+- Transaction and postings with unmarked status are converted to cleared
+  (*) status.
+- Transactions' payee and note are backslash-escaped and
+  double-quote-escaped and wrapped in double quotes.
+- Transaction tags are copied to Beancount #tag format.
+- Commodity symbols are converted to upper case, and a small number of
+  currency symbols like $ are converted to the corresponding currency
+  names.
+- Account name parts are capitalised and unsupported characters are
+  replaced with -. If an account name part does not begin with a letter,
+  or if the first part is not Assets, Liabilities, Equity, Income, or
+  Expenses, an error is raised. (Use --alias options to bring your
+  accounts into compliance.)
+- An open directive is generated for each account used, on the earliest
+  transaction date.
 
 Some limitations:
 
--   Balance assertions are removed.
--   Balance assignments become missing amounts.
--   Virtual and balanced virtual postings become regular postings.
--   Directives are not converted.
+- Balance assertions are removed.
+- Balance assignments become missing amounts.
+- Virtual and balanced virtual postings become regular postings.
+- Directives are not converted.
 
 Here's an example of print's CSV output:
 
@@ -180,15 +184,15 @@ $ hledger print -Ocsv
 "5","2008/12/31","","*","","pay off","","liabilities:debts","1","$","","1","",""
 "5","2008/12/31","","*","","pay off","","assets:bank:checking","-1","$","1","","",""
 
--   There is one CSV record per posting, with the parent transaction's
-    fields repeated.
--   The "txnidx" (transaction index) field shows which postings belong
-    to the same transaction. (This number might change if transactions
-    are reordered within the file, files are parsed/included in a
-    different order, etc.)
--   The amount is separated into "commodity" (the symbol) and "amount"
-    (numeric quantity) fields.
--   The numeric amount is repeated in either the "credit" or "debit"
-    column, for convenience. (Those names are not accurate in the
-    accounting sense; it just puts negative amounts under credit and
-    zero or greater amounts under debit.)
+- There is one CSV record per posting, with the parent transaction's
+  fields repeated.
+- The "txnidx" (transaction index) field shows which postings belong to
+  the same transaction. (This number might change if transactions are
+  reordered within the file, files are parsed/included in a different
+  order, etc.)
+- The amount is separated into "commodity" (the symbol) and "amount"
+  (numeric quantity) fields.
+- The numeric amount is repeated in either the "credit" or "debit"
+  column, for convenience. (Those names are not accurate in the
+  accounting sense; it just puts negative amounts under credit and zero
+  or greater amounts under debit.)
