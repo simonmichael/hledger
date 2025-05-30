@@ -194,6 +194,7 @@ library
     , time >=1.5
     , timeit
     , transformers
+    , unicode-collation
     , unordered-containers
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
