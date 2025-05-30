@@ -303,17 +303,15 @@ exitOnError = flip catches
     -- But there are many variant wordings and they probably change over time.
     -- It's not ideal.
     isUnicodeError :: Exception e => e -> Bool
-    isUnicodeError ex = any (`isInfixOf` msg) unicodeerrorpatterns
-      where
-        msg = map toLower $ show ex
-        unicodeerrorpatterns = [
-            "illegal byte sequence"
-          , "invalid byte sequence"
-          , "cannot decode byte sequence"
-          , "invalid character"
-          , "invalid or incomplete multibyte"
-          , "mkTextEncoding: invalid argument"
-          ]
+    isUnicodeError ex =
+      let msg = map toLower (show ex) in any (`isInfixOf` msg) [
+          "illegal byte sequence"
+        , "invalid byte sequence"
+        , "cannot decode byte sequence"
+        , "invalid character"
+        , "invalid or incomplete multibyte"
+        , "mkTextEncoding: invalid argument"
+        ]
 
     exitUnicode :: Exception e => e -> IO ()
     exitUnicode ex = do
@@ -322,16 +320,15 @@ exitOnError = flip catches
         noencoding = map toLower enc == "ascii"
         msg = unlines $ [
             rstrip $ show ex
-          , "Some text could not be decoded/encoded with the system text encoding: " <> enc
+          , "Some text could not be decoded with the system text encoding, " <> enc <> "."
           ] ++
           if noencoding
           then [
-            "Please configure a system locale with a text encoding to handle non-ascii text"
+            "Please configure a system locale which can decode this text."
           ]
           else [
-            -- advice suitable for programs which always use the system text encoding:
-            "Please convert all data to the system encoding (eg with iconv),"
-          , "or configure the system encoding to match your data (eg by setting LANG)."
+            "Please either convert the text to this encoding,"
+          , "or configure a system locale which can decode this text."
           ]
       exitWithErrorMessage msg
 
