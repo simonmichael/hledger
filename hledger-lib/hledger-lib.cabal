@@ -115,6 +115,8 @@ library
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:
+      Hledger.Data.BalanceData
+      Hledger.Data.PeriodData
       Paths_hledger_lib
   autogen-modules:
       Paths_hledger_lib
@@ -163,6 +165,7 @@ library
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
+    , these >=1.0.0
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -222,6 +225,7 @@ test-suite doctest
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
+    , these >=1.0.0
     , time >=1.5
     , timeit
     , transformers >=0.2
@@ -283,6 +287,7 @@ test-suite unittest
     , template-haskell
     , terminal-size >=0.3.3
     , text >=1.2.4.1
+    , these >=1.0.0
     , time >=1.5
     , timeit
     , transformers >=0.2

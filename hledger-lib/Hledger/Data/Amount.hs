@@ -135,6 +135,7 @@ module Hledger.Data.Amount (
   divideMixedAmount,
   multiplyMixedAmount,
   averageMixedAmounts,
+  sumAndAverageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
   mixedAmountIsZero,
@@ -851,8 +852,14 @@ transformMixedAmount :: (Quantity -> Quantity) -> MixedAmount -> MixedAmount
 transformMixedAmount f = mapMixedAmountUnsafe (transformAmount f)
 
 -- | Calculate the average of some mixed amounts.
-averageMixedAmounts :: [MixedAmount] -> MixedAmount
-averageMixedAmounts as = fromIntegral (length as) `divideMixedAmount` maSum as
+averageMixedAmounts :: Foldable f => f MixedAmount -> MixedAmount
+averageMixedAmounts = snd . sumAndAverageMixedAmounts
+
+-- | Calculate the sum and average of some mixed amounts.
+sumAndAverageMixedAmounts :: Foldable f => f MixedAmount -> (MixedAmount, MixedAmount)
+sumAndAverageMixedAmounts amts = (total, fromIntegral nAmts `divideMixedAmount` total)
+  where
+    (nAmts, total) = foldl' (\(n, a) b -> (n + 1, maPlus a b)) (0 :: Int, nullmixedamt) amts
 
 -- | Is this mixed amount negative, if we can tell that unambiguously?
 -- Ie when normalised, are all individual commodity amounts negative ?
@@ -1039,9 +1046,16 @@ mixedAmountSetStyles = styleAmounts
 instance HasAmounts MixedAmount where
   styleAmounts styles = mapMixedAmountUnsafe (styleAmounts styles)
 
-instance HasAmounts Account where
-  styleAmounts styles acct@Account{aebalance,aibalance} =
-    acct{aebalance=styleAmounts styles aebalance, aibalance=styleAmounts styles aibalance}
+instance HasAmounts BalanceData where
+  styleAmounts styles balance@BalanceData{bdexcludingsubs,bdincludingsubs} =
+    balance{bdexcludingsubs=styleAmounts styles bdexcludingsubs, bdincludingsubs=styleAmounts styles bdincludingsubs}
+
+instance HasAmounts a => HasAmounts (PeriodData a) where
+  styleAmounts styles = fmap (styleAmounts styles)
+
+instance HasAmounts a => HasAmounts (Account a) where
+  styleAmounts styles acct@Account{adata} =
+    acct{adata = styleAmounts styles <$> adata}
 
 -- | Reset each individual amount's display style to the default.
 mixedAmountUnstyled :: MixedAmount -> MixedAmount
