@@ -24,7 +24,7 @@ module Hledger.Data.Account
 , parentAccounts
 , accountsLevels
 , mapAccounts
-, mapAccountBalances
+, mapPeriodData
 , anyAccounts
 , filterAccounts
 , sumAccounts
@@ -58,8 +58,8 @@ import Data.Time (Day(..), fromGregorian)
 import Safe (headMay)
 import Text.Printf (printf)
 
-import Hledger.Data.AccountBalance ()
-import Hledger.Data.AccountBalances
+import Hledger.Data.BalanceData ()
+import Hledger.Data.PeriodData
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Types
@@ -74,8 +74,8 @@ instance Show a => Show (Account a) where
       . showString (T.unpack $ aname acct)
       . showString " (boring:"
       . showString (if aboring acct then "y" else "n")
-      . showString ", abalances:"
-      . shows (abalances acct)
+      . showString ", adata:"
+      . shows (adata acct)
       . showChar ')'
 
 instance Eq (Account a) where
@@ -88,19 +88,19 @@ instance Eq (Account a) where
              -- , aibalance a == aibalance b
              -- ]
 
-nullacct :: Account AccountBalance
+nullacct :: Account BalanceData
 nullacct = accountFromBalances "" mempty
 
 -- | Construct an 'Account" from an account name and balances. Other fields are
 -- left blank.
-accountFromBalances :: AccountName -> AccountBalances a -> Account a
+accountFromBalances :: AccountName -> PeriodData a -> Account a
 accountFromBalances name bal = Account
   { aname            = name
   , adeclarationinfo = Nothing
   , asubs            = []
   , aparent          = Nothing
   , aboring          = False
-  , abalances        = bal
+  , adata            = bal
   }
 
 -- | Derive 1. an account tree and 2. each account's total exclusive and
@@ -111,7 +111,7 @@ accountFromBalances name bal = Account
 -- The accounts are returned as a list in flattened tree order,
 -- and also reference each other as a tree.
 -- (The first account is the root of the tree.)
-accountsFromPostings :: (Posting -> Maybe Day) -> [Posting] -> [Account AccountBalance]
+accountsFromPostings :: (Posting -> Maybe Day) -> [Posting] -> [Account BalanceData]
 accountsFromPostings getPostingDate = flattenAccounts . accountFromPostings getPostingDate
 
 -- | Derive 1. an account tree and 2. each account's total exclusive
@@ -120,23 +120,23 @@ accountsFromPostings getPostingDate = flattenAccounts . accountFromPostings getP
 -- start dates of report subperiods).
 -- This is the core of the balance command (and of *ledger).
 -- The accounts are returned as a tree.
-accountFromPostings :: (Posting -> Maybe Day) -> [Posting] -> Account AccountBalance
+accountFromPostings :: (Posting -> Maybe Day) -> [Posting] -> Account BalanceData
 accountFromPostings getPostingDate ps =
     tieAccountParents . sumAccounts $ mapAccounts setBalance acctTree
   where
     -- The special name "..." is stored in the root of the tree
     acctTree     = accountTree "root" . HM.keys $ HM.delete "..." accountMap
-    setBalance a = a{abalances = HM.lookupDefault mempty name accountMap}
+    setBalance a = a{adata = HM.lookupDefault mempty name accountMap}
       where name = if aname a == "root" then "..." else aname a
     accountMap   = processPostings ps
 
-    processPostings :: [Posting] -> HM.HashMap AccountName (AccountBalances AccountBalance)
+    processPostings :: [Posting] -> HM.HashMap AccountName (PeriodData BalanceData)
     processPostings = foldl' (flip processAccountName) mempty
       where
-        processAccountName p = HM.alter (updateAccountBalance p) (paccount p)
-        updateAccountBalance p = Just
-                               . insertAccountBalances (getPostingDate p) (AccountBalance 1 (pamount p) nullmixedamt)
-                               . fromMaybe mempty
+        processAccountName p = HM.alter (updateBalanceData p) (paccount p)
+        updateBalanceData p = Just
+                            . insertPeriodData (getPostingDate p) (BalanceData (pamount p) nullmixedamt 1)
+                            . fromMaybe mempty
 
 -- | Convert a list of account names to a tree of Account objects,
 -- with just the account names filled in and an empty balance.
@@ -148,7 +148,7 @@ accountTree rootname = accountTreeFromBalanceAndNames rootname mempty
 -- with just the account names filled in. Each account is given the same
 -- supplied balance.
 -- A single root account with the given name is added.
-accountTreeFromBalanceAndNames :: AccountName -> AccountBalances a -> [AccountName] -> Account a
+accountTreeFromBalanceAndNames :: AccountName -> PeriodData a -> [AccountName] -> Account a
 accountTreeFromBalanceAndNames rootname bals as =
     (accountFromBalances rootname bals){ asubs=map (uncurry accountTree') $ M.assocs m }
   where
@@ -193,9 +193,9 @@ accountsLevels = takeWhile (not . null) . iterate (concatMap asubs) . (:[])
 mapAccounts :: (Account a -> Account a) -> Account a -> Account a
 mapAccounts f a = f a{asubs = map (mapAccounts f) $ asubs a}
 
--- | Apply a function to all 'AccountBalances' within this and sub accounts.
-mapAccountBalances :: (AccountBalances a -> AccountBalances a) -> Account a -> Account a
-mapAccountBalances f = mapAccounts (\a -> a{abalances = f $ abalances a})
+-- | Apply a function to all 'PeriodData' within this and sub accounts.
+mapPeriodData :: (PeriodData a -> PeriodData a) -> Account a -> Account a
+mapPeriodData f = mapAccounts (\a -> a{adata = f $ adata a})
 
 -- | Is the predicate true on any of this account or its subaccounts ?
 anyAccounts :: (Account a -> Bool) -> Account a -> Bool
@@ -210,18 +210,18 @@ allAccounts p a
     | otherwise = all (allAccounts p) $ asubs a
 
 -- | Recalculate all the subaccount-inclusive balances in this tree.
-sumAccounts :: Account AccountBalance -> Account AccountBalance
-sumAccounts a = a{asubs = subs, abalances = setInclusiveBalances $ abalances a}
+sumAccounts :: Account BalanceData -> Account BalanceData
+sumAccounts a = a{asubs = subs, adata = setInclusiveBalances $ adata a}
   where
     subs = map sumAccounts $ asubs a
-    subtotals = foldMap abalances subs
+    subtotals = foldMap adata subs
 
-    setInclusiveBalances :: AccountBalances AccountBalance -> AccountBalances AccountBalance
-    setInclusiveBalances = mergeAccountBalances onlyChildren noChildren combineChildren subtotals
+    setInclusiveBalances :: PeriodData BalanceData -> PeriodData BalanceData
+    setInclusiveBalances = mergePeriodData onlyChildren noChildren combineChildren subtotals
 
-    combineChildren children this = this  {abibalance = abebalance this <> abibalance children}
-    onlyChildren    children      = mempty{abibalance = abibalance children}
-    noChildren               this = this  {abibalance = abebalance this}
+    combineChildren children this = this  {bdincludingsubs = bdexcludingsubs this <> bdincludingsubs children}
+    onlyChildren    children      = mempty{bdincludingsubs = bdincludingsubs children}
+    noChildren               this = this  {bdincludingsubs = bdexcludingsubs this}
 
 -- | Remove all subaccounts below a certain depth.
 clipAccounts :: Int -> Account a -> Account a
@@ -238,7 +238,7 @@ clipAccountsAndAggregate (DepthSpec Nothing []) as = as
 clipAccountsAndAggregate depthSpec              as = combined
     where
       clipped  = [a{aname=clipOrEllipsifyAccountName depthSpec $ aname a} | a <- as]
-      combined = [a{abalances=foldMap abalances same}
+      combined = [a{adata=foldMap adata same}
                  | same@(a:|_) <- groupWith aname clipped]
 
 {-
@@ -303,7 +303,7 @@ mergeAccounts a = tieAccountParents . merge a
        { adeclarationinfo = adeclarationinfo acct1 <|> adeclarationinfo acct2
        , aparent = Nothing
        , aboring = aboring acct1 && aboring acct2
-       , abalances = mergeBalances (abalances acct1) (abalances acct2)
+       , adata = mergeBalances (adata acct1) (adata acct2)
        , asubs = mergeSubs (sortOn aname $ asubs acct1) (sortOn aname $ asubs acct2)
        }
 
@@ -314,7 +314,7 @@ mergeAccounts a = tieAccountParents . merge a
     mergeSubs xs [] = map (fmap This) xs
     mergeSubs [] ys = map (fmap That) ys
 
-    mergeBalances = mergeAccountBalances This That These
+    mergeBalances = mergePeriodData This That These
 
 -- | Sort each group of siblings in an account tree by projecting through
 -- a provided function.
@@ -380,7 +380,7 @@ showAccountsBoringFlag = unlines . map (show . aboring) . flattenAccounts
 showAccountDebug a = printf "%-25s %s %4s"
                      (aname a)
                      (if aboring a then "b" else " " :: String)
-                     (show $ abalances a)
+                     (show $ adata a)
 
 
 tests_Account = testGroup "Account" [
@@ -388,7 +388,7 @@ tests_Account = testGroup "Account" [
       testCase "no postings, no days" $
         accountFromPostings undefined [] @?= accountTree "root" []
      ,testCase "no postings, only 2000-01-01" $
-         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . IM.keys . abdatemap . abalances)
-                     (accountFromPostings undefined []) @? "Not all abalances have exactly 2000-01-01"
+         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . IM.keys . pdperiods . adata)
+                     (accountFromPostings undefined []) @? "Not all adata have exactly 2000-01-01"
     ]
   ]

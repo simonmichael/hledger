@@ -71,21 +71,21 @@ ledgerAccountNames :: Ledger -> [AccountName]
 ledgerAccountNames = drop 1 . map aname . laccounts
 
 -- | Get the named account from a ledger.
-ledgerAccount :: Ledger -> AccountName -> Maybe (Account AccountBalance)
+ledgerAccount :: Ledger -> AccountName -> Maybe (Account BalanceData)
 ledgerAccount l a = lookupAccount a $ laccounts l
 
 -- | Get this ledger's root account, which is a dummy "root" account
 -- above all others. This should always be first in the account list,
 -- if somehow not this returns a null account.
-ledgerRootAccount :: Ledger -> Account AccountBalance
+ledgerRootAccount :: Ledger -> Account BalanceData
 ledgerRootAccount = headDef nullacct . laccounts
 
 -- | List a ledger's top-level accounts (the ones below the root), in tree order.
-ledgerTopAccounts :: Ledger -> [Account AccountBalance]
+ledgerTopAccounts :: Ledger -> [Account BalanceData]
 ledgerTopAccounts = asubs . headDef nullacct . laccounts
 
 -- | List a ledger's bottom-level (subaccount-less) accounts, in tree order.
-ledgerLeafAccounts :: Ledger -> [Account AccountBalance]
+ledgerLeafAccounts :: Ledger -> [Account BalanceData]
 ledgerLeafAccounts = filter (null.asubs) . laccounts
 
 -- | List a ledger's postings, in the order parsed.

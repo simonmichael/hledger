@@ -735,35 +735,35 @@ nullaccountdeclarationinfo = AccountDeclarationInfo {
   ,adisourcepos        = SourcePos "" (mkPos 1) (mkPos 1)
 }
 
--- | An account within a hierarchy, with its balances, parent/subaccount
--- relationships, etc. Only the name is required; the other fields are added
--- when needed.
+-- | An account within a hierarchy, with references to its parent
+-- and subaccounts if any, and with per-report-period data of type 'a'.
+-- Only the name is required; the other fields may or may not be present.
 data Account a = Account {
-   aname                     :: AccountName         -- ^ this account's full name
+   aname                     :: AccountName        -- ^ full name
   ,adeclarationinfo          :: Maybe AccountDeclarationInfo  -- ^ optional extra info from account directives
   -- relationships in the tree
-  ,asubs                     :: [Account a]        -- ^ this account's sub-accounts
+  ,asubs                     :: [Account a]        -- ^ subaccounts
   ,aparent                   :: Maybe (Account a)  -- ^ parent account
-  ,aboring                   :: Bool                -- ^ used in the accounts report to label elidable parents
-  -- balance information
-  ,abalances                 :: AccountBalances a   -- ^ historical and date-associated account balances.
-                                                    -- These can be either "end balances" (at the end of a period)
-                                                    -- or "balance changes" (within a period).
+  ,aboring                   :: Bool               -- ^ used in some reports to indicate elidable accounts
+  ,adata                     :: PeriodData a       -- ^ associated data per report period
   } deriving (Generic, Functor)
 
--- | A component of an 'Account' containing historical 'AccountBalance', and a
--- map of start dates to 'AccountBalance'.
-data AccountBalances a = AccountBalances {
-   abhistorical :: a            -- ^ historical balance information
-  ,abdatemap    :: IM.IntMap a  -- ^ balance information associated to a start day
+-- | Data values for zero or more report periods, and for the pre-report period.
+-- Report periods are assumed to be contiguous, and represented only by start dates
+-- (as keys of an IntMap). XXX how does that work, again ?
+data PeriodData a = PeriodData {
+   pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
+  ,pdperiods :: IM.IntMap a  -- ^ data for the periods
   } deriving (Eq, Functor, Generic)
 
--- | A component of an 'Account' containing the number of postings,
--- balance excluding subaccounts, and balance including subaccounts
-data AccountBalance = AccountBalance {
-   abnumpostings :: Int          -- ^ the number of postings to this account
-  ,abebalance    :: MixedAmount  -- ^ this account's balance, excluding subaccounts
-  ,abibalance    :: MixedAmount  -- ^ this account's balance, including subaccounts
+-- | Data that's useful in "balance" reports:
+-- subaccount-exclusive and -inclusive amounts,
+-- typically representing either a balance change or an end balance;
+-- and a count of postings.
+data BalanceData = BalanceData {
+   bdexcludingsubs :: MixedAmount  -- ^ balance data excluding subaccounts
+  ,bdincludingsubs :: MixedAmount  -- ^ balance data including subaccounts
+  ,bdnumpostings :: Int            -- ^ the number of postings
   } deriving (Eq, Generic)
 
 -- | Whether an account's balance is normally a positive number (in
@@ -779,7 +779,7 @@ data NormalSign = NormallyPositive | NormallyNegative deriving (Show, Eq)
 -- account is the root of the tree and always exists.
 data Ledger = Ledger {
    ljournal  :: Journal
-  ,laccounts :: [Account AccountBalance]
+  ,laccounts :: [Account BalanceData]
   } deriving (Generic)
 
 instance NFData AccountAlias

@@ -156,11 +156,11 @@ instance ToJSON TimeclockCode
 instance ToJSON TimeclockEntry
 instance ToJSON Journal
 
-instance ToJSON AccountBalance
-instance ToJSON a => ToJSON (AccountBalances a) where
+instance ToJSON BalanceData
+instance ToJSON a => ToJSON (PeriodData a) where
   toJSON a = object
-    [ "abhistorical" .= abhistorical a
-    , "abdatemap"    .= map (\(d, x) -> (ModifiedJulianDay (toInteger d), x)) (IM.toList $ abdatemap a)
+    [ "pdpre" .= pdpre a
+    , "pdperiods" .= map (\(d, x) -> (ModifiedJulianDay (toInteger d), x)) (IM.toList $ pdperiods a)
     ]
 
 instance ToJSON a => ToJSON (Account a) where
@@ -185,9 +185,9 @@ accountKV a =
     -- The actual subaccounts (and their subs..), making a (probably highly redundant) tree
     -- ,"asubs"        .= asubs a
     -- Omit the actual subaccounts
-    , "asubs"            .= ([]::[Account AccountBalance])
+    , "asubs"            .= ([]::[Account BalanceData])
     , "aboring"          .= aboring a
-    , "abalances"        .= abalances a
+    , "adata"            .= adata a
     ]
 
 instance ToJSON Ledger
@@ -222,11 +222,11 @@ instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo
 
-instance FromJSON AccountBalance
-instance FromJSON a => FromJSON (AccountBalances a) where
-  parseJSON = withObject "AccountBalances" $ \v -> AccountBalances
-    <$> v .: "abhistorical"
-    <*> (IM.fromList . map (\(d, x) -> (fromInteger $ toModifiedJulianDay d, x)) <$> v .: "abdatemap")
+instance FromJSON BalanceData
+instance FromJSON a => FromJSON (PeriodData a) where
+  parseJSON = withObject "PeriodData" $ \v -> PeriodData
+    <$> v .: "pdpre"
+    <*> (IM.fromList . map (\(d, x) -> (fromInteger $ toModifiedJulianDay d, x)) <$> v .: "pdperiods")
 
 -- XXX The ToJSON instance replaces subaccounts with just names.
 -- Here we should try to make use of those to reconstruct the

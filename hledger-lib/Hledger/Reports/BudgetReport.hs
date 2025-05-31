@@ -107,17 +107,17 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateBudgetReport :: ReportOpts -> [DateSpan] -> Account (These AccountBalance AccountBalance) -> BudgetReport
+generateBudgetReport :: ReportOpts -> [DateSpan] -> Account (These BalanceData BalanceData) -> BudgetReport
 generateBudgetReport = generatePeriodicReport makeBudgetReportRow treeActualBalance flatActualBalance
   where
-    treeActualBalance = these abibalance (const nullmixedamt) (const . abibalance)
+    treeActualBalance = these bdincludingsubs (const nullmixedamt) (const . bdincludingsubs)
     flatActualBalance = fromMaybe nullmixedamt . fst
 
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-makeBudgetReportRow :: ReportOpts -> (AccountBalance -> MixedAmount)
-                    -> a -> Account (These AccountBalance AccountBalance) -> PeriodicReportRow a BudgetCell
+makeBudgetReportRow :: ReportOpts -> (BalanceData -> MixedAmount)
+                    -> a -> Account (These BalanceData BalanceData) -> PeriodicReportRow a BudgetCell
 makeBudgetReportRow ropts balance =
     makePeriodicReportRow (Just nullmixedamt, Nothing) avg ropts (theseToMaybe . bimap balance balance)
   where

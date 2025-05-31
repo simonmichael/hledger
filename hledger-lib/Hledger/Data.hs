@@ -10,8 +10,8 @@ functionality.  This package re-exports all the Hledger.Data.* modules
 
 module Hledger.Data (
                module Hledger.Data.Account,
-               module Hledger.Data.AccountBalance,
-               module Hledger.Data.AccountBalances,
+               module Hledger.Data.BalanceData,
+               module Hledger.Data.PeriodData,
                module Hledger.Data.AccountName,
                module Hledger.Data.Amount,
                module Hledger.Data.Balancing,
@@ -38,8 +38,8 @@ where
 
 import Test.Tasty (testGroup)
 import Hledger.Data.Account
-import Hledger.Data.AccountBalance
-import Hledger.Data.AccountBalances
+import Hledger.Data.BalanceData
+import Hledger.Data.PeriodData
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
 import Hledger.Data.Balancing
@@ -64,8 +64,8 @@ import Hledger.Data.Valuation
 tests_Data = testGroup "Data" [
    tests_Account
   ,tests_AccountName
-  ,tests_AccountBalance
-  ,tests_AccountBalances
+  ,tests_BalanceData
+  ,tests_PeriodData
   ,tests_Amount
   ,tests_Balancing
   -- ,tests_Currency
