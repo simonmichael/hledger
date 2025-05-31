@@ -754,7 +754,7 @@ reportSpanBothDates = reportSpanHelper True
 -- primary and secondary dates.
 reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
-    (reportspan, intervalspans)
+    (reportspan, if not (null intervalspans) then intervalspans else [reportspan])
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
