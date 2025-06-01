@@ -21,7 +21,7 @@ jobs:
 
     - name: Install general tools with system package manager
       run: |
-        apk --no-cache add gmp-dev libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl
+        apk --no-cache add gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl
 
     # things to be cached/restored (needs tar)
 

@@ -86,7 +86,7 @@ jobs:
 
     - name: Install general tools with system package manager
       run: |
-        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
+        apk --no-cache add binutils-gold curl gcc g++ git gmp-dev gmp-static ncurses-dev ncurses-static libffi-dev make xz tar perl zlib-dev zlib-static
 
     # needed by stack, at least; do it here in case it matters for ghcup too
     - name: Fix $HOME for following steps (workaround from https://github.com/actions/runner/issues/863)
