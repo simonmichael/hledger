@@ -75,8 +75,270 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2025-05-16 hledger-1.42.2
 
+## 2025-06-01 hledger-1.43
+
+### hledger 1.43
+
+**new `setup` command, better boolean queries, `add` assertions, timeclock concurrent sessions, CSV if rules debug output**
+
+Breaking changes
+
+- Timeclock format now supports multiple simultaneous clocked-in sessions.
+  A clockout entry can reference the account name of the clockin it is ending,
+  otherwise it will end the most recent clockin.
+
+  This is a potentially breaking change, because we previously ignored
+  the description on clockout entries.  For now, you can restore the
+  old behaviour by adding the `--timeclock-old` flag.  This may be
+  removed later, so if you needed it, please let us know!
+  (Michael Rees, [#2141])
+
+Fixes
+
+- Some boolean queries involving `amt:` or `cur:` did not match correctly; now they do.
+  (Simon Michael, Stephen Morgan, [#2371], [#2373], [#2387])
+
+- The `roi` command has fixed a bug with PnL attributed to the wrong period.
+  (Dmitry Astapov, [#2391])
+
+- For a long time, hledger docs stated that hledger's input and output had to be UTF-8 encoded.
+  In fact this was wrong; hledger has always used the system locale's encoding for both.
+  Docs like [Install: Text encoding](install.md#text-encoding)
+  and       [hledger: Text encoding](hledger.md#text-encoding)
+  have been updated.
+  [#2394]
+
+- CLI error messages now have consistent format independent of the GHC
+  version hledger was compiled with. [#2367]
+
+Features
+
+- A new `setup` command checks your hledger installation and shows information
+  useful for troubleshooting. It will do more in future.
+  For now, `setup` should be reliable and accurate;
+  please test it on all your machines and share the results with us.
+  Experimental.
+
+  When you run this command, hledger attempts one HTTP request, with a 10s timeout,
+  to hledger.org, to detect the current release version.
+
+- New `any:"BOOLEANQUERY"` and `all:"BOOLEANQUERY"` queries can be
+  used with transaction-matching commands like `print` and `import`.
+
+  Unlike `expr:"BOOLEANQUERY"`, where the parts of the boolean query
+  are allowed to match different postings in the transaction,
+  with `any:` and `all:` the entire boolean query must match match a single posting.
+  `any:` matches the transaction if any posting is matched,
+  `all:` matches the transaction if all postings are matched.
+
+- The `add` command now allows balance assertions to be added, after an amount.
+  Also, whenever you enter an amount, it now checks the journal's balance assertions
+  and will not allow adding an amount that would cause assertion failure
+  (unless you use the `-I/--ignore-assertions` flag).
+  (Michael Rees, [#2355], [#2356])
+
+- The hledger-print-location script, which shows transactions' file positions, 
+  is now built in to `print` as the `--location` flag.
+  (Sam Salmahri, [#2368])
+
+Improvements
+
+- Core data types are now more strict, which in some cases reduces memory and time usage by up to 15%.
+  (Stephen Morgan, [#2381], [#2385], [#2387])
+
+- Config files (and maybe timedot files) no longer require a final newline.
+
+- In journal format, `include` directives can now have same-line comments.
+
+- CSV `if` rules now produce more `--debug=2` output, useful for troubleshooting.
+
+- CSV debug output now displays records as the `if` matchers see them.
+  (Comma separated and with quotes and outer whitespace removed.)
+
+- A number of error messages have been updated to show a consistent format.
+  (reading a nonexistent data file,
+  reading an unsafe dotted file name on Windows,
+  demo not found,
+  demo asciinema error,
+  diff bad arguments,
+  print --match with no match,
+  register --match with no match,
+  roi with no investment transactions).
+  [#2367]
+
+- Support GHC 9.12.
+
+Docs
+
+- Account types: rewrite
+- Assertions and multiple files: edits
+- Balance assertions and multiple files
+- balance: edits
+- Beancount output: edits
+- check: edits
+- Config file: drop the s
+- CSV: clarify that CSV means delimiter-separated values, link to wikipedia DSV page
+- CSV:description field: fix link [hledger_site#133]
+- Fix broken hledger-iadd link
+- Fix various broken "Commodity display style" links (JB Rainsberger, Simon Michael, [hledger_site/#132])
+- How CSV rules are evaluated: clarify
+- Journal: cheatsheet edits
+- print: simplify [#2368]
+- Queries: discuss transaction vs posting queries; cleanups
+- Queries: fix the explanation of boolean queries and space-separated terms
+
+Examples
+
+- examples/csv/nps.csv.sh updated (Pranesh Prakash)
+- examples/forecast-budget* -> examples/goal-budget*
+- examples/i18n/\*.journal: top level account declarations in several languages.
+- examples/quickstart.journal: the quickstart journal from the home page
+
+Scripts/addons
+
+- bin/balance-as-budget-multi.hs (Dmitry Astapov)
+- bin/bashrc: command alias updates
+- bin/hledger-sankeymatic
+
+API
+
+- Hledger.Cli.Conf: make getConf total, add getConf'
+- Hledger.Cli.Version: add more version helpers, rename HledgerBinaryInfo
+
+
+### hledger-ui 1.43
+
+
+Fixes
+
+- Require fsnotify >=0.4.2.0, which fixes some events being ignored on mac,
+  possibly making hledger-ui --watch more reliable in this regard.
+
+- Require extra >=1.7.11, possibly fixing the stack810.yaml build. (Thomas Miedema)
+
+Improvements
+
+- CLI error messages now have consistent clean format independent of GHC version. [#2367]
+
+- Support GHC 9.12.
+
+Docs
+
+- Update --watch docs.
+- Drop obsolete mention of Windows non-support.
+
+
+### hledger-web 1.43
+
+
+Features
+
+- Serve openapi.json, documenting the hledger-web HTTP API so that tools
+  like open-webui and LLMs can query hledger-web for context.
+  (Ben Sima)
+
+Improvements
+
+- The search help popup has been updated, and now shows the hledger-web version.
+
+- The default "serve and browse" mode now has an explicit `--serve-browse` mode flag, for consistency.
+
+- The old `--server` flag is now deprecated and hidden. Use `--serve` instead.
+
+- CLI error messages now have consistent clean format independent of GHC version. [#2367]
+
+- Fix capitalisation in Sandstorm app metadata.
+
+- Support GHC 9.12.
+
+- Drop base-compat dependency (Thomas Miedema)
+
+Docs
+
+- Fix outdated PERMISSIONS doc.
+
+
+### project changes 1.43
+
+
+Docs
+
+- Updated:
+  FILES,
+  FINANCE,
+  ISSUES,
+  PULLREQUESTS,
+  REGRESSIONS,
+  RELEASING,
+  ghrelnotes,
+  relnotes
+
+Infrastructure/Misc
+
+- issue labels updates, `severity*` -> `annoyance*`, `impact*` -> `affects*`
+- new shortcut urls: assignedprs.hledger.org, unassignedprs.hledger.org
+- clean up LICENSE files, main module licensing headers, add AUTHORS.md, try to fix github license detection
+- cabal files now specify GPLv3+ exactly. [#2359]
+- building the hledger packages now requires at least Cabal 2.2+ or stack built with Cabal 2.2+ (was 1.12+).
+- avoid a ghci warning if :rmain is defined in user's config.
+- simplify stack yaml file names
+- workflows updates:
+  - binaries\*: simplify, cleanup
+  - binaries-linux-x64: install ghcup only if not cached; fix cache
+  - windows: use preinstalled stack
+  - docker: draft of a docker image build/publish workflow (Doug Goldstein, [#2002])
+  - nightly: adds latest binaries to the "nightly" release
+- tools updated:
+  binaries,
+  devtag-push,
+  ghnightly,
+  ghnightly-bin,
+  ghnightlynotes-push,
+  ghrel,
+  ghrelease-upload,
+  ghrelnotes-push,
+  ghrun,
+  ghrun-id,
+  ghrun-open,
+  ghruns,
+  ghruns-download,
+  ghruns-open,
+  hackageupload,
+  nightly,
+  nightlybin,
+  nightlytag
+
+
+### credits 1.43
+
+Simon Michael (@simonmichael),
+Michael Rees (@reesmichael1),
+Thomas Miedema (@thomie),
+Dmitry Astapov (@adept),
+Pranesh Prakash (@the-solipsist),
+Stephen Morgan (@Xitian9),
+Sam Almahri (@samahri),
+Ben Sima (@bsima),
+Doug Goldstein (@cardoe).
+
+[#2002]: https://github.com/simonmichael/hledger/issues/2002
+[#2141]: https://github.com/simonmichael/hledger/issues/2141
+[#2355]: https://github.com/simonmichael/hledger/issues/2355
+[#2356]: https://github.com/simonmichael/hledger/issues/2356
+[#2359]: https://github.com/simonmichael/hledger/issues/2359
+[#2367]: https://github.com/simonmichael/hledger/issues/2367
+[#2368]: https://github.com/simonmichael/hledger/issues/2368
+[#2371]: https://github.com/simonmichael/hledger/issues/2371
+[#2373]: https://github.com/simonmichael/hledger/issues/2373
+[#2381]: https://github.com/simonmichael/hledger/issues/2381
+[#2385]: https://github.com/simonmichael/hledger/issues/2385
+[#2387]: https://github.com/simonmichael/hledger/issues/2387
+[#2391]: https://github.com/simonmichael/hledger/issues/2391
+[#2394]: https://github.com/simonmichael/hledger/issues/2394
+
+
+## 2025-05-16 hledger-1.42.2
 ### hledger 1.42.2
 
 Fixes
@@ -135,6 +397,7 @@ Thomas Miedema (@thomie).
 [#2386]: https://github.com/simonmichael/hledger/issues/2386
 [#2389]: https://github.com/simonmichael/hledger/issues/2389
 [hledger_site#132]: https://github.com/simonmichael/hledger_site/issues/132
+
 
 
 ## 2025-03-12  hledger-1.42.1
@@ -9591,6 +9854,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
