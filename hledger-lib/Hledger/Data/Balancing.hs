@@ -152,14 +152,12 @@ isTransactionBalanced bopts = null . transactionCheckBalanced bopts
 -- when included in the larger journal.
 transactionCheckAssertions :: BalancingOpts -> Journal -> Transaction -> Either String Transaction
 transactionCheckAssertions bopts j t =
-  if (ignore_assertions_ bopts) || noassertions t then Right t else do
+  if (ignore_assertions_ bopts) then Right t else do
     j' <- journalStyleAmounts j 
     let newtxns = sortOn tdate (jtxns j' ++ [ t ])
     case journalBalanceTransactions bopts j'{jtxns = newtxns} of
       Right _ -> Right t
       Left e -> Left e
-  where
-    noassertions = all (isNothing . pbalanceassertion) . tpostings
 
 -- | Balance this transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
