@@ -1530,6 +1530,7 @@ _on-master-branch:
 
 # Download any new binaries from the latest runs of the main binary github workflows, and recompress them.
 ghruns-download:
+    mkdir -p tmp
     cd tmp; rm -rf hledger-*64
     cd tmp; gh run download $(just ghrun-id binaries-linux-x64)
     cd tmp; gh run download $(just ghrun-id binaries-mac-arm64)
