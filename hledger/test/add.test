@@ -218,7 +218,7 @@ x2
 .
 $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /\(a\)[[:space:]]+3 = 3  ;  date:2025-05-01/
->2 //
+>2
 
 ## 16. Verify that -I skips assertions
 <
