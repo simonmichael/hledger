@@ -1,4 +1,5 @@
 # * add command
+# Note the use of $$ to uniquify temp files, needed since tests run concurrently.
 ##############################################################################
 # data validation
 #
@@ -110,7 +111,7 @@ a
 b
 0.5
 c
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /Amount  3 \[-0.75\]:/
 >2 //
 
@@ -124,7 +125,7 @@ a
 b
 -50 USD  == 50 USD
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > //
 >2 /Balance assertion failed in b/
 
@@ -142,7 +143,7 @@ a
 a
 -10 USD = 0 USD
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /Save this transaction to the journal/
 >2 //
 
@@ -158,7 +159,7 @@ a
 c
 -500 JPY
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /Save this transaction to the journal/
 >2 //
 
@@ -182,7 +183,7 @@ c
 .
 # Check the output with c to make sure we get to the final transaction display 
 # (anything generic is also in the first transaction)
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /c[[:space:]]+-10 USD/
 >2 //
 
@@ -199,7 +200,7 @@ a
 a
 -500 MXN =* 0 MXN
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /Save this transaction to the journal/
 >2 //
 
@@ -216,7 +217,7 @@ x2
 (a)
 3 = 3  ; date:2025-05-01
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /\(a\)[[:space:]]+3 = 3  ;  date:2025-05-01/
 >2 //
 
@@ -229,7 +230,7 @@ a
 b
 -10 USD
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal -I add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal -I add; rm -f nosuch.$$.journal
 > /Save this transaction to the journal/
 >2 //
 
@@ -242,7 +243,7 @@ a
 b
 -10 USD
 .
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > /Save this transaction to the journal/
 >2 //
 
@@ -260,7 +261,7 @@ y
 x
 a
 10 USD
-$  rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+$  rm -f nosuch.$$.journal; hledger -f nosuch.$$.journal add; rm -f nosuch.$$.journal
 > //
 >2 /Balance assertion failed in a/
 
