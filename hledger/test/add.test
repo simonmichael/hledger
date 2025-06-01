@@ -134,13 +134,13 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 2025-05-01
 x
 a
-\$10
+10 USD
 a
 10 EUR
 a
 -10 EUR = 0 EUR
 a
-\$-10 = $0
+-10 USD = 0 USD
 .
 $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
