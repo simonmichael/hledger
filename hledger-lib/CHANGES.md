@@ -22,7 +22,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 4913c222
+# 1.43 2025-06-01
 
 - Support GHC 9.12.
 
