@@ -246,6 +246,25 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
+## 18. add checks existing assertions 
+<
+2025-05-10
+x
+a
+10 USD  == 10 USD
+b
+-10 USD
+.
+y
+2025-05-01
+x
+a
+10 USD
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> //
+>2 /Balance assertion failed in a/
+
+
 ## 18. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <
