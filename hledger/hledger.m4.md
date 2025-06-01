@@ -1806,7 +1806,16 @@ Balance assertion failure messages show exact amounts.
 
 Balance assertions can be included in the amounts given in `add`. 
 All types of assertions are supported, and assertions can be used as 
-in a normal journal file.
+in a normal journal file. 
+
+All transactions, not just those that have an explicit assertion, 
+are validated against the existing assertions in the journal. 
+This means it is possible for an added transaction to fail even if its
+assertions are correct as of the transaction date.
+
+If this assertion checking is not desired, then it can be disabled with `-I`.
+
+However, [balance assignments](#balance-assignments) are currently not supported.
 
 ## Posting comments
 
