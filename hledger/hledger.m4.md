@@ -118,7 +118,7 @@ hledger's output will use the system locale's encoding.
 
 You may be able to override the system encoding for input or output temporarily, but it's platform-specific and can be tricky.
 
-See <https://hledger.org/install> for more tips.
+See <https://hledger.org/install#text-encoding> for more tips.
 
 hledger's docs and example files mostly use UTF-8 encoding.
 
@@ -431,11 +431,11 @@ forms, etc.)
 This requires a well-configured environment. Here are some tips:
 
 - A system locale must be configured, which can decode the characters being used.
-  This is essential - see [Text encoding](#text-encoding).
+  This is essential - see [Text encoding](#text-encoding)
+  and [Install: Text encoding](install.md#text-encoding).
 
 - Your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)  must support unicode.
-  On Windows, you may need to use Windows Terminal and/or enable UTF-8 support system-wide -
-  see [Install: Locale](install.md#locale).
+  On Windows, you may need to use Windows Terminal.
 
 - The terminal must be using a font which includes the required unicode glyphs.
 
