@@ -114,7 +114,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Amount  3 \[-0.75\]:/
 >2 //
 
-## 10. Balance assertions with ==
+# ** 10. Balance assertions with ==
 
 < 
 2025-05-01
@@ -128,7 +128,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > //
 >2 /Balance assertion failed in b/
 
-## 11. Balance assertions with =
+# ** 11. Balance assertions with =
 
 < 
 2025-05-01
@@ -146,7 +146,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 12. Assertions with subaccounts
+# ** 12. Assertions with subaccounts
 
 <
 2025-05-01
@@ -162,7 +162,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 13. Assertions with posting dates
+# ** 13. Assertions with posting dates
 
 <
 2025-05-01
@@ -186,7 +186,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /c[[:space:]]+-10 USD/
 >2 //
 
-## 14. Multi-commodity subaccount assertions
+# ** 14. Multi-commodity subaccount assertions
 <
 2025-05-01
 x
@@ -203,7 +203,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 15. Assertion combined with posting date
+# ** 15. Assertion combined with posting date
 <
 2025-05-10
 x
@@ -220,7 +220,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /\(a\)[[:space:]]+3 = 3  ;  date:2025-05-01/
 >2 //
 
-## 16. Verify that -I skips assertions
+# ** 16. Verify that -I skips assertions
 <
 2025-05-10
 x
@@ -233,7 +233,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal -I add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 17. Partial dates in added transaction
+# ** 17. Partial dates in added transaction
 <
 2025-05-01
 x
@@ -246,7 +246,7 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 18. add checks existing assertions 
+# ** 18. add checks existing assertions 
 <
 2025-05-10
 x
