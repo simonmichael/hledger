@@ -29,7 +29,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text.Lazy.IO as TL
-import Data.Time.Calendar (Day)
+import Data.Time.Calendar (Day, toGregorian)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Lens.Micro ((^.))
 import Safe (headDef, headMay, atMay)
@@ -384,7 +384,7 @@ amountAndCommentWizard previnput@PrevInput{..} entrystate@EntryState{..} = do
         lift skipNonNewlineSpaces
         assertion <- optional balanceassertionp
         com <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
-        case rtp (postingcommentp Nothing) (T.cons ';' com) of
+        case rtp (postingcommentp (let (y,_,_) = toGregorian esDefDate in Just y)) (T.cons ';' com) of
           Left err -> fail $ customErrorBundlePretty err
           -- Keep our original comment string from the user to add to the journal
           Right (_, tags, date1', date2') -> return $ (a, assertion, (com, tags, date1', date2'))

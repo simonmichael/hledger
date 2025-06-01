@@ -233,7 +233,20 @@ $ rm -f nosuch.journal; hledger -f nosuch.journal -I add; rm -f nosuch.journal
 > /Save this transaction to the journal/
 >2 //
 
-## 17. shouldn't add decimals if there aren't any
+## 17. Partial dates in added transaction
+<
+2025-05-01
+x
+a
+10 USD  ; date:5/2
+b
+-10 USD
+.
+$ rm -f nosuch.journal; hledger -f nosuch.journal add; rm -f nosuch.journal
+> /Save this transaction to the journal/
+>2 //
+
+## 18. shouldn't add decimals if there aren't any
 ## printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <
 #
