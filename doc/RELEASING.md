@@ -109,6 +109,7 @@ It should be improved each time it is used.
       select & transform with `md-issue-refs`,  
       uniquify issue refs,  
       add author github nicks,  
+      add summary,  
       commit
   - [ ] github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
   - [ ] hledger-install/hledger-install.sh up to date and pre-tested  
@@ -146,7 +147,7 @@ It should be improved each time it is used.
   - [ ] release tags pushed to github  
       `just reltags-push VER`
   - [ ] github draft release with release binaries attached  
-      (should be autocreated by the above; if not, https://github.com/simonmichael/hledger/releases/new; and/or by..  
+      https://github.com/simonmichael/hledger/releases/new
       `just ghrel-notes`  
       `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
       `just ghrel-upload VER`  
