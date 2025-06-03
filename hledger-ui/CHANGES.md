@@ -29,8 +29,6 @@ Fixes
 - Require fsnotify >=0.4.2.0, which fixes some events being ignored on mac,
   possibly making hledger-ui --watch more reliable in this regard.
 
-- Require extra >=1.7.11, possibly fixing the stack810.yaml build. (Thomas Miedema)
-
 Improvements
 
 - CLI error messages now have consistent clean format independent of GHC version. [#2367]

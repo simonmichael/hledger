@@ -73,7 +73,7 @@ User-visible changes in the hledger command line tool and library.
 
   Unlike `expr:"BOOLEANQUERY"`, where the parts of the boolean query
   are allowed to match different postings in the transaction,
-  with `any:` and `all:` the entire boolean query must match match a single posting.
+  with `any:` and `all:` the entire boolean query must match a single posting.
   `any:` matches the transaction if any posting is matched,
   `all:` matches the transaction if all postings are matched.
 
