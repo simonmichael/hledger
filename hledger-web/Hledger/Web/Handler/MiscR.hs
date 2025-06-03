@@ -112,7 +112,7 @@ getAccounttransactionsR a = do
       accountTransactionsReport rspec{_rsQuery=Any} j thisacctq
 
 openApiYaml :: BS.ByteString
-openApiYaml = $(embedFile "config/openapi.yaml")
+openApiYaml = $(embedFileRelative "config/openapi.yaml")
 
 getOpenApiR :: Handler Value
 getOpenApiR =
