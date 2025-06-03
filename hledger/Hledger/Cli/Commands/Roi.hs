@@ -96,8 +96,8 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
   let (fullPeriod, spans) = reportSpan filteredj rspec
 
-  let processSpan (DateSpan Nothing _) = error "Undefined start of the period - will be unable to compute the rates of return"
-      processSpan (DateSpan _ Nothing) = error "Undefined end of the period - will be unable to compute the rates of return"
+  let processSpan (DateSpan Nothing _) = error' "Undefined start of the period - will be unable to compute the rates of return"
+      processSpan (DateSpan _ Nothing) = error' "Undefined end of the period - will be unable to compute the rates of return"
       processSpan spn@(DateSpan (Just begin) (Just end)) = do
         -- Spans are [begin,end), and end is 1 day after the actual end date we are interested in
         let

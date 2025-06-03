@@ -106,7 +106,7 @@ postingsReport rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}} j = items
           runningcalc = registerRunningCalculationFn ropts
           startnum = if historical then length precedingps + 1 else 1
           postings | historical = if sortspec_ /= defsortspec 
-                        then error "--historical and --sort should not be used together" 
+                        then error' "--historical and --sort should not be used together" 
                         else sortedps
                    | otherwise = sortedps
 

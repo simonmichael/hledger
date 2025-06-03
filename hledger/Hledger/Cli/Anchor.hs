@@ -17,6 +17,7 @@ import qualified Text.URI.QQ as UriQQ
 
 import qualified Hledger.Write.Spreadsheet as Spr
 import Hledger.Write.Spreadsheet (headerCell)
+import Hledger.Utils.IO (error')
 import Hledger.Utils.Text (quoteIfSpaced)
 import Hledger.Data.Dates (showDateSpan, showDate)
 import Hledger.Data.Types (DateSpan)
@@ -28,7 +29,7 @@ registerQueryUrl query =
     [UriQQ.uri|register|] {
         Uri.uriQuery =
             [Uri.QueryParam [UriQQ.queryKey|q|] $
-             fromMaybe (error "register URI query construction failed") $
+             fromMaybe (error' "register URI query construction failed") $
              Uri.mkQueryValue $ Text.unwords $
              map quoteIfSpaced $ filter (not . Text.null) query]
     }

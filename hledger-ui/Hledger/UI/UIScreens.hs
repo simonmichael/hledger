@@ -140,7 +140,7 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
       updateReportSpec
         ropts
         rspec0{_rsDay=d}  -- update to the current date, might have changed since program start
-      & either (error "asUpdateHelper: adjusting the query, should not have failed") id -- PARTIAL:
+      & either (error' "asUpdateHelper: adjusting the query, should not have failed") id -- PARTIAL:
       & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)  -- include/exclude future & forecast transactions
       & reportSpecAddQuery extraquery  -- add any extra restrictions
 
@@ -265,7 +265,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
       }
     rspec' =
       updateReportSpec ropts' rspec{_rsDay=d}
-      & either (error "rsUpdate: adjusting the query for register, should not have failed") id -- PARTIAL:
+      & either (error' "rsUpdate: adjusting the query for register, should not have failed") id -- PARTIAL:
       & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)
 
     -- gather transactions to display

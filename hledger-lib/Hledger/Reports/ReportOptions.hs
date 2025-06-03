@@ -643,7 +643,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
     historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
     spans = snd $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
-    err = error "journalApplyValuationFromOpts: expected all spans to have an end date"
+    err = error' "journalApplyValuationFromOpts: expected all spans to have an end date"
 
 -- | Select the Account valuation functions required for performing valuation after summing
 -- amounts. Used in MultiBalanceReport to value historical and similar reports.
@@ -662,7 +662,7 @@ mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
         NoConversionOp -> id
         ToCost         -> styleAmounts styles . mixedAmountCost
     styles = journalCommodityStyles j
-    err = error "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
+    err = error' "mixedAmountApplyValuationAfterSumFromOptsWith: expected all spans to have an end date"
 
 -- | If the ReportOpts specify that we are performing valuation after summing amounts,
 -- return Just of the commodity symbol we're converting to, Just Nothing for the default,

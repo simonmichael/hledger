@@ -196,7 +196,7 @@ import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
 import Hledger.Data.Types
-import Hledger.Utils (colorB, numDigitsInt, numDigitsInteger)
+import Hledger.Utils (colorB, error', numDigitsInt, numDigitsInteger)
 import Hledger.Utils.Text (textQuoteIfNeeded)
 import Text.WideString (WideBuilder(..), wbFromText, wbToText, wbUnpack)
 import Data.Functor ((<&>))
@@ -333,7 +333,7 @@ similarAmountsOp op Amount{acommodity=_,  aquantity=q1, astyle=AmountStyle{aspre
    -- trace ("a1:"++showAmountDebug a1) $ trace ("a2:"++showAmountDebug a2) $ traceWith (("= :"++).showAmountDebug)
    nullamt{acommodity=c2, aquantity=q1 `op` q2, astyle=s2{asprecision=max p1 p2}}
   --  c1==c2 || q1==0 || q2==0 =
-  --  otherwise = error "tried to do simple arithmetic with amounts in different commodities"
+  --  otherwise = error' "tried to do simple arithmetic with amounts in different commodities"
 
 -- | Convert an amount to the specified commodity, ignoring and discarding
 -- any costs and assuming an exchange rate of 1.
@@ -774,9 +774,9 @@ instance Num MixedAmount where
     fromInteger = mixedAmount . fromInteger
     negate = maNegate
     (+)    = maPlus
-    (*)    = error "error, mixed amounts do not support multiplication" -- PARTIAL:
+    (*)    = error' "error, mixed amounts do not support multiplication" -- PARTIAL:
     abs    = mapMixedAmount (\amt -> amt { aquantity = abs (aquantity amt)})
-    signum = error "error, mixed amounts do not support signum"
+    signum = error' "error, mixed amounts do not support signum"
 
 -- | Calculate the key used to store an Amount within a MixedAmount.
 amountKey :: Amount -> MixedAmountKey
