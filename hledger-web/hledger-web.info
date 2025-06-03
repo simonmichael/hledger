@@ -18,7 +18,7 @@ plain text accounting app.
 or
 'hledger web -- [OPTS] [QUERY]'
 
-   This manual is for hledger's web interface, version 1.43.  See also
+   This manual is for hledger's web interface, version 1.43.1.  See also
 the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -525,15 +525,15 @@ We welcome bug reports in the hledger issue tracker
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2578
-Node: PERMISSIONS11267
-Node: EDITING UPLOADING DOWNLOADING12417
-Node: RELOADING13432
-Node: JSON API13999
-Node: DEBUG OUTPUT19648
-Node: Debug output19800
-Node: ENVIRONMENT20318
-Node: BUGS20554
+Node: OPTIONS2580
+Node: PERMISSIONS11269
+Node: EDITING UPLOADING DOWNLOADING12419
+Node: RELOADING13434
+Node: JSON API14001
+Node: DEBUG OUTPUT19650
+Node: Debug output19802
+Node: ENVIRONMENT20320
+Node: BUGS20556
 
 End Tag Table
 

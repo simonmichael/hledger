@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "May 2025" "hledger-1.43 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2025" "hledger-1.43.1 " "hledger User Manuals"
 
 
 
@@ -32,7 +32,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version 1.43.
+This manual is for hledger\[aq]s command line interface, version 1.43.1.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -132,26 +132,21 @@ So we usually configure a different journal file, by setting the
 For more about how to do that on your system, see Common tasks > Setting
 LEDGER_FILE.
 .SS Text encoding
-hledger expects input to use the same text encoding that is configured
-in the system locale.
-(Except for CSV (SSV, TSV..)
-files, which can be read from other encodings by using the
+hledger expects non\-ascii input to be decodable with the system
+locale\[aq]s text encoding.
+(For CSV/SSV/TSV files, this can be overridden by the
 \f[CR]encoding\f[R] CSV rule.)
 .PP
-Trying to read files which have the wrong text encoding will fail.
-Also, trying to read non\-ascii text on a system with no locale
-configured will fail.
-To fix it, configure your system locale appropriately, and/or convert
-the files to your system\[aq]s encoding (with a tool like
-\f[CR]iconv\f[R]).
-https://hledger.org/install has more advice.
+So, trying to read non\-ascii files which have the wrong text encoding,
+or when no system locale is configured, will fail.
+To fix this, configure your system locale appropriately, and/or convert
+the files to your system\[aq]s text encoding (using \f[CR]iconv\f[R] on
+unix, or powershell or notepad on Windows).
+See Install: Text encoding for more tips.
 .PP
-Note hledger\[aq]s docs and example files mostly use UTF\-8 encoding.
+hledger\[aq]s output will use the system locale\[aq]s encoding.
 .PP
-In UTF\-8 files, an optional byte order mark (BOM) at the beginning of
-the file is allowed.
-.PP
-hledger\[aq]s text output is always UTF\-8 encoded.
+hledger\[aq]s docs and example files mostly use UTF\-8 encoding.
 .SS Data formats
 Usually the data file is in hledger\[aq]s journal format, but it can be
 in any of the supported file formats, which currently are:
@@ -665,18 +660,13 @@ alignment should be preserved.
 This requires a well\-configured environment.
 Here are some tips:
 .IP \[bu] 2
-A system locale must be configured, and it must be one that can decode
-the characters being used.
-In bash, you can set a locale like this:
-\f[CR]export LANG=en_US.UTF\-8\f[R].
-There are some more details in Troubleshooting.
-This step is essential \- without it, hledger will quit on encountering
-a non\-ascii character (as with all GHC\-compiled programs).
+A system locale must be configured, which can decode the characters
+being used.
+This is essential \- see Text encoding and Install: Text encoding.
 .IP \[bu] 2
 Your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)
 must support unicode.
-On Windows, you may need to use Windows Terminal and/or enable UTF\-8
-support.
+On Windows, you may need to use Windows Terminal.
 .IP \[bu] 2
 The terminal must be using a font which includes the required unicode
 glyphs.
@@ -1199,11 +1189,9 @@ If these don\[aq]t work well, you can set your preferred options in the
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
 .PP
-HTML output will be UTF\-8 encoded.
-If your web browser is showing junk characters, you may need to change
-its text encoding to UTF\-8.
-Eg in Safari, see View \-> Text Encoding and Settings \-> Advanced \->
-Default Encoding.
+HTML output will be a HTML fragment, not a complete HTML document.
+Like other hledger output, for non\-ascii characters it will use the
+system locale\[aq]s text encoding (see Text encoding).
 .SS CSV / TSV output
 In CSV or TSV output, digit group marks (such as thousands separators)
 are disabled automatically.
@@ -2279,6 +2267,21 @@ always what is shown by reports.
 Eg a commodity directive may limit the display precision, but this will
 not affect balance assertions.
 Balance assertion failure messages show exact amounts.
+.SS Assertions and hledger add
+Balance assertions can be included in the amounts given in
+\f[CR]add\f[R].
+All types of assertions are supported, and assertions can be used as in
+a normal journal file.
+.PP
+All transactions, not just those that have an explicit assertion, are
+validated against the existing assertions in the journal.
+This means it is possible for an added transaction to fail even if its
+assertions are correct as of the transaction date.
+.PP
+If this assertion checking is not desired, then it can be disabled with
+\f[CR]\-I\f[R].
+.PP
+However, balance assignments are currently not supported.
 .SS Posting comments
 Text following \f[CR];\f[R], at the end of a posting line, and/or on
 indented lines immediately below it, form comments for that posting.
@@ -4241,13 +4244,13 @@ See also \[dq]Working with CSV > Reading files specified by rule\[dq].
 encoding ENCODING
 .EE
 .PP
-hledger normally expects non\-ascii text to be UTF8\-encoded.
+hledger normally expects non\-ascii text to be using the system
+locale\[aq]s text encoding.
 If you need to read CSV files which have some other encoding, you can do
 it by adding \f[CR]encoding ENCODING\f[R] to your CSV rules.
 Eg: \f[CR]encoding iso\-8859\-1\f[R].
 .PP
-The following encodings are supported (some alternate names and
-spellings also work, but inconsistently) :
+The following encodings are supported:
 .PP
 \f[CR]ascii\f[R], \f[CR]utf\-8\f[R], \f[CR]utf\-16\f[R],
 \f[CR]utf\-32\f[R], \f[CR]iso\-8859\-1\f[R], \f[CR]iso\-8859\-2\f[R],
@@ -11537,9 +11540,9 @@ $ hledger \-f examples/bcexample.hledger bal assets:us:etrade \-3 \-Y \-O csv \-
 .EE
 .SS Balance report output
 As noted in Output format, if you choose HTML output (by using
-\f[CR]\-O html\f[R] or \f[CR]\-o somefile.html\f[R]), it will use the
-UTF\-8 text encoding, And you can create a \f[CR]hledger.css\f[R] file
-in the same directory to customise the report\[aq]s appearance.
+\f[CR]\-O html\f[R] or \f[CR]\-o somefile.html\f[R]), you can create a
+\f[CR]hledger.css\f[R] file in the same directory to customise the
+report\[aq]s appearance.
 .PP
 The HTML and FODS output formats can generate hyperlinks to a
 \f[CR]hledger\-web\f[R] register view for each account and period.
@@ -12981,9 +12984,9 @@ The need to precede add\-on command options with \f[CR]\-\-\f[R] when
 invoked from hledger is awkward.
 (See Command options, Constructing command lines.)
 .PP
-A UTF\-8\-aware system locale must be configured to work with non\-ascii
-data.
-(See Unicode characters, Troubleshooting.)
+A system locale with a suitable text encoding must be configured to work
+with non\-ascii data.
+(See Text encoding, Troubleshooting.)
 .PP
 On Microsoft Windows, depending whether you are running in a CMD window
 or a Cygwin/MSYS/Mintty window and how you installed hledger, non\-ascii
@@ -13027,44 +13030,16 @@ On Windows, \f[CR]$env:LEDGER_FILE\f[R] should show it.
 You may need to force your shell to see the new configuration.
 A simple way is to close your terminal window and open a new one.
 .PP
-\f[B]LANG issues: I get errors like \[dq]Illegal byte sequence\[dq] or
-\[dq]Invalid or incomplete multibyte or wide character\[dq] or
-\[dq]commitAndReleaseBuffer: invalid argument (invalid
+\f[B]Text decoding issues: I get errors like \[dq]Illegal byte
+sequence\[dq] or \[dq]Invalid or incomplete multibyte or wide
+character\[dq] or \[dq]commitAndReleaseBuffer: invalid argument (invalid
 character)\[dq]\f[R]
 .PD 0
 .P
 .PD
-Programs compiled with GHC (hledger, haskell build tools, etc.)
-need the system to be configured with a suitable locale for decoding
-your non\-ascii text, or they will fail.
-Text encoding and https://hledger.org/install give advice on this.
-.PP
-Here is some more detail.
-Let\[aq]s say you need to read files encoded as UTF\-8, on unix.
-\f[CR]locale \-a\f[R] lists the installed locales.
-Look for one which mentions UTF\-8 \- eg \f[CR]C.UTF\-8\f[R],
-\f[CR]en_US.utf\-8\f[R], \f[CR]fr_FR.utf8\f[R] or similar.
-If you don\[aq]t see one, use your system package manager to install
-one.
-Then select it by setting the \f[CR]LANG\f[R] environment variable.
-Note, exact spelling and capitalisation of the locale name may be
-important.
-.PP
-Here\[aq]s one common way to configure \f[CR]LANG\f[R] permanently for
-your shell:
-.IP
-.EX
-$ echo \[dq]export LANG=en_US.utf8\[dq] >>\[ti]/.profile
-# close and re\-open terminal window
-.EE
-.PP
-If you are using Nix (not NixOS) for GHC and Hledger, you might need to
-set the \f[CR]LOCALE_ARCHIVE\f[R] variable:
-.IP
-.EX
-$ echo \[dq]export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale\-archive\[dq] >>\[ti]/.profile
-# close and re\-open terminal window
-.EE
+hledger usually needs its input to be decodable with the system
+locale\[aq]s text encoding.
+See Text encoding and Install: Text encoding.
 .PP
 \f[B]COMPATIBILITY ISSUES: hledger gives an error with my Ledger
 file\f[R]
