@@ -219,7 +219,7 @@ enableForecastPreservingPeriod ui copts = set forecast mforecast copts
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
 toggleReal = fromRight err . overEither real not  -- PARTIAL:
-  where err = error "toggleReal: updating Real should not result in an error"
+  where err = error' "toggleReal: updating Real should not result in an error"
 
 -- | Toggle the ignoring of balance assertions.
 toggleIgnoreBalanceAssertions :: UIState -> UIState
@@ -263,7 +263,7 @@ setReportPeriod p = updateReportPeriod (const p)
 -- | Update report period by a applying a function.
 updateReportPeriod :: (Period -> Period) -> UIState -> UIState
 updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod  -- PARTIAL:
-  where err = error "updateReportPeriod: updating period should not result in an error"
+  where err = error' "updateReportPeriod: updating period should not result in an error"
 
 -- | Apply a new filter query, or return the failing query.
 setFilter :: String -> UIState -> Either String UIState
@@ -318,7 +318,7 @@ getDepth = dsFlatDepth . (^.depth)
 updateReportDepth :: (DepthSpec -> DepthSpec) -> UIState -> UIState
 updateReportDepth updateDepth ui = over reportSpec update ui
   where
-    update = fromRight (error "updateReportDepth: updating depth should not result in an error")  -- PARTIAL:
+    update = fromRight (error' "updateReportDepth: updating depth should not result in an error")  -- PARTIAL:
            . updateReportSpecWith (\ropts -> ropts{depth_=clipDepth ropts $ updateDepth (depth_ ropts)})
     clipDepth _        (DepthSpec Nothing  _) = mempty
     clipDepth ropts ds@(DepthSpec (Just d) _) | d < 0            = depth_ ropts

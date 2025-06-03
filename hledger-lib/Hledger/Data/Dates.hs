@@ -285,7 +285,7 @@ dateSpanSplitLimits :: (Day -> Day) -> (Day -> Day) -> DateSpan -> (Day, Day)
 dateSpanSplitLimits start _    (DateSpan (Just s) (Just e)) = (start $ fromEFDay s, fromEFDay e)
 dateSpanSplitLimits start next (DateSpan (Just s) Nothing)  = (start $ fromEFDay s, next $ start $ fromEFDay s)
 dateSpanSplitLimits start next (DateSpan Nothing  (Just e)) = (start $ fromEFDay e, next $ start $ fromEFDay e)
-dateSpanSplitLimits _     _    (DateSpan Nothing   Nothing) = error "dateSpanSplitLimits: should not be nulldatespan"  -- PARTIAL: This case should have been handled in splitSpan
+dateSpanSplitLimits _     _    (DateSpan Nothing   Nothing) = error' "dateSpanSplitLimits: should not be nulldatespan"  -- PARTIAL: This case should have been handled in splitSpan
 
 -- | Construct a list of exact 'DateSpan's from a list of boundaries, which fit within a given range.
 spansFromBoundaries :: Day -> [Day] -> [DateSpan]

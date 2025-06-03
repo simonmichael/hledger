@@ -93,7 +93,7 @@ undecorateLinks xs0@(x:_) =
             let (link, xs1) = span (isJust . fst) xs0
                 (comma, xs2) = span (isNothing . fst) xs1
             in (acct, (map snd link, map snd comma)) : undecorateLinks xs2
-        _ -> error "link name not decorated with account"  -- PARTIAL:
+        _ -> error' "link name not decorated with account"  -- PARTIAL:
 
 decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
 decorateLinks = concatMap $ \(acct, (name, comma)) ->

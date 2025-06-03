@@ -243,5 +243,5 @@ strWidth = realLength
 stripAnsi :: String -> String
 stripAnsi s = either err id $ regexReplace ansire "" s
  where
-   err    = error "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
+   err    = errorWithoutStackTrace "stripAnsi: invalid replacement pattern"      -- PARTIAL, shouldn't happen
    ansire = toRegex' $ T.pack "\ESC\\[([0-9]+;)*([0-9]+)?[ABCDHJKfmsu]"  -- PARTIAL, should succeed

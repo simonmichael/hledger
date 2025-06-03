@@ -121,7 +121,7 @@ getAndAddTransactions es@EntryState{..} = (do
   let defaultPrevInput = PrevInput{prevDateAndCode=Nothing, prevDescAndCmnt=Nothing, prevAccount=[], prevAmountAndCmnt=[]}
   mt <- runInputT (setComplete noCompletion defaultSettings) (System.Console.Wizard.run $ haskeline $ confirmedTransactionWizard defaultPrevInput es [])
   case mt of
-    Nothing -> error "Could not interpret the input, restarting"  -- caught below causing a restart, I believe  -- PARTIAL:
+    Nothing -> error' "Could not interpret the input, restarting"  -- caught below causing a restart, I believe  -- PARTIAL:
     Just t -> do
       j <- if debug_ esOpts > 0
            then do hPutStrLn stderr "Skipping journal add due to debug mode."

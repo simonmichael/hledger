@@ -152,7 +152,7 @@ tsHandle ev = do
               liftIO (uiReloadJournal copts d ui) >>= put'
                 -- debugging.. leaving these here because they were hard to find
                 -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
-                -- \UIState{aScreen=TS tss} -> error $ pshow $ _tssTransaction tss
+                -- \UIState{aScreen=TS tss} -> error' $ pshow $ _tssTransaction tss
 
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 

@@ -136,7 +136,7 @@ hledgerWebTest = do
     ,"    assets    10"
     ,"    income"
     ])
-  j <- fmap (either error id) . runExceptT $ journalFinalise iopts f "" pj  -- PARTIAL: journalFinalise should not fail
+  j <- fmap (either error' id) . runExceptT $ journalFinalise iopts f "" pj  -- PARTIAL: journalFinalise should not fail
   runTests "hledger-web with --forecast" rawopts j $ do
 
     yit "shows forecasted transactions" $ do

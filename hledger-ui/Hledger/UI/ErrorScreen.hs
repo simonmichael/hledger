@@ -63,7 +63,7 @@ esDraw UIState{aScreen=ES ESS{..}
               ,("q", "quit")
               ]
 
-esDraw _ = error "draw function called with wrong screen type, should not happen"  -- PARTIAL:
+esDraw _ = error' "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
 esHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 esHandle ev = do

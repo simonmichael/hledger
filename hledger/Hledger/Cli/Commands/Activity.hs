@@ -44,6 +44,6 @@ showHistogram rspec@ReportSpec{_rsQuery=q} j =
     ps = sortOn postingDate $ filter (q `matchesPosting`) $ journalPostings j
 
 printDayWith f (DateSpan (Just b) _, ps) = printf "%s %s\n" (show $ fromEFDay b) (f ps)
-printDayWith _ _ = error "Expected start date for DateSpan"  -- PARTIAL:
+printDayWith _ _ = error' "Expected start date for DateSpan"  -- PARTIAL:
 
 countBar ps = replicate (length ps) barchar

@@ -28,6 +28,7 @@ import qualified Data.Text.Lazy.Builder as TB
 import           Text.Megaparsec (Pos, SourcePos, mkPos, unPos)
 
 import           Hledger.Data.Types
+import           Hledger.Utils.IO (error')
 import           Hledger.Data.Amount (amountsRaw, mixed)
 
 -- To JSON
@@ -290,8 +291,8 @@ readJsonFile :: FromJSON a => FilePath -> IO a
 readJsonFile f = do
   bl <- BL.readFile f
   -- PARTIAL:
-  let v = fromMaybe (error $ "could not decode JSON in "++show f++" to target value")
+  let v = fromMaybe (error' $ "could not decode JSON in "++show f++" to target value")
           (decode bl :: Maybe Value)
   case fromJSON v :: FromJSON a => Result a of
-    Error e   -> error e
+    Error e   -> error' e
     Success t -> return t

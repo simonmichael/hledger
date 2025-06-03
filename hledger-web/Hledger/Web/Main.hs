@@ -161,7 +161,7 @@ web opts j = do
                   when (isSocket sockstat) $ removeFile s
               )
               (\sock -> Network.Wai.Handler.Warp.runSettingsSocket warpsettings sock app)
-            else error $ unlines
+            else error' $ unlines
               ["Unix domain sockets are not available on your operating system."
               ,"Please try again without --socket."
               ]
