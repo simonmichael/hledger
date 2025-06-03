@@ -128,7 +128,7 @@ Features
 
   Unlike `expr:"BOOLEANQUERY"`, where the parts of the boolean query
   are allowed to match different postings in the transaction,
-  with `any:` and `all:` the entire boolean query must match match a single posting.
+  with `any:` and `all:` the entire boolean query must match a single posting.
   `any:` matches the transaction if any posting is matched,
   `all:` matches the transaction if all postings are matched.
 
@@ -214,8 +214,6 @@ Fixes
 
 - Require fsnotify >=0.4.2.0, which fixes some events being ignored on mac,
   possibly making hledger-ui --watch more reliable in this regard.
-
-- Require extra >=1.7.11, possibly fixing the stack810.yaml build. (Thomas Miedema)
 
 Improvements
 
@@ -336,7 +334,8 @@ Doug Goldstein (@cardoe).
 [#2387]: https://github.com/simonmichael/hledger/issues/2387
 [#2391]: https://github.com/simonmichael/hledger/issues/2391
 [#2394]: https://github.com/simonmichael/hledger/issues/2394
-
+[hledger_site#132]: https://github.com/simonmichael/hledger_site/issues/132
+[hledger_site#133]: https://github.com/simonmichael/hledger_site/issues/133
 
 ## 2025-05-16 hledger-1.42.2
 ### hledger 1.42.2
