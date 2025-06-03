@@ -7041,7 +7041,7 @@ and/or open a new terminal window.
   A simple way is to close your terminal window and open a new one.
 
 **Text decoding issues: I get errors like "Illegal byte sequence" or "Invalid or incomplete multibyte or wide character" or "commitAndReleaseBuffer: invalid argument (invalid character)"**\
-hledger usually needs non-ascii input to be decodable with the system locale's text encoding.
+hledger usually needs its input to be decodable with the system locale's text encoding.
 See [Text encoding](#text-encoding) and [Install: Text encoding](/install.md#text-encoding).
 
 **COMPATIBILITY ISSUES: hledger gives an error with my Ledger file**\
