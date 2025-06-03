@@ -747,14 +747,16 @@ main = do
               :: Action (Stdout String))
 
             -- Add the new heading and change items to the changelog, or print them.
-            let newcontent = "# " ++ latestrev ++ "\n" ++ newitems
+            let newcontent = "# " ++ latestrev ++ "\n\n" ++ newitems ++ "\n"
             liftIO $ if dryrun
               then putStr $ out ++ ":\n" ++ newcontent
               else do
                 writeFile out $ concat [
                   unlines preamble
                   ,newcontent
+                  ,"\n"
                   ,if isCommitHash oldversion then "" else oldheading
+                  ,"\n"
                   ,unlines rest
                   ]
                 putStrLn (out ++ ": updated to " ++ latestrev)
