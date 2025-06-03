@@ -105,6 +105,7 @@ If you find and fix the regression, you get both bounties.
 [#2352]: https://github.com/simonmichael/hledger/issues/2352
 [#2386]: https://github.com/simonmichael/hledger/issues/2386
 [#2389]: https://github.com/simonmichael/hledger/issues/2389
+[#2396]: https://github.com/simonmichael/hledger/issues/2396
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -184,4 +185,6 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | **1.42** 2025-03-07      | ---                                                                              | ---
 | [#2352]                  | [Matt Gass](https://opencollective.com/hledger/expenses/242346)                  | N/A
 | [#2386]                  | Simon Michael  N/A                                                               | N/A
-| [#2389]                  | **Simaex**                                                                       | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
+| [#2389]                  | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
+| **1.43** 2025-06-01      | ---                                                                              | ---
+| [#2396]                  | **Simaex**
