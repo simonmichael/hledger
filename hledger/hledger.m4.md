@@ -5330,10 +5330,13 @@ This is the default query type, so we usually don't bother writing the "acct:" p
 **`amt:N, amt:'<N', amt:'<=N', amt:'>N', amt:'>=N'`**\
 Match postings with a single-commodity amount equal to, less than, or greater than N.
 (Postings with multi-commodity amounts are not tested and will always match.)
+`amt:` needs quotes to hide the less than/greater than sign from the command line shell.
+
 The comparison has two modes: 
 if N is preceded by a + or - sign (or is 0), the two signed numbers are compared. 
 Otherwise, the absolute magnitudes are compared, ignoring sign.
-`amt:` needs quotes to hide the less than/greater than sign from the command line shell.
+
+Keep in mind that `amt:` matches posting amounts, not account balances.
 
 ### code: query
 **`code:REGEX`**\
