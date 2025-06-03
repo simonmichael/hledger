@@ -1,0 +1,12 @@
+# * balance commands with cur: query
+
+<
+2025-01-01
+    a        1 A
+    a        1 B
+    b
+
+# ** 1. cur: filters postings correctly
+$ hledger -f - balance -N cur:A
+                 1 A  a
+                -1 A  b
