@@ -309,7 +309,9 @@ parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> Left $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Right (StatusQ st, [])
 parseQueryTerm _ (T.stripPrefix "real:" -> Just s) = Right (Real $ parseBool s || T.null s, [])
-parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = Right (Amt ord q, []) where (ord, q) = either error' id $ parseAmountQueryTerm s  -- PARTIAL:
+parseQueryTerm _ (T.stripPrefix "amt:" -> Just s) = case parseAmountQueryTerm s of
+  Right (ord, q) -> Right (Amt ord q, [])
+  Left err       -> Left err
 parseQueryTerm _ (T.stripPrefix "depth:" -> Just s) = (,[]) <$> parseDepthSpecQuery s
 parseQueryTerm _ (T.stripPrefix "cur:" -> Just s) = (,[]) . Sym <$> toRegexCI ("^" <> s <> "$") -- support cur: as an alias
 parseQueryTerm _ (T.stripPrefix "tag:" -> Just s) = (,[]) <$> parseTag s
