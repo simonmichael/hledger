@@ -34,6 +34,7 @@ extra-source-files:
     README.md
     config/favicon.ico
     config/keter.yaml
+    config/openapi.yaml
     config/robots.txt
     config/routes
     config/settings.yml
