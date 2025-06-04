@@ -75,6 +75,61 @@ Changes in hledger-install.sh are shown
 
 
 
+## 2025-06-04 hledger-1.43.1
+
+
+### hledger 1.43.1
+
+
+Fixes
+
+- `cur:` in posting-based reports like `balance` and `register` once again
+  filters multicommodity amounts as it should. [#2396]
+- More error messages were made consistent, hiding call stack etc. [#2367]
+
+Docs
+
+- Query types: clarify that amt: filters postings [#2396]
+- More text encoding corrections/cleanups [#2394]
+
+
+### hledger-ui 1.43.1
+
+
+- More error messages were made consistent, hiding call stack etc. [#2367]
+
+- Allow brick 2.9
+
+
+### hledger-web 1.43.1
+
+
+Fixes
+
+- Fixed a compilation error when not in the hledger source tree. [#2397]
+
+
+### project changes 1.43.1
+
+
+- tools:
+  - Shake changelogs: fix missing blank lines around old heading
+  - ghcruns-download: make tmp dir
+- docs:
+  RELEASING
+
+
+### credits 1.43.1
+
+
+Simon Michael.
+
+[#2367]: https://github.com/simonmichael/hledger/issues/2367
+[#2394]: https://github.com/simonmichael/hledger/issues/2394
+[#2396]: https://github.com/simonmichael/hledger/issues/2396
+[#2397]: https://github.com/simonmichael/hledger/issues/2397
+
+
 
 ## 2025-06-01 hledger-1.43
 
@@ -336,6 +391,7 @@ Doug Goldstein (@cardoe).
 [#2394]: https://github.com/simonmichael/hledger/issues/2394
 [hledger_site#132]: https://github.com/simonmichael/hledger_site/issues/132
 [hledger_site#133]: https://github.com/simonmichael/hledger_site/issues/133
+
 
 ## 2025-05-16 hledger-1.42.2
 ### hledger 1.42.2
@@ -9853,6 +9909,10 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
+
+
 
 
 
