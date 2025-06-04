@@ -22,6 +22,13 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 1.43.1 2025-06-04
+
+Fixes
+
+- Fixed a compilation error when not in the hledger source tree. [#2397]
+
+
 # 1.43 2025-06-01
 
 Features

@@ -22,6 +22,11 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# 1.43.1 2025-06-04
+
+- Hledger.Query: queryIsAmtOrSym
+
+
 # 1.43 2025-06-01
 
 - Support GHC 9.12.
