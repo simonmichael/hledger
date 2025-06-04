@@ -26,7 +26,6 @@ import qualified Data.Map as M
 import qualified Data.Text as T
 import qualified Data.Yaml as Yaml
 import qualified Data.ByteString as BS
-import Data.FileEmbed (embedFile)
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger
