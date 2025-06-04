@@ -44,6 +44,7 @@ module Hledger.Query (
   queryIsReal,
   queryIsAmt,
   queryIsSym,
+  queryIsAmtOrSym,
   queryIsStartDateOnly,
   queryIsTransactionRelated,
   -- * accessors
@@ -684,6 +685,9 @@ queryIsAmt _         = False
 queryIsSym :: Query -> Bool
 queryIsSym (Sym _) = True
 queryIsSym _ = False
+
+queryIsAmtOrSym :: Query -> Bool
+queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
