@@ -1,5 +1,5 @@
 name:          hledger-lib
-version:       1.42.99
+version: 1.43.99
 license:       GPL-3.0-or-later
 maintainer:    Simon Michael <simon@joyful.com>
 author:        Simon Michael <simon@joyful.com>
