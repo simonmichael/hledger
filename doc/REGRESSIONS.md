@@ -15,17 +15,23 @@ You can help by finding them, or fixing them!
 
 ## Regression finder bounty
 
-For new regression reports submitted to the bug tracker since 2024-01-01 (affecting any past release), we currently offer a $50 bounty
-([original announcement](https://github.com/simonmichael/hledger/issues/1570)).
-If you don't want the bounty, you can absolutely choose to re-donate it back to the project treasury.
-But consider accepting it - it's good for the project!
-Just do respond within 7 days after the bounty is confirmed, otherwise it will become an automatic project donation.
+For new regression reports submitted to the bug tracker since 2024-01-01 (affecting any past release),
+we offer a $50 bounty.
+([original announcement](https://github.com/simonmichael/hledger/issues/1570))
 
 ## Regression fixer bounty
 
-For regression issues fixed, we currently offer a separate $50 bounty.
-If you find and fix the regression, you get both bounties. 
-(If you caused the regression, we appreciate you fixing it but you don't get the bounties - sorry!)
+For regression issues fixed, we offer a separate $50 bounty.
+(If you caused the regression, we appreciate you fixing it but you don't get the bounty - sorry!)
+
+## Should I claim the bounty ?
+If you don't want the bounty, you can choose to donate it back to the project treasury.
+But consider accepting it - it's good for the project!
+
+## Is there a time limit ?
+Yes - once the bounty is confirmed, if you want to claim it please respond within 7 days.
+If we don't hear from you, it will be automatically converted to a project donation at that time.
+This reduces wasteful admin work.
 
 ## How to claim the bounty
 
