@@ -1025,7 +1025,7 @@ Fixes
   accounts and transactions, has been fixed. [#2153]
 
 - Balance assertions involving mixed-cost balances are checked correctly again
-  (a regression in 1.30). [#2150]
+  (a regression in 1.30). [#2072], [#2137], [#2150]
 
 - import --catchup works again (a regression in 1.32). [#2156]
 
@@ -2546,7 +2546,7 @@ Fixes
   (broken since 1.20) (#1526). (Stephen Morgan)
 
 - csv: Fix the escaping of double quotes in CSV output (broken in
-  1.21). (Stephen Morgan)
+  1.21). (Stephen Morgan, #1508)
 
 - register: Fix the running total when there is a report interval
   (broken since 1.19) (#1568). (Stephen Morgan)
