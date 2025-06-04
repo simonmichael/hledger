@@ -589,9 +589,12 @@ filterQuery :: (Query -> Bool) -> Query -> Query
 filterQuery p = simplifyQuery . filterQuery' p
 
 -- | Like filterQuery, but returns the filtered query as is, without simplifying.
+-- Note this is problematic for complex boolean queries, which if split apart 
+-- by filterQuery and then re-composed, may be altered. See eg #2371.
 filterQuery' :: (Query -> Bool) -> Query -> Query
-filterQuery' p (And qs) = And $ map (filterQuery p) qs
-filterQuery' p (Or qs) = Or $ map (filterQuery p) qs
+filterQuery' p (And qs) = And $ map (filterQuery' p) qs
+filterQuery' p (Or qs) = Or $ map (filterQuery' p) qs
+-- filterQuery' p (Or qs) = Or $ filter (not.(==Any)) $ map (filterQuery' p) qs  -- better for some, worse for others
 filterQuery' p q = if p q then q else Any
 
 -- | Remove query terms (or whole sub-expressions) from this query
