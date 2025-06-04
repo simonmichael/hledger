@@ -59,10 +59,9 @@ Flags:
 This report shows accounts declared with the Cash type (see account
 types). Or if no such accounts are declared, it shows accounts
 
--   under a top-level account named asset (case insensitive, plural
-    allowed)
--   whose name contains some variation of cash, bank, checking or
-    saving.
+- under a top-level account named asset (case insensitive, plural
+  allowed)
+- whose name contains some variation of cash, bank, checking or saving.
 
 More precisely: all accounts matching this case insensitive regular
 expression:

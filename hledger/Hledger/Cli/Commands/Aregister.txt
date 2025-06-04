@@ -63,12 +63,12 @@ $ hledger areg checking date:jul
 
 Each aregister line item shows:
 
--   the transaction's date (or the relevant posting's date if different,
-    see below)
--   the names of all the other account(s) involved in this transaction
-    (probably abbreviated)
--   the total change to this account's balance from this transaction
--   the account's historical running balance after this transaction.
+- the transaction's date (or the relevant posting's date if different,
+  see below)
+- the names of all the other account(s) involved in this transaction
+  (probably abbreviated)
+- the total change to this account's balance from this transaction
+- the account's historical running balance after this transaction.
 
 Transactions making a net change of zero are not shown by default; add
 the -E/--empty flag to show them.

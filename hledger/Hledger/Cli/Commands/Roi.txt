@@ -31,19 +31,19 @@ Price directives will be taken into account if you supply appropriate
 
 Note, in some cases this report can fail, for these reasons:
 
--   Error (NotBracketed): No solution for Internal Rate of Return (IRR).
-    Possible causes: IRR is huge (>1000000%), balance of investment
-    becomes negative at some point in time.
--   Error (SearchFailed): Failed to find solution for Internal Rate of
-    Return (IRR). Either search does not converge to a solution, or
-    converges too slowly.
+- Error (NotBracketed): No solution for Internal Rate of Return (IRR).
+  Possible causes: IRR is huge (>1000000%), balance of investment
+  becomes negative at some point in time.
+- Error (SearchFailed): Failed to find solution for Internal Rate of
+  Return (IRR). Either search does not converge to a solution, or
+  converges too slowly.
 
 Examples:
 
--   Using roi to compute total return of investment in stocks:
-    https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger
+- Using roi to compute total return of investment in stocks:
+  https://github.com/simonmichael/hledger/blob/master/examples/investing/roi-unrealised.ledger
 
--   Cookbook > Return on Investment: https://hledger.org/roi.html
+- Cookbook > Return on Investment: https://hledger.org/roi.html
 
 Spaces and special characters in --inv and --pnl
 
@@ -71,23 +71,23 @@ sorted into two categories: "cash flow" and "profit and loss", as ROI
 needs to know which part of the investment value is your contributions
 and which is due to the return on investment.
 
--   "Cash flow" is depositing or withdrawing money, buying or selling
-    assets, or otherwise converting between your investment commodity
-    and any other commodity. Example:
+- "Cash flow" is depositing or withdrawing money, buying or selling
+  assets, or otherwise converting between your investment commodity and
+  any other commodity. Example:
 
-    2019-01-01 Investing in Snake Oil
-      assets:cash          -$100
-      investment:snake oil
+  2019-01-01 Investing in Snake Oil
+    assets:cash          -$100
+    investment:snake oil
 
-    2020-01-01 Selling my Snake Oil
-      assets:cash           $10
-      investment:snake oil  = 0
+  2020-01-01 Selling my Snake Oil
+    assets:cash           $10
+    investment:snake oil  = 0
 
--   "Profit and loss" is change in the value of your investment:
+- "Profit and loss" is change in the value of your investment:
 
-    2019-06-01 Snake Oil falls in value
-      investment:snake oil  = $57
-      equity:unrealized profit or loss
+  2019-06-01 Snake Oil falls in value
+    investment:snake oil  = $57
+    equity:unrealized profit or loss
 
 All non-investment postings are assumed to be "cash flow", unless they
 match --pnl query. Changes in value of your investment due to "profit
@@ -167,9 +167,9 @@ cash in-flows and out-flows.
 
 References:
 
--   Explanation of rate of return
--   Explanation of IRR
--   Explanation of TWR
--   IRR vs TWR
--   Examples of computing IRR and TWR and discussion of the limitations
-    of both metrics
+- Explanation of rate of return
+- Explanation of IRR
+- Explanation of TWR
+- IRR vs TWR
+- Examples of computing IRR and TWR and discussion of the limitations of
+  both metrics

@@ -74,60 +74,59 @@ listing account balances, balance changes, values, value changes and
 more, during one time period or many. Generally it shows a table, with
 rows representing accounts, and columns representing periods.
 
-Note there are some higher-level variants of the balance command with
-convenient defaults, which can be simpler to use: balancesheet,
-balancesheetequity, cashflow and incomestatement. When you need more
-control, then use balance.
+Note there are some variants of the balance command with convenient
+defaults, which are simpler to use: balancesheet, balancesheetequity,
+cashflow and incomestatement. When you need more control, then use
+balance.
 
 balance features
 
 Here's a quick overview of the balance command's features, followed by
 more detailed descriptions and examples. Many of these work with the
-higher-level commands as well.
+other balance-like commands as well (bs, cf, is..).
 
 balance can show..
 
--   accounts as a list (-l) or a tree (-t)
--   optionally depth-limited (-[1-9])
--   sorted by declaration order and name, or by amount
+- accounts as a list (-l) or a tree (-t)
+- optionally depth-limited (-[1-9])
+- sorted by declaration order and name, or by amount
 
 ..and their..
 
--   balance changes (the default)
--   or actual and planned balance changes (--budget)
--   or value of balance changes (-V)
--   or change of balance values (--valuechange)
--   or unrealised capital gain/loss (--gain)
--   or balance changes from sibling postings (--related/-r)
--   or postings count (--count)
+- balance changes (the default)
+- or actual and planned balance changes (--budget)
+- or value of balance changes (-V)
+- or change of balance values (--valuechange)
+- or unrealised capital gain/loss (--gain)
+- or balance changes from sibling postings (--related/-r)
+- or postings count (--count)
 
 ..in..
 
--   one time period (the whole journal period by default)
--   or multiple periods (-D, -W, -M, -Q, -Y, -p INTERVAL)
+- one time period (the whole journal period by default)
+- or multiple periods (-D, -W, -M, -Q, -Y, -p INTERVAL)
 
 ..either..
 
--   per period (the default)
--   or accumulated since report start date (--cumulative)
--   or accumulated since account creation (--historical/-H)
+- per period (the default)
+- or accumulated since report start date (--cumulative)
+- or accumulated since account creation (--historical/-H)
 
 ..possibly converted to..
 
--   cost (--value=cost[,COMM]/--cost/-B)
--   or market value, as of transaction dates (--value=then[,COMM])
--   or at period ends (--value=end[,COMM])
--   or now (--value=now)
--   or at some other date (--value=YYYY-MM-DD)
+- cost (--value=cost[,COMM]/--cost/-B)
+- or market value, as of transaction dates (--value=then[,COMM])
+- or at period ends (--value=end[,COMM])
+- or now (--value=now)
+- or at some other date (--value=YYYY-MM-DD)
 
 ..with..
 
--   totals (-T), averages (-A), percentages (-%), inverted sign
-    (--invert)
--   rows and columns swapped (--transpose)
--   another field used as account name (--pivot)
--   custom-formatted line items (single-period reports only) (--format)
--   commodities displayed on the same line or multiple lines (--layout)
+- totals (-T), averages (-A), percentages (-%), inverted sign (--invert)
+- rows and columns swapped (--transpose)
+- another field used as account name (--pivot)
+- custom-formatted line items (single-period reports only) (--format)
+- commodities displayed on the same line or multiple lines (--layout)
 
 This command supports the output destination and output format options,
 with output formats txt, csv, tsv (Added in 1.32), json, and
@@ -204,23 +203,23 @@ interpolated like so:
 
 %[MIN][.MAX](FIELDNAME)
 
--   MIN pads with spaces to at least this width (optional)
+- MIN pads with spaces to at least this width (optional)
 
--   MAX truncates at this width (optional)
+- MAX truncates at this width (optional)
 
--   FIELDNAME must be enclosed in parentheses, and can be one of:
+- FIELDNAME must be enclosed in parentheses, and can be one of:
 
-    -   depth_spacer - a number of spaces equal to the account's depth,
-        or if MIN is specified, MIN * depth spaces.
-    -   account - the account's name
-    -   total - the account's balance/posted total, right justified
+  - depth_spacer - a number of spaces equal to the account's depth, or
+    if MIN is specified, MIN * depth spaces.
+  - account - the account's name
+  - total - the account's balance/posted total, right justified
 
 Also, FMT can begin with an optional prefix to control how
 multi-commodity amounts are rendered:
 
--   %_ - render on multiple lines, bottom-aligned (the default)
--   %^ - render on multiple lines, top-aligned
--   %, - render on one line, comma-separated
+- %_ - render on multiple lines, bottom-aligned (the default)
+- %^ - render on multiple lines, top-aligned
+- %, - render on one line, comma-separated
 
 There are some quirks. Eg in one-line mode, %(depth_spacer) has no
 effect, instead %(account) has indentation built in. Experimentation may
@@ -228,14 +227,14 @@ be needed to get pleasing results.
 
 Some example formats:
 
--   %(total) - the account's total
--   %-20.20(account) - the account's name, left justified, padded to 20
-    characters and clipped at 20 characters
--   %,%-50(account)  %25(total) - account name padded to 50 characters,
-    total padded to 20 characters, with multiple commodities rendered on
-    one line
--   %20(total)  %2(depth_spacer)%-(account) - the default format for the
-    single-column balance report
+- %(total) - the account's total
+- %-20.20(account) - the account's name, left justified, padded to 20
+  characters and clipped at 20 characters
+- %,%-50(account)  %25(total) - account name padded to 50 characters,
+  total padded to 20 characters, with multiple commodities rendered on
+  one line
+- %20(total)  %2(depth_spacer)%-(account) - the default format for the
+  single-column balance report
 
 Filtered balance report
 
@@ -272,20 +271,19 @@ $ hledger -f examples/sample.journal balance
 
 Notes:
 
--   "Boring" accounts are combined with their subaccount for more
-    compact output, unless --no-elide is used. Boring accounts have no
-    balance of their own and just one subaccount (eg assets:bank and
-    liabilities above).
+- "Boring" accounts are combined with their subaccount for more compact
+  output, unless --no-elide is used. Boring accounts have no balance of
+  their own and just one subaccount (eg assets:bank and liabilities
+  above).
 
--   All balances shown are "inclusive", ie including the balances from
-    all subaccounts. Note this means some repetition in the output,
-    which requires explanation when sharing reports with
-    non-plaintextaccounting-users. A tree mode report's final total is
-    the sum of the top-level balances shown, not of all the balances
-    shown.
+- All balances shown are "inclusive", ie including the balances from all
+  subaccounts. Note this means some repetition in the output, which
+  requires explanation when sharing reports with
+  non-plaintextaccounting-users. A tree mode report's final total is the
+  sum of the top-level balances shown, not of all the balances shown.
 
--   Each group of sibling accounts (ie, under a common parent) is sorted
-    separately.
+- Each group of sibling accounts (ie, under a common parent) is sorted
+  separately.
 
 Depth limiting
 
@@ -342,8 +340,9 @@ commodity, it is treated as 0).
 
 Revenues and liability balances are typically negative, however, so -S
 shows these in reverse order. To work around this, you can add --invert
-to flip the signs. (Or, use one of the higher-level reports, which flip
-the sign automatically. Eg: hledger incomestatement -MAS).
+to flip the signs. Or you could use one of the higher-level balance
+reports (bs, is..), which flip the sign automatically (eg:
+hledger is -MAS).
 
 Percentages
 
@@ -385,41 +384,40 @@ Balance changes in 2008:
 
 Notes:
 
--   The report's start/end dates will be expanded, if necessary, to
-    fully encompass the displayed subperiods (so that the first and last
-    subperiods have the same duration as the others).
--   Leading and trailing periods (columns) containing all zeroes are not
-    shown, unless -E/--empty is used.
--   Accounts (rows) containing all zeroes are not shown, unless
-    -E/--empty is used.
--   Amounts with many commodities are shown in abbreviated form, unless
-    --no-elide is used.
--   Average and/or total columns can be added with the -A/--average and
-    -T/--row-total flags.
--   The --transpose flag can be used to exchange rows and columns.
--   The --pivot FIELD option causes a different transaction field to be
-    used as "account name". See PIVOTING.
--   The --summary-only flag (--summary also works) hides all but the
-    Total and Average columns (those should be enabled with --row-total
-    and -A/--average).
+- The report's start/end dates will be expanded, if necessary, to fully
+  encompass the displayed subperiods (so that the first and last
+  subperiods have the same duration as the others).
+- Leading and trailing periods (columns) containing all zeroes are not
+  shown, unless -E/--empty is used.
+- Accounts (rows) containing all zeroes are not shown, unless -E/--empty
+  is used.
+- Amounts with many commodities are shown in abbreviated form, unless
+  --no-elide is used.
+- Average and/or total columns can be added with the -A/--average and
+  -T/--row-total flags.
+- The --transpose flag can be used to exchange rows and columns.
+- The --pivot FIELD option causes a different transaction field to be
+  used as "account name". See PIVOTING.
+- The --summary-only flag (--summary also works) hides all but the Total
+  and Average columns (those should be enabled with --row-total and
+  -A/--average).
 
 Multi-period reports with many periods can be too wide for easy viewing
 in the terminal. Here are some ways to handle that:
 
--   Hide the totals row with -N/--no-total
--   Filter to a single currency with cur:
--   Convert to a single currency with -V [--infer-market-price]
--   Use a more compact layout like --layout=bare
--   Maximize the terminal window
--   Reduce the terminal's font size
--   View with a pager like less, eg:
-    hledger bal -D --color=yes | less -RS
--   Output as CSV and use a CSV viewer like visidata
-    (hledger bal -D -O csv | vd -f csv), Emacs' csv-mode
-    (M-x csv-mode, C-c C-a), or a spreadsheet
-    (hledger bal -D -o a.csv && open a.csv)
--   Output as HTML and view with a browser:
-    hledger bal -D -o a.html && open a.html
+- Hide the totals row with -N/--no-total
+- Filter to a single currency with cur:
+- Convert to a single currency with -V [--infer-market-price]
+- Use a more compact layout like --layout=bare
+- Maximize the terminal window
+- Reduce the terminal's font size
+- View with a pager like less, eg: hledger bal -D --color=yes | less -RS
+- Output as CSV and use a CSV viewer like visidata
+  (hledger bal -D -O csv | vd -f csv), Emacs' csv-mode
+  (M-x csv-mode, C-c C-a), or a spreadsheet
+  (hledger bal -D -o a.csv && open a.csv)
+- Output as HTML and view with a browser:
+  hledger bal -D -o a.html && open a.html
 
 Balance change, end balance
 
@@ -454,7 +452,7 @@ balances:
     flag. (-H causes report start date to be ignored when summing
     postings.)
 
-Balance report types
+Balance report modes
 
 The balance command is quite flexible; here is the full detail on how to
 control what it reports. If the following seems complicated, don't
@@ -463,78 +461,83 @@ experimentation to get familiar with all the report modes.
 
 There are three important option groups:
 
-hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...
+hledger balance [CALCULATIONMODE] [ACCUMULATIONMODE] [VALUATIONMODE] ...
 
-Calculation type
+Calculation mode
 
 The basic calculation to perform for each table cell. It is one of:
 
--   --sum : sum the posting amounts (default)
--   --budget : sum the amounts, but also show the budget goal amount
-    (for each account/period)
--   --valuechange : show the change in period-end historical balance
-    values (caused by deposits, withdrawals, and/or market price
-    fluctuations)
--   --gain : show the unrealised capital gain/loss, (the current valued
-    balance minus each amount's original cost)
--   --count : show the count of postings
+- --sum : sum the posting amounts (default)
+- --budget : sum the amounts, but also show the budget goal amount (for
+  each account/period)
+- --valuechange : show the change in period-end historical balance
+  values (caused by deposits, withdrawals, and/or market price
+  fluctuations)
+- --gain : show the unrealised capital gain/loss, (the current valued
+  balance minus each amount's original cost)
+- --count : show the count of postings
 
-Accumulation type
+Accumulation mode
 
 How amounts should accumulate across a report's subperiods/columns.
 Another way to say it: which time period's postings should contribute to
 each cell's calculation. It is one of:
 
--   --change : calculate with postings from column start to column end,
-    ie "just this column". Typically used to see revenues/expenses.
-    (default for balance, cashflow, incomestatement)
+- --change : calculate with postings from column start to column end, ie
+  "just this column". Typically used to see revenues/expenses. (default
+  for balance, cashflow, incomestatement)
 
--   --cumulative : calculate with postings from report start to column
-    end, ie "previous columns plus this column". Typically used to show
-    changes accumulated since the report's start date. Not often used.
+- --cumulative : calculate with postings from report start to column
+  end, ie "previous columns plus this column". Typically used to show
+  changes accumulated since the report's start date. Not often used.
 
--   --historical/-H : calculate with postings from journal start to
-    column end, ie "all postings from before report start date until
-    this column's end". Typically used to see historical end balances of
-    assets/liabilities/equity. (default for balancesheet,
-    balancesheetequity)
+- --historical/-H : calculate with postings from journal start to column
+  end, ie "all postings from before report start date until this
+  column's end". Typically used to see historical end balances of
+  assets/liabilities/equity. (default for balancesheet,
+  balancesheetequity)
 
-Valuation type
+Valuation mode
 
 Which kind of value or cost conversion should be applied, if any, before
-displaying the report. It is one of:
+displaying the report. See Cost reporting and Value reporting for more
+about conversions.
 
--   no valuation type : don't convert to cost or value (default)
--   --value=cost[,COMM] : convert amounts to cost (then optionally to
-    some other commodity)
--   --value=then[,COMM] : convert amounts to market value on transaction
-    dates
--   --value=end[,COMM] : convert amounts to market value on period end
-    date(s)
-    (default with --valuechange, --gain)
--   --value=now[,COMM] : convert amounts to market value on today's date
--   --value=YYYY-MM-DD[,COMM] : convert amounts to market value on
-    another date
+A valuation (or cost) mode can be selected with the --value option:
 
-or one of the equivalent simpler flags:
+- no conversion : don't convert to cost or value (default)
+- --value=cost[,COMM] : convert amounts to cost (then optionally to some
+  other commodity)
+- --value=then[,COMM] : convert amounts to market value on transaction
+  dates
+- --value=end[,COMM] : convert amounts to market value on period end
+  date(s)
+  (default with --valuechange, --gain)
+- --value=now[,COMM] : convert amounts to market value on today's date
+- --value=YYYY-MM-DD[,COMM] : convert amounts to market value on another
+  date
 
--   -B/--cost : like --value=cost (though, note --cost and --value are
-    independent options which can both be used at once)
--   -V/--market : like --value=end
--   -X COMM/--exchange COMM : like --value=end,COMM
+or with the legacy -B/-V/-X options, which are equivalent and easier to
+type:
 
-See Cost reporting and Value reporting for more about these.
+- -B/--cost : like --value=cost
+- -V/--market : like --value=end
+- -X COMM/--exchange COMM : like --value=end,COMM
 
-Combining balance report types
+Note that --value can also convert to cost, as a convenience; but
+actually --cost and --value are independent options, and could be used
+together.
 
-Most combinations of these options should produce reasonable reports,
-but if you find any that seem wrong or misleading, let us know. The
+Combining balance report modes
+
+Most combinations of these modes should produce reasonable reports, but
+if you find any that seem wrong or misleading, let us know. The
 following restrictions are applied:
 
--   --valuechange implies --value=end
--   --valuechange makes --change the default when used with the
-    balancesheet/balancesheetequity commands
--   --cumulative or --historical disables --row-total/-T
+- --valuechange implies --value=end
+- --valuechange makes --change the default when used with the
+  balancesheet/balancesheetequity commands
+- --cumulative or --historical disables --row-total/-T
 
 For reference, here is what the combinations of accumulation and
 valuation show:
@@ -564,11 +567,11 @@ valuation show:
 
 Budget report
 
-The --budget report type is like a regular balance report, but with two
-main differences:
+The --budget report is like a regular balance report, but with two main
+differences:
 
--   Budget goals and performance percentages are also shown, in brackets
--   Accounts which don't have budget goals are hidden by default.
+- Budget goals and performance percentages are also shown, in brackets
+- Accounts which don't have budget goals are hidden by default.
 
 This is useful for comparing planned and actual income, expenses, time
 usage, etc.
@@ -628,47 +631,46 @@ version should be relatively robust and intuitive, but you may still
 find surprises. Here are more notes to help with learning and
 troubleshooting.
 
--   In the above example, expenses:bus and expenses:food are shown
-    because they have budget goals during the report period.
+- In the above example, expenses:bus and expenses:food are shown because
+  they have budget goals during the report period.
 
--   Their parent expenses is also shown, with budget goals aggregated
-    from the children.
+- Their parent expenses is also shown, with budget goals aggregated from
+  the children.
 
--   The subaccounts expenses:food:groceries and expenses:food:dining are
-    not shown since they have no budget goal of their own, but they
-    contribute to expenses:food's actual amount.
+- The subaccounts expenses:food:groceries and expenses:food:dining are
+  not shown since they have no budget goal of their own, but they
+  contribute to expenses:food's actual amount.
 
--   Unbudgeted accounts expenses:movies and expenses:gifts are also not
-    shown, but they contribute to expenses's actual amount.
+- Unbudgeted accounts expenses:movies and expenses:gifts are also not
+  shown, but they contribute to expenses's actual amount.
 
--   The other unbudgeted accounts income and assets:bank:checking are
-    grouped as <unbudgeted>.
+- The other unbudgeted accounts income and assets:bank:checking are
+  grouped as <unbudgeted>.
 
--   --depth or depth: can be used to limit report depth in the usual way
-    (but will not reveal unbudgeted subaccounts).
+- --depth or depth: can be used to limit report depth in the usual way
+  (but will not reveal unbudgeted subaccounts).
 
--   Amounts are always inclusive of subaccounts (even in -l/--list
-    mode).
+- Amounts are always inclusive of subaccounts (even in -l/--list mode).
 
--   Numbers displayed in a --budget report will not always agree with
-    the totals, because of hidden unbudgeted accounts; this is normal.
-    -E/--empty can be used to reveal the hidden accounts.
+- Numbers displayed in a --budget report will not always agree with the
+  totals, because of hidden unbudgeted accounts; this is normal.
+  -E/--empty can be used to reveal the hidden accounts.
 
--   In the periodic rules used for setting budget goals, unbalanced
-    postings are convenient.
+- In the periodic rules used for setting budget goals, unbalanced
+  postings are convenient.
 
--   You can filter budget reports with the usual queries, eg to focus on
-    particular accounts. It's common to restrict them to just expenses.
-    (The <unbudgeted> account is occasionally hard to exclude; this is
-    because of date surprises, discussed below.)
+- You can filter budget reports with the usual queries, eg to focus on
+  particular accounts. It's common to restrict them to just expenses.
+  (The <unbudgeted> account is occasionally hard to exclude; this is
+  because of date surprises, discussed below.)
 
--   When you have multiple currencies, you may want to convert them to
-    one (-X COMM --infer-market-prices) and/or show just one at a time
-    (cur:COMM). If you do need to show multiple currencies at once,
-    --layout bare can be helpful.
+- When you have multiple currencies, you may want to convert them to one
+  (-X COMM --infer-market-prices) and/or show just one at a time
+  (cur:COMM). If you do need to show multiple currencies at once,
+  --layout bare can be helpful.
 
--   You can "roll over" amounts (actual and budgeted) to the next period
-    with --cumulative.
+- You can "roll over" amounts (actual and budgeted) to the next period
+  with --cumulative.
 
 See also: https://hledger.org/budgeting.html.
 
@@ -762,14 +764,14 @@ commands show multi-commodity amounts and commodity symbols. It can
 improve readability, for humans and/or machines (other software). It has
 four possible values:
 
--   --layout=wide[,WIDTH]: commodities are shown on a single line,
-    optionally elided to WIDTH
--   --layout=tall: each commodity is shown on a separate line
--   --layout=bare: commodity symbols are in their own column, amounts
-    are bare numbers
--   --layout=tidy: data is normalised to easily-consumed "tidy" form,
-    with one row per data value. (This one is currently supported only
-    by the balance command.)
+- --layout=wide[,WIDTH]: commodities are shown on a single line,
+  optionally elided to WIDTH
+- --layout=tall: each commodity is shown on a separate line
+- --layout=bare: commodity symbols are in their own column, amounts are
+  bare numbers
+- --layout=tidy: data is normalised to easily-consumed "tidy" form, with
+  one row per data value. (This one is currently supported only by the
+  balance command.)
 
 Here are the --layout modes supported by each output format Only CSV
 output supports all of them:
@@ -901,9 +903,8 @@ $ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layo
 Balance report output
 
 As noted in Output format, if you choose HTML output (by using -O html
-or -o somefile.html), it will use the UTF-8 text encoding, And you can
-create a hledger.css file in the same directory to customise the
-report's appearance.
+or -o somefile.html), you can create a hledger.css file in the same
+directory to customise the report's appearance.
 
 The HTML and FODS output formats can generate hyperlinks to a
 hledger-web register view for each account and period. E.g. if your
@@ -916,33 +917,33 @@ Some useful balance reports
 
 Some frequently used balance options/reports are:
 
--   bal -M revenues expenses
-    Show revenues/expenses in each month. Also available as the
-    incomestatement command.
+- bal -M revenues expenses
+  Show revenues/expenses in each month. Also available as the
+  incomestatement command.
 
--   bal -M -H assets liabilities
-    Show historical asset/liability balances at each month end. Also
-    available as the balancesheet command.
+- bal -M -H assets liabilities
+  Show historical asset/liability balances at each month end. Also
+  available as the balancesheet command.
 
--   bal -M -H assets liabilities equity
-    Show historical asset/liability/equity balances at each month end.
-    Also available as the balancesheetequity command.
+- bal -M -H assets liabilities equity
+  Show historical asset/liability/equity balances at each month end.
+  Also available as the balancesheetequity command.
 
--   bal -M assets not:receivable
-    Show changes to liquid assets in each month. Also available as the
-    cashflow command.
+- bal -M assets not:receivable
+  Show changes to liquid assets in each month. Also available as the
+  cashflow command.
 
 Also:
 
--   bal -M expenses -2 -SA
-    Show monthly expenses summarised to depth 2 and sorted by average
-    amount.
+- bal -M expenses -2 -SA
+  Show monthly expenses summarised to depth 2 and sorted by average
+  amount.
 
--   bal -M --budget expenses
-    Show monthly expenses and budget goals.
+- bal -M --budget expenses
+  Show monthly expenses and budget goals.
 
--   bal -M --valuechange investments
-    Show monthly change in market value of investment assets.
+- bal -M --valuechange investments
+  Show monthly change in market value of investment assets.
 
--   bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]
-    Show top gainers [or losers] last week
+- bal investments --valuechange -D date:lastweek amt:'>1000' -STA [--invert]
+  Show top gainers [or losers] last week
