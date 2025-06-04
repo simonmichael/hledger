@@ -115,7 +115,7 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
                                                or -> NAME donated
 -->
 
-| hledger&nbsp;version, <br>new&nbsp;regressions  | Fixed&nbsp;in  | Finder&nbsp;bounties <br>(since 2021-06-14)          | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
+| New&nbsp;regressions | Fixed&nbsp;in | Finder&nbsp;bounties <br>(since 2021-06-14)                                      | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
 |--------------------------|-----------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
 | **1.19** 2020-09-01      |           | ---                                                                              | ---
 | [#1568]                  | 1.22      | jolmg           N/A                                                              | N/A
