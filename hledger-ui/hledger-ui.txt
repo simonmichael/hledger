@@ -11,7 +11,7 @@ SYNOPSIS
        hledger ui -- [OPTS] [QUERYARGS]
 
 DESCRIPTION
-       This manual is for hledger's terminal interface, version 1.42.99.   See
+       This manual is for hledger's terminal interface, version 1.43.99.   See
        also the hledger manual for common concepts and file formats.
 
        hledger  is a robust, user-friendly, cross-platform set of programs for
@@ -394,43 +394,61 @@ WATCH MODE
        hledger-ui  when  needed,  eg to toggle cleared mode, or to explore the
        history.
 
-       There are currently some limitations with --watch:
+   --watch problems
+       However. There are limitations/unresolved bugs with --watch:
 
-       It may not work correctly for you, depending on platform or system con-
-       figuration.  (Eg #836.)
+       o It may not work at all for you, depending on platform or system  con-
+         figuration.     On    some    unix    systems,   increasing   fs.ino-
+         tify.max_user_watches or fs.file-max parameters  in  /etc/sysctl.conf
+         might help.  (#836)
 
-       At least on mac, there can be a slow build-up of CPU usage  over  time,
-       until  the  program  is  restarted  (or, suspending and restarting with
-       CTRL-z fg may be enough).
+       o It  may  not  detect file changes made by certain tools, such as Jet-
+         brains IDEs or gedit.  (#1617)
 
-       It will not detect file changes made by certain editors, such  as  Jet-
-       brains  IDEs or gedit, or on certain less common filesystems.  (To work
-       around,  press  g  to  reload  manually,   or   try   #1617's   fs.ino-
-       tify.max_user_watches workaround and let us know.)
+       o It may not detect changes made from outside a virtual machine, ie  by
+         an editor running on the host system.
 
-       If  you  are  viewing  files  mounted  from another machine, the system
-       clocks on both machines should be roughly in agreement.
+       o It may not detect file changes on certain less common filesystems.
+
+       o It  may  use  increasing CPU and RAM over time, especially with large
+         files.  (This is probably not --watch specific, you may  be  able  to
+         reproduce it by pressing g repeatedly.)  (#1825)
+
+       Tips/workarounds:
+
+       o If  --watch  won't  work for you, press g to reload data manually in-
+         stead.
+
+       o If --watch is leaking resources over time, quit and restart (or  sus-
+         pend and resume) hledger-ui when you're not using it.
+
+       o When  running  hledger-ui  inside a VM, also make file changes inside
+         the VM.
+
+       o When working with files mounted from another machine, make  sure  the
+         system clocks on both machines are roughly in agreement.
 
 ENVIRONMENT
-       LEDGER_FILE The main journal  file  to  use  when  not  specified  with
+       LEDGER_FILE  The  main  journal  file  to  use  when not specified with
        -f/--file.  Default: $HOME/.hledger.journal.
 
 BUGS
-       We  welcome  bug  reports  in  the  hledger  issue  tracker  (shortcut:
-       https://bugs.hledger.org),  or  on  the  hledger  chat  or  mail   list
+       We   welcome   bug   reports   in    the    hledger    issue    tracker
+       (https://bugs.hledger.org),  or  on  the  hledger  chat  or  mail  list
        (https://hledger.org/support).
 
        Some known issues:
 
        -f- doesn't work (hledger-ui can't read from stdin).
 
-       If you press g with large files, there could be a noticeable pause.
-
-       The Transaction screen does not update from file changes until you exit
-       and re-endter it (see SCREENS > Transaction above).
-
-       --watch  is  not  yet  fully  robust  on  all platforms (see Watch mode
+       --watch is not robust, especially with  large  files  (see  WATCH  MODE
        above).
+
+       The  Transaction screen does not update after file changes, even if you
+       press g, until you exit and re-enter it.  (#2288)
+
+       If you press g with large files, there could be a noticeable pause with
+       the UI unresponsive.
 
 
 
@@ -450,4 +468,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-ui-1.42.99                March 2025                     HLEDGER-UI(1)
+hledger-ui-1.43.99                 June 2025                     HLEDGER-UI(1)

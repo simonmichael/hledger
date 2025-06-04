@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-WEB" "1" "March 2025" "hledger-web-1.42.99 " "hledger User Manuals"
+.TH "HLEDGER\-WEB" "1" "June 2025" "hledger-web-1.43.99 " "hledger User Manuals"
 
 
 
@@ -17,7 +17,7 @@ or
 .PD
 \f[CR]hledger web \-\- [OPTS] [QUERY]\f[R]
 .SH DESCRIPTION
-This manual is for hledger\[aq]s web interface, version 1.42.99.
+This manual is for hledger\[aq]s web interface, version 1.43.99.
 See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a robust, user\-friendly, cross\-platform set of programs for
@@ -220,38 +220,33 @@ If this is not working see Install > Shell completions.
 By default, hledger\-web allows anyone who can reach it to view the
 journal and to add new transactions, but not to change existing data.
 .PP
-You can restrict who can reach it by
+You can restrict who can reach it, by
 .IP \[bu] 2
 setting the IP address it listens on (see \f[CR]\-\-host\f[R] above).
-By default it listens on 127.0.0.1, accessible to all users on the local
-machine.
+By default it listens on 127.0.0.1, accessible to users on the local
+machine only.
 .IP \[bu] 2
-putting it behind an authenticating proxy, using eg apache or nginx
+putting it behind an authenticating proxy, such as caddy or apache
 .IP \[bu] 2
-custom firewall rules
+putting it behind a firewall
 .PP
-You can restrict what the users who reach it can do, by
+And you can restrict what the users reaching it can do, by specifying
+the \f[CR]\-\-allow=ACCESSLEVEL\f[R] option at startup.
+ACCESSLEVEL is one of:
 .IP \[bu] 2
-using the \f[CR]\-\-capabilities=CAP[,CAP..]\f[R] flag when you start
-it, enabling one or more of the following capabilities.
-The default value is \f[CR]view,add\f[R]:
-.RS 2
+\f[CR]view\f[R] \- allows viewing the journal file(s)
 .IP \[bu] 2
-\f[CR]view\f[R] \- allows viewing the journal file and all included
-files
+\f[CR]add\f[R] \- also allows adding new transactions to the main
+journal file
 .IP \[bu] 2
-\f[CR]add\f[R] \- allows adding new transactions to the main journal
-file
+\f[CR]edit\f[R] \- also allows editing, uploading or downloading the
+journal file(s)
 .IP \[bu] 2
-\f[CR]manage\f[R] \- allows editing, uploading or downloading the main
-or included files
-.RE
-.IP \[bu] 2
-using the \f[CR]\-\-capabilities\-header=HTTPHEADER\f[R] flag to specify
-a HTTP header from which it will read capabilities to enable.
-hledger\-web on Sandstorm uses the X\-Sandstorm\-Permissions header to
-integrate with Sandstorm\[aq]s permissions.
-This is disabled by default.
+\f[CR]sandstorm\f[R] \- (for the hledger\-web Sandstorm app:) allows
+whichever of \f[CR]view\f[R], \f[CR]add\f[R], or \f[CR]edit\f[R] are
+specified in the \f[CR]X\-Sandstorm\-Permissions\f[R] HTTP header
+.PP
+The default access level is \f[CR]add\f[R].
 .SH EDITING, UPLOADING, DOWNLOADING
 If you enable the \f[CR]manage\f[R] capability mentioned above,
 you\[aq]ll see a new \[dq]spanner\[dq] button to the right of the search
@@ -500,8 +495,8 @@ stderr, eg:
 with \f[CR]\-f/\-\-file\f[R].
 Default: \f[CR]$HOME/.hledger.journal\f[R].
 .SH BUGS
-We welcome bug reports in the hledger issue tracker (shortcut:
-https://bugs.hledger.org), or on the hledger chat or mail list
+We welcome bug reports in the hledger issue tracker
+(https://bugs.hledger.org), or on the hledger chat or mail list
 (https://hledger.org/support).
 .PP
 Some known issues:

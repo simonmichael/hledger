@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2025" "hledger-1.42.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2025" "hledger-1.43.99 " "hledger User Manuals"
 
 
 
@@ -33,7 +33,7 @@ hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
 This manual is for hledger\[aq]s command line interface, version
-1.42.99.
+1.43.99.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -133,26 +133,21 @@ So we usually configure a different journal file, by setting the
 For more about how to do that on your system, see Common tasks > Setting
 LEDGER_FILE.
 .SS Text encoding
-hledger input files containing non\-ascii characters must use UTF\-8
-encoding, with the exception of CSV (SSV, TSV..)
-files, which can be read from other encodings (see \f[CR]encoding\f[R]
-CSV rule).
+hledger expects non\-ascii input to be decodable with the system
+locale\[aq]s text encoding.
+(For CSV/SSV/TSV files, this can be overridden by the
+\f[CR]encoding\f[R] CSV rule.)
 .PP
-In UTF\-8 input files, an optional byte order mark (BOM) at the
-beginning of the file is allowed.
+So, trying to read non\-ascii files which have the wrong text encoding,
+or when no system locale is configured, will fail.
+To fix this, configure your system locale appropriately, and/or convert
+the files to your system\[aq]s text encoding (using \f[CR]iconv\f[R] on
+unix, or powershell or notepad on Windows).
+See Install: Text encoding for more tips.
 .PP
-Your system may need to be configured with a locale that understands the
-input file\[aq]s encoding.
-Eg on some unix systems, you may need set the \f[CR]LANG\f[R]
-environment variable.
-You can read more about this in Unicode characters, below.
+hledger\[aq]s output will use the system locale\[aq]s encoding.
 .PP
-On some unix systems you can use the \f[CR]file\f[R] command to show a
-file\[aq]s text encoding.
-On mac, you\[aq]ll need the version from homebrew:
-\f[CR]brew install file\-formula\f[R].
-.PP
-hledger\[aq]s text output is always UTF\-8 encoded.
+hledger\[aq]s docs and example files mostly use UTF\-8 encoding.
 .SS Data formats
 Usually the data file is in hledger\[aq]s journal format, but it can be
 in any of the supported file formats, which currently are:
@@ -192,7 +187,7 @@ T}
 T{
 \f[CR]csv\f[R]
 T}@T{
-Comma or other character separated values, for data import
+Comma\- or other delimiter\-separated values, for data import
 T}@T{
 \f[CR].csv\f[R]
 T}
@@ -295,6 +290,9 @@ hledger provides various subcommands for getting things done.
 Most of these commands do not change the journal file; they just read it
 and output a report.
 A few commands assist with adding data and file management.
+Some often\-used commands are \f[CR]add\f[R], \f[CR]print\f[R],
+\f[CR]register\f[R], \f[CR]balancesheet\f[R] and
+\f[CR]incomestatement\f[R].
 .PP
 To show a summary of commands, run \f[CR]hledger\f[R] with no arguments.
 You can see the same commands summary at the start of PART 4: COMMANDS
@@ -663,18 +661,13 @@ alignment should be preserved.
 This requires a well\-configured environment.
 Here are some tips:
 .IP \[bu] 2
-A system locale must be configured, and it must be one that can decode
-the characters being used.
-In bash, you can set a locale like this:
-\f[CR]export LANG=en_US.UTF\-8\f[R].
-There are some more details in Troubleshooting.
-This step is essential \- without it, hledger will quit on encountering
-a non\-ascii character (as with all GHC\-compiled programs).
+A system locale must be configured, which can decode the characters
+being used.
+This is essential \- see Text encoding and Install: Text encoding.
 .IP \[bu] 2
 Your terminal software (eg Terminal.app, iTerm, CMD.exe, xterm..)
 must support unicode.
-On Windows, you may need to use Windows Terminal and/or enable UTF\-8
-support.
+On Windows, you may need to use Windows Terminal.
 .IP \[bu] 2
 The terminal must be using a font which includes the required unicode
 glyphs.
@@ -874,6 +867,10 @@ used, the right\-most wins.
 .PP
 To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
 \f[CR]\-\-debug=8\f[R].
+Or, run the \f[CR]setup\f[R] command, which will display any active
+config files.
+(\f[CR]setup\f[R] is not affected by config files itself, unlike other
+commands.)
 .PP
 \f[B]Warning!\f[R]
 .PP
@@ -1193,11 +1190,9 @@ If these don\[aq]t work well, you can set your preferred options in the
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
 .PP
-HTML output will be UTF\-8 encoded.
-If your web browser is showing junk characters, you may need to change
-its text encoding to UTF\-8.
-Eg in Safari, see View \-> Text Encoding and Settings \-> Advanced \->
-Default Encoding.
+HTML output will be a HTML fragment, not a complete HTML document.
+Like other hledger output, for non\-ascii characters it will use the
+system locale\[aq]s text encoding (see Text encoding).
 .SS CSV / TSV output
 In CSV or TSV output, digit group marks (such as thousands separators)
 are disabled automatically.
@@ -1232,7 +1227,7 @@ use currency codes instead of currency symbols
 .IP \[bu] 2
 use cost notation instead of equity conversion postings
 .IP \[bu] 2
-avoid virtual postings
+avoid virtual postings, balance assignments, and secondary dates.
 .PP
 There is one big adjustment you must handle yourself: for Beancount, the
 top level account names must be \f[CR]Assets\f[R],
@@ -1243,10 +1238,10 @@ if needed, as in this hledger2beancount.conf config file.
 .PP
 2024\-12\-20: Some more things not yet handled for you:
 .IP \[bu] 2
-P directives are not converted automatically \- convert those yourself
+P directives are not converted automatically \- convert those yourself.
 .IP \[bu] 2
-Balance assignments are not converted (Beancount doesnt support them) \-
-replace those with explicit amounts
+Balance assignments are not converted (Beancount doesn\[aq]t support
+them) \- replace those with explicit amounts.
 .SS Beancount account names
 Aside from the top\-level names, hledger will adjust your account names
 to make valid Beancount account names, by capitalising each part,
@@ -1556,7 +1551,8 @@ include other.journal   ; Include another journal file here.
 2024\-02\-01 note some event, or a transaction not yet fully entered, on this date
     ; Postings are not required.
 
-; Some other date formats are allowed (but, consistent YYYY\-MM\-DD is useful).
+# Consistent YYYY\-MM\-DD date format is recommended,
+# but you can use . or / and omit leading zeros if you prefer.
 2024.01.01
 2024/1/1
 .EE
@@ -2131,26 +2127,29 @@ files, and balance assertions will usually keep working.
 The exception is when you reorder multiple postings on the same day, to
 the same account, which have balance assertions; those will likely need
 updating.
-.SS Assertions and multiple included files
-Multiple files included with the \f[CR]include\f[R] directive are
-processed as if concatenated into one file, preserving their order and
-the posting order within each file.
-It means that balance assertions in later files will see balance from
-earlier files.
+.SS Assertions and multiple files
+If an account has transactions appearing in multiple files, balance
+assertions can still work \- but \f[I]only if those files are part of a
+hierarchy made by include directives\f[R].
 .PP
-And if you have multiple postings to an account on the same day, split
-across multiple files, and you want to assert the account\[aq]s balance
-on that day, you\[aq]ll need to put the assertion in the right file \-
-the last one in the sequence, probably.
-.SS Assertions and multiple \-f files
-Unlike \f[CR]include\f[R], when multiple files are specified on the
-command line with multiple \f[CR]\-f/\-\-file\f[R] options, balance
-assertions will not see balance from earlier files.
-This can be useful when you do not want problems in earlier files to
-disrupt valid assertions in later files.
+If the same files are specified with two \f[CR]\-f\f[R] options on the
+command line, the assertions in the second will not see the balances
+from the first.
 .PP
-If you do want assertions to see balance from earlier files, use
-\f[CR]include\f[R], or concatenate the files temporarily.
+To work around this, arrange your files in a hierarchy with
+\f[CR]include\f[R].
+Or, you could concatenate the files temporarily, and process them like
+one big file.
+.PP
+Why does it work this way ?
+It might be related to hledger\[aq]s goal of stable predictable reports.
+File hierarchy is considered \[dq]permanent\[dq], part of your data,
+while the order of command line options/arguments is not.
+We don\[aq]t want transient changes to be able to change the meaning of
+the data.
+Eg it would be frustrating if tomorrow all your balance assertions broke
+because you wrote command line arguments in a different order.
+(Discussion welcome.)
 .SS Assertions and costs
 Balance assertions ignore costs, and should normally be written without
 one:
@@ -2269,6 +2268,21 @@ always what is shown by reports.
 Eg a commodity directive may limit the display precision, but this will
 not affect balance assertions.
 Balance assertion failure messages show exact amounts.
+.SS Assertions and hledger add
+Balance assertions can be included in the amounts given in
+\f[CR]add\f[R].
+All types of assertions are supported, and assertions can be used as in
+a normal journal file.
+.PP
+All transactions, not just those that have an explicit assertion, are
+validated against the existing assertions in the journal.
+This means it is possible for an added transaction to fail even if its
+assertions are correct as of the transaction date.
+.PP
+If this assertion checking is not desired, then it can be disabled with
+\f[CR]\-I\f[R].
+.PP
+However, balance assignments are currently not supported.
 .SS Posting comments
 Text following \f[CR];\f[R], at the end of a posting line, and/or on
 indented lines immediately below it, form comments for that posting.
@@ -2805,41 +2819,85 @@ An account directive both declares an account as a valid posting target,
 and declares its display order; you can\[aq]t easily do one without the
 other.
 .SS Account types
-hledger knows that accounts come in several types: assets, liabilities,
-expenses and so on.
-This enables easy reports like balancesheet and incomestatement, and
-filtering by account type with the \f[CR]type:\f[R] query.
+hledger knows that in accounting there are three main account types:
 .PP
-As a convenience, hledger will detect these account types automatically
-if you are using common english\-language top\-level account names
-(described below).
-But it\[aq]s more robust to declare accounts\[aq] types explicitly, by
-adding \f[CR]type:\f[R] tags to their account directives.
-The tag\[aq]s value should be one of the five main account types:
-.IP \[bu] 2
-\f[CR]A\f[R] or \f[CR]Asset\f[R] (things you own)
-.IP \[bu] 2
-\f[CR]L\f[R] or \f[CR]Liability\f[R] (things you owe)
-.IP \[bu] 2
-\f[CR]E\f[R] or \f[CR]Equity\f[R] (investment/ownership; balanced
-counterpart of assets & liabilities)
-.IP \[bu] 2
-\f[CR]R\f[R] or \f[CR]Revenue\f[R] (what you received money from, AKA
-income; technically part of Equity)
-.IP \[bu] 2
-\f[CR]X\f[R] or \f[CR]Expense\f[R] (what you spend money on; technically
-part of Equity)
+.TS
+tab(@);
+l l l.
+T{
+\f[CR]Asset\f[R]
+T}@T{
+\f[CR]A\f[R]
+T}@T{
+things you own
+T}
+T{
+\f[CR]Liability\f[R]
+T}@T{
+\f[CR]L\f[R]
+T}@T{
+things you owe
+T}
+T{
+\f[CR]Equity\f[R]
+T}@T{
+\f[CR]E\f[R]
+T}@T{
+owner\[aq]s investment, balances the two above
+T}
+.TE
 .PP
-or, it can be (these are used less often):
-.IP \[bu] 2
-\f[CR]C\f[R] or \f[CR]Cash\f[R] (a subtype of Asset, indicating liquid
-assets for the cashflow report)
-.IP \[bu] 2
-\f[CR]V\f[R] or \f[CR]Conversion\f[R] (a subtype of Equity, for
-conversions (see Cost reporting).)
+and two more representing changes in these:
 .PP
-Subaccounts inherit their parent\[aq]s type, or they can override it.
-Here is a typical set of account type declarations:
+.TS
+tab(@);
+l l l.
+T{
+\f[CR]Revenue\f[R]
+T}@T{
+\f[CR]R\f[R]
+T}@T{
+inflows (also known as \f[CR]Income\f[R])
+T}
+T{
+\f[CR]Expense\f[R]
+T}@T{
+\f[CR]X\f[R]
+T}@T{
+outflows
+T}
+.TE
+.PP
+hledger also uses a couple of subtypes:
+.PP
+.TS
+tab(@);
+l l l.
+T{
+\f[CR]Cash\f[R]
+T}@T{
+\f[CR]C\f[R]
+T}@T{
+liquid assets
+T}
+T{
+\f[CR]Conversion\f[R]
+T}@T{
+\f[CR]V\f[R]
+T}@T{
+commodity conversions equity
+T}
+.TE
+.PP
+As a convenience, hledger will detect these types automatically from
+english account names.
+But it\[aq]s better to declare them explicitly by adding a
+\f[CR]type:\f[R] tag in the account directives.
+The tag\[aq]s value can be any of the types or one\-letter abbreviations
+above.
+.PP
+Here is a typical set of account type declarations.
+Subaccounts will inherit their parent\[aq]s type, or can override it:
 .IP
 .EX
 account assets             ; type: A
@@ -2854,17 +2912,35 @@ account assets:cash        ; type: C
 account equity:conversion  ; type: V
 .EE
 .PP
-Here are some tips for working with account types.
+This enables the easy balancesheet, balancesheetequity, cashflow and
+incomestatement reports, and querying by type:.
+.PP
+Tips:
 .IP \[bu] 2
-The rules for inferring types from account names are as follows.
-These are just a convenience that sometimes help new users get going; if
-they don\[aq]t work for you, just ignore them and declare your account
-types.
-See also Regular expressions.
+You can list accounts and their types, for troubleshooting:
 .RS 2
 .IP
 .EX
-If account\[aq]s name contains this (CI) regular expression:            | its type is:
+$ hledger accounts \-\-types [ACCTPAT] [type:TYPECODES] [\-DEPTH] [\-\-positions]
+.EE
+.RE
+.IP \[bu] 2
+It\[aq]s a good idea to declare at least one account for each account
+type.
+Having some types declared and some inferred can disrupt certain
+reports.
+.IP \[bu] 2
+The rules for inferring types from account names are as follows (using
+Regular expressions).
+.PD 0
+.P
+.PD
+If they don\[aq]t work for you, just ignore them and declare your types
+with \f[CR]type:\f[R] tags.
+.RS 2
+.IP
+.EX
+If account\[aq]s name contains this case insensitive regular expression | its type is
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-|\-\-\-\-\-\-\-\-\-\-\-\-\-
 \[ha]assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|current)(:|$) | Cash
 \[ha]assets?(:|$)                                                       | Asset
@@ -2876,16 +2952,9 @@ If account\[aq]s name contains this (CI) regular expression:            | its ty
 .EE
 .RE
 .IP \[bu] 2
-If you declare any account types, it\[aq]s a good idea to declare an
-account for all of the account types, because a mixture of declared and
-name\-inferred types can disrupt certain reports.
-.IP \[bu] 2
-Certain uses of account aliases can disrupt account types.
-See Rewriting accounts > Aliases and account types.
-.IP \[bu] 2
 As mentioned above, subaccounts will inherit a type from their parent
 account.
-More precisely, an account\[aq]s type is decided by the first of these
+To be precise, an account\[aq]s type is decided by the first of these
 that exists:
 .RS 2
 .IP "1." 3
@@ -2902,13 +2971,7 @@ the nearest parent.
 Otherwise, it will have no type.
 .RE
 .IP \[bu] 2
-For troubleshooting, you can list accounts and their types with:
-.RS 2
-.IP
-.EX
-$ hledger accounts \-\-types [ACCTPAT] [\-DEPTH] [type:TYPECODES]
-.EE
-.RE
+Account aliases can disrupt account types.
 .SS \f[CR]alias\f[R] directive
 You can define account alias rules which rewrite your account names, or
 parts of them, before generating reports.
@@ -3999,20 +4062,19 @@ ignores it
 and rejects the rest.
 .PP
 .SH CSV
-hledger can read CSV files (Character Separated Value \- usually comma,
-semicolon, or tab) containing dated records, automatically converting
-each record into a transaction.
+hledger can read transactions from CSV (comma\-separated values) files.
+More precisely, it can read DSV (delimiter\-separated values), from a
+file or standard input.
+Comma\-separated, semicolon\-separated and tab\-separated are the most
+common variants, and hledger will recognise these three automatically
+based on a \f[CR].csv\f[R], \f[CR].ssv\f[R] or \f[CR].tsv\f[R] file name
+extension or a \f[CR]csv:\f[R], \f[CR]ssv:\f[R] or \f[CR]tsv:\f[R] file
+path prefix.
 .PP
-(To learn about \f[I]writing\f[R] CSV, see CSV output.)
-.PP
-For best error messages when reading CSV/TSV/SSV files, make sure they
-have a corresponding \f[CR].csv\f[R], \f[CR].tsv\f[R] or \f[CR].ssv\f[R]
-file extension or use a hledger file prefix (see File Extension below).
+(To learn about producing CSV or TSV \f[I]output\f[R], see Output
+format.)
 .PP
 Each CSV file must be described by a corresponding \f[I]rules file\f[R].
-.PD 0
-.P
-.PD
 This contains rules describing the CSV data (header line, fields layout,
 date format etc.), how to construct hledger transactions from it, and
 how to categorise transactions based on description or other attributes.
@@ -4049,7 +4111,7 @@ $ hledger print \-f basic.csv
     income:unknown            \-10.23
 .EE
 .PP
-There\[aq]s an introductory Importing CSV data tutorial on hledger.org,
+There\[aq]s an introductory Tutorial: Import CSV data on hledger.org,
 and more CSV rules examples below, and a larger collection at
 https://github.com/simonmichael/hledger/tree/master/examples/csv.
 .SS CSV rules cheatsheet
@@ -4183,20 +4245,35 @@ See also \[dq]Working with CSV > Reading files specified by rule\[dq].
 encoding ENCODING
 .EE
 .PP
-hledger normally expects non\-ascii text to be UTF8\-encoded.
+hledger normally expects non\-ascii text to be using the system
+locale\[aq]s text encoding.
 If you need to read CSV files which have some other encoding, you can do
 it by adding \f[CR]encoding ENCODING\f[R] to your CSV rules.
-Eg: \f[CR]encoding ISO88591\f[R].
+Eg: \f[CR]encoding iso\-8859\-1\f[R].
 .PP
-The following encodings are supported (these names are
-case\-insensitive, and can be written with inner spaces or hyphens if
-you prefer): ASCII, UTF8, UTF16, UTF32, ISO88591, ISO88592, ISO88593,
-ISO88594, ISO88595, ISO88596, ISO88597, ISO88598, ISO88599, ISO885910,
-ISO885911, ISO885913, ISO885914, ISO885915, ISO885916, CP1250, CP1251,
-CP1252, CP1253, CP1254, CP1255, CP1256, CP1257, CP1258, KOI8R, KOI8U,
-GB18030, MacOSRoman, JISX0201, JISX0208, ISO2022JP, ShiftJIS, CP437,
-CP737, CP775, CP850, CP852, CP855, CP857, CP860, CP861, CP862, CP863,
-CP864, CP865, CP866, CP869, CP874, CP932.
+The following encodings are supported:
+.PP
+\f[CR]ascii\f[R], \f[CR]utf\-8\f[R], \f[CR]utf\-16\f[R],
+\f[CR]utf\-32\f[R], \f[CR]iso\-8859\-1\f[R], \f[CR]iso\-8859\-2\f[R],
+\f[CR]iso\-8859\-3\f[R], \f[CR]iso\-8859\-4\f[R],
+\f[CR]iso\-8859\-5\f[R], \f[CR]iso\-8859\-6\f[R],
+\f[CR]iso\-8859\-7\f[R], \f[CR]iso\-8859\-8\f[R],
+\f[CR]iso\-8859\-9\f[R], \f[CR]iso\-8859\-10\f[R],
+\f[CR]iso\-8859\-11\f[R], \f[CR]iso\-8859\-13\f[R],
+\f[CR]iso\-8859\-14\f[R], \f[CR]iso\-8859\-15\f[R],
+\f[CR]iso\-8859\-16\f[R], \f[CR]cp1250\f[R], \f[CR]cp1251\f[R],
+\f[CR]cp1252\f[R], \f[CR]cp1253\f[R], \f[CR]cp1254\f[R],
+\f[CR]cp1255\f[R], \f[CR]cp1256\f[R], \f[CR]cp1257\f[R],
+\f[CR]cp1258\f[R], \f[CR]koi8\-r\f[R], \f[CR]koi8\-u\f[R],
+\f[CR]gb18030\f[R], \f[CR]macintosh\f[R], \f[CR]jis\-x\-0201\f[R],
+\f[CR]jis\-x\-0208\f[R], \f[CR]iso\-2022\-jp\f[R],
+\f[CR]shift\-jis\f[R], \f[CR]cp437\f[R], \f[CR]cp737\f[R],
+\f[CR]cp775\f[R], \f[CR]cp850\f[R], \f[CR]cp852\f[R], \f[CR]cp855\f[R],
+\f[CR]cp857\f[R], \f[CR]cp860\f[R], \f[CR]cp861\f[R], \f[CR]cp862\f[R],
+\f[CR]cp863\f[R], \f[CR]cp864\f[R], \f[CR]cp865\f[R], \f[CR]cp866\f[R],
+\f[CR]cp869\f[R], \f[CR]cp874\f[R], \f[CR]cp932\f[R].
+.PP
+\f[I]Added in 1.42.\f[R]
 .SS \f[CR]separator\f[R]
 You can use the \f[CR]separator\f[R] rule to read other kinds of
 character\-separated data.
@@ -5302,49 +5379,68 @@ if something
  comment C
 .EE
 .SS How CSV rules are evaluated
-Here\[aq]s how to think of CSV rules being evaluated (if you really need
-to).
-First,
+Here\[aq]s how to think of CSV rules being evaluated.
+If you get a confusing error while reading a CSV file, it may help to
+try to understand which of these steps is failing:
+.IP "1." 3
+Any included rules files are inlined, from top to bottom, depth first
+(scanning each included file for further includes, recursively, before
+proceeding).
+.IP "2." 3
+Top level rules (\f[CR]date\-format\f[R], \f[CR]fields\f[R],
+\f[CR]newest\-first\f[R], \f[CR]skip\f[R] etc) are read, top to bottom.
+\[dq]Top level rules\[dq] means non\-conditional rules.
+If a rule occurs more than once, the last one wins; except for
+\f[CR]skip\f[R]/\f[CR]end\f[R] rules, where the first one wins.
+.IP "3." 3
+The CSV file is read as text.
+Any non\-ascii characters will be decoded using the text encoding
+specified by the \f[CR]encoding\f[R] rule, otherwise the system
+locale\[aq]s text encoding.
+.IP "4." 3
+Any top\-level skip or end rule is applied.
+\f[CR]skip [N]\f[R] immediately skips the current or next N CSV records;
+\f[CR]end\f[R] immediately skips all remaining CSV records (not normally
+used at top level).
+.IP "5." 3
+Now any remaining CSV records are processed.
+For each CSV record, in file order:
+.RS 4
 .IP \[bu] 2
-\f[CR]include\f[R] \- all includes are inlined, from top to bottom,
-depth first.
-(At each include point the file is inlined and scanned for further
-includes, recursively, before proceeding.)
+Is there a conditional skip/end rule that applies for this record ?
+Search the \f[CR]if\f[R] blocks, from top to bottom, for a succeeding
+one containing a \f[CR]skip\f[R] or \f[CR]end\f[R] rule.
+If found, skip the specified number of CSV records, then continue at 5.
+.PD 0
+.P
+.PD
+Otherwise...
+.IP \[bu] 2
+Do some basic validation on this CSV record (eg, check that it has at
+least two fields).
+.IP \[bu] 2
+For each hledger field (\f[CR]date\f[R], \f[CR]description\f[R],
+\f[CR]account1\f[R], etc.):
+.RS 2
+.IP "1." 3
+Get the field\[aq]s assigned value, first searching top level
+assignments, made directly or by the \f[CR]fields\f[R] rule, then
+assignments made inside succeeding \f[CR]if\f[R] blocks.
+If there are more than one, the last one wins.
+.IP "2." 3
+Compute the field\[aq]s actual value (as text), by interpolating any
+%CSVFIELD references within the assigned value; or by choosing a default
+value if there was no assignment.
+.RE
+.IP \[bu] 2
+Generate a hledger transaction from the hledger field values, parsing
+them if needed (eg from text to an amount).
+.RE
 .PP
-Then \[dq]global\[dq] rules are evaluated, top to bottom.
-If a rule is repeated, the last one wins:
-.IP \[bu] 2
-\f[CR]skip\f[R] (at top level)
-.IP \[bu] 2
-\f[CR]date\-format\f[R]
-.IP \[bu] 2
-\f[CR]newest\-first\f[R]
-.IP \[bu] 2
-\f[CR]fields\f[R] \- names the CSV fields, optionally sets up initial
-assignments to hledger fields
-.PP
-Then for each CSV record in turn:
-.IP \[bu] 2
-test all \f[CR]if\f[R] blocks.
-If any of them contain a \f[CR]end\f[R] rule, skip all remaining CSV
-records.
-Otherwise if any of them contain a \f[CR]skip\f[R] rule, skip that many
-CSV records.
-If there are multiple matched \f[CR]skip\f[R] rules, the first one wins.
-.IP \[bu] 2
-collect all field assignments at top level and in matched \f[CR]if\f[R]
-blocks.
-When there are multiple assignments for a field, keep only the last one.
-.IP \[bu] 2
-compute a value for each hledger field \- either the one that was
-assigned to it (and interpolate the %CSVFIELD references), or a default
-.IP \[bu] 2
-generate a hledger transaction (journal entry) from these values.
-.PP
-This is all part of the CSV reader, one of several readers hledger can
-use to parse input files.
-When all files have been read successfully, the transactions are passed
-as input to whichever hledger command the user specified.
+This is all done by the CSV reader, one of several readers hledger can
+use to read transactions from an input file.
+When all input files have been read successfully, their transactions are
+passed to whichever hledger command the user specified.
 .PP
 .SS Well factored rules
 Some things than can help reduce duplication and complexity in rules
@@ -5672,11 +5768,19 @@ i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; option
 o 2015/03/30 09:20:00
 i 2015/03/31 22:21:45 another:account
 o 2015/04/01 02:00:34
+i 2015/04/02 12:00:00 another:account  ; this demonstrates multple sessions being clocked in
+i 2015/04/02 13:00:00 some account
+o 2015/04/02 14:00:00
+o 2015/04/02 15:00:00 another:account
 .EE
 .PP
 hledger treats each clock\-in/clock\-out pair as a transaction posting
 some number of hours to an account.
-Or if the session spans more than one day, it is split into several
+Entries are paired by the account name if the same name is given for a
+clock\-in/clock\-out pair.
+If no name is given for a clock\-out, then it is paired with the most
+recent clock\-in entry.
+If the session spans more than one day, it is split into several
 transactions, one for each day.
 For the above time log, \f[CR]hledger print\f[R] generates these journal
 entries:
@@ -5691,6 +5795,12 @@ $ hledger \-f t.timeclock print
 
 2015\-04\-01 * 00:00\-02:00
     (another:account)           2.01h
+
+2015\-04\-02 * 12:00\-15:00  ; this demonstrates multiple sessions being clocked in
+    (another:account)           3.00h
+
+2015\-04\-02 * 13:00\-14:00
+    (some account)           1.00h
 .EE
 .PP
 Here is a sample.timeclock to download and some queries to try:
@@ -6454,20 +6564,20 @@ account name, while \f[CR]assets\f[R] matches at level 1.
 The same would be true with the argument
 \f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R].
 .SH Queries
-One of hledger\[aq]s strengths is being able to quickly report on a
-precise subset of your data.
-Most hledger commands accept query arguments, to restrict their scope.
-Multiple query terms can be provided to build up a more complex query.
+Many hledger commands accept query arguments, which restrict their scope
+and let you report on a precise subset of your data.
+Here\[aq]s a quick overview of hledger\[aq]s queries:
 .IP \[bu] 2
-By default, a query term is interpreted as a case\-insensitive substring
-pattern for matching account names:
+By default, a query argument is treated as a case\-insensitive substring
+pattern for matching account names.
+Eg:
 .RS 2
 .PP
-\f[CR]car:fuel\f[R]
+\f[CR]dining groceries\f[R]
 .PD 0
 .P
 .PD
-\f[CR]dining groceries\f[R]
+\f[CR]car:fuel\f[R]
 .PD 0
 .P
 .PD
@@ -6483,9 +6593,9 @@ in single or double quotes:
 .PD
 .RE
 .IP \[bu] 2
-These patterns are actually regular expressions, so you can add regexp
-metacharacters for more precision (see \[dq]Regular expressions\[dq]
-above for details):
+Patterns are actually regular expressions, so you can add regexp
+metacharacters for more precision (or you may need to backslash\-escape
+certain characters; see \[dq]Regular expressions\[dq] above):
 .RS 2
 .PP
 \f[CR]\[aq]\[ha]expenses\[rs]b\[aq]\f[R]
@@ -6506,8 +6616,8 @@ above for details):
 .PD
 .RE
 .IP \[bu] 2
-To match something other than account name, add one of the query type
-prefixes described in \[dq]Query types\[dq] below:
+To match something other than the account name, you can add a query type
+prefix, such as:
 .RS 2
 .PP
 \f[CR]date:202312\-\f[R]
@@ -6534,9 +6644,14 @@ prefixes described in \[dq]Query types\[dq] below:
 .PD 0
 .P
 .PD
+\f[CR]acct:groceries\f[R] (but \f[CR]acct:\f[R] is the default, so we
+usually don\[aq]t bother writing it)
+.PD 0
+.P
+.PD
 .RE
 .IP \[bu] 2
-Add a \f[CR]not:\f[R] prefix to negate a term:
+To negate a query, add a \f[CR]not:\f[R] prefix:
 .RS 2
 .PP
 \f[CR]not:status:\[aq]*\[aq]\f[R]
@@ -6553,20 +6668,42 @@ Add a \f[CR]not:\f[R] prefix to negate a term:
 .PD
 .RE
 .IP \[bu] 2
-Terms with different types are AND\-ed, terms with the same type are
-OR\-ed (mostly; see \[dq]Combining query terms\[dq] below).
-The following query:
-.RS 2
+Multiple query terms can be combined, as space\-separated queries Eg:
+\f[CR]hledger print date:2022 desc:amazon desc:amzn\f[R] (show
+transactions dated in 2022 whose description contains \[dq]amazon\[dq]
+or \[dq]amzn\[dq]).
+.PD 0
+.P
+.PD
+.IP \[bu] 2
+Or more flexibly as boolean queries.
+Eg:
+\f[CR]hledger print expr:\[aq]date:2022 and (desc:amazon or desc:amzn) and not date:202210\[aq]\f[R]
+.PD 0
+.P
+.PD
 .PP
-\f[CR]date:2022 desc:amazon desc:amzn\f[R]
-.PP
-is interpreted as:
-.PP
-\f[I]date is in 2022 AND ( transaction description contains
-\[dq]amazon\[dq] OR \[dq]amzn\[dq] )\f[R]
-.RE
+All hledger commands use the same query language, but different commands
+may interpret the query in different ways.
+We haven\[aq]t described the commands yet (that\[aq]s coming in PART 4:
+COMMANDS below) but here\[aq]s the gist of it:
+.IP \[bu] 2
+Transaction\-oriented commands (\f[CR]print\f[R], \f[CR]aregister\f[R],
+\f[CR]close\f[R], \f[CR]import\f[R], \f[CR]descriptions\f[R]..)
+try to match transactions (including the transaction\[aq]s postings).
+.IP \[bu] 2
+Posting\-oriented commands (\f[CR]register\f[R], \f[CR]balance\f[R],
+\f[CR]balancesheet\f[R], \f[CR]incomestatement\f[R],
+\f[CR]accounts\f[R]..)
+try to match postings.
+Postings inherit their transaction\[aq]s attributes for querying
+purposes, so transaction fields like date or description can still be
+referenced in a posting query.
+.IP \[bu] 2
+A few commands match in more specific ways.
+(Eg \f[CR]aregister\f[R], which has a special first argument.)
 .SS Query types
-Here are the types of query term available.
+Here are the query types available:
 .SS acct: query
 \f[B]\f[CB]acct:REGEX\f[B]\f[R], or just \f[B]\f[CB]REGEX\f[B]\f[R]
 .PD 0
@@ -6586,11 +6723,15 @@ the \[dq]acct:\[dq] prefix.
 Match postings with a single\-commodity amount equal to, less than, or
 greater than N. (Postings with multi\-commodity amounts are not tested
 and will always match.)
+\f[CR]amt:\f[R] needs quotes to hide the less than/greater than sign
+from the command line shell.
+.PP
 The comparison has two modes: if N is preceded by a + or \- sign (or is
 0), the two signed numbers are compared.
 Otherwise, the absolute magnitudes are compared, ignoring sign.
-\f[CR]amt:\f[R] needs quotes to hide the less than/greater than sign
-from the command line shell.
+.PP
+Keep in mind that \f[CR]amt:\f[R] matches posting amounts, not account
+balances.
 .SS code: query
 \f[B]\f[CB]code:REGEX\f[B]\f[R]
 .PD 0
@@ -6649,38 +6790,6 @@ Match (or display, depending on command) accounts at or above this
 depth, optionally only for accounts matching a provided regular
 expression.
 See Depth for detailed rules.
-.SS expr: query
-\f[B]\f[CB]expr:\[aq]QUERYEXPR\[aq]\f[B]\f[R]
-.PD 0
-.P
-.PD
-\f[CR]expr\f[R] lets you write more complicated query expressions with
-AND, OR, NOT, and parentheses.
-.PD 0
-.P
-.PD
-Eg: \f[CR]expr:\[aq]date:lastmonth and not (food or rent)\[aq]\f[R]
-.PD 0
-.P
-.PD
-The expression should be enclosed in quotes.
-See Combining query terms below.
-.SS not: query
-\f[B]\f[CB]not:QUERYTERM\f[B]\f[R]
-.PD 0
-.P
-.PD
-You can prepend \f[B]\f[CB]not:\f[B]\f[R] to any other query term to
-negate the match.
-.PD 0
-.P
-.PD
-Eg: \f[CR]not:equity\f[R], \f[CR]not:desc:apple\f[R]
-.PD 0
-.P
-.PD
-(Also, a trick: \f[CR]not:not:...\f[R] can sometimes solve query
-problems conveniently..)
 .SS note: query
 \f[B]\f[CB]note:REGEX\f[B]\f[R]
 .PD 0
@@ -6742,7 +6851,24 @@ Accounts also inherit the tags of their parent accounts.
 Postings also inherit the tags of their account and their transaction .
 .IP \[bu] 2
 Transactions also acquire the tags of their postings.
-.SS Combining query terms
+.SS Negative queries
+.SS not: query
+\f[B]\f[CB]not:QUERY\f[B]\f[R]
+.PD 0
+.P
+.PD
+You can prepend \f[B]\f[CB]not:\f[B]\f[R] to a query to negate the
+match.
+.PD 0
+.P
+.PD
+Eg: \f[CR]not:equity\f[R], \f[CR]not:desc:apple\f[R]
+.PD 0
+.P
+.PD
+(Also, a trick: \f[CR]not:not:...\f[R] can sometimes solve query
+problems conveniently.)
+.SS Space\-separated queries
 When given multiple space\-separated query terms, most commands select
 things which match:
 .IP \[bu] 2
@@ -6763,48 +6889,94 @@ have any postings matching any of the positive account terms AND
 have no postings matching any of the negative account terms AND
 .IP \[bu] 2
 match all the other terms.
+.SS Boolean queries
+You can write more complicated \[dq]boolean\[dq] query expressions,
+enclosed in quotes and prefixed with \f[CR]expr:\f[R].
+These can combine subqueries with NOT, AND, OR operators (case
+insensitive), and parentheses for grouping.
+Eg, to show transactions involving both cash and expense accounts:
+.IP
+.EX
+hledger print expr:\[aq]cash AND expenses\[aq]
+.EE
 .PP
-We also support more complex boolean queries with the \f[CR]expr:\f[R]
-prefix.
-This allows one to combine query terms using \f[CR]and\f[R],
-\f[CR]or\f[R], \f[CR]not\f[R] keywords (case insensitive), and to group
-them by enclosing in parentheses.
+The prefix and enclosing quotes are required, so don\[aq]t write
+\f[CR]hledger print cash AND expenses\f[R].
+That would be a space\-separated query showing transactions involving
+accounts with any of \[dq]cash\[dq], \[dq]and\[dq], \[dq]expenses\[dq]
+in their names.
 .PP
-Some examples:
-.IP \[bu] 2
-Exclude account names containing \[aq]food\[aq]:
-.RS 2
+You can write space\-separated queries \f[I]inside\f[R] a boolean query,
+and they will combine as described above, but it might be confusing and
+best avoided.
+Eg these are equivalent, showing transactions involving cash or expenses
+accounts:
+.IP
+.EX
+hledger print expr:\[aq]cash expenses\[aq]
+hledger print cash expenses
+.EE
 .PP
-\f[CR]expr:\[dq]not food\[dq]\f[R] (\f[CR]not:food\f[R] is equivalent)
-.RE
-.IP \[bu] 2
-Match things which have \[aq]cool\[aq] in the description and the
-\[aq]A\[aq] tag:
-.RS 2
+There is a restriction with \f[CR]date:\f[R] queries: they may not be
+used inside OR expressions.
 .PP
-\f[CR]expr:\[dq]desc:cool and tag:A\[dq]\f[R]
-(\f[CR]expr:\[dq]desc:cool tag:A\[dq]\f[R] is equivalent)
-.RE
-.IP \[bu] 2
-Match things which either do not reference the \[aq]expenses:food\[aq]
-account, or do have the \[aq]A\[aq] tag:
-.RS 2
+Actually, there are three types of boolean query: \f[CR]expr:\f[R] for
+general use, and \f[CR]any:\f[R] and \f[CR]all:\f[R] variants which can
+be useful with \f[CR]print\f[R].
+.SS expr: query
+\f[B]\f[CB]expr:\[aq]QUERYEXPR\[aq]\f[B]\f[R]
+.PD 0
+.P
+.PD
+For example,
+\f[CR]expr:\[aq]date:lastmonth AND NOT (food OR rent)\[aq]\f[R] means
+\[dq]match things which are dated in the last month and do not have food
+or rent in the account name\[dq].
 .PP
-\f[CR]expr:\[dq]not expenses:food or tag:A\[dq]\f[R]
-.RE
-.IP \[bu] 2
-Match things which either do not reference the \[aq]expenses:food\[aq]
-account, or which reference the \[aq]expenses:drink\[aq] account and
-also have the \[aq]A\[aq] tag:
-.RS 2
-.PP
-\f[CR]expr:\[dq]expenses:food or (expenses:drink and tag:A)\[dq]\f[R]
-.RE
-.PP
-\f[CR]expr:\f[R] has a restriction: \f[CR]date:\f[R] queries may not be
-used inside \f[CR]or\f[R] expressions.
-That would allow disjoint report periods or disjoint result sets, with
-unclear semantics for our reports.
+When using \f[CR]expr:\f[R] with transaction\-oriented commands like
+\f[CR]print\f[R], posting\-oriented query terms like \f[CR]acct:\f[R]
+and \f[CR]amt:\f[R] are considered to match the transaction if they
+match any of its postings.
+.PD 0
+.P
+.PD
+So, \f[CR]hledger print expr:\[aq]cash and amt:>0\[aq]\f[R] means
+\[dq]show transactions with (at least one posting involving a cash
+account) and (at least one posting with a positive amount)\[dq].
+.SS any: query
+\f[B]\f[CB]any:\[aq]QUERYEXPR\[aq]\f[B]\f[R]
+.PD 0
+.P
+.PD
+Like \f[CR]expr:\f[R], but when used with transaction\-oriented commands
+like \f[CR]print\f[R], it matches the transaction only if a posting can
+be matched by all of QUERYEXPR.
+.PD 0
+.P
+.PD
+So, \f[CR]hledger print any:\[aq]cash and amt:>0\[aq]\f[R] means
+\[dq]show transactions where at least one posting posts a positive
+amount to a cash account\[dq].
+.SS all: query
+\f[B]\f[CB]all:\[aq]QUERYEXPR\[aq]\f[B]\f[R]
+.PD 0
+.P
+.PD
+Like \f[CR]expr:\f[R], but when used with transaction\-oriented commands
+like \f[CR]print\f[R], it matches the transaction only if all postings
+are matched by all of QUERYEXPR.
+.PD 0
+.P
+.PD
+So, \f[CR]hledger print all:\[aq]cash and amt:0\[aq]\f[R] means
+\[dq]show transactions where all postings involve a cash account and
+have a zero amount\[dq].
+.PD 0
+.P
+.PD
+Or, \f[CR]hledger print all:\[aq]cash or checking\[aq]\f[R] means
+\[dq]show transactions which touch only cash and/or checking
+accounts\[dq].
 .SS Queries and command options
 Some queries can also be expressed as command\-line options:
 \f[CR]depth:2\f[R] is equivalent to \f[CR]\-\-depth 2\f[R],
@@ -7250,7 +7422,7 @@ This is produced by reports that show full journal entries:
 \f[CR]rewrite\f[R] etc.
 .IP \[bu] 2
 It shows amounts with their original journal precisions, which may not
-be consistent.
+be consistent from one amount to the next.
 .IP \[bu] 2
 It adds a trailing decimal mark when needed to avoid showing ambiguous
 amounts.
@@ -8273,11 +8445,17 @@ If you have installed more add\-on commands, they also will be listed.
 .PP
 \f[B]Help commands\f[R]
 .IP \[bu] 2
-help \- show the hledger manual with info/man/pager
+commands \- show the hledger commands list (default)
 .IP \[bu] 2
 demo \- show small hledger demos in the terminal
+.IP \[bu] 2
+help \- show the hledger manual with info, man, or pager
 .PP
 \f[B]User interface commands\f[R]
+.IP \[bu] 2
+repl \- run commands from an interactive prompt
+.IP \[bu] 2
+run \- run commands from a script
 .IP \[bu] 2
 ui \- (if installed) run hledger\[aq]s terminal UI
 .IP \[bu] 2
@@ -8348,6 +8526,8 @@ rewrite \- generate auto postings, like print \-\-auto
 check \- check for various kinds of error in the data
 .IP \[bu] 2
 diff \- compare account transactions in two journal files
+.IP \[bu] 2
+setup \- check and show the status of the hledger installation
 .IP \[bu] 2
 test \- run self tests
 .PP
@@ -9324,6 +9504,7 @@ Flags:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-location             add file/line number tags to print output.
 .EE
 .PP
 The print command displays full journal entries (transactions) from the
@@ -9442,6 +9623,9 @@ recent transaction whose description is most similar to DESC.
 DESC should contain at least two characters.
 If there is no similar\-enough match, no transaction will be shown and
 the program exit code will be non\-zero.
+.PP
+With \f[CR]\-\-location\f[R], print adds the source file and line number
+to every transaction, as a tag.
 .SS print output format
 This command also supports the output destination and output format
 options The output formats supported are \f[CR]txt\f[R],
@@ -10325,15 +10509,16 @@ changes and more, during one time period or many.
 Generally it shows a table, with rows representing accounts, and columns
 representing periods.
 .PP
-Note there are some higher\-level variants of the \f[CR]balance\f[R]
-command with convenient defaults, which can be simpler to use:
-\f[CR]balancesheet\f[R], \f[CR]balancesheetequity\f[R],
-\f[CR]cashflow\f[R] and \f[CR]incomestatement\f[R].
+Note there are some variants of the \f[CR]balance\f[R] command with
+convenient defaults, which are simpler to use: \f[CR]balancesheet\f[R],
+\f[CR]balancesheetequity\f[R], \f[CR]cashflow\f[R] and
+\f[CR]incomestatement\f[R].
 When you need more control, then use \f[CR]balance\f[R].
 .SS balance features
 Here\[aq]s a quick overview of the \f[CR]balance\f[R] command\[aq]s
 features, followed by more detailed descriptions and examples.
-Many of these work with the higher\-level commands as well.
+Many of these work with the other balance\-like commands as well
+(\f[CR]bs\f[R], \f[CR]cf\f[R], \f[CR]is\f[R]..).
 .PP
 \f[CR]balance\f[R] can show..
 .IP \[bu] 2
@@ -10639,9 +10824,9 @@ Revenues and liability balances are typically negative, however, so
 \f[CR]\-S\f[R] shows these in reverse order.
 To work around this, you can add \f[CR]\-\-invert\f[R] to flip the
 signs.
-(Or, use one of the higher\-level reports, which flip the sign
-automatically.
-Eg: \f[CR]hledger incomestatement \-MAS\f[R]).
+Or you could use one of the higher\-level balance reports
+(\f[CR]bs\f[R], \f[CR]is\f[R]..), which flip the sign automatically (eg:
+\f[CR]hledger is \-MAS\f[R]).
 .PP
 .SS Percentages
 With \f[CR]\-%/\-\-percent\f[R], balance reports show each account\[aq]s
@@ -10778,7 +10963,7 @@ specifying a report start date, or by using the
 \f[CR]\-H/\-\-historical\f[R] flag.
 (\f[CR]\-H\f[R] causes report start date to be ignored when summing
 postings.)
-.SS Balance report types
+.SS Balance report modes
 The balance command is quite flexible; here is the full detail on how to
 control what it reports.
 If the following seems complicated, don\[aq]t worry \- this is for
@@ -10787,8 +10972,8 @@ familiar with all the report modes.
 .PP
 There are three important option groups:
 .PP
-\f[CR]hledger balance [CALCULATIONTYPE] [ACCUMULATIONTYPE] [VALUATIONTYPE] ...\f[R]
-.SS Calculation type
+\f[CR]hledger balance [CALCULATIONMODE] [ACCUMULATIONMODE] [VALUATIONMODE] ...\f[R]
+.SS Calculation mode
 The basic calculation to perform for each table cell.
 It is one of:
 .IP \[bu] 2
@@ -10805,7 +10990,7 @@ fluctuations)
 current valued balance minus each amount\[aq]s original cost)
 .IP \[bu] 2
 \f[CR]\-\-count\f[R] : show the count of postings
-.SS Accumulation type
+.SS Accumulation mode
 How amounts should accumulate across a report\[aq]s subperiods/columns.
 Another way to say it: which time period\[aq]s postings should
 contribute to each cell\[aq]s calculation.
@@ -10828,13 +11013,14 @@ until this column\[aq]s end\[dq].
 Typically used to see historical end balances of
 assets/liabilities/equity.
 (\f[B]default for balancesheet, balancesheetequity\f[R])
-.SS Valuation type
+.SS Valuation mode
 Which kind of value or cost conversion should be applied, if any, before
 displaying the report.
-It is one of:
+See Cost reporting and Value reporting for more about conversions.
+.PP
+A valuation (or cost) mode can be selected with the \-\-value option:
 .IP \[bu] 2
-no valuation type : don\[aq]t convert to cost or value
-(\f[B]default\f[R])
+no conversion : don\[aq]t convert to cost or value (\f[B]default\f[R])
 .IP \[bu] 2
 \f[CR]\-\-value=cost[,COMM]\f[R] : convert amounts to cost (then
 optionally to some other commodity)
@@ -10855,19 +11041,22 @@ today\[aq]s date
 \f[CR]\-\-value=YYYY\-MM\-DD[,COMM]\f[R] : convert amounts to market
 value on another date
 .PP
-or one of the equivalent simpler flags:
+or with the legacy \-B/\-V/\-X options, which are equivalent and easier
+to type:
 .IP \[bu] 2
-\f[CR]\-B/\-\-cost\f[R] : like \-\-value=cost (though, note \-\-cost and
-\-\-value are independent options which can both be used at once)
+\f[CR]\-B\f[R]/\f[CR]\-\-cost\f[R] : like \-\-value=cost
 .IP \[bu] 2
-\f[CR]\-V/\-\-market\f[R] : like \-\-value=end
+\f[CR]\-V\f[R]/\f[CR]\-\-market\f[R] : like \-\-value=end
 .IP \[bu] 2
-\f[CR]\-X COMM/\-\-exchange COMM\f[R] : like \-\-value=end,COMM
+\f[CR]\-X COMM\f[R]/\f[CR]\-\-exchange COMM\f[R] : like
+\-\-value=end,COMM
 .PP
-See Cost reporting and Value reporting for more about these.
-.SS Combining balance report types
-Most combinations of these options should produce reasonable reports,
-but if you find any that seem wrong or misleading, let us know.
+Note that \-\-value can also convert to cost, as a convenience; but
+actually \-\-cost and \-\-value are independent options, and could be
+used together.
+.SS Combining balance report modes
+Most combinations of these modes should produce reasonable reports, but
+if you find any that seem wrong or misleading, let us know.
 The following restrictions are applied:
 .IP \[bu] 2
 \f[CR]\-\-valuechange\f[R] implies \f[CR]\-\-value=end\f[R]
@@ -10932,8 +11121,8 @@ DATE\-value of change from journal start to period end
 T}
 .TE
 .SS Budget report
-The \f[CR]\-\-budget\f[R] report type is like a regular balance report,
-but with two main differences:
+The \f[CR]\-\-budget\f[R] report is like a regular balance report, but
+with two main differences:
 .IP \[bu] 2
 Budget goals and performance percentages are also shown, in brackets
 .IP \[bu] 2
@@ -11356,9 +11545,9 @@ $ hledger \-f examples/bcexample.hledger bal assets:us:etrade \-3 \-Y \-O csv \-
 .EE
 .SS Balance report output
 As noted in Output format, if you choose HTML output (by using
-\f[CR]\-O html\f[R] or \f[CR]\-o somefile.html\f[R]), it will use the
-UTF\-8 text encoding, And you can create a \f[CR]hledger.css\f[R] file
-in the same directory to customise the report\[aq]s appearance.
+\f[CR]\-O html\f[R] or \f[CR]\-o somefile.html\f[R]), you can create a
+\f[CR]hledger.css\f[R] file in the same directory to customise the
+report\[aq]s appearance.
 .PP
 The HTML and FODS output formats can generate hyperlinks to a
 \f[CR]hledger\-web\f[R] register view for each account and period.
@@ -12118,74 +12307,73 @@ commands:
 syntax errors and no invalid include directives.
 This ensures that all files exist and are readable.
 .IP \[bu] 2
-\f[B]autobalanced\f[R] \- all transactions are balanced, after inferring
-missing amounts and conversion costs where possible, and then converting
-to cost.
-This ensures that each individual transaction is well formed.
+\f[B]autobalanced\f[R] \- all transactions are balanced, after
+automatically inferring missing amounts and conversion rates and then
+converting amounts to cost.
+This ensures that each transaction\[aq]s entry is well formed.
 .IP \[bu] 2
 \f[B]assertions\f[R] \- all balance assertions in the journal are
 passing.
-Balance assertions are like canaries in your journal, they catch many
-problems.
-They can get in the way sometimes; you can disable them temporarily with
-\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] (unless overridden with
-\f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
-\f[CR]hledger check assertions\f[R]).
+Balance assertions are a strong defense against errors; they help catch
+many problems.
+If this check gets in your way, you can disable it with
+\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R].
+Or you can add that to your config file to disable it by default (and
+then use \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
+\f[CR]hledger check assertions\f[R] to enable it).
 .SS Strict checks
-These additional checks are performed by any command when the
+These additional checks are performed by all commands when the
 \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] flag is used (strict mode).
-Strict mode always enables the balance assertions check, also.
-These provide extra error\-catching power when you are serious about
-keeping your data clean and free of typos:
+They provide extra error\-catching power to keep your data clean and
+correct.
+Strict mode also always enables the \f[CR]assertions\f[R] check.
 .IP \[bu] 2
-\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but in conversion
-transactions, costs must be written explicitly.
-This ensures some redundancy in the entry, which helps prevent typos.
+\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but all conversions
+between commodities must use explicit cost notation or equity postings.
+This prevents wrong conversions caused by typos.
 .IP \[bu] 2
 \f[B]commodities\f[R] \- all commodity symbols used must be declared.
 This guards against mistyping or omitting commodity symbols.
+Declaring commodities also sets their precision for display and
+transaction balancing.
 .IP \[bu] 2
 \f[B]accounts\f[R] \- all account names used must be declared.
 This prevents the use of mis\-spelled or outdated account names.
 .SS Other checks
-These other checks are not wanted by everyone, but can be run using the
+These are not wanted by everyone, but can be run using the
 \f[CR]check\f[R] command:
 .IP \[bu] 2
-\f[B]ordereddates\f[R] \- within each file, transactions are ordered by
-date.
-This is a simple and effective error catcher, and you should use it.
-Alas!
-not everyone wants it.
-If you do, use \f[CR]hledger check \-s ordereddates\f[R].
-When enabled, this check is performed early, before balance assertions
-(because copy\-pasted dates are often the root cause of balance
-assertion failures).
+\f[B]tags\f[R] \- all tags used must be declared.
+This prevents mis\-spelled tag names.
+Note hledger fairly often finds unintended tags in comments.
 .IP \[bu] 2
-\f[B]payees\f[R] \- all payees used by transactions must be declared.
-This will force you to always use known/declared payee names.
-For most people this is a bit too restrictive.
+\f[B]payees\f[R] \- all payees used in transactions must be declared.
+This will force you to declare any new payee name before using it.
+Most people will probably find this a bit too strict.
 .IP \[bu] 2
-\f[B]tags\f[R] \- all tags used by transactions must be declared.
-This prevents mistyped tag names.
+\f[B]ordereddates\f[R] \- within each file, transactions must be ordered
+by date.
+This is a simple and effective error catcher.
+It\[aq]s not included in strict mode, but you can add it by running
+\f[CR]hledger check \-s ordereddates\f[R].
+If enabled, this check is performed before balance assertions.
 .IP \[bu] 2
 \f[B]recentassertions\f[R] \- all accounts with balance assertions must
-have a balance assertion within the last 7 days before their latest
-posting.
-This encourages you to add balance assertions fairly regularly for your
-active asset/liability accounts, which in turn should encourage you to
-check and reconcile with their real world balances fairly regularly.
-\f[CR]close \-\-assert\f[R] can be helpful.
-(The older balance assertions become redundant; you can remove them
-periodically, or leave them in place, perhaps commented, as
-documentation.)
+have one that\[aq]s within the 7 days before their latest posting.
+This will encourage adding balance assertions for your active
+asset/liability accounts, which in turn should encourage you to
+reconcile regularly with those real world balances \- another strong
+defense against errors.
+\f[CR]hledger close \-\-assert\f[R] can help generate assertion entries.
+Over time the older assertions become somewhat redundant, and you can
+remove them if you like (they don\[aq]t affect performance much, but
+they add some noise to the journal).
 .IP \[bu] 2
-\f[B]uniqueleafnames\f[R] \- no two accounts may have the same leaf
-name.
-The leaf name is the last colon\-separated part of an account name, eg
-\f[CR]checking\f[R] in \f[CR]assets:bank:checking\f[R].
-This encourages you to keep those unique, effectively giving each
-account a short name which is easier to remember and to type in
-reporting commands.
+\f[B]uniqueleafnames\f[R] \- no two accounts may have the same last
+account name part (eg the \f[CR]checking\f[R] in
+\f[CR]assets:bank:checking\f[R]).
+This ensures each account can be matched by a unique short name, easier
+to remember and to type.
 .SS Custom checks
 You can build your own custom checks with add\-on command scripts.
 See also Cookbook > Scripting.
@@ -12233,6 +12421,73 @@ These transactions are in the first file only:
 
 These transactions are in the second file only:
 .EE
+.SS setup
+Check the status of the hledger installation.
+.IP
+.EX
+Flags:
+no command\-specific flags
+.EE
+.PP
+\f[CR]setup\f[R] tests your hledger installation and prints a list of
+results, sometimes with helpful hints.
+This is a good first command to run after installing hledger.
+Also after upgrading, or when something\[aq]s not working, or just when
+you want a reminder of where things are.
+.PP
+It makes one network request to detect the latest hledger release
+version.
+It\[aq]s ok if this fails or times out.
+It will use ANSI color by default, unless disabled by NO_COLOR or
+\-\-color=n.
+It does not use a pager or a config file.
+.PP
+It expects that the hledger version you are running is installed in your
+PATH.
+If not, it will stop until you have done that (to keep things simple).
+.PP
+Example:
+.IP
+.EX
+$ hledger setup
+Checking your hledger setup..
+Legend: good, neutral, unknown, warning
+
+hledger
+* is a released version ?                   no  hledger 1.42.99\-gbca4b39c5\-20250425, mac\-aarch64
+* is up to date ?                          yes  1.42.99 installed, latest is 1.42.1
+* is a native binary for this machine ?    yes  aarch64
+* is installed in PATH ?                   yes  /Users/simon/.local/bin/hledger
+* has a system text encoding configured ?  yes  UTF\-8, data files should use this encoding
+* has a user config file ? (optional)       no  
+* current directory has a local config ?   yes  /Users/simon/src/hledger/hledger.conf
+* the config file is readable ?            yes  /Users/simon/src/hledger/hledger.conf
+
+terminal
+* the NO_COLOR variable is defined ?        no  
+* \-\-color is configured by config file ?    no  
+* hledger will use color by default ?      yes  
+* the PAGER variable is defined ?          yes  less
+* \-\-pager is configured by config file ?    no  
+* hledger will use a pager when needed ?   yes  /opt/homebrew/bin/less
+* the LESS variable is defined ?           yes  
+* the HLEDGER_LESS variable is defined ?    no  
+* adjusting LESS variable for color etc. ? yes  
+* \-\-pretty is enabled by config file ?      no  tables will use ASCII characters
+* bash shell completions are installed ?     ?  
+* zsh shell completions are installed ?      ?  
+
+journal
+* the LEDGER_FILE variable is defined ?    yes  /Users/simon/finance/2025/2025.journal
+* a default journal file is readable ?     yes  /Users/simon/finance/2025/2025.journal
+* it includes additional files ?           yes  15
+* all commodities are declared ?           yes  10
+* all accounts are declared ?              yes  160
+* all accounts have types ?                 no  14 untyped
+* accounts of each type were detected ?    yes  ALERXCV
+* commodities/accounts are checked ?        no  use \-s to check commodities/accounts
+* balance assertions are checked ?         yes  use \-I to ignore assertions
+.EE
 .SS test
 Run built\-in unit tests.
 .IP
@@ -12250,17 +12505,17 @@ sanity\-check the installed hledger executable on your platform.
 All tests are expected to pass \- if you ever see a failure, please
 report as a bug!
 .PP
-This command also accepts tasty test runner options, written after a
-\-\- (double hyphen).
-Eg to run only the tests in Hledger.Data.Amount, with ANSI colour codes
-disabled:
+Any arguments before a \f[CR]\-\-\f[R] argument will be passed to the
+\f[CR]tasty\f[R] test runner as test\-selecting \-p patterns, and any
+arguments after \f[CR]\-\-\f[R] will be passed to tasty unchanged.
+.PP
+Examples:
 .IP
 .EX
-$ hledger test \-\- \-pData.Amount \-\-color=never
+$ hledger test               # run all unit tests
+$ hledger test balance       # run tests with \[dq]balance\[dq] in their name
+$ hledger test \-\- \-h         # show tasty\[aq]s options
 .EE
-.PP
-For help on these, see https://github.com/feuerbach/tasty#options
-(\f[CR]\-\- \-\-help\f[R] currently doesn\[aq]t show them).
 .PP
 .SH PART 5: COMMON TASKS
 Here are some quick examples of how to do some basic tasks with hledger.
@@ -12724,8 +12979,8 @@ See the close command.
 If using version control, don\[aq]t forget to \f[CR]git add\f[R] the new
 file.
 .SH BUGS
-We welcome bug reports in the hledger issue tracker (shortcut:
-https://bugs.hledger.org), or on the hledger chat or mail list
+We welcome bug reports in the hledger issue tracker
+(https://bugs.hledger.org), or on the hledger chat or mail list
 (https://hledger.org/support).
 .PP
 Some known issues and limitations:
@@ -12734,9 +12989,9 @@ The need to precede add\-on command options with \f[CR]\-\-\f[R] when
 invoked from hledger is awkward.
 (See Command options, Constructing command lines.)
 .PP
-A UTF\-8\-aware system locale must be configured to work with non\-ascii
-data.
-(See Unicode characters, Troubleshooting.)
+A system locale with a suitable text encoding must be configured to work
+with non\-ascii data.
+(See Text encoding, Troubleshooting.)
 .PP
 On Microsoft Windows, depending whether you are running in a CMD window
 or a Cygwin/MSYS/Mintty window and how you installed hledger, non\-ascii
@@ -12780,42 +13035,16 @@ On Windows, \f[CR]$env:LEDGER_FILE\f[R] should show it.
 You may need to force your shell to see the new configuration.
 A simple way is to close your terminal window and open a new one.
 .PP
-\f[B]LANG issues: I get errors like \[dq]Illegal byte sequence\[dq] or
-\[dq]Invalid or incomplete multibyte or wide character\[dq] or
-\[dq]commitAndReleaseBuffer: invalid argument (invalid
+\f[B]Text decoding issues: I get errors like \[dq]Illegal byte
+sequence\[dq] or \[dq]Invalid or incomplete multibyte or wide
+character\[dq] or \[dq]commitAndReleaseBuffer: invalid argument (invalid
 character)\[dq]\f[R]
 .PD 0
 .P
 .PD
-Programs compiled with GHC (hledger, haskell build tools, etc.)
-need the system locale to be UTF\-8\-aware, or they will fail when they
-encounter non\-ascii characters.
-To fix it, set the LANG environment variable to a locale which supports
-UTF\-8 and which is installed on your system.
-.PP
-On unix, \f[CR]locale \-a\f[R] lists the installed locales.
-Look for one which mentions \f[CR]utf8\f[R], \f[CR]UTF\-8\f[R] or
-similar.
-Some examples: \f[CR]C.UTF\-8\f[R], \f[CR]en_US.utf\-8\f[R],
-\f[CR]fr_FR.utf8\f[R].
-If necessary, use your system package manager to install one.
-Then select it by setting the \f[CR]LANG\f[R] environment variable.
-Note, exact spelling and capitalisation of the locale name may be
-important: Here\[aq]s one common way to configure this permanently for
-your shell:
-.IP
-.EX
-$ echo \[dq]export LANG=en_US.utf8\[dq] >>\[ti]/.profile
-# close and re\-open terminal window
-.EE
-.PP
-If you are using Nix (not NixOS) for GHC and Hledger, you might need to
-set the \f[CR]LOCALE_ARCHIVE\f[R] variable:
-.IP
-.EX
-$ echo \[dq]export LOCALE_ARCHIVE=${glibcLocales}/lib/locale/locale\-archive\[dq] >>\[ti]/.profile
-# close and re\-open terminal window
-.EE
+hledger usually needs its input to be decodable with the system
+locale\[aq]s text encoding.
+See Text encoding and Install: Text encoding.
 .PP
 \f[B]COMPATIBILITY ISSUES: hledger gives an error with my Ledger
 file\f[R]

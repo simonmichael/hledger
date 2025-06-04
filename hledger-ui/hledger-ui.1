@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "March 2025" "hledger-ui-1.42.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "June 2025" "hledger-ui-1.43.99 " "hledger User Manuals"
 
 
 
@@ -17,7 +17,7 @@ or
 .PD
 \f[CR]hledger ui \-\- [OPTS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
-This manual is for hledger\[aq]s terminal interface, version 1.42.99.
+This manual is for hledger\[aq]s terminal interface, version 1.43.99.
 See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a robust, user\-friendly, cross\-platform set of programs for
@@ -437,33 +437,51 @@ immediately without having to context switch.
 This leaves more mental bandwidth for your accounting.
 Of course you can still interact with hledger\-ui when needed, eg to
 toggle cleared mode, or to explore the history.
-.PP
-There are currently some limitations with \f[CR]\-\-watch\f[R]:
-.PP
-It may not work correctly for you, depending on platform or system
+.SS \-\-watch problems
+\f[I]However.\f[R] There are limitations/unresolved bugs with
+\f[CR]\-\-watch\f[R]:
+.IP \[bu] 2
+It may not work at all for you, depending on platform or system
 configuration.
-(Eg #836.)
+On some unix systems, increasing fs.inotify.max_user_watches or
+fs.file\-max parameters in /etc/sysctl.conf might help.
+(#836)
+.IP \[bu] 2
+It may not detect file changes made by certain tools, such as Jetbrains
+IDEs or gedit.
+(#1617)
+.IP \[bu] 2
+It may not detect changes made from outside a virtual machine, ie by an
+editor running on the host system.
+.IP \[bu] 2
+It may not detect file changes on certain less common filesystems.
+.IP \[bu] 2
+It may use increasing CPU and RAM over time, especially with large
+files.
+(This is probably not \-\-watch specific, you may be able to reproduce
+it by pressing \f[CR]g\f[R] repeatedly.)
+(#1825)
 .PP
-At least on mac, there can be a slow build\-up of CPU usage over time,
-until the program is restarted (or, suspending and restarting with
-\f[CR]CTRL\-z\f[R] \f[CR]fg\f[R] may be enough).
-.PP
-It will not detect file changes made by certain editors, such as
-Jetbrains IDEs or \f[CR]gedit\f[R], or on certain less common
-filesystems.
-(To work around, press \f[CR]g\f[R] to reload manually, or try
-#1617\[aq]s \f[CR]fs.inotify.max_user_watches\f[R] workaround and let us
-know.)
-.PP
-If you are viewing files mounted from another machine, the system clocks
-on both machines should be roughly in agreement.
+Tips/workarounds:
+.IP \[bu] 2
+If \-\-watch won\[aq]t work for you, press \f[CR]g\f[R] to reload data
+manually instead.
+.IP \[bu] 2
+If \-\-watch is leaking resources over time, quit and restart (or
+suspend and resume) hledger\-ui when you\[aq]re not using it.
+.IP \[bu] 2
+When running hledger\-ui inside a VM, also make file changes inside the
+VM.
+.IP \[bu] 2
+When working with files mounted from another machine, make sure the
+system clocks on both machines are roughly in agreement.
 .SH ENVIRONMENT
 \f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
 with \f[CR]\-f/\-\-file\f[R].
 Default: \f[CR]$HOME/.hledger.journal\f[R].
 .SH BUGS
-We welcome bug reports in the hledger issue tracker (shortcut:
-https://bugs.hledger.org), or on the hledger chat or mail list
+We welcome bug reports in the hledger issue tracker
+(https://bugs.hledger.org), or on the hledger chat or mail list
 (https://hledger.org/support).
 .PP
 Some known issues:
@@ -471,14 +489,15 @@ Some known issues:
 \f[CR]\-f\-\f[R] doesn\[aq]t work (hledger\-ui can\[aq]t read from
 stdin).
 .PP
+\f[CR]\-\-watch\f[R] is not robust, especially with large files (see
+WATCH MODE above).
+.PP
+The Transaction screen does not update after file changes, even if you
+press \f[CR]g\f[R], until you exit and re\-enter it.
+(#2288)
+.PP
 If you press \f[CR]g\f[R] with large files, there could be a noticeable
-pause.
-.PP
-The Transaction screen does not update from file changes until you exit
-and re\-endter it (see SCREENS > Transaction above).
-.PP
-\f[CR]\-\-watch\f[R] is not yet fully robust on all platforms (see Watch
-mode above).
+pause with the UI unresponsive.
 
 
 .SH AUTHORS
