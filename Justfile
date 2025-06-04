@@ -1215,20 +1215,24 @@ nightlybin:
 @ghnightly-bin:
     gh workflow run nightly
 
-# Show last release date (of hledger package).
+# Show the last release date and version (of the hledger package).
+@rel:
+    just rels | head -1
+
+# Show last release date (of the hledger package).
 @reldate:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{print $3;exit}' hledger/CHANGES.md
+
+# Show the last release version (of the hledger package).
+@relver:
+    just rel | awk '{print $2}'
 
 # show commit author names since last release
 @relauthors:
     echo "Commit authors since last release:"
     git shortlog -sn `git tag --sort=-creatordate -l '[0-9]*' | head -1`..
 
-# Show last release date and version (of hledger package).
-@rel:
-    just rels | head -1
-
-# Show all release dates and versions (of hledger package).
+# Show all release dates and versions (of the hledger package).
 @rels:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
 
@@ -1552,7 +1556,7 @@ ghrel-upload VER:
     # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
 
-# Make git tags for a full release today. Run on release branch.
+# Make git tags for a full release today, but don't push them. Run on release branch.
 reltags:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -1567,22 +1571,29 @@ reltags:
 reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
-# Tag the start of the new dev cycle, and update version strings/manuals. Run on master. VER should be a dev version like A.B.99.
-@devtag VER:
-    set -euo pipefail
-    just _on-master-branch
-    git tag --force --sign {{ VER }} -m 'start of {{ VER }} dev cycle'
-    ./Shake setversion {{ VER }} -c
-    ./Shake mandates
-    ./Shake manuals -c
-    echo "master's tag, version strings and manuals have been updated to {{ VER }}."
+# Point the nightly tag at the latest release, locally and on github. Run after a release.
+@nightlytag:
+    git tag -f nightly $(just relver)
+    git push -f origin nightly
 
-# Push the dev tag configured in .version. Run on master after devtag.
-devtag-push:
+# Tag the start of a new dev cycle ("OLDVER.99"), locally and on github. Also update the dev versions/help/manuals. Run on master after a major release.
+devtag:
     #!/usr/bin/env bash
     set -euo pipefail
+    RELVER=$(just relver)
+    DEVVER=$RELVER.99
     just _on-master-branch
-    git push origin $(cat .version)
+    echo "Creating tag $DEVVER.."
+    git tag --force --sign "$DEVVER" -m "start of post-$RELVER dev cycle"
+    echo "Pushing tag $DEVVER.."
+    git push origin "$DEVVER"
+    echo "Setting versions to $DEVVER.."
+    ./Shake setversion "$DEVVER" -c
+    echo "Setting man page dates to $(date +'%B %Y').."
+    ./Shake mandates
+    echo "Regenerating manuals.."
+    ./Shake manuals -c
+    echo "Consider also: with $RELVER installed, ./Shake cmddocs -c"
 
 # List git tags approximately most recent first (grouped by package). The available fields vary over time.
 tags:
