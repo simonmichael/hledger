@@ -25,6 +25,20 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.43.1 2025-06-04
+
+Fixes
+
+- `cur:` in posting-based reports like `balance` and `register` once again
+  filters multicommodity amounts as it should. [#2396]
+- More error messages were made consistent, hiding call stack etc. [#2367]
+
+Docs
+
+- Query types: clarify that amt: filters postings [#2396]
+- More text encoding corrections/cleanups [#2394]
+
+
 # 1.43 2025-06-01
 
 ## Breaking changes

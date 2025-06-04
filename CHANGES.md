@@ -16,6 +16,15 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 1.43.1 2025-06-04
+
+- tools:
+  - Shake changelogs: fix missing blank lines around old heading
+  - ghcruns-download: make tmp dir
+- docs:
+  RELEASING
+
+
 # 1.43 2025-06-01
 
 Docs

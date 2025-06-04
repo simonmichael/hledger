@@ -22,6 +22,13 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1.43.1 2025-06-04
+
+- More error messages were made consistent, hiding call stack etc. [#2367]
+
+- Allow brick 2.9
+
+
 # 1.43 2025-06-01
 
 Fixes
