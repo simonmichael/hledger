@@ -600,7 +600,7 @@ is simpler, and we think it's otherwise equivalent.
 -}
 -- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
 journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
-journalValueAndFilterPostingsWith = _journalValueAndFilterPostingsWith143
+journalValueAndFilterPostingsWith = _journalValueAndFilterPostingsWith1431
 
 -- 1.42
 -- #2371 This goes wrong with complex boolean queries, splitting them apart in a lossy way.
@@ -620,11 +620,20 @@ journalValueAndFilterPostingsWith = _journalValueAndFilterPostingsWith143
 -- 1.43
 -- XXX #2396 This goes wrong with cur:. filterJournal*Postings keep all postings containing the matched commodity,
 -- but do not remove the unmatched commodities from multicommodity postings, as filterJournalAmounts would.
-_journalValueAndFilterPostingsWith143 rspec@ReportSpec{_rsQuery = q, _rsReportOpts = ropts} =
-  journalApplyValuationFromOptsWith rspec .
-  dbg1With (\j1 -> "j1" <> pshow (jtxns j1)) .
-  (if related_ ropts then filterJournalRelatedPostings else filterJournalPostings) q
+-- _journalValueAndFilterPostingsWith143 rspec@ReportSpec{_rsQuery = q, _rsReportOpts = ropts} =
+--   journalApplyValuationFromOptsWith rspec .
+--   dbg1With (\j1 -> "j1" <> pshow (jtxns j1)) .
+--   (if related_ ropts then filterJournalRelatedPostings else filterJournalPostings) q
 
+-- 1.43.1
+_journalValueAndFilterPostingsWith1431 rspec@ReportSpec{_rsQuery = q, _rsReportOpts = ropts} =
+  journalApplyValuationFromOptsWith rspec . filterjournal q
+  where
+    filterjournal q2 =
+      filterJournalAmounts (filterQuery queryIsAmtOrSym q2) .  -- an extra amount filtering pass for #2396
+      (if related_ ropts then filterJournalRelatedPostings q2 else filterJournalPostings q2)
+
+-- | Convert this journal's postings' amounts to cost and/or to value, if specified
 -- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
 -- should be the main stop for performing costing and valuation. The exception is
 -- whenever you need to perform valuation _after_ summing up amounts, as in a
