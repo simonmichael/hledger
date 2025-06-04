@@ -188,5 +188,5 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2386]                  | Simon Michael  N/A                                                               | N/A
 | [#2389]                  | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
 | **1.43** 2025-06-01      | ---                                                                              | ---
-| [#2396]                  | **Simaex** | **Simon Michael**
-| [#2397]                  | **Dmitry Astapov** | **Simon Michael**
+| [#2396]                  | **Simaex**         | **[Simon Michael](https://opencollective.com/hledger/expenses/252666)**
+| [#2397]                  | **Dmitry Astapov** | **[Simon Michael](https://opencollective.com/hledger/expenses/252666)**
