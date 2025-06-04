@@ -87,6 +87,9 @@ Breaking changes
 
 Fixes
 
+- hledger-web register no longer shows blank From/To accounts (broken since 1.33).
+  (Henning Thielemann, [#2227]
+
 - Autocompletions now work in newly created account fields. [#2215]
 
 - Bash shell completions are now up to date. [#986]

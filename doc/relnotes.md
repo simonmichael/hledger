@@ -975,6 +975,9 @@ Breaking changes
 
 Fixes
 
+- hledger-web register no longer shows blank From/To accounts (broken since 1.33).
+  (Henning Thielemann, [#2227]
+
 - Autocompletions now work in newly created account fields. [#2215]
 
 - Bash shell completions are now up to date. [#986]
@@ -1040,6 +1043,7 @@ gesh (@hseg).
 [#2222]: https://github.com/simonmichael/hledger/issues/2222
 [#2223]: https://github.com/simonmichael/hledger/issues/2223
 [#2225]: https://github.com/simonmichael/hledger/issues/2225
+[#2227]: https://github.com/simonmichael/hledger/issues/2227
 [#2231]: https://github.com/simonmichael/hledger/issues/2231
 [#2238]: https://github.com/simonmichael/hledger/issues/2238
 [#2241]: https://github.com/simonmichael/hledger/issues/2241
@@ -1704,7 +1708,7 @@ Fixes
   accounts and transactions, has been fixed. [#2153]
 
 - Balance assertions involving mixed-cost balances are checked correctly again
-  (a regression in 1.30). [#2150]
+  (a regression in 1.30). [#2072], [#2137], [#2150]
 
 - import --catchup works again (a regression in 1.32). [#2156]
 
@@ -4428,7 +4432,7 @@ Fixes
   (broken since 1.20) ([#1526](https://github.com/simonmichael/hledger/issues/1526)). (Stephen Morgan)
 
 - csv: Fix the escaping of double quotes in CSV output (broken in
-  1.21). (Stephen Morgan)
+  1.21). (Stephen Morgan, [#1508])
 
 - register: Fix the running total when there is a report interval
   (broken since 1.19) ([#1568](https://github.com/simonmichael/hledger/issues/1568)). (Stephen Morgan)
