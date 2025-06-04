@@ -585,7 +585,9 @@ flat_ = not . tree_
 -- We make sure to first filter by amt: and cur: terms, then value the
 -- 'Journal', then filter by the remaining terms.
 journalValueAndFilterPostings :: ReportSpec -> Journal -> Journal
-journalValueAndFilterPostings rspec j = journalValueAndFilterPostingsWith rspec j priceoracle
+journalValueAndFilterPostings rspec j =
+  -- dbg4With (\j2 -> "valuedfilteredj" <> pshow (jtxns j2)) $
+  journalValueAndFilterPostingsWith rspec j priceoracle
   where priceoracle = journalPriceOracle (infer_prices_ $ _rsReportOpts rspec) j
 
 {- [Querying before valuation]
@@ -598,13 +600,31 @@ is simpler, and we think it's otherwise equivalent.
 -}
 -- | Like 'journalValueAndFilterPostings', but takes a 'PriceOracle' as an argument.
 journalValueAndFilterPostingsWith :: ReportSpec -> Journal -> PriceOracle -> Journal
-journalValueAndFilterPostingsWith rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} =
-    journalApplyValuationFromOptsWith rspec . filterJournal q
-  where
-    -- with -r, replace each posting with its sibling postings
-    filterJournal = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
+journalValueAndFilterPostingsWith = _journalValueAndFilterPostingsWith143
 
--- | Convert this journal's postings' amounts to cost and/or to value, if specified
+-- 1.42
+-- #2371 This goes wrong with complex boolean queries, splitting them apart in a lossy way.
+-- _journalValueAndFilterPostingsWith142 rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
+--     -- Third, filter by the non amt:/cur: parts of the query
+--       filterJournalPostings' reportq
+--     -- Second, apply valuation and costing
+--     . journalApplyValuationFromOptsWith rspec
+--     -- First, filter by the amt:/cur: parts of the query, so they match pre-valuation amounts
+--       (if queryIsNull amtsymq then j else filterJournalAmounts amtsymq j)
+--   where
+--     -- with -r, replace each posting with its sibling postings
+--     filterJournalPostings' = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
+--     amtsymq = dbg1 "amtsymq" $ filterQuery queryIsAmtOrSym q
+--     reportq = dbg1 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
+
+-- 1.43
+-- XXX #2396 This goes wrong with cur:. filterJournal*Postings keep all postings containing the matched commodity,
+-- but do not remove the unmatched commodities from multicommodity postings, as filterJournalAmounts would.
+_journalValueAndFilterPostingsWith143 rspec@ReportSpec{_rsQuery = q, _rsReportOpts = ropts} =
+  journalApplyValuationFromOptsWith rspec .
+  dbg1With (\j1 -> "j1" <> pshow (jtxns j1)) .
+  (if related_ ropts then filterJournalRelatedPostings else filterJournalPostings) q
+
 -- by options (-B/--cost/-V/-X/--value etc.). Strip prices if not needed. This
 -- should be the main stop for performing costing and valuation. The exception is
 -- whenever you need to perform valuation _after_ summing up amounts, as in a
