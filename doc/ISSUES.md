@@ -20,10 +20,9 @@ Misc. issue queries:
 - [critical bugs, and major bugs affecting many users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20)
   ([open](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20is:open%20AND%20(label%3Aannoyance5-critical%20OR%20(label%3Aannoyance4-major%20label%3Aaffects4-many%2Caffects5-most))%20))
 - [major bugs affecting fewer users](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20label%3Aannoyance4-major%20label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%20)
-- [bugs without an impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
-- [bugs without a severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
-- [issues needing old bountysource boilerplate removed](https://github.com/simonmichael/hledger/issues?q=%22bountysource-plugin%22%20)
-- [issues of unknown type](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A%20BUG%22%20-label%3A%22A%20WISH%22%20)
+- [bugs without an "affects" impact label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aaffects1-noone%2Caffects2-devs%2Caffects3-few%2Caffects4-many%2Caffects5-most)
+- [bugs without an "annoyance" severity label](https://github.com/simonmichael/hledger/issues?q=label%3AA-BUG%20-label%3Aannoyance1-trivial%2Cannoyance2-minor%2Cannoyance3-blocker%2Cannoyance4-major%2Cannoyance5-critical)
+- [issues of unknown type](https://github.com/simonmichael/hledger/issues?utf8=✓&q=is%3Aissue%20is%3Aopen%20-label%3A%22A-BUG%22%20-label%3A%22A-WISH%22%20)
 - [assigned open issues](https://github.com/simonmichael/hledger/issues?q=is%3Aopen%20assignee%3A*%20%20is%3Aissue)
 - [closed issues with needs-* labels](https://github.com/simonmichael/hledger/issues?q=state%3Aclosed%20(%20label%3Aneeds-changes%20OR%20label%3Aneeds-clarification%20OR%20label%3Aneeds-code%20OR%20label%3Aneeds-debugging%20OR%20label%3Aneeds-design%20OR%20label%3Aneeds-discussion%20OR%20label%3Aneeds-docs%20OR%20label%3Aneeds-history-cleanup%20OR%20label%3Aneeds-impact-analysis%20OR%20label%3Aneeds-mockup%2Fscreenshot%20OR%20label%3Aneeds-other-task%20OR%20label%3Aneeds-rebase%20OR%20label%3Aneeds-release%20OR%20label%3Aneeds-repro%20OR%20label%3Aneeds-research%20OR%20label%3Aneeds-review%20OR%20label%3Aneeds-testing%20OR%20label%3Aneeds-tests%20OR%20label%3Aneeds-value-proposition%20))
 
