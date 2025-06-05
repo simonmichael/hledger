@@ -342,8 +342,8 @@ mkgeneralflagsgroups3 helpflags' = [
    (helpflagstitle, helpflags')
   ]
 
-inputflagstitle  = "\nGeneral input/data transformation flags"
-outputflagstitle = "\nGeneral output/reporting flags (supported by some commands)"
+inputflagstitle  = "\nGeneral input flags"
+outputflagstitle = "\nGeneral output flags (affecting some commands)"
 helpflagstitle   = "\nGeneral help flags"
 
 -- Several subsets of the standard general flags plus CLI help flags, as separate groups.
