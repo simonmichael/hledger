@@ -6501,8 +6501,14 @@ First, a quick glossary:
 
 <a name="commands-overview"></a>
 
-Here are the standard [commands](#commands), which you can list by running `hledger`.
+Here are hledger's standard [subcommands](#commands).
+You can list these by running `hledger`.
 If you have installed more [add-on commands](../scripts.md), they also will be listed.
+
+In the following command docs, each command's specific options are shown.
+Most commands also support the [general options](#options) described above, though some of them might have no effect.
+(Usually if there's a sensible way for a general option to affect a command, it will.)
+You can list all of a command's options by running `hledger CMD -h`.
 
 <!-- keep commands & descriptions synced with Hledger.Cli.Commands.commandsList, commands.m4 -->
 
