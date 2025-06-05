@@ -6499,7 +6499,7 @@ First, a quick glossary:
 # PART 4: COMMANDS
 
 
-<a name="commands-overview">
+<a name="commands-overview"></a>
 
 Here are the standard [commands](#commands), which you can list by running `hledger`.
 If you have installed more [add-on commands](../scripts.md), they also will be listed.
