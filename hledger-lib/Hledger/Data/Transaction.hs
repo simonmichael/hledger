@@ -264,7 +264,7 @@ transactionAddTags t@Transaction{ttags} tags = t{ttags=ttags `union` tags}
 -- If the transaction already has these tags (with any value), do nothing.
 transactionAddHiddenAndMaybeVisibleTag :: Bool -> HiddenTag -> Transaction -> Transaction
 transactionAddHiddenAndMaybeVisibleTag verbosetags ht t@Transaction{tcomment=c, ttags} =
-  (t `transactionAddTags` ([ht] <> [vt|verbosetags]))
+  (t `transactionAddTags` ([ht] <> [ vt|verbosetags]))
   {tcomment=if verbosetags && not hadtag then c `commentAddTagNextLine` vt else c}
   where
     vt@(vname,_) = toVisibleTag ht
