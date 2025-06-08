@@ -201,3 +201,30 @@ P 2025-01-01 USD  7.147224669603524229074889868 CNY
   a    811.21 CNY
 
 $ hledger -f - check
+
+# ** 14. Note that although cost amounts don't influence display precision, P amounts do, currently.
+$ hledger -f - bal -N
+811.210000000000000000000000000 CNY
+                        -113.50 USD  a
+
+# ** 15. Without the P directive, the posting amount's precision is used (2 digits).
+<
+2025-01-01
+  a            -113.50 USD @ 7.147224669603524229074889868 CNY
+  a             811.21 CNY
+
+$ hledger -f - bal -N
+          811.21 CNY
+         -113.50 USD  a
+
+# ** 16. Inferred posting amounts can also influence display precision.
+<
+2025-01-01
+  a            -113.50 USD @ 7.147224669603524229074889868 CNY
+  a             811.21 CNY
+  z
+
+$ hledger -f - bal -N
+811.210000000000000000000000000 CNY
+                        -113.50 USD  a
+0.000000000000000000000000018 CNY  z
