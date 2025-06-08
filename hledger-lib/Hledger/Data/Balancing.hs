@@ -34,6 +34,7 @@ import Control.Monad.Reader as R (ReaderT, reader, runReaderT, ask, asks)
 import Control.Monad.ST (ST, runST)
 import Control.Monad.Trans.Class (lift)
 import Data.Array.ST (STArray, getElems, newListArray, writeArray)
+import Data.Bifunctor (second)
 import Data.Foldable (asum)
 import Data.Function ((&))
 import Data.Functor ((<&>), void)
@@ -49,7 +50,6 @@ import qualified Data.Map as M
 import Safe (headErr)
 import Text.Printf (printf)
 
-import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName (isAccountNamePrefixOf)
 import Hledger.Data.Amount
@@ -57,7 +57,7 @@ import Hledger.Data.Journal
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.Errors
-import Data.Bifunctor (second)
+import Hledger.Utils
 
 
 data BalancingOpts = BalancingOpts
@@ -92,7 +92,8 @@ defbalancingopts = BalancingOpts
 --    (using the given display styles if provided)
 --
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
-transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
+-- transactionCheckBalanced BalancingOpts{commodity_styles_=_mstyles} t = errs
+transactionCheckBalanced _ t = errs
   where
     -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
@@ -109,10 +110,9 @@ transactionCheckBalanced BalancingOpts{commodity_styles_} t = errs
       | costPostingTagName `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
       | otherwise                                   = mixedAmountCost $ pamount p
 
-    -- transaction balancedness is checked at each commodity's display precision
-    lookszero = mixedAmountLooksZero . atdisplayprecision
-      where
-        atdisplayprecision = maybe id styleAmounts $ commodity_styles_
+    lookszero = mixedAmountLooksZero .
+      -- maybe id styleAmounts _mstyles                                -- when rounded with global/journal precisions
+      styleAmounts (transactionCommodityStylesWith HardRounding t)  -- when rounded with transaction's precisions
 
     -- when there's multiple non-zeros, check they do not all have the same sign
     (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
