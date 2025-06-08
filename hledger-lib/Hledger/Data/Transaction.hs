@@ -33,6 +33,8 @@ module Hledger.Data.Transaction
 , transactionMapPostings
 , transactionMapPostingAmounts
 , transactionAmounts
+, transactionCommodityStyles
+, transactionCommodityStylesWith
 , transactionNegate
 , partitionAndCheckConversionPostings
 , transactionAddTags
@@ -482,6 +484,17 @@ transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount
 -- | All posting amounts from this transaction, in order.
 transactionAmounts :: Transaction -> [MixedAmount]
 transactionAmounts = map pamount . tpostings
+
+-- | Get the canonical amount styles inferred from this transaction's amounts.
+transactionCommodityStyles :: Transaction -> M.Map CommoditySymbol AmountStyle
+transactionCommodityStyles =
+  either (const mempty) id .  -- ignore style problems, commodityStylesFromAmounts doesn't report them currently
+  commodityStylesFromAmounts . concatMap (amountsRaw . pamount) . tpostings
+
+-- | Like transactionCommodityStyles, but attach a particular rounding strategy to the styles,
+-- affecting how they will affect display precisions when applied.
+transactionCommodityStylesWith :: Rounding -> Transaction -> M.Map CommoditySymbol AmountStyle
+transactionCommodityStylesWith r = amountStylesSetRounding r . transactionCommodityStyles
 
 -- | Flip the sign of this transaction's posting amounts (and balance assertion amounts).
 transactionNegate :: Transaction -> Transaction
