@@ -113,6 +113,7 @@ This reduces wasteful admin work.
 [#2389]: https://github.com/simonmichael/hledger/issues/2389
 [#2396]: https://github.com/simonmichael/hledger/issues/2396
 [#2397]: https://github.com/simonmichael/hledger/issues/2397
+[#2405]: https://github.com/simonmichael/hledger/issues/2405
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -193,5 +194,6 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2386]                  | 1.42.2    | Simon Michael  (N/A)                                                             | N/A
 | [#2389]                  | 1.42.2    | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
 | **1.43** 2025-06-01      |           | ---                                                                              | ---
-| [#2396]                  | 1.43.1    | **Simaex**         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
-| [#2397]                  | 1.43.1    | **Dmitry Astapov** | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2396]                  | 1.43.1    | Simaex (donated)         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2397]                  | 1.43.1    | Dmitry Astapov (donated) | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2405]                  |           | Simon Michael (N/A)      | 
