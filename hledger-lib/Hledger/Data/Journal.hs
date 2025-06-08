@@ -26,7 +26,6 @@ module Hledger.Data.Journal (
   journalInferMarketPricesFromTransactions,
   journalInferCommodityStyles,
   journalStyleAmounts,
-  commodityStylesFromAmounts,
   journalCommodityStyles,
   journalCommodityStylesWith,
   journalToCost,
@@ -100,8 +99,6 @@ module Hledger.Data.Journal (
   journalBaseConversionAccount,
   journalConversionAccounts,
   -- * Misc
-  canonicalStyleFrom,
-
   nulljournal,
   journalConcat,
   journalNumberTransactions,
@@ -911,51 +908,6 @@ journalInferCommodityStyles j =
   case commodityStylesFromAmounts $ journalStyleInfluencingAmounts j of
     Left e   -> Left e
     Right cs -> Right j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
-
--- | Given a list of amounts, in parse order (roughly speaking; see journalStyleInfluencingAmounts),
--- build a map from their commodity names to standard commodity
--- display formats. Can return an error message eg if inconsistent
--- number formats are found.
---
--- Though, these amounts may have come from multiple files, so we
--- shouldn't assume they use consistent number formats.
--- Currently we don't enforce that even within a single file,
--- and this function never reports an error.
---
-commodityStylesFromAmounts :: [Amount] -> Either String (M.Map CommoditySymbol AmountStyle)
-commodityStylesFromAmounts =
-    Right . foldr (\a -> M.insertWith canonicalStyle (acommodity a) (astyle a)) mempty
-
--- | Given a list of amount styles (assumed to be from parsed amounts
--- in a single commodity), in parse order, choose a canonical style.
-canonicalStyleFrom :: [AmountStyle] -> AmountStyle
-canonicalStyleFrom = foldl' canonicalStyle amountstyle
-
--- TODO: should probably detect and report inconsistencies here.
--- Though, we don't have the info for a good error message, so maybe elsewhere.
--- | Given a pair of AmountStyles, choose a canonical style.
--- This is:
--- the general style of the first amount,
--- with the first digit group style seen,
--- with the maximum precision of all.
-canonicalStyle :: AmountStyle -> AmountStyle -> AmountStyle
-canonicalStyle a b = a{asprecision=prec, asdecimalmark=decmark, asdigitgroups=mgrps}
-  where
-    -- precision is maximum of all precisions
-    prec = max (asprecision a) (asprecision b)
-    -- identify the digit group mark (& group sizes)
-    mgrps = asdigitgroups a <|> asdigitgroups b
-    -- if a digit group mark was identified above, we can rely on that;
-    -- make sure the decimal mark is different. If not, default to period.
-    defdecmark = case mgrps of
-        Just (DigitGroups '.' _) -> ','
-        _                        -> '.'
-    -- identify the decimal mark: the first one used, or the above default,
-    -- but never the same character as the digit group mark.
-    -- urgh.. refactor..
-    decmark = case mgrps of
-        Just _  -> Just defdecmark
-        Nothing -> asdecimalmark a <|> asdecimalmark b <|> Just defdecmark
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal
