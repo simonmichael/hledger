@@ -65,6 +65,7 @@ data BalancingOpts = BalancingOpts
   , infer_balancing_costs_ :: Bool  -- ^ Are we permitted to infer missing costs to balance transactions ?
                                     --   Distinct from InputOpts{infer_costs_}.
   , commodity_styles_      :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
+  , txn_balancing_         :: TransactionBalancingPrecision
   } deriving (Eq, Ord, Show)
 
 defbalancingopts :: BalancingOpts
@@ -72,6 +73,7 @@ defbalancingopts = BalancingOpts
   { ignore_assertions_     = False
   , infer_balancing_costs_ = True
   , commodity_styles_      = Nothing
+  , txn_balancing_         = TBPExact
   }
 
 -- | Check that this transaction would appear balanced to a human when displayed.
@@ -92,8 +94,7 @@ defbalancingopts = BalancingOpts
 --    (using the given display styles if provided)
 --
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
--- transactionCheckBalanced BalancingOpts{commodity_styles_=_mstyles} t = errs
-transactionCheckBalanced _ t = errs
+transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_balancing_} t = errs
   where
     -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
@@ -110,9 +111,16 @@ transactionCheckBalanced _ t = errs
       | costPostingTagName `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
       | otherwise                                   = mixedAmountCost $ pamount p
 
-    lookszero = mixedAmountLooksZero .
-      -- maybe id styleAmounts _mstyles                                -- when rounded with global/journal precisions
-      styleAmounts (transactionCommodityStylesWith HardRounding t)  -- when rounded with transaction's precisions
+    lookszero = mixedAmountLooksZero . roundforbalancecheck
+      where
+        roundforbalancecheck = case txn_balancing_ of
+          TBPOld    -> maybe id styleAmounts _mglobalstyles
+          -- TBPCompat -> styleAmounts (transactionstyles `limitprecisionsto` commoditydirectivestyles)
+          TBPExact  -> styleAmounts transactionstyles
+          where
+            transactionstyles = transactionCommodityStylesWith HardRounding t
+            -- limitprecisionsto = undefined
+            -- commoditydirectivestyles = undefined
 
     -- when there's multiple non-zeros, check they do not all have the same sign
     (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
@@ -289,7 +297,7 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
                 & mixedAmountCost
                 -- & dbg9With (lbl "balancing amount converted to cost".showMixedAmountOneLine)
                 & styleAmounts (styles
-                                -- Needed until we switch to locally-inferred balancing precisions:
+                                -- Needed until we switch to locally-inferred balancing precisions: XXX #2402
                                 -- these had hard rounding set to help with balanced-checking;
                                 -- set no rounding now to avoid excessive display precision in output
                                 & amountStylesSetRounding NoRounding
