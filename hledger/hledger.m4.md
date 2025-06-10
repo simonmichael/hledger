@@ -1832,33 +1832,31 @@ except they may contain [tags](#tags), which are not ignored.
 ## Transaction balancing
 
 How exactly does hledger decide when a transaction is balanced ?
-The general goal is that if you look at the journal entry and calculate the amounts'
-sum perfectly with pencil and paper, hledger should agree with you.
+Especially when it involves costs, which often are not exact, because of repeating decimals, or imperfect data from financial institutions ?
+In each commodity, hledger sums the transaction's posting amounts, after converting any with costs;
+then it checks if that sum is zero, when rounded to a suitable number of decimal digits - which we call the *balancing precision*.
 
-Real world transactions, especially for investments or cryptocurrencies,
-often involve imprecise costs, complex decimals, and/or infinitely-recurring decimals,
-which are difficult or inconvenient to handle on a computer.
-So to be a practical accounting system, hledger allows some imprecision when checking transaction balancedness.
-The question is, how much imprecision should be allowed ?
+Note, this changed with hledger 1.44.
+Older hledger versions reused display precision as balancing precision, which causes problems (over-reliance on commodity directives; fragility; see issue #2402).
+Since 1.44, hledger infers balancing precision in each transaction just from the amounts in that transaction.
+Eg when checking the balance of commodity A, it uses the highest decimal precision seen for A in that transaction's journal entry (excluding cost amounts).
+This makes transaction balancing more robust,
+and improves our ability to read journals exported from Ledger and Beancount, and vice versa.
+<!-- It requires that every imbalance must be accounted for visibly in the journal entry. -->
 
-hledger currently decides it based on the [commodity display styles](#commodity-display-style):
-if the postings' sum would appear to be zero when displayed with the standard display precisions, the transaction is considered balanced.
+Unfortunately it can also reject some journal entries that worked with older hledger.
+This might also happen when converting CSV files.
+If you hit this problem, here's how to fix it:
 
-Or equivalently: if the journal entry is displayed with amounts rounded to the 
-standard display precisions (with `hledger print --round=hard`), and a human with
-pencil and paper would agree that those displayed amounts add up to zero,
-the transaction is considered balanced.
+- You can add `--txn-balancing=old` to the command, or to your `~/.hledger.conf` file.
+  This restores the pre-1.44 behaviour, allowing you to keep using old journals unchanged.
 
-This has some advantages: it is fairly intuitive, general not hard-coded, yet configurable when needed.
-On the downside it means that transaction balancedness is related to commodity display precisions,
-so eg when using `-c/--commodity-style` to display things with more than usual precision,
-you might need to fix some of your journal entries (ie, add decimal digits to make them balance more precisely).
-
-Other PTA tools (Ledger, Beancount..) have their own ways of doing it.
-Possible improvements are discussed at [#1964](https://github.com/simonmichael/hledger/issues/1964).
-
-Note: if you have multiple journal files, and are relying on commodity directives to make imprecise journal entries balance,
-the directives' placement might be important - see [`commodity` directive](#commodity-directive).
+- Or you can fix the problem entries.
+  There are three common ways; use whichever seems easiest/best:
+   
+  1. make cost amounts more precise (eg adding more decimal digits)
+  2. or make non-cost amounts less precise (removing unnecessary decimal digits that are raising the precision)
+  3. or add one amountless posting to absorb the imbalance (eg to "expenses:rounding").
 
 ## Tags
 
