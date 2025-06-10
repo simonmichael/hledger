@@ -262,17 +262,17 @@ forecastPeriodFromRawOpts d rawopts = do
         _          -> usageError $ "--forecast's argument should not contain a report interval ("
                                  ++ show interval ++ " in \"" ++ arg ++ "\")"
 
--- | Given the name of the option and the raw options, returns either
--- | * a map of successfully parsed commodity styles, if all options where successfully parsed
--- | * the first option which failed to parse, if one or more options failed to parse
+-- | Given the raw options, return either
+-- * if all options were successfully parsed: a map of successfully parsed commodity styles,
+-- * if one or more options failed to parse: the first option which failed to parse
 commodityStyleFromRawOpts :: RawOpts -> Either String (M.Map CommoditySymbol AmountStyle)
 commodityStyleFromRawOpts rawOpts =
-    foldM (\r -> fmap (\(c,a) -> M.insert c a r) . parseCommodity) mempty optList
+  foldM (\r -> fmap (\(c,a) -> M.insert c a r) . parseCommodity) mempty optList
   where
     optList = listofstringopt "commodity-style" rawOpts
     parseCommodity optStr = case parseamount optStr of
-        Left _ -> Left optStr
-        Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
+      Left _ -> Left optStr
+      Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
