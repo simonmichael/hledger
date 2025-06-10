@@ -164,6 +164,12 @@ inputflags = [
     , "In hledger-ui, also make future-dated transactions visible at startup."
     ])
   ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
+  ,flagReq  ["txn-balancing"] (\s opts -> Right $ setopt "txn-balancing" s opts) "..." (unlines [
+     "how to check that transactions are balanced:"
+    ,"'old':   - use global display precision"
+    -- ,"'compat': - use transaction precision, reducible"
+    ,"'exact': - use transaction precision (default)"
+    ])
   ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
   ,flagNone ["infer-equity"] (setboolopt "infer-equity") "infer costs from conversion equity postings"
   -- history of this flag so far, lest we be confused:

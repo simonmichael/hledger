@@ -221,7 +221,7 @@ $ hledger -f - bal -N
 
 # ** 16. Before hledger 1.44, an inexactly balanced entry like this could be accepted
 # because of a commodity directive reducing the display/balance-checking precision.
-# From 1.44, transaction balancing uses the transaction's local precisions only,
+# From 1.44, transaction balancing uses the transaction's local precisions by default,
 # making the balance checking more strict in this case.
 <
 commodity $1.00
@@ -233,3 +233,7 @@ commodity $1.00
 $ hledger -f - check
 >2 /unbalanced/
 >= 1
+
+# ** 17. --txn-balancing=old can be used to restore the pre-1.44 behaviour.
+$ hledger -f - check --txn-balancing=old
+

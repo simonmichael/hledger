@@ -160,6 +160,7 @@ import Hledger.Reports.ReportOptions (ReportOpts(..), queryFromFlags, rawOptsToR
 import Hledger.Utils
 import Hledger.Read.InputOptions
 
+
 --- ** doctest setup
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -214,8 +215,11 @@ rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
         argsquery = map fst . rights . map (parseQueryTerm day) $ querystring_ ropts
         datequery = simplifyQuery . filterQuery queryIsDate . And $ queryFromFlags ropts : argsquery
 
+        txnbalancingprecision = either err id $ transactionBalancingPrecisionFromOpts rawopts
+          where err e = error' $ "could not parse --txn-balancing: '" ++ e ++ "'"  -- PARTIAL:
+
         styles = either err id $ commodityStyleFromRawOpts rawopts
-          where err e = error' $ "could not parse commodity-style: '" ++ e ++ "'"  -- PARTIAL:
+          where err e = error' $ "could not parse --commodity-style: '" ++ e ++ "'"  -- PARTIAL:
 
     in definputopts{
        -- files_             = listofstringopt "file" rawopts
@@ -236,6 +240,7 @@ rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_     = boolopt "ignore-assertions" rawopts
                                , infer_balancing_costs_ = not noinferbalancingcosts
+                               , txn_balancing_         = txnbalancingprecision
                                , commodity_styles_      = Just styles
                                }
       ,strict_            = boolopt "strict" rawopts
@@ -274,6 +279,15 @@ commodityStyleFromRawOpts rawOpts =
       Left _ -> Left optStr
       Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
 
+transactionBalancingPrecisionFromOpts :: RawOpts -> Either String TransactionBalancingPrecision
+transactionBalancingPrecisionFromOpts rawopts =
+  case maybestringopt "txn-balancing" rawopts of
+    Nothing      -> Right TBPExact
+    Just "old"   -> Right TBPOld
+    -- Just "compat" -> Right TBPCompat
+    Just "exact" -> Right TBPExact
+    Just s       -> Left $ s<>", should be one of: old, exact" -- compat
+
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
 -- get a Journal; or throw an error.
@@ -285,7 +299,7 @@ parseAndFinaliseJournal parser iopts f txt =
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content. This is all steps of
 -- 'parseAndFinaliseJournal' without the finalisation step, and is used when
--- you need to perform other actions before finalisation, as in parsing
+-- you need to perform other actions before finalisatison, as in parsing
 -- Timeclock and Timedot files.
 initialiseAndParseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                           -> FilePath -> Text -> ExceptT String IO Journal
