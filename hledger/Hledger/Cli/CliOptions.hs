@@ -167,7 +167,6 @@ inputflags = [
   ,flagReq  ["txn-balancing"] (\s opts -> Right $ setopt "txn-balancing" s opts) "..." (unlines [
      "how to check that transactions are balanced:"
     ,"'old':   - use global display precision"
-    -- ,"'compat': - use transaction precision, reducible"
     ,"'exact': - use transaction precision (default)"
     ])
   ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
