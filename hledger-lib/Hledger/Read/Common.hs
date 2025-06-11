@@ -284,9 +284,8 @@ transactionBalancingPrecisionFromOpts rawopts =
   case maybestringopt "txn-balancing" rawopts of
     Nothing      -> Right TBPExact
     Just "old"   -> Right TBPOld
-    -- Just "compat" -> Right TBPCompat
     Just "exact" -> Right TBPExact
-    Just s       -> Left $ s<>", should be one of: old, exact" -- compat
+    Just s       -> Left $ s<>", should be one of: old, exact"
 
 -- | Given a parser to ParsedJournal, input options, file path and
 -- content: run the parser on the content, and finalise the result to
