@@ -15,14 +15,14 @@ You can help by finding them, or fixing them!
 
 ## Regression finder bounty
 
-For new regression reports submitted to the bug tracker since 2024-01-01 (affecting any past release),
-we offer a $50 bounty.
+For new regression reports (affecting any past release) submitted to the bug tracker, we offer a $50 bounty.
 ([original announcement](https://github.com/simonmichael/hledger/issues/1570))
 
 ## Regression fixer bounty
 
 For regression issues fixed, we offer a separate $50 bounty.
-(If you caused the regression, we appreciate you fixing it but you don't get the bounty - sorry!)
+
+(If you caused the regression, we appreciate you fixing it but there's no bounty - sorry!)
 
 ## Should I claim the bounty ?
 If you don't want the bounty, you can choose to donate it back to the project treasury.
@@ -114,6 +114,7 @@ This reduces wasteful admin work.
 [#2396]: https://github.com/simonmichael/hledger/issues/2396
 [#2397]: https://github.com/simonmichael/hledger/issues/2397
 [#2405]: https://github.com/simonmichael/hledger/issues/2405
+[#2406]: https://github.com/simonmichael/hledger/issues/2406
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -197,3 +198,4 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2396]                  | 1.43.1    | Simaex (donated)         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated) | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  |           | Simon Michael (N/A)      | 
+| [#2406]                  |           | **Wojciech Geisler**      | 
