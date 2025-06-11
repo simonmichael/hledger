@@ -22,7 +22,7 @@ For new regression reports (affecting any past release) submitted to the bug tra
 
 For regression issues fixed, we offer a separate $50 bounty.
 
-(If you caused the regression, we appreciate you fixing it but there's no bounty - sorry!)
+(If you caused the regression, there's no bounty, though we still appreciate you reporting or fixing it!)
 
 ## Should I claim the bounty ?
 If you don't want the bounty, you can choose to donate it back to the project treasury.
