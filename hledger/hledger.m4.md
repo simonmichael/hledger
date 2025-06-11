@@ -1836,27 +1836,25 @@ Especially when it involves costs, which often are not exact, because of repeati
 In each commodity, hledger sums the transaction's posting amounts, after converting any with costs;
 then it checks if that sum is zero, when rounded to a suitable number of decimal digits - which we call the *balancing precision*.
 
-Note, this changed with hledger 1.44.
-Older hledger versions reused display precision as balancing precision, which causes problems (over-reliance on commodity directives; fragility; see issue #2402).
-Since 1.44, hledger infers balancing precision in each transaction just from the amounts in that transaction.
-Eg when checking the balance of commodity A, it uses the highest decimal precision seen for A in that transaction's journal entry (excluding cost amounts).
-This makes transaction balancing more robust,
-and improves our ability to read journals exported from Ledger and Beancount, and vice versa.
-<!-- It requires that every imbalance must be accounted for visibly in the journal entry. -->
+Since version 1.44, hledger infers balancing precision in each transaction from the amounts in that transaction's journal entry (like Ledger).
+Ie, when checking the balance of commodity A, it uses the highest decimal precision seen for A in the journal entry (excluding cost amounts).
+This makes transaction balancing robust; any imbalances must be visibly accounted for in the journal entry,
+display precision can be freely increased with `-c`, and compatibility with Ledger and Beancount journals is good.
 
-Unfortunately it can also reject some journal entries that worked with older hledger.
-This might also happen when converting CSV files.
-If you hit this problem, here's how to fix it:
+Note that hledger versions before 1.44 worked differently: they allowed display precision to override the balancing precision.
+This masked small imbalances and caused fragility (see issue #2402).
+As a result, some journal entries (or CSV rules) that worked with hledger <1.44, are now rejected with an "unbalanced transaction" error.
+If you hit this problem, it's easy to fix:
 
-- You can add `--txn-balancing=old` to the command, or to your `~/.hledger.conf` file.
-  This restores the pre-1.44 behaviour, allowing you to keep using old journals unchanged.
+- You can restore the old behaviour, by adding `--txn-balancing=old` to the command or to your `~/.hledger.conf` file.
+  This lets you keep using old journals unchanged, though without the above benefits.
 
-- Or you can fix the problem entries.
-  There are three common ways; use whichever seems easiest/best:
+- Or you can fix the problem entries (recommended).
+  There are three ways, use whichever seems best:
    
-  1. make cost amounts more precise (eg adding more decimal digits)
-  2. or make non-cost amounts less precise (removing unnecessary decimal digits that are raising the precision)
-  3. or add one amountless posting to absorb the imbalance (eg to "expenses:rounding").
+  1. make cost amounts more precise (add more/better decimal digits)
+  2. or make non-cost amounts less precise (remove unnecessary decimal digits that are raising the precision)
+  3. or add a posting to absorb the imbalance (eg "expenses:rounding". Remember that one posting may [omit the amount](#postings); that's convenient here.)
 
 ## Tags
 
