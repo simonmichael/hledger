@@ -87,24 +87,19 @@ import Data.List (union)
 
 
 -- | How to determine the precision used for checking that transactions are balanced. See #2402.
-data TransactionBalancingPrecision
-  = -- | Legacy behaviour, as in hledger <=1.43:
+data TransactionBalancingPrecision =
+    TBPOld
+    -- ^ Legacy behaviour, as in hledger <1.44, included to ease upgrades.
     -- use precision inferred from the whole journal, overridable by commodity directive or -c.
     -- Display precision is also transaction balancing precision; increasing it can break journal reading.
-    -- Some journals from ledger or beancount are rejected until commodity directives are added.
-    TBPOld
-  -- | -- | Use precision inferred from the transaction, reducible by commodity directive (or -c ?)
-  --   -- This is more robust when there is no commodity directive, because it's not affected by other transactions or P directives.
-  --   -- Increasing display precision does not increase balancing precision, so it does not break journal reading.
-  --   -- But reducing it does reduce balancing precision, so existing hledger journals which rely on this can still be read.
-  --   -- Journals from ledger or beancount are accepted without needing commodity directives.
-  --   TBPCompat
-  | -- | Use precision inferred from the transaction.
-    -- This is the most strict; transactions that worked with hledger <=1.43 may need to be adjusted.
-    -- It's also the simplest, and most robust overall ?
+    -- Some valid journals are rejected until commodity directives are added.
+    -- Small unbalanced remainders can be hidden, and in accounts that are never reconciled, can accumulate over time.
+  | TBPExact
+    -- ^ Simpler, more robust behaviour, as in Ledger: use precision inferred from the transaction.
     -- Display precision and transaction balancing precision are independent; display precision never affects journal reading.
-    -- Journals from ledger or beancount are accepted without needing commodity directives.
-    TBPExact
+    -- Valid journals from ledger or beancount are accepted without needing commodity directives.
+    -- Every imbalance in a transaction is visibly accounted for in that transaction's journal entry.
+
   deriving (Bounded, Enum, Eq, Ord, Read, Show)
 
 instance HasAmounts Transaction where

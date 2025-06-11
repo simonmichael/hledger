@@ -115,7 +115,6 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
       where
         roundforbalancecheck = case txn_balancing_ of
           TBPOld    -> maybe id styleAmounts _mglobalstyles
-          -- TBPCompat -> styleAmounts (transactionstyles `limitprecisionsto` commoditydirectivestyles)
           TBPExact  -> styleAmounts transactionstyles
           where
             transactionstyles = transactionCommodityStylesWith HardRounding t
