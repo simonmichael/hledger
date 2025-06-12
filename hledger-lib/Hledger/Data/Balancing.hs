@@ -152,8 +152,8 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
               ++ if bvsumokold then "" else oldbalancingmsg
         oldbalancingmsg = unlines [
           -- -------------------------------------------------------------------------------
-           "\nNote, hledger <1.44 accepted this entry because of the global display precision,"
-          ,"but hledger 1.44+ checks more strictly, using the entry's local precision."
+           "\nNote, hledger <1.50 accepted this entry because of the global display precision,"
+          ,"but hledger 1.50+ checks more strictly, using the entry's local precision."
           ,"You can use --txn-balancing=old to keep it working, or fix it (recommended);"
           ,"see 'Transaction balancing' in the hledger manual."
           ]
