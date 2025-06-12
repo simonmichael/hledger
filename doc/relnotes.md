@@ -378,6 +378,7 @@ Sam Almahri (@samahri),
 Ben Sima (@bsima),
 Doug Goldstein (@cardoe).
 
+[#73]: https://github.com/simonmichael/hledger/issues/73
 [#2002]: https://github.com/simonmichael/hledger/issues/2002
 [#2141]: https://github.com/simonmichael/hledger/issues/2141
 [#2355]: https://github.com/simonmichael/hledger/issues/2355
