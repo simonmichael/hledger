@@ -126,6 +126,9 @@ Docs
   roi with no investment transactions).
   [#2367]
 
+- When unicode/non-ascii text can't be decoded by the system locale's text encoding,
+  we now show a consistent informative error message explaining it. [#73]
+
 - Support GHC 9.12.
 
 ## Docs
