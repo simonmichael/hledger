@@ -89,7 +89,7 @@ import Data.List (union)
 -- | How to determine the precision used for checking that transactions are balanced. See #2402.
 data TransactionBalancingPrecision =
     TBPOld
-    -- ^ Legacy behaviour, as in hledger <1.44, included to ease upgrades.
+    -- ^ Legacy behaviour, as in hledger <1.50, included to ease upgrades.
     -- use precision inferred from the whole journal, overridable by commodity directive or -c.
     -- Display precision is also transaction balancing precision; increasing it can break journal reading.
     -- Some valid journals are rejected until commodity directives are added.

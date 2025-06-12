@@ -1836,14 +1836,14 @@ Especially when it involves costs, which often are not exact, because of repeati
 In each commodity, hledger sums the transaction's posting amounts, after converting any with costs;
 then it checks if that sum is zero, when rounded to a suitable number of decimal digits - which we call the *balancing precision*.
 
-Since version 1.44, hledger infers balancing precision in each transaction from the amounts in that transaction's journal entry (like Ledger).
+Since version 1.50, hledger infers balancing precision in each transaction from the amounts in that transaction's journal entry (like Ledger).
 Ie, when checking the balance of commodity A, it uses the highest decimal precision seen for A in the journal entry (excluding cost amounts).
 This makes transaction balancing robust; any imbalances must be visibly accounted for in the journal entry,
 display precision can be freely increased with `-c`, and compatibility with Ledger and Beancount journals is good.
 
-Note that hledger versions before 1.44 worked differently: they allowed display precision to override the balancing precision.
+Note that hledger versions before 1.50 worked differently: they allowed display precision to override the balancing precision.
 This masked small imbalances and caused fragility (see issue #2402).
-As a result, some journal entries (or CSV rules) that worked with hledger <1.44, are now rejected with an "unbalanced transaction" error.
+As a result, some journal entries (or CSV rules) that worked with hledger <1.50, are now rejected with an "unbalanced transaction" error.
 If you hit this problem, it's easy to fix:
 
 - You can restore the old behaviour, by adding `--txn-balancing=old` to the command or to your `~/.hledger.conf` file.
