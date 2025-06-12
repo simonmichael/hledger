@@ -5,6 +5,5 @@ $$$ hledger check -f autobalanced.j
 
 This transaction is unbalanced.
 The real postings' sum should be 0 but is: 1
-Consider adjusting this entry's amounts, or adding missing postings.
 /
 >>>= 1
