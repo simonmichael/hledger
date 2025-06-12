@@ -104,22 +104,24 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
             BalancedVirtualPosting -> (l, p:r)
             VirtualPosting         -> (l, r)
 
-    -- convert this posting's amount to cost,
+    -- convert a posting's amount to cost,
     -- unless it has been marked as a redundant cost (equivalent to some nearby equity conversion postings),
     -- in which case ignore it.
     postingBalancingAmount p
       | costPostingTagName `elem` map fst (ptags p) = mixedAmountStripCosts $ pamount p
       | otherwise                                   = mixedAmountCost $ pamount p
 
-    lookszero = mixedAmountLooksZero . roundforbalancecheck
-      where
-        roundforbalancecheck = case txn_balancing_ of
-          TBPOld    -> maybe id styleAmounts _mglobalstyles
-          TBPExact  -> styleAmounts transactionstyles
-          where
-            transactionstyles = transactionCommodityStylesWith HardRounding t
-            -- limitprecisionsto = undefined
-            -- commoditydirectivestyles = undefined
+    lookszero = case txn_balancing_ of
+      TBPOld    -> lookszeroatglobaldisplayprecision
+      TBPExact  -> lookszeroatlocaltransactionprecision
+
+    lookszeroatlocaltransactionprecision = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
+    lookszeroatglobaldisplayprecision    = mixedAmountLooksZero . maybe id styleAmounts _mglobalstyles
+
+    -- check that the sum looks like zero
+    (rsumcost, bvsumcost) = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
+    (rsumok, bvsumok) = (lookszero rsumcost, lookszero bvsumcost)
+    (rsumokold, bvsumokold) = (lookszeroatglobaldisplayprecision rsumcost, lookszeroatglobaldisplayprecision bvsumcost)
 
     -- when there's multiple non-zeros, check they do not all have the same sign
     (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
@@ -128,10 +130,6 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
           where
             nonzeros = filter (not.lookszero) $ map postingBalancingAmount ps
             nonzerosigns = nubSort $ mapMaybe isNegativeMixedAmount nonzeros
-
-    -- check that the sum looks like zero
-    (rsumcost, bvsumcost) = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
-    (rsumok, bvsumok) = (lookszero rsumcost, lookszero bvsumcost)
 
     -- Generate error messages if any. Show amounts with their original precisions.
     errs = filter (not.null) [rmsg, bvmsg]
@@ -143,6 +141,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               rsumcost)
+              ++ if rsumokold then "" else oldbalancingmsg
         bvmsg
           | bvsumok       = ""
           | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
@@ -150,6 +149,14 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               bvsumcost)
+              ++ if bvsumokold then "" else oldbalancingmsg
+        oldbalancingmsg = unlines [
+          -- -------------------------------------------------------------------------------
+           "\nNote, hledger <1.44 accepted this entry because of the global display precision,"
+          ,"but hledger 1.44+ checks more strictly, using the entry's local precision."
+          ,"You can use --txn-balancing=old to keep it working, or fix it (recommended);"
+          ,"see 'Transaction balancing' in the hledger manual."
+          ]
 
 -- | Legacy form of transactionCheckBalanced.
 isTransactionBalanced :: BalancingOpts -> Transaction -> Bool
@@ -214,9 +221,7 @@ balanceTransactionHelper bopts t = do
           [ "Consider adjusting this entry's amounts, adding missing postings,"
           , "or recording conversion price(s) with @, @@ or equity postings." 
           ]
-          else
-          [ "Consider adjusting this entry's amounts, or adding missing postings."
-          ]
+          else []
 
 transactionCommodities :: Transaction -> S.Set CommoditySymbol
 transactionCommodities t = mconcat $ map (maCommodities . pamount) $ tpostings t
