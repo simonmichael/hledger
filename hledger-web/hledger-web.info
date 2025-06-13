@@ -144,6 +144,9 @@ General input/data transformation flags:
                             hledger-ui, also make future-dated transactions
                             visible at startup.
   -I --ignore-assertions    don't check balance assertions by default
+     --txn-balancing=...    how to check that transactions are balanced:
+                            'old':   use global display precision
+                            'exact': use transaction precision (default)
      --infer-costs          infer conversion equity postings from costs
      --infer-equity         infer costs from conversion equity postings
      --infer-market-prices  infer market prices from costs
@@ -526,14 +529,14 @@ We welcome bug reports in the hledger issue tracker
 Tag Table:
 Node: Top223
 Node: OPTIONS2581
-Node: PERMISSIONS11270
-Node: EDITING UPLOADING DOWNLOADING12420
-Node: RELOADING13435
-Node: JSON API14002
-Node: DEBUG OUTPUT19651
-Node: Debug output19803
-Node: ENVIRONMENT20321
-Node: BUGS20557
+Node: PERMISSIONS11482
+Node: EDITING UPLOADING DOWNLOADING12632
+Node: RELOADING13647
+Node: JSON API14214
+Node: DEBUG OUTPUT19863
+Node: Debug output20015
+Node: ENVIRONMENT20533
+Node: BUGS20769
 
 End Tag Table
 

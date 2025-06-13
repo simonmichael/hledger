@@ -379,6 +379,9 @@ General input/data transformation flags:
                             hledger\-ui, also make future\-dated transactions
                             visible at startup.
   \-I \-\-ignore\-assertions    don\[aq]t check balance assertions by default
+     \-\-txn\-balancing=...    how to check that transactions are balanced:
+                            \[aq]old\[aq]:   use global display precision
+                            \[aq]exact\[aq]: use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
      \-\-infer\-market\-prices  infer market prices from costs
@@ -2298,44 +2301,52 @@ they may contain tags, which are not ignored.
 .EE
 .SS Transaction balancing
 How exactly does hledger decide when a transaction is balanced ?
-The general goal is that if you look at the journal entry and calculate
-the amounts\[aq] sum perfectly with pencil and paper, hledger should
-agree with you.
+Especially when it involves costs, which often are not exact, because of
+repeating decimals, or imperfect data from financial institutions ?
+In each commodity, hledger sums the transaction\[aq]s posting amounts,
+after converting any with costs; then it checks if that sum is zero,
+when rounded to a suitable number of decimal digits \- which we call the
+\f[I]balancing precision\f[R].
 .PP
-Real world transactions, especially for investments or cryptocurrencies,
-often involve imprecise costs, complex decimals, and/or
-infinitely\-recurring decimals, which are difficult or inconvenient to
-handle on a computer.
-So to be a practical accounting system, hledger allows some imprecision
-when checking transaction balancedness.
-The question is, how much imprecision should be allowed ?
+Since version 1.50, hledger infers balancing precision in each
+transaction from the amounts in that transaction\[aq]s journal entry
+(like Ledger).
+Ie, when checking the balance of commodity A, it uses the highest
+decimal precision seen for A in the journal entry (excluding cost
+amounts).
+This makes transaction balancing robust; any imbalances must be visibly
+accounted for in the journal entry, display precision can be freely
+increased with \f[CR]\-c\f[R], and compatibility with Ledger and
+Beancount journals is good.
 .PP
-hledger currently decides it based on the commodity display styles: if
-the postings\[aq] sum would appear to be zero when displayed with the
-standard display precisions, the transaction is considered balanced.
-.PP
-Or equivalently: if the journal entry is displayed with amounts rounded
-to the standard display precisions (with
-\f[CR]hledger print \-\-round=hard\f[R]), and a human with pencil and
-paper would agree that those displayed amounts add up to zero, the
-transaction is considered balanced.
-.PP
-This has some advantages: it is fairly intuitive, general not
-hard\-coded, yet configurable when needed.
-On the downside it means that transaction balancedness is related to
-commodity display precisions, so eg when using
-\f[CR]\-c/\-\-commodity\-style\f[R] to display things with more than
-usual precision, you might need to fix some of your journal entries (ie,
-add decimal digits to make them balance more precisely).
-.PP
-Other PTA tools (Ledger, Beancount..)
-have their own ways of doing it.
-Possible improvements are discussed at #1964.
-.PP
-Note: if you have multiple journal files, and are relying on commodity
-directives to make imprecise journal entries balance, the
-directives\[aq] placement might be important \- see \f[CR]commodity\f[R]
-directive.
+Note that hledger versions before 1.50 worked differently: they allowed
+display precision to override the balancing precision.
+This masked small imbalances and caused fragility (see issue #2402).
+As a result, some journal entries (or CSV rules) that worked with
+hledger <1.50, are now rejected with an \[dq]unbalanced transaction\[dq]
+error.
+If you hit this problem, it\[aq]s easy to fix:
+.IP \[bu] 2
+You can restore the old behaviour, by adding
+\f[CR]\-\-txn\-balancing=old\f[R] to the command or to your
+\f[CR]\[ti]/.hledger.conf\f[R] file.
+This lets you keep using old journals unchanged, though without the
+above benefits.
+.IP \[bu] 2
+Or you can fix the problem entries (recommended).
+There are three ways, use whichever seems best:
+.RS 2
+.IP "1." 3
+make cost amounts more precise (add more/better decimal digits)
+.IP "2." 3
+or make non\-cost amounts less precise (remove unnecessary decimal
+digits that are raising the precision)
+.IP "3." 3
+or add a posting to absorb the imbalance (eg
+\[dq]expenses:rounding\[dq].
+Remember that one posting may omit the amount; that\[aq]s convenient
+here.)
+.RE
 .SS Tags
 Tags are a way to add extra labels or data fields to transactions,
 postings, or accounts.
@@ -8439,9 +8450,18 @@ T}
 \f[CR]\-H\f[R] but with a zero starting balance.
 .SH PART 4: COMMANDS
 .PP
-Here are the standard commands, which you can list by running
-\f[CR]hledger\f[R].
+Here are hledger\[aq]s standard subcommands.
+You can list these by running \f[CR]hledger\f[R].
 If you have installed more add\-on commands, they also will be listed.
+.PP
+In the following command docs, each command\[aq]s specific options are
+shown.
+Most commands also support the general options described above, though
+some of them might have no effect.
+(Usually if there\[aq]s a sensible way for a general option to affect a
+command, it will.)
+You can list all of a command\[aq]s options by running
+\f[CR]hledger CMD \-h\f[R].
 .PP
 \f[B]Help commands\f[R]
 .IP \[bu] 2
