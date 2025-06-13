@@ -237,3 +237,14 @@ $ hledger -f - check
 # ** 17. --txn-balancing=old can be used to restore the pre-1.44 behaviour.
 $ hledger -f - check --txn-balancing=old
 
+# ** 18. Note that a cost amount can affect display precision, by affecting an implicit posting amount.
+# Here the z posting amount is inferred as -2.000 USD, so USD's display precision is inferred as 3.
+<
+2025-01-01
+    a   1.00 USD
+    b   1 AAA @ 1.000 USD
+    z
+
+$ hledger -f - reg cur:USD
+2025-01-01                      a                        1.000 USD     1.000 USD
+                                z                       -2.000 USD    -1.000 USD
