@@ -8528,10 +8528,12 @@ File: hledger.info,  Node: Data entry commands,  Next: Basic report commands,  P
 * Menu:
 
 * add::
+* add and balance assertions::
+* add and balance assignments::
 * import::
 
 
-File: hledger.info,  Node: add,  Next: import,  Up: Data entry commands
+File: hledger.info,  Node: add,  Next: add and balance assertions,  Up: Data entry commands
 
 26.1 add
 ========
@@ -8596,9 +8598,40 @@ or press control-d or control-c to exit.
    There is a detailed tutorial at https://hledger.org/add.html.
 
 
-File: hledger.info,  Node: import,  Prev: add,  Up: Data entry commands
+File: hledger.info,  Node: add and balance assertions,  Next: add and balance assignments,  Prev: add,  Up: Data entry commands
 
-26.2 import
+26.2 add and balance assertions
+===============================
+
+Since hledger 1.43, whenever you enter a posting amount, 'add' will
+re-check all balance assertions in the journal, and if any of them fail,
+it will report the problem and ask for the amount again.
+
+   You can also add a new balance assertion, following the amount as in
+journal format.
+
+   The new transaction's date, and the new posting's posting date if any
+(entered in a comment following the amount), will influence assertion
+checking.
+
+   You can use '-I'/'--ignore-assertions' to disable this assertion
+checking.
+
+
+File: hledger.info,  Node: add and balance assignments,  Next: import,  Prev: add and balance assertions,  Up: Data entry commands
+
+26.3 add and balance assignments
+================================
+
+You can't add new postings which are dated earlier than a balance
+assignment, currently.  It's because balance assignments are performed
+once, before 'add'; by the time 'add' runs, all amounts in the journal
+are explicit, and assignments have become assertions.  (#2406).
+
+
+File: hledger.info,  Node: import,  Prev: add and balance assignments,  Up: Data entry commands
+
+26.4 import
 ===========
 
 Import new transactions from one or more data files to the main journal.
@@ -8636,7 +8669,7 @@ $ hledger import *.csv
 
 File: hledger.info,  Node: Import preview,  Next: Overlap detection,  Up: import
 
-26.2.1 Import preview
+26.4.1 Import preview
 ---------------------
 
 It's useful to preview the import by running first with '--dry-run', to
@@ -8665,7 +8698,7 @@ $ hledger import bank.csv
 
 File: hledger.info,  Node: Overlap detection,  Next: First import,  Prev: Import preview,  Up: import
 
-26.2.2 Overlap detection
+26.4.2 Overlap detection
 ------------------------
 
 Reading CSV files is built in to hledger, and not specific to 'import';
@@ -8731,7 +8764,7 @@ works:
 
 File: hledger.info,  Node: First import,  Next: Importing balance assignments,  Prev: Overlap detection,  Up: import
 
-26.2.3 First import
+26.4.3 First import
 -------------------
 
 The first time you import from a file, when no corresponding .latest
@@ -8764,7 +8797,7 @@ newer records.
 
 File: hledger.info,  Node: Importing balance assignments,  Next: Import and commodity styles,  Prev: First import,  Up: import
 
-26.2.4 Importing balance assignments
+26.4.4 Importing balance assignments
 ------------------------------------
 
 Journal entries added by import will have all posting amounts made
@@ -8790,7 +8823,7 @@ that and send a pull request.)
 
 File: hledger.info,  Node: Import and commodity styles,  Next: Import special cases,  Prev: Importing balance assignments,  Up: import
 
-26.2.5 Import and commodity styles
+26.4.5 Import and commodity styles
 ----------------------------------
 
 Amounts in entries added by import will be formatted according to the
@@ -8802,7 +8835,7 @@ directives or inferred from the journal's amounts.
 
 File: hledger.info,  Node: Import special cases,  Prev: Import and commodity styles,  Up: import
 
-26.2.6 Import special cases
+26.4.6 Import special cases
 ---------------------------
 
 If you have a download whose file name varies, you could rename it to a
@@ -13078,116 +13111,118 @@ Node: Examples 2309050
 Node: ui310074
 Node: web310211
 Node: Data entry commands310339
-Node: add310537
-Node: import312992
-Node: Import preview314026
-Node: Overlap detection314974
-Node: First import317860
-Node: Importing balance assignments319055
-Node: Import and commodity styles320110
-Node: Import special cases320548
-Node: Basic report commands321883
-Node: accounts322184
-Node: codes325117
-Node: commodities326139
-Node: descriptions326383
-Node: files326850
-Node: notes327147
-Node: payees327659
-Node: prices328443
-Node: stats329335
-Node: tags331076
-Node: Standard report commands332383
-Node: print332688
-Node: print explicitness335499
-Node: print amount style336419
-Node: print parseability337657
-Node: print other features338576
-Node: print output format339537
-Node: aregister342822
-Node: aregister and posting dates347375
-Node: register348276
-Node: Custom register output355517
-Node: balancesheet356702
-Node: balancesheetequity361667
-Node: cashflow367002
-Node: incomestatement371815
-Node: Advanced report commands376664
-Node: balance376872
-Node: balance features382293
-Node: Simple balance report384396
-Node: Balance report line format386206
-Node: Filtered balance report388566
-Node: List or tree mode389085
-Node: Depth limiting390598
-Node: Dropping top-level accounts391365
-Node: Showing declared accounts391875
-Node: Sorting by amount392605
-Node: Percentages393459
-Node: Multi-period balance report394166
-Node: Balance change end balance396918
-Node: Balance report modes398555
-Node: Calculation mode399234
-Node: Accumulation mode399938
-Node: Valuation mode401039
-Node: Combining balance report modes402383
-Node: Budget report404413
-Node: Using the budget report406713
-Node: Budget date surprises408989
-Node: Selecting budget goals410353
-Node: Budgeting vs forecasting411301
-Node: Balance report layout412978
-Node: Wide layout414183
-Node: Tall layout416588
-Node: Bare layout417894
-Node: Tidy layout419958
-Node: Balance report output421502
-Node: Some useful balance reports422276
-Node: roi423536
-Node: Spaces and special characters in --inv and --pnl425783
-Node: Semantics of --inv and --pnl426509
-Node: IRR and TWR explained428596
-Node: Chart commands432007
-Node: activity432188
-Node: Data generation commands432685
-Node: close432891
-Node: close --clopen435454
-Node: close --close437628
-Node: close --open438152
-Node: close --assert438402
-Node: close --assign438729
-Node: close --retain439408
-Node: close customisation440265
-Node: close and balance assertions441909
-Node: close examples443431
-Node: Retain earnings443668
-Node: Migrate balances to a new file444171
-Node: More detailed close examples445533
-Node: rewrite445755
-Node: Re-write rules in a file448327
-Node: Diff output format449637
-Node: rewrite vs print --auto450910
-Node: Maintenance commands451624
-Node: check451843
-Node: Basic checks452925
-Node: Strict checks453946
-Node: Other checks454883
-Node: Custom checks456635
-Node: diff457090
-Node: setup458298
-Node: test461165
-Node: PART 5 COMMON TASKS462068
-Node: Getting help462301
-Node: Constructing command lines463210
-Node: Starting a journal file464048
-Node: Setting LEDGER_FILE465432
-Node: Setting opening balances466690
-Node: Recording transactions470012
-Node: Reconciling470737
-Node: Reporting473126
-Node: Migrating to a new file477240
-Node: BUGS477689
-Node: Troubleshooting478657
+Node: add310600
+Node: add and balance assertions313075
+Node: add and balance assignments313792
+Node: import314266
+Node: Import preview315324
+Node: Overlap detection316272
+Node: First import319158
+Node: Importing balance assignments320353
+Node: Import and commodity styles321408
+Node: Import special cases321846
+Node: Basic report commands323181
+Node: accounts323482
+Node: codes326415
+Node: commodities327437
+Node: descriptions327681
+Node: files328148
+Node: notes328445
+Node: payees328957
+Node: prices329741
+Node: stats330633
+Node: tags332374
+Node: Standard report commands333681
+Node: print333986
+Node: print explicitness336797
+Node: print amount style337717
+Node: print parseability338955
+Node: print other features339874
+Node: print output format340835
+Node: aregister344120
+Node: aregister and posting dates348673
+Node: register349574
+Node: Custom register output356815
+Node: balancesheet358000
+Node: balancesheetequity362965
+Node: cashflow368300
+Node: incomestatement373113
+Node: Advanced report commands377962
+Node: balance378170
+Node: balance features383591
+Node: Simple balance report385694
+Node: Balance report line format387504
+Node: Filtered balance report389864
+Node: List or tree mode390383
+Node: Depth limiting391896
+Node: Dropping top-level accounts392663
+Node: Showing declared accounts393173
+Node: Sorting by amount393903
+Node: Percentages394757
+Node: Multi-period balance report395464
+Node: Balance change end balance398216
+Node: Balance report modes399853
+Node: Calculation mode400532
+Node: Accumulation mode401236
+Node: Valuation mode402337
+Node: Combining balance report modes403681
+Node: Budget report405711
+Node: Using the budget report408011
+Node: Budget date surprises410287
+Node: Selecting budget goals411651
+Node: Budgeting vs forecasting412599
+Node: Balance report layout414276
+Node: Wide layout415481
+Node: Tall layout417886
+Node: Bare layout419192
+Node: Tidy layout421256
+Node: Balance report output422800
+Node: Some useful balance reports423574
+Node: roi424834
+Node: Spaces and special characters in --inv and --pnl427081
+Node: Semantics of --inv and --pnl427807
+Node: IRR and TWR explained429894
+Node: Chart commands433305
+Node: activity433486
+Node: Data generation commands433983
+Node: close434189
+Node: close --clopen436752
+Node: close --close438926
+Node: close --open439450
+Node: close --assert439700
+Node: close --assign440027
+Node: close --retain440706
+Node: close customisation441563
+Node: close and balance assertions443207
+Node: close examples444729
+Node: Retain earnings444966
+Node: Migrate balances to a new file445469
+Node: More detailed close examples446831
+Node: rewrite447053
+Node: Re-write rules in a file449625
+Node: Diff output format450935
+Node: rewrite vs print --auto452208
+Node: Maintenance commands452922
+Node: check453141
+Node: Basic checks454223
+Node: Strict checks455244
+Node: Other checks456181
+Node: Custom checks457933
+Node: diff458388
+Node: setup459596
+Node: test462463
+Node: PART 5 COMMON TASKS463366
+Node: Getting help463599
+Node: Constructing command lines464508
+Node: Starting a journal file465346
+Node: Setting LEDGER_FILE466730
+Node: Setting opening balances467988
+Node: Recording transactions471310
+Node: Reconciling472035
+Node: Reporting474424
+Node: Migrating to a new file478538
+Node: BUGS478987
+Node: Troubleshooting479955
 
 End Tag Table
 
