@@ -22,6 +22,13 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 7198211d
+
+- Use hledger-1.43.2
+
+- Add missing issue numbers in the changelog
+
+
 # 1.43.1 2025-06-04
 
 Fixes
