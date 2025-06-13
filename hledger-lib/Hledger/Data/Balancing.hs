@@ -119,12 +119,12 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
     lookszeroatglobaldisplayprecision    = mixedAmountLooksZero . maybe id styleAmounts _mglobalstyles
 
     -- check that the sum looks like zero
-    (rsumcost, bvsumcost) = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
-    (rsumok, bvsumok) = (lookszero rsumcost, lookszero bvsumcost)
+    (rsumcost,  bvsumcost)  = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
+    (rsumok,    bvsumok)    = (lookszero rsumcost, lookszero bvsumcost)
     (rsumokold, bvsumokold) = (lookszeroatglobaldisplayprecision rsumcost, lookszeroatglobaldisplayprecision bvsumcost)
 
     -- when there's multiple non-zeros, check they do not all have the same sign
-    (rsignsok, bvsignsok) = (signsOk rps, signsOk bvps)
+    (rsignsok, bvsignsok)   = (signsOk rps, signsOk bvps)
       where
         signsOk ps = length nonzeros < 2 || length nonzerosigns > 1
           where
@@ -141,7 +141,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               rsumcost)
-              ++ if rsumokold then "" else oldbalancingmsg
+              ++ if rsumokold then oldbalancingmsg else ""
         bvmsg
           | bvsumok       = ""
           | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
@@ -149,7 +149,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               bvsumcost)
-              ++ if bvsumokold then "" else oldbalancingmsg
+              ++ if bvsumokold then oldbalancingmsg else ""
         oldbalancingmsg = unlines [
           -- -------------------------------------------------------------------------------
            "\nNote, hledger <1.50 accepted this entry because of the global display precision,"
