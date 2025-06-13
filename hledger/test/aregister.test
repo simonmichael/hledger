@@ -121,3 +121,12 @@ Transactions in a and subaccounts:
 # # 10. should show the transaction, with the january date (?)
 # $ hledger -f- areg a date2:202102
 # 2021-01-01                      a                                1             1
+# ** 8. aregister rounds amounts to display precision (#2407)
+<
+commodity $1.00
+2025-06-12
+  (a)   $1.000
+
+$ hledger -f - areg a
+Transactions in a and subaccounts:
+2025-06-12                      a                            $1.00         $1.00
