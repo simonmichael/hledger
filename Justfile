@@ -1210,7 +1210,7 @@ nightly-push:
     git tag -f nightly master
     git push -f origin nightly
     git push -f origin master:binaries
-    echo "now wait for the nightly binaries to build; when successful, run just ghnightly-bin"
+    echo "Now wait; when nightly binaries have built successfully, run just ghnightly-bin"
 
 # Copy the latest-built nightly binaries to the Nightly prerelease. Wait for nightly-push's builds to complete first.
 @ghnightly-bin:
