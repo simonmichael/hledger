@@ -114,7 +114,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- TODO: need to also pass the queries so we can choose which date to render - move them into the report ?
     items = accountTransactionsReport rspec' j thisacctq
     items' =
-      styleAmounts (journalCommodityStyles j) $
+      styleAmounts (journalCommodityStylesWith HardRounding j) $
       (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
       reverse items
     -- select renderer
