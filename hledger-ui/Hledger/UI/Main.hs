@@ -76,7 +76,7 @@ writeChan = BC.writeBChan
 
 
 hledgerUiMain :: IO ()
-hledgerUiMain = exitOnError $ withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
+hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do  -- force Hledger.Utils.Debug.* to log to hledger-ui.log
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
 
 #if MIN_VERSION_base(4,20,0)
