@@ -1202,18 +1202,27 @@ relbranch VER:
     # assumes the github remote is named "origin"
     git push -f origin HEAD:binaries
 
-# Push master to github, and if successful move the nightly tag there and generate new platform binaries.
-nightlybin:
+# Push master to github, move the nightly tag there, and start building new nightly binaries.
+nightly-push:
     #!/usr/bin/env bash
     set -euo pipefail
     just push
     git tag -f nightly master
     git push -f origin nightly
     git push -f origin master:binaries
+    echo "now wait for the nightly binaries to build; when successful, run just ghnightly-bin"
 
-# Upload the last-built platform binaries to the "nightly" prerelease. Run nightlybin and wait for it to complete first.
+# Copy the latest-built nightly binaries to the Nightly prerelease. Wait for nightly-push's builds to complete first.
 @ghnightly-bin:
     gh workflow run nightly
+
+# Push the prerelease notes to the github nightly prerelease.
+@ghnightly-notes:
+    gh release edit nightly -F doc/ghnightlynotes.md
+
+# Browse the github nightly prerelease.
+@ghnightly-open:
+    gh release view -w nightly
 
 # Show the last release date and version (of the hledger package).
 @rel:
@@ -1505,17 +1514,9 @@ _on-master-branch:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# Push the prerelease notes to the github nightly prerelease.
-@ghnightly-notes:
-    gh release edit nightly -F doc/ghnightlynotes.md
-
 # Browse the latest github release.
 @ghrel:
     gh release view -w
-
-# Browse the github nightly prerelease.
-@ghnightly:
-    gh release view -w nightly
 
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
@@ -1572,7 +1573,7 @@ reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
 # Point the nightly tag at the latest release, locally and on github. Run after a release.
-@nightlytag:
+@nightly-tag-release:
     git tag -f nightly $(just relver)
     git push -f origin nightly
 
