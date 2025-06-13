@@ -68,11 +68,10 @@ You can also add a new balance assertion, following the amount as in journal for
 The new transaction's date, and the new posting's posting date if any (entered in a comment following the amount),
 will influence assertion checking.
 
-You can use `-I`/`--ignore-assertions` to disable this assertion checking.
+You can use `-I`/`--ignore-assertions` to disable assertion checking temporarily.
 
 ## add and balance assignments
 
-If you try to add a new posting which is dated earlier than a balance assignment in that account and commodity, it will be rejected.
-It's because by the time `add` runs, all balance assignments have been processed and have become assertions.
-So if you need to do this, add the `-I` flag to disable assertions temporarily.
-([#2406](https://github.com/simonmichael/hledger/issues/2406)).
+When `add` runs, it sees the journal with all balance assignments already processed and converted to assertions.
+So if you add a new posting which is dated earlier than a balance assignment, it will break the assertion and be rejected.
+If you need to do this, use  `hledger add -I`.
