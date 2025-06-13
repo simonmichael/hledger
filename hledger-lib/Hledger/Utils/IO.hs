@@ -238,9 +238,8 @@ ansiFormatWarning = (<> sgrresetall) . ((sgrbrightyellow <> sgrbold) <>)
 modifyFirstLine :: (String -> String) -> String -> String
 modifyFirstLine f s = intercalate "\n" $ map f l <> ls where (l,ls) = splitAt 1 $ lines s  -- total
 
-{- | Print an error message to stderr, with a consistent "programname: " prefix,
-and applying ANSI styling (bold bright red) to the first line if that is supported and allowed.
--}
+-- | Print an error message to stderr, with a consistent "programname: " prefix,
+-- and applying ANSI styling (bold bright red) to the first line if that is supported and allowed.
 printError :: String -> IO ()
 printError msg = do
   progname <- getProgName
@@ -256,9 +255,8 @@ printError msg = do
         <> (if "Error:" `isPrefixOf` msg then "" else "Error: ")
   hPutStrLn stderr $ style $ prefix <> msg
 
-{- | Print an error message with printError,
-then exit the program with a non-zero exit code.
--}
+-- | Print an error message with printError,
+-- then exit the program with a non-zero exit code.
 exitWithErrorMessage :: String -> IO ()
 exitWithErrorMessage msg = printError msg >> exitFailure
 
