@@ -1,4 +1,8 @@
-Here you can find unreleased "nightly" binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html) eg in the chat, you can help to make the next release better.  These binaries have the following [changes since 1.43.1](https://github.com/simonmichael/hledger/compare/1.43.1...nightly).
+Here you can find unreleased "nightly" binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html), you can help to make the next release better.
+
+These binaries have the following changes since the 1.43.1 release: https://github.com/simonmichael/hledger/compare/1.43.1...binaries
+<!-- compare with binaries branch; updates promptly, should be equivalent to.. -->
+<!-- https://github.com/simonmichael/hledger/compare/1.43.1...nightly --> <!-- compare with nightly tag; sometimes doesn't update reliably -->
 
 <details>
 <summary>
