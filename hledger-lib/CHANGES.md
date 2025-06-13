@@ -22,7 +22,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 7198211d
+# 1.43.2 2025-06-13
 
 - Hledger.Utils.IO: rename exitOnError -> handleExit, improve doc
 

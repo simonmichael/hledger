@@ -25,7 +25,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 7198211d
+# 1.43.2 2025-06-13
 
 - hledger no longer shows an error message or exits with error status
   when its output is truncated in a piped command. (This broke in 1.43.) [#2405]
