@@ -45,7 +45,7 @@ This reduces wasteful admin work.
    - choose **Invoice**; choose a Payout method; click Next
    - Expense title: **Regression (finder / fixer / finder & fixer) bounty for #NNNN**
    - Description: **(Found / Fixed) ISSUEURL, WORKDATE(S)**
-   - Date: **today's date**
+   - Date: **today's date** (you may need to click and select it to make it work)
    - Amount: **USD 50** (or **100** if you found and fixed).
      Or convert to another currency with today's rate (and mention that rate in Description).
    - Next, Submit Expense
@@ -185,7 +185,7 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2134]                  | 1.32.2    | pepe_pecas (donated)                                                             | N/A
 | [#2156]                  | 1.32.3    | ishmaelavila (donated)                                                           | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | 1.41      | akanshaG42 (donated)                                                             | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
-| [#2407]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
+| [#2407]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.33** 2024-04-18      |           | ---                                                                              | ---
 | [#2227]                  | 1.41      | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.34** 2024-06-01      |           | ---                                                                              | ---
@@ -199,5 +199,6 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | **1.43** 2025-06-01      |           | ---                                                                              | ---
 | [#2396]                  | 1.43.1    | Simaex (donated)                                                                 | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
-| [#2405]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
-| [#2406]                  |           | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | 
+| [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
+| [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
+
