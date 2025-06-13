@@ -175,9 +175,9 @@ $ hledger -f - reg expr:'(a and amt:>0) or b'
 # ** 13. #2371 aregister
 $ hledger -f sample2.journal areg assets any:'(checking and amt:>0) or credit'
 Transactions in assets and subaccounts (matching query):
-2025-01-01 starting balances    li:credit card            1000 USD      1000 USD
-2025-01-02 salary               as:ba:checking            1000 USD      2000 USD
-2025-01-03 pay half of credi..  li:credit card            -200 USD      1800 USD
+2025-01-01 starting balances    li:credit card         1000.00 USD   1000.00 USD
+2025-01-02 salary               as:ba:checking         1000.00 USD   2000.00 USD
+2025-01-03 pay half of credi..  li:credit card         -200.00 USD   1800.00 USD
 
 # ** 14. #2371 print
 $ hledger -f sample2.journal print -x any:'(checking and amt:>0) or credit'
