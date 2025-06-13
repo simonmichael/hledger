@@ -6722,11 +6722,15 @@ the \[dq]acct:\[dq] prefix.
 Match postings with a single\-commodity amount equal to, less than, or
 greater than N. (Postings with multi\-commodity amounts are not tested
 and will always match.)
+\f[CR]amt:\f[R] needs quotes to hide the less than/greater than sign
+from the command line shell.
+.PP
 The comparison has two modes: if N is preceded by a + or \- sign (or is
 0), the two signed numbers are compared.
 Otherwise, the absolute magnitudes are compared, ignoring sign.
-\f[CR]amt:\f[R] needs quotes to hide the less than/greater than sign
-from the command line shell.
+.PP
+Keep in mind that \f[CR]amt:\f[R] matches posting amounts, not account
+balances.
 .SS code: query
 \f[B]\f[CB]code:REGEX\f[B]\f[R]
 .PD 0
@@ -8904,6 +8908,28 @@ Provide answers for the first four prompts:
 .RE
 .PP
 There is a detailed tutorial at https://hledger.org/add.html.
+.SS add and balance assertions
+Since hledger 1.43, whenever you enter a posting amount, \f[CR]add\f[R]
+will re\-check all balance assertions in the journal, and if any of them
+fail, it will report the problem and ask for the amount again.
+.PP
+You can also add a new balance assertion, following the amount as in
+journal format.
+.PP
+The new transaction\[aq]s date, and the new posting\[aq]s posting date
+if any (entered in a comment following the amount), will influence
+assertion checking.
+.PP
+You can use \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable
+this assertion checking.
+.SS add and balance assignments
+If you try to add a new posting which is dated earlier than a balance
+assignment in that account and commodity, it will be rejected.
+It\[aq]s because by the time \f[CR]add\f[R] runs, all balance
+assignments have been processed and have become assertions.
+So if you need to do this, add the \f[CR]\-I\f[R] flag to disable
+assertions temporarily.
+(#2406).
 .SS import
 Import new transactions from one or more data files to the main journal.
 .IP
