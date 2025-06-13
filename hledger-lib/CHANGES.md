@@ -22,6 +22,11 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# 7198211d
+
+- Hledger.Utils.IO: rename exitOnError -> handleExit, improve doc
+
+
 # 1.43.1 2025-06-04
 
 - Hledger.Query: queryIsAmtOrSym

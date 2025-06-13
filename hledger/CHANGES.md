@@ -25,6 +25,21 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 7198211d
+
+- hledger no longer shows an error message or exits with error status
+  when its output is truncated in a piped command. (This broke in 1.43.) [#2405]
+
+- The `add` command's doc now describes how it interacts with balance assertions
+  and balance assignments. [#2406]
+
+- `aregister` now consistently rounds amounts to display precision again.
+  (This broke in 1.32.) [#2407]
+
+- Changelog, release notes: mention improved decoding errors [#73];
+  add missing issue numbers
+
+
 # 1.43.1 2025-06-04
 
 Fixes

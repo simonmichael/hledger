@@ -22,6 +22,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 7198211d
+
+- Use hledger-1.43.2
+
+
 # 1.43.1 2025-06-04
 
 - More error messages were made consistent, hiding call stack etc. [#2367]
