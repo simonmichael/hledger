@@ -115,6 +115,7 @@ This reduces wasteful admin work.
 [#2397]: https://github.com/simonmichael/hledger/issues/2397
 [#2405]: https://github.com/simonmichael/hledger/issues/2405
 [#2406]: https://github.com/simonmichael/hledger/issues/2406
+[#2407]: https://github.com/simonmichael/hledger/issues/2407
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -184,6 +185,7 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2134]                  | 1.32.2    | pepe_pecas (donated)                                                             | N/A
 | [#2156]                  | 1.32.3    | ishmaelavila (donated)                                                           | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | 1.41      | akanshaG42 (donated)                                                             | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
+| [#2407]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.33** 2024-04-18      |           | ---                                                                              | ---
 | [#2227]                  | 1.41      | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.34** 2024-06-01      |           | ---                                                                              | ---
@@ -195,7 +197,7 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
 | [#2386]                  | 1.42.2    | Simon Michael  (N/A)                                                             | N/A
 | [#2389]                  | 1.42.2    | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
 | **1.43** 2025-06-01      |           | ---                                                                              | ---
-| [#2396]                  | 1.43.1    | Simaex (donated)         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
-| [#2397]                  | 1.43.1    | Dmitry Astapov (donated) | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
-| [#2405]                  |           | Simon Michael (N/A)      | 
-| [#2406]                  |           | **Wojciech Geisler**      | 
+| [#2396]                  | 1.43.1    | Simaex (donated)                                                                 | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2405]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
+| [#2406]                  |           | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | 
