@@ -72,6 +72,7 @@ You can use `-I`/`--ignore-assertions` to disable assertion checking temporarily
 
 ## add and balance assignments
 
+Balance assignments are not recalculated during a `hledger add` session.
 When `add` runs, it sees the journal with all balance assignments already processed and converted to assertions.
 So if you add a new posting which is dated earlier than a balance assignment, it will break the assertion and be rejected.
-If you need to do this, use  `hledger add -I`.
+You can make it work by using  `hledger add -I`.
