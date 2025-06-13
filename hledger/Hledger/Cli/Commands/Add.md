@@ -72,7 +72,7 @@ You can use `-I`/`--ignore-assertions` to disable this assertion checking.
 
 ## add and balance assignments
 
-You can't add new postings which are dated earlier than a balance assignment, currently.
-It's because balance assignments are performed once, before `add`;
-by the time `add` runs, all amounts in the journal are explicit, and assignments have become assertions.
+If you try to add a new posting which is dated earlier than a balance assignment in that account and commodity, it will be rejected.
+It's because by the time `add` runs, all balance assignments have been processed and have become assertions.
+So if you need to do this, add the `-I` flag to disable assertions temporarily.
 ([#2406](https://github.com/simonmichael/hledger/issues/2406)).
