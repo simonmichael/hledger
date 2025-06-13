@@ -44,24 +44,27 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 <https://hledger.org/support>\
 \
 **Github:**\
-<http://code.hledger.org>,
-<http://site.hledger.org>,
-<http://finance.hledger.org>\
+main repo: <https://code.hledger.org>
+
 [commits](https://github.com/simonmichael/hledger/commits),
-[COMMITS!](https://starlogs.net/#simonmichael/hledger)\
-<http://ci.hledger.org>\
-<http://bugs.hledger.org>,
-<http://wishes.hledger.org>,
-more: [ISSUES](ISSUES.md)\
-<http://prs.hledger.org>,
-<http://draftprs.hledger.org>,
-<http://readyprs.hledger.org>,
-<http://assignedprs.hledger.org>,
-<http://unassignedprs.hledger.org>,
-more: [PULLREQUESTS](PULLREQUESTS.md)\
-[projects.hledger.org](http://projects.hledger.org)\
+<https://ci.hledger.org>,
+<https://nightly.hledger.org>,
+<https://release.hledger.org>
+
+<https://bugs.hledger.org>,
+<https://wishes.hledger.org>,
+<https://regressions.hledger.org>,
+[ISSUES](ISSUES.md)
+
+<https://prs.hledger.org>,
+<https://draftprs.hledger.org>,
+<https://readyprs.hledger.org>,
+<https://assignedprs.hledger.org>,
+<https://unassignedprs.hledger.org>,
+[PULLREQUESTS](PULLREQUESTS.md)
+
 [star-history.com](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date) PTA apps' github star history\
-[stars.hledger.org](http://stars.hledger.org) our rank among github-starred haskell projects:
+[stars.hledger.org](https://stars.hledger.org) our rank among github-starred haskell projects:
 
 |      |     |
 |------|-----|
@@ -73,6 +76,11 @@ more: [PULLREQUESTS](PULLREQUESTS.md)\
 | 2017 | #54 |
 | 2016 | #71 |
 
+site repo: <https://site.hledger.org>
+
+finance repo: <https://finance.hledger.org>
+
+related repos:\
 [![Github topic: #hledger](https://img.shields.io/badge/Github_topic-%23hledger-green)](https://github.com/topics/hledger?o=desc&s=updated)\
 [![Github topic: #plaintext-accounting](https://img.shields.io/badge/Github_topic-%23plaintext--accounting-green)](https://github.com/topics/plaintext-accounting?o=desc&s=updated)\
 [![Github topics: *accounting*](https://img.shields.io/badge/Github_topics-%2Aaccounting%2A-green)](https://github.com/search?type=topics&q=accounting)\
