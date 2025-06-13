@@ -9,6 +9,7 @@ terminals, pager output, ANSI colour/styles, etc.
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiWayIf #-}
 
 module Hledger.Utils.IO (
 
@@ -148,7 +149,7 @@ import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, lookupEnv, setEnv, getProgName)
-import           System.Exit (exitFailure)
+import           System.Exit (exitFailure, exitSuccess)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
@@ -291,13 +292,27 @@ exitWithErrorMessage msg = printError msg >> exitFailure
 --
 exitOnError :: IO () -> IO ()
 exitOnError = flip catches
-  [-- Handler (\(e::SomeException) -> error' $ pshow e),  -- debug
+  [
+   -- Handler (\(e::SomeException) -> error' $ pshow e),  -- debug
    Handler (\(e::UnicodeException) -> exitUnicode e)
-  ,Handler (\(e::IOException) -> if isUnicodeError e then exitUnicode e else exitOther e)
+  ,Handler (\(e::IOException) -> if
+    | isUnicodeError e    -> exitUnicode e
+    | isBrokenPipeError e -> exitSuccess
+    | otherwise           -> exitOther e)
   ,Handler (\(e::ErrorCall) -> exitOther e)
   ]
 
   where
+    -- After adding the above handler, truncating program output eg by piping into head
+    -- showed "hledger: Error: <stdout>: commitBuffer: resource vanished ( Broken pipe )".
+    -- As far as I know, this is an IOException and the best we can do is check for that wording
+    -- and treat those as non-errors. (Will this mask any real errors ? XXX)
+    isBrokenPipeError :: Exception e => e -> Bool
+    isBrokenPipeError ex =
+      let msg = map toLower (show ex) in any (`isInfixOf` msg) [
+          "broken pipe"
+        ]
+
     -- Many decoding failures do not produce a UnicodeException, unfortunately.
     -- So this fragile hack detects them from the error message.
     -- But there are many variant wordings and they probably change over time.
