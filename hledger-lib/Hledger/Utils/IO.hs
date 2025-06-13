@@ -27,7 +27,7 @@ module Hledger.Utils.IO (
   ansiFormatWarning,
   printError,
   exitWithErrorMessage,
-  exitOnError,
+  handleExit,
 
   -- * Time
   getCurrentLocalTime,
@@ -262,39 +262,40 @@ then exit the program with a non-zero exit code.
 exitWithErrorMessage :: String -> IO ()
 exitWithErrorMessage msg = printError msg >> exitFailure
 
--- | This wraps a program's main routine so as to display more consistent
--- and useful error output for some common program-terminating exceptions,
--- independent of compiler version. It catches:
+-- | This wraps a program's main routine so as to display more consistent,
+-- useful, and GHC-version-independent error output when the program exits
+-- because of certain common exceptions. It
 --
--- - UnicodeException - unicode errors in pure code
+-- 1. disables SIGPIPE errors, which are usually harmless,
+--    caused when our output is truncated in a piped command.
 --
--- - IOException AKA IOError - I/O errors, including unicode errors during I/O
+-- 2. catches these common exceptions:
 --
--- - ErrorCall - @error@ / @errorWithoutStackTrace@ calls
+--    - UnicodeException, caused eg by text decoding errors in pure code
 --
--- and:
--- 
--- - removes the trailing newlines added by some GHC 9.10.*
+--    - IOException, caused by I/O errors, including text decoding errors during I/O
 --
--- - removes "uncaught exception" output added by some GHC 9.12.*
+--    - ErrorCall - @error@ / @errorWithoutStackTrace@ calls
 --
--- - ensures a consistent "programname: " prefix
+-- 3. compensates for GHC output bugs:
 --
--- - applies ANSI styling (bold bright red) to the first line if that is supported and allowed
+--    - removes the trailing newlines added by some GHC 9.10.* versions
 --
--- - for unicode exceptions, and I/O exceptions which look like they were
---   caused by a unicode error (usually text decoding failure),
---   it adds (english) text explaining the problem and what to do.
+--    - removes "uncaught exception" output added by some GHC 9.12.* versions
 --
--- Some exceptions this does not handle:
--- ExitCode (exitSuccess/exitFailure/exitWith),
--- UserInterrupt (control-C).
+--    - ensures a consistent "PROGNAME: " prefix
 --
--- Also, this ignores SIGPIPE errors, which are usually harmless,
--- caused when our output is truncated in a piped command.
+-- 4. applies bold bright red ANSI styling to the first line of error output,
+--    if that is supported and allowed
 --
-exitOnError :: IO () -> IO ()
-exitOnError = flip catches [
+-- 5. for unicode exceptions and I/O exceptions which look like they were
+--    unicode-related, it adds a message (in english) explaining the problem and what to do.
+--
+-- Some exceptions this does not catch are ExitCode (exitSuccess/exitFailure/exitWith)
+-- and UserInterrupt (control-C).
+--
+handleExit :: IO () -> IO ()
+handleExit = flip catches [
    -- Handler (\(e::SomeException) -> error' $ pshow e),  -- debug
    Handler (\(e::UnicodeException) -> exitUnicode e)
   ,Handler (\(e::IOException) -> if
