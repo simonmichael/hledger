@@ -22,7 +22,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 7198211d
+# 1.43.2 2025-06-13
 
 - Use hledger-1.43.2
 
