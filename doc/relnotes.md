@@ -75,9 +75,52 @@ Changes in hledger-install.sh are shown
 
 
 
+
+## 2025-06-13 hledger-1.43.2
+
+
+### hledger 1.43.2
+
+
+- hledger no longer shows an error message or exits with error status
+  when its output is truncated in a piped command. (This broke in 1.43.) [#2405]
+
+- The `add` command's doc now describes how it interacts with balance assertions
+  and balance assignments. [#2406]
+
+- `aregister` now consistently rounds amounts to display precision again.
+  (This broke in 1.32.) [#2407]
+
+- Changelog, release notes: mention improved decoding errors [#73];
+  add missing issue numbers
+
+
+### hledger-ui 1.43.2
+
+
+- Use hledger-1.43.2
+
+
+### hledger-web 1.43.2
+
+
+- Use hledger-1.43.2
+
+- Add missing issue numbers in the changelog
+
+
+### credits 1.43.2
+
+
+Simon Michael.
+
+[#73]:   https://github.com/simonmichael/hledger/issues/73
+[#2405]: https://github.com/simonmichael/hledger/issues/2405
+[#2406]: https://github.com/simonmichael/hledger/issues/2406
+[#2407]: https://github.com/simonmichael/hledger/issues/2407
+
+
 ## 2025-06-04 hledger-1.43.1
-
-
 ### hledger 1.43.1
 
 
@@ -128,6 +171,7 @@ Simon Michael.
 [#2394]: https://github.com/simonmichael/hledger/issues/2394
 [#2396]: https://github.com/simonmichael/hledger/issues/2396
 [#2397]: https://github.com/simonmichael/hledger/issues/2397
+
 
 
 
@@ -9917,6 +9961,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
