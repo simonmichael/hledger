@@ -18,28 +18,27 @@ module Hledger.Cli.Commands.Help (
   ) where
 
 import Data.Maybe
+import Safe (headMay)
 import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
 
-import Hledger.Utils (embedFileRelative)
-import Hledger.Data.RawOptions
-import Hledger.Data.Types
 import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
-import Safe (headMay)
+import Hledger.Data.RawOptions
+import Hledger.Data.Types
+import Hledger.Utils (embedFileRelative)
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Help.txt")
-  [flagNone ["i"] (setboolopt "info")  "show the manual with info"
-  ,flagNone ["m"] (setboolopt "man")   "show the manual with man"
-  ,flagNone ["p"] (setboolopt "pager") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
+  -- The help-* names avoid a clash with the --info and --man flags handled in Cli.hs.
+  [flagNone ["i"] (setboolopt "help-i")  "show the manual with info"
+  ,flagNone ["m"] (setboolopt "help-m")   "show the manual with man"
+  ,flagNone ["p"] (setboolopt "help-p") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
   ]
   [(helpflagstitle, helpflags)]
-  [
-    flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
-  ]
+  []
   ([], Just $ argsFlag "[TOPIC]")
 
 -- | Display the hledger manual in various formats.
@@ -57,14 +56,14 @@ help' opts _ = do
     [info, man, pager, cat] =
       [runInfoForTopic, runManForTopic, runPagerForTopic, printHelpForTopic]
     viewer
-      | boolopt "info"  $ rawopts_ opts = info
-      | boolopt "man"   $ rawopts_ opts = man
-      | boolopt "pager" $ rawopts_ opts = pager
-      | not interactive                 = cat
-      | "info"    `elem` exes           = info
-      | "man"     `elem` exes           = man
-      | pagerprog `elem` exes           = pager
-      | "less"    `elem` exes           = pager
-      | otherwise                       = cat
+      | boolopt "help-i" $ rawopts_ opts = info
+      | boolopt "help-m" $ rawopts_ opts = man
+      | boolopt "help-p" $ rawopts_ opts = pager
+      | not interactive                  = cat
+      | "info"    `elem` exes            = info
+      | "man"     `elem` exes            = man
+      | pagerprog `elem` exes            = pager
+      | "less"    `elem` exes            = pager
+      | otherwise                        = cat
 
   viewer "hledger" mtopic
