@@ -76,10 +76,10 @@ It should be improved each time it is used.
   - [ ] release branch
   - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
   - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
-        `just relbranch VER`,
+        `just relbranch VER`,  
         `just cabalfilestest`
   - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)  
-        `stack build`
+        `stack build`  
         `./Shake cmddocs -c`
   - [ ] embedded manuals x 3
     - [ ] generaloptions macro (in doc/common.m4)
@@ -88,7 +88,7 @@ It should be improved each time it is used.
     - [ ] man  (hledger*/hledger*.1)
     - [ ] info (hledger*/hledger*.info)
     - [ ] text (hledger*/hledger*.txt)  
-        `./Shake mandates`
+        `./Shake mandates`  
         `./Shake manuals -c`
   - [ ] embedded tldr pages synced with upstream (doc/tldr/*)  
         `just tldr-diff`
@@ -97,6 +97,7 @@ It should be improved each time it is used.
         `just completions`, commit any changes
   - [ ] changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
+        add changes from site, finance repos  
         `just changelogs-finalise`
 - [ ] release docs and artifacts
   - [ ] draft binaries building started  
@@ -126,10 +127,11 @@ It should be improved each time it is used.
   - [ ] Install page (site/src/install.md) --version examples match release binaries
 - [ ] published
   - [ ] relevant release branch work cherry-picked to master branch  
-      changelogs
-      relnotes
-      hledger-install
-      announcements
+      changelogs,
+      relnotes,
+      announcements,
+      (hledger-install)
+  - [ ] nightly release changes link up to date in master (doc/ghnightlynotes.md)
   - [ ] all packages uploaded correctly to hackage  
       `just hackageupload`, check versions, confirm, check all uploads successful
   - [ ] master branch pushed to github
@@ -154,6 +156,9 @@ It should be improved each time it is used.
   - [ ] github release published  
       review,
       publish
+  - [ ] github nightly release updated  
+        `just nightly-release-tag`
+        `just ghnightly-notes`
   - [ ] install instructions tested and working
     - [ ] hledger-install
     - [ ] stack
