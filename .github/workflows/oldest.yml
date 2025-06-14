@@ -17,14 +17,8 @@ jobs:
       # image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     env:
-      # This workflow uses github's preinstalled ghc & stack on ubuntu.
-      # Keep these synced with the latest ghc version at https://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
-      #
-      # caching id for this ghc's build artifacts:
-      # XXX supposed to be interpolated by $ghc below, but this is not working
-      ghc: 8107
-      # stack config for this ghc:
       stack: stack --stack-yaml=stack810.yaml
+      ghc:   8.10.7
 
     steps:
 

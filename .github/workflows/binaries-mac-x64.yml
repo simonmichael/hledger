@@ -6,6 +6,7 @@ on:
   push:
     branches: [ binaries-mac-x64, binaries ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: macos-13
@@ -14,6 +15,8 @@ jobs:
 
     env:
       stack: stack
+      ghc:   9.10.1
+
     steps:
 
     - name: Show platform info

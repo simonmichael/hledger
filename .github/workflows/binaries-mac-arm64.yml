@@ -6,6 +6,7 @@ on:
   push:
     branches: [ binaries-mac-arm64, binaries ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: macos-14
@@ -13,8 +14,8 @@ jobs:
       # image: https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md
 
     env:
-      ghc: 9.12.2
       stack: stack
+      ghc:   9.10.1
 
     steps:
 

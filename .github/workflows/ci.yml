@@ -50,11 +50,8 @@ jobs:
       # image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     env:
-      # caching id for this ghc's build artifacts
-      ghc: 910
-
-      # select the right stack yaml for this ghc
       stack: stack
+      ghc:   9.10.1
 
       # flag for skipping later steps, declared here to prevent "Context access might be invalid" warnings
       do-all:

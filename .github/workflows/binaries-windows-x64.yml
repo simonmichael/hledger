@@ -6,6 +6,7 @@ on:
   push:
     branches: [ binaries-windows-x64, binaries ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: windows-latest
@@ -19,6 +20,7 @@ jobs:
     env:
       # use preinstalled ghc 9.12.2
       stack: stack --system-ghc --no-install-ghc --stack-yaml stack912.yaml
+      ghc:   9.12.2
 
     steps:
 
