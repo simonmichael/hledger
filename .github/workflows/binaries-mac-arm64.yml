@@ -34,67 +34,65 @@ jobs:
       run: |
         tools/checkembeddedfiles
 
-    # caching
-    # XXX Should some of these have ghc version in the key, as in ci.yml ?
-    # I think so, otherwise when ghc version changes they'll keep restoring the old data and it won't be used or updated
+    # CACHES
 
     - name: Cache - stack-installed ~/.local/bin
       id:   stack-programs
       uses: actions/cache@v4
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-arm64-stack-programs-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-programs-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-stack-programs
+             ${{ runner.os }}-arm64-stack-programs-${{ env.ghc }}
 
     - name: Cache - ~/.stack
       id:   stack-global
       uses: actions/cache@v4
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-arm64-stack-global-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-global-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-stack-global
+             ${{ runner.os }}-arm64-stack-global-${{ env.ghc }}
 
     - name: Cache - ./.stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
-        key: ${{ runner.os }}-arm64-stack-work-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-work-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-stack-work
+             ${{ runner.os }}-arm64-stack-work-${{ env.ghc }}
 
     - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-arm64-hledger-lib-stack-work-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-lib-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-hledger-lib-stack-work
+             ${{ runner.os }}-arm64-hledger-lib-stack-work-${{ env.ghc }}
 
     - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-arm64-hledger-stack-work-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-stack-work-${{ env.ghc }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-hledger-stack-work
+             ${{ runner.os }}-arm64-hledger-stack-work-${{ env.ghc }}
 
     - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-arm64-hledger-ui-stack-work-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-ui-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-hledger-ui-stack-work
+             ${{ runner.os }}-arm64-hledger-ui-stack-work-${{ env.ghc }}
 
     - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-arm64-hledger-web-stack-work-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-web-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-arm64-hledger-web-stack-work
+             ${{ runner.os }}-arm64-hledger-web-stack-work-${{ env.ghc }}
 
     # actions:
 

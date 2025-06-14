@@ -30,26 +30,25 @@ jobs:
       run: |
         apk --no-cache add gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl
 
-    # things to be cached/restored (needs tar)
+    # CACHES
 
     - name: Cache - ~/.ghcup
       id:   ghcup
       uses: actions/cache@v4
       with:
         path: ~/.ghcup
-        key: ${{ runner.os }}-ghcup-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-ghcup-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-ghcup
+             ${{ runner.os }}-x64-ghcup-${{ env.ghc }}
 
-    # XXX Warning: Path Validation Error: Path(s) specified in the action for caching do(es) not exist, hence no cache is being saved.
     - name: Cache - ~/.cabal
       id:   cabal
       uses: actions/cache@v4
       with:
         path: ~/.cabal
-        key: ${{ runner.os }}-cabal-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-cabal-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-cabal
+             ${{ runner.os }}-x64-cabal-${{ env.ghc }}
 
     # actions:
 
