@@ -1,6 +1,6 @@
-# payees command
+# * payees command
 
-# basic payees report
+# ** 1. basic payees report
 <
 payee qux
 
@@ -13,21 +13,20 @@ payee qux
 2018/1/3 foo
   a
 
-# declared and used payees, the default
 $ hledger -f - payees
 bar
 foo
 qux
 
-# used payees
+# ** 2. used payees
 $ hledger -f - payees --used
 bar
 foo
 
-# declared payees
+# ** 3. declared payees
 $ hledger -f - payees --declared
 qux
 
-# payees used in transactions matched by a query
+# ** 4. payees used in transactions matched by a query
 $ hledger -f - payees date:2018-01-03
 foo
