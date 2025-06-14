@@ -156,7 +156,7 @@ jobs:
         key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-$ghc
-      if: env.do-all
+      # if: env.do-all
 
     - name: Cache - stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -166,7 +166,7 @@ jobs:
         key: ${{ runner.os }}-stack-programs-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs-$ghc
-      if: env.do-all
+      # if: env.do-all
 
     - name: Cache - .stack-work
       uses: actions/cache@v4
@@ -213,13 +213,14 @@ jobs:
              ${{ runner.os }}-hledger-web-stack-work-$ghc
       if: env.do-all
 
-    # Ensure the ghc version used by the default stack.yaml is installed.
-    # The following stack path commands require it, so let's install it now more quietly.
+    # Ensure the ghc version we need is installed.
+    # The following stack path commands require it, so let's install it first, quietly if possible.
     # Hopefully it will often be in our cached dirs, avoiding reinstall.
     # Don't rely on the preinstalled ghc, it's too old/variable.
     - name: Ensure ghc is installed
       run: |
-        stack setup --verbosity error
+        $stack setup --verbosity error
+      if: env.do-all
 
     - name: Show stack directories
       run: |
@@ -246,6 +247,7 @@ jobs:
         printf "local-hoogle-root: \t";     $stack path --local-hoogle-root      # Local project documentation root
         printf "dist-dir: \t";              $stack path --dist-dir               # Dist work directory, relative to package directory
         printf "local-hpc-root: \t";        $stack path --local-hpc-root         # Where HPC reports and tix files are stored
+      if: env.do-all
 
 
     # ACTIONS
