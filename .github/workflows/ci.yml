@@ -131,6 +131,17 @@ jobs:
 
     # CACHES
 
+    # Remember, caches are immutable - created once and never updated.
+    # If a cache is used, a new version of it won't be created.
+    # It's probably right to use them for things which don't/needn't change between runs,
+    # including:
+    # - the package db containing the versions of our deps specified by the stackage snapshot
+    #   (or by the build plan found by the first cabal run, if using cabal)
+    # - the local bin directory ? what's in there anyway ?
+    # - the per-project and per-package .stack-work directories ? these probably change a little on each run.
+    #   presumably it's worthwhile to cache their first-run content, even if with every following run
+    #   we end up having to rebuild more of that. The alternative is to always rebuild all of it.
+
     - name: Cache - stack global package db
       id:   stack-global
       uses: actions/cache@v4
