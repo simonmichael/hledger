@@ -36,33 +36,29 @@ import Safe (headDef)
 accountsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Accounts.txt")
   (
-  [flagNone ["used","u"]     (setboolopt "used")       "show only accounts used by transactions"
-  ,flagNone ["declared","d"] (setboolopt "declared")   "show only accounts declared by account directive"  -- no s to avoid line wrap
-  ,flagNone ["unused"]       (setboolopt "unused")     "show only accounts declared but not used"
-  ,flagNone ["undeclared"]   (setboolopt "undeclared") "show only accounts used but not declared"
+  [flagNone ["used","u"]     (setboolopt "used")       "list accounts used"
+  ,flagNone ["declared","d"] (setboolopt "declared")   "list accounts declared"
+  ,flagNone ["undeclared"]   (setboolopt "undeclared") "list accounts used but not declared"
+  ,flagNone ["unused"]       (setboolopt "unused")     "list accounts declared but not used"
+  ,flagNone ["find"]         (setboolopt "find")       "list the first account matched by the first argument (a case-insensitive infix regexp)"
+
   ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
   ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
   ,flagNone ["directives"]   (setboolopt "directives") "show as account directives, for use in journals"
-  ,flagNone ["find"]         (setboolopt "find")       "find the first account matched by the first argument (a case-insensitive infix regexp or account name)"
   ]
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"]
   )
   cligeneralflagsgroups1
   hiddenflags
-  ([], Just $ argsFlag "[QUERY]")
+  ([], Just $ argsFlag "[QUERY..]")
 
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
-accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsReportOpts=ropts}} j = do
+accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsReportOpts=ropts}} j = do
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
-      used = boolopt "used"     rawopts
-      decl = boolopt "declared" rawopts
-      unused = boolopt "unused" rawopts
-      undecl = boolopt "undeclared" rawopts
-      find_ = boolopt "find" rawopts
       types = boolopt "types"    rawopts
       positions = boolopt "positions" rawopts
       directives = boolopt "directives" rawopts
@@ -71,13 +67,13 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
       -- just the acct: part of the query will be reapplied later, after clipping
       acctq = dbg4 "acctq" $ filterQuery queryIsAcct query
       dep = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
-      matcheddeclaredaccts = dbg5 "matcheddeclaredaccts" $
+      matchedused = dbg5 "matchedused" $ nub $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      matcheddeclared = dbg5 "matcheddeclared" $
         nub $
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq) $
         map fst $ jdeclaredaccounts j
-      matchedusedaccts = dbg5 "matchedusedaccts" $ nub $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
-      matchedunusedaccts = dbg5 "matchedunusedaccts" $ nub $ matcheddeclaredaccts \\ matchedusedaccts
-      matchedundeclaredaccts = dbg5 "matchedundeclaredaccts" $ nub $ matchedusedaccts \\ matcheddeclaredaccts
+      matchedundeclared = dbg5 "matchedundeclared" $ nub $ matchedused \\ matcheddeclared
+      matchedunused = dbg5 "matchedunused" $ nub $ matcheddeclared \\ matchedused
       -- keep synced with aregister
       matchedacct = dbg5 "matchedacct" $
         fromMaybe (error' $ show apat ++ " did not match any account.")   -- PARTIAL:
@@ -89,14 +85,16 @@ accounts CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsRepo
           apat = headDef
             (error' "With --find, please provide an account name or\naccount pattern (case-insensitive, infix, regexp) as first command argument.")
             $ listofstringopt "args" rawopts
-
-      accts = dbg5 "accts to show" $ if
-        | not decl && used     -> matchedusedaccts
-        | decl     && not used -> matcheddeclaredaccts
-        | unused               -> matchedunusedaccts
-        | undecl               -> matchedundeclaredaccts
-        | find_                -> [matchedacct]
-        | otherwise            -> matcheddeclaredaccts ++ matchedusedaccts
+      matchedall = matcheddeclared ++ matchedused
+      accts = dbg5 "accts to show" $
+        case (usedOrDeclaredFromOpts opts, boolopt "find" rawopts) of
+          (Nothing,         False) -> matchedall
+          (Nothing,         True)  -> [matchedacct]
+          (Just Used,       False) -> matchedused
+          (Just Declared,   False) -> matcheddeclared
+          (Just Undeclared, False) -> matchedundeclared
+          (Just Unused,     False) -> matchedunused
+          _ -> error' "please pick at most one of --used, --declared, --undeclared, --unused, --find"
 
   -- 2. sort them by declaration order (then undeclared accounts alphabetically)
   -- within each group of siblings

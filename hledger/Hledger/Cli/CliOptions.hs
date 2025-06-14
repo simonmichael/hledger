@@ -81,6 +81,8 @@ module Hledger.Cli.CliOptions (
 
   -- * Other utils
   topicForMode,
+  UsedOrDeclared(..),
+  usedOrDeclaredFromOpts,
 
 --  -- * Convenience re-exports
 --  module Data.String.Here,
@@ -814,6 +816,29 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
           descwidth <- optional (char ',' >> read `fmap` some digitChar)
           eof
           return (totalwidth, descwidth)
+
+-- A common choice for filtering lists of declarable things.
+data UsedOrDeclared
+  = Used
+  | Declared
+  | Undeclared
+  | Unused
+  deriving (Show, Eq)
+
+-- Get the flag of this kind from opts, or raise an error if there's more than one.
+usedOrDeclaredFromOpts :: CliOpts -> Maybe UsedOrDeclared
+usedOrDeclaredFromOpts CliOpts{rawopts_=rawopts} =
+  case ( boolopt "used"       rawopts
+       , boolopt "declared"   rawopts
+       , boolopt "undeclared" rawopts
+       , boolopt "unused"     rawopts
+       ) of
+    (False, False, False, False) -> Nothing
+    (True, False, False, False) -> Just Used
+    (False, True, False, False) -> Just Declared
+    (False, False, True, False) -> Just Undeclared
+    (False, False, False, True) -> Just Unused
+    _ -> error' "please pick at most one of --used, --declared, --undeclared, --unused"
 
 -- Other utils
 

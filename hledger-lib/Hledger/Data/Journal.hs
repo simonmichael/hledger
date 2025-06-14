@@ -71,9 +71,14 @@ module Hledger.Data.Journal (
   journalTagsDeclared,
   journalTagsUsed,
   journalTagsDeclaredOrUsed,
+  journalAmounts,
+  journalPostingAmounts,
+  journalPostingAndCostAmounts,
   journalCommoditiesDeclared,
   journalCommoditiesUsed,
   journalCommodities,
+  journalCommoditiesFromPriceDirectives,
+  journalCommoditiesFromTransactions,
   journalDateSpan,
   journalDateSpanBothDates,
   journalStartDate,
@@ -86,8 +91,7 @@ module Hledger.Data.Journal (
   journalNextTransaction,
   journalPrevTransaction,
   journalPostings,
-  journalPostingAmounts,
-  showJournalAmountsDebug,
+  showJournalPostingAmountsDebug,
   journalTransactionsSimilarTo,
   -- * Account types
   journalAccountType,
@@ -395,25 +399,47 @@ journalPostings = concatMap tpostings . jtxns
 journalPostingAmounts :: Journal -> [MixedAmount]
 journalPostingAmounts = map pamount . journalPostings
 
--- | Show the journal amounts rendered, suitable for debug logging.
-showJournalAmountsDebug :: Journal -> String
-showJournalAmountsDebug = show.map showMixedAmountOneLine.journalPostingAmounts
+-- | Show the journal posting amounts rendered, suitable for debug logging.
+showJournalPostingAmountsDebug :: Journal -> String
+showJournalPostingAmountsDebug = show . map showMixedAmountOneLine . journalPostingAmounts
+
+-- | All raw amounts used in this journal's postings and costs,
+-- with MixedAmounts flattened, in parse order.
+journalPostingAndCostAmounts :: Journal -> [Amount]
+journalPostingAndCostAmounts = concatMap getAmounts . concatMap (amountsRaw . pamount) . journalPostings
+
+-- | All raw amounts appearing in this journal, with MixedAmounts flattened, in no particular order.
+-- (Including from posting amounts, cost amounts, P directives, and the last D directive.)
+journalAmounts :: Journal -> S.Set Amount
+journalAmounts = S.fromList . journalStyleInfluencingAmounts True
 
 -- | Sorted unique commodity symbols declared by commodity directives in this journal.
 journalCommoditiesDeclared :: Journal -> [CommoditySymbol]
 journalCommoditiesDeclared = M.keys . jdeclaredcommodities
 
--- | Sorted unique commodity symbols used in this journal.
+-- | Sorted unique commodity symbols used anywhere in this journal, including
+-- commodity directives, P directives, the last D directive, posting amounts and cost amounts.
 journalCommoditiesUsed :: Journal -> [CommoditySymbol]
-journalCommoditiesUsed = S.elems . S.fromList . concatMap (map acommodity . amounts) . journalPostingAmounts
+journalCommoditiesUsed j = S.elems $
+  journalCommoditiesFromPriceDirectives j <>
+  (S.fromList $ map acommodity $ journalStyleInfluencingAmounts True j)
 
--- | Sorted unique commodity symbols mentioned in this journal.
+-- | Sorted unique commodity symbols mentioned anywhere in this journal.
+-- (Including commodity directives, P directives, the last D directive, posting amounts and cost amounts.)
 journalCommodities :: Journal -> S.Set CommoditySymbol
 journalCommodities j =
      M.keysSet (jdeclaredcommodities j)
-  <> M.keysSet (jinferredcommoditystyles j)
-  <> S.fromList (concatMap pdcommodities $ jpricedirectives j)
-      where pdcommodities pd = [pdcommodity pd, acommodity $ pdamount pd]
+  <> journalCommoditiesFromPriceDirectives j
+  <> S.fromList (map acommodity $ journalStyleInfluencingAmounts True j)
+
+-- | Sorted unique commodity symbols mentioned in this journal's P directives.
+journalCommoditiesFromPriceDirectives :: Journal -> S.Set CommoditySymbol
+journalCommoditiesFromPriceDirectives = S.fromList . concatMap pdcomms . jpricedirectives
+  where pdcomms pd = [pdcommodity pd, acommodity $ pdamount pd]
+
+-- | Sorted unique commodity symbols used in transactions, in either posting or cost amounts.
+journalCommoditiesFromTransactions :: Journal -> S.Set CommoditySymbol
+journalCommoditiesFromTransactions j = S.fromList $ map acommodity $ journalPostingAndCostAmounts j
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]
@@ -901,11 +927,11 @@ journalCommodityStylesWith :: Rounding -> Journal -> M.Map CommoditySymbol Amoun
 journalCommodityStylesWith r = amountStylesSetRounding r . journalCommodityStyles
 
 -- | Collect and save inferred amount styles for each commodity based on
--- the posting amounts in that commodity (excluding price amounts).
+-- P directive amounts, posting amounts but not cost amounts, and maybe the last D amount, in that commodity.
 -- Can return an error message eg if inconsistent number formats are found.
 journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
-  case commodityStylesFromAmounts $ journalStyleInfluencingAmounts j of
+  case commodityStylesFromAmounts $ journalStyleInfluencingAmounts False j of
     Left e   -> Left e
     Right cs -> Right j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
 
@@ -982,23 +1008,23 @@ journalInferEquityFromCosts verbosetags j =
 --               Just (UnitCost ma)  -> c:(concatMap amountCommodities $ amounts ma)
 --               Just (TotalCost ma) -> c:(concatMap amountCommodities $ amounts ma)
 
--- | Get an ordered list of amounts in this journal which can
--- influence canonical amount display styles. Those amounts are, in
--- the following order:
+-- | Get an ordered list of amounts in this journal which can influence
+-- canonical amount display styles (excluding the ones in commodity directives). 
+-- They are, in the following order:
 --
 -- * amounts in market price (P) directives (in parse order)
--- * posting amounts in transactions (in parse order)
+-- * posting amounts and optionally cost amounts (in parse order)
 -- * the amount in the final default commodity (D) directive
 --
--- Transaction price amounts (posting amounts' acost field) are not included.
---
-journalStyleInfluencingAmounts :: Journal -> [Amount]
-journalStyleInfluencingAmounts j =
+journalStyleInfluencingAmounts :: Bool -> Journal -> [Amount]
+journalStyleInfluencingAmounts includecost j =
   dbg7 "journalStyleInfluencingAmounts" $
   catMaybes $ concat [
    [mdefaultcommodityamt]
   ,map (Just . pdamount) $ jpricedirectives j
-  ,map Just . concatMap (amountsRaw . pamount) $ journalPostings j
+  ,map Just $ if includecost
+    then journalPostingAndCostAmounts j
+    else concatMap amountsRaw $ journalPostingAmounts j
   ]
   where
     -- D's amount style isn't actually stored as an amount, make it into one

@@ -1,9 +1,19 @@
 ## commodities
 
-List all commodity/currency symbols used or declared in the journal.
+List the commodity symbols used or declared in the journal.
 
 ```flags
 Flags:
-no command-specific flags
+     --used                 list commodities used
+     --declared             list commodities declared
+     --undeclared           list commodities used but not declared
+     --unused               list commodities declared but not used
 ```
 
+This command lists commodity symbols/names - all of them by default,
+or just the ones which have been used in transactions or `P` directives,
+or declared with `commodity` directives,
+or used but not declared,
+or declared but not used.
+
+You can add cur: query arguments to further limit the commodities.

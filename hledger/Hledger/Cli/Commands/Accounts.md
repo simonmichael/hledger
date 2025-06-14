@@ -1,39 +1,34 @@
 ## accounts 
 
-List account names.
+List the account names used or declared in the journal.
 
 ```flags
 Flags:
-  -u --used                 show only accounts used by transactions
-  -d --declared             show only accounts declared by account directive
-     --unused               show only accounts declared but not used
-     --undeclared           show only accounts used but not declared
+  -u --used                 list accounts used
+  -d --declared             list accounts declared
+     --undeclared           list accounts used but not declared
+     --unused               list accounts declared but not used
+     --find                 list the first account matched by the first
+                            argument (a case-insensitive infix regexp)
      --types                also show account types when known
      --positions            also show where accounts were declared
      --directives           show as account directives, for use in journals
-     --find                 find the first account matched by the first
-                            argument (a case-insensitive infix regexp or
-                            account name)
   -l --flat                 list/tree mode: show accounts as a flat list
                             (default)
   -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 ```
 
-This command lists account names.
-By default it shows all known accounts, either used in transactions or declared with account directives.
+This command lists account names - all of them by default.
+or just the ones which have been used in transactions,
+or declared with `account` directives,
+or used but not declared,
+or declared but not used,
+or just the first account name matched by a pattern.
 
-With query arguments, only matched account names and account names referenced by matched postings are shown.
+You can add query arguments to select a subset of transactions or accounts.
 
-Or it can show just
-the used accounts (`--used`/`-u`),
-the declared accounts (`--declared`/`-d`),
-the accounts declared but not used (`--unused`),
-the accounts used but not declared (`--undeclared`),
-or the first account matched by an account name pattern, if any (`--find`).
-
-It shows a flat list by default. With `--tree`, it uses indentation to
-show the account hierarchy.
+It shows a flat list by default. With `--tree`, it uses indentation to show the account hierarchy.
 In flat mode you can add `--drop N` to omit the first few account name components.
 Account names can be depth-clipped with `depth:N` or `--depth N` or `-N`.
 
@@ -44,8 +39,7 @@ With `--positions`, it also shows the file and line number of each
 account's declaration, if any, and the account's overall declaration order;
 these may be useful when troubleshooting account display order.
 
-With `--directives`, it adds the `account` keyword, showing
-valid account directives which can be pasted into a journal file.
+With `--directives`, it shows valid account directives which could be pasted into a journal file.
 This is useful together with `--undeclared` when updating your account declarations
 to satisfy `hledger check accounts`.
 

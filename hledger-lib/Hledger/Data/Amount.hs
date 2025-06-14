@@ -79,6 +79,7 @@ module Hledger.Data.Amount (
   amountUnstyled,
   commodityStylesFromAmounts,
   -- canonicalStyleFrom,
+  getAmounts,
 
   -- ** rendering
   AmountFormat(..),
@@ -565,6 +566,13 @@ instance HasAmounts Amount where
                 -- dbg0 "old      style"
                 olds)
           Nothing -> olds
+
+-- | Get an amount and its attached cost amount if any. Returns one or two amounts.
+getAmounts :: Amount -> [Amount]
+getAmounts a@Amount{acost} = a : case acost of
+  Nothing            -> []
+  Just (UnitCost  c) -> [c]
+  Just (TotalCost c) -> [c]
 
 -- AmountStyle helpers
 
@@ -1094,13 +1102,17 @@ mixedAmountSetStyles = styleAmounts
 -- v4
 instance HasAmounts MixedAmount where
   styleAmounts styles = mapMixedAmountUnsafe (styleAmounts styles)
+  -- getAmounts = concatMap getAmounts . amounts
 
 instance HasAmounts BalanceData where
   styleAmounts styles balance@BalanceData{bdexcludingsubs,bdincludingsubs} =
     balance{bdexcludingsubs=styleAmounts styles bdexcludingsubs, bdincludingsubs=styleAmounts styles bdincludingsubs}
+  -- getAmounts BalanceData{bdexcludingsubs, bdincludingsubs} =
+  --   getAmounts bdexcludingsubs <> getAmounts bdincludingsubs
 
 instance HasAmounts a => HasAmounts (PeriodData a) where
   styleAmounts styles = fmap (styleAmounts styles)
+  -- getAmounts 
 
 instance HasAmounts a => HasAmounts (Account a) where
   styleAmounts styles acct@Account{adata} =
