@@ -47,15 +47,13 @@ jobs:
   ci:
     runs-on: ubuntu-24.04
     env:
-      # This workflow uses github's preinstalled ghc & stack on ubuntu.
-      # Keep these synced with the latest ghc version at https://github.com/actions/runner-images/blob/ubuntu22/20240514.2/images/ubuntu/Ubuntu2404-Readme.md#haskell-tools
-      #
       # caching id for this ghc's build artifacts:
       # XXX ideally should match the default ghc in stack.yaml, though it's not critical
       # XXX supposed to be interpolated by $ghc below, but this is not working
       ghc: 910
-      # stack config for this ghc:
-      stack: stack --system-ghc --no-install-ghc
+
+      # select the right stack yaml for this ghc
+      stack: stack
 
       # flag for skipping later steps, declared here to prevent "Context access might be invalid" warnings
       do-all:
@@ -214,6 +212,14 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-hledger-web-stack-work-$ghc
       if: env.do-all
+
+    # Ensure the ghc version used by the default stack.yaml is installed.
+    # The following stack path commands require it, so let's install it now more quietly.
+    # Hopefully it will often be in our cached dirs, avoiding reinstall.
+    # Don't rely on the preinstalled ghc, it's too old/variable.
+    - name: Ensure ghc is installed
+      run: |
+        stack setup --verbosity error
 
     - name: Show stack directories
       run: |
