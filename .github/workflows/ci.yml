@@ -220,7 +220,7 @@ jobs:
     - name: Ensure ghc is installed
       run: |
         $stack setup --verbosity error
-      if: env.do-all
+      # if: env.do-all
 
     - name: Show stack directories
       run: |
@@ -247,7 +247,7 @@ jobs:
         printf "local-hoogle-root: \t";     $stack path --local-hoogle-root      # Local project documentation root
         printf "dist-dir: \t";              $stack path --dist-dir               # Dist work directory, relative to package directory
         printf "local-hpc-root: \t";        $stack path --local-hpc-root         # Where HPC reports and tix files are stored
-      if: env.do-all
+      # if: env.do-all
 
 
     # ACTIONS
