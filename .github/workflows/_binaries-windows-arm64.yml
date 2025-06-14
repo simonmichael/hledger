@@ -12,9 +12,13 @@ on:
 jobs:
   build:
     runs-on: windows-11-arm
+      # arch:  arm64
+      # image: https://github.com/actions/partner-runner-images/blob/main/images/arm-windows-11-image.md
+
     defaults:
       run:
         shell: bash
+
     steps:
 
     - name: Check out

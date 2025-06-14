@@ -12,8 +12,11 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+      # arch:  x64
+      # image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
     container: alpine:latest
+
     steps:
 
     - name: Check out

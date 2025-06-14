@@ -8,8 +8,10 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    # x64
     runs-on: macos-13
+      # arch:  x64
+      # image: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
+
     env:
       stack: stack
     steps:

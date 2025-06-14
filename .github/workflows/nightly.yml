@@ -11,6 +11,7 @@ on:
 jobs:
   publish-binaries:
     runs-on: ubuntu-latest
+
     steps:
 
     - name: Checkout repository

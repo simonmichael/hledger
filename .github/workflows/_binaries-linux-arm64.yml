@@ -10,10 +10,12 @@ on:
 jobs:
   build:
     runs-on:   ubuntu-24.04-arm
+      # arch:  arm64
+      # image: https://github.com/actions/partner-runner-images/blob/main/images/arm-ubuntu-24-image.md
+
     # container: arm64v8/alpine:3.18
-    # work around janky arm/alpine support
-    # https://github.com/actions/runner/issues/801#issuecomment-2394425757
     container:
+      # work around janky arm/alpine support, https://github.com/actions/runner/issues/801#issuecomment-2394425757
       image: arm64v8/alpine:3.18
       volumes:
         - /:/host  # Jailbreak!
