@@ -47,9 +47,7 @@ jobs:
   ci:
     runs-on: ubuntu-24.04
     env:
-      # caching id for this ghc's build artifacts:
-      # XXX ideally should match the default ghc in stack.yaml, though it's not critical
-      # XXX supposed to be interpolated by $ghc below, but this is not working
+      # caching id for this ghc's build artifacts
       ghc: 910
 
       # select the right stack yaml for this ghc
@@ -153,9 +151,9 @@ jobs:
         # XXX if stack.yaml is a symlink, this fails with
         #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed.
         #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
-        key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-global-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-global-$ghc
+             ${{ runner.os }}-stack-global-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - stack-installed programs in ~/.local/bin
@@ -163,54 +161,54 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-stack-programs-$ghc-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-programs-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-programs-$ghc
+             ${{ runner.os }}-stack-programs-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
-        key: ${{ runner.os }}-stack-work-$ghc-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-stack-work-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-stack-work-$ghc
+             ${{ runner.os }}-stack-work-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-hledger-lib-stack-work-$ghc-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-hledger-lib-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-lib-stack-work-$ghc
+             ${{ runner.os }}-hledger-lib-stack-work-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-hledger-stack-work-$ghc-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-hledger-stack-work-${{ env.ghc }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-stack-work-$ghc
+             ${{ runner.os }}-hledger-stack-work-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-hledger-ui-stack-work-$ghc-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-hledger-ui-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-ui-stack-work-$ghc
+             ${{ runner.os }}-hledger-ui-stack-work-${{ env.ghc }}
       if: env.do-all
 
     - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-hledger-web-stack-work-$ghc-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-hledger-web-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-hledger-web-stack-work-$ghc
+             ${{ runner.os }}-hledger-web-stack-work-${{ env.ghc }}
       if: env.do-all
 
     # Ensure the ghc version we need is installed.
