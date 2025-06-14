@@ -15,7 +15,8 @@ module Hledger.Cli.Commands.Notes (
  ,notes
 ) where
 
-import Data.List.Extra (nubSort)
+import Data.List.Extra (nubSortBy)
+import qualified Data.Text.Collate as Collate
 import qualified Data.Text.IO as T
 
 import Hledger
@@ -34,5 +35,6 @@ notesmode = hledgerCommandMode
 notes :: CliOpts -> Journal -> IO ()
 notes CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
-      notes' = nubSort $ map transactionNote ts
+      collator = Collate.collatorFor "en" (Collate.CollatorOptions {Collate.strength = Collate.Primary})
+      notes' = nubSortBy (Collate.compare collator) $ map transactionNote ts
   mapM_ T.putStrLn notes'
