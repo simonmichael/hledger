@@ -435,7 +435,7 @@ postingStatus Posting{pstatus=s, ptransaction=mt} = case s of
 postingAllTags :: Posting -> [Tag]
 postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
 
--- | Tags for this transaction including any from its postings.
+-- | Tags for this transaction including any from its postings (which includes any from the postings' accounts).
 transactionAllTags :: Transaction -> [Tag]
 transactionAllTags t = ttags t ++ concatMap ptags (tpostings t)
 

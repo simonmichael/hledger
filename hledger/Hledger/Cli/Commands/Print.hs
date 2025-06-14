@@ -60,7 +60,7 @@ printmode = hledgerCommandMode
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
-  ,flagNone ["location"] (setboolopt "location") "add file/line number tags to print output"
+  ,flagNone ["location"] (setboolopt "location") "add tags showing file paths and line numbers"
   ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
@@ -113,9 +113,9 @@ print' opts@CliOpts{rawopts_=rawopts} j = do
   let
     -- lbl = lbl_ "print'"
     j' = j
-      -- & dbg9With (lbl "amounts before setting full precision".showJournalAmountsDebug)
+      -- & dbg9With (lbl "amounts before setting full precision".showJournalPostingAmountsDebug)
       & journalMapPostingAmounts mixedAmountSetFullPrecision
-      -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalAmountsDebug)
+      -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalPostingAmountsDebug)
       & if boolopt "location" rawopts then journalMapTransactions addLocationTag else id
 
   case maybestringopt "match" $ rawopts_ opts of

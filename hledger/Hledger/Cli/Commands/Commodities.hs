@@ -12,22 +12,47 @@ module Hledger.Cli.Commands.Commodities (
  ,commodities
 ) where
 
+import qualified Data.Map as M
 import qualified Data.Set as S
 import qualified Data.Text.IO as T
+import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Data.List.Extra (nubSort)
+import Data.List ((\\))
 
 
 -- | Command line options for this command.
 commoditiesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Commodities.txt")
-  []
+  [flagNone ["used"]         (setboolopt "used")       "list commodities used"
+  ,flagNone ["declared"]     (setboolopt "declared")   "list commodities declared"
+  ,flagNone ["undeclared"]   (setboolopt "undeclared") "list commodities used but not declared"
+  ,flagNone ["unused"]       (setboolopt "unused")     "list commodities declared but not used"
+  ]
   [generalflagsgroup2]
   []
-  ([], Nothing)
+  ([], Just $ argsFlag "[QUERY..]")
 
 commodities :: CliOpts -> Journal -> IO ()
-commodities _copts =
-  -- TODO support --declared/--used like accounts, payees
-  mapM_ T.putStrLn . S.filter (/= "AUTO") . journalCommodities
+commodities opts@CliOpts{reportspec_ = ReportSpec{_rsQuery = query}} j = do
+  let
+    used       = dbg5 "used"       $
+      S.toList $ journalCommoditiesFromPriceDirectives j <> journalCommoditiesFromTransactions j
+    declared'  = dbg5 "declared"   $ M.keys $ jdeclaredcommodities j
+    unused     = dbg5 "unused"     $ declared' \\ used
+    undeclared = dbg5 "undeclared" $ used     \\ declared'
+    all'       = dbg5 "all"        $ nubSort $ concat [
+       journalCommoditiesDeclared j
+      ,map pdcommodity $ jpricedirectives j          -- gets the first symbol from P directives
+      ,map acommodity (S.toList $ journalAmounts j)  -- includes the second symbol from P directives
+      ]
+
+  mapM_ T.putStrLn $ filter (matchesCommodity query) $
+    case usedOrDeclaredFromOpts opts of
+      Nothing         -> all'
+      Just Used       -> used
+      Just Declared   -> declared'
+      Just Undeclared -> undeclared
+      Just Unused     -> unused

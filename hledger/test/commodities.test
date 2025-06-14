@@ -1,0 +1,73 @@
+# * commodities command
+# "This command lists commodity symbols/names - all of them by default,
+# or just the ones which have been used in transactions or `P` directives,
+# or declared with `commodity` directives,
+# or used but not declared,
+# or declared but not used."
+
+# ** 1. all commodities
+<
+commodity 1. CA
+commodity 1. CB
+commodity 1. CC
+commodity 1. CD
+commodity 1. CE
+
+D 1. DH
+
+P 2025-01-01 CA 1 CB
+P 2025-01-01 PI 1 PJ
+
+2025-01-01
+  a        1 CC @ 1 CD
+  b        1 TK @ 1 TL
+  d
+
+$ hledger -f - commodities
+CA
+CB
+CC
+CD
+CE
+DH
+PI
+PJ
+TK
+TL
+
+# ** 2. used
+$ hledger -f - commodities --used
+CA
+CB
+CC
+CD
+PI
+PJ
+TK
+TL
+
+# ** 3. declared
+$ hledger -f - commodities --declared
+CA
+CB
+CC
+CD
+CE
+
+# ** 4. undeclared
+$ hledger -f - commodities --undeclared
+PI
+PJ
+TK
+TL
+
+# ** 5. unused
+$ hledger -f - commodities --unused
+CE
+
+# ** 6. with a query
+$ hledger -f - commodities --used expr:"cur:CA or cur:'P.*'"
+CA
+PI
+PJ
+

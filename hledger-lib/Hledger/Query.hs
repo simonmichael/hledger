@@ -67,7 +67,8 @@ module Hledger.Query (
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
-  matchesTags,
+  matchesTag,
+  -- patternsMatchTags,
   matchesPriceDirective,
   words'',
   queryprefixes,
@@ -883,7 +884,7 @@ matchesAccountExtra atypes atags (And qs ) a = all (\q -> matchesAccountExtra at
 matchesAccountExtra atypes atags (AnyPosting  qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
 matchesAccountExtra atypes atags (AllPostings qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
 matchesAccountExtra atypes _     (Type ts) a = maybe False (\t -> any (t `isAccountSubtypeOf`) ts) $ atypes a
-matchesAccountExtra _      atags (Tag npat vpat) a = matchesTags npat vpat $ atags a
+matchesAccountExtra _      atags (Tag npat vpat) a = patternsMatchTags npat vpat $ atags a
 matchesAccountExtra _      _     q         a = matchesAccount q a
 
 -- | Does the match expression match this posting ?
@@ -911,7 +912,7 @@ matchesPosting (Sym r) Posting{pamount=as} = any (matchesCommodity (Sym r) . aco
 matchesPosting (Tag n v) p = case (reString n, v) of
   ("payee", Just v') -> maybe False (regexMatchText v' . transactionPayee) $ ptransaction p
   ("note", Just v') -> maybe False (regexMatchText v' . transactionNote) $ ptransaction p
-  (_, mv) -> matchesTags n mv $ postingAllTags p
+  (_, mv) -> patternsMatchTags n mv $ postingAllTags p
 matchesPosting (Type _) _ = False
 
 -- | Like matchesPosting, but if the posting's account's type is provided,
@@ -958,7 +959,7 @@ matchesTransaction q@(Sym _) t = any (q `matchesPosting`) $ tpostings t
 matchesTransaction (Tag n v) t = case (reString n, v) of
   ("payee", Just v') -> regexMatchText v' $ transactionPayee t
   ("note", Just v') -> regexMatchText v' $ transactionNote t
-  (_, v') -> matchesTags n v' $ transactionAllTags t
+  (_, v') -> patternsMatchTags n v' $ transactionAllTags t
 matchesTransaction (Type _) _ = False
 
 -- | Like matchesTransaction, but if the journal's account types are provided,
@@ -974,7 +975,7 @@ matchesTransactionExtra atype q@(Type _) t = any (matchesPostingExtra atype q) $
 matchesTransactionExtra _ q t = matchesTransaction q t
 
 -- | Does the query match this transaction description ?
--- Tests desc: terms, any other terms are ignored.
+-- Non-desc: query terms are ignored (this might disrupt some boolean queries).
 matchesDescription :: Query -> Text -> Bool
 matchesDescription (Not q) d          = not $ q `matchesDescription` d
 matchesDescription (Any) _            = True
@@ -994,11 +995,24 @@ matchesDescription _ _                = False
 matchesPayeeWIP :: Query -> Payee -> Bool
 matchesPayeeWIP = matchesDescription
 
--- | Does the query match the name and optionally the value of any of these tags ?
-matchesTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
-matchesTags namepat valuepat = any (matches namepat valuepat)
+-- | Do this name regex and optional value regex match the name and value of any of these tags ?
+patternsMatchTags :: Regexp -> Maybe Regexp -> [Tag] -> Bool
+patternsMatchTags namepat valuepat = any (matches namepat valuepat)
   where
     matches npat vpat (n,v) = regexMatchText npat n && maybe (const True) regexMatchText vpat v
+
+-- | Does the query match the name and optionally the value of this tag ?
+-- Non-tag: query terms are ignored (this might disrupt some boolean queries).
+matchesTag :: Query -> Tag -> Bool
+matchesTag (Not q)          t = not $ q `matchesTag` t
+matchesTag (Any)            _ = True
+matchesTag (None)           _ = False
+matchesTag (Or qs)          t = any (`matchesTag` t) $ filter queryIsTag qs
+matchesTag (And qs)         t = all (`matchesTag` t) $ filter queryIsTag qs
+matchesTag (AnyPosting qs)  t = all (`matchesTag` t) $ filter queryIsTag qs
+matchesTag (AllPostings qs) t = all (`matchesTag` t) $ filter queryIsTag qs
+matchesTag (Tag npat mvpat) t = patternsMatchTags npat mvpat [t]
+matchesTag _                _ = False
 
 -- | Does the query match this market price ?
 matchesPriceDirective :: Query -> PriceDirective -> Bool

@@ -14,35 +14,41 @@ module Hledger.Cli.Commands.Payees (
  ,payees
 ) where
 
-import qualified Data.Set as S
 import qualified Data.Text.IO as T
-import System.Console.CmdArgs.Explicit as C
+import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Data.List ((\\))
+import Data.List.Extra (nubSort)
 
 
 -- | Command line options for this command.
 payeesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Payees.txt")
-  [flagNone ["declared"] (setboolopt "declared") "show payees declared with payee directives"
-  ,flagNone ["used"] (setboolopt "used") "show payees referenced by transactions"
+  [flagNone ["used"]         (setboolopt "used")       "list payees used"
+  ,flagNone ["declared"]     (setboolopt "declared")   "list payees declared"
+  ,flagNone ["undeclared"]   (setboolopt "undeclared") "list payees used but not declared"
+  ,flagNone ["unused"]       (setboolopt "unused")     "list payees declared but not used"
   ]
   cligeneralflagsgroups1
   hiddenflags
-  ([], Just $ argsFlag "[QUERY]")
+  ([], Just $ argsFlag "[QUERY..]")
 
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
-payees CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
+payees opts@CliOpts{reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
-    decl = boolopt "declared" rawopts
-    used     = boolopt "used"     rawopts
-    -- XXX matchesPayee is currently an alias for matchesDescription, not sure if it matters
-    matcheddeclaredpayees = S.fromList . filter (matchesPayeeWIP query) $ journalPayeesDeclared j
-    matchedusedpayees     = S.fromList . map transactionPayee $ filter (matchesTransaction query) $ jtxns j
-    payees' =
-      if | decl     && not used -> matcheddeclaredpayees
-         | not decl && used     -> matchedusedpayees
-         | otherwise            -> matcheddeclaredpayees <> matchedusedpayees
-  mapM_ T.putStrLn payees'
+    -- XXX matchesPayeeWIP is currently an alias for matchesDescription, not sure if it matters
+    matchedused       = dbg5 "matchedused"       $ nubSort $ map transactionPayee $ filter (matchesTransaction query) $ jtxns j
+    matcheddeclared   = dbg5 "matcheddeclared"   $ nubSort $ filter (matchesPayeeWIP query) $ journalPayeesDeclared j
+    matchedunused     = dbg5 "matchedunused"     $ nubSort $ matcheddeclared \\ matchedused
+    matchedundeclared = dbg5 "matchedundeclared" $ nubSort $ matchedused     \\ matcheddeclared
+    matchedall        = dbg5 "matchedall"        $ nubSort $ matcheddeclared ++ matchedused
+  mapM_ T.putStrLn $ case usedOrDeclaredFromOpts opts of
+    Nothing         -> matchedall
+    Just Used       -> matchedused
+    Just Declared   -> matcheddeclared
+    Just Undeclared -> matchedundeclared
+    Just Unused     -> matchedunused
+

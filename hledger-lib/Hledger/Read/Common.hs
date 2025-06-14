@@ -388,16 +388,16 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       -- XXX how to force debug output here ?
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
-      <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalAmountsDebug)
+      <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalPostingAmountsDebug)
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
       >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments and missing amounts, and maybe check balance assertions.
-      <&> dbg9With (lbl "amounts after transaction-balancing".showJournalAmountsDebug)
-      -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalAmountsDebug)
+      <&> dbg9With (lbl "amounts after transaction-balancing".showJournalPostingAmountsDebug)
+      -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalPostingAmountsDebug)
       >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present
       -- >>= Right . dbg0With (pshow.journalCommodityStyles)
       >>= (if infer_costs_  then journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ True else pure)  -- With --infer-costs, infer costs from equity postings where possible
       <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)          -- With --infer-equity, infer equity postings from costs where possible
-      <&> dbg9With (lbl "amounts after equity-inferring".showJournalAmountsDebug)
+      <&> dbg9With (lbl "amounts after equity-inferring".showJournalPostingAmountsDebug)
       <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
       -- <&> dbg6Msg fname  -- debug logging
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
