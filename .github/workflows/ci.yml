@@ -156,7 +156,7 @@ jobs:
         key: ${{ runner.os }}-stack-global-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-global-$ghc
-      # if: env.do-all
+      if: env.do-all
 
     - name: Cache - stack-installed programs in ~/.local/bin
       id:   stack-programs
@@ -166,7 +166,7 @@ jobs:
         key: ${{ runner.os }}-stack-programs-$ghc-${{ hashFiles('**.yaml') }}
         restore-keys: |
              ${{ runner.os }}-stack-programs-$ghc
-      # if: env.do-all
+      if: env.do-all
 
     - name: Cache - .stack-work
       uses: actions/cache@v4
@@ -216,11 +216,11 @@ jobs:
     # Ensure the ghc version we need is installed.
     # The following stack path commands require it, so let's install it first, quietly if possible.
     # Hopefully it will often be in our cached dirs, avoiding reinstall.
-    # Don't rely on the preinstalled ghc, it's too old/variable.
+    # Don't rely on the preinstalled ghc, it's too variable.
     - name: Ensure ghc is installed
       run: |
         $stack setup --verbosity error
-      # if: env.do-all
+      if: env.do-all
 
     - name: Show stack directories
       run: |
@@ -240,14 +240,38 @@ jobs:
         printf "local-pkg-db: \t";          $stack path --local-pkg-db           # Local project package database
         printf "global-pkg-db: \t";         $stack path --global-pkg-db          # Global package database
         printf "ghc-package-path: \t";      $stack path --ghc-package-path       # GHC_PACKAGE_PATH environment variable
-        printf "snapshot-install-ro \tot:"; $stack path --snapshot-install-root  # Snapshot installation root
+        printf "snapshot-install-root: \t"; $stack path --snapshot-install-root  # Snapshot installation root
         printf "local-install-root: \t";    $stack path --local-install-root     # Local project installation root
         printf "snapshot-doc-root: \t";     $stack path --snapshot-doc-root      # Snapshot documentation root
         printf "local-doc-root: \t";        $stack path --local-doc-root         # Local project documentation root
         printf "local-hoogle-root: \t";     $stack path --local-hoogle-root      # Local project documentation root
         printf "dist-dir: \t";              $stack path --dist-dir               # Dist work directory, relative to package directory
         printf "local-hpc-root: \t";        $stack path --local-hpc-root         # Where HPC reports and tix files are stored
-      # if: env.do-all
+      if: env.do-all
+    # Example output:
+    # stack-root:               /home/runner/.stack
+    # global-config:            /home/runner/.stack/config.yaml
+    # project-root:             /home/runner/work/hledger/hledger
+    # config-location:          /home/runner/work/hledger/hledger/stack.yaml
+    # bin-path:                 /home/runner/.stack/snapshots/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/bin:/home/runner/.stack/compiler-tools/x86_64-linux-tinfo6/ghc-9.10.1/bin:/home/runner/.stack/programs/x86_64-linux/ghc-tinfo6-9.10.1/bin:/snap/bin:/home/runner/.local/bin:/opt/pipx_bin:/home/runner/.cargo/bin:/home/runner/.config/composer/vendor/bin:/usr/local/.ghcup/bin:/home/runner/.dotnet/tools:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin
+    # programs:                 /home/runner/.stack/programs/x86_64-linux
+    # compiler-exe:             /home/runner/.stack/programs/x86_64-linux/ghc-tinfo6-9.10.1/bin/ghc-9.10.1
+    # compiler-bin:             /home/runner/.stack/programs/x86_64-linux/ghc-tinfo6-9.10.1/bin
+    # compiler-tools-bin:       /home/runner/.stack/compiler-tools/x86_64-linux-tinfo6/ghc-9.10.1/bin
+    # local-bin:                /home/runner/.local/bin
+    # extra-include-dirs:       
+    # extra-library-dirs:       
+    # snapshot-pkg-db:          /home/runner/.stack/snapshots/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/pkgdb
+    # local-pkg-db:             /home/runner/work/hledger/hledger/.stack-work/install/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/pkgdb
+    # global-pkg-db:            /home/runner/.stack/programs/x86_64-linux/ghc-tinfo6-9.10.1/lib/ghc-9.10.1/lib/package.conf.d
+    # ghc-package-path:         /home/runner/work/hledger/hledger/.stack-work/install/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/pkgdb:/home/runner/.stack/snapshots/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/pkgdb:/home/runner/.stack/programs/x86_64-linux/ghc-tinfo6-9.10.1/lib/ghc-9.10.1/lib/package.conf.d
+    # snapshot-install-root:    /home/runner/.stack/snapshots/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1
+    # local-install-root:       /home/runner/work/hledger/hledger/.stack-work/install/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1
+    # snapshot-doc-root:        /home/runner/.stack/snapshots/x86_64-linux-tinfo6/a475558d986419ca16855615e08d0a95545a229cfbd26fe42e916bee9b2277d3/9.10.1/doc
+    # local-doc-root:           /home/runner/work/hledger/hledger/.stack-work/install/x86_64-linux-tinfo6/a475558d986419ca16855615e08d0a95545a229cfbd26fe42e916bee9b2277d3/9.10.1/doc
+    # local-hoogle-root:        /home/runner/work/hledger/hledger/.stack-work/hoogle/x86_64-linux-tinfo6/a475558d986419ca16855615e08d0a95545a229cfbd26fe42e916bee9b2277d3/9.10.1
+    # dist-dir:                 .stack-work/dist/x86_64-linux-tinfo6/ghc-9.10.1
+    # local-hpc-root:           /home/runner/work/hledger/hledger/.stack-work/install/x86_64-linux-tinfo6/640e58090350012aaeacf3bb95988ba08dbaab0ce8ce8d2cb4b2ea0c5e7dd47b/9.10.1/hpc
 
 
     # ACTIONS
