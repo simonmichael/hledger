@@ -120,29 +120,29 @@ jobs:
 
     - name: Show stack directories
       run: |
-        echo "stack-root:";            stack path --stack-root             # Global Stack root directory
-        echo "global-config:";         stack path --global-config          # Global Stack configuration file
-        echo "project-root:";          stack path --project-root           # Project root (derived from stack.yaml file)
-        echo "config-location:";       stack path --config-location        # Configuration location (where the stack.yaml file is)
-        echo "bin-path:";              stack path --bin-path               # PATH environment variable
-        echo "programs:";              stack path --programs               # Install location for GHC and other core tools (see 'stack ls tools' command)
-        echo "compiler-exe:";          stack path --compiler-exe           # Compiler binary (e.g. ghc)
-        echo "compiler-bin:";          stack path --compiler-bin           # Directory containing the compiler binary (e.g. ghc)
-        echo "compiler-tools-bin:";    stack path --compiler-tools-bin     # Directory containing binaries specific to a particular compiler
-        echo "local-bin:";             stack path --local-bin              # Directory where Stack installs executables (e.g. ~/.local/bin (Unix-like OSs) or %APPDATA%\local\bin (Windows))
-        echo "extra-include-dirs:";    stack path --extra-include-dirs     # Extra include directories
-        echo "extra-library-dirs:";    stack path --extra-library-dirs     # Extra library directories
-        echo "snapshot-pkg-db:";       stack path --snapshot-pkg-db        # Snapshot package database
-        echo "local-pkg-db:";          stack path --local-pkg-db           # Local project package database
-        echo "global-pkg-db:";         stack path --global-pkg-db          # Global package database
-        echo "ghc-package-path:";      stack path --ghc-package-path       # GHC_PACKAGE_PATH environment variable
-        echo "snapshot-install-root:"; stack path --snapshot-install-root  # Snapshot installation root
-        echo "local-install-root:";    stack path --local-install-root     # Local project installation root
-        echo "snapshot-doc-root:";     stack path --snapshot-doc-root      # Snapshot documentation root
-        echo "local-doc-root:";        stack path --local-doc-root         # Local project documentation root
-        echo "local-hoogle-root:";     stack path --local-hoogle-root      # Local project documentation root
-        echo "dist-dir:";              stack path --dist-dir               # Dist work directory, relative to package directory
-        echo "local-hpc-root:";        stack path --local-hpc-root         # Where HPC reports and tix files are stored
+        printf "stack-root: \t";            stack path --stack-root             # Global Stack root directory
+        printf "global-config: \t";         stack path --global-config          # Global Stack configuration file
+        # printf "project-root: \t";          stack path --project-root           # Project root (derived from stack.yaml file)
+        printf "config-location: \t";       stack path --config-location        # Configuration location (where the stack.yaml file is)
+        printf "bin-path: \t";              stack path --bin-path               # PATH environment variable
+        printf "programs: \t";              stack path --programs               # Install location for GHC and other core tools (see 'stack ls tools' command)
+        printf "compiler-exe: \t";          stack path --compiler-exe           # Compiler binary (e.g. ghc)
+        printf "compiler-bin: \t";          stack path --compiler-bin           # Directory containing the compiler binary (e.g. ghc)
+        printf "compiler-tools-bin: \t";    stack path --compiler-tools-bin     # Directory containing binaries specific to a particular compiler
+        printf "local-bin: \t";             stack path --local-bin              # Directory where Stack installs executables (e.g. ~/.local/bin (Unix-like OSs) or %APPDATA%\local\bin (Windows))
+        printf "extra-include-dirs: \t";    stack path --extra-include-dirs     # Extra include directories
+        printf "extra-library-dirs: \t";    stack path --extra-library-dirs     # Extra library directories
+        printf "snapshot-pkg-db: \t";       stack path --snapshot-pkg-db        # Snapshot package database
+        printf "local-pkg-db: \t";          stack path --local-pkg-db           # Local project package database
+        printf "global-pkg-db: \t";         stack path --global-pkg-db          # Global package database
+        printf "ghc-package-path: \t";      stack path --ghc-package-path       # GHC_PACKAGE_PATH environment variable
+        printf "snapshot-install-ro \tot:"; stack path --snapshot-install-root  # Snapshot installation root
+        printf "local-install-root: \t";    stack path --local-install-root     # Local project installation root
+        printf "snapshot-doc-root: \t";     stack path --snapshot-doc-root      # Snapshot documentation root
+        printf "local-doc-root: \t";        stack path --local-doc-root         # Local project documentation root
+        printf "local-hoogle-root: \t";     stack path --local-hoogle-root      # Local project documentation root
+        printf "dist-dir: \t";              stack path --dist-dir               # Dist work directory, relative to package directory
+        printf "local-hpc-root: \t";        stack path --local-hpc-root         # Where HPC reports and tix files are stored
 
     - name: Skip remaining steps if the last commit message begins with ;
       shell: bash
