@@ -26,7 +26,6 @@ jobs:
 
     # - name: Check embedded files
     #   run: |
-    #     apt install ripgrep
     #     tools/checkembeddedfiles
 
     # things to be cached/restored:
