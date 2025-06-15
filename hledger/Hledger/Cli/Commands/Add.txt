@@ -57,3 +57,27 @@ Examples:
   hledger add today 'best buy' expenses:supplies '$20'
 
 There is a detailed tutorial at https://hledger.org/add.html.
+
+add and balance assertions
+
+Since hledger 1.43, whenever you enter a posting amount, add will
+re-check all balance assertions in the journal, and if any of them fail,
+it will report the problem and ask for the amount again.
+
+You can also add a new balance assertion, following the amount as in
+journal format.
+
+The new transaction's date, and the new posting's posting date if any
+(entered in a comment following the amount), will influence assertion
+checking.
+
+You can use -I/--ignore-assertions to disable assertion checking
+temporarily.
+
+add and balance assignments
+
+Balance assignments are not recalculated during a hledger add session.
+When add runs, it sees the journal with all balance assignments already
+processed and converted to assertions. So if you add a new posting which
+is dated earlier than a balance assignment, it will break the assertion
+and be rejected. You can make it work by using hledger add -I.
