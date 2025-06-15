@@ -50,8 +50,9 @@ jobs:
       # image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     env:
-      stack: stack
-      ghc:   9.10.1
+      stack:     stack
+      ghc:       9.10.1
+      cachedate: 20250615   # bump this when new caches are needed
 
       # flag for skipping later steps, declared here to prevent "Context access might be invalid" warnings
       do-all:
@@ -150,9 +151,9 @@ jobs:
         # XXX if stack.yaml is a symlink, this fails with
         #  Error: The template is not valid. .github/workflows/push.yml (Line: 103, Col: 14): hashFiles('**.yaml') failed.
         #  Fail to hash files under directory '/home/runner/work/hledger/hledger'
-        key: ${{ runner.os }}-x64-stack-global-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-global-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-global-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-global-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - stack-installed programs in ~/.local/bin
@@ -160,54 +161,54 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - .stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
-        key: ${{ runner.os }}-x64-stack-work-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-work-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-work-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}-${{ env.cachedate }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}-${{ env.cachedate }}
       if: env.do-all
 
     # Ensure the ghc version we need is installed.
