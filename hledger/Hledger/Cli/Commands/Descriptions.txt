@@ -1,6 +1,6 @@
 descriptions
 
-List the unique descriptions that appear in transactions.
+List the unique descriptions used in transactions.
 
 Flags:
 no command-specific flags
