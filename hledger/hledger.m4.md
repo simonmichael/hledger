@@ -236,9 +236,11 @@ m4_dnl call hledger's code directly, which means they can do anything built-in c
 m4_dnl Scripts/programs in other languages can't do this, but they can use hledger's
 m4_dnl command-line interface, or output formats like CSV or JSON.
 
-You can run add-on commands using hledger, much like built-in commands. Eg `hledger ui --watch`.
-(Before hledger 1.50, an `--` argument was needed before addon-specific options; this is no longer needed.)
-You can also run add-ons directly: `hledger-ui --watch`.
+You can run add-on commands directly: `hledger-ui --watch`.
+
+Or you can run them with hledger, like built-in commands: `hledger ui --watch`. 
+In this case hledger's config file will be used, so you can set custom options for the addon there.
+(Before hledger 1.50, an `--` argument was needed before addon options, but not any more.)
 
 # Options
 
