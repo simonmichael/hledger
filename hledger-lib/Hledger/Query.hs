@@ -813,8 +813,14 @@ inAccountQuery (QueryOptInAcct a     : _) = Just . Acct $ accountNameToAccountRe
 -- matching things with queries
 
 matchesCommodity :: Query -> CommoditySymbol -> Bool
-matchesCommodity (Sym r) = regexMatchText r
-matchesCommodity _ = const True
+matchesCommodity (Sym r)          s = regexMatchText r s
+matchesCommodity (Any)            _ = True
+matchesCommodity (None)           _ = False
+matchesCommodity (Or qs)          s = any (`matchesCommodity` s) qs
+matchesCommodity (And qs)         s = all (`matchesCommodity` s) qs
+matchesCommodity (AnyPosting qs)  s = all (`matchesCommodity` s) qs
+matchesCommodity (AllPostings qs) s = all (`matchesCommodity` s) qs
+matchesCommodity _                _ = False
 
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
