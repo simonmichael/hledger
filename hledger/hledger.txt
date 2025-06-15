@@ -6923,13 +6923,15 @@ Data entry commands
        (entered in a comment following the amount), will  influence  assertion
        checking.
 
-       You can use -I/--ignore-assertions to disable this assertion checking.
+       You  can  use -I/--ignore-assertions to disable assertion checking tem-
+       porarily.
 
    add and balance assignments
-       You  can't  add new postings which are dated earlier than a balance as-
-       signment, currently.  It's because balance  assignments  are  performed
-       once,  before add; by the time add runs, all amounts in the journal are
-       explicit, and assignments have become assertions.  (#2406).
+       Balance assignments are not recalculated during a hledger add  session.
+       When add runs, it sees the journal with all balance assignments already
+       processed  and  converted  to  assertions.  So if you add a new posting
+       which is dated earlier than a balance assignment, it will break the as-
+       sertion and be rejected.  You can make it work by using hledger add -I.
 
    import
        Import new transactions from one or more data files to the  main  jour-
@@ -7132,35 +7134,30 @@ Data entry commands
 
 Basic report commands
    accounts
-       List account names.
+       List the account names used or declared in the journal.
 
               Flags:
-                -u --used                 show only accounts used by transactions
-                -d --declared             show only accounts declared by account directive
-                   --unused               show only accounts declared but not used
-                   --undeclared           show only accounts used but not declared
+                -u --used                 list accounts used
+                -d --declared             list accounts declared
+                   --undeclared           list accounts used but not declared
+                   --unused               list accounts declared but not used
+                   --find                 list the first account matched by the first
+                                          argument (a case-insensitive infix regexp)
                    --types                also show account types when known
                    --positions            also show where accounts were declared
                    --directives           show as account directives, for use in journals
-                   --find                 find the first account matched by the first
-                                          argument (a case-insensitive infix regexp or
-                                          account name)
                 -l --flat                 list/tree mode: show accounts as a flat list
                                           (default)
                 -t --tree                 list/tree mode: show accounts as a tree
                    --drop=N               flat mode: omit N leading account name parts
 
-       This command lists account names.  By default it shows  all  known  ac-
-       counts,  either  used  in  transactions or declared with account direc-
-       tives.
+       This command lists account names - all of them by default.  or just the
+       ones which have been used in transactions, or declared with account di-
+       rectives, or used but not declared, or declared but not used,  or  just
+       the first account name matched by a pattern.
 
-       With query arguments, only matched account names and account names ref-
-       erenced by matched postings are shown.
-
-       Or it can show just the used accounts  (--used/-u),  the  declared  ac-
-       counts  (--declared/-d), the accounts declared but not used (--unused),
-       the accounts used but not declared (--undeclared), or the first account
-       matched by an account name pattern, if any (--find).
+       You  can  add query arguments to select a subset of transactions or ac-
+       counts.
 
        It shows a flat list by default.  With --tree, it uses  indentation  to
        show  the account hierarchy.  In flat mode you can add --drop N to omit
@@ -7174,14 +7171,14 @@ Basic report commands
        count's  declaration, if any, and the account's overall declaration or-
        der; these may be useful when troubleshooting account display order.
 
-       With --directives, it adds the account keyword, showing  valid  account
-       directives which can be pasted into a journal file.  This is useful to-
-       gether  with  --undeclared  when  updating your account declarations to
-       satisfy hledger check accounts.
+       With --directives, it shows valid account  directives  which  could  be
+       pasted  into a journal file.  This is useful together with --undeclared
+       when updating your account declarations to satisfy  hledger  check  ac-
+       counts.
 
-       The --find flag can be used to look up a single account  name,  in  the
-       same  way that the aregister command does.  It returns the alphanumeri-
-       cally-first matched account name, or if none can  be  found,  it  fails
+       The  --find  flag  can be used to look up a single account name, in the
+       same way that the aregister command does.  It returns the  alphanumeri-
+       cally-first  matched  account  name,  or if none can be found, it fails
        with a non-zero exit code.
 
        Examples:
@@ -7205,13 +7202,13 @@ Basic report commands
               Flags:
               no command-specific flags
 
-       This  command prints the value of each transaction's code field, in the
-       order transactions were parsed.  The transaction code  is  an  optional
-       value  written  in  parentheses between the date and description, often
+       This command prints the value of each transaction's code field, in  the
+       order  transactions  were  parsed.  The transaction code is an optional
+       value written in parentheses between the date  and  description,  often
        used to store a cheque number, order number or similar.
 
        Transactions aren't required to have a code, and missing or empty codes
-       will not be shown by default.  With the -E/--empty flag, they  will  be
+       will  not  be shown by default.  With the -E/--empty flag, they will be
        printed as blank lines.
 
        You can add a query to select a subset of transactions.
@@ -7246,19 +7243,29 @@ Basic report commands
               126
 
    commodities
-       List all commodity/currency symbols used or declared in the journal.
+       List the commodity symbols used or declared in the journal.
 
               Flags:
-              no command-specific flags
+                   --used                 list commodities used
+                   --declared             list commodities declared
+                   --undeclared           list commodities used but not declared
+                   --unused               list commodities declared but not used
+
+       This command lists commodity symbols/names - all of them by default, or
+       just the ones which have been used in transactions or P directives,  or
+       declared  with  commodity  directives, or used but not declared, or de-
+       clared but not used.
+
+       You can add cur: query arguments to further limit the commodities.
 
    descriptions
-       List the unique descriptions that appear in transactions.
+       List the unique descriptions used in transactions.
 
               Flags:
               no command-specific flags
 
        This command lists the unique descriptions that appear in transactions,
-       in  alphabetic order.  You can add a query to select a subset of trans-
+       in alphabetic order.  You can add a query to select a subset of  trans-
        actions.
 
        Example:
@@ -7269,7 +7276,7 @@ Basic report commands
               Person A
 
    files
-       List all files included in the journal.  With a  REGEX  argument,  only
+       List  all  files  included in the journal.  With a REGEX argument, only
        file names matching the regular expression (case sensitive) are shown.
 
               Flags:
@@ -7282,8 +7289,8 @@ Basic report commands
               no command-specific flags
 
        This command lists the unique notes that appear in transactions, in al-
-       phabetic  order.   You  can  add a query to select a subset of transac-
-       tions.  The note is the part of the transaction description after  a  |
+       phabetic order.  You can add a query to select  a  subset  of  transac-
+       tions.   The  note is the part of the transaction description after a |
        character (or if there is no |, the whole description).
 
        Example:
@@ -7293,21 +7300,24 @@ Basic report commands
               Snacks
 
    payees
-       List the unique payee/payer names that appear in transactions.
+       List the payee/payer names used or declared in the journal.
 
               Flags:
-                   --declared             show payees declared with payee directives
-                   --used                 show payees referenced by transactions
+                   --used                 list payees used
+                   --declared             list payees declared
+                   --undeclared           list payees used but not declared
+                   --unused               list payees declared but not used
 
-       This  command  lists  unique payee/payer names which have been declared
-       with payee directives (--declared), used  in  transaction  descriptions
-       (--used), or both (the default).
+       This command lists unique payee/payer names - all of them  by  default,
+       or  just  the ones which have been used in transaction descriptions, or
+       declared with payee directives, or used but not declared,  or  declared
+       but not used.
 
-       The  payee/payer  is the part of the transaction description before a |
-       character (or if there is no |, the whole description).
+       The  payee/payer name is the part of the transaction description before
+       a | character (or if there is no |, the whole description).
 
-       You can add query arguments to select a subset of  transactions.   This
-       implies --used.
+       You can add query arguments to select a subset of transactions or  pay-
+       ees.
 
        Example:
 
@@ -7385,34 +7395,39 @@ Basic report commands
        put-format).
 
    tags
-       List the tags used in the journal, or their values.
+       List the tag names used or declared in the journal, or their values.
 
               Flags:
+                   --used                 list tags used
+                   --declared             list tags declared
+                   --undeclared           list tags used but not declared
+                   --unused               list tags declared but not used
                    --values               list tag values instead of tag names
-                   --parsed               show tags/values in the order they were parsed,
+                   --parsed               show them in the order they were parsed (mostly),
                                           including duplicates
 
-       This command lists the tag names used in the journal, whether on trans-
-       actions, postings, or account declarations.
+       This command lists tag names - all of them by default, or just the ones
+       which  have  been  used  on transactions/postings/accounts, or declared
+       with tag directives, or used but not  declared,  or  declared  but  not
+       used.
 
-       With  a TAGREGEX argument, only tag names matching this regular expres-
-       sion (case insensitive, infix matched) are shown.
+       You  can  add  one  TAGREGEX  argument, to show only tags whose name is
+       matched by this case-insensitive, infix-matching regular expression.
 
-       With QUERY arguments, only  transactions  and  accounts  matching  this
-       query are considered.  If the query involves transaction fields (date:,
-       desc:, amt:, ...), the search is restricted to the matched transactions
-       and their accounts.
+       After that, you can add query arguments  to  filter  the  transactions,
+       postings, or accounts providing tags.
 
-       With  the  --values  flag, the tags' unique non-empty values are listed
-       instead.  With -E/--empty, blank/empty values are also shown.
+       With --values, the tags' unique non-empty values are listed instead.
 
-       With --parsed, tags or values are shown in the order they were  parsed,
-       with  duplicates included.  (Except, tags from account declarations are
+       With -E/--empty, blank/empty values are also shown.
+
+       With  --parsed, tags or values are shown in the order they were parsed,
+       with duplicates included.  (Except, tags from account declarations  are
        always shown first.)
 
-       Tip: remember, accounts also acquire tags from their parents,  postings
-       also acquire tags from their account and transaction, transactions also
-       acquire tags from their postings.
+       Remember  that  accounts also acquire tags from their parents; postings
+       also acquire tags from their account and transaction; and  transactions
+       also acquire tags from their postings.
 
 Standard report commands
    print
@@ -7440,7 +7455,7 @@ Standard report commands
                    --base-url=URLPREFIX   in html output, generate links to hledger-web,
                                           with this prefix. (Usually the base url shown by
                                           hledger-web; can also be relative.)
-                   --location             add file/line number tags to print output
+                   --location             add tags showing file paths and line numbers
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, beancount, csv, tsv, html, fods, json, sql.
                 -o --output-file=FILE     write output to FILE. A file extension matching
