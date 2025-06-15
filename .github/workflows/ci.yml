@@ -275,10 +275,10 @@ jobs:
     # in modular steps for faster & more focussed failures
 
     # XXX slow, I feel this should happen less often
-    - name: Update package index
-      run: |
-        $stack update
-      if: env.do-all
+    # - name: Update package index
+    #   run: |
+    #     $stack update
+    #   if: env.do-all
 
     - name: Build deps of hledger-lib
       run: |
