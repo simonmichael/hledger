@@ -10,12 +10,12 @@
 $  PATH=$PATH:addons hledger addon --help
 > /hledger-addon/
 
-# ** 2. addon-specific flags which are not also defined in the main executable are not accepted
+# ** 2. addon-specific flags are recognised and won't cause an error. (#458)
 $  PATH=$PATH:addons hledger addon --addonflag
->2 /Unknown flag: --addonflag/
->=1
+add-on: addons/hledger-addon
+args: --addonflag
 
-# ** 3. hledger main executable ignores anything after --, and hides the -- from the addon.
+# ** 3. If an old-style -- argument is used before addon flags, the addon won't see it.
 $  PATH=$PATH:addons hledger addon --help -- --addonflag
 > /args: --help --addonflag/
 

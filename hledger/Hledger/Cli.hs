@@ -273,7 +273,7 @@ main = handleExit $ withGhcDebug' $ do
       else getConf' cliconfrawopts
 
   ---------------------------------------------------------------
-  dbgio "\n3. Identify a command name from config file or command line" ()
+  dbgio "\n3. Identify a command name if possible; handle version/help flags" ()
 
   -- Try to identify the subcommand name,
   -- from the first non-flag general argument in the config file,
@@ -296,12 +296,14 @@ main = handleExit $ withGhcDebug' $ do
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
     args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
-    cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) args
+    -- Actually, only scan the first non-flag argument, to avoid flag errors at this stage.
+    possiblecmdarg = take 1 $ dropWhile isFlagArg args
+    cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) possiblecmdarg
 
     badcmdprovided = null cmdname && not nocmdprovided
     isaddoncmd     = not (null cmdname) && cmdname `elem` addons
 
-    -- And get the builtin command's mode and action, if any.
+    -- If it's a builtin command, get its mode and action.
     mbuiltincmdaction = findBuiltinCommand cmdname
     effectivemode = maybe (mainmode []) fst mbuiltincmdaction
 
@@ -313,6 +315,10 @@ main = handleExit $ withGhcDebug' $ do
   dbgio "no command provided" nocmdprovided
   dbgio "bad command provided" badcmdprovided
   dbgio "is addon command" isaddoncmd
+
+  -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
+  when badcmdprovided $
+    error' $ "command "++clicmdarg++" is not recognized. Run with no command to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -398,44 +404,41 @@ main = handleExit $ withGhcDebug' $ do
     -- 6.2. --version flag found and none of these other conditions - show version
     | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
 
-    -- 6.3. there's a command argument, but it's bad - show error
-    | badcmdprovided -> error' $ "command "++clicmdarg++" is not recognized, run with no command to see a list"
-
-    -- 6.4. no command found, nothing else to do - show the commands list
+    -- 6.3. no command found, nothing else to do - show the commands list
     | nocmdprovided -> do
         dbg1IO "no command, showing commands list" ()
         commands opts (ignoredjournal "commands")
 
-    -- 6.5. builtin command found
+    -- 6.4. builtin command found
     | Just (cmdmode, cmdaction) <- mbuiltincmdaction -> do
       let mmodecmdname = headMay $ modeNames cmdmode
       dbg1IO "running builtin command mode" $ fromMaybe "" mmodecmdname
 
       -- run the builtin command according to its type
       if
-        -- 6.5.1. help/doc flag - show command help/docs
+        -- 6.4.1. help/doc flag - show command help/docs
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
         | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
 
-        -- 6.5.2. builtin command which should not require or read the journal - run it
+        -- 6.4.2. builtin command which should not require or read the journal - run it
         | cmdname `elem` ["commands","demo","help","setup","test"] ->
           cmdaction opts (ignoredjournal cmdname)
 
-        -- 6.5.3. builtin command which should create the journal if missing - do that and run it
+        -- 6.4.3. builtin command which should create the journal if missing - do that and run it
         | cmdname `elem` ["add","import"] -> do
           ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
           withJournalDo opts (cmdaction opts)
 
-        -- 6.5.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
+        -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
         | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
 
-        -- 6.5.5. all other builtin commands - read the journal and if successful run the command with it
+        -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournalDo opts $ cmdaction opts
 
-    -- 6.6. external addon command found - run it,
+    -- 6.5. external addon command found - run it,
     -- passing any cli arguments written after the command name
     -- and any command-specific opts from the config file.
     -- Any "--" arguments, which sometimes must be used in the command line
@@ -458,7 +461,7 @@ main = handleExit $ withGhcDebug' $ do
     -- deprecated command found
     -- cmdname == "convert" = error' (modeHelp oldconvertmode)
 
-    -- 6.7. something else (shouldn't happen) - show an error
+    -- 6.6. something else (shouldn't happen) - show an error
     | otherwise -> usageError $
         "could not understand the arguments "++show finalargs
         <> if null confothergenargs then "" else "\ngeneral arguments added from config file: "++show confothergenargs

@@ -221,13 +221,11 @@ Eg: `hledger bal -h`.
 
 ## Add-on commands
 
-In addition to the built-in commands, you can install *add-on commands*:
-programs or scripts named "hledger-SOMETHING", which will also appear in hledger's commands list.
-If you used the [hledger-install script](https://hledger.org/install.html#build-methods),
-you will have several add-ons installed already.
-Some more can be found in hledger's bin/ directory, documented at <https://hledger.org/scripts.html>.
+In addition to the built-in commands, you can install *add-on commands*, which will also appear in hledger's commands list.
+Some of these can be installed as separate packages;
+others can be found in hledger's bin/ directory, documented at <https://hledger.org/scripts.html>.
 
-More precisely, add-on commands are programs or scripts in your shell's PATH,
+Add-on commands are programs or scripts in your shell's PATH,
 whose name starts with "hledger-"
 and ends with no extension or a recognised extension
 (".bat", ".com", ".exe", ".hs", ".js", ".lhs", ".lua", ".php", ".pl", ".py", ".rb", ".rkt", or ".sh"),
@@ -238,12 +236,9 @@ m4_dnl call hledger's code directly, which means they can do anything built-in c
 m4_dnl Scripts/programs in other languages can't do this, but they can use hledger's
 m4_dnl command-line interface, or output formats like CSV or JSON.
 
-You can run add-on commands using hledger, much like built-in commands:
-`hledger ADDONCMD [-- ADDONCMDOPTS] [ADDONCMDARGS]`.
-But note the double hyphen argument, required before add-on-specific options.
-Eg: `hledger ui -- --watch` or `hledger web -- --serve`. 
-If this causes difficulty, you can always run the add-on directly, without using `hledger`:
-`hledger-ui --watch` or `hledger-web --serve`.
+You can run add-on commands using hledger, much like built-in commands. Eg `hledger ui --watch`.
+(Before hledger 1.50, an `--` argument was needed before addon-specific options; this is no longer needed.)
+You can also run add-ons directly: `hledger-ui --watch`.
 
 # Options
 
@@ -6619,8 +6614,8 @@ the sharp edges described in [OPTIONS](#options),
 here are some tips that might help:
 
 - command-specific options must go after the command (it's fine to put common options there too: `hledger CMD OPTS ARGS`)
-- running add-on executables directly simplifies command line parsing (`hledger-ui OPTS ARGS`)
-- enclose "problematic" args in single quotes
+- you can run addon commands via hledger (`hledger ui [ARGS]`) or directly (`hledger-ui [ARGS]`)
+- enclose "problematic" arguments in single quotes
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
 - to see how a misbehaving command line is being parsed, add `--debug=2`.
 
@@ -7008,9 +7003,6 @@ If using version control, don't forget to `git add` the new file.
 _reportbugs_
 
 Some known issues and limitations:
-
-The need to precede add-on command options with `--` when invoked from hledger is awkward.
-(See Command options, Constructing command lines.)
 
 A system locale with a suitable text encoding must be configured to work with non-ascii data.
 (See Text encoding, Troubleshooting.)
