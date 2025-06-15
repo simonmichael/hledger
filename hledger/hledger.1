@@ -8942,14 +8942,15 @@ if any (entered in a comment following the amount), will influence
 assertion checking.
 .PP
 You can use \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable
-this assertion checking.
+assertion checking temporarily.
 .SS add and balance assignments
-You can\[aq]t add new postings which are dated earlier than a balance
-assignment, currently.
-It\[aq]s because balance assignments are performed once, before
-\f[CR]add\f[R]; by the time \f[CR]add\f[R] runs, all amounts in the
-journal are explicit, and assignments have become assertions.
-(#2406).
+Balance assignments are not recalculated during a \f[CR]hledger add\f[R]
+session.
+When \f[CR]add\f[R] runs, it sees the journal with all balance
+assignments already processed and converted to assertions.
+So if you add a new posting which is dated earlier than a balance
+assignment, it will break the assertion and be rejected.
+You can make it work by using \f[CR]hledger add \-I\f[R].
 .SS import
 Import new transactions from one or more data files to the main journal.
 .IP
@@ -9186,39 +9187,32 @@ A new CSV record generates a journal entry identical to one(s) already
 in the journal.
 .SH Basic report commands
 .SS accounts
-List account names.
+List the account names used or declared in the journal.
 .IP
 .EX
 Flags:
-  \-u \-\-used                 show only accounts used by transactions
-  \-d \-\-declared             show only accounts declared by account directive
-     \-\-unused               show only accounts declared but not used
-     \-\-undeclared           show only accounts used but not declared
+  \-u \-\-used                 list accounts used
+  \-d \-\-declared             list accounts declared
+     \-\-undeclared           list accounts used but not declared
+     \-\-unused               list accounts declared but not used
+     \-\-find                 list the first account matched by the first
+                            argument (a case\-insensitive infix regexp)
      \-\-types                also show account types when known
      \-\-positions            also show where accounts were declared
      \-\-directives           show as account directives, for use in journals
-     \-\-find                 find the first account matched by the first
-                            argument (a case\-insensitive infix regexp or
-                            account name)
   \-l \-\-flat                 list/tree mode: show accounts as a flat list
                             (default)
   \-t \-\-tree                 list/tree mode: show accounts as a tree
      \-\-drop=N               flat mode: omit N leading account name parts
 .EE
 .PP
-This command lists account names.
-By default it shows all known accounts, either used in transactions or
-declared with account directives.
+This command lists account names \- all of them by default.
+or just the ones which have been used in transactions, or declared with
+\f[CR]account\f[R] directives, or used but not declared, or declared but
+not used, or just the first account name matched by a pattern.
 .PP
-With query arguments, only matched account names and account names
-referenced by matched postings are shown.
-.PP
-Or it can show just the used accounts
-(\f[CR]\-\-used\f[R]/\f[CR]\-u\f[R]), the declared accounts
-(\f[CR]\-\-declared\f[R]/\f[CR]\-d\f[R]), the accounts declared but not
-used (\f[CR]\-\-unused\f[R]), the accounts used but not declared
-(\f[CR]\-\-undeclared\f[R]), or the first account matched by an account
-name pattern, if any (\f[CR]\-\-find\f[R]).
+You can add query arguments to select a subset of transactions or
+accounts.
 .PP
 It shows a flat list by default.
 With \f[CR]\-\-tree\f[R], it uses indentation to show the account
@@ -9237,9 +9231,8 @@ each account\[aq]s declaration, if any, and the account\[aq]s overall
 declaration order; these may be useful when troubleshooting account
 display order.
 .PP
-With \f[CR]\-\-directives\f[R], it adds the \f[CR]account\f[R] keyword,
-showing valid account directives which can be pasted into a journal
-file.
+With \f[CR]\-\-directives\f[R], it shows valid account directives which
+could be pasted into a journal file.
 This is useful together with \f[CR]\-\-undeclared\f[R] when updating
 your account declarations to satisfy \f[CR]hledger check accounts\f[R].
 .PP
@@ -9322,14 +9315,24 @@ $ hledger codes \-E
 126
 .EE
 .SS commodities
-List all commodity/currency symbols used or declared in the journal.
+List the commodity symbols used or declared in the journal.
 .IP
 .EX
 Flags:
-no command\-specific flags
+     \-\-used                 list commodities used
+     \-\-declared             list commodities declared
+     \-\-undeclared           list commodities used but not declared
+     \-\-unused               list commodities declared but not used
 .EE
+.PP
+This command lists commodity symbols/names \- all of them by default, or
+just the ones which have been used in transactions or \f[CR]P\f[R]
+directives, or declared with \f[CR]commodity\f[R] directives, or used
+but not declared, or declared but not used.
+.PP
+You can add cur: query arguments to further limit the commodities.
 .SS descriptions
-List the unique descriptions that appear in transactions.
+List the unique descriptions used in transactions.
 .IP
 .EX
 Flags:
@@ -9379,23 +9382,26 @@ Petrol
 Snacks
 .EE
 .SS payees
-List the unique payee/payer names that appear in transactions.
+List the payee/payer names used or declared in the journal.
 .IP
 .EX
 Flags:
-     \-\-declared             show payees declared with payee directives
-     \-\-used                 show payees referenced by transactions
+     \-\-used                 list payees used
+     \-\-declared             list payees declared
+     \-\-undeclared           list payees used but not declared
+     \-\-unused               list payees declared but not used
 .EE
 .PP
-This command lists unique payee/payer names which have been declared
-with payee directives (\-\-declared), used in transaction descriptions
-(\-\-used), or both (the default).
+This command lists unique payee/payer names \- all of them by default,
+or just the ones which have been used in transaction descriptions, or
+declared with \f[CR]payee\f[R] directives, or used but not declared, or
+declared but not used.
 .PP
-The payee/payer is the part of the transaction description before a |
-character (or if there is no |, the whole description).
+The payee/payer name is the part of the transaction description before a
+| character (or if there is no |, the whole description).
 .PP
-You can add query arguments to select a subset of transactions.
-This implies \-\-used.
+You can add query arguments to select a subset of transactions or
+payees.
 .PP
 Example:
 .IP
@@ -9483,37 +9489,43 @@ Runtime stats       : 0.12 s elapsed, 8266 txns/s, 4 MB live, 16 MB alloc
 This command supports the \-o/\-\-output\-file option (but not
 \-O/\-\-output\-format).
 .SS tags
-List the tags used in the journal, or their values.
+List the tag names used or declared in the journal, or their values.
 .IP
 .EX
 Flags:
+     \-\-used                 list tags used
+     \-\-declared             list tags declared
+     \-\-undeclared           list tags used but not declared
+     \-\-unused               list tags declared but not used
      \-\-values               list tag values instead of tag names
-     \-\-parsed               show tags/values in the order they were parsed,
+     \-\-parsed               show them in the order they were parsed (mostly),
                             including duplicates
 .EE
 .PP
-This command lists the tag names used in the journal, whether on
-transactions, postings, or account declarations.
+This command lists tag names \- all of them by default, or just the ones
+which have been used on transactions/postings/accounts, or declared with
+\f[CR]tag\f[R] directives, or used but not declared, or declared but not
+used.
 .PP
-With a TAGREGEX argument, only tag names matching this regular
-expression (case insensitive, infix matched) are shown.
+You can add one TAGREGEX argument, to show only tags whose name is
+matched by this case\-insensitive, infix\-matching regular expression.
 .PP
-With QUERY arguments, only transactions and accounts matching this query
-are considered.
-If the query involves transaction fields (date:, desc:, amt:, ...), the
-search is restricted to the matched transactions and their accounts.
+After that, you can add query arguments to filter the transactions,
+postings, or accounts providing tags.
 .PP
-With the \-\-values flag, the tags\[aq] unique non\-empty values are
+With \f[CR]\-\-values\f[R], the tags\[aq] unique non\-empty values are
 listed instead.
-With \-E/\-\-empty, blank/empty values are also shown.
 .PP
-With \-\-parsed, tags or values are shown in the order they were parsed,
-with duplicates included.
+With \f[CR]\-E\f[R]/\f[CR]\-\-empty\f[R], blank/empty values are also
+shown.
+.PP
+With \f[CR]\-\-parsed\f[R], tags or values are shown in the order they
+were parsed, with duplicates included.
 (Except, tags from account declarations are always shown first.)
 .PP
-Tip: remember, accounts also acquire tags from their parents, postings
-also acquire tags from their account and transaction, transactions also
-acquire tags from their postings.
+Remember that accounts also acquire tags from their parents; postings
+also acquire tags from their account and transaction; and transactions
+also acquire tags from their postings.
 .SH Standard report commands
 .SS print
 Show full journal entries, representing transactions.
@@ -9541,7 +9553,7 @@ Flags:
      \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
                             with this prefix. (Usually the base url shown by
                             hledger\-web; can also be relative.)
-     \-\-location             add file/line number tags to print output
+     \-\-location             add tags showing file paths and line numbers
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching

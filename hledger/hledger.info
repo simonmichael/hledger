@@ -8614,8 +8614,8 @@ journal format.
 (entered in a comment following the amount), will influence assertion
 checking.
 
-   You can use '-I'/'--ignore-assertions' to disable this assertion
-checking.
+   You can use '-I'/'--ignore-assertions' to disable assertion checking
+temporarily.
 
 
 File: hledger.info,  Node: add and balance assignments,  Next: import,  Prev: add and balance assertions,  Up: Data entry commands
@@ -8623,10 +8623,12 @@ File: hledger.info,  Node: add and balance assignments,  Next: import,  Prev: ad
 26.3 add and balance assignments
 ================================
 
-You can't add new postings which are dated earlier than a balance
-assignment, currently.  It's because balance assignments are performed
-once, before 'add'; by the time 'add' runs, all amounts in the journal
-are explicit, and assignments have become assertions.  (#2406).
+Balance assignments are not recalculated during a 'hledger add' session.
+When 'add' runs, it sees the journal with all balance assignments
+already processed and converted to assertions.  So if you add a new
+posting which is dated earlier than a balance assignment, it will break
+the assertion and be rejected.  You can make it work by using 'hledger
+add -I'.
 
 
 File: hledger.info,  Node: import,  Prev: add and balance assignments,  Up: Data entry commands
@@ -8890,35 +8892,30 @@ File: hledger.info,  Node: accounts,  Next: codes,  Up: Basic report commands
 27.1 accounts
 =============
 
-List account names.
+List the account names used or declared in the journal.
 
 Flags:
-  -u --used                 show only accounts used by transactions
-  -d --declared             show only accounts declared by account directive
-     --unused               show only accounts declared but not used
-     --undeclared           show only accounts used but not declared
+  -u --used                 list accounts used
+  -d --declared             list accounts declared
+     --undeclared           list accounts used but not declared
+     --unused               list accounts declared but not used
+     --find                 list the first account matched by the first
+                            argument (a case-insensitive infix regexp)
      --types                also show account types when known
      --positions            also show where accounts were declared
      --directives           show as account directives, for use in journals
-     --find                 find the first account matched by the first
-                            argument (a case-insensitive infix regexp or
-                            account name)
   -l --flat                 list/tree mode: show accounts as a flat list
                             (default)
   -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 
-   This command lists account names.  By default it shows all known
-accounts, either used in transactions or declared with account
-directives.
+   This command lists account names - all of them by default.  or just
+the ones which have been used in transactions, or declared with
+'account' directives, or used but not declared, or declared but not
+used, or just the first account name matched by a pattern.
 
-   With query arguments, only matched account names and account names
-referenced by matched postings are shown.
-
-   Or it can show just the used accounts ('--used'/'-u'), the declared
-accounts ('--declared'/'-d'), the accounts declared but not used
-('--unused'), the accounts used but not declared ('--undeclared'), or
-the first account matched by an account name pattern, if any ('--find').
+   You can add query arguments to select a subset of transactions or
+accounts.
 
    It shows a flat list by default.  With '--tree', it uses indentation
 to show the account hierarchy.  In flat mode you can add '--drop N' to
@@ -8932,10 +8929,10 @@ depth-clipped with 'depth:N' or '--depth N' or '-N'.
 account's declaration, if any, and the account's overall declaration
 order; these may be useful when troubleshooting account display order.
 
-   With '--directives', it adds the 'account' keyword, showing valid
-account directives which can be pasted into a journal file.  This is
-useful together with '--undeclared' when updating your account
-declarations to satisfy 'hledger check accounts'.
+   With '--directives', it shows valid account directives which could be
+pasted into a journal file.  This is useful together with '--undeclared'
+when updating your account declarations to satisfy 'hledger check
+accounts'.
 
    The '--find' flag can be used to look up a single account name, in
 the same way that the 'aregister' command does.  It returns the
@@ -9014,10 +9011,20 @@ File: hledger.info,  Node: commodities,  Next: descriptions,  Prev: codes,  Up: 
 27.3 commodities
 ================
 
-List all commodity/currency symbols used or declared in the journal.
+List the commodity symbols used or declared in the journal.
 
 Flags:
-no command-specific flags
+     --used                 list commodities used
+     --declared             list commodities declared
+     --undeclared           list commodities used but not declared
+     --unused               list commodities declared but not used
+
+   This command lists commodity symbols/names - all of them by default,
+or just the ones which have been used in transactions or 'P' directives,
+or declared with 'commodity' directives, or used but not declared, or
+declared but not used.
+
+   You can add cur: query arguments to further limit the commodities.
 
 
 File: hledger.info,  Node: descriptions,  Next: files,  Prev: commodities,  Up: Basic report commands
@@ -9025,7 +9032,7 @@ File: hledger.info,  Node: descriptions,  Next: files,  Prev: commodities,  Up: 
 27.4 descriptions
 =================
 
-List the unique descriptions that appear in transactions.
+List the unique descriptions used in transactions.
 
 Flags:
 no command-specific flags
@@ -9081,21 +9088,24 @@ File: hledger.info,  Node: payees,  Next: prices,  Prev: notes,  Up: Basic repor
 27.7 payees
 ===========
 
-List the unique payee/payer names that appear in transactions.
+List the payee/payer names used or declared in the journal.
 
 Flags:
-     --declared             show payees declared with payee directives
-     --used                 show payees referenced by transactions
+     --used                 list payees used
+     --declared             list payees declared
+     --undeclared           list payees used but not declared
+     --unused               list payees declared but not used
 
-   This command lists unique payee/payer names which have been declared
-with payee directives (-declared), used in transaction descriptions
-(-used), or both (the default).
+   This command lists unique payee/payer names - all of them by default,
+or just the ones which have been used in transaction descriptions, or
+declared with 'payee' directives, or used but not declared, or declared
+but not used.
 
-   The payee/payer is the part of the transaction description before a |
-character (or if there is no |, the whole description).
+   The payee/payer name is the part of the transaction description
+before a | character (or if there is no |, the whole description).
 
-   You can add query arguments to select a subset of transactions.  This
-implies -used.
+   You can add query arguments to select a subset of transactions or
+payees.
 
    Example:
 
@@ -9187,34 +9197,40 @@ File: hledger.info,  Node: tags,  Prev: stats,  Up: Basic report commands
 27.10 tags
 ==========
 
-List the tags used in the journal, or their values.
+List the tag names used or declared in the journal, or their values.
 
 Flags:
+     --used                 list tags used
+     --declared             list tags declared
+     --undeclared           list tags used but not declared
+     --unused               list tags declared but not used
      --values               list tag values instead of tag names
-     --parsed               show tags/values in the order they were parsed,
+     --parsed               show them in the order they were parsed (mostly),
                             including duplicates
 
-   This command lists the tag names used in the journal, whether on
-transactions, postings, or account declarations.
+   This command lists tag names - all of them by default, or just the
+ones which have been used on transactions/postings/accounts, or declared
+with 'tag' directives, or used but not declared, or declared but not
+used.
 
-   With a TAGREGEX argument, only tag names matching this regular
-expression (case insensitive, infix matched) are shown.
+   You can add one TAGREGEX argument, to show only tags whose name is
+matched by this case-insensitive, infix-matching regular expression.
 
-   With QUERY arguments, only transactions and accounts matching this
-query are considered.  If the query involves transaction fields (date:,
-desc:, amt:, ...), the search is restricted to the matched transactions
-and their accounts.
+   After that, you can add query arguments to filter the transactions,
+postings, or accounts providing tags.
 
-   With the -values flag, the tags' unique non-empty values are listed
-instead.  With -E/-empty, blank/empty values are also shown.
+   With '--values', the tags' unique non-empty values are listed
+instead.
 
-   With -parsed, tags or values are shown in the order they were parsed,
-with duplicates included.  (Except, tags from account declarations are
-always shown first.)
+   With '-E'/'--empty', blank/empty values are also shown.
 
-   Tip: remember, accounts also acquire tags from their parents,
-postings also acquire tags from their account and transaction,
-transactions also acquire tags from their postings.
+   With '--parsed', tags or values are shown in the order they were
+parsed, with duplicates included.  (Except, tags from account
+declarations are always shown first.)
+
+   Remember that accounts also acquire tags from their parents; postings
+also acquire tags from their account and transaction; and transactions
+also acquire tags from their postings.
 
 
 File: hledger.info,  Node: Standard report commands,  Next: Advanced report commands,  Prev: Basic report commands,  Up: Top
@@ -9262,7 +9278,7 @@ Flags:
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
-     --location             add file/line number tags to print output
+     --location             add tags showing file paths and line numbers
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
@@ -13113,116 +13129,116 @@ Node: web310211
 Node: Data entry commands310339
 Node: add310600
 Node: add and balance assertions313075
-Node: add and balance assignments313792
-Node: import314266
-Node: Import preview315324
-Node: Overlap detection316272
-Node: First import319158
-Node: Importing balance assignments320353
-Node: Import and commodity styles321408
-Node: Import special cases321846
-Node: Basic report commands323181
-Node: accounts323482
-Node: codes326415
-Node: commodities327437
-Node: descriptions327681
-Node: files328148
-Node: notes328445
-Node: payees328957
-Node: prices329741
-Node: stats330633
-Node: tags332374
-Node: Standard report commands333681
-Node: print333986
-Node: print explicitness336797
-Node: print amount style337717
-Node: print parseability338955
-Node: print other features339874
-Node: print output format340835
-Node: aregister344120
-Node: aregister and posting dates348673
-Node: register349574
-Node: Custom register output356815
-Node: balancesheet358000
-Node: balancesheetequity362965
-Node: cashflow368300
-Node: incomestatement373113
-Node: Advanced report commands377962
-Node: balance378170
-Node: balance features383591
-Node: Simple balance report385694
-Node: Balance report line format387504
-Node: Filtered balance report389864
-Node: List or tree mode390383
-Node: Depth limiting391896
-Node: Dropping top-level accounts392663
-Node: Showing declared accounts393173
-Node: Sorting by amount393903
-Node: Percentages394757
-Node: Multi-period balance report395464
-Node: Balance change end balance398216
-Node: Balance report modes399853
-Node: Calculation mode400532
-Node: Accumulation mode401236
-Node: Valuation mode402337
-Node: Combining balance report modes403681
-Node: Budget report405711
-Node: Using the budget report408011
-Node: Budget date surprises410287
-Node: Selecting budget goals411651
-Node: Budgeting vs forecasting412599
-Node: Balance report layout414276
-Node: Wide layout415481
-Node: Tall layout417886
-Node: Bare layout419192
-Node: Tidy layout421256
-Node: Balance report output422800
-Node: Some useful balance reports423574
-Node: roi424834
-Node: Spaces and special characters in --inv and --pnl427081
-Node: Semantics of --inv and --pnl427807
-Node: IRR and TWR explained429894
-Node: Chart commands433305
-Node: activity433486
-Node: Data generation commands433983
-Node: close434189
-Node: close --clopen436752
-Node: close --close438926
-Node: close --open439450
-Node: close --assert439700
-Node: close --assign440027
-Node: close --retain440706
-Node: close customisation441563
-Node: close and balance assertions443207
-Node: close examples444729
-Node: Retain earnings444966
-Node: Migrate balances to a new file445469
-Node: More detailed close examples446831
-Node: rewrite447053
-Node: Re-write rules in a file449625
-Node: Diff output format450935
-Node: rewrite vs print --auto452208
-Node: Maintenance commands452922
-Node: check453141
-Node: Basic checks454223
-Node: Strict checks455244
-Node: Other checks456181
-Node: Custom checks457933
-Node: diff458388
-Node: setup459596
-Node: test462463
-Node: PART 5 COMMON TASKS463366
-Node: Getting help463599
-Node: Constructing command lines464508
-Node: Starting a journal file465346
-Node: Setting LEDGER_FILE466730
-Node: Setting opening balances467988
-Node: Recording transactions471310
-Node: Reconciling472035
-Node: Reporting474424
-Node: Migrating to a new file478538
-Node: BUGS478987
-Node: Troubleshooting479955
+Node: add and balance assignments313799
+Node: import314360
+Node: Import preview315418
+Node: Overlap detection316366
+Node: First import319252
+Node: Importing balance assignments320447
+Node: Import and commodity styles321502
+Node: Import special cases321940
+Node: Basic report commands323275
+Node: accounts323576
+Node: codes326222
+Node: commodities327244
+Node: descriptions328001
+Node: files328461
+Node: notes328758
+Node: payees329270
+Node: prices330182
+Node: stats331074
+Node: tags332815
+Node: Standard report commands334352
+Node: print334657
+Node: print explicitness337471
+Node: print amount style338391
+Node: print parseability339629
+Node: print other features340548
+Node: print output format341509
+Node: aregister344794
+Node: aregister and posting dates349347
+Node: register350248
+Node: Custom register output357489
+Node: balancesheet358674
+Node: balancesheetequity363639
+Node: cashflow368974
+Node: incomestatement373787
+Node: Advanced report commands378636
+Node: balance378844
+Node: balance features384265
+Node: Simple balance report386368
+Node: Balance report line format388178
+Node: Filtered balance report390538
+Node: List or tree mode391057
+Node: Depth limiting392570
+Node: Dropping top-level accounts393337
+Node: Showing declared accounts393847
+Node: Sorting by amount394577
+Node: Percentages395431
+Node: Multi-period balance report396138
+Node: Balance change end balance398890
+Node: Balance report modes400527
+Node: Calculation mode401206
+Node: Accumulation mode401910
+Node: Valuation mode403011
+Node: Combining balance report modes404355
+Node: Budget report406385
+Node: Using the budget report408685
+Node: Budget date surprises410961
+Node: Selecting budget goals412325
+Node: Budgeting vs forecasting413273
+Node: Balance report layout414950
+Node: Wide layout416155
+Node: Tall layout418560
+Node: Bare layout419866
+Node: Tidy layout421930
+Node: Balance report output423474
+Node: Some useful balance reports424248
+Node: roi425508
+Node: Spaces and special characters in --inv and --pnl427755
+Node: Semantics of --inv and --pnl428481
+Node: IRR and TWR explained430568
+Node: Chart commands433979
+Node: activity434160
+Node: Data generation commands434657
+Node: close434863
+Node: close --clopen437426
+Node: close --close439600
+Node: close --open440124
+Node: close --assert440374
+Node: close --assign440701
+Node: close --retain441380
+Node: close customisation442237
+Node: close and balance assertions443881
+Node: close examples445403
+Node: Retain earnings445640
+Node: Migrate balances to a new file446143
+Node: More detailed close examples447505
+Node: rewrite447727
+Node: Re-write rules in a file450299
+Node: Diff output format451609
+Node: rewrite vs print --auto452882
+Node: Maintenance commands453596
+Node: check453815
+Node: Basic checks454897
+Node: Strict checks455918
+Node: Other checks456855
+Node: Custom checks458607
+Node: diff459062
+Node: setup460270
+Node: test463137
+Node: PART 5 COMMON TASKS464040
+Node: Getting help464273
+Node: Constructing command lines465182
+Node: Starting a journal file466020
+Node: Setting LEDGER_FILE467404
+Node: Setting opening balances468662
+Node: Recording transactions471984
+Node: Reconciling472709
+Node: Reporting475098
+Node: Migrating to a new file479212
+Node: BUGS479661
+Node: Troubleshooting480629
 
 End Tag Table
 
