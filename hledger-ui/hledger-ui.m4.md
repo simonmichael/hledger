@@ -12,9 +12,9 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-ui    [OPTS] [QUERYARGS]`\
+`hledger-ui [OPTS] [QUERYARGS]`\
 or\
-`hledger ui -- [OPTS] [QUERYARGS]`
+`hledger ui [OPTS] [QUERYARGS]`
 
 _notinfo_({{
 # DESCRIPTION

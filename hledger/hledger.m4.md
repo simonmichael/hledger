@@ -17,8 +17,6 @@ _notinfo_({{
 `hledger`\
 or\
 `hledger COMMAND [OPTS] [ARGS]`\
-or\
-`hledger ADDONCMD [OPTS] -- [ADDONOPTS] [ADDONARGS]`
 
 _notinfo_({{
 # DESCRIPTION
@@ -189,8 +187,7 @@ With the `-s`/`--strict` flag, additional checks are performed:
   ([Commodity error checking](#commodity-error-checking))
 - Are all commodity conversions declared explicitly ?
 
-You can use the [check](#check) command to run individual checks -- the
-ones listed above and some more.
+You can use the [check](#check) command to run individual checks - the ones listed above and some more.
 
 # Commands
 

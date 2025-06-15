@@ -243,13 +243,13 @@ $ hledger bar reimbursement
 ```
 
 ```cli
-$ hledger bar                                        # show help
-$ hledger bar food                                   # monthly food expenses
-$ hledger bar -- 1 --count food                      # monthly food posting counts
-$ hledger bar -- type:c not:tag:clopen cur:\\\\$ -W  # weekly cashflow, $ only
-$ hledger bar -- type:al not:tag:clopen cur:\\\\$    # monthly net worth change ($)
-$ hledger bar -- type:rx --invert cur:\\\\$          # monthly profit/loss ($)
-$ hledger bar -- -v 1 -f $TIMELOG -D                 # daily hours, with numbers
+$ hledger bar                                     # show help
+$ hledger bar food                                # monthly food expenses
+$ hledger bar 1 --count food                      # monthly food posting counts
+$ hledger bar type:c not:tag:clopen cur:\\\\$ -W  # weekly cashflow, $ only
+$ hledger bar type:al not:tag:clopen cur:\\\\$    # monthly net worth change ($)
+$ hledger bar type:rx --invert cur:\\\\$          # monthly profit/loss ($)
+$ hledger bar -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 ```
 
 ### hledger-git
@@ -324,7 +324,7 @@ $ pip install -U hledger-utils    # might be slightly different on your system
 Examples:
 ```
 $ hledger-plot -h
-$ hledger plot -- bal -DH ^Assets -2
+$ hledger plot bal -DH ^Assets -2
 ```
 
 ### hledger-lots
@@ -386,7 +386,7 @@ runs a register report and prints the posting with largest historical balance.
 ```cli
 $ hledger-register-max -f examples/bcexample.hledger checking
 2013-01-03 Hoogle | Payroll  Assets:US:BofA:Checking      1350.60 USD  8799.22 USD
-$ hledger register-max -- -f examples/bcexample.hledger checking
+$ hledger register-max -f examples/bcexample.hledger checking
 2013-01-03 Hoogle | Payroll  Assets:US:BofA:Checking      1350.60 USD  8799.22 USD
 ```
 
@@ -542,7 +542,7 @@ On unix, the new script should be marked executable. This should do it:
       My new cmd command.
       ...
     $ stack ghc hledger-cmd.hs  # optionally compile for faster startup/durability
-    $ hledger cmd -- --help
+    $ hledger cmd --help
     cmd [OPTIONS]
       My new cmd command.
       ...

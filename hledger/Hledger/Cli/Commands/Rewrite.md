@@ -39,10 +39,10 @@ and the two spaces between account and amount.
 More:
 
 ```cli
-$ hledger rewrite -- [QUERY]        --add-posting "ACCT  AMTEXPR" ...
-$ hledger rewrite -- ^income        --add-posting '(liabilities:tax)  *.33'
-$ hledger rewrite -- expenses:gifts --add-posting '(budget:gifts)  *-1"'
-$ hledger rewrite -- ^income        --add-posting '(budget:foreign currency)  *0.25 JPY; diversify'
+$ hledger rewrite [QUERY]        --add-posting "ACCT  AMTEXPR" ...
+$ hledger rewrite ^income        --add-posting '(liabilities:tax)  *.33'
+$ hledger rewrite expenses:gifts --add-posting '(budget:gifts)  *-1"'
+$ hledger rewrite ^income        --add-posting '(budget:foreign currency)  *0.25 JPY; diversify'
 ```
 
 Argument for `--add-posting` option is a usual posting of transaction with an
@@ -79,14 +79,14 @@ you usually write. It indicates the query by which you want to match the
 posting to add new ones.
 
 ```cli
-$ hledger rewrite -- -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
+$ hledger rewrite -f input.journal -f rewrite-rules.journal > rewritten-tidy-output.journal
 ```
 
 This is something similar to the commands pipeline:
 
 ```cli
-$ hledger rewrite -- -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
-  | hledger rewrite -- -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
+$ hledger rewrite -f input.journal '^income' --add-posting '(liabilities:tax)  *.33' \
+  | hledger rewrite -f - expenses:gifts      --add-posting 'budget:gifts  *-1'       \
                                                 --add-posting 'assets:budget  *1'       \
   > rewritten-tidy-output.journal
 ```
@@ -100,7 +100,7 @@ To use this tool for batch modification of your journal files you may find
 useful output in form of unified diff.
 
 ```cli
-$ hledger rewrite -- --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
+$ hledger rewrite --diff -f examples/sample.journal '^income' --add-posting '(liabilities:tax)  *.33'
 ```
 
 Output might look like:

@@ -12,9 +12,9 @@ _notinfo_({{
 # SYNOPSIS
 }})
 
-`hledger-web    [OPTS] [QUERY]`\
+`hledger-web [OPTS] [QUERY]`\
 or\
-`hledger web -- [OPTS] [QUERY]`
+`hledger web [OPTS] [QUERY]`
 
 _notinfo_({{
 # DESCRIPTION
@@ -85,7 +85,7 @@ Flags:
      --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
      --test                 run hledger-web's tests and exit. hspec test
                             runner args may follow a --, eg: hledger-web --test
-                            -- --help
+                            --help
 ```
 
 By default hledger-web listens only on IP address `127.0.0.1`,
