@@ -85,7 +85,8 @@ demomode = hledgerCommandMode
   []
   ([], Just $ argsFlag optsstr)
 
-optsstr = "[NUM|PREFIX|SUBSTR] [-- ASCIINEMAOPTS]"
+optsstr = "[NUM|PREFIX|SUBSTR]"
+-- optsstr = "[NUM|PREFIX|SUBSTR] [-- ASCIINEMAOPTS]"
 usagestr = "Usage: hledger demo " <> optsstr
 
 -- | The demo command.
@@ -118,6 +119,7 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
           putStrLn line
           putStrLn ""
           threadDelay 1000000
+          -- XXX this used to see asciinema options after --, currently it doesn't
           runAsciinemaPlay speed defidlelimit c as
           putStrLn ""
           putStrLn line
