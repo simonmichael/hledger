@@ -251,6 +251,7 @@ $ hledger bar type:al not:tag:clopen cur:\\\\$    # monthly net worth change ($)
 $ hledger bar type:rx --invert cur:\\\\$          # monthly profit/loss ($)
 $ hledger bar -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 ```
+(or with hledger <1.50: `hledger bar -- ...`)
 
 ### hledger-git
 
@@ -326,6 +327,7 @@ Examples:
 $ hledger-plot -h
 $ hledger plot bal -DH ^Assets -2
 ```
+(or with hledger <1.50: `hledger plot -- ...`)
 
 ### hledger-lots
 
