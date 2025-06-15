@@ -634,7 +634,7 @@ Conversely, once you decide to use this feature, try to remember:
 3. Be conservative about what you put in your config file; try to consider the effect on all your reports.
 4. To troubleshoot the effect of config files, run with `--debug` or `--debug 8`.
 
-The config file feature was added in hledger 1.40 and is considered *experimental*.
+The config file feature was added in hledger 1.40.
 
 ## Shell completions
 
