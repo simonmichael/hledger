@@ -260,6 +260,9 @@ _generaloptions_
 Usually hledger accepts any unambiguous flag prefix,
 eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
 
+You can combine short flags which don't take arguments, eg you can write `-MAST` instead of `-M -A -S -T`.
+Flags requiring an argument can't be combined in this way (`-If FILE` won't work).
+
 If the same option appears more than once in a command line, usually the last (right-most) wins.
 Similarly, if mutually exclusive flags are used together, the right-most wins.
 (When flags are mutually exclusive, they'll usually have a group prefix in --help.)
