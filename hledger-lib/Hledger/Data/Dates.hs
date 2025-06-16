@@ -63,6 +63,7 @@ module Hledger.Data.Dates (
   spanIntersect,
   spansIntersect,
   spanDefaultsFrom,
+  spanValidDefaultsFrom,
   spanExtend,
   spanUnion,
   spansUnion,
@@ -348,9 +349,42 @@ spanIntersect (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan (laterDefinite b1 b2)
 
 -- | Fill any unspecified dates in the first span with the dates from
 -- the second one (if specified there). Sort of a one-way spanIntersect.
+-- This one can create an invalid span that'll always be empty.
+--
+-- >>> :{
+--  DateSpan (Just $ Exact $ fromGregorian 2024 1 1) Nothing
+--  `spanDefaultsFrom`
+--  DateSpan (Just $ Exact $ fromGregorian 2024 1 1) (Just $ Exact $ fromGregorian 2024 1 2)
+-- :}
+-- DateSpan 2024-01-01
+--
+-- >>> :{
+--  DateSpan (Just $ Exact $ fromGregorian 2025 1 1) Nothing
+--  `spanDefaultsFrom`
+--  DateSpan (Just $ Exact $ fromGregorian 2024 1 1) (Just $ Exact $ fromGregorian 2024 1 2)
+-- :}
+-- DateSpan 2025-01-01..2024-01-01
+--
+spanDefaultsFrom :: DateSpan -> DateSpan -> DateSpan
 spanDefaultsFrom (DateSpan a1 b1) (DateSpan a2 b2) = DateSpan a b
     where a = if isJust a1 then a1 else a2
           b = if isJust b1 then b1 else b2
+
+-- | A smarter version of spanDefaultsFrom that avoids creating invalid
+-- spans ending before they begin. Kept separate for now to reduce risk.
+--
+-- >>> :{
+--  DateSpan (Just $ Exact $ fromGregorian 2025 1 1) Nothing
+--  `spanValidDefaultsFrom`
+--  DateSpan (Just $ Exact $ fromGregorian 2024 1 1) (Just $ Exact $ fromGregorian 2024 1 2)
+-- :}
+-- DateSpan 2025-01-01..
+--
+spanValidDefaultsFrom :: DateSpan -> DateSpan -> DateSpan
+spanValidDefaultsFrom s1 s2 =
+  case s1 `spanDefaultsFrom` s2 of
+    DateSpan b e | b >= e -> s1
+    s -> s
 
 -- | Calculate the union of two datespans.
 -- If either span is open-ended, the union will be too.

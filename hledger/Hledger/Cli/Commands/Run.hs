@@ -256,7 +256,7 @@ withJournalCached defaultJournalOverride cliopts cmd = do
               -- could use 'forecastPeriod') or to the journal end date (as
               -- forecast transactions are never generated before journal end
               -- unless specifically requested).
-              Just forecastspan -> forecastspan `spanDefaultsFrom` reportspan_ iopts
+              Just forecastspan -> forecastspan `spanValidDefaultsFrom` reportspan_ iopts
         -- Read stdin, or if we read it alread, use a cache
         -- readStdin :: InputOpts -> ExceptT String IO Journal
         readStdin = do

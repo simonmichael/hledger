@@ -215,7 +215,7 @@ runPeriodicTransaction verbosetags PeriodicTransaction{..} requestedspan =
     alltxnspans = splitSpan adjust ptinterval span'
       where
         -- If the PT does not specify  start or end dates, we take them from the requestedspan.
-        span' = ptspan `spanDefaultsFrom` requestedspan
+        span' = ptspan `spanValidDefaultsFrom` requestedspan
         -- Unless the PT specified a start date explicitly, we will adjust the start date to the previous interval boundary.
         adjust = isNothing $ spanStart span'
 

@@ -390,7 +390,7 @@ generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
     PeriodicReport colspans (buildAndSort acct) totalsrow
   where
     -- Build report rows and sort them
-    buildAndSort = dbg5 "generatePeriodicReport buildAndSort" . case accountlistmode_ ropts of {}
+    buildAndSort = dbg5 "generatePeriodicReport buildAndSort" . case accountlistmode_ ropts of
         ALTree | sort_amount_ ropts -> buildRows . sortTreeByAmount
         ALFlat | sort_amount_ ropts -> sortFlatByAmount . buildRows
         _                           -> buildRows . sortAccountTreeByDeclaration

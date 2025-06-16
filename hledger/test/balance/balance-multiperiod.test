@@ -232,3 +232,23 @@ Balance changes in 2014-01-10..2014-03-09:
  explicit report period ||                     10                       0 
 ------------------------++------------------------------------------------
                         ||                     10                     100 
+
+# ** 19. The historical balances are shown here even though the report period contains no postings. (#2403)
+<
+2024-01-01
+  (a)     1000
+
+$ hledger -f - bal -NHY -b 2025
+Ending balances (historical) in 2025:
+
+   || 2025-12-31 
+===++============
+ a ||       1000 
+
+# ** 20. Without -H, no balance changes are shown here, even with -E.
+# Should it show zero for each of the pre-report-period accounts ?
+$ hledger -f - bal -NY -b 2025
+Balance changes in 2025:
+
+  || 2025 
+==++======

@@ -793,9 +793,8 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
     pricespan = dbg3 "pricespan" . DateSpan Nothing $ case value_ ropts of
         Just (AtEnd _) -> fmap (Exact . addDays 1) . maximumMay . map pddate $ jpricedirectives j
         _              -> Nothing
-    -- If the requested span is open-ended, close it using the journal's start and end dates.
-    -- This can still be the null (open) span if the journal is empty.
-    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanDefaultsFrom` (journalspan `spanExtend` pricespan)
+    -- If the requested span has open ends, fill those with the journal's start and/or end dates, if possible.
+    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanValidDefaultsFrom` (journalspan `spanExtend` pricespan)
     -- The list of interval spans enclosing the requested span.
     -- This list can be empty if the journal was empty,
     -- or if hledger-ui has added its special date:-tomorrow to the query
