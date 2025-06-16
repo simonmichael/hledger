@@ -305,6 +305,7 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colsp
     intToDay = ModifiedJulianDay . toInteger
 
 -- | The valuation function to use for the chosen report options.
+-- This can call error in various situations.
 periodDataValuation :: ReportOpts -> Journal -> PriceOracle -> [DateSpan]
                     -> PeriodData BalanceData -> PeriodData BalanceData
 periodDataValuation ropts j priceoracle colspans =
@@ -320,14 +321,14 @@ periodDataValuation ropts j priceoracle colspans =
     balanceDataPeriodEnds = dbg5 "balanceDataPeriodEnds" $ case colspans of  -- FIXME: Change colspans to nonempty list
         [DateSpan Nothing Nothing] -> periodDataFromList nulldate [(nulldate, nulldate)]  -- Empty journal
         h:ds                       -> periodDataFromList (makeJustFst $ boundaries h) $ map (makeJust . boundaries) (h:ds)
-        []                         -> error "balanceDataPeriodEnds: Shouldn't have empty colspans"  -- PARTIAL: Shouldn't occur
+        []                         -> error' "balanceDataPeriodEnds: Shouldn't have empty colspans"  -- PARTIAL: Shouldn't occur
       where
         boundaries spn = (spanStart spn, spanEnd spn)
 
         makeJust (Just x, Just y) = (x, addDays (-1) y)
-        makeJust _    = error "calculateReportAccount: expected all non-initial spans to have start and end dates"
+        makeJust _    = error' "calculateReportAccount: expected all non-initial spans to have start and end dates"
         makeJustFst (Just x, _) = addDays (-1) x
-        makeJustFst _ = error "calculateReportAccount: expected initial span to have an end date"
+        makeJustFst _ = error' "calculateReportAccount: expected initial span to have an end date"
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
 markAccountBoring :: ReportSpec -> Account BalanceData -> Account BalanceData
