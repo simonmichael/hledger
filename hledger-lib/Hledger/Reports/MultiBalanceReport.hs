@@ -49,16 +49,9 @@ import Data.Traversable (mapAccumL)
 
 import Hledger.Data
 import Hledger.Query
-import Hledger.Utils hiding (dbg3,dbg4,dbg5)
-import qualified Hledger.Utils
+import Hledger.Utils
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
-
-
--- add a prefix to this function's debug output
-dbg3 s = let p = "multiBalanceReport" in Hledger.Utils.dbg3 (p++" "++s)
-dbg4 s = let p = "multiBalanceReport" in Hledger.Utils.dbg4 (p++" "++s)
-dbg5 s = let p = "multiBalanceReport" in Hledger.Utils.dbg5 (p++" "++s)
 
 
 -- | A multi balance report is a kind of periodic report, where the amounts
@@ -103,19 +96,19 @@ multiBalanceReportWith :: ReportSpec -> Journal -> PriceOracle -> MultiBalanceRe
 multiBalanceReportWith rspec' j priceoracle = report
   where
     -- Queries, report/column dates.
-    (reportspan, colspans) = dbg5 "reportSpan" $ reportSpan j rspec'
-    rspec = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
+    (reportspan, colspans) = dbg5 "multiBalanceReportWith reportSpan" $ reportSpan j rspec'
+    rspec = dbg3 "multiBalanceReportWith rspec" $ makeReportQuery rspec' reportspan
     -- force evaluation order to show price lookup after date spans in debug output (XXX not working)
     -- priceoracle = reportspan `seq` priceoracle0
 
     -- Get postings
-    ps = dbg5 "ps" $ getPostings rspec j priceoracle reportspan
+    ps = dbg5 "multiBalanceReportWith ps" $ getPostings rspec j priceoracle reportspan
 
     -- Process changes into normal, cumulative, or historical amounts, plus value them and mark which are uninteresting
-    acct = dbg5 "acct" $ generateMultiBalanceAccount rspec j priceoracle colspans ps
+    acct = dbg5 "multiBalanceReportWith acct" $ generateMultiBalanceAccount rspec j priceoracle colspans ps
 
     -- Generate and postprocess the report, negating balances and taking percentages if needed
-    report = dbg4 "multiBalanceReportWith" $ generateMultiBalanceReport (_rsReportOpts rspec) colspans acct
+    report = dbg4 "multiBalanceReportWith report" $ generateMultiBalanceReport (_rsReportOpts rspec) colspans acct
 
 -- | Generate a compound balance report from a list of CBCSubreportSpec. This
 -- shares postings between the subreports.
@@ -131,11 +124,11 @@ compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
 compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
   where
     -- Queries, report/column dates.
-    (reportspan, colspans) = dbg5 "reportSpan" $ reportSpan j rspec'
-    rspec = dbg3 "reportopts" $ makeReportQuery rspec' reportspan
+    (reportspan, colspans) = dbg5 "compoundBalanceReportWith reportSpan" $ reportSpan j rspec'
+    rspec = dbg3 "compoundBalanceReportWith rspec" $ makeReportQuery rspec' reportspan
 
     -- Get postings
-    ps = dbg5 "ps" $ getPostings rspec j priceoracle reportspan
+    ps = dbg5 "compoundBalanceReportWith ps" $ getPostings rspec j priceoracle reportspan
 
     subreports = map generateSubreport subreportspecs
       where
@@ -178,8 +171,8 @@ makeReportQuery rspec reportspan
     | otherwise = rspec{_rsQuery=query}
   where
     query            = simplifyQuery $ And [dateless $ _rsQuery rspec, reportspandatesq]
-    reportspandatesq = dbg3 "reportspandatesq" $ dateqcons reportspan
-    dateless         = dbg3 "dateless" . filterQuery (not . queryIsDateOrDate2)
+    reportspandatesq = dbg3 "makeReportQuery reportspandatesq" $ dateqcons reportspan
+    dateless         = dbg3 "makeReportQuery dateless" . filterQuery (not . queryIsDateOrDate2)
     dateqcons        = if date2_ (_rsReportOpts rspec) then Date2 else Date
 
 -- | Gather postings matching the query within the report period.
@@ -208,15 +201,15 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
     -- q projected back before the report start date.
     -- When there's no report start date, in case there are future txns (the hledger-ui case above),
     -- we use emptydatespan to make sure they aren't counted as starting balance.
-    fullreportq = dbg3 "fullreportq" $ And [datelessq, fullreportspanq]
-    datelessq   = dbg3 "datelessq" $ filterQuery (not . queryIsDateOrDate2) depthlessq
+    fullreportq = dbg3 "getPostings fullreportq" $ And [datelessq, fullreportspanq]
+    datelessq   = dbg3 "getPostings datelessq" $ filterQuery (not . queryIsDateOrDate2) depthlessq
 
     -- The user's query with no depth limit, and expanded to the report span
     -- if there is one (otherwise any date queries are left as-is, which
     -- handles the hledger-ui+future txns case above).
-    depthlessq = dbg3 "depthlessq" $ filterQuery (not . queryIsDepth) query
+    depthlessq = dbg3 "getPostings depthlessq" $ filterQuery (not . queryIsDepth) query
 
-    depthSpec  = dbg3 "depthSpec" . queryDepth $ filterQuery queryIsDepth query
+    depthSpec = dbg3 "getPostings depthSpec" . queryDepth $ filterQuery queryIsDepth query
 
     fullreportspan  = if requiresHistorical ropts then DateSpan Nothing (Exact <$> spanEnd reportspan) else reportspan
     fullreportspanq = (if date2_ ropts then Date2 else Date) $ case fullreportspan of
@@ -254,7 +247,7 @@ addDeclaredAccounts rspec j acct =
       filter (matchesAccountExtra (journalAccountType j) (journalAccountTags j) accttypetagsq) $
       journalAccountNamesDeclared j
 
-    accttypetagsq  = dbg3 "accttypetagsq" .
+    accttypetagsq  = dbg3 "addDeclaredAccounts accttypetagsq" .
       filterQueryOrNotQuery (\q -> queryIsAcct q || queryIsType q || queryIsTag q) $
       _rsQuery rspec
 
@@ -291,7 +284,7 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colsp
         cumulative = cumulativeSum changes{pdpre = mempty}
         avalue = periodDataValuation ropts j priceoracle colspans
 
-    changesAcct = dbg5With (\x -> "multiBalanceReport changesAcct\n" ++ showAccounts x) .
+    changesAcct = dbg5With (\x -> "calculateReportAccount changesAcct\n" ++ showAccounts x) .
         mapPeriodData (padPeriodData intervalStarts) $
         accountFromPostings getIntervalStartDate ps
 
@@ -326,9 +319,9 @@ periodDataValuation ropts j priceoracle colspans =
         boundaries spn = (spanStart spn, spanEnd spn)
 
         makeJust (Just x, Just y) = (x, addDays (-1) y)
-        makeJust _    = error' "calculateReportAccount: expected all non-initial spans to have start and end dates"
+        makeJust _    = error' "balanceDataPeriodEnds: expected all non-initial spans to have start and end dates"
         makeJustFst (Just x, _) = addDays (-1) x
-        makeJustFst _ = error' "calculateReportAccount: expected initial span to have an end date"
+        makeJustFst _ = error' "balanceDataPeriodEnds: expected initial span to have an end date"
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
 markAccountBoring :: ReportSpec -> Account BalanceData -> Account BalanceData
@@ -397,7 +390,7 @@ generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
     PeriodicReport colspans (buildAndSort acct) totalsrow
   where
     -- Build report rows and sort them
-    buildAndSort = dbg5 "sortedrows" . case accountlistmode_ ropts of
+    buildAndSort = dbg5 "generatePeriodicReport buildAndSort" . case accountlistmode_ ropts of {}
         ALTree | sort_amount_ ropts -> buildRows . sortTreeByAmount
         ALFlat | sort_amount_ ropts -> sortFlatByAmount . buildRows
         _                           -> buildRows . sortAccountTreeByDeclaration
@@ -405,7 +398,7 @@ generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
     buildRows = buildReportRows makeRow ropts
 
     -- Calculate column totals from the inclusive balances of the root account
-    totalsrow = dbg5 "totalsrow" $ makeRow ropts bdincludingsubs () acct
+    totalsrow = dbg5 "generatePeriodicReport totalsrow" $ makeRow ropts bdincludingsubs () acct
 
     sortTreeByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortAccountTreeOn (\r -> (Down $ amt r, aname r))
