@@ -1,4 +1,4 @@
-# * balance reports with report intervals
+# * balance reports with multiple periods
 
 # ** 1. Here are the postings used in most tests below:
 $ hledger -f balance-multicol.journal register
