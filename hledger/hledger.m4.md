@@ -3404,6 +3404,8 @@ date-format %Y-%h-%d
 date-format %-m/%-d/%Y %l:%M %p some other junk
 ```
 
+Note currently there is no locale awareness for things like `%b`, and setting LC_TIME won't help.
+
 ## `timezone`
 
 ```rules
