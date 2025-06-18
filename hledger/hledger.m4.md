@@ -2706,6 +2706,9 @@ the rule's postings are added to that transaction, immediately below the matched
 Note these generated postings are temporary, existing only for the duration of the report,
 and only when `--auto` is used; they are not saved in the journal file by hledger.
 
+The postings can contain the special string `%account` which will be expanded to
+the account name of the matched account.
+
 Generated postings' amounts can depend on the matched posting's amount.
 So auto postings can be useful for, eg, adding tax postings with a standard percentage.
 AMOUNT can be:

@@ -109,6 +109,7 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
   \p -> styleAmounts styles . renderPostingCommentDates $ pr
       { pdate    = pdate  pr <|> pdate  p
       , pdate2   = pdate2 pr <|> pdate2 p
+      , paccount = account' p
       , pamount  = amount' p
       , pcomment = pcomment pr & (if verbosetags then (`commentAddTag` ("generated-posting",qry)) else id)
       , ptags    = ptags pr
@@ -119,6 +120,10 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
     pr = tmprPosting tmpr
     qry = "= " <> querytxt
     symq = filterQuery (liftA2 (||) queryIsSym queryIsAmt) query
+    account' = if accountTemplate `T.isInfixOf` paccount pr
+                 then \p -> T.replace accountTemplate (paccount p) $ paccount pr
+                 else const $ paccount pr
+      where accountTemplate = "%account"
     amount' = case postingRuleMultiplier tmpr of
         Nothing -> const $ pamount pr
         Just n  -> \p ->
