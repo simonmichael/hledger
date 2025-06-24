@@ -4969,7 +4969,7 @@ The q can be upper or lower case and the quarter number must be 1-4.
 `2004q3`
 : start of third quarter of 2004
 
-v`q3`
+`q3`
 : start of third quarter of current year
 
 `2004`
