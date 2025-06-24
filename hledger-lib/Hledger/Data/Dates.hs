@@ -89,7 +89,7 @@ import Control.Applicative (Applicative(..))
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
 import qualified Control.Monad.Fail as Fail (MonadFail, fail)
-import Data.Char (digitToInt, isDigit, ord)
+import Data.Char (digitToInt, isDigit)
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.Function (on)
@@ -910,7 +910,8 @@ smartdate :: TextParser m SmartDate
 smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
     [ relativeP
-    , yyyymmdd, ymd
+    , yyyymmdd
+    , ymd
     , (\(m,d) -> SmartFromReference (Just m) d) <$> md
     , failIfInvalidDate . SmartFromReference Nothing =<< decimal
     , SmartMonth <$> (month <|> mon)
@@ -1141,12 +1142,11 @@ reportingintervalp = choice'
         ]
 
 periodexprdatespanp :: Day -> TextParser m DateSpan
-periodexprdatespanp rdate = choice $ map try [
+periodexprdatespanp rdate = choice' [
                             doubledatespanp rdate,
-                            quarterdatespanp rdate,
                             fromdatespanp rdate,
                             todatespanp rdate,
-                            justdatespanp rdate
+                            indatespanp rdate
                            ]
 
 -- |
@@ -1162,45 +1162,95 @@ periodexprdatespanp rdate = choice $ map try [
 -- Right DateSpan 2017
 doubledatespanp :: Day -> TextParser m DateSpan
 doubledatespanp rdate = liftA2 fromToSpan
-    (optional ((string' "from" <|> string' "since") *> skipNonNewlineSpaces) *> smartdate)
+    (optional ((string' "from" <|> string' "since") *> skipNonNewlineSpaces) *> smartdateorquarterstartp rdate)
     (skipNonNewlineSpaces *> choice [string' "to", string "..", string "-"]
-    *> skipNonNewlineSpaces *> smartdate)
+    *> skipNonNewlineSpaces *> smartdateorquarterstartp rdate)
   where
     fromToSpan = DateSpan `on` (Just . fixSmartDate rdate)
 
 -- |
--- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "q1"
--- Right DateSpan 2018Q1
--- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "Q1"
--- Right DateSpan 2018Q1
--- >>> parsewith (quarterdatespanp (fromGregorian 2018 01 01) <* eof) "2020q4"
--- Right DateSpan 2020Q4
-quarterdatespanp :: Day -> TextParser m DateSpan
-quarterdatespanp rdate = do
-    y <- yearp <|> pure (first3 $ toGregorian rdate)
-    q <- char' 'q' *> satisfy is4Digit
-    return . periodAsDateSpan $ QuarterPeriod y (digitToInt q)
-  where
-    is4Digit c = (fromIntegral (ord c - ord '1') :: Word) <= 3
-
+-- >>> let p = parsewith (fromdatespanp (fromGregorian 2024 02 02) <* eof)
+-- >>> p "2025-01-01.."
+-- Right DateSpan 2025-01-01..
+-- >>> p "2025Q1.."
+-- Right DateSpan 2025-01-01..
+-- >>> p "from q2"
+-- Right DateSpan 2024-04-01..
 fromdatespanp :: Day -> TextParser m DateSpan
 fromdatespanp rdate = fromSpan <$> choice
-    [ (string' "from" <|> string' "since") *> skipNonNewlineSpaces *> smartdate
-    , smartdate <* choice [string "..", string "-"]
-    ]
+  [ (string' "from" <|> string' "since") *> skipNonNewlineSpaces *> smartdateorquarterstartp rdate
+  , smartdateorquarterstartp rdate <* choice [string "..", string "-"]
+  ]
   where
     fromSpan b = DateSpan (Just $ fixSmartDate rdate b) Nothing
 
+-- |
+-- >>> let p = parsewith (todatespanp (fromGregorian 2024 02 02) <* eof)
+-- >>> p "..2025-01-01"
+-- Right DateSpan ..2024-12-31
+-- >>> p "..2025Q1"
+-- Right DateSpan ..2024-12-31
+-- >>> p "to q2"
+-- Right DateSpan ..2024-03-31
 todatespanp :: Day -> TextParser m DateSpan
 todatespanp rdate =
-    choice [string' "to", string' "until", string "..", string "-"]
-    *> skipNonNewlineSpaces
-    *> (DateSpan Nothing . Just . fixSmartDate rdate <$> smartdate)
+  choice [string' "to", string' "until", string "..", string "-"]
+  *> skipNonNewlineSpaces
+  *> (DateSpan Nothing . Just . fixSmartDate rdate <$> smartdateorquarterstartp rdate)
 
-justdatespanp :: Day -> TextParser m DateSpan
-justdatespanp rdate =
-    optional (string' "in" *> skipNonNewlineSpaces)
-    *> (spanFromSmartDate rdate <$> smartdate)
+-- |j
+-- >>> let p = parsewith (indatespanp (fromGregorian 2024 02 02) <* eof)
+-- >>> p "2025-01-01"
+-- Right DateSpan 2025-01-01
+-- >>> p "2025q1"
+-- Right DateSpan 2025Q1
+-- >>> p "in Q2"
+-- Right DateSpan 2024Q2
+indatespanp :: Day -> TextParser m DateSpan
+indatespanp rdate =
+  optional (string' "in" *> skipNonNewlineSpaces)
+  *> choice' [
+    quarterspanp rdate,
+    spanFromSmartDate rdate <$> smartdate
+  ]
+
+-- Helper: parse a quarter number, optionally preceded by a year.
+quarterp :: Day -> TextParser m (Year, Int)
+quarterp rdate = do
+  y <- yearp <|> pure (first3 $ toGregorian rdate)
+  n <- char' 'q' *> satisfy (`elem` ['1' .. '4']) >>= return . digitToInt
+  return (y, n)
+
+-- | Parse a single quarter (YYYYqN or qN, case insensitive q) as a date span.
+--
+-- >>> parsewith (quarterspanp (fromGregorian 2018 01 01) <* eof) "q1"
+-- Right DateSpan 2018Q1
+-- >>> parsewith (quarterspanp (fromGregorian 2018 01 01) <* eof) "Q1"
+-- Right DateSpan 2018Q1
+-- >>> parsewith (quarterspanp (fromGregorian 2018 01 01) <* eof) "2020q4"
+-- Right DateSpan 2020Q4
+quarterspanp :: Day -> TextParser m DateSpan
+quarterspanp rdate = do
+  (y,q) <- quarterp rdate
+  return . periodAsDateSpan $ QuarterPeriod y q
+
+-- | Parse a quarter (YYYYqN or qN, case insensitive q) as its start date.
+--
+-- >>> parsewith (quarterstartp (fromGregorian 2025 02 02) <* eof) "q1"
+-- Right 2025-01-01
+-- >>> parsewith (quarterstartp (fromGregorian 2025 02 02) <* eof) "Q2"
+-- Right 2025-04-01
+-- >>> parsewith (quarterstartp (fromGregorian 2025 02 02) <* eof) "2025q4"
+-- Right 2025-10-01
+quarterstartp :: Day -> TextParser m Day
+quarterstartp rdate = do
+  (y,q) <- quarterp rdate
+  return $
+    fromMaybe (error' "Hledger.Data.Dates.quarterstartp: invalid date found") $  -- PARTIAL, shouldn't happen
+    periodStart $ QuarterPeriod y q
+
+smartdateorquarterstartp :: Day -> TextParser m SmartDate
+smartdateorquarterstartp rdate = choice' [SmartCompleteDate <$> quarterstartp rdate, smartdate]
 
 nulldatespan :: DateSpan
 nulldatespan = DateSpan Nothing Nothing

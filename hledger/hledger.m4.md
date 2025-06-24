@@ -4954,16 +4954,23 @@ during January 2020 (the smallest common period, with the -p overriding -b and -
 In hledger's user interfaces (though not in the journal file), you can optionally use "smart date" syntax.
 Smart dates can be written with english words, can be relative, and can have parts omitted.
 Missing parts are inferred as 1, when needed.
-Smart dates can be interpreted as dates or periods depending on context.
+Smart dates can be interpreted as dates or periods depending on the context.
 
 Examples:
 
-`2004-01-01`, `2004/10/1`, `2004.9.1`, `20240504`
+`2004-01-01`, `2004/10/1`, `2004.9.1`, `20240504`, `2024Q1`
 :\
 Exact dates. The year must have at least four digits, the month must be 1-12, the day must be 1-31, the separator can be `-` or `/` or `.` or nothing.
+The q can be upper or lower case and the quarter number must be 1-4.
 
 `2004-10`
 : start of month
+
+`2004q3`
+: start of third quarter of 2004
+
+v`q3`
+: start of third quarter of current year
 
 `2004`
 : start of year
@@ -5047,7 +5054,7 @@ For example, if the journal's last transaction is on february 20th,
 
 - `hledger register` will end the report on february 20th.
 - `hledger register --monthly` will end the report at the end of february.
-- `hledger register --monthly --end 2/14` also will end the report at the end of february.
+- `hledger register --monthly --end 2/14` also will end the report at the end of february (overriding the requested end date).
 - `hledger register --monthly --begin 1/5 --end 2/14` will end the report on march 4th [1].
 
 [1] Since hledger 1.29.
