@@ -35,7 +35,7 @@ This reduces wasteful admin work.
 
 ## How to claim the bounty
 
-1. Discover a new regression, which you did not cause, and report it in the [hledger bug tracker](http://bugs.hledger.org).
+1. Discover a new regression and report it in the [hledger bug tracker](http://bugs.hledger.org).
    And/or, fix an open issue which has the `regression` label.
 2. Wait for confirmation from the issue manager ([SM](https://joyful.com)).
 3. Send an expense reimbursement request to [hledger's open collective](https://opencollective.com/hledger).
@@ -122,9 +122,12 @@ This table keeps evolving. Bold things are unresolved. The formatting evolves li
      (unclaimed)                (submitted)               (paid)
 **NAME FINDORFIXDATE** -> **[NAME](EXPENSEPAGE)** -> [NAME](EXPENSEPAGE)
                                                or -> NAME donated
+Finder bounties began on 2021-06-14.
+Fixer  bounties began on 2024-01-01.
+
 -->
 
-| New&nbsp;regressions | Fixed&nbsp;in | Finder&nbsp;bounties <br>(since 2021-06-14)                                      | Fixer&nbsp;bounties <br>(since 2024-01-01) <!-- some missing -->
+| New&nbsp;regressions | Fixed&nbsp;in | Finder                                                                           | Fixer
 |--------------------------|-----------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
 | **1.19** 2020-09-01      |           | ---                                                                              | ---
 | [#1568]                  | 1.22      | jolmg         (N/A)                                                              | N/A
