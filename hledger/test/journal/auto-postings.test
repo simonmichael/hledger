@@ -426,3 +426,22 @@ $ hledger -f- print --forecast --auto --explicit
     a   1
 
 $ hledger -f- --auto check
+
+# 22. any instance of %account in the account name is substituted for the original account
+<
+2023-01-06 * A client
+    Income:Revenue  -1190 €  ; tax: 19%
+    Assets:Bank
+
+= acct:Income tag:tax=19%
+    %account              *-0.15966387 ; 1-100/119
+    Liabilities:VAT        *0.15966387 ; 1-100/119
+
+$ hledger -f- --auto print
+2023-01-06 * A client
+    Income:Revenue            -1190 €  ; tax: 19%
+    Income:Revenue      190.0000053 €  ; 1-100/119
+    Liabilities:VAT    -190.0000053 €  ; 1-100/119
+    Assets:Bank
+
+>=0
