@@ -688,7 +688,7 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
       LayoutBare -> headerCell "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders =
-      map (headerDateSpanCell balance_base_url_ querystring_) colspans ++
+      (if not summary_only_ then map (headerDateSpanCell balance_base_url_ querystring_) colspans  else [] )++
       [hCell "rowtotal" "total" | multiBalanceHasTotalsColumn opts] ++
       [hCell "rowaverage" "average" | average_]
     fullRowAsTexts row =
