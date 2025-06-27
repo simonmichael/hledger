@@ -27,7 +27,6 @@ import Data.List (mapAccumR, nub, partition, sortBy)
 import Data.List.Extra (nubSort)
 import Data.Maybe (catMaybes)
 import Data.Ord (Down(..), comparing)
-import Data.Text (Text)
 import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 
@@ -80,7 +79,7 @@ type AccountTransactionsReportItem =
    Transaction -- the transaction, unmodified
   ,Transaction -- the transaction, as seen from the current account
   ,Bool        -- is this a split (more than one posting to other accounts) ?
-  ,Text        -- a display string describing the other account(s), if any
+  ,[AccountName] -- the other account(s), if any
   ,MixedAmount -- the amount posted to the current account(s) (or total amount posted)
   ,MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
   )
@@ -188,14 +187,14 @@ accountTransactionsReportItem reportq thisacctq signfn accttypefn bal (d, t)
     -- 201407: I've lost my grip on this, let's just hope for the best
     -- 201606: we now calculate change and balance from filtered postings, check this still works well for all callers XXX
     | null reportps = (bal, Nothing)  -- no matched postings in this transaction, skip it
-    | otherwise     = (bal', Just (t, tacct{tdate=d}, numotheraccts > 1, otheracctstr, amt, bal'))
+    | otherwise     = (bal', Just (t, tacct{tdate=d}, numotheraccts > 1, otheraccts, amt, bal'))
     where
       tacct@Transaction{tpostings=reportps} = filterTransactionPostingsExtra accttypefn reportq t  -- TODO needs to consider --date2, #1731
       (thisacctps, otheracctps) = partition (matchesPosting thisacctq) reportps
       numotheraccts = length $ nub $ map paccount otheracctps
-      otheracctstr | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
-                   | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
-                   | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
+      otheraccts | thisacctq == None  = summarisePostingAccounts reportps     -- no current account ? summarise all matched postings
+                 | numotheraccts == 0 = summarisePostingAccounts thisacctps   -- only postings to current account ? summarise those
+                 | otherwise          = summarisePostingAccounts otheracctps  -- summarise matched postings to other account(s)
       -- 202302: Impact of t on thisacct - normally the sum of thisacctps,
       -- but if they are null it probably means reportq is an account filter
       -- and we should sum otheracctps instead.
@@ -236,9 +235,8 @@ transactionRegisterDate wd reportq thisacctq t
 
 -- | Generate a simplified summary of some postings' accounts.
 -- To reduce noise, if there are both real and virtual postings, show only the real ones.
-summarisePostingAccounts :: [Posting] -> Text
-summarisePostingAccounts ps =
-    T.intercalate ", " . map accountSummarisedName . nub $ map paccount displayps
+summarisePostingAccounts :: [Posting] -> [AccountName]
+summarisePostingAccounts ps = map paccount displayps
   where
     realps = filter isReal ps
     displayps | null realps = ps
