@@ -12,7 +12,7 @@ The following ladder can be helpful when evaluating or building
 investment-related features in accounting software.
 
 (hledger users: this is not documentation for hledger; 
-if you're looking for that, try [Cookbook > Investing and trading](cookbook.md#investing-and-trading).)
+if you're looking for that, try [Cookbook > Investing and trading](doc.md#investing-and-trading).)
 
 Each rung of the ladder adds a new concept or feature, describing:
 
