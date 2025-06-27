@@ -10,44 +10,43 @@ Notes for hledger release managers and maintainers.
 ## Goals
 
 **2025**
-[ ] Make releasing easier
-[ ] Improve automation
-[ ] Improve process docs
-[ ] Track releasing and release engineering time explicitly, per release
-\
+- [ ] Make releasing easier
+- [ ] Improve automation
+- [ ] Improve process docs
+- [ ] Track releasing and release engineering time explicitly, per release
+
 **2024**
-[x] Make releasing easier
-\
+- [x] Make releasing easier
+
 **2023**
-[x] Make releasing eas<s>y</s>ier
-\
+- [x] Make releasing eas<s>y</s>ier
+
 **2022**
-[x] Update/consolidate release process docs,
-[x] Establish routine <s>monthly</s> release cadence,
-[ ] Make releasing easy
+- [x] Update/consolidate release process docs,
+- [x] Establish routine <s>monthly</s> release cadence,
+- [ ] Make releasing easy
 
 ## hledger release types
 
 hledger major releases happen each quarter, normally at the start of the third month (see [past releases](relnotes.md)).
-Bugfix releases follow when needed.
-Preview releases may happen in the other months if wanted.
+Bugfix releases follow those when needed, usually soon after.
+Preview/nightly releases may happen any time.
 
-|                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Fixup&nbsp;release<br>A.B.C.D                | Preview&nbsp;release<br>A.B.99.D         |
-|---------------------|----------------------------------------------------------|------------------------------|----------------------------------------------|------------------------------------------|
-| **Contains:**       | New features, breaking changes                           | Only bug fixes               | Trivial packaging fixes, no software changes | Early snapshot of the next major release |
-| **When:**           | Third month of quarter: March, June, September, December | When needed                  | Never                                        | First & second months of quarter         |
-|                     |                                                          |                              |                                              |                                          |
-| **Deliverables:**   |                                                          |                              |                                              |                                          |
-| Changelogs          | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
-| Github release      | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
-| Binaries            | ✓                                                        | ✓                            | ✓                                            | ✓                                        |
-| Hackage release     | ✓                                                        | ✓                            | ✓                                            |                                          |
-| Install page        | ✓                                                        | ✓                            | ✓                                            |                                          |
-| hledger-install     | ✓                                                        | ✓                            | ✓                                            |                                          |
-| [Regression bounty] | ✓                                                        | ✓                            | ✓                                            |                                          |
-| Release notes       | ✓                                                        | ✓                            |                                              |                                          |
-| Web manuals         | ✓                                                        |                              |                                              |                                          |
-| Announcements       | ✓                                                        |                              |                                              |                                          |
+|                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Preview/Nightly&nbsp;release<br>A.B.99 |
+|---------------------|----------------------------------------------------------|------------------------------|------------------------------------------|
+| **Contains:**       | New features, breaking changes                           | Only bug fixes               | Early snapshot of the next major release |
+| **When:**           | Start of third month in quarter: Mar, Jun, Sep, Dec      | When needed                  | Occasionally, as needed                  |
+|                     |                                                          |                              |                                          |
+| **Deliverables:**   |                                                          |                              |                                          |
+| Changelogs          | ✓                                                        | ✓                            | ✓                                        |
+| Github release      | ✓                                                        | ✓                            | ✓                                        |
+| Binaries            | ✓                                                        | ✓                            | ✓                                        |
+| Hackage release     | ✓                                                        | ✓                            |                                          |
+| Install page        | ✓                                                        | ✓                            |                                          |
+| Regression&nbsp;bounties | ✓                                                        | ✓                            |                                          |
+| Release notes       | ✓                                                        | ✓                            |                                          |
+| Manuals snapshot    | ✓                                                        |                              |                                          |
+| Announcements       | ✓                                                        |                              |                                          |
 
 [Regression bounty]: http://hledger.org/regressionbounty
 
@@ -379,7 +378,8 @@ Major releases include new features and incompatible API changes, and normally h
 Bugfix releases include only bug fixes, without API changes. These happen when needed, to fix significant bugs in the previous major release. Example version number: `1.25.2` (**"second bugfix release for 1.25"**)
 
 **Fixup release**\
-Fixup releases fix packaging errors, with no changes to the hledger software. These should be rare. Example version number: `1.25.0.1` or `1.25.2.1` (**"first fixup release for 1.25 / 1.25.2"**)
+Fixup releases fix packaging errors, with no changes to the hledger software. Example version number: `1.25.0.1` or `1.25.2.1` (**"first fixup release for 1.25 / 1.25.2"**).
+These should rare; we basically never do these.
 
 **Preview release**\
 A preview of the upcoming major release for testers/early adopters, and a test of the release process, published on Github. Not a formal hledger release, eg not published on Hackage, usually not packaged, no bugfix releases, no regression bounties, not shown in release notes. These typically appear in the quarter's first and second month if needed. Example version number: `1.25.99.1` (**"preview 1 of 1.26"**)
