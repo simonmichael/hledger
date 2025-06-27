@@ -42,6 +42,7 @@ where
 import Brick.Widgets.List (listMoveTo, listSelectedElement, list)
 import Data.List
 import Data.Maybe
+import qualified Data.Text as T
 import Data.Time.Calendar (Day, diffDays)
 import Safe
 import qualified Data.Vector as V
@@ -280,11 +281,11 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
     -- pre-render the list items, helps calculate column widths
     displayitems = map displayitem items'
       where
-        displayitem (t, _, _issplit, otheracctsstr, change, bal) =
+        displayitem (t, _, _issplit, otheraccts, change, bal) =
           RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
                             ,rsItemStatus        = tstatus t
                             ,rsItemDescription   = tdescription t
-                            ,rsItemOtherAccounts = otheracctsstr
+                            ,rsItemOtherAccounts = T.intercalate ", " . map accountSummarisedName $ nub otheraccts
                                                     -- _   -> "<split>"  -- should do this if accounts field width < 30
                             ,rsItemChangeAmount  = showamt change
                             ,rsItemBalanceAmount = showamt bal

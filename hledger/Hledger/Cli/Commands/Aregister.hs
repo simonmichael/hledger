@@ -20,7 +20,7 @@ module Hledger.Cli.Commands.Aregister (
 ) where
 
 import Data.Default (def)
-import Data.List (find)
+import Data.List (find, nub)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Foldable (for_)
@@ -157,12 +157,12 @@ accountTransactionsReportItemAsRecord ::
   [Spr.Cell Spr.NumLines Text]
 accountTransactionsReportItemAsRecord
   fmt internals wd reportq thisacctq
-  (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheracctsstr, change, balance)
+  (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheraccts, change, balance)
   = (optional internals [Spr.integerCell tindex]) ++
     date :
     (optional internals [cell tcode]) ++
     [cell tdescription,
-     cell otheracctsstr,
+     cell $ T.intercalate ", " $ nub otheraccts,
      amountCell change,
      amountCell balance]
   where
@@ -244,11 +244,11 @@ accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int
 accountTransactionsReportItemAsText
   copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}
   reportq thisacctq preferredamtwidth preferredbalwidth
-  ((t@Transaction{tdescription}, _, _issplit, otheracctsstr, _, _), amt, bal) =
+  ((t@Transaction{tdescription}, _, _issplit, otheraccts, _, _), amt, bal) =
     -- Transaction -- the transaction, unmodified
     -- Transaction -- the transaction, as seen from the current account
     -- Bool        -- is this a split (more than one posting to other accounts) ?
-    -- String      -- a display string describing the other account(s), if any
+    -- [AccountName] -- the other account(s), if any
     -- MixedAmount -- the amount posted to the current account(s) (or total amount posted)
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
     table <> TB.singleton '\n'
@@ -287,9 +287,7 @@ accountTransactionsReportItemAsText
     (descwidth, acctwidth) = (w, remaining - 2 - w)
       where w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
-    -- gather content
-    accts = -- T.unpack $ elideAccountName acctwidth $ T.pack
-            otheracctsstr
+    accts = T.intercalate ", " . map accountSummarisedName $ nub otheraccts
 
 -- tests
 
