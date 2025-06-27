@@ -1,4 +1,4 @@
-# Project finances
+# Finance
 
 <div class=pagetoc>
 
