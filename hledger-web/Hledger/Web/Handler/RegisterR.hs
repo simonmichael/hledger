@@ -114,9 +114,9 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    shownull c = if null c then " " else c
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
-dayToJsTimestamp :: Day -> Integer
-dayToJsTimestamp d =
+-- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
+dayToUtcNoonTimestamp :: Day -> Integer
+dayToUtcNoonTimestamp d =
   read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
   where
-    t = UTCTime d (secondsToDiffTime 0)
-
+    t = UTCTime d (secondsToDiffTime $ 12 * 60 * 60)
