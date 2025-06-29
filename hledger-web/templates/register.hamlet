@@ -1,7 +1,7 @@
 <h2>
   #{header}
 
-<div .hidden-xs>
+<div>
   ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
 
 <div.table-responsive>
