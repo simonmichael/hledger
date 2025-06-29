@@ -1,3 +1,4 @@
+$# If $ is the first character in a line, it must be \-escaped to hide it from hamlet.
 <label #register-chart-label style=""><br>
 <div #register-chart style="height:150px; margin-bottom:1em; display:block;">
 <script type=text/javascript>
@@ -53,24 +54,102 @@
         },
        },
      ]
+    //eslint-disable-next-line no-unused-vars
+    function registerChart($container, series) {
+      // https://github.com/flot/flot/blob/master/API.md
+      return $container.plot(
+        series,
+        { /* general chart options */
+          xaxis: {
+            mode: "time",
+            timeformat: "%Y/%m/%d",
+          },
+          selection: {
+            mode: "x"
+          },
+          legend: {
+            position: 'sw'
+          },
+          grid: {
+            markings: function () {
+              var now = Date.now();
+              return [
+                {
+                  xaxis: { to: now }, // past
+                  yaxis: { to: 0 },   // <0
+                  color: '#ffdddd',
+                },
+                {
+                  xaxis: { from: now }, // future
+                  yaxis: { from: 0 },   // >0
+                  color: '#e0e0e0',
+                },
+                {
+                  xaxis: { from: now }, // future
+                  yaxis: { to: 0 },     // <0
+                  color: '#e8c8c8',
+                },
+                {
+                  yaxis: { from: 0, to: 0 }, // =0
+                  color: '#bb0000',
+                  lineWidth:1
+                },
+              ];
+            },
+            hoverable: true,
+            autoHighlight: true,
+            clickable: true,
+          },
+          /* https://github.com/krzysu/flot.tooltip */
+          tooltip: true,
+          tooltipOpts: {
+            xDateFormat: "%Y/%m/%d",
+            content:
+              function(label, x, y, flotitem) {
+                var data = flotitem.series.data[flotitem.dataIndex];
+                return data[3]+" balance on %x after "+data[2]+" posted by transaction:<pre>"+data[4]+"</pre>";
+              },
+            onHover: function(flotitem, $tooltipel) {
+              \$tooltipel.css('border-color',flotitem.series.color);
+            },
+          },
+        }
+      ).data("plot");
+    }
+    function registerChartClick(ev, pos, item) {
+      if (!item) {
+        return;
+      }
+      var targetselector = '#' + item.series.data[item.dataIndex][5];
+      var $target = $(targetselector);
+      if ($target.length) {
+        window.location.hash = targetselector;
+        \$('html, body').animate({
+          scrollTop: $target.offset().top
+        }, 1000);
+      }
+    }
+    // Handle a selection (zoom) event on the chart.
+    // This should pick good from/to dates based on the selected x-values, which is tricky to get right.
+    function registerChartSelect(ev, ranges) {
+      console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
+      /* Round down for the 'from' day: */
+      var from = new Date(ranges.xaxis.from);
+      /* Round up for the 'to' day: */
+      var to = new Date(ranges.xaxis.to + (24 * 60 * 60 * 1000) - 1);
+      var range =
+        from.getFullYear() + "/" + (from.getMonth() + 1) + "/" + from.getDate() + "-" +
+        to.getFullYear()   + "/" + (to.getMonth() + 1)   + "/" + to.getDate();
+      var baselink = "@?{nodatelink}";
+      if (baselink.endsWith("?q")) {
+        document.location = baselink + "=date:" + range;
+      } else {
+        document.location = baselink + "%20date:" + range;
+      }
+    }
      var plot = registerChart($chartdiv, seriesData);
-     \$chartdiv.bind("plotclick", registerChartClick);
      plot.setSelection({ xaxis: { from: 500, to: 700 } });
-     \$chartdiv.bind("plotselected", function(event, ranges) {
-       console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
-       /* Round down for the 'from' day: */
-       var from = new Date(ranges.xaxis.from);
-       /* Round up for the 'to' day: */
-       var to = new Date(ranges.xaxis.to + (24 * 60 * 60 * 1000) - 1);
-       var range =
-         from.getFullYear() + "/" + (from.getMonth() + 1) + "/" + from.getDate() + "-" +
-         to.getFullYear() + "/" + (to.getMonth() + 1) + "/" + to.getDate();
-       var baselink = "@?{nodatelink}";
-       if (baselink.endsWith("?q")) {
-         document.location = baselink + "=date:" + range;
-       } else {
-         document.location = baselink + "%20date:" + range;
-       }
-     });
+     \$chartdiv.bind("plotclick", registerChartClick);
+     \$chartdiv.bind("plotselected", registerChartSelect);
    };
  });
