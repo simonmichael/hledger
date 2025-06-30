@@ -1612,6 +1612,12 @@ tags:
 # ** Misc ------------------------------------------------------------
 MISC:
 
+# show upcoming planned dated tasks
+schedule *PERIOD:
+    #!/usr/bin/env osh
+    P={{ if PERIOD == '' { 'today..30days' } else { PERIOD } }}
+    hledger -f doc/SCHEDULE print --forecast=$P
+
 # show recent branches summary with jj
 @branches:
     echo "Recent branches:"
