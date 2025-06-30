@@ -78,8 +78,7 @@ import qualified Data.Text as T
 import Text.Regex.TDFA (
   Regex, CompOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOptsM, AllMatches(getAllMatches), match, MatchText,
-  RegexLike(..), RegexMaker(..), RegexOptions(..), RegexContext(..),
-  (=~)
+  RegexLike(..), RegexMaker(..), RegexOptions(..), RegexContext(..)
   )
 
 
@@ -179,8 +178,8 @@ regexMatchText r = matchTest r . T.unpack
 -- Regex to a Text.
 regexMatchTextGroups :: Regexp -> Text -> [Text]
 regexMatchTextGroups r txt = let
-    pat = reString r
-    (_,_,_,matches) = txt =~ pat :: (Text,Text,Text,[Text])
+    pat = reCompiled r
+    (_,_,_,matches) = match pat txt :: (Text,Text,Text,[Text])
     in matches
 
 --------------------------------------------------------------------------------
