@@ -1,6 +1,6 @@
 ## add
 
-Record new transactions with interactive prompting in the console.
+Add new transactions to a journal file, with interactive prompting in the console.
 
 ```flags
 Flags:
@@ -40,6 +40,7 @@ Notes:
   you might expect `add` to add this symbol for you.
   It does not do this; we assume that if you are using a `D` directive
   you prefer not to see the commodity symbol repeated on amounts in the journal.
+- `add` creates entries in journal format; it won't work with timeclock or timedot files.
 
 Examples:
 
