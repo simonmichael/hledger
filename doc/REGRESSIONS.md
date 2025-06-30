@@ -116,6 +116,7 @@ This reduces wasteful admin work.
 [#2405]: https://github.com/simonmichael/hledger/issues/2405
 [#2406]: https://github.com/simonmichael/hledger/issues/2406
 [#2407]: https://github.com/simonmichael/hledger/issues/2407
+[#2417]: https://github.com/simonmichael/hledger/issues/2417
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -204,4 +205,5 @@ Fixer  bounties began on 2024-01-01.
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
+| [#2417]                  |           | Frank Schmidt           | 
 
