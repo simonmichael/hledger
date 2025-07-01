@@ -317,8 +317,8 @@ setupTerminal meconf = do
   then p Y ""
   else i N "you can use --pretty to enable them"
 
-  pdesc "bash shell completions are installed ?" >> p U ""
-  pdesc "zsh shell completions are installed ?" >> p U ""
+  -- pdesc "bash shell completions are installed ?" >> p U ""
+  -- pdesc "zsh shell completions are installed ?" >> p U ""
 
 ------------------------------------------------------------------------------
 
