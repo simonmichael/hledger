@@ -280,10 +280,10 @@ setupTerminal meconf = do
   pdesc "hledger will use a pager when needed ?"
   mpager <- findPager
   case mpager of
-    Nothing    -> p N "no pager was found"
+    Nothing    -> i N "no pager was found"
     Just pager ->
       case meconfpager of
-        Just (Right No) -> p N "disabled in config file"
+        Just (Right No) -> i N "disabled in config file"
         _ -> do
           p Y pager
 
