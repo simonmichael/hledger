@@ -78,7 +78,7 @@ hledger --version; hledger-ui --version; hledger-web --version    # should show 
 
 </summary>
 
-In a terminal window (don't use your web browser to download, it won't authorise the binaries):
+In a terminal window (don't download the binaries with your web browser, they won't get authorised):
 <!--
 (Hopefully these commands are all installed by default; 
 if not, install [XCode Command Line Tools](https://mac.install.guide/commandlinetools/) 
