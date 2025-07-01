@@ -6678,6 +6678,11 @@ $ echo 'export LEDGER_FILE=~/finance/2023.journal' >> ~/.profile
 $ source ~/.profile
 ```
 
+<!-- 
+fish: 
+set -Ux LEDGER_FILE ~/finance/2023.journal
+-->
+
 When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
 and so will `hledger files`.
 
