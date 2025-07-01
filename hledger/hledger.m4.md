@@ -7026,11 +7026,8 @@ Some known issues and limitations:
 A system locale with a suitable text encoding must be configured to work with non-ascii data.
 (See Text encoding, Troubleshooting.)
 
-On Microsoft Windows, depending whether you are running in a CMD window or a Cygwin/MSYS/Mintty window
-and how you installed hledger,
-non-ascii characters and colours may not be supported,
-and the tab key may not be supported by `hledger add`.
-(Running in a WSL window should resolve these.)
+On Microsoft Windows, depending what kind of terminal window you use,
+non-ascii characters, ANSI text formatting, and/or the add command's TAB key for completion, may not be supported.
 
 When processing large data files, hledger uses more memory than Ledger.
 

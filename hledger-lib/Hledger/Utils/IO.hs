@@ -763,7 +763,7 @@ useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
 
 -- | Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
 -- and if so prepend and append the given SGR codes to a string.
--- Currently used in a few places (the commands list, the demo command, the recentassertions error message);
+-- Currently used in a few places (the commands list, the recentassertions error message, add, demo);
 -- see useColorOnStdoutUnsafe's limitations.
 ansiWrapUnsafe :: SGRString -> SGRString -> String -> String
 ansiWrapUnsafe pre post s = if useColorOnStdoutUnsafe then pre<>s<>post else s
