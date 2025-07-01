@@ -312,10 +312,10 @@ setupTerminal meconf = do
               usecolor <- useColorOnStdout
               i (if usecolor then Y else N) ""
 
-  pdesc "--pretty is enabled by config file ?"
+  pdesc "tables will use box-drawing chars ?"
   if isJust $ conflookup ("--pretty"==)
-  then p Y "tables will use box-drawing characters"
-  else i N "tables will use ASCII characters"
+  then p Y ""
+  else i N "you can use --pretty to enable them"
 
   pdesc "bash shell completions are installed ?" >> p U ""
   pdesc "zsh shell completions are installed ?" >> p U ""
@@ -378,7 +378,7 @@ setupJournal meconf = do
       pdesc "it includes additional files ?"
       let numfiles = length jfiles
       if numfiles > 1
-      then i Y (show $ numfiles - 1)
+      then i Y (show (numfiles - 1) <> " files")
       else i N ""
 
       pdesc "all commodities are declared ?"
@@ -386,8 +386,8 @@ setupJournal meconf = do
         numcommodities = length $ journalCommodities j
         undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
       if null undeclaredcommodities
-      then p Y (show numcommodities)
-      else p N (show (length undeclaredcommodities) <> "; declaring helps set their precision")
+      then p Y (show numcommodities <> " commodities")
+      else p N (show (length undeclaredcommodities) <> "undeclared commodities")
 
       let
         accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
@@ -435,27 +435,27 @@ setupJournal meconf = do
       -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
 
       pdesc "all accounts are declared ?"
-      if null undeclaredaccts then p Y (show numaccts) else i N (show (length undeclaredaccts) <> " undeclared")
+      if null undeclaredaccts then p Y (show numaccts <> " accounts") else i N (show (length undeclaredaccts) <> " undeclared accounts")
 
       pdesc "all accounts have types ?"
-      if null untypedaccts then p Y "" else i N (show (length untypedaccts) <> " untyped")
+      if null untypedaccts then p Y "" else i N (show (length untypedaccts) <> " accounts without types")
 
-      pdesc "accounts of each type were detected ?"
+      pdesc "all account types are detected ?"
       if null typesnotfound
-      then p Y (concatMap show accttypes)
-      else p N (concatMap show typesnotfound <> "not found; type: queries, bs/cf/is reports may not work")
+      then p Y (concatMap show accttypes <> " account types detected")
+      else p N (concatMap show typesnotfound <> " not found; bs/cf/is reports may not work")
 
-      pdesc "commodities/accounts are checked ?"
+      pdesc "commodities/accounts are being checked ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
       then i Y "commodities and accounts must be declared"
-      else i N "use -s to check commodities/accounts"
+      else i N "you can use -s to check them"
 
-      pdesc "balance assertions are checked ?"
+      pdesc "balance assertions are being checked ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
       if 
-        | ignoreassertions && not strict -> i N "use -s to check assertions"
-        | not strict -> i Y "use -I to ignore assertions"
+        | ignoreassertions && not strict -> i N "you can use -s to check them"
+        | not strict -> i Y "you can use -I to ignore them"
         | otherwise -> i Y "can't ignore assertions (-s in config file)"
 
 ------------------------------------------------------------------------------
