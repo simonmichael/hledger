@@ -105,18 +105,7 @@ pairClockEntries (entry : rest) actives sessions
               (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
             else
               (Session {in' = inentry, out = entry} : sessions, newactive, rest)
-        l = show $ unPos $ sourceLine $ tlsourcepos entry
-        c = unPos $ sourceColumn $ tlsourcepos entry
-        inentries =
-          if any (\e -> tlaccount e == tlaccount entry) actives
-            then error' $
-                printf
-                  "%s:\n%s\n%s\n\nEncountered clockin entry for session \"%s\" that is already active."
-                  (sourcePosPretty $ tlsourcepos entry)
-                  (l ++ " | " ++ show entry)
-                  (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
-                  (tlaccount entry)
-            else entry : actives
+        inentries = entry : actives
 
 -- | Convert time log entries to journal transactions. When there is no
 -- clockout, add one with the provided current time. Sessions crossing

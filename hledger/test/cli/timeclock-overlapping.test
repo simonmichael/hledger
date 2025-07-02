@@ -1,0 +1,33 @@
+# Test for overlapping timeclock sessions with same account name
+
+# Before the fix, this would error with:
+# "Encountered clockin entry for session "test" that is already active."
+
+# ** 1. overlapping sessions with same account name should not error
+$ hledger print -f - <<EOF
+i 2024-04-10 13:00:00 test test desc
+o 2024-04-10 14:30:00
+i 2024-04-10 14:30:00 test new desc
+o 2024-04-10 15:00:00
+EOF
+! /Encountered clockin entry for session.*already active/
+>=0
+
+# ** 2. sessions starting exactly when previous ends should work
+$ hledger print -f - <<EOF
+i 2024-04-10 13:00:00 work
+o 2024-04-10 14:00:00
+i 2024-04-10 14:00:00 work  
+o 2024-04-10 15:00:00
+EOF
+! /Encountered clockin entry for session.*already active/
+>=0
+
+# ** 3. multiple overlapping sessions with different account names should work
+$ hledger balance -f - <<EOF
+i 2024-04-10 09:00:00 project1
+i 2024-04-10 10:00:00 project2
+o 2024-04-10 11:00:00 project2
+o 2024-04-10 12:00:00 project1
+EOF
+>=0
