@@ -207,3 +207,28 @@ Balance changes in 2025:
  @ $100 ||             2 B 
 --------++-----------------
         || $-210, 1 A, 2 B 
+
+# ** 18. When tag shadows field, tag takes precedence.
+<
+2025-01-01 CustA  ; payee:CustB
+    asset       $100
+    asset       $200
+    revenue    $-300
+
+$ hledger -f- bal asset --pivot=payee
+                $300  CustB
+--------------------
+                $300  
+
+# ** 19. More specific tag takes precedence over less specific (ie. posting tag precedes transaction tag).
+<
+2025-01-01 CustA  ; payee:CustB
+    asset       $100    ; payee:CustA
+    asset       $200    ; payee:CustB
+    revenue    $-300
+
+$ hledger -f- bal asset --pivot=payee
+                $100  CustA
+                $200  CustB
+--------------------
+                $300  
