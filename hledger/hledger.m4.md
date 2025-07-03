@@ -5248,7 +5248,7 @@ You can supply multiple depth arguments and they will all be applied, so
 - all other accounts to depth 1.
 
 If an account is matched by more than one regular expression depth argument
-then the more specific one will used.
+then the more specific one will be used.
 For example, if `--depth assets=1 --depth assets:bank:savings=2` is provided,
 then `assets:bank:savings` will be collapsed to depth 2 rather than depth 1.
 This is because `assets:bank:savings` matches at level 3 in the account name,
