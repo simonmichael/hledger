@@ -101,36 +101,38 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="json" = toJsonText
-           | fmt=="csv"  = printCSV . postingsReportAsCsv
-           | fmt=="tsv"  = printTSV . postingsReportAsCsv
+           | fmt=="csv"  = printCSV . postingsReportAsCsv wd
+           | fmt=="tsv"  = printTSV . postingsReportAsCsv wd
            | fmt=="html" =
                 (<>"\n") . Lucid.renderText . styledTableHtml .
                 map (map (fmap Lucid.toHtml)) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
+                postingsReportAsSpreadsheet oneLineNoCostFmt wd baseUrl query
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Register" .
                 (,) (1,0) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
+                postingsReportAsSpreadsheet oneLineNoCostFmt wd baseUrl query
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
             baseUrl = balance_base_url_ $ _rsReportOpts rspec
             query = querystring_ $ _rsReportOpts rspec
+            wd = whichDate $ _rsReportOpts rspec
 
-postingsReportAsCsv :: PostingsReport -> CSV
-postingsReportAsCsv =
-  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt Nothing []
+
+postingsReportAsCsv :: WhichDate -> PostingsReport -> CSV
+postingsReportAsCsv wd =
+  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt wd Nothing []
 
 -- ToDo: --layout=bare etc.
 -- ToDo: Text output does not show headers, but Spreadsheet does
 postingsReportAsSpreadsheet ::
-  AmountFormat -> Maybe Text -> [Text] ->
+  AmountFormat -> WhichDate -> Maybe Text -> [Text] ->
   PostingsReport -> [[Spr.Cell Spr.NumLines Text]]
-postingsReportAsSpreadsheet fmt baseUrl query is =
+postingsReportAsSpreadsheet fmt wd baseUrl query is =
   Spr.addHeaderBorders
     (map Spr.headerCell
       ["txnidx","date","code","description","account","amount","total"])
   :
-  map (postingsReportItemAsRecord fmt baseUrl query) is
+  map (postingsReportItemAsRecord fmt wd baseUrl query) is
 
 {- ToDo:
 link txnidx to journal URL,
@@ -138,9 +140,9 @@ link txnidx to journal URL,
 -}
 postingsReportItemAsRecord ::
     (Spr.Lines border) =>
-    AmountFormat -> Maybe Text -> [Text] ->
+    AmountFormat -> WhichDate -> Maybe Text -> [Text] ->
     PostingsReportItem -> [Spr.Cell border Text]
-postingsReportItemAsRecord fmt baseUrl query (_, _, _, p, b) =
+postingsReportItemAsRecord fmt wd baseUrl query (_, _, _, p, b) =
     [idx,
      (dateCell baseUrl query (paccount p) date) {Spr.cellType = Spr.TypeDate},
      cell code, cell desc,
@@ -150,7 +152,7 @@ postingsReportItemAsRecord fmt baseUrl query (_, _, _, p, b) =
   where
     cell = Spr.defaultCell
     idx  = Spr.integerCell . maybe 0 tindex $ ptransaction p
-    date = postingDate p -- XXX csv should show date2 with --date2
+    date = postingDateOrDate2 wd p
     code = maybe "" tcode $ ptransaction p
     desc = maybe "" tdescription $ ptransaction p
     acct = bracket $ paccount p
