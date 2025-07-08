@@ -213,7 +213,7 @@ commandsList progversion othercmds =
   -- it needs checking/updating after any wording/layout changes here
    "-------------------------------------------------------------------------------"
   ,progversion
-  ,"Usage: hledger COMMAND [OPTIONS] [-- ADDONOPTIONS]"
+  ,"Usage: hledger [COMMAND] [OPTIONS] [ARGS]"
   -- ,"Commands (builtins + addons):"  -- XXX adapt for commands --builtin
   ,"Commands:"
   ,""
