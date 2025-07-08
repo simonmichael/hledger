@@ -55,6 +55,8 @@ import System.Console.CmdArgs.Explicit (flagReq)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import System.Directory (findExecutable)
+import Control.Monad (when)
 
 demos :: [Demo]
 demos = map readDemo [
@@ -103,6 +105,9 @@ demo CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=_query}} _j = do
           ,listDemos
           ]
         Just (Demo t c) -> do
+          -- check if asciinema is installed, first
+          masciinema <- findExecutable "asciinema"
+          when (isNothing masciinema) $ error' "Could not find 'asciinema'; please install that first."
           let
             -- try to preserve the original pauses a bit while also moving things along
             defidlelimit = 10
@@ -149,8 +154,8 @@ listDemos = unlines $
 
 -- | Run asciinema play with the given speed and idle limit, passing the given content to its stdin.
 runAsciinemaPlay :: Float -> Float -> ByteString -> [String] -> IO ()
-runAsciinemaPlay speed idlelimit content args =
-    -- XXX try piping to stdin also
+runAsciinemaPlay speed idlelimit content args = do
+  -- XXX try piping to stdin also
   withSystemTempFile "hledger-cast" $ \f h -> do
     -- don't add an extra newline here, it breaks asciinema 2.3.0 (#2094).
     -- XXX we could try harder and strip excess newlines/carriage returns+linefeeds here
@@ -169,8 +174,7 @@ runAsciinemaPlay speed idlelimit content args =
         ,"Running asciinema failed. Trying 'asciinema --version':"
         ]
       callProcess "asciinema" ["--version"]
-      `catchIOError` \_ ->
-        error' "This also failed. Check that asciinema is installed in your PATH."
+      `catchIOError` \_ -> error' "This also failed."
   where
     showwithouttrailingzero = dropWhileEnd (=='.') . dropWhileEnd (=='0') . show
 
