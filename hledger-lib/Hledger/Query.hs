@@ -511,7 +511,7 @@ parseTypeCodes s =
     ([],[])   -> Left help
     ([],ts)   -> Right $ Type ts
   where
-    help = "type:'s argument should be one or more of " ++ accountTypeChoices False ++ " (case insensitive)."
+    help = "type:'s argument should be one or more of " ++ accountTypeChoices False
 
 accountTypeChoices :: Bool -> String
 accountTypeChoices allowlongform = 
