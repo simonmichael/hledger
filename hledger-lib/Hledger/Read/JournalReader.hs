@@ -333,7 +333,7 @@ includedirectivep = do
         then pure filepaths
         else customFailure $ parseErrorAt parseroff $ "No files were matched by file pattern: " ++ fileglobpattern
 
-    -- Find the files matched by a glob pattern, using filepattern.
+    -- Find the files matched by a glob pattern, if any, using filepattern.
     -- Uses the current parse context for detecting the current directory and for error messages.
     -- This one also ignores all dotted directories (anything under .git/, foo/.secret/, etc.)
     getFilePaths2 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
@@ -348,19 +348,23 @@ includedirectivep = do
       realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
       let cwd = takeDirectory realparentfilepath
 
-      -- find all matched files, in lexicographic order (the order ls would normally show them)
+      -- Find all matched files, in lexicographic order (the order ls would normally show them).
+      -- (This might include the current file.)
       filepaths <- liftIO $
-        dbg6 "include: matched files"
-        . map (cwd </>)
+        map (cwd </>)
         -- . sort  -- XXX needed ?
         <$>
         getDirectoryFilesIgnore cwd [expandedglob] ["**/.*/**"]
 
-      -- throw an error if no files matched
+      -- Throw an error if no files (not even the current file) were matched.
       when (null filepaths) $
         customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ globpattern
 
-      pure filepaths
+      -- If the current file was matched, exclude it now.
+      let filepaths' = filter (/= realparentfilepath) filepaths
+      dbg6IO "include: matched files (excluding current file)" filepaths'
+
+      pure filepaths'
 
     -- Parse the given included file (and any deeper includes, recursively)
     -- as if it was inlined in the current (parent) file.

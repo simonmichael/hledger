@@ -2528,10 +2528,13 @@ Also, the path may have a file type prefix to force a specific file format
 (as described in [Data formats](#data-formats)): `include timedot:~/notes/2023*.md`.
 
 The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
+Note, the current file is always excluded from the matched paths.
+(Though include cycles are still possible, and will be reported as an error.)
 
-The special glob pattern `**/` matches any number of directory parts.
-This is not robust; it can hang, and `**/*.journal` is rejected.
-But this will work: `include */**/*.journal` (find all .journal files below the current directory).
+The special glob pattern `**` matches any number of path components.
+It's useful for searching subdirectories.
+Eg to include all .journal files below the current directory: `include **/*.journal`.
+
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
 
