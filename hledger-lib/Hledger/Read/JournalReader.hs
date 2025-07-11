@@ -290,8 +290,8 @@ directivep = (do
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   -- save the position
-  parentoff <- getOffset
-  parentpos <- getSourcePos
+  off <- getOffset
+  pos <- getSourcePos
   -- parse
   string "include"
   lift skipNonNewlineSpaces1
@@ -299,12 +299,12 @@ includedirectivep = do
   lift followingcommentp
   -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  paths <- getFilePaths parentoff parentpos glb
+  paths <- getFilePaths off pos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
   -- parse them inline
-  forM_ prefixedpaths $ parseIncludedFile parentpos
+  forM_ prefixedpaths $ parseIncludedFile pos
 
   where
 
