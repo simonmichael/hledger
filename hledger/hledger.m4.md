@@ -2509,28 +2509,32 @@ file contains digit group marks (eg thousands separators).
 You can pull in the content of additional files by writing an include directive, like this:
 
 ```journal
-include FILEPATH
+include SOMEFILE
 ```
 
-Only journal files can include, and only journal, timeclock or timedot files can be included (not CSV files, currently).
+This has the same effect as if SOMEFILE's content was inlined at this point.
+(Any `include`s within SOMEFILE will also be inlined, recursively.)
 
-If the file path does not begin with a slash, it is relative to the current file's folder. 
+Only journal files can include other files.
+They can include journal, timeclock or timedot files, but not CSV files.
 
-A tilde means home directory, eg: `include ~/main.journal`.
+If the file path begins with a tilde, that means home directory: `include ~/main.journal`.
+
+If it begins with a slash, it is an absolute path: `include /home/user/main.journal`.
+
+Otherwise it is relative to the current file's folder: `include finances/main.journal`.
+
+Also, the path may have a file type prefix to force a specific file format
+(as described in [Data formats](#data-formats)): `include timedot:~/notes/2023*.md`.
 
 The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
 
-There is limited support for recursive wildcards: `**/` (the slash is required)
-matches 0 or more subdirectories. It's not super convenient since you have to 
-avoid include cycles and including directories, but this can be done, eg:
-`include */**/*.journal`.
-
-The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in
-[Data formats](#data-formats)):
-`include timedot:~/notes/2023*.md`.
+The special glob pattern `**/` matches any number of directory parts.
+This is not robust; it can hang, and `**/*.journal` is rejected.
+But this will work: `include */**/*.journal` (find all .journal files below the current directory).
 
 [glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
+
 
 ## `P` directive
 
