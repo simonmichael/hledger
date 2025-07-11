@@ -304,32 +304,37 @@ includedirectivep = do
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
   -- parse them inline
-  forM_ prefixedpaths $ parseChild parentpos
+  forM_ prefixedpaths $ parseIncludedFile parentpos
 
   where
-    getFilePaths
-      :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths parseroff parserpos fileglobpattern = do
-        -- Expand a ~ at the start of the glob pattern, if any.
-        fileglobpattern' <- lift $ expandHomePath fileglobpattern
-                         `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
-        -- Compile the glob pattern.
-        fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
-            Right x -> pure x
-            Left e -> customFailure $ parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
-        -- Get the directory of the including file. This will be used to resolve relative paths.
-        let parentfilepath = sourceName parserpos
-        realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
-        let curdir = takeDirectory realparentfilepath
-        -- Find all matched files, in lexicographic order mimicking the output of 'ls'.
-        filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
-        if (not . null) filepaths
-            then pure filepaths
-            else customFailure $ parseErrorAt parseroff $
-                   "No existing files match pattern: " ++ fileglobpattern
 
-    parseChild :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseChild parentpos prefixedpath = do
+    -- Find the files matched by a glob pattern, using the current parse context
+    -- for detecting the current directory and for error messages.
+    getFilePaths :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    getFilePaths parseroff parserpos fileglobpattern = do
+      -- Expand a ~ at the start of the glob pattern, if any.
+      fileglobpattern' <- lift $ expandHomePath fileglobpattern
+        `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
+      -- Compile the glob pattern.
+      fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
+          Right x -> pure x
+          Left e -> customFailure $ parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
+      -- Get the directory of the including file. This will be used to resolve relative paths.
+      let parentfilepath = sourceName parserpos
+      realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
+      let curdir = takeDirectory realparentfilepath
+      -- Find all matched files, in lexicographic order mimicking the output of 'ls'.
+      filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
+      if (not . null) filepaths
+        then pure filepaths
+        else customFailure $ parseErrorAt parseroff $
+                "No existing files match pattern: " ++ fileglobpattern
+
+    -- Parse the given included file (and any deeper includes, recursively)
+    -- as if it was inlined in the current (parent) file.
+    -- The position in the parent file is provided for error messages.
+    parseIncludedFile :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile parentpos prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
       parentj <- get
@@ -372,18 +377,19 @@ includedirectivep = do
       -- Update the parse state.
       put parentj'
 
-    newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
-    newJournalWithParseStateFrom filepath j = nulljournal{
-      jparsedefaultyear      = jparsedefaultyear j
-      ,jparsedefaultcommodity = jparsedefaultcommodity j
-      ,jparseparentaccounts   = jparseparentaccounts j
-      ,jparsedecimalmark      = jparsedecimalmark j
-      ,jparsealiases          = jparsealiases j
-      ,jdeclaredcommodities           = jdeclaredcommodities j
-      -- ,jparsetransactioncount = jparsetransactioncount j
-      ,jparsetimeclockentries = jparsetimeclockentries j
-      ,jincludefilestack      = filepath : jincludefilestack j
-      }
+      where
+        newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
+        newJournalWithParseStateFrom filepath j = nulljournal{
+          jparsedefaultyear      = jparsedefaultyear j
+          ,jparsedefaultcommodity = jparsedefaultcommodity j
+          ,jparseparentaccounts   = jparseparentaccounts j
+          ,jparsedecimalmark      = jparsedecimalmark j
+          ,jparsealiases          = jparsealiases j
+          ,jdeclaredcommodities           = jdeclaredcommodities j
+          -- ,jparsetransactioncount = jparsetransactioncount j
+          ,jparsetimeclockentries = jparsetimeclockentries j
+          ,jincludefilestack      = filepath : jincludefilestack j
+          }
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
