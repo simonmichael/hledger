@@ -94,6 +94,7 @@ import Text.Megaparsec.Char
 import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
+import "filepattern" System.FilePattern.Directory
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -301,7 +302,7 @@ includedirectivep = do
   let (mprefix,glb) = splitReaderPrefix prefixedglob
   when (null $ dbg7 "glob pattern" glb) $
     customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
-  paths <- getFilePaths off pos glb
+  paths <- getFilePaths2 off pos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
@@ -310,10 +311,11 @@ includedirectivep = do
 
   where
 
-    -- Find the files matched by a glob pattern, using the current parse context
-    -- for detecting the current directory and for error messages.
-    getFilePaths :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths parseroff parserpos fileglobpattern = do
+    -- XXX keep providing via --old-glob for a bit ?
+    -- Find the files matched by a glob pattern, using Glob.
+    -- Uses the current parse context for detecting the current directory and for error messages.
+    _getFilePaths1 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    _getFilePaths1 parseroff parserpos fileglobpattern = do
       -- Expand a ~ at the start of the glob pattern, if any.
       fileglobpattern' <- lift $ expandHomePath fileglobpattern
         `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
@@ -330,6 +332,35 @@ includedirectivep = do
       if (not . null) filepaths
         then pure filepaths
         else customFailure $ parseErrorAt parseroff $ "No files were matched by file pattern: " ++ fileglobpattern
+
+    -- Find the files matched by a glob pattern, using filepattern.
+    -- Uses the current parse context for detecting the current directory and for error messages.
+    -- This one also ignores all dotted directories (anything under .git/, foo/.secret/, etc.)
+    getFilePaths2 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    getFilePaths2 off pos globpattern = do
+
+      -- expand a tilde at the start of the glob pattern, or throw an error
+      expandedglob <- lift $ expandHomePath globpattern
+        `orRethrowIOError` (show pos ++ " locating " ++ globpattern)
+
+      -- get the directory of the including file, to resolve relative paths
+      let parentfilepath = sourceName pos
+      realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
+      let cwd = takeDirectory realparentfilepath
+
+      -- find all matched files, in lexicographic order (the order ls would normally show them)
+      filepaths <- liftIO $
+        dbg7 "include: matched files"
+        . map (cwd </>)
+        -- . sort  -- XXX needed ?
+        <$>
+        getDirectoryFilesIgnore cwd [expandedglob] ["**/.*/**"]
+
+      -- throw an error if no files matched
+      when (null filepaths) $
+        customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ globpattern
+
+      pure filepaths
 
     -- Parse the given included file (and any deeper includes, recursively)
     -- as if it was inlined in the current (parent) file.
