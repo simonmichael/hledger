@@ -300,7 +300,7 @@ includedirectivep = do
   lift followingcommentp
   -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  when (null $ dbg7 "glob pattern" glb) $
+  when (null $ dbg6 "include: glob pattern" glb) $
     customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
   paths <- getFilePaths2 off pos glb
   let prefixedpaths = case mprefix of
@@ -328,7 +328,7 @@ includedirectivep = do
       realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
       let curdir = takeDirectory realparentfilepath
       -- Find all matched files, in lexicographic order (the order ls would normally show them)
-      filepaths <- liftIO $ (dbg7 "include: matched files" . sort) <$> globDir1 fileglob curdir
+      filepaths <- liftIO $ (dbg6 "include: matched files" . sort) <$> globDir1 fileglob curdir
       if (not . null) filepaths
         then pure filepaths
         else customFailure $ parseErrorAt parseroff $ "No files were matched by file pattern: " ++ fileglobpattern
@@ -350,7 +350,7 @@ includedirectivep = do
 
       -- find all matched files, in lexicographic order (the order ls would normally show them)
       filepaths <- liftIO $
-        dbg7 "include: matched files"
+        dbg6 "include: matched files"
         . map (cwd </>)
         -- . sort  -- XXX needed ?
         <$>
@@ -383,7 +383,7 @@ includedirectivep = do
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
-      dbg6IO "parseIncludedFile: trying reader" (rFormat r)
+      dbg7IO "parseIncludedFile: trying reader" (rFormat r)
 
       -- Parse the file (and its own includes, if any) to a Journal
       -- with file path and source text attached. Or throw an error.
@@ -549,7 +549,7 @@ commoditydirectiveonelinep = do
     pure $ (off, amt)
   lift skipNonNewlineSpaces
   _ <- lift followingcommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j})
@@ -595,7 +595,7 @@ formatdirectivep expectedsym = do
     then
       if isNothing $ asdecimalmark astyle
       then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-      else return $ dbg6 "style from format subdirective" astyle
+      else return $ dbg7 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 

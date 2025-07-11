@@ -308,10 +308,10 @@ journalRenumberAccountDeclarations j = j{jdeclaredaccounts=jdas'}
     -- it seems unneeded except perhaps for debugging
 
 -- | Debug log the ordering of a journal's account declarations
--- (at debug level 5+).
+-- (at debug level 7+).
 dbgJournalAcctDeclOrder :: String -> Journal -> Journal
 dbgJournalAcctDeclOrder prefix =
-  dbg5With ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
+  dbg7With ((prefix++) . showAcctDeclsSummary . jdeclaredaccounts)
   where
     showAcctDeclsSummary :: [(AccountName,AccountDeclarationInfo)] -> String
     showAcctDeclsSummary adis
