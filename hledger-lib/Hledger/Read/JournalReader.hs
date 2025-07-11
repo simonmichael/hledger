@@ -299,6 +299,8 @@ includedirectivep = do
   lift followingcommentp
   -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
+  when (null $ dbg7 "glob pattern" glb) $
+    customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
   paths <- getFilePaths off pos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
@@ -323,12 +325,11 @@ includedirectivep = do
       let parentfilepath = sourceName parserpos
       realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
       let curdir = takeDirectory realparentfilepath
-      -- Find all matched files, in lexicographic order mimicking the output of 'ls'.
-      filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
+      -- Find all matched files, in lexicographic order (the order ls would normally show them)
+      filepaths <- liftIO $ (dbg7 "include: matched files" . sort) <$> globDir1 fileglob curdir
       if (not . null) filepaths
         then pure filepaths
-        else customFailure $ parseErrorAt parseroff $
-                "No existing files match pattern: " ++ fileglobpattern
+        else customFailure $ parseErrorAt parseroff $ "No files were matched by file pattern: " ++ fileglobpattern
 
     -- Parse the given included file (and any deeper includes, recursively)
     -- as if it was inlined in the current (parent) file.
