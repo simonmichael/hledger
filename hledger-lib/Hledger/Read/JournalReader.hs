@@ -366,27 +366,24 @@ includedirectivep = do
     -- as if it was inlined in the current (parent) file.
     -- The position in the parent file is provided for error messages.
     parseIncludedFile :: MonadIO m => Int -> SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile off pos prefixedpath = do
+    parseIncludedFile off _pos prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
       -- Throw an error if a cycle is detected
       parentj <- get
       let parentfilestack = jincludefilestack parentj
-      when (filepath `elem` parentfilestack) $
-        customFailure $ parseErrorAt off $ "Cyclic include: " ++ filepath
+      when (dbg7 "parseIncludedFile: reading" filepath `elem` parentfilestack) $
+        customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ filepath
 
-      -- Read this file's content, or throw an error
-      childInput <-
-        dbg6Msg ("parseChild: "++takeFileName filepath) $
-        lift $ readFilePortably filepath
-          `orRethrowIOError` (show pos ++ " reading " ++ filepath)
+      -- Read the file's content, or throw an error
+      childInput <- lift $ readFilePortably filepath `orRethrowIOError` "reading a file failed"
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
       -- Choose a reader based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
-      dbg6IO "parseChild: trying reader" (rFormat r)
+      dbg6IO "parseIncludedFile: trying reader" (rFormat r)
 
       -- Parse the file (and its own includes, if any) to a Journal
       -- with file path and source text attached. Or throw an error.
