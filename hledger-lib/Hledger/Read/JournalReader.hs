@@ -306,7 +306,7 @@ includedirectivep = do
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
   -- parse them inline
-  forM_ prefixedpaths $ parseIncludedFile pos
+  forM_ prefixedpaths $ parseIncludedFile off pos
 
   where
 
@@ -334,19 +334,20 @@ includedirectivep = do
     -- Parse the given included file (and any deeper includes, recursively)
     -- as if it was inlined in the current (parent) file.
     -- The position in the parent file is provided for error messages.
-    parseIncludedFile :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile parentpos prefixedpath = do
+    parseIncludedFile :: MonadIO m => Int -> SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile off pos prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
+      -- Throw an error if a cycle is detected
       parentj <- get
       let parentfilestack = jincludefilestack parentj
       when (filepath `elem` parentfilestack) $
-        Fail.fail ("Cyclic include: " ++ filepath)
+        customFailure $ parseErrorAt off $ "Cyclic include: " ++ filepath
 
       childInput <-
         dbg6Msg ("parseChild: "++takeFileName filepath) $
         lift $ readFilePortably filepath
-          `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+          `orRethrowIOError` (show pos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
       -- Choose a reader/parser based on the file path prefix or file extension,
