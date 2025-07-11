@@ -344,28 +344,30 @@ includedirectivep = do
       when (filepath `elem` parentfilestack) $
         customFailure $ parseErrorAt off $ "Cyclic include: " ++ filepath
 
+      -- Read this file's content, or throw an error
       childInput <-
         dbg6Msg ("parseChild: "++takeFileName filepath) $
         lift $ readFilePortably filepath
           `orRethrowIOError` (show pos ++ " reading " ++ filepath)
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
-      -- Choose a reader/parser based on the file path prefix or file extension,
+      -- Choose a reader based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
       dbg6IO "parseChild: trying reader" (rFormat r)
 
-      -- Parse the file (of whichever format) to a Journal, with file path and source text attached.
+      -- Parse the file (and its own includes, if any) to a Journal
+      -- with file path and source text attached. Or throw an error.
       updatedChildj <- journalAddFile (filepath, childInput) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
-      -- Merge this child journal into the parent journal
-      -- (with debug logging for troubleshooting account display order).
+      -- Child journal was parsed successfully; now merge it into the parent journal.
+      -- Debug logging is provided for troubleshooting account display order (eg).
       -- The parent journal is the second argument to journalConcat; this means
       -- its parse state is kept, and its lists are appended to child's (which
       -- ultimately produces the right list order, because parent's and child's
-      -- lists are in reverse order at this stage. Cf #1909).
+      -- lists are in reverse order at this stage. Cf #1909)
       let
         parentj' =
           dbgJournalAcctDeclOrder ("parseChild: child " <> childfilename <> " acct decls: ") updatedChildj
@@ -376,7 +378,7 @@ includedirectivep = do
             childfilename = takeFileName filepath
             parentfilename = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
 
-      -- Update the parse state.
+      -- And update the current parse state.
       put parentj'
 
       where
