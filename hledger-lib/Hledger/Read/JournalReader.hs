@@ -283,6 +283,12 @@ directivep = (do
    ]
   ) <?> "directive"
 
+-- Get the canonical path of the file referenced by this parse position.
+-- Symbolic links will be dereferenced. This probably will always succeed
+-- (since the parse file's path is probably always absolute).
+sourcePosFilePath :: MonadIO m => SourcePos -> m FilePath
+sourcePosFilePath = liftIO . canonicalizePath . sourceName
+
 -- | Parse an include directive, and the file(s) it refers to, possibly recursively.
 -- include's argument is a file path or glob pattern, optionally with a file type prefix.
 -- ~ at the start is expanded to the user's home directory.
@@ -300,7 +306,8 @@ includedirectivep = do
   lift followingcommentp
   -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  when (null $ dbg6 "include: glob pattern" glb) $
+  f <- sourcePosFilePath pos
+  when (null $ dbg6 (f <> " include: glob pattern") glb) $
     customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
   paths <- getFilePaths2 off pos glb
   let prefixedpaths = case mprefix of
@@ -315,23 +322,22 @@ includedirectivep = do
     -- Find the files matched by a glob pattern, using Glob.
     -- Uses the current parse context for detecting the current directory and for error messages.
     _getFilePaths1 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    _getFilePaths1 parseroff parserpos fileglobpattern = do
+    _getFilePaths1 off pos fileglobpattern = do
       -- Expand a ~ at the start of the glob pattern, if any.
       fileglobpattern' <- lift $ expandHomePath fileglobpattern
-        `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
+        `orRethrowIOError` (show pos ++ " locating " ++ fileglobpattern)
       -- Compile the glob pattern.
       fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
           Right x -> pure x
-          Left e -> customFailure $ parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
-      -- Get the directory of the including file. This will be used to resolve relative paths.
-      let parentfilepath = sourceName parserpos
-      realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
-      let curdir = takeDirectory realparentfilepath
+          Left e -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
+      -- Get the directory of the including file.
+      parentfile <- sourcePosFilePath pos
+      let cwd = takeDirectory parentfile
       -- Find all matched files, in lexicographic order (the order ls would normally show them)
-      filepaths <- liftIO $ (dbg6 "include: matched files" . sort) <$> globDir1 fileglob curdir
+      filepaths <- liftIO $ (dbg6 (parentfile <> " include: matched files") . sort) <$> globDir1 fileglob cwd
       if (not . null) filepaths
         then pure filepaths
-        else customFailure $ parseErrorAt parseroff $ "No files were matched by file pattern: " ++ fileglobpattern
+        else customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ fileglobpattern
 
     -- Find the files matched by a glob pattern, if any, using filepattern.
     -- Uses the current parse context for detecting the current directory and for error messages.
@@ -343,10 +349,9 @@ includedirectivep = do
       expandedglob <- lift $ expandHomePath globpattern
         `orRethrowIOError` (show pos ++ " locating " ++ globpattern)
 
-      -- get the directory of the including file, to resolve relative paths
-      let parentfilepath = sourceName pos
-      realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
-      let cwd = takeDirectory realparentfilepath
+      -- get the directory of the including file
+      parentfile <- sourcePosFilePath pos
+      let cwd = takeDirectory parentfile
 
       -- Find all matched files, in lexicographic order (the order ls would normally show them).
       -- (This might include the current file.)
@@ -361,8 +366,8 @@ includedirectivep = do
         customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ globpattern
 
       -- If the current file was matched, exclude it now.
-      let filepaths' = filter (/= realparentfilepath) filepaths
-      dbg6IO "include: matched files (excluding current file)" filepaths'
+      let filepaths' = filter (/= parentfile) filepaths
+      dbg6IO (parentfile <> " include: matched files (excluding current file)") filepaths'
 
       pure filepaths'
 
@@ -380,7 +385,7 @@ includedirectivep = do
         customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ filepath
 
       -- Read the file's content, or throw an error
-      childInput <- lift $ readFilePortably filepath `orRethrowIOError` "reading a file failed"
+      childInput <- lift $ readFilePortably filepath `orRethrowIOError` "failed to read a file"
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
       -- Choose a reader based on the file path prefix or file extension,
