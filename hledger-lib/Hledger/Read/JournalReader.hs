@@ -283,12 +283,6 @@ directivep = (do
    ]
   ) <?> "directive"
 
--- Get the canonical path of the file referenced by this parse position.
--- Symbolic links will be dereferenced. This probably will always succeed
--- (since the parse file's path is probably always absolute).
-sourcePosFilePath :: MonadIO m => SourcePos -> m FilePath
-sourcePosFilePath = liftIO . canonicalizePath . sourceName
-
 -- | Parse an include directive, and the file(s) it refers to, possibly recursively.
 -- include's argument is a file path or glob pattern, optionally with a file type prefix.
 -- ~ at the start is expanded to the user's home directory.
@@ -309,7 +303,7 @@ includedirectivep = do
   f <- sourcePosFilePath pos
   when (null $ dbg6 (f <> " include: glob pattern") glb) $
     customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
-  paths <- getFilePaths2 off pos glb
+  paths <- getFilePaths off pos glb
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
@@ -318,36 +312,14 @@ includedirectivep = do
 
   where
 
-    -- XXX keep providing via --old-glob for a bit ?
-    -- Find the files matched by a glob pattern, using Glob.
-    -- Uses the current parse context for detecting the current directory and for error messages.
-    _getFilePaths1 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    _getFilePaths1 off pos fileglobpattern = do
-      -- Expand a ~ at the start of the glob pattern, if any.
-      fileglobpattern' <- lift $ expandHomePath fileglobpattern
-        `orRethrowIOError` (show pos ++ " locating " ++ fileglobpattern)
-      -- Compile the glob pattern.
-      fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
-          Right x -> pure x
-          Left e -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
-      -- Get the directory of the including file.
-      parentfile <- sourcePosFilePath pos
-      let cwd = takeDirectory parentfile
-      -- Find all matched files, in lexicographic order (the order ls would normally show them)
-      filepaths <- liftIO $ (dbg6 (parentfile <> " include: matched files") . sort) <$> globDir1 fileglob cwd
-      if (not . null) filepaths
-        then pure filepaths
-        else customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ fileglobpattern
-
     -- Find the files matched by a glob pattern, if any, using filepattern.
     -- Uses the current parse context for detecting the current directory and for error messages.
     -- This one also ignores all dotted directories (anything under .git/, foo/.secret/, etc.)
-    getFilePaths2 :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths2 off pos globpattern = do
+    getFilePaths :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    getFilePaths off pos globpattern = do
 
       -- expand a tilde at the start of the glob pattern, or throw an error
-      expandedglob <- lift $ expandHomePath globpattern
-        `orRethrowIOError` (show pos ++ " locating " ++ globpattern)
+      expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
 
       -- get the directory of the including file
       parentfile <- sourcePosFilePath pos
@@ -355,8 +327,14 @@ includedirectivep = do
 
       -- Find all matched files, in lexicographic order (the order ls would normally show them).
       -- (This might include the current file.)
+      -- 1. Old implementation, using Glob  XXX keep providing this via --old-glob for a bit
+      _g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
+        Right x -> pure x
+        Left e -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
+      _filepaths <- liftIO $ (dbg6 (parentfile <> " include: matched files") . sort) <$> globDir1 _g cwd
+      -- 2. New implementation, using filepattern
       filepaths <- liftIO $
-        map (cwd </>)
+        map (dbg6 "cwd" cwd </>)
         -- . sort  -- XXX needed ?
         <$>
         getDirectoryFilesIgnore cwd [expandedglob] ["**/.*/**"]
@@ -431,6 +409,12 @@ includedirectivep = do
           ,jparsetimeclockentries = jparsetimeclockentries j
           ,jincludefilestack      = filepath : jincludefilestack j
           }
+
+-- Get the canonical path of the file referenced by this parse position.
+-- Symbolic links will be dereferenced. This probably will always succeed
+-- (since the parse file's path is probably always absolute).
+sourcePosFilePath :: (MonadIO m) => SourcePos -> m FilePath
+sourcePosFilePath = liftIO . canonicalizePath . sourceName
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
