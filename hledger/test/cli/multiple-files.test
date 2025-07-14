@@ -41,7 +41,7 @@ $ hledger print -f personal.journal -f business.journal -f alias.journal -f pers
 
 
 # ** 3. files can be of different formats
-$ hledger print -f personal.journal -f ../journal/a.timeclock -f ../journal/b.timedot
+$ hledger print -f personal.journal -f a.timeclock -f b.timedot
 2014-01-02
     expenses:food              $1
     assets:cash

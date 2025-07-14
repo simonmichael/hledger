@@ -1,0 +1,98 @@
+# * include directive
+
+# ** 1. journal, timeclock, and timedot files can be included.
+# Trailing whitespace or comments are ignored.
+# The order of includes is respected.
+include a.j  
+include b.timedot ; comment
+include a.timeclock
+ ; comment
+
+$ hledger -f - print
+2016-01-01
+    (a)               1
+
+2016-01-01 *
+    (b.bb)            1.00
+
+2016-01-01 * 12:00-16:00
+    (a:aa)           4.00h
+
+>=
+
+# ** 2. The old !include spelling still works.
+<
+!include f.journal
+$  printf '2018/01/01\n (A)  1\n' >f.journal; hledger -f - print; rm -f f.journal
+2018-01-01
+    (A)               1
+
+>=
+
+# ** 3. include with no argument: argument error
+<
+include 
+$ hledger -f- files
+>2 /include needs a.*argument/
+>=1
+
+# ** 4. include a nonexistent file: no files matched error
+<
+include nosuchfile
+$ hledger -f- files
+>2 /No files were matched/
+>=1
+
+# # ** 5. include a directory: no files matched error
+# <
+# include b
+# $ hledger -f- files
+# >2 /No files were matched/
+# >=1
+
+# ** 6. Including the current file is harmless, it's ignored automatically.
+$ hledger -f self.j files
+> /self\.j$/
+
+# # ** 7. Including a cycle is harmless, the cycle is pruned automatically.
+# $ hledger -f .cycle/cycle.j files
+# > /cyc/
+# >=1
+
+# ** 8. A leading tilde is expanded to $HOME.
+<
+include ~/included.journal
+$  printf '2018/01/01\n (A)  1\n' >included.journal; HOME="$PWD" hledger -f - print; rm -rf included.journal
+2018-01-01
+    (A)               1
+
+>= 0
+
+# # ** 9. Glob patterns. Include a malformed glob -> glob error
+# <
+# include ***
+# $ hledger -f- files
+# >2 /malformed/
+# >=1
+
+# ** 10. Include invalid glob patterns
+<
+include [.journal
+$ hledger -f - print
+>2 //
+>= 1
+
+# # ** 11. Include ** -> all files
+# $ hledger -f glob1.j files
+
+# # ** 12. Include **.EXT -> ?
+# $ hledger -f glob2.j files
+
+# # ** 13. Include */**.EXT -> ?
+# $ hledger -f glob3.j files
+
+# # ** 14. Include **/*.EXT -> all files in or below cwd with .EXT
+# $ hledger -f glob4.j files
+
+# # ** 15. Include */**/*.EXT -> all files below cwd with .EXT
+# $ hledger -f glob5.j files
