@@ -167,27 +167,47 @@ findReader Nothing (Just path) =
     (prefix,path') = splitReaderPrefix path
     ext            = map toLower $ drop 1 $ takeExtension path'
 
--- | A file path optionally prefixed by a reader name and colon
--- (journal:, csv:, timedot:, etc.).
+-- | A prefix used to specify a particular reader to be used for a file path,
+-- overriding the file extension. It is a valid reader name followed by a colon.
+-- Eg journal:, csv:, timeclock:, timedot:.
+-- type ReaderPrefix = String
+
+-- | A file path with an optional reader prefix.
 type PrefixedFilePath = FilePath
 
--- | If a filepath is prefixed by one of the reader names and a colon,
--- split that off. Eg "csv:-" -> (Just "csv", "-").
--- These reader prefixes can be used to force a specific reader,
--- overriding the file extension. 
+-- | Separate a file path and its reader prefix, if any.
+--
+-- >>> splitReaderPrefix "csv:-"
+-- (Just csv,"-")
 splitReaderPrefix :: PrefixedFilePath -> (Maybe StorageFormat, FilePath)
 splitReaderPrefix f =
   let 
-  candidates = [(Just r, drop (length r + 1) f) | r <- readerNames ++ ["ssv","tsv"], (r++":") `isPrefixOf` f]
-  (strPrefix, newF) = headDef (Nothing, f) candidates
+    candidates = [(Just r, drop (length r + 1) f) | r <- readerNames ++ ["ssv","tsv"], (r++":") `isPrefixOf` f]
+    (strPrefix, newF) = headDef (Nothing, f) candidates
   in case strPrefix of
-  Just "csv" -> (Just (Sep Csv), newF)
-  Just "tsv" -> (Just (Sep Tsv), newF)
-  Just "ssv" -> (Just (Sep Ssv), newF)
-  Just "journal" -> (Just Journal', newF)
-  Just "timeclock" -> (Just Timeclock, newF)
-  Just "timedot" -> (Just Timedot, newF)
-  _ -> (Nothing, f)
+    Just "csv" -> (Just (Sep Csv), newF)
+    Just "tsv" -> (Just (Sep Tsv), newF)
+    Just "ssv" -> (Just (Sep Ssv), newF)
+    Just "journal" -> (Just Journal', newF)
+    Just "timeclock" -> (Just Timeclock, newF)
+    Just "timedot" -> (Just Timedot, newF)
+    _ -> (Nothing, f)
+
+-- -- | Does this file path have a reader prefix ?
+-- hasReaderPrefix :: PrefixedFilePath -> Bool
+-- hasReaderPrefix = isJust . fst. splitReaderPrefix
+
+-- -- | Add a reader prefix to a file path, unless it already has one.
+-- -- The argument should be a valid reader name.
+-- --
+-- -- >>> addReaderPrefix "csv" "a.txt"
+-- -- >>> "csv:a.txt"
+-- -- >>> addReaderPrefix "csv" "timedot:a.txt"
+-- -- >>> "timedot:a.txt"
+-- addReaderPrefix :: ReaderPrefix -> FilePath -> PrefixedFilePath
+-- addReaderPrefix readername f
+--   | hasReaderPrefix f = f
+--   | otherwise = readername <> ":" <> f
 
 --- ** reader
 

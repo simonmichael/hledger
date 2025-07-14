@@ -672,6 +672,8 @@ data SepFormat
   | Ssv  -- semicolon-separated
   deriving (Eq, Ord)
 
+-- XXX A little confusion, this is also used to name readers in splitReaderPrefix.
+-- readers, input formats, and output formats overlap but are distinct concepts.
 -- | The id of a data format understood by hledger, eg @journal@ or @csv@.
 -- The --output-format option selects one of these for output.
 data StorageFormat 
