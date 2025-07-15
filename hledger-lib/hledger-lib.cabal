@@ -148,7 +148,6 @@ library
     , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
-    , filepattern >=0.1.3
     , hashtables >=1.2.3.1
     , lucid
     , megaparsec >=7.0.0 && <9.8
@@ -209,7 +208,6 @@ test-suite doctest
     , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
-    , filepattern >=0.1.3
     , hashtables >=1.2.3.1
     , lucid
     , megaparsec >=7.0.0 && <9.8
@@ -271,7 +269,6 @@ test-suite unittest
     , extra >=1.7.11
     , file-embed >=0.0.10
     , filepath
-    , filepattern >=0.1.3
     , hashtables >=1.2.3.1
     , hledger-lib
     , lucid

@@ -73,7 +73,7 @@ where
 --- ** imports
 import qualified Control.Monad.Fail as Fail (fail)
 import qualified Control.Exception as C
-import Control.Monad (forM_, when, void, unless)
+import Control.Monad (forM_, when, void, unless, filterM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
@@ -94,7 +94,7 @@ import Text.Megaparsec.Char
 import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
-import "filepattern" System.FilePattern.Directory
+-- import "filepattern" System.FilePattern.Directory
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -104,7 +104,8 @@ import qualified Hledger.Read.CsvReader as CsvReader (reader)
 import qualified Hledger.Read.RulesReader as RulesReader (reader)
 import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
 import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
-import System.Directory (canonicalizePath)
+import System.Directory (canonicalizePath, doesFileExist)
+import Data.Functor ((<&>))
 
 --- ** doctest setup
 -- $setup
@@ -313,30 +314,66 @@ includedirectivep = do
   -- save the position
   off <- getOffset
   pos <- getSourcePos
-  -- parse
+
+  -- parse the directive
   string "include"
   lift skipNonNewlineSpaces1
   prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
   lift followingcommentp
-  -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
   f <- sourcePosFilePath pos
   when (null $ dbg6 (f <> " include: glob pattern") glb) $
     customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
-  paths <- getFilePaths off pos glb
+
+  -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
+  -- Also report whether it was a literal path and not a glob pattern.
+  (paths, isliteral) <- findMatchedFiles off pos glb
+
+  -- XXX worth the troublel ?
+  -- Handle duplicates. Some complexities here:
+  --
+  -- If this include directive uses a glob pattern, remove duplicates. 
+  -- Ie if this glob pattern matches any files we have already processed (or the current file),
+  -- due to multiple includes in sequence or in a cycle, exclude those files so they're not processed again.
+  --
+  -- If this include directive uses a literal file path, don't remove duplicates.
+  -- Multiple includes in sequence will cause the included file to be processed multiple times.
+  -- Multiple includes forming a cycle will be detected and reported as an error in parseIncludedFile.
+  let paths' = if isliteral then paths else filter (const True) paths
+
+  -- if there was a reader prefix, apply it to all the file paths
   let prefixedpaths = case mprefix of
-        Nothing  -> paths
-        Just fmt -> map ((show fmt++":")++) paths
-  -- parse them inline
+        Nothing  -> paths'
+        Just fmt -> map ((show fmt++":")++) paths'
+
+  -- parse each one, as if inlined here
   forM_ prefixedpaths $ parseIncludedFile off pos
 
   where
 
-    -- Find the files matched by a glob pattern, if any, using filepattern.
+    -- | Find the files matched by a literal path or a glob pattern.
     -- Uses the current parse context for detecting the current directory and for error messages.
-    -- This one also ignores all dotted directories (anything under .git/, foo/.secret/, etc.)
-    getFilePaths :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths off pos globpattern = do
+    -- Expands a leading tilde to the user's home directory.
+    -- Glob patterns at the start of a path component exclude dot-named files and directories.
+    -- 
+    -- Checks if any matched paths are directories and excludes those.
+    -- Converts all matched paths to their canonical form.
+    findMatchedFiles :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m ([FilePath], Bool)
+    findMatchedFiles off pos globpattern = do
+      -- Some notes about the Glob library:
+      -- ----------------------------------
+      -- It does not expand tilde.
+      -- It does not canonicalise paths.
+      -- The results are not in any particular order.
+      -- The results can include directories.
+      -- DIRPAT/ is equivalent to DIRPAT, except results will end with // (double slash).
+      -- . or .. at the start of a pattern can match the current or parent directories.
+      -- * matches any number of characters in a file or directory name.
+      -- * at the start of a file name ignores dot-named files and directories, by default.
+      -- ** (or any number of consecutive *'s) not followed by slash is equivalent to *.
+      -- A **/ component matches any number of directory parts.
+      -- A **/ ignores dot-named directories in its starting and ending directories, by default.
+      -- But **/ does search intermediate dot-named directories. Eg it can find a/.b/c.
 
       -- expand a tilde at the start of the glob pattern, or throw an error
       expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
@@ -345,29 +382,43 @@ includedirectivep = do
       parentfile <- sourcePosFilePath pos
       let cwd = takeDirectory parentfile
 
-      -- Find all matched files, in lexicographic order (the order ls would normally show them).
-      -- (This might include the current file.)
-      -- 1. Old implementation, using Glob  XXX keep providing this via --old-glob for a bit
-      _g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
-        Right x -> pure x
+      -- Compile as a Glob Pattern. Can throw an error.
+      g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
         Left e -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
-      _filepaths <- liftIO $ (dbg6 (parentfile <> " include: matched files") . sort) <$> globDir1 _g cwd
-      -- 2. New implementation, using filepattern
-      filepaths <- liftIO $
-        map (dbg6 "cwd" cwd </>)
-        -- . sort  -- XXX needed ?
-        <$>
-        getDirectoryFilesIgnore cwd [expandedglob] ["**/.*/**"]
+        Right _ | "***" `isInfixOf` expandedglob -> customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars"
+        Right x -> pure x
 
-      -- Throw an error if no files (not even the current file) were matched.
-      when (null filepaths) $
-        customFailure $ parseErrorAt off $ "No files were matched by file pattern: " ++ globpattern
+      -- Find all matched paths, in lexicographic order (the order ls would normally show them).
+      -- These might include directories or the current file.
+      paths <- liftIO $
+        -- (dbg6 (parentfile <> " include: matched paths") . sort) <$>
+        globDir1 g cwd
 
-      -- If the current file was matched, exclude it now.
-      let filepaths' = filter (/= parentfile) filepaths
-      dbg6IO (parentfile <> " include: matched files (excluding current file)") filepaths'
+      -- Exclude any directories or symlinks to directories, and canonicalise
+      files <- liftIO $
+        filterM doesFileExist paths
+        >>= mapM canonicalizePath
+        <&> (dbg6 (parentfile <> " include: matched files") . sort)
 
-      pure filepaths'
+      -- If a glob was used: exclude any intermediate dot directories that were searched.
+      -- As noted above, while **/ ignores dot dirs in the starting and ending dirs,
+      -- it does search dot dirs in between those two (something that should be fixed in Glob ?).
+      -- This seems likely to be inconvenient, eg when trying to avoid .git directories in subrepos.
+      -- So as an imperfect workaround: when using any glob, exclude all paths involving dot dirs.
+      -- Unfortunately this means valid globs like .dotdir/* will not succeed; only a literal
+      -- .dotdir/foo would work there.
+      let
+        files' = if isLiteral g then files else filter (not.hasdotdir) files
+          where
+            hasdotdir p = any isdotdir $ splitPath p
+              where
+                isdotdir c = "." `isPrefixOf` c && "/" `isSuffixOf` c
+
+      -- Throw an error if no files were matched.
+      when (null files') $
+        customFailure $ parseErrorAt off $ "No files were matched by glob pattern: " ++ globpattern
+
+      return (files', isLiteral g)
 
     -- Parse the given included file (and any deeper includes, recursively)
     -- as if it was inlined in the current (parent) file.
@@ -1195,8 +1246,8 @@ tests_JournalReader = testGroup "JournalReader" [
      assertParse ignoredpricecommoditydirectivep "N $\n"
 
   ,testGroup "includedirectivep" [
-      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No files were matched by glob pattern: nosuchfile"
+     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No files were matched by glob pattern: nosuchfile*"
      ]
 
   ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep

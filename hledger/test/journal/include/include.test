@@ -29,37 +29,7 @@ $  printf '2018/01/01\n (A)  1\n' >f.journal; hledger -f - print; rm -f f.journa
 
 >=
 
-# ** 3. include with no argument: argument error
-<
-include 
-$ hledger -f- files
->2 /include needs a.*argument/
->=1
-
-# ** 4. include a nonexistent file: no files matched error
-<
-include nosuchfile
-$ hledger -f- files
->2 /No files were matched/
->=1
-
-# # ** 5. include a directory: no files matched error
-# <
-# include b
-# $ hledger -f- files
-# >2 /No files were matched/
-# >=1
-
-# ** 6. Including the current file is harmless, it's ignored automatically.
-$ hledger -f self.j files
-> /self\.j$/
-
-# # ** 7. Including a cycle is harmless, the cycle is pruned automatically.
-# $ hledger -f .cycle/cycle.j files
-# > /cyc/
-# >=1
-
-# ** 8. A leading tilde is expanded to $HOME.
+# ** 3. A leading tilde is expanded to $HOME.
 <
 include ~/included.journal
 $  printf '2018/01/01\n (A)  1\n' >included.journal; HOME="$PWD" hledger -f - print; rm -rf included.journal
@@ -68,31 +38,102 @@ $  printf '2018/01/01\n (A)  1\n' >included.journal; HOME="$PWD" hledger -f - pr
 
 >= 0
 
-# # ** 9. Glob patterns. Include a malformed glob -> glob error
-# <
-# include ***
-# $ hledger -f- files
-# >2 /malformed/
-# >=1
+# ** 4. include with no argument -> argument error
+<
+include 
+$ hledger -f- files
+>2 /include needs a.*argument/
+>=1
 
-# ** 10. Include invalid glob patterns
+# ** 5. include a nonexistent file -> no files matched error
+<
+include nosuchfile
+$ hledger -f- files
+>2 /No files were matched/
+>=1
+
+# ** 6. Including a directory literally -> no files matched error
+<
+include b
+$ hledger -f- files
+>2 /No files were matched/
+>=1
+
+# ** 7. Include invalid glob patterns -> invalid glob error
 <
 include [.journal
 $ hledger -f - print
->2 //
+>2 /Invalid glob/
 >= 1
 
-# # ** 11. Include ** -> all files
-# $ hledger -f glob1.j files
+# ** 8. Three or more *'s -> glob error
+<
+include ***
+$ hledger -f- files
+>2 /Invalid glob/
+>=1
 
-# # ** 12. Include **.EXT -> ?
-# $ hledger -f glob2.j files
+# ** 9. Including the current file literally -> cycle error.
+$ hledger -f self.j files
+>2 /cycle/
+>=1
 
-# # ** 13. Include */**.EXT -> ?
-# $ hledger -f glob3.j files
+# ** 10. Including the current file via glob -> cycle error.
+$ hledger -f selfglob.j files
+>2 /cycle/
+>=1
 
-# # ** 14. Include **/*.EXT -> all files in or below cwd with .EXT
-# $ hledger -f glob4.j files
+# ** 11. Including a cycle, all literally -> cycle error
+$ hledger -f .cycle/cycle.j files
+>2 /cycle/
+>=1
 
-# # ** 15. Include */**/*.EXT -> all files below cwd with .EXT
-# $ hledger -f glob5.j files
+# ** 12. Including a cycle, involving globs -> cycle error
+$ hledger -f .cycle/cycleglob.j files
+>2 /cycle/
+>=1
+
+# ** 13. Include ** -> cycle error (includes current file)
+$ hledger -f glob1.j files
+>2 /cycle/
+>=1
+
+# ** 14. Include **.j -> cycle error (includes current file)
+$ hledger -f glob2.j files
+>2 /cycle/
+>=1
+
+# ** 15. Include */**.j -> all .j files in subdirectories (**.j is same as *.j)
+$ hledger -f glob3.j files | sed -E 's|.*hledger/test/journal/include/||'
+glob3.j
+b/b.j
+c/c.j
+
+# ** 16. Include **/*.j -> cycle error (includes current file)
+$ hledger -f glob4.j files
+>2 /cycle/
+>=1
+
+# ** 17. Include */**/*.j -> all non-dot .j files in or below non-dot subdirectories.
+<
+include */**/*.j
+$ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
+-
+b/b.j
+b/bb/bb.j
+c/c.j
+
+# ** 18. To avoid intermediate dot dirs in the above, we exclude all glob-matched paths involving dot dirs.
+# So this does not find b/bb/.dotdir/dotdirbb.j, unfortunately:
+<
+include b/.dotdir/*.j
+$ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
+>2 /No files were matched/
+# sed hides the non-zero exit code
+
+# ** 19. Only a literal path can find it.
+<
+include b/.dotdir/dotdirb.j
+$ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
+-
+b/.dotdir/dotdirb.j
