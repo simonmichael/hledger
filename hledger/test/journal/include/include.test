@@ -78,10 +78,9 @@ $ hledger -f self.j files
 >2 /cycle/
 >=1
 
-# ** 10. Including the current file via glob -> cycle error.
-$ hledger -f selfglob.j files
->2 /cycle/
->=1
+# ** 10. Including the current file via glob -> harmless, globs ignore current file.
+$ hledger -f selfglob.j files | sed -E 's|.*hledger/test/journal/include/||'
+selfglob.j
 
 # ** 11. Including a cycle, all literally -> cycle error
 $ hledger -f .cycle/cycle.j files
@@ -93,12 +92,12 @@ $ hledger -f .cycle/cycleglob.j files
 >2 /cycle/
 >=1
 
-# ** 13. Include ** -> cycle error (includes current file)
-$ hledger -f glob1.j files
->2 /cycle/
->=1
+# ** 13. Glob patterns ignore the current file (once).
+$ hledger -f a.j files | sed -E 's|.*hledger/test/journal/include/||'
+a.j
+a2.j
 
-# ** 14. Include **.j -> cycle error (includes current file)
+# ** 14. Include **.j -> cycle error (globs ignore current file, but other files include it)
 $ hledger -f glob2.j files
 >2 /cycle/
 >=1
@@ -109,7 +108,7 @@ glob3.j
 b/b.j
 c/c.j
 
-# ** 16. Include **/*.j -> cycle error (includes current file)
+# ** 16. Include **/*.j -> cycle error (too many mutual includes)
 $ hledger -f glob4.j files
 >2 /cycle/
 >=1
