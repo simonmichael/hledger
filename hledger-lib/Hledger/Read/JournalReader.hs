@@ -346,6 +346,7 @@ includedirectivep = do
         Just fmt -> map ((show fmt++":")++) paths'
 
   -- parse each one, as if inlined here
+  setOffset off
   forM_ prefixedpaths $ parseIncludedFile off pos
 
   where
