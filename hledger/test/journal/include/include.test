@@ -66,54 +66,45 @@ $ hledger -f - print
 >2 /Invalid glob/
 >= 1
 
-# ** 8. Three or more *'s -> glob error
+# ** 8. Two *'s without / -> invalid glob error
+<
+include **
+$ hledger -f- files
+>2 /Invalid glob/
+>=1
+
+# ** 9. Three or more *'s -> invalid glob error
 <
 include ***
 $ hledger -f- files
 >2 /Invalid glob/
 >=1
 
-# ** 9. Including the current file literally -> cycle error.
+# ** 10. Including the current file literally -> cycle error.
 $ hledger -f self.j files
 >2 /cycle/
 >=1
 
-# ** 10. Including the current file via glob -> harmless, globs ignore current file.
+# ** 11. Including the current file via glob -> harmless, globs ignore current file.
 $ hledger -f selfglob.j files | sed -E 's|.*hledger/test/journal/include/||'
 selfglob.j
 
-# ** 11. Including a cycle, all literally -> cycle error
+# ** 12. Including a cycle, all literally -> cycle error
 $ hledger -f .cycle/cycle.j files
 >2 /cycle/
 >=1
 
-# ** 12. Including a cycle, involving globs -> cycle error
+# ** 13. Including a cycle, involving globs -> cycle error
 $ hledger -f .cycle/cycleglob.j files
 >2 /cycle/
 >=1
 
-# ** 13. Glob patterns ignore the current file (once).
+# ** 14. Glob patterns ignore the current file (once).
 $ hledger -f a.j files | sed -E 's|.*hledger/test/journal/include/||'
 a.j
 a2.j
 
-# ** 14. Include **.j -> cycle error (globs ignore current file, but other files include it)
-$ hledger -f glob2.j files
->2 /cycle/
->=1
-
-# ** 15. Include */**.j -> all .j files in subdirectories (**.j is same as *.j)
-$ hledger -f glob3.j files | sed -E 's|.*hledger/test/journal/include/||'
-glob3.j
-b/b.j
-c/c.j
-
-# ** 16. Include **/*.j -> cycle error (too many mutual includes)
-$ hledger -f glob4.j files
->2 /cycle/
->=1
-
-# ** 17. Include */**/*.j -> all non-dot .j files in or below non-dot subdirectories.
+# ** 15. Include */**/*.j -> all non-dot .j files in or below non-dot subdirectories.
 <
 include */**/*.j
 $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
@@ -122,7 +113,7 @@ b/b.j
 b/bb/bb.j
 c/c.j
 
-# ** 18. To avoid intermediate dot dirs in the above, we exclude all glob-matched paths involving dot dirs.
+# ** 16. To avoid intermediate dot dirs in the above, we exclude all glob-matched paths involving dot dirs.
 # So this does not find b/bb/.dotdir/dotdirbb.j, unfortunately:
 <
 include b/.dotdir/*.j
@@ -130,7 +121,7 @@ $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
 >2 /No files were matched/
 # sed hides the non-zero exit code
 
-# ** 19. Only a literal path can find it.
+# ** 17. Only a literal path can find it.
 <
 include b/.dotdir/dotdirb.j
 $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'

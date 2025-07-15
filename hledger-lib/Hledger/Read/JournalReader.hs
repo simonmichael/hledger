@@ -382,10 +382,14 @@ includedirectivep = do
       parentfile <- sourcePosFilePath pos
       let cwd = takeDirectory parentfile
 
-      -- Compile as a Glob Pattern. Can throw an error.
+      -- Compile as a Glob Pattern (and do some extra error checking). Can throw an error.
       g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
-        Left e -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
-        Right _ | "***" `isInfixOf` expandedglob -> customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars"
+        Left e ->
+          customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
+        Right _ | "***" `isInfixOf` expandedglob ->
+          customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **/"
+        Right _ | regexMatch (toRegex' "\\*\\*[^/]") expandedglob ->
+          customFailure $ parseErrorAt off $ "Invalid glob pattern: double star requires slash, use **/"
         Right x -> pure x
       let isglob = not $ isLiteral g
 
