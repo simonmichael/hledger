@@ -71,7 +71,6 @@ module Hledger.Read.JournalReader (
 where
 
 --- ** imports
-import qualified Control.Monad.Fail as Fail (fail)
 import qualified Control.Exception as C
 import Control.Monad (forM_, when, void, unless, filterM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -387,10 +386,10 @@ includedirectivep = do
       g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
         Left e ->
           customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
+        Right _ | regexMatch (toRegex' "\\*\\*[^/]") expandedglob ->
+          customFailure $ parseErrorAt off $ "Invalid glob pattern: double star requires slash, use * or **/"
         Right _ | "***" `isInfixOf` expandedglob ->
           customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **/"
-        Right _ | regexMatch (toRegex' "\\*\\*[^/]") expandedglob ->
-          customFailure $ parseErrorAt off $ "Invalid glob pattern: double star requires slash, use **/"
         Right x -> pure x
       let isglob = not $ isLiteral g
 
@@ -507,7 +506,7 @@ orRethrowIOError io msg = do
   eResult <- liftIO $ (Right <$> io) `C.catch` \(e::C.IOException) -> pure $ Left $ printf "%s:\n%s" msg (show e)
   case eResult of
     Right res -> pure res
-    Left errMsg -> Fail.fail errMsg
+    Left errMsg -> fail errMsg
 
 -- Parse an account directive, adding its info to the journal's
 -- list of account declarations.
