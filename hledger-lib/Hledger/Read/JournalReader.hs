@@ -344,7 +344,8 @@ includedirectivep = do
         Nothing  -> paths'
         Just fmt -> map ((show fmt++":")++) paths'
 
-  -- parse each one, as if inlined here
+  -- Parse each one, as if inlined here.
+  -- Reset the position to the `include` line, for error messages.
   setOffset off
   forM_ prefixedpaths $ parseIncludedFile off pos
 
@@ -353,24 +354,23 @@ includedirectivep = do
     -- | Find the files matched by a literal path or a glob pattern.
     -- Uses the current parse context for detecting the current directory and for error messages.
     -- Expands a leading tilde to the user's home directory.
-    -- Glob patterns at the start of a path component exclude dot-named files and directories.
-    -- 
+    -- Converts ** without a slash to **/*, like zsh's GLOB_STAR_SHORT, so ** also matches file name parts.
+    -- Glob patterns at the start of a path component will exclude dot-named files and directories.
     -- Checks if any matched paths are directories and excludes those.
     -- Converts all matched paths to their canonical form.
-    -- findMatchedFiles :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m ([FilePath], Bool)
     findMatchedFiles :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
     findMatchedFiles off pos globpattern = do
-      -- Some notes about the Glob library:
-      -- ----------------------------------
+
+      -- Some notes about the Glob library that we use (related: https://github.com/Deewiant/glob/issues/49):
       -- It does not expand tilde.
       -- It does not canonicalise paths.
       -- The results are not in any particular order.
       -- The results can include directories.
       -- DIRPAT/ is equivalent to DIRPAT, except results will end with // (double slash).
-      -- . or .. at the start of a pattern can match the current or parent directories.
-      -- * matches any number of characters in a file or directory name.
+      -- A . or .. path component can match the current or parent directories (including them in the results).
+      -- * matches zero or more characters in a file or directory name.
       -- * at the start of a file name ignores dot-named files and directories, by default.
-      -- ** (or any number of consecutive *'s) not followed by slash is equivalent to *.
+      -- ** (or zero or more consecutive *'s) not followed by slash is equivalent to *.
       -- A **/ component matches any number of directory parts.
       -- A **/ ignores dot-named directories in its starting and ending directories, by default.
       -- But **/ does search intermediate dot-named directories. Eg it can find a/.b/c.
@@ -382,22 +382,26 @@ includedirectivep = do
       parentfile <- sourcePosFilePath pos
       let cwd = takeDirectory parentfile
 
-      -- Compile as a Glob Pattern (and do some extra error checking). Can throw an error.
-      g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob of
-        Left e ->
-          customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
-        Right _ | regexMatch (toRegex' "\\*\\*[^/]") expandedglob ->
-          customFailure $ parseErrorAt off $ "Invalid glob pattern: double star requires slash, use * or **/"
-        Right _ | "***" `isInfixOf` expandedglob ->
-          customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **/"
+      -- Don't allow 3 or more stars.
+      when ("***" `isInfixOf` expandedglob) $
+        customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **"
+
+      -- Make ** also match file name parts like zsh's GLOB_STAR_SHORT.
+      let
+        expandedglob' =
+          -- ** without a slash is equivalent to **/*
+          case regexReplace (toRegex' $ T.pack "\\*\\*([^/\\])") "**/*\\1" expandedglob of
+            Right s -> s
+            Left  _ -> expandedglob   -- ignore any error, there should be none
+
+      -- Compile as a Pattern. Can throw an error.
+      g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob' of
+        Left e  -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
         Right x -> pure x
       let isglob = not $ isLiteral g
 
-      -- Find all matched paths, in lexicographic order (the order ls would normally show them).
-      -- These might include directories or the current file.
-      paths <- liftIO $
-        -- (dbg6 (parentfile <> " include: matched paths") . sort) <$>
-        globDir1 g cwd
+      -- Find all matched paths. These might include directories or the current file.
+      paths <- liftIO $ globDir1 g cwd
 
       -- Exclude any directories or symlinks to directories, and canonicalise, and sort.
       files <- liftIO $
@@ -405,13 +409,12 @@ includedirectivep = do
         >>= mapM canonicalizePath
         <&> sort
 
-      -- If a glob was used, exclude any intermediate dot directories that were searched.
-      -- As noted above, while **/ ignores dot dirs in the starting and ending dirs,
+      -- Work around a Glob bug with dot dirs: while **/ ignores dot dirs in the starting and ending dirs,
       -- it does search dot dirs in between those two (something that should be fixed in Glob ?).
-      -- This seems likely to be inconvenient, eg when trying to avoid .git directories in subrepos.
-      -- So as an imperfect workaround: when using any glob, exclude all paths involving dot dirs.
-      -- Unfortunately this means valid globs like .dotdir/* will not succeed; only a literal
-      -- .dotdir/foo would work there.
+      -- This could be inconvenient, eg making it hard to avoid VCS directories in a source tree.
+      -- To work around: when any glob was used, paths involving dot dirs are excluded in post processing.
+      -- Unfortunately this means valid globs like .dotdir/* can't be used; only literal paths can match
+      -- things in dot dirs.
       let
         files2 = (if isglob then filter (not.hasdotdir) else id) files
           where
@@ -429,7 +432,6 @@ includedirectivep = do
           dbg6 (parentfile <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
           (if isglob then filter (/= parentfile) else id) files2
 
-      -- return (files3, isglob)
       return files3
 
     -- Parse the given included file (and any deeper includes, recursively)

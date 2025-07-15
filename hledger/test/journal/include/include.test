@@ -66,47 +66,49 @@ $ hledger -f - print
 >2 /Invalid glob/
 >= 1
 
-# ** 8. Two *'s without / -> invalid glob error
-<
-include **
-$ hledger -f- files
->2 /Invalid glob/
->=1
-
-# ** 9. Three or more *'s -> invalid glob error
+# ** 8. Three or more *'s -> invalid glob error
 <
 include ***
 $ hledger -f- files
 >2 /Invalid glob/
 >=1
 
-# ** 10. Including the current file literally -> cycle error.
+# ** 9. Including the current file literally -> cycle error.
 $ hledger -f self.j files
 >2 /cycle/
 >=1
 
-# ** 11. Including the current file via glob -> harmless, globs ignore current file.
+# ** 10. Including the current file via glob -> harmless, globs ignore current file.
 $ hledger -f selfglob.j files | sed -E 's|.*hledger/test/journal/include/||'
 selfglob.j
 
-# ** 12. Including a cycle, all literally -> cycle error
+# ** 11. Including a cycle, all literally -> cycle error
 $ hledger -f .cycle/cycle.j files
 >2 /cycle/
 >=1
 
-# ** 13. Including a cycle, involving globs -> cycle error
+# ** 12. Including a cycle, involving globs -> cycle error
 $ hledger -f .cycle/cycleglob.j files
 >2 /cycle/
 >=1
 
-# ** 14. Glob patterns ignore the current file (once).
+# ** 13. Glob patterns ignore the current file (once).
 $ hledger -f a.j files | sed -E 's|.*hledger/test/journal/include/||'
 a.j
 a2.j
 
-# ** 15. Include */**/*.j -> all non-dot .j files in or below non-dot subdirectories.
+# ** 14. Include */**/*.j -> all non-dot .j files in or below non-dot subdirectories.
 <
 include */**/*.j
+$ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
+-
+b/b.j
+b/bb/bb.j
+c/c.j
+
+# ** 15. ** without a slash can also match filename start, equivalent to **/* -> same result as above.
+<
+include */**.j
 $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
 -
 b/b.j
