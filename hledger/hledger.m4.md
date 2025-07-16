@@ -2513,30 +2513,40 @@ include SOMEFILE
 ```
 
 This has the same effect as if SOMEFILE's content was inlined at this point.
-(Any `include`s within SOMEFILE will also be inlined, recursively.)
+(With any include directives in SOMEFILE processed similarly, recursively.)
 
-Only journal files can include other files.
-They can include journal, timeclock or timedot files, but not CSV files.
+Only journal files can include other files. They can include journal, timeclock or timedot files, but not CSV files.
 
-If the file path begins with a tilde, that means home directory: `include ~/main.journal`.
+If the file path begins with a tilde, that means your home directory: `include ~/main.journal`.
 
 If it begins with a slash, it is an absolute path: `include /home/user/main.journal`.
+Otherwise it is relative to the including file's folder: `include ../finances/main.journal`.
 
-Otherwise it is relative to the current file's folder: `include finances/main.journal`.
+Also, the path may have a file type prefix to force a specific file format, overriding the file extension(s)
+(as described in [Data formats](#data-formats)): `include timedot:notes/2023.md`.
 
-Also, the path may have a file type prefix to force a specific file format
-(as described in [Data formats](#data-formats)): `include timedot:~/notes/2023*.md`.
+The path may contain [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming))
+to match multiple files.
+hledger's globs are similar to zsh's:
+`?` to match any character;
+`[a-z]` to match any character in a range;
+`*` to match zero or more characters that aren't a path separator (like `/`);
+`**` to match zero or more subdirectories and/or zero or more characters at the start of a file name;
+etc.
+Also, hledger's globs always exclude the including file itself.
+So, you can do 
 
-The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
-Note, the current file is always excluded from the matched paths.
-(Though include cycles are still possible, and will be reported as an error.)
+- `include *.journal` to include all other journal files in the current directory (excluding [dot files](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory))
+- `include **.journal` to include all other journal files in this directory and below (excluding dot directories/files)
+- `include timelogs/2???.timedot` to include all timedot files named like a year number.
 
-The special glob pattern `**` matches any number of path components.
-It's useful for searching subdirectories.
-Eg to include all .journal files below the current directory: `include **/*.journal`.
+If you are using many, or deeply nested, include files, and have an error that's hard to pinpoint:
+a good troubleshooting command is `hledger files --debug=6` (or 7).
 
 
-[glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
+
+<!-- https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile -->
+
 
 
 ## `P` directive
