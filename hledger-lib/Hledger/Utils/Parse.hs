@@ -454,22 +454,17 @@ customErrorBundlePretty errBundle =
 -- (1) it should be possible to convert any parse error into a "final"
 -- parse error,
 -- (2) it should be possible to take a parse error thrown from an include
--- file and re-throw it in the parent file, and
+-- file and re-throw it in the context of the parent file, and
 -- (3) the pretty-printing of "final" parse errors should be consistent
--- with that of ordinary parse errors, but should also report a stack of
--- files for errors thrown from include files.
+-- with that of ordinary parse errors, but should also report the stack of
+-- parent files when errors are thrown from included files.
 --
 -- In order to pretty-print a "final" parse error (goal 3), it must be
 -- bundled with include filepaths and its full source text. When a "final"
 -- parse error is thrown from within a parser, we do not have access to
--- the full source, so we must hold the parse error until it can be joined
--- with its source (and include filepaths, if it was thrown from an
--- include file) by the parser's caller.
---
--- A parse error with include filepaths and its full source text is
--- represented by the 'FinalParseErrorBundle' type, while a parse error in
--- need of either include filepaths, full source text, or both is
--- represented by the 'FinalParseError' type.
+-- the full source, so we must hold the parse error ('FinalParseError') 
+-- until it can be combined with the full source (and any parent file paths)
+-- by the parser's caller ('FinalParseErrorBundle').
 
 data FinalParseError' e
   -- a parse error thrown as a "final" parse error

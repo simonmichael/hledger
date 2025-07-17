@@ -147,7 +147,7 @@ $ hledger -f timeclock:- print
 
 >=
 
-# ** 12. The --timeclock-old flag reverts to the old behavior.
+# ** 12. The --old-timeclock flag reverts to the old behavior.
 <
 i 2009/1/1 08:00:00
 o 2009/1/1 09:00:00 stuff on checkout record  is ignored
@@ -157,7 +157,7 @@ o 2009/1/2 09:00:00
 i 2009/1/3 08:00:00 some:account name  and a description
 o 2009/1/3 09:00:00
 
-$ hledger --timeclock-old -f timeclock:- print
+$ hledger --old-timeclock -f timeclock:- print
 >
 2009-01-01 * 08:00-09:00
     ()           1.00h

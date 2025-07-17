@@ -46,7 +46,12 @@ reader sep = Reader
   {rFormat     = Sep sep
   ,rExtensions = [show sep]
   ,rReadFn     = parse sep
-  ,rParser     = error' "sorry, CSV files can't be included yet"  -- PARTIAL:
+  ,rParser     = fail "sorry, CSV files can't be included yet"  -- PARTIAL:
+    -- This unnecessarily shows the CSV file's first line in the error message,
+    -- but gives a more useful message than just calling error'.
+    -- XXX Note every call to error' in Hledger.Read.* is potentially a similar problem -
+    -- the error message is good enough when the file was specified directly by the user,
+    -- but not good if it was loaded by a possibly long chain of include directives.
   }
 
 -- | Parse and post-process a "Journal" from CSV data, or give an error.

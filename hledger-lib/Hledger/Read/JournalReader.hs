@@ -71,9 +71,8 @@ module Hledger.Read.JournalReader (
 where
 
 --- ** imports
-import qualified Control.Monad.Fail as Fail (fail)
 import qualified Control.Exception as C
-import Control.Monad (forM_, when, void, unless)
+import Control.Monad (forM_, when, void, unless, filterM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
@@ -94,6 +93,7 @@ import Text.Megaparsec.Char
 import Text.Printf
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
+-- import "filepattern" System.FilePattern.Directory
 
 import Hledger.Data
 import Hledger.Read.Common
@@ -103,7 +103,8 @@ import qualified Hledger.Read.CsvReader as CsvReader (reader)
 import qualified Hledger.Read.RulesReader as RulesReader (reader)
 import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
 import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
-import System.Directory (canonicalizePath)
+import System.Directory (canonicalizePath, doesFileExist)
+import Data.Functor ((<&>))
 
 --- ** doctest setup
 -- $setup
@@ -166,27 +167,47 @@ findReader Nothing (Just path) =
     (prefix,path') = splitReaderPrefix path
     ext            = map toLower $ drop 1 $ takeExtension path'
 
--- | A file path optionally prefixed by a reader name and colon
--- (journal:, csv:, timedot:, etc.).
+-- | A prefix used to specify a particular reader to be used for a file path,
+-- overriding the file extension. It is a valid reader name followed by a colon.
+-- Eg journal:, csv:, timeclock:, timedot:.
+-- type ReaderPrefix = String
+
+-- | A file path with an optional reader prefix.
 type PrefixedFilePath = FilePath
 
--- | If a filepath is prefixed by one of the reader names and a colon,
--- split that off. Eg "csv:-" -> (Just "csv", "-").
--- These reader prefixes can be used to force a specific reader,
--- overriding the file extension. 
+-- | Separate a file path and its reader prefix, if any.
+--
+-- >>> splitReaderPrefix "csv:-"
+-- (Just csv,"-")
 splitReaderPrefix :: PrefixedFilePath -> (Maybe StorageFormat, FilePath)
 splitReaderPrefix f =
   let 
-  candidates = [(Just r, drop (length r + 1) f) | r <- readerNames ++ ["ssv","tsv"], (r++":") `isPrefixOf` f]
-  (strPrefix, newF) = headDef (Nothing, f) candidates
+    candidates = [(Just r, drop (length r + 1) f) | r <- readerNames ++ ["ssv","tsv"], (r++":") `isPrefixOf` f]
+    (strPrefix, newF) = headDef (Nothing, f) candidates
   in case strPrefix of
-  Just "csv" -> (Just (Sep Csv), newF)
-  Just "tsv" -> (Just (Sep Tsv), newF)
-  Just "ssv" -> (Just (Sep Ssv), newF)
-  Just "journal" -> (Just Journal', newF)
-  Just "timeclock" -> (Just Timeclock, newF)
-  Just "timedot" -> (Just Timedot, newF)
-  _ -> (Nothing, f)
+    Just "csv" -> (Just (Sep Csv), newF)
+    Just "tsv" -> (Just (Sep Tsv), newF)
+    Just "ssv" -> (Just (Sep Ssv), newF)
+    Just "journal" -> (Just Journal', newF)
+    Just "timeclock" -> (Just Timeclock, newF)
+    Just "timedot" -> (Just Timedot, newF)
+    _ -> (Nothing, f)
+
+-- -- | Does this file path have a reader prefix ?
+-- hasReaderPrefix :: PrefixedFilePath -> Bool
+-- hasReaderPrefix = isJust . fst. splitReaderPrefix
+
+-- -- | Add a reader prefix to a file path, unless it already has one.
+-- -- The argument should be a valid reader name.
+-- --
+-- -- >>> addReaderPrefix "csv" "a.txt"
+-- -- >>> "csv:a.txt"
+-- -- >>> addReaderPrefix "csv" "timedot:a.txt"
+-- -- >>> "timedot:a.txt"
+-- addReaderPrefix :: ReaderPrefix -> FilePath -> PrefixedFilePath
+-- addReaderPrefix readername f
+--   | hasReaderPrefix f = f
+--   | otherwise = readername <> ":" <> f
 
 --- ** reader
 
@@ -283,82 +304,177 @@ directivep = (do
   ) <?> "directive"
 
 -- | Parse an include directive, and the file(s) it refers to, possibly recursively.
--- include's argument is a file path or glob pattern, optionally with a file type prefix.
--- ~ at the start is expanded to the user's home directory.
--- Relative paths are relative to the current file.
--- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal
+-- include's argument is a file path or glob pattern (see findMatchedFiles for details),
+-- optionally with a file type prefix. Relative paths are relative to the current file.
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
-  -- parse
+  -- save the position
+  off <- getOffset
+  pos <- getSourcePos
+
+  -- parse the directive
   string "include"
   lift skipNonNewlineSpaces1
   prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
   lift followingcommentp
-  -- save the position (does sequencing wrt newline matter ? seems not)
-  parentoff <- getOffset
-  parentpos <- getSourcePos
-  -- find file(s)
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  paths <- getFilePaths parentoff parentpos glb
+  f <- sourcePosFilePath pos
+  when (null $ dbg6 (f <> " include: glob pattern") glb) $
+    customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
+
+  -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
+  -- Also report whether a glob pattern was used, and not just a literal file path.
+  -- (paths, isglob) <- findMatchedFiles off pos glb
+  paths <- findMatchedFiles off pos glb
+
+  -- XXX worth the trouble ? no
+  -- Comprehensively exclude files already processed. Some complexities here:
+  -- If this include directive uses a glob pattern, remove duplicates. 
+  -- Ie if this glob pattern matches any files we have already processed (or the current file),
+  -- due to multiple includes in sequence or in a cycle, exclude those files so they're not processed again.
+  -- If this include directive uses a literal file path, don't remove duplicates.
+  -- Multiple includes in sequence will cause the included file to be processed multiple times.
+  -- Multiple includes forming a cycle will be detected and reported as an error in parseIncludedFile.
+  -- let paths' = if isglob then filter (...) paths else paths
+
+  -- if there was a reader prefix, apply it to all the file paths
   let prefixedpaths = case mprefix of
         Nothing  -> paths
         Just fmt -> map ((show fmt++":")++) paths
-  -- parse them inline
-  forM_ prefixedpaths $ parseChild parentpos
+
+  -- Parse each one, as if inlined here.
+  -- Reset the position to the `include` line, for error messages.
+  setOffset off
+  forM_ prefixedpaths $ parseIncludedFile off pos
 
   where
-    getFilePaths
-      :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    getFilePaths parseroff parserpos fileglobpattern = do
-        -- Expand a ~ at the start of the glob pattern, if any.
-        fileglobpattern' <- lift $ expandHomePath fileglobpattern
-                         `orRethrowIOError` (show parserpos ++ " locating " ++ fileglobpattern)
-        -- Compile the glob pattern.
-        fileglob <- case tryCompileWith compDefault{errorRecovery=False} fileglobpattern' of
-            Right x -> pure x
-            Left e -> customFailure $ parseErrorAt parseroff $ "Invalid glob pattern: " ++ e
-        -- Get the directory of the including file. This will be used to resolve relative paths.
-        let parentfilepath = sourceName parserpos
-        realparentfilepath <- liftIO $ canonicalizePath parentfilepath   -- Follow a symlink. If the path is already absolute, the operation never fails. 
-        let curdir = takeDirectory realparentfilepath
-        -- Find all matched files, in lexicographic order mimicking the output of 'ls'.
-        filepaths <- liftIO $ sort <$> globDir1 fileglob curdir
-        if (not . null) filepaths
-            then pure filepaths
-            else customFailure $ parseErrorAt parseroff $
-                   "No existing files match pattern: " ++ fileglobpattern
 
-    parseChild :: MonadIO m => SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseChild parentpos prefixedpath = do
+    -- | Find the files matched by a literal path or a glob pattern.
+    -- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal, **.journal.
+    --
+    -- Uses the current parse context for detecting the current directory and for error messages.
+    -- Expands a leading tilde to the user's home directory.
+    -- Converts ** without a slash to **/*, like zsh's GLOB_STAR_SHORT, so ** also matches file name parts.
+    -- Checks if any matched paths are directories and excludes those.
+    -- Converts all matched paths to their canonical form.
+    --
+    -- Glob patterns never match dot files or files under dot directories,
+    -- even if it seems like they should; this is a workaround for Glob bug #49.
+    -- This workaround is disabled if the --old-glob flag is present in the command line
+    -- (detected with unsafePerformIO; it's not worth a ton of boilerplate).
+    -- In that case, be aware ** recursive globs will search intermediate dot directories.
+
+    findMatchedFiles :: (MonadIO m) => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    findMatchedFiles off pos globpattern = do
+
+      -- Some notes about the Glob library that we use (related: https://github.com/Deewiant/glob/issues/49):
+      -- It does not expand tilde.
+      -- It does not canonicalise paths.
+      -- The results are not in any particular order.
+      -- The results can include directories.
+      -- DIRPAT/ is equivalent to DIRPAT, except results will end with // (double slash).
+      -- A . or .. path component can match the current or parent directories (including them in the results).
+      -- * matches zero or more characters in a file or directory name.
+      -- * at the start of a file name ignores dot-named files and directories, by default.
+      -- ** (or zero or more consecutive *'s) not followed by slash is equivalent to *.
+      -- A **/ component matches any number of directory parts.
+      -- A **/ ignores dot-named directories in its starting and ending directories, by default.
+      -- But **/ does search intermediate dot-named directories. Eg it can find a/.b/c.
+
+      -- expand a tilde at the start of the glob pattern, or throw an error
+      expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
+
+      -- get the directory of the including file
+      parentfile <- sourcePosFilePath pos
+      let cwd = takeDirectory parentfile
+
+      -- Don't allow 3 or more stars.
+      when ("***" `isInfixOf` expandedglob) $
+        customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **"
+
+      -- Make ** also match file name parts like zsh's GLOB_STAR_SHORT.
+      let
+        expandedglob' =
+          -- ** without a slash is equivalent to **/*
+          case regexReplace (toRegex' $ T.pack "\\*\\*([^/\\])") "**/*\\1" expandedglob of
+            Right s -> s
+            Left  _ -> expandedglob   -- ignore any error, there should be none
+
+      -- Compile as a Pattern. Can throw an error.
+      g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob' of
+        Left e  -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
+        Right x -> pure x
+      let isglob = not $ isLiteral g
+
+      -- Find all matched paths. These might include directories or the current file.
+      paths <- liftIO $ globDir1 g cwd
+
+      -- Exclude any directories or symlinks to directories, and canonicalise, and sort.
+      files <- liftIO $
+        filterM doesFileExist paths
+        >>= mapM canonicalizePath
+        <&> sort
+
+      -- Work around a Glob bug with dot dirs: while **/ ignores dot dirs in the starting and ending dirs,
+      -- it does search dot dirs in between those two (Glob #49).
+      -- This could be inconvenient, eg making it hard to avoid VCS directories in a source tree.
+      -- We work around as follows: when any glob was used, paths involving dot dirs are excluded in post processing.
+      -- Unfortunately this means valid globs like .dotdir/* can't be used; only literal paths can match
+      -- things in dot dirs. An --old-glob command line flag disables this workaround, for backward compatibility.
+      oldglobflag <- liftIO $ getFlag ["old-glob"]
+      let
+        files2 = (if isglob && not oldglobflag then filter (not.hasdotdir) else id) files
+          where
+            hasdotdir p = any isdotdir $ splitPath p
+              where
+                isdotdir c = "." `isPrefixOf` c && "/" `isSuffixOf` c
+
+      -- Throw an error if no files were matched.
+      when (null files2) $
+        customFailure $ parseErrorAt off $ "No files were matched by glob pattern: " ++ globpattern
+
+      -- If a glob was used, exclude the current file, for convenience.
+      let
+        files3 =
+          dbg6 (parentfile <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
+          (if isglob then filter (/= parentfile) else id) files2
+
+      return files3
+
+    -- Parse the given included file (and any deeper includes, recursively)
+    -- as if it was inlined in the current (parent) file.
+    -- The position in the parent file is provided for error messages.
+    parseIncludedFile :: MonadIO m => Int -> SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile off _pos prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
+      -- Throw an error if a cycle is detected
       parentj <- get
       let parentfilestack = jincludefilestack parentj
-      when (filepath `elem` parentfilestack) $
-        Fail.fail ("Cyclic include: " ++ filepath)
+      when (dbg7 "parseIncludedFile: reading" filepath `elem` parentfilestack) $
+        customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ filepath
 
-      childInput <-
-        dbg6Msg ("parseChild: "++takeFileName filepath) $
-        lift $ readFilePortably filepath
-          `orRethrowIOError` (show parentpos ++ " reading " ++ filepath)
+      -- Read the file's content, or throw an error
+      childInput <- lift $ readFilePortably filepath `orRethrowIOError` "failed to read a file"
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
-      -- Choose a reader/parser based on the file path prefix or file extension,
+      -- Choose a reader based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
           parser = rParser r
-      dbg6IO "parseChild: trying reader" (rFormat r)
+      dbg7IO "parseIncludedFile: trying reader" (rFormat r)
 
-      -- Parse the file (of whichever format) to a Journal, with file path and source text attached.
+      -- Parse the file (and its own includes, if any) to a Journal
+      -- with file path and source text attached. Or throw an error.
       updatedChildj <- journalAddFile (filepath, childInput) <$>
                         parseIncludeFile parser initChildj filepath childInput
 
-      -- Merge this child journal into the parent journal
-      -- (with debug logging for troubleshooting account display order).
+      -- Child journal was parsed successfully; now merge it into the parent journal.
+      -- Debug logging is provided for troubleshooting account display order (eg).
       -- The parent journal is the second argument to journalConcat; this means
       -- its parse state is kept, and its lists are appended to child's (which
       -- ultimately produces the right list order, because parent's and child's
-      -- lists are in reverse order at this stage. Cf #1909).
+      -- lists are in reverse order at this stage. Cf #1909)
       let
         parentj' =
           dbgJournalAcctDeclOrder ("parseChild: child " <> childfilename <> " acct decls: ") updatedChildj
@@ -369,21 +485,28 @@ includedirectivep = do
             childfilename = takeFileName filepath
             parentfilename = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
 
-      -- Update the parse state.
+      -- And update the current parse state.
       put parentj'
 
-    newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
-    newJournalWithParseStateFrom filepath j = nulljournal{
-      jparsedefaultyear      = jparsedefaultyear j
-      ,jparsedefaultcommodity = jparsedefaultcommodity j
-      ,jparseparentaccounts   = jparseparentaccounts j
-      ,jparsedecimalmark      = jparsedecimalmark j
-      ,jparsealiases          = jparsealiases j
-      ,jdeclaredcommodities           = jdeclaredcommodities j
-      -- ,jparsetransactioncount = jparsetransactioncount j
-      ,jparsetimeclockentries = jparsetimeclockentries j
-      ,jincludefilestack      = filepath : jincludefilestack j
-      }
+      where
+        newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
+        newJournalWithParseStateFrom filepath j = nulljournal{
+          jparsedefaultyear      = jparsedefaultyear j
+          ,jparsedefaultcommodity = jparsedefaultcommodity j
+          ,jparseparentaccounts   = jparseparentaccounts j
+          ,jparsedecimalmark      = jparsedecimalmark j
+          ,jparsealiases          = jparsealiases j
+          ,jdeclaredcommodities           = jdeclaredcommodities j
+          -- ,jparsetransactioncount = jparsetransactioncount j
+          ,jparsetimeclockentries = jparsetimeclockentries j
+          ,jincludefilestack      = filepath : jincludefilestack j
+          }
+
+-- Get the canonical path of the file referenced by this parse position.
+-- Symbolic links will be dereferenced. This probably will always succeed
+-- (since the parse file's path is probably always absolute).
+sourcePosFilePath :: (MonadIO m) => SourcePos -> m FilePath
+sourcePosFilePath = liftIO . canonicalizePath . sourceName
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
@@ -392,7 +515,7 @@ orRethrowIOError io msg = do
   eResult <- liftIO $ (Right <$> io) `C.catch` \(e::C.IOException) -> pure $ Left $ printf "%s:\n%s" msg (show e)
   case eResult of
     Right res -> pure res
-    Left errMsg -> Fail.fail errMsg
+    Left errMsg -> fail errMsg
 
 -- Parse an account directive, adding its info to the journal's
 -- list of account declarations.
@@ -511,7 +634,7 @@ commoditydirectiveonelinep = do
     pure $ (off, amt)
   lift skipNonNewlineSpaces
   _ <- lift followingcommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg6 "style from commodity directive" astyle}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j})
@@ -557,7 +680,7 @@ formatdirectivep expectedsym = do
     then
       if isNothing $ asdecimalmark astyle
       then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-      else return $ dbg6 "style from format subdirective" astyle
+      else return $ dbg7 "style from format subdirective" astyle
     else customFailure $ parseErrorAt off $
          printf "commodity directive symbol \"%s\" and format directive symbol \"%s\" should be the same" expectedsym acommodity
 
@@ -1144,8 +1267,8 @@ tests_JournalReader = testGroup "JournalReader" [
      assertParse ignoredpricecommoditydirectivep "N $\n"
 
   ,testGroup "includedirectivep" [
-      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No existing files match pattern: nosuchfile"
-     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No existing files match pattern: nosuchfile*"
+      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No files were matched by glob pattern: nosuchfile"
+     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No files were matched by glob pattern: nosuchfile*"
      ]
 
   ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep

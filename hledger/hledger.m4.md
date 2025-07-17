@@ -2509,28 +2509,46 @@ file contains digit group marks (eg thousands separators).
 You can pull in the content of additional files by writing an include directive, like this:
 
 ```journal
-include FILEPATH
+include SOMEFILE
 ```
 
-Only journal files can include, and only journal, timeclock or timedot files can be included (not CSV files, currently).
+This has the same effect as if SOMEFILE's content was inlined at this point.
+(With any include directives in SOMEFILE processed similarly, recursively.)
 
-If the file path does not begin with a slash, it is relative to the current file's folder. 
+Only journal files can include other files. They can include journal, timeclock or timedot files, but not CSV files.
 
-A tilde means home directory, eg: `include ~/main.journal`.
+If the file path begins with a tilde, that means your home directory: `include ~/main.journal`.
 
-The path may contain [glob patterns] to match multiple files, eg: `include *.journal`.
+If it begins with a slash, it is an absolute path: `include /home/user/main.journal`.
+Otherwise it is relative to the including file's folder: `include ../finances/main.journal`.
 
-There is limited support for recursive wildcards: `**/` (the slash is required)
-matches 0 or more subdirectories. It's not super convenient since you have to 
-avoid include cycles and including directories, but this can be done, eg:
-`include */**/*.journal`.
+Also, the path may have a file type prefix to force a specific file format, overriding the file extension(s)
+(as described in [Data formats](#data-formats)): `include timedot:notes/2023.md`.
 
-The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in
-[Data formats](#data-formats)):
-`include timedot:~/notes/2023*.md`.
+The path may contain [glob patterns](https://en.wikipedia.org/wiki/Glob_(programming))
+to match multiple files.
+hledger's globs are similar to zsh's:
+`?` to match any character;
+`[a-z]` to match any character in a range;
+`*` to match zero or more characters that aren't a path separator (like `/`);
+`**` to match zero or more subdirectories and/or zero or more characters at the start of a file name;
+etc.
+Also, hledger's globs always exclude the including file itself.
+So, you can do 
 
-[glob patterns]: https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile
+- `include *.journal` to include all other journal files in the current directory (excluding [dot files](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory))
+- `include **.journal` to include all other journal files in this directory and below (excluding dot directories/files)
+- `include timelogs/2???.timedot` to include all timedot files named like a year number.
+
+There is a limitation: hledger's globs always exclude paths involving dot files or dot directories.
+This is a workaround for unavoidable dot directory traversal; 
+you can disable it and revert to older behaviour with the `--old-glob` flag, for now.
+
+If you are using many, or deeply nested, include files, and have an error that's hard to pinpoint:
+a good troubleshooting command is `hledger files --debug=6` (or 7).
+
+<!-- https://hackage.haskell.org/package/Glob-0.9.2/docs/System-FilePath-Glob.html#v:compile -->
+
 
 ## `P` directive
 
