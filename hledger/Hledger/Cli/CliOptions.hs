@@ -299,6 +299,7 @@ hiddenflagsformainmode = [
   ,flagNone ["anon"]                 (setboolopt "anon") "deprecated, renamed to --obfuscate"  -- #2133, handled by anonymiseByOpts
   ,flagNone ["obfuscate"]            (setboolopt "obfuscate") "slightly obfuscate hledger's output. Warning, does not give privacy. Formerly --anon."  -- #2133, handled by maybeObfuscate
   ,flagNone ["old-timeclock", "timeclock-old"] (setboolopt "oldtimeclock") "don't pair timeclock entries by account name"
+  ,flagNone ["old-glob"]             (setboolopt "oldglob") "don't always exclude dot files/dirs to work around Glob bug"
   ,flagReq  ["rules-file"]           (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "was renamed to --rules"
   ]
 

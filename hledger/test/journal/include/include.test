@@ -123,9 +123,15 @@ $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
 >2 /No files were matched/
 # sed hides the non-zero exit code
 
-# ** 17. Only a literal path can find it.
+# ** 17. This workaround can be disabled with --old-glob, for now.
+$ hledger -f - files --old-glob | sed -E 's|.*hledger/test/journal/include/||'
+-
+b/.dotdir/dotdirb.j
+
+# ** 18. A literal path can always match dot files/dirs.
 <
 include b/.dotdir/dotdirb.j
 $ hledger -f - files | sed -E 's|.*hledger/test/journal/include/||'
 -
 b/.dotdir/dotdirb.j
+

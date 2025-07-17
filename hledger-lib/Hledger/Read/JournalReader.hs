@@ -304,10 +304,8 @@ directivep = (do
   ) <?> "directive"
 
 -- | Parse an include directive, and the file(s) it refers to, possibly recursively.
--- include's argument is a file path or glob pattern, optionally with a file type prefix.
--- ~ at the start is expanded to the user's home directory.
--- Relative paths are relative to the current file.
--- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal
+-- include's argument is a file path or glob pattern (see findMatchedFiles for details),
+-- optionally with a file type prefix. Relative paths are relative to the current file.
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
   -- save the position
@@ -330,19 +328,19 @@ includedirectivep = do
   paths <- findMatchedFiles off pos glb
 
   -- XXX worth the trouble ? no
-  -- Handle duplicates. Some complexities here:
+  -- Comprehensively exclude files already processed. Some complexities here:
   -- If this include directive uses a glob pattern, remove duplicates. 
   -- Ie if this glob pattern matches any files we have already processed (or the current file),
   -- due to multiple includes in sequence or in a cycle, exclude those files so they're not processed again.
   -- If this include directive uses a literal file path, don't remove duplicates.
   -- Multiple includes in sequence will cause the included file to be processed multiple times.
   -- Multiple includes forming a cycle will be detected and reported as an error in parseIncludedFile.
-  let paths' = paths  -- if isglob then filter (const True) paths else paths
+  -- let paths' = if isglob then filter (...) paths else paths
 
   -- if there was a reader prefix, apply it to all the file paths
   let prefixedpaths = case mprefix of
-        Nothing  -> paths'
-        Just fmt -> map ((show fmt++":")++) paths'
+        Nothing  -> paths
+        Just fmt -> map ((show fmt++":")++) paths
 
   -- Parse each one, as if inlined here.
   -- Reset the position to the `include` line, for error messages.
@@ -352,13 +350,21 @@ includedirectivep = do
   where
 
     -- | Find the files matched by a literal path or a glob pattern.
+    -- Examples: foo.j, ../foo/bar.j, timedot:/foo/2020*, *.journal, **.journal.
+    --
     -- Uses the current parse context for detecting the current directory and for error messages.
     -- Expands a leading tilde to the user's home directory.
     -- Converts ** without a slash to **/*, like zsh's GLOB_STAR_SHORT, so ** also matches file name parts.
-    -- Glob patterns at the start of a path component will exclude dot-named files and directories.
     -- Checks if any matched paths are directories and excludes those.
     -- Converts all matched paths to their canonical form.
-    findMatchedFiles :: MonadIO m => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
+    --
+    -- Glob patterns never match dot files or files under dot directories,
+    -- even if it seems like they should; this is a workaround for Glob bug #49.
+    -- This workaround is disabled if the --old-glob flag is present in the command line
+    -- (detected with unsafePerformIO; it's not worth a ton of boilerplate).
+    -- In that case, be aware ** recursive globs will search intermediate dot directories.
+
+    findMatchedFiles :: (MonadIO m) => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
     findMatchedFiles off pos globpattern = do
 
       -- Some notes about the Glob library that we use (related: https://github.com/Deewiant/glob/issues/49):
@@ -410,13 +416,14 @@ includedirectivep = do
         <&> sort
 
       -- Work around a Glob bug with dot dirs: while **/ ignores dot dirs in the starting and ending dirs,
-      -- it does search dot dirs in between those two (something that should be fixed in Glob ?).
+      -- it does search dot dirs in between those two (Glob #49).
       -- This could be inconvenient, eg making it hard to avoid VCS directories in a source tree.
-      -- To work around: when any glob was used, paths involving dot dirs are excluded in post processing.
+      -- We work around as follows: when any glob was used, paths involving dot dirs are excluded in post processing.
       -- Unfortunately this means valid globs like .dotdir/* can't be used; only literal paths can match
-      -- things in dot dirs.
+      -- things in dot dirs. An --old-glob command line flag disables this workaround, for backward compatibility.
+      oldglobflag <- liftIO $ getFlag ["old-glob"]
       let
-        files2 = (if isglob then filter (not.hasdotdir) else id) files
+        files2 = (if isglob && not oldglobflag then filter (not.hasdotdir) else id) files
           where
             hasdotdir p = any isdotdir $ splitPath p
               where
