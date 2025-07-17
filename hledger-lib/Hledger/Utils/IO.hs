@@ -52,6 +52,7 @@ module Hledger.Utils.IO (
 
   -- * Command line parsing
   progArgs,
+  getFlag,
   getOpt,
   parseYN,
   parseYNA,
@@ -499,6 +500,15 @@ progArgs = unsafePerformIO getArgs
 --  the enabling of orderdates and assertions checks in journalFinalise
 --  a few cases involving --color (see useColorOnStdoutUnsafe)
 --  --debug
+
+-- | Given one or more long or short flag names,
+-- report whether this flag is present in the command line.
+-- Concatenated short flags (-a -b written as -ab) are not supported.
+getFlag :: [String] -> IO Bool
+getFlag names = do
+  let flags = map toFlag names
+  args <- getArgs
+  return $ any (`elem` args) flags
 
 -- | Given one or more long or short option names, read the rightmost value of this option from the command line arguments.
 -- If the value is missing raise an error.
