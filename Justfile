@@ -405,8 +405,15 @@ TESTING:
 #     curl -F "file=@devprof-hc.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 #     curl -F "file=@devprof-hr.hp" -F "title='hledger parser'" http://heap.ezyang.com/upload
 
-# run tests that are reasonably quick (files, unit, functional) and benchmarks
-test: embedtest functest
+# run most tests (files, unit, doc, functional). doctest is slow, requiring its own build.
+test:
+    @echo
+    just embedtest
+    @echo
+    just doctest
+    @echo
+    just functest --hide
+    @echo
 
 # For quieter tests add --silent. It may hide troubleshooting info.
 # For very verbose tests add --verbosity=debug. It seems hard to get something in between.
@@ -1628,9 +1635,9 @@ schedule *PERIOD:
     echo "Recent branches (commits):"
     jj log -n 40 -r 'log_default ~ @'
 
-# push master to github ci, wait for tests to pass, refreshing every INTERVAL (default:10s), then push to github master.
+# run tests locally, push master to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github master.
 @push *INTERVAL:
-    tools/push {{ INTERVAL }}
+    just functest --hide && tools/push {{ INTERVAL }}
 
 # run some tests to validate the development environment
 # check-setup:
