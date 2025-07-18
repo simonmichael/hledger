@@ -101,10 +101,9 @@ import Data.Functor.Identity (Identity(..))
 import Data.List
 import Data.Text (Text)
 import Text.Megaparsec.Char
--- import Text.Megaparsec.Debug (dbg)  -- from megaparsec 9.3+
+-- import Text.Megaparsec.Debug (dbg)
 
 import Control.Monad.Except (ExceptT, MonadError, catchError, throwError)
--- import Control.Monad.State.Strict (StateT, evalStateT)
 import Control.Monad.Trans.Class (lift)
 import qualified Data.List.NonEmpty as NE
 import Data.Monoid (Alt(..))
@@ -165,13 +164,11 @@ parsewith :: Parsec e Text a -> Text -> Either (ParseErrorBundle Text e) a
 parsewith p = runParser p ""
 
 -- | Run a text parser in the identity monad. See also: parseWithState.
-runTextParser, rtp
-  :: TextParser Identity a -> Text -> Either HledgerParseErrors a
+runTextParser, rtp :: TextParser Identity a -> Text -> Either HledgerParseErrors a
 runTextParser = parsewith
 rtp = runTextParser
 
-parsewithString
-  :: Parsec e String a -> String -> Either (ParseErrorBundle String e) a
+parsewithString :: Parsec e String a -> String -> Either (ParseErrorBundle String e) a
 parsewithString p = runParser p ""
 
 -- | Run a stateful parser with some initial state on a text.
@@ -192,20 +189,16 @@ parseWithState'
   -> (Either (ParseErrorBundle s e) a)
 parseWithState' ctx p = runParser (evalStateT p ctx) ""
 
-fromparse
-  :: (Show t, Show (Token t), Show e) => Either (ParseErrorBundle t e) a -> a
+fromparse :: (Show t, Show (Token t), Show e) => Either (ParseErrorBundle t e) a -> a
 fromparse = either parseerror id
 
 parseerror :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> a
 parseerror e = errorWithoutStackTrace $ showParseError e  -- PARTIAL:
 
-showParseError
-  :: (Show t, Show (Token t), Show e)
-  => ParseErrorBundle t e -> String
+showParseError :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> String
 showParseError e = "parse error at " ++ show e
 
-showDateParseError
-  :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> String
+showDateParseError :: (Show t, Show (Token t), Show e) => ParseErrorBundle t e -> String
 showDateParseError e = printf "date parse error (%s)" (intercalate ", " $ tailErr $ lines $ show e)  -- PARTIAL tailError won't be null because showing a parse error
 
 isNewline :: Char -> Bool 
@@ -295,7 +288,6 @@ instance ShowErrorComponent HledgerParseErrorData where
 -- | Fail at a specific source position, given by the raw offset from the
 -- start of the input stream (the number of tokens processed at that
 -- point).
-
 parseErrorAt :: Int -> String -> HledgerParseErrorData
 parseErrorAt offset = ErrorFailAt offset (offset+1)
 
@@ -305,7 +297,6 @@ parseErrorAt offset = ErrorFailAt offset (offset+1)
 --
 -- Note that care must be taken to ensure that the specified interval does
 -- not span multiple lines of the input source. This will not be checked.
-
 parseErrorAtRegion
   :: Int    -- ^ Start offset
   -> Int    -- ^ End end offset
@@ -325,12 +316,10 @@ parseErrorAtRegion startOffset endOffset msg =
 -- data type is to preserve the content and source position of the excerpt
 -- so that parse errors raised during "re-parsing" may properly reference
 -- the original source.
-
 data SourceExcerpt = SourceExcerpt Int  -- Offset of beginning of excerpt
                                    Text -- Fragment of source file
 
 -- | Get the raw text of a source excerpt.
-
 getExcerptText :: SourceExcerpt -> Text
 getExcerptText (SourceExcerpt _ txt) = txt
 
@@ -497,7 +486,6 @@ instance Monoid (FinalParseError' e) where
 -- Megaparsec's 'ParseErrorBundle' type already bundles a parse error with
 -- its full source text and filepath, so we just add a stack of include
 -- files.
-
 data FinalParseErrorBundle' e = FinalParseErrorBundle'
   { finalErrorBundle :: ParseErrorBundle Text e
   , includeFileStack :: [FilePath]
@@ -509,12 +497,10 @@ type FinalParseErrorBundle = FinalParseErrorBundle' HledgerParseErrorData
 --- * Constructing and throwing final parse errors
 
 -- | Convert a "regular" parse error into a "final" parse error.
-
 finalError :: ParseError Text e -> FinalParseError' e
 finalError = FinalError
 
 -- | Like megaparsec's 'fancyFailure', but as a "final" parse error.
-
 finalFancyFailure
   :: (MonadParsec e s m, MonadError (FinalParseError' e) m)
   => S.Set (ErrorFancy e) -> m a
@@ -523,25 +509,19 @@ finalFancyFailure errSet = do
   throwError $ FinalError $ FancyError offset errSet
 
 -- | Like 'fail', but as a "final" parse error.
-
-finalFail
-  :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => String -> m a
+finalFail :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => String -> m a
 finalFail = finalFancyFailure . S.singleton . ErrorFail
 
 -- | Like megaparsec's 'customFailure', but as a "final" parse error.
-
-finalCustomFailure
-  :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => e -> m a
+finalCustomFailure :: (MonadParsec e s m, MonadError (FinalParseError' e) m) => e -> m a
 finalCustomFailure = finalFancyFailure . S.singleton . ErrorCustom
 
 
 --- * Pretty-printing "final" parse errors
 
 -- | Pretty-print a "final" parse error: print the stack of include files,
--- then apply the pretty-printer for parse error bundles. Note that
--- 'attachSource' must be used on a "final" parse error before it can be
--- pretty-printed.
-
+-- then apply the pretty-printer for parse error bundles.
+-- Note that 'attachSource' must be used on a "final" parse error before it can be pretty-printed.
 finalErrorBundlePretty :: FinalParseErrorBundle' HledgerParseErrorData -> String
 finalErrorBundlePretty bundle =
      concatMap showIncludeFilepath (includeFileStack bundle)
@@ -549,12 +529,9 @@ finalErrorBundlePretty bundle =
   where
     showIncludeFilepath path = "in file included from " <> path <> ",\n"
 
--- | Supply a filepath and source text to a "final" parse error so that it
--- can be pretty-printed. You must ensure that you provide the appropriate
--- source text and filepath.
-
-attachSource
-  :: FilePath -> Text -> FinalParseError' e -> FinalParseErrorBundle' e
+-- | Attach a filepath and source text to a "final" parse error so that it can be pretty-printed.
+-- You must ensure that you provide the appropriate source text and filepath.
+attachSource :: FilePath -> Text -> FinalParseError' e -> FinalParseErrorBundle' e
 attachSource filePath sourceText finalParseError = case finalParseError of
 
   -- A parse error thrown directly with the 'FinalError' constructor
@@ -581,9 +558,9 @@ attachSource filePath sourceText finalParseError = case finalParseError of
 
 --- * Handling parse errors from include files with "final" parse errors
 
--- | Parse a file with the given parser and initial state, discarding the
--- final state and re-throwing any parse errors as "final" parse errors.
-
+-- | Parse an include file with the given parser and initial state,
+-- discarding the resulting state,
+-- and re-throwing any parse errors as final parse errors with the file's info attached.
 parseIncludeFile
   :: Monad m
   => StateT st (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
@@ -591,26 +568,22 @@ parseIncludeFile
   -> FilePath
   -> Text
   -> StateT st (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
-parseIncludeFile parser initialState filepath text =
-  catchError parser' handler
+parseIncludeFile parser initialState filepath text = catchError parser' handler
   where
     parser' = do
-      eResult <- lift $ lift $
-                  runParserT (evalStateT parser initialState) filepath text
+      eResult <- lift $ lift $ runParserT (evalStateT parser initialState) filepath text
       case eResult of
         Left parseErrorBundle -> throwError $ FinalBundle parseErrorBundle
         Right result -> pure result
-
     -- Attach source and filepath of the include file to its parse errors
     handler e = throwError $ FinalBundleWithStack $ attachSource filepath text e
 
 
 --- * Helpers
 
--- Like megaparsec's 'initialState', but instead for 'PosState'. Used when
--- constructing 'ParseErrorBundle's. The values for "tab width" and "line
--- prefix" are taken from 'initialState'.
-
+-- | Like megaparsec's 'initialState', but instead for 'PosState'.
+-- Used when constructing 'ParseErrorBundle's.
+-- The values for "tab width" and "line prefix" are taken from 'initialState'.
 initialPosState :: FilePath -> Text -> PosState Text
 initialPosState filePath sourceText = PosState
   { pstateInput      = sourceText
