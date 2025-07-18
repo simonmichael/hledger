@@ -59,7 +59,7 @@ data Sessions = Sessions
       active :: [TimeclockEntry]
     }
 
--- Find the relevant clockin in the actives list that should be paired with this clockout.
+-- | Find the relevant clockin in the actives list that should be paired with this clockout.
 -- If there is a session that has the same account name, then use that.
 -- Otherwise, if there is an active anonymous session, use that.
 -- Otherwise, raise an error.
@@ -81,11 +81,11 @@ findInForOut o ([], activeins) =
               (l ++ " | " ++ show o)
               (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
 
--- Assuming that entries has been sorted, we go through each time log entry.
+-- | Assuming that entries have been sorted, we go through each time log entry.
 -- We collect all of the "i" in the list "actives," and each time we encounter
 -- an "o," we look for the corresponding "i" in actives.
 -- If we cannot find it, then it is an error (since the list is sorted).
--- If the "o" is recorded on a different day than the "i," then we close the
+-- If the "o" is recorded on a different day than the "i" then we close the
 -- active entry at the end of its day, replace it in the active list
 -- with a start at midnight on the next day, and try again.
 -- This raises an error if any outs cannot be paired with an in.
@@ -118,10 +118,11 @@ pairClockEntries (entry : rest) actives sessions
                   (tlaccount entry)
             else entry : actives
 
--- | Convert time log entries to journal transactions. When there is no
--- clockout, add one with the provided current time. Sessions crossing
--- midnight are split into days to give accurate per-day totals.
--- If any entries cannot be paired as expected, then an error is raised.
+-- | Convert time log entries to journal transactions, allowing multiple clocked-in sessions at once.
+-- When there is no clockout, one is added with the provided current time.
+-- Sessions crossing midnight are split into days to give accurate per-day totals.
+-- If any entries cannot be paired as expected, an error is raised.
+-- This is the default behaviour.
 timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactions now entries = transactions
   where
@@ -134,9 +135,12 @@ timeclockEntriesToTransactions now entries = transactions
     stillopen = pairClockEntries ((active sessions) <> outs) [] []
     transactions = map transactionsFromSession $ sortBy (\s1 s2 -> compare (in' s1) (in' s2)) (completed sessions ++ completed stillopen)
 
--- | Convert time log entries to journal transactions, expecting the entries to be
--- a strict in/out cycle. When there is no clockout, add one with the provided current time. 
+-- | Convert time log entries to journal transactions, allowing only one clocked-in session at a time.
+-- Entries must be a strict alternation of in and out, beginning with in.
+-- When there is no clockout, one is added with the provided current time. 
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
+-- If entries are not in the expected in/out order, an error is raised.
+-- This is the legacy behaviour, enabled by --old-timeclock.
 timeclockEntriesToTransactionsSingle :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactionsSingle _ [] = []
 timeclockEntriesToTransactionsSingle now [i]

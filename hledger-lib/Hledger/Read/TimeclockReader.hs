@@ -106,13 +106,13 @@ timeclockfilep iopts = do many timeclockitemp
                           -- but it simplifies code above.
                           now <- liftIO getCurrentLocalTime
                           -- journalFinalise expects the transactions in reverse order, so reverse the output in either case
-                          let j' = if (_oldtimeclock iopts) then 
+                          let j' = if _oldtimeclock iopts then 
                                 -- timeclockEntriesToTransactionsSingle expects the entries to be in normal order, 
                                 -- but they have been parsed in reverse order, so reverse them before calling
                                 j{jtxns = reverse $ timeclockEntriesToTransactionsSingle now $ reverse es, jparsetimeclockentries = []}
                               else 
                                 -- We don't need to reverse these transactions 
-                                -- since they are sorted inside of timeclockEntiresToTransactions
+                                -- since they are sorted inside of timeclockEntriesToTransactions
                                 j{jtxns = reverse $ timeclockEntriesToTransactions now es, jparsetimeclockentries = []}
                           return j'
     where
