@@ -6,6 +6,7 @@ Context-sensitive completions are usually triggered by pressing the tab key once
 ## bash completions
 
 An old demo:
+
 [![asciicast](https://asciinema.org/a/227935.svg)](https://asciinema.org/a/227935)
 
 To use hledger's bash shell completions, these must be installed on your system:
@@ -53,24 +54,16 @@ Or you can source it in your current bash session for testing.
 
 ### Packaging the bash completions
 
-It's great when hledger packagers can make shell completions just work for users.
-
-Currently there is one completion script: `hledger-completion.bash`.
-It is included in the hledger package's tarball on Hackage.
-
-hledger versions before 1.40 don't have up-to-date bash completions.
-
-For hledger 1.40, the up-to-date script is at 
-https://github.com/simonmichael/hledger/blob/39dfe5702e1b401f1883d814907d242958eec9c1/hledger/shell-completion/hledger-completion.bash.
-
-Since hledger 1.41, this is included in the Github release bindists, and available at urls like 
-https://github.com/simonmichael/hledger/blob/1.41/hledger/shell-completion/hledger-completion.bash
+The `hledger-completion.bash` script is available in the `hledger` package tarball on Hackage,
+and on Github in the release bindists or at
+`https://github.com/simonmichael/hledger/blob/TAG/hledger/shell-completion/hledger-completion.bash`.
+(Eg: https://github.com/simonmichael/hledger/blob/1.43/hledger/shell-completion/hledger-completion.bash)
 
 After it has been loaded, this script will provide completions for hledger, hledger-ui and hledger-web.
 Note if it is installed only as `hledger`, bash-completion will not load it until the user types `hledger<SPACE><TAB>`.
 Consider also symbolic-linking it as `hledger-ui` and `hledger-web`, so that `hledger-ui<SPACE><TAB>` and `hledger-web<SPACE><TAB>` will also load it.
 
-Here is a place to track the status of shell completions in hledger packages. As of 1.40:
+hledger bash completions packaging status as of 1.40:
 
 - Homebrew: includes slightly stale completions, installed as `hledger` only
 - Arch Linux AUR: packaging in progress
@@ -86,11 +79,11 @@ They may be out of date, please help by updating them.
 hledger completions are shipped with fish: <https://github.com/fish-shell/fish-shell/blob/master/share/completions/hledger.fish>
 They may be out of date, please help by updating them.
 
-## Creating completions for other shells
+## Creating/updating completion scripts
 
 A rough guide:
 
-1. Create an m4 template for your completion script, eg `hledger-completion.SHELL.m4` where SHELL is the name of the new shell.
+1. Create an m4 template for your completion script, eg `hledger-completion.SHELL.m4` where SHELL is the name of the shell.
 
 2. Add a rule in `Makefile` to transform this to `hledger-completion.SHELL`.
 
