@@ -3,9 +3,6 @@
 This code generates shell completion scripts for hledger's command line interface.
 Context-sensitive completions are usually triggered by pressing the tab key once or twice after typing the command `hledger ` (or `hledger-ui` or `hledger-web`).
 
-Currently there are detailed bash completions here in the hledger repo, which this doc is mostly about;
-and there are some zsh completions maintained in zsh-completions repo.
-
 ## bash completions
 
 An old demo:
