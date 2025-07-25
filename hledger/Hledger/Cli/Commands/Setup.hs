@@ -151,35 +151,37 @@ setupHledger = do
     Just a | a /= arch -> p N $ "binary is for " <> a <> ", system is " <> arch <> ", may run slowly"
     Just a -> p Y a
 
-  pdesc "is installed in PATH ?"
+  pdesc "is installed in PATH (this version) ?"
   pathexes  <- findExecutables progname
-  let msg = "To see more, please install this hledger in PATH and run hledger setup again."
+  let
+    (failaction, failmsg) =
+      -- (exitFailure , "Please install this hledger in PATH then run setup again.")
+      (return ()   , " Some of this info may not apply to that hledger version. Continuing anyway..")
   case pathexes of
-    [] -> p N msg >> exitFailure
+    [] -> p N failmsg >> failaction
     exe:_ -> do
       eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
       case eerrout of
-        Left  err -> p U (progname <> " --version failed: " <> err) >> exitFailure
+        Left  err -> p U (progname <> " --version failed: " <> err) >> failaction
         Right out -> do
           case parseHledgerVersion out of
             Left  _ -> p U ("couldn't parse " <> progname <> " --version: " <> rstrip out) >> exitFailure
             Right pathbin -> do
               let pathversion = hbinVersionOutput pathbin
               if pathversion /= prognameandversion
-              then p N (unlines [
+              then p N (chomp $ unlines [
                  ""
-                ,"found in PATH: " <> exe
-                ,"PATH hledger is: " <> pathversion
-                ,"this hledger is: " <> prognameandversion
-                ,msg
-                ]) >> exitFailure
+                ," A different hledger version was found in PATH: " <> pathversion
+                ," at: " <> exe
+                ,failmsg
+                ]) >> failaction
               else p Y exe
 
   pdesc "has a system text encoding configured ?"
   let encoding = localeEncoding  -- the initial system encoding
   if map toLower (show encoding) == "ascii"
   then p N (show encoding <> ", please configure an encoding for non-ascii data")
-  else p Y (show encoding <> ", data files should use this encoding")
+  else p Y (show encoding <> ", data files must use this encoding")
 
   -- pdesc "can handle UTF-8 text ?"
   -- let
@@ -192,33 +194,29 @@ setupHledger = do
   -- pdesc "can report text decoding failures ?"
   -- i U (T.unpack $ T.decodeUtf8 eAcuteLatin1)
 
-  pdesc "has a user config file ? (optional)"
+  pdesc "has a user config file ?"
   muf <- activeUserConfFile
+  mlf <- activeLocalConfFile
   let
     (ok, msg) = case muf of
+      Just f  -> (Y, f <> if isJust mlf then " (overridden)" else "")
+      Nothing -> (N, "")
+  i ok msg
+
+  pdesc "has a local config file ?"
+  let
+    (ok, msg) = case mlf of
       Just f  -> (Y, f)
       Nothing -> (N, "")
   i ok msg
-
-  pdesc "current directory has a local config ?"
-  mlf <- activeLocalConfFile
-  let
-    (ok, msg) = case mlf of
-      Just f  -> (Y, f) -- <> if isJust muf then " (masking user config)" else "")
-      Nothing -> (N, "")
-  i ok msg
-
-  when (isJust muf && isJust mlf) $ do
-    pdesc "local config is masking user config ?"
-    i Y ""
 
   if (isJust muf || isJust mlf) then do
     pdesc "the config file is readable ?"
     econf <- getConf def
     case econf of
       Left e -> p N e >> return (Just $ Left e)
-      Right (conf, f) -> do
-        p Y (fromMaybe "" f)
+      Right (conf, _) -> do
+        p Y ""
 
         -- pdesc "common general options are configured ?"
         -- --infer-costs"
