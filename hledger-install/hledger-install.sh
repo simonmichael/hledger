@@ -58,7 +58,7 @@ PRICEHIST_VERSION=1.4.12
 # You can try specifying a different stackage version here, or
 # commenting out this line to use your current global resolver,
 # to avoid unnecessary building.
-STACKAGE_SNAPSHOT=nightly-2025-05-01
+STACKAGE_SNAPSHOT=lts-24.2
 
 # If any required haskell dependencies aren't in the above stackage snapshot,
 # list them here in this format: "PKG1-VER1 PKG2-VER2.."

@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver nightly-2025-04-01
+{- stack script --resolver lts-24.2
     --package data-default
     --package extra
     --package process
