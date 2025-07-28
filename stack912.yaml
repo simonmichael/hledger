@@ -9,10 +9,15 @@ packages:
 - hledger-ui
 - hledger-web
 
-resolver: nightly-2025-05-01
-compiler: ghc-9.12.2
+resolver: nightly-2025-07-28
 notify-if-ghc-untested:   false
 notify-if-cabal-untested: false
+
+extra-deps:
+- yesod-static-1.6.1.0
+- yesod-test-1.6.19
+- cryptonite-0.30
+- cryptonite-conduit-0.2.2
 
 nix:
   pure: false
