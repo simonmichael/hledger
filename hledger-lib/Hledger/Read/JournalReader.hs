@@ -308,9 +308,10 @@ directivep = (do
 -- optionally with a file type prefix. Relative paths are relative to the current file.
 includedirectivep :: MonadIO m => ErroringJournalParser m ()
 includedirectivep = do
-  -- save the position
-  off <- getOffset
-  pos <- getSourcePos
+  -- save the position at start of include directive, for error messages
+  eoff <- getOffset
+  -- and the parent file's path, for error messages and debug output
+  parentf <- getSourcePos >>= sourcePosFilePath
 
   -- parse the directive
   string "include"
@@ -318,14 +319,13 @@ includedirectivep = do
   prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
   lift followingcommentp
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  f <- sourcePosFilePath pos
-  when (null $ dbg6 (f <> " include: glob pattern") glb) $
-    customFailure $ parseErrorAt off $ "include needs a file path or glob pattern argument"
+  when (null $ dbg6 (parentf <> " include: glob pattern") glb) $
+    customFailure $ parseErrorAt eoff $ "include needs a file path or glob pattern argument"
 
   -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
   -- Also report whether a glob pattern was used, and not just a literal file path.
   -- (paths, isglob) <- findMatchedFiles off pos glb
-  paths <- findMatchedFiles off pos glb
+  paths <- findMatchedFiles eoff parentf glb
 
   -- XXX worth the trouble ? no
   -- Comprehensively exclude files already processed. Some complexities here:
@@ -343,9 +343,7 @@ includedirectivep = do
         Just fmt -> map ((show fmt++":")++) paths
 
   -- Parse each one, as if inlined here.
-  -- Reset the position to the `include` line, for error messages.
-  setOffset off
-  forM_ prefixedpaths $ parseIncludedFile off pos
+  forM_ prefixedpaths $ parseIncludedFile eoff
 
   where
 
@@ -364,8 +362,8 @@ includedirectivep = do
     -- (detected with unsafePerformIO; it's not worth a ton of boilerplate).
     -- In that case, be aware ** recursive globs will search intermediate dot directories.
 
-    findMatchedFiles :: (MonadIO m) => Int -> SourcePos -> FilePath -> JournalParser m [FilePath]
-    findMatchedFiles off pos globpattern = do
+    findMatchedFiles :: (MonadIO m) => Int -> FilePath -> FilePath -> JournalParser m [FilePath]
+    findMatchedFiles off parentf globpattern = do
 
       -- Some notes about the Glob library that we use (related: https://github.com/Deewiant/glob/issues/49):
       -- It does not expand tilde.
@@ -385,8 +383,7 @@ includedirectivep = do
       expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
 
       -- get the directory of the including file
-      parentfile <- sourcePosFilePath pos
-      let cwd = takeDirectory parentfile
+      let cwd = takeDirectory parentf
 
       -- Don't allow 3 or more stars.
       when ("***" `isInfixOf` expandedglob) $
@@ -436,23 +433,22 @@ includedirectivep = do
       -- If a glob was used, exclude the current file, for convenience.
       let
         files3 =
-          dbg6 (parentfile <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
-          (if isglob then filter (/= parentfile) else id) files2
+          dbg6 (parentf <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
+          (if isglob then filter (/= parentf) else id) files2
 
       return files3
 
-    -- Parse the given included file (and any deeper includes, recursively)
-    -- as if it was inlined in the current (parent) file.
-    -- The position in the parent file is provided for error messages.
-    parseIncludedFile :: MonadIO m => Int -> SourcePos -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile off _pos prefixedpath = do
+    -- Parse the given included file (and any deeper includes, recursively) as if it was inlined in the current (parent) file.
+    -- The offset of the start of the include directive in the parent file is provided for error messages.
+    parseIncludedFile :: MonadIO m => Int -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile eoff prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
       -- Throw an error if a cycle is detected
       parentj <- get
       let parentfilestack = jincludefilestack parentj
       when (dbg7 "parseIncludedFile: reading" filepath `elem` parentfilestack) $
-        customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ filepath
+        customFailure $ parseErrorAt eoff $ "This included file forms a cycle: " ++ filepath
 
       -- Read the file's content, or throw an error
       childInput <- lift $ readFilePortably filepath `orRethrowIOError` "failed to read a file"
