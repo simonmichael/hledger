@@ -52,7 +52,7 @@ or a distinctive substring that matches uniquely.
 
 Transactions involving subaccounts of this account will also be shown.
 `aregister` ignores depth limits, so its final total will always match 
-a balance report with similar arguments.
+a historical balance report with similar arguments.
 
 Any additional arguments form a [query](#queries) which will filter the
 transactions shown. Note some queries will disturb the running balance,
