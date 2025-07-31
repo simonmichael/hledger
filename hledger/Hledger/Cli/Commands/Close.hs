@@ -257,7 +257,7 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
 
   -- print them
   -- allow user-specified rounding with --round, like print
-  let styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
+  let styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStylesWith HardRounding j
   maybe (pure ()) (T.putStr . showTransaction . styleAmounts styles) mclosetxn
   maybe (pure ()) (T.putStr . showTransaction . styleAmounts styles) mopentxn
  
