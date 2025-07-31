@@ -275,3 +275,18 @@ $ hledger -f- close --clopen -e 2001 --round=hard -c '$1.0'
     equity:opening/closing balances
 
 >=
+
+# ** 20. close rounds amounts to display precision
+<
+commodity $1.00
+commodity JPY  1000.
+2025-06-12
+  assets:a  100000 JPY @ $0.006631
+  assets:a
+
+$ hledger -f- close -e 2026
+2025-12-31 closing balances  ; clopen:
+    assets:a                                $663.10 = $0.00
+    assets:a                            JPY -100000 = JPY 0
+    equity:opening/closing balances
+>=
