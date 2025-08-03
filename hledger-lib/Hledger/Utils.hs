@@ -24,6 +24,7 @@ module Hledger.Utils (
   minimumStrict,
   splitAtElement,
   sumStrict,
+  all1,
 
   -- * Trees
   treeLeaves,
@@ -173,6 +174,12 @@ splitAtElement x l =
 {-# INLINABLE sumStrict #-}
 sumStrict :: Num a => [a] -> a
 sumStrict = foldl' (+) 0
+
+-- | Version of all that fails on an empty list.
+{-# INLINABLE all1 #-}
+all1 :: (a -> Bool) -> [a] -> Bool
+all1 _ [] = False
+all1 p as = all p as
 
 -- Trees
 

@@ -5508,7 +5508,8 @@ means "show transactions where at least one posting posts a positive amount to a
 ### all: query
 **`all:'QUERYEXPR'`**\
 Like `expr:`, but when used with transaction-oriented commands like `print`,
-it matches the transaction only if all postings are matched by all of QUERYEXPR.\
+it matches the transaction only if all postings are matched by all of QUERYEXPR
+(and there is at least one posting).\
 So, `hledger print all:'cash and amt:0'`
 means "show transactions where all postings involve a cash account and have a zero amount".\
 Or, `hledger print all:'cash or checking'`

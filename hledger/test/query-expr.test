@@ -198,3 +198,37 @@ $ hledger -f sample2.journal print -x any:'(checking and amt:>0) or credit'
     liabilities:credit card         200 USD = -200 USD
 
 >=
+
+# ** 15. any: matches transactions where the whole query matches at least one of the postings.
+<
+2025-01-01 no postings
+
+2025-01-02 a, b
+   a   1
+   b
+
+2025-01-03 a, .5
+   a   1
+   a  -0.5
+   a  -0.5
+
+2025-01-03 a, 1
+   a   1
+   a
+
+$ hledger -f- print any:'a and amt:0.5'
+2025-01-03 a, .5
+    a               1
+    a            -0.5
+    a            -0.5
+
+>=
+
+# ** 16. all: matches transactions where the query matches all of one or more postings.
+$ hledger -f- print all:'a and amt:1'
+2025-01-03 a, 1
+    a               1
+    a
+
+>=
+

@@ -127,7 +127,7 @@ data Query =
   -- compound queries for transactions (any:, all:)
   -- If used in a non transaction-matching context, these are equivalent to And.
   | AnyPosting  [Query]       -- ^ match if any one posting is matched by all of these
-  | AllPostings [Query]       -- ^ match if all postings are matched by all of these
+  | AllPostings [Query]       -- ^ match if all of one or more postings are matched by all of these
   deriving (Eq,Show)
 
 instance Default Query where def = Any
@@ -820,7 +820,7 @@ matchesCommodity (None)           _ = False
 matchesCommodity (Or qs)          s = any (`matchesCommodity` s) qs
 matchesCommodity (And qs)         s = all (`matchesCommodity` s) qs
 matchesCommodity (AnyPosting qs)  s = all (`matchesCommodity` s) qs
-matchesCommodity (AllPostings qs) s = all (`matchesCommodity` s) qs
+matchesCommodity (AllPostings qs) s = all1 (`matchesCommodity` s) qs
 matchesCommodity _                _ = False
 
 -- | Does the match expression match this (simple) amount ?
@@ -831,7 +831,7 @@ matchesAmount (None) _ = False
 matchesAmount (Or qs) a = any (`matchesAmount` a) qs
 matchesAmount (And qs) a = all (`matchesAmount` a) qs
 matchesAmount (AnyPosting  qs) a = all (`matchesAmount` a) qs
-matchesAmount (AllPostings qs) a = all (`matchesAmount` a) qs
+matchesAmount (AllPostings qs) a = all1 (`matchesAmount` a) qs
 matchesAmount (Amt ord n) a = compareAmount ord n a
 matchesAmount (Sym r) a = matchesCommodity (Sym r) (acommodity a)
 matchesAmount _ _ = True
@@ -862,7 +862,7 @@ matchesAccount (Not m) a = not $ matchesAccount m a
 matchesAccount (Or ms) a = any (`matchesAccount` a) ms
 matchesAccount (And ms) a = all (`matchesAccount` a) ms
 matchesAccount (AnyPosting  qs) a = all (`matchesAccount` a) qs
-matchesAccount (AllPostings qs) a = all (`matchesAccount` a) qs
+matchesAccount (AllPostings qs) a = all1 (`matchesAccount` a) qs
 matchesAccount (Acct r) a = regexMatchText r a
 matchesAccount (Depth d) a = accountNameLevel a <= d
 matchesAccount (DepthAcct r d) a = accountNameLevel a <= d || not (regexMatchText r a)
@@ -882,7 +882,7 @@ matchesAccountExtra atypes atags (Not q  ) a = not $ matchesAccountExtra atypes 
 matchesAccountExtra atypes atags (Or  qs ) a = any (\q -> matchesAccountExtra atypes atags q a) qs
 matchesAccountExtra atypes atags (And qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
 matchesAccountExtra atypes atags (AnyPosting  qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
-matchesAccountExtra atypes atags (AllPostings qs ) a = all (\q -> matchesAccountExtra atypes atags q a) qs
+matchesAccountExtra atypes atags (AllPostings qs ) a = all1 (\q -> matchesAccountExtra atypes atags q a) qs
 matchesAccountExtra atypes _     (Type ts) a = maybe False (\t -> any (t `isAccountSubtypeOf`) ts) $ atypes a
 matchesAccountExtra _      atags (Tag npat vpat) a = patternsMatchTags npat vpat $ atags a
 matchesAccountExtra _      _     q         a = matchesAccount q a
@@ -897,7 +897,7 @@ matchesPosting (None) _ = False
 matchesPosting (Or qs) p = any (`matchesPosting` p) qs
 matchesPosting (And qs) p = all (`matchesPosting` p) qs
 matchesPosting (AnyPosting  qs) p = all (`matchesPosting` p) qs
-matchesPosting (AllPostings qs) p = all (`matchesPosting` p) qs
+matchesPosting (AllPostings qs) p = all1 (`matchesPosting` p) qs
 matchesPosting (Code r) p = maybe False (regexMatchText r . tcode) $ ptransaction p
 matchesPosting (Desc r) p = maybe False (regexMatchText r . tdescription) $ ptransaction p
 matchesPosting (Acct r) p = matches p || maybe False matches (poriginal p) where matches = regexMatchText r . paccount
@@ -923,7 +923,7 @@ matchesPostingExtra atype (Not q )  p = not $ matchesPostingExtra atype q p
 matchesPostingExtra atype (Or  qs)  p = any (\q -> matchesPostingExtra atype q p) qs
 matchesPostingExtra atype (And qs)  p = all (\q -> matchesPostingExtra atype q p) qs
 matchesPostingExtra atype (AnyPosting  qs)  p = all (\q -> matchesPostingExtra atype q p) qs
-matchesPostingExtra atype (AllPostings qs)  p = all (\q -> matchesPostingExtra atype q p) qs
+matchesPostingExtra atype (AllPostings qs)  p = all1 (\q -> matchesPostingExtra atype q p) qs
 matchesPostingExtra atype (Type ts) p =
   -- does posting's account's type, if we can detect it, match any of the given types ?
   (maybe False (\t -> any (t `isAccountSubtypeOf`) ts) . atype $ paccount p)
@@ -944,7 +944,7 @@ matchesTransaction (None) _ = False
 matchesTransaction (Or qs) t = any (`matchesTransaction` t) qs
 matchesTransaction (And qs) t = all (`matchesTransaction` t) qs
 matchesTransaction (AnyPosting  qs) t = any (\p -> all (`matchesPosting` p) qs) $ tpostings t
-matchesTransaction (AllPostings qs) t = all (\p -> all (`matchesPosting` p) qs) $ tpostings t
+matchesTransaction (AllPostings qs) t = all1 (\p -> all (`matchesPosting` p) qs) $ tpostings t
 matchesTransaction (Code r) t = regexMatchText r $ tcode t
 matchesTransaction (Desc r) t = regexMatchText r $ tdescription t
 matchesTransaction q@(Acct _) t = any (q `matchesPosting`) $ tpostings t
@@ -970,7 +970,7 @@ matchesTransactionExtra atype (Not  q) t = not $ matchesTransactionExtra atype q
 matchesTransactionExtra atype (Or  qs) t = any (\q -> matchesTransactionExtra atype q t) qs
 matchesTransactionExtra atype (And qs) t = all (\q -> matchesTransactionExtra atype q t) qs
 matchesTransactionExtra atype (AnyPosting  qs) t = any (\p -> all (\q -> matchesPostingExtra atype q p) qs) $ tpostings t
-matchesTransactionExtra atype (AllPostings qs) t = all (\p -> all (\q -> matchesPostingExtra atype q p) qs) $ tpostings t
+matchesTransactionExtra atype (AllPostings qs) t = all1 (\p -> all (\q -> matchesPostingExtra atype q p) qs) $ tpostings t
 matchesTransactionExtra atype q@(Type _) t = any (matchesPostingExtra atype q) $ tpostings t
 matchesTransactionExtra _ q t = matchesTransaction q t
 
@@ -983,7 +983,7 @@ matchesDescription (None) _           = False
 matchesDescription (Or qs) d          = any (`matchesDescription` d) $ filter queryIsDesc qs
 matchesDescription (And qs) d         = all (`matchesDescription` d) $ filter queryIsDesc qs
 matchesDescription (AnyPosting  qs) d = all (`matchesDescription` d) $ filter queryIsDesc qs
-matchesDescription (AllPostings qs) d = all (`matchesDescription` d) $ filter queryIsDesc qs
+matchesDescription (AllPostings qs) d = all1 (`matchesDescription` d) $ filter queryIsDesc qs
 matchesDescription (Code _) _         = False
 matchesDescription (Desc r) d         = regexMatchText r d
 matchesDescription _ _                = False
@@ -1010,7 +1010,7 @@ matchesTag (None)           _ = False
 matchesTag (Or qs)          t = any (`matchesTag` t) $ filter queryIsTag qs
 matchesTag (And qs)         t = all (`matchesTag` t) $ filter queryIsTag qs
 matchesTag (AnyPosting qs)  t = all (`matchesTag` t) $ filter queryIsTag qs
-matchesTag (AllPostings qs) t = all (`matchesTag` t) $ filter queryIsTag qs
+matchesTag (AllPostings qs) t = all1 (`matchesTag` t) $ filter queryIsTag qs
 matchesTag (Tag npat mvpat) t = patternsMatchTags npat mvpat [t]
 matchesTag _                _ = False
 
@@ -1021,7 +1021,7 @@ matchesPriceDirective (Not q) p          = not $ matchesPriceDirective q p
 matchesPriceDirective (Or qs) p          = any (`matchesPriceDirective` p) qs
 matchesPriceDirective (And qs) p         = all (`matchesPriceDirective` p) qs
 matchesPriceDirective (AnyPosting  qs) p = all (`matchesPriceDirective` p) qs
-matchesPriceDirective (AllPostings qs) p = all (`matchesPriceDirective` p) qs
+matchesPriceDirective (AllPostings qs) p = all1 (`matchesPriceDirective` p) qs
 matchesPriceDirective q@(Amt _ _) p      = matchesAmount q (pdamount p)
 matchesPriceDirective q@(Sym _) p        = matchesCommodity q (pdcommodity p)
 matchesPriceDirective (Date spn) p       = spanContainsDate spn (pddate p)
