@@ -20,16 +20,16 @@ module Hledger.Cli.Commands.Accounts (
  ,accounts
 ) where
 
+import Control.Monad (forM_)
 import Data.List
+import Data.Maybe (fromMaybe)
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
+import Safe (headDef)
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Control.Monad (forM_)
-import Data.Maybe (fromMaybe)
-import Safe (headDef)
 
 
 -- | Command line options for this command.
