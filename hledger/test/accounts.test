@@ -93,13 +93,21 @@ trade:A-B:B
 a
 b
 
-# ** 11. A tag: query only matches account tags, not posting tags.
+# ** 11. When matching accounts found in postings, tag: only matches the account's tags,
+# not posting tags.
 <
-account a  ; t:
+account a    ; a:, this account has tag a
+account a:b  ; b:, this account has tag b and inherited tag a
 
 2025-01-01
-    a          1
-    b         -1  ; t:
+    a     1
+    a:b   2
+    c    -3  ; p:, this posting has tag p
 
-$ hledger -f- accounts tag:t
+$ hledger -f- accounts tag:b
+a:b
+
+# ** 12. tag: also matches tags inherited from parent accounts, currently.
+$ hledger -f- accounts tag:a
 a
+a:b
