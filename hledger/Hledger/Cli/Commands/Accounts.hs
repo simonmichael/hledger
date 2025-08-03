@@ -62,12 +62,16 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
       types = boolopt "types"    rawopts
       positions = boolopt "positions" rawopts
       directives = boolopt "directives" rawopts
+      -- Modified queries. These may not work with boolean queries (#2371).
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
       -- just the acct: part of the query will be reapplied later, after clipping
       acctq = dbg4 "acctq" $ filterQuery queryIsAcct query
       dep = dbg4 "depth" $ queryDepth $ filterQuery queryIsDepth query
-      matchedused = dbg5 "matchedused" $ nub $ map paccount $ journalPostings $ filterJournalPostings nodepthq j
+      -- when finding accounts used by postings, we remove tags that were declared on the posting,
+      -- so that a tag: query will match account tags and not posting tags.
+      matchedused = dbg5 "matchedused" $ nub $ map paccount $ journalPostings $
+        filterJournalPostings nodepthq $ journalPostingsKeepAccountTagsOnly j
       matcheddeclared = dbg5 "matcheddeclared" $
         nub $
         filter (matchesAccountExtra (journalAccountType j) (journalInheritedAccountTags j) nodepthq) $

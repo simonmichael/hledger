@@ -92,3 +92,14 @@ trade:A-B:A
 trade:A-B:B
 a
 b
+
+# ** 11. A tag: query only matches account tags, not posting tags.
+<
+account a  ; t:
+
+2025-01-01
+    a          1
+    b         -1  ; t:
+
+$ hledger -f- accounts tag:t
+a
