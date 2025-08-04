@@ -1,6 +1,8 @@
-# https://help.github.com/en/github/building-a-strong-community/configuring-issue-templates-for-your-repository
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/about-issue-and-pull-request-templates
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 
 blank_issues_enabled: true
+
 contact_links:
 
   - name: A hledger.org website issue

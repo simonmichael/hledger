@@ -1,5 +1,5 @@
 ---
-name:  A bug
+name: A bug
 about: A defect in the software, core documentation, user/developer experience, or project
 labels: A BUG
 title: ''

@@ -1,5 +1,5 @@
 ---
-name:  A wish
+name: A wish
 about: A proposal for improving hledger or the project
 labels: A WISH
 title: ''
