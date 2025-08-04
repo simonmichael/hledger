@@ -1,12 +1,21 @@
 ---
 name:  A bug
-about: A weakness in the software, documentation, usability, or project
+about: A defect in the software, core documentation, user/developer experience, or project
 labels: A BUG
+title: ''
+assignees: ''
 ---
 
-Thanks for reporting! Here are some tips (please remove this text before submitting):
+Thanks for reporting.
+Remember to check the manual first (the correct version):
+https://hledger.org/hledger.html
+https://hledger.org/hledger-ui.html
+https://hledger.org/hledger-web.html
 
-- Have you checked (the right version of) the manual ? Eg https://hledger.org/hledger.html
-- If some discussion would help, just ask in chat or mail list: https://hledger.org/support.html
-- Any of these are very helpful: a small reproducible example, hledger --version output,
-  what platform you're running on, a link to to any relevant doc that you found.
+If possible, please mention/include:
+your `hledger --version` output,
+the OS you're running on,
+a link to any relevant doc that you found,
+and a small reproducible example or recipe.
+
+(Please remove all of this text before submitting.)
