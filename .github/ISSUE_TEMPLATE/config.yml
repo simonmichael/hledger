@@ -5,7 +5,7 @@ blank_issues_enabled: false
 
 contact_links:
 
-  - name: (A hledger.org website issue)
+  - name: (A hledger website issue)
     url: https://github.com/simonmichael/hledger_site/issues
     about: Please use the hledger_site issue tracker
 
