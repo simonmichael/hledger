@@ -6399,7 +6399,7 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 
 ```
 
-With no report period specified, the latest transaction daate or price date
+With no report period specified, the latest transaction date or price date
 is used as valuation date (2000-04-01):
 ```cli
 $ hledger -f- print --value=end
