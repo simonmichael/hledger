@@ -103,7 +103,7 @@ It should be improved each time it is used.
       `just relbin`
   - [ ] hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
         `just site-manuals-snapshot MAJORVER` (creates or updates)  
-        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
+        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`, `site/src/SUMMARY.md` manuals links (major release only)
   - [ ] release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes`,  
       select & transform with `md-issue-refs`,  
