@@ -6399,7 +6399,8 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 
 ```
 
-With no report period specified, that shows the value as of the last day of the journal (2000-03-01):
+With no report period specified, the latest transaction daate or price date
+is used as valuation date (2000-04-01):
 ```cli
 $ hledger -f- print --value=end
 2000-01-01
@@ -6413,7 +6414,7 @@ $ hledger -f- print --value=end
 
 ```
 
-Show the current value (the 2000-04-01 price is still in effect today):
+The value today is the same (the 2000-04-01 price is still in effect):
 ```cli
 $ hledger -f- print --value=now
 2000-01-01
