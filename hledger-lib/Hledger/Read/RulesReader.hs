@@ -152,7 +152,7 @@ parse iopts rulesfile h = do
         where err = error' $ "could not infer a data file for " <> rulesfile
       Just glb -> do
         let (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
-        globmatches <- expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
+        globmatches <- expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
         case globmatches of
           -- if the source rule matched no files, and we are reading not importing, use the most recent archive file
           [] | not importcmd -> archivesFor archivedir rulesfile <&> take 1
