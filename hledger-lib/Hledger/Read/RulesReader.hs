@@ -148,10 +148,10 @@ parse iopts rulesfile h = do
     let msource = T.unpack <$> getDirective "source" rules
     -- WISH: when not importing, and the source rule matches no files, read the latest archived file 
     datafiles <- case msource of
-            Just glb -> expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
-              where (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
-            Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor rulesfile]  -- shouldn't fail, f has .rules extension
-              where err = error' $ "could not infer a data file for " <> rulesfile
+      Just glb -> expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
+        where (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
+      Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor rulesfile]  -- shouldn't fail, f has .rules extension
+        where err = error' $ "could not infer a data file for " <> rulesfile
     return $ case datafiles of
       []                          -> Nothing
       [f] | importcmd             -> dbg4 "importing"             <$> Just f
