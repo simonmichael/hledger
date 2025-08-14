@@ -45,7 +45,8 @@ where
 --- ** imports
 import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..))
-import Control.Monad              (unless, when, void)
+import Control.DeepSeq (deepseq)
+import Control.Monad (unless, void, when)
 import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
 import qualified Control.Monad.Fail as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
@@ -54,8 +55,10 @@ import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
 import Data.Encoding              (encodingFromStringExplicit)
-import Data.Functor               ((<&>))
-import Data.List (elemIndex, mapAccumL, nub, sortOn)
+import Data.Either (fromRight)
+import Data.Functor ((<&>))
+import Data.List (elemIndex, mapAccumL, nub, sortOn, isPrefixOf, sortBy)
+import Data.Ord (Down(..), comparing)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -70,7 +73,8 @@ import qualified Data.Text.IO as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headMay, lastMay, readMay, headDef)
-import System.FilePath ((</>), takeDirectory, takeExtension, stripExtension, takeFileName, takeBaseName, (<.>))
+import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
+import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr)
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
@@ -85,9 +89,6 @@ import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
 import Hledger.Write.Csv
-import System.Directory (doesFileExist, getHomeDirectory, renameFile, getModificationTime, createDirectoryIfMissing)
-import Data.Either (fromRight)
-import Control.DeepSeq (deepseq)
 
 --- ** doctest setup
 -- $setup
@@ -146,12 +147,16 @@ parse iopts rulesfile h = do
   mdatafile <- liftIO $ do
     dldir <- getDownloadDir  -- look here for the data file if it's specified without a directory
     let msource = T.unpack <$> getDirective "source" rules
-    -- WISH: when not importing, and the source rule matches no files, read the latest archived file 
     datafiles <- case msource of
-      Just glb -> expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
-        where (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
       Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor rulesfile]  -- shouldn't fail, f has .rules extension
         where err = error' $ "could not infer a data file for " <> rulesfile
+      Just glb -> do
+        let (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
+        globmatches <- expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
+        case globmatches of
+          -- if the source rule matched no files, and we are reading not importing, use the most recent archive file
+          [] | not importcmd -> archivesFor archivedir rulesfile <&> take 1
+          _  -> return globmatches
     return $ case datafiles of
       []                          -> Nothing
       [f] | importcmd             -> dbg4 "importing"             <$> Just f
@@ -187,13 +192,33 @@ archiveTo :: FilePath -> FilePath -> IO ()
 archiveTo datafile archivedir = do
   createDirectoryIfMissing True archivedir
   hPutStrLn stderr $ "archiving " <> datafile
-  datafilemodtime <- getModificationTime datafile
-  let
-    archivefilename = takeBaseName datafile <.> datafilemoddate <.> takeExtension datafile
-      where datafilemoddate = show $ utctDay datafilemodtime
-    archivefile = archivedir </> archivefilename
+  fname <- archiveFileName datafile
+  let archivefile = archivedir </> fname
   hPutStrLn stderr $ " as " <> archivefile
   renameFile datafile archivefile
+
+-- | Figure out the file name to use when archiving the given file path.
+-- Basically, add the file's modification date before the extension.\
+archiveFileName :: FilePath -> IO String
+archiveFileName f = do
+  moddate <- (show . utctDay) <$> getModificationTime f
+  return $ takeBaseName f <.> moddate <.> takeExtension f
+
+-- | In the given archive directory, if it exists, find the data file versions saved for the given rules file.
+-- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
+--
+-- We don't know which extension the data files use, but we look for file names beginning with
+-- the rules file's base name followed by .YYYY-MM-DD, which will normally be good enough.
+--
+archivesFor :: FilePath -> FilePath -> IO [FilePath]
+archivesFor archivedir rulesfile = do
+  exists <- doesDirectoryExist archivedir
+  if not exists then return []
+  else do
+    let prefix = takeBaseName rulesfile <> "."
+    fs <- listDirectory archivedir
+    return $ sortBy (comparing Down)
+      [ f | f <- fs, prefix `isPrefixOf` f, isJust $ parsedate $ drop (length prefix) f ]
 
 --- ** reading rules files
 --- *** rules utilities
