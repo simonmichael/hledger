@@ -87,7 +87,6 @@ This is used by the import command.
 module Hledger.Read (
 
   -- * Journal files
-  PrefixedFilePath,
   defaultJournal,
   defaultJournalWith,
   defaultJournalSafely,
@@ -226,10 +225,6 @@ defaultJournalPath = do
       defpath = do
         home <- fromMaybe "" <$> getHomeSafe
         return $ home </> journalDefaultFilename
-
--- | A file path optionally prefixed by a reader name and colon
--- (journal:, csv:, timedot:, etc.).
-type PrefixedFilePath = FilePath
 
 -- | @readJournal iopts mfile txt@
 --

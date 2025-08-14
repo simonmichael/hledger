@@ -167,14 +167,6 @@ findReader Nothing (Just path) =
     (prefix,path') = splitReaderPrefix path
     ext            = map toLower $ drop 1 $ takeExtension path'
 
--- | A prefix used to specify a particular reader to be used for a file path,
--- overriding the file extension. It is a valid reader name followed by a colon.
--- Eg journal:, csv:, timeclock:, timedot:.
--- type ReaderPrefix = String
-
--- | A file path with an optional reader prefix.
-type PrefixedFilePath = FilePath
-
 -- | Separate a file path and its reader prefix, if any.
 --
 -- >>> splitReaderPrefix "csv:-"

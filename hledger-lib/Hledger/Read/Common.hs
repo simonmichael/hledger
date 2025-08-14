@@ -30,6 +30,8 @@ Some of these might belong in Hledger.Read.JournalReader or Hledger.Read.
 --- ** exports
 module Hledger.Read.Common (
   Reader (..),
+  PrefixedFilePath,
+  isStdin,
   InputOpts(..),
   HasInputOpts(..),
   definputopts,
@@ -192,6 +194,17 @@ data Reader m = Reader {
     }
 
 instance Show (Reader m) where show r = show (rFormat r) ++ " reader"
+
+-- | A file path optionally prefixed by a reader name and colon (journal:, csv:, timedot:, etc.).
+-- The file path part can also be - meaning standard input.
+type PrefixedFilePath = FilePath
+
+-- | Is this the special file path meaning standard input ? (-, possibly prefixed)
+isStdin :: PrefixedFilePath -> Bool
+isStdin f = case splitAtElement ':' f of
+  [_,"-"] -> True
+  ["-"] -> True
+  _ -> False
 
 -- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.

@@ -241,7 +241,7 @@ withJournalCached defaultJournalOverride cliopts cmd = do
             return (cache, journal)
           Nothing -> do
             dbg1IO ("readAndCacheJournalFile reading and caching "++fp) iopts
-            journal <- runExceptT $ if snd (splitReaderPrefix fp) == "-" then readStdin else readJournalFile iopts fp
+            journal <- runExceptT $ if isStdin fp then readStdin else readJournalFile iopts fp
             either error' (\j -> return (Map.insert (ioptsWithoutReportSpan,fp) j cache, j)) journal
       where
         -- InputOptions contain reportspan_ that is used to calculate forecast period,
@@ -257,7 +257,7 @@ withJournalCached defaultJournalOverride cliopts cmd = do
               -- forecast transactions are never generated before journal end
               -- unless specifically requested).
               Just forecastspan -> forecastspan `spanValidDefaultsFrom` reportspan_ iopts
-        -- Read stdin, or if we read it alread, use a cache
+        -- Read stdin, or if we read it already, use a cache
         -- readStdin :: InputOpts -> ExceptT String IO Journal
         readStdin = do
           stdinContent <- liftIO $ modifyMVar stdinCache $ \cache ->
