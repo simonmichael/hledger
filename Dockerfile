@@ -1,4 +1,4 @@
-FROM haskell as dev
+FROM haskell:9.12.2 AS dev
 
 RUN mkdir /root/hledger
 WORKDIR /root/hledger
@@ -13,19 +13,19 @@ COPY hledger-lib/package.yaml hledger-lib/package.yaml
 COPY hledger/package.yaml hledger/package.yaml
 COPY hledger-ui/package.yaml hledger-ui/package.yaml
 COPY hledger-web/package.yaml hledger-web/package.yaml
-RUN stack install --dependencies-only
+RUN stack install --dependencies-only --stack-yaml=stack912.yaml
 
 # Actually compile sources
 COPY . .
-RUN stack install
+RUN stack install --stack-yaml=stack912.yaml
 
 FROM debian:stable-slim
 
-RUN apt-get update && apt-get -y install libtinfo5 libgmp10 && rm -rf /var/lib/apt/lists
+RUN apt-get update && apt-get -y install libtinfo6 libgmp10 && rm -rf /var/lib/apt/lists
 
 COPY --from=dev /root/.local/bin/hledger* /usr/bin/
 
-ENV LC_ALL C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 RUN mkdir /data && touch /data/hledger.journal
 VOLUME /data
