@@ -18,6 +18,7 @@ import Text.Printf
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
+import System.IO (stderr)
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
@@ -63,20 +64,20 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
             [] -> do
               -- in this case, we vary the output depending on --dry-run, which is a bit awkward
               let semicolon = if dryrun then "; " else "" :: String
-              printf "%sno new transactions found in %s\n\n" semicolon inputstr
+              hPrintf stderr "%sno new transactions found in %s\n\n" semicolon inputstr
 
             newts | catchup ->
               if dryrun
-                then printf "--catchup would skip %d transactions (dry run)\n\n" (length newts)
+                then hPrintf stderr "would skip %d new transactions (dry run)\n\n" (length newts)
                 else do
-                  printf "marked %s as caught up, skipping %d transactions\n\n" inputstr (length newts)
+                  hPrintf stderr "marked %s as caught up, skipping %d transactions\n\n" inputstr (length newts)
                   saveLatestDatesForFiles latestdatesforfiles
 
             newts -> do
               if dryrun
               then do
                 -- show txns to be imported
-                printf "; would import %d new transactions from %s:\n\n" (length newts) inputstr
+                hPrintf stderr "would import %d new transactions from %s:\n\n" (length newts) inputstr
                 mapM_ (T.putStr . showTransaction) newts
 
                 -- then check the whole journal with them added, if in strict mode
@@ -92,7 +93,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
                 -- mixed line endings in the file. See also writeFileWithBackupIfChanged.
                 foldM_ (`journalAddTransaction` opts) j newts  -- gets forced somehow.. (how ?)
 
-                printf "imported %d new transactions from %s to %s\n" (length newts) inputstr (journalFilePath j)
+                hPrintf stderr "imported %d new transactions from %s to %s\n" (length newts) inputstr (journalFilePath j)
 
                 -- and if we got this far, update each file's .latest file
                 saveLatestDatesForFiles latestdatesforfiles
