@@ -131,7 +131,6 @@ import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust, catMaybes)
-import           Data.Ord (comparing, Down (Down))
 import qualified Data.Text as T
 import           Data.Text.Encoding.Error (UnicodeException)
 import qualified Data.Text.IO as T
@@ -415,11 +414,11 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHome
 expandGlob :: FilePath -> FilePath -> IO [FilePath]
 expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
 
--- | Given a list of existing file paths, sort them by modification time, most recent first.
+-- | Given a list of existing file paths, sort them by modification time (from oldest to newest).
 sortByModTime :: [FilePath] -> IO [FilePath]
 sortByModTime fs = do
   ftimes <- forM fs $ \f -> do {t <- getModificationTime f; return (t,f)}
-  return $ map snd $ sortBy (comparing Data.Ord.Down) ftimes
+  return $ map snd $ sort ftimes
 
 -- | Like readFilePortably, but read all of the file before proceeding.
 readFileStrictly :: FilePath -> IO T.Text

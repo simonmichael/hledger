@@ -22,6 +22,7 @@ Most of the code for reading rules files and csv files is in this module.
 {-# LANGUAGE ViewPatterns         #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE TupleSections #-}
 
 --- ** exports
 module Hledger.Read.RulesReader (
@@ -67,10 +68,10 @@ import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
-  defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC)
-import Safe (atMay, headMay, lastMay, readMay)
-import System.FilePath ((</>), takeDirectory, takeExtension, stripExtension, takeFileName)
-import System.IO       (Handle, hClose)
+  defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
+import Safe (atMay, headMay, lastMay, readMay, headDef)
+import System.FilePath ((</>), takeDirectory, takeExtension, stripExtension, takeFileName, takeBaseName, (<.>))
+import System.IO       (Handle, hClose, hPutStrLn, stderr)
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
 import qualified Data.ByteString as B
@@ -84,7 +85,7 @@ import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
 import Hledger.Write.Csv
-import System.Directory (doesFileExist, getHomeDirectory)
+import System.Directory (doesFileExist, getHomeDirectory, renameFile, getModificationTime, createDirectoryIfMissing)
 import Data.Either (fromRight)
 import Control.DeepSeq (deepseq)
 
@@ -110,41 +111,64 @@ getDownloadDir = do
   home <- getHomeDirectory
   return $ home </> "Downloads"  -- XXX
 
--- | Parse and post-process a "Journal" from the given rules file path, or give an error.
--- A data file is inferred from the @source@ rule, otherwise from a similarly-named file
--- in the same directory.
--- The source rule can specify a glob pattern and supports ~ for home directory.
--- If it is a bare filename it will be relative to the defaut download directory
--- on this system. If is a relative file path it will be relative to the rules
--- file's directory. When a glob pattern matches multiple files, the alphabetically
--- last is used. (Eg in case of multiple numbered downloads, the highest-numbered
--- will be used.)
+-- | Read, parse and post-process a "Journal" from the given rules file, or give an error.
+--
 -- The provided handle, or a --rules option, are ignored by this reader.
--- Balance assertions are not checked.
+-- A data file is inferred from the @source@ rule, otherwise from a similarly-named file in the same directory.
+-- The source rule supports ~ for home directory.
+-- If it is a bare filename, its directory is assumed to be ~/Downloads.
+-- If is a relative file path, it is assumed to be relative to the rules file's directory.
+-- The source rule can specify a glob pattern.
+-- If the glob pattern matches multiple files, the newest (last modified) file is used,
+-- unless the import command is running and archiving is enabled, in which case the oldest file is used.
+-- When the import command is running and archiving is enabled, after a successful read
+-- the data file is archived in an archive directory (data/ next to the rules file, auto-created).
+-- Balance assertions are not checked by this reader.
+--
 parse :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
-parse iopts f h = do
-  lift $ hClose h -- We don't need it
-  rules <- readRulesFile $ dbg4 "reading rules file" f
+parse iopts rulesfile h = do
+  lift $ hClose h -- We don't need it (XXX why ?)
+
   -- XXX higher-than usual debug level for file reading to bypass excessive noise from elsewhere, normally 6 or 7
+  rules <- readRulesFile $ dbg4 "reading rules file" rulesfile
+
+  let
+    -- XXX How can we know when the command is import, and if it's a dry run ? In a hacky way, currently.
+    args = progArgs
+    cmd = headDef "" $ dropWhile ((=="-").take 1) args
+    importcmd = cmd `elem` ["import", "imp"]
+    dryrun = any (`elem` args) ["--dry-run", "--dry"]
+    importing = importcmd && not dryrun
+    archiving = importing && isJust (getDirective "import" rules)
+    rulesdir = takeDirectory rulesfile
+    archivedir = rulesdir </> "data"
+
   mdatafile <- liftIO $ do
-    dldir <- getDownloadDir
-    let rulesdir = takeDirectory f
+    dldir <- getDownloadDir  -- look here for the data file if it's specified without a directory
     let msource = T.unpack <$> getDirective "source" rules
-    fs <- case msource of
-            Just src -> expandGlob dir (dbg4 "source" src) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
-              where (dir,desc) = if isFileName src then (dldir," in download directory") else (rulesdir,"")
-            Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor f]  -- shouldn't fail, f has .rules extension
-              where err = error' $ "could not infer a data file for " <> f
-    return $ dbg4 "data file" $ headMay fs
+    -- WISH: when not importing, and the source rule matches no files, read the latest archived file 
+    datafiles <- case msource of
+            Just glb -> expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", newest first")
+              where (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
+            Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor rulesfile]  -- shouldn't fail, f has .rules extension
+              where err = error' $ "could not infer a data file for " <> rulesfile
+    return $ case datafiles of
+      []                          -> Nothing
+      [f] | importcmd             -> dbg4 "importing"             <$> Just f
+      [f]                         -> dbg4 "reading"               <$> Just f
+      fs | importcmd && archiving -> dbg4 "importing oldest file" <$> headMay fs
+      fs | importcmd              -> dbg4 "importing newest file" <$> lastMay fs
+      fs                          -> dbg4 "reading newest file"   <$> lastMay fs
+
   case mdatafile of
     Nothing -> return nulljournal  -- data file specified by source rule was not found
-    Just dat -> do
-      exists <- liftIO $ doesFileExist dat
-      if not (dat=="-" || exists)
+    Just datafile -> do
+      exists <- liftIO $ doesFileExist datafile
+      if not (datafile=="-" || exists)
       then return nulljournal      -- data file inferred from rules file name was not found
       else do
-        dath <- liftIO $ openFileOrStdin dat
-        readJournalFromCsv (Just $ Left rules) dat dath Nothing
+        datafileh <- liftIO $ openFileOrStdin datafile
+        readJournalFromCsv (Just $ Left rules) datafile datafileh Nothing
         -- apply any command line account aliases. Can fail with a bad replacement pattern.
         >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
             -- journalFinalise assumes the journal's items are
@@ -152,7 +176,24 @@ parse iopts f h = do
             -- But here they are already properly ordered. So we'd
             -- better preemptively reverse them once more. XXX inefficient
             . journalReverse
-        >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f ""
+        >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
+        >>= \j -> do
+          when archiving $ liftIO $ archiveTo datafile archivedir
+          return j
+
+-- | Move a file to the given directory, creating the directory (and parents) if needed,
+-- showing informational output on stderr.
+archiveTo :: FilePath -> FilePath -> IO ()
+archiveTo datafile archivedir = do
+  createDirectoryIfMissing True archivedir
+  hPutStrLn stderr $ "archiving " <> datafile
+  datafilemodtime <- getModificationTime datafile
+  let
+    archivefilename = takeBaseName datafile <.> datafilemoddate <.> takeExtension datafile
+      where datafilemoddate = show $ utctDay datafilemodtime
+    archivefile = archivedir </> archivefilename
+  hPutStrLn stderr $ " as " <> archivefile
+  renameFile datafile archivefile
 
 --- ** reading rules files
 --- *** rules utilities
@@ -392,9 +433,11 @@ Grammar for the CSV conversion rules, more or less:
 
 RULES: RULE*
 
-RULE: ( SOURCE | FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | TIMEZONE | NEWEST-FIRST | INTRA-DAY-REVERSED | DATE-FORMAT | DECIMAL-MARK | COMMENT | BLANK ) NEWLINE
+RULE: ( SOURCE | ARCHIVE | FIELD-LIST | FIELD-ASSIGNMENT | CONDITIONAL-BLOCK | SKIP | TIMEZONE | NEWEST-FIRST | INTRA-DAY-REVERSED | DATE-FORMAT | DECIMAL-MARK | COMMENT | BLANK ) NEWLINE
 
 SOURCE: source SPACE FILEPATH
+
+ARCHIVE: archive
 
 FIELD-LIST: fields SPACE FIELD-NAME ( SPACE? , SPACE? FIELD-NAME )*
 
@@ -518,6 +561,7 @@ directivep = (do
 directives :: [Text]
 directives =
   ["source"
+  ,"archive"
   ,"encoding"
   ,"date-format"
   ,"decimal-mark"

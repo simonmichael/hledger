@@ -26,7 +26,7 @@ $ hledger import bank1-checking.csv bank1-savings.csv
 $ hledger import *.csv
 ```
 
-### Import preview
+### Import dry run
 
 It's useful to preview the import by running first with `--dry-run`,
 to sanity check the range of dates being imported,
@@ -160,28 +160,47 @@ as declared by [`commodity` directives](#commodity-directive) or inferred from t
 
 Related: [CSV > Amount decimal places](#amount-decimal-places).
 
+### Import archiving
+
+When importing from a CSV rules file (`hledger import bank.rules`),
+you can use the [archive rule](#archive) to enable automatic archiving of the data file.
+After a successful import, the data file (specified by `source`) will be moved
+to an archive folder (`data/`, next to the rules file, auto-created),
+and renamed similar to the rules file, with a date.
+This can be useful for troubleshooting, detecting variations in your banks' CSV data,
+regenerating entries with improved rules, etc.
+
+The `archive` rule also causes `import` to handle `source` glob patterns differently:
+when there are multiple matched files, it will pick the oldest, not the newest.
+
 ### Import special cases
 
-If you have a download whose file name varies, you could rename it to a fixed name after each download.
-Or you could use a [CSV `source` rule](#source) with a suitable glob pattern,
-and import [from the .rules file](#reading-files-specified-by-rule) instead of the data file.
-
-Here's a situation where you would need to run `import` with care:
-say you download `bank.csv`, but forget to import it or delete it.
-And next month you download it again. This time your web browser may save it as `bank (2).csv`.
-So now each of these may have data not included in the other.
-And a `source` rule with a glob pattern would match only the most recent file.
-So in this case you should import from each one in turn, in the correct order, taking care to use the same filename each time:
-
-```cli
-$ hledger import bank.csv
-$ mv 'bank (2).csv' bank.csv
-$ hledger import bank.csv
-```
+#### Deduplication
 
 Here are two kinds of "deduplication" which `import` does not handle
-(and generally should not, since these can happen legitimately in financial data):
+(and should not, because these can happen legitimately in financial data):
 
 - Two or more of the new CSV records are identical, and generate identical new journal entries.
 - A new CSV record generates a journal entry identical to one(s) already in the journal.
 
+#### Varying file name
+
+If you have a download whose file name varies, you could rename it to a fixed name after each download.
+Or you could use a [CSV `source` rule](#source) with a suitable glob pattern,
+and import [from the .rules file](#reading-files-specified-by-rule).
+
+#### Multiple versions
+
+Say you download `bank.csv`, import it, but forget to delete it from your downloads folder.
+The next time you download it, your web browser will save it as (eg) `bank (2).csv`.
+The [source rule](#source)'s glob patterns are for just this situation:
+instead of specifying `source bank.csv`, specify `source bank*.csv`.
+Then `hledger -f bank.rules CMD` or `hledger import bank.rules` 
+will automatically pick the newest matched file (`bank (2).csv`).
+
+Alternately, what if you download, but forget to import or delete, then download again ?
+Now each of `bank.csv` and `bank (2).csv` might contain data that's not in the other, and not in your journal.
+In this case, it's best to import each of them in turn, oldest first
+(otherwise, overlap detection could cause new records to be skipped).
+Enabling [import archiving](import-archiving) ensures this.
+Then `hledger import bank.rules; hledger import bank.rules` will import and archive first `bank.csv`, then `bank (2).csv`.

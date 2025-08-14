@@ -3280,14 +3280,32 @@ in your system's downloads directory (`~/Downloads`, currently):
 source Checking1.csv
 ```
 
-And if you specify a glob pattern, hledger will read the most recent of the matched files
-(useful with repeated downloads):
+And if you specify a glob pattern, hledger will read the newest (most recently modified) of the matched files,
+which is useful eg if your browser has saved multiple versions of a download:
 
 ```rules
 source Checking1*.csv
 ```
 
+This enables a convenient workflow where you just download CSV files to the default place, then run `hledger import rules/*`.
+Once they have been imported, you can discard them or ignore them.
+
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
+
+## `archive`
+
+The `archive` rule can be used together with `source` to make importing a little more convenient.
+It affects only the [import](#import) command. When enabled,
+
+- `import` will process multiple `source` glob matches oldest first.
+   So if you have multiple versions of a download, repeated imports will process them in chronological order.
+
+- After successfully importing a `source`-specified file, 
+  `import` will move it to an archive directory (`data/` next to the rules file, auto-created),
+  and rename it to `RULESFILENAME.MODIFICATIONDATE.DOWNLOADEXT`.
+
+Archiving imported files in this way is completely optional, but it can be useful for troubleshooting,
+detecting variations in your banks' CSV data, regenerating entries with improved rules, etc.
 
 ## `encoding`
 
