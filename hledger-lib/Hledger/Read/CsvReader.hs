@@ -54,10 +54,9 @@ reader sep = Reader
     -- but not good if it was loaded by a possibly long chain of include directives.
   }
 
--- | Parse and post-process a "Journal" from CSV data, or give an error.
--- This currently ignores the provided data, and reads it from the file path instead.
--- This file path is normally the CSV(/SSV/TSV) data file, and a corresponding rules file is inferred.
--- But it can also be the rules file, in which case the corresponding data file is inferred.
+-- | Parse and post-process a "Journal" from a CSV(/SSV/TSV/*SV) data file, or give an error.
+-- This currently ignores the provided input file handle, and reads from the data file itself,
+-- inferring a corresponding rules file to help convert it.
 -- This does not check balance assertions.
 parse :: SepFormat -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 parse sep iopts f h = do
@@ -76,4 +75,3 @@ parse sep iopts f h = do
 
 tests_CsvReader = testGroup "CsvReader" [
   ]
-

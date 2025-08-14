@@ -332,9 +332,9 @@ readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
   when (new_ && new_save_) $ liftIO $ saveLatestDatesForFiles latestdatesforfiles
   return j
 
--- The implementation of readJournalFiles, but with --new, 
--- also returns the latest transaction date(s) read in each file.
--- Used by the import command, to save those at the end.
+-- The implementation of readJournalFiles.
+-- With --new, it also returns the latest transaction date(s) read in each file
+-- (used by the import command).
 readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal, [LatestDatesForFile])
 readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs

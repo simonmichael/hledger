@@ -12,12 +12,12 @@ where
 import Control.Monad
 import Data.List
 import qualified Data.Text.IO as T
+import System.Console.CmdArgs.Explicit
+import Text.Printf
+
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
--- import Hledger.Cli.Commands.Print (print')
-import System.Console.CmdArgs.Explicit
-import Text.Printf
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")

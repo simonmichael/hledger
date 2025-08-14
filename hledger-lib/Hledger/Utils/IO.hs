@@ -221,7 +221,8 @@ ansiFormatError = (<> sgrresetall) . ((sgrbrightred <> sgrbold) <>)
 -- | Show a message, with "Warning:" label, on stderr before returning the given value.
 -- Also do some ANSI styling of the first line when allowed (using unsafe IO).
 -- Currently we use this very sparingly in hledger; we prefer to either quietly work,
--- or loudly raise an error. (Varying output can make scripting harder.)
+-- or loudly raise an error. Varying output can make scripting harder,
+-- but on stderr, it shouldn't cause much hassle.
 warn :: String -> a -> a
 warn msg = trace msg'
   where
