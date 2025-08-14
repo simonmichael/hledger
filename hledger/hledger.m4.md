@@ -3264,48 +3264,54 @@ including [How CSV rules are evaluated](#how-csv-rules-are-evaluated).
 
 If you tell hledger to read a csv file with `-f foo.csv`, it will look for rules in `foo.csv.rules`.
 Or, you can tell it to read the rules file, with `-f foo.csv.rules`, and it will look for data in `foo.csv` (since 1.30).
-
 These are mostly equivalent, but the second method provides some extra features.
 For one, the data file can be missing, without causing an error; it is just considered empty.
-And, you can specify a different data file by adding a "source" rule:
+
+For more flexibility, add a `source` rule, which lets you specify a different data file:
 
 ```rules
 source ./Checking1.csv
 ```
 
-If you specify just a file name with no path, hledger will look for it
-in your system's downloads directory (`~/Downloads`, currently):
+If the file does not exist, it is just considered empty, without raising an error.
+
+If you specify just a file name with no path, hledger will look for it in the `~/Downloads` folder:
 
 ```rules
 source Checking1.csv
 ```
 
-And if you specify a glob pattern, hledger will read the newest (most recently modified) of the matched files,
-which is useful eg if your browser has saved multiple versions of a download:
+You can use a glob pattern, to avoid specifying the file name exactly:
 
 ```rules
 source Checking1*.csv
 ```
 
-This enables a convenient workflow where you just download CSV files to the default place, then run `hledger import rules/*`.
-Once they have been imported, you can discard them or ignore them.
+This has another benefit: if the pattern matches multiple files, hledger will read the newest (most recently modified) one.
+This avoids problems if you have downloaded a file multiple times without cleaning up.
+
+All this enables a convenient workflow where can you just download CSV files, then run `hledger import rules/*`.
 
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
 
+The `archive` rule adds a few more features to `source`; see below.
+
 ## `archive`
 
-The `archive` rule can be used together with `source` to make importing a little more convenient.
-It affects only the [import](#import) command. When enabled,
+Adding the `archive` rule to your rules file affects importing or reading files specified by `source`:
 
-- `import` will process multiple `source` glob matches oldest first.
-   So if you have multiple versions of a download, repeated imports will process them in chronological order.
+- After successfully importing, `import` will move the data file to an archive directory
+  (`data/` next to the rules file, auto-created),
+  renamed to `RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT`.
+  Archiving data files is optional, but it can be useful for troubleshooting,
+  detecting variations in your banks' CSV data, regenerating entries with improved rules, etc.
 
-- After successfully importing a `source`-specified file, 
-  `import` will move it to an archive directory (`data/` next to the rules file, auto-created),
-  and rename it to `RULESFILENAME.MODIFICATIONDATE.DOWNLOADEXT`.
+- `import` will pick the oldest of `source` glob matches, rather than the newest.
+  So if you have multiple versions of a download, repeated imports will process them in chronological order.
 
-Archiving imported files in this way is completely optional, but it can be useful for troubleshooting,
-detecting variations in your banks' CSV data, regenerating entries with improved rules, etc.
+- For commands other than `import`, when the `source` path or glob pattern matches no files,
+  hledger will try to read the latest archived data file instead.
+  This is convenient for working with the downloaded data again, even after it has been imported.
 
 ## `encoding`
 
