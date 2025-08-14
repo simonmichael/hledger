@@ -60,11 +60,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
         Left err -> error' err
         Right (newj, latestdatesforfiles) ->
           case sortOn tdate $ jtxns newj of
-            -- with --dry-run the output should be valid journal format, so messages have ; prepended
-            [] -> do
-              -- in this case, we vary the output depending on --dry-run, which is a bit awkward
-              let semicolon = if dryrun then "; " else "" :: String
-              hPrintf stderr "%sno new transactions found in %s\n\n" semicolon inputstr
+            [] -> hPrintf stderr "no new transactions found in %s\n\n" inputstr
 
             newts | catchup ->
               if dryrun

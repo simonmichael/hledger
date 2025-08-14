@@ -137,12 +137,13 @@ parse iopts rulesfile h = do
     -- XXX How can we know when the command is import, and if it's a dry run ? In a hacky way, currently.
     args = progArgs
     cmd = headDef "" $ dropWhile ((=="-").take 1) args
-    importcmd = cmd `elem` ["import", "imp"]
-    dryrun = any (`elem` args) ["--dry-run", "--dry"]
-    importing = importcmd && not dryrun
-    archiving = importing && isJust (getDirective "import" rules)
-    rulesdir = takeDirectory rulesfile
-    archivedir = rulesdir </> "data"
+    importcmd  = dbg7 "importcmd"  $ cmd `elem` ["import", "imp"]
+    dryrun     = dbg7 "dryrun"     $ any (`elem` args) ["--dry-run", "--dry"]
+    importing  = dbg7 "importing"  $ importcmd && not dryrun
+    archive    = dbg7 "archive"    $ isJust (getDirective "archive" rules)
+    archiving  = dbg7 "archiving"  $ importing && archive
+    rulesdir   = dbg7 "rulesdir"   $ takeDirectory rulesfile
+    archivedir = dbg7 "archivedir" $ rulesdir </> "data"
 
   mdatafile <- liftIO $ do
     dldir <- getDownloadDir  -- look here for the data file if it's specified without a directory
@@ -152,10 +153,11 @@ parse iopts rulesfile h = do
         where err = error' $ "could not infer a data file for " <> rulesfile
       Just glb -> do
         let (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
-        globmatches <- expandGlob dir (dbg4 "source" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
+        globmatches <- expandGlob dir (dbg4 "source rule" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
         case globmatches of
           -- if the source rule matched no files, and we are reading not importing, use the most recent archive file
-          [] | not importcmd -> archivesFor archivedir rulesfile <&> take 1
+          [] | archive && not importcmd -> do
+            archivesFor archivedir rulesfile <&> take 1 <&> dbg4 "latest file in archive directory"
           _  -> return globmatches
     return $ case datafiles of
       []                          -> Nothing
@@ -183,28 +185,28 @@ parse iopts rulesfile h = do
             . journalReverse
         >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
         >>= \j -> do
-          when archiving $ liftIO $ archiveTo datafile archivedir
+          when archiving $ liftIO $ archiveTo rulesfile datafile archivedir
           return j
 
 -- | Move a file to the given directory, creating the directory (and parents) if needed,
 -- showing informational output on stderr.
-archiveTo :: FilePath -> FilePath -> IO ()
-archiveTo datafile archivedir = do
+archiveTo :: FilePath -> FilePath -> FilePath -> IO ()
+archiveTo rulesfile datafile archivedir = do
   createDirectoryIfMissing True archivedir
   hPutStrLn stderr $ "archiving " <> datafile
-  fname <- archiveFileName datafile
+  fname <- archiveFileName rulesfile datafile
   let archivefile = archivedir </> fname
   hPutStrLn stderr $ " as " <> archivefile
   renameFile datafile archivefile
 
--- | Figure out the file name to use when archiving the given file path.
--- Basically, add the file's modification date before the extension.\
-archiveFileName :: FilePath -> IO String
-archiveFileName f = do
-  moddate <- (show . utctDay) <$> getModificationTime f
-  return $ takeBaseName f <.> moddate <.> takeExtension f
+-- | Figure out the file name to use when archiving, for the given rules file, the given data file.
+-- That is, "RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT".
+archiveFileName :: FilePath -> FilePath -> IO String
+archiveFileName rulesfile datafile = do
+  moddate <- (show . utctDay) <$> getModificationTime datafile
+  return $ takeBaseName rulesfile <.> moddate <.> takeExtension datafile
 
--- | In the given archive directory, if it exists, find the data file versions saved for the given rules file.
+-- | In the given archive directory, if it exists, find the paths of data files saved for the given rules file.
 -- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
 --
 -- We don't know which extension the data files use, but we look for file names beginning with
@@ -217,8 +219,12 @@ archivesFor archivedir rulesfile = do
   else do
     let prefix = takeBaseName rulesfile <> "."
     fs <- listDirectory archivedir
-    return $ sortBy (comparing Down)
-      [ f | f <- fs, prefix `isPrefixOf` f, isJust $ parsedate $ drop (length prefix) f ]
+    return $ map (archivedir </>) $ sortBy (comparing Down)
+      [f | f <- fs,
+        prefix `isPrefixOf` f,
+        let nextpart = takeWhile (/= '.') $ drop (length prefix) f,
+        isJust $ parsedate nextpart
+        ]
 
 --- ** reading rules files
 --- *** rules utilities
