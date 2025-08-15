@@ -47,7 +47,7 @@ $ hledger import --dry-run bank.csv | hledger -f- -I print unknown
 You could also run this repeatedly to see the effect of edits to your conversion rules:
 
 ```cli
-$ watchexec -- 'hledger import --dry-run bank.csv | hledger -f- -I print unknown'
+$ watchexec -- "hledger import --dry-run bank.csv | hledger -f- -I print unknown"
 ```
 
 Once the conversion and dates look good enough to import to your journal, 
