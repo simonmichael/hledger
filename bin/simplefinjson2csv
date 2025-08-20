@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+# simplefinjson2csv 1.0 - (c) Simon Michael 2025
+
+__version__ = "1.0"
+__author__  = "Simon Michael"
+versionmsg = f"%prog {__version__}, by {__author__} 2025; part of the hledger project."
+usagemsg   = """%prog [options] [JSONFILE|-] [-]
+
+Read SimpleFIN /accounts JSON from a JSONFILE or stdin;
+write each account's transactions as date-ordered CSV,
+to separate CSV files or to stdout.
+
+Requirements:
+ python 3
+ a SimpleFIN account with financial institution(s) and app connection configured.
+
+Examples: 
+$ simplefinjson | simplefinjson2csv
+$ simplefinjson >sf.json; simplefinjson2csv sf.json -
+"""
+
+from pprint import pprint as pp
+import csv
+import datetime
+import decimal
+import json
+import optparse
+import re
+import sys
+
+def parse_options():
+    parser = optparse.OptionParser(usage=usagemsg, version=versionmsg)
+    opts, args = parser.parse_args()
+    if len(args) > 2:
+        parser.print_help()
+        sys.exit()
+    return opts, args
+
+def main():
+    opts, args = parse_options()
+    with open(args[0],'r') if len(args) > 0 and not args[0]=='-' else sys.stdin as inp:
+
+        i = json.load(inp)
+        for a in i['accounts']: #[0:1]:
+            aid = a['id']
+            aname = a['name']
+            oname = a['org']['name']
+            ts = a['transactions']
+            if len(args) < 2:
+                fname = f'sf-{aid}.csv'
+                out = open(fname,'w')
+                print(f"writing {len(ts)} transactions to {fname}")
+            else:
+                out = sys.stdout
+            w = csv.writer(out, quoting=csv.QUOTE_ALL)
+            w.writerow([
+                "date",
+                "id",
+                "amount",
+                "description",
+                "payee",
+                "memo"
+                ])
+
+            for t in reversed(a['transactions']):
+              dt = datetime.datetime.fromtimestamp(t['posted'])
+              # dtl = dt.astimezone()
+              w.writerow([
+                  dt.strftime('%Y-%m-%d'), # %H:%M:%S %Z'),
+                  t['id'],
+                  t['amount'],
+                  t['description'],
+                  t['payee'],
+                  t['memo']
+                  ])
+  
+if __name__ == "__main__": main()
