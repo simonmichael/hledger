@@ -57,17 +57,17 @@ converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-
 ### simplefinsetup
 
 [`simplefinsetup`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinsetup)
-helps set up SimpleFIN, a developer-friendly aggregator of US bank data.
+helps set up SimpleFIN ([simplefin.org](https://simplefin.org)), a developer-friendly aggregator of US bank data.
 
 ### simplefinjson
 
 [`simplefinjson`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinjson)
-downloads transactions and balance data for one or more bank accounts, as JSON.
+downloads data for one or more bank accounts from SimpleFIN's API, as JSON.
 
 ### simplefinjson2csv
 
 [`simplefinjson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinjson2csv)
-converts SimpleFIN's JSON data CSV files, one for each bank account.
+converts SimpleFIN's JSON data to CSV files, one for each bank account.
 
 ## hledger command line scripts
 
