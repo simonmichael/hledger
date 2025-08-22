@@ -781,7 +781,6 @@ to enable ANSI colour and a number of other conveniences.
 --chop-long-lines
 --hilite-unread
 --ignore-case
---mouse
 --no-init
 --quit-at-eof
 --quit-if-one-screen

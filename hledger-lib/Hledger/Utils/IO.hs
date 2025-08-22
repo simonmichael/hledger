@@ -622,7 +622,6 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 --   --chop-long-lines
 --   --hilite-unread
 --   --ignore-case
---   --mouse
 --   --no-init
 --   --quit-at-eof
 --   --quit-if-one-screen
@@ -644,7 +643,6 @@ setupPager = do
        "--chop-long-lines"
       ,"--hilite-unread"
       ,"--ignore-case"
-      ,"--mouse"
       ,"--no-init"
       ,"--quit-at-eof"
       ,"--quit-if-one-screen"
