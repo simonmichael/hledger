@@ -3241,6 +3241,7 @@ The following kinds of rule can appear in the rules file, in any order.
 |                                                 |                                                                                                |
 |-------------------------------------------------|------------------------------------------------------------------------------------------------|
 | [**`source`**](#source)                         | optionally declare which file to read data from                                                |
+| [**`archive`**](#archive)                       | optionally enable an archive of imported files                                                 |
 | [**`encoding`**](#encoding)                     | optionally declare which text encoding the data has                                            |
 | [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
 | [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
@@ -3293,24 +3294,24 @@ All this enables a convenient workflow where can you just download CSV files, th
 
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
 
-The `archive` rule adds a few more features to `source`; see below.
+### Data cleaning
+
+After `source`'s file pattern, you can write `|` (pipe) and a data cleaning command.
+If hledger's CSV rules aren't enough, you can pre-process the downloaded data here with a shell command or script, to make it more suitable for conversion.
+The command will be executed by your default shell, will receive the data file's content as standard input,
+and should output zero or more lines of character-separated-values, ready for conversion by hledger's CSV rules.
 
 ## `archive`
 
-Adding the `archive` rule to your rules file affects importing or reading files specified by `source`:
+Adding the `archive` rule causes `import` to archive imported data files to a nearby `data/` directory.
+This is optional, but can be useful for troubleshooting, regenerating with improved rules, etc.
 
-- After successfully importing, `import` will move the data file to an archive directory
-  (`data/` next to the rules file, auto-created),
-  renamed to `RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT`.
-  Archiving data files is optional, but it can be useful for troubleshooting,
-  detecting variations in your banks' CSV data, regenerating entries with improved rules, etc.
+Also, it causes `import` to prefer the oldest data file, when the `source` rule's glob pattern matches multiple files.
+So multiple downloads will be imported and archived in chronological order (oldest first).
 
-- `import` will pick the oldest of `source` glob matches, rather than the newest.
-  So if you have multiple versions of a download, repeated imports will process them in chronological order.
-
-- For commands other than `import`, when the `source` path or glob pattern matches no files,
-  hledger will try to read the latest archived data file instead.
-  This is convenient for working with the downloaded data again, even after it has been imported.
+`archive` also affects non-`import` commands reading the rules file:
+when the `source` rule's glob pattern matches no files (no new downloads are available),
+they will use the archive as a fallback (reading the newest archived file, if any).
 
 ## `encoding`
 
