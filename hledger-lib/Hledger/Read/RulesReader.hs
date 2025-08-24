@@ -79,7 +79,7 @@ import qualified Data.Text.IO as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headMay, lastMay, readMay)
-import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, renameFile)
+import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, renameFile, removeFile)
 -- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
 import System.Exit      (ExitCode(..))
 import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
@@ -259,22 +259,25 @@ runFilterCommand rulesfile cmd input = do
 -- The remaining arguments are: the rules file path (for naming), the original data file,
 -- and if there was a data-cleaning command, the cleaned data from that file.
 -- The archive file name will be RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT.
--- When there is cleaned data, the original data is also saved, as 
--- RULESFILEBASENAME.orig.DATAFILEMODDATE.DATAFILEEXT.
+-- When there is cleaned data, currently only that is saved (not the original data).
 saveToArchive :: FilePath -> FilePath -> FilePath -> Maybe Text -> IO ()
 saveToArchive archivedir rulesfile datafile mcleandata = do
   createDirectoryIfMissing True archivedir
   hPutStrLn stderr $ "archiving " <> datafile
-  (origname, cleanname) <- archiveFileName rulesfile datafile
+  (_origname, cleanname) <- archiveFileName rulesfile datafile
   let
-    origarchive  = archivedir </> origname
     cleanarchive = archivedir </> cleanname
+    -- origarchive  = archivedir </> origname
   case mcleandata of
     Just cleandata -> do
-      hPutStrLn stderr $ " as " <> origarchive
-      renameFile datafile origarchive
-      hPutStrLn stderr $ " and " <> cleanarchive
+      -- disabled for simplicity:
+      -- the original data is also saved, as RULESFILEBASENAME.orig.DATAFILEMODDATE.DATAFILEEXT.
+      -- hPutStrLn stderr $ " as " <> origarchive
+      -- renameFile datafile origarchive
+      -- hPutStrLn stderr $ " and " <> cleanarchive
+      hPutStrLn stderr $ " as " <> cleanarchive
       T.writeFile cleanarchive cleandata
+      removeFile datafile
     Nothing -> do
       hPutStrLn stderr $ " as " <> cleanarchive
       renameFile datafile cleanarchive
