@@ -124,17 +124,17 @@ getDownloadDir = do
 -- Instead, a data file (or data-generating command) is usually specified by the @source@ rule.
 -- If there's no source rule, the data file is assumed to be named like the rules file without .rules, in the same directory.
 --
--- The source rule supports ~ for home directory.
--- If the argument is a bare filename, its directory is assumed to be ~/Downloads.
--- If is a relative file path, it is assumed to be relative to the rules file's directory.
+-- The source rule supports ~ for home directory: @source ~/Downloads/foo.csv@.
+-- If the argument is a bare filename, its directory is assumed to be ~/Downloads: @source foo.csv@.
+-- Otherwise if it is a relative path, it is assumed to be relative to the rules file's directory: @source new/foo.csv@.
 --
--- The source rule can specify a glob pattern.
--- If the glob pattern matches multiple files, the newest (last modified) file is used (see also below).
+-- The source rule can specify a glob pattern: @source foo*.csv@.
+-- If the glob pattern matches multiple files, the newest (last modified) file is used (with one exception, described below).
 --
--- The source rule can specify a data-cleaning command, after the file pattern and a | separator.
+-- The source rule can specify a data-cleaning command, after a @|@ separator: @source foo*.csv | sed -e 's/USD/$/g'@.
 -- This command is executed by the user's default shell, receives the data file's content on stdin,
--- and should output data suitable for hledger to convert with CSV rules.
--- A # character can be used to comment out the data-cleaning command.
+-- and should output CSV data suitable for hledger's conversion rules.
+-- A # character can be used to comment out the data-cleaning command: @source foo*.csv  # | ...@.
 --
 -- When using the source rule, if the archive rule is also present, some behaviours change:
 --
