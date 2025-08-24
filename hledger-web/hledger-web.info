@@ -16,7 +16,7 @@ plain text accounting app.
 
    'hledger-web [OPTS] [QUERY]'
 or
-'hledger web -- [OPTS] [QUERY]'
+'hledger web [OPTS] [QUERY]'
 
    This manual is for hledger's web interface, version 1.43.99.  See
 also the hledger manual for common concepts and file formats.
@@ -96,7 +96,7 @@ Flags:
      --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
      --test                 run hledger-web's tests and exit. hspec test
                             runner args may follow a --, eg: hledger-web --test
-                            -- --help
+                            --help
 
    By default hledger-web listens only on IP address '127.0.0.1', which
 be accessed only from the local machine.
@@ -528,15 +528,15 @@ We welcome bug reports in the hledger issue tracker
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2581
-Node: PERMISSIONS11482
-Node: EDITING UPLOADING DOWNLOADING12632
-Node: RELOADING13647
-Node: JSON API14214
-Node: DEBUG OUTPUT19863
-Node: Debug output20015
-Node: ENVIRONMENT20533
-Node: BUGS20769
+Node: OPTIONS2578
+Node: PERMISSIONS11476
+Node: EDITING UPLOADING DOWNLOADING12626
+Node: RELOADING13641
+Node: JSON API14208
+Node: DEBUG OUTPUT19857
+Node: Debug output20009
+Node: ENVIRONMENT20527
+Node: BUGS20763
 
 End Tag Table
 

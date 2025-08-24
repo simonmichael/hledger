@@ -20,11 +20,6 @@ or
 .PD 0
 .P
 .PD
-or
-.PD 0
-.P
-.PD
-\f[CR]hledger ADDONCMD [OPTS] \-\- [ADDONOPTS] [ADDONARGS]\f[R]
 .SH DESCRIPTION
 hledger is a robust, user\-friendly, cross\-platform set of programs for
 tracking money, time, or any other commodity, using double\-entry
@@ -283,7 +278,7 @@ Are all commodities declared with a \f[CR]commodity\f[R] directive ?
 .IP \[bu] 2
 Are all commodity conversions declared explicitly ?
 .PP
-You can use the check command to run individual checks \-\- the ones
+You can use the check command to run individual checks \- the ones
 listed above and some more.
 .SH Commands
 hledger provides various subcommands for getting things done.
@@ -318,31 +313,27 @@ terminal, run \f[CR]hledger CMD \-h\f[R].
 Eg: \f[CR]hledger bal \-h\f[R].
 .SS Add\-on commands
 In addition to the built\-in commands, you can install \f[I]add\-on
-commands\f[R]: programs or scripts named \[dq]hledger\-SOMETHING\[dq],
-which will also appear in hledger\[aq]s commands list.
-If you used the hledger\-install script, you will have several add\-ons
-installed already.
-Some more can be found in hledger\[aq]s bin/ directory, documented at
+commands\f[R], which will also appear in hledger\[aq]s commands list.
+Some of these can be installed as separate packages; others can be found
+in hledger\[aq]s bin/ directory, documented at
 https://hledger.org/scripts.html.
 .PP
-More precisely, add\-on commands are programs or scripts in your
-shell\[aq]s PATH, whose name starts with \[dq]hledger\-\[dq] and ends
-with no extension or a recognised extension (\[dq].bat\[dq],
-\[dq].com\[dq], \[dq].exe\[dq], \[dq].hs\[dq], \[dq].js\[dq],
-\[dq].lhs\[dq], \[dq].lua\[dq], \[dq].php\[dq], \[dq].pl\[dq],
-\[dq].py\[dq], \[dq].rb\[dq], \[dq].rkt\[dq], or \[dq].sh\[dq]), and (on
-unix and mac) which has executable permission for the current user.
+Add\-on commands are programs or scripts in your shell\[aq]s PATH, whose
+name starts with \[dq]hledger\-\[dq] and ends with no extension or a
+recognised extension (\[dq].bat\[dq], \[dq].com\[dq], \[dq].exe\[dq],
+\[dq].hs\[dq], \[dq].js\[dq], \[dq].lhs\[dq], \[dq].lua\[dq],
+\[dq].php\[dq], \[dq].pl\[dq], \[dq].py\[dq], \[dq].rb\[dq],
+\[dq].rkt\[dq], or \[dq].sh\[dq]), and (on unix and mac) which has
+executable permission for the current user.
 .PP
-You can run add\-on commands using hledger, much like built\-in
-commands:
-\f[CR]hledger ADDONCMD [\-\- ADDONCMDOPTS] [ADDONCMDARGS]\f[R].
-But note the double hyphen argument, required before add\-on\-specific
-options.
-Eg: \f[CR]hledger ui \-\- \-\-watch\f[R] or
-\f[CR]hledger web \-\- \-\-serve\f[R].
-If this causes difficulty, you can always run the add\-on directly,
-without using \f[CR]hledger\f[R]: \f[CR]hledger\-ui \-\-watch\f[R] or
-\f[CR]hledger\-web \-\-serve\f[R].
+You can run add\-on commands directly: \f[CR]hledger\-ui \-\-watch\f[R].
+.PP
+Or you can run them with hledger, like built\-in commands:
+\f[CR]hledger ui \-\-watch\f[R].
+In this case hledger\[aq]s config file will be used, so you can set
+custom options for the addon there.
+(Before hledger 1.50, an \f[CR]\-\-\f[R] argument was needed before
+addon options, but not any more.)
 .SH Options
 Run \f[CR]hledger \-h\f[R] to see general command line help.
 Options can be written either before or after the command name.
@@ -447,6 +438,11 @@ General help flags:
 Usually hledger accepts any unambiguous flag prefix, eg you can write
 \f[CR]\-\-tl\f[R] instead of \f[CR]\-\-tldr\f[R] or \f[CR]\-\-dry\f[R]
 instead of \f[CR]\-\-dry\-run\f[R].
+.PP
+You can combine short flags which don\[aq]t take arguments, eg you can
+write \f[CR]\-MAST\f[R] instead of \f[CR]\-M \-A \-S \-T\f[R].
+Flags requiring an argument can\[aq]t be combined in this way
+(\f[CR]\-If FILE\f[R] won\[aq]t work).
 .PP
 If the same option appears more than once in a command line, usually the
 last (right\-most) wins.
@@ -911,8 +907,7 @@ the effect on all your reports.
 To troubleshoot the effect of config files, run with
 \f[CR]\-\-debug\f[R] or \f[CR]\-\-debug 8\f[R].
 .PP
-The config file feature was added in hledger 1.40 and is considered
-\f[I]experimental\f[R].
+The config file feature was added in hledger 1.40.
 .SS Shell completions
 If you use the bash or zsh shells, you can optionally set up
 context\-sensitive autocompletion for hledger command lines.
@@ -1184,7 +1179,7 @@ If you are using the \f[CR]less\f[R] pager, hledger automatically
 appends a number of options to the \f[CR]LESS\f[R] variable to enable
 ANSI colour and a number of other conveniences.
 (At the time of writing: \-\-chop\-long\-lines \-\-hilite\-unread
-\-\-ignore\-case \-\-mouse \-\-no\-init \-\-quit\-at\-eof
+\-\-ignore\-case \-\-no\-init \-\-quit\-at\-eof
 \-\-quit\-if\-one\-screen \-\-RAW\-CONTROL\-CHARS \-\-shift=8
 \-\-squeeze\-blank\-lines \-\-use\-backslash ).
 If these don\[aq]t work well, you can set your preferred options in the
@@ -3312,29 +3307,57 @@ You can pull in the content of additional files by writing an include
 directive, like this:
 .IP
 .EX
-include FILEPATH
+include SOMEFILE
 .EE
 .PP
-Only journal files can include, and only journal, timeclock or timedot
-files can be included (not CSV files, currently).
+This has the same effect as if SOMEFILE\[aq]s content was inlined at
+this point.
+(With any include directives in SOMEFILE processed similarly,
+recursively.)
 .PP
-If the file path does not begin with a slash, it is relative to the
-current file\[aq]s folder.
+Only journal files can include other files.
+They can include journal, timeclock or timedot files, but not CSV files.
 .PP
-A tilde means home directory, eg: \f[CR]include \[ti]/main.journal\f[R].
+If the file path begins with a tilde, that means your home directory:
+\f[CR]include \[ti]/main.journal\f[R].
 .PP
-The path may contain glob patterns to match multiple files, eg:
-\f[CR]include *.journal\f[R].
+If it begins with a slash, it is an absolute path:
+\f[CR]include /home/user/main.journal\f[R].
+Otherwise it is relative to the including file\[aq]s folder:
+\f[CR]include ../finances/main.journal\f[R].
 .PP
-There is limited support for recursive wildcards: \f[CR]**/\f[R] (the
-slash is required) matches 0 or more subdirectories.
-It\[aq]s not super convenient since you have to avoid include cycles and
-including directories, but this can be done, eg:
-\f[CR]include */**/*.journal\f[R].
+Also, the path may have a file type prefix to force a specific file
+format, overriding the file extension(s) (as described in Data formats):
+\f[CR]include timedot:notes/2023.md\f[R].
 .PP
-The path may also be prefixed to force a specific file format,
-overriding the file extension (as described in Data formats):
-\f[CR]include timedot:\[ti]/notes/2023*.md\f[R].
+The path may contain glob patterns to match multiple files.
+hledger\[aq]s globs are similar to zsh\[aq]s: \f[CR]?\f[R] to match any
+character; \f[CR][a\-z]\f[R] to match any character in a range;
+\f[CR]*\f[R] to match zero or more characters that aren\[aq]t a path
+separator (like \f[CR]/\f[R]); \f[CR]**\f[R] to match zero or more
+subdirectories and/or zero or more characters at the start of a file
+name; etc.
+Also, hledger\[aq]s globs always exclude the including file itself.
+So, you can do
+.IP \[bu] 2
+\f[CR]include *.journal\f[R] to include all other journal files in the
+current directory (excluding dot files)
+.IP \[bu] 2
+\f[CR]include **.journal\f[R] to include all other journal files in this
+directory and below (excluding dot directories/files)
+.IP \[bu] 2
+\f[CR]include timelogs/2???.timedot\f[R] to include all timedot files
+named like a year number.
+.PP
+There is a limitation: hledger\[aq]s globs always exclude paths
+involving dot files or dot directories.
+This is a workaround for unavoidable dot directory traversal; you can
+disable it and revert to older behaviour with the
+\f[CR]\-\-old\-glob\f[R] flag, for now.
+.PP
+If you are using many, or deeply nested, include files, and have an
+error that\[aq]s hard to pinpoint: a good troubleshooting command is
+\f[CR]hledger files \-\-debug=6\f[R] (or 7).
 .SS \f[CR]P\f[R] directive
 The \f[CR]P\f[R] directive declares a market price, which is a
 conversion rate between two commodities on a certain date.
@@ -3541,6 +3564,9 @@ immediately below the matched posting.
 Note these generated postings are temporary, existing only for the
 duration of the report, and only when \f[CR]\-\-auto\f[R] is used; they
 are not saved in the journal file by hledger.
+.PP
+The postings can contain the special string \f[CR]%account\f[R] which
+will be expanded to the account name of the matched account.
 .PP
 Generated postings\[aq] amounts can depend on the matched posting\[aq]s
 amount.
@@ -4222,34 +4248,68 @@ will look for rules in \f[CR]foo.csv.rules\f[R].
 Or, you can tell it to read the rules file, with
 \f[CR]\-f foo.csv.rules\f[R], and it will look for data in
 \f[CR]foo.csv\f[R] (since 1.30).
-.PP
 These are mostly equivalent, but the second method provides some extra
 features.
 For one, the data file can be missing, without causing an error; it is
 just considered empty.
-And, you can specify a different data file by adding a \[dq]source\[dq]
-rule:
+.PP
+For more flexibility, add a \f[CR]source\f[R] rule, which lets you
+specify a different data file:
 .IP
 .EX
 source ./Checking1.csv
 .EE
 .PP
+If the file does not exist, it is just considered empty, without raising
+an error.
+.PP
 If you specify just a file name with no path, hledger will look for it
-in your system\[aq]s downloads directory (\f[CR]\[ti]/Downloads\f[R],
-currently):
+in the \f[CR]\[ti]/Downloads\f[R] folder:
 .IP
 .EX
 source Checking1.csv
 .EE
 .PP
-And if you specify a glob pattern, hledger will read the most recent of
-the matched files (useful with repeated downloads):
+You can use a glob pattern, to avoid specifying the file name exactly:
 .IP
 .EX
 source Checking1*.csv
 .EE
 .PP
+This has another benefit: if the pattern matches multiple files, hledger
+will read the newest (most recently modified) one.
+This avoids problems if you have downloaded a file multiple times
+without cleaning up.
+.PP
+All this enables a convenient workflow where can you just download CSV
+files, then run \f[CR]hledger import rules/*\f[R].
+.PP
 See also \[dq]Working with CSV > Reading files specified by rule\[dq].
+.PP
+The \f[CR]archive\f[R] rule adds a few more features to
+\f[CR]source\f[R]; see below.
+.SS \f[CR]archive\f[R]
+Adding the \f[CR]archive\f[R] rule to your rules file affects importing
+or reading files specified by \f[CR]source\f[R]:
+.IP \[bu] 2
+After successfully importing, \f[CR]import\f[R] will move the data file
+to an archive directory (\f[CR]data/\f[R] next to the rules file,
+auto\-created), renamed to
+\f[CR]RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT\f[R].
+Archiving data files is optional, but it can be useful for
+troubleshooting, detecting variations in your banks\[aq] CSV data,
+regenerating entries with improved rules, etc.
+.IP \[bu] 2
+\f[CR]import\f[R] will pick the oldest of \f[CR]source\f[R] glob
+matches, rather than the newest.
+So if you have multiple versions of a download, repeated imports will
+process them in chronological order.
+.IP \[bu] 2
+For commands other than \f[CR]import\f[R], when the \f[CR]source\f[R]
+path or glob pattern matches no files, hledger will try to read the
+latest archived data file instead.
+This is convenient for working with the downloaded data again, even
+after it has been imported.
 .SS \f[CR]encoding\f[R]
 .IP
 .EX
@@ -4366,6 +4426,9 @@ date\-format %Y\-%h\-%d
 # Note the time and junk must be fully parsed, though only the date is used.
 date\-format %\-m/%\-d/%Y %l:%M %p some other junk
 .EE
+.PP
+Note currently there is no locale awareness for things like
+\f[CR]%b\f[R], and setting LC_TIME won\[aq]t help.
 .SS \f[CR]timezone\f[R]
 .IP
 .EX
@@ -6110,12 +6173,13 @@ can optionally use \[dq]smart date\[dq] syntax.
 Smart dates can be written with english words, can be relative, and can
 have parts omitted.
 Missing parts are inferred as 1, when needed.
-Smart dates can be interpreted as dates or periods depending on context.
+Smart dates can be interpreted as dates or periods depending on the
+context.
 .PP
 Examples:
 .PP
 \f[CR]2004\-01\-01\f[R], \f[CR]2004/10/1\f[R], \f[CR]2004.9.1\f[R],
-\f[CR]20240504\f[R] :
+\f[CR]20240504\f[R], \f[CR]2024Q1\f[R] :
 .PD 0
 .P
 .PD
@@ -6123,9 +6187,16 @@ Exact dates.
 The year must have at least four digits, the month must be 1\-12, the
 day must be 1\-31, the separator can be \f[CR]\-\f[R] or \f[CR]/\f[R] or
 \f[CR].\f[R] or nothing.
+The q can be upper or lower case and the quarter number must be 1\-4.
 .TP
 \f[CR]2004\-10\f[R]
 start of month
+.TP
+\f[CR]2004q3\f[R]
+start of third quarter of 2004
+.TP
+\f[CR]q3\f[R]
+start of third quarter of current year
 .TP
 \f[CR]2004\f[R]
 start of year
@@ -6226,7 +6297,7 @@ For example, if the journal\[aq]s last transaction is on february 20th,
 of february.
 .IP \[bu] 2
 \f[CR]hledger register \-\-monthly \-\-end 2/14\f[R] also will end the
-report at the end of february.
+report at the end of february (overriding the requested end date).
 .IP \[bu] 2
 \f[CR]hledger register \-\-monthly \-\-begin 1/5 \-\-end 2/14\f[R] will
 end the report on march 4th [1].
@@ -6565,7 +6636,7 @@ accounts matching \f[CR]liabilities\f[R] to depth 3,
 all other accounts to depth 1.
 .PP
 If an account is matched by more than one regular expression depth
-argument then the more specific one will used.
+argument then the more specific one will be used.
 For example, if
 \f[CR]\-\-depth assets=1 \-\-depth assets:bank:savings=2\f[R] is
 provided, then \f[CR]assets:bank:savings\f[R] will be collapsed to depth
@@ -6975,7 +7046,7 @@ amount to a cash account\[dq].
 .PD
 Like \f[CR]expr:\f[R], but when used with transaction\-oriented commands
 like \f[CR]print\f[R], it matches the transaction only if all postings
-are matched by all of QUERYEXPR.
+are matched by all of QUERYEXPR (and there is at least one posting).
 .PD 0
 .P
 .PD
@@ -8041,8 +8112,8 @@ $ hledger \-f\- print \-\-value=end date:2000/01\-2000/03
     (a)             2 B
 .EE
 .PP
-With no report period specified, that shows the value as of the last day
-of the journal (2000\-03\-01):
+With no report period specified, the latest transaction date or price
+date is used as valuation date (2000\-04\-01):
 .IP
 .EX
 $ hledger \-f\- print \-\-value=end
@@ -8056,8 +8127,7 @@ $ hledger \-f\- print \-\-value=end
     (a)             3 B
 .EE
 .PP
-Show the current value (the 2000\-04\-01 price is still in effect
-today):
+The value today is the same (the 2000\-04\-01 price is still in effect):
 .IP
 .EX
 $ hledger \-f\- print \-\-value=now
@@ -8580,10 +8650,6 @@ eg \f[CR]\-s4\f[R] to play at 4x original speed or \f[CR]\-s.5\f[R] to
 play at half speed.
 The default speed is 2x.
 .PP
-Other asciinema options can be added following a double dash, eg
-\f[CR]\-\- \-i.1\f[R] to limit pauses or \f[CR]\-\- \-h\f[R] to list
-asciinema\[aq]s other options.
-.PP
 During playback, several keys are available: SPACE to pause/unpause, .
 to step forward (while paused), CTRL\-c quit.
 .PP
@@ -8852,7 +8918,7 @@ Runs hledger\-ui (if installed).
 Runs hledger\-web (if installed).
 .SH Data entry commands
 .SS add
-Record new transactions with interactive prompting in the console.
+Add new transactions to a journal file, with interactive prompting.
 .IP
 .EX
 Flags:
@@ -8906,6 +8972,9 @@ default commodity with a \f[CR]D\f[R] directive, you might expect
 It does not do this; we assume that if you are using a \f[CR]D\f[R]
 directive you prefer not to see the commodity symbol repeated on amounts
 in the journal.
+.IP \[bu] 2
+\f[CR]add\f[R] creates entries in journal format; it won\[aq]t work with
+timeclock or timedot files.
 .PP
 Examples:
 .IP \[bu] 2
@@ -8981,7 +9050,7 @@ $ hledger import bank1\-checking.csv bank1\-savings.csv
 .EX
 $ hledger import *.csv
 .EE
-.SS Import preview
+.SS Import dry run
 It\[aq]s useful to preview the import by running first with
 \f[CR]\-\-dry\-run\f[R], to sanity check the range of dates being
 imported, and to check the effect of your conversion rules if converting
@@ -9004,7 +9073,7 @@ You could also run this repeatedly to see the effect of edits to your
 conversion rules:
 .IP
 .EX
-$ watchexec \-\- \[aq]hledger import \-\-dry\-run bank.csv | hledger \-f\- \-I print unknown\[aq]
+$ watchexec \-\- \[dq]hledger import \-\-dry\-run bank.csv | hledger \-f\- \-I print unknown\[dq]
 .EE
 .PP
 Once the conversion and dates look good enough to import to your
@@ -9153,38 +9222,58 @@ journal\[aq]s canonical commodity styles, as declared by
 amounts.
 .PP
 Related: CSV > Amount decimal places.
+.SS Import archiving
+When importing from a CSV rules file
+(\f[CR]hledger import bank.rules\f[R]), you can use the archive rule to
+enable automatic archiving of the data file.
+After a successful import, the data file (specified by
+\f[CR]source\f[R]) will be moved to an archive folder (\f[CR]data/\f[R],
+next to the rules file, auto\-created), and renamed similar to the rules
+file, with a date.
+This can be useful for troubleshooting, detecting variations in your
+banks\[aq] CSV data, regenerating entries with improved rules, etc.
+.PP
+The \f[CR]archive\f[R] rule also causes \f[CR]import\f[R] to handle
+\f[CR]source\f[R] glob patterns differently: when there are multiple
+matched files, it will pick the oldest, not the newest.
 .SS Import special cases
-If you have a download whose file name varies, you could rename it to a
-fixed name after each download.
-Or you could use a CSV \f[CR]source\f[R] rule with a suitable glob
-pattern, and import from the .rules file instead of the data file.
-.PP
-Here\[aq]s a situation where you would need to run \f[CR]import\f[R]
-with care: say you download \f[CR]bank.csv\f[R], but forget to import it
-or delete it.
-And next month you download it again.
-This time your web browser may save it as \f[CR]bank (2).csv\f[R].
-So now each of these may have data not included in the other.
-And a \f[CR]source\f[R] rule with a glob pattern would match only the
-most recent file.
-So in this case you should import from each one in turn, in the correct
-order, taking care to use the same filename each time:
-.IP
-.EX
-$ hledger import bank.csv
-$ mv \[aq]bank (2).csv\[aq] bank.csv
-$ hledger import bank.csv
-.EE
-.PP
+.SS Deduplication
 Here are two kinds of \[dq]deduplication\[dq] which \f[CR]import\f[R]
-does not handle (and generally should not, since these can happen
-legitimately in financial data):
+does not handle (and should not, because these can happen legitimately
+in financial data):
 .IP \[bu] 2
 Two or more of the new CSV records are identical, and generate identical
 new journal entries.
 .IP \[bu] 2
 A new CSV record generates a journal entry identical to one(s) already
 in the journal.
+.SS Varying file name
+If you have a download whose file name varies, you could rename it to a
+fixed name after each download.
+Or you could use a CSV \f[CR]source\f[R] rule with a suitable glob
+pattern, and import from the .rules file.
+.SS Multiple versions
+Say you download \f[CR]bank.csv\f[R], import it, but forget to delete it
+from your downloads folder.
+The next time you download it, your web browser will save it as (eg)
+\f[CR]bank (2).csv\f[R].
+The source rule\[aq]s glob patterns are for just this situation: instead
+of specifying \f[CR]source bank.csv\f[R], specify
+\f[CR]source bank*.csv\f[R].
+Then \f[CR]hledger \-f bank.rules CMD\f[R] or
+\f[CR]hledger import bank.rules\f[R] will automatically pick the newest
+matched file (\f[CR]bank (2).csv\f[R]).
+.PP
+Alternately, what if you download, but forget to import or delete, then
+download again ?
+Now each of \f[CR]bank.csv\f[R] and \f[CR]bank (2).csv\f[R] might
+contain data that\[aq]s not in the other, and not in your journal.
+In this case, it\[aq]s best to import each of them in turn, oldest first
+(otherwise, overlap detection could cause new records to be skipped).
+Enabling import archiving ensures this.
+Then \f[CR]hledger import bank.rules; hledger import bank.rules\f[R]
+will import and archive first \f[CR]bank.csv\f[R], then
+\f[CR]bank (2).csv\f[R].
 .SH Basic report commands
 .SS accounts
 List the account names used or declared in the journal.
@@ -9813,7 +9902,7 @@ full account name, or a distinctive substring that matches uniquely.
 .PP
 Transactions involving subaccounts of this account will also be shown.
 \f[CR]aregister\f[R] ignores depth limits, so its final total will
-always match a balance report with similar arguments.
+always match a historical balance report with similar arguments.
 .PP
 Any additional arguments form a query which will filter the transactions
 shown.
@@ -12212,10 +12301,10 @@ spaces between account and amount.
 More:
 .IP
 .EX
-$ hledger rewrite \-\- [QUERY]        \-\-add\-posting \[dq]ACCT  AMTEXPR\[dq] ...
-$ hledger rewrite \-\- \[ha]income        \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq]
-$ hledger rewrite \-\- expenses:gifts \-\-add\-posting \[aq](budget:gifts)  *\-1\[dq]\[aq]
-$ hledger rewrite \-\- \[ha]income        \-\-add\-posting \[aq](budget:foreign currency)  *0.25 JPY; diversify\[aq]
+$ hledger rewrite [QUERY]        \-\-add\-posting \[dq]ACCT  AMTEXPR\[dq] ...
+$ hledger rewrite \[ha]income        \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq]
+$ hledger rewrite expenses:gifts \-\-add\-posting \[aq](budget:gifts)  *\-1\[dq]\[aq]
+$ hledger rewrite \[ha]income        \-\-add\-posting \[aq](budget:foreign currency)  *0.25 JPY; diversify\[aq]
 .EE
 .PP
 Argument for \f[CR]\-\-add\-posting\f[R] option is a usual posting of
@@ -12253,14 +12342,14 @@ It indicates the query by which you want to match the posting to add new
 ones.
 .IP
 .EX
-$ hledger rewrite \-\- \-f input.journal \-f rewrite\-rules.journal > rewritten\-tidy\-output.journal
+$ hledger rewrite \-f input.journal \-f rewrite\-rules.journal > rewritten\-tidy\-output.journal
 .EE
 .PP
 This is something similar to the commands pipeline:
 .IP
 .EX
-$ hledger rewrite \-\- \-f input.journal \[aq]\[ha]income\[aq] \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq] \[rs]
-  | hledger rewrite \-\- \-f \- expenses:gifts      \-\-add\-posting \[aq]budget:gifts  *\-1\[aq]       \[rs]
+$ hledger rewrite \-f input.journal \[aq]\[ha]income\[aq] \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq] \[rs]
+  | hledger rewrite \-f \- expenses:gifts      \-\-add\-posting \[aq]budget:gifts  *\-1\[aq]       \[rs]
                                                 \-\-add\-posting \[aq]assets:budget  *1\[aq]       \[rs]
   > rewritten\-tidy\-output.journal
 .EE
@@ -12273,7 +12362,7 @@ To use this tool for batch modification of your journal files you may
 find useful output in form of unified diff.
 .IP
 .EX
-$ hledger rewrite \-\- \-\-diff \-f examples/sample.journal \[aq]\[ha]income\[aq] \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq]
+$ hledger rewrite \-\-diff \-f examples/sample.journal \[aq]\[ha]income\[aq] \-\-add\-posting \[aq](liabilities:tax)  *.33\[aq]
 .EE
 .PP
 Output might look like:
@@ -12604,10 +12693,10 @@ help:
 command\-specific options must go after the command (it\[aq]s fine to
 put common options there too: \f[CR]hledger CMD OPTS ARGS\f[R])
 .IP \[bu] 2
-running add\-on executables directly simplifies command line parsing
-(\f[CR]hledger\-ui OPTS ARGS\f[R])
+you can run addon commands via hledger (\f[CR]hledger ui [ARGS]\f[R]) or
+directly (\f[CR]hledger\-ui [ARGS]\f[R])
 .IP \[bu] 2
-enclose \[dq]problematic\[dq] args in single quotes
+enclose \[dq]problematic\[dq] arguments in single quotes
 .IP \[bu] 2
 if needed, also add a backslash to hide regular expression
 metacharacters from the shell
@@ -13038,19 +13127,13 @@ We welcome bug reports in the hledger issue tracker
 .PP
 Some known issues and limitations:
 .PP
-The need to precede add\-on command options with \f[CR]\-\-\f[R] when
-invoked from hledger is awkward.
-(See Command options, Constructing command lines.)
-.PP
 A system locale with a suitable text encoding must be configured to work
 with non\-ascii data.
 (See Text encoding, Troubleshooting.)
 .PP
-On Microsoft Windows, depending whether you are running in a CMD window
-or a Cygwin/MSYS/Mintty window and how you installed hledger, non\-ascii
-characters and colours may not be supported, and the tab key may not be
-supported by \f[CR]hledger add\f[R].
-(Running in a WSL window should resolve these.)
+On Microsoft Windows, depending what kind of terminal window you use,
+non\-ascii characters, ANSI text formatting, and/or the add
+command\[aq]s TAB key for completion, may not be supported.
 .PP
 When processing large data files, hledger uses more memory than Ledger.
 .SS Troubleshooting

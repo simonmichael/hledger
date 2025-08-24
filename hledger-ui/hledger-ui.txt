@@ -6,9 +6,9 @@ NAME
        plain text accounting app.
 
 SYNOPSIS
-       hledger-ui    [OPTS] [QUERYARGS]
+       hledger-ui [OPTS] [QUERYARGS]
        or
-       hledger ui -- [OPTS] [QUERYARGS]
+       hledger ui [OPTS] [QUERYARGS]
 
 DESCRIPTION
        This manual is for hledger's terminal interface, version 1.43.99.   See

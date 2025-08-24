@@ -6,9 +6,9 @@ NAME
        plain text accounting app.
 
 SYNOPSIS
-       hledger-web    [OPTS] [QUERY]
+       hledger-web [OPTS] [QUERY]
        or
-       hledger web -- [OPTS] [QUERY]
+       hledger web [OPTS] [QUERY]
 
 DESCRIPTION
        This manual is for hledger's web interface, version 1.43.99.  See  also
@@ -73,7 +73,7 @@ OPTIONS
                    --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
                    --test                 run hledger-web's tests and exit. hspec test
                                           runner args may follow a --, eg: hledger-web --test
-                                          -- --help
+                                          --help
 
        By default hledger-web listens only on IP address 127.0.0.1,  which  be
        accessed only from the local machine.
