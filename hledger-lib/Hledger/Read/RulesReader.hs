@@ -157,8 +157,10 @@ parse iopts rulesfile h = do
   let
     -- XXX How can we know when the command is import, and if it's a dry run ? In a hacky way, currently.
     args = progArgs
-    cmd = headDef "" $ dropWhile ((=="-").take 1) args
-    cmdisimport = dbg7 "cmdisimport" $ cmd `elem` ["import", "imp"]
+    -- XXX Difficult to identify the command name reliably here,
+    -- Cli.hs's moveFlagsAfterCommand would help but is not importable here.
+    -- Just look for import or imp appearing anywhere in the arguments.
+    cmdisimport = dbg7 "cmdisimport" $ any (`elem` args) ["import", "imp"]
     dryrun     = dbg7 "dryrun"     $ any (`elem` args) ["--dry-run", "--dry"]
     importing  = dbg7 "importing"  $ cmdisimport && not dryrun
     archive    = dbg7 "archive"    $ isJust (getDirective "archive" rules)
