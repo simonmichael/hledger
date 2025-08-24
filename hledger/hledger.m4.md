@@ -3303,15 +3303,16 @@ and should output zero or more lines of character-separated-values, ready for co
 
 ## `archive`
 
-Adding the `archive` rule causes `import` to archive imported data files to a nearby `data/` directory.
-This is optional, but can be useful for troubleshooting, regenerating with improved rules, etc.
+Adding `archive` to a rules file causes the `import` command
+to archive (move and rename) each imported data file, in a nearby `data/` directory.
+Also, `import` will prefer the oldest of the `source` rule's glob-matched files rather than the newest.
+(So if there are multiple downloads, they will be imported and archived oldest first.)
 
-Also, it causes `import` to prefer the oldest data file, when the `source` rule's glob pattern matches multiple files.
-So multiple downloads will be imported and archived in chronological order (oldest first).
-
-`archive` also affects non-`import` commands reading the rules file:
-when the `source` rule's glob pattern matches no files (no new downloads are available),
-they will use the archive as a fallback (reading the newest archived file, if any).
+Archiving imported data is optional, but it can be useful for
+troubleshooting your CSV rules,
+regenerating entries with improved rules,
+checking for variations in your bank's CSV,
+etc.
 
 ## `encoding`
 
