@@ -62,8 +62,9 @@ import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
 import Data.Encoding (encodingFromStringExplicit)
 import Data.Either (fromRight)
 import Data.Functor ((<&>))
-import Data.List (elemIndex, mapAccumL, nub, sortOn, isPrefixOf, sortBy)
-import Data.Ord (Down(..), comparing)
+import Data.List (elemIndex, mapAccumL, nub, sortOn)
+-- import Data.List (elemIndex, mapAccumL, nub, sortOn, isPrefixOf, sortBy)
+-- import Data.Ord (Down(..), comparing)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -77,8 +78,9 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.IO as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
-import Safe (atMay, headMay, lastMay, readMay, headDef)
-import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
+import Safe (atMay, headMay, lastMay, readMay)
+import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, renameFile)
+-- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
 import System.Exit      (ExitCode(..))
 import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
@@ -189,12 +191,17 @@ parse iopts rulesfile h = do
         where err = error' $ "could not infer a data file for " <> rulesfile
       Just glb -> do
         let (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
-        globmatches <- expandGlob dir (dbg4 "source rule" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
-        case globmatches of
-          -- if the source rule matched no files, and we are reading not importing, use the most recent archive file
-          [] | archive && not cmdisimport -> do
-            archivesFor archivedir rulesfile <&> take 1 <&> dbg4 "latest file in archive directory"
-          _ -> return globmatches
+        expandGlob dir (dbg4 "source rule" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
+        -- XXX disable for now, too much complication: easy review of recent imported data:
+        --   `archive` also affects non-`import` commands reading the rules file:
+        --   when the `source` rule's glob pattern matches no files (no new downloads are available),
+        --   they will use the archive as a fallback (reading the newest archived file, if any).
+        -- if the source rule matched no files and we are reading not importing, use the most recent archived file.
+        -- case globmatches of
+        --   [] | archive && not cmdisimport -> do
+        --     archivesFor archivedir rulesfile <&> take 1 <&> dbg4 "latest file in archive directory"
+        --   _ -> return globmatches  -- XXX don't let it be cleaned again
+
     return $ case datafiles of
       []                            -> (Nothing, Nothing)
       [f] | cmdisimport             -> dbg4 "importing"             (Just f    , mcmd)
@@ -285,25 +292,25 @@ archiveFileName rulesfile datafile = do
     ,base            <.> moddate <.> ext
     )
 
--- | In the given archive directory, if it exists, find the paths of data files saved for the given rules file.
--- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
---
--- We don't know which extension the data files use, but we look for file names beginning with
--- the rules file's base name followed by .YYYY-MM-DD, which will normally be good enough.
---
-archivesFor :: FilePath -> FilePath -> IO [FilePath]
-archivesFor archivedir rulesfile = do
-  exists <- doesDirectoryExist archivedir
-  if not exists then return []
-  else do
-    let prefix = takeBaseName rulesfile <> "."
-    fs <- listDirectory archivedir
-    return $ map (archivedir </>) $ sortBy (comparing Down)
-      [f | f <- fs,
-        prefix `isPrefixOf` f,
-        let nextpart = takeWhile (/= '.') $ drop (length prefix) f,
-        isJust $ parsedate nextpart
-        ]
+-- -- | In the given archive directory, if it exists, find the paths of data files saved for the given rules file.
+-- -- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
+-- --
+-- -- We don't know which extension the data files use, but we look for file names beginning with
+-- -- the rules file's base name followed by .YYYY-MM-DD, which will normally be good enough.
+-- --
+-- archivesFor :: FilePath -> FilePath -> IO [FilePath]
+-- archivesFor archivedir rulesfile = do
+--   exists <- doesDirectoryExist archivedir
+--   if not exists then return []
+--   else do
+--     let prefix = takeBaseName rulesfile <> "."
+--     fs <- listDirectory archivedir
+--     return $ map (archivedir </>) $ sortBy (comparing Down)
+--       [f | f <- fs,
+--         prefix `isPrefixOf` f,
+--         let nextpart = takeWhile (/= '.') $ drop (length prefix) f,
+--         isJust $ parsedate nextpart
+--         ]
 
 --- ** reading rules files
 --- *** rules utilities
