@@ -15,9 +15,6 @@ Use the -s/--speed SPEED option to set your preferred playback speed, eg
 -s4 to play at 4x original speed or -s.5 to play at half speed. The
 default speed is 2x.
 
-Other asciinema options can be added following a double dash, eg -- -i.1
-to limit pauses or -- -h to list asciinema's other options.
-
 During playback, several keys are available: SPACE to pause/unpause, .
 to step forward (while paused), CTRL-c quit.
 
