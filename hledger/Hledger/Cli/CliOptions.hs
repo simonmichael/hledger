@@ -154,7 +154,14 @@ Right binaryinfo = parseHledgerVersion prognameandversion
 -- | Common input-related flags: --file, --rules, --conf, --alias...
 inputflags :: [Flag RawOpts]
 inputflags = [
-   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "[FMT:]FILE" "Read data from FILE, or from stdin if FILE is -, inferring format from extension or a FMT: prefix. Can be specified more than once. If not specified, reads from $LEDGER_FILE or $HOME/.hledger.journal."
+   flagReq  ["file","f"]      (\s opts -> Right $ setopt "file" s opts) "[FMT:]FILE" $ unwords [
+     "Use this as the journal file (- means stdin)."
+    ,"If not specified, $LEDGER_FILE or ~/.hledger.journal will be used."
+    ,"If specified more than once, the files will be read in order."
+    ,"Each file's format (journal, csv, timeclock, timedot, rules..) is inferred from the file extension or a FMT: prefix."
+    ,"Some commands (add, import) write to the (first) file,"
+    ,"and expect it to be in journal format."
+    ]
   ,flagReq  ["rules"]         (\s opts -> Right $ setopt "rules" s opts) "RULESFILE" "Use rules defined in this rules file for converting subsequent CSV/SSV/TSV files. If not specified, uses FILE.csv.rules for each FILE.csv."  -- see also hiddenflags
 
   ,flagReq  ["alias"]         (\s opts -> Right $ setopt "alias" s opts)  "A=B|/RGX/=RPL" "transform account names from A to B, or by replacing regular expression matches"

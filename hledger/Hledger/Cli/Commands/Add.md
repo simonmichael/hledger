@@ -1,6 +1,6 @@
 ## add
 
-Add new transactions to a journal file, with interactive prompting in the console.
+Add new transactions to a journal file, with interactive prompting.
 
 ```flags
 Flags:

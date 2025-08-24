@@ -27,7 +27,7 @@ importmode = hledgerCommandMode
   ]
   cligeneralflagsgroups1
   hiddenflags
-  ([], Just $ argsFlag "FILE [...]")
+  ([], Just $ argsFlag "[-f JOURNALFILE] DATAFILES...")
 
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- XXX could be helpful to show the last-seen date, and number of old transactions, too
@@ -53,7 +53,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
       }
 
   case inputfiles of
-    [] -> error' "please provide one or more input files as arguments"  -- PARTIAL:
+    [] -> error' "please provide one or more data files as arguments"  -- PARTIAL:
     fs -> do
       enewjandlatestdatesforfiles <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
       case enewjandlatestdatesforfiles of

@@ -54,7 +54,7 @@ addmode = hledgerCommandMode
   [flagNone ["no-new-accounts"]  (setboolopt "no-new-accounts") "don't allow creating new accounts"]
   [generalflagsgroup2]
   []
-  ([], Just $ argsFlag "[DATE [DESCRIPTION [ACCOUNT1 [AMOUNT1 [ACCOUNT2 [ETC...]]]]]]")
+  ([], Just $ argsFlag "[-f JOURNALFILE] [DATE [DESCRIPTION [ACCOUNT1 [ETC..]]]]]")
 
 -- | State used while entering transactions.
 data EntryState = EntryState {
