@@ -3299,7 +3299,9 @@ See also ["Working with CSV > Reading files specified by rule"](#reading-files-s
 After `source`'s file pattern, you can write `|` (pipe) and a data cleaning command.
 If hledger's CSV rules aren't enough, you can pre-process the downloaded data here with a shell command or script, to make it more suitable for conversion.
 The command will be executed by your default shell, will receive the data file's content as standard input,
-and should output zero or more lines of character-separated-values, ready for conversion by hledger's CSV rules.
+and should output zero or more lines of character-separated-values, ready for conversion by the CSV rules.
+
+*Added in 1.50; experimental.*
 
 ## `archive`
 
@@ -3313,6 +3315,8 @@ troubleshooting your CSV rules,
 regenerating entries with improved rules,
 checking for variations in your bank's CSV,
 etc.
+
+*Added in 1.50; experimental.*
 
 ## `encoding`
 
