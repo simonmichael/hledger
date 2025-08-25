@@ -3294,23 +3294,54 @@ All this enables a convenient workflow where can you just download CSV files, th
 
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
 
-### Data cleaning
+<!--
+The source rule supports ~ for home directory: `source ~/Downloads/foo.csv`.
+
+If the argument is a bare filename, its directory is assumed to be ~/Downloads: `source foo.csv`.
+
+Otherwise if it is a relative path, it is assumed to be relative to the rules file's directory: `source new/foo.csv`.
+
+The source rule can specify a glob pattern: `source foo*.csv`.
+
+If the glob pattern matches multiple files, the newest (last modified) file is used (with one exception, described below).
+
+The source rule can specify a data-cleaning command, after a `|` separator: `source foo*.csv | sed -e 's/USD/$/g'`.
+This command is executed by the user's default shell, receives the data file's content on stdin,
+and should output CSV data suitable for the conversion rules.
+A # character can be used to comment out the data-cleaning command: `source foo*.csv  # | ...`.
+
+Or the source rule can specify a data-generating command, with no file pattern: `source | foo-csv.sh`.
+In this case the command receives no input; it should output CSV data suitable for the conversion rules.
+-->
+
+### Data cleaning / generating commands
 
 After `source`'s file pattern, you can write `|` (pipe) and a data cleaning command.
 If hledger's CSV rules aren't enough, you can pre-process the downloaded data here with a shell command or script, to make it more suitable for conversion.
-The command will be executed by your default shell, will receive the data file's content as standard input,
-and should output zero or more lines of character-separated-values, ready for conversion by the CSV rules.
+The command will be executed by your default shell, in the directory of the rules file, will receive the data file's content as standard input,
+and should output zero or more lines of character-separated-values, suitable for conversion by the CSV rules.
+
+Or, after `source` you can write `|` and a data generating command (with no file pattern before the `|`).
+This command receives no input, and should output zero or more lines of character-separated values, suitable for conversion by the CSV rules.
+
+Whenever hledger runs one of these commands, it will print the command on stderr.
+If the command produces error output, but exits successfully, hledger will show the error output as a warning.
+If the command fails, hledger will fail and show the error output in the error message.
 
 *Added in 1.50; experimental.*
 
 ## `archive`
 
-Adding `archive` to a rules file causes the `import` command
-to archive (move and rename) each imported data file, in a nearby `data/` directory.
-Also, `import` will prefer the oldest of the `source` rule's glob-matched files rather than the newest.
+With `archive` added to a rules file, the `import` command
+will archive each successfully processed data file or data command output in a nearby `data/` directory.
+The archive file name will be based on the rules file and the data file's modification date and extension
+(or for a data-generating command, the current date and the ".csv" extension).
+The original data file, if any, will be removed.
+
+Also, in this mode `import` will prefer the oldest file matched by the `source` rule's glob pattern, not the newest.
 (So if there are multiple downloads, they will be imported and archived oldest first.)
 
-Archiving imported data is optional, but it can be useful for
+Archiving is optional, but it can be useful for
 troubleshooting your CSV rules,
 regenerating entries with improved rules,
 checking for variations in your bank's CSV,

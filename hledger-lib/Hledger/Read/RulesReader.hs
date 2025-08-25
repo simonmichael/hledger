@@ -79,7 +79,7 @@ import qualified Data.Text.IO as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headMay, lastMay, readMay)
-import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, renameFile, removeFile)
+import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, removeFile)
 -- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
 import System.Exit      (ExitCode(..))
 import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
@@ -118,7 +118,7 @@ getDownloadDir = do
   return $ home </> "Downloads"  -- XXX
 
 -- | Read, parse and post-process a "Journal" from the given rules file, or give an error.
--- This particular reader also provides some extra features like data-cleaning and archiving.
+-- This particular reader also provides some extra features like data cleaning/generating commands and data archiving.
 --
 -- The provided input file handle, and the --rules option, are ignored by this reader.
 -- Instead, a data file (or data-generating command) is usually specified by the @source@ rule.
@@ -133,19 +133,18 @@ getDownloadDir = do
 --
 -- The source rule can specify a data-cleaning command, after a @|@ separator: @source foo*.csv | sed -e 's/USD/$/g'@.
 -- This command is executed by the user's default shell, receives the data file's content on stdin,
--- and should output CSV data suitable for hledger's conversion rules.
+-- and should output CSV data suitable for the conversion rules.
 -- A # character can be used to comment out the data-cleaning command: @source foo*.csv  # | ...@.
 --
--- When using the source rule, if the archive rule is also present, some behaviours change:
+-- Or the source rule can specify just a data-generating command, with no file pattern: @source | foo-csv.sh@.
+-- In this case the command receives no input; it should output CSV data suitable for the conversion rules.
 --
--- - The import command:
---   will move the data file to an archive directory after a successful read
---   (renamed like the rules file, date-stamped, to an auto-created data/ directory next to the rules file).
---   And it will read the oldest data file, not the newest, if the glob pattern matches multiple files.
---   If there is a data-cleaning command, only the original uncleaned data is archived, currently.
---
--- - Other commands:
---   will read the newest archived data file, if any, as a fallback if the glob pattern matches no data files.
+-- If the archive rule is present:
+-- After successfully reading the data file or data command and converting to a journal, while doing a non-dry-run import:
+-- the data will be archived in an auto-created data/ directory next to the rules file,
+-- with a name based on the rules file and the data file's modification date and extension
+-- (or for a data-generating command, the current date and the ".csv" extension).
+-- And import will prefer the oldest file matched by a glob pattern (not the newest).
 --
 -- Balance assertions are not checked by this reader.
 --
@@ -153,93 +152,150 @@ parse :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 parse iopts rulesfile h = do
   lift $ hClose h -- We don't need it (XXX why ?)
 
-  -- XXX higher-than usual debug level for file reading to bypass excessive noise from elsewhere, normally 6 or 7
-  rules <- readRulesFile $ dbg4 "reading rules file" rulesfile
+  -- The rules reader does a lot; we must be organised.
+
+  -- 1. gather contextual info
+  --  gives: import flag, dryrun flag, rulesdir
 
   let
-    -- XXX How can we know when the command is import, and if it's a dry run ? In a hacky way, currently.
-    args = progArgs
-    -- XXX Difficult to identify the command name reliably here,
-    -- Cli.hs's moveFlagsAfterCommand would help but is not importable here.
-    -- Just look for import or imp appearing anywhere in the arguments.
-    cmdisimport = dbg7 "cmdisimport" $ any (`elem` args) ["import", "imp"]
-    dryrun     = dbg7 "dryrun"     $ any (`elem` args) ["--dry-run", "--dry"]
-    importing  = dbg7 "importing"  $ cmdisimport && not dryrun
-    archive    = dbg7 "archive"    $ isJust (getDirective "archive" rules)
-    archiving  = dbg7 "archiving"  $ importing && archive
-    rulesdir   = dbg7 "rulesdir"   $ takeDirectory rulesfile
-    archivedir = dbg7 "archivedir" $ rulesdir </> "data"
+    args     = progArgs
+    import_  = dbg2 "import" $ any (`elem` args) ["import", "imp"]
+    dryrun   = dbg2 "dryrun" $ any (`elem` args) ["--dry-run", "--dry"]
+    rulesdir = takeDirectory rulesfile
 
-  mdatafileandcmd <- liftIO $ do
-    dldir <- getDownloadDir  -- look here for the data file if it's specified without a directory
-    let
-      msourcearg = getDirective "source" rules
-      
-      -- Surrounding whitespace is removed from the whole source argument and from each part of it.
-      -- A # before | makes the rest of line a comment.
-      -- A # after | is left for the shell to interpret; it could be part of the command or the start of a comment.
-      stripspaces = T.strip
-      stripcommentandspaces = stripspaces . T.takeWhile (/= '#')
-      msourceandcmd = T.breakOn "|" . stripspaces <$> msourcearg
-      msource = T.unpack . stripcommentandspaces . fst <$> msourceandcmd
-      mcmd = msourceandcmd >>= \sc ->
+  -- 2. parse the source and archive rules
+  --  needs: rules file
+  --  gives: file pattern, data cleaning/generating command, archive flag
+
+  -- XXX higher-than usual logging priority for file reading (normally 6 or 7), to bypass excessive noise from elsewhere
+  rules <- readRulesFile $ dbg1 "reading rules file" rulesfile
+  let
+    msourcearg = getDirective "source" rules
+      -- Nothing -> error' $ rulesfile ++ " source rule must specify a file pattern or a command"
+    -- Surrounding whitespace is removed from the whole source argument and from each part of it.
+    -- A # before | makes the rest of line a comment.
+    -- A # after | is left for the shell to interpret; it could be part of the command or the start of a comment.
+    stripspaces = T.strip
+    stripcommentandspaces = stripspaces . T.takeWhile (/= '#')
+    mpatandcmd = T.breakOn "|" . stripspaces <$> msourcearg
+    mpat = dbg2 "file pattern" $  -- a non-empty file pattern, or nothing
+      case T.unpack . stripcommentandspaces . fst <$> mpatandcmd of
+        Just s | not $ null s -> Just s
+        _ -> Nothing
+    mcmd = dbg2 "data command" $  -- a non-empty command, or nothing
+      mpatandcmd >>= \sc ->
         let c = T.unpack . stripspaces . T.drop 1 . snd $ sc
         in if null c then Nothing else Just c
 
-    datafiles <- case msource of
-      Nothing  -> return [maybe err (dbg4 "inferred source") $ dataFileFor rulesfile]  -- shouldn't fail, f has .rules extension
-        where err = error' $ "could not infer a data file for " <> rulesfile
-      Just glb -> do
-        let (dir,desc) = if isFileName glb then (dldir," in download directory") else (rulesdir,"")
-        expandGlob dir (dbg4 "source rule" glb) >>= sortByModTime <&> dbg4 ("matched files"<>desc<>", oldest first")
-        -- XXX disable for now, too much complication: easy review of recent imported data:
-        --   `archive` also affects non-`import` commands reading the rules file:
-        --   when the `source` rule's glob pattern matches no files (no new downloads are available),
-        --   they will use the archive as a fallback (reading the newest archived file, if any).
-        -- if the source rule matched no files and we are reading not importing, use the most recent archived file.
-        -- case globmatches of
-        --   [] | archive && not cmdisimport -> do
-        --     archivesFor archivedir rulesfile <&> take 1 <&> dbg4 "latest file in archive directory"
-        --   _ -> return globmatches  -- XXX don't let it be cleaned again
+    archive = isJust (getDirective "archive" rules)
 
-    return $ case datafiles of
-      []                            -> (Nothing, Nothing)
-      [f] | cmdisimport             -> dbg4 "importing"             (Just f    , mcmd)
-      [f]                           -> dbg4 "reading"               (Just f    , mcmd)
-      fs | cmdisimport && archiving -> dbg4 "importing oldest file" (headMay fs, mcmd)
-      fs | cmdisimport              -> dbg4 "importing newest file" (lastMay fs, mcmd)
-      fs                            -> dbg4 "reading newest file"   (lastMay fs, mcmd)
+  -- 3. find the file to be read, if any
+  --  needs: file pattern, data command, import flag, archive flag, downloads dir
+  --  gives: data file, data file description
 
-  case mdatafileandcmd of
-    (Nothing, _) -> return nulljournal  -- data file specified by source rule was not found
-    (Just datafile, mcmd) -> do
-      exists <- liftIO $ doesFileExist datafile
-      if not (datafile=="-" || exists)
-      then return nulljournal      -- data file inferred from rules file name was not found
-      else do
-        datafileh      <- liftIO $ openFileOrStdin datafile
-        rawdata        <- liftIO $ readHandlePortably datafileh
-        cleandata      <- liftIO $ maybe (return rawdata) (\c -> runFilterCommand rulesfile c rawdata) mcmd
-        cleandatafileh <- liftIO $ inputToHandle cleandata
-        do
-          readJournalFromCsv (Just $ Left rules) datafile cleandatafileh Nothing
-          -- apply any command line account aliases. Can fail with a bad replacement pattern.
-          >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
-              -- journalFinalise assumes the journal's items are
-              -- reversed, as produced by JournalReader's parser.
-              -- But here they are already properly ordered. So we'd
-              -- better preemptively reverse them once more. XXX inefficient
-              . journalReverse
-          >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
-          >>= \j -> do
-            when archiving $ liftIO $ saveToArchive archivedir rulesfile datafile (mcmd <&> const cleandata)
-            return j
+  (mdatafile, datafiledesc) <- dbg2 "data file found ?" <$> case (mpat, mcmd) of
+    (Nothing, Nothing) -> error' $ "to make " ++ rulesfile ++ " readable,\n please add a 'source' rule with a non-empty file pattern or command"
+    (Nothing, Just _) -> return (Nothing, "")
+    (Just pat, _) -> do
+      dldir <- liftIO getDownloadDir  -- look here for the data file if it's specified without a directory
+      let
+        (startdir, dirdesc)
+          | isFileName pat = (dldir,    " in download directory")
+          | otherwise      = (rulesdir, "")
+      fs <- liftIO $
+        expandGlob startdir pat
+        >>= sortByModTime
+        <&> dbg2 ("matched files"<>dirdesc<>", oldest first")
+      return $
+        if import_ && archive
+        then (headMay fs, " oldest file")
+        else (lastMay fs, " newest file")
+    
+  -- 4. log which file we are reading/importing/cleaning/generating
+  --  needs: data file, data file description, import flag
 
--- | Run the given shell command, passing the given text as input, and return the output.
--- Or if the command fails, raise an informative error.
-runFilterCommand :: FilePath -> String -> Text -> IO Text
-runFilterCommand rulesfile cmd input = do
-  let process = (shell cmd) { std_in = CreatePipe, std_out = CreatePipe, std_err = CreatePipe }
+  case (mdatafile, datafiledesc) of
+    (Just f, desc) -> dbg1IO ("trying to " ++ (if import_ then "import" else "read") ++ desc) f
+    (Nothing, _)   -> return ()
+
+  -- 5. read raw, cleaned or generated data
+  --  needs: file pattern, data file, data command
+  --  gives: clean data (possibly empty)
+
+  mexistingdatafile <- maybe (return Nothing) (\f -> liftIO $ do
+    exists <- doesFileExist f
+    return $ if exists then Just f else Nothing
+    ) $ mdatafile
+  cleandata <- dbg1With (\t -> "read "++(show $ length $ T.lines t)++" lines") <$> case (mpat, mexistingdatafile, mcmd) of
+
+    -- file pattern, but no file found
+    (Just _, Nothing, _) -> -- trace "file pattern, but no file found" $
+      return ""
+
+    -- file found, and maybe a data cleaning command
+    (_, Just f,  mc) ->  -- trace "file found" $ 
+      liftIO $ do
+        raw <- openFileOrStdin f >>= readHandlePortably
+        maybe (return raw) (\c -> runCommandAsFilter rulesfile (dbg0Msg ("running: "++c) c) raw) mc
+
+    -- no file pattern, but a data generating command
+    (Nothing, _, Just cmd) -> -- trace "data generating command" $
+      liftIO $ runCommand rulesfile $ dbg0Msg ("running: " ++ cmd) cmd
+
+    -- neither a file pattern nor a data generating command
+    (Nothing, _, Nothing) -> -- trace "no file pattern or data generating command" $
+      error' $ rulesfile ++ " source rule must specify a file pattern or a command"
+
+  -- 6. convert the clean data to a (possibly empty) journal
+  --  needs: clean data, rules, rules file, data file if any
+  --  gives: journal
+
+  j <- do
+    cleandatah <- liftIO $ inputToHandle cleandata
+    readJournalFromCsv (Just $ Left rules) (fromMaybe "(cmd)" mdatafile) cleandatah Nothing
+    -- apply any command line account aliases. Can fail with a bad replacement pattern.
+    >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
+        -- journalFinalise assumes the journal's items are
+        -- reversed, as produced by JournalReader's parser.
+        -- But here they are already properly ordered. So we'd
+        -- better preemptively reverse them once more. XXX inefficient
+        . journalReverse
+    >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
+
+  -- 7. if non-empty, successfully read and converted, and we're doing a non-dry-run archiving import: archive the data
+  --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
+
+  when (not (T.null cleandata) && import_ && archive && not dryrun) $
+    liftIO $ saveToArchive (rulesdir </> "data") rulesfile mdatafile cleandata
+
+  return j
+
+-- | For the given rules file, run the given shell command, in the rules file's directory.
+-- If the command fails, raise an error and show its error output;
+-- otherwise return its output, and show any error output as a warning.
+runCommand :: FilePath -> String -> IO Text
+runCommand rulesfile cmd = do
+  let process = (shell cmd) { cwd = Just $ takeDirectory rulesfile, std_out = CreatePipe, std_err = CreatePipe }
+  withCreateProcess process $ \_ mhout mherr phandle -> do
+    case (mhout, mherr) of
+      (Just hout, Just herr) -> do
+        out <- T.hGetContents hout
+        err <- hGetContents' herr
+        exitCode <- waitForProcess phandle
+        case exitCode of
+          ExitSuccess -> do
+            unless (null err) $ warnIO err
+            return out
+          ExitFailure code ->
+            error' $ "in " ++ rulesfile ++ ": command \"" ++ cmd ++ "\" failed with exit code " ++ show code
+              ++ (if null err then "" else ":\n" ++ err)
+      _ -> error' $ "in " ++ rulesfile ++ ": failed to create pipes for command execution"
+
+-- | For the given rules file, run the given shell command, in the rules file's directory, passing the given text as input.
+-- Return the output, or if the command fails, raise an informative error.
+runCommandAsFilter :: FilePath -> String -> Text -> IO Text
+runCommandAsFilter rulesfile cmd input = do
+  let process = (shell cmd) { cwd = Just $ takeDirectory rulesfile, std_in = CreatePipe, std_out = CreatePipe, std_err = CreatePipe }
   withCreateProcess process $ \mhin mhout mherr phandle -> do
     case (mhin, mhout, mherr) of
       (Just hin, Just hout, Just herr) -> do
@@ -254,46 +310,50 @@ runFilterCommand rulesfile cmd input = do
               ++ (if null err then "" else ":\n" ++ err)
       _ -> error' $ "in " ++ rulesfile ++ ": failed to create pipes for command execution"
 
--- | Save some successfully imported data to the given archive directory,
--- autocreating that if needed, and showing informational output on stderr.
--- The remaining arguments are: the rules file path (for naming), the original data file,
--- and if there was a data-cleaning command, the cleaned data from that file.
--- The archive file name will be RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT.
--- When there is cleaned data, currently only that is saved (not the original data).
-saveToArchive :: FilePath -> FilePath -> FilePath -> Maybe Text -> IO ()
-saveToArchive archivedir rulesfile datafile mcleandata = do
-  createDirectoryIfMissing True archivedir
-  hPutStrLn stderr $ "archiving " <> datafile
-  (_origname, cleanname) <- archiveFileName rulesfile datafile
-  let
-    cleanarchive = archivedir </> cleanname
-    -- origarchive  = archivedir </> origname
-  case mcleandata of
-    Just cleandata -> do
-      -- disabled for simplicity:
-      -- the original data is also saved, as RULESFILEBASENAME.orig.DATAFILEMODDATE.DATAFILEEXT.
-      -- hPutStrLn stderr $ " as " <> origarchive
-      -- renameFile datafile origarchive
-      -- hPutStrLn stderr $ " and " <> cleanarchive
-      hPutStrLn stderr $ " as " <> cleanarchive
-      T.writeFile cleanarchive cleandata
-      removeFile datafile
-    Nothing -> do
-      hPutStrLn stderr $ " as " <> cleanarchive
-      renameFile datafile cleanarchive
+type DirPath = FilePath
 
--- | Figure out the file names to use when archiving, for the given rules file, the given data file.
+-- | Save some successfully imported data
+-- (more precisely: data that was successfully read and maybe cleaned, or that was generated, during an import)
+-- to the given archive directory, autocreating that if needed, and show informational output on stderr.
+-- The arguments are:
+-- the archive directory,
+-- the rules file (for naming),
+-- the data file name, if any,
+-- the data that was read, cleaned, or generated.
+-- The archive file name will be RULESFILEBASENAME.DATAFILEMODDATEORCURRENTDATE.DATAFILEEXTORCSV.
+-- Note for a data generating command, where there's no data file, we use the current date
+-- and a .csv file extension (meaning "character-separated values" in this case).
+saveToArchive :: DirPath -> FilePath -> Maybe FilePath -> Text -> IO ()
+saveToArchive archivedir rulesfile mdatafile cleandata = do
+  createDirectoryIfMissing True archivedir
+  (_, cleanname) <- archiveFileName rulesfile mdatafile
+  let cleanarchive = archivedir </> cleanname
+  hPutStrLn stderr $ "archiving " <> cleanarchive
+  T.writeFile cleanarchive cleandata
+  maybe (return ()) removeFile mdatafile
+
+-- | Figure out the file names to use when archiving, for the given rules file and the given data file if any.
 -- The second name is for the final (possibly cleaned) data; the first name has ".orig" added,
 -- and is used if both original and cleaned data are being archived. They will be like this:
 -- ("RULESFILEBASENAME.orig.DATAFILEMODDATE.DATAFILEEXT", "RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT")
-archiveFileName :: FilePath -> FilePath -> IO (String, String)
-archiveFileName rulesfile datafile = do
-  moddate <- (show . utctDay) <$> getModificationTime datafile
-  let (base, ext) = (takeBaseName rulesfile, takeExtension datafile)
-  return (
-     base <.> "orig" <.> moddate <.> ext
-    ,base            <.> moddate <.> ext
-    )
+archiveFileName :: FilePath -> Maybe FilePath -> IO (String, String)
+archiveFileName rulesfile mdatafile = do
+  let base = takeBaseName rulesfile
+  case mdatafile of
+    Just datafile -> do
+      moddate <- (show . utctDay) <$> getModificationTime datafile
+      let ext = takeExtension datafile
+      return (
+         base <.> "orig" <.> moddate <.> ext
+        ,base            <.> moddate <.> ext
+        )
+    Nothing -> do
+      let ext = "csv"
+      curdate <- show <$> getCurrentDay
+      return (
+         base <.> "orig" <.> curdate <.> ext
+        ,base            <.> curdate <.> ext
+        )
 
 -- -- | In the given archive directory, if it exists, find the paths of data files saved for the given rules file.
 -- -- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
