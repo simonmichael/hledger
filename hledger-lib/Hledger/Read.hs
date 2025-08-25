@@ -419,8 +419,10 @@ latestDates = {-# HLINT ignore "Avoid reverse" #-}
 
 -- | Save the given latest date(s) seen in the given data FILE,
 -- in a hidden file named .latest.FILE, creating it if needed.
+-- Unless no latest dates are provided, in which case do nothing.
 saveLatestDates :: LatestDates -> FilePath -> IO ()
-saveLatestDates dates f = T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
+saveLatestDates dates f = when (not $ null dates) $
+  T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
 
 -- | Save each file's latest dates.
 saveLatestDatesForFiles :: [LatestDatesForFile] -> IO ()
