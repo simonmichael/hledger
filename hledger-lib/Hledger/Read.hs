@@ -408,6 +408,7 @@ type LatestDates = [Day]
 
 -- The path of an input file, and its current "LatestDates".
 data LatestDatesForFile = LatestDatesForFile FilePath LatestDates
+  deriving Show
 
 -- | Get all instances of the latest date in an unsorted list of dates.
 -- Ie, if the latest date appears once, return it in a one-element list,
