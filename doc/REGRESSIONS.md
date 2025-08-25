@@ -117,6 +117,7 @@ This reduces wasteful admin work.
 [#2406]: https://github.com/simonmichael/hledger/issues/2406
 [#2407]: https://github.com/simonmichael/hledger/issues/2407
 [#2417]: https://github.com/simonmichael/hledger/issues/2417
+[#2444]: https://github.com/simonmichael/hledger/issues/2444
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -190,6 +191,8 @@ Fixer  bounties began on 2024-01-01.
 | [#2156]                  | 1.32.3    | ishmaelavila (donated)                                                           | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | 1.41      | akanshaG42 (donated)                                                             | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2407]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
+| **1.32.1** 2023-12-07    |           | ---                                                                              | ---
+| [#2444]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.33** 2024-04-18      |           | ---                                                                              | ---
 | [#2227]                  | 1.41      | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.34** 2024-06-01      |           | ---                                                                              | ---
@@ -205,5 +208,5 @@ Fixer  bounties began on 2024-01-01.
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
-| [#2417]                  |           | Frank Schmidt           | 
+| [#2417]                  |           | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | 
 
