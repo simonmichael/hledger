@@ -23,6 +23,7 @@ module Hledger.Utils.IO (
   error',
   usageError,
   warn,
+  warnIO,
   ansiFormatError,
   ansiFormatWarning,
   printError,
@@ -160,6 +161,7 @@ import           System.Process (CreateProcess(..), StdStream(CreatePipe), creat
 import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
+import Control.Monad.IO.Class (MonadIO, liftIO)
 
 
 -- Pretty showing/printing
@@ -217,17 +219,20 @@ usageError = error' . (++ " (use -h to see usage)")
 ansiFormatError :: String -> String
 ansiFormatError = (<> sgrresetall) . ((sgrbrightred <> sgrbold) <>)
 
--- | Show a message, with "Warning:" label, on stderr before returning the given value.
--- Also do some ANSI styling of the first line when allowed (using unsafe IO).
--- Currently we use this very sparingly in hledger; we prefer to either quietly work,
--- or loudly raise an error. Varying output can make scripting harder,
--- but on stderr, it shouldn't cause much hassle.
+-- | Show a warning message on stderr before returning the given value.
+-- Like trace, but prepends a "Warning:" label, and does some ANSI styling of the first line when allowed (using unsafe IO).
+-- Currently we use this very sparingly in hledger; we prefer to either quietly work, or loudly raise an error.
+-- Varying output can make scripting harder. But on stderr, it shouldn't cause much hassle.
 warn :: String -> a -> a
-warn msg = trace msg'
-  where
-    msg' =
-      (if useColorOnStderrUnsafe then modifyFirstLine ansiFormatWarning else id) $
-      "Warning: "<> msg
+warn = trace . formatWarning
+
+-- | Like warn, but take extra care to sequence properly in IO.
+warnIO :: MonadIO m => String -> m ()
+warnIO = liftIO . traceIO . formatWarning
+
+formatWarning =
+  (if useColorOnStderrUnsafe then modifyFirstLine ansiFormatWarning else id) .
+  ("Warning: " <>)
 
 -- | Apply standard ANSI SGR formatting (yellow, bold) suitable for console warning text.
 ansiFormatWarning :: String -> String
