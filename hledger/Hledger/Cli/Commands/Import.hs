@@ -60,7 +60,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
         Left err -> error' err
         Right (newj, latestdatesforfiles) ->
           case sortOn tdate $ jtxns newj of
-            [] -> hPrintf stderr "no new transactions found in %s\n\n" inputstr
+            [] -> hPrintf stderr "no new transactions found in %s\n" inputstr
 
             newts | catchup ->
               if dryrun
