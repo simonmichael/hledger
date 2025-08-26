@@ -30,7 +30,7 @@ diffmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Diff.txt")
   []
   [generalflagsgroup2]
-  []
+  confflags
   ([], Just $ argsFlag "-f FILE1 -f FILE2 FULLACCOUNTTNAME")
 
 data PostingWithPath = PostingWithPath {

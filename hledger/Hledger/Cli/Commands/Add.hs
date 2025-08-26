@@ -53,7 +53,7 @@ addmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Add.txt")
   [flagNone ["no-new-accounts"]  (setboolopt "no-new-accounts") "don't allow creating new accounts"]
   [generalflagsgroup2]
-  []
+  confflags
   ([], Just $ argsFlag "[-f JOURNALFILE] [DATE [DESCRIPTION [ACCOUNT1 [ETC..]]]]]")
 
 -- | State used while entering transactions.

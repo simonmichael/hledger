@@ -32,7 +32,7 @@ commoditiesmode = hledgerCommandMode
   ,flagNone ["unused"]       (setboolopt "unused")     "list commodities declared but not used"
   ]
   [generalflagsgroup2]
-  []
+  confflags
   ([], Just $ argsFlag "[QUERY..]")
 
 commodities :: CliOpts -> Journal -> IO ()
