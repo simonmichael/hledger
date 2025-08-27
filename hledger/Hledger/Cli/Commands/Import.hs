@@ -19,6 +19,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
 import System.IO (stderr)
+import System.FilePath (takeFileName)
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
@@ -33,7 +34,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- XXX could be helpful to show the last-seen date, and number of old transactions, too
   let
     inputfiles = listofstringopt "args" rawopts
-    inputstr = intercalate ", " $ map quoteIfNeeded inputfiles
+    inputstr = intercalate ", " $ map (quoteIfNeeded.takeFileName) inputfiles
     catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
     combinedStyles = 
