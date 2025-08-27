@@ -304,3 +304,29 @@ Income Statement ..
  Expenses        ||    
 -----------------++----
  expenses        ||  0 
+
+# ** 10. Clipping too far doesn't erase account types (#2434)
+<
+account sm:assets    ; type:A
+account sm:revenues  ; type:R
+
+2025-01-01
+    sm:revenues   -$1
+    sm:assets      $1
+
+2025-01-02
+    sm:revenues   A -2
+    sm:assets     A 2
+
+$ hledger -f - incomestatement -1 -N
+Income Statement 2025-01-01..2025-01-02
+
+          || 2025-01-01..2025-01-02 
+==========++========================
+ Revenues ||                        
+----------++------------------------
+ sm       ||                $1, A 2 
+==========++========================
+ Expenses ||                        
+----------++------------------------
+
