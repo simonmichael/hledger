@@ -143,9 +143,10 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
             -- Add a restriction to this subreport to the report query.
             -- XXX in non-thorough way, consider updateReportSpec ?
             rspecsub = rspec{_rsReportOpts=ropts, _rsQuery=And [cbcsubreportquery, _rsQuery rspec]}
+            -- Match and postings for the subreport
+            subreportps = filter (matchesPostingExtra (journalAccountType j) cbcsubreportquery) ps
             -- Account representing this subreport
-            acct = generateMultiBalanceAccount rspecsub j priceoracle colspans $
-                     filter (matchesPostingExtra (journalAccountType j) cbcsubreportquery) ps
+            acct = generateMultiBalanceAccount rspecsub j priceoracle colspans subreportps
 
     -- Sum the subreport totals by column. Handle these cases:
     -- - no subreports
@@ -178,14 +179,10 @@ makeReportQuery rspec reportspan
 -- | Gather postings matching the query within the report period.
 getPostings :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [Posting]
 getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle reportspan =
-    map clipPosting
-    . setPostingsCount
+    setPostingsCount
     . journalPostings
     $ journalValueAndFilterPostingsWith rspec' j priceoracle
   where
-    -- Clip posting names to the requested depth
-    clipPosting p = p{paccount = clipOrEllipsifyAccountName depthSpec $ paccount p}
-
     -- If doing --count, set all posting amounts to "1".
     setPostingsCount = case balancecalc_ ropts of
         CalcPostingsCount -> map (postingTransformAmount (const $ mixed [num 1]))
@@ -209,8 +206,6 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
     -- handles the hledger-ui+future txns case above).
     depthlessq = dbg3 "getPostings depthlessq" $ filterQuery (not . queryIsDepth) query
 
-    depthSpec = dbg3 "getPostings depthSpec" . queryDepth $ filterQuery queryIsDepth query
-
     fullreportspan  = if requiresHistorical ropts then DateSpan Nothing (Exact <$> spanEnd reportspan) else reportspan
     fullreportspanq = (if date2_ ropts then Date2 else Date) $ case fullreportspan of
         DateSpan Nothing Nothing -> emptydatespan
@@ -230,6 +225,13 @@ generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle 
     . mapAccounts (accountSetDeclarationInfo j)
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     . calculateReportAccount rspec j priceoracle colspans
+    -- Clip account names
+    . map clipPosting
+  where
+    -- Clip postings to the requested depth according to the query
+    clipPosting p = p{paccount = clipOrEllipsifyAccountName depthSpec $ paccount p}
+    depthSpec = dbg3 "generateMultiBalanceAccount depthSpec"
+              . queryDepth . filterQuery queryIsDepth $ _rsQuery rspec
 
 -- | Add declared accounts to the account tree.
 addDeclaredAccounts :: Monoid a => ReportSpec -> Journal -> Account a -> Account a

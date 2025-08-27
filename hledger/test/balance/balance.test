@@ -201,13 +201,29 @@ $ hledger -f- bal -MT -O html
   a      10
   a:aa   20
   b
+$ hledger -f- bal --count
+                   1  a
+                   1  a:aa
+                   1  b
+--------------------
+                   3  
+
+# ** 16. --count counts clipped postings.
 $ hledger -f- bal --count -1
                    2  a
                    1  b
 --------------------
                    3  
 
-# ** 16. Make sure that balance --flat --empty does not display implied
+# ** 17. --count counts inclusive postings with --tree.
+$ hledger -f- bal --count --tree
+                   2  a
+                   1    aa
+                   1  b
+--------------------
+                   3  
+
+# ** 18. Make sure that balance --flat --empty does not display implied
 # accounts (i.e. those with no postings, like "assets", here), but does show
 # accounts that have postings with zero balance (like "assets:bank:checking"
 # here).
