@@ -10,9 +10,9 @@ Read SimpleFIN /accounts JSON from JSONFILE or stdin, and for each account with 
 or just the ones where "ORGNAME ACCTNAME ACCTID" is case-insensitively infix-matched
 by the given regular expression, print CSV records to stdout:
 
-1. an account info record:  "account",ORGNAME,ACCTNAME,ACCTID,BALANCE,CURRENCY
-2. a field headings record: "date","amount","description","payee","memo","id"
-3. any transaction records, in date order.
+1. an account info record:  "account",BALANCE,ORGNAME,ACCTNAME,CURRENCY,ACCTID
+2. a field headings record: "date","amount","payee","description","memo","id"
+3. the transaction records, in date order.
 
 Excess whitespace (more than single spaces) will be trimmed.
 Also, if the JSON includes error messages, they will be displayed on stderr,
@@ -76,30 +76,30 @@ def main():
                 if ts:
                     w.writerow([
                         "account",
+                        a['balance'],
                         oname,
                         aname,
+                        a['currency'],
                         aid,
-                        a['balance'],
-                        clean(a['currency'])
                         ])
                     w.writerow([
                         "date",
-                        "id",
                         "amount",
-                        "description",
                         "payee",
-                        "memo"
+                        "description",
+                        "memo",
+                        "id",
                         ])
                 for t in reversed(a['transactions']):
                   dt = datetime.datetime.fromtimestamp(t['posted'])
                   # dtl = dt.astimezone()
                   w.writerow([
                       dt.strftime('%Y-%m-%d'), # %H:%M:%S %Z'),
-                      t['id'],
                       t['amount'],
-                      clean(t['description']),
                       clean(t['payee']),
-                      clean(t['memo'])
+                      clean(t['description']),
+                      clean(t['memo']),
+                      t['id'],
                       ])
   
             errors = j['errors']
