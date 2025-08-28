@@ -14,7 +14,8 @@ by the given regular expression, print CSV records to stdout:
 2. a field headings record: "date","amount","description","payee","memo","id"
 3. any transaction records, in date order.
 
-Also if the JSON includes error messages, they will be displayed on stderr,
+Excess whitespace (more than single spaces) will be trimmed.
+Also, if the JSON includes error messages, they will be displayed on stderr,
 and the exit code will be non-zero.
 
 Requirements:
@@ -51,6 +52,11 @@ def parse_options():
         sys.exit()
     return opts, args
 
+# Limit spaces to at most a single space.
+def clean(txt):
+    return re.sub(r' +', ' ', txt)
+    #return re.sub(r'  +', '  ', txt)
+
 def main():
     opts, args = parse_options()
     infile = args[0] if len(args) > 0 else '-'
@@ -61,8 +67,8 @@ def main():
             w = csv.writer(out, quoting=csv.QUOTE_ALL)
 
             for a in j['accounts']:
-                oname = a['org']['name']
-                aname = a['name']
+                oname = clean(a['org']['name'])
+                aname = clean(a['name'])
                 aid = a['id']
                 if r and not r.search(f"{oname} {aname} {aid}"): continue
 
@@ -74,7 +80,7 @@ def main():
                         aname,
                         aid,
                         a['balance'],
-                        a['currency']
+                        clean(a['currency'])
                         ])
                     w.writerow([
                         "date",
@@ -91,9 +97,9 @@ def main():
                       dt.strftime('%Y-%m-%d'), # %H:%M:%S %Z'),
                       t['id'],
                       t['amount'],
-                      t['description'],
-                      t['payee'],
-                      t['memo']
+                      clean(t['description']),
+                      clean(t['payee']),
+                      clean(t['memo'])
                       ])
   
             errors = j['errors']
