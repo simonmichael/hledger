@@ -665,11 +665,17 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
       CalcGain -> id
       _        -> journalToCost costop where costop = fromMaybe NoConversionOp $ conversionop_ ropts
 
-    -- Find the end of the period containing this posting
+    -- Find the "end" valuation date for this posting.
+    -- With a report interval, this is the last day of the report subperiod containing this posting;
+    -- with no interval it's the last date of the overall report period
+    -- (which for an end value report may have been extended to include the latest non-future P directive).
+    -- To get the period's last day, we subtract one from the (exclusive) period end date.
     postingperiodend  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)
-    mPeriodEnd = case interval_ ropts of
-        NoInterval -> const . spanEnd . fst $ reportSpan j rspec
-        _          -> spanEnd <=< latestSpanContaining (historical : spans)
+      where
+        mPeriodEnd = case interval_ ropts of
+          NoInterval -> const . spanEnd . fst $ reportSpan j rspec
+          _          -> spanEnd <=< latestSpanContaining (historical : spans)
+
     historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
     spans = snd $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
@@ -766,48 +772,59 @@ sortKeysDescription = "date, desc, account, amount, absamount"  -- 'description'
 
 -- Report dates.
 
--- | The effective report span is the start and end dates specified by
--- options or queries, or otherwise the earliest and latest transaction or
--- posting dates in the journal. If no dates are specified by options/queries
--- and the journal is empty, returns the null date span.
--- Also return the intervals if they are requested.
+-- | The effective report span is the start and end dates requested by options or queries.
+-- If the start date is unspecified, the earliest transaction or posting date is used.
+-- If the end date is unspecified, the latest transaction or posting date
+-- (or non-future market price date, when doing an end value report) is used.
+-- If none of these things are present, the null date span is returned.
+-- The report sub-periods caused by a report interval, if any, are also returned.
 reportSpan :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpan = reportSpanHelper False
+-- Note: In end value reports, the report end date and valuation date are the same.
+-- If valuation date ever needs to be different, journalApplyValuationFromOptsWith is the place.
 
--- | Like reportSpan, but uses both primary and secondary dates when calculating
--- the span.
+-- | Like reportSpan, but considers both primary and secondary dates, not just one or the other.
 reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, [DateSpan])
 reportSpanBothDates = reportSpanHelper True
 
--- | A helper for reportSpan, which takes a Bool indicating whether to use both
--- primary and secondary dates.
 reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, [DateSpan])
-reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts} =
-    (reportspan, if not (null intervalspans) then intervalspans else [reportspan])
+reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts, _rsDay=today} =
+  (enlargedreportspan, if not (null intervalspans) then intervalspans else [enlargedreportspan])
   where
     -- The date span specified by -b/-e/-p options and query args if any.
-    requestedspan  = dbg3 "requestedspan" $ if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
-    -- If we are requesting period-end valuation, the journal date span should
-    -- include price directives after the last transaction
-    journalspan = dbg3 "journalspan" $ if bothdates then journalDateSpanBothDates j else journalDateSpan (date2_ ropts) j
-    pricespan = dbg3 "pricespan" . DateSpan Nothing $ case value_ ropts of
-        Just (AtEnd _) -> fmap (Exact . addDays 1) . maximumMay . map pddate $ jpricedirectives j
-        _              -> Nothing
-    -- If the requested span has open ends, fill those with the journal's start and/or end dates, if possible.
-    requestedspan' = dbg3 "requestedspan'" $ requestedspan `spanValidDefaultsFrom` (journalspan `spanExtend` pricespan)
+    requestedspan = dbg3 "requestedspan" $
+      if bothdates then queryDateSpan' query else queryDateSpan (date2_ ropts) query
+
+    -- If the requested span has open ends, fill them with defaults.
+    reportspan = dbg3 "reportspan" $ requestedspan `spanValidDefaultsFrom` txnsorpricespan
+      where
+        txnsorpricespan = dbg3 "txnsorpricespan" $ DateSpan mfirsttxn mlatesttxnorprice
+          where
+            DateSpan mfirsttxn mlasttxn = dbg3 "txnsspan" $
+              if bothdates then journalDateSpanBothDates j else journalDateSpan (date2_ ropts) j
+            mlatesttxnorprice =
+              case value_ ropts of
+                Just (AtEnd _) -> mlasttxn `max` mlatestnonfutureprice
+                _              -> mlasttxn
+              where
+                mlatestnonfutureprice = dbg3 "latestnonfutureprice" $ -- #2445
+                  fmap (Exact . addDays 1) . maximumMay . filter (not . (> today)) . map pddate $ jpricedirectives j
+
     -- The list of interval spans enclosing the requested span.
     -- This list can be empty if the journal was empty,
     -- or if hledger-ui has added its special date:-tomorrow to the query
     -- and all txns are in the future.
-    intervalspans  = dbg3 "intervalspans" $ splitSpan adjust (interval_ ropts) requestedspan'
+    intervalspans = dbg3 "intervalspans" $ splitSpan adjust (interval_ ropts) reportspan
       where
         -- When calculating report periods, we will adjust the start date back to the nearest interval boundary
         -- unless a start date was specified explicitly.
         adjust = isNothing $ spanStart requestedspan
+
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
-    reportspan = dbg3 "reportspan" $ DateSpan (fmap Exact . spanStart =<< headMay intervalspans)
-                                              (fmap Exact . spanEnd =<< lastMay intervalspans)
+    enlargedreportspan = dbg3 "enlargedreportspan" $
+      DateSpan (fmap Exact . spanStart =<< headMay intervalspans)
+               (fmap Exact . spanEnd =<< lastMay intervalspans)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
 reportStartDate j = spanStart . fst . reportSpan j

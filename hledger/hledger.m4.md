@@ -6154,8 +6154,8 @@ hledger will use the prices on a particular valuation date (or on more than one 
 By default hledger uses "end" dates for valuation. More specifically:
 
 - For single period reports (including normal print and register reports):
-  - If an explicit [report end date](#report-start-end-date) is specified, that is used
-  - Otherwise the latest transaction date or P directive date is used (even if it's in the future)
+  - If an explicit [report end date](#report-start-end-date) is specified, that is used.
+  - Otherwise the latest transaction date or non-future P directive date is used.
 
 - For [multiperiod reports](#report-intervals), each period is valued on its last day.
 
