@@ -3321,8 +3321,26 @@ If hledger's CSV rules aren't enough, you can pre-process the downloaded data he
 The command will be executed by your default shell, in the directory of the rules file, will receive the data file's content as standard input,
 and should output zero or more lines of character-separated-values, suitable for conversion by the CSV rules.
 
+Examples:
+```
+source ./paypal.json | paypalcsv
+source data/simplefin.json | simplefincsv - 'chase.*card'
+source OfxDownload*.csv | grep -vE '^(([^,]*,){6}[^,]*|)$' | sort -t, -n +2
+source History_for_Account_Z20144832*.csv   # | grep -E '^([^,]*,){12}[^,]*$' | sed -E -e 's/^ //' -e 's/\.([0-9]),/.\10,/g' -e 's/,([0-9]+),/,\1.00,/g'
+```
+
 Or, after `source` you can write `|` and a data generating command (with no file pattern before the `|`).
 This command receives no input, and should output zero or more lines of character-separated values, suitable for conversion by the CSV rules.
+
+Examples:
+```
+source | paypaljson | paypalcsv
+source | paypalcsv data/paypal.json 
+source | simplefinjson >data/simplefin.json && simplefincsv data/simplefin.json 'chase.*card'
+source | simplefincsv data/simplefin.json 'unify.*checking'
+```
+
+(`paypal*` and `simplefin*` scripts are in [bin/](https://github.com/simonmichael/hledger/tree/master/bin#readme))
 
 Whenever hledger runs one of these commands, it will print the command on stderr.
 If the command produces error output, but exits successfully, hledger will show the error output as a warning.
