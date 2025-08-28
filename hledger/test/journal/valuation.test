@@ -126,6 +126,7 @@ P 2000/01/15 A  5 B
 P 2000/02/01 A  2 B
 P 2000/03/01 A  3 B
 P 2000/04/01 A  4 B
+P 3000/01/01 A  9 B
 
 2000/01/01
   (a)      1 A @ 6 B
@@ -204,6 +205,20 @@ $ hledger -f- print --value=2000-01-15
 # ** 14. print value using prices today
 # (assuming today's date is >= 2000-04-01)
 $ hledger -f- print --value=now
+2000-01-01
+    (a)             4 B
+
+2000-02-01
+    (a)             4 B
+
+2000-03-01
+    (a)             4 B
+
+>=0
+
+# ** 15. print value using prices on default end date, which is the later of
+# txn dates and market price dates, excluding future market prices in the future.
+$ hledger -f- print -V --today=2025-09-01
 2000-01-01
     (a)             4 B
 
