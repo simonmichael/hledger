@@ -399,9 +399,11 @@ spanValidDefaultsFrom s1 s2 =
 -- DateSpan ..2024-12-31
 spanUnion (DateSpan b1 e1) (DateSpan b2 e2) = DateSpan (earlier b1 b2) (later e1 e2)
 
--- | Extend the first span to include any definite end dates of the second.
--- Unlike spanUnion, open ends in the second are ignored.
--- If the first span was open-ended, it still will be after being extended.
+-- | Extend the definite start/end dates of the first span, if needed,
+-- to include the definite start/end dates of the second span.
+-- And/or, replace open start/end dates in the first span with
+-- definite start/end dates from the second.
+-- Unlike spanUnion, open start/end dates in the second are ignored.
 --
 -- >>> ys2024 = fromGregorian 2024 01 01
 -- >>> ys2025 = fromGregorian 2025 01 01
