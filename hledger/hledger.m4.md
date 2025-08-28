@@ -6161,8 +6161,6 @@ By default hledger uses "end" dates for valuation. More specifically:
 
 This can be customised with the --value option described below,
 which can select either "then", "end", "now", or "custom" dates.
-(Note, this has a bug in hledger-ui <=1.31: turning on valuation with
-the `V` key always resets it to "end".)
 
 ## Finding market price
 
