@@ -49,25 +49,25 @@ is a small script to make it show up in the hledger commands list.
 [`paypaljson`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson)
 downloads the last 30 days of Paypal transactions (requires a free developer account & API key).
 
-### paypaljson2csv
+### paypalcsv
 
-[`paypaljson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson2csv) (python)
+[`paypalcsv`](https://github.com/simonmichael/hledger/blob/master/bin/paypalcsv) (python)
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 ### simplefinsetup
 
 [`simplefinsetup`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinsetup)
-helps set up SimpleFIN ([simplefin.org](https://simplefin.org)), a developer-friendly aggregator of US bank data.
+helps set up access to SimpleFIN ([simplefin.org](https://simplefin.org)), a developer-friendly aggregator of US bank data.
 
 ### simplefinjson
 
 [`simplefinjson`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinjson)
 downloads data for one or more bank accounts from SimpleFIN's API, as JSON.
 
-### simplefinjson2csv
+### simplefincsv
 
-[`simplefinjson2csv`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinjson2csv)
-converts SimpleFIN's JSON data to CSV files, one for each bank account.
+[`simplefincsv`](https://github.com/simonmichael/hledger/blob/master/bin/simplefincsv)
+converts SimpleFIN's JSON data to CSV, for one or more bank accounts.
 
 ## hledger command line scripts
 

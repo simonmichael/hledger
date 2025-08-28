@@ -1,9 +1,11 @@
 #!/bin/bash
-# simplefinjson 1.0 - (c) Simon Michael 2025
-# Download accounts and recent transactions history from SimpleFIN, as JSON.
+# simplefinjson 1.1 - (c) Simon Michael 2025
+# simplefinjson [ACCTID]
+#  download the last 30 days' transaction history of one or all accounts from SimpleFIN, and print as tidy JSON.
 #
 # Requirements:
 #  a SimpleFIN account with financial institution(s) and app connection configured
+#  curl
 #  GNU date
 #  jq to prettify
 
@@ -11,12 +13,12 @@
 # (Or use a secrets manager, like https://bitwarden.com/help/secrets-manager-quick-start.)
 SIMPLEFIN_ACCESS_URL=''
 
-# Run GNU date, which is gdate on mac.
 date() { if hash gdate 2>/dev/null; then gdate "$@"; else date "$@"; fi }
 
 START=`date +%s -d '-30 days'`
+ACCTPARAM=${1:+&account=$1}
 
-curl -sL "$SIMPLEFIN_ACCESS_URL/accounts?start-date=$START" | jq
+curl -sL "$SIMPLEFIN_ACCESS_URL/accounts?start-date=$START$ACCTPARAM" | jq
 
 # https://www.simplefin.org/protocol.html#http-endpoints
 # https://www.simplefin.org/protocol.html#get-accounts
