@@ -1,6 +1,7 @@
 # * timeclock input
 
 # ** 1. a timeclock session is parsed as a similarly-named transaction with one virtual posting.
+# "session" is a synonym for "account" here.
 <
 i 2009/1/1 08:00:00
 o 2009/1/1 09:00:00
@@ -36,21 +37,21 @@ $ hledger -ftimeclock:- print --alias '/account/=FOO'
 
 >=
 
-# ** 3. For a missing clock-out, now is implied
+# ** 3. For session with no clock-out, an implicit clock-out at report time is assumed.
 <
 i 2020/1/1 08:00
 $ hledger -f timeclock:- balance
 > /./
 >=
 
-# ** 4. For a log not starting with clock-in, print error
+# ** 4. A time log not starting with a clock-in is an error.
 <
 o 2020/1/1 08:00
 $ hledger -f timeclock:- balance
 >2 /Could not find previous clockin to match this clockout./
 >= !0
 
-# ** 5. For two consecutive anonymous clock-ins, print error
+# ** 5. Two consecutive anonymous clock-ins is an error. (?)
 <
 i 2020/1/1 08:00
 i 2020/1/1 09:00
@@ -58,8 +59,7 @@ $ hledger -f timeclock:- balance
 >2 /Encountered clockin entry for session "" that is already active./
 >= !0
 
-# ** 6. Timeclock amounts are always rounded to two decimal places, 
-# even when displayed by print (#1527).
+# ** 6. Timeclock amounts are always rounded to two decimal places (#1527).
 <
 i 2020-01-30 08:38:35 acct
 o 2020-01-30 09:03:35
@@ -69,59 +69,62 @@ $ hledger -f timeclock:- print
 
 >=
 
-# ** 7. Comments and tags are supported. Double space is required between account name
-# and description or comment. It is not required between description and comment.
+# ** 7. Comments and tags are supported on the clock-in. Double space is required
+# between account name and description or comment, but not between description and comment.
 <
 i 2023-05-01 08:00:00 acct 1  description ; a comment with tag:
 o 2023-05-01 09:00:00
 i 2023-05-02 08:00:00 acct 2  ; another comment
 o 2023-05-02 09:00:00
+
 $ hledger -f timeclock:- print tag:tag
 2023-05-01 * description  ; a comment with tag:
     (acct 1)           1.00h
 
 >=
 
-# ** 8.
-$ hledger -f timeclock:- accounts
-acct 1
-acct 2
-
-# ** 9. Support multiple sessions simultaneously clocked in.
+# ** 8. TODO Comments on clock-outs are ignored / added to posting / added to transaction.
+# XXX
 <
-i 2025-03-10 08:00:00 multi:1  description 1
-i 2025-03-10 09:00:00 multi:2  description 2 ; note that these entries are both active
-o 2025-03-10 12:00:00 multi:1
-o 2025-03-10 15:00:00 multi:2
+i 2025-01-01 09:00:00 session1
+o 2025-01-01 10:00:00           ; clock-out comment
+$
+#$ hledger -f timeclock:- print
+
+# ** 9. Multiple sessions can be simultaneously clocked in. Clockouts can be named and in any order.
+<
+i 2025-01-01 09:00:00 session1  9 to 5 session
+i 2025-01-01 12:00:00 session2  12 to 2 session, overlapping
+o 2025-01-01 14:00:00 session2
+o 2025-01-01 17:00:00 session1
 $ hledger -f timeclock:- print
 >
-2025-03-10 * description 1
-    (multi:1)           4.00h
+2025-01-01 * 9 to 5 session
+    (session1)           8.00h
 
-2025-03-10 * description 2  ; note that these entries are both active
-    (multi:2)           6.00h
+2025-01-01 * 12 to 2 session, overlapping
+    (session2)           2.00h
 
 >=
 
-# ** 10. Implicit clockouts apply to the correct session.
-# The first 'o' here applies to multi:3, the next explicitly to multi:1, and the third to multi:2.
+# ** 10. Unnamed clockouts apply to the most recently clocked-in session.
 <
-i 2025-03-10 08:00:00 multi:1  description 1
-i 2025-03-10 09:00:00 multi:2  description 2
-i 2025-03-10 10:00:00 multi:3  description 3
-o 2025-03-10 11:00:00
-o 2025-03-10 12:00:00 multi:1
-o 2025-03-10 15:00:00
+i 2025-01-01 09:00:00 session1  start 9-12
+i 2025-01-01 10:00:00 session2  start 10-5
+i 2025-01-01 11:00:00 session3  start 11-1
+o 2025-01-01 13:00:00
+o 2025-01-01 12:00:00 session1
+o 2025-01-01 17:00:00
+$
 $ hledger -f timeclock:- print
->
-2025-03-10 * description 1
-    (multi:1)           4.00h
+2025-01-01 * start 9-12
+    (session1)           3.00h
 
-2025-03-10 * description 2
-    (multi:2)           6.00h
+2025-01-01 * start 10-5
+    (session2)           7.00h
 
-2025-03-10 * description 3
-    (multi:3)           1.00h
+2025-01-01 * start 11-1
+    (session3)           2.00h
 
 >=
 
@@ -170,8 +173,32 @@ $ hledger --old-timeclock -f timeclock:- print
 
 >=
 
-## TODO
+# ** 13. TODO Overlapping sessions can have the same name (#2417).
+<
+i 2024-04-10 13:00:00 test
+o 2024-04-10 14:00:00
+i 2024-04-10 13:00:00 test
+o 2024-04-10 15:00:00
+$
+# $ hledger -f timeclock:- print
+# >=
+
+# ** 14. TODO A start time can be the same as another session's end time (#2417).
+<
+i 2024-04-10 13:00:00 test
+o 2024-04-10 14:00:00
+i 2024-04-10 14:00:00 test
+o 2024-04-10 15:00:00
+$
+# $ hledger -f timeclock:- print
+# >=
+
+
+
+# ** OLD:
+
 ## multi-day sessions get a new transaction for each day
+# The --old-timeclock flag reverts to the old behavior.
 #hledger -ftimeclock:- print
 #<<<
 #i 2017/04/20 09:00:00 A
