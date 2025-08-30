@@ -734,7 +734,7 @@ Budget performance in 2020-01-01..2020-02-29:
     expenses:rent                  $100
     income:gifts:cash
 
-~ monthly 2023-08
+~ monthly
     (income:employment)           $-100
     (income:gifts:cash)           $-100
 
@@ -761,3 +761,30 @@ Budget performance in 2023-08:
      cash     || 0 [0% of $-100] 
 --------------++-----------------
               || 0 [0% of $-200] 
+
+# ** 42. Multicolumn budget report with --row-total and --average
+$ hledger -f- bal --budget -M -e 2023-10 --row-total --average -N
+Budget performance in 2023Q3:
+
+                   ||                   Jul              Aug              Sep                 Total              Average 
+===================++====================================================================================================
+ <unbudgeted>      ||  $100                  0                0                 $100 [           0]   $33 [           0] 
+ income:employment ||     0 [  0% of $-100]  0 [0% of $-100]  0 [0% of $-100]      0 [ 0% of $-300]     0 [ 0% of $-100] 
+ income:gifts:cash || $-100 [100% of $-100]  0 [0% of $-100]  0 [0% of $-100]  $-100 [33% of $-300]  $-33 [33% of $-100] 
+
+# ** 43. Multicolumn budget report with --row-total, --average, and --summary-only
+$ hledger -f- bal --budget -M -e 2023-10 --row-total --average -N --summary-only
+Budget performance in 2023Q3:
+
+                   ||                Total              Average 
+===================++===========================================
+ <unbudgeted>      ||  $100 [           0]   $33 [           0] 
+ income:employment ||     0 [ 0% of $-300]     0 [ 0% of $-100] 
+ income:gifts:cash || $-100 [33% of $-300]  $-33 [33% of $-100] 
+
+# ** 44. Multicolumn csv report with --row-total, --average, and --summary-only
+$ hledger -f- bal --budget -M -e 2023-10 --row-total --average -N --summary-only -O csv
+"Account","Total","budget","Average","budget"
+"<unbudgeted>","$100","0","$33","0"
+"income:employment","0","$-300","0","$-100"
+"income:gifts:cash","$-100","$-300","$-33","$-100"

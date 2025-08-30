@@ -951,7 +951,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
           (flip (concatTables SingleLine) $ Table rowhdrs colhdrs totalrows)  -- XXX ?
 
     colheadings = ["Commodity" | layout_ == LayoutBare]
-                  ++ map (reportPeriodName balanceaccum_ spans) spans
+                  ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
                   ++ ["  Total" | row_total_]
                   ++ ["Average" | average_]
 
@@ -1045,7 +1045,8 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
         -- | Get the data cells from a row or totals row, maybe adding
         -- the row total and/or row average depending on options.
         rowToBudgetCells :: PeriodicReportRow a BudgetCell -> [BudgetCell]
-        rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) = as
+        rowToBudgetCells (PeriodicReportRow _ as rowtot rowavg) =
+            (if not summary_only_ then as else [])
             ++ [rowtot | row_total_ && not (null as)]
             ++ [rowavg | average_   && not (null as)]
 
@@ -1152,7 +1153,7 @@ budgetReportAsSpreadsheet
   (addHeaderBorders $ map headerCell $
   "Account" :
   ["Commodity" | layout_ == LayoutBare ]
-   ++ concatMap (\spn -> [showDateSpan spn, "budget"]) colspans
+   ++ (if not summary_only_ then concatMap (\spn -> [showDateSpan spn, "budget"]) colspans else [])
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
   ) :
@@ -1196,7 +1197,7 @@ budgetReportAsSpreadsheet
       where
         cs = S.toList . mconcat . map maCommodities $ mapMaybe snd vals
         dopts = oneLineNoCostFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
-        vals = flattentuples rc as
+        vals = flattentuples rc (if not summary_only_ then as else [])
             ++ concat [[(rowTotalClass rc, rowtot),
                         (budgetTotalClass rc, budgettot)]
                             | row_total_]
