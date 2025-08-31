@@ -160,7 +160,37 @@ $ hledger --old-timeclock -f timeclock:- print
 
 >=
 
+# ** 12. A session can begin at another session's end time (#2417).
+<
+i 2025-01-01 12:00:00 a
+o 2025-01-01 13:00:00
+i 2025-01-01 13:00:00 b
+o 2025-01-01 14:00:00
 
+$ hledger -f timeclock:- print
+2025-01-01 * 12:00-13:00
+    (a)           1.00h
+
+2025-01-01 * 13:00-14:00
+    (b)           1.00h
+
+>=
+
+# ** 13. Even if that session has the same account name (#2417).
+<
+i 2024-01-01 13:00:00 a
+o 2024-01-01 14:00:00
+i 2024-01-01 14:00:00 a
+o 2024-01-01 15:00:00
+
+$ hledger -f timeclock:- print
+2024-01-01 * 13:00-14:00
+    (a)           1.00h
+
+2024-01-01 * 14:00-15:00
+    (a)           1.00h
+
+>=
 
 # ** OLD:
 

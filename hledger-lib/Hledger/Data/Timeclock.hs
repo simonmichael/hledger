@@ -57,12 +57,12 @@ instance Read TimeclockCode where
 data Session = Session
     { in' :: TimeclockEntry,
       out :: TimeclockEntry
-    }
+    } deriving Show
 
 data Sessions = Sessions
     { completed :: [Session],
       active :: [TimeclockEntry]
-    }
+    } deriving Show
 
 -- | Find the relevant clockin in the actives list that should be paired with this clockout.
 -- If there is a session that has the same account name, then use that.
@@ -124,22 +124,27 @@ pairClockEntries (entry : rest) actives sessions
             else entry : actives
 
 -- | Convert time log entries to journal transactions, allowing multiple clocked-in sessions at once.
+-- This is the new, default behaviour.
+-- Entries are processed in time order, then (for entries with the same time) in parse order.
 -- When there is no clockout, one is added with the provided current time.
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
 -- If any entries cannot be paired as expected, an error is raised.
--- This is the new, default behaviour.
 timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactions now entries = transactions
   where
-    -- XXX should they be date sorted ? or processed in the order written ?
-    sessions = pairClockEntries (sortBy (\e1 e2 -> compare (tldatetime e1) (tldatetime e2)) entries) [] []
+    sessions = dbg6 "sessions" $ pairClockEntries (sortTimeClockEntries entries) [] []
     transactionsFromSession s = entryFromTimeclockInOut (in' s) (out s)
     -- If any "in" sessions are in the future, then set their out time to the initial time
     outtime te = max now (tldatetime te)
     createout te = TimeclockEntry (tlsourcepos te) Out (outtime te) (tlaccount te) "" "" []
     outs = map createout (active sessions)
-    stillopen = pairClockEntries ((active sessions) <> outs) [] []
+    stillopen = dbg6 "stillopen" $ pairClockEntries ((active sessions) <> outs) [] []
     transactions = map transactionsFromSession $ sortBy (\s1 s2 -> compare (in' s1) (in' s2)) (completed sessions ++ completed stillopen)
+
+-- | Sort timeclock entries first by date and time (with time zone ignored as usual), then by file position.
+-- Ie, sort by time, but preserve the parse order of entries with the same time.
+sortTimeClockEntries :: [TimeclockEntry] -> [TimeclockEntry]
+sortTimeClockEntries = sortBy (\e1 e2 -> compare (tldatetime e1, tlsourcepos e1) (tldatetime e2, tlsourcepos e2))
 
 -- | Convert time log entries to journal transactions, allowing only one clocked-in session at a time.
 -- Entries must be a strict alternation of in and out, beginning with in.
