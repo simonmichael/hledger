@@ -1,9 +1,9 @@
 $$$ hledger check -f  tcorderedactions.timeclock
 >>>2 /Error: .*tcorderedactions.timeclock:8:1:
 8 \| i 2022-01-01 00:01:00 a  
-  \| \^
 
-Encountered clockin entry for session "a" that is already active.
+Simultaneous sessions with the same account name are not supported.
+This clockin overlaps with:
 /
 >>>= 1
 

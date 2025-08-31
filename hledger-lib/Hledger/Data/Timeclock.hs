@@ -106,21 +106,28 @@ pairClockEntries (entry : rest) actives sessions
     (idate, odate) = (localDay itime, localDay otime)
     omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
     imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
-    (sessions', actives', rest') =
-      if odate > idate
-      then (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
-      else (Session {in' = inentry, out = entry} : sessions, newactive, rest)
-    l = show $ unPos $ sourceLine $ tlsourcepos entry
-    c = unPos $ sourceColumn $ tlsourcepos entry
-    inentries =
-      if any (\e -> tlaccount e == tlaccount entry) actives
-      then error' $ printf
-        "%s:\n%s\n%s\n\nEncountered clockin entry for session \"%s\" that is already active."
-        (sourcePosPretty $ tlsourcepos entry)
-        (l ++ " | " ++ show entry)
-        (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
-        (tlaccount entry)
-      else entry : actives
+    (sessions', actives', rest')
+      | odate > idate = (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
+      | otherwise     = (Session {in' = inentry, out = entry} : sessions, newactive, rest)
+    inentries = case filter ((== tlaccount entry) . tlaccount) actives of
+      []                -> entry : actives
+      activesinthisacct -> error' $ T.unpack $ makeTimeClockErrorExcerpt entry $ T.unlines $ [
+         "Simultaneous sessions with the same account name are not supported."
+        ,"This clockin overlaps with:"
+        ] <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
+        -- XXX better to show full session(s)
+        -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
+
+makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
+makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
+   T.pack (sourcePosPretty pos) <> ":"
+  ,l <> " | " <> T.show e
+  -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
+  ,""
+  ] <> msg
+  where
+    l = T.show $ unPos $ sourceLine $ tlsourcepos e
+    -- c = unPos $ sourceColumn $ tlsourcepos e
 
 -- | Convert time log entries to journal transactions, allowing multiple clocked-in sessions at once.
 -- This is the new, default behaviour.

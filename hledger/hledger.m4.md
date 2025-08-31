@@ -4804,6 +4804,9 @@ $ hledger -f t.timeclock print
 
 ```
 
+Note, you can have overlapping sessions (multiple sessions open simultaneously), but they must have different account names.
+Overlapping sessions with the same account name are currently not supported currently.
+
 Here is a
 [sample.timeclock](https://raw.github.com/simonmichael/hledger/master/examples/sample.timeclock) to
 download and some queries to try:
