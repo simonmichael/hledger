@@ -4403,8 +4403,6 @@ When all input files have been read successfully,
 their transactions are passed to whichever hledger command the user specified.
 
 
-<a name="timeclock-format"></a>
-
 ### Well factored rules
 
 Some things than can help reduce duplication and complexity in rules files:
@@ -4712,6 +4710,8 @@ $ hledger -f paypal-custom.csv  print
     expenses:banking:paypal                    $0.59  ; business:
 
 ```
+
+<a name="timeclock-format"></a>
 
 # Timeclock
 
