@@ -97,31 +97,30 @@ findInForOut o ([], activeins) =
 pairClockEntries :: [TimeclockEntry] -> [TimeclockEntry] -> [Session] -> Sessions
 pairClockEntries [] actives sessions = Sessions {completed = sessions, active = actives}
 pairClockEntries (entry : rest) actives sessions
-    | tlcode entry == In = pairClockEntries rest inentries sessions
-    | tlcode entry == Out = pairClockEntries rest' actives' sessions'
-    | otherwise = pairClockEntries rest actives sessions
-    where
-        (inentry, newactive) = findInForOut entry (partition (\e -> tlaccount e == tlaccount entry) actives)
-        (itime, otime) = (tldatetime inentry, tldatetime entry)
-        (idate, odate) = (localDay itime, localDay otime)
-        omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
-        imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
-        (sessions', actives', rest') = if odate > idate then
-              (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
-            else
-              (Session {in' = inentry, out = entry} : sessions, newactive, rest)
-        l = show $ unPos $ sourceLine $ tlsourcepos entry
-        c = unPos $ sourceColumn $ tlsourcepos entry
-        inentries =
-          if any (\e -> tlaccount e == tlaccount entry) actives
-            then error' $
-                printf
-                  "%s:\n%s\n%s\n\nEncountered clockin entry for session \"%s\" that is already active."
-                  (sourcePosPretty $ tlsourcepos entry)
-                  (l ++ " | " ++ show entry)
-                  (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
-                  (tlaccount entry)
-            else entry : actives
+  | tlcode entry == In  = pairClockEntries rest inentries sessions
+  | tlcode entry == Out = pairClockEntries rest' actives' sessions'
+  | otherwise = pairClockEntries rest actives sessions
+  where
+    (inentry, newactive) = findInForOut entry (partition (\e -> tlaccount e == tlaccount entry) actives)
+    (itime, otime) = (tldatetime inentry, tldatetime entry)
+    (idate, odate) = (localDay itime, localDay otime)
+    omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
+    imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
+    (sessions', actives', rest') =
+      if odate > idate
+      then (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
+      else (Session {in' = inentry, out = entry} : sessions, newactive, rest)
+    l = show $ unPos $ sourceLine $ tlsourcepos entry
+    c = unPos $ sourceColumn $ tlsourcepos entry
+    inentries =
+      if any (\e -> tlaccount e == tlaccount entry) actives
+      then error' $ printf
+        "%s:\n%s\n%s\n\nEncountered clockin entry for session \"%s\" that is already active."
+        (sourcePosPretty $ tlsourcepos entry)
+        (l ++ " | " ++ show entry)
+        (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
+        (tlaccount entry)
+      else entry : actives
 
 -- | Convert time log entries to journal transactions, allowing multiple clocked-in sessions at once.
 -- This is the new, default behaviour.
