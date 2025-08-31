@@ -176,7 +176,7 @@ timedotentryp = do
   dp "timedotentryp"
   notFollowedBy datelinep
   lift $ optional $ choice [orgheadingprefixp, skipNonNewlineSpaces1]
-  a <- modifiedaccountnamep
+  a <- modifiedaccountnamep False
   lift skipNonNewlineSpaces
   taggedhours <- lift durationsp
   (comment0, tags0) <-

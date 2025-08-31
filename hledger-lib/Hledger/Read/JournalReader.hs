@@ -517,7 +517,7 @@ accountdirectivep = do
 
   -- the account name, possibly modified by preceding alias or apply account directives
   acct <- (notFollowedBy (char '(' <|> char '[') <?> "account name without brackets") >>
-          modifiedaccountnamep
+          modifiedaccountnamep True
 
   -- maybe a comment, on this and/or following lines
   (cmt, tags) <- lift transactioncommentp
@@ -959,7 +959,7 @@ postingphelper isPostingRule mTransactionYear = do
       lift skipNonNewlineSpaces1
       status <- lift statusp
       lift skipNonNewlineSpaces
-      account <- modifiedaccountnamep
+      account <- modifiedaccountnamep True
       return (status, account)
     let (ptype, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces

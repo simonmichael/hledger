@@ -74,6 +74,7 @@ module Hledger.Read.Common (
   -- ** account names
   modifiedaccountnamep,
   accountnamep,
+  accountnamenosemicolonp,
 
   -- ** account aliases
   accountaliasp,
@@ -691,16 +692,18 @@ yearorintp = do
 
 --- *** account names
 
--- | Parse an account name (plus one following space if present),
+-- | Parse an account name plus one following space if present (see accountnamep);
 -- then apply any parent account prefix and/or account aliases currently in effect,
--- in that order. (Ie first add the parent account prefix, then rewrite with aliases).
+-- in that order. Ie first add the parent account prefix, then rewrite with aliases.
 -- This calls error if any account alias with an invalid regular expression exists.
-modifiedaccountnamep :: JournalParser m AccountName
-modifiedaccountnamep = do
+-- The flag says whether account names may include semicolons; currently account names
+-- in journal format may, but account names in timeclock/timedot formats may not.
+modifiedaccountnamep :: Bool -> JournalParser m AccountName
+modifiedaccountnamep allowsemicolon = do
   parent  <- getParentAccount
   als     <- getAccountAliases
   -- off1    <- getOffset
-  a       <- lift accountnamep
+  a       <- lift $ if allowsemicolon then accountnamep else accountnamenosemicolonp
   -- off2    <- getOffset
   -- XXX or accountNameApplyAliasesMemo ? doesn't seem to make a difference (retest that function)
   case accountNameApplyAliases als $ joinAccountNames parent a of
@@ -715,14 +718,16 @@ modifiedaccountnamep = do
 -- | Parse an account name, plus one following space if present.
 -- Account names have one or more parts separated by the account separator character,
 -- and are terminated by two or more spaces (or end of input).
--- Each part is at least one character long, may have single spaces inside it,
--- and starts with a non-whitespace.
--- Note, this means "{account}", "%^!" and ";comment" are all accepted
--- (parent parsers usually prevent/consume the last).
--- It should have required parts to start with an alphanumeric;
--- for now it remains as-is for backwards compatibility.
+-- Each part is at least one character long, may have single spaces inside it, and starts with a non-whitespace.
+-- (We should have required them to start with an alphanumeric, but didn't.)
+-- Note, this means account names can contain all kinds of punctuation, including ; which usually starts a following comment.
+-- Parent parsers usually remove the following comment before using this parser.
 accountnamep :: TextParser m AccountName
 accountnamep = singlespacedtext1p
+
+-- Like accountnamep, but stops parsing if it reaches a semicolon.
+accountnamenosemicolonp :: TextParser m AccountName
+accountnamenosemicolonp = singlespacednoncommenttext1p
 
 -- | Parse a single line of possibly empty text enclosed in double quotes.
 doublequotedtextp :: TextParser m Text
@@ -1374,10 +1379,10 @@ followingcommentp = fst <$> followingcommentpWith (void $ takeWhileP Nothing (/=
 -- using the provided line parser to parse each line.
 -- This returns the comment text, and the combined results from the line parser.
 --
--- Following comments begin with a semicolon and extend to the end of the line.
--- They can optionally be continued on the next lines,
--- where each next line begins with an indent and another semicolon.
--- (This parser expects to see these semicolons and indents.)
+-- Following comments are a 1-or-more-lines comment,
+-- beginning with a semicolon possibly preceded by whitespace on the current line,
+-- or with an indented semicolon on the next line.
+-- Additional lines also must begin with an indented semicolon.
 --
 -- Like Ledger, we sometimes allow data to be embedded in comments.
 -- account directive comments and transaction comments can contain tags,
@@ -1441,10 +1446,11 @@ commentlinetagsp = do
 
 -- | Parse a transaction comment and extract its tags.
 --
--- The first line of a transaction may be followed by comments, which
--- begin with semicolons and extend to the end of the line. Transaction
--- comments may span multiple lines, but comment lines below the
--- transaction must be preceded by leading whitespace.
+-- The first line of a transaction may be followed a 1-or-more-lines comment,
+-- beginning with a semicolon possibly preceded by whitespace on the current line,
+-- or with an indented semicolon on the next line. Additional lines also must
+-- begin with an indented semicolon.
+-- See also followingcommentpWith.
 --
 -- 2000/1/1 ; a transaction comment starting on the same line ...
 --   ; extending to the next line

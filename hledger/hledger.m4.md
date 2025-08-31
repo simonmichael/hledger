@@ -4715,18 +4715,62 @@ $ hledger -f paypal-custom.csv  print
 
 # Timeclock
 
-The time logging format of timeclock.el, as read by hledger.
+hledger can read time logs in the timeclock time logging format
+of [timeclock.el](http://www.emacswiki.org/emacs/TimeClock).
+As with [Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
+hledger's timeclock format is a subset/variant of timeclock.el's.
 
-hledger can read time logs in timeclock format.
-[As with Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
-these are (a subset of)
-[timeclock.el](http://www.emacswiki.org/emacs/TimeClock)'s format,
-containing clock-in and clock-out entries as in the example below.
-The date is a [simple date](#simple-dates).
-The time format is HH:MM[:SS][+-ZZZZ]. Seconds and timezone are optional.
-The timezone, if present, must be four digits and is ignored
-(currently the time is always interpreted as a local time).
-Lines beginning with `#` or `;` or `*`, and blank lines, are ignored.
+Note, hledger's timeclock format was made more robust in hledger 1.43 and 1.50.
+If your old time logs are rejected, you should adapt them to modern hledger;
+but for now you can also restore the pre-1.43 behaviour with the `--old-timeclock` flag.
+
+Here the timeclock format in hledger 1.50+:
+
+```timeclock
+# Comment lines like these, and blank lines, are ignored:
+# comment line
+; comment line
+* comment line
+
+# Lines beginning with b, h, or capital O are also ignored, for compatibility:
+b SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+h SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+O SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+
+# Lines beginning with i or o are are clock-in / clock-out entries:
+i SIMPLEDATE HH:MM[:SS][+-ZZZZ] ACCOUNT[  DESCRIPTION][;COMMENT]]
+o SIMPLEDATE HH:MM[:SS][+-ZZZZ][ ACCOUNT][;COMMENT]
+```
+
+The date is a hledger [simple date](#simple-dates) (YYYY-MM-DD or similar).
+The time parts must use two digits.
+The seconds are optional.
+A + or - four-digit time zone is accepted for compatibility, but currently ignored; times are always interpreted as a local time.
+
+In clock-in entries (`i`), the account name is required.
+A transaction description, separated from the account name by 2+ spaces, is optional.
+A transaction comment, beginning with `;`, is also optional.
+(Indented following comment lines are also allowed, as in journal format.)
+
+In clock-out entries (`o`) have no description, but can have a comment if you wish.
+A clock-in and clock-out pair form a "transaction" posting some number of hours to an account - also known as a session.
+Eg:
+
+```timeclock
+i 2015/03/30 09:00:00 session1
+o 2015/03/30 10:00:00
+```
+
+```cli
+$ hledger -f a.timeclock print
+2015-03-30 * 09:00-10:00
+    (session1)           1.00h
+```
+
+Clock-ins and clock-outs are matched by their account/session name.
+If a clock-outs does not specify a name, the most recent unclosed clock-in is closed.
+Also, sessions spanning more than one day are automatically split at day boundaries.
+Eg, the following time log:
 
 ```timeclock
 i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; optional comment, tags:
@@ -4739,13 +4783,7 @@ o 2015/04/02 14:00:00
 o 2015/04/02 15:00:00 another:account
 ```
 
-hledger treats each clock-in/clock-out pair as a transaction posting
-some number of hours to an account. Entries are paired by the account
-name if the same name is given for a clock-in/clock-out pair. If no 
-name is given for a clock-out, then it is paired with the most recent 
-clock-in entry. If the session spans more than one day, it is split into 
-several transactions, one for each day. For the above time log, 
-`hledger print` generates these journal entries:
+generates these transactions:
 
 ```cli
 $ hledger -f t.timeclock print

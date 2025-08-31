@@ -7,6 +7,7 @@ converted to 'Transactions' and queried like a ledger.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module Hledger.Data.Timeclock (
    timeclockEntriesToTransactions
@@ -31,6 +32,10 @@ import Hledger.Data.Dates
 import Hledger.Data.Amount
 import Hledger.Data.Posting
 
+-- detailed output for debugging
+-- deriving instance Show TimeclockEntry
+
+-- compact output
 instance Show TimeclockEntry where
     show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
 
@@ -122,10 +127,11 @@ pairClockEntries (entry : rest) actives sessions
 -- When there is no clockout, one is added with the provided current time.
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
 -- If any entries cannot be paired as expected, an error is raised.
--- This is the default behaviour.
+-- This is the new, default behaviour.
 timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactions now entries = transactions
   where
+    -- XXX should they be date sorted ? or processed in the order written ?
     sessions = pairClockEntries (sortBy (\e1 e2 -> compare (tldatetime e1) (tldatetime e2)) entries) [] []
     transactionsFromSession s = entryFromTimeclockInOut (in' s) (out s)
     -- If any "in" sessions are in the future, then set their out time to the initial time
@@ -140,7 +146,7 @@ timeclockEntriesToTransactions now entries = transactions
 -- When there is no clockout, one is added with the provided current time. 
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
 -- If entries are not in the expected in/out order, an error is raised.
--- This is the legacy behaviour, enabled by --old-timeclock.
+-- This is the old, legacy behaviour, enabled by --old-timeclock.
 timeclockEntriesToTransactionsSingle :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockEntriesToTransactionsSingle _ [] = []
 timeclockEntriesToTransactionsSingle now [i]
@@ -213,8 +219,8 @@ entryFromTimeclockInOut i o
             tstatus      = Cleared,
             tcode        = "",
             tdescription = desc,
-            tcomment     = tlcomment i,
-            ttags        = tltags i,
+            tcomment     = tlcomment i <> tlcomment o,
+            ttags        = tltags i ++ tltags o,
             tpostings    = ps,
             tprecedingcomment=""
           }
