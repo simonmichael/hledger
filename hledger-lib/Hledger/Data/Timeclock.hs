@@ -112,9 +112,14 @@ pairClockEntries (entry : rest) actives sessions
     inentries = case filter ((== tlaccount entry) . tlaccount) actives of
       []                -> entry : actives
       activesinthisacct -> error' $ T.unpack $ makeTimeClockErrorExcerpt entry $ T.unlines $ [
-         "Simultaneous sessions with the same account name are not supported."
-        ,"This clockin overlaps with:"
-        ] <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
+         ""
+        ,"overlaps with session beginning at:"
+        ,""
+        ]
+        <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
+        <> [
+         "Overlapping sessions with the same account name are not supported."
+        ]
         -- XXX better to show full session(s)
         -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
 
@@ -123,7 +128,6 @@ makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
    T.pack (sourcePosPretty pos) <> ":"
   ,l <> " | " <> T.show e
   -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
-  ,""
   ] <> msg
   where
     l = T.show $ unPos $ sourceLine $ tlsourcepos e

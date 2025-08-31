@@ -200,7 +200,7 @@ i 2024-01-01 14:00:00 a
 o 2024-01-01 15:00:00
 
 $ hledger -f timeclock:- print
->2 /Simultaneous sessions with the same account name are not supported./
+>2 /Overlapping sessions with the same account name are not supported./
 >=!0
 
 # ** OLD:
