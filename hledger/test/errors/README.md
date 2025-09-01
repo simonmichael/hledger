@@ -354,7 +354,6 @@ hledger: Error: /Users/simon/src/hledger/hledger/test/errors/./tcorderedactions.
   | ^
 
 Expected a timeclock o entry but got i.
-Only one session may be clocked in at a time.
 Please alternate i and o, beginning with i.
 ```
 
