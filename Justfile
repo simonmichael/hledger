@@ -486,7 +486,7 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
 # build hledger warning-free and run functional tests, with any shelltest OPTS (requires mktestaddons)
 @functest *STOPTS:
     $STACK build --ghc-options=-Werror hledger
-    time (({{ SHELLTEST }} {{ if STOPTS == '' { '' } else { STOPTS } }} \
+    time (({{ SHELLTEST }} --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
         && echo $@ PASSED) || (echo $@ FAILED; false))
