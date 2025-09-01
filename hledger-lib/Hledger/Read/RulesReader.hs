@@ -108,7 +108,7 @@ reader = Reader
   {rFormat     = Rules
   ,rExtensions = ["rules"]
   ,rReadFn     = parse
-  ,rParser     = error' "sorry, rules files can't be included"  -- PARTIAL:
+  ,rParser     = const $ fail "sorry, rules files can't be included yet"
   }
 
 isFileName f = takeFileName f == f
