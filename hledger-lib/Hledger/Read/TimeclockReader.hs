@@ -182,32 +182,35 @@ parse iopts fp t = initialiseAndParseJournal (timeclockfilep iopts) iopts fp t
 -- timeclockfilep args
 
 timeclockfilep :: MonadIO m => InputOpts -> JournalParser m ParsedJournal
-timeclockfilep iopts = do many timeclockitemp
-                          eof
-                          j@Journal{jparsetimeclockentries=es} <- get
-                          -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
-                          -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
-                          -- but it simplifies code above.
-                          now <- liftIO getCurrentLocalTime
-                          -- journalFinalise expects the transactions in reverse order, so reverse the output in either case
-                          let j' = if _oldtimeclock iopts then 
-                                -- timeclockEntriesToTransactionsSingle expects the entries to be in normal order, 
-                                -- but they have been parsed in reverse order, so reverse them before calling
-                                j{jtxns = reverse $ timeclockEntriesToTransactionsSingle now $ reverse es, jparsetimeclockentries = []}
-                              else 
-                                -- We don't need to reverse these transactions 
-                                -- since they are sorted inside of timeclockEntriesToTransactions
-                                j{jtxns = reverse $ timeclockEntriesToTransactions now es, jparsetimeclockentries = []}
-                          return j'
-    where
-      -- As all ledger line types can be distinguished by the first
-      -- character, excepting transactions versus empty (blank or
-      -- comment-only) lines, can use choice w/o try
-      timeclockitemp = choice [
-                            void (lift emptyorcommentlinep)
-                          , entryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
-                          ] <?> "timeclock entry, comment line, or empty line"
-        where entryp = if _oldtimeclock iopts then oldtimeclockentryp else timeclockentryp
+timeclockfilep iopts = do
+  many timeclockitemp
+  eof
+  j@Journal{jparsetimeclockentries=es} <- get
+  -- Convert timeclock entries in this journal to transactions, closing any unfinished sessions.
+  -- Doing this here rather than in journalFinalise means timeclock sessions can't span file boundaries,
+  -- but it simplifies code above.
+  now <- liftIO getCurrentLocalTime
+  -- journalFinalise expects the transactions in reverse order, so reverse the output in either case
+  let
+    j' = if _oldtimeclock iopts
+      then
+        -- timeclockToTransactionsOld expects the entries to be in normal order, 
+        -- but they have been parsed in reverse order, so reverse them before calling
+        j{jtxns = reverse $ timeclockToTransactionsOld now $ reverse es, jparsetimeclockentries = []}
+      else
+        -- We don't need to reverse these transactions 
+        -- since they are sorted inside of timeclockToTransactions
+        j{jtxns = reverse $ timeclockToTransactions now es, jparsetimeclockentries = []}
+  return j'
+  where
+    -- As all ledger line types can be distinguished by the first
+    -- character, excepting transactions versus empty (blank or
+    -- comment-only) lines, can use choice w/o try
+    timeclockitemp = choice [
+       void (lift emptyorcommentlinep)
+      ,entryp >>= \e -> modify' (\j -> j{jparsetimeclockentries = e : jparsetimeclockentries j})
+      ] <?> "timeclock entry, comment line, or empty line"
+      where entryp = if _oldtimeclock iopts then oldtimeclockentryp else timeclockentryp
 
 -- | Parse a timeclock entry (loose pre-1.50 format).
 oldtimeclockentryp :: JournalParser m TimeclockEntry

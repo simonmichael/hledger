@@ -10,8 +10,8 @@ converted to 'Transactions' and queried like a ledger.
 {-# LANGUAGE StandaloneDeriving #-}
 
 module Hledger.Data.Timeclock (
-   timeclockEntriesToTransactions
-  ,timeclockEntriesToTransactionsSingle
+   timeclockToTransactions
+  ,timeclockToTransactionsOld
   ,tests_Timeclock
 )
 where
@@ -37,110 +37,81 @@ import Hledger.Data.Posting
 
 -- compact output
 instance Show TimeclockEntry where
-    show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
+  show t = printf "%s %s %s  %s" (show $ tlcode t) (show $ tldatetime t) (tlaccount t) (tldescription t)
 
 instance Show TimeclockCode where
-    show SetBalance = "b"
-    show SetRequiredHours = "h"
-    show In = "i"
-    show Out = "o"
-    show FinalOut = "O"
+  show SetBalance = "b"
+  show SetRequiredHours = "h"
+  show In = "i"
+  show Out = "o"
+  show FinalOut = "O"
 
 instance Read TimeclockCode where
-    readsPrec _ ('b' : xs) = [(SetBalance, xs)]
-    readsPrec _ ('h' : xs) = [(SetRequiredHours, xs)]
-    readsPrec _ ('i' : xs) = [(In, xs)]
-    readsPrec _ ('o' : xs) = [(Out, xs)]
-    readsPrec _ ('O' : xs) = [(FinalOut, xs)]
-    readsPrec _ _ = []
+  readsPrec _ ('b':xs) = [(SetBalance, xs)]
+  readsPrec _ ('h':xs) = [(SetRequiredHours, xs)]
+  readsPrec _ ('i':xs) = [(In, xs)]
+  readsPrec _ ('o':xs) = [(Out, xs)]
+  readsPrec _ ('O':xs) = [(FinalOut, xs)]
+  readsPrec _ _ = []
 
-data Session = Session
-    { in' :: TimeclockEntry,
-      out :: TimeclockEntry
-    } deriving Show
+data Session = Session {
+  in' :: TimeclockEntry,
+  out :: TimeclockEntry
+} deriving Show
 
-data Sessions = Sessions
-    { completed :: [Session],
-      active :: [TimeclockEntry]
-    } deriving Show
+data Sessions = Sessions {
+  completed :: [Session],
+  active :: [TimeclockEntry]
+} deriving Show
 
--- | Find the relevant clockin in the actives list that should be paired with this clockout.
--- If there is a session that has the same account name, then use that.
--- Otherwise, if there is an active anonymous session, use that.
--- Otherwise, raise an error.
-findInForOut :: TimeclockEntry -> ([TimeclockEntry], [TimeclockEntry]) -> (TimeclockEntry, [TimeclockEntry])
-findInForOut _ (matchingout : othermatches, rest) = (matchingout, othermatches <> rest)
-findInForOut o ([], activeins) =
-    if emptyname then (first, rest) else error' errmsg
-    where
-        l = show $ unPos $ sourceLine $ tlsourcepos o
-        c = unPos $ sourceColumn $ tlsourcepos o
-        emptyname = tlaccount o == ""
-        (first, rest) = case uncons activeins of
-            Just (hd, tl) -> (hd, tl)
-            Nothing -> error' errmsg
-        errmsg =
-            printf
-              "%s:\n%s\n%s\n\nCould not find previous clockin to match this clockout."
-              (sourcePosPretty $ tlsourcepos o)
-              (l ++ " | " ++ show o)
-              (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
-
--- | Assuming that entries have been sorted, we go through each time log entry.
--- We collect all of the "i" in the list "actives," and each time we encounter
--- an "o," we look for the corresponding "i" in actives.
--- If we cannot find it, then it is an error (since the list is sorted).
--- If the "o" is recorded on a different day than the "i" then we close the
--- active entry at the end of its day, replace it in the active list
--- with a start at midnight on the next day, and try again.
--- This raises an error if any outs cannot be paired with an in.
-pairClockEntries :: [TimeclockEntry] -> [TimeclockEntry] -> [Session] -> Sessions
-pairClockEntries [] actives sessions = Sessions {completed = sessions, active = actives}
-pairClockEntries (entry : rest) actives sessions
-  | tlcode entry == In  = pairClockEntries rest inentries sessions
-  | tlcode entry == Out = pairClockEntries rest' actives' sessions'
-  | otherwise = pairClockEntries rest actives sessions
+-- | Convert timeclock entries to journal transactions.
+-- This is the old version from hledger <1.43, now enabled by --old-timeclock.
+-- It requires strictly alternating clock-in and clock-entries.
+-- It was documented as allowing only one clocked-in session at a time,
+-- but in fact it allows concurrent sessions, even with the same account name.
+--
+-- Entries must be a strict alternation of in and out, beginning with in.
+-- When there is no clockout, one is added with the provided current time. 
+-- Sessions crossing midnight are split into days to give accurate per-day totals.
+-- If entries are not in the expected in/out order, an error is raised.
+--
+timeclockToTransactionsOld :: LocalTime -> [TimeclockEntry] -> [Transaction]
+timeclockToTransactionsOld _ [] = []
+timeclockToTransactionsOld now [i]
+  | tlcode i /= In = errorExpectedCodeButGot In i
+  | odate > idate = entryFromTimeclockInOut i o' : timeclockToTransactionsOld now [i',o]
+  | otherwise = [entryFromTimeclockInOut i o]
   where
-    (inentry, newactive) = findInForOut entry (partition (\e -> tlaccount e == tlaccount entry) actives)
-    (itime, otime) = (tldatetime inentry, tldatetime entry)
-    (idate, odate) = (localDay itime, localDay otime)
-    omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
-    imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
-    (sessions', actives', rest')
-      | odate > idate = (Session {in' = inentry, out = omidnight} : sessions, imidnight : newactive, entry : rest)
-      | otherwise     = (Session {in' = inentry, out = entry} : sessions, newactive, rest)
-    inentries = case filter ((== tlaccount entry) . tlaccount) actives of
-      []                -> entry : actives
-      activesinthisacct -> error' $ T.unpack $ makeTimeClockErrorExcerpt entry $ T.unlines $ [
-         ""
-        ,"overlaps with session beginning at:"
-        ,""
-        ]
-        <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
-        <> [
-         "Overlapping sessions with the same account name are not supported."
-        ]
-        -- XXX better to show full session(s)
-        -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
-
-makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
-makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
-   T.pack (sourcePosPretty pos) <> ":"
-  ,l <> " | " <> T.show e
-  -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
-  ] <> msg
+    o = TimeclockEntry (tlsourcepos i) Out end "" "" "" []
+    end = if itime > now then itime else now
+    (itime,otime) = (tldatetime i,tldatetime o)
+    (idate,odate) = (localDay itime,localDay otime)
+    o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
+    i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
+timeclockToTransactionsOld now (i:o:rest)
+  | tlcode i /= In  = errorExpectedCodeButGot In i
+  | tlcode o /= Out = errorExpectedCodeButGot Out o
+  | odate > idate   = entryFromTimeclockInOut i o' : timeclockToTransactionsOld now (i':o:rest)
+  | otherwise       = entryFromTimeclockInOut i o : timeclockToTransactionsOld now rest
   where
-    l = T.show $ unPos $ sourceLine $ tlsourcepos e
-    -- c = unPos $ sourceColumn $ tlsourcepos e
+    (itime,otime) = (tldatetime i,tldatetime o)
+    (idate,odate) = (localDay itime,localDay otime)
+    o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
+    i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
+{- HLINT ignore timeclockToTransactionsOld -}
 
--- | Convert time log entries to journal transactions, allowing multiple clocked-in sessions at once.
--- This is the new, default behaviour.
+-- | Convert timeclock entries to journal transactions.
+-- This is the new, default version added in hledger 1.43 and improved in 1.50.
+-- It allows concurrent clocked-in sessions (though not with the same account name),
+-- and clock-in/clock-out entries in any order.
+--
 -- Entries are processed in time order, then (for entries with the same time) in parse order.
 -- When there is no clockout, one is added with the provided current time.
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
 -- If any entries cannot be paired as expected, an error is raised.
-timeclockEntriesToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
-timeclockEntriesToTransactions now entries = transactions
+--
+timeclockToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
+timeclockToTransactions now entries = transactions
   where
     sessions = dbg6 "sessions" $ pairClockEntries (sortTimeClockEntries entries) [] []
     transactionsFromSession s = entryFromTimeclockInOut (in' s) (out s)
@@ -151,46 +122,77 @@ timeclockEntriesToTransactions now entries = transactions
     stillopen = dbg6 "stillopen" $ pairClockEntries ((active sessions) <> outs) [] []
     transactions = map transactionsFromSession $ sortBy (\s1 s2 -> compare (in' s1) (in' s2)) (completed sessions ++ completed stillopen)
 
--- | Sort timeclock entries first by date and time (with time zone ignored as usual), then by file position.
--- Ie, sort by time, but preserve the parse order of entries with the same time.
-sortTimeClockEntries :: [TimeclockEntry] -> [TimeclockEntry]
-sortTimeClockEntries = sortBy (\e1 e2 -> compare (tldatetime e1, tlsourcepos e1) (tldatetime e2, tlsourcepos e2))
+    -- | Sort timeclock entries first by date and time (with time zone ignored as usual), then by file position.
+    -- Ie, sort by time, but preserve the parse order of entries with the same time.
+    sortTimeClockEntries :: [TimeclockEntry] -> [TimeclockEntry]
+    sortTimeClockEntries = sortBy (\e1 e2 -> compare (tldatetime e1, tlsourcepos e1) (tldatetime e2, tlsourcepos e2))
 
--- | Convert time log entries to journal transactions, allowing only one clocked-in session at a time.
--- Entries must be a strict alternation of in and out, beginning with in.
--- When there is no clockout, one is added with the provided current time. 
--- Sessions crossing midnight are split into days to give accurate per-day totals.
--- If entries are not in the expected in/out order, an error is raised.
--- This is the old, legacy behaviour, enabled by --old-timeclock.
-timeclockEntriesToTransactionsSingle :: LocalTime -> [TimeclockEntry] -> [Transaction]
+    -- | Assuming that entries have been sorted, we go through each time log entry.
+    -- We collect all of the "i" in the list "actives," and each time we encounter
+    -- an "o," we look for the corresponding "i" in actives.
+    -- If we cannot find it, then it is an error (since the list is sorted).
+    -- If the "o" is recorded on a different day than the "i" then we close the
+    -- active entry at the end of its day, replace it in the active list
+    -- with a start at midnight on the next day, and try again.
+    -- This raises an error if any outs cannot be paired with an in.
+    pairClockEntries :: [TimeclockEntry] -> [TimeclockEntry] -> [Session] -> Sessions
+    pairClockEntries [] actives sessions1 = Sessions {completed = sessions1, active = actives}
+    pairClockEntries (entry:es) actives sessions1
+      | tlcode entry == In  = pairClockEntries es inentries sessions1
+      | tlcode entry == Out = pairClockEntries es' actives' sessions2
+      | otherwise = pairClockEntries es actives sessions1
+      where
+        (inentry, newactive) = findInForOut entry (partition (\e -> tlaccount e == tlaccount entry) actives)
+        (itime, otime) = (tldatetime inentry, tldatetime entry)
+        (idate, odate) = (localDay itime, localDay otime)
+        omidnight = entry {tldatetime = itime {localDay = idate, localTimeOfDay = TimeOfDay 23 59 59}}
+        imidnight = inentry {tldatetime = itime {localDay = addDays 1 idate, localTimeOfDay = midnight}}
+        (sessions2, actives', es')
+          | odate > idate = (Session {in' = inentry, out = omidnight} : sessions1, imidnight:newactive, entry:es)
+          | otherwise     = (Session {in' = inentry, out = entry} : sessions1, newactive, es)
+        inentries = case filter ((== tlaccount entry) . tlaccount) actives of
+          []                -> entry:actives
+          activesinthisacct -> error' $ T.unpack $ makeTimeClockErrorExcerpt entry $ T.unlines $ [
+            ""
+            ,"overlaps with session beginning at:"
+            ,""
+            ]
+            <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
+            <> [ "Overlapping sessions with the same account name are not supported." ]
+            -- XXX better to show full session(s)
+            -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
+            where
+              makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
+              makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
+                T.pack (sourcePosPretty pos) <> ":"
+                ,l <> " | " <> T.show e
+                -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
+                ] <> msg
+                where
+                  l = T.show $ unPos $ sourceLine $ tlsourcepos e
+                  -- c = unPos $ sourceColumn $ tlsourcepos e
 
-timeclockEntriesToTransactionsSingle _ [] = []
-
-timeclockEntriesToTransactionsSingle now [i]
-    | tlcode i /= In = errorExpectedCodeButGot In i
-    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactionsSingle now [i',o]
-    | otherwise = [entryFromTimeclockInOut i o]
-    where
-      o = TimeclockEntry (tlsourcepos i) Out end "" "" "" []
-      end = if itime > now then itime else now
-      (itime,otime) = (tldatetime i,tldatetime o)
-      (idate,odate) = (localDay itime,localDay otime)
-      o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
-      i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-
-timeclockEntriesToTransactionsSingle now (i:o:rest)
-    | tlcode i /= In  = errorExpectedCodeButGot In i
-    | tlcode o /= Out = errorExpectedCodeButGot Out o
-    | odate > idate   = entryFromTimeclockInOut i o' : timeclockEntriesToTransactionsSingle now (i':o:rest)
-    | otherwise       = entryFromTimeclockInOut i o : timeclockEntriesToTransactionsSingle now rest
-    where
-      (itime,otime) = (tldatetime i,tldatetime o)
-      (idate,odate) = (localDay itime,localDay otime)
-      o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
-      i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-
-{- HLINT ignore timeclockEntriesToTransactionsSingle -}
-
+        -- | Find the relevant clockin in the actives list that should be paired with this clockout.
+        -- If there is a session that has the same account name, then use that.
+        -- Otherwise, if there is an active anonymous session, use that.
+        -- Otherwise, raise an error.
+        findInForOut :: TimeclockEntry -> ([TimeclockEntry], [TimeclockEntry]) -> (TimeclockEntry, [TimeclockEntry])
+        findInForOut _ (matchingout:othermatches, rest) = (matchingout, othermatches <> rest)
+        findInForOut o ([], activeins) =
+            if emptyname then (first, rest) else error' errmsg
+            where
+                l = show $ unPos $ sourceLine $ tlsourcepos o
+                c = unPos $ sourceColumn $ tlsourcepos o
+                emptyname = tlaccount o == ""
+                (first, rest) = case uncons activeins of
+                    Just (hd, tl) -> (hd, tl)
+                    Nothing -> error' errmsg
+                errmsg =
+                    printf
+                      "%s:\n%s\n%s\n\nCould not find previous clockin to match this clockout."
+                      (sourcePosPretty $ tlsourcepos o)
+                      (l ++ " | " ++ show o)
+                      (replicate (length l) ' ' ++ " |" ++ replicate c ' ' ++ "^")
 
 errorExpectedCodeButGot :: TimeclockCode -> TimeclockEntry -> a
 errorExpectedCodeButGot expected actual = error' $ printf
@@ -265,7 +267,7 @@ entryFromTimeclockInOut i o
 -- tests
 
 tests_Timeclock = testGroup "Timeclock" [
-  testCaseSteps "timeclockEntriesToTransactions tests" $ \step -> do
+  testCaseSteps "timeclockToTransactions tests" $ \step -> do
       step "gathering data"
       today <- getCurrentDay
       now' <- getCurrentTime
@@ -278,7 +280,7 @@ tests_Timeclock = testGroup "Timeclock" [
           mktime d = LocalTime d . fromMaybe midnight .
                      parseTimeM True defaultTimeLocale "%H:%M:%S"
           showtime = formatTime defaultTimeLocale "%H:%M"
-          txndescs = map (T.unpack . tdescription) . timeclockEntriesToTransactions now
+          txndescs = map (T.unpack . tdescription) . timeclockToTransactions now
           future = utcToLocalTime tz $ addUTCTime 100 now'
           futurestr = showtime future
       step "started yesterday, split session at midnight"
