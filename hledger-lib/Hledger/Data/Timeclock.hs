@@ -163,10 +163,12 @@ sortTimeClockEntries = sortBy (\e1 e2 -> compare (tldatetime e1, tlsourcepos e1)
 -- If entries are not in the expected in/out order, an error is raised.
 -- This is the old, legacy behaviour, enabled by --old-timeclock.
 timeclockEntriesToTransactionsSingle :: LocalTime -> [TimeclockEntry] -> [Transaction]
+
 timeclockEntriesToTransactionsSingle _ [] = []
+
 timeclockEntriesToTransactionsSingle now [i]
     | tlcode i /= In = errorExpectedCodeButGot In i
-    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now [i',o]
+    | odate > idate = entryFromTimeclockInOut i o' : timeclockEntriesToTransactionsSingle now [i',o]
     | otherwise = [entryFromTimeclockInOut i o]
     where
       o = TimeclockEntry (tlsourcepos i) Out end "" "" "" []
@@ -175,17 +177,20 @@ timeclockEntriesToTransactionsSingle now [i]
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
+
 timeclockEntriesToTransactionsSingle now (i:o:rest)
     | tlcode i /= In  = errorExpectedCodeButGot In i
     | tlcode o /= Out = errorExpectedCodeButGot Out o
-    | odate > idate   = entryFromTimeclockInOut i o' : timeclockEntriesToTransactions now (i':o:rest)
-    | otherwise       = entryFromTimeclockInOut i o : timeclockEntriesToTransactions now rest
+    | odate > idate   = entryFromTimeclockInOut i o' : timeclockEntriesToTransactionsSingle now (i':o:rest)
+    | otherwise       = entryFromTimeclockInOut i o : timeclockEntriesToTransactionsSingle now rest
     where
       (itime,otime) = (tldatetime i,tldatetime o)
       (idate,odate) = (localDay itime,localDay otime)
       o' = o{tldatetime=itime{localDay=idate, localTimeOfDay=TimeOfDay 23 59 59}}
       i' = i{tldatetime=itime{localDay=addDays 1 idate, localTimeOfDay=midnight}}
-{- HLINT ignore timeclockEntriesToTransactions -}
+
+{- HLINT ignore timeclockEntriesToTransactionsSingle -}
+
 
 errorExpectedCodeButGot :: TimeclockCode -> TimeclockEntry -> a
 errorExpectedCodeButGot expected actual = error' $ printf
