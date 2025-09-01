@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver lts-24.2 --compile
+{- stack script --resolver lts-24.8 --compile
 --package process
 --package split
 -}
