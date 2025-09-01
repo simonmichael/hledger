@@ -172,27 +172,25 @@ import Hledger.Read.InputOptions
 
 -- main types; a few more below
 
--- | A hledger journal reader is a triple of storage format name, a
--- detector of that format, and a parser from that format to Journal.
--- The type variable m appears here so that rParserr can hold a
--- journal parser, which depends on it.
+-- | A hledger journal reader is a storage format name,
+-- a list of file extensions assumed to be in this format,
+-- and an IO action that reads data in this format, returning a Journal.
+--
+-- The journal parser used by the latter is also stored separately for direct use
+-- by the journal reader's includedirectivep to parse included files.
+-- The type variable m is needed for this parser.
+-- Lately it requires an InputOpts, basically to support --old-timeclock.
 data Reader m = Reader {
-
-     -- The canonical name of the format handled by this reader
-     rFormat   :: StorageFormat
-
-     -- The file extensions recognised as containing this format
-    ,rExtensions :: [String]
-
-     -- The entry point for reading this format, accepting input options, file
-     -- path for error messages and file contents via the handle, producing an exception-raising IO
-     -- action that produces a journal or error message.
-    ,rReadFn   :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
-
-     -- The actual megaparsec parser called by the above, in case
-     -- another parser (includedirectivep) wants to use it directly.
-    ,rParser :: MonadIO m => ErroringJournalParser m ParsedJournal
-    }
+    -- The canonical name of the format handled by this reader. "journal", "timedot", "csv" etc.
+   rFormat :: StorageFormat
+    -- The file extensions recognised as containing this format.
+  ,rExtensions :: [String]
+    -- An IO action for reading this format, producing a journal or an error message.
+    -- It accepts input options, a file path to show in error messages, and a handle to read data from.
+  ,rReadFn :: InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
+    -- The megaparsec parser called by the above, provided separately for parsing included files.
+  ,rParser :: MonadIO m => InputOpts -> ErroringJournalParser m ParsedJournal
+  }
 
 instance Show (Reader m) where show r = show (rFormat r) ++ " reader"
 

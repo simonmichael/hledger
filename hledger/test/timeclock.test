@@ -203,6 +203,19 @@ $ hledger -f timeclock:- print
 >2 /Overlapping sessions with the same account name are not supported./
 >=!0
 
+# ** 15. --old-timeclock also affects included files.
+<
+include needs-old.timeclock
+
+$ hledger -f- print --old-timeclock
+2000-01-01 * 09:00-11:00
+    (a)           2.00h
+
+2000-01-01 * 10:00-11:00
+    (a)           1.00h
+
+>=
+
 # ** OLD:
 
 ## multi-day sessions get a new transaction for each day

@@ -220,7 +220,7 @@ parse iopts f = parseAndFinaliseJournal journalp' iopts f
     journalp' = do
       -- reverse parsed aliases to ensure that they are applied in order given on commandline
       mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
-      journalp
+      journalp iopts
 
 --- ** parsers
 --- *** journal
@@ -228,23 +228,23 @@ parse iopts f = parseAndFinaliseJournal journalp' iopts f
 -- | A journal parser. Accumulates and returns a "ParsedJournal",
 -- which should be finalised/validated before use.
 --
--- >>> rejp (journalp <* eof) "2015/1/1\n a  0\n"
+-- >>> rejp (journalp definputopts <* eof) "2015/1/1\n a  0\n"
 -- Right (Right Journal (unknown) with 1 transactions, 1 accounts)
 --
-journalp :: MonadIO m => ErroringJournalParser m ParsedJournal
-journalp = do
-  many addJournalItemP
+journalp :: MonadIO m => InputOpts -> ErroringJournalParser m ParsedJournal
+journalp iopts = do
+  many $ addJournalItemP iopts
   eof
   get
 
 -- | A side-effecting parser; parses any kind of journal item
 -- and updates the parse state accordingly.
-addJournalItemP :: MonadIO m => ErroringJournalParser m ()
-addJournalItemP =
+addJournalItemP :: MonadIO m => InputOpts -> ErroringJournalParser m ()
+addJournalItemP iopts =
   -- all journal line types can be distinguished by the first
   -- character, can use choice without backtracking
   choice [
-      directivep
+      directivep iopts
     , transactionp          >>= modify' . addTransaction
     , transactionmodifierp  >>= modify' . addTransactionModifier
     , periodictransactionp  >>= modify' . addPeriodicTransaction
@@ -258,11 +258,11 @@ addJournalItemP =
 -- | Parse any journal directive and update the parse state accordingly.
 -- Cf http://hledger.org/hledger.html#directives,
 -- http://ledger-cli.org/3.0/doc/ledger3.html#Command-Directives
-directivep :: MonadIO m => ErroringJournalParser m ()
-directivep = (do
+directivep :: MonadIO m => InputOpts -> ErroringJournalParser m ()
+directivep iopts = (do
   optional $ oneOf ['!','@']
   choice [
-    includedirectivep
+    includedirectivep iopts
    ,aliasdirectivep
    ,endaliasesdirectivep
    ,accountdirectivep
@@ -296,10 +296,11 @@ directivep = (do
   ) <?> "directive"
 
 -- | Parse an include directive, and the file(s) it refers to, possibly recursively.
+-- Input options are required since they may affect parsing (of timeclock files, specifically).
 -- include's argument is a file path or glob pattern (see findMatchedFiles for details),
 -- optionally with a file type prefix. Relative paths are relative to the current file.
-includedirectivep :: MonadIO m => ErroringJournalParser m ()
-includedirectivep = do
+includedirectivep :: MonadIO m => InputOpts -> ErroringJournalParser m ()
+includedirectivep iopts = do
   -- save the position at start of include directive, for error messages
   eoff <- getOffset
   -- and the parent file's path, for error messages and debug output
@@ -335,7 +336,7 @@ includedirectivep = do
         Just fmt -> map ((show fmt++":")++) paths
 
   -- Parse each one, as if inlined here.
-  forM_ prefixedpaths $ parseIncludedFile eoff
+  forM_ prefixedpaths $ parseIncludedFile iopts eoff
 
   where
 
@@ -432,8 +433,8 @@ includedirectivep = do
 
     -- Parse the given included file (and any deeper includes, recursively) as if it was inlined in the current (parent) file.
     -- The offset of the start of the include directive in the parent file is provided for error messages.
-    parseIncludedFile :: MonadIO m => Int -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile eoff prefixedpath = do
+    parseIncludedFile :: MonadIO m => InputOpts -> Int -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile iopts1 eoff prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
       -- Throw an error if a cycle is detected
@@ -449,7 +450,7 @@ includedirectivep = do
       -- Choose a reader based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
       let r = fromMaybe reader $ findReader Nothing (Just prefixedpath)
-          parser = rParser r
+          parser = (rParser r) iopts1
       dbg7IO "parseIncludedFile: trying reader" (rFormat r)
 
       -- Parse the file (and its own includes, if any) to a Journal
@@ -1220,8 +1221,8 @@ tests_JournalReader = testGroup "JournalReader" [
 
   ,testGroup "directivep" [
     testCase "supports !" $ do
-        assertParseE directivep "!account a\n"
-        assertParseE directivep "!D 1.0\n"
+        assertParseE (directivep definputopts) "!account a\n"
+        assertParseE (directivep definputopts) "!D 1.0\n"
      ]
 
   ,testGroup "accountdirectivep" [
@@ -1255,8 +1256,8 @@ tests_JournalReader = testGroup "JournalReader" [
      assertParse ignoredpricecommoditydirectivep "N $\n"
 
   ,testGroup "includedirectivep" [
-      testCase "include" $ assertParseErrorE includedirectivep "include nosuchfile\n" "No files were matched by glob pattern: nosuchfile"
-     ,testCase "glob" $ assertParseErrorE includedirectivep "include nosuchfile*\n" "No files were matched by glob pattern: nosuchfile*"
+      testCase "include" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile\n" "No files were matched by glob pattern: nosuchfile"
+     ,testCase "glob" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile*\n" "No files were matched by glob pattern: nosuchfile*"
      ]
 
   ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep
@@ -1283,12 +1284,12 @@ tests_JournalReader = testGroup "JournalReader" [
       assertParse endtagdirectivep "end apply tag \n"
 
   ,testGroup "journalp" [
-    testCase "empty file" $ assertParseEqE journalp "" nulljournal
+    testCase "empty file" $ assertParseEqE (journalp definputopts) "" nulljournal
     ]
 
    -- these are defined here rather than in Common so they can use journalp
   ,testCase "parseAndFinaliseJournal" $ do
-      ej <- runExceptT $ parseAndFinaliseJournal journalp definputopts "" "2019-1-1\n"
+      ej <- runExceptT $ parseAndFinaliseJournal (journalp definputopts) definputopts "" "2019-1-1\n"
       let Right j = ej
       assertEqual "" [""] $ journalFilePaths j
 

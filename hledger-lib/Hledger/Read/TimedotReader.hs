@@ -74,7 +74,7 @@ reader = Reader
 
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts fp t = initialiseAndParseJournal timedotp iopts fp t
+parse iopts fp t = initialiseAndParseJournal (timedotp iopts) iopts fp t
                    >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
                    >>= journalFinalise iopts fp t
 
@@ -106,8 +106,8 @@ Org headings before the first date line are ignored, regardless of content.
 
 timedotfilep = timedotp -- XXX rename export above
 
-timedotp :: JournalParser m ParsedJournal
-timedotp = preamblep >> many dayp >> eof >> get
+timedotp :: InputOpts -> JournalParser m ParsedJournal
+timedotp _ = preamblep >> many dayp >> eof >> get
 
 preamblep :: JournalParser m ()
 preamblep = do

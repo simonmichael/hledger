@@ -164,7 +164,7 @@ reader = Reader
   {rFormat     = Timeclock
   ,rExtensions = ["timeclock"]
   ,rReadFn     = handleReadFnToTextReadFn parse
-  ,rParser     = timeclockfilep definputopts
+  ,rParser     = timeclockfilep
   }
 
 -- | Parse and post-process a "Journal" from timeclock.el's timeclock
