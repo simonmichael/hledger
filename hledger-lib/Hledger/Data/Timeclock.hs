@@ -157,7 +157,7 @@ timeclockToTransactions now entries0 = transactions
             <> map (flip makeTimeClockErrorExcerpt "") activesinthisacct
             <> [ "Overlapping sessions with the same account name are not supported." ]
             -- XXX better to show full session(s)
-            -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
+            -- <> map (T.pack . show) (filter ((`elem` activesinthisacct).in') sessions)
 
         -- | Find the relevant clockin in the actives list that should be paired with this clockout.
         -- If there is a session that has the same account name, then use that.
@@ -197,11 +197,11 @@ errorExpectedCodeButGot expected actual = error' $ printf
 makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
 makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
   T.pack (sourcePosPretty pos) <> ":"
-  ,l <> " | " <> T.show e
+  ,l <> " | " <> T.pack (show e)
   -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
   ] <> msg
   where
-    l = T.show $ unPos $ sourceLine $ tlsourcepos e
+    l = T.pack $ show $ unPos $ sourceLine $ tlsourcepos e
     -- c = unPos $ sourceColumn $ tlsourcepos e
 
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
