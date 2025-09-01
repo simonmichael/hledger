@@ -4720,9 +4720,9 @@ of [timeclock.el](http://www.emacswiki.org/emacs/TimeClock).
 As with [Ledger](http://ledger-cli.org/3.0/doc/ledger3.html#Time-Keeping),
 hledger's timeclock format is a subset/variant of timeclock.el's.
 
-Note, hledger's timeclock format was made more robust in hledger 1.43 and 1.50.
+hledger's timeclock format was updated in hledger 1.43 and 1.50.
 If your old time logs are rejected, you should adapt them to modern hledger;
-but for now you can also restore the pre-1.43 behaviour with the `--old-timeclock` flag.
+for now, you can restore the pre-1.43 behaviour with the `--old-timeclock` flag.
 
 Here the timeclock format in hledger 1.50+:
 
@@ -4768,8 +4768,11 @@ $ hledger -f a.timeclock print
 ```
 
 Clock-ins and clock-outs are matched by their account/session name.
-If a clock-outs does not specify a name, the most recent unclosed clock-in is closed.
-Also, sessions spanning more than one day are automatically split at day boundaries.
+If a clock-out does not specify a name, the most recent unclosed clock-in is closed.
+You can have multiple sessions active simultaneously.
+Entries are processed in the order they are parsed.
+Sessions spanning more than one day are automatically split at day boundaries.
+
 Eg, the following time log:
 
 ```timeclock
@@ -4803,9 +4806,6 @@ $ hledger -f t.timeclock print
     (some account)           1.00h
 
 ```
-
-Note, you can have overlapping sessions (multiple sessions open simultaneously), but they must have different account names.
-Overlapping sessions with the same account name are currently not supported currently.
 
 Here is a
 [sample.timeclock](https://raw.github.com/simonmichael/hledger/master/examples/sample.timeclock) to

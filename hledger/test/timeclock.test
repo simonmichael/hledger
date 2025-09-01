@@ -192,7 +192,7 @@ $ hledger -f timeclock:- print
 
 >=
 
-# ** 14. Sessions with the same account name may not overlap (#2417).
+# ** 14. Sessions can overlap, even with the same account name (#2417).
 <
 i 2024-01-01 13:00:00 a
 o 2024-01-01 15:00:00
@@ -200,10 +200,31 @@ i 2024-01-01 14:00:00 a
 o 2024-01-01 15:00:00
 
 $ hledger -f timeclock:- print
->2 /Overlapping sessions with the same account name are not supported./
->=!0
+2024-01-01 * 13:00-15:00
+    (a)           2.00h
 
-# ** 15. --old-timeclock also affects included files.
+2024-01-01 * 14:00-15:00
+    (a)           1.00h
+
+>=
+
+# ** 15. These staggered overlapping sessions are read correctly.
+<
+i 2000-01-01 09:00:00 a
+o 2000-01-01 12:00:00
+i 2000-01-01 10:00:00 b
+o 2000-01-01 13:00:00
+
+$ hledger -f timeclock:- print
+2000-01-01 * 09:00-12:00
+    (a)           3.00h
+
+2000-01-01 * 10:00-13:00
+    (b)           3.00h
+
+>=
+
+# ** 16. --old-timeclock also affects included files.
 <
 include needs-old.timeclock
 

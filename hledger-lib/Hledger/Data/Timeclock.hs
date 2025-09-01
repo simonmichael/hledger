@@ -79,8 +79,8 @@ timeclockToTransactionsOld :: LocalTime -> [TimeclockEntry] -> [Transaction]
 timeclockToTransactionsOld _ [] = []
 timeclockToTransactionsOld now [i]
   | tlcode i /= In = errorExpectedCodeButGot In i
-  | odate > idate = entryFromTimeclockInOut i o' : timeclockToTransactionsOld now [i',o]
-  | otherwise = [entryFromTimeclockInOut i o]
+  | odate > idate = entryFromTimeclockInOut True i o' : timeclockToTransactionsOld now [i',o]
+  | otherwise = [entryFromTimeclockInOut True i o]
   where
     o = TimeclockEntry (tlsourcepos i) Out end "" "" "" []
     end = if itime > now then itime else now
@@ -91,8 +91,8 @@ timeclockToTransactionsOld now [i]
 timeclockToTransactionsOld now (i:o:rest)
   | tlcode i /= In  = errorExpectedCodeButGot In i
   | tlcode o /= Out = errorExpectedCodeButGot Out o
-  | odate > idate   = entryFromTimeclockInOut i o' : timeclockToTransactionsOld now (i':o:rest)
-  | otherwise       = entryFromTimeclockInOut i o : timeclockToTransactionsOld now rest
+  | odate > idate   = entryFromTimeclockInOut True i o' : timeclockToTransactionsOld now (i':o:rest)
+  | otherwise       = entryFromTimeclockInOut True i o : timeclockToTransactionsOld now rest
   where
     (itime,otime) = (tldatetime i,tldatetime o)
     (idate,odate) = (localDay itime,localDay otime)
@@ -105,27 +105,24 @@ timeclockToTransactionsOld now (i:o:rest)
 -- It allows concurrent clocked-in sessions (though not with the same account name),
 -- and clock-in/clock-out entries in any order.
 --
--- Entries are processed in time order, then (for entries with the same time) in parse order.
--- When there is no clockout, one is added with the provided current time.
+-- Entries are processed in parse order.
 -- Sessions crossing midnight are split into days to give accurate per-day totals.
+-- At the end, any sessions with no clockout get an implicit clockout with the provided "now" time.
 -- If any entries cannot be paired as expected, an error is raised.
 --
 timeclockToTransactions :: LocalTime -> [TimeclockEntry] -> [Transaction]
-timeclockToTransactions now entries = transactions
+timeclockToTransactions now entries0 = transactions
   where
-    sessions = dbg6 "sessions" $ pairClockEntries (sortTimeClockEntries entries) [] []
-    transactionsFromSession s = entryFromTimeclockInOut (in' s) (out s)
+    -- don't sort by time, it messes things up; just reverse to get the parsed order
+    entries = dbg7 "timeclock entries" $ reverse entries0
+    sessions = dbg6 "sessions" $ pairClockEntries entries [] []
+    transactionsFromSession s = entryFromTimeclockInOut False (in' s) (out s)
     -- If any "in" sessions are in the future, then set their out time to the initial time
     outtime te = max now (tldatetime te)
     createout te = TimeclockEntry (tlsourcepos te) Out (outtime te) (tlaccount te) "" "" []
     outs = map createout (active sessions)
     stillopen = dbg6 "stillopen" $ pairClockEntries ((active sessions) <> outs) [] []
     transactions = map transactionsFromSession $ sortBy (\s1 s2 -> compare (in' s1) (in' s2)) (completed sessions ++ completed stillopen)
-
-    -- | Sort timeclock entries first by date and time (with time zone ignored as usual), then by file position.
-    -- Ie, sort by time, but preserve the parse order of entries with the same time.
-    sortTimeClockEntries :: [TimeclockEntry] -> [TimeclockEntry]
-    sortTimeClockEntries = sortBy (\e1 e2 -> compare (tldatetime e1, tlsourcepos e1) (tldatetime e2, tlsourcepos e2))
 
     -- | Assuming that entries have been sorted, we go through each time log entry.
     -- We collect all of the "i" in the list "actives," and each time we encounter
@@ -161,16 +158,6 @@ timeclockToTransactions now entries = transactions
             <> [ "Overlapping sessions with the same account name are not supported." ]
             -- XXX better to show full session(s)
             -- <> map T.show (filter ((`elem` activesinthisacct).in') sessions)
-            where
-              makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
-              makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
-                T.pack (sourcePosPretty pos) <> ":"
-                ,l <> " | " <> T.show e
-                -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
-                ] <> msg
-                where
-                  l = T.show $ unPos $ sourceLine $ tlsourcepos e
-                  -- c = unPos $ sourceColumn $ tlsourcepos e
 
         -- | Find the relevant clockin in the actives list that should be paired with this clockout.
         -- If there is a session that has the same account name, then use that.
@@ -208,12 +195,22 @@ errorExpectedCodeButGot expected actual = error' $ printf
     l = show $ unPos $ sourceLine $ tlsourcepos actual
     c = unPos $ sourceColumn $ tlsourcepos actual
 
+makeTimeClockErrorExcerpt :: TimeclockEntry -> T.Text -> T.Text
+makeTimeClockErrorExcerpt e@TimeclockEntry{tlsourcepos=pos} msg = T.unlines [
+  T.pack (sourcePosPretty pos) <> ":"
+  ,l <> " | " <> T.show e
+  -- ,T.replicate (T.length l) " " <> " |" -- <> T.replicate c " " <> "^")
+  ] <> msg
+  where
+    l = T.show $ unPos $ sourceLine $ tlsourcepos e
+    -- c = unPos $ sourceColumn $ tlsourcepos e
+
 -- | Convert a timeclock clockin and clockout entry to an equivalent journal
 -- transaction, representing the time expenditure. Note this entry is  not balanced,
 -- since we omit the \"assets:time\" transaction for simpler output.
-entryFromTimeclockInOut :: TimeclockEntry -> TimeclockEntry -> Transaction
-entryFromTimeclockInOut i o
-    | otime >= itime = t
+entryFromTimeclockInOut :: Bool -> TimeclockEntry -> TimeclockEntry -> Transaction
+entryFromTimeclockInOut requiretimeordered i o
+    | not requiretimeordered || otime >= itime = t
     | otherwise =
       -- Clockout time earlier than clockin is an error.
       -- (Clockin earlier than preceding clockin/clockout is allowed.)
@@ -260,8 +257,13 @@ entryFromTimeclockInOut i o
       -- since otherwise it will often have large recurring decimal parts which (since 1.21)
       -- print would display all 255 digits of. timeclock amounts have one second resolution,
       -- so two decimal places is precise enough (#1527).
-      amt   = mixedAmount $ setAmountInternalPrecision 2 $ hrs hours
-      ps       = [posting{paccount=acctname, pamount=amt, ptype=VirtualPosting, ptransaction=Just t}]
+      amt = case mixedAmount $ setAmountInternalPrecision 2 $ hrs hours of
+        a | not $ a < 0 -> a
+        _ -> error' $ printf
+          "%s%s:\nThis clockout is earlier than the clockin."
+          (makeTimeClockErrorExcerpt i "")
+          (makeTimeClockErrorExcerpt o "")
+      ps = [posting{paccount=acctname, pamount=amt, ptype=VirtualPosting, ptransaction=Just t}]
 
 
 -- tests
@@ -292,13 +294,13 @@ tests_Timeclock = testGroup "Timeclock" [
       step "use the clockin time for auto-clockout if it's in the future"
       txndescs [clockin future "" "" "" []] @?= [printf "%s-%s" futurestr futurestr]
       step "multiple open sessions"
-      txndescs
-        [ clockin (mktime today "00:00:00") "a" "" "" [],
-          clockin (mktime today "01:00:00") "b" "" "" [],
-          clockin (mktime today "02:00:00") "c" "" "" [],
-          clockout (mktime today "03:00:00") "b" "" "" [],
-          clockout (mktime today "04:00:00") "a" "" "" [],
-          clockout (mktime today "05:00:00") "c" "" "" []
-        ]
+      txndescs (reverse [
+        clockin (mktime today "00:00:00") "a" "" "" [],
+        clockin (mktime today "01:00:00") "b" "" "" [],
+        clockin (mktime today "02:00:00") "c" "" "" [],
+        clockout (mktime today "03:00:00") "b" "" "" [],
+        clockout (mktime today "04:00:00") "a" "" "" [],
+        clockout (mktime today "05:00:00") "c" "" "" []
+        ])
         @?= ["00:00-04:00", "01:00-03:00", "02:00-05:00"]
  ]
