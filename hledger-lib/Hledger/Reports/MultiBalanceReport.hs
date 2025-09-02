@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP                 #-}
 {-# LANGUAGE FlexibleInstances   #-}
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE NamedFieldPuns      #-}
@@ -33,6 +34,9 @@ module Hledger.Reports.MultiBalanceReport (
 )
 where
 
+#if !MIN_VERSION_base(4,18,0)
+import Control.Applicative (liftA2)
+#endif
 import Control.Monad (guard)
 import Data.Foldable (toList)
 import Data.List (sortOn)
