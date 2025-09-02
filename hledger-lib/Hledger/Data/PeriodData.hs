@@ -19,7 +19,11 @@ module Hledger.Data.PeriodData
 , tests_PeriodData
 ) where
 
+#if MIN_VERSION_base(4,18,0)
 import Data.Foldable1 (Foldable1(..))
+#else
+import Control.Applicative (liftA2)
+#endif
 import qualified Data.IntMap.Strict as IM
 import qualified Data.IntSet as IS
 #if !MIN_VERSION_base(4,20,0)
@@ -48,10 +52,12 @@ instance Foldable PeriodData where
   foldl f z (PeriodData h as) = foldl f (f z h) as
   foldl' f z (PeriodData h as) = let fzh = f z h in fzh `seq` foldl' f fzh as
 
+#if MIN_VERSION_base(4,18,0)
 instance Foldable1 PeriodData where
   foldrMap1 f g (PeriodData h as) = foldr g (f h) as
   foldlMap1 f g (PeriodData h as) = foldl g (f h) as
   foldlMap1' f g (PeriodData h as) = let fh = f h in fh `seq` foldl' g fh as
+#endif
 
 instance Traversable PeriodData where
   traverse f (PeriodData h as) = liftA2 PeriodData (f h) $ traverse f as
