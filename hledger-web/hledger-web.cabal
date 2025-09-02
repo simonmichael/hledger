@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.2.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -28,7 +28,7 @@ license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.1
+    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.2
 extra-source-files:
     CHANGES.md
     README.md
