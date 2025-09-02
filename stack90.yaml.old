@@ -1,4 +1,6 @@
 # stack build plan using GHC 9.0.2
+# Note hledger now officially requires GHC 9.6+;
+# this is here as a reference in case you are trying to build with older GHC and stack.
 
 resolver: lts-19.33
 

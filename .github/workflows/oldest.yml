@@ -17,8 +17,8 @@ jobs:
       # image: https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
 
     env:
-      stack: stack --stack-yaml=stack810.yaml
-      ghc:   8.10.7
+      stack: stack --stack-yaml=stack96.yaml
+      ghc:   9.6.6
 
     steps:
 

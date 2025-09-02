@@ -4,7 +4,7 @@ license:       GPL-3.0-or-later
 maintainer:    Simon Michael <simon@joyful.com>
 author:        Simon Michael <simon@joyful.com>
 stability:     stable
-tested-with:   ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.2
+tested-with:   ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.2
 homepage:      http://hledger.org
 bug-reports:   http://bugs.hledger.org
 github:        simonmichael/hledger
@@ -75,7 +75,7 @@ when:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
-- base >=4.14 && <4.22
+- base >=4.18 && <4.22
 
 library:
   source-dirs: .
