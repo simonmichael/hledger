@@ -18,8 +18,20 @@ Docs
 API
 
 -->
+
 User-visible changes in hledger-ui.
 See also the hledger changelog.
+
+
+# 66793251
+
+Breaking changes
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Improvements
+
+- Use hledger 1.50
 
 
 # 1.43.2 2025-06-13

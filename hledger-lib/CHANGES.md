@@ -11,16 +11,44 @@ Fixes
 
 Improvements
 
-
-
-
-
-
-
 -->
+
 Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
+
+# 66793251
+
+Breaking changes
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Fixes
+
+- Fix liftA2 build error with ghc <9.6 (broken since 1.43.1).
+
+Improvements
+
+- Account now stores balances, one per date period. This enables it do
+  the hard work in MultiBalanceReport.
+  Some new types are created to enable convenient operation of accounts:
+  - `BalanceData` is a type which stores an exclusive balance, inclusive
+    balance, and number of postings. This was previously directly stored
+    in Account, but is now factored into a separate data type.
+  - `PeriodData` is a container which stores date-indexed data, as well as
+    pre-period data. In post cases, this represents the report spans,
+    along with the historical data.
+  - Account becomes polymorphic, allowing customisation of the type of
+    data it stores. This will usually be `BalanceData`, but in
+    `BudgetReport` it can use `These BalanceData BalanceData` to store
+    both actuals and budgets in the same structure. The data structure
+    changes to contain a `PeriodData`, allowing multiperiod accounts.
+  (Stephen Morgan)
+- Hledger.Read: make LatestDatesForFile showable
+- Hledger.Read.Common: accountnamep and modifiedaccountnamep now take a flag to allow semicolons or not
+- Hledger.Utils.IO: getFlag, warnIO, rename exitOnError -> handleExit, improve doc
+- Hledger.Query: matchesCommodity handles all query types, not just cur:, and doesn't match by default
+- Hledger.Data.Amount: move commodityStylesFromAmounts here, drop canonicalStyleFrom
 
 # 1.43.2 2025-06-13
 

@@ -16,6 +16,49 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 66793251
+
+Doc updates
+
+- FINANCE
+- ISSUES
+- REGRESSIONS
+- RELEASING
+- SCHEDULE & `just schedule` script
+
+Website
+
+- fix the "edit this page" link
+- redirects: handle more old pages; fix some old redirects to #FMT-format; stop redirecting /timeclock, /timedot, /timedot.html
+- set up a github issue template clarifying this repo's scope
+- shortcut urls: release.hledger.org, nightly.hledger.org, regressions.hledger.org; readyprs.hledger.org excludes PRs with needs-* labels
+- sidebar: reorganise
+- sidebar: leave all links visible to avoid popping
+- sidebar: avoid duplicate links, they're no longer allowed
+- sidebar: link to the current release's manuals, not the dev version's
+- Beancount: edits, new conversion tips
+- Docs: consolidate all user docs onto a single Docs page
+- Editors: more vs code extensions, more emacs calc notes
+- Export: updates
+- FAQ: updates
+- Hledger By Example: start a new progressive "book", with 18 pages
+- Tutorial: hledger basics -> to Tutorial: hledger add
+- Home: new, shorter home page content
+- Home: show a quote/testimonial, updating on the hour
+- Investments: fix link (#2436)
+- Invoicing: fix kairos link
+- Ledger: edits
+
+Infrastructure/Misc
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+- bump default build, tools to lts 24.8 / ghc 9.10.2
+- docker: sync Docker GHC version with Stack configuration, update dependencies, and replace deprecated Dockerfile syntax. (Lukas Fleischer)
+- github workflows improvements
+- tool updates: checkembeddedfiles, devtag, nightly-push, nightlytag, relver, test
+- update github issue templates
+
+
 # 1.43.2 2025-06-13
 
 
