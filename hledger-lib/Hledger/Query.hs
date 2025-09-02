@@ -77,7 +77,7 @@ module Hledger.Query (
 )
 where
 
-import Control.Applicative ((<|>), many, optional)
+import Control.Applicative
 import Data.Default (Default(..))
 import Data.Either (partitionEithers)
 import Data.List (partition, intercalate)
