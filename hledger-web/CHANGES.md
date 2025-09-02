@@ -18,8 +18,27 @@ Docs
 API
 
 -->
+
 User-visible changes in hledger-web.
 See also the hledger changelog.
+
+
+# 66793251
+
+Breaking changes
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Fixes
+
+- The register chart is no longer hidden when the window is narrow.
+
+- Dragging on the register chart now selects date ranges more accurately.
+  Eg, now you can select a range including transactions at the rightmost edge of the chart.
+
+Improvements
+
+- Use hledger 1.50
 
 
 # 1.43.2 2025-06-13
