@@ -1,11 +1,11 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.38.2.
 --
 -- see: https://github.com/sol/hpack
 
 name:           hledger-lib
-version:        1.43.99
+version:        1.50.99
 synopsis:       A library providing the core functionality of hledger
 description:    This library contains hledger's core functionality.
                 It is used by most hledger* packages so that they support the same
