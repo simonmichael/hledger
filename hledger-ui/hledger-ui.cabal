@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -26,7 +26,7 @@ license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.1
+    ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.2
 extra-source-files:
     CHANGES.md
     README.md
@@ -78,7 +78,7 @@ library
   build-depends:
       ansi-terminal >=0.9
     , async
-    , base >=4.14 && <4.22
+    , base >=4.18 && <4.22
     , brick >=2.1.1 && <2.3.2 || >2.3.2 && <2.10
     , cmdargs >=0.8
     , containers >=0.5.9
@@ -126,7 +126,7 @@ executable hledger-ui
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -with-rtsopts=-T
   cpp-options: -DVERSION="1.43.99"
   build-depends:
-      base >=4.14 && <4.22
+      base >=4.18 && <4.22
     , hledger-ui
   default-language: Haskell2010
   if (flag(debug))

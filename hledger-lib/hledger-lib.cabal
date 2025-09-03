@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -34,7 +34,7 @@ license:        GPL-3.0-or-later
 license-file:   LICENSE
 build-type:     Simple
 tested-with:
-    ghc==8.10.7, ghc==9.0.2, ghc==9.2.8, ghc==9.4.8, ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.1
+    ghc==9.6.7, ghc==9.8.4, ghc==9.10.2, ghc==9.12.2
 extra-source-files:
     CHANGES.md
     README.md
@@ -130,7 +130,7 @@ library
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.22
+    , base >=4.18 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
@@ -189,7 +189,7 @@ test-suite doctest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.22
+    , base >=4.18 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
@@ -251,7 +251,7 @@ test-suite unittest
     , aeson-pretty
     , ansi-terminal >=0.9
     , array
-    , base >=4.14 && <4.22
+    , base >=4.18 && <4.22
     , blaze-html
     , blaze-markup >=0.5.1
     , bytestring
