@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 66793251
+# 1.50 2025-09-03
 
 Breaking changes
 
