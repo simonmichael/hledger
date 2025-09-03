@@ -107,7 +107,7 @@ User-visible changes in the hledger command line tool and library.
 - Balance reports' csv output, and the `balance --budget` report, now respect the --summary-only flag.
   (Stephen Morgan, [#2411], [#2443])
 
-- The `demo` command no longer mentions `-- ASCIINEMAOPTS` in help (that longer works).
+- The `demo` command no longer mentions `-- ASCIINEMAOPTS` in help.
   Also it shows a better error message when asciinema is not installed.
 
 - `hledger help -m TOPIC` or `hledger help -i TOPIC` now show the help for TOPIC, as intended.
