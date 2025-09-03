@@ -68,9 +68,6 @@ Major releases and user-visible changes, collected from the changelogs (
 [hledger-ui](http://hackage.haskell.org/package/hledger-ui/changelog),
 [hledger-web](http://hackage.haskell.org/package/hledger-web/changelog)
 ).
-Changes in hledger-install.sh are shown
-[here](https://github.com/simonmichael/hledger/commits/master/hledger-install/hledger-install.sh).
-
 
 
 
