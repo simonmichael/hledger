@@ -1,21 +1,20 @@
-I'm pleased to announce hledger 1.43 ! This release brings
+I'm pleased to announce hledger 1.50, loaded with good things:
 
-- a new `setup` command
-- better boolean queries
-- `add` assertions
-- timeclock concurrent sessions
-- CSV if rules debug output
+- Better transaction balancing
+- include improvements
+- auto posting account interpolation
+- csv data commands
+- import archiving
+- timeclock improvements
+- fixes
 
-and more.
-Thank you to contributors
-Michael Rees, Thomas Miedema, Dmitry Astapov, Pranesh Prakash,
-Stephen Morgan, Sam Almahri, Ben Sima, and Doug Goldstein.
+Thank you to contributors Stephen Morgan, Jay Neubrand, Lukas Fleischer, and savanto.
 
-Best wishes,
+Best wishes!
 -Simon
 
-- https://github.com/simonmichael/hledger/releases/1.43
-- https://hledger.org/relnotes.html#2025-06-01-hledger-143
+- https://github.com/simonmichael/hledger/releases/1.50
+- https://hledger.org/relnotes.html#2025-09-03-hledger-150
 - https://hledger.org/install
 
 
