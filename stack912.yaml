@@ -14,6 +14,10 @@ notify-if-ghc-untested:   false
 notify-if-cabal-untested: false
 
 extra-deps:
+# snapshot contains vty-windows 0.2.0.4 (which requires Win32 >=2.14.2)
+# and Win32-2.14.1.0 (a ghc 9.12.2 boot lib), which do not build together.
+- vty-windows-0.2.0.3
+# currently not in stackage
 - yesod-static-1.6.1.0
 - yesod-test-1.6.19
 - cryptonite-0.30
