@@ -9961,21 +9961,3 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
