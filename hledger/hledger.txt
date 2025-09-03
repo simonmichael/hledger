@@ -16,7 +16,7 @@ DESCRIPTION
        and  largely  compatible  with  ledger(1), and largely interconvertible
        with beancount(1).
 
-       This manual is for hledger's command line interface,  version  1.43.99.
+       This manual is for hledger's command line interface,  version  1.50.99.
        It also describes the common options, file formats and concepts used by
        all  hledger  programs.  It might accidentally teach you some bookkeep-
        ing/accounting as well!  You don't need to know everything in  here  to
@@ -3254,6 +3254,7 @@ CSV
 
        source                     optionally  declare  which  file  to read data
                                   from
+       archive                    optionally enable an archive of imported files
        encoding                   optionally declare  which  text  encoding  the
                                   data has
        separator                  declare  the field separator, instead of rely-
@@ -3318,27 +3319,61 @@ CSV
 
        See also "Working with CSV > Reading files specified by rule".
 
-       The archive rule adds a few more features to source; see below.
+   Data cleaning / generating commands
+       After source's file pattern, you can write | (pipe) and a data cleaning
+       command.  If hledger's CSV rules aren't enough, you can pre-process the
+       downloaded  data  here  with a shell command or script, to make it more
+       suitable for conversion.  The command will be executed by your  default
+       shell, in the directory of the rules file, will receive the data file's
+       content  as  standard  input,  and  should output zero or more lines of
+       character-separated-values, suitable for conversion by the CSV rules.
+
+       Examples:
+
+              source ./paypal.json | paypalcsv
+              source data/simplefin.json | simplefincsv - 'chase.*card'
+              source OfxDownload*.csv | grep -vE '^(([^,]*,){6}[^,]*|)$' | sort -t, -n +2
+              source History_for_Account_Z20144832*.csv   # | grep -E '^([^,]*,){12}[^,]*$' | sed -E -e 's/^ //' -e 's/\.([0-9]),/.\10,/g' -e 's/,([0-9]+),/,\1.00,/g'
+
+       Or, after source you can write | and a data generating command (with no
+       file pattern before the |).  This command receives no input, and should
+       output zero or more lines of character-separated values,  suitable  for
+       conversion by the CSV rules.
+
+       Examples:
+
+              source | paypaljson | paypalcsv
+              source | paypalcsv data/paypal.json
+              source | simplefinjson >data/simplefin.json && simplefincsv data/simplefin.json 'chase.*card'
+              source | simplefincsv data/simplefin.json 'unify.*checking'
+
+       (paypal* and simplefin* scripts are in bin/)
+
+       Whenever  hledger  runs one of these commands, it will echo the command
+       on stderr.  If the command produces error output,  but  exits  success-
+       fully, hledger will show the error output as a warning.  If the command
+       fails,  hledger  will  fail and show the error output in the error mes-
+       sage.
+
+       Added in 1.50; experimental.
 
    archive
-       Adding the archive rule to your rules file affects importing or reading
-       files specified by source:
+       With archive added to a rules file, the  import  command  will  archive
+       each  successfully  processed  data  file  or  data command output in a
+       nearby data/ directory.  The archive file name will  be  based  on  the
+       rules  file and the data file's modification date and extension (or for
+       a data-generating command, the current date and the ".csv"  extension).
+       The original data file, if any, will be removed.
 
-       o After  successfully  importing,  import will move the data file to an
-         archive directory (data/ next to the rules file,  auto-created),  re-
-         named  to  RULESFILEBASENAME.DATAFILEMODDATE.DATAFILEEXT.   Archiving
-         data files is optional, but it can be useful for troubleshooting, de-
-         tecting variations in your banks' CSV data, regenerating entries with
-         improved rules, etc.
+       Also,  in  this  mode import will prefer the oldest file matched by the
+       source rule's glob pattern, not the newest.  (So if there are  multiple
+       downloads, they will be imported and archived oldest first.)
 
-       o import will pick the oldest of source glob matches, rather  than  the
-         newest.  So if you have multiple versions of a download, repeated im-
-         ports will process them in chronological order.
+       Archiving  is  optional,  but it can be useful for troubleshooting your
+       CSV rules, regenerating entries with improved rules, checking for vari-
+       ations in your bank's CSV, etc.
 
-       o For  commands other than import, when the source path or glob pattern
-         matches no files, hledger will try to read the latest  archived  data
-         file  instead.   This  is  convenient for working with the downloaded
-         data again, even after it has been imported.
+       Added in 1.50; experimental.
 
    encoding
               encoding ENCODING
@@ -4574,15 +4609,59 @@ CSV
                   expenses:banking:paypal                    $0.59  ; business:
 
 Timeclock
-       The time logging format of timeclock.el, as read by hledger.
+       hledger can read time logs in the  timeclock  time  logging  format  of
+       timeclock.el.   As  with  Ledger,  hledger's timeclock format is a sub-
+       set/variant of timeclock.el's.
 
-       hledger can read time logs in timeclock format.  As with Ledger,  these
-       are  (a  subset  of)  timeclock.el's  format,  containing  clock-in and
-       clock-out entries as in the example below.  The date is a simple  date.
-       The  time  format  is HH:MM[:SS][+-ZZZZ].  Seconds and timezone are op-
-       tional.  The timezone, if present, must be four digits and  is  ignored
-       (currently  the time is always interpreted as a local time).  Lines be-
-       ginning with # or ; or *, and blank lines, are ignored.
+       hledger's timeclock format was updated in hledger 1.43  and  1.50.   If
+       your  old  time  logs  are  rejected,  you  should adapt them to modern
+       hledger; for now, you can  restore  the  pre-1.43  behaviour  with  the
+       --old-timeclock flag.
+
+       Here the timeclock format in hledger 1.50+:
+
+              # Comment lines like these, and blank lines, are ignored:
+              # comment line
+              ; comment line
+              * comment line
+
+              # Lines beginning with b, h, or capital O are also ignored, for compatibility:
+              b SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+              h SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+              O SIMPLEDATE HH:MM[:SS][+-ZZZZ][ TEXT]
+
+              # Lines beginning with i or o are are clock-in / clock-out entries:
+              i SIMPLEDATE HH:MM[:SS][+-ZZZZ] ACCOUNT[  DESCRIPTION][;COMMENT]]
+              o SIMPLEDATE HH:MM[:SS][+-ZZZZ][ ACCOUNT][;COMMENT]
+
+       The  date  is  a hledger simple date (YYYY-MM-DD or similar).  The time
+       parts must use two digits.   The  seconds  are  optional.   A  +  or  -
+       four-digit  time  zone is accepted for compatibility, but currently ig-
+       nored; times are always interpreted as a local time.
+
+       In clock-in entries (i), the account name is required.   A  transaction
+       description, separated from the account name by 2+ spaces, is optional.
+       A  transaction  comment, beginning with ;, is also optional.  (Indented
+       following comment lines are also allowed, as in journal format.)
+
+       In clock-out entries (o) have no description, but can have a comment if
+       you wish.  A clock-in and clock-out pair form a  "transaction"  posting
+       some number of hours to an account - also known as a session.  Eg:
+
+              i 2015/03/30 09:00:00 session1
+              o 2015/03/30 10:00:00
+
+              $ hledger -f a.timeclock print
+              2015-03-30 * 09:00-10:00
+                  (session1)           1.00h
+
+       Clock-ins and clock-outs are matched by their account/session name.  If
+       a  clock-out does not specify a name, the most recent unclosed clock-in
+       is closed.  You can have multiple sessions active simultaneously.   En-
+       tries  are  processed  in the order they are parsed.  Sessions spanning
+       more than one day are automatically split at day boundaries.
+
+       Eg, the following time log:
 
               i 2015/03/30 09:00:00 some account  optional description after 2 spaces ; optional comment, tags:
               o 2015/03/30 09:20:00
@@ -4593,13 +4672,7 @@ Timeclock
               o 2015/04/02 14:00:00
               o 2015/04/02 15:00:00 another:account
 
-       hledger treats each clock-in/clock-out pair as  a  transaction  posting
-       some  number of hours to an account.  Entries are paired by the account
-       name if the same name is given for a clock-in/clock-out  pair.   If  no
-       name  is  given for a clock-out, then it is paired with the most recent
-       clock-in entry.  If the session spans more than one day,  it  is  split
-       into  several  transactions, one for each day.  For the above time log,
-       hledger print generates these journal entries:
+       generates these transactions:
 
               $ hledger -f t.timeclock print
               2015-03-30 * optional description after 2 spaces   ; optional comment, tags:
@@ -6101,17 +6174,15 @@ Value reporting
        o For single period reports (including normal print  and  register  re-
          ports):
 
-         o If an explicit report end date is specified, that is used
+         o If an explicit report end date is specified, that is used.
 
-         o Otherwise  the  latest transaction date or P directive date is used
-           (even if it's in the future)
+         o Otherwise  the  latest  transaction  date or non-future P directive
+           date is used.
 
        o For multiperiod reports, each period is valued on its last day.
 
        This can be customised with the --value option described  below,  which
-       can select either "then", "end", "now", or "custom" dates.  (Note, this
-       has a bug in hledger-ui <=1.31: turning on valuation with the V key al-
-       ways resets it to "end".)
+       can select either "then", "end", "now", or "custom" dates.
 
    Finding market price
        To  convert  a  commodity A to its market value in another commodity B,
@@ -10614,4 +10685,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-1.43.99                    June 2025                        HLEDGER(1)
+hledger-1.50.99                 September 2025                      HLEDGER(1)
