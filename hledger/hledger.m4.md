@@ -3342,7 +3342,7 @@ source | simplefincsv data/simplefin.json 'unify.*checking'
 
 (`paypal*` and `simplefin*` scripts are in [bin/](https://github.com/simonmichael/hledger/tree/master/bin#readme))
 
-Whenever hledger runs one of these commands, it will print the command on stderr.
+Whenever hledger runs one of these commands, it will echo the command on stderr.
 If the command produces error output, but exits successfully, hledger will show the error output as a warning.
 If the command fails, hledger will fail and show the error output in the error message.
 
