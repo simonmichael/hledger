@@ -69,8 +69,9 @@ It should be improved each time it is used.
   - [ ] blocking defects resolved
   - [ ] desired improvements landed and stabilised
   - [ ] building and passing tests with current ghcs, deps, and stackage snapshots
-  - [ ] building and passing tests on all platforms  
+  - [ ] building and passing tests on all platforms / with all ghc versions
         `just relbin` (or push to github `binaries[-*]` branch)
+        `just oldest` (or push to github `oldest` branch)
 - [ ] product docs and metadata
   - [ ] release branch
   - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
@@ -96,14 +97,14 @@ It should be improved each time it is used.
         `just completions`, commit any changes
   - [ ] changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
-        add changes from site, finance repos  
+        add notable changes from site, finance repos to project changelog
         `just changelogs-finalise`
 - [ ] release docs and artifacts
   - [ ] draft binaries building started  
       `just relbin`
   - [ ] hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
         `just site-manuals-snapshot MAJORVER` (creates or updates)  
-        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`, `site/src/SUMMARY.md` manuals links (major release only)
+        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
   - [ ] release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes`,  
       select & transform with `md-issue-refs`,  
@@ -112,10 +113,6 @@ It should be improved each time it is used.
       add summary,  
       commit
   - [ ] github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
-  - [ ] hledger-install/hledger-install.sh up to date and pre-tested  
-      (`./Shake hledger-install-version` ?),
-      check/update dep versions,  
-      select/test snapshot version
   - [ ] Install page (site/src/install.md) up to date and pre-tested
   - [ ] draft announcement for chat / mail list (doc/ANNOUNCE)
   - [ ] draft announcement for mastodon (doc/ANNOUNCE.masto)
@@ -123,13 +120,13 @@ It should be improved each time it is used.
       `just reltags`
   - [ ] release binaries built from tag  
       `just relbin`
+      wait for all to succeed
   - [ ] Install page (site/src/install.md) --version examples match release binaries
 - [ ] published
   - [ ] relevant release branch work cherry-picked to master branch  
       changelogs,
       relnotes,
-      announcements,
-      (hledger-install)
+      announcements
   - [ ] nightly release changes link up to date in master (doc/ghnightlynotes.md)
   - [ ] all packages uploaded correctly to hackage  
       `just hackageupload`, check versions, confirm, check all uploads successful
@@ -156,16 +153,15 @@ It should be improved each time it is used.
       review,
       publish
   - [ ] github nightly release updated  
-        `just nightly-release-tag`
+        `just nightly-tag-release`
         `just ghnightly-notes`
   - [ ] install instructions tested and working
-    - [ ] hledger-install
     - [ ] stack
     - [ ] cabal
     - [ ] source checkout
     - [ ] github release > How to install, each platform
   - [ ] announced
-    - [ ] mail list(s) hledger@googlegroups.com, + haskell-cafe@googlegroups.com for major
+    - [ ] mail list(s) hledger@googlegroups.com for major (+ haskell-cafe@googlegroups.com for supermajor) 
     - [ ] matrix
     - [ ] irc
     - [ ] mastodon
@@ -175,7 +171,7 @@ It should be improved each time it is used.
         review, edit  
         propagate
   - [ ] new dev tag/versions/man dates in master (major version only)  
-      `j devtag VER.99`
+      `j devtagø`
   - [ ] pta.o project stats updated
   - [ ] process notes updated/cleaned
   - [ ] monitor/support/handle issues:  
