@@ -1,11 +1,12 @@
-hledger 1.43 is out!
-New `setup` command, better boolean queries, `add` assertions, 
-and more.
+hledger 1.50 is out, with
+better transaction balancing, include improvements,
+csv data commands, import archiving, timeclock improvements,
+and more!
 
-Thank you to contributors Michael Rees, Thomas Miedema, Dmitry Astapov, Pranesh Prakash, Stephen Morgan, Sam Almahri, Ben Sima, and Doug Goldstein.
+Thank you to contributors Stephen Morgan, Jay Neubrand, Lukas Fleischer, and savanto.
 
-- https://github.com/simonmichael/hledger/releases/1.43
-- https://hledger.org/relnotes.html#2025-06-01-hledger-143
+- https://github.com/simonmichael/hledger/releases/1.50
+- https://hledger.org/relnotes.html#2025-09-03-hledger-150
 - https://hledger.org/install
 
 #hledger is free, robust, friendly, multicurrency, double-entry,
