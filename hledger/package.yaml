@@ -1,5 +1,5 @@
 name:          hledger
-version: 1.43.99
+version: 1.50.99
 license:       GPL-3.0-or-later
 maintainer:    Simon Michael <simon@joyful.com>
 author:        Simon Michael <simon@joyful.com>
@@ -124,7 +124,7 @@ when:
 
 dependencies:
 - base >=4.18 && <4.22
-- hledger-lib >=1.43.99 && <1.44
+- hledger-lib >=1.50.99 && <1.51
 - aeson >=1 && <2.3
 - ansi-terminal >=0.9
 - bytestring
@@ -163,7 +163,7 @@ dependencies:
 - wizards >=1.0
 
 library:
-  cpp-options: -DVERSION="1.43.99"
+  cpp-options: -DVERSION="1.50.99"
   exposed-modules:
   - Hledger.Cli
   - Hledger.Cli.Anchor
@@ -216,7 +216,7 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.43.99"
+    cpp-options: -DVERSION="1.50.99"
     ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
@@ -229,7 +229,7 @@ tests:
     source-dirs: test
     main: unittest.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    cpp-options: -DVERSION="1.43.99"
+    cpp-options: -DVERSION="1.50.99"
     dependencies:
     - hledger
 

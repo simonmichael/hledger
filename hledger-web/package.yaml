@@ -1,5 +1,5 @@
 name:          hledger-web
-version: 1.43.99
+version: 1.50.99
 license:       GPL-3.0-or-later
 maintainer:    Simon Michael <simon@joyful.com>
 author:        Simon Michael <simon@joyful.com>
@@ -98,7 +98,7 @@ dependencies:
 
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.43.99"
+  cpp-options: -DVERSION="1.50.99"
   exposed-modules:
   - Hledger.Web
   - Hledger.Web.Main
@@ -107,8 +107,8 @@ library:
   - Hledger.Web.Import
   - Hledger.Web.Test
   dependencies:
-  - hledger-lib >=1.43.99 && <1.44
-  - hledger >=1.43.99 && <1.44
+  - hledger-lib >=1.50.99 && <1.51
+  - hledger >=1.50.99 && <1.51
   - aeson >=1 && <2.3
   - base64
   - blaze-html
@@ -160,7 +160,7 @@ executables:
   hledger-web:
     source-dirs: app
     main: main.hs
-    cpp-options: -DVERSION="1.43.99"
+    cpp-options: -DVERSION="1.50.99"
     ghc-options: -with-rtsopts=-T  # for stats command
     dependencies:
     - hledger-web
@@ -173,7 +173,7 @@ tests:
     source-dirs: test
     main: test.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    cpp-options: -DVERSION="1.43.99"
+    cpp-options: -DVERSION="1.50.99"
     dependencies:
     - hledger-web
     # - hspec

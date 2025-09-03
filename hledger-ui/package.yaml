@@ -1,5 +1,5 @@
 name:          hledger-ui
-version: 1.43.99
+version: 1.50.99
 license:       GPL-3.0-or-later
 maintainer:    Simon Michael <simon@joyful.com>
 author:        Simon Michael <simon@joyful.com>
@@ -56,7 +56,7 @@ flags:
  # like Windows Terminal.
  # mintty-based backends (default for cygwin/gitbash/msys2) are not supported (yet)
 
-cpp-options: -DVERSION="1.43.99"
+cpp-options: -DVERSION="1.50.99"
 
 ghc-options:
 - -Wall
@@ -79,15 +79,15 @@ dependencies:
 
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.43.99"
+  cpp-options: -DVERSION="1.50.99"
   exposed-modules:
   - Hledger.UI
   - Hledger.UI.Main
   - Hledger.UI.Theme
   - Hledger.UI.UIOptions
   dependencies:
-  - hledger-lib >=1.43.99 && <1.44
-  - hledger >=1.43.99 && <1.44
+  - hledger-lib >=1.50.99 && <1.51
+  - hledger >=1.50.99 && <1.51
   - ansi-terminal >=0.9
   - async
   - cmdargs >=0.8
