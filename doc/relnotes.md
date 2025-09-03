@@ -76,8 +76,329 @@ Changes in hledger-install.sh are shown
 
 
 
-## 2025-06-13 hledger-1.43.2
 
+## 2025-09-03 hledger-1.50
+
+**Better transaction balancing, include improvements, auto posting account interpolation, csv data commands, import archiving, timeclock improvements, fixes**
+
+
+### hledger 1.50
+
+
+Breaking changes
+
+- Transaction balancing is now done in a more robust way, using local precisions only (like Ledger) [#2402].
+  Until now, a transaction was required to balance using its commodities's global display precisions.
+  Small imbalances were tolerated by configuring display precisions for the whole journal (with `commodity` directives).
+
+  Now, a transaction is required to balance using the precisions in its journal entry only.
+  This means each entry can use the precision it needs, and balancing precision and display precision are independent.
+  (So eg, increasing the display precision with `-c` no longer breaks the journal.)
+
+  In practice this requires journal entries to be more accurate, and you will probably need to fix some old entries.
+  There are three main ways to fix an entry:
+  - reduce the amounts' precision (use fewer decimal digits, so a lower balancing precision is inferred)
+  - make the amounts more accurate (use better decimal digits, so the amounts sum to zero more closely)
+  - or (easiest) add an amountless "expenses:rounding" posting (this is not a cheat, it's a more accurate record of what your bank/broker is doing).
+
+  You can also keep the old transaction-balancing behaviour with `--txn-balancing=old`, for now.
+  But updating your entries is recommended. 
+
+  The old behaviour could allow small remainders to accumulate over time, 
+  in accounts that often have an inexact posting amount or cost amount and are never reconciled -
+  typically equity, revenues, and expenses.
+  You can check for this in your old journals with a command like
+
+      hledger bal cur:\\$ -c '$1.000000000000' | grep -E '\...0*[1-9]'
+
+  (show $ account balances, with many decimals, which have a non-zero decimal in the 3rd place or beyond)
+  
+- Timeclock format has had various changes:
+  - Timeclock syntax and parsing is now more robust (when not using --old-timeclock):
+    - Semicolon always starts a comment (and timeclock account names may not include semicolons).
+    - Trailing spaces are ignored.
+    - Clock-ins now require an account name.
+    - Clock-outs now can have a comment and tags.
+    - Timeclock entries are processed in parse order.
+  - Some order-related bugs in 1.43 have been fixed.
+  - Concurrent/overlapping sessions are now fully supported, even if they have the same account name.
+  - The timeclock doc has been rewritten.
+  - The --old-timeclock hidden flag has been renamed, documented, and now also affects included files.
+  [#2141], [#2365], [#2400], [#2417]
+
+- Some edge cases in balance report behaviour were changed for internal consistency:
+  - --declared now treats parent accounts consistently.
+  - --flat --empty now ensures that implied accounts with no postings are not displayed,
+      but accounts with zero balance and actual postings are.
+  (Stephen Morgan, [#2360], [#2395])
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Fixes
+
+- Paging long output no longer gives an error when `LESS` is undefined and
+  `less` does not have mouse support (as on some FreeBSD systems).
+
+- The `all:` query now requires at least one posting to match.
+  (Previously, matching no postings at all was also considered a success.)
+
+- When using journal format's `include` directive, several kinds of
+  error (read failure, cyclic include..) could show an off-by-one line
+  number or excerpt, confusingly. This has been fixed.
+  Also, attempting to include a rules file now gives a better error message.
+
+- In CSV `if` rules, match group references like `\1` no longer get confused
+  by differing case.
+  (Jay Neubrand, [#2419])
+
+- `add`, `commodities`, and `diff` now support the --conf and -n/--no-conf flags,
+  like other commands.
+  [#2446]
+
+- On Windows machines, the `add` command now properly shows green prompts instead of ANSI codes.
+  [#2410]
+
+- Balance reports now properly show the historical balance even when the report period is empty.
+  [#2403]
+
+- Balance reports' csv output, and the `balance --budget` report, now respect the --summary-only flag.
+  (Stephen Morgan, [#2411], [#2443])
+
+- The `demo` command no longer mentions `-- ASCIINEMAOPTS` in help (that longer works).
+  Also it shows a better error message when asciinema is not installed.
+
+- `hledger help -m TOPIC` or `hledger help -i TOPIC` now show the help for TOPIC, as intended.
+  [#2399]
+
+- Since hledger 1.32.1, the `import` command, when importing multiple files at once,
+  would write an empty .latest file for data files with no new transactions
+  (causing all transactions in those data files to appear new on next import).
+  This is now fixed.
+  [#2444]
+
+Features
+
+- CSV rules files can now run a shell command to clean the data:
+
+      # read the latest foo*.csv file, and replace "USD" with "$"
+      source foo*.csv | sed -e 's/USD/$/g'
+
+  or to generate the data:
+
+      # fetch JSON from simplefin.org, then transform it to CSV
+      source | simplefinjson | simplefincsv
+
+  Whenever hledger runs one of these commands, it will echo the command on stderr.
+
+- The `import` command can now automatically archive imported CSV data files,
+  saving a dated copy in a `data/` directory. This can be useful for troubleshooting,
+  or for regenerating entries later with improved rules.
+  To enable it, add `archive` to the rules file.
+
+  This and the previous feature can simplify file management and reduce the need for support scripts.
+
+Improvements
+
+- In command line help, flag group headings have been simplified.
+  And the help for -f/--file, `add`, and `import` is now clearer.
+
+- When given both an unknown command and an unknown flag, hledger now gives
+  a clearer error message (about the command, not the flag).
+  [#2388]
+
+- A long standing awkwardness with addon commands has been solved:
+  you can now use addon options freely in a hledger command line;
+  you don't need to write a `--` argument first.
+  [#458]
+ 
+- In smart dates and period expressions, quarter syntax like `2025q1` or `Q2` is now fully supported.
+
+- In end-value reports where the end date is unspecified, market prices
+  in the future can no longer influence the report end date and valuation date.
+  (Market prices on or before today, still can.)
+  [#2445]
+
+- A `tag:` query with the `accounts` command now only matches account tags, not posting tags.
+  Eg, `hledger accounts tag:t` now lists only account a from this journal:
+
+      account a  ; t:
+
+      2025-01-01
+          a          1
+          b         -1  ; t:
+
+- Journal format's `include` directive now has more robust and convenient glob patterns:
+  - `**` can match both directories and filenames
+  - `**` now automatically ignores anything under dotted directories, like .git/, foo/.secret/, etc.
+    (If you do want it to search dotted directories, 
+    you can use the --old-glob flag for now to restore the old behaviour. See also Glob#49.)
+  - Glob patterns with wildcards now automatically exclude the current file.
+    Eg `include **.journal` will include all other .journal files in this directory and below.
+
+- `include`'s error messages and debug messages have been improved.
+  Eg, the including file paths are also shown.
+
+- Journal format's auto posting rules can now use `%account` to insert the account name
+  from the matched posting.
+  (Stephen Morgan, [#1975], [#2412])
+
+- The `aregister` command no longer abbreviates account names
+  when producing `csv`, `html`, or `fods` output.
+  (savanto, [#1995], [#2416])
+
+- The `commodities`, `payees` and `tags` commands now have --used/--declared/--undeclared/--unused flags, like `accounts`.
+  And there has been a general cleanup of options and help across these four commands.
+
+- The `import` command now shows info messages on stderr, not stdout.
+  Its "no new transactions" output is more compact, showing file names not file paths.
+  And it no longer prints an extra newline.
+
+- The `setup` command's output has been improved.
+  Lack of a pager is now reported as info, not warning (there's no default pager on Windows).
+  Shell completions are ignored for now.
+
+Docs
+
+- add: clarify that add is for journal format only
+- addon commands: edits, drop `--` argument from all examples [#458]
+- areg: clarification
+- bin: README updates
+- COMMANDS: mention general options
+- completions: README updates
+- config files: no longer experimental
+- csv: date-format: mention lack of support for local time formats [#1874]
+- csv: source, archive: rewrite, add examples
+- Depth: fix typo
+- github release docs: simplify install commands
+- import: use windows-compatible quotes in watchexec example
+- include directive: update docs; clarify effect, glob limitations
+- note fish LEDGER_FILE setup
+- options: mention that flag+value can't combine with other flags [#2059]
+- print: improve --location help
+- smart dates: fix typo
+
+Examples
+
+- CSV rules for Eternl cryptocurrency wallet
+- VAT example
+
+Scripts/addons
+
+- renamed paypaljson2csv to paypaljson
+- simplefinjson, simplefincsv: new helpers for downloading/converting data from simplefin.org bank aggregator
+
+
+### hledger-ui 1.50
+
+
+Breaking changes
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Improvements
+
+- Use hledger 1.50
+
+
+### hledger-web 1.50
+
+
+Breaking changes
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+
+Fixes
+
+- The register chart is no longer hidden when the window is narrow.
+
+- Dragging on the register chart now selects date ranges more accurately.
+  Eg, now you can select a range including transactions at the rightmost edge of the chart.
+
+Improvements
+
+- Use hledger 1.50
+
+
+### project changes 1.50
+
+
+Doc updates
+
+- FINANCE
+- ISSUES
+- REGRESSIONS
+- RELEASING
+- SCHEDULE & `just schedule` script
+
+Website
+
+- fix the "edit this page" link
+- redirects: handle more old pages; fix some old redirects to #FMT-format; stop redirecting /timeclock, /timedot, /timedot.html
+- set up a github issue template clarifying this repo's scope
+- shortcut urls: release.hledger.org, nightly.hledger.org, regressions.hledger.org; readyprs.hledger.org excludes PRs with needs-* labels
+- sidebar: reorganise
+- sidebar: leave all links visible to avoid popping
+- sidebar: avoid duplicate links, they're no longer allowed
+- sidebar: link to the current release's manuals, not the dev version's
+- Beancount: edits, new conversion tips
+- Docs: consolidate all user docs onto a single Docs page
+- Editors: more vs code extensions, more emacs calc notes
+- Export: updates
+- FAQ: updates
+- Hledger By Example: start a new progressive "book", with 18 pages
+- Tutorial: hledger basics -> to Tutorial: hledger add
+- Home: new, shorter home page content
+- Home: show a quote/testimonial, updating on the hour
+- Investments: fix link (#2436)
+- Invoicing: fix kairos link
+- Ledger: edits
+
+Infrastructure/Misc
+
+- hledger now requires at least GHC 9.6 (and base 4.18), to ease maintenance.
+- bump default build, tools to lts 24.8 / ghc 9.10.2
+- docker: sync Docker GHC version with Stack configuration, update dependencies, and replace deprecated Dockerfile syntax. (Lukas Fleischer)
+- github workflows improvements
+- tool updates: checkembeddedfiles, devtag, nightly-push, nightlytag, relver, test
+- update github issue templates
+
+
+### credits 1.50
+
+
+Simon Michael (@simonmichael),
+Stephen Morgan (@Xitian9),
+Jay Neubrand (@jneubrand),
+Lukas Fleischer (@lfos),
+savanto (@savanto).
+
+[#458]:  https://github.com/simonmichael/hledger/issues/458
+[#1874]: https://github.com/simonmichael/hledger/issues/1874
+[#1975]: https://github.com/simonmichael/hledger/issues/1975
+[#1995]: https://github.com/simonmichael/hledger/issues/1995
+[#2059]: https://github.com/simonmichael/hledger/issues/2059
+[#2141]: https://github.com/simonmichael/hledger/issues/2141
+[#2360]: https://github.com/simonmichael/hledger/issues/2360
+[#2365]: https://github.com/simonmichael/hledger/issues/2365
+[#2388]: https://github.com/simonmichael/hledger/issues/2388
+[#2395]: https://github.com/simonmichael/hledger/issues/2395
+[#2399]: https://github.com/simonmichael/hledger/issues/2399
+[#2400]: https://github.com/simonmichael/hledger/issues/2400
+[#2402]: https://github.com/simonmichael/hledger/issues/2402
+[#2403]: https://github.com/simonmichael/hledger/issues/2403
+[#2410]: https://github.com/simonmichael/hledger/issues/2410
+[#2411]: https://github.com/simonmichael/hledger/issues/2411
+[#2412]: https://github.com/simonmichael/hledger/issues/2412
+[#2416]: https://github.com/simonmichael/hledger/issues/2416
+[#2417]: https://github.com/simonmichael/hledger/issues/2417
+[#2419]: https://github.com/simonmichael/hledger/issues/2419
+[#2443]: https://github.com/simonmichael/hledger/issues/2443
+[#2444]: https://github.com/simonmichael/hledger/issues/2444
+[#2445]: https://github.com/simonmichael/hledger/issues/2445
+[#2446]: https://github.com/simonmichael/hledger/issues/2446
+
+
+## 2025-06-13 hledger-1.43.2
 
 ### hledger 1.43.2
 
@@ -118,6 +439,7 @@ Simon Michael.
 [#2405]: https://github.com/simonmichael/hledger/issues/2405
 [#2406]: https://github.com/simonmichael/hledger/issues/2406
 [#2407]: https://github.com/simonmichael/hledger/issues/2407
+
 
 
 ## 2025-06-04 hledger-1.43.1
