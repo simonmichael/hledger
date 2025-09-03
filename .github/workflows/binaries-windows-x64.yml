@@ -97,7 +97,7 @@ jobs:
 
     - name: Install haskell deps
       run: |
-        $stack build --test --only-dependencies --verbosity=error
+        $stack build --test --only-dependencies
 
     - name: List dep versions
       run: |
