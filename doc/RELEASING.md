@@ -10,10 +10,10 @@ Notes for hledger release managers and maintainers.
 ## Goals
 
 **2025**
-- [ ] Make releasing easier
-- [ ] Improve automation
-- [ ] Improve process docs
-- [ ] Track releasing and release engineering time explicitly, per release
+- [x] Make releasing easier
+- [x] Improve automation
+- [x] Improve process docs
+- [x] Track releasing and release engineering time explicitly, per release
 
 **2024**
 - [x] Make releasing easier
