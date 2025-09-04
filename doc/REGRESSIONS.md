@@ -148,7 +148,7 @@ Fixer  bounties began on 2024-01-01.
 | [#1527]                  | 1.22      | lestephane    (N/A)                                                              | N/A
 | [#1656]                  | 1.23      | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
 | [#2284]                  | 1.41      | [lakshayg](https://opencollective.com/hledger/expenses/227577)                   | GLaknovik (donated)
-| [#2302]                  | 1.42      | [lowercasename](https://opencollective.com/hledger/expenses/232210)              | 
+| [#2302]                  | 1.42      | [lowercasename](https://opencollective.com/hledger/expenses/232210)              | [Simon Michael](https://opencollective.com/hledger/expenses/264103)
 | **1.22** 2021-07-03      |           | ---                                                                              | ---
 | [#1597]                  | 1.22.1    | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
 | [#1607]                  | 1.22.1    | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
@@ -208,5 +208,5 @@ Fixer  bounties began on 2024-01-01.
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
-| [#2417]                  |           | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | 
+| [#2417]                  | 1.50      | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | [Simon Michael](https://opencollective.com/hledger/expenses/264102)
 
