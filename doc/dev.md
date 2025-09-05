@@ -11,7 +11,6 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 - [Developer FAQ](DEVFAQ.md)
 - [Project README](dev-README.md)
 - [ROADMAP](ROADMAP.md)
-<!-- - [TODO](TODO.md) -->
 - [ACHIEVEMENTS](ACHIEVEMENTS.md)
 - [BENCHMARKS](BENCHMARKS.md)
 - [CHANGELOGS](CHANGELOGS.md)
