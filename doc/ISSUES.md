@@ -9,9 +9,9 @@ The hledger project\'s issue tracker is on github.
 
 Shortcut urls:
 
-- <https://issues.hledger.org>       - all issues, open or closed
-- <https://bugs.hledger.org>         - open BUGs
-- <https://wishes.hledger.org>       - open WISHes
+- <https://issues.hledger.org>       - this page
+- <https://wishes.hledger.org>       - open WISHes in the github issue tracker
+- <https://bugs.hledger.org>         - open BUGs in the github issue tracker
 - <https://bugs.hledger.org/new>     - report a new issue
 - <https://hledger.org/regressions>  - how to claim regression bounties
 
