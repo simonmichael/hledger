@@ -123,6 +123,11 @@ Breaking changes
   - The --old-timeclock hidden flag has been renamed, documented, and now also affects included files.
   [#2141], [#2365], [#2400], [#2417]
 
+- The `import` command now shows info messages (such as the dry run "; would import .." message)
+  on stderr, not stdout.
+  Also the "no new transactions" output is more compact, showing file names not file paths;
+  and it no longer prints an extra newline.
+
 - Some edge cases in balance report behaviour were changed for internal consistency:
   - --declared now treats parent accounts consistently.
   - --flat --empty now ensures that implied accounts with no postings are not displayed,
@@ -245,10 +250,6 @@ Improvements
 
 - The `commodities`, `payees` and `tags` commands now have --used/--declared/--undeclared/--unused flags, like `accounts`.
   And there has been a general cleanup of options and help across these four commands.
-
-- The `import` command now shows info messages on stderr, not stdout.
-  Its "no new transactions" output is more compact, showing file names not file paths.
-  And it no longer prints an extra newline.
 
 - The `setup` command's output has been improved.
   Lack of a pager is now reported as info, not warning (there's no default pager on Windows).
