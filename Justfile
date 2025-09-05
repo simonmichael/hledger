@@ -1516,14 +1516,26 @@ _on-master-branch:
 @showrelnotes VER:
     awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
 
+# Browse the latest github release.
+@ghrel:
+    gh release view -w
+
 # Generate github release notes for the current release branch and push them to the corresponding github release. Run on release branch. Note, might also create or publish the release.
 @ghrel-notes:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# Browse the latest github release.
-@ghrel:
-    gh release view -w
+# Upload the downloaded binaries to the specified github release. Run after ghruns-download.
+ghrel-upload VER:
+    @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
+    gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-mac-x64.tar.gz
+    gh release upload --clobber {{ VER }} tmp/hledger-windows-x64.zip
+    # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
+    # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
 
 # Get the id of the latest run of the named workflow.
 @ghrun-id WORKFLOW:
@@ -1551,18 +1563,6 @@ ghruns-download:
     cd tmp; mv */*.tar .; gzip -f *.tar
     cd tmp; zip -j hledger-windows-x64.zip hledger-windows-x64/*
     cd tmp; rm -rf hledger-*64
-
-# Upload the downloaded binaries to the specified github release. Run after ghruns-download.
-ghrel-upload VER:
-    @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
-    gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-mac-x64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-windows-x64.zip
-    # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
 
 # Make git tags for a full release today, but don't push them. Run on release branch.
 reltags:
