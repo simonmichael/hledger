@@ -1269,7 +1269,10 @@ dates](#smart-dates) documented in the hledger manual.)
 You can give individual postings a different date from their parent
 transaction, by adding a [posting comment](#posting-comment) containing a
 [tag](#tags) (see 
-below) like `date:DATE`.  This is probably the best
+below) like `; date:DATE`.
+(There's also a [Ledger-compatible syntax](#bracketed-posting-dates), `; [DATE]`, which can be convenient.)
+
+This is probably the best
 way to control posting dates precisely. Eg in this example the expense
 should appear in May reports, and the deduction from checking should
 be reported on 6/1 for easy bank reconciliation:
