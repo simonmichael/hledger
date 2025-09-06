@@ -8,7 +8,6 @@
 
 Ideas of where the hledger project should be going next.
 Being listed here suggests a bit of commitment, perhaps even a schedule.
-Related: [TODO](TODO.md).
 
 ## 2024
 
