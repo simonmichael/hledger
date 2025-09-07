@@ -54,6 +54,11 @@ downloads the last 30 days of Paypal transactions (requires a free developer acc
 [`paypalcsv`](https://github.com/simonmichael/hledger/blob/master/bin/paypalcsv) (python)
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
+Example usage with hledger 1.50+:
+call these in a CSV rules file like: `source | paypaljson | paypalcsv`.
+Or, do the download externally with `paypaljson >paypal.json`,
+then convert to CSV in the rules file: `source | paypalcsv paypal.json`.
+
 ### simplefinsetup
 
 [`simplefinsetup`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinsetup)
@@ -68,6 +73,11 @@ downloads data for one or more bank accounts from SimpleFIN's API, as JSON.
 
 [`simplefincsv`](https://github.com/simonmichael/hledger/blob/master/bin/simplefincsv)
 converts SimpleFIN's JSON data to CSV, for one or more bank accounts.
+
+Example usage with hledger 1.50+:
+download multi-account JSON once with `simplefinjson >simplefin.json`,
+and in each account's CSV rules file, extract that account's CSV, eg:
+`source | simplefincsv simplefin.json 'wells fargo.*checking'`.
 
 ## hledger command line scripts
 
