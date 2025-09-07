@@ -55,7 +55,7 @@ downloads the last 30 days of Paypal transactions (requires a free developer acc
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 Example usage with hledger 1.50+:
-call these in a CSV rules file like: `source | paypaljson | paypalcsv`.
+call these in a CSV [rules file](https://hledger.org/hledger.html#csv) like: `source | paypaljson | paypalcsv`.
 Or, do the download externally with `paypaljson >paypal.json`,
 then convert to CSV in the rules file: `source | paypalcsv paypal.json`.
 
@@ -76,7 +76,7 @@ converts SimpleFIN's JSON data to CSV, for one or more bank accounts.
 
 Example usage with hledger 1.50+:
 download multi-account JSON once with `simplefinjson >simplefin.json`,
-and in each account's CSV rules file, extract that account's CSV, eg:
+and in each account's CSV [rules file](https://hledger.org/hledger.html#csv), extract that account's CSV, eg:
 `source | simplefincsv simplefin.json 'wells fargo.*checking'`.
 
 ## hledger command line scripts
