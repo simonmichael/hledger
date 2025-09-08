@@ -57,7 +57,7 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
       l = ledgerFromJournal q j
       intervalspans = snd $ reportSpanBothDates j rspec
       ismultiperiod = length intervalspans > 1
-      (ls, txncounts) = unzip $ map (showLedgerStats verbose l today) intervalspans
+      (ls, txncounts) = unzip . map (showLedgerStats verbose l today) $ maybePeriodDataToDateSpans intervalspans
       numtxns = sum txncounts
       txt = (if ismultiperiod then id else TL.init) $ TB.toLazyText $ unlinesB ls
   writeOutputLazyText opts txt

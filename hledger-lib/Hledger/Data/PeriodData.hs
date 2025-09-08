@@ -9,12 +9,18 @@ Report periods are assumed to be contiguous, and represented only by start dates
 -}
 module Hledger.Data.PeriodData
 ( periodDataFromList
+, periodDataToList
 
 , lookupPeriodData
+, lookupPeriodDataLE
 , insertPeriodData
 , opPeriodData
 , mergePeriodData
 , padPeriodData
+
+, periodDataToDateSpans
+, maybePeriodDataToDateSpans
+, dateSpansToPeriodData
 
 , tests_PeriodData
 ) where
@@ -24,18 +30,17 @@ import Data.Foldable1 (Foldable1(..))
 #else
 import Control.Applicative (liftA2)
 #endif
+import Data.Bifunctor (first)
 import qualified Data.IntMap.Strict as IM
-import qualified Data.IntSet as IS
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
 import Data.Time (Day(..), fromGregorian)
 
-import Test.Tasty (testGroup)
-import Test.Tasty.HUnit ((@?=), testCase)
-
 import Hledger.Data.Amount
+import Hledger.Data.Dates
 import Hledger.Data.Types
+import Hledger.Utils
 
 
 instance Show a => Show (PeriodData a) where
@@ -44,7 +49,7 @@ instance Show a => Show (PeriodData a) where
         showString "PeriodData"
       . showString "{ pdpre = " . shows h
       . showString ", pdperiods = "
-      . showString "fromList " . shows (map (\(day, x) -> (ModifiedJulianDay $ toInteger day, x)) $ IM.toList ds)
+      . showString "fromList " . shows (map (\(day, x) -> (intToDay day, x)) $ IM.toList ds)
       . showChar '}'
 
 instance Foldable PeriodData where
@@ -73,18 +78,29 @@ instance Monoid a => Monoid (PeriodData a) where
 
 -- | Construct an 'PeriodData' from a list.
 periodDataFromList :: a -> [(Day, a)] -> PeriodData a
-periodDataFromList h = PeriodData h . IM.fromList . map (\(d, a) -> (fromInteger $ toModifiedJulianDay d, a))
+periodDataFromList h = PeriodData h . IM.fromList . map (\(d, a) -> (dayToInt d, a))
 
--- | Get account balance information to the period containing a given 'Day'.
+-- | Convert 'PeriodData' to a list of pairs.
+periodDataToList :: PeriodData a -> (a, [(Day, a)])
+periodDataToList (PeriodData h as) = (h, map (\(s, e) -> (intToDay s, e)) $ IM.toList as)
+
+
+-- | Get account balance information to the period containing a given 'Day',
+-- and the historical data if this day lies in the historical period.
 lookupPeriodData :: Day -> PeriodData a -> a
-lookupPeriodData d (PeriodData h as) =
-    maybe h snd $ IM.lookupLE (fromInteger $ toModifiedJulianDay d) as
+lookupPeriodData d pd@(PeriodData h _) = maybe h snd $ lookupPeriodDataLE d pd
+
+-- | Get account balance information for the period containing a given 'Day',
+-- along with the start of the period, or 'Nothing' if this day lies in the
+-- historical period.
+lookupPeriodDataLE :: Day -> PeriodData a -> Maybe (Day, a)
+lookupPeriodDataLE d (PeriodData _ as) = first intToDay <$> IM.lookupLE (dayToInt d) as
 
 -- | Add account balance information to the appropriate location in 'PeriodData'.
 insertPeriodData :: Semigroup a => Maybe Day -> a -> PeriodData a -> PeriodData a
 insertPeriodData mday b balances = case mday of
     Nothing  -> balances{pdpre = pdpre balances <> b}
-    Just day -> balances{pdperiods = IM.insertWith (<>) (fromInteger $ toModifiedJulianDay day) b $ pdperiods balances}
+    Just day -> balances{pdperiods = IM.insertWith (<>) (dayToInt day) b $ pdperiods balances}
 
 -- | Merges two 'PeriodData', using the given operation to combine their balance information.
 --
@@ -103,10 +119,38 @@ mergePeriodData only1 only2 f = \(PeriodData h1 as1) (PeriodData h2 as2) ->
   where
     merge = IM.mergeWithKey (\_ x y -> Just $ f x y) (fmap only1) (fmap only2)
 
--- | Pad out the datemap of an 'PeriodData' so that every key from a set is present.
-padPeriodData :: Monoid a => IS.IntSet -> PeriodData a -> PeriodData a
-padPeriodData keys bal = bal{pdperiods = pdperiods bal <> IM.fromSet (const mempty) keys}
+-- | Pad out the datemap of an 'PeriodData' so that every key from another 'PeriodData' is present.
+padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a
+padPeriodData x pad bal = bal{pdperiods = pdperiods bal <> (x <$ pdperiods pad)}
 
+
+-- | Convert 'PeriodData Day' to a list of 'DateSpan's.
+periodDataToDateSpans :: PeriodData Day -> [DateSpan]
+periodDataToDateSpans = map (\(s, e) -> DateSpan (toEFDay s) (toEFDay e)) . snd . periodDataToList
+  where toEFDay = Just . Exact
+
+-- Convert a periodic report 'Maybe (PeriodData Day)' to a list of 'DateSpans',
+-- replacing the empty case with an appropriate placeholder.
+maybePeriodDataToDateSpans :: Maybe (PeriodData Day) -> [DateSpan]
+maybePeriodDataToDateSpans = maybe [DateSpan Nothing Nothing] periodDataToDateSpans
+
+-- | Convert a list of 'DateSpan's to a 'PeriodData Day', or 'Nothing' if it is not well-formed.
+-- PARTIAL:
+dateSpansToPeriodData :: [DateSpan] -> Maybe (PeriodData Day)
+-- Handle the cases of partitions which would arise from journals with no transactions
+dateSpansToPeriodData []                           = Nothing
+dateSpansToPeriodData [DateSpan Nothing  Nothing]  = Nothing
+dateSpansToPeriodData [DateSpan Nothing  (Just _)] = Nothing
+dateSpansToPeriodData [DateSpan (Just _) Nothing]  = Nothing
+-- Handle properly defined reports
+dateSpansToPeriodData (x:xs) = Just $ periodDataFromList (fst $ boundaries x) (map boundaries (x:xs))
+  where
+    boundaries spn = makeJust (spanStart spn, spanEnd spn)
+    makeJust (Just a, Just b)  = (a, b)
+    makeJust ab = error' $ "dateSpansToPeriodData: expected all spans to have start and end dates, but one has " ++ show ab
+
+intToDay = ModifiedJulianDay . toInteger
+dayToInt = fromInteger . toModifiedJulianDay
 
 -- tests
 

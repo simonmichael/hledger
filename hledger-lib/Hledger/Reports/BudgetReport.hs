@@ -19,12 +19,12 @@ import Control.Monad ((>=>))
 import Data.Bifunctor (bimap)
 import Data.Foldable (toList)
 import Data.List (find, maximumBy, intercalate)
-import Data.List.Extra (nubSort)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Ord (comparing)
 import qualified Data.Set as S
 import qualified Data.Text as T
 import Data.These (These(..), these)
+import Data.Time (Day)
 import Safe (minimumDef)
 
 import Hledger.Data
@@ -89,7 +89,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
         -- budgetgoalreport's span might be shorter actualreport's due to periodic txns;
         -- it should be safe to replace it with the latter, so they combine well.
         NoInterval -> actualspans
-        _          -> nubSort . filter (/= nulldatespan) $ actualspans ++ budgetspans
+        _          -> maybe id (padPeriodData nulldate) budgetspans <$> actualspans
 
     actualps = dbg5 "actualps" $ getPostings rspec actualj priceoracle reportspan
     budgetps = dbg5 "budgetps" $ getPostings rspec budgetj priceoracle reportspan
@@ -107,7 +107,7 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
 -- | Lay out a set of postings grouped by date span into a regular matrix with rows
 -- given by AccountName and columns by DateSpan, then generate a MultiBalanceReport
 -- from the columns.
-generateBudgetReport :: ReportOpts -> [DateSpan] -> Account (These BalanceData BalanceData) -> BudgetReport
+generateBudgetReport :: ReportOpts -> Maybe (PeriodData Day) -> Account (These BalanceData BalanceData) -> BudgetReport
 generateBudgetReport = generatePeriodicReport makeBudgetReportRow treeActualBalance flatActualBalance
   where
     treeActualBalance = these bdincludingsubs (const nullmixedamt) (const . bdincludingsubs)
