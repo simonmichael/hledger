@@ -1025,7 +1025,7 @@ balanceassertionp = do
     }
 
 -- Parse a Ledger-style lot cost,
--- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}},
+-- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {},
 -- and discard it.
 lotcostp :: JournalParser m ()
 lotcostp =
@@ -1036,7 +1036,7 @@ lotcostp =
   lift skipNonNewlineSpaces
   _fixed <- fmap isJust $ optional $ char '='
   lift skipNonNewlineSpaces
-  _a <- simpleamountp False
+  _a <- option 0 $ simpleamountp False
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
