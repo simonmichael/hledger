@@ -239,3 +239,23 @@ $ hledger -f sample.journal balance --flat --empty
 --------------------
                    0  
 
+# ** 19. Shows zero if period starts after all transactions
+$ hledger -f sample.journal balance -b 3000-01-01
+--------------------
+                   0  
+
+# ** 20. Shows zero if period ends before all transactions
+$ hledger -f sample.journal balance -e 1000-01-01
+--------------------
+                   0  
+
+# ** 20. Shows zero if period starts and ends before all transactions
+$ hledger -f sample.journal balance -b 1000-01-01 -e 1000-01-02
+--------------------
+                   0  
+
+# ** 19. Shows zero on empty journal
+<
+$ hledger -f- balance
+--------------------
+                   0  

@@ -235,10 +235,9 @@ $ hledger -f- close
 >=
 
 # ** 16. "override the closing date ... by specifying a report period, where last day of the report period will be the closing date"
-# With no data to close in the period, this is currently giving an error. XXX
-$ hledger -f- close -e 100000-01-01
->2 /Error: balanceDataPeriodEnds: expected initial span to have an end date/
->=1
+$ hledger -f- close -e 10000
+> /9999-12-31 closing balances/
+>=
 
 # ** 17. close (and print) should add trailing decimal marks when needed to posting amounts and costs.
 <
