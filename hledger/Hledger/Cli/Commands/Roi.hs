@@ -94,26 +94,30 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   when (null trans) $
     error' "No relevant transactions found. Check your investments query"
 
-  let (fullPeriod, spans) = reportSpan filteredj rspec
+  let (fullPeriodDateSpan, mspans) = reportSpan filteredj rspec
 
-  let processSpan (DateSpan Nothing _) = error' "Undefined start of the period - will be unable to compute the rates of return"
-      processSpan (DateSpan _ Nothing) = error' "Undefined end of the period - will be unable to compute the rates of return"
-      processSpan spn@(DateSpan (Just begin) (Just end)) = do
+  let err = error' "Undefined start or end of the period - will be unable to compute the rates of return"
+      spans = maybe err (snd . periodDataToList) mspans
+      fullPeriod = case fullPeriodDateSpan of
+        DateSpan (Just b) (Just e) -> (fromEFDay b, fromEFDay e)
+        _ -> err
+
+  let processSpan (b, e) = do
         -- Spans are [begin,end), and end is 1 day after the actual end date we are interested in
         let
-          b = fromEFDay begin
-          e = fromEFDay end
+          spn = DateSpan (Just $ Exact b) (Just $ Exact e)
+
           cashFlowApplyCostValue = map (\(d,amt) -> (d,mixedAmountValue e d amt))
 
           valueBefore = dbg3 "valueBefore" $
             mixedAmountValue e b $
             total trans (And [ investmentsQuery
-                             , Date (DateSpan Nothing (Just begin))])
+                             , Date (DateSpan Nothing (Just $ Exact b))])
 
           valueAfter  = dbg3 "valueAfter" $
             mixedAmountValue e e $
             total trans (And [investmentsQuery
-                             , Date (DateSpan Nothing (Just end))])
+                             , Date (DateSpan Nothing (Just $ Exact e))])
 
           cashFlow = dbg3 "cashFlow" $
             cashFlowApplyCostValue $

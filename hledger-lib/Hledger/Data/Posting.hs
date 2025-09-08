@@ -46,8 +46,6 @@ module Hledger.Data.Posting (
   postingDate,
   postingDate2,
   postingDateOrDate2,
-  isPostingInDateSpan,
-  isPostingInDateSpan',
   -- * account name operations
   accountNamesFromPostings,
   -- * comment/tag operations
@@ -107,7 +105,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.Amount
 import Hledger.Data.AccountName
-import Hledger.Data.Dates (nulldate, spanContainsDate)
+import Hledger.Data.Dates (nulldate)
 import Hledger.Data.Valuation
 
 
@@ -443,15 +441,6 @@ transactionAllTags t = ttags t ++ concatMap ptags (tpostings t)
 relatedPostings :: Posting -> [Posting]
 relatedPostings p@Posting{ptransaction=Just t} = filter (/= p) $ tpostings t
 relatedPostings _ = []
-
--- | Does this posting fall within the given date span ?
-isPostingInDateSpan :: DateSpan -> Posting -> Bool
-isPostingInDateSpan = isPostingInDateSpan' PrimaryDate
-
--- --date2-sensitive version, separate for now to avoid disturbing multiBalanceReport.
-isPostingInDateSpan' :: WhichDate -> DateSpan -> Posting -> Bool
-isPostingInDateSpan' PrimaryDate   s = spanContainsDate s . postingDate
-isPostingInDateSpan' SecondaryDate s = spanContainsDate s . postingDate2
 
 isEmptyPosting :: Posting -> Bool
 isEmptyPosting = mixedAmountLooksZero . pamount
