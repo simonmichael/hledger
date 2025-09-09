@@ -578,7 +578,7 @@ in a more featureful hledger config file. Here's a small example:
 
 # Options following a `[COMMAND]` heading are used with that hledger command only.
 [print]
---explicit --show-costs
+--explicit --infer-costs
 ```
 
 To use a config file, specify it with the `--conf` option.
