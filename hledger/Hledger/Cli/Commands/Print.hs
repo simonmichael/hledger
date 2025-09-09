@@ -48,17 +48,17 @@ import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
-  ([flagNone ["explicit","x"] (setboolopt "explicit")
-    "show all amounts explicitly"
-  ,roundFlag
+  ([
+   flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-  ,flagNone ["new"] (setboolopt "new")
-    "show only newer-dated transactions added in each file since last run"
+  ,flagNone ["location"] (setboolopt "location") "add tags showing file paths and line numbers"
   ,let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
-  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
-  ,flagNone ["location"] (setboolopt "location") "add tags showing file paths and line numbers"
+  ,flagNone ["new"] (setboolopt "new") "show only newer-dated transactions added in each file since last run"
+  ,roundFlag
+  ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX"
+    "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
