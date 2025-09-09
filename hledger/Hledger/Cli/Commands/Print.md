@@ -5,8 +5,16 @@ Show full journal entries, representing transactions.
 ```flags
 Flags:
   -x --explicit             show all amounts explicitly
-     --show-costs           show transaction prices even with conversion
-                            postings
+     --invert               display all amounts with reversed sign
+     --location             add tags showing file paths and line numbers
+  -m --match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+     --new                  show only newer-dated transactions added in each
+                            file since last run
+     --no-lots              remove lot subaccounts and their balance
+                            assertions
+     --no-lots2             remove lot subaccounts and their costs and
+                            balance assertions (can produce unbalanced entries)
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
@@ -17,15 +25,9 @@ Flags:
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision
                                    (can unbalance transactions)
-     --invert               display all amounts with reversed sign
-     --new                  show only newer-dated transactions added in each
-                            file since last run
-  -m --match=DESC           fuzzy search for one recent transaction with
-                            description closest to DESC
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
-     --location             add tags showing file paths and line numbers
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   -o --output-file=FILE     write output to FILE. A file extension matching

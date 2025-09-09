@@ -4,8 +4,16 @@ Show full journal entries, representing transactions.
 
 Flags:
   -x --explicit             show all amounts explicitly
-     --show-costs           show transaction prices even with conversion
-                            postings
+     --invert               display all amounts with reversed sign
+     --location             add tags showing file paths and line numbers
+  -m --match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+     --new                  show only newer-dated transactions added in each
+                            file since last run
+     --no-lots              remove lot subaccounts and their balance
+                            assertions
+     --no-lots2             remove lot subaccounts and their costs and
+                            balance assertions (can produce unbalanced entries)
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
@@ -16,15 +24,9 @@ Flags:
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision
                                    (can unbalance transactions)
-     --invert               display all amounts with reversed sign
-     --new                  show only newer-dated transactions added in each
-                            file since last run
-  -m --match=DESC           fuzzy search for one recent transaction with
-                            description closest to DESC
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
-     --location             add tags showing file paths and line numbers
   -O --output-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
@@ -124,17 +126,28 @@ With --invert, posting amounts are shown with their sign flipped. It
 could be useful if you have accidentally recorded some transactions with
 the wrong signs.
 
-With --new, print shows only transactions it has not seen on a previous
-run. This uses the same deduplication system as the import command. (See
-import's docs for details.)
+With --location, print adds the source file and line number to every
+transaction, as a tag.
 
 With -m DESC/--match=DESC, print shows one recent transaction whose
 description is most similar to DESC. DESC should contain at least two
 characters. If there is no similar-enough match, no transaction will be
 shown and the program exit code will be non-zero.
 
-With --location, print adds the source file and line number to every
-transaction, as a tag.
+With --new, print shows only transactions it has not seen on a previous
+run, using the same deduplication system as the import command (see
+import's docs). (Unlike import, there is no dry run - you'll see the new
+transactions only once.)
+
+With --no-lots, print will hide lot subaccounts, and their balance
+assertions. (Or with --no-lots2, their costs will also be removed,
+possibly producing unbalanced entries.) Lot subaccounts are leaf
+accounts whose last part begins with a date (YYYY-MM-DD or YYYYMMDD).
+This can be useful for converting journal entries which use explicit lot
+subaccounts, if you want to discard lot information. Note the
+limitations: all postings in the same account with similar cost will be
+consolidated, and all posting comments will be removed (including from
+non-lot postings).
 
 print output format
 
