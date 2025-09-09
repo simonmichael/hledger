@@ -314,16 +314,23 @@ periodDataValuation ropts j priceoracle colspans =
 
     balanceDataPeriodEnds :: PeriodData Day
     balanceDataPeriodEnds = dbg5 "balanceDataPeriodEnds" $ case colspans of  -- FIXME: Change colspans to nonempty list
-        [DateSpan Nothing Nothing] -> periodDataFromList nulldate [(nulldate, nulldate)]  -- Empty journal
-        h:ds                       -> periodDataFromList (makeJustFst $ boundaries h) $ map (makeJust . boundaries) (h:ds)
-        []                         -> error' "balanceDataPeriodEnds: Shouldn't have empty colspans"  -- PARTIAL: Shouldn't occur
+        DateSpan (Just x) (Just y):ds ->
+          periodDataFromList (addDays (-1) (fromEFDay x)) $
+            (fromEFDay x, addDays (-1) (fromEFDay y)):map (makeJust . boundaries) ds
+        DateSpan _ _:_  ->
+          -- The initial span is invalid for one of three reasons:
+          --   1. It has no boundaries (Nothing, Nothing)
+          --   2. Its start is older than all postings
+          --   3. Its end is newer than all postings
+          -- Otherwise, the span would have been filled by `spanValidDefaultsFrom` with the min/max posting dates.
+          -- In any of these cases, we return an empty journal
+          periodDataFromList nulldate [(nulldate, nulldate)]
+        [] -> error' "balanceDataPeriodEnds: Shouldn't have empty colspans"  -- PARTIAL: Shouldn't occur
       where
         boundaries spn = (spanStart spn, spanEnd spn)
 
         makeJust (Just x, Just y) = (x, addDays (-1) y)
         makeJust _    = error' "balanceDataPeriodEnds: expected all non-initial spans to have start and end dates"
-        makeJustFst (Just x, _) = addDays (-1) x
-        makeJustFst _ = error' "balanceDataPeriodEnds: expected initial span to have an end date"
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
 markAccountBoring :: ReportSpec -> Account BalanceData -> Account BalanceData
