@@ -50,8 +50,6 @@ printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
   ([flagNone ["explicit","x"] (setboolopt "explicit")
     "show all amounts explicitly"
-  ,flagNone ["show-costs"] (setboolopt "show-costs")
-    "show transaction prices even with conversion postings"
   ,roundFlag
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["new"] (setboolopt "new")
@@ -159,8 +157,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           -- Use the fully inferred and amount-styled/rounded transaction in the following situations:
           -- with -x/--explicit:
           | boolopt "explicit" (rawopts_ opts) = id
-          -- with --show-costs:
-          -- XXX infer_costs is --infer-costs not --show-costs. And where is show-costs used anyway ?
+          -- with --infer-costs
           | opts ^. infer_costs = id
           -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
           | has (value . _Just) opts = id

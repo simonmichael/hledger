@@ -220,7 +220,7 @@ setupHledger = do
 
         -- pdesc "common general options are configured ?"
         -- --infer-costs"
-        -- print --explicit --show-costs"
+        -- print --explicit --infer-costs"
 
         return $ Just $ Right conf
   else

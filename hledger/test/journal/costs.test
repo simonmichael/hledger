@@ -467,7 +467,7 @@ $ hledger -f- print --infer-costs
     assets                              $-135
     assets                               £-80
 
-$ hledger -f- print --show-costs --infer-costs
+$ hledger -f- print --infer-costs
 2011-01-01
     expenses:food                 €110 @@ £80
     expenses:foreign currency    €100 @@ $135
