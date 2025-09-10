@@ -25,6 +25,8 @@ module Hledger.Utils (
   splitAtElement,
   sumStrict,
   all1,
+  takeUntilFails,
+  takeUntilFailsNE,
 
   -- * Trees
   treeLeaves,
@@ -73,6 +75,7 @@ where
 import Data.Char (toLower)
 import Data.List (intersperse)
 import Data.List.Extra (chunksOf, foldl1', uncons, unsnoc)
+import qualified Data.List.NonEmpty as NE
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -180,6 +183,16 @@ sumStrict = foldl' (+) 0
 all1 :: (a -> Bool) -> [a] -> Bool
 all1 _ [] = False
 all1 p as = all p as
+
+-- | Take elements from a non-empty list until a predicate fails, and then keep
+-- the first failing element as well.
+takeUntilFailsNE :: (a -> Bool) -> NE.NonEmpty a -> NE.NonEmpty a
+takeUntilFailsNE p = NE.fromList . takeUntilFails p . NE.toList  -- Result guaranteed to be non-empty
+
+-- | Take elements from a list until a predicate fails, and then keep the first
+-- failing element as well.
+takeUntilFails :: (a -> Bool) -> [a] -> [a]
+takeUntilFails p = foldr (\x -> if p x then (x :) else const [x]) []
 
 -- Trees
 
