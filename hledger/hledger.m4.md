@@ -6580,7 +6580,6 @@ Related:
 ## Effect of valuation on reports
 
 Here is a reference for how valuation is supposed to affect each part of hledger's reports.
-(It's wide, you may need to scroll sideways.)
 It may be useful when troubleshooting.
 If you find problems, please report them, ideally with a reproducible example.
 Related:
