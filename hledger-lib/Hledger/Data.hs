@@ -66,14 +66,14 @@ import Hledger.Data.Valuation
 tests_Data = testGroup "Data" [
    tests_Account
   ,tests_AccountName
-  ,tests_BalanceData
-  ,tests_PeriodData
   ,tests_Amount
+  ,tests_BalanceData
   ,tests_Balancing
+  ,tests_DayPartition
   -- ,tests_Currency
-  ,tests_Dates
   ,tests_Journal
   ,tests_Ledger
+  ,tests_PeriodData
   ,tests_Posting
   ,tests_Valuation
   ,tests_StringFormat
