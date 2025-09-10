@@ -133,12 +133,12 @@ tests_PeriodData =
     dayMap2 = periodDataFromList (mixed [usd 2]) [(fromGregorian 2000 01 01, mixed [usd 4]), (fromGregorian 2004 02 28, mixed [usd 6])]
   in testGroup "PeriodData" [
 
-  testCase "periodDataFromList" $ do
-    length dayMap @?= 3,
+       testCase "periodDataFromList" $ do
+         length dayMap @?= 3,
 
-  testCase "Semigroup instance" $ do
-    dayMap <> dayMap @?= dayMap2,
+       testCase "Semigroup instance" $ do
+         dayMap <> dayMap @?= dayMap2,
 
-  testCase "Monoid instance" $ do
-    dayMap <> mempty @?= dayMap
-  ]
+       testCase "Monoid instance" $ do
+         dayMap <> mempty @?= dayMap
+     ]

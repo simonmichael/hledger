@@ -70,8 +70,6 @@ module Hledger.Data.Dates (
   daysSpan,
   latestSpanContaining,
   smartdate,
-  splitSpan,
-  spansFromBoundaries,
   groupByDateSpan,
   fixSmartDate,
   fixSmartDateStr,
@@ -80,9 +78,22 @@ module Hledger.Data.Dates (
   yearp,
   daysInSpan,
 
-  tests_Dates
-, intervalBoundaryBefore)
-where
+  -- Temp exports
+  startofyear,
+  startofquarter,
+  startofmonth,
+  startofweek,
+  nextday,
+  nextweek,
+  nextmonthandday,
+  nextnthdayofmonth,
+  prevNthWeekdayOfMonth,
+  nthdayofweekcontaining,
+  addGregorianMonthsToMonthday,
+  advanceToNthWeekday,
+  nextNthWeekdayOfMonth,
+  isEmptySpan
+) where
 
 import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..))
@@ -188,76 +199,6 @@ spanYears (DateSpan ma mb) = mapMaybe (fmap (first3 . toGregorian. fromEFDay)) [
 spansSpan :: [DateSpan] -> DateSpan
 spansSpan spans = DateSpan (spanStartDate =<< headMay spans) (spanEndDate =<< lastMay spans)
 
--- | Split a DateSpan into consecutive exact spans of the specified Interval.
--- If no interval is specified, the original span is returned.
--- If the original span is the null date span, ie unbounded, the null date span is returned.
--- If the original span is empty, eg if the end date is <= the start date, no spans are returned.
---
--- ==== Date adjustment
--- Some intervals respect the "adjust" flag (years, quarters, months, weeks, every Nth weekday
--- of month seem to be the ones that need it). This will move the start date earlier, if needed,
--- to the previous natural interval boundary (first of year, first of quarter, first of month,
--- monday, previous Nth weekday of month). Related: #1982 #2218
---
--- The end date is always moved later if needed to the next natural interval boundary,
--- so that the last period is the same length as the others.
---
--- ==== Examples
--- >>> let t i y1 m1 d1 y2 m2 d2 = splitSpan True i $ DateSpan (Just $ Flex $ fromGregorian y1 m1 d1) (Just $ Flex $ fromGregorian y2 m2 d2)
--- >>> t NoInterval 2008 01 01 2009 01 01
--- [DateSpan 2008]
--- >>> t (Quarters 1) 2008 01 01 2009 01 01
--- [DateSpan 2008Q1,DateSpan 2008Q2,DateSpan 2008Q3,DateSpan 2008Q4]
--- >>> splitSpan True (Quarters 1) nulldatespan
--- [DateSpan ..]
--- >>> t (Days 1) 2008 01 01 2008 01 01  -- an empty datespan
--- []
--- >>> t (Quarters 1) 2008 01 01 2008 01 01
--- []
--- >>> t (Months 1) 2008 01 01 2008 04 01
--- [DateSpan 2008-01,DateSpan 2008-02,DateSpan 2008-03]
--- >>> t (Months 2) 2008 01 01 2008 04 01
--- [DateSpan 2008-01-01..2008-02-29,DateSpan 2008-03-01..2008-04-30]
--- >>> t (Weeks 1) 2008 01 01 2008 01 15
--- [DateSpan 2008-W01,DateSpan 2008-W02,DateSpan 2008-W03]
--- >>> t (Weeks 2) 2008 01 01 2008 01 15
--- [DateSpan 2007-12-31..2008-01-13,DateSpan 2008-01-14..2008-01-27]
--- >>> t (MonthDay 2) 2008 01 01 2008   04 01
--- [DateSpan 2008-01-02..2008-02-01,DateSpan 2008-02-02..2008-03-01,DateSpan 2008-03-02..2008-04-01]
--- >>> t (NthWeekdayOfMonth 2 4) 2011 01 01 2011 02 15
--- [DateSpan 2010-12-09..2011-01-12,DateSpan 2011-01-13..2011-02-09,DateSpan 2011-02-10..2011-03-09]
--- >>> t (DaysOfWeek [2]) 2011 01 01 2011 01 15
--- [DateSpan 2010-12-28..2011-01-03,DateSpan 2011-01-04..2011-01-10,DateSpan 2011-01-11..2011-01-17]
--- >>> t (MonthAndDay 11 29) 2012 10 01 2013 10 15
--- [DateSpan 2012-11-29..2013-11-28]
---
-splitSpan :: Bool -> Interval -> DateSpan -> [DateSpan]
-splitSpan _      _                        (DateSpan Nothing Nothing) = [DateSpan Nothing Nothing]
-splitSpan _      _                        ds | isEmptySpan ds = []
-splitSpan _      _                        ds@(DateSpan (Just s) (Just e)) | s == e = [ds]
-splitSpan _      NoInterval               ds = [ds]
-splitSpan _      (Days n)                 ds = splitspan id addDays n ds
-splitSpan adjust (Weeks n)                ds = splitspan (if adjust then startofweek    else id) addDays                 (7*n) ds
-splitSpan adjust (Months n)               ds = splitspan (if adjust then startofmonth   else id) addGregorianMonthsClip  n     ds
-splitSpan adjust (Quarters n)             ds = splitspan (if adjust then startofquarter else id) addGregorianMonthsClip  (3*n) ds
-splitSpan adjust (Years n)                ds = splitspan (if adjust then startofyear    else id) addGregorianYearsClip   n     ds
-splitSpan adjust (NthWeekdayOfMonth n wd) ds = splitspan (if adjust then prevstart else nextstart) advancemonths          1     ds
-  where
-    prevstart = prevNthWeekdayOfMonth n wd
-    nextstart = nextNthWeekdayOfMonth n wd
-    advancemonths 0 = id
-    advancemonths m = advanceToNthWeekday n wd . startofmonth . addGregorianMonthsClip m
-splitSpan _      (MonthDay dom)           ds = splitspan (nextnthdayofmonth dom) (addGregorianMonthsToMonthday dom) 1 ds
-splitSpan _      (MonthAndDay m d)        ds = splitspan (nextmonthandday m d)   (addGregorianYearsClip)            1 ds
-splitSpan _      (DaysOfWeek [])          ds = [ds]
-splitSpan _      (DaysOfWeek days@(n:_))  ds = spansFromBoundaries e bdrys
-  where
-    (s, e) = dateSpanSplitLimits (nthdayofweekcontaining n) nextday ds
-    -- can't show this when debugging, it'll hang:
-    bdrys = concatMap (flip map starts . addDays) [0,7..]
-    -- The first representative of each weekday
-    starts = map (\d -> addDays (toInteger $ d - n) $ nthdayofweekcontaining n s) days
-
 -- Like addGregorianMonthsClip, add one month to the given date, clipping when needed
 -- to fit it within the next month's length. But also, keep a target day of month in mind,
 -- and revert to that or as close to it as possible in subsequent longer months.
@@ -266,31 +207,6 @@ addGregorianMonthsToMonthday :: MonthDay -> Integer -> Day -> Day
 addGregorianMonthsToMonthday dom n d =
   let (y,m,_) = toGregorian $ addGregorianMonthsClip n d
   in fromGregorian y m dom
-
--- Split the given span into exact spans using the provided helper functions:
---
--- 1. The start function is used to adjust the provided span's start date to get the first sub-span's start date.
---
--- 2. The next function is used to calculate subsequent sub-spans' start dates, possibly with stride increased by a multiplier.
---    It should handle spans of varying length, eg when splitting on "every 31st of month",
---    it adjusts to 28/29/30 in short months but returns to 31 in the long months.
---
-splitspan :: (Day -> Day) -> (Integer -> Day -> Day) -> Int -> DateSpan -> [DateSpan]
-splitspan start next mult ds = spansFromBoundaries e bdrys
-  where
-    (s, e) = dateSpanSplitLimits start (next (toInteger mult)) ds
-    bdrys = mapM (next . toInteger) [0,mult..] $ start s
-
--- | Fill in missing start/end dates for calculating 'splitSpan'.
-dateSpanSplitLimits :: (Day -> Day) -> (Day -> Day) -> DateSpan -> (Day, Day)
-dateSpanSplitLimits start _    (DateSpan (Just s) (Just e)) = (start $ fromEFDay s, fromEFDay e)
-dateSpanSplitLimits start next (DateSpan (Just s) Nothing)  = (start $ fromEFDay s, next $ start $ fromEFDay s)
-dateSpanSplitLimits start next (DateSpan Nothing  (Just e)) = (start $ fromEFDay e, next $ start $ fromEFDay e)
-dateSpanSplitLimits _     _    (DateSpan Nothing   Nothing) = error' "dateSpanSplitLimits: should not be nulldatespan"  -- PARTIAL: This case should have been handled in splitSpan
-
--- | Construct a list of exact 'DateSpan's from a list of boundaries, which fit within a given range.
-spansFromBoundaries :: Day -> [Day] -> [DateSpan]
-spansFromBoundaries e bdrys = zipWith (DateSpan `on` (Just . Exact)) (takeWhile (< e) bdrys) $ drop 1 bdrys
 
 -- | Count the days in a DateSpan, or if it is open-ended return Nothing.
 daysInSpan :: DateSpan -> Maybe Integer
@@ -668,14 +584,6 @@ thisyear = startofyear
 -- prevyear = startofyear . addGregorianYearsClip (-1)
 nextyear = startofyear . addGregorianYearsClip 1
 startofyear day = fromGregorian y 1 1 where (y,_,_) = toGregorian day
-
--- Get the natural start for the given interval that falls on or before the given day,
--- when applicable. Works for Weeks, Months, Quarters, Years, eg.
-intervalBoundaryBefore :: Interval -> Day -> Day
-intervalBoundaryBefore i d =
-  case splitSpan True i (DateSpan (Just $ Exact d) (Just $ Exact $ addDays 1 d)) of
-    (DateSpan (Just start) _:_) -> fromEFDay start
-    _ -> d
 
 -- | Find the next occurrence of the specified month and day of month, on or after the given date.
 -- The month should be 1-12 and the day of month should be 1-31, or an error will be raised.
@@ -1263,45 +1171,3 @@ emptydatespan = DateSpan (Just $ Exact $ addDays 1 nulldate) (Just $ Exact nulld
 
 nulldate :: Day
 nulldate = fromGregorian 0 1 1
-
-
--- tests
-
-tests_Dates = testGroup "Dates"
-  [ testCase "weekday" $ do
-      splitSpan False (DaysOfWeek [1..5]) (DateSpan (Just $ Exact $ fromGregorian 2021 07 01) (Just $ Exact $ fromGregorian 2021 07 08))
-        @?= [ (DateSpan (Just $ Exact $ fromGregorian 2021 06 28) (Just $ Exact $ fromGregorian 2021 06 29))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 06 29) (Just $ Exact $ fromGregorian 2021 06 30))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 06 30) (Just $ Exact $ fromGregorian 2021 07 01))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 01) (Just $ Exact $ fromGregorian 2021 07 02))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 02) (Just $ Exact $ fromGregorian 2021 07 05))
-            -- next week
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 05) (Just $ Exact $ fromGregorian 2021 07 06))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 06) (Just $ Exact $ fromGregorian 2021 07 07))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 07) (Just $ Exact $ fromGregorian 2021 07 08))
-            ]
-
-      splitSpan False (DaysOfWeek [1, 5]) (DateSpan (Just $ Exact $ fromGregorian 2021 07 01) (Just $ Exact $ fromGregorian 2021 07 08))
-        @?= [ (DateSpan (Just $ Exact $ fromGregorian 2021 06 28) (Just $ Exact $ fromGregorian 2021 07 02))
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 02) (Just $ Exact $ fromGregorian 2021 07 05))
-            -- next week
-            , (DateSpan (Just $ Exact $ fromGregorian 2021 07 05) (Just $ Exact $ fromGregorian 2021 07 09))
-            ]
-
-  , testCase "match dayOfWeek" $ do
-      let dayofweek n = splitspan (nthdayofweekcontaining n) (\w -> (if w == 0 then id else applyN (n-1) nextday . applyN (fromInteger w) nextweek)) 1
-          matchdow ds day = splitSpan False (DaysOfWeek [day]) ds @?= dayofweek day ds
-          ys2021 = fromGregorian 2021 01 01
-          ye2021 = fromGregorian 2021 12 31
-          ys2022 = fromGregorian 2022 01 01
-      mapM_ (matchdow (DateSpan (Just $ Exact ys2021) (Just $ Exact ye2021))) [1..7]
-      mapM_ (matchdow (DateSpan (Just $ Exact ys2021) (Just $ Exact ys2022))) [1..7]
-      mapM_ (matchdow (DateSpan (Just $ Exact ye2021) (Just $ Exact ys2022))) [1..7]
-
-      mapM_ (matchdow (DateSpan (Just $ Exact ye2021) Nothing)) [1..7]
-      mapM_ (matchdow (DateSpan (Just $ Exact ys2022) Nothing)) [1..7]
-
-      mapM_ (matchdow (DateSpan Nothing (Just $ Exact ye2021))) [1..7]
-      mapM_ (matchdow (DateSpan Nothing (Just $ Exact ys2022))) [1..7]
-
-  ]
