@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.2.
+-- This file has been generated from package.yaml by hpack version 0.38.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -57,9 +57,11 @@ library
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
+      Hledger.Data.BalanceData
       Hledger.Data.Balancing
       Hledger.Data.Currency
       Hledger.Data.Dates
+      Hledger.Data.DayPartition
       Hledger.Data.Errors
       Hledger.Data.Journal
       Hledger.Data.JournalChecks
@@ -68,6 +70,7 @@ library
       Hledger.Data.Json
       Hledger.Data.Ledger
       Hledger.Data.Period
+      Hledger.Data.PeriodData
       Hledger.Data.PeriodicTransaction
       Hledger.Data.StringFormat
       Hledger.Data.Posting
@@ -115,8 +118,6 @@ library
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:
-      Hledger.Data.BalanceData
-      Hledger.Data.PeriodData
       Paths_hledger_lib
   autogen-modules:
       Paths_hledger_lib

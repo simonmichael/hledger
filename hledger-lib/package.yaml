@@ -118,9 +118,11 @@ library:
   - Hledger.Data.Account
   - Hledger.Data.AccountName
   - Hledger.Data.Amount
+  - Hledger.Data.BalanceData
   - Hledger.Data.Balancing
   - Hledger.Data.Currency
   - Hledger.Data.Dates
+  - Hledger.Data.DayPartition
   - Hledger.Data.Errors
   - Hledger.Data.Journal
   - Hledger.Data.JournalChecks
@@ -129,6 +131,7 @@ library:
   - Hledger.Data.Json
   - Hledger.Data.Ledger
   - Hledger.Data.Period
+  - Hledger.Data.PeriodData
   - Hledger.Data.PeriodicTransaction
   - Hledger.Data.StringFormat
   - Hledger.Data.Posting

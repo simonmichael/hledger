@@ -39,8 +39,8 @@ showHistogram rspec@ReportSpec{_rsQuery=q} j =
       _ -> rspec
     spanps = case mspans of
       Nothing -> []
-      Just x  -> map (\spn -> (spn, filter (postingInRange spn) ps)) . snd $ periodDataToList x
-    postingInRange (b, e) p = postingDate p >= b && postingDate p < e
+      Just x  -> map (\spn -> (spn, filter (postingInRange spn) ps)) $ dayPartitionToList x
+    postingInRange (b, e) p = postingDate p >= b && postingDate p <= e
     -- same as Register
     -- should count transactions, not postings ?
     -- ps = sortBy (comparing postingDate) $ filterempties $ filter matchapats $ filterdepth $ journalPostings j
