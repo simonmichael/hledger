@@ -23,6 +23,26 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 326d2af3
+
+Breaking changes
+
+Fixes
+
+- The --pivot (and --obfuscate) options are now preserved, and spurious errors are avoided,
+  when the journal is reloaded by the `g` key or `--watch`.
+  [#2451]
+
+Features
+
+Improvements
+
+Docs
+
+API
+
+
+
 # 1.50 2025-09-03
 
 Breaking changes

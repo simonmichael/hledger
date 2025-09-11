@@ -6,7 +6,9 @@
 | .__/|_|  \___// |\___|\___|\__|
 |_|           |__/
 
-Docs
+Doc updates
+
+Website
 
 Infrastructure/Misc
 
@@ -15,6 +17,20 @@ Infrastructure/Misc
 General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
+
+# 326d2af3
+
+Doc updates
+
+- bin/README: paypal*, simplefin* usage examples, doc link
+- ISSUES
+
+Website
+
+Infrastructure/Misc
+
+- drop the hledger-install script
+- just ghci-ui: :main (and :rmain) now works again
 
 # 1.50 2025-09-03
 

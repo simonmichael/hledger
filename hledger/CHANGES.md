@@ -26,6 +26,38 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 326d2af3
+
+Breaking changes
+
+Fixes
+
+- Balance commands now show an empty report instead of an error when
+  no transactions are matched. This was a regression in 1.50.
+  (Stephen Morgan, [#2452])
+
+- The print command's help no longer shows an unused --show-costs flag.
+  And the flags are now mostly ordered alphabetically.
+
+Features
+
+Improvements
+
+- In journal format, an empty `{}` pair is now allowed in amounts, as in Ledger/Beancount (and ignored).
+
+Docs
+
+Examples
+
+Scripts/addons
+
+API
+
+-  Hledger.Cli.Utils:
+   - stop exporting pivotByOpts, anonymiseByOpts
+   - renamed withJournal -> withJournalDo. The old name is still available but deprecated.
+
+
 # 1.50 2025-09-03
 
 ## Breaking changes
