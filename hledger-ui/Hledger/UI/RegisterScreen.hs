@@ -354,8 +354,4 @@ rsCenterSelection ui = return ui
 rsEnterTransactionScreen :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> UIState -> EventM Name UIState ()
 rsEnterTransactionScreen acct nts nt ui = do
   dbguiEv "rsEnterTransactionScreen"
-  put' $
-    pushScreen (tsNew acct nts nt)
-    ui
-
-
+  put' $ pushScreen (tsNew acct nts nt) ui
