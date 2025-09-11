@@ -750,13 +750,16 @@ data Account a = Account {
   ,adata                     :: PeriodData a       -- ^ associated data per report period
   } deriving (Generic, Functor)
 
--- | Data values for zero or more report periods, and for the pre-report period.
--- Report periods are assumed to be contiguous, and represented only by start dates
--- (as keys of an IntMap). XXX how does that work, again ?
+-- | A general container for storing data values associated to zero or more
+-- report periods, and for the pre-report period. Report periods are assumed to
+-- be contiguous, and represented only by start dates.
+--
+-- Data is stored in an 'IntMap' for efficiency, where Days are stored as as
+-- Int representing the underlying modified Julian date.
 data PeriodData a = PeriodData {
    pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
   ,pdperiods :: IM.IntMap a  -- ^ data for the periods
-  } deriving (Eq, Functor, Generic)
+  } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:
 -- subaccount-exclusive and -inclusive amounts,
