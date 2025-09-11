@@ -42,12 +42,12 @@ Website
 - Export: updates
 - FAQ: updates
 - Hledger By Example: start a new progressive "book", with 18 pages
-- Tutorial: hledger basics -> to Tutorial: hledger add
 - Home: new, shorter home page content
 - Home: show a quote/testimonial, updating on the hour
 - Investments: fix link (#2436)
 - Invoicing: fix kairos link
 - Ledger: edits
+- Tutorial: hledger basics -> to Tutorial: hledger add
 
 Infrastructure/Misc
 
