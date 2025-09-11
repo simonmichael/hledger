@@ -61,6 +61,7 @@ library
       Hledger.Data.Balancing
       Hledger.Data.Currency
       Hledger.Data.Dates
+      Hledger.Data.DayPartition
       Hledger.Data.Errors
       Hledger.Data.Journal
       Hledger.Data.JournalChecks
