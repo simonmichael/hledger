@@ -48,7 +48,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
+import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
 import Hledger.UI.RegisterScreen (rsCenterSelection)
 import Data.Either (fromRight)
 import Control.Arrow ((>>>))
@@ -231,7 +231,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     -- XXX be sure we don't leave unconsumed app events piling up
     -- A data file has changed (or the user has pressed g): reload.
     e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] ->
-      liftIO (uiReloadJournal copts d ui) >>= put'
+      liftIO (uiReload copts d ui) >>= put'
 
     -- The date has changed (and we are viewing a standard period which contained the old date):
     -- adjust the viewed period and regenerate, just in case needed.
@@ -245,9 +245,9 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> modify' (resetFilter >>> regenerateScreens j d)
 
     -- run external programs:
-    VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadJournalIfChanged copts d j ui
-    VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
-    VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPosition (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
+    VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
+    VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
+    VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPosition (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
 
     -- adjust the period displayed:
     VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
