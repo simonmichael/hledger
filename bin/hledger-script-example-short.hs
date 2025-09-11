@@ -25,7 +25,7 @@ cmdmode = hledgerCommandMode (unlines
 
 main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
-  withJournalDo opts $ \j -> do
+  withJournal opts $ \j -> do
     putStrLn "hello"
 
 

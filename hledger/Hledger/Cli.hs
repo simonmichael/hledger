@@ -429,14 +429,14 @@ main = handleExit $ withGhcDebug' $ do
         -- 6.4.3. builtin command which should create the journal if missing - do that and run it
         | cmdname `elem` ["add","import"] -> do
           ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
-          withJournalDo opts (cmdaction opts)
+          withJournal opts (cmdaction opts)
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
         | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
-        | otherwise -> withJournalDo opts $ cmdaction opts
+        | otherwise -> withJournal opts $ cmdaction opts
 
     -- 6.5. external addon command found - run it,
     -- passing any cli arguments written after the command name

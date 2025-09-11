@@ -128,7 +128,7 @@ $ hledger-move all assets:broker1:FOO assets:broker2:FOO  # move all FOO lots to
 main :: IO ()
 main = do
   copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} <- getHledgerCliOpts cmdmode
-  withJournalDo copts $ \j -> do
+  withJournal copts $ \j -> do
     -- d <- getCurrentDay
     let
       -- arg errors

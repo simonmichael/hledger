@@ -14,7 +14,7 @@ stack new projectname yesodweb/sqlite
 
 These tests don't exactly match the production code path, eg these bits are missing:
 
-  withJournalDo copts (web wopts)  -- extra withJournalDo logic (journalTransform..)
+  withJournal copts (web wopts)  -- extra withJournal logic (journalTransform..)
   ...
   -- query logic, more options logic
   let depthlessinitialq = filterQuery (not . queryIsDepth) . _rsQuery . reportspec_ $ cliopts_ wopts

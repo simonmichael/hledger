@@ -23,7 +23,7 @@ cmdmode = hledgerCommandMode (unlines
 
 main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
-  withJournalDo opts $ flip compoundBalanceCommand opts $
+  withJournal opts $ flip compoundBalanceCommand opts $
 
     -- see https://hackage.haskell.org/package/hledger/docs/Hledger-Cli-CompoundBalanceCommand.html
     -- and https://hackage.haskell.org/package/hledger-lib-1.31/docs/Hledger-Query.html

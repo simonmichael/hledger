@@ -34,7 +34,7 @@ import Hledger.Cli.Script
 main = do
   args <- getArgs
   opts <- argsToCliOpts ("register" : args) []
-  withJournalDo opts $ \j -> do
+  withJournal opts $ \j -> do
     let
       r = postingsReport (reportspec_ opts) j
       getamt = pamount.fourth5
