@@ -145,7 +145,7 @@ hledgerparseerrorpositionp = do
 uiReload :: CliOpts -> Day -> UIState -> IO UIState
 uiReload copts d ui = do
   ej <-
-    let copts' = enableForecastPreservingPeriod ui copts
+    let copts' = enableForecast (astartupopts ui) copts
     in runExceptT $ journalTransform copts' <$> journalReload copts'
   -- dbg1IO "uiReload before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
@@ -170,7 +170,7 @@ uiReload copts d ui = do
 -- since the provided options or today-date may have changed.
 uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadIfFileChanged copts d j ui = do
-  let copts' = enableForecastPreservingPeriod ui copts
+  let copts' = enableForecast (astartupopts ui) copts
   ej <- runExceptT $ journalReloadIfChanged copts' d j
   return $ case ej of
     Right (j', _) -> regenerateScreens j' d ui

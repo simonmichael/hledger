@@ -35,7 +35,7 @@ module Hledger.UI.UIState
 ,resetDepth
 ,popScreen
 ,pushScreen
-,enableForecastPreservingPeriod
+,enableForecast
 ,resetFilter
 ,resetScreens
 ,regenerateScreens
@@ -202,20 +202,19 @@ toggleForecast _d ui = set forecast newForecast ui
   where
     newForecast = case ui^.forecast of
       Just _  -> Nothing
-      Nothing -> enableForecastPreservingPeriod ui (ui^.cliOpts) ^. forecast
+      Nothing -> enableForecast (astartupopts ui) (ui^.cliOpts) ^. forecast
 
--- | Ensure this CliOpts enables forecasted transactions.
--- If a forecast period was specified in the old CliOpts,
--- or in the provided UIState's startup options,
--- it is preserved.
-enableForecastPreservingPeriod :: UIState -> CliOpts -> CliOpts
-enableForecastPreservingPeriod ui copts = set forecast mforecast copts
+-- | Enable forecasting in this CliOpts.
+-- If it previously specified a forecast period, or else if the given ui startup options did,
+-- preserve that as the forecast period.
+enableForecast :: UIOpts -> CliOpts -> CliOpts
+enableForecast startopts currentopts = set forecast mforecast currentopts
   where
-    mforecast = asum [mprovidedforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
+    mforecast = asum [mcurrentforecastperiod, mstartupforecastperiod, mdefaultforecastperiod]
       where
-        mprovidedforecastperiod = copts ^. forecast
-        mstartupforecastperiod  = astartupopts ui ^. forecast
-        mdefaultforecastperiod  = Just nulldatespan
+        mcurrentforecastperiod = currentopts ^. forecast
+        mstartupforecastperiod = startopts ^. forecast
+        mdefaultforecastperiod = Just nulldatespan
 
 -- | Toggle between showing all and showing only real (non-virtual) items.
 toggleReal :: UIState -> UIState
