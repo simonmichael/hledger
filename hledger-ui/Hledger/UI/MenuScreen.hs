@@ -87,7 +87,7 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec@Re
               ,("q", str "quit")
               ]
 
-msDraw _ =  dbgui "msDraw" $ errorWrongScreenType "draw function"  -- PARTIAL:
+msDraw _ =  dbgui "msDraw" $ errorWrongScreenType "msDraw"  -- PARTIAL:
 
 -- msDrawItem :: (Int,Int) -> Bool -> MenuScreenItem -> Widget Name
 -- msDrawItem (_acctwidth, _balwidth) _selected MenuScreenItem{..} =
@@ -257,7 +257,7 @@ msHandle ev = do
             MouseUp{}   -> return ()
             AppEvent _  -> return ()
 
-    _ -> dbguiEv "msHandle" >> errorWrongScreenType "event handler"
+    _ -> dbguiEv "msHandle" >> errorWrongScreenType "msHandle"
 
 msEnterScreen :: Day -> ScreenName -> UIState -> EventM Name UIState ()
 msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do

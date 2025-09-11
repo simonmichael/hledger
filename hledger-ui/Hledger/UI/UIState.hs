@@ -60,6 +60,7 @@ import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIOptions (UIOpts(uoCliOpts))
 import Hledger.UI.UIScreens (screenUpdate)
+import Hledger.UI.UIUtils (showScreenId)
 
 -- | Make an initial UI state with the given options, journal,
 -- parent screen stack if any, and starting screen.
@@ -340,12 +341,18 @@ setMode :: Mode -> UIState -> UIState
 setMode m ui = ui{aMode=m}
 
 pushScreen :: Screen -> UIState -> UIState
-pushScreen scr ui = ui{aPrevScreens=(aScreen ui:aPrevScreens ui)
-                      ,aScreen=scr
-                      }
+pushScreen scr ui =
+  dbg1Msg ("pushing screen " <> showScreenId scr)
+  ui{aPrevScreens=aScreen ui:aPrevScreens ui
+    ,aScreen=scr
+  }
 
 popScreen :: UIState -> UIState
-popScreen ui@UIState{aPrevScreens=s:ss} = ui{aScreen=s, aPrevScreens=ss}
+popScreen ui@UIState{aPrevScreens = s : ss} =
+  dbg1Msg ("popping screen " <> showScreenId (aScreen ui))
+  ui{aPrevScreens = ss
+    ,aScreen = s
+  }
 popScreen ui = ui
 
 -- | Reset options to their startup values, discard screen navigation history,

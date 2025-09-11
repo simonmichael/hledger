@@ -69,7 +69,7 @@ asDrawHelper :: UIState -> ReportOpts -> String -> [Widget Name]
 asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
   dbgui "asDrawHelper" $
   case toAccountsLikeScreen scr of
-    Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "draw helper"  -- PARTIAL:
+    Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "asDrawHelper"  -- PARTIAL:
     Just (ALS _ ass) -> case mode of
       Help -> [helpDialog, maincontent]
       _    -> [maincontent]
@@ -189,7 +189,7 @@ asHandle ev = do
   dbguiEv "asHandle"
   ui0@UIState{aScreen=scr, aMode=mode} <- get'
   case toAccountsLikeScreen scr of
-    Nothing -> dbgui "asHandle" $ errorWrongScreenType "event handler"  -- PARTIAL:
+    Nothing -> dbgui "asHandle" $ errorWrongScreenType "asHandle"  -- PARTIAL:
     Just als@(ALS scons ass) -> do
       -- save the currently selected account, in case we leave this screen and lose the selection
       put' ui0{aScreen=scons ass{_assSelectedAccount=asSelectedAccount ass}}
