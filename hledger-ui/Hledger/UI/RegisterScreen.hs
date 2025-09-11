@@ -49,7 +49,7 @@ rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,aScreen=RS RSS{..}
               ,aMode=mode
-              } = dbgui "rsDraw 1" $
+              } = dbgui "rsDraw" $
   case mode of
     Help       -> [helpDialog, maincontent]
     _          -> [maincontent]
@@ -156,7 +156,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               -- ,("q", "quit")
               ]
 
-rsDraw _ = dbgui "rsDraw 2" $ errorWrongScreenType "draw function"  -- PARTIAL:
+rsDraw _ = dbgui "rsDraw" $ errorWrongScreenType "rsDraw"  -- PARTIAL:
 
 rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
@@ -187,7 +187,7 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
 rsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 rsHandle ev = do
   ui0 <- get'
-  dbguiEv "rsHandle 1"
+  dbguiEv "rsHandle"
   case ui0 of
     ui@UIState{
       aScreen=RS sst@RSS{..}
@@ -332,7 +332,7 @@ rsHandle ev = do
             MouseUp{}         -> return ()
             AppEvent _        -> return ()
 
-    _ -> dbgui "rsHandle 2" $ errorWrongScreenType "event handler"
+    _ -> errorWrongScreenType "rsHandle"
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 

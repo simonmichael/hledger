@@ -104,7 +104,7 @@ esHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "event handler"
+    _ -> errorWrongScreenType "esHandle"
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX

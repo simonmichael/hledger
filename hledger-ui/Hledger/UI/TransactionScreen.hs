@@ -97,7 +97,7 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
               -- ,("q", "quit")
               ]
 
-tsDraw _ = errorWrongScreenType "draw function"  -- PARTIAL:
+tsDraw _ = errorWrongScreenType "tsDraw"  -- PARTIAL:
 
 -- Render a transaction suitably for the transaction screen.
 showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
@@ -190,7 +190,7 @@ tsHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "event handler"
+    _ -> errorWrongScreenType "tsHandle"
 
 -- | Select a new transaction and update the previous register screen
 tsSelect :: Integer -> Transaction -> UIState -> UIState
