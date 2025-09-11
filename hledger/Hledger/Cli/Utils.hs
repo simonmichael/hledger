@@ -21,8 +21,8 @@ module Hledger.Cli.Utils
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
-     pivotByOpts,
-     anonymiseByOpts,
+     maybePivot,
+     maybeWarnAboutAnon,
      journalSimilarTransaction,
      postingsOrTransactionsReportAsText,
      tests_Cli_Utils,
@@ -80,33 +80,29 @@ withJournal opts cmd = do
 {-# DEPRECATED withJournalDo "renamed, please use withJournal instead" #-}
 withJournalDo = withJournal
 
--- | Apply some extra post-parse transformations to the journal, if enabled by options.
--- These happen after parsing and finalising the journal, but before report calculation.
--- They are, in processing order:
---
--- - pivoting account names (--pivot)
---
--- - anonymising (--anonymise).
---
+-- | Apply some journal transformations, if enabled by options, that should happen late.
+-- These happen after parsing, finalising the journal, strict checks, and .latest filtering/updating,
+-- but before report calculation. They are, in processing order:
+-- --pivot, --anonymise error message, --obfuscate.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
-      pivotByOpts opts
-  <&> anonymiseByOpts opts
-  <&> maybeObfuscate opts
 -- XXX Called by withJournal, journalReload, uiReloadJournal, withJournalCached.
 -- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
+      maybePivot opts
+  <&> maybeWarnAboutAnon opts
+  <&> maybeObfuscate opts
 
--- | Apply the pivot transformation on a journal (replacing account names by a different field's value), if option is present.
-pivotByOpts :: CliOpts -> Journal -> Journal
-pivotByOpts opts =
+-- | If the --pivot option is present, replace the journal's account names by specified other values.
+maybePivot :: CliOpts -> Journal -> Journal
+maybePivot opts =
   case maybestringopt "pivot" . rawopts_ $ opts of
     Just tag -> journalPivot $ T.pack tag
     Nothing  -> id
 
 -- #2133
--- | Raise an error, announcing the rename to --obfuscate and its limitations.
-anonymiseByOpts :: CliOpts -> Journal -> Journal
-anonymiseByOpts opts =
+-- | If the --anon flag is present, raise an informative error.
+maybeWarnAboutAnon :: CliOpts -> Journal -> Journal
+maybeWarnAboutAnon opts =
   if boolopt "anon" $ rawopts_ opts
     then error' $ unlines [
        "--anon does not give privacy, and perhaps should be avoided;"
@@ -115,7 +111,7 @@ anonymiseByOpts opts =
       ]
     else id
 
--- | Apply light obfuscation to a journal, if --obfuscate is present (formerly --anon).
+-- | If the --obfuscate flag is present, apply light obfuscation to the journal data.
 maybeObfuscate :: CliOpts -> Journal -> Journal
 maybeObfuscate opts =
   if anon_ . inputopts_ $ opts
