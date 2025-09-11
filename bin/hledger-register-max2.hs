@@ -30,7 +30,7 @@ cmdmode = hledgerCommandMode (unlines
 
 main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
-  withJournalDo opts $ \j -> do
+  withJournal opts $ \j -> do
     let
       r = postingsReport rspec j
       maxbal = fifth5 $ maximumBy (comparing fifth5) r

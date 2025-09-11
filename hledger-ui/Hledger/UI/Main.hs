@@ -118,7 +118,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
-    _                                         -> withJournalDo copts' (runBrickUi opts)
+    _                                         -> withJournal copts' (runBrickUi opts)
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 

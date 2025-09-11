@@ -63,7 +63,7 @@ main = do
         -- Don't let our ACCT argument be interpreted as a query by print
         ,reportspec_ = rspec{_rsReportOpts=ropts{querystring_=[]}}
         }
-  withJournalDo copts' $ \j -> do
+  withJournal copts' $ \j -> do
     today <- getCurrentDay
     let
       menddate = reportPeriodLastDay rspec

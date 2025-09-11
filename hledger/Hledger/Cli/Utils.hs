@@ -10,6 +10,7 @@ Hledger.Utils.
 module Hledger.Cli.Utils
     (
      unsupportedOutputFormatError,
+     withJournal,
      withJournalDo,
      writeOutput,
      writeOutputLazyText,
@@ -67,14 +68,17 @@ unsupportedOutputFormatError fmt = "Sorry, output format \""++fmt++"\" is unreco
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
 -- transformations according to options, and run a hledger command with it.
 -- Or, throw an error.
-withJournalDo :: CliOpts -> (Journal -> IO a) -> IO a
-withJournalDo opts cmd = do
+withJournal :: CliOpts -> (Journal -> IO a) -> IO a
+withJournal opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
   j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
   either error' cmd j  -- PARTIAL:
+
+{-# DEPRECATED withJournalDo "renamed, please use withJournal instead" #-}
+withJournalDo = withJournal
 
 -- | Apply some extra post-parse transformations to the journal, if enabled by options.
 -- These happen after parsing and finalising the journal, but before report calculation.
@@ -89,7 +93,7 @@ journalTransform opts =
       pivotByOpts opts
   <&> anonymiseByOpts opts
   <&> maybeObfuscate opts
--- XXX Called by withJournalDo, journalReload, uiReloadJournal, withJournalCached.
+-- XXX Called by withJournal, journalReload, uiReloadJournal, withJournalCached.
 -- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
 
 -- | Apply the pivot transformation on a journal (replacing account names by a different field's value), if option is present.
@@ -142,7 +146,7 @@ writeOutputLazyText opts s = do
 -- them has changed since last read. (If the file is standard input,
 -- this will either do nothing or give an error, not tested yet).
 -- Returns a journal or error message, and a flag indicating whether
--- it was re-read or not.  Like withJournalDo and journalReload, reads
+-- it was re-read or not.  Like withJournal and journalReload, reads
 -- the full journal, without filtering.
 journalReloadIfChanged :: CliOpts -> Day -> Journal -> ExceptT String IO (Journal, Bool)
 journalReloadIfChanged opts _d j = do

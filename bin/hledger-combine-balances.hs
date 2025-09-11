@@ -69,5 +69,5 @@ main = do
   where
     mbReport args = do
       opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' cmdmode args
-      report <- withJournalDo opts (return . multiBalanceReport rspec)
+      report <- withJournal opts (return . multiBalanceReport rspec)
       return (rspec,report)

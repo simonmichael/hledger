@@ -68,7 +68,7 @@ main = do
   opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts cmdmode
 
   -- 2. read the journal file
-  withJournalDo opts $ \j -> do
+  withJournal opts $ \j -> do
 
     -- 3. do something with it.
     putStrLn $ (show $ length $ jtxns j) <> " transactions in " <> (show $ journalFilePath j)

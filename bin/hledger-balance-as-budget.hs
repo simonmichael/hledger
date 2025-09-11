@@ -44,5 +44,5 @@ main = do
     mbReport args = do
       opts@CliOpts{reportspec_=rspec} <- getHledgerCliOpts' balancemode args
       d <- getCurrentDay
-      (report,j) <- withJournalDo opts $ \j -> return (multiBalanceReport rspec j, j)
+      (report,j) <- withJournal opts $ \j -> return (multiBalanceReport rspec j, j)
       return (opts, _rsReportOpts rspec,j,report)

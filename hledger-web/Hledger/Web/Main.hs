@@ -53,7 +53,7 @@ import Hledger.Web.WebOptions
 -- Run in fast reloading mode for yesod devel.
 hledgerWebDev :: IO (Int, Application)
 hledgerWebDev =
-  withJournalDo (cliopts_ defwebopts) (defaultDevelApp loader . makeApplication defwebopts)
+  withJournal (cliopts_ defwebopts) (defaultDevelApp loader . makeApplication defwebopts)
   where
     loader =
       Yesod.Default.Config.loadConfig
@@ -93,7 +93,7 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
     | boolopt "test"            rawopts_ -> do
       -- remove --test and --, leaving other args for hspec
       (`withArgs` hledgerWebTest) . filter (`notElem` ["--test","--"]) =<< getArgs
-    | otherwise                              -> withJournalDo copts (web wopts)
+    | otherwise                              -> withJournal copts (web wopts)
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 

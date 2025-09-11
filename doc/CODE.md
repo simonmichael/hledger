@@ -100,7 +100,7 @@ Try tracing the execution of a hledger command:
 1. [Hledger.Cli.Main:main](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Main.hs#L302)
 parses the command line to select a command, then
 2. gives it to
-[Hledger.Cli.Utils:withJournalDo](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Utils.hs#L73),
+[Hledger.Cli.Utils:withJournal](https://github.com/simonmichael/hledger/blob/master/hledger/Hledger/Cli/Utils.hs#L73),
 which runs it after doing all the initial parsing.
 3. Parsing code is under
 [hledger-lib:Hledger.Read](https://github.com/simonmichael/hledger/tree/master/hledger-lib/Hledger/Read.hs),
