@@ -218,8 +218,8 @@ journalFilePathFromOptsOrDefault defaultJournalOverride cliopts = do
         Nothing -> return defaultFiles -- use the journal(s) given to the "run" itself
         Just journalpaths -> return journalpaths
 
--- | Similar to `withJournal`, but uses caches all the journals it reads.
--- When reading from stdin, caches the stdin contents so that we could reprocess
+-- | Similar to `withJournal`, but caches all the journals it reads.
+-- When reading from stdin, also caches the stdin contents so that we could reprocess
 -- it if a read with different InputOptions is requested.
 withJournalCached :: Maybe DefaultRunJournal -> CliOpts -> ((Journal, DefaultRunJournal) -> IO ()) -> IO ()
 withJournalCached defaultJournalOverride cliopts cmd = do
