@@ -756,7 +756,7 @@ data Account a = Account {
 data PeriodData a = PeriodData {
    pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
   ,pdperiods :: IM.IntMap a  -- ^ data for the periods
-  } deriving (Eq, Functor, Generic)
+  } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:
 -- subaccount-exclusive and -inclusive amounts,
