@@ -12,7 +12,7 @@ module Hledger.UI.TransactionScreen
 ,tsHandle
 ) where
 
-import Control.Monad
+import Brick.Widgets.Edit (editorText, renderEditor)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
@@ -29,8 +29,10 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Brick.Widgets.Edit (editorText, renderEditor)
 import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions, uiReloadJournal)
+import Hledger.UI.RegisterScreen (rsHandle)
+import System.Exit (ExitCode(..))
+import Data.Function ((&))
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
@@ -137,22 +139,34 @@ tsHandle ev = do
             VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey KEsc        []) -> put' $ resetScreens d ui
             VtyEvent (EvKey (KChar c)   []) | c == '?' -> put' $ setMode Help ui
-            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
-              where
-                (pos,f) = case tsourcepos t of
-                            (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
+
+            -- g or file change: reload the journal.
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
+              -- To update all state: exit to register screen, regenerate screens, re-enter transaction screen.
+              -- Anywhere else here that we need to be this thorough ?
+              put' =<< liftIO (popScreen ui & uiReloadJournal copts d)
+              rsHandle (VtyEvent (EvKey KEnter []))
+              --
+              -- for debugging; leaving these here because they were hard to find
+              -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
+              -- \UIState{aScreen=TS tss} -> error' $ pshow $ _tssTransaction tss
+
+            -- E: run editor, reload the journal.
+            VtyEvent (EvKey (KChar 'E') []) -> do
+              suspendAndResume' $ do
+                exitcode <- runEditor pos f
+                case exitcode of
+                  ExitSuccess   -> return ()
+                  ExitFailure c -> error' $ "running the text editor failed with exit code " ++ show c
+              -- Like above: exit to register screen, regenerate screens (if file has changed), re-enter transaction screen.
+              put' =<< liftIO (popScreen ui & uiReloadJournalIfChanged copts d j)
+              rsHandle (VtyEvent (EvKey KEnter []))
+              where (pos,f) = case tsourcepos t of (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
+
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
-
-            -- Reload. Warning, this updates parent screens but not the transaction screen itself (see tsUpdate).
-            -- To see the updated transaction, one must exit and re-enter the transaction screen.
-            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-              liftIO (uiReloadJournal copts d ui) >>= put'
-                -- debugging.. leaving these here because they were hard to find
-                -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
-                -- \UIState{aScreen=TS tss} -> error' $ pshow $ _tssTransaction tss
 
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
 
