@@ -21,8 +21,6 @@ module Hledger.Cli.Utils
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
-     maybePivot,
-     maybeWarnAboutAnon,
      journalSimilarTransaction,
      postingsOrTransactionsReportAsText,
      tests_Cli_Utils,
