@@ -89,6 +89,8 @@ journalTransform opts =
       pivotByOpts opts
   <&> anonymiseByOpts opts
   <&> maybeObfuscate opts
+-- XXX Called by withJournalDo, journalReload, uiReloadJournal, withJournalCached.
+-- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
 
 -- | Apply the pivot transformation on a journal (replacing account names by a different field's value), if option is present.
 pivotByOpts :: CliOpts -> Journal -> Journal
