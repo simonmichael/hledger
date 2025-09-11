@@ -354,7 +354,7 @@ TESTING:
 
 # run ghci on hledger-lib + hledger + hledger-ui
 @ghci-ui *GHCIARGS:
-    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/Hledger/UI/Main.hs
+    $STACK exec -- $GHCI $BUILDFLAGS {{ GHCIARGS }} hledger-ui/app/hledger-ui.hs
 
 # run ghci on hledger-lib + hledger + hledger-web
 @ghci-web *GHCIARGS:
