@@ -144,7 +144,7 @@ tsHandle ev = do
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
               -- To update all state: exit to register screen, regenerate screens, re-enter transaction screen.
               -- Anywhere else here that we need to be this thorough ?
-              put' =<< liftIO (popScreen ui & uiReload copts d)
+              uiReload copts d (popScreen ui) >>= put'
               rsHandle (VtyEvent (EvKey KEnter []))
               --
               -- for debugging; leaving these here because they were hard to find

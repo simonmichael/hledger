@@ -94,7 +94,7 @@ esHandle ev = do
                             Right (f',l,c) -> (Just (l, Just c),f')
                             Left  _       -> (endPosition, journalFilePath j)
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-              liftIO (uiReload copts d (popScreen ui)) >>= put' . uiCheckBalanceAssertions d
+              uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
               -- (ej, _) <- liftIO $ journalReloadIfChanged copts d j
               -- case ej of
               --   Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
@@ -142,8 +142,8 @@ hledgerparseerrorpositionp = do
 -- Like at hledger-ui startup, --forecast is always enabled.
 -- A forecast period specified in the provided opts, or at startup, is preserved.
 --
-uiReload :: CliOpts -> Day -> UIState -> IO UIState
-uiReload copts d ui = do
+uiReload :: CliOpts -> Day -> UIState -> EventM Name UIState UIState
+uiReload copts d ui = liftIO $ do
   ej <-
     let copts' = enableForecast (astartupopts ui) copts
     in runExceptT $ journalTransform copts' <$> journalReload copts'
@@ -165,9 +165,9 @@ uiReload copts d ui = do
       --             RegisterScreen _ _ _ _ _ _
       --             TransactionScreen _ _ _ _ _ _
 
--- | Like uiReload, but does not re-parse the journal if the file(s)
--- have not changed since last loaded. Always regenerates the screens though,
--- since the provided options or today-date may have changed.
+-- | Like uiReload, except it skips re-reading the journal if its file(s) have not changed
+-- since it was last loaded. The up app state is always updated, since the options or today-date may have changed.
+-- Also, this one runs in IO, suitable for suspendAndResume.
 uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadIfFileChanged copts d j ui = do
   let copts' = enableForecast (astartupopts ui) copts

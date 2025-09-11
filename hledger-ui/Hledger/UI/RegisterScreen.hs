@@ -245,8 +245,7 @@ rsHandle ev = do
               where
                 p = reportPeriod ui
 
-            e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] ->
-              liftIO (uiReload copts d ui) >>= put'
+            e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] -> uiReload copts d ui >>= put'
 
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
