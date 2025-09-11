@@ -155,8 +155,7 @@ msHandle ev = do
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
-            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-              liftIO (uiReload copts d ui) >>= put'
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> uiReload copts d ui >>= put'
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
             VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
