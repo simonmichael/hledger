@@ -148,7 +148,7 @@ uiReloadJournal :: CliOpts -> Day -> UIState -> IO UIState
 uiReloadJournal copts d ui = do
   ej <-
     let copts' = enableForecastPreservingPeriod ui copts
-    in runExceptT $ journalReload copts'
+    in runExceptT $ journalTransform copts' <$> journalReload copts'
   -- dbg1IO "uiReloadJournal before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
     Right j  ->
