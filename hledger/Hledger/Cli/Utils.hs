@@ -84,7 +84,7 @@ withJournalDo = withJournal
 -- --pivot, --anonymise error message, --obfuscate.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
--- XXX Called by withJournal, journalReload, uiReloadJournal, withJournalCached.
+-- XXX Called by withJournal, journalReload, uiReload, withJournalCached.
 -- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
       maybePivot opts
   <&> maybeWarnAboutAnon opts

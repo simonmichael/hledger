@@ -43,7 +43,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiReloadJournal, uiCheckBalanceAssertions, uiReloadJournalIfChanged)
+import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
 
 rsDraw :: UIState -> [Widget Name]
 rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
@@ -246,13 +246,13 @@ rsHandle ev = do
                 p = reportPeriod ui
 
             e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] ->
-              liftIO (uiReloadJournal copts d ui) >>= put'
+              liftIO (uiReload copts d ui) >>= put'
 
             VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
-            VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadJournalIfChanged copts d j ui
-            VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadJournalIfChanged copts d j ui
+            VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
+            VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
             VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
-            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j ui
+            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadIfFileChanged copts d j ui
               where
                 (pos,f) = case listSelectedElement _rssList of
                             Nothing -> (endPosition, journalFilePath j)

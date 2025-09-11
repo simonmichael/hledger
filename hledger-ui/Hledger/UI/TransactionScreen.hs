@@ -29,7 +29,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiReloadJournalIfChanged, uiCheckBalanceAssertions, uiReloadJournal)
+import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
 import Hledger.UI.RegisterScreen (rsHandle)
 import System.Exit (ExitCode(..))
 import Data.Function ((&))
@@ -144,7 +144,7 @@ tsHandle ev = do
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
               -- To update all state: exit to register screen, regenerate screens, re-enter transaction screen.
               -- Anywhere else here that we need to be this thorough ?
-              put' =<< liftIO (popScreen ui & uiReloadJournal copts d)
+              put' =<< liftIO (popScreen ui & uiReload copts d)
               rsHandle (VtyEvent (EvKey KEnter []))
               --
               -- for debugging; leaving these here because they were hard to find
@@ -158,8 +158,8 @@ tsHandle ev = do
                 case exitcode of
                   ExitSuccess   -> return ()
                   ExitFailure c -> error' $ "running the text editor failed with exit code " ++ show c
-              -- Like above: exit to register screen, regenerate screens (if file has changed), re-enter transaction screen.
-              put' =<< liftIO (popScreen ui & uiReloadJournalIfChanged copts d j)
+              -- Update all state, similar to above.
+              put' =<< liftIO (popScreen ui & uiReloadIfFileChanged copts d j)
               rsHandle (VtyEvent (EvKey KEnter []))
               where (pos,f) = case tsourcepos t of (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
 

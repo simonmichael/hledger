@@ -11,8 +11,8 @@ module Hledger.UI.ErrorScreen
  ,esDraw
  ,esHandle
  ,uiCheckBalanceAssertions
- ,uiReloadJournal
- ,uiReloadJournalIfChanged
+ ,uiReload
+ ,uiReloadIfFileChanged
  )
 where
 
@@ -88,13 +88,13 @@ esHandle ev = do
             VtyEvent (EvKey (KChar 'q') []) -> halt
             VtyEvent (EvKey KEsc        []) -> put' $ uiCheckBalanceAssertions d $ resetScreens d ui
             VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> put' $ setMode Help ui
-            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadJournalIfChanged copts d j (popScreen ui)
+            VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadIfFileChanged copts d j (popScreen ui)
               where
                 (pos,f) = case parsewithString hledgerparseerrorpositionp _essError of
                             Right (f',l,c) -> (Just (l, Just c),f')
                             Left  _       -> (endPosition, journalFilePath j)
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
-              liftIO (uiReloadJournal copts d (popScreen ui)) >>= put' . uiCheckBalanceAssertions d
+              liftIO (uiReload copts d (popScreen ui)) >>= put' . uiCheckBalanceAssertions d
               -- (ej, _) <- liftIO $ journalReloadIfChanged copts d j
               -- case ej of
               --   Left err -> continue ui{aScreen=s{esError=err}} -- show latest parse error
@@ -130,29 +130,27 @@ hledgerparseerrorpositionp = do
       ]
 
 
--- | Unconditionally reload the journal, regenerating the current screen
--- and all previous screens in the history as of the provided today-date.
--- If reloading fails, enter the error screen, or if we're already
--- on the error screen, update the error displayed.
--- Defined here so it can reference the error screen.
+-- Defined here so it can reference the error screen:
+
+-- | Reload the journal from its input files, then update the ui app state accordingly.
+-- This means regenerate the entire screen stack from top level down to the current screen, using the provided today-date.
+-- Or if journal reloading fails, enter the error screen; or if already there, update its message.
 --
--- The provided CliOpts are used for reloading, and then saved in the
--- UIState if reloading is successful (otherwise the UIState keeps its old
--- CliOpts.) (XXX needed for.. ?)
+-- The provided cli options can influence reloading; then if reloading succeeds they are saved in the ui state,
+-- otherwise the UIState keeps its old options. (XXX needed for.. ?)
 --
--- Forecasted transactions are always generated, as at hledger-ui startup.
--- If a forecast period is specified in the provided opts, or was specified
--- at startup, it is preserved.
+-- Like at hledger-ui startup, --forecast is always enabled.
+-- A forecast period specified in the provided opts, or at startup, is preserved.
 --
-uiReloadJournal :: CliOpts -> Day -> UIState -> IO UIState
-uiReloadJournal copts d ui = do
+uiReload :: CliOpts -> Day -> UIState -> IO UIState
+uiReload copts d ui = do
   ej <-
     let copts' = enableForecastPreservingPeriod ui copts
     in runExceptT $ journalTransform copts' <$> journalReload copts'
-  -- dbg1IO "uiReloadJournal before reload" (map tdescription $ jtxns $ ajournal ui)
+  -- dbg1IO "uiReload before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
     Right j  ->
-      -- dbg1 "uiReloadJournal after reload" (map tdescription $ jtxns j) $
+      -- dbg1 "uiReload after reload" (map tdescription $ jtxns j) $
       regenerateScreens j d ui
     Left err ->
       case ui of
@@ -167,11 +165,11 @@ uiReloadJournal copts d ui = do
       --             RegisterScreen _ _ _ _ _ _
       --             TransactionScreen _ _ _ _ _ _
 
--- | Like uiReloadJournal, but does not re-parse the journal if the file(s)
+-- | Like uiReload, but does not re-parse the journal if the file(s)
 -- have not changed since last loaded. Always regenerates the screens though,
 -- since the provided options or today-date may have changed.
-uiReloadJournalIfChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
-uiReloadJournalIfChanged copts d j ui = do
+uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
+uiReloadIfFileChanged copts d j ui = do
   let copts' = enableForecastPreservingPeriod ui copts
   ej <- runExceptT $ journalReloadIfChanged copts' d j
   return $ case ej of
