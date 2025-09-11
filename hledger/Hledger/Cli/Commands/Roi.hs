@@ -97,7 +97,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
   let (fullPeriodDateSpan, mspans) = reportSpan filteredj rspec
 
   let err = error' "Undefined start or end of the period - will be unable to compute the rates of return"
-      spans = maybe err (snd . periodDataToList) mspans
+      spans = maybe err (map (second (addDays 1)) . dayPartitionToList) mspans
       fullPeriod = case fullPeriodDateSpan of
         DateSpan (Just b) (Just e) -> (fromEFDay b, fromEFDay e)
         _ -> err

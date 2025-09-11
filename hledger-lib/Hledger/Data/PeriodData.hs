@@ -18,10 +18,6 @@ module Hledger.Data.PeriodData
 , mergePeriodData
 , padPeriodData
 
-, periodDataToDateSpans
-, maybePeriodDataToDateSpans
-, dateSpansToPeriodData
-
 , tests_PeriodData
 ) where
 
@@ -38,7 +34,6 @@ import Data.List (foldl')
 import Data.Time (Day(..), fromGregorian)
 
 import Hledger.Data.Amount
-import Hledger.Data.Dates
 import Hledger.Data.Types
 import Hledger.Utils
 
@@ -126,31 +121,6 @@ mergePeriodData only1 only2 f = \(PeriodData h1 as1) (PeriodData h2 as2) ->
 padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a
 padPeriodData x pad bal = bal{pdperiods = pdperiods bal <> (x <$ pdperiods pad)}
 
-
--- | Convert 'PeriodData Day' to a list of 'DateSpan's.
-periodDataToDateSpans :: PeriodData Day -> [DateSpan]
-periodDataToDateSpans = map (\(s, e) -> DateSpan (toEFDay s) (toEFDay e)) . snd . periodDataToList
-  where toEFDay = Just . Exact
-
--- Convert a periodic report 'Maybe (PeriodData Day)' to a list of 'DateSpans',
--- replacing the empty case with an appropriate placeholder.
-maybePeriodDataToDateSpans :: Maybe (PeriodData Day) -> [DateSpan]
-maybePeriodDataToDateSpans = maybe [DateSpan Nothing Nothing] periodDataToDateSpans
-
--- | Convert a list of 'DateSpan's to a 'PeriodData Day', or 'Nothing' if it is not well-formed.
--- PARTIAL:
-dateSpansToPeriodData :: [DateSpan] -> Maybe (PeriodData Day)
--- Handle the cases of partitions which would arise from journals with no transactions
-dateSpansToPeriodData []                           = Nothing
-dateSpansToPeriodData [DateSpan Nothing  Nothing]  = Nothing
-dateSpansToPeriodData [DateSpan Nothing  (Just _)] = Nothing
-dateSpansToPeriodData [DateSpan (Just _) Nothing]  = Nothing
--- Handle properly defined reports
-dateSpansToPeriodData (x:xs) = Just $ periodDataFromList (fst $ boundaries x) (map boundaries (x:xs))
-  where
-    boundaries spn = makeJust (spanStart spn, spanEnd spn)
-    makeJust (Just a, Just b)  = (a, b)
-    makeJust ab = error' $ "dateSpansToPeriodData: expected all spans to have start and end dates, but one has " ++ show ab
 
 intToDay = ModifiedJulianDay . toInteger
 dayToInt = fromInteger . toModifiedJulianDay

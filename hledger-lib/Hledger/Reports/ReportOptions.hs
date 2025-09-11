@@ -677,7 +677,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
           _          -> spanEnd <=< latestSpanContaining (historical : spans)
 
     historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
-    spans = maybePeriodDataToDateSpans . snd $ reportSpanBothDates j rspec
+    spans = maybeDayPartitionToDateSpans . snd $ reportSpanBothDates j rspec
     styles = journalCommodityStyles j
     err = error' "journalApplyValuationFromOpts: expected all spans to have an end date"
 
@@ -778,18 +778,18 @@ sortKeysDescription = "date, desc, account, amount, absamount"  -- 'description'
 -- (or non-future market price date, when doing an end value report) is used.
 -- If none of these things are present, the null date span is returned.
 -- The report sub-periods caused by a report interval, if any, are also returned.
-reportSpan :: Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpan :: Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpan = reportSpanHelper False
 -- Note: In end value reports, the report end date and valuation date are the same.
 -- If valuation date ever needs to be different, journalApplyValuationFromOptsWith is the place.
 
 -- | Like reportSpan, but considers both primary and secondary dates, not just one or the other.
-reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpanBothDates = reportSpanHelper True
 
-reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts, _rsDay=today} =
-  (enlargedreportspan, dateSpansToPeriodData $ if not (null intervalspans) then intervalspans else [enlargedreportspan])
+  (enlargedreportspan, dateSpansToDayPartition $ if not (null intervalspans) then intervalspans else [enlargedreportspan])
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan = dbg3 "requestedspan" $
