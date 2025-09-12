@@ -142,11 +142,24 @@ tsHandle ev = do
 
             -- g or file change: reload the journal.
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
-              -- To update all state: exit to register screen, regenerate screens, re-enter transaction screen.
-              -- Anywhere else here that we need to be this thorough ?
-              uiReload copts d (popScreen ui) >>= put'
-              rsHandle (VtyEvent (EvKey KEnter []))
-              --
+              -- Update app state. This is tricky: (XXX anywhere else we need to be this thorough ?)
+
+              -- Reload and regenerate screens
+              ui1 <- uiReload copts d ui
+              -- If that moved us to the error screen, save that and return to the transaction screen.
+              let
+                (merrscr, ui2) = case aScreen ui1 of
+                  s@(ES _) -> (Just s,  popScreen ui1)
+                  _        -> (Nothing, ui1)
+              -- put' ui2
+              -- Now exit to register screen and make it regenerate the transaction screen,
+              -- for best initialisation.
+              put' $ popScreen ui2
+              rsHandle (VtyEvent (EvKey KEnter []))   -- XXX PARTIAL assumes we are on the register screen
+              -- Then re-enter the error screen if any, so error repair will return to the transaction screen.
+              let ui3 = maybe ui2 (`pushScreen` ui2) merrscr
+              put' ui3
+
               -- for debugging; leaving these here because they were hard to find
               -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
               -- \UIState{aScreen=TS tss} -> error' $ pshow $ _tssTransaction tss
