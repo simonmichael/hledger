@@ -89,6 +89,8 @@ esHandle ev = do
             VtyEvent (EvKey KEsc        []) -> put' $ uiCheckBalanceAssertions d $ resetScreens d ui
             VtyEvent (EvKey (KChar c)   []) | c `elem` ['h','?'] -> put' $ setMode Help ui
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadIfFileChanged copts d j (popScreen ui)
+              -- XXX put ? uiCheckBalanceAssertions ?
+              -- does the error screen update the state, and check balance assertions, after running editor ?
               where
                 (pos,f) = case parsewithString hledgerparseerrorpositionp _essError of
                             Right (f',l,c) -> (Just (l, Just c),f')
@@ -134,7 +136,7 @@ hledgerparseerrorpositionp = do
 
 -- | Reload the journal from its input files, then update the ui app state accordingly.
 -- This means regenerate the entire screen stack from top level down to the current screen, using the provided today-date.
--- Or if journal reloading fails, enter the error screen; or if already there, update its message.
+-- As a convenience (usually), if journal reloading fails, this enters the error screen, or if already there, updates its message.
 --
 -- The provided cli options can influence reloading; then if reloading succeeds they are saved in the ui state,
 -- otherwise the UIState keeps its old options. (XXX needed for.. ?)
