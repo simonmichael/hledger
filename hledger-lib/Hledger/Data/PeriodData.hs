@@ -18,10 +18,6 @@ module Hledger.Data.PeriodData
 , mergePeriodData
 , padPeriodData
 
-, periodDataToDateSpans
-, maybePeriodDataToDateSpans
-, dateSpansToPeriodData
-
 , tests_PeriodData
 ) where
 
@@ -38,7 +34,6 @@ import Data.List (foldl')
 import Data.Time (Day(..), fromGregorian)
 
 import Hledger.Data.Amount
-import Hledger.Data.Dates
 import Hledger.Data.Types
 import Hledger.Utils
 
@@ -127,31 +122,6 @@ padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a
 padPeriodData x pad bal = bal{pdperiods = pdperiods bal <> (x <$ pdperiods pad)}
 
 
--- | Convert 'PeriodData Day' to a list of 'DateSpan's.
-periodDataToDateSpans :: PeriodData Day -> [DateSpan]
-periodDataToDateSpans = map (\(s, e) -> DateSpan (toEFDay s) (toEFDay e)) . snd . periodDataToList
-  where toEFDay = Just . Exact
-
--- Convert a periodic report 'Maybe (PeriodData Day)' to a list of 'DateSpans',
--- replacing the empty case with an appropriate placeholder.
-maybePeriodDataToDateSpans :: Maybe (PeriodData Day) -> [DateSpan]
-maybePeriodDataToDateSpans = maybe [DateSpan Nothing Nothing] periodDataToDateSpans
-
--- | Convert a list of 'DateSpan's to a 'PeriodData Day', or 'Nothing' if it is not well-formed.
--- PARTIAL:
-dateSpansToPeriodData :: [DateSpan] -> Maybe (PeriodData Day)
--- Handle the cases of partitions which would arise from journals with no transactions
-dateSpansToPeriodData []                           = Nothing
-dateSpansToPeriodData [DateSpan Nothing  Nothing]  = Nothing
-dateSpansToPeriodData [DateSpan Nothing  (Just _)] = Nothing
-dateSpansToPeriodData [DateSpan (Just _) Nothing]  = Nothing
--- Handle properly defined reports
-dateSpansToPeriodData (x:xs) = Just $ periodDataFromList (fst $ boundaries x) (map boundaries (x:xs))
-  where
-    boundaries spn = makeJust (spanStart spn, spanEnd spn)
-    makeJust (Just a, Just b)  = (a, b)
-    makeJust ab = error' $ "dateSpansToPeriodData: expected all spans to have start and end dates, but one has " ++ show ab
-
 intToDay = ModifiedJulianDay . toInteger
 dayToInt = fromInteger . toModifiedJulianDay
 
@@ -163,12 +133,12 @@ tests_PeriodData =
     dayMap2 = periodDataFromList (mixed [usd 2]) [(fromGregorian 2000 01 01, mixed [usd 4]), (fromGregorian 2004 02 28, mixed [usd 6])]
   in testGroup "PeriodData" [
 
-  testCase "periodDataFromList" $ do
-    length dayMap @?= 3,
+       testCase "periodDataFromList" $ do
+         length dayMap @?= 3,
 
-  testCase "Semigroup instance" $ do
-    dayMap <> dayMap @?= dayMap2,
+       testCase "Semigroup instance" $ do
+         dayMap <> dayMap @?= dayMap2,
 
-  testCase "Monoid instance" $ do
-    dayMap <> mempty @?= dayMap
-  ]
+       testCase "Monoid instance" $ do
+         dayMap <> mempty @?= dayMap
+     ]

@@ -47,7 +47,7 @@ import Data.Maybe (fromMaybe, isJust)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
 import Data.These (these)
-import Data.Time.Calendar (Day(..), addDays, fromGregorian)
+import Data.Time.Calendar (Day(..), fromGregorian)
 import Data.Traversable (mapAccumL)
 
 import Hledger.Data
@@ -162,7 +162,7 @@ compoundBalanceReportWith rspec' j priceoracle subreportspecs = cbr
         subreportTotal (_, sr, increasestotal) =
             (if increasestotal then id else fmap maNegate) $ prTotals sr
 
-    cbr = CompoundPeriodicReport "" (maybePeriodDataToDateSpans colspans) subreports overalltotals
+    cbr = CompoundPeriodicReport "" (maybeDayPartitionToDateSpans colspans) subreports overalltotals
 
 
 -- | Remove any date queries and insert queries from the report span.
@@ -216,7 +216,7 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
 
 -- | Generate the 'Account' for the requested multi-balance report from a list
 -- of 'Posting's.
-generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> Maybe (PeriodData Day) -> [Posting] -> Account BalanceData
+generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> Maybe DayPartition -> [Posting] -> Account BalanceData
 generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans =
     -- Add declared accounts if called with --declared and --empty
     (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
@@ -262,7 +262,7 @@ addDeclaredAccounts rspec j acct =
 -- | Gather the account balance changes into a regular matrix, then
 -- accumulate and value amounts, as specified by the report options.
 -- Makes sure all report columns have an entry.
-calculateReportAccount :: ReportSpec -> Journal -> PriceOracle -> Maybe (PeriodData Day) -> [Posting] -> Account BalanceData
+calculateReportAccount :: ReportSpec -> Journal -> PriceOracle -> Maybe DayPartition -> [Posting] -> Account BalanceData
 calculateReportAccount _ _ _ Nothing _ =
     accountFromBalances "root" $ periodDataFromList mempty [(nulldate, mempty)]
 calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle (Just colspans) ps =
@@ -292,28 +292,23 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle (Just
         avalue = periodDataValuation ropts j priceoracle colspans
 
     changesAcct = dbg5With (\x -> "calculateReportAccount changesAcct\n" ++ showAccounts x) .
-        mapPeriodData (padPeriodData mempty colspans) $
+        mapPeriodData (padPeriodData mempty (dayPartitionToPeriodData colspans)) $
         accountFromPostings getIntervalStartDate ps
 
-    getIntervalStartDate p = fst <$> lookupPeriodData (getPostingDate p) colspans
+    getIntervalStartDate p = fst $ lookupDayPartition (getPostingDate p) colspans
     getPostingDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
 
 -- | The valuation function to use for the chosen report options.
--- This can call error in various situations.
-periodDataValuation :: ReportOpts -> Journal -> PriceOracle -> PeriodData Day
+periodDataValuation :: ReportOpts -> Journal -> PriceOracle -> DayPartition
                     -> PeriodData BalanceData -> PeriodData BalanceData
-periodDataValuation ropts j priceoracle periodEnds =
-    opPeriodData valueBalanceData balanceDataPeriodEnds
+periodDataValuation ropts j priceoracle colspans =
+    opPeriodData valueBalanceData (dayPartitionToPeriodData colspans)
   where
     valueBalanceData :: Day -> BalanceData -> BalanceData
     valueBalanceData d = mapBalanceData (valueMixedAmount d)
 
     valueMixedAmount :: Day -> MixedAmount -> MixedAmount
     valueMixedAmount = mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle
-
-    -- The end date of a period is one before the beginning of the next period
-    balanceDataPeriodEnds :: PeriodData Day
-    balanceDataPeriodEnds = dbg5 "balanceDataPeriodEnds" $ addDays (-1) <$> periodEnds
 
 -- | Mark which nodes of an 'Account' are boring, and so should be omitted from reports.
 markAccountBoring :: ReportSpec -> Account BalanceData -> Account BalanceData
@@ -367,7 +362,7 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-generateMultiBalanceReport :: ReportOpts -> Maybe (PeriodData Day) -> Account BalanceData -> MultiBalanceReport
+generateMultiBalanceReport :: ReportOpts -> Maybe DayPartition -> Account BalanceData -> MultiBalanceReport
 generateMultiBalanceReport ropts colspans =
     reportPercent ropts . generatePeriodicReport makeMultiBalanceReportRow bdincludingsubs id ropts colspans
 
@@ -377,9 +372,9 @@ generateMultiBalanceReport ropts colspans =
 generatePeriodicReport :: Show c =>
     (forall a. ReportOpts -> (BalanceData -> MixedAmount) -> a -> Account b -> PeriodicReportRow a c)
     -> (b -> MixedAmount) -> (c -> MixedAmount)
-    -> ReportOpts -> Maybe (PeriodData Day) -> Account b -> PeriodicReport DisplayName c
+    -> ReportOpts -> Maybe DayPartition -> Account b -> PeriodicReport DisplayName c
 generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
-    PeriodicReport (maybePeriodDataToDateSpans colspans) (buildAndSort acct) totalsrow
+    PeriodicReport (maybeDayPartitionToDateSpans colspans) (buildAndSort acct) totalsrow
   where
     -- Build report rows and sort them
     buildAndSort = dbg5 "generatePeriodicReport buildAndSort" . case accountlistmode_ ropts of
