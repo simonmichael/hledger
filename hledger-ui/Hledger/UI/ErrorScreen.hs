@@ -114,15 +114,15 @@ esHandle ev = do
       -- XXX On an error screen below the transaction screen, this is tricky because of a current limitation of regenerateScreens.
       -- For now we try to work around by re-entering the transaction screen.
       -- This can show flicker in the UI and it's hard to handle all situations robustly.
-      esReload copts d ui = uiReload copts d ui >>= maybeReloadErrorScreen d
-      esReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= maybeReloadErrorScreen d
-      maybeReloadErrorScreen d ui = 
+      esReload copts d ui = uiReload copts d ui >>= maybeReloadErrorScreen copts d
+      esReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= maybeReloadErrorScreen copts d
+      maybeReloadErrorScreen copts d ui =
         case headMay $ aPrevScreens ui of
           Just (TS _) -> do
             -- check balance assertions, exit to register screen, enter transaction screen, reload once more
             put' $ popScreen $ popScreen $ uiCheckBalanceAssertions d ui
             sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued ?
-          _ -> return ()
+          _ -> uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
