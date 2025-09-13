@@ -7162,11 +7162,14 @@ _reportbugs_
 
 Some known issues and limitations:
 
-A system locale with a suitable text encoding must be configured to work with non-ascii data.
+hledger uses the system's text encoding when reading non-ascii text.
+If no system encoding is configured, or if the data's encoding is different,
+hledger will give an error.
 (See Text encoding, Troubleshooting.)
 
 On Microsoft Windows, depending what kind of terminal window you use,
-non-ascii characters, ANSI text formatting, and/or the add command's TAB key for completion, may not be supported.
+non-ascii characters, ANSI text formatting, and/or the add command's TAB key, may not be fully supported.
+(For best results, try a powershell window.)
 
 When processing large data files, hledger uses more memory than Ledger.
 
