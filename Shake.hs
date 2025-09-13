@@ -270,6 +270,7 @@ main = do
 
       -- Regenerate .cabal files from package.yaml files.
       -- (used by "cabalfiles" and "setversion")
+      -- XXX should remove old cabal files first, otherwise fails if they were generated with newer hpack
       let gencabalfiles = do
 
             -- Update cabal files with stack build.
