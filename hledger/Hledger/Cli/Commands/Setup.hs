@@ -385,7 +385,7 @@ setupJournal meconf = do
         undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
       if null undeclaredcommodities
       then p Y (show numcommodities <> " commodities")
-      else p N (show (length undeclaredcommodities) <> "undeclared commodities")
+      else p N (show (length undeclaredcommodities) <> " undeclared commodities")
 
       let
         accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
