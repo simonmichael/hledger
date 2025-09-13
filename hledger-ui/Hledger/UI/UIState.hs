@@ -366,9 +366,8 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- (using the ui state's current options), preserving the screen navigation history.
 -- Note, does not save the reporting date.
 --
--- Currently this does not properly regenerate the transaction screen or error screen,
--- which depend on state from their parent(s). (Eg rsHandle generates TS's nts from its list items.)
--- As a workaround we can additionally exit and reenter those screens; but this is fragile.
+-- XXX Currently this does not properly regenerate the transaction screen or error screen,
+-- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
   ui{ajournal=j, aScreen=screenUpdate opts d j s, aPrevScreens=map (screenUpdate opts d j) ss}

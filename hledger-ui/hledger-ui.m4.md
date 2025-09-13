@@ -291,13 +291,6 @@ reload).
 On this screen (and the register screen), the `E` key will open your text editor
 with the cursor positioned at the current transaction if possible.
 
-This screen has a limitation with showing file updates:
-it will not show them until you exit and re-enter it.
-So eg to see the effect of using the `E` key, currently you must:
-- press `E`, edit and save the file, then exit the editor, returning to hledger-ui
-- press `g` to reload the file (or use `-w/--watch` mode)
-- press `LEFT` then `RIGHT` to exit and re-enter the transaction screen.
-
 ## Error screen
 
 This screen will appear if there is a problem, such as a parse error,
@@ -364,9 +357,5 @@ Some known issues:
 `-f-` doesn't work (hledger-ui can't read from stdin).
 
 `--watch` is not robust, especially with large files (see WATCH MODE above).
-
-The Transaction screen does not update after file changes, even if you press `g`,
-until you exit and re-enter it.
-([#2288](https://github.com/simonmichael/hledger/issues/2288))
 
 If you press `g` with large files, there could be a noticeable pause with the UI unresponsive.

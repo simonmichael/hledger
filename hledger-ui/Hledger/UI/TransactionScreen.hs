@@ -12,14 +12,15 @@ module Hledger.UI.TransactionScreen
 ,tsHandle
 ) where
 
+import Brick
 import Brick.Widgets.Edit (editorText, renderEditor)
+import Brick.Widgets.List (listMoveTo)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
 import Data.Maybe
 import qualified Data.Text as T
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft))
-import Brick
-import Brick.Widgets.List (listMoveTo)
+import System.Exit (ExitCode (..))
 
 import Hledger
 import Hledger.Cli hiding (mode, prices, progname,prognameandversion)
@@ -31,8 +32,6 @@ import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
 import Hledger.UI.RegisterScreen (rsHandle)
-import System.Exit (ExitCode(..))
-import Data.Function ((&))
 
 tsDraw :: UIState -> [Widget Name]
 tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
@@ -140,25 +139,9 @@ tsHandle ev = do
             VtyEvent (EvKey KEsc        []) -> put' $ resetScreens d ui
             VtyEvent (EvKey (KChar c)   []) | c == '?' -> put' $ setMode Help ui
 
-            -- g or file change: reload the journal.
-            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> do
-              -- Update app state. This is tricky: (XXX anywhere else we need to be this thorough ?)
-
-              -- Reload and regenerate screens
-              ui1 <- uiReload copts d ui
-              -- If that moved us to the error screen, save that and return to the transaction screen.
-              let
-                (merrscr, ui2) = case aScreen ui1 of
-                  s@(ES _) -> (Just s,  popScreen ui1)
-                  _        -> (Nothing, ui1)
-              -- put' ui2
-              -- Now exit to register screen and make it regenerate the transaction screen,
-              -- for best initialisation.
-              put' $ popScreen ui2
-              rsHandle (VtyEvent (EvKey KEnter []))   -- XXX PARTIAL assumes we are on the register screen
-              -- Then re-enter the error screen if any, so error repair will return to the transaction screen.
-              let ui3 = maybe ui2 (`pushScreen` ui2) merrscr
-              put' ui3
+            -- g or file change: reload the journal and rebuild app state.
+            e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] ->
+              tsReload copts d ui
 
               -- for debugging; leaving these here because they were hard to find
               -- \u -> dbguiEv (pshow u) >> put' u  -- doesn't log
@@ -167,14 +150,12 @@ tsHandle ev = do
             -- E: run editor, reload the journal.
             VtyEvent (EvKey (KChar 'E') []) -> do
               suspendAndResume' $ do
+                let (pos,f) = case tsourcepos t of (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
                 exitcode <- runEditor pos f
                 case exitcode of
                   ExitSuccess   -> return ()
                   ExitFailure c -> error' $ "running the text editor failed with exit code " ++ show c
-              -- Update all state, similar to above.
-              put' =<< liftIO (popScreen ui & uiReloadIfFileChanged copts d j)
-              rsHandle (VtyEvent (EvKey KEnter []))
-              where (pos,f) = case tsourcepos t of (SourcePos f' l1 c1,_) -> (Just (unPos l1, Just $ unPos c1),f')
+              tsReloadIfFileChanged copts d j ui
 
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
               put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
@@ -204,6 +185,53 @@ tsHandle ev = do
             _ -> return ()
 
     _ -> errorWrongScreenType "tsHandle"
+
+    where
+      -- Reload and fully regenerate the transaction screen.
+      -- XXX On transaction screen or below, this is tricky because of a current limitation of regenerateScreens.
+      -- For now we try to work around by re-entering the screen(s).
+      -- This can show flicker in the UI and it's hard to handle all situations robustly.
+      tsReload copts d ui = uiReload copts d ui >>= reEnterTransactionScreen copts d
+      tsReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= reEnterTransactionScreen copts d
+      
+      reEnterTransactionScreen _copts d ui = do
+        -- 1. If uiReload (or checking balance assertions) moved us to the error screen, save that, and return to the transaction screen.
+        let
+          (merrscr, uiTxn) = case aScreen $ uiCheckBalanceAssertions d ui of
+            s@(ES _) -> (Just s,  popScreen ui)
+            _        -> (Nothing, ui)
+        -- 2. Exit to register screen
+        let uiReg = popScreen uiTxn
+        put' uiReg
+        -- 3. Re-enter the transaction screen
+        rsHandle (VtyEvent (EvKey KEnter [])) -- PARTIAL assumes we are on the register screen.
+        -- 4. Return to the error screen (below the transaction screen) if there was one.
+        -- Next events will be handled by esHandle. Error repair will return to the transaction screen.
+        maybe (return ()) (put' . flip pushScreen uiTxn) merrscr
+          -- doesn't uiTxn have old state from before step 3 ? seems to work
+
+        -- XXX some problem:
+        -- 4. Reload once more, possibly re-entering the error screen, by sending a g event.
+        -- sendVtyEvents [EvKey (KChar 'g') []]  --  XXX Might be disrupted if other events are queued
+
+        -- XXX doesn't update on non-error change:
+        -- 4. Reload once more, possibly re-entering the error screen.
+        -- uiTxnOrErr <- uiReload copts d uiTxn
+          -- uiReloadIfChanged ?
+          -- uiCheckBalanceAssertions ? seems unneeded
+        -- put' uiTxnOrErr
+
+        -- XXX not working right:
+        -- -- 1. If uiReload (or checking balance assertions) moved us to the error screen, exit to the transaction screen.
+        -- let
+        --   uiTxn = case aScreen $ uiCheckBalanceAssertions d ui of
+        --     ES _ -> popScreen ui
+        --     _    -> ui
+        -- -- 2. Exit to register screen
+        -- put' $ popScreen uiTxn
+        -- -- 3. Re-enter the transaction screen, and reload once more.
+        -- sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued
+
 
 -- | Select a new transaction and update the previous register screen
 tsSelect :: Integer -> Transaction -> UIState -> UIState
