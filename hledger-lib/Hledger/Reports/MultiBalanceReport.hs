@@ -417,6 +417,8 @@ buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
     -- Build the row for an account at a given depth with some number of boring parents
     mkRows :: Bool -> Int -> Int -> Account b -> [PeriodicReportRow DisplayName c]
     mkRows isRoot d boringParents acct
+        -- Account is boring and has no interesting children at any depth, so we stop
+        | allBoring acct                 = []
         -- Account is a boring root account, and should be bypassed entirely
         | aboring acct && isRoot         = buildSubrows d 0
         -- Account is boring and has been dropped, so should be skipped and move up the hierarchy
@@ -430,6 +432,7 @@ buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
         buildSubrows i b = concatMap (mkRows False i b) $ asubs acct
 
     canOmitParents = flat_ ropts || not (no_elide_ ropts)
+    allBoring a = aboring a && all allBoring (asubs a)
     balance = case accountlistmode_ ropts of
         ALTree -> bdincludingsubs
         ALFlat -> bdexcludingsubs
