@@ -42,6 +42,7 @@ module Hledger.UI.UIUtils (
   ,mapScreens
   ,uiNumBlankItems
   ,showScreenStack
+  ,sendVtyEvents
   )
 where
 
@@ -51,6 +52,7 @@ import Brick.Widgets.Border.Style
 import Brick.Widgets.Dialog
 import Brick.Widgets.Edit
 import Brick.Widgets.List (List, listSelectedL, listNameL, listItemHeightL, listSelected, listMoveDown, listMoveUp, GenericList, listElements)
+import Control.Concurrent.STM (atomically, writeTChan)  -- GHC only
 import Control.Monad.IO.Class
 import Data.Bifunctor (second)
 import Data.List
@@ -59,6 +61,7 @@ import Data.Time (addDays)
 import Graphics.Vty
   (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh, displayBounds
   -- ,Output(displayBounds,mkDisplayContext),DisplayContext(..)
+  ,Vty (inputIface), InternalEvent (InputEvent), Input (eventChannel)
   )
 import Lens.Micro.Platform
 
@@ -530,3 +533,10 @@ uiNumBlankItems
   -- | debugLevel >= uiDebugLevel = 0    -- suppress to improve debug output.
   -- | otherwise 
   = 100  -- 100 ought to be enough for anyone
+
+-- Send some events to vty, atomically so they won't have other events interleaved.
+-- (But there may be events already in the channel ahead of them.)
+sendVtyEvents :: [Event] -> EventM n s ()
+sendVtyEvents evs = do
+  input <- eventChannel . inputIface <$> getVtyHandle
+  liftIO $ atomically $ mapM_ (writeTChan input . InputEvent) evs
