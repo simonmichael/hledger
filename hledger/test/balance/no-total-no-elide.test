@@ -66,13 +66,17 @@ $ hledger -f - balance --tree --no-total --empty
                    1  a
                    0    aa:aaa
 
-# ** 7. But displayed with --no-elide
+# ** 7. But displayed with --no-elide --empty
 $ hledger -f - balance --tree --no-total --empty --no-elide
                    1  a
                    0    aa
                    0      aaa
 
-# ** 8. Same as 5 for multiperiod
+# ** 8. But not displayed with --no-elide and no --empty
+$ hledger -f - balance --tree --no-total --no-elide
+                   1  a
+
+# ** 9. Same as 5 for multiperiod
 $ hledger -f - balance --tree --no-total -Y
 Balance changes in 2020:
 
@@ -80,7 +84,7 @@ Balance changes in 2020:
 ===++======
  a ||    1 
 
-# ** 9. Same as 6 for mulitperiod
+# ** 10. Same as 6 for mulitperiod
 $ hledger -f - balance --tree --no-total -Y --empty
 Balance changes in 2020:
 
@@ -89,7 +93,7 @@ Balance changes in 2020:
  a        ||    1 
    aa:aaa ||    0 
 
-# ** 10. Same as 7 for multiperiod
+# ** 11. Same as 7 for multiperiod
 $ hledger -f - balance --tree --no-total -Y --empty --no-elide
 Balance changes in 2020:
 
@@ -99,13 +103,13 @@ Balance changes in 2020:
    aa    ||    0 
      aaa ||    0 
 
-# ** 11. In flat mode, display all zero-balance accounts, including non-leaves
+# ** 12. In flat mode, display all zero-balance accounts, including non-leaves
 $ hledger -f - balance --flat --no-total --empty
                    1  a
                    0  a:aa
                    0  a:aa:aaa
 
-# ** 12. Same as 11 for multiperiod
+# ** 13. Same as 11 for multiperiod
 $ hledger -f - balance --flat --no-total -Y --empty
 Balance changes in 2020:
 
