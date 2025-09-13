@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.38.2.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -98,6 +98,7 @@ library
     , process >=1.2
     , safe >=0.3.20
     , split >=0.1
+    , stm
     , text >=1.2.4.1
     , text-zipper >=0.4
     , time >=1.5
