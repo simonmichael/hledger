@@ -18,7 +18,7 @@ plain text accounting app.
 or
 'hledger ui [OPTS] [QUERYARGS]'
 
-   This manual is for hledger's terminal interface, version 1.50.  See
+   This manual is for hledger's terminal interface, version 1.50.1.  See
 also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -565,22 +565,22 @@ with the UI unresponsive.
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1867
-Node: MOUSE8753
-Node: KEYS9085
-Node: SCREENS14089
-Node: Menu screen14829
-Node: Cash accounts screen15145
-Node: Balance sheet accounts screen15506
-Node: Income statement accounts screen15842
-Node: All accounts screen16227
-Node: Register screen16590
-Node: Transaction screen19033
-Node: Error screen20608
-Node: WATCH MODE20974
-Node: --watch problems21872
-Node: ENVIRONMENT23225
-Node: BUGS23458
+Node: OPTIONS1869
+Node: MOUSE8755
+Node: KEYS9087
+Node: SCREENS14091
+Node: Menu screen14831
+Node: Cash accounts screen15147
+Node: Balance sheet accounts screen15508
+Node: Income statement accounts screen15844
+Node: All accounts screen16229
+Node: Register screen16592
+Node: Transaction screen19035
+Node: Error screen20610
+Node: WATCH MODE20976
+Node: --watch problems21874
+Node: ENVIRONMENT23227
+Node: BUGS23460
 
 End Tag Table
 
