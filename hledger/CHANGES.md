@@ -26,7 +26,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 326d2af3
+# 53b5c371
 
 Breaking changes
 
@@ -36,8 +36,13 @@ Fixes
   no transactions are matched. This was a regression in 1.50.
   (Stephen Morgan, [#2452])
 
+- In hledger-ui, the Z key (and the -E command line flag) toggles zero-balance accounts again.
+  (Stephen Morgan, [#2454])
+
 - The print command's help no longer shows an unused --show-costs flag.
   And the flags are now mostly ordered alphabetically.
+
+- Whitespace in the `setup` command's "undeclared commodities" output has been fixed.
 
 Features
 
@@ -46,6 +51,8 @@ Improvements
 - In journal format, an empty `{}` pair is now allowed in amounts, as in Ledger/Beancount (and ignored).
 
 Docs
+
+- Text encoding: updates
 
 Examples
 

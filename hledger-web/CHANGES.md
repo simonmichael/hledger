@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 326d2af3
+# 53b5c371
 
 Breaking changes
 

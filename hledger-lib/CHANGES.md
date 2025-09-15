@@ -17,7 +17,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# 326d2af3
+# 53b5c371
 
 Breaking changes
 

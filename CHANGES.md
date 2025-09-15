@@ -18,17 +18,17 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 326d2af3
+# 53b5c371
 
 Doc updates
 
-- bin/README: paypal*, simplefin* usage examples, doc link
 - ISSUES
 
 Website
 
 Infrastructure/Misc
 
+- bump stack snapshots
 - drop the hledger-install script
 - just ghci-ui: :main (and :rmain) now works again
 

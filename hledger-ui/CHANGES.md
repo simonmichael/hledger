@@ -23,11 +23,15 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 326d2af3
+# 53b5c371
 
 Breaking changes
 
 Fixes
+
+- The transaction screen and error screen now update on data changes, eg when using the E key, g key, or --watch,
+  like other screens.
+  [#2014], [#2288]
 
 - The --pivot (and --obfuscate) options are now preserved, and spurious errors are avoided,
   when the journal is reloaded by the `g` key or `--watch`.
@@ -37,9 +41,18 @@ Features
 
 Improvements
 
+- hledger-ui's debug output has had some improvements, eg it's easier
+  to see changes to the screen stack.
+
 Docs
 
 API
+
+- Hledger.UI.ErrorScreen:
+  uiReloadJournal -> uiReload,
+  uiReloadJournalIfChanged -> uiReloadIfFileChanged
+- Hledger.UI.UIState:
+  enableForecast renamed
 
 
 
