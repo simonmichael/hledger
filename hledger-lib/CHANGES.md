@@ -17,6 +17,15 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
+# d64cbee7
+
+Breaking changes
+
+Fixes
+
+Improvements
+
+
 # 1.50 2025-09-03
 
 Breaking changes

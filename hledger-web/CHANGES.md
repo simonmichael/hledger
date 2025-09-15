@@ -23,6 +23,21 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# d64cbee7
+
+Breaking changes
+
+Fixes
+
+Features
+
+Improvements
+
+Docs
+
+API
+
+
 # 1.50 2025-09-03
 
 Breaking changes

@@ -26,6 +26,43 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# d64cbee7
+
+Breaking changes
+
+Fixes
+
+- Balance commands now show an empty report instead of an error when
+  no transactions are matched, fixing a regression in 1.50.
+  (Stephen Morgan, [#2452])
+
+- In hledger-ui, the Z key (and the -E command line flag) toggles zero-balance accounts again.
+  (Stephen Morgan, [#2454])
+
+- The `print` command's help no longer shows an unused --show-costs flag.
+  And the command-specific flags are now mostly ordered alphabetically.
+
+- Whitespace in the `setup` command's "undeclared commodities" output has been fixed.
+
+Features
+
+Improvements
+
+Docs
+
+- Text encoding: updates
+
+Examples
+
+Scripts/addons
+
+API
+
+-  Hledger.Cli.Utils:
+   - stop exporting pivotByOpts, anonymiseByOpts
+   - renamed withJournal -> withJournalDo. The old name is still available but deprecated.
+
+
 # 1.50 2025-09-03
 
 ## Breaking changes
