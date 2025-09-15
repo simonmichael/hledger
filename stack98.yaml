@@ -1,6 +1,6 @@
 # stack build plan using GHC 9.8.4
 
-resolver: lts-23.11
+resolver: lts-23.28
 
 packages:
 - hledger-lib
@@ -8,9 +8,7 @@ packages:
 - hledger-ui
 - hledger-web
 
-extra-deps:
-- encoding-0.10
-- fsnotify-0.4.2.0
+#extra-deps:
 
 nix:
   pure: false

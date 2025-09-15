@@ -2,7 +2,7 @@
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.10
 # https://downloads.haskell.org/ghc/9.10.1/docs/users_guide/9.10.1-notes.html
 
-resolver: lts-24.8
+resolver: lts-24.10
 
 packages:
 - hledger-lib

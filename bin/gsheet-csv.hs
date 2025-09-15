@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack --resolver=lts-18.28 script --compile --verbosity=error
+{- stack --resolver=lts-24.10 script --compile --verbosity=error
    --package "bytestring cassava gogol gogol-core gogol-sheets lens pretty-show text"
 -}
 -- or
