@@ -16,8 +16,6 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# d0068e63
-
 # 1.50 2025-09-03
 
 Doc updates

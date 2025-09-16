@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# d0068e63
+# 1.50.1 2025-09-16
 
 - Uses hledger 1.50.1
 
