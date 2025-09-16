@@ -176,21 +176,18 @@ It should be improved each time it is used.
     - pta forum
 
 - **5. cleanup and support**
-  - review/polish relnotes, changelogs  
-        review, edit  
-        propagate
-  - new dev tag/versions/man dates in master (major version only)  
-      `j devtag`
-  - pta.o project stats updated
-  - process notes updated/cleaned
-  - monitor/support/handle issues:  
-      [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
+  - review/polish/sync changelogs & relnotes
+  - new version, man dates, dev tag in master (major version only)  
+    `j devtag`
+  - RELEASING.md checklist/notes updated
+  - monitor/support/handle issues:
+    [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
 
-After release, it's a good time for:
+Some more good things to do after a release:
 
-  - finance repo updates
-  - hledger.org doc updates
-  - pta.o doc updates
+  - hledger.org site/doc updates
+  - hledger_finance repo updates
+  - plaintextaccounting site updates (eg project stats)
 
 ## How to..
 
