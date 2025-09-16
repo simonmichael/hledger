@@ -62,17 +62,20 @@ Release readiness and the release process go from the bottom of this diagram to 
 ## Release checklist
 
 This is the guide for doing a hledger release.
-It should correspond to the diagram above, but includes more detail of waypoints, required artifacts, and relevant commands.
+It corresponds to the diagram above, with more detail of waypoints, required artifacts, and related commands.
 It should be improved each time it is used.
 
-- [ ] product
+<!-- Trailing double spaces are used for line breaks -->
+
+- [ ] **1. product**
   - [ ] blocking defects resolved
   - [ ] desired improvements landed and stabilised
   - [ ] building and passing tests with current ghcs, deps, and stackage snapshots
-  - [ ] building and passing tests on all platforms / with all ghc versions
-        `just relbin` (or push to github `binaries[-*]` branch)
+  - [ ] building and passing tests on all platforms / with all ghc versions  
+        `just relbin` (or push to github `binaries[-*]` branch)  
         `just oldest` (or push to github `oldest` branch)
-- [ ] product docs and metadata
+
+- [ ] **2. product docs and metadata**
   - [ ] release branch
   - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
   - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
@@ -97,18 +100,19 @@ It should be improved each time it is used.
         `just completions`, commit any changes
   - [ ] changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
-        add notable changes from site, finance repos to project changelog
+        add issue links with `md-issue-refs`, uniquify  
+        add notable changes from site, finance repos to project changelog (major release only)  
         `just changelogs-finalise`
-- [ ] release docs and artifacts
+
+- [ ] **3. release docs and artifacts**
   - [ ] draft binaries building started  
       `just relbin`
   - [ ] hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
         `just site-manuals-snapshot MAJORVER` (creates or updates)  
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
   - [ ] release notes @ hledger.org (doc/relnotes.md)  
-      `just relnotes`,  
-      select & transform with `md-issue-refs`,  
-      uniquify issue refs,  
+      `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*,  
+      *(XXX may be no longer needed)* select & transform with `md-issue-refs`, uniquify   
       add author github nicks,  
       add summary,  
       commit
@@ -122,7 +126,8 @@ It should be improved each time it is used.
       `just relbin`
       wait for all to succeed
   - [ ] Install page (site/src/install.md) --version examples match release binaries
-- [ ] published
+
+- [ ] **4. published**
   - [ ] relevant release branch work cherry-picked to master branch  
       changelogs,
       relnotes,
@@ -145,7 +150,7 @@ It should be improved each time it is used.
   - [ ] release tags pushed to github  
       `just reltags-push VER`
   - [ ] github draft release with release binaries attached  
-      https://github.com/simonmichael/hledger/releases/new
+      https://github.com/simonmichael/hledger/releases/new *(XXX safari may not show new tag, may need brave)*  
       `just ghrel-notes`  
       `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
       `just ghrel-upload VER`  
@@ -154,7 +159,7 @@ It should be improved each time it is used.
       publish
   - [ ] github nightly release updated  
         `just nightly-tag-release`
-        `just ghnightly-notes`
+        `just nightly-notes`
   - [ ] install instructions tested and working
     - [ ] stack
     - [ ] cabal
@@ -166,7 +171,8 @@ It should be improved each time it is used.
     - [ ] irc
     - [ ] mastodon
     - [ ] pta forum
-- [ ] cleanup and support
+
+- [ ] **5. cleanup and support**
   - [ ] review/polish relnotes, changelogs  
         review, edit  
         propagate
