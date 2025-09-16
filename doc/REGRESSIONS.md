@@ -5,7 +5,7 @@
 <!-- toc -->
 </div>
 
-Shortcut: [hledger.org/regressions](https://hledger.org/regressions)
+Shortcut: [regressions.hledger.org](https://regressions.hledger.org)
 
 A regression is "something that used to work, that broke", or "an unintended not-good change"
 in a released version of hledger.
@@ -118,6 +118,8 @@ This reduces wasteful admin work.
 [#2407]: https://github.com/simonmichael/hledger/issues/2407
 [#2417]: https://github.com/simonmichael/hledger/issues/2417
 [#2444]: https://github.com/simonmichael/hledger/issues/2444
+[#2452]: https://github.com/simonmichael/hledger/issues/2452
+[#2454]: https://github.com/simonmichael/hledger/issues/2454
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -192,7 +194,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2254]                  | 1.41      | akanshaG42 (donated)                                                             | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2407]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.32.1** 2023-12-07    | ---       | ---                                                                              | ---
-| [#2444]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
+| [#2444]                  | 1.50      | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.33** 2024-04-18      | ---       | ---                                                                              | ---
 | [#2227]                  | 1.41      | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
 | **1.34** 2024-06-01      | ---       | ---                                                                              | ---
@@ -209,4 +211,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
 | [#2417]                  | 1.50      | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | [Simon Michael](https://opencollective.com/hledger/expenses/264102)
+| **1.50** 2025-09-03      | ---       | ---                                                                              | ---
+| [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
+| [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
 
