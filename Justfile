@@ -1525,8 +1525,8 @@ _on-master-branch:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# Upload the downloaded binaries to the specified github release. Run after ghruns-download.
-ghrel-upload VER:
+# Upload the downloaded binaries to the specified github release. Run after ghbin-download.
+ghrel-bin VER:
     @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
     gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
     gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
@@ -1546,14 +1546,14 @@ ghrel-upload VER:
     gh run view --web $(just ghrun-id {{ WORKFLOW }})
 
 # Browse the latest run of the main binary workflows.
-@ghruns:
-    just ghrun-open binaries-linux-x64
-    just ghrun-open binaries-mac-arm64
-    just ghrun-open binaries-mac-x64
-    just ghrun-open binaries-windows-x64
+@ghbin:
+    just ghrun binaries-linux-x64
+    just ghrun binaries-mac-arm64
+    just ghrun binaries-mac-x64
+    just ghrun binaries-windows-x64
 
 # Download any new binaries from the latest runs of the main binary github workflows, and recompress them.
-ghruns-download:
+ghbin-download:
     mkdir -p tmp
     cd tmp; rm -rf hledger-*64
     cd tmp; gh run download $(just ghrun-id binaries-linux-x64)
