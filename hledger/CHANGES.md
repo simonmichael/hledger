@@ -81,6 +81,7 @@ API
   uiReloadJournal -> uiReload,
   uiReloadJournalIfChanged -> uiReloadIfFileChanged
 
+[#2452]: https://github.com/simonmichael/hledger/issues/2452
 
 # 1.50 2025-09-03
 

@@ -66,6 +66,10 @@ API
 - Hledger.UI.UIState:
   enableForecastPreservingPeriod -> enableForecast
 
+[#2014]: https://github.com/simonmichael/hledger/issues/2014
+[#2288]: https://github.com/simonmichael/hledger/issues/2288
+[#2451]: https://github.com/simonmichael/hledger/issues/2451
+[#2454]: https://github.com/simonmichael/hledger/issues/2454
 
 
 # 1.50 2025-09-03
