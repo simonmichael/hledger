@@ -1217,18 +1217,18 @@ nightly-push:
     git tag -f nightly master
     git push -f origin nightly
     git push -f origin master:binaries
-    echo "Now wait; when nightly binaries have built successfully, run just ghnightly-bin"
+    echo "Now wait; when nightly binaries have built successfully, run just nightly-bin"
 
 # Copy the latest-built nightly binaries to the Nightly prerelease. Wait for nightly-push's builds to complete first.
-@ghnightly-bin:
+@nightly-bin:
     gh workflow run nightly
 
 # Push the prerelease notes to the github nightly prerelease.
-@ghnightly-notes:
-    gh release edit nightly -F doc/ghnightlynotes.md
+@nightly-notes:
+    gh release edit nightly -F doc/nightlynotes.md
 
 # Browse the github nightly prerelease.
-@ghnightly-open:
+@nightly-open:
     gh release view -w nightly
 
 # Show the last release date and version (of the hledger package).
