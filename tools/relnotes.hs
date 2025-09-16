@@ -32,10 +32,12 @@ merge md-issue-refs
 
 {-# OPTIONS_GHC -Wno-x-partial #-}
 
+import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 import Control.Monad
 import Data.Char
 import Data.List
 import Data.List.Split
+import Debug.Trace
 import System.Exit
 import System.IO
 import System.Process
@@ -45,6 +47,7 @@ strToVer = splitOn "."
 verToStr = intercalate "."
 
 main = do
+  setBacktraceMechanismState HasCallStackBacktrace False
   -- gather latest release changes & info
   (projectChangesHeading, projectChanges)       <- changelogFirstSection <$> readFile "CHANGES.md"
   (hledgerChangesHeading, hledgerChanges)       <- changelogFirstSection <$> readFile "hledger/CHANGES.md"
@@ -53,7 +56,9 @@ main = do
   reltags <- lines <$> readProcess "git" ["tag", "--sort=-creatordate", "-l", "[0-9]*"] ""
   printf $ "previous release tags: " <> unwords (take 5 reltags) <> " ...\n"
   let
-    [_, ver, date] = words projectChangesHeading
+    (ver, date) = case words projectChangesHeading of
+      [_,v,d] -> (v,d)
+      _ -> errorWithoutStackTrace $ "error: expected a release heading, found: " <> projectChangesHeading
     verexists = ver `elem` reltags
   printf $ "project CHANGES.md's top heading: " <> projectChangesHeading
   printf $ "inferred latest release version and date: " <> intercalate ", " [ver, date] <> "\n"
@@ -61,9 +66,8 @@ main = do
   let prevvers =
         map verToStr $ dropWhile (>=strToVer ver) $ map strToVer $ reltags
   printf $ "releases before this one: " <> unwords (take 5 prevvers) <> " ...\n"
-  when (null prevvers) $ do
-    printf $ "error: no previous releases found. This expects to run before new release headings are added to changelogs\n"
-    exitFailure
+  when (null prevvers) $
+    errorWithoutStackTrace "error: no previous releases found. This expects to run before new release headings are added to changelogs\n"
   let prevver = head prevvers
   printf $ "previous release: " <> prevver <> "\n"
   relauthors <- map (unwords . drop 1 . words) . lines <$> readProcess "git" ["shortlog", "-sn", prevver<>".."<>if verexists then ver else ""] ""
