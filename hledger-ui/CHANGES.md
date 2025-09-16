@@ -29,22 +29,34 @@ Breaking changes
 
 Fixes
 
-- The transaction screen and error screen now update on data changes, eg when using the E key, g key, or --watch,
-  like other screens.
-  [#2014], [#2288]
-
-- The --pivot (and --obfuscate) options are now preserved, and spurious errors are avoided,
-  when the journal is reloaded by the `g` key or `--watch`.
-  [#2451]
-
 Features
 
 Improvements
 
-- hledger-ui's debug output has had some improvements, eg it's easier
-  to see changes to the screen stack.
-
 Docs
+
+API
+
+
+# 1.50.1 2025-09-16
+
+Fixes
+
+- The transaction screen and error screen now update on data changes like other screens,
+  eg when using the E key, g key, or --watch.
+  [#2014], [#2288]
+
+- When the journal is reloaded by the `g` key or `--watch`, the
+  --pivot (and --obfuscate) options are now preserved,
+  and spurious errors are avoided.
+  [#2451]
+
+- The Z key (and the -E command line flag) toggles zero-balance accounts again.
+  (Stephen Morgan, [#2454])
+
+Improvements
+
+- Debug output has improved, eg it's easier to see changes to the screen stack.
 
 API
 
@@ -52,7 +64,7 @@ API
   uiReloadJournal -> uiReload,
   uiReloadJournalIfChanged -> uiReloadIfFileChanged
 - Hledger.UI.UIState:
-  enableForecast renamed
+  enableForecastPreservingPeriod -> enableForecast
 
 
 

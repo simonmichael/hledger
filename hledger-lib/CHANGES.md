@@ -26,6 +26,8 @@ Fixes
 Improvements
 
 
+# 1.50.1 2025-09-16
+
 # 1.50 2025-09-03
 
 Breaking changes
