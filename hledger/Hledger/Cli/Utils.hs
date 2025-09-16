@@ -75,7 +75,6 @@ withJournal opts cmd = do
   j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
   either error' cmd j  -- PARTIAL:
 
-{-# DEPRECATED withJournalDo "renamed, please use withJournal instead" #-}
 withJournalDo = withJournal
 
 -- | Apply some journal transformations, if enabled by options, that should happen late.
