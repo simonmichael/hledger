@@ -86,9 +86,6 @@ Fixes
   no transactions are matched, fixing a regression in 1.50.
   (Stephen Morgan, [#2452])
 
-- In hledger-ui, the Z key (and the -E command line flag) toggles zero-balance accounts again.
-  (Stephen Morgan, [#2454])
-
 - The `print` command's help no longer shows an unused --show-costs flag.
   And the command-specific flags are now mostly ordered alphabetically.
 
@@ -104,14 +101,17 @@ Doc updates
 
 Fixes
 
+- The transaction screen and error screen now update on data changes like other screens,
+  eg when using the `E` or `g` keys or `--watch`.
+  [#2014], [#2288]
+
 - When the journal is reloaded by the `g` key or `--watch`, the
-  --pivot (and --obfuscate) options are now preserved,
+  `--pivot` (and `--obfuscate`) options are now preserved,
   and spurious errors are avoided.
   [#2451]
 
-- The transaction screen and error screen now update on data changes like other screens,
-  eg when using the E key, g key, or --watch.
-  [#2014], [#2288]
+- The `Z` key (and the `-E` command line flag) toggle zero-balance accounts again.
+  (Stephen Morgan, [#2454])
 
 Improvements
 
