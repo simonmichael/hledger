@@ -64,11 +64,11 @@ h2, h2:last-child > h3 { margin-top:4em; }
 </style>
 
 Major releases and user-visible changes, collected from the changelogs (
-[hledger](http://hackage.haskell.org/package/hledger/changelog),
-[hledger-ui](http://hackage.haskell.org/package/hledger-ui/changelog),
-[hledger-web](http://hackage.haskell.org/package/hledger-web/changelog)
+[hledger](https://hackage.haskell.org/package/hledger-1.50.1/changelog),
+[hledger-ui](https://hackage.haskell.org/package/hledger-ui-1.50.1/changelog),
+[hledger-web](https://hackage.haskell.org/package/hledger-web-1.50.1/changelog)
 ).
-
+<!-- https://hackage.haskell.org/package/P/changelog is supposed to show the same as https://hackage.haskell.org/package/P-LATESTVER/changelog but it updates very slowly alas -->
 
 
 
