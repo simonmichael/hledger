@@ -131,17 +131,17 @@ Fixer  bounties began on 2024-01-01.
 
 | New&nbsp;regressions | Fixed&nbsp;in | Finder                                                                           | Fixer
 |--------------------------|-----------|----------------------------------------------------------------------------------|-----------------------------------------------------------------------------------
-| **1.19** 2020-09-01      |           | ---                                                                              | ---
+| **1.19** 2020-09-01      | ---       | ---                                                                              | ---
 | [#1568]                  | 1.22      | jolmg         (N/A)                                                              | N/A
 | [#1688]                  | 1.23      | Simon Michael (N/A)                                                              | N/A
 | [#1698]                  | 1.23      | [David Lowe](https://opencollective.com/hledger/expenses/50380)                  | N/A
 | [#1745]                  | 1.24      | [Arne Schlüter](https://opencollective.com/hledger/expenses/54446)               | N/A
 | [#1800]                  | 1.25      | [Chuck Holmes](https://opencollective.com/hledger/expenses/61802)                | N/A
-| **1.20** 2020-12-05      |           | ---                                                                              | ---
+| **1.20** 2020-12-05      | ---       | ---                                                                              | ---
 | [#1439]                  | 1.20.3    | apauley       (N/A)                                                              | N/A
 | [#1468]                  | 1.21      | Simon Michael (N/A)                                                              | N/A
 | [#1566]                  | 1.22      | benwebber     (N/A)                                                              | N/A
-| **1.21** 2021-03-10      |           | ---                                                                              | ---
+| **1.21** 2021-03-10      | ---       | ---                                                                              | ---
 | [#1508]                  | 1.22      | edlanglois    (N/A)                                                              | N/A
 | [#1523]                  | 1.22      | Simon Michael (N/A)                                                              | N/A
 | [#1526]                  | 1.22      | lestephane    (N/A)                                                              | N/A
@@ -149,41 +149,41 @@ Fixer  bounties began on 2024-01-01.
 | [#1656]                  | 1.23      | [Stephen Morgan](https://opencollective.com/hledger/expenses/48246)              | N/A
 | [#2284]                  | 1.41      | [lakshayg](https://opencollective.com/hledger/expenses/227577)                   | GLaknovik (donated)
 | [#2302]                  | 1.42      | [lowercasename](https://opencollective.com/hledger/expenses/232210)              | [Simon Michael](https://opencollective.com/hledger/expenses/264103)
-| **1.22** 2021-07-03      |           | ---                                                                              | ---
+| **1.22** 2021-07-03      | ---       | ---                                                                              | ---
 | [#1597]                  | 1.22.1    | [Simon Michael](https://opencollective.com/hledger/expenses/44939)               | N/A
 | [#1607]                  | 1.22.1    | [Simon Michael](https://opencollective.com/hledger/expenses/45547)               | N/A
 | [#1625]                  | 1.22.1    | [Julian Klode](https://opencollective.com/hledger/expenses/46431)                | N/A
 | [#1736]                  | 1.24      | [Romain Gehrig](https://opencollective.com/hledger/expenses/55510)               | N/A
 | [#1851]                  | 1.26      | [Eric Langlois](https://opencollective.com/hledger/expenses/72187)               | N/A
-| **1.22.1** 2021-08-02    |           | ---                                                                              | ---
+| **1.22.1** 2021-08-02    | ---       | ---                                                                              | ---
 | [#1638]                  | 1.22.2    | [Yann Büchau](https://opencollective.com/hledger/expenses/46918)                 | N/A
 | [#1642]                  | 1.22.2    | Simon Michael (N/A)                                                              | N/A
-| **1.23** 2021-09-21      |           | ---                                                                              | ---
+| **1.23** 2021-09-21      | ---       | ---                                                                              | ---
 | [#1933]                  | 1.32      | [Simon Michael](https://opencollective.com/hledger/expenses/95068)               | N/A
 | [#2071]                  | 1.33      | [William Pierce](https://opencollective.com/hledger/expenses/195768)             | [Simon Michael](https://opencollective.com/hledger/expenses/223927)
-| **1.24** 2021-12-01      |           | ---                                                                              | ---
+| **1.24** 2021-12-01      | ---       | ---                                                                              | ---
 | [#1782]                  | 1.24.1    | Simon Michael (N/A)                                                              | N/A
-| **1.25** 2022-03-04      |           | ---                                                                              | ---
+| **1.25** 2022-03-04      | ---       | ---                                                                              | ---
 | [#2032]                  | 1.32      | [Simon Michael](https://opencollective.com/hledger/expenses/137410)              | N/A
 | [#2196]                  | 1.33.1    | [Pranesh Prakash](https://opencollective.com/hledger/expenses/220683)            | [Simon Michael](https://opencollective.com/hledger/expenses/223926), <br>Bas van Dijk [#2224] (donated)
-| **1.26** 2022-06-04      |           | ---                                                                              | ---
-| **1.27** 2022-09-01      |           | ---                                                                              | ---
+| **1.26** 2022-06-04      | ---       | ---                                                                              | ---
+| **1.27** 2022-09-01      | ---       | ---                                                                              | ---
 | [#1932]                  | 1.27.1    | [Andras Fabian](https://opencollective.com/hledger/expenses/95112)               | N/A
 | [#2018]                  | 1.29.2    | [Allan Odgaard](https://opencollective.com/hledger/expenses/130591)              | N/A
-| **1.28** 2022-12-01      |           | ---                                                                              | ---
-| **1.29** 2023-03-11      |           | ---                                                                              | ---
+| **1.28** 2022-12-01      | ---       | ---                                                                              | ---
+| **1.29** 2023-03-11      | ---       | ---                                                                              | ---
 | [#2012]                  | 1.32      | Simon Michael   (N/A)                                                            | N/A
 | [#2020]                  | 1.32      | [Pablo Mora](https://opencollective.com/hledger/expenses/131350)                 | N/A
 | [#2023]                  | 1.32      | [Simon Michael](https://opencollective.com/hledger/expenses/132635)              | N/A
 | [#2034]                  | 1.32      | Simon Michael   (N/A)                                                            | N/A
 | [#2045]                  | 1.32      | [Pranesh Prakash](https://opencollective.com/hledger/expenses/150171)            | N/A
 | [#2153]                  | 1.32.3    | markokocic (donated)                                                             | N/A
-| **1.30** 2023-06-01      |           | ---                                                                              | ---
+| **1.30** 2023-06-01      | ---       | ---                                                                              | ---
 | [#2072]                  | 1.32.3    | [Simon Michael](https://opencollective.com/hledger/expenses/223926), <br>usaAmch ([#2137], donated), <br>[ipvych](https://opencollective.com/hledger/expenses/221597) ([#2150]) | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
-| **1.31** 2023-09-03      |           | ---                                                                              | ---
+| **1.31** 2023-09-03      | ---       | ---                                                                              | ---
 | [#2091]                  | 1.32      | [Petr Slansky](https://opencollective.com/hledger/expenses/166632)               | N/A
 | [#2115]                  | 1.32      | usaAmch (donated)                                                                | N/A
-| **1.32** 2023-12-01      |           | ---                                                                              | ---
+| **1.32** 2023-12-01      | ---       | ---                                                                              | ---
 | [#2125]                  | 1.32.1    | Simon Michael   (N/A)                                                            | N/A
 | [#2127]                  | 1.32.2    | [Rajeev N](https://opencollective.com/hledger/expenses/177761)                   | N/A
 | [#2130]                  | 1.32.2    | Simon Michael   (N/A)                                                            | N/A
@@ -191,19 +191,19 @@ Fixer  bounties began on 2024-01-01.
 | [#2156]                  | 1.32.3    | ishmaelavila (donated)                                                           | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2254]                  | 1.41      | akanshaG42 (donated)                                                             | [Simon Michael](https://opencollective.com/hledger/expenses/223926)
 | [#2407]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
-| **1.32.1** 2023-12-07    |           | ---                                                                              | ---
+| **1.32.1** 2023-12-07    | ---       | ---                                                                              | ---
 | [#2444]                  |           | Simon Michael (N/A)                                                              | Simon Michael (N/A)
-| **1.33** 2024-04-18      |           | ---                                                                              | ---
+| **1.33** 2024-04-18      | ---       | ---                                                                              | ---
 | [#2227]                  | 1.41      | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)         | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
-| **1.34** 2024-06-01      |           | ---                                                                              | ---
-| **1.40** 2024-09-09      |           | ---                                                                              | ---
+| **1.34** 2024-06-01      | ---       | ---                                                                              | ---
+| **1.40** 2024-09-09      | ---       | ---                                                                              | ---
 | [#2225]                  | 1.41      | Bas van Dijk (donated)                                                           | [Henning Thielemann](https://opencollective.com/hledger/expenses/224252)
-| **1.41** 2024-12-09      |           | ---                                                                              | ---
-| **1.42** 2025-03-07      |           | ---                                                                              | ---
+| **1.41** 2024-12-09      | ---       | ---                                                                              | ---
+| **1.42** 2025-03-07      | ---       | ---                                                                              | ---
 | [#2352]                  | 1.42.1    | [Matt Gass](https://opencollective.com/hledger/expenses/242346)                  | N/A
 | [#2386]                  | 1.42.2    | Simon Michael  (N/A)                                                             | N/A
 | [#2389]                  | 1.42.2    | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
-| **1.43** 2025-06-01      |           | ---                                                                              | ---
+| **1.43** 2025-06-01      | ---       | ---                                                                              | ---
 | [#2396]                  | 1.43.1    | Simaex (donated)                                                                 | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
