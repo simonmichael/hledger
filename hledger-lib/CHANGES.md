@@ -13,7 +13,7 @@ Improvements
 
 -->
 
-Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
+API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
