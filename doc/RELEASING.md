@@ -48,7 +48,7 @@ Preview/nightly releases may happen any time.
 | Manuals snapshot    | ✓                                                        |                              |                                          |
 | Announcements       | ✓                                                        |                              |                                          |
 
-[Regression bounty]: http://hledger.org/regressionbounty
+[Regression bounty]: https://hledger.org/regressionbounty
 
 ## hledger release artifacts / value chain
 
@@ -66,6 +66,9 @@ It corresponds to the diagram above, with more detail of waypoints, required art
 It should be improved each time it is used.
 
 <!-- Trailing double spaces are used for line breaks -->
+
+- **0. general**
+  - when browser (Safari) refuses to show new content, use another
 
 - **1. product**
   - blocking defects resolved
@@ -107,23 +110,23 @@ It should be improved each time it is used.
 - **3. release docs and artifacts**
   - draft binaries building started  
       `just relbin`
-  - hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
-        `just site-manuals-snapshot MAJORVER` (creates or updates)  
-        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
+  - hledger.org html manuals x 3 (site/src/MAJORVER/\*.md) (major release only)  
+        `just site-manuals-snapshot MAJORVER` to create/update  
+        update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
   - release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*,  
-      *(XXX may be no longer needed)* select & transform with `md-issue-refs`, uniquify   
+      select & transform with `md-issue-refs`, uniquify *(XXX no longer needed ?)*    
       add author github nicks,  
       add summary,  
       commit
   - github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
   - Install page (site/src/install.md) up to date and pre-tested
-  - draft announcement for chat / mail list (doc/ANNOUNCE)
-  - draft announcement for mastodon (doc/ANNOUNCE.masto)
+  - draft long announcement for chat, mail list (doc/ANNOUNCE)
+  - draft short announcement for mastodon etc (doc/ANNOUNCE.short)
   - release tags  
       `just reltags`
   - release binaries built from tag  
-      `just relbin`
+      `just relbin`,
       wait for all to succeed
   - Install page (site/src/install.md) --version examples match release binaries
 
@@ -134,15 +137,15 @@ It should be improved each time it is used.
       announcements
   - nightly release changes link up to date in master (doc/ghnightlynotes.md)
   - all packages uploaded correctly to hackage  
-      `just hackageupload`, check versions, confirm, check all uploads successful
+      `just hackageupload`
   - master branch pushed to github
   - new manuals published and rendering/redirecting correctly  
     - site repo pushed to github
-    - main and site repos  auto-pulled to hledger.org, site rebuilt
+    - main and site repos  auto-pulled to hledger.org, site rebuilt  
         `hledgerorgsh grep release.= /opt/hledger/site/out/js/site.js`  
-    - https://www.hledger.org/js/site.js showing latest version
+    - <https://www.hledger.org/js/site.js> showing latest version  
         `curl -s https://hledger.org/js/site.js | grep release.=`  
-        purge cache at https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration (major release only)
+        purge cache at <https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration> (major release only)
     - default manual urls redirecting to latest version (major release only)  
         `hledgerorgsh sh -c 'systemctl stop caddy; systemctl start caddy'`  
         `curl -sI https://hledger.org/hledger.html | grep location`
@@ -150,10 +153,10 @@ It should be improved each time it is used.
   - release tags pushed to github  
       `just reltags-push VER`
   - github draft release with release binaries attached  
-      https://github.com/simonmichael/hledger/releases/new *(XXX safari may not show new tag, may need brave)*  
+      <https://github.com/simonmichael/hledger/releases/new> *(XXX safari may not show new tag, may need brave)*  
       `just ghrel-notes`  
-      `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
-      `just ghrel-upload VER`  
+      `just ghbin-download` <!-- (or if throttled: `just ghbin`, download to tmp/, unzip the unix ones) -->  
+      `just ghrel-bin VER`  
   - github release published  
       review,
       publish
@@ -177,7 +180,7 @@ It should be improved each time it is used.
         review, edit  
         propagate
   - new dev tag/versions/man dates in master (major version only)  
-      `j devtagø`
+      `j devtag`
   - pta.o project stats updated
   - process notes updated/cleaned
   - monitor/support/handle issues:  
