@@ -99,19 +99,6 @@ Doc updates
 - Text encoding
 - bin/README: paypal\*, simplefin\* usage examples, doc link
 
-API
-
-- Hledger.Cli.Utils:
-  add withJournal alias for withJournalDo,
-  pivotByOpts -> maybePivot,
-  anonymiseByOpts -> maybeWarnAboutAnon,
-  stop exporting pivotByOpts, anonymiseByOpts
-
-- Hledger.UI.ErrorScreen:
-  uiReloadJournal -> uiReload,
-  uiReloadJournalIfChanged -> uiReloadIfFileChanged
-
-
 ### hledger-ui 1.50.1
 
 
@@ -129,14 +116,6 @@ Fixes
 Improvements
 
 - Debug output has improved, eg it's easier to see changes to the screen stack.
-
-API
-
-- Hledger.UI.ErrorScreen:
-  uiReloadJournal -> uiReload,
-  uiReloadJournalIfChanged -> uiReloadIfFileChanged
-- Hledger.UI.UIState:
-  enableForecastPreservingPeriod -> enableForecast
 
 
 ### hledger-web 1.50.1
