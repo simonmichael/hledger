@@ -67,120 +67,120 @@ It should be improved each time it is used.
 
 <!-- Trailing double spaces are used for line breaks -->
 
-- [ ] **1. product**
-  - [ ] blocking defects resolved
-  - [ ] desired improvements landed and stabilised
-  - [ ] building and passing tests with current ghcs, deps, and stackage snapshots
-  - [ ] building and passing tests on all platforms / with all ghc versions  
+- **1. product**
+  - blocking defects resolved
+  - desired improvements landed and stabilised
+  - building and passing tests with current ghcs, deps, and stackage snapshots
+  - building and passing tests on all platforms / with all ghc versions  
         `just relbin` (or push to github `binaries[-*]` branch)  
         `just oldest` (or push to github `oldest` branch)
 
-- [ ] **2. product docs and metadata**
-  - [ ] release branch
-  - [ ] version strings (in **/.version, */.version.m4, */package.yaml)
-  - [ ] cabal files x 4 (hledger*/hledger*.cabal)  
+- **2. product docs and metadata**
+  - release branch
+  - version strings (in **/.version, */.version.m4, */package.yaml)
+  - cabal files x 4 (hledger*/hledger*.cabal)  
         `just relbranch VER`,  
         `just cabalfilestest`
-  - [ ] options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)  
+  - options help texts up to date (in CliOptions.hs, UIOptions.hs, WebOptions.hs)  
         `stack build`  
         `./Shake cmddocs -c`
-  - [ ] embedded manuals x 3
-    - [ ] generaloptions macro (in doc/common.m4)
-    - [ ] tool specific options in manuals (hledger*/hledger*.m4.md > # Options)
-    - [ ] man page dates (*/.date.m4)
-    - [ ] man  (hledger*/hledger*.1)
-    - [ ] info (hledger*/hledger*.info)
-    - [ ] text (hledger*/hledger*.txt)  
+  - embedded manuals x 3
+    - generaloptions macro (in doc/common.m4)
+    - tool specific options in manuals (hledger*/hledger*.m4.md > # Options)
+    - man page dates (*/.date.m4)
+    - man  (hledger*/hledger*.1)
+    - info (hledger*/hledger*.info)
+    - text (hledger*/hledger*.txt)  
         `./Shake mandates`  
         `./Shake manuals -c`
-  - [ ] embedded tldr pages synced with upstream (doc/tldr/*)  
+  - embedded tldr pages synced with upstream (doc/tldr/*)  
         `just tldr-diff`
-  - [ ] embedded asciinema demos (hledger/embeddedfiles/*.cast)
-  - [ ] shell completions (hledger/shell-completion/hledger-completion.bash)  
+  - embedded asciinema demos (hledger/embeddedfiles/*.cast)
+  - shell completions (hledger/shell-completion/hledger-completion.bash)  
         `just completions`, commit any changes
-  - [ ] changelogs x 5 (**/CHANGES.md)  
+  - changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
         add issue links with `md-issue-refs`, uniquify  
         add notable changes from site, finance repos to project changelog (major release only)  
         `just changelogs-finalise`
 
-- [ ] **3. release docs and artifacts**
-  - [ ] draft binaries building started  
+- **3. release docs and artifacts**
+  - draft binaries building started  
       `just relbin`
-  - [ ] hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
+  - hledger.org html manuals x 3 (`site/src/MAJORVER/*.md`)  
         `just site-manuals-snapshot MAJORVER` (creates or updates)  
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy` (major release only)
-  - [ ] release notes @ hledger.org (doc/relnotes.md)  
+  - release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*,  
       *(XXX may be no longer needed)* select & transform with `md-issue-refs`, uniquify   
       add author github nicks,  
       add summary,  
       commit
-  - [ ] github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
-  - [ ] Install page (site/src/install.md) up to date and pre-tested
-  - [ ] draft announcement for chat / mail list (doc/ANNOUNCE)
-  - [ ] draft announcement for mastodon (doc/ANNOUNCE.masto)
-  - [ ] release tags  
+  - github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
+  - Install page (site/src/install.md) up to date and pre-tested
+  - draft announcement for chat / mail list (doc/ANNOUNCE)
+  - draft announcement for mastodon (doc/ANNOUNCE.masto)
+  - release tags  
       `just reltags`
-  - [ ] release binaries built from tag  
+  - release binaries built from tag  
       `just relbin`
       wait for all to succeed
-  - [ ] Install page (site/src/install.md) --version examples match release binaries
+  - Install page (site/src/install.md) --version examples match release binaries
 
-- [ ] **4. published**
-  - [ ] relevant release branch work cherry-picked to master branch  
+- **4. published**
+  - relevant release branch work cherry-picked to master branch  
       changelogs,
       relnotes,
       announcements
-  - [ ] nightly release changes link up to date in master (doc/ghnightlynotes.md)
-  - [ ] all packages uploaded correctly to hackage  
+  - nightly release changes link up to date in master (doc/ghnightlynotes.md)
+  - all packages uploaded correctly to hackage  
       `just hackageupload`, check versions, confirm, check all uploads successful
-  - [ ] master branch pushed to github
-  - [ ] new manuals published and rendering/redirecting correctly  
-    - [ ] site repo pushed to github
-    - [ ] main and site repos  auto-pulled to hledger.org, site rebuilt
+  - master branch pushed to github
+  - new manuals published and rendering/redirecting correctly  
+    - site repo pushed to github
+    - main and site repos  auto-pulled to hledger.org, site rebuilt
         `hledgerorgsh grep release.= /opt/hledger/site/out/js/site.js`  
-    - [ ] https://www.hledger.org/js/site.js showing latest version
+    - https://www.hledger.org/js/site.js showing latest version
         `curl -s https://hledger.org/js/site.js | grep release.=`  
         purge cache at https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration (major release only)
-    - [ ] default manual urls redirecting to latest version (major release only)  
+    - default manual urls redirecting to latest version (major release only)  
         `hledgerorgsh sh -c 'systemctl stop caddy; systemctl start caddy'`  
         `curl -sI https://hledger.org/hledger.html | grep location`
-  - [ ] release branch pushed to github  
-  - [ ] release tags pushed to github  
+  - release branch pushed to github  
+  - release tags pushed to github  
       `just reltags-push VER`
-  - [ ] github draft release with release binaries attached  
+  - github draft release with release binaries attached  
       https://github.com/simonmichael/hledger/releases/new *(XXX safari may not show new tag, may need brave)*  
       `just ghrel-notes`  
       `just ghruns-download` (or if throttled: `just ghruns-open`, download to tmp/, unzip the unix ones)  
       `just ghrel-upload VER`  
-  - [ ] github release published  
+  - github release published  
       review,
       publish
-  - [ ] github nightly release updated  
+  - github nightly release updated  
         `just nightly-tag-release`
         `just nightly-notes`
-  - [ ] install instructions tested and working
-    - [ ] stack
-    - [ ] cabal
-    - [ ] source checkout
-    - [ ] github release > How to install, each platform
-  - [ ] announced
-    - [ ] mail list(s) hledger@googlegroups.com for major (+ haskell-cafe@googlegroups.com for supermajor) 
-    - [ ] matrix
-    - [ ] irc
-    - [ ] mastodon
-    - [ ] pta forum
+  - install instructions tested and working
+    - stack
+    - cabal
+    - source checkout
+    - github release > How to install, each platform
+  - announced
+    - mail list(s) hledger@googlegroups.com for major (+ haskell-cafe@googlegroups.com for supermajor) 
+    - matrix
+    - irc
+    - mastodon
+    - pta forum
 
-- [ ] **5. cleanup and support**
-  - [ ] review/polish relnotes, changelogs  
+- **5. cleanup and support**
+  - review/polish relnotes, changelogs  
         review, edit  
         propagate
-  - [ ] new dev tag/versions/man dates in master (major version only)  
+  - new dev tag/versions/man dates in master (major version only)  
       `j devtagø`
-  - [ ] pta.o project stats updated
-  - [ ] process notes updated/cleaned
-  - [ ] monitor/support/handle issues:  
+  - pta.o project stats updated
+  - process notes updated/cleaned
+  - monitor/support/handle issues:  
       [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit
 
 After release, it's a good time for:
