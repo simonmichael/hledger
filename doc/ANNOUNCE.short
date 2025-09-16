@@ -1,12 +1,9 @@
-hledger 1.50 is out, with
-better transaction balancing, include improvements,
-csv data commands, import archiving, timeclock improvements,
-and more!
+hledger 1.50.1 is out, with fixes and improvements for the 1.50 release.
 
-Thank you to contributors Stephen Morgan, Jay Neubrand, Lukas Fleischer, and savanto.
+Thank you to contributor Stephen Morgan.
 
-- https://github.com/simonmichael/hledger/releases/1.50
-- https://hledger.org/relnotes.html#2025-09-03-hledger-150
+- https://github.com/simonmichael/hledger/releases/1.50.1
+- https://hledger.org/relnotes.html#2025-09-16-hledger-1501
 - https://hledger.org/install
 
 #hledger is free, robust, friendly, multicurrency, double-entry,
