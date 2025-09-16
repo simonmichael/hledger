@@ -21,6 +21,8 @@ module Hledger.Cli.Utils
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,
+     pivotByOpts,
+     anonymiseByOpts,
      journalSimilarTransaction,
      postingsOrTransactionsReportAsText,
      tests_Cli_Utils,
@@ -114,6 +116,11 @@ maybeObfuscate opts =
   if anon_ . inputopts_ $ opts
       then anon
       else id
+
+-- legacy aliases
+pivotByOpts, anonymiseByOpts :: CliOpts -> Journal -> Journal
+pivotByOpts     = maybePivot
+anonymiseByOpts = maybeObfuscate
 
 -- | Write some output to stdout or to a file selected by --output-file.
 -- If the file exists it will be overwritten.
