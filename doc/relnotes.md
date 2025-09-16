@@ -74,6 +74,88 @@ Major releases and user-visible changes, collected from the changelogs (
 
 
 
+
+## 2025-09-16 hledger-1.50.1
+
+### hledger 1.50.1
+
+
+Fixes
+
+- Balance commands now show an empty report instead of an error when
+  no transactions are matched, fixing a regression in 1.50.
+  (Stephen Morgan, [#2452])
+
+- In hledger-ui, the Z key (and the -E command line flag) toggles zero-balance accounts again.
+  (Stephen Morgan, [#2454])
+
+- The `print` command's help no longer shows an unused --show-costs flag.
+  And the command-specific flags are now mostly ordered alphabetically.
+
+- Whitespace in the `setup` command's "undeclared commodities" output has been fixed.
+
+Doc updates
+
+- Text encoding
+- bin/README: paypal\*, simplefin\* usage examples, doc link
+
+API
+
+- Hledger.Cli.Utils:
+  add withJournal alias for withJournalDo,
+  pivotByOpts -> maybePivot,
+  anonymiseByOpts -> maybeWarnAboutAnon,
+  stop exporting pivotByOpts, anonymiseByOpts
+
+- Hledger.UI.ErrorScreen:
+  uiReloadJournal -> uiReload,
+  uiReloadJournalIfChanged -> uiReloadIfFileChanged
+
+
+### hledger-ui 1.50.1
+
+
+Fixes
+
+- When the journal is reloaded by the `g` key or `--watch`, the
+  --pivot (and --obfuscate) options are now preserved,
+  and spurious errors are avoided.
+  [#2451]
+
+- The transaction screen and error screen now update on data changes like other screens,
+  eg when using the E key, g key, or --watch.
+  [#2014], [#2288]
+
+Improvements
+
+- Debug output has improved, eg it's easier to see changes to the screen stack.
+
+API
+
+- Hledger.UI.ErrorScreen:
+  uiReloadJournal -> uiReload,
+  uiReloadJournalIfChanged -> uiReloadIfFileChanged
+- Hledger.UI.UIState:
+  enableForecastPreservingPeriod -> enableForecast
+
+
+### hledger-web 1.50.1
+
+- Uses hledger 1.50.1
+
+
+### credits 1.50.1
+
+Simon Michael (@simonmichael),
+Stephen Morgan (@Xitian9).
+
+[#2014]: https://github.com/simonmichael/hledger/issues/2014
+[#2288]: https://github.com/simonmichael/hledger/issues/2288
+[#2451]: https://github.com/simonmichael/hledger/issues/2451
+[#2452]: https://github.com/simonmichael/hledger/issues/2452
+[#2454]: https://github.com/simonmichael/hledger/issues/2454
+
+
 ## 2025-09-03 hledger-1.50
 
 **Better transaction balancing, include improvements, auto posting account interpolation, csv data commands, import archiving, timeclock improvements, fixes**
