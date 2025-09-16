@@ -23,19 +23,9 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# d64cbee7
+# d0068e63
 
-Breaking changes
-
-Fixes
-
-Features
-
-Improvements
-
-Docs
-
-API
+- Uses hledger 1.50.1
 
 
 # 1.50 2025-09-03

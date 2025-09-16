@@ -13,6 +13,8 @@ module Hledger.UI.ErrorScreen
  ,uiCheckBalanceAssertions
  ,uiReload
  ,uiReloadIfFileChanged
+ ,uiReloadJournal
+ ,uiReloadJournalIfChanged
  )
 where
 
@@ -34,6 +36,10 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
+
+-- legacy aliases
+uiReloadJournal = uiReload
+uiReloadJournalIfChanged = uiReloadIfFileChanged
 
 esDraw :: UIState -> [Widget Name]
 esDraw UIState{aScreen=ES ESS{..}
