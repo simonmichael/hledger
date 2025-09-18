@@ -1028,7 +1028,7 @@ ledger-mode or hledger-mode for Emacs,
 vim-ledger for Vim,
 and hledger-vscode for Visual Studio Code,
 make this easier, adding colour, formatting, tab completion, and useful commands.
-See [Editor configuration](/editors.html) at hledger.org for the full list.
+See [Editors](/editors.html) at hledger.org for the full list.
 
 <!--
 Here's an example:
