@@ -899,11 +899,17 @@ haddock-open:
 @modulediag PKG:
     cd {{ PKG }} && stack exec -- graphmod -q | tred | dot -Tsvg >modules.svg
 
-# optimise and commit RELEASING value map diagram
+# optimise and commit RELEASING.png diagram after export from obsidian
 @releasediag:
-    pngquant doc/HledgerReleaseValueMap.png -f -o doc/HledgerReleaseValueMap.png
-    git add doc/HledgerReleaseValueMap.png
-    git commit -m ';doc: RELEASING: update value map' -- doc/HledgerReleaseValueMap.png
+    pngquant doc/RELEASING.png -f -o doc/RELEASING.png
+    git add doc/RELEASING.png
+    git commit -m ';doc:RELEASING.png: update' -- doc/RELEASING.png
+
+# optimise and commit doc-update.png diagram after export from obsidian
+@docupdatediag:
+    pngquant doc/doc-update.png -f -o doc/doc-update.png
+    git add doc/doc-update.png
+    git commit -m ';doc:doc-update.png: update' -- doc/doc-update.png
 
 CHANGELOGS := 'CHANGES.md hledger/CHANGES.md hledger-ui/CHANGES.md hledger-web/CHANGES.md hledger-lib/CHANGES.md'
 
