@@ -42,9 +42,9 @@ accountsmode = hledgerCommandMode
   ,flagNone ["unused"]       (setboolopt "unused")     "list accounts declared but not used"
   ,flagNone ["find"]         (setboolopt "find")       "list the first account matched by the first argument (a case-insensitive infix regexp)"
 
-  ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
-  ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
   ,flagNone ["directives"]   (setboolopt "directives") "show as account directives, for use in journals"
+  ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
+  ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
   ]
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"]
@@ -59,9 +59,9 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
-      types = boolopt "types"    rawopts
-      positions = boolopt "positions" rawopts
       directives = boolopt "directives" rawopts
+      positions = boolopt "positions" rawopts
+      types = boolopt "types" rawopts
       -- Modified queries. These may not work with boolean queries (#2371).
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
       nodepthq = dbg4 "nodepthq" $ filterQuery (not . queryIsDepth) query
