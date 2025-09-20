@@ -8,7 +8,8 @@ packages:
 - hledger-ui
 - hledger-web
 
-#extra-deps:
+extra-deps:
+- encoding-0.10
 
 nix:
   pure: false
