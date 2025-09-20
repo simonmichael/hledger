@@ -124,9 +124,10 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
       where
         indent      = T.replicate (2 * (max 0 (accountNameLevel a - drop_ ropts) - 1)) " "
         droppedName = accountNameDrop (drop_ ropts) a
-    showType a 
-      | types     = pad a <> "    ; type: " <> maybe "" (T.pack . show) (journalAccountType j a)
-      | otherwise = ""
+    showType a =
+      case (types, journalAccountType j a) of
+        (True, Just t) -> pad a <> "    ; type: " <> T.pack (show t)
+        _ -> ""
     showAcctDeclOrder a
       | positions =
         (if types then "," else pad a <> "    ;") <>
