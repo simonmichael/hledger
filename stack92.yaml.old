@@ -15,6 +15,7 @@ extra-deps:
 - safe-0.3.21
 # for hledger-lib:
 - encoding-0.10
+- hashtables-1.4.2
 # for hledger:
 # for hledger-ui:
 - brick-2.3.1
