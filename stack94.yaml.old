@@ -13,6 +13,7 @@ packages:
 extra-deps:
 - brick-2.3.1
 - encoding-0.10
+- hashtables-1.4.2
 - fsnotify-0.4.2.0
 - hfsevents-0.1.8
 - safe-0.3.21
