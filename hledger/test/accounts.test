@@ -38,7 +38,7 @@ account asset
 
 $ hledger -f - accounts --types
 asset      ; type: A
-unknown    ; type: 
+unknown
 
 # ** 7. equity:conversion, and several other names, are detected as V/Conversion type by default.
 <
