@@ -10,6 +10,7 @@ packages:
 
 extra-deps:
 - encoding-0.10
+- hashtables-1.4.2
 - vty-windows-0.2.0.1
 
 nix:
