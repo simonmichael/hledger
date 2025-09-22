@@ -1447,13 +1447,23 @@ Note the **two or more spaces** delimiter that's sometimes required after accoun
 hledger's account names, inherited from Ledger, are very permissive;
 they may contain pretty much any kind of text, including single spaces and semicolons.
 Because of this, they must be terminated by **two or more spaces** if there is anything following them on the same line.
-For example, if an amount (`$10`), a balance assignment (`=$1000`), or a same-line comment (`; comment`)
+For example, if an amount, balance assignment, or same-line comment
 follows an account name, they must be preceded by two or more spaces,
-else they would be considered part of the account name.
+else they would be considered part of the account name:
+
+```journal
+    assets:checking  $10  ; <- 2+ spaces between assets:checking and $
+```
+```journal
+    assets:checking  =$1000  ; <- 2+ spaces between assets:checking and =
+```
+```journal
+    assets:checking  ; comment  ; <- 2+ spaces between assets:checking and ;
+```
 
 This two-space delimiter appears in a few places in hledger:
 eg in postings, in account directives, and in period expressions.
-At the start it's easy to forget - expect it to catch you out at least once - but it soon becomes familiar.
+When starting out it's easy to forget - expect it to catch you out at least once.
 
 ### Account hierarchy
 
