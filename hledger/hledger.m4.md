@@ -1443,17 +1443,17 @@ In hledger docs you may see them referred to as A, L, E, R, X for short.
 
 ### The two space delimiter
 
-Note the **two or more spaces** delimiter that's sometimes required after account names, mentioned above. <!-- (Two or more tabs will also work.) -->
+Note the **two or more spaces** delimiter that's sometimes required after account names. <!-- (Two or more tabs will also work.) -->
 hledger's account names, inherited from Ledger, are very permissive;
 they may contain pretty much any kind of text, including single spaces and semicolons.
-Because of this, they must be terminated by **two or more spaces** - if anything follows them on the same line.
-For example, if an amount (`$10`), a balance assignment (`= $100`), or a same-line comment (`; comment`)
+Because of this, they must be terminated by **two or more spaces** if there is anything following them on the same line.
+For example, if an amount (`$10`), a balance assignment (`=$1000`), or a same-line comment (`; comment`)
 follows an account name, they must be preceded by two or more spaces,
-else they would be parsed as a continuation of the account name.
+else they would be considered part of the account name.
 
-This two-space delimiter appears in a few places in hledger,
+This two-space delimiter appears in a few places in hledger:
 eg in postings, in account directives, and in period expressions.
-It's easy to forget this at first, and it will catch you out at least once at the start, but it soon becomes familiar.
+At the start it's easy to forget - expect it to catch you out at least once - but it soon becomes familiar.
 
 ### Account hierarchy
 
