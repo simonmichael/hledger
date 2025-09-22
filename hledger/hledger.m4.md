@@ -1452,23 +1452,24 @@ follows an account name, they must be preceded by two or more spaces,
 else they would be considered part of the account name:
 
 ```
-bad:     assets:checking $10
-good:    assets:checking  $10
+bad:     assets:accounts receivable $10       ; <- too close!
+good:    assets:accounts receivable  $10
 ```
-
+<!-- -->
 ```
-bad:     assets:checking =$1000
-good:    assets:checking  =$1000
+bad:     assets:accounts receivable =$1000    ; <- too close!
+good:    assets:accounts receivable  =$1000
 ```
-
+<!-- -->
 ```
-bad:     assets:checking ; comment
-good:    assets:checking  ; comment
+bad:     assets:accounts receivable ; comment.   <- too close!
+good:    assets:accounts receivable  ; comment
 ```
 
 This two-space delimiter appears in a few places in hledger:
 eg in postings, in account directives, and in period expressions.
 When starting out it's easy to forget - expect it to catch you out at least once.
+It's annoying sometimes, but it lets us use expressive account names while keeping the syntax light.
 
 ### Account hierarchy
 
