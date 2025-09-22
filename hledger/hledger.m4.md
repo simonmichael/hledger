@@ -1469,7 +1469,7 @@ good:    assets:accounts receivable  ; comment
 This two-space delimiter appears in a few places in hledger:
 eg in [postings](#postings),
 in [account directives](#account-directive),
-and in [period expressions](#period-expressions).
+and in [periodic transaction rules](#periodic-transactions).
 When you are starting out, expect it to catch you out at least once.
 It's annoying sometimes, but it lets us use expressive account names
 while still keeping the syntax light.
