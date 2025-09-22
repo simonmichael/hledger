@@ -1467,8 +1467,10 @@ good:    assets:accounts receivable  ; comment
 ```
 
 This two-space delimiter appears in a few places in hledger:
-eg in postings, in account directives, and in period expressions.
-When starting out it's easy to forget - expect it to catch you out at least once.
+eg in [postings](#postings),
+in [account directives](#account-directive),
+and in [period expressions](#period-expressions).
+When you are starting out, expect it to catch you out at least once.
 It's annoying sometimes, but it lets us use expressive account names
 while still keeping the syntax light.
 
