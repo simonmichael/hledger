@@ -1452,10 +1452,10 @@ follows an account name, they must be preceded by two or more spaces,
 else they would be considered part of the account name:
 
 ```journal
-    assets:checking  $10  ; <- 2+ spaces between assets:checking and $
+    assets:checking  $10        ; <- 2+ spaces between assets:checking and $
 ```
 ```journal
-    assets:checking  =$1000  ; <- 2+ spaces between assets:checking and =
+    assets:checking  =$1000     ; <- 2+ spaces between assets:checking and =
 ```
 ```journal
     assets:checking  ; comment  ; <- 2+ spaces between assets:checking and ;
