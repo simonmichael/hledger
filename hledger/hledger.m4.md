@@ -1455,10 +1455,12 @@ else they would be considered part of the account name:
 bad:     assets:checking $10
 good:    assets:checking  $10
 ```
+
 ```
 bad:     assets:checking =$1000
 good:    assets:checking  =$1000
 ```
+
 ```
 bad:     assets:checking ; comment
 good:    assets:checking  ; comment
