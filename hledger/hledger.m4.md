@@ -1398,20 +1398,23 @@ A posting is an addition of some amount to, or removal of some amount from, an a
 Each posting line begins with at least one space or tab (2 or 4 spaces is common), followed by:
 
 - (optional) a [status](#status) character (empty, `!`, or `*`), followed by a space
-- (required) an [account name](#account-names) (any text, optionally containing **single spaces**, until end of line or a double space)
-- (optional) **two or more spaces** (or tabs) followed by an [amount](#amounts).
+- (required) an [account name](#account-names) (any text, optionally including single spaces.
+  If anything follows the account name on the same line, the account name must be ended by **two or more spaces**.)
+- (optional) an [amount](#amounts)
+- (optional) a same-line [posting comment](#posting-comments), beginning with a semicolon (`;`).
 
 If the amount is positive, it is being added to the account;
 if negative, it is being removed from the account.
 
 The posting amounts in a transaction must sum up to zero, indicating that the inflows and outflows are equal. We call this a balanced transaction.
-(You can read more about the nitty-gritty details of "sum up to zero" in [Transaction balancing](#transaction-balancing) below.)
+(You can read more about the details of [transaction balancing](#transaction-balancing) below.)
 
-As a convenience, you can optionally leave one amount blank; hledger will infer what it should be so as to balance the transaction.
+If no amount is written, it will be calculated automatically from the other postings in the transaction, so as to balance the transaction.
+In other words, in any transaction you can leave one posting amountless to save typing.
 
 ### Debits and credits
 
-The traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign, as described above.
+The traditional accounting concepts of debit and credit of course exist in hledger, but we represent them with numeric sign.
 Positive and negative posting amounts represent debits and credits respectively.
 
 You don't need to remember that, but if you would like to - eg for helping newcomers or for talking with your accountant - here's a handy mnemonic:
@@ -1419,26 +1422,47 @@ You don't need to remember that, but if you would like to - eg for helping newco
 *`debit  / plus  / left  / short  words`*\
 *`credit / minus / right / longer words`*
 
-### The two space delimiter
-
-Be sure to notice the unusual separator between the account name and the following amount.
-Because hledger allows account names with spaces in them, you must separate the account name and amount (if any) by **two or more spaces** (or tabs).
-It's easy to forget at first. If you ever see the amount being treated as part of the account name, you'll know you probably need to add another space between them.
-
 ## Account names
 
 Accounts are the main way of categorising things in hledger.
 As in Double Entry Bookkeeping, they can represent real world accounts (such as a bank account),
-or more abstract categories such as "money borrowed from Frank" or "money spent on electricity".
+or more abstract categories such as "money spent on food" or "money borrowed from Frank".
 
-You can use any account names you like, but we usually start with the traditional accounting categories,
-which in english are `assets`, `liabilities`, `equity`, `revenues`, `expenses`.
-(You might see these referred to as A, L, E, R, X for short.)
+Account names are flexible. 
+They may be capitalised or not; 
+they may contain letters, numbers, punctuation, symbols, or single spaces;
+they may be in any language.
 
-For more precise reporting, we usually divide the top level accounts into more detailed subaccounts,
+Typically we use the five traditional accounting categories as the starting point for account names.
+In english they are:
+
+`assets`, `liabilities`, `equity`, `revenues`, `expenses`
+
+These will be discussed more in [Account types](#account-types) below.
+In hledger docs you may see them referred to as A, L, E, R, X for short.
+
+### The two space delimiter
+
+Note the **two or more spaces** delimiter that's sometimes required after account names, mentioned above. <!-- (Two or more tabs will also work.) -->
+hledger's account names, inherited from Ledger, are very permissive;
+they may contain pretty much any kind of text, including single spaces and semicolons.
+Because of this, they must be terminated by **two or more spaces** - if anything follows them on the same line.
+For example, if an amount (`$10`), a balance assignment (`= $100`), or a same-line comment (`; comment`)
+follows an account name, they must be preceded by two or more spaces,
+else they would be parsed as a continuation of the account name.
+
+This two-space delimiter appears in a few places in hledger,
+eg in postings, in account directives, and in period expressions.
+It's easy to forget this at first, and it will catch you out at least once at the start, but it soon becomes familiar.
+
+### Account hierarchy
+
+For more precise reporting, we usually divide accounts into more detailed subaccounts,
+subsubaccounts, and so on,
 by writing a full colon between account name parts. 
-For example, from the account names `assets:bank:checking` and `expenses:food`, 
-hledger will infer this hierarchy of five accounts:
+For example, instead of writing `assets` and `expenses`,
+we might write `assets:bank:checking` and `expenses:food`.
+From these names hledger will infer this hierarchy of five accounts:
 ```
 assets
 assets:bank
@@ -1446,7 +1470,7 @@ assets:bank:checking
 expenses
 expenses:food
 ```
-Shown as an outline, the hierarchical tree structure is more clear:
+Or as an outline:
 ```
 assets
  bank
@@ -1456,18 +1480,18 @@ expenses
 ```
 
 hledger reports can summarise the account tree to any depth,
-so you can go as deep as you like with subcategories,
-but keeping your account names relatively simple may be best when starting out.
+so you can make your subcategories as detailed as you like.
+But don't go overboard, especially when getting started;
+simpler categories can be less work.
 
-Account names may be capitalised or not; they may contain letters, numbers, symbols, or single spaces. 
-Note, when an account name and an amount are written on the same line,
-they must be separated by **two or more spaces** (or tabs).
+### Other account name features
 
-Parentheses or brackets enclosing the full account name indicate [virtual postings](#virtual-postings),
-described below.
-Parentheses or brackets internal to the account name have no special meaning.
+Enclosing the account name in parentheses or brackets, like `(expenses:food)`,
+enables a non-standard bookkeeping feature: [virtual postings](#virtual-postings).
 
-Account names can be altered temporarily or permanently by [account aliases](#alias-directive).
+Account names can be rewritten and restructured, temporarily or permanently,
+by [account aliases](#alias-directive).
+
 
 ## Amounts
 
