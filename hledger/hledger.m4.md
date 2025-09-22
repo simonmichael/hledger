@@ -1451,14 +1451,17 @@ For example, if an amount, balance assignment, or same-line comment
 follows an account name, they must be preceded by two or more spaces,
 else they would be considered part of the account name:
 
-```journal
-    assets:checking  $10        ; <- 2+ spaces between assets:checking and $
 ```
-```journal
-    assets:checking  =$1000     ; <- 2+ spaces between assets:checking and =
+bad:     assets:checking $10
+good:    assets:checking  $10
 ```
-```journal
-    assets:checking  ; comment  ; <- 2+ spaces between assets:checking and ;
+```
+bad:     assets:checking =$1000
+good:    assets:checking  =$1000
+```
+```
+bad:     assets:checking ; comment
+good:    assets:checking  ; comment
 ```
 
 This two-space delimiter appears in a few places in hledger:
