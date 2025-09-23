@@ -1466,13 +1466,11 @@ bad:     assets:accounts receivable ; comment.   <- too close!
 good:    assets:accounts receivable  ; comment
 ```
 
-This two-space delimiter appears in a few places in hledger:
-eg in [postings](#postings),
-in [account directives](#account-directive),
-and in [periodic transaction rules](#periodic-transactions).
-When you are starting out, expect it to catch you out at least once.
-It's annoying sometimes, but it lets us use expressive account names
-while still keeping the syntax light.
+This two-space delimiter appears in a few places in hledger,
+such as after account names in [postings](#postings) or [account directives](#account-directive);
+also after the period expression in [periodic transaction rules](#periodic-transactions).
+When you are starting out, expect it to catch you out at least once. It's annoying sometimes,
+but it lets us use expressive account names while still keeping the syntax light.
 
 ### Account hierarchy
 
