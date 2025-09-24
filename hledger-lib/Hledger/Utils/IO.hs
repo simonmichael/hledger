@@ -341,7 +341,8 @@ handleExit = flip catches [
         noencoding = map toLower enc == "ascii"
         msg = unlines $ [
             rstrip $ show ex
-          , "Some text could not be decoded with the system text encoding, " <> enc <> "."
+          , "Some text could not be decoded with the system's text encoding, " <> enc
+          , "(or if CSV rules specified it, the CSV's text encoding)."
           ] ++
           if noencoding
           then [
