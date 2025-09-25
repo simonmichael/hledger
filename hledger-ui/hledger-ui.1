@@ -406,14 +406,6 @@ until the next reload).
 On this screen (and the register screen), the \f[CR]E\f[R] key will open
 your text editor with the cursor positioned at the current transaction
 if possible.
-.PP
-This screen has a limitation with showing file updates: it will not show
-them until you exit and re\-enter it.
-So eg to see the effect of using the \f[CR]E\f[R] key, currently you
-must: \- press \f[CR]E\f[R], edit and save the file, then exit the
-editor, returning to hledger\-ui \- press \f[CR]g\f[R] to reload the
-file (or use \f[CR]\-w/\-\-watch\f[R] mode) \- press \f[CR]LEFT\f[R]
-then \f[CR]RIGHT\f[R] to exit and re\-enter the transaction screen.
 .SS Error screen
 This screen will appear if there is a problem, such as a parse error,
 when you press g to reload.
@@ -494,10 +486,6 @@ stdin).
 .PP
 \f[CR]\-\-watch\f[R] is not robust, especially with large files (see
 WATCH MODE above).
-.PP
-The Transaction screen does not update after file changes, even if you
-press \f[CR]g\f[R], until you exit and re\-enter it.
-(#2288)
 .PP
 If you press \f[CR]g\f[R] with large files, there could be a noticeable
 pause with the UI unresponsive.

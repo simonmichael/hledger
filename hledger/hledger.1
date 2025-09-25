@@ -829,7 +829,7 @@ Here\[aq]s a small example:
 
 \f[I]# Options following a \[ga][COMMAND]\[ga] heading are used with that hledger command only.\f[R]
 \f[B][print]\f[R]
-\-\-explicit \-\-show\-costs
+\-\-explicit \-\-infer\-costs
 .EE
 .PP
 To use a config file, specify it with the \f[CR]\-\-conf\f[R] option.
@@ -1413,7 +1413,7 @@ Editor add\-ons such as ledger\-mode or hledger\-mode for Emacs,
 vim\-ledger for Vim, and hledger\-vscode for Visual Studio Code, make
 this easier, adding colour, formatting, tab completion, and useful
 commands.
-See Editor configuration at hledger.org for the full list.
+See Editors at hledger.org for the full list.
 .PP
 A hledger journal file can contain three kinds of thing: comment lines,
 transactions, and/or directives (including periodic transaction rules
@@ -1630,7 +1630,10 @@ dates documented in the hledger manual.)
 .SS Posting dates
 You can give individual postings a different date from their parent
 transaction, by adding a posting comment containing a tag (see below)
-like \f[CR]date:DATE\f[R].
+like \f[CR]; date:DATE\f[R].
+(There\[aq]s also a Ledger\-compatible syntax, \f[CR]; [DATE]\f[R],
+which can be convenient.)
+.PP
 This is probably the best way to control posting dates precisely.
 Eg in this example the expense should appear in May reports, and the
 deduction from checking should be reported on 6/1 for easy bank
@@ -1807,10 +1810,15 @@ is common), followed by:
 (optional) a status character (empty, \f[CR]!\f[R], or \f[CR]*\f[R]),
 followed by a space
 .IP \[bu] 2
-(required) an account name (any text, optionally containing \f[B]single
-spaces\f[R], until end of line or a double space)
+(required) an account name (any text, optionally including single
+spaces.
+If anything follows the account name on the same line, the account name
+must be ended by \f[B]two or more spaces\f[R].)
 .IP \[bu] 2
-(optional) \f[B]two or more spaces\f[R] (or tabs) followed by an amount.
+(optional) an amount
+.IP \[bu] 2
+(optional) a same\-line posting comment, beginning with a semicolon
+(\f[CR];\f[R]).
 .PP
 If the amount is positive, it is being added to the account; if
 negative, it is being removed from the account.
@@ -1818,14 +1826,15 @@ negative, it is being removed from the account.
 The posting amounts in a transaction must sum up to zero, indicating
 that the inflows and outflows are equal.
 We call this a balanced transaction.
-(You can read more about the nitty\-gritty details of \[dq]sum up to
-zero\[dq] in Transaction balancing below.)
+(You can read more about the details of transaction balancing below.)
 .PP
-As a convenience, you can optionally leave one amount blank; hledger
-will infer what it should be so as to balance the transaction.
+If no amount is written, it will be calculated automatically from the
+other postings in the transaction, so as to balance the transaction.
+In other words, in any transaction you can leave one posting amountless
+to save typing.
 .SS Debits and credits
 The traditional accounting concepts of debit and credit of course exist
-in hledger, but we represent them with numeric sign, as described above.
+in hledger, but we represent them with numeric sign.
 Positive and negative posting amounts represent debits and credits
 respectively.
 .PP
@@ -1838,33 +1847,66 @@ handy mnemonic:
 .P
 .PD
 \f[I]\f[CI]credit / minus / right / longer words\f[I]\f[R]
-.SS The two space delimiter
-Be sure to notice the unusual separator between the account name and the
-following amount.
-Because hledger allows account names with spaces in them, you must
-separate the account name and amount (if any) by \f[B]two or more
-spaces\f[R] (or tabs).
-It\[aq]s easy to forget at first.
-If you ever see the amount being treated as part of the account name,
-you\[aq]ll know you probably need to add another space between them.
 .SS Account names
 Accounts are the main way of categorising things in hledger.
 As in Double Entry Bookkeeping, they can represent real world accounts
 (such as a bank account), or more abstract categories such as \[dq]money
-borrowed from Frank\[dq] or \[dq]money spent on electricity\[dq].
+spent on food\[dq] or \[dq]money borrowed from Frank\[dq].
 .PP
-You can use any account names you like, but we usually start with the
-traditional accounting categories, which in english are
+Account names are flexible.
+They may be capitalised or not; they may contain letters, numbers,
+punctuation, symbols, or single spaces; they may be in any language.
+.PP
+Typically we use the five traditional accounting categories as the
+starting point for account names.
+In english they are:
+.PP
 \f[CR]assets\f[R], \f[CR]liabilities\f[R], \f[CR]equity\f[R],
-\f[CR]revenues\f[R], \f[CR]expenses\f[R].
-(You might see these referred to as A, L, E, R, X for short.)
+\f[CR]revenues\f[R], \f[CR]expenses\f[R]
 .PP
-For more precise reporting, we usually divide the top level accounts
-into more detailed subaccounts, by writing a full colon between account
-name parts.
-For example, from the account names \f[CR]assets:bank:checking\f[R] and
-\f[CR]expenses:food\f[R], hledger will infer this hierarchy of five
-accounts:
+These will be discussed more in Account types below.
+In hledger docs you may see them referred to as A, L, E, R, X for short.
+.SS The two space delimiter
+Note the \f[B]two or more spaces\f[R] delimiter that\[aq]s sometimes
+required after account names.
+\ hledger\[aq]s account names, inherited from Ledger, are very
+permissive; they may contain pretty much any kind of text, including
+single spaces and semicolons.
+Because of this, they must be terminated by \f[B]two or more spaces\f[R]
+if there is anything following them on the same line.
+For example, if an amount, balance assignment, or same\-line comment
+follows an account name, they must be preceded by two or more spaces,
+else they would be considered part of the account name:
+.IP
+.EX
+bad:     assets:accounts receivable $10        ; <\- too close!
+good:    assets:accounts receivable  $10
+.EE
+.IP
+.EX
+bad:     assets:accounts receivable =$1000     ; <\- too close!
+good:    assets:accounts receivable  =$1000
+.EE
+.IP
+.EX
+bad:     assets:accounts receivable ; comment.   <\- too close!
+good:    assets:accounts receivable  ; comment
+.EE
+.PP
+This two\-space delimiter appears in a few places in hledger, such as
+after account names in postings or account directives; also after the
+period expression in periodic transaction rules.
+When you are starting out, expect it to catch you out at least once.
+It\[aq]s annoying sometimes, but it lets us use expressive account names
+while still keeping the syntax light.
+.SS Account hierarchy
+For more precise reporting, we usually divide accounts into more
+detailed subaccounts, subsubaccounts, and so on, by writing a full colon
+between account name parts.
+For example, instead of writing \f[CR]assets\f[R] and
+\f[CR]expenses\f[R], we might write \f[CR]assets:bank:checking\f[R] and
+\f[CR]expenses:food\f[R].
+From these names hledger will infer this hierarchy of five accounts:
 .IP
 .EX
 assets
@@ -1874,7 +1916,7 @@ expenses
 expenses:food
 .EE
 .PP
-Shown as an outline, the hierarchical tree structure is more clear:
+Or as an outline:
 .IP
 .EX
 assets
@@ -1885,21 +1927,16 @@ expenses
 .EE
 .PP
 hledger reports can summarise the account tree to any depth, so you can
-go as deep as you like with subcategories, but keeping your account
-names relatively simple may be best when starting out.
+make your subcategories as detailed as you like.
+But don\[aq]t go overboard, especially when getting started; simpler
+categories can be less work.
+.SS Other account name features
+Enclosing the account name in parentheses or brackets, like
+\f[CR](expenses:food)\f[R], enables a non\-standard bookkeeping feature:
+virtual postings.
 .PP
-Account names may be capitalised or not; they may contain letters,
-numbers, symbols, or single spaces.
-Note, when an account name and an amount are written on the same line,
-they must be separated by \f[B]two or more spaces\f[R] (or tabs).
-.PP
-Parentheses or brackets enclosing the full account name indicate virtual
-postings, described below.
-Parentheses or brackets internal to the account name have no special
-meaning.
-.PP
-Account names can be altered temporarily or permanently by account
-aliases.
+Account names can be rewritten and restructured, temporarily or
+permanently, by account aliases.
 .SS Amounts
 After the account name, there is usually an amount.
 (Remember: between account name and amount, there must be two or more
@@ -6694,46 +6731,37 @@ With the \f[CR]\-\-depth NUM\f[R] option (short form: \f[CR]\-NUM\f[R]),
 reports will show accounts only to the specified depth, hiding deeper
 subaccounts.
 Use this when you want a summary with less detail.
-This flag has the same effect as a \f[CR]depth:\f[R] query argument:
-\f[CR]depth:2\f[R], \f[CR]\-\-depth=2\f[R] or \f[CR]\-2\f[R] are
-equivalent.
+This flag has the same effect as a \f[CR]depth:\f[R] query argument.
+So all of these are equivalent: \f[CR]depth:2\f[R],
+\f[CR]\-\-depth=2\f[R], \f[CR]\-2\f[R].
 .PP
 In place of a single number which limits the depth for all accounts, you
-can also provide separate depth limits for different accounts using
-regular expressions \f[I](since 1.41)\f[R].
-.PP
-For example, \f[CR]\-\-depth assets=2\f[R] (or, equivalently:
+can also provide depth limits for specific accounts, by providing a
+\f[CR]REGEX=DEPTH\f[R] argument instead of just a \f[CR]DEPTH\f[R]
+\f[I](since 1.41)\f[R].
+For example, \f[CR]\-\-depth assets=2\f[R] (or
 \f[CR]depth:assets=2\f[R]) will collapse accounts matching the regular
-expression \f[CR]assets\f[R] to depth 2.
+expression \[dq]assets\[dq] to depth 2.
 So \f[CR]assets:bank:savings\f[R] would be collapsed to
-\f[CR]assets:bank\f[R], while \f[CR]liabilities:bank:credit card\f[R]
+\f[CR]assets:bank\f[R], but \f[CR]liabilities:bank:credit card\f[R]
 would not be affected.
-This can be combined with a flat depth to collapse other accounts not
-matching the regular expression, so
-\f[CR]\-\-depth assets=2 \-\-depth 1\f[R] would collapse
-\f[CR]assets:bank:savings\f[R] to \f[CR]assets:bank\f[R] and
-\f[CR]liabilities:bank:credit card\f[R] to \f[CR]liabilities\f[R].
 .PP
-You can supply multiple depth arguments and they will all be applied, so
-\f[CR]\-\-depth assets=2 \-\-depth liabilities=3 \-\-depth 1\f[R] would
-collapse:
-.IP \[bu] 2
-accounts matching \f[CR]assets\f[R] to depth 2,
-.IP \[bu] 2
-accounts matching \f[CR]liabilities\f[R] to depth 3,
-.IP \[bu] 2
-all other accounts to depth 1.
+(If REGEX contains spaces or other special characters, enclose it in
+quotes in the usual way.
+Eg: \f[CR]\-\-depth \[aq]credit card=2\[aq]\f[R])
+.PP
+Specific depth options and a general depth option can be combined.
+Eg \f[CR]\-\-depth assets=3 \-\-depth expenses=2 \-\-depth 1\f[R] would
+collapse accounts containing \[dq]assets\[dq] to depth 3, accounts
+containing \[dq]expenses\[dq] to depth 2, and all other accounts to
+depth 1.
 .PP
 If an account is matched by more than one regular expression depth
-argument then the more specific one will be used.
-For example, if
-\f[CR]\-\-depth assets=1 \-\-depth assets:bank:savings=2\f[R] is
-provided, then \f[CR]assets:bank:savings\f[R] will be collapsed to depth
-2 rather than depth 1.
-This is because \f[CR]assets:bank:savings\f[R] matches at level 3 in the
-account name, while \f[CR]assets\f[R] matches at level 1.
-The same would be true with the argument
-\f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R].
+argument, the most specific (deepest) match will be used.
+For example, with \f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R],
+\f[CR]assets:bank:savings\f[R] will be collapsed to depth 2, not depth 1
+(because \[dq]savings\[dq] matches a deeper part of it than
+\[dq]assets\[dq] does).
 .SH Queries
 Many hledger commands accept query arguments, which restrict their scope
 and let you report on a precise subset of your data.
@@ -8265,7 +8293,6 @@ Related: #1625
 .SS Effect of valuation on reports
 Here is a reference for how valuation is supposed to affect each part of
 hledger\[aq]s reports.
-(It\[aq]s wide, you may need to scroll sideways.)
 It may be useful when troubleshooting.
 If you find problems, please report them, ideally with a reproducible
 example.
@@ -9709,8 +9736,16 @@ Show full journal entries, representing transactions.
 .EX
 Flags:
   \-x \-\-explicit             show all amounts explicitly
-     \-\-show\-costs           show transaction prices even with conversion
-                            postings
+     \-\-invert               display all amounts with reversed sign
+     \-\-location             add tags showing file paths and line numbers
+  \-m \-\-match=DESC           fuzzy search for one recent transaction with
+                            description closest to DESC
+     \-\-new                  show only newer\-dated transactions added in each
+                            file since last run
+     \-\-no\-lots              remove lot subaccounts and their balance
+                            assertions
+     \-\-no\-lots2             remove lot subaccounts and their costs and
+                            balance assertions (can produce unbalanced entries)
      \-\-round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none \- show original decimal digits,
@@ -9721,15 +9756,9 @@ Flags:
                                    (can unbalance transactions)
                             all  \- also round cost amounts to precision
                                    (can unbalance transactions)
-     \-\-invert               display all amounts with reversed sign
-     \-\-new                  show only newer\-dated transactions added in each
-                            file since last run
-  \-m \-\-match=DESC           fuzzy search for one recent transaction with
-                            description closest to DESC
      \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
                             with this prefix. (Usually the base url shown by
                             hledger\-web; can also be relative.)
-     \-\-location             add tags showing file paths and line numbers
   \-O \-\-output\-format=FMT    select the output format. Supported formats:
                             txt, beancount, csv, tsv, html, fods, json, sql.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
@@ -10191,7 +10220,7 @@ The \f[CR]\-\-depth\f[R] option helps with this, causing subaccounts to
 be aggregated:
 .IP
 .EX
-$ hledger register \-\-monthly assets \-\-depth 1h
+$ hledger register \-\-monthly assets \-\-depth 1
 2008/01                 assets                                  $1           $1
 2008/06                 assets                                 $\-1            0
 2008/12                 assets                                 $\-1          $\-1
@@ -13214,13 +13243,16 @@ We welcome bug reports in the hledger issue tracker
 .PP
 Some known issues and limitations:
 .PP
-A system locale with a suitable text encoding must be configured to work
-with non\-ascii data.
+hledger uses the system\[aq]s text encoding when reading non\-ascii
+text.
+If no system encoding is configured, or if the data\[aq]s encoding is
+different, hledger will give an error.
 (See Text encoding, Troubleshooting.)
 .PP
 On Microsoft Windows, depending what kind of terminal window you use,
 non\-ascii characters, ANSI text formatting, and/or the add
-command\[aq]s TAB key for completion, may not be supported.
+command\[aq]s TAB key, may not be fully supported.
+(For best results, try a powershell window.)
 .PP
 When processing large data files, hledger uses more memory than Ledger.
 .SS Troubleshooting

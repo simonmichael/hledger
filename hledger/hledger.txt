@@ -646,7 +646,7 @@ Options
 
               # Options following a `[COMMAND]` heading are used with that hledger command only.
               [print]
-              --explicit --show-costs
+              --explicit --infer-costs
 
        To use a config file, specify it with the --conf option.   Its  options
        will  be inserted near the start of your command line, so you can over-
@@ -1046,14 +1046,14 @@ Journal
        changes with a version control system such as git.  Editor add-ons such
        as ledger-mode or hledger-mode  for  Emacs,  vim-ledger  for  Vim,  and
        hledger-vscode for Visual Studio Code, make this easier, adding colour,
-       formatting, tab completion, and useful commands.  See Editor configura-
-       tion at hledger.org for the full list.
+       formatting,  tab  completion,  and  useful  commands.   See  Editors at
+       hledger.org for the full list.
 
        A hledger journal file can contain three kinds of thing: comment lines,
-       transactions,  and/or  directives (including periodic transaction rules
-       and auto posting rules).  Understanding the journal  file  format  will
-       also  give  you a good understanding of hledger's data model.  Here's a
-       quick cheatsheet/overview, followed by detailed  descriptions  of  each
+       transactions, and/or directives (including periodic  transaction  rules
+       and  auto  posting  rules).  Understanding the journal file format will
+       also give you a good understanding of hledger's data model.   Here's  a
+       quick  cheatsheet/overview,  followed  by detailed descriptions of each
        part.
 
    Journal cheatsheet
@@ -1188,7 +1188,7 @@ Journal
 
    Comments
        Lines in the journal will be ignored if they begin with a hash (#) or a
-       semicolon  (;).  (See also Other syntax.)  hledger will also ignore re-
+       semicolon (;).  (See also Other syntax.)  hledger will also ignore  re-
        gions beginning with a comment line and ending with an end comment line
        (or file end).  Here's a suggestion for choosing between them:
 
@@ -1210,15 +1210,15 @@ Journal
               end comment
 
        Some hledger entries can have same-line comments attached to them, from
-       ; (semicolon) to end of line.  See Transaction comments,  Posting  com-
+       ;  (semicolon)  to end of line.  See Transaction comments, Posting com-
        ments, and Account comments below.
 
    Transactions
-       Transactions  are the main unit of information in a journal file.  They
-       represent events, typically a movement of some quantity of  commodities
+       Transactions are the main unit of information in a journal file.   They
+       represent  events, typically a movement of some quantity of commodities
        between two or more named accounts.
 
-       Each  transaction is recorded as a journal entry, beginning with a sim-
+       Each transaction is recorded as a journal entry, beginning with a  sim-
        ple date in column 0.  This can be followed by any of the following op-
        tional fields, separated by spaces:
 
@@ -1228,11 +1228,11 @@ Journal
 
        o a description (any remaining text until end of line or a semicolon)
 
-       o a comment (any remaining text following  a  semicolon  until  end  of
+       o a  comment  (any  remaining  text  following a semicolon until end of
          line, and any following indented lines beginning with a semicolon)
 
        o 0 or more indented posting lines, describing what was transferred and
-         the  accounts  involved (indented comment lines are also allowed, but
+         the accounts involved (indented comment lines are also  allowed,  but
          not blank lines or non-indented lines).
 
        Here's a simple journal file containing one transaction:
@@ -1243,23 +1243,26 @@ Journal
 
    Dates
    Simple dates
-       Dates in the journal  file  use  simple  dates  format:  YYYY-MM-DD  or
+       Dates  in  the  journal  file  use  simple  dates format: YYYY-MM-DD or
        YYYY/MM/DD or YYYY.MM.DD, with leading zeros optional.  The year may be
-       omitted,  in  which case it will be inferred from the context: the cur-
-       rent transaction, the default year set with a Y directive, or the  cur-
+       omitted, in which case it will be inferred from the context:  the  cur-
+       rent  transaction, the default year set with a Y directive, or the cur-
        rent  date  when  the  command  is  run.   Some  examples:  2010-01-31,
        2010/01/31, 2010.1.31, 1/31.
 
-       (The UI also accepts simple dates, as well as the more  flexible  smart
+       (The  UI  also accepts simple dates, as well as the more flexible smart
        dates documented in the hledger manual.)
 
    Posting dates
-       You  can  give  individual  postings a different date from their parent
-       transaction, by adding a posting comment containing a tag  (see  below)
-       like date:DATE.  This is probably the best way to control posting dates
-       precisely.   Eg  in  this  example the expense should appear in May re-
-       ports, and the deduction from checking should be reported  on  6/1  for
-       easy bank reconciliation:
+       You can give individual postings a different  date  from  their  parent
+       transaction,  by  adding a posting comment containing a tag (see below)
+       like ; date:DATE.  (There's also a Ledger-compatible syntax, ;  [DATE],
+       which can be convenient.)
+
+       This  is  probably the best way to control posting dates precisely.  Eg
+       in this example the expense should appear in May reports, and  the  de-
+       duction from checking should be reported on 6/1 for easy bank reconcil-
+       iation:
 
               2015/5/30
                   expenses:food     $10  ; food purchased on saturday 5/30
@@ -1375,27 +1378,32 @@ Journal
 
        o (optional) a status character (empty, !, or *), followed by a space
 
-       o (required) an account name (any text,  optionally  containing  single
-         spaces, until end of line or a double space)
+       o (required) an account name (any  text,  optionally  including  single
+         spaces.   If  anything follows the account name on the same line, the
+         account name must be ended by two or more spaces.)
 
-       o (optional) two or more spaces (or tabs) followed by an amount.
+       o (optional) an amount
+
+       o (optional) a same-line posting comment, beginning  with  a  semicolon
+         (;).
 
        If  the  amount is positive, it is being added to the account; if nega-
        tive, it is being removed from the account.
 
        The posting amounts in a transaction must sum up  to  zero,  indicating
        that  the  inflows  and  outflows  are  equal.  We call this a balanced
-       transaction.  (You can read more about the nitty-gritty details of "sum
-       up to zero" in Transaction balancing below.)
+       transaction.  (You can read more about the details of transaction  bal-
+       ancing below.)
 
-       As a convenience, you can optionally leave one  amount  blank;  hledger
-       will infer what it should be so as to balance the transaction.
+       If  no  amount is written, it will be calculated automatically from the
+       other postings in the transaction, so as to  balance  the  transaction.
+       In other words, in any transaction you can leave one posting amountless
+       to save typing.
 
    Debits and credits
        The traditional accounting concepts of debit and credit of course exist
-       in  hledger,  but  we  represent  them  with numeric sign, as described
-       above.  Positive and negative  posting  amounts  represent  debits  and
-       credits respectively.
+       in hledger, but we represent them with numeric sign.  Positive and neg-
+       ative posting amounts represent debits and credits respectively.
 
        You  don't  need  to  remember  that, but if you would like to - eg for
        helping newcomers or for talking with your accountant - here's a  handy
@@ -1404,29 +1412,56 @@ Journal
        debit  / plus  / left  / short  words
        credit / minus / right / longer words
 
-   The two space delimiter
-       Be  sure  to  notice the unusual separator between the account name and
-       the following amount.  Because hledger allows account names with spaces
-       in them, you must separate the account name and amount (if any) by  two
-       or  more  spaces (or tabs).  It's easy to forget at first.  If you ever
-       see the amount being treated as part of the account name,  you'll  know
-       you probably need to add another space between them.
-
    Account names
        Accounts  are  the  main  way of categorising things in hledger.  As in
        Double Entry Bookkeeping, they can represent real world accounts  (such
-       as a bank account), or more abstract categories such as "money borrowed
-       from Frank" or "money spent on electricity".
+       as a bank account), or more abstract categories such as "money spent on
+       food" or "money borrowed from Frank".
 
-       You  can  use any account names you like, but we usually start with the
-       traditional accounting categories, which in english are assets, liabil-
-       ities, equity, revenues, expenses.  (You might see these referred to as
-       A, L, E, R, X for short.)
+       Account  names  are flexible.  They may be capitalised or not; they may
+       contain letters, numbers, punctuation, symbols, or single spaces;  they
+       may be in any language.
 
-       For more precise reporting, we usually divide the  top  level  accounts
-       into more detailed subaccounts, by writing a full colon between account
-       name  parts.   For example, from the account names assets:bank:checking
-       and expenses:food, hledger will infer this hierarchy of five accounts:
+       Typically  we  use  the  five  traditional accounting categories as the
+       starting point for account names.  In english they are:
+
+       assets, liabilities, equity, revenues, expenses
+
+       These will be discussed more in Account types below.  In  hledger  docs
+       you may see them referred to as A, L, E, R, X for short.
+
+   The two space delimiter
+       Note  the  two or more spaces delimiter that's sometimes required after
+       account names.   hledger's account names, inherited  from  Ledger,  are
+       very permissive; they may contain pretty much any kind of text, includ-
+       ing single spaces and semicolons.  Because of this, they must be termi-
+       nated  by two or more spaces if there is anything following them on the
+       same line.  For example, if an amount, balance assignment, or same-line
+       comment follows an account name, they must be preceded by two  or  more
+       spaces, else they would be considered part of the account name:
+
+              bad:     assets:accounts receivable $10        ; <- too close!
+              good:    assets:accounts receivable  $10
+
+              bad:     assets:accounts receivable =$1000     ; <- too close!
+              good:    assets:accounts receivable  =$1000
+
+              bad:     assets:accounts receivable ; comment.   <- too close!
+              good:    assets:accounts receivable  ; comment
+
+       This  two-space  delimiter  appears in a few places in hledger, such as
+       after account names in postings or account directives; also  after  the
+       period expression in periodic transaction rules.  When you are starting
+       out,  expect  it  to  catch you out at least once.  It's annoying some-
+       times, but it lets us use expressive account names while still  keeping
+       the syntax light.
+
+   Account hierarchy
+       For  more  precise  reporting, we usually divide accounts into more de-
+       tailed subaccounts, subsubaccounts, and so on, by writing a full  colon
+       between account name parts.  For example, instead of writing assets and
+       expenses,  we might write assets:bank:checking and expenses:food.  From
+       these names hledger will infer this hierarchy of five accounts:
 
               assets
               assets:bank
@@ -1434,7 +1469,7 @@ Journal
               expenses
               expenses:food
 
-       Shown as an outline, the hierarchical tree structure is more clear:
+       Or as an outline:
 
               assets
                bank
@@ -1443,20 +1478,17 @@ Journal
                food
 
        hledger reports can summarise the account tree to any depth, so you can
-       go as deep as you like with subcategories,  but  keeping  your  account
-       names relatively simple may be best when starting out.
+       make your subcategories as detailed as you like.  But  don't  go  over-
+       board,  especially when getting started; simpler categories can be less
+       work.
 
-       Account names may be capitalised or not; they may contain letters, num-
-       bers,  symbols,  or  single  spaces.  Note, when an account name and an
-       amount are written on the same line, they must be separated by  two  or
-       more spaces (or tabs).
+   Other account name features
+       Enclosing the account  name  in  parentheses  or  brackets,  like  (ex-
+       penses:food), enables a non-standard bookkeeping feature: virtual post-
+       ings.
 
-       Parentheses  or  brackets enclosing the full account name indicate vir-
-       tual postings, described below.  Parentheses or  brackets  internal  to
-       the account name have no special meaning.
-
-       Account  names  can  be  altered  temporarily or permanently by account
-       aliases.
+       Account  names can be rewritten and restructured, temporarily or perma-
+       nently, by account aliases.
 
    Amounts
        After the account name, there is usually an amount.  (Remember: between
@@ -5225,38 +5257,30 @@ Depth
        With the --depth NUM option (short form: -NUM), reports will  show  ac-
        counts  only  to  the  specified depth, hiding deeper subaccounts.  Use
        this when you want a summary with less detail.  This flag has the  same
-       effect as a depth: query argument: depth:2, --depth=2 or -2 are equiva-
-       lent.
+       effect  as  a  depth:  query argument.  So all of these are equivalent:
+       depth:2, --depth=2, -2.
 
-       In  place  of  a single number which limits the depth for all accounts,
-       you can also provide separate depth limits for different accounts using
-       regular expressions (since 1.41).
+       In place of a single number which limits the depth  for  all  accounts,
+       you can also provide depth limits for specific accounts, by providing a
+       REGEX=DEPTH  argument  instead of just a DEPTH (since 1.41).  For exam-
+       ple, --depth assets=2 (or depth:assets=2) will collapse accounts match-
+       ing the regular expression "assets" to depth 2.  So assets:bank:savings
+       would be collapsed to  assets:bank,  but  liabilities:bank:credit  card
+       would not be affected.
 
-       For example, --depth assets=2 (or, equivalently:  depth:assets=2)  will
-       collapse  accounts  matching  the regular expression assets to depth 2.
-       So assets:bank:savings would be collapsed to assets:bank, while liabil-
-       ities:bank:credit card would not be affected.   This  can  be  combined
-       with  a  flat depth to collapse other accounts not matching the regular
-       expression,  so  --depth  assets=2  --depth  1   would   collapse   as-
-       sets:bank:savings  to  assets:bank  and liabilities:bank:credit card to
-       liabilities.
+       (If  REGEX  contains  spaces or other special characters, enclose it in
+       quotes in the usual way.  Eg: --depth 'credit card=2')
 
-       You can supply multiple depth arguments and they will all  be  applied,
-       so --depth assets=2 --depth liabilities=3 --depth 1 would collapse:
+       Specific depth options and a general depth option can be combined.   Eg
+       --depth  assets=3  --depth expenses=2 --depth 1 would collapse accounts
+       containing "assets" to depth 3, accounts containing "expenses" to depth
+       2, and all other accounts to depth 1.
 
-       o accounts matching assets to depth 2,
-
-       o accounts matching liabilities to depth 3,
-
-       o all other accounts to depth 1.
-
-       If  an account is matched by more than one regular expression depth ar-
-       gument then the more specific  one  will  be  used.   For  example,  if
-       --depth  assets=1  --depth  assets:bank:savings=2 is provided, then as-
-       sets:bank:savings will be collapsed to depth 2  rather  than  depth  1.
-       This  is  because assets:bank:savings matches at level 3 in the account
-       name, while assets matches at level 1.  The same would be true with the
-       argument --depth assets=1 --depth savings=2.
+       If an account is matched by more than one regular expression depth  ar-
+       gument,  the  most specific (deepest) match will be used.  For example,
+       with --depth assets=1 --depth savings=2,  assets:bank:savings  will  be
+       collapsed  to  depth 2, not depth 1 (because "savings" matches a deeper
+       part of it than "assets" does).
 
 Queries
        Many hledger commands accept  query  arguments,  which  restrict  their
@@ -6489,10 +6513,9 @@ Value reporting
 
    Effect of valuation on reports
        Here  is  a reference for how valuation is supposed to affect each part
-       of hledger's reports.  (It's wide, you may need  to  scroll  sideways.)
-       It  may  be  useful when troubleshooting.  If you find problems, please
-       report them, ideally  with  a  reproducible  example.   Related:  #329,
-       #1083.
+       of hledger's reports.  It may be useful when troubleshooting.   If  you
+       find problems, please report them, ideally with a reproducible example.
+       Related: #329, #1083.
 
        First, a quick glossary:
 
@@ -7590,8 +7613,16 @@ Standard report commands
 
               Flags:
                 -x --explicit             show all amounts explicitly
-                   --show-costs           show transaction prices even with conversion
-                                          postings
+                   --invert               display all amounts with reversed sign
+                   --location             add tags showing file paths and line numbers
+                -m --match=DESC           fuzzy search for one recent transaction with
+                                          description closest to DESC
+                   --new                  show only newer-dated transactions added in each
+                                          file since last run
+                   --no-lots              remove lot subaccounts and their balance
+                                          assertions
+                   --no-lots2             remove lot subaccounts and their costs and
+                                          balance assertions (can produce unbalanced entries)
                    --round=TYPE           how much rounding or padding should be done when
                                           displaying amounts ?
                                           none - show original decimal digits,
@@ -7602,15 +7633,9 @@ Standard report commands
                                                  (can unbalance transactions)
                                           all  - also round cost amounts to precision
                                                  (can unbalance transactions)
-                   --invert               display all amounts with reversed sign
-                   --new                  show only newer-dated transactions added in each
-                                          file since last run
-                -m --match=DESC           fuzzy search for one recent transaction with
-                                          description closest to DESC
                    --base-url=URLPREFIX   in html output, generate links to hledger-web,
                                           with this prefix. (Usually the base url shown by
                                           hledger-web; can also be relative.)
-                   --location             add tags showing file paths and line numbers
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, beancount, csv, tsv, html, fods, json, sql.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -8018,7 +8043,7 @@ Standard report commands
        Often,  you'll want to see just one line per interval.  The --depth op-
        tion helps with this, causing subaccounts to be aggregated:
 
-              $ hledger register --monthly assets --depth 1h
+              $ hledger register --monthly assets --depth 1
               2008/01                 assets                                  $1           $1
               2008/06                 assets                                 $-1            0
               2008/12                 assets                                 $-1          $-1
@@ -10626,45 +10651,48 @@ BUGS
 
        Some known issues and limitations:
 
-       A  system  locale  with  a suitable text encoding must be configured to
-       work with non-ascii data.  (See Text encoding, Troubleshooting.)
+       hledger  uses  the  system's text encoding when reading non-ascii text.
+       If no system encoding is configured, or if the data's encoding is  dif-
+       ferent,  hledger will give an error.  (See Text encoding, Troubleshoot-
+       ing.)
 
        On Microsoft Windows, depending what kind of terminal window  you  use,
        non-ascii  characters,  ANSI  text formatting, and/or the add command's
-       TAB key for completion, may not be supported.
+       TAB key, may not be fully supported.  (For best results, try  a  power-
+       shell window.)
 
        When processing large data files, hledger uses more memory than Ledger.
 
    Troubleshooting
-       Here are some common issues you might encounter when you  run  hledger,
-       and  how  to  resolve them (and remember also you can usually get quick
+       Here  are  some common issues you might encounter when you run hledger,
+       and how to resolve them (and remember also you can  usually  get  quick
        Support):
 
        PATH issues: I get an error like "No command 'hledger' found"
        Depending how you installed hledger, the executables may not be in your
-       shell's PATH.  Eg on unix systems, stack  installs  hledger  in  ~/.lo-
+       shell's  PATH.   Eg  on  unix systems, stack installs hledger in ~/.lo-
        cal/bin and cabal installs it in ~/.cabal/bin.  You may need to add one
-       of  these  directories to your shell's PATH, and/or open a new terminal
+       of these directories to your shell's PATH, and/or open a  new  terminal
        window.
 
-       LEDGER_FILE issues: I configured LEDGER_FILE but hledger is  not  using
+       LEDGER_FILE  issues:  I configured LEDGER_FILE but hledger is not using
        it
-       o LEDGER_FILE  should  be a real environment variable, not just a shell
+       o LEDGER_FILE should be a real environment variable, not just  a  shell
          variable.  Eg on unix, the command env | grep LEDGER_FILE should show
-         it.   You  may   need   to   use   export   (see   https://stackover-
+         it.    You   may   need   to   use   export  (see  https://stackover-
          flow.com/a/7411509).  On Windows, $env:LEDGER_FILE should show it.
 
-       o You  may  need  to  force your shell to see the new configuration.  A
+       o You may need to force your shell to see  the  new  configuration.   A
          simple way is to close your terminal window and open a new one.
 
        Text decoding issues: I get errors like "Illegal byte sequence" or "In-
-       valid or incomplete multibyte or wide character" or  "commitAndRelease-
+       valid  or incomplete multibyte or wide character" or "commitAndRelease-
        Buffer: invalid argument (invalid character)"
-       hledger  usually  needs  its  input to be decodable with the system lo-
+       hledger usually needs its input to be decodable  with  the  system  lo-
        cale's text encoding.  See Text encoding and Install: Text encoding.
 
        COMPATIBILITY ISSUES: hledger gives an error with my Ledger file
-       Not all of Ledger's journal file syntax or feature  set  is  supported.
+       Not  all  of  Ledger's journal file syntax or feature set is supported.
        See hledger and Ledger for full details.
 
 

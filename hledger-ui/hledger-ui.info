@@ -453,13 +453,6 @@ reload).
 text editor with the cursor positioned at the current transaction if
 possible.
 
-   This screen has a limitation with showing file updates: it will not
-show them until you exit and re-enter it.  So eg to see the effect of
-using the 'E' key, currently you must: - press 'E', edit and save the
-file, then exit the editor, returning to hledger-ui - press 'g' to
-reload the file (or use '-w/--watch' mode) - press 'LEFT' then 'RIGHT'
-to exit and re-enter the transaction screen.
-
 
 File: hledger-ui.info,  Node: Error screen,  Prev: Transaction screen,  Up: SCREENS
 
@@ -556,9 +549,6 @@ We welcome bug reports in the hledger issue tracker
    '--watch' is not robust, especially with large files (see WATCH MODE
 above).
 
-   The Transaction screen does not update after file changes, even if
-you press 'g', until you exit and re-enter it.  (#2288)
-
    If you press 'g' with large files, there could be a noticeable pause
 with the UI unresponsive.
 
@@ -576,11 +566,11 @@ Node: Income statement accounts screen15844
 Node: All accounts screen16229
 Node: Register screen16592
 Node: Transaction screen19035
-Node: Error screen20610
-Node: WATCH MODE20976
-Node: --watch problems21874
-Node: ENVIRONMENT23227
-Node: BUGS23460
+Node: Error screen20215
+Node: WATCH MODE20581
+Node: --watch problems21479
+Node: ENVIRONMENT22832
+Node: BUGS23065
 
 End Tag Table
 
