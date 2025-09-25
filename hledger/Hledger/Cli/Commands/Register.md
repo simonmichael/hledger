@@ -130,7 +130,7 @@ Often, you'll want to see just one line per interval.
 The `--depth` option helps with this, causing subaccounts to be aggregated:
 
 ```cli
-$ hledger register --monthly assets --depth 1h
+$ hledger register --monthly assets --depth 1
 2008/01                 assets                                  $1           $1
 2008/06                 assets                                 $-1            0
 2008/12                 assets                                 $-1          $-1
