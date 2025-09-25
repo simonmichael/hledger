@@ -120,6 +120,7 @@ This reduces wasteful admin work.
 [#2444]: https://github.com/simonmichael/hledger/issues/2444
 [#2452]: https://github.com/simonmichael/hledger/issues/2452
 [#2454]: https://github.com/simonmichael/hledger/issues/2454
+[#2465]: https://github.com/simonmichael/hledger/issues/2465
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -214,4 +215,4 @@ Fixer  bounties began on 2024-01-01.
 | **1.50** 2025-09-03      | ---       | ---                                                                              | ---
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
-
+| [#2465]                  |           | Paul Dest                             
