@@ -1153,6 +1153,7 @@ pivotAccount fieldortagname p =
 -- "comm" and "cur" are accepted as synonyms meaning the commodity symbol.
 -- Pivoting on an unknown field or tag, or on commodity when there are multiple commodities, returns "".
 -- Pivoting on a tag when there are multiple values for that tag, returns the first value.
+-- Pivoting on the "type" tag normalises type values to their short spelling.
 pivotComponent :: Text -> Posting -> Text
 pivotComponent fieldortagname p
   | fieldortagname == "code",        Just t <- ptransaction p = tcode t
@@ -1164,7 +1165,10 @@ pivotComponent fieldortagname p
   | fieldortagname `elem` commnames = case map acommodity $ amounts $ pamount p of [s] -> s; _ -> unknown
   | fieldortagname == "amt"         = case amounts $ pamount p of [a] -> T.pack $ show $ aquantity a; _ -> unknown
   | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ lstrip $ showAmountCost a; _ -> unknown
-  | Just (_, tagvalue) <- postingFindTag fieldortagname p = tagvalue
+  | Just (_, tagvalue) <- postingFindTag fieldortagname p =
+      if fieldortagname == "type"
+      then either (const tagvalue) T.show $ parseAccountType True tagvalue
+      else tagvalue
   | otherwise = unknown
   where
     descnames = ["desc", "description"]   -- allow "description" for hledger <=1.30 compat
