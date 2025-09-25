@@ -29,13 +29,12 @@ module Hledger.Read.RulesReader (
   -- * Reader
   reader,
   -- * Misc.
-  readJournalFromCsv,
-  -- readRulesFile,
-  -- parseCsvRules,
-  -- validateCsvRules,
-  -- CsvRules,
   dataFileFor,
   rulesFileFor,
+  getRulesFile,
+  readRules,
+  rulesEncoding,
+  readJournalFromCsv,
   parseBalanceAssertionType,
   -- * Tests
   tests_RulesReader,
@@ -59,7 +58,7 @@ import qualified Data.ByteString as B
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.Csv as Cassava
 import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
-import Data.Encoding (encodingFromStringExplicit)
+import Data.Encoding (encodingFromStringExplicit, DynEncoding)
 import Data.Either (fromRight)
 import Data.Functor ((<&>))
 import Data.List (elemIndex, mapAccumL, nub, sortOn)
@@ -168,7 +167,7 @@ parse iopts rulesfile h = do
   --  gives: file pattern, data cleaning/generating command, archive flag
 
   -- XXX higher-than usual logging priority for file reading (normally 6 or 7), to bypass excessive noise from elsewhere
-  rules <- readRulesFile $ dbg1 "reading rules file" rulesfile
+  rules <- readRules $ dbg1 "reading rules file" rulesfile
   let
     msourcearg = getDirective "source" rules
       -- Nothing -> error' $ rulesfile ++ " source rule must specify a file pattern or a command"
@@ -219,7 +218,7 @@ parse iopts rulesfile h = do
     (Nothing, _)   -> return ()
 
   -- 5. read raw, cleaned or generated data
-  --  needs: file pattern, data file, data command
+  --  needs: file pattern, data file, optional data file encoding, data command
   --  gives: clean data (possibly empty)
 
   mexistingdatafile <- maybe (return Nothing) (\f -> liftIO $ do
@@ -233,9 +232,10 @@ parse iopts rulesfile h = do
       return ""
 
     -- file found, and maybe a data cleaning command
-    (_, Just f,  mc) ->  -- trace "file found" $ 
+    (_, Just f,  mc) -> do  -- trace "file found" $
+      mencoding <- rulesEncoding rules
       liftIO $ do
-        raw <- openFileOrStdin f >>= readHandlePortably
+        raw <- openFileOrStdin f >>= readHandlePortably' mencoding
         maybe (return raw) (\c -> runCommandAsFilter rulesfile (dbg0Msg ("running: "++c) c) raw) mc
 
     -- no file pattern, but a data generating command
@@ -247,12 +247,11 @@ parse iopts rulesfile h = do
       error' $ rulesfile ++ " source rule must specify a file pattern or a command"
 
   -- 6. convert the clean data to a (possibly empty) journal
-  --  needs: clean data, rules, rules file, data file if any
+  --  needs: clean data, rules, data file if any
   --  gives: journal
 
   j <- do
-    cleandatah <- liftIO $ inputToHandle cleandata
-    readJournalFromCsv (Just $ Left rules) (fromMaybe "(cmd)" mdatafile) cleandatah Nothing
+    readJournalFromCsv rules (fromMaybe "(cmd)" mdatafile) cleandata Nothing
     -- apply any command line account aliases. Can fail with a bad replacement pattern.
     >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
         -- journalFinalise assumes the journal's items are
@@ -389,14 +388,36 @@ dataFileFor = stripExtension "rules"
 rulesFileFor :: FilePath -> FilePath
 rulesFileFor = (++ ".rules")
 
+-- | Return the given rules file path, or if none is given,
+-- the default rules file for the given csv file;
+-- or if the csv file is "-", raise an error.
+getRulesFile :: FilePath -> Maybe FilePath -> FilePath
+getRulesFile csvfile mrulesfile =
+  case mrulesfile of
+    Nothing | csvfile == "-" ->
+      error' "please use --rules when reading CSV from stdin"  -- PARTIAL
+        -- XXX is this bad ? everything else here uses ExceptT
+    Nothing -> rulesFileFor csvfile
+    Just f -> f
+
 -- | An exception-throwing IO action that reads and validates
 -- the specified CSV rules file (which may include other rules files).
-readRulesFile :: FilePath -> ExceptT String IO CsvRules
-readRulesFile f =
+readRules :: FilePath -> ExceptT String IO CsvRules
+readRules f =
   liftIO (do
     dbg6IO "using conversion rules file" f
     readFilePortably f >>= expandIncludes (takeDirectory f)
   ) >>= either throwError return . parseAndValidateCsvRules f
+
+-- | Read the encoding specified by the @encoding@ rule, if any.
+-- Or throw an error if an unrecognised encoding is specified.
+rulesEncoding :: CsvRules -> ExceptT String IO (Maybe DynEncoding)
+rulesEncoding rules = do
+  case T.unpack <$> getDirective "encoding" rules of
+    Nothing     -> return Nothing
+    Just encstr -> case encodingFromStringExplicit $ dbg4 "encoding name" encstr of
+      Nothing  -> throwError $ "Invalid encoding: " <> encstr
+      Just enc -> return . Just $ dbg4 "encoding" enc
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
 -- Included file paths may be relative to the directory of the provided file path.
@@ -1167,26 +1188,11 @@ _CSV_READING__________________________________________ = undefined
 --
 -- 4. Return the transactions as a Journal.
 --
-readJournalFromCsv :: Maybe (Either CsvRules FilePath) -> FilePath -> Handle -> Maybe SepFormat -> ExceptT String IO Journal
-readJournalFromCsv Nothing "-" h _ = lift (hClose h) *> throwError "please use --rules when reading CSV from stdin"
-readJournalFromCsv merulesfile csvfile csvhandle sep = do
+readJournalFromCsv :: CsvRules -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
+readJournalFromCsv rules csvfile csvtext sep = do
     -- for now, correctness is the priority here, efficiency not so much
 
-    rules <- case merulesfile of
-      Just (Left rs)         -> return rs
-      Just (Right rulesfile) -> readRulesFile rulesfile
-      Nothing                -> readRulesFile $ rulesFileFor csvfile
     dbg6IO "csv rules" rules
-
-    -- read csv while being aware of the encoding
-    mencoding <- do
-      -- XXX higher-than usual debug level for file reading to bypass excessive noise from elsewhere, normally 6 or 7
-      case T.unpack <$> getDirective "encoding" rules of
-        Just rawenc -> case encodingFromStringExplicit $ dbg4 "raw-encoding" rawenc of
-          Just enc -> return . Just $ dbg4 "encoding" enc
-          Nothing -> throwError $ "Invalid encoding: " <> rawenc
-        Nothing  -> return Nothing
-    csvtext <- lift $ readHandlePortably' mencoding csvhandle
 
     -- convert the csv data to lines and remove all empty/blank lines
     let csvlines1 = dbg9 "csvlines1" $ filter (not . T.null . T.strip) $ dbg9 "csvlines0" $ T.lines csvtext
