@@ -33,7 +33,8 @@ import System.IO                  (Handle)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), journalFinalise)
-import Hledger.Read.RulesReader (readJournalFromCsv)
+import Hledger.Read.RulesReader (readJournalFromCsv, getRulesFile, rulesEncoding, readRules)
+import Control.Monad.Trans (lift)
 
 --- ** doctest setup
 -- $setup
@@ -60,8 +61,10 @@ reader sep = Reader
 -- This does not check balance assertions.
 parse :: SepFormat -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 parse sep iopts f h = do
-  let mrulesfile = mrules_file_ iopts
-  readJournalFromCsv (Right <$> mrulesfile) f h (Just sep)
+  rules <- readRules $ getRulesFile f (mrules_file_ iopts)
+  mencoding <- rulesEncoding rules
+  csvtext <- lift $ readHandlePortably' mencoding h
+  readJournalFromCsv rules f csvtext (Just sep)
   -- apply any command line account aliases. Can fail with a bad replacement pattern.
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
       -- journalFinalise assumes the journal's items are
