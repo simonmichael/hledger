@@ -5405,36 +5405,29 @@ Examples:
 With the `--depth NUM` option (short form: `-NUM`), 
 reports will show accounts only to the specified depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
-This flag has the same effect as a `depth:` query argument: `depth:2`,
-`--depth=2` or `-2` are equivalent.
+This flag has the same effect as a `depth:` query argument.
+So all of these are equivalent: `depth:2`, `--depth=2`, `-2`.
 
 In place of a single number which limits the depth for all accounts, you can
-also provide separate depth limits for different accounts using regular
-expressions *(since 1.41)*.
+also provide depth limits for specific accounts, by providing a `REGEX=DEPTH` argument
+instead of just a `DEPTH` *(since 1.41)*.
+For example, `--depth assets=2` (or `depth:assets=2`)
+will collapse accounts matching the regular expression "assets" to depth 2.
+So `assets:bank:savings` would be collapsed to `assets:bank`, but `liabilities:bank:credit card` would not be affected.
 
-For example, `--depth assets=2` (or, equivalently: `depth:assets=2`)
-will collapse accounts matching the regular expression `assets` to depth 2.
-So `assets:bank:savings` would be collapsed to `assets:bank`, while
-`liabilities:bank:credit card` would not be affected.
-This can be combined with a flat depth to collapse other accounts not matching
-the regular expression, so `--depth assets=2 --depth 1` would collapse
-`assets:bank:savings` to `assets:bank` and `liabilities:bank:credit card` to
-`liabilities`.
+(If REGEX contains spaces or other special characters, enclose it in quotes in the [usual way](#special-characters).
+Eg: `--depth 'credit card=2'`)
 
-You can supply multiple depth arguments and they will all be applied, so
-`--depth assets=2 --depth liabilities=3 --depth 1` would collapse:
+Specific depth options and a general depth option can be combined.
+Eg `--depth assets=3 --depth expenses=2 --depth 1` would collapse
+accounts containing "assets" to depth 3,
+accounts containing "expenses" to depth 2,
+and all other accounts to depth 1.
 
-- accounts matching `assets` to depth 2,
-- accounts matching `liabilities` to depth 3,
-- all other accounts to depth 1.
-
-If an account is matched by more than one regular expression depth argument
-then the more specific one will be used.
-For example, if `--depth assets=1 --depth assets:bank:savings=2` is provided,
-then `assets:bank:savings` will be collapsed to depth 2 rather than depth 1.
-This is because `assets:bank:savings` matches at level 3 in the account name,
-while `assets` matches at level 1.
-The same would be true with the argument `--depth assets=1 --depth savings=2`.
+If an account is matched by more than one regular expression depth argument, the most specific (deepest) match will be used.
+For example, with `--depth assets=1 --depth savings=2`, 
+`assets:bank:savings` will be collapsed to depth 2, not depth 1
+(because "savings" matches a deeper part of it than "assets" does).
 
 
 # Queries
