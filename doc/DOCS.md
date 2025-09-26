@@ -149,6 +149,15 @@ for each major release REL that needs updating:
 When these commits land in the hledger_site repo on github,
 the release manuals on hledger.org will update automatically.
 
+### Add new release manuals to the website
+
+A few extra steps are needed the first time new release's manuals are added to the site,
+to update redirects and the version links shown at the top of manuals:
+
+1. In the site repo, update and push version numbers in Makefile, site.js, hledger.org.caddy
+2. On hledger.org, restart the web server
+3. On cloudflare, purge hledger.org/site.js from the cache
+
 ### Update hledger binaries with latest docs
 
 This ensures the hledger dev executables are embedding the latest manuals' generated files, affecting:
@@ -160,6 +169,63 @@ Update the options help, manuals' content and manuals' generated files as above,
 ```
 $ stack build
 ```
+
+### Update change logs
+
+Changelogs are in `**/CHANGES.md` (one in each package, and one at top level for the project).
+They should ideally be updated continually (at least weekly), in master, taking advantage of fresh memory and context.
+At release time they get some extra polish, and are propagated to the release branch.
+Note once the release branch is created, extra care is needed to keep the changelogs in sync:
+- sync change notes corresponding to any code changes synced between master and release branch
+- sync change note updates between both branches.
+
+To update changelogs, in master or in a release branch:
+
+1. Add new draft change notes to all changelogs (based on commit messages since the release or commit id mentioned in their first heading):
+   ```
+   $ just changelogs
+   ```
+2. Edit and polish the new change notes.
+3. Add issue number links, eg with `md-issue-refs` macro.
+4. Commit, eg with `just changelogs -c`
+
+### Finalise change logs for a release
+
+In the release branch, on the day of release, run this to add release headings and commit:
+```
+$ just changelogs-finalise
+```
+
+### Update release notes
+
+Release notes are in `doc/relnotes.md` in the hledger repo (and symlinked as `site/src/relnotes.md` in the site repo).
+They are generated at release time, from the finalised change logs.
+Note once the release notes are generated, they should be kept in sync with any late updates to the changelogs (by regenerating them).
+
+To update release notes:
+
+1. In the release branch, with change logs finalised, run
+   ```
+   $ just relnotes
+   ```
+2. Review the new release notes. Add a summary of changes at the top.
+
+### Update release notes on github
+
+Release notes are uploaded to each github release, with some additional github-specific release docs.
+
+In the release branch, once the corresponding github release is created, after updating release notes:
+
+1. If needed, update github release docs in `doc/ghrelnotes`.
+2. Push this and the latest release notes to the github release:
+   ```
+   $ just ghrel-notes
+   ```
+
+### Update release notes on the website
+
+1. Cherry pick the latest release notes (`doc/relnotes.md`) from the release branch to master.
+2. Push to the master branch on github. The website's "Release notes" page will update automatically.
 
 
 ## 201901 docs reorg (#920, WIP)
