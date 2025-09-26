@@ -74,25 +74,27 @@ hledger doc files can be divided into several groups:
 Last updated: 2025-09
 <!-- keep synced with Justfile, Shake.hs -->
 
-### Change manuals' content
+### Update manuals' content
 
-Updates to the manuals' content are welcome and encouraged from all contributors.
-In the main hledger repo, find and update the appropriate source file(s).
-It is usually one of
-`hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual,
-`hledger-ui/hledger-ui.m4.md` for the hledger-ui manual, or
-`hledger-web/hledger-web.m4.md` for the hledger-web manual.
+Updates to the manuals' content are welcome and encouraged!
 
-(Don't edit generated files, like `hledger/hledger.md` in the hledger repo
-or `site/src/1.50/hledger.md` in the hledger_site repo.
-If you click "Edit this page" on a recent website manual, you'll see a comment listing all the source files.)
+Note the various formats and versions of the manuals are generated from source files.
+Don't edit the generated files, such as `hledger/hledger.md` in the hledger repo or `site/src/1.50/hledger.md` in the hledger_site repo;
+update the appropriate source file(s) instead. These will be in the master branch of the hledger repo.
+If you click "Edit this page" on a current release manual on the website, you'll see a comment listing its source files.)
 
-Manual content changes can be committed with the related code changes, or separately.
+In the main hledger repo, find and update 
+It is usually `hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual,
+or `hledger-ui/hledger-ui.m4.md` for the hledger-ui manual,
+or `hledger-web/hledger-web.m4.md` for the hledger-web manual.
+
+
+Changes to manuals' content can be committed with the related code changes, or separately.
 
 ### Compile the Shake script
 
-Shake.hs automates some doc maintenance tasks.
-It's best to compile it: in the main hledger repo, run:
+`Shake.hs` automates some doc maintenance tasks (complementing `Justfile)`.
+If you use it, it's best to compile it first: in the main hledger repo, run:
 ```
 $ ./Shake.hs
 ```
@@ -108,7 +110,7 @@ In the main hledger repo: first, set current year and month for the man pages:
 $ just mandates
 ```
 
-Then update the text, man, info, and markdown manuals in hledger*/ from the markdown + m4 source files:
+Then regenerate the text, man, info, and markdown manuals in hledger*/ from their source files:
 
 ```
 $ ./Shake manuals
@@ -131,7 +133,7 @@ $ stack build
 ### Update dev manuals on the website
 
 When updates to the generated manuals land in the master branch of the hledger repo on github,
-they will automatically update the latest (dev) manuals on hledger.org.
+the latest (dev) manuals on hledger.org will update automatically.
 
 (The website manuals are rendered from `site/src/VERSION/*.md` in the hledger_site repo,
 which are symlinked copies of `hledger/hledger.md`, `hledger-ui/hledger-ui.md` and `hledger-web/hledger-web.md` in the hledger repo.)
@@ -151,7 +153,7 @@ for each major release REL that needs updating,
 2. Run `just site-manuals-snapshot REL`
 
 When these commits land in the hledger_site repo on github,
-they will automatically update the release manuals on hledger.org.
+the release manuals on hledger.org will update automatically.
 
 
 ## 201901 docs reorg (#920, WIP)
