@@ -82,7 +82,7 @@ They can be committed together with related code changes, or separately.
 Note the manuals have (a) source files and (b) files generated from these by scripts.
 Don't edit the generated files, such as:
 - `hledger/hledger.md` or `hledger-ui/hledger-ui.md` in the hledger repo
-- `site/src/1.50/hledger*.md` in the hledger_site repo
+- `site/src/1.50/hledger*.md` or `site/src/dev/hledger*.md` in the hledger_site repo
 
 Instead, edit the source file(s), in the hledger repo's master branch. Usually that means:
 - `hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual
