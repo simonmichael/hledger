@@ -77,19 +77,19 @@ Last updated: 2025-09
 ### Update manuals' content
 
 Updates to the manuals' content are welcome and encouraged!
+They can be committed together with related code changes, or separately.
 
-Note the various formats and versions of the manuals are generated from source files.
-Don't edit the generated files, such as `hledger/hledger.md` in the hledger repo or `site/src/1.50/hledger.md` in the hledger_site repo;
-update the appropriate source file(s) instead. These will be in the master branch of the hledger repo.
-If you click "Edit this page" on a current release manual on the website, you'll see a comment listing its source files.)
+Note the manuals have (a) source files and (b) files generated from these by scripts.
+Don't edit the generated files, such as:
+- `hledger/hledger.md` or `hledger-ui/hledger-ui.md` in the hledger repo
+- `site/src/1.50/hledger*.md` in the hledger_site repo
 
-In the main hledger repo, find and update 
-It is usually `hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual,
-or `hledger-ui/hledger-ui.m4.md` for the hledger-ui manual,
-or `hledger-web/hledger-web.m4.md` for the hledger-web manual.
+Instead, edit the source file(s), in the hledger repo's master branch. Usually that means:
+- `hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual
+- `hledger-ui/hledger-ui.m4.md` for the hledger-ui manual
+- `hledger-web/hledger-web.m4.md` for the hledger-web manual.
 
-
-Changes to manuals' content can be committed with the related code changes, or separately.
+If you click "edit this page" on a recent release manual on the website, you'll see all of its source files listed.
 
 ### Compile the Shake script
 
