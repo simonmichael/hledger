@@ -84,7 +84,7 @@ Don't edit the generated files, such as:
 - `hledger/hledger.md` or `hledger-ui/hledger-ui.md` in the hledger repo
 - `site/src/1.50/hledger*.md` or `site/src/dev/hledger*.md` in the hledger_site repo
 
-Instead, edit the source file(s), in the hledger repo's master branch. Usually that means:
+Instead, edit the source files, in the hledger repo's master branch. Usually that means:
 - `hledger/hledger.m4.md` or `hledger/Hledger/Cli/Commands/*.md` for the hledger manual
 - `hledger-ui/hledger-ui.m4.md` for the hledger-ui manual
 - `hledger-web/hledger-web.m4.md` for the hledger-web manual.
@@ -94,18 +94,17 @@ If you click "edit this page" on a recent release manual on the website, you'll 
 ### Compile the Shake script
 
 `Shake.hs` automates some doc maintenance tasks (complementing `Justfile)`.
-If you use it, it's best to compile it first: in the main hledger repo, run:
+If you use it, it's best to compile it first: in the hledger repo, run:
 ```
 $ ./Shake.hs
 ```
 
-### Update generated manuals after content changes
+### Update manuals' generated files
 
 Contributors don't need to do this; usually it's done periodically by the maintainer.
 It requires unix tools such as m4, makeinfo and pandoc.
-It affects future hledger releases, and (once pushed) the dev manuals on hledger.org.
 
-In the main hledger repo: first, set current year and month for the man pages:
+In the hledger repo: first, set current year and month for the man pages:
 ```
 $ just mandates
 ```
@@ -143,14 +142,12 @@ which are symlinked copies of `hledger/hledger.md`, `hledger-ui/hledger-ui.md` a
 Contributors can do this, but doing it the right way is a little complicated; you can also ask the maintainer to do it.
 
 The release manuals on the website are rendered from `site/src/1.50/*.md`, `site/src/1.43/*.md`, etc.
-In the hledger repo, 
-after updating the generated manuals in master with `./Shake manuals -c`:
-with the hledger_site repo symlinked as `./site`,
+In the hledger repo, with the hledger_site repo symlinked as `./site`:
 
-for each major release REL that needs updating,
+For each major release REL that needs updating,
 
-1. Cherry pick appropriate manuals update commit(s) from `master` to `REL-branch`
-2. Run `just site-manuals-snapshot REL`
+1. Cherry pick the manuals' content updates for REL (not generated files updates) from `master` to `REL-branch`
+2. In master, run `just site-manuals-snapshot REL` to update the release manuals in the site repo.
 
 When these commits land in the hledger_site repo on github,
 the release manuals on hledger.org will update automatically.
