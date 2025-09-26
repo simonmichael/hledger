@@ -142,9 +142,9 @@ which are symlinked copies of `hledger/hledger.md`, `hledger-ui/hledger-ui.md` a
 Contributors can do this, but doing it the right way is a little complicated; you can also ask the maintainer to do it.
 
 The release manuals on the website are rendered from `site/src/1.50/*.md`, `site/src/1.43/*.md`, etc.
-In the hledger repo, with the hledger_site repo symlinked as `./site`:
+These are generated as follows:
 
-For each major release REL that needs updating,
+In the hledger repo, with the hledger_site repo symlinked as `./site`, for each major release REL that needs updating:
 
 1. Cherry pick the manuals' content updates for REL (not generated files updates) from `master` to `REL-branch`
 2. In master, run `just site-manuals-snapshot REL` to update the release manuals in the site repo.
