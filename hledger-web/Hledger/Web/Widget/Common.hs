@@ -38,6 +38,7 @@ import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Hledger.Web.Settings (manualurl)
 import qualified Hledger.Query as Query
 
+
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)
 journalFile404 f j =
   case find ((== f) . fst) (jfiles j) of
@@ -66,7 +67,7 @@ writeJournalTextIfValidAndChanged f t = mapExceptT liftIO $ do
   -- formatdirectivep, #1194) writeFileWithBackupIfChanged require them.
   -- XXX klunky. Any equivalent of "hSetNewlineMode h universalNewlineMode" for form posts ?
   let t' = T.replace "\r" "" t
-  j <- readJournal definputopts (Just f) =<< liftIO (inputToHandle t')
+  j <- readJournal definputopts (Just f) =<< liftIO (textToHandle t')
   _ <- liftIO $ j `seq` writeFileWithBackupIfChanged f t'  -- Only write backup if the journal didn't error
   return ()
 

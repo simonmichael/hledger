@@ -132,7 +132,7 @@ module Hledger.Read (
 
 --- ** imports
 import qualified Control.Exception as C
-import Control.Monad (unless, when, forM, (<=<))
+import Control.Monad (unless, when, forM, (>=>))
 import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
@@ -346,7 +346,7 @@ readJournal' = orDieTrying . readJournal definputopts Nothing
 
 -- | An even easier version of readJournal' which takes a 'Text' instead of a 'Handle'.
 readJournal'' :: Text -> IO Journal
-readJournal'' = readJournal' <=< inputToHandle
+readJournal'' = textToHandle >=> readJournal'
 
 -- | An easy version of 'readJournalFile' which assumes default options, and fails
 -- in the IO monad.

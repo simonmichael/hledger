@@ -48,7 +48,7 @@ module Hledger.Utils.IO (
   readFilePortably,
   hGetContentsPortably,
   -- hereFileRelative,
-  inputToHandle,
+  textToHandle,
 
   -- * Command line parsing
   progArgs,
@@ -153,7 +153,7 @@ import           System.Exit (exitFailure)
 import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
-import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom)
+import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8)
 import qualified System.IO.Encoding as Enc
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, shell, waitForProcess, withCreateProcess)
@@ -465,13 +465,12 @@ hGetContentsPortably (Just e) h =
   -- convert newlines manually, because Enc.hGetContents uses bytestring's hGetContents
   T.replace "\r\n" "\n" . T.pack <$> let ?enc = e in Enc.hGetContents h
 
--- | Create a handle from which the given text can be read.
--- Its encoding will be UTF-8BOM.
-inputToHandle :: T.Text -> IO Handle
-inputToHandle t = do
+-- | Create a handle from which the given text can be read. Its encoding will be UTF-8.
+textToHandle :: T.Text -> IO Handle
+textToHandle t = do
   (r, w) <- createPipe
-  hSetEncoding r utf8_bom
-  hSetEncoding w utf8_bom
+  hSetEncoding r utf8
+  hSetEncoding w utf8
   -- use a separate thread so that we don't deadlock if we can't write all of the text at once
   forkIO $ T.hPutStr w t >> hClose w
   return r

@@ -269,5 +269,5 @@ withJournalCached defaultJournalOverride cliopts cmd = do
                 dbg1IO "readStdin reading and caching stdin" "-"
                 stdinContent <- readFileOrStdinPortably "-"
                 return (Just stdinContent, stdinContent)
-          hndl <- liftIO $ inputToHandle stdinContent
+          hndl <- liftIO $ textToHandle stdinContent
           readJournal iopts Nothing hndl
