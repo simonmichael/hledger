@@ -235,7 +235,7 @@ parse iopts rulesfile h = do
     (_, Just f,  mc) -> do  -- trace "file found" $
       mencoding <- rulesEncoding rules
       liftIO $ do
-        raw <- openFileOrStdin f >>= readHandlePortably' mencoding
+        raw <- openFileOrStdin f >>= hGetContentsPortably mencoding
         maybe (return raw) (\c -> runCommandAsFilter rulesfile (dbg0Msg ("running: "++c) c) raw) mc
 
     -- no file pattern, but a data generating command

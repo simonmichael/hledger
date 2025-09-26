@@ -262,7 +262,7 @@ rawOptsToInputOpts day usecoloronstdout postingaccttags rawopts =
 
 handleReadFnToTextReadFn :: (InputOpts -> FilePath -> Text -> ExceptT String IO Journal) -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 handleReadFnToTextReadFn p iopts fp =
-  p iopts fp <=< lift . readHandlePortably
+  p iopts fp <=< lift . hGetContentsPortably Nothing
 
 -- | Get the date span from --forecast's PERIODEXPR argument, if any.
 -- This will fail with a usage error if the period expression cannot be parsed,

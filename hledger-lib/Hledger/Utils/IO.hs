@@ -46,8 +46,7 @@ module Hledger.Utils.IO (
   readFileOrStdinPortably',
   readFileStrictly,
   readFilePortably,
-  readHandlePortably,
-  readHandlePortably',
+  hGetContentsPortably,
   -- hereFileRelative,
   inputToHandle,
 
@@ -435,7 +434,7 @@ readFileStrictly f = readFilePortably f >>= \t -> evaluate (T.length t) >> retur
 -- using the system locale's text encoding,
 -- ignoring any utf8 BOM prefix (as seen in paypal's 2018 CSV, eg) if that encoding is utf8.
 readFilePortably :: FilePath -> IO T.Text
-readFilePortably f =  openFile f ReadMode >>= readHandlePortably
+readFilePortably f = openFile f ReadMode >>= hGetContentsPortably Nothing
 
 -- | Like readFilePortably, but read from standard input if the path is "-".
 readFileOrStdinPortably :: String -> IO T.Text
@@ -443,7 +442,7 @@ readFileOrStdinPortably = readFileOrStdinPortably' Nothing
 
 -- | Like readFileOrStdinPortably, but take an optional converter.
 readFileOrStdinPortably' :: Maybe DynEncoding -> String -> IO T.Text
-readFileOrStdinPortably' c f = openFileOrStdin f >>= readHandlePortably' c
+readFileOrStdinPortably' c f = openFileOrStdin f >>= hGetContentsPortably c
 
 -- | Open a file for reading, using the standard System.IO.openFile.
 -- This opens the handle in text mode, using the initial system locale's text encoding.
@@ -451,22 +450,18 @@ openFileOrStdin :: String -> IO Handle
 openFileOrStdin "-" = return stdin
 openFileOrStdin f' = openFile f' ReadMode
 
--- readHandlePortably' with no text encoding specified.
-readHandlePortably :: Handle -> IO T.Text
-readHandlePortably = readHandlePortably' Nothing
-
--- | Read text from a handle with a specified encoding, using the encoding package.
--- Or if no encoding is specified, it uses the handle's current encoding,
--- after first changing it to UTF-8BOM if it was UTF-8, to allow a Byte Order Mark at the start.
+-- | Read text from a handle, perhaps using a specified encoding from the encoding package.
+-- Or if no encoding is specified, using the handle's current encoding,
+-- changing it to UTF-8BOM if it was UTF-8, to ignore any Byte Order Mark at the start.
 -- Also it converts Windows line endings to newlines.
 -- If decoding fails, this throws an IOException (or possibly a UnicodeException or something else from the encoding package).
-readHandlePortably' :: Maybe DynEncoding -> Handle -> IO T.Text
-readHandlePortably' Nothing h = do
+hGetContentsPortably :: Maybe DynEncoding -> Handle -> IO T.Text
+hGetContentsPortably Nothing h = do
   hSetNewlineMode h universalNewlineMode
   menc <- hGetEncoding h
   when (fmap show menc == Just "UTF-8") $ hSetEncoding h utf8_bom
   T.hGetContents h
-readHandlePortably' (Just e) h =
+hGetContentsPortably (Just e) h =
   -- convert newlines manually, because Enc.hGetContents uses bytestring's hGetContents
   T.replace "\r\n" "\n" . T.pack <$> let ?enc = e in Enc.hGetContents h
 
