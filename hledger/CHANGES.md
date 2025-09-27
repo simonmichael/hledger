@@ -26,6 +26,25 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 33b9a13f
+
+Fixes
+
+- The CSV `encoding` rule is now respected when using the rules file as input file. This was a regression in 1.50.
+  Also, the text decoding error message has been clarified; it now mentions a possible CSV encoding.
+  [#2465]
+
+- The doc for `--depth` has been clarified, and now mentions the use of quotes.
+  (Quả Cầu, Simon Michael, [hledger_site#140])
+
+- A typo was fixed in the --depth example in `register`'s doc.
+  ([hledger_site#140], reported by Quả Cầu)
+
+- Our package bounds now avoid hashtables 1.3.x, which fails to build with some gcc versions
+  (see https://github.com/gregorycollins/hashtables/issues/97)).
+  (hseg, [#2463])
+
+
 # 1.50.1 2025-09-16
 
 Fixes
