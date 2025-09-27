@@ -102,9 +102,10 @@ It should be improved each time it is used.
         `just completions`, commit any changes
   - changelogs x 5 (**/CHANGES.md)  
         `just changelogs [-c]`  
-        add issue links with `md-issue-refs`, uniquify  
         add notable changes from site, finance repos to project changelog (major release only)  
-        `just changelogs-finalise`
+        add issue links with `md-issue-refs`, uniquify  
+        add author github nicks  
+        `just changelogs-finalise`  
 
 - **3. release docs and artifacts**
   - draft binaries building started  
@@ -114,8 +115,6 @@ It should be improved each time it is used.
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
   - release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*  
-      select & transform with `md-issue-refs`, uniquify *(XXX no longer needed ?)*  
-      add author github nicks  
       add summary (major release only)  
       bump changelog links at the top  
       commit
