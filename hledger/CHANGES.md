@@ -44,6 +44,9 @@ Fixes
   (see https://github.com/gregorycollins/hashtables/issues/97)).
   (hseg, [#2463])
 
+[#2463]: https://github.com/simonmichael/hledger/issues/2463
+[#2465]: https://github.com/simonmichael/hledger/issues/2465
+
 
 # 1.50.1 2025-09-16
 
