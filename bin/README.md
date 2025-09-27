@@ -312,6 +312,16 @@ $ hledger pijul status
 $ hledger pijul record [MSG]
 ```
 
+### hledger-dc
+
+[`hledger-dc`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-dc)
+reads journal files which use a Dr/Cr notation instead of/in addition to amount signs:
+```journal
+2025-01-01 salary
+    Cr revenues            800 USD
+    Dr assets
+```
+
 ### hledger-edit
 
 The [hledger-utils python package](https://pypi.org/project/hledger-utils/) provides
@@ -374,6 +384,26 @@ $ hledger lots list
 
 [hledger-report1.sh](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.sh)
 is a custom compound report done in shell. See also hledger-report1.hs.
+
+### hledger-timedothm
+
+[`hledger-timedothm`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-timedothm)
+reads timedot files which support HOURS:MINUTES notation:
+```timedot
+2025-09-27
+time  ..
+time  0.5
+time  30m
+time  0:30  ; new H:M syntax
+```
+and it displays amounts in that notation:
+```cli
+$ hledger timedothm sample.timedothm reg -w80
+2025-09-27                      (time)                        0:30          0:30
+                                (time)                        0:30          1:00
+                                (time)                        0:30          1:30
+                                (time)                        0:30          2:00
+```
 
 
 ## hledger haskell scripts

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# hledger-dc JOURNALFILE CMD [ARGS]
+#  run a hledger command on a journal file which also supports Dr/Cr before the account name,
+#  instead of/in addition to amount signs.
+
+# If a posting begins with Dr<WHITESPACE>, remove that.
+# If it begins with Cr<WHITESPACE> and contains no number, remove that.
+# If it begins with Cr<WHITESPACE>, remove that and add a minus sign before the next number, and if that leaves a double minus, cancel those out.
+dc2sign() { sed -E -e 's/^(\s+)Dr\s+/\1/' -e 's/^(\s+)Cr\s+([^0-9]+)$/\1\2/' -e 's/^(\s+)Cr\s+([^0-9]+)([0-9])/\1\2-\3/' -e 's/--([0-9])/\1/'; }
+
+dc2sign <"$1" | hledger -f- "${@:2}"
+
+
+# Example:
+#
+# $ cat sample.journaldc 
+# 2025-01-01 salary
+#     Cr revenues            800 USD
+#     Dr assets
+
+# $ hledger -f sample.journaldc print
+# 2025-01-01 salary
+#     Cr revenues         800 USD
+#     Dr assets
+
+# $ hledger dc sample.journaldc print
+# 2025-01-01 salary
+#     revenues        -800 USD
+#     assets
+
