@@ -32,7 +32,7 @@ hledger major releases happen each quarter, normally at the start of the third m
 Bugfix releases follow those when needed, usually soon after.
 Preview/nightly releases may happen any time.
 
-|                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Preview/Nightly&nbsp;release<br>A.B.99 |
+|                     | Major&nbsp;release<br>A.B                                | Bugfix&nbsp;release<br>A.B.C | Preview/Nightly&nbsp;release<br>A.B.99   |
 |---------------------|----------------------------------------------------------|------------------------------|------------------------------------------|
 | **Contains:**       | New features, breaking changes                           | Only bug fixes               | Early snapshot of the next major release |
 | **When:**           | Start of third month in quarter: Mar, Jun, Sep, Dec      | When needed                  | Occasionally, as needed                  |
@@ -43,7 +43,7 @@ Preview/nightly releases may happen any time.
 | Binaries            | ✓                                                        | ✓                            | ✓                                        |
 | Hackage release     | ✓                                                        | ✓                            |                                          |
 | Install page        | ✓                                                        | ✓                            |                                          |
-| Regression&nbsp;bounties | ✓                                                        | ✓                            |                                          |
+| Regression&nbsp;bounties | ✓                                                   | ✓                            |                                          |
 | Release notes       | ✓                                                        | ✓                            |                                          |
 | Manuals snapshot    | ✓                                                        |                              |                                          |
 | Announcements       | ✓                                                        |                              |                                          |
@@ -54,7 +54,6 @@ Preview/nightly releases may happen any time.
 
 Higher things depend on lower things.
 Release readiness and the release process go from the bottom of this diagram to the top.
-
 
 [![release diagram](RELEASING.png)](RELEASING.png)
 <!-- source: RELEASING.canvas (Obsidian) -->
@@ -135,7 +134,6 @@ It should be improved each time it is used.
       changelogs,
       relnotes,
       announcements
-  - nightly release changes link up to date in master (doc/ghnightlynotes.md)
   - all packages uploaded correctly to hackage  
       `just hackageupload`
   - master branch pushed to github
@@ -154,15 +152,16 @@ It should be improved each time it is used.
       `just reltags-push VER`
   - github draft release with release binaries attached  
       <https://github.com/simonmichael/hledger/releases/new> *(XXX safari may not show new tag, may need brave)*  
-      `just ghrel-notes`  
-      `just ghbin-download` <!-- (or if throttled: `just ghbin`, download to tmp/, unzip the unix ones) -->  
-      `just ghrel-bin VER`  
+      `just ghrel-notes` (in release branch)  
+      `just ghruns-download` <!-- (or if throttled: `just ghbin`, download to tmp/, unzip the unix ones) -->  
+      `just ghrel-upload VER`  
   - github release published  
       review,
       publish
   - github nightly release updated  
-        `just nightly-tag-release`
-        `just nightly-notes`
+      in master, update changes link in doc/ghnightlynotes.md
+      `just ghnightly-notes`  
+      `just nightly-tag`  
   - install instructions tested and working
     - stack
     - cabal
