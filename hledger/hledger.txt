@@ -16,7 +16,7 @@ DESCRIPTION
        and  largely  compatible  with  ledger(1), and largely interconvertible
        with beancount(1).
 
-       This manual is for hledger's command line  interface,  version  1.50.1.
+       This manual is for hledger's command line  interface,  version  1.50.2.
        It also describes the common options, file formats and concepts used by
        all  hledger  programs.  It might accidentally teach you some bookkeep-
        ing/accounting as well!  You don't need to know everything in  here  to
@@ -646,7 +646,7 @@ Options
 
               # Options following a `[COMMAND]` heading are used with that hledger command only.
               [print]
-              --explicit --show-costs
+              --explicit --infer-costs
 
        To use a config file, specify it with the --conf option.   Its  options
        will  be inserted near the start of your command line, so you can over-
@@ -5225,38 +5225,30 @@ Depth
        With the --depth NUM option (short form: -NUM), reports will  show  ac-
        counts  only  to  the  specified depth, hiding deeper subaccounts.  Use
        this when you want a summary with less detail.  This flag has the  same
-       effect as a depth: query argument: depth:2, --depth=2 or -2 are equiva-
-       lent.
+       effect  as  a  depth:  query argument.  So all of these are equivalent:
+       depth:2, --depth=2, -2.
 
-       In  place  of  a single number which limits the depth for all accounts,
-       you can also provide separate depth limits for different accounts using
-       regular expressions (since 1.41).
+       In place of a single number which limits the depth  for  all  accounts,
+       you can also provide depth limits for specific accounts, by providing a
+       REGEX=DEPTH  argument  instead of just a DEPTH (since 1.41).  For exam-
+       ple, --depth assets=2 (or depth:assets=2) will collapse accounts match-
+       ing the regular expression "assets" to depth 2.  So assets:bank:savings
+       would be collapsed to  assets:bank,  but  liabilities:bank:credit  card
+       would not be affected.
 
-       For example, --depth assets=2 (or, equivalently:  depth:assets=2)  will
-       collapse  accounts  matching  the regular expression assets to depth 2.
-       So assets:bank:savings would be collapsed to assets:bank, while liabil-
-       ities:bank:credit card would not be affected.   This  can  be  combined
-       with  a  flat depth to collapse other accounts not matching the regular
-       expression,  so  --depth  assets=2  --depth  1   would   collapse   as-
-       sets:bank:savings  to  assets:bank  and liabilities:bank:credit card to
-       liabilities.
+       (If  REGEX  contains  spaces or other special characters, enclose it in
+       quotes in the usual way.  Eg: --depth 'credit card=2')
 
-       You can supply multiple depth arguments and they will all  be  applied,
-       so --depth assets=2 --depth liabilities=3 --depth 1 would collapse:
+       Specific depth options and a general depth option can be combined.   Eg
+       --depth  assets=3  --depth expenses=2 --depth 1 would collapse accounts
+       containing "assets" to depth 3, accounts containing "expenses" to depth
+       2, and all other accounts to depth 1.
 
-       o accounts matching assets to depth 2,
-
-       o accounts matching liabilities to depth 3,
-
-       o all other accounts to depth 1.
-
-       If  an account is matched by more than one regular expression depth ar-
-       gument then the more specific  one  will  be  used.   For  example,  if
-       --depth  assets=1  --depth  assets:bank:savings=2 is provided, then as-
-       sets:bank:savings will be collapsed to depth 2  rather  than  depth  1.
-       This  is  because assets:bank:savings matches at level 3 in the account
-       name, while assets matches at level 1.  The same would be true with the
-       argument --depth assets=1 --depth savings=2.
+       If an account is matched by more than one regular expression depth  ar-
+       gument,  the  most specific (deepest) match will be used.  For example,
+       with --depth assets=1 --depth savings=2,  assets:bank:savings  will  be
+       collapsed  to  depth 2, not depth 1 (because "savings" matches a deeper
+       part of it than "assets" does).
 
 Queries
        Many hledger commands accept  query  arguments,  which  restrict  their
@@ -6489,10 +6481,9 @@ Value reporting
 
    Effect of valuation on reports
        Here  is  a reference for how valuation is supposed to affect each part
-       of hledger's reports.  (It's wide, you may need  to  scroll  sideways.)
-       It  may  be  useful when troubleshooting.  If you find problems, please
-       report them, ideally  with  a  reproducible  example.   Related:  #329,
-       #1083.
+       of hledger's reports.  It may be useful when troubleshooting.   If  you
+       find problems, please report them, ideally with a reproducible example.
+       Related: #329, #1083.
 
        First, a quick glossary:
 
@@ -7590,8 +7581,12 @@ Standard report commands
 
               Flags:
                 -x --explicit             show all amounts explicitly
-                   --show-costs           show transaction prices even with conversion
-                                          postings
+                   --invert               display all amounts with reversed sign
+                   --location             add tags showing file paths and line numbers
+                -m --match=DESC           fuzzy search for one recent transaction with
+                                          description closest to DESC
+                   --new                  show only newer-dated transactions added in each
+                                          file since last run
                    --round=TYPE           how much rounding or padding should be done when
                                           displaying amounts ?
                                           none - show original decimal digits,
@@ -7602,15 +7597,9 @@ Standard report commands
                                                  (can unbalance transactions)
                                           all  - also round cost amounts to precision
                                                  (can unbalance transactions)
-                   --invert               display all amounts with reversed sign
-                   --new                  show only newer-dated transactions added in each
-                                          file since last run
-                -m --match=DESC           fuzzy search for one recent transaction with
-                                          description closest to DESC
                    --base-url=URLPREFIX   in html output, generate links to hledger-web,
                                           with this prefix. (Usually the base url shown by
                                           hledger-web; can also be relative.)
-                   --location             add tags showing file paths and line numbers
                 -O --output-format=FMT    select the output format. Supported formats:
                                           txt, beancount, csv, tsv, html, fods, json, sql.
                 -o --output-file=FILE     write output to FILE. A file extension matching
@@ -8018,7 +8007,7 @@ Standard report commands
        Often,  you'll want to see just one line per interval.  The --depth op-
        tion helps with this, causing subaccounts to be aggregated:
 
-              $ hledger register --monthly assets --depth 1h
+              $ hledger register --monthly assets --depth 1
               2008/01                 assets                                  $1           $1
               2008/06                 assets                                 $-1            0
               2008/12                 assets                                 $-1          $-1
@@ -10626,45 +10615,48 @@ BUGS
 
        Some known issues and limitations:
 
-       A  system  locale  with  a suitable text encoding must be configured to
-       work with non-ascii data.  (See Text encoding, Troubleshooting.)
+       hledger  uses  the  system's text encoding when reading non-ascii text.
+       If no system encoding is configured, or if the data's encoding is  dif-
+       ferent,  hledger will give an error.  (See Text encoding, Troubleshoot-
+       ing.)
 
        On Microsoft Windows, depending what kind of terminal window  you  use,
        non-ascii  characters,  ANSI  text formatting, and/or the add command's
-       TAB key for completion, may not be supported.
+       TAB key, may not be fully supported.  (For best results, try  a  power-
+       shell window.)
 
        When processing large data files, hledger uses more memory than Ledger.
 
    Troubleshooting
-       Here are some common issues you might encounter when you  run  hledger,
-       and  how  to  resolve them (and remember also you can usually get quick
+       Here  are  some common issues you might encounter when you run hledger,
+       and how to resolve them (and remember also you can  usually  get  quick
        Support):
 
        PATH issues: I get an error like "No command 'hledger' found"
        Depending how you installed hledger, the executables may not be in your
-       shell's PATH.  Eg on unix systems, stack  installs  hledger  in  ~/.lo-
+       shell's  PATH.   Eg  on  unix systems, stack installs hledger in ~/.lo-
        cal/bin and cabal installs it in ~/.cabal/bin.  You may need to add one
-       of  these  directories to your shell's PATH, and/or open a new terminal
+       of these directories to your shell's PATH, and/or open a  new  terminal
        window.
 
-       LEDGER_FILE issues: I configured LEDGER_FILE but hledger is  not  using
+       LEDGER_FILE  issues:  I configured LEDGER_FILE but hledger is not using
        it
-       o LEDGER_FILE  should  be a real environment variable, not just a shell
+       o LEDGER_FILE should be a real environment variable, not just  a  shell
          variable.  Eg on unix, the command env | grep LEDGER_FILE should show
-         it.   You  may   need   to   use   export   (see   https://stackover-
+         it.    You   may   need   to   use   export  (see  https://stackover-
          flow.com/a/7411509).  On Windows, $env:LEDGER_FILE should show it.
 
-       o You  may  need  to  force your shell to see the new configuration.  A
+       o You may need to force your shell to see  the  new  configuration.   A
          simple way is to close your terminal window and open a new one.
 
        Text decoding issues: I get errors like "Illegal byte sequence" or "In-
-       valid or incomplete multibyte or wide character" or  "commitAndRelease-
+       valid  or incomplete multibyte or wide character" or "commitAndRelease-
        Buffer: invalid argument (invalid character)"
-       hledger  usually  needs  its  input to be decodable with the system lo-
+       hledger usually needs its input to be decodable  with  the  system  lo-
        cale's text encoding.  See Text encoding and Install: Text encoding.
 
        COMPATIBILITY ISSUES: hledger gives an error with my Ledger file
-       Not all of Ledger's journal file syntax or feature  set  is  supported.
+       Not  all  of  Ledger's journal file syntax or feature set is supported.
        See hledger and Ledger for full details.
 
 
@@ -10685,4 +10677,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-1.50.1                  September 2025                      HLEDGER(1)
+hledger-1.50.2                  September 2025                      HLEDGER(1)
