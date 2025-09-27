@@ -30,6 +30,8 @@ Improvements
   - readHandlePortably, readHandlePortably' -> hGetContentsPortably
 
 
+# 1.50.2 2025-09-26
+
 # 1.50.1 2025-09-16
 
 # 1.50 2025-09-03

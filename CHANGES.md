@@ -51,6 +51,10 @@ Infrastructure/Misc
 - just ghci-ui: :main (and :rmain) now works again
 
 
+# 1.50.2 2025-09-26
+
+# 1.50.1 2025-09-16
+
 # 1.50 2025-09-03
 
 Doc updates
