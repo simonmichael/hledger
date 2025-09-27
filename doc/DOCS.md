@@ -1,11 +1,14 @@
-# Docs
+# DOCS
 
 <div class=pagetoc>
 
 <!-- toc -->
 </div>
 
-## hledger's documentation structure
+An overview of hledger's documentation structure and process, for developers and maintainers.
+(For user documentation, see [Docs](docs.md).)
+
+## Documentation structure
 
 <div style="margin:1em 2em; font-style:italic;">
 "There is a secret that needs to be understood in order to write good
@@ -226,6 +229,12 @@ In the release branch, once the corresponding github release is created, after u
 
 1. Cherry pick the latest release notes (`doc/relnotes.md`) from the release branch to master.
 2. Push to the master branch on github. The website's "Release notes" page will update automatically.
+
+### Diagrams
+
+(approximate)
+[![doc update diagrams](doc-update.png)](doc-update.png)
+
 
 
 ## 201901 docs reorg (#920, WIP)
