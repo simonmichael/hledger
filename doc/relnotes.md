@@ -115,8 +115,8 @@ Fixes
 
 ### credits 1.50.2
 
-Simon Michael (@simonmichael),,
-hseg (@hseg),.
+Simon Michael (@simonmichael),
+hseg (@hseg).
 
 
 
