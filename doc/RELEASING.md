@@ -113,10 +113,11 @@ It should be improved each time it is used.
         `just site-manuals-snapshot MAJORVER` to create/update  
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
   - release notes @ hledger.org (doc/relnotes.md)  
-      `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*,  
-      select & transform with `md-issue-refs`, uniquify *(XXX no longer needed ?)*    
-      add author github nicks,  
-      add summary,  
+      `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*  
+      select & transform with `md-issue-refs`, uniquify *(XXX no longer needed ?)*  
+      add author github nicks  
+      add summary (major release only)  
+      bump changelog links at the top  
       commit
   - github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
   - Install page (site/src/install.md) up to date and pre-tested
