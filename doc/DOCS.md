@@ -179,9 +179,6 @@ $ stack build
 Changelogs are in `**/CHANGES.md` (one in each package, and one at top level for the project).
 They should ideally be updated continually (at least weekly), in master, taking advantage of fresh memory and context.
 At release time they get some extra polish, and are propagated to the release branch.
-Note once the release branch is created, extra care is needed to keep the changelogs in sync:
-- sync change notes corresponding to any code changes synced between master and release branch
-- sync change note updates between both branches.
 
 To update changelogs, in master or in a release branch:
 
@@ -192,6 +189,16 @@ To update changelogs, in master or in a release branch:
 2. Edit and polish the new change notes.
 3. Add issue number links, eg with `md-issue-refs` macro.
 4. Commit, eg with `just changelogs -c`
+
+Note once the release branch is created, extra care is needed to keep changelogs synced between branches, considering:
+- edits to existing change notes
+- new change notes, corresponding to code changes cherry picked from master or created in the release branch.
+
+At such times it may be useful to follow this sequence:
+1. Add/sync code changes to the release branch.
+2. Update change logs in release branch, based on latest commits there.
+3. Cherry pick change log updates from the release branch to (that release's section in) the changelogs in master.
+4. Update change logs in master, to add any more unreleased commits at the top (assisted by manual cleanup).
 
 ### Finalise change logs for a release
 
@@ -212,7 +219,10 @@ To update release notes:
    ```
    $ just relnotes
    ```
-2. Review the new release notes. Add a summary of changes at the top.
+2. Review the new release notes. When changes are needed, change the changelogs, then regenerate the release notes as above.
+3. Add release contributors and github nicks at the bottom.
+4. Add release highlights at the top.
+5. Commit.
 
 ### Update release notes on github
 
