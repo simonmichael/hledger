@@ -17,13 +17,17 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# 53b5c371
+# d7e7cd26
 
 Breaking changes
 
 Fixes
 
 Improvements
+
+- Hledger.Utils.IO:
+  - inputToHandle -> textToHandle; set utf8 not utf8_bom
+  - readHandlePortably, readHandlePortably' -> hGetContentsPortably
 
 
 # 1.50.1 2025-09-16

@@ -18,9 +18,17 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 53b5c371
+# d7e7cd26
 
 Doc updates
+
+- ;doc: rename ANNOUNCE.short
+- ;doc:doc-update.png: update
+- ;doc:DOCS: document current manual updating procedures
+- ;doc:REGRESSIONS
+- ;doc:REGRESSIONS: updates
+- ;doc:RELEASING: updates, formatting
+- ;doc:relnotes: use more reliable changelog links
 
 - ISSUES
 
@@ -28,9 +36,20 @@ Website
 
 Infrastructure/Misc
 
+- ;pkg:stack98: restore needed encoding 0.10 extra dep
+- ;tools: update just releasediag, add just docupdatediag
+- ;tools:just ghnightly* -> nightly*
+- ;tools:just: reorganise, cleanups
+- ;tools:Shake manuals: more contributor instructions in the header comment [hledger_site#140]
+- stack92: add valid hashtables version
+- stack94: add valid hashtables version
+- stack96: add valid hashtables version 
+- stack98: include valid hashtables version
+
 - bump stack snapshots
 - drop the hledger-install script
 - just ghci-ui: :main (and :rmain) now works again
+
 
 # 1.50 2025-09-03
 

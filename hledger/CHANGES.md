@@ -26,7 +26,15 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 53b5c371
+# d7e7cd26
+
+- imp: pivoting on the type tag normalises type values to their short spelling.
+- imp:accounts: --types shows a tag only when type is known
+- imp:accounts: sort options a little
+
+- ;doc:Account names: rewrite, emphasise the two space delimiter
+- ;doc: update command docs
+- ;doc:journal: Editor configuration -> Editors
 
 Breaking changes
 
