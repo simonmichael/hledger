@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 33b9a13f
+# 1.50.2 2025-09-26
 
 - Uses hledger 1.50.2
 
