@@ -1083,7 +1083,7 @@ nightly-push:
     gh release view -w nightly
 
 # Point the nightly tag at the latest release, locally and on github. Run after a release.
-@nightly-tag-release:
+@nightly-tag:
     git tag -f nightly $(just relver)
     git push -f origin nightly
 
