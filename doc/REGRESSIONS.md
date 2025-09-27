@@ -215,4 +215,4 @@ Fixer  bounties began on 2024-01-01.
 | **1.50** 2025-09-03      | ---       | ---                                                                              | ---
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
-| [#2465]                  | 1.50.2    | Paul Dest                                                                        | Simon Michael (N/A)
+| [#2465]                  | 1.50.2    | [Paul Dest](https://opencollective.com/hledger/expenses/266959)                  | Simon Michael (N/A)
