@@ -1930,6 +1930,7 @@ Tags are most often used to select a subset of data; you can match tagged things
  
 When querying for tag names or values, note that postings inherit tags from their transaction and from their account,
 and transactions acquire tags from their postings. So in the example above,
+
 - the assets:checking posting effectively has four tags (one of its own, one from the account, two from the transaction)
 - the expenses:food posting effectively has four tags (two of its own, two from the transaction)
 - the transaction effectively has all six tags (two of its own, and two from each posting)
