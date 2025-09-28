@@ -1441,7 +1441,7 @@ In english they are:
 These will be discussed more in [Account types](#account-types) below.
 In hledger docs you may see them referred to as A, L, E, R, X for short.
 
-### The two space delimiter
+### Two space delimiter
 
 Note the **two or more spaces** delimiter that's sometimes required after account names. <!-- (Two or more tabs will also work.) -->
 hledger's account names, inherited from Ledger, are very permissive;
