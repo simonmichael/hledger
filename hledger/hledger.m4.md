@@ -1900,40 +1900,92 @@ If you hit this problem, it's easy to fix:
 
 <!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
 
-Tags are a way to add extra labels or data fields to transactions, postings, or accounts.
-They are usually a word or hyphenated word, immediately followed by a full colon,
-written within the [comment](#account-comments) of a transaction, a posting, or an `account` directive.
-(Yes, storing data in comments is slightly weird!)
+Tags are a way to add extra labels or data fields to transactions, postings, or accounts,
+which you can match with a `tag:` query in reports. (See [queries](#queries) below.)
 
-You can write each tag on its own comment line, or multiple tags on one line, separated by commas.
-Tags can also have a value, which is any text after the colon until the next comma or end of line, excluding surrounding whitespace.
-(hledger tag values can't contain commas.)
-If the same tag name appears multiple times in a comment, each name:value pair is preserved.
-
-An example: in this journal there are six tags, one of them with a value:
+Tags are a single word or hyphenated word, immediately followed by a full colon, written within a [comment](#account-comments).
+(Yes, storing data in comments is slightly weird.)
+Here's a transaction with a tag:
 
 ```journal
-account assets:checking         ; accounttag:
-account expenses:food
-
-2017/1/16 bought groceries      ; transactiontag:
-    ; transactiontag2:
-    assets:checking        $-1
-     ; posting-tag-1:, (belongs to the posting above)
-    expenses:food           $1  ; posting-tag-2:, posting-tag-3: with a value
+2025-01-01 groceries        ; some-tag:
+    assets:checking
+    expenses:food       $1
 ```
 
-### Querying with tags
+A tag can have a value, a single line of text written after the colon. Tag values can't contain newlines.:
 
-Tags are most often used to select a subset of data; you can match tagged things by tag name and or tag value with a `tag:` query.
-(See [queries](#queries) below.)
- 
-When querying for tag names or values, note that postings inherit tags from their transaction and from their account,
-and transactions acquire tags from their postings. So in the example above,
+```journal
+2025-01-01 groceries        ; tag1: this is tag1's value
+```
 
-- the assets:checking posting effectively has four tags (one of its own, one from the account, two from the transaction)
-- the expenses:food posting effectively has four tags (two of its own, two from the transaction)
-- the transaction effectively has all six tags (two of its own, and two from each posting)
+Multiple tags can be separated by comma. Tag values can't contain commas.:
+
+```journal
+2025-01-01 groceries        ; tag1:value 1, tag2:value 2, comment text
+```
+
+A tag can have multiple values:
+
+```journal
+2025-01-01 groceries        ; tag1:value 1, tag1:value 2
+```
+
+You can write each tag on its own line of you prefer (but they still can't contain commas):
+```journal
+2025-01-01 groceries
+    ; tag1: value 1
+    ; tag2: value 2
+```
+
+Tags can be attached to individual postings, rather than the overall transactions:
+
+```journal
+2025-01-01 rent
+    assets:checking
+    expenses:rent       $1000  ; postingtag:
+```
+
+Or to accounts, when they are declared with an [account directive](#account-directive):
+
+```journal
+account assets:checking    ; acct-number: 123-45-6789
+```
+
+### Tag propagation
+
+In addition to the piece of data they are attached to,
+tags also affect related data in a few ways, allowing more powerful queries:
+
+1. Accounts -> postings. Postings inherit tags from their account.
+  <!-- Eg the assets:checking posting above will also inherit the acct-number: tag. -->
+
+2. Transactions -> postings. Postings inherit tags from their transaction.
+  <!-- Eg the assets:checking and expenses:food postings above will both inherit the some-tag: tag. -->
+
+3. Postings -> transactions. Transactions also acquire the tags of their postings.
+  <!-- Eg the rent transaction above will acquire the postingtag: tag. -->
+
+So when you use a [`tag:` query](#tag-query) to match whole transactions, individual postings, or accounts,
+it's good to understand how tags behave.
+Here's an example showing all three kinds of propagation:
+
+```journal
+account assets:checking
+account expenses:food           ; atag:
+
+2025-01-01 groceries            ; ttag:
+    assets:checking             ; p1tag:
+    expenses:food           $1  ; p2tag:
+```
+
+| data part               | has tags                 | explanation
+|-------------------------|--------------------------|---------------------------------------------------------------------------------
+| assets:checking account |                          | no tags
+| expenses:food   account | atag                     | atag:  in comment
+| assets:checking posting | p1tag, ttag              | p1tag: in comment, ttag: acquired from transaction
+| expenses:food   posting | p2tag, atag, ttag        | p2tag: in comment, atag: from account, ttag: from transaction
+| groceries   transaction | ttag, p1tag, p2tag, atag | ttag:  in comment, p1tag from first posting, p2tag and atag from second posting
 
 ### Displaying tags
 
@@ -1953,17 +2005,15 @@ For example, you could tag trip-related transactions with `trip: YEAR:PLACE`, wi
 
 ### Tag names
 
-What is allowed in a tag name ? Currently, most non-whitespace characters. Eg `😀:` is a valid tag.
+What is allowed in a tag name ? Most non-whitespace characters. Eg `😀:` is a valid tag.
 
 For extra error checking, you can declare valid tag names with the [`tag` directive](#tag-directive),
 and then enforce these with the [`check` command](#check).
-
 But note that tags are detected quite loosely at present, sometimes where you didn't intend them.
-Eg `; see https://foo.com` contains a `https` tag with value `//foo.com`.
+Eg a comment like `; see https://foo.com` adds a `https` tag.
 
-### Special tags
-
-Some tag names have special significance to hledger. They are explained elsewhere, but here's a quick reference:
+There are several tag names which have special significance to hledger.
+They are explained elsewhere, but here's a quick reference:
 <!-- keep synced with JournalChecks.hs -->
 ```
  type                   -- declares an account's type
