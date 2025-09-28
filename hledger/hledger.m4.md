@@ -1938,7 +1938,7 @@ You can write each tag on its own line of you prefer (but they still can't conta
     ; tag2: value 2
 ```
 
-Tags can be attached to individual postings, rather than the overall transactions:
+Tags can be attached to individual postings, rather than the overall transaction:
 
 ```journal
 2025-01-01 rent
@@ -1946,7 +1946,7 @@ Tags can be attached to individual postings, rather than the overall transaction
     expenses:rent       $1000  ; postingtag:
 ```
 
-Or to accounts, when they are declared with an [account directive](#account-directive):
+Tags can be attached to accounts, in their [account directive](#account-directive):
 
 ```journal
 account assets:checking    ; acct-number: 123-45-6789
@@ -1954,16 +1954,14 @@ account assets:checking    ; acct-number: 123-45-6789
 
 ### Tag propagation
 
-In addition to the piece of data they are attached to,
+In addition to what they are attached to,
 tags also affect related data in a few ways, allowing more powerful queries:
 
 1. Accounts -> postings. Postings inherit tags from their account.
-  <!-- Eg the assets:checking posting above will also inherit the acct-number: tag. -->
-
 2. Transactions -> postings. Postings inherit tags from their transaction.
-  <!-- Eg the assets:checking and expenses:food postings above will both inherit the some-tag: tag. -->
-
 3. Postings -> transactions. Transactions also acquire the tags of their postings.
+  <!-- Eg the assets:checking posting above will also inherit the acct-number: tag. -->
+  <!-- Eg the assets:checking and expenses:food postings above will both inherit the some-tag: tag. -->
   <!-- Eg the rent transaction above will acquire the postingtag: tag. -->
 
 So when you use a [`tag:` query](#tag-query) to match whole transactions, individual postings, or accounts,
@@ -1981,9 +1979,9 @@ account expenses:food           ; atag:
 
 | data part               | has tags                 | explanation
 |-------------------------|--------------------------|---------------------------------------------------------------------------------
-| assets:checking account |                          | no tags
+| assets:checking account |                          | no tags attached
 | expenses:food   account | atag                     | atag:  in comment
-| assets:checking posting | p1tag, ttag              | p1tag: in comment, ttag: acquired from transaction
+| assets:checking&nbsp;posting | p1tag, ttag              | p1tag: in comment, ttag: acquired from transaction
 | expenses:food   posting | p2tag, atag, ttag        | p2tag: in comment, atag: from account, ttag: from transaction
 | groceries   transaction | ttag, p1tag, p2tag, atag | ttag:  in comment, p1tag from first posting, p2tag and atag from second posting
 
