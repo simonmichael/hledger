@@ -23,6 +23,7 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 
 - Share what you've learned so far to help others. This is a quadruple win -
   it helps them, improves your own understanding, builds community, and frees up maintainer time!
+- Add translation to your language. Starting with the [tldr](https://github.com/simonmichael/hledger/tree/master/doc/tldr) has high value. Or if you want to spend minimal effort, then just translate the [top level account names](https://github.com/simonmichael/hledger/tree/master/examples/i18n)
 
 ## Funder ?
 
@@ -69,7 +70,7 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 
 - Get familiar with the documentation, website and online presence; review and test
 - Get familiar with the doc/site source files and generation process (see [Just, Make, Shake](JUST-MAKE-SHAKE.md))
-- Help improve user, contributor, process docs
+- Help improve user, contributor, process docs, translation
 
 ## Web designer / webmaster ?
 
