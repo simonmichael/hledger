@@ -38,4 +38,6 @@ dc2sign <"$1" | hledger -f- "${@:2}"
 # It could be prototyped as a single new report, eg an addon script providing variant of the simple balance report. 
 # I think both the report calculation and display code would need to change, to sum and show the positive amounts and negative amounts separately.
 # It would be a nice feature: offering a more traditional view of things, and reducing sign vs dc doubts.
-# Would it provide any real new error checking power ? I'm not sure
+# "In France, you have to use a debit and a credit column, and can't use the positive/negative notation."
+# Would it provide any real new error checking power ? I'm not sure.
+# See also https://github.com/simonmichael/hledger/issues/71.
