@@ -1979,9 +1979,9 @@ account expenses:food           ; atag:
 
 | data part               | has tags                 | explanation
 |-------------------------|--------------------------|---------------------------------------------------------------------------------
-| assets:checking account |                          | no tags attached
+| assets:checking&nbsp;account |                     | no tags attached
 | expenses:food   account | atag                     | atag:  in comment
-| assets:checking&nbsp;posting | p1tag, ttag              | p1tag: in comment, ttag: acquired from transaction
+| assets:checking posting | p1tag, ttag              | p1tag: in comment, ttag: acquired from transaction
 | expenses:food   posting | p2tag, atag, ttag        | p2tag: in comment, atag: from account, ttag: from transaction
 | groceries   transaction | ttag, p1tag, p2tag, atag | ttag:  in comment, p1tag from first posting, p2tag and atag from second posting
 
