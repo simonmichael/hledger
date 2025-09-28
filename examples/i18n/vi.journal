@@ -1,0 +1,8 @@
+account tài sản                            ; type:A
+account tài sản:ngân hàng                  ; type:C
+account tài sản:tiền mặt                   ; type:C
+account nợ phải trả                        ; type:L
+account vốn chủ sở hữu                     ; type:E
+account vốn chủ sở hữu:chuyển đổi          ; type:V
+account thu nhập                           ; type:R
+account chi tiêu                           ; type:X
