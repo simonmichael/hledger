@@ -5752,7 +5752,7 @@ PIVOTEXPR can be
 Some special cases:
 
 - Colons appearing in PIVOTEXPR or in a pivoted tag value will generate account hierarchy.
-- When pivoting a posting has multiple values for a tag, the pivoted value of that tag will be the first value.
+- When pivoting a posting that has multiple values for a tag, the tag's first value will be used as the pivoted value.
 - When a posting has multiple commodities, the pivoted value of "comm"/"cur" will be "".
   Also when an unrecognised tag name or field is provided, its pivoted value will be "".
   (If this causes confusing output, consider excluding those postings from the report.)
