@@ -1167,7 +1167,7 @@ pivotComponent fieldortagname p
   | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ lstrip $ showAmountCost a; _ -> unknown
   | Just (_, tagvalue) <- postingFindTag fieldortagname p =
       if fieldortagname == "type"
-      then either (const tagvalue) T.show $ parseAccountType True tagvalue
+      then either (const tagvalue) (T.pack . show) $ parseAccountType True tagvalue
       else tagvalue
   | otherwise = unknown
   where
