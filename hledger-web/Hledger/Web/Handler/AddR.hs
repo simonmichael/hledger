@@ -11,7 +11,7 @@ module Hledger.Web.Handler.AddR
   ) where
 
 import Data.Aeson.Types (Result(..))
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Network.HTTP.Types.Status (status400)
 import Text.Blaze.Html (preEscapedToHtml)
 import Yesod

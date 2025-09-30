@@ -23,8 +23,8 @@ module Hledger.Cli.Commands.Accounts (
 import Control.Monad (forM_)
 import Data.List
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Safe (headDef)
 import System.Console.CmdArgs.Explicit as C
 

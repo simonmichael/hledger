@@ -16,7 +16,7 @@ module Hledger.Cli.Commands.Notes (
 ) where
 
 import Data.List.Extra (nubSort)
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions

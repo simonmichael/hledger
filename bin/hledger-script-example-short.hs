@@ -9,8 +9,8 @@ script-example - my new script
 {-# LANGUAGE OverloadedStrings #-}
 
 import Hledger.Cli.Script
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 
 cmdmode = hledgerCommandMode (unlines
     ---------------------------standard terminal width-----------------------------

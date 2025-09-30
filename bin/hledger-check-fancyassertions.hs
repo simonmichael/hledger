@@ -111,18 +111,18 @@ import Data.Maybe (fromMaybe, mapMaybe)
 import Data.Time.Calendar (toGregorian)
 import Data.Time.Calendar.OrdinalDate (mondayStartWeek, sundayStartWeek, toOrdinalDate)
 import Data.Text (Text, isPrefixOf, pack, unpack)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Hledger.Data as H
-import qualified Hledger.Query as H
-import qualified Hledger.Read as H
-import qualified Hledger.Utils.Parse as H
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Hledger.Data qualified as H
+import Hledger.Query qualified as H
+import Hledger.Read qualified as H
+import Hledger.Utils.Parse qualified as H
 import Lens.Micro (set)
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
-import qualified Text.Megaparsec as P
-import qualified Text.Megaparsec.Char as P
+import Text.Megaparsec qualified as P
+import Text.Megaparsec.Char qualified as P
 
 -- Don't know how to preserve newlines yet.
 helptxt = unlines [

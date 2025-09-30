@@ -90,7 +90,7 @@ module Hledger.Utils.Parse (
 where
 
 import Control.Monad (when)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Safe (tailErr)
 import Text.Megaparsec
 import Text.Printf
@@ -105,9 +105,9 @@ import Text.Megaparsec.Char
 
 import Control.Monad.Except (ExceptT, MonadError, catchError, throwError)
 import Control.Monad.Trans.Class (lift)
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 import Data.Monoid (Alt(..))
-import qualified Data.Set as S
+import Data.Set qualified as S
 
 import Hledger.Utils.Debug (debugLevel, dbg0Msg)
 

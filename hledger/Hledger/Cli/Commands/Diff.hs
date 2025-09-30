@@ -18,7 +18,7 @@ import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import Lens.Micro (set)
 import Safe (headDef)
 

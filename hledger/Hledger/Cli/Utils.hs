@@ -30,13 +30,13 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import qualified Data.List.NonEmpty as NE (toList)
+import Data.List.NonEmpty qualified as NE (toList)
 import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
+import Data.Text.Lazy.IO qualified as TL
 import Data.Time (Day)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Lens.Micro ((^.))

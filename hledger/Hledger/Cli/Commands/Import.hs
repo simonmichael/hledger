@@ -11,7 +11,7 @@ where
 
 import Control.Monad
 import Data.List
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 

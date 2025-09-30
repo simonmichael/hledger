@@ -131,11 +131,11 @@ import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust, catMaybes)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import           Data.Text.Encoding.Error (UnicodeException)
-import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text.IO qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import           Data.Time.Clock (getCurrentTime)
 import           Data.Time.LocalTime (LocalTime, ZonedTime, getCurrentTimeZone, utcToLocalTime, utcToZonedTime)
 import           Data.Word (Word16)
@@ -154,7 +154,7 @@ import           System.FilePath (isRelative, (</>))
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
 import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8)
-import qualified System.IO.Encoding as Enc
+import System.IO.Encoding qualified as Enc
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, shell, waitForProcess, withCreateProcess)
 import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)

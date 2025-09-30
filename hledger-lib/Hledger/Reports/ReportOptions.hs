@@ -79,7 +79,7 @@ import Data.Functor.Identity (Identity(..))
 import Data.List (partition)
 import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
 import Safe (headMay, lastDef, lastMay, maximumMay, readMay)

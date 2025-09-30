@@ -23,8 +23,8 @@ import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
 import Data.Decimal
-import qualified Data.Text as T
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text qualified as T
+import Data.Text.Lazy.IO qualified as TL
 import Safe (headDef)
 import System.Console.CmdArgs.Explicit as CmdArgs
 

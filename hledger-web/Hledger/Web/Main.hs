@@ -30,7 +30,7 @@ import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechani
 #endif
 import Control.Monad (when)
 import Data.String (fromString)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Network.Socket
 import Network.Wai (Application)
 import Network.Wai.Handler.Warp (runSettings, runSettingsSocket, defaultSettings, setHost, setPort)

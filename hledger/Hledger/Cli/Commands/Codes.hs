@@ -15,8 +15,8 @@ module Hledger.Cli.Commands.Codes (
  ,codes
 ) where
 
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions

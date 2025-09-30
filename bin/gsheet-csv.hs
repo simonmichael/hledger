@@ -40,9 +40,9 @@ gsheet-csv SPREADSHEETID SHEETNAME  - print specified sheet as CSV
 module Main
 where
 import "lens" Control.Lens
-import qualified "bytestring" Data.ByteString.Lazy as B
+import "bytestring" qualified Data.ByteString.Lazy as B
 import "cassava" Data.Csv
-import qualified "text" Data.Text as T
+import "text" qualified Data.Text as T
 import "gogol" Network.Google
 import "gogol-sheets" Network.Google.Sheets
 import "base" System.Environment

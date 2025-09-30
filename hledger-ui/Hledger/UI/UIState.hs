@@ -49,7 +49,7 @@ import Data.Either (fromRight)
 import Data.List ((\\), sort)
 import Data.Maybe (fromMaybe)
 import Data.Semigroup (Max(..))
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Text.Zipper (gotoEOL)
 import Data.Time.Calendar (Day)
 import Lens.Micro ((^.), over, set)

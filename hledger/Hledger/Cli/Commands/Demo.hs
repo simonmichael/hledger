@@ -47,7 +47,7 @@ import Data.List (isPrefixOf, find, findIndex, isInfixOf, dropWhileEnd)
 import Control.Applicative ((<|>))
 import Data.ByteString as B (ByteString)
 import Data.Maybe
-import qualified Data.ByteString.Char8 as B
+import Data.ByteString.Char8 qualified as B
 import Safe (tailMay)
 import System.IO.Temp (withSystemTempFile)
 import System.IO (hClose)

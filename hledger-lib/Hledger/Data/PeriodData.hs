@@ -31,7 +31,7 @@ import Data.Foldable1 (Foldable1(..))
 import Control.Applicative (liftA2)
 #endif
 import Data.Bifunctor (first)
-import qualified Data.IntMap.Strict as IM
+import Data.IntMap.Strict qualified as IM
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif

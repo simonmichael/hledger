@@ -25,8 +25,8 @@ import Data.List hiding ((!?))
 import Data.List
 #endif
 import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Vector as V
+import Data.Text qualified as T
+import Data.Vector qualified as V
 import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Brick

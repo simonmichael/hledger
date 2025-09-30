@@ -10,10 +10,10 @@ module Hledger.Web.Handler.UploadR
   ) where
 
 import Control.Monad.Except (runExceptT)
-import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy qualified as BL
 import Data.Conduit (connect)
 import Data.Conduit.Binary (sinkLbs)
-import qualified Data.Text.Encoding as TE
+import Data.Text.Encoding qualified as TE
 
 import Hledger.Web.Import
 import Hledger.Web.Widget.Common (fromFormSuccess, journalFile404, writeJournalTextIfValidAndChanged)

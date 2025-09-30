@@ -36,10 +36,10 @@ import Data.Time (Day)
 import Text.Megaparsec
 import Data.Void (Void)
 import Text.Megaparsec.Char
-import qualified Text.Megaparsec.Char.Lexer as L
+import Text.Megaparsec.Char.Lexer qualified as L
 import Hledger.Data.Dates (parsedate)
 import Data.Bifunctor
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 
 
 -- | A Cabal/Hackage-compatible package version string: one or more dot-separated integers.

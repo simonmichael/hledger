@@ -129,7 +129,7 @@ where
 --- ** imports
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
 import Control.Monad (foldM, liftM2, when, unless, (>=>), (<=<))
-import qualified Control.Monad.Fail as Fail (fail)
+import Control.Monad.Fail qualified as Fail (fail)
 import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.State.Strict (MonadState, evalStateT, modify', get, put)
@@ -143,10 +143,10 @@ import Data.Functor ((<&>), ($>), void)
 import Data.List (find, genericReplicate, union)
 import Data.List.NonEmpty (NonEmpty(..))
 import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
-import qualified Data.Map as M
-import qualified Data.Semigroup as Sem
+import Data.Map qualified as M
+import Data.Semigroup qualified as Sem
 import Data.Text (Text, stripEnd)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))

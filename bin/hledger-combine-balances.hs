@@ -9,9 +9,9 @@
 
 import System.Environment (getArgs)
 import Hledger.Cli.Script
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Map.Merge.Strict
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text.Lazy.IO qualified as TL
 
 appendReports :: MultiBalanceReport -> MultiBalanceReport -> MultiBalanceReport
 appendReports r1 r2 =

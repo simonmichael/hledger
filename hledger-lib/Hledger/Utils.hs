@@ -76,8 +76,8 @@ import Data.List.Extra (chunksOf, foldl1', uncons, unsnoc)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
-import qualified Data.Set as Set
-import qualified Data.Text as T (pack, unpack)
+import Data.Set qualified as Set
+import Data.Text qualified as T (pack, unpack)
 import Data.Tree (foldTree, Tree (Node, subForest))
 import Language.Haskell.TH (DecsQ, Name, mkName, nameBase)
 import Lens.Micro ((&), (.~))

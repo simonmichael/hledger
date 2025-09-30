@@ -42,17 +42,17 @@ module Hledger.Data.Account
 ) where
 
 import Control.Applicative ((<|>))
-import qualified Data.HashSet as HS
-import qualified Data.HashMap.Strict as HM
-import qualified Data.IntMap as IM
+import Data.HashSet qualified as HS
+import Data.HashMap.Strict qualified as HM
+import Data.IntMap qualified as IM
 import Data.List (find, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
 import Data.List.NonEmpty (NonEmpty(..), groupWith)
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.These (These(..))
 import Data.Time (Day(..), fromGregorian)
 import Safe (headMay)

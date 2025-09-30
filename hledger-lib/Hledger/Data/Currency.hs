@@ -15,7 +15,7 @@ module Hledger.Data.Currency (
   currencyCodeToSymbol,
 )
 where
-import qualified Data.Map as M
+import Data.Map qualified as M
 import           Data.Text (Text)
 
 -- | An ISO 4217 currency code, like EUR. Usually three upper case letters.

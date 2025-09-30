@@ -1422,16 +1422,16 @@ including:
 - add support for GHC 8.8, base-compat 0.11 (#1090)
 
   We are now using the new fail from the MonadFail class, which we
-  always import qualified as Fail.fail, from base-compat-batteries
+  always import as qualified Fail.fail, from base-compat-batteries
   Control.Monad.Fail.Compat to work with old GHC versions. If old fail
   is needed (shouldn't be) it should be imported qualified as
   Prelude.Fail, using imports such as:
 
       import Prelude hiding (fail)
-      import qualified Prelude (fail)
+      import Prelude qualified (fail)
       import Control.Monad.State.Strict hiding (fail)
       import "base-compat-batteries" Prelude.Compat hiding (fail)
-      import qualified "base-compat-batteries" Control.Monad.Fail.Compat as Fail
+      import "base-compat-batteries" qualified Control.Monad.Fail.Compat as Fail
 
 - hledger and hledger-lib unit tests have been ported to tasty.
 

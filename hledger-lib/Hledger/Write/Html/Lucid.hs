@@ -12,14 +12,14 @@ module Hledger.Write.Html.Lucid (
     ) where
 
 import           Data.Foldable (traverse_)
-import qualified Data.Text as Text
-import qualified Lucid.Base as L
-import qualified Lucid as L
+import Data.Text qualified as Text
+import Lucid.Base qualified as L
+import Lucid qualified as L
 
-import qualified Hledger.Write.Html.Attribute as Attr
+import Hledger.Write.Html.Attribute qualified as Attr
 import           Hledger.Write.Html.HtmlCommon
 import           Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 
 
 type Html = L.Html ()

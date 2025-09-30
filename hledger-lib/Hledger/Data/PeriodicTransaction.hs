@@ -13,8 +13,8 @@ where
 
 import Data.Function ((&))
 import Data.Maybe (isNothing)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Text.Printf
 
 import Hledger.Data.Types

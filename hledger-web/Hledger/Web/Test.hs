@@ -43,7 +43,7 @@ module Hledger.Web.Test (
 
 import Data.String (fromString)
 import Data.Function ((&))
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Test.Hspec (hspec)
 import Yesod.Default.Config
 import Yesod.Test

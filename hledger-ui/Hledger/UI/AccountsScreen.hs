@@ -30,9 +30,9 @@ import Data.List hiding (reverse, (!?))
 import Data.List hiding (reverse)
 #endif
 import Data.Maybe
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
-import qualified Data.Vector as V
+import Data.Vector qualified as V
 import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Lens.Micro.Platform

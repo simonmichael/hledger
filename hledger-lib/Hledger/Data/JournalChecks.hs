@@ -24,8 +24,8 @@ where
 import Data.Char (isSpace)
 import Data.List.Extra
 import Data.Maybe
-import qualified Data.Map.Strict as M
-import qualified Data.Text as T
+import Data.Map.Strict qualified as M
+import Data.Text qualified as T
 import Safe (atMay, lastMay, headMay)
 import Text.Printf (printf)
 

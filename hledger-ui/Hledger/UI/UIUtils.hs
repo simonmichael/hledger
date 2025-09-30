@@ -56,7 +56,7 @@ import Control.Concurrent.STM (atomically, writeTChan)  -- GHC only
 import Control.Monad.IO.Class
 import Data.Bifunctor (second)
 import Data.List
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time (addDays)
 import Graphics.Vty
   (Event(..),Key(..),Modifier(..),Vty(..),Color,Attr,currentAttr,refresh, displayBounds
@@ -72,7 +72,7 @@ import Hledger.Cli.DocFiles
 import Hledger.UI.UITypes
 
 import Data.Vector (Vector)
-import qualified Data.Vector as V
+import Data.Vector qualified as V
 
 -- | On posix platforms, send the system STOP signal to suspend the
 -- current program. On windows, does nothing.

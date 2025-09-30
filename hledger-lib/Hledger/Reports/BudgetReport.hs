@@ -21,8 +21,8 @@ import Data.Foldable (toList)
 import Data.List (find, maximumBy, intercalate)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Ord (comparing)
-import qualified Data.Set as S
-import qualified Data.Text as T
+import Data.Set qualified as S
+import Data.Text qualified as T
 import Data.These (These(..), these)
 import Data.Time (Day)
 import Safe (minimumDef)

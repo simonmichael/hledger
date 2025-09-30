@@ -18,7 +18,7 @@ where
 
 import Data.List (partition, sortBy, uncons)
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (addDays)
 import Data.Time.Clock (addUTCTime, getCurrentTime)
 import Data.Time.Format (defaultTimeLocale, formatTime, parseTimeM)

@@ -21,27 +21,27 @@ module Hledger.Cli.Commands.Register (
 import Data.Default (def)
 import Data.Maybe (fromMaybe, isJust)
 import Data.Text (Text)
-import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.IO as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Map qualified as Map
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.IO qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (styledTableHtml)
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor, dateCell)
 import Text.Tabular.AsciiWide (Cell(..), Align(..), Properties(..), Header(Header, Group), renderRowB, textCell, tableBorders, borderSpaces)
-import qualified Lucid
+import Lucid qualified
 import Data.List (sortBy)
 import Data.Char (toUpper)
 import Data.List.Extra (intersect)
-import qualified System.IO as IO
+import System.IO qualified as IO
 
 registermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Register.txt")

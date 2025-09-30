@@ -41,8 +41,8 @@ import Control.Monad (guard)
 import Data.Foldable (toList)
 import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
-import qualified Data.HashSet as HS
-import qualified Data.IntMap.Strict as IM
+import Data.HashSet qualified as HS
+import Data.IntMap.Strict qualified as IM
 import Data.Maybe (fromMaybe, isJust)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)

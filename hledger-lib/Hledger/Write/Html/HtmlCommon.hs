@@ -11,7 +11,7 @@ module Hledger.Write.Html.HtmlCommon (
 import Data.Text (Text)
 
 import           Hledger.Write.Spreadsheet (Cell(..))
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 
 
 borderStyles :: Lines border => Cell border text -> [Text]

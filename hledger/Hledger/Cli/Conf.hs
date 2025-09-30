@@ -26,10 +26,10 @@ import Control.Exception (handle)
 import Control.Monad (void, forM)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
-import qualified Data.Text as T (pack)
+import Data.Text qualified as T (pack)
 import Safe (headMay, lastDef)
 import System.Directory (getHomeDirectory, getXdgDirectory, XdgDirectory (XdgConfig), doesFileExist, getCurrentDirectory)
 import System.FilePath ((</>), takeDirectory)

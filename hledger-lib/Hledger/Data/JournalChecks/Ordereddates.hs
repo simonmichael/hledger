@@ -6,7 +6,7 @@ where
 import Control.Monad (forM)
 import Data.List (groupBy)
 import Text.Printf (printf)
-import qualified Data.Text as T (pack, unlines)
+import Data.Text qualified as T (pack, unlines)
 
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Transaction (transactionFile)

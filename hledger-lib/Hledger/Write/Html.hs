@@ -23,9 +23,9 @@ module Hledger.Write.Html (
   tests_Hledger_Write_Html
   ) where
 
-import qualified Data.Text as T (Text)
-import qualified Data.Text.Lazy as TL (Text, toStrict)
-import qualified Lucid as L (renderText, toHtml)
+import Data.Text qualified as T (Text)
+import Data.Text.Lazy qualified as TL (Text, toStrict)
+import Lucid qualified as L (renderText, toHtml)
 import Test.Tasty (testGroup)
 
 import Hledger.Write.Html.Lucid (Html, formatRow, styledTableHtml)

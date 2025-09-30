@@ -88,7 +88,7 @@ import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..))
 import Control.Applicative.Permutations
 import Control.Monad (guard, unless)
-import qualified Control.Monad.Fail as Fail (MonadFail, fail)
+import Control.Monad.Fail qualified as Fail (MonadFail, fail)
 import Data.Char (digitToInt, isDigit)
 import Data.Default (def)
 import Data.Foldable (asum)
@@ -97,9 +97,9 @@ import Data.Functor (($>))
 import Data.List (elemIndex, group, sort, sortBy)
 import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe)
 import Data.Ord (comparing)
-import qualified Data.Set as Set
+import Data.Set qualified as Set
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Format hiding (months)
 import Data.Time.Calendar
     (Day, addDays, addGregorianYearsClip, addGregorianMonthsClip, diffDays,

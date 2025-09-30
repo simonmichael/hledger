@@ -12,8 +12,8 @@
 {-# LANGUAGE PackageImports #-}
 
 import Hledger.Cli.Script
-import qualified "text" Data.Text as T
-import qualified "text" Data.Text.IO as T
+import "text" qualified Data.Text as T
+import "text" qualified Data.Text.IO as T
 
 cmdmode = hledgerCommandMode (unlines
   ["report1"

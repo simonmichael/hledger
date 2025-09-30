@@ -107,7 +107,7 @@ import Data.Either (isRight)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List
-import qualified Data.List.NonEmpty as NE
+import Data.List.NonEmpty qualified as NE
 import Data.Maybe (isJust, fromMaybe, fromJust)
 import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)

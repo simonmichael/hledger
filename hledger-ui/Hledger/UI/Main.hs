@@ -37,7 +37,7 @@ import Data.Function ((&))
 import Data.List (find)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Graphics.Vty (Mode (Mouse), Vty (outputIface), Output (setMode))
 import Graphics.Vty.CrossPlatform (mkVty)
 import Lens.Micro ((^.))
@@ -46,7 +46,7 @@ import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Modified), watchDir, withManager, EventIsDirectory (IsFile))
 import Brick hiding (bsDraw)
-import qualified Brick.BChan as BC
+import Brick.BChan qualified as BC
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)

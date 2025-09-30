@@ -90,17 +90,17 @@ module Hledger.Cli.CliOptions (
 )
 where
 
-import qualified Control.Exception as C
+import Control.Exception qualified as C
 import Control.Monad (when)
 import Data.Char
 import Data.Default
 import Data.List.Extra (intercalate, isInfixOf, nubSort)
-import qualified Data.List.NonEmpty as NE (NonEmpty, fromList, nonEmpty)
+import Data.List.NonEmpty qualified as NE (NonEmpty, fromList, nonEmpty)
 import Data.List.Split (splitOn)
 import Data.Maybe
 --import Data.String.Here
 -- import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Void (Void)
 import GitHash (tGitInfoCwdTry)
 import Safe

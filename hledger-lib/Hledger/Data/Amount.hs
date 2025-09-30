@@ -187,12 +187,12 @@ import Data.List (find, intercalate, intersperse, mapAccumL, partition)
 import Data.List (foldl')
 #endif
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
-import qualified Data.Map.Strict as M
-import qualified Data.Set as S
+import Data.Map.Strict qualified as M
+import Data.Set qualified as S
 import Data.Maybe (fromMaybe, isNothing)
 import Data.Semigroup (Semigroup(..))
-import qualified Data.Text as T
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Word (Word8)
 import Safe (headDef, lastDef, lastMay)
 import System.Console.ANSI (Color(..),ColorIntensity(..))

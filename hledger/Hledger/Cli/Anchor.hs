@@ -7,15 +7,15 @@ module Hledger.Cli.Anchor (
     headerDateSpanCell,
     ) where
 
-import qualified Data.Text as Text
+import Data.Text qualified as Text
 import Data.Text (Text)
 import Data.Time (Day)
 import Data.Maybe (fromMaybe)
 
-import qualified Text.URI as Uri
-import qualified Text.URI.QQ as UriQQ
+import Text.URI qualified as Uri
+import Text.URI.QQ qualified as UriQQ
 
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Write.Spreadsheet (headerCell)
 import Hledger.Utils.IO (error')
 import Hledger.Utils.Text (quoteIfSpaced)
