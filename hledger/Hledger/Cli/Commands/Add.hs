@@ -3,8 +3,14 @@ A history-aware add command to help with data entry.
 |-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
-{-# LANGUAGE ScopedTypeVariables, RecordWildCards, TypeOperators, FlexibleContexts, OverloadedStrings, PackageImports, LambdaCase #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Hledger.Cli.Commands.Add (
    addmode

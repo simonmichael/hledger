@@ -8,7 +8,8 @@
 -- customisable subheadings/subreports. More verbose and haskelly than
 -- hledger-report1.sh but also more robust and powerful.
 
-{-# LANGUAGE OverloadedStrings, PackageImports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 import Hledger.Cli.Script
 import qualified "text" Data.Text as T

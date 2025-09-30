@@ -1,4 +1,7 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, PackageImports, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 Embedded documentation files in various formats, and helpers for viewing them.
