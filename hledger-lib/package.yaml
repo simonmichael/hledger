@@ -95,6 +95,8 @@ dependencies:
 - extra >=1.7.11
 - Glob >= 0.9
 
+language: GHC2021
+
 ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns
