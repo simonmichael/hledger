@@ -46,7 +46,7 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with GHC 9.10+'s stack traces enabled
+  description: Build with GHC 9.10+ stack traces enabled
   manual: True
   default: False
 
@@ -57,6 +57,7 @@ library
       Hledger.Data.Account
       Hledger.Data.AccountName
       Hledger.Data.Amount
+      Hledger.Data.BalanceData
       Hledger.Data.Balancing
       Hledger.Data.Currency
       Hledger.Data.Dates
@@ -68,10 +69,11 @@ library
       Hledger.Data.Json
       Hledger.Data.Ledger
       Hledger.Data.Period
+      Hledger.Data.PeriodData
       Hledger.Data.PeriodicTransaction
-      Hledger.Data.StringFormat
       Hledger.Data.Posting
       Hledger.Data.RawOptions
+      Hledger.Data.StringFormat
       Hledger.Data.Timeclock
       Hledger.Data.Transaction
       Hledger.Data.TransactionModifier
@@ -84,26 +86,17 @@ library
       Hledger.Read.InputOptions
       Hledger.Read.JournalReader
       Hledger.Read.RulesReader
-      Hledger.Read.TimedotReader
       Hledger.Read.TimeclockReader
-      Hledger.Write.Beancount
-      Hledger.Write.Csv
-      Hledger.Write.Ods
-      Hledger.Write.Html
-      Hledger.Write.Html.Attribute
-      Hledger.Write.Html.Blaze
-      Hledger.Write.Html.Lucid
-      Hledger.Write.Html.HtmlCommon
-      Hledger.Write.Spreadsheet
+      Hledger.Read.TimedotReader
       Hledger.Reports
-      Hledger.Reports.ReportOptions
-      Hledger.Reports.ReportTypes
       Hledger.Reports.AccountTransactionsReport
       Hledger.Reports.BalanceReport
       Hledger.Reports.BudgetReport
       Hledger.Reports.EntriesReport
       Hledger.Reports.MultiBalanceReport
       Hledger.Reports.PostingsReport
+      Hledger.Reports.ReportOptions
+      Hledger.Reports.ReportTypes
       Hledger.Utils
       Hledger.Utils.Debug
       Hledger.Utils.IO
@@ -112,17 +105,25 @@ library
       Hledger.Utils.String
       Hledger.Utils.Test
       Hledger.Utils.Text
+      Hledger.Write.Beancount
+      Hledger.Write.Csv
+      Hledger.Write.Html
+      Hledger.Write.Html.Attribute
+      Hledger.Write.Html.Blaze
+      Hledger.Write.Html.HtmlCommon
+      Hledger.Write.Html.Lucid
+      Hledger.Write.Ods
+      Hledger.Write.Spreadsheet
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:
-      Hledger.Data.BalanceData
-      Hledger.Data.PeriodData
       Paths_hledger_lib
   autogen-modules:
       Paths_hledger_lib
   hs-source-dirs:
       ./
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
+  cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -172,7 +173,7 @@ library
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -182,6 +183,7 @@ test-suite doctest
   hs-source-dirs:
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
+  cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.7
@@ -232,11 +234,9 @@ test-suite doctest
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
-  if impl(ghc >= 9.0) && impl(ghc < 9.2)
-    buildable: False
 
 test-suite unittest
   type: exitcode-stdio-1.0
@@ -244,6 +244,7 @@ test-suite unittest
   hs-source-dirs:
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
+  cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
     , Glob >=0.9
@@ -295,6 +296,6 @@ test-suite unittest
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
   buildable: True
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG

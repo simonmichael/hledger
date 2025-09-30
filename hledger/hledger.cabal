@@ -97,7 +97,7 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with GHC 9.10+'s stack traces enabled
+  description: Build with GHC 9.10+ stack traces enabled
   manual: True
   default: False
 
@@ -128,8 +128,8 @@ library
       Hledger.Cli.Commands.Demo
       Hledger.Cli.Commands.Descriptions
       Hledger.Cli.Commands.Diff
-      Hledger.Cli.Commands.Help
       Hledger.Cli.Commands.Files
+      Hledger.Cli.Commands.Help
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
       Hledger.Cli.Commands.Notes
@@ -153,6 +153,8 @@ library
       Paths_hledger
   autogen-modules:
       Paths_hledger
+  hs-source-dirs:
+      ./
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
   cpp-options: -DVERSION="1.50.99"
   build-depends:
@@ -198,7 +200,7 @@ library
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -252,7 +254,7 @@ executable hledger
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
   if flag(threaded)
@@ -305,7 +307,7 @@ test-suite unittest
     , utf8-string >=0.3.5
     , utility-ht >=0.0.13
     , wizards >=1.0
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -315,6 +317,7 @@ benchmark bench
   hs-source-dirs:
       bench
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path
+  cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
     , aeson >=1 && <2.3
@@ -358,6 +361,6 @@ benchmark bench
     , utility-ht >=0.0.13
     , wizards >=1.0
   buildable: False
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG

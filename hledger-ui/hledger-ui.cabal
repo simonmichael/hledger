@@ -39,7 +39,7 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with GHC 9.10+'s stack traces enabled
+  description: Build with GHC 9.10+ stack traces enabled
   manual: True
   default: False
 
@@ -51,30 +51,30 @@ flag threaded
 library
   exposed-modules:
       Hledger.UI
-      Hledger.UI.Main
-      Hledger.UI.Theme
-      Hledger.UI.UIOptions
-  other-modules:
       Hledger.UI.AccountsScreen
       Hledger.UI.BalancesheetScreen
       Hledger.UI.CashScreen
       Hledger.UI.Editor
       Hledger.UI.ErrorScreen
       Hledger.UI.IncomestatementScreen
+      Hledger.UI.Main
       Hledger.UI.MenuScreen
       Hledger.UI.RegisterScreen
+      Hledger.UI.Theme
       Hledger.UI.TransactionScreen
+      Hledger.UI.UIOptions
       Hledger.UI.UIScreens
       Hledger.UI.UIState
       Hledger.UI.UITypes
       Hledger.UI.UIUtils
+  other-modules:
       Paths_hledger_ui
   autogen-modules:
       Paths_hledger_ui
   hs-source-dirs:
       ./
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
-  cpp-options: -DVERSION="1.50.99" -DVERSION="1.50.99"
+  cpp-options: -DVERSION="1.50.99"
   build-depends:
       ansi-terminal >=0.9
     , async
@@ -106,7 +106,7 @@ library
     , vector
     , vty >=6.1 && <6.5
     , vty-crossplatform >=0.4.0.0 && <0.5.0.0
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
   if os(windows)
@@ -124,12 +124,12 @@ executable hledger-ui
       Paths_hledger_ui
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -with-rtsopts=-T
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.50.99"
   build-depends:
       base >=4.18 && <4.22
     , hledger-ui
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
   if flag(threaded)

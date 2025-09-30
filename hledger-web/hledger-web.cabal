@@ -114,7 +114,7 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with GHC 9.10+'s stack traces enabled
+  description: Build with GHC 9.10+ stack traces enabled
   manual: True
   default: False
 
@@ -136,29 +136,29 @@ flag threaded
 library
   exposed-modules:
       Hledger.Web
-      Hledger.Web.Main
-      Hledger.Web.WebOptions
-      Hledger.Web.Application
-      Hledger.Web.Import
-      Hledger.Web.Test
-  other-modules:
       Hledger.Web.App
+      Hledger.Web.Application
       Hledger.Web.Handler.AddR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
       Hledger.Web.Handler.MiscR
       Hledger.Web.Handler.RegisterR
       Hledger.Web.Handler.UploadR
+      Hledger.Web.Import
+      Hledger.Web.Main
       Hledger.Web.Settings
       Hledger.Web.Settings.StaticFiles
+      Hledger.Web.Test
+      Hledger.Web.WebOptions
       Hledger.Web.Widget.AddForm
       Hledger.Web.Widget.Common
+  other-modules:
       Paths_hledger_web
   autogen-modules:
       Paths_hledger_web
   hs-source-dirs:
       ./
-  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
@@ -210,7 +210,7 @@ library
     , yesod-form >=1.4 && <1.8
     , yesod-static >=1.4 && <1.7
     , yesod-test
-  default-language: Haskell2010
+  default-language: GHC2021
   if flag(threaded)
     ghc-options: -threaded
   if (flag(dev)) || (flag(library-only))
@@ -228,12 +228,12 @@ executable hledger-web
       Paths_hledger_web
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns -with-rtsopts=-T
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.50.99"
   build-depends:
       base >=4.18 && <4.22
     , hledger-web
-  default-language: Haskell2010
+  default-language: GHC2021
   if flag(threaded)
     ghc-options: -threaded
   if (flag(dev)) || (flag(library-only))
@@ -245,17 +245,17 @@ executable hledger-web
   if flag(library-only)
     buildable: False
 
-test-suite test
+test-suite apptest
   type: exitcode-stdio-1.0
   main-is: test.hs
   hs-source-dirs:
       test
-  ghc-options: -Wall -Wredundant-constraints -Wincomplete-record-updates -Wincomplete-uni-patterns
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind
   cpp-options: -DVERSION="1.50.99"
   build-depends:
       base >=4.18 && <4.22
     , hledger-web
-  default-language: Haskell2010
+  default-language: GHC2021
   if flag(threaded)
     ghc-options: -threaded
   if (flag(dev)) || (flag(library-only))
