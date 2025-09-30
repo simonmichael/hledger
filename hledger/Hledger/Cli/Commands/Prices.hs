@@ -9,8 +9,8 @@ module Hledger.Cli.Commands.Prices (
 where
 
 import Data.List
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.CliOptions
 import System.Console.CmdArgs.Explicit

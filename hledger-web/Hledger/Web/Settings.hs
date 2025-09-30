@@ -13,7 +13,7 @@ module Hledger.Web.Settings where
 import Data.Default (def)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Yaml
 import Language.Haskell.TH.Syntax (Q, Exp)
 import Text.Hamlet

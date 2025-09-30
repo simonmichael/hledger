@@ -23,8 +23,8 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Ord
-import qualified "text" Data.Text as T
-import qualified Data.Text.IO as T
+import "text" qualified Data.Text as T
+import Data.Text.IO qualified as T
 import Safe
 import System.Environment
 import Hledger.Cli.Script

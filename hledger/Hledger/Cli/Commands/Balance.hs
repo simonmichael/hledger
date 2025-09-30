@@ -281,14 +281,14 @@ import Data.List (find, transpose)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
-import qualified Data.Map as Map
-import qualified Data.Set as S
+import Data.Map qualified as Map
+import Data.Set qualified as S
 import Data.Maybe (mapMaybe, fromMaybe)
 import Data.Tuple (swap)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Time (addDays, fromGregorian)
 import System.Console.CmdArgs.Explicit as C (flagNone, flagReq, flagOpt)
 import Safe (headMay, maximumMay)
@@ -296,7 +296,7 @@ import Text.Tabular.AsciiWide
     (Header(..), Align(..), Properties(..), Cell(..), Table(..), TableOpts(..),
     cellWidth, concatTables, renderColumns, renderRowB, renderTableByRowsB, textCell)
 
-import qualified System.IO as IO
+import System.IO qualified as IO
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -308,7 +308,7 @@ import Hledger.Write.Html (Html, styledTableHtml, htmlAsLazyText, toHtml)
 import Hledger.Write.Spreadsheet (rawTableContent, headerCell,
             addHeaderBorders, addRowSpanHeader,
             cellFromMixedAmount, cellsFromMixedAmount)
-import qualified Hledger.Write.Spreadsheet as Ods
+import Hledger.Write.Spreadsheet qualified as Ods
 
 
 -- | Command line options for this command.

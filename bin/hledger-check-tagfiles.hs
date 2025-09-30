@@ -17,7 +17,7 @@ $ hledger check-tagfiles       # compiles if there's no compiled version
 -}
 
 import Control.Monad
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Hledger.Cli.Script
 import System.Directory
 import System.Exit

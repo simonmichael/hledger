@@ -24,7 +24,7 @@
 -- import Control.Monad.Except
 import Criterion.Main
 -- import Data.Text.Lazy as LT
-import qualified Data.Text as T
+import Data.Text qualified as T
 -- import System.Environment
 import System.TimeIt      (timeItT)
 import Text.Printf
@@ -33,10 +33,10 @@ import Hledger
 import Data.Default (def)
 -- import Hledger.Utils.Regex (toRegexCI)
 -- import Hledger.Utils.Debug
--- import qualified Hledger.Read.JournalReader as JR
--- import qualified Hledger.Read.TimeclockReader as TR
--- import qualified Hledger.Read.TimeclockReaderNoJU as TRNOJU
--- import qualified Hledger.Read.TimeclockReaderPP as TRPP
+-- import Hledger.Read.JournalReader qualified as JR
+-- import Hledger.Read.TimeclockReader qualified as TR
+-- import Hledger.Read.TimeclockReaderNoJU qualified as TRNOJU
+-- import Hledger.Read.TimeclockReaderPP qualified as TRPP
 
 -- import Control.DeepSeq (NFData)
 -- import Data.Data

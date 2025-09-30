@@ -38,15 +38,15 @@ import Data.Bifunctor (second)
 import Data.Foldable (asum)
 import Data.Function ((&))
 import Data.Functor ((<&>), void)
-import qualified Data.HashTable.Class as H (toList)
-import qualified Data.HashTable.ST.Cuckoo as H
+import Data.HashTable.Class qualified as H (toList)
+import Data.HashTable.ST.Cuckoo qualified as H
 import Data.List (partition, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromJust, fromMaybe, isJust, isNothing, mapMaybe)
-import qualified Data.Set as S
-import qualified Data.Text as T
+import Data.Set qualified as S
+import Data.Text qualified as T
 import Data.Time.Calendar (fromGregorian)
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Safe (headErr)
 import Text.Printf (printf)
 

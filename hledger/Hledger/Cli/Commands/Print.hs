@@ -24,10 +24,10 @@ import Data.List (intersperse, intercalate)
 import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import Data.Map (Map)
-import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Map qualified as Map
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Lens.Micro ((^.), _Just, has)
 import Safe (lastMay, minimumDef)
 import System.Console.CmdArgs.Explicit
@@ -37,12 +37,12 @@ import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (styledTableHtml)
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
 import Hledger.Cli.Anchor (setAccountAnchor)
-import qualified Lucid
-import qualified System.IO as IO
+import Lucid qualified
+import System.IO qualified as IO
 import Data.Maybe (isJust, catMaybes, fromMaybe)
 import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 

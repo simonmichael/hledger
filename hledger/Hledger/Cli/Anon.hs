@@ -18,7 +18,7 @@ import Control.Arrow (first)
 import Data.Hashable (hash)
 import Data.Word (Word32)
 import Numeric (showHex)
-import qualified Data.Text as T
+import Data.Text qualified as T
 
 import Hledger.Data
 import Data.Map (mapKeys)

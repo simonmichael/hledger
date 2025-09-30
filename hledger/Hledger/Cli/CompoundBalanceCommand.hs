@@ -19,16 +19,16 @@ import Data.Bifunctor (second)
 import Data.Function ((&))
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
-import qualified Data.Map as Map
-import qualified Data.List as List
-import qualified Data.List.NonEmpty as NonEmpty
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Map qualified as Map
+import Data.List qualified as List
+import Data.List.NonEmpty qualified as NonEmpty
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day, addDays)
 import Lucid as L hiding (Html, value_)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
-import qualified System.IO as IO
+import System.IO qualified as IO
 import Text.Tabular.AsciiWide as Tabular hiding (render)
 
 import Hledger
@@ -39,7 +39,7 @@ import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Html (htmlAsLazyText, styledTableHtml, Html)
 import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
 import Hledger.Write.Ods (printFods)
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 
 -- | Description of a compound balance report command,
 -- from which we generate the command's cmdargs mode and IO action.

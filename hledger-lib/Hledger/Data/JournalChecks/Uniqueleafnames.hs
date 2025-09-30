@@ -8,7 +8,7 @@ where
 import Data.Function (on)
 import Data.List (groupBy, sortBy)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Safe (headErr)
 import Text.Printf (printf)
 

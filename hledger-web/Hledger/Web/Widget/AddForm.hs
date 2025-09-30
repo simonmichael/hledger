@@ -19,10 +19,10 @@ import Data.Bifunctor (first)
 import Data.Foldable (toList)
 import Data.List (dropWhileEnd, unfoldr)
 import Data.Maybe (isJust, fromMaybe)
-import qualified Data.Set as S
+import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text.Encoding.Base64 (encodeBase64)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time (Day)
 import Text.Blaze.Internal (Markup, preEscapedText)
 import Text.Megaparsec (bundleErrors, eof, parseErrorTextPretty, runParser)

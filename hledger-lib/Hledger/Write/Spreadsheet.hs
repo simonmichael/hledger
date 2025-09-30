@@ -28,12 +28,12 @@ module Hledger.Write.Spreadsheet (
     integerCell,
     ) where
 
-import qualified Hledger.Data.Amount as Amt
+import Hledger.Data.Amount qualified as Amt
 import Hledger.Data.Types (Amount, MixedAmount, acommodity)
 import Hledger.Data.Amount (AmountFormat)
 
-import qualified Data.List as List
-import qualified Data.Text as Text
+import Data.List qualified as List
+import Data.Text qualified as Text
 import Data.Text (Text)
 import Text.WideString (WideBuilder)
 

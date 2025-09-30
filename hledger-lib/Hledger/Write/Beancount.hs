@@ -24,9 +24,9 @@ where
 import Data.Char
 import Data.Default (def)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Safe (maximumBound)
 import Text.DocLayout (realLength)
 import Text.Printf

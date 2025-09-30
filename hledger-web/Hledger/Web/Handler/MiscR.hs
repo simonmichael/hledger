@@ -22,10 +22,10 @@ module Hledger.Web.Handler.MiscR
   , getOpenApiR
   ) where
 
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.Yaml as Yaml
-import qualified Data.ByteString as BS
+import Data.Map qualified as M
+import Data.Text qualified as T
+import Data.Yaml qualified as Yaml
+import Data.ByteString qualified as BS
 import Yesod.Default.Handlers (getFaviconR, getRobotsR)
 
 import Hledger

@@ -31,10 +31,10 @@ import Data.Functor.Identity (Identity(..))
 import Data.List (isPrefixOf, nub)
 import Data.Maybe (fromJust, fromMaybe, isJust)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.IO qualified as TL
 import Data.Time.Calendar (Day, toGregorian)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Lens.Micro ((^.))

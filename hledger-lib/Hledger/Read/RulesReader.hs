@@ -48,16 +48,16 @@ import Control.Concurrent (forkIO)
 import Control.DeepSeq (deepseq)
 import Control.Monad (unless, void, when)
 import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
-import qualified Control.Monad.Fail as Fail
+import Control.Monad.Fail qualified as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
 import Control.Monad.Trans.Class  (lift)
 import Data.Char                  (toLower, isDigit, isSpace, isAlphaNum, ord)
 import Data.Bifunctor             (first)
-import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as BL
-import qualified Data.Csv as Cassava
-import qualified Data.Csv.Parser.Megaparsec as CassavaMegaparsec
+import Data.ByteString qualified as B
+import Data.ByteString.Lazy qualified as BL
+import Data.Csv qualified as Cassava
+import Data.Csv.Parser.Megaparsec qualified as CassavaMegaparsec
 import Data.Encoding (encodingFromStringExplicit, DynEncoding)
 import Data.Either (fromRight)
 import Data.Functor ((<&>))
@@ -70,11 +70,11 @@ import Data.List (foldl')
 import Data.List.Extra (groupOn)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
-import qualified Data.Set as S
+import Data.Set qualified as S
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
+import Data.Text.IO qualified as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headMay, lastMay, readMay)

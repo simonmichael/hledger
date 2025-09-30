@@ -42,10 +42,10 @@ where
 import Brick.Widgets.List (listMoveTo, listSelectedElement, list)
 import Data.List
 import Data.Maybe
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, diffDays)
 import Safe
-import qualified Data.Vector as V
+import Data.Vector qualified as V
 
 import Hledger.Cli hiding (mode, progname,prognameandversion)
 import Hledger.UI.UIOptions

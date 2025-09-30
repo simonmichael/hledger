@@ -74,7 +74,7 @@ import Data.List (foldl')
 #endif
 import Data.MemoUgly (memo)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Text.Regex.TDFA (
   Regex, CompOption(..), defaultCompOpt, defaultExecOpt,
   makeRegexOptsM, AllMatches(getAllMatches), match, MatchText,

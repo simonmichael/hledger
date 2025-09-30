@@ -35,7 +35,7 @@ module Hledger.Data.Period (
 where
 
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar
 import Data.Time.Calendar.MonthDay
 import Data.Time.Calendar.OrdinalDate

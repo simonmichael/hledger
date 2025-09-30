@@ -14,7 +14,7 @@ module Hledger.Cli.Commands.Payees (
  ,payees
 ) where
 
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit
 
 import Hledger

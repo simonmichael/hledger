@@ -8,7 +8,7 @@
 {-| Construct two balance reports for two different time periods and use one of the as "budget" for
     the other, thus comparing them
 -}
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text.Lazy.IO qualified as TL
 import System.Environment (getArgs)
 import Hledger.Cli.Script
 import Hledger.Cli.Commands.Balance

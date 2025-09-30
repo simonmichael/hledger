@@ -12,9 +12,9 @@ module Hledger.Cli.Commands.Commodities (
  ,commodities
 ) where
 
-import qualified Data.Map as M
-import qualified Data.Set as S
-import qualified Data.Text.IO as T
+import Data.Map qualified as M
+import Data.Set qualified as S
+import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit
 
 import Hledger

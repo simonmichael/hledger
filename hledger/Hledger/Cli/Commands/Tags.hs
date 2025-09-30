@@ -8,10 +8,10 @@ module Hledger.Cli.Commands.Tags (
 )
 where
 
-import qualified Control.Monad.Fail as Fail
+import Control.Monad.Fail qualified as Fail
 import Data.List.Extra (nubSort)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Safe
 import System.Console.CmdArgs.Explicit
 

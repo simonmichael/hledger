@@ -40,17 +40,17 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
-import qualified Data.IntMap.Strict as IM
+import Data.IntMap.Strict qualified as IM
 import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
 --You will eventually need all the values stored.
 --The stored values don't represent large virtual data structures to be lazily computed.
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Ord (comparing)
 import Data.Semigroup (Min(..))
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)

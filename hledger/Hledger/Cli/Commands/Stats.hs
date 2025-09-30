@@ -19,12 +19,12 @@ import Data.Default (def)
 import System.FilePath (takeFileName)
 import Data.List (intercalate, nub, sortOn)
 import Data.List.Extra (nubSort)
-import qualified Data.Map as Map
+import Data.Map qualified as Map
 import Data.Maybe (fromMaybe)
 import Data.HashSet (size, fromList)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day, addDays, diffDays)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import GHC.Stats

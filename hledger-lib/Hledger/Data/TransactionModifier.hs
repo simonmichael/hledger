@@ -15,9 +15,9 @@ where
 import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..), (<|>))
 import Data.Function ((&))
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe (catMaybes)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Safe (headDef)
 import Hledger.Data.Types
@@ -65,7 +65,7 @@ modifyTransactions atypes atags styles d verbosetags tmods ts = do
 -- Currently the only kind of modification possible is adding automated
 -- postings when certain other postings are present.
 --
--- >>> import qualified Data.Text.IO as T
+-- >>> import Data.Text.IO qualified as T
 -- >>> t = nulltransaction{tpostings=["ping" `post` usd 1]}
 -- >>> tmpost acc amt = TMPostingRule (acc `post` amt) False
 -- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate True

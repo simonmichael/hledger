@@ -10,7 +10,7 @@
 module Hledger.Web.Handler.RegisterR where
 
 import Data.List (intersperse, nub, partition)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Safe (tailSafe)
 import Text.Hamlet (hamletFile)
 
