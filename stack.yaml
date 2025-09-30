@@ -9,12 +9,13 @@ packages:
 - hledger-ui
 - hledger-web
 
-resolver: nightly-2025-09-15
+resolver: nightly-2025-09-30
+
 notify-if-ghc-untested:   false
 notify-if-cabal-untested: false
 
 extra-deps:
-# currently not in stackage
+# currently out of stackage:
 - yesod-static-1.6.1.0
 - yesod-test-1.6.19
 - cryptonite-0.30
