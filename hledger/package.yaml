@@ -104,6 +104,8 @@ flags:
 #    default: false
 #    manual:  true
 
+language: GHC2021
+
 ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns

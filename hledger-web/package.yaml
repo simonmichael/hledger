@@ -68,6 +68,8 @@ flags:
 #    default: false
 #    manual:  true
 
+language: GHC2021
+
 ghc-options:
 - -Wall
 # not included in -Wall:

@@ -58,6 +58,8 @@ flags:
 
 cpp-options: -DVERSION="1.50.99"
 
+language: GHC2021
+
 ghc-options:
 - -Wall
 - -Wno-incomplete-uni-patterns
