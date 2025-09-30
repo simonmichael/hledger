@@ -8,7 +8,8 @@
 -- This script currently requires local hledger source, for Hledger.Cli.Script.
 ------------------------------------78----------------------------------------
 
-{-# LANGUAGE OverloadedStrings, PackageImports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 import Hledger.Cli.Script
 import qualified "text" Data.Text as T
