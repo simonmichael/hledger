@@ -19,7 +19,7 @@ jobs:
 
     env:
       # use preinstalled ghc 9.12.2
-      stack: stack --system-ghc --no-install-ghc --stack-yaml stack912.yaml
+      stack: stack --system-ghc --no-install-ghc --stack-yaml stack.yaml
       ghc:   9.12.2
 
     steps:
