@@ -22,39 +22,28 @@ description: |
   <https://hledger.org>
 
 extra-source-files:
-  - CHANGES.md
-  - README.md
-  - hledger-ui.1
-  - hledger-ui.txt
-  - hledger-ui.info
+- CHANGES.md
+- README.md
+- hledger-ui.1
+- hledger-ui.txt
+- hledger-ui.info
 
 flags:
-  debug:
-    description: Build with GHC 9.10+'s stack traces enabled
-    default: false
-    manual:  true
   threaded:
     description: Build with support for multithreaded execution
     default: true
     manual:  false
+  debug:
+    description: Build with GHC 9.10+ stack traces enabled
+    default: false
+    manual:  true
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false
 #    manual:  true
 
- # curses is required to build terminfo for vty for hledger-ui.
- # On POSIX systems it might be not present.
- # On windows it's very likely not present, but possibly it could be.
- # Ideally we'd like to
- # on POSIX: give a clear error ("install your system libcurses-dev package") if not present
- # on windows: quietly skip building if not present, build if it is present
- #  curses
- #    default: True
- #    description:
- #
- # note on windows: the vty-windows (and hence hledger-ui) will reliably work only on the newer backends
- # like Windows Terminal.
- # mintty-based backends (default for cygwin/gitbash/msys2) are not supported (yet)
+dependencies:
+- base >=4.18 && <4.22
 
 cpp-options: -DVERSION="1.50.99"
 
@@ -69,24 +58,19 @@ ghc-options:
 - -Wno-unused-do-bind
 
 when:
+
 - condition: (flag(debug))
   cpp-options: -DDEBUG
+
 # - condition: (flag(ghcdebug))
 #   cpp-options: -DGHCDEBUG
 #   dependencies:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
-dependencies:
-- base >=4.18 && <4.22
-
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.50.99"
-  exposed-modules:
-  - Hledger.UI
-  - Hledger.UI.Main
-  - Hledger.UI.Theme
-  - Hledger.UI.UIOptions
+  # default: All modules in source-dirs less other-modules less modules mentioned in when
+  # exposed-modules:
   dependencies:
   - hledger-lib >=1.50.99 && <1.51
   - hledger >=1.50.99 && <1.51
@@ -128,9 +112,8 @@ executables:
   hledger-ui:
     source-dirs: app
     main: hledger-ui.hs
-    dependencies:
-    - hledger-ui
-    ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
       ghc-options: -threaded
+    dependencies:
+    - hledger-ui

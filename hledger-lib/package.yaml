@@ -37,7 +37,7 @@ extra-source-files:
 
 flags:
   debug:
-    description: Build with GHC 9.10+'s stack traces enabled
+    description: Build with GHC 9.10+ stack traces enabled
     default: false
     manual:  true
 #  ghcdebug:
@@ -95,6 +95,8 @@ dependencies:
 - extra >=1.7.11
 - Glob >= 0.9
 
+cpp-options: -DVERSION="1.50.99"
+
 language: GHC2021
 
 ghc-options:
@@ -106,83 +108,83 @@ ghc-options:
 - -Wno-unused-do-bind
 
 when:
+
 - condition: (flag(debug))
   cpp-options: -DDEBUG
+
 # - condition: (flag(ghcdebug))
 #   cpp-options: -DGHCDEBUG
 #   dependencies:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 library:
-  exposed-modules:
-  - Hledger
-  - Hledger.Data
-  - Hledger.Data.Account
-  - Hledger.Data.AccountName
-  - Hledger.Data.Amount
-  - Hledger.Data.Balancing
-  - Hledger.Data.Currency
-  - Hledger.Data.Dates
-  - Hledger.Data.Errors
-  - Hledger.Data.Journal
-  - Hledger.Data.JournalChecks
-  - Hledger.Data.JournalChecks.Ordereddates
-  - Hledger.Data.JournalChecks.Uniqueleafnames
-  - Hledger.Data.Json
-  - Hledger.Data.Ledger
-  - Hledger.Data.Period
-  - Hledger.Data.PeriodicTransaction
-  - Hledger.Data.StringFormat
-  - Hledger.Data.Posting
-  - Hledger.Data.RawOptions
-  - Hledger.Data.Timeclock
-  - Hledger.Data.Transaction
-  - Hledger.Data.TransactionModifier
-  - Hledger.Data.Types
-  - Hledger.Data.Valuation
-  - Hledger.Query
-  - Hledger.Read
-  - Hledger.Read.Common
-  - Hledger.Read.CsvReader
-  - Hledger.Read.InputOptions
-  - Hledger.Read.JournalReader
-  - Hledger.Read.RulesReader
-#  - Hledger.Read.LedgerReader
-  - Hledger.Read.TimedotReader
-  - Hledger.Read.TimeclockReader
-  - Hledger.Write.Beancount
-  - Hledger.Write.Csv
-  - Hledger.Write.Ods
-  - Hledger.Write.Html
-  - Hledger.Write.Html.Attribute
-  - Hledger.Write.Html.Blaze
-  - Hledger.Write.Html.Lucid
-  - Hledger.Write.Html.HtmlCommon
-  - Hledger.Write.Spreadsheet
-  - Hledger.Reports
-  - Hledger.Reports.ReportOptions
-  - Hledger.Reports.ReportTypes
-  - Hledger.Reports.AccountTransactionsReport
-  - Hledger.Reports.BalanceReport
-  - Hledger.Reports.BudgetReport
-  - Hledger.Reports.EntriesReport
-  - Hledger.Reports.MultiBalanceReport
-  - Hledger.Reports.PostingsReport
-  - Hledger.Utils
-  - Hledger.Utils.Debug
-  - Hledger.Utils.IO
-  - Hledger.Utils.Parse
-  - Hledger.Utils.Regex
-  - Hledger.Utils.String
-  - Hledger.Utils.Test
-  - Hledger.Utils.Text
-  - Text.Tabular.AsciiWide
-  - Text.WideString
-#  other-modules:
-#  - Ledger.Parser.Text
-  source-dirs: 
-  #- other/ledger-parse
-  - .
+  source-dirs: .
+  # default: All modules in source-dirs less other-modules less modules mentioned in when
+  # exposed-modules:
+  # - Hledger
+  # - Hledger.Data
+  # - Hledger.Data.Account
+  # - Hledger.Data.AccountName
+  # - Hledger.Data.Amount
+  # - Hledger.Data.BalanceData
+  # - Hledger.Data.Balancing
+  # - Hledger.Data.Currency
+  # - Hledger.Data.Dates
+  # - Hledger.Data.Errors
+  # - Hledger.Data.Journal
+  # - Hledger.Data.JournalChecks
+  # - Hledger.Data.JournalChecks.Ordereddates
+  # - Hledger.Data.JournalChecks.Uniqueleafnames
+  # - Hledger.Data.Json
+  # - Hledger.Data.Ledger
+  # - Hledger.Data.Period
+  # - Hledger.Data.PeriodData
+  # - Hledger.Data.PeriodicTransaction
+  # - Hledger.Data.Posting
+  # - Hledger.Data.RawOptions
+  # - Hledger.Data.StringFormat
+  # - Hledger.Data.Timeclock
+  # - Hledger.Data.Transaction
+  # - Hledger.Data.TransactionModifier
+  # - Hledger.Data.Types
+  # - Hledger.Data.Valuation
+  # - Hledger.Query
+  # - Hledger.Read
+  # - Hledger.Read.Common
+  # - Hledger.Read.CsvReader
+  # - Hledger.Read.InputOptions
+  # - Hledger.Read.JournalReader
+  # - Hledger.Read.RulesReader
+  # - Hledger.Read.TimedotReader
+  # - Hledger.Read.TimeclockReader
+  # - Hledger.Write.Beancount
+  # - Hledger.Write.Csv
+  # - Hledger.Write.Ods
+  # - Hledger.Write.Html
+  # - Hledger.Write.Html.Attribute
+  # - Hledger.Write.Html.Blaze
+  # - Hledger.Write.Html.Lucid
+  # - Hledger.Write.Html.HtmlCommon
+  # - Hledger.Write.Spreadsheet
+  # - Hledger.Reports
+  # - Hledger.Reports.ReportOptions
+  # - Hledger.Reports.ReportTypes
+  # - Hledger.Reports.AccountTransactionsReport
+  # - Hledger.Reports.BalanceReport
+  # - Hledger.Reports.BudgetReport
+  # - Hledger.Reports.EntriesReport
+  # - Hledger.Reports.MultiBalanceReport
+  # - Hledger.Reports.PostingsReport
+  # - Hledger.Utils
+  # - Hledger.Utils.Debug
+  # - Hledger.Utils.IO
+  # - Hledger.Utils.Parse
+  # - Hledger.Utils.Regex
+  # - Hledger.Utils.String
+  # - Hledger.Utils.Test
+  # - Hledger.Utils.Text
+  # - Text.Tabular.AsciiWide
+  # - Text.WideString
 
 
 # "cabal test hledger-lib" currently fails, see doctest suite below
@@ -196,30 +198,12 @@ tests:
     dependencies:
     - hledger-lib
 
-  # Note when run by cabal, doctest requires a ghc environment file,
-  # so we ensure this is generated, see cabal.project.
+  # cabal users: when run by cabal, doctest requires a ghc environment file, so cabal.project ensures that
   # https://github.com/simonmichael/hledger/issues/1139
   doctest:
     source-dirs: test
     main: doctests.hs  # can't call it doctest.hs ("File name does not match module name")
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
     dependencies:
-    # prefer the latest doctest
     - doctest >=0.18.1
     - Glob >=0.7
-
-    when:
-    # disable doctest with GHC 9.0, https://github.com/sol/doctest/issues/301
-    - condition: impl(ghc >= 9.0) && impl(ghc < 9.2)
-      buildable: false
-
-    # ghc 8.4+ on mac needs this workaround. See
-    # https://github.com/sol/doctest/issues/199
-    # https://ghc.haskell.org/trac/ghc/ticket/15105#comment:10 :
-    #  ~$ locate HSinteger-gmp-1.0.2.0.o
-    #  /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o
-    #  ~$ mv /Users/simon/.stack/programs/x86_64-osx/ghc-8.4.3/lib/ghc-8.4.2/integer-gmp-1.0.2.0/HSinteger-gmp-1.0.2.0.o{,_DISABLE_GHC_ISSUE_15105}
-    # Should probably disable it by default:
-    #when:
-    # - condition: os(darwin) && impl(ghc >= 8.4)
-    #   buildable: false

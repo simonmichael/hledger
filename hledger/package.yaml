@@ -96,33 +96,13 @@ flags:
     default: true
     manual:  false
   debug:
-    description: Build with GHC 9.10+'s stack traces enabled
+    description: Build with GHC 9.10+ stack traces enabled
     default: false
     manual:  true
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false
 #    manual:  true
-
-language: GHC2021
-
-ghc-options:
-- -Wall
-- -Wno-incomplete-uni-patterns
-- -Wno-missing-signatures
-- -Wno-orphans
-- -Wno-type-defaults
-- -Wno-unused-do-bind
-# avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
-- -optP-Wno-nonportable-include-path
-
-when:
-- condition: (flag(debug))
-  cpp-options: -DDEBUG
-# - condition: (flag(ghcdebug))
-#   cpp-options: -DGHCDEBUG
-#   dependencies:
-#   - ghc-debug-stub >=0.6.0.0 && <0.7
 
 dependencies:
 - base >=4.18 && <4.22
@@ -164,50 +144,75 @@ dependencies:
 - utility-ht >=0.0.13
 - wizards >=1.0
 
+cpp-options: -DVERSION="1.50.99"
+
+language: GHC2021
+
+ghc-options:
+- -Wall
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
+# avoid stack's "non-portable path" warning/error on mac, https://github.com/commercialhaskell/stack/issues/3918
+- -optP-Wno-nonportable-include-path
+
+when:
+
+- condition: (flag(debug))
+  cpp-options: -DDEBUG
+
+# - condition: (flag(ghcdebug))
+#   cpp-options: -DGHCDEBUG
+#   dependencies:
+#   - ghc-debug-stub >=0.6.0.0 && <0.7
+
 library:
-  cpp-options: -DVERSION="1.50.99"
-  exposed-modules:
-  - Hledger.Cli
-  - Hledger.Cli.Anchor
-  - Hledger.Cli.Anon
-  - Hledger.Cli.CliOptions
-  - Hledger.Cli.Commands
-  - Hledger.Cli.Commands.Accounts
-  - Hledger.Cli.Commands.Activity
-  - Hledger.Cli.Commands.Add
-  - Hledger.Cli.Commands.Aregister
-  - Hledger.Cli.Commands.Balance
-  - Hledger.Cli.Commands.Balancesheet
-  - Hledger.Cli.Commands.Balancesheetequity
-  - Hledger.Cli.Commands.Cashflow
-  - Hledger.Cli.Commands.Check
-  - Hledger.Cli.Commands.Close
-  - Hledger.Cli.Commands.Codes
-  - Hledger.Cli.Commands.Commodities
-  - Hledger.Cli.Commands.Demo
-  - Hledger.Cli.Commands.Descriptions
-  - Hledger.Cli.Commands.Diff
-  - Hledger.Cli.Commands.Help
-  - Hledger.Cli.Commands.Files
-  - Hledger.Cli.Commands.Import
-  - Hledger.Cli.Commands.Incomestatement
-  - Hledger.Cli.Commands.Notes
-  - Hledger.Cli.Commands.Payees
-  - Hledger.Cli.Commands.Prices
-  - Hledger.Cli.Commands.Print
-  - Hledger.Cli.Commands.Register
-  - Hledger.Cli.Commands.Rewrite
-  - Hledger.Cli.Commands.Roi
-  - Hledger.Cli.Commands.Run
-  - Hledger.Cli.Commands.Setup
-  - Hledger.Cli.Commands.Stats
-  - Hledger.Cli.Commands.Tags
-  - Hledger.Cli.CompoundBalanceCommand
-  - Hledger.Cli.Conf
-  - Hledger.Cli.DocFiles
-  - Hledger.Cli.Script
-  - Hledger.Cli.Utils
-  - Hledger.Cli.Version
+  source-dirs: .
+  # default: All modules in source-dirs less other-modules less modules mentioned in when
+  # exposed-modules:
+  # - Hledger.Cli
+  # - Hledger.Cli.Anchor
+  # - Hledger.Cli.Anon
+  # - Hledger.Cli.CliOptions
+  # - Hledger.Cli.Commands
+  # - Hledger.Cli.Commands.Accounts
+  # - Hledger.Cli.Commands.Activity
+  # - Hledger.Cli.Commands.Add
+  # - Hledger.Cli.Commands.Aregister
+  # - Hledger.Cli.Commands.Balance
+  # - Hledger.Cli.Commands.Balancesheet
+  # - Hledger.Cli.Commands.Balancesheetequity
+  # - Hledger.Cli.Commands.Cashflow
+  # - Hledger.Cli.Commands.Check
+  # - Hledger.Cli.Commands.Close
+  # - Hledger.Cli.Commands.Codes
+  # - Hledger.Cli.Commands.Commodities
+  # - Hledger.Cli.Commands.Demo
+  # - Hledger.Cli.Commands.Descriptions
+  # - Hledger.Cli.Commands.Diff
+  # - Hledger.Cli.Commands.Help
+  # - Hledger.Cli.Commands.Files
+  # - Hledger.Cli.Commands.Import
+  # - Hledger.Cli.Commands.Incomestatement
+  # - Hledger.Cli.Commands.Notes
+  # - Hledger.Cli.Commands.Payees
+  # - Hledger.Cli.Commands.Prices
+  # - Hledger.Cli.Commands.Print
+  # - Hledger.Cli.Commands.Register
+  # - Hledger.Cli.Commands.Rewrite
+  # - Hledger.Cli.Commands.Roi
+  # - Hledger.Cli.Commands.Run
+  # - Hledger.Cli.Commands.Setup
+  # - Hledger.Cli.Commands.Stats
+  # - Hledger.Cli.Commands.Tags
+  # - Hledger.Cli.CompoundBalanceCommand
+  # - Hledger.Cli.Conf
+  # - Hledger.Cli.DocFiles
+  # - Hledger.Cli.Script
+  # - Hledger.Cli.Utils
+  # - Hledger.Cli.Version
   dependencies:
   - Diff >=0.2
   - hashable >=1.2.4
@@ -218,7 +223,6 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    cpp-options: -DVERSION="1.50.99"
     ghc-options: -with-rtsopts=-T  # for stats command
     when:
     - condition: flag(threaded)
@@ -231,7 +235,6 @@ tests:
     source-dirs: test
     main: unittest.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    cpp-options: -DVERSION="1.50.99"
     dependencies:
     - hledger
 

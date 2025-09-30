@@ -60,7 +60,7 @@ flags:
     default: true
     manual:  false
   debug:
-    description: Build with GHC 9.10+'s stack traces enabled   # '
+    description: Build with GHC 9.10+ stack traces enabled   # '
     default: false
     manual:  true
 #  ghcdebug:
@@ -68,26 +68,35 @@ flags:
 #    default: false
 #    manual:  true
 
+dependencies:
+- base >=4.18 && <4.22
+
+cpp-options: -DVERSION="1.50.99"
+
 language: GHC2021
 
 ghc-options:
 - -Wall
-# not included in -Wall:
-- -Wredundant-constraints
-# not included in -Wall by older GHC versions:
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
+- -Wno-incomplete-uni-patterns
+- -Wno-missing-signatures
+- -Wno-orphans
+- -Wno-type-defaults
+- -Wno-unused-do-bind
 
 when:
+
 - condition: flag(threaded)
   ghc-options: -threaded
+
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
+
 # This causes a warning when uploading to hackage:
 #Package check reported the following warnings:
 # 'ghc-options: -O0' is not needed. Use the --disable-optimization configure flag.
 - condition: flag(dev)
   ghc-options: -O0
+
 - condition: (flag(debug))
   cpp-options: -DDEBUG
 # - condition: (flag(ghcdebug))
@@ -95,19 +104,10 @@ when:
 #   dependencies:
 #   - ghc-debug-stub >=0.6.0.0 && <0.7
 
-dependencies:
-- base >=4.18 && <4.22
-
 library:
   source-dirs: .
-  cpp-options: -DVERSION="1.50.99"
-  exposed-modules:
-  - Hledger.Web
-  - Hledger.Web.Main
-  - Hledger.Web.WebOptions
-  - Hledger.Web.Application
-  - Hledger.Web.Import
-  - Hledger.Web.Test
+  # default: All modules in source-dirs less other-modules less modules mentioned in when
+  # exposed-modules:
   dependencies:
   - hledger-lib >=1.50.99 && <1.51
   - hledger >=1.50.99 && <1.51
@@ -162,20 +162,17 @@ executables:
   hledger-web:
     source-dirs: app
     main: main.hs
-    cpp-options: -DVERSION="1.50.99"
-    ghc-options: -with-rtsopts=-T  # for stats command
-    dependencies:
-    - hledger-web
     when:
     - condition: flag(library-only)
       buildable: false
+    dependencies:
+    - hledger-web
 
 tests:
-  test:
+  apptest:
     source-dirs: test
     main: test.hs
     other-modules: []  # prevent double compilation, https://github.com/sol/hpack/issues/188
-    cpp-options: -DVERSION="1.50.99"
     dependencies:
     - hledger-web
     # - hspec
