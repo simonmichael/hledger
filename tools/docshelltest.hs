@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver lts-24.10 --compile
+{- stack script --resolver nightly-2025-09-30 --compile
 -}
 -- add this to see packages being installed instead of a long silence:
 --   --verbosity=info
