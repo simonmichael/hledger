@@ -7,7 +7,8 @@ assignees: ''
 ---
 
 Thanks for helping to make hledger better.
-Before reporting a bug, you may want to check:
+
+Before you report a bug, these are some good places to check:
 
 1. The appropriate manual (choosing the correct version at the top of the page):
 - https://hledger.org/hledger.html
@@ -24,7 +25,7 @@ Some notable issues are pinned at the top here.
 5. The #hledger matrix chat room: https://hledger.org/support.html
 Notable issues are pinned here also.
 
-When reporting, please include these when appropriate:
+In your bug report, please include (when appropriate):
 
 - the output of `hledger --version`, or even better, of `hledger setup`
 - the OS you're running on
