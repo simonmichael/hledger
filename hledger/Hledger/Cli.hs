@@ -452,9 +452,9 @@ main = handleExit $ withGhcDebug' $ do
         let
           addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> cliargswithoutcmd
           addonargs = dropCliSpecificOpts addonargs0
-          shellcmd = printf "%s-%s %s" progname cmdname (unwords' addonargs) :: String
+          shellcmd = printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine addonargs) :: String
         dbgio "addon command selected" cmdname
-        dbgio "addon command arguments after removing cli-specific opts" (map quoteIfNeeded addonargs)
+        dbgio "addon command arguments" addonargs
         dbg1IO "running addon" shellcmd
         system shellcmd >>= exitWith
 
