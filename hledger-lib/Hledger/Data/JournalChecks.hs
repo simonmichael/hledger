@@ -63,11 +63,11 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
            "%s:%d:"
           ,"%s"
           ,"Strict account checking is enabled, and"
-          ,"account %s has not been declared."
+          ,"account \"%s\" has not been declared."
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex (show a) a
+          ]) f l ex a a
         where
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 
