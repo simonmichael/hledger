@@ -55,10 +55,6 @@ But consider claiming - it's good for the project in several ways.
 
 ## Regressions reported
 
-- [Issue tracker: all regression reports](https://bugs.hledger.org/regressions)
-- [Open Collective: expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
-- [Open Collective: payments](https://opencollective.com/hledger/transactions?kind=EXPENSE)
-
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
 [#1468]: https://github.com/simonmichael/hledger/issues/1468
 [#1508]: https://github.com/simonmichael/hledger/issues/1508
@@ -174,7 +170,7 @@ Fixer  bounties began on 2024-01-01.
 | **1.27** 2022-09-01      | ---       | ---                                                                              | ---
 | [#1932]                  | 1.27.1    | [Andras Fabian](https://opencollective.com/hledger/expenses/95112)               | N/A
 | [#2018]                  | 1.29.2    | [Allan Odgaard](https://opencollective.com/hledger/expenses/130591)              | N/A
-| [#2469]                  |           | Quả Cầu                                                                          | Simon Michael (N/A)
+| [#2469]                  |           | [Quả Cầu](https://opencollective.com/hledger/expenses/267824)                    | Simon Michael (N/A)
 | **1.28** 2022-12-01      | ---       | ---                                                                              | ---
 | **1.29** 2023-03-11      | ---       | ---                                                                              | ---
 | [#2012]                  | 1.32      | Simon Michael   (N/A)                                                            | N/A
@@ -218,3 +214,8 @@ Fixer  bounties began on 2024-01-01.
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
 | [#2465]                  | 1.50.2    | [Paul Dest](https://opencollective.com/hledger/expenses/266959)                  | Simon Michael (N/A)
+
+
+
+- [All regression reports](https://bugs.hledger.org/regressions)
+- [Open Collective expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
