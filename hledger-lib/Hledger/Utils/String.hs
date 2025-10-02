@@ -184,7 +184,7 @@ quotechars, whitespacechars, redirectchars, shellchars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
 redirectchars   = "<>"
-shellchars      = "<>(){}[]$7?#!~`"
+shellchars      = "<>(){}[]$?#!~`"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
