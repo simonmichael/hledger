@@ -74,7 +74,7 @@ It should be improved each time it is used.
   - desired improvements landed and stabilised
   - building and passing tests with current ghcs, deps, and stackage snapshots
   - building and passing tests on all platforms / with all ghc versions  
-        `just relbin` (or push to github `binaries[-*]` branch)  
+        `just ghbin` (or push to github `binaries[-*]` branch)  
         `just oldest` (or push to github `oldest` branch)
 
 - **2. product docs and metadata**
@@ -109,7 +109,7 @@ It should be improved each time it is used.
 
 - **3. release docs and artifacts**
   - draft binaries building started  
-      `just relbin`
+      `just ghbin`
   - hledger.org html manuals x 3 (site/src/MAJORVER/\*.md) (major release only)  
         `just site-manuals-snapshot MAJORVER` to create/update  
         update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
@@ -125,7 +125,7 @@ It should be improved each time it is used.
   - release tags  
       `just reltags`
   - release binaries built from tag  
-      `just relbin`,
+      `just ghbin`,
       wait for all to succeed
   - Install page (site/src/install.md) --version examples match release binaries
 
@@ -153,15 +153,15 @@ It should be improved each time it is used.
   - github draft release with release binaries attached  
       <https://github.com/simonmichael/hledger/releases/new> *(XXX safari may not show new tag, may need brave)*  
       `just ghrel-notes` (in release branch)  
-      `just ghruns-download` <!-- (or if throttled: `just ghbin`, download to tmp/, unzip the unix ones) -->  
-      `just ghrel-upload VER`  
+      `just ghbin-download` <!-- (or if throttled: `just ghbin-open`, download to tmp/, unzip the unix ones) -->  
+      `just ghrel-bin-upload VER`  
   - github release published  
       review,
       publish
   - github nightly release updated  
       in master, update changes link in doc/ghnightlynotes.md
-      `just ghnightly-notes`  
-      `just nightly-tag`  
+      `just nightlyrel-notes`  
+      `just nightlytag-push`  
   - install instructions tested and working
     - stack
     - cabal
@@ -177,7 +177,7 @@ It should be improved each time it is used.
 - **5. cleanup and support**
   - review/polish/sync changelogs & relnotes
   - new version, man dates, dev tag in master (major version only)  
-    `j devtag`
+    `j devtag-push`
   - RELEASING.md checklist/notes updated
   - monitor/support/handle issues:
     [issue tracker](https://github.com/simonmichael/hledger/issues?q=is%3Aopen+is%3Aissue), matrix, irc, mail list, forum, reddit

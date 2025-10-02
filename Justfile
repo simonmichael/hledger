@@ -958,6 +958,8 @@ bin-short:
 # ** Releasing ------------------------------------------------------------
 RELEASING:
 
+# These are roughly in the order they should be done during release.
+
 # Create or switch to this release branch, and set the version string in various places.
 relbranch VER:
     #!/usr/bin/env bash
@@ -988,7 +990,11 @@ relbranch VER:
     just _on-release-branch
     tools/relnotes.hs
 
-# Make git tags for a full release today, but don't push them. Run on release branch.
+# Upload all packages to hackage (run from release branch).
+@hackageupload:
+    tools/hackageupload $PACKAGES
+
+# Make git tags for a full release today, but don't push them yet. Run on release branch.
 reltags:
     #!/usr/bin/env bash
     set -euo pipefail
@@ -999,27 +1005,24 @@ reltags:
     git tag --force --sign `cat .version` -m "Release `cat .version`"
     echo "Release has been tagged!"
 
-# Push the current branch to github binaries branch, generating release binaries.
-@relbin:
+# Push the current HEAD to github binaries branch, generating platform binaries.
+@ghbin:
     # assumes the github remote is named "origin"
     git push -f origin HEAD:binaries
 
-# Get the id of the latest run of the named workflow.
-@_ghrun-id WORKFLOW:
-    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
+# Browse the latest run of the platform binaries workflows.
+@ghbin-open:
+    just ghrun-open binaries-linux-x64
+    just ghrun-open binaries-mac-arm64
+    just ghrun-open binaries-mac-x64
+    just ghrun-open binaries-windows-x64
 
-# Browse the latest run of the named workflow.
-@ghrun WORKFLOW:
-    gh run view --web $(just _ghrun-id {{ WORKFLOW }})
+# XXX
+# Release binaries are downloaded to local machine, repacked, and uploaded to GH release.
+# Nightly binaries are copied from their last runs by a workflow on GH.
+# Why the difference, is special repacking needed, for release only ?
 
-# Browse the latest run of the main binary workflows.
-@ghbin:
-    just ghrun binaries-linux-x64
-    just ghrun binaries-mac-arm64
-    just ghrun binaries-mac-x64
-    just ghrun binaries-windows-x64
-
-# Download any new binaries from the latest runs of the main binary github workflows, and recompress them.
+# Download new binaries from the latest runs of the platform binaries workflows, and recompress them.
 ghbin-download:
     mkdir -p tmp
     cd tmp; rm -rf hledger-*64
@@ -1032,16 +1035,16 @@ ghbin-download:
     cd tmp; rm -rf hledger-*64
 
 # Browse the latest github release.
-@ghrel:
+@ghrel-open:
     gh release view -w
 
-# Upload release notes to the configured github release. (Might also create/publish the release ?)
+# Upload release notes to the configured github release.
 @ghrel-notes:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# Upload the downloaded binaries to the specified github release. Run after ghbin-download.
-ghrel-bin VER:
+# After ghbin-download: upload the downloaded binaries to the specified github release.
+ghrel-bin-upload VER:
     @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
     gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
     gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
@@ -1052,43 +1055,12 @@ ghrel-bin VER:
     # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
 
-# Upload all packages to hackage (run from release branch).
-@hackageupload:
-    tools/hackageupload $PACKAGES
-
 # Push the 5 release tags for the specified release version.
 reltags-push VER:
     git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
-# Push master to github, move the nightly tag there, and start building new nightly binaries.
-nightly-push:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    just push
-    git tag -f nightly master
-    git push -f origin nightly
-    git push -f origin master:binaries
-    echo "Now wait; when nightly binaries have built successfully, run just nightly-bin"
-
-# Copy the latest-built nightly binaries to the Nightly prerelease. Wait for nightly-push's builds to complete first.
-@nightly-bin:
-    gh workflow run nightly
-
-# Push the prerelease notes to the github nightly prerelease.
-@nightly-notes:
-    gh release edit nightly -F doc/nightlynotes.md
-
-# Browse the github nightly prerelease.
-@nightly-open:
-    gh release view -w nightly
-
-# Point the nightly tag at the latest release, locally and on github. Run after a release.
-@nightly-tag:
-    git tag -f nightly $(just relver)
-    git push -f origin nightly
-
-# Tag the start of a new dev cycle ("OLDVER.99"), locally and on github. Also update the dev versions/help/manuals. Run on master after a major release.
-devtag:
+# After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag. And update the versions/help/manuals there.
+devtag-push:
     #!/usr/bin/env bash
     set -euo pipefail
     RELVER=$(just relver)
@@ -1105,6 +1077,36 @@ devtag:
     echo "Regenerating manuals.."
     ./Shake manuals -c
     echo "Consider also: with $RELVER installed, ./Shake cmddocs -c"
+
+# XXX There's a tag and a github prerelease, both named nightly, creating confusion.
+
+# After release: point the nightly tag at the release and push the tag.
+@nightlytag-push:
+    git tag -f nightly $(just relver)
+    git push -f origin nightly
+
+# XXX Ideally we'd like to adjust and push the nightly tag only after a successful build and push of new binaries.
+# Between releases: push master to github, then point the nightly tag there, push the tag, and start building new platform binaries. (Until builds succeed, the tag will be wrong.)
+master-nightlyrel-push:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just push
+    git tag -f nightly master
+    git push -f origin nightly
+    git push -f origin master:binaries
+    echo "When binaries have built successfully, run just nightlyrel-bin-copy"
+
+# Browse the github nightly prerelease.
+@nightlyrel-open:
+    gh release view -w nightly
+
+# Push the nightly prerelease notes to the github nightly prerelease.
+@nightlyrel-notes:
+    gh release edit nightly -F doc/nightlynotes.md
+
+# After building platform binaries (ghbin), copy them to the github nightly prerelease.
+@nightlyrel-bin-copy:
+    gh workflow run nightly
 
 # ** Installing ------------------------------------------------------------
 INSTALLING:
@@ -1646,29 +1648,6 @@ bloglog:
 # ** Misc ------------------------------------------------------------
 MISC:
 
-# run tests locally, push master to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github master.
-@push *INTERVAL:
-    just functest --hide && tools/push {{ INTERVAL }}
-
-# run some tests to validate the development environment
-# check-setup:
-#     run some tests to validate the development environment\
-#     )
-#     @echo sanity-checking developer environment:
-#     @({{ SHELLTEST }} checks \
-#         && echo $@ PASSED) || echo $@ FAILED
-
-# sym-link some directories required by hledger-web dev builds
-symlink-web-dirs:
-    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
-    ln -sf hledger-web/messages
-    ln -sf hledger-web/static
-    ln -sf hledger-web/templates
-
-# symlink tools/commitlint as .git/hooks/commit-msg
-installcommithook:
-    ln -s ../../tools/commitlint .git/hooks/commit-msg
-
 # ensure the Shake script is compiled
 Shake: # Shake.hs
     ./Shake.hs
@@ -1692,6 +1671,37 @@ TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFI
 # remove TAGS files
 @etags-clean:
     rm -f TAGS
+
+# run some tests to validate the development environment
+# check-setup:
+#     run some tests to validate the development environment\
+#     )
+#     @echo sanity-checking developer environment:
+#     @({{ SHELLTEST }} checks \
+#         && echo $@ PASSED) || echo $@ FAILED
+
+# sym-link some directories required by hledger-web dev builds
+symlink-web-dirs:
+    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
+    ln -sf hledger-web/messages
+    ln -sf hledger-web/static
+    ln -sf hledger-web/templates
+
+# symlink tools/commitlint as .git/hooks/commit-msg
+installcommithook:
+    ln -s ../../tools/commitlint .git/hooks/commit-msg
+
+# run tests locally, push master to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github master.
+@push *INTERVAL:
+    just functest --hide && tools/push {{ INTERVAL }}
+
+# Get the id of the latest run of the named workflow.
+@_ghrun-id WORKFLOW:
+    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
+
+# Browse the latest run of the named workflow.
+@ghrun-open WORKFLOW:
+    gh run view --web $(just _ghrun-id {{ WORKFLOW }})
 
 # stackclean: \
 #     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
