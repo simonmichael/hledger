@@ -16,7 +16,7 @@ jobs:
 
     env:
       stack: stack
-      ghc:   9.12.2
+      ghcid: 9.12.2
 
     steps:
 
@@ -37,18 +37,18 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.ghcup
-        key: ${{ runner.os }}-x64-ghcup-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-ghcup-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-ghcup-${{ env.ghc }}
+             ${{ runner.os }}-x64-ghcup-${{ env.ghcid }}
 
     - name: Cache - ~/.cabal
       id:   cabal
       uses: actions/cache@v4
       with:
         path: ~/.cabal
-        key: ${{ runner.os }}-x64-cabal-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-cabal-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-cabal-${{ env.ghc }}
+             ${{ runner.os }}-x64-cabal-${{ env.ghcid }}
 
     # actions:
 

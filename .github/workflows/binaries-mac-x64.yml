@@ -15,7 +15,7 @@ jobs:
 
     env:
       stack: stack
-      ghc:   9.12.2
+      ghcid: 9.12.2
 
     steps:
 
@@ -41,58 +41,58 @@ jobs:
       uses: actions/cache@v4
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-programs-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-programs-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-programs-${{ env.ghcid }}
 
     - name: Cache - ~/.stack
       id:   stack-global
       uses: actions/cache@v4
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-x64-stack-global-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-global-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}
 
     - name: Cache - ./.stack-work
       uses: actions/cache@v4
       with:
         path: .stack-work
-        key: ${{ runner.os }}-x64-stack-work-${{ env.ghc }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v4
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghc }}
+             ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghcid }}
 
     # actions:
 
