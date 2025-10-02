@@ -15,7 +15,7 @@ jobs:
 
     env:
       stack: stack
-      ghc:   9.10.1
+      ghc:   9.12.2
 
     steps:
 
