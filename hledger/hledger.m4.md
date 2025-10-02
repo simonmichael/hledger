@@ -336,6 +336,7 @@ Many hledger arguments are [regular expressions] (described below), and these to
 Some of those characters are `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`, and `\`.
 When you don't want these to cause special effects, you can "regex-escape" them by writing `\` (a backslash) before them.
 But since backslash is also special to the shell, you may need to also shell-escape the backslashes.
+To add to the confusion, `$` is special to the shell only when followed by a valid variable name, not when appearing alone at the end of a word.
 
 Eg, in the bash shell, to match a literal `$` sign, you could write:
 
@@ -343,45 +344,18 @@ Eg, in the bash shell, to match a literal `$` sign, you could write:
 $ hledger balance cur:\\$
 ```
 
-or:
+The dollar sign here is *not* escaped, but it is passed through by the shell because it is at the end of a word.
+Counter intuitively in this context `cur:\$` would have exactly the same effect as `cur:$`, either explicitly escaped or implicitly not a special character at the end of a word, the shell will only pass through the `$`.
+The double backslash is telling the shell to pass through a literal `\`, then the dollar sign is implicitly literal.
+By the same logic, `cur:\\$` and `cur:\\\$` as shell arguments will actually pass the same query value to hledger.
+
+Alternatively, use single quotes to avoid the special meanings of shell characters and see more visually what value will be passed through:
 
 ```cli
 $ hledger balance 'cur:\$'
 ```
 
-(The dollar sign is regex-escaped by the backslash preceding it.
-Then that backslash is shell-escaped by another backslash, or by single quotes.)
-
-### Escaping add-on arguments
-
-When you run an external add-on command with `hledger` (described below),
-any options or arguments being passed through to the add-on executable lose one level of shell-escaping,
-so you must add an extra level of shell-escaping to compensate.
-
-Eg, in the bash shell, to run the `ui` add-on and match a literal `$` sign, you need to write:
-
-```cli
-$ hledger ui cur:'\\$'
-```
-
-or:
-
-```cli
-$ hledger ui cur:\\\\$
-```
-
-If you are wondering why *four* backslashes:
-
-- `$`     is unescaped
-- `\$`    is regex-escaped
-- `\\$`   is regex-escaped, then shell-escaped
-- `\\\\$` is regex-escaped, then shell-escaped, then both slashes are shell-escaped once more for hledger argument pass-through.
-
-Or you can avoid such triple-escaping, by running the add-on executable directly:
-
-```cli
-$ hledger-ui cur:\\$
-```
+Here hledger will get a query string of `\$`, which is a regex escaped and hence will match a literal dollar sign.
 
 ### Escaping in other situations
 
