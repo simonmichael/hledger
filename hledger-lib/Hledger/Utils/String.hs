@@ -15,7 +15,6 @@ module Hledger.Utils.String (
  -- quotechars,
  -- whitespacechars,
  words',
- unwords',
  stripAnsi,
  -- * single-line layout
  strip,
@@ -165,26 +164,25 @@ singleQuote s = "'"++s++"'"
 -- >>> quoteForCommandLine "\""
 -- "'\"'"
 -- >>> quoteForCommandLine "$"
--- "'\\$'"
+-- "'$'"
 --
 quoteForCommandLine :: String -> String
 quoteForCommandLine s
-  | any (`elem` s) (quotechars++whitespacechars++shellchars) = singleQuote $ quoteShellChars s
+  | any (`elem` s) (quotechars++whitespacechars++shellchars) = singleQuote $ escapeSingleQuotes s
   | otherwise = s
 
--- | Try to backslash-quote common shell-significant characters in this string.
--- Doesn't handle single quotes, & probably others.
-quoteShellChars :: String -> String
-quoteShellChars = concatMap escapeShellChar
+-- | Escape single quotes appearing in a string we're protecting by wrapping in single quotes
+escapeSingleQuotes :: String -> String
+escapeSingleQuotes = concatMap escapeSingleQuote
   where
-    escapeShellChar c | c `elem` shellchars = ['\\',c]
-    escapeShellChar c = [c]
+    escapeSingleQuote c | c `elem` "'" = ['\\',c]
+    escapeSingleQuote c = [c]
 
 quotechars, whitespacechars, redirectchars, shellchars :: [Char]
 quotechars      = "'\""
 whitespacechars = " \t\n\r"
 redirectchars   = "<>"
-shellchars      = "<>(){}[]$&?#!~`"
+shellchars      = "<>(){}[]$&?#!~`*+\\"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
 -- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
@@ -197,10 +195,6 @@ words' s  = map stripquotes $ fromparse $ parsewithString p s  -- PARTIAL
       patterns = many (noneOf whitespacechars)
       singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'")
       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"")
-
--- | Quote-aware version of unwords - single-quote strings which contain whitespace
-unwords' :: [String] -> String
-unwords' = unwords . map quoteIfNeeded
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: String -> String

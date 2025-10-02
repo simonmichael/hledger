@@ -160,7 +160,7 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
                       then run (Just jpaths) findBuiltinCommand addons opts
                       else cmdaction opts j
         Nothing | cmdname `elem` addons ->
-          system (printf "%s-%s %s" progname cmdname (unwords' args)) >>= exitWith
+          system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine args)) >>= exitWith
         Nothing ->
           error' $ "Unrecognized command: " ++ unwords (cmdname:args)
     [] -> return ()
