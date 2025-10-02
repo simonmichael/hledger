@@ -1093,6 +1093,7 @@ nightlybin:
     git push -f origin HEAD:nightly
     git push -f origin HEAD:binaries
     echo "When binaries have built successfully, run just nightlyrel-bin-copy"
+    just ghworkflows-open
 
 # Browse the github nightly prerelease.
 @nightlyrel-open:
@@ -1693,13 +1694,17 @@ installcommithook:
 @push *INTERVAL:
     just functest --hide && tools/push {{ INTERVAL }}
 
-# Get the id of the latest run of the named workflow.
-@_ghrun-id WORKFLOW:
-    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
+# Browse the All workflows status page on github.
+@ghworkflows-open:
+    open -a safari https://ci.hledger.org
 
 # Browse the latest run of the named workflow.
 @ghrun-open WORKFLOW:
     gh run view --web $(just _ghrun-id {{ WORKFLOW }})
+
+# Get the id of the latest run of the named workflow.
+@_ghrun-id WORKFLOW:
+    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
 
 # stackclean: \
 #     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
