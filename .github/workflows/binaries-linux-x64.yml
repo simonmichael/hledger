@@ -80,7 +80,8 @@ jobs:
     - name: Build with cabal
       run: |
         cabal build --enable-executable-static --ghc-options=-Werror hledger     || (echo "ERROR: building hledger failed"; false)
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui  || (echo "ERROR: building hledger-ui failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui --constraint 'brick<2.10' || (echo "ERROR: building hledger-ui failed"; false)
+          # temporary constraint to avoid https://github.com/jtdaugherty/brick/issues/539
         cabal build --enable-executable-static --ghc-options=-Werror hledger-web || (echo "ERROR: building hledger-web failed"; false)
 
     - name: Gather binaries
