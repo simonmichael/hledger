@@ -1079,21 +1079,19 @@ devtag-push:
     echo "Consider also: with $RELVER installed, ./Shake cmddocs -c"
 
 # XXX There's a tag and a github prerelease, both named nightly, creating confusion.
+# Try replacing the tag with a github nightly branch again.
 
-# After release: point the nightly tag at the release and push the tag.
-@nightlytag-push:
-    git tag -f nightly $(just relver)
-    git push -f origin nightly
+# # After release: point the nightly tag at the release and push the tag.
+# @nightlytag-push:
+#     git tag -f nightly $(just relver)
+#     git push -f origin nightly
 
-# XXX Ideally we'd like to adjust and push the nightly tag only after a successful build and push of new binaries.
-# Between releases: push master to github, then point the nightly tag there, push the tag, and start building new platform binaries. (Until builds succeed, the tag will be wrong.)
-master-nightlyrel-push:
+# Between releases: push HEAD to github nightly branch and start building new platform binaries.
+nightlybin:
     #!/usr/bin/env bash
     set -euo pipefail
-    just push
-    git tag -f nightly master
-    git push -f origin nightly
-    git push -f origin master:binaries
+    git push -f origin HEAD:nightly
+    git push -f origin HEAD:binaries
     echo "When binaries have built successfully, run just nightlyrel-bin-copy"
 
 # Browse the github nightly prerelease.
@@ -1104,7 +1102,7 @@ master-nightlyrel-push:
 @nightlyrel-notes:
     gh release edit nightly -F doc/nightlynotes.md
 
-# After building platform binaries (ghbin), copy them to the github nightly prerelease.
+# After building nightly binaries (nightlybin), copy them to the github nightly prerelease.
 @nightlyrel-bin-copy:
     gh workflow run nightly
 

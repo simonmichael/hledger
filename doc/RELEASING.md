@@ -161,7 +161,6 @@ It should be improved each time it is used.
   - github nightly release updated  
       in master, update changes link in doc/ghnightlynotes.md
       `just nightlyrel-notes`  
-      `just nightlytag-push`  
   - install instructions tested and working
     - stack
     - cabal
