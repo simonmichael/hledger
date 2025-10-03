@@ -209,12 +209,12 @@ mkpostingsReportItem showdate showdesc wd mperiod p b =
 -- | Convert a list of postings into summary postings, one per interval,
 -- aggregated to the specified depth if any.
 -- Each summary posting will have a non-Nothing interval end date.
-summarisePostingsByInterval :: WhichDate -> Maybe Int -> Bool -> Maybe (PeriodData Day) -> [Posting] -> [SummaryPosting]
+summarisePostingsByInterval :: WhichDate -> Maybe Int -> Bool -> Maybe DayPartition -> [Posting] -> [SummaryPosting]
 summarisePostingsByInterval wd mdepth showempty colspans =
     concatMap (\(s,ps) -> summarisePostingsInDateSpan s wd mdepth showempty ps)
     -- Group postings into their columns. We try to be efficient, since
     -- there can possibly be a very large number of intervals (cf #1683)
-    . groupByDateSpan showempty (postingDateOrDate2 wd) (maybePeriodDataToDateSpans colspans)
+    . groupByDateSpan showempty (postingDateOrDate2 wd) (maybeDayPartitionToDateSpans colspans)
 
 -- | Given a date span (representing a report interval) and a list of
 -- postings within it, aggregate the postings into one summary posting per
