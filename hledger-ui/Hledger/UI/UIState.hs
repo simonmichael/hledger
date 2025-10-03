@@ -379,13 +379,7 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
-  -- Re-derive _rsQuery from the user's querystring_ and re-expand cur:
-  -- terms against the (possibly reloaded) journal's commodity aliases.
-  -- If re-derivation fails, fall back to the existing query.
-  let copts  = uoCliOpts opts
-      rspec  = reportspec_ copts
-      rspec' = case reportSpecExpandSymQueries j rspec of
-                 Right rs -> rs
-                 Left _   -> rspec
-      opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}
-  in ui{aopts=opts', ajournal=j, aScreen=screenUpdate opts' d j s, aPrevScreens=map (screenUpdate opts' d j) ss}
+  let !newScreen = screenUpdate opts d j s
+      !newPrevScreens = map (screenUpdate opts d j) ss
+      !newJournal = j
+  in ui{ajournal=newJournal, aScreen=newScreen, aPrevScreens=newPrevScreens}
