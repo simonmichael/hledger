@@ -44,7 +44,7 @@ import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
-import System.FSNotify (Event(Modified), watchDir, withManager, EventIsDirectory (IsFile))
+import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
 import Brick hiding (bsDraw)
 import Brick.BChan qualified as BC
 
@@ -305,9 +305,8 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           d
           -- predicate: ignore changes not involving our files
           (\case
-            Modified f _ IsFile -> f `elem` files
-            -- Added    f _ -> f `elem` files
-            -- Removed  f _ -> f `elem` files
+            Added f _ IsFile -> f `elem` files -- for editors which write the whole file from scratch on saves
+            Modified f _ IsFile -> f `elem` files -- for editors which modify existing files in place
             -- we don't handle adding/removing journal files right now
             -- and there might be some of those events from tmp files
             -- clogging things up so let's ignore them
