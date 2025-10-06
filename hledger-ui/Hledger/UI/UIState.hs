@@ -366,8 +366,8 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- (using the ui state's current options), preserving the screen navigation history.
 -- Note, does not save the reporting date.
 --
--- XXX Currently this does not properly regenerate the transaction screen or error screen,
--- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
+-- XXX Currently this does not properly regenerate the error screen,
+-- which depends on state from their parent(s); that screens' handler must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aScreen=s} = 
   let !ui' = ui{ajournal=j, aScreen=s'}
@@ -378,6 +378,6 @@ regenerateScreens j d ui@UIState{aScreen=s} =
         BS ass -> BS $! bsUpdate (aopts ui') d j ass
         IS ass -> IS $! isUpdate (aopts ui') d j ass
         RS rss -> RS $! rsUpdate (aopts ui') d j rss
-        TS tss -> TS $! tsUpdate tss
+        TS tss -> TS $! tsUpdate (aopts ui') d j tss
         ES _   -> s
   in ui'
