@@ -245,7 +245,9 @@ rsHandle ev = do
               where
                 p = reportPeriod ui
 
-            e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] -> uiReload copts d ui >>= put'
+            e | e `elem` [AppEvent FileChange, VtyEvent (EvKey (KChar 'g') [])] -> do
+              ui' <- uiReload copts d ui
+              put' $ regenerateScreens (ajournal ui') d ui'
 
             VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d ui
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
