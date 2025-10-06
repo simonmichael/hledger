@@ -59,7 +59,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.UI.UITypes
 import Hledger.UI.UIOptions (UIOpts(uoCliOpts))
-import Hledger.UI.UIScreens (screenUpdate)
+import Hledger.UI.UIScreens
 import Hledger.UI.UIUtils (showScreenId, showScreenStack)
 
 -- | Make an initial UI state with the given options, journal,
@@ -369,8 +369,15 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- XXX Currently this does not properly regenerate the transaction screen or error screen,
 -- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
-regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
-  let !newScreen = screenUpdate opts d j s
-      !newPrevScreens = map (screenUpdate opts d j) ss
-      !newJournal = j
-  in ui{ajournal=newJournal, aScreen=newScreen, aPrevScreens=newPrevScreens}
+regenerateScreens j d ui@UIState{aScreen=s} = 
+  let !ui' = ui{ajournal=j, aScreen=s'}
+      !s' = case s of
+        MS mss -> MS $! msUpdate mss
+        AS ass -> AS $! asUpdate (aopts ui') d j ass
+        CS ass -> CS $! csUpdate (aopts ui') d j ass
+        BS ass -> BS $! bsUpdate (aopts ui') d j ass
+        IS ass -> IS $! isUpdate (aopts ui') d j ass
+        RS rss -> RS $! rsUpdate (aopts ui') d j rss
+        TS tss -> TS $! tsUpdate tss
+        ES _   -> s
+  in ui'
