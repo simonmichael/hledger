@@ -64,7 +64,7 @@ screenUpdate opts d j = \case
   BS sst -> BS $ bsUpdate opts d j sst
   IS sst -> IS $ isUpdate opts d j sst
   RS sst -> RS $ rsUpdate opts d j sst
-  TS sst -> TS $ tsUpdate sst
+  TS sst -> TS $ tsUpdate opts d j sst
   ES sst -> ES $ esUpdate sst
 
 -- | Construct an error screen.
@@ -361,19 +361,17 @@ tsNew acct nts nt =
     ,_tssTransaction  = nt
     }
 
--- | Update a transaction screen. 
--- This currently does nothing because the initialisation in rsHandle is not so easy to extract.
--- To see the updated transaction, one must exit and re-enter the transaction screen.
--- See also tsHandle.
-tsUpdate :: TransactionScreenState -> TransactionScreenState
-tsUpdate tss = 
+-- | Update a transaction screen by refreshing the current transaction from the journal.
+-- This preserves the current transaction selection while updating its data.
+-- XXX Caveat, this works by showing the transaction at the same index in the processed ledger,
+-- if transactions have been inserted or removed before the one shown this will just show
+-- whatever transaction landed at the same index in the new data set.
+tsUpdate :: UIOpts -> Day -> Journal -> TransactionScreenState -> TransactionScreenState
+tsUpdate _ _ j tss@TSS{_tssTransaction=(currentIdx,currentTxn)} = 
   dbgui "tsUpdate" $
-  tss `seq` tss  -- Force evaluation to prevent accumulation
-
--- | Set selected index of a list if there are displayitems.
--- If there are no displayitems, remove the selected index of the list.
-listMoveToIfDisplayItems :: Int -> [item] -> GenericList Name V.Vector item -> GenericList Name V.Vector item
-listMoveToIfDisplayItems idx displayItems =
-    if null displayItems
-        then over listSelectedL $ const Nothing
-        else listMoveTo idx
+  let 
+    -- Find the updated version of the current transaction in the journal
+    updatedTxn = case find (\t -> tindex t == tindex currentTxn) (jtxns j) of
+      Just t  -> t
+      Nothing -> currentTxn  -- fallback to current if not found
+  in tss { _tssTransaction = (currentIdx, updatedTxn) }
