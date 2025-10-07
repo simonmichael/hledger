@@ -217,5 +217,5 @@ Fixer  bounties began on 2024-01-01.
 
 
 
-- [All regression reports](https://bugs.hledger.org/regressions)
+- [All regression bugs](https://bugs.hledger.org/regressions)
 - [Open Collective expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
