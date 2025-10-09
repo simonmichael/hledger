@@ -82,10 +82,13 @@ withJournalDo = withJournal
 -- These happen after parsing, finalising the journal, strict checks, and .latest filtering/updating,
 -- but before report calculation. They are, in processing order:
 -- --pivot, --anonymise error message, --obfuscate.
+--
+-- Why not do these in journalFinalise ?
+-- That step is supposed to check the data's intrinsic correctness, regardless of view options;
+-- whereas here we assume correctness and are just transforming the view (based only on InputOpts).
+-- XXX But it's easy to forget to call this. Current callers include withJournal, journalReload, uiReload, withJournalCached.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
--- XXX Called by withJournal, journalReload, uiReload, withJournalCached.
--- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
       maybePivot opts
   <&> maybeWarnAboutAnon opts
   <&> maybeObfuscate opts
