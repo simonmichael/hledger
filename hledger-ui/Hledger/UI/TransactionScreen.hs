@@ -30,7 +30,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
+import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 import Hledger.UI.RegisterScreen (rsHandle)
 
 tsDraw :: UIState -> [Widget Name]
@@ -162,7 +162,7 @@ tsHandle ev = do
               where
                 p = reportPeriod ui
 
-            VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+            VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d ui
 
             -- for toggles that may change the current/prev/next transactions,
             -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
