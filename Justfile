@@ -1092,7 +1092,7 @@ nightlybin:
     set -euo pipefail
     git push -f origin HEAD:nightly
     git push -f origin HEAD:binaries
-    printf "When binaries have built successfully, run:\n just nightlyrel-bin-copy\n"
+    printf "When binaries have built successfully, run:\n just nightlyrel-bin\n"
     just ghworkflows-open
 
 # Browse the github nightly prerelease.
@@ -1104,7 +1104,7 @@ nightlybin:
     gh release edit nightly -F doc/nightlynotes.md
 
 # After building nightly binaries (nightlybin), copy them to the github nightly prerelease.
-@nightlyrel-bin-copy:
+@nightlyrel-bin:
     gh workflow run nightly
 
 # ** Installing ------------------------------------------------------------
