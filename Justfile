@@ -1101,7 +1101,7 @@ nightlybin:
 
 # Push the nightly prerelease notes to the github nightly prerelease.
 @nightlyrel-notes:
-    gh release edit nightly -F doc/nightlynotes.md
+    gh release edit nightly -F doc/ghnightlynotes.md
 
 # After building nightly binaries (nightlybin), copy them to the github nightly prerelease.
 @nightlyrel-bin:
