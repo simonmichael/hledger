@@ -280,12 +280,12 @@ certain characters have special meaning and sometimes need to be "escaped" or "q
 by prefixing backslashes or enclosing in quotes.
 
 If you are able to minimise the use of special characters in your data, you won't have to deal with this as much.
-For example, you could use `-` or `_` instead of spaces in account names, 
+For example, you could use hyphen `-` or underscore `_` instead of spaces in account names, 
 and you could use the `USD` currency code instead of the `$` currency symbol in amounts.
 
 But if you prefer to use spaced account names and `$`, it's fine.
 Just be aware of this topic so you can check this doc when needed.
-(Note it is written mainly for unix systems; some details might need to be adapted if you're on Windows.)
+(These examples are mostly tested on unix; some details might need to be adapted if you're on Windows.)
 
 ### Escaping shell special characters
 
@@ -299,24 +299,29 @@ So for example, to match an account name containing spaces, like "credit card", 
 $ hledger register credit card
 ```
 
-Instead, enclose the name in quotes:
+Instead, enclose the name in single quotes:
 ```cli
 $ hledger register 'credit card'
 ```
 
-Single quotes are the most reliable. Or use double quotes if you want your shell to treat `$` as a variable interpolation, as in:
+On unix or in Windows powershell, if you use double quotes your shell will silently treat `$` as variable interpolation.
+So you should probably avoid double quotes, unless you want that behaviour, eg in a script:
 ```cli
 $ hledger register "assets:$SOMEACCT"
 ```
 
-On unix systems (but not Windows), a backslash before the space can also work:
+But in an older Windows CMD.EXE window, you must use double quotes (not single quotes or backslash):
+```cli
+C:\Users\Me> hledger register "credit card"
+```
+
+On unix or in Windows powershell, as an alternative to quotes you can write a backslash before each special character:
 ```cli
 $ hledger register credit\ card
 ```
 
-On Windows systems, if you are using a Command window rather than Powershell, use double quotes (not single quotes or backslash).
-
-Since hledger's query arguments are [regular expressions] (described below), you can also fill that gap with `.` which matches any character:
+Finally, since hledger's query arguments are [regular expressions] (described below),
+you could also fill that gap with `.` which matches any character:
 ```cli
 $ hledger register credit.card
 ```
@@ -337,6 +342,7 @@ For example, a balance report that uses a `cur:` query restricting it to just th
 $ hledger balance cur:\\$
 ```
 Explanation:
+
 1. Add a backslash `\` before the dollar sign `$` to protect it from regular expressions (so it will be matched literally with no special meaning).
 2. Add another backslash before that backslash, to protect it from the shell (so the shell won't consume it).
 3. `$` doesn't need to be protected from the shell in this case, because it's not followed by a word character; but it would be harmless to do so.
