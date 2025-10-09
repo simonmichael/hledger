@@ -48,7 +48,7 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
+import Hledger.UI.ErrorScreen (uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 import Hledger.UI.RegisterScreen (rsCenterSelection)
 import Data.Either (fromRight)
 import Control.Arrow ((>>>))
@@ -257,7 +257,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens j d)
 
     -- various toggles and settings:
-    VtyEvent (EvKey (KChar 'I') []) -> modify' (toggleIgnoreBalanceAssertions >>> uiCheckBalanceAssertions d)
+    VtyEvent (EvKey (KChar 'I') []) -> get' >>= uiToggleBalanceAssertions d
     VtyEvent (EvKey (KChar 'F') []) -> modify' (toggleForecast d   >>> regenerateScreens j d)
     VtyEvent (EvKey (KChar 'B') []) -> modify' (toggleConversionOp >>> regenerateScreens j d)
     VtyEvent (EvKey (KChar 'V') []) -> modify' (toggleValue        >>> regenerateScreens j d)
