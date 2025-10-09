@@ -275,85 +275,77 @@ feel free to skip these until you need them.
 
 ## Special characters
 
-Here we touch on shell escaping/quoting rules, and give some examples.
-This is a slightly complicated topic which you may not need at first,
-but you should be aware of it, so you can return here when needed.
+In commands you type at the command line,
+certain characters have special meaning and sometimes need to be "escaped" or "quoted",
+by prefixing backslashes or enclosing in quotes.
 
-If you are able to minimise the use of special characters in your data,
-you won't need escaping as much, and your command lines will be simpler.
-For example, avoiding spaces in account names, and using an ISO-4217 currency code like `USD`
-instead of the `$` currency symbol, can be helpful.
+If you are able to minimise the use of special characters in your data, you won't have to deal with this as much.
+For example, you could use `-` or `_` instead of spaces in account names, 
+and you could use the `USD` currency code instead of the `$` currency symbol in amounts.
 
-But if you want to use spaced account names and `$`, go right ahead; escaping isn't a big deal.
+But if you prefer to use spaced account names and `$`, it's fine.
+Just be aware of this topic so you can check this doc when needed.
+(Note it is written mainly for unix systems; some details might need to be adapted if you're on Windows.)
 
 ### Escaping shell special characters
 
-At the command line, characters which have special meaning for your shell
-must be "shell-escaped" (AKA "quoted") if you want hledger to see them.
-Often these include space, `<`, `>`, `(`, `)`, `|`, `\`, `$` and/or `%`.
+These are some characters which may have special meaning to your shell (the program which interprets command lines):
 
-For example, to match an account name containing the phrase "credit card",
-don't write this:
+- SPACE, `<`, `>`, `(`, `)`, `|`, `\`, `%`
+- `$` if followed by a word character
 
+So for example, to match an account name containing spaces, like "credit card", don't write:
 ```cli
 $ hledger register credit card
 ```
 
-In that command, "credit" and "card" are treated as separate query arguments (described below),
-so this would match accounts containing either word.
-Instead, enclose the phrase in double or single quotes:
-
+Instead, enclose the name in quotes:
 ```cli
-$ hledger register "credit card"
+$ hledger register 'credit card'
 ```
 
-In Unix shells, writing a backslash before the character can also work. Eg:
+Single quotes are the most reliable. Or use double quotes if you want your shell to treat `$` as a variable interpolation, as in:
+```cli
+$ hledger register "assets:$SOMEACCT"
+```
 
+On unix systems (but not Windows), a backslash before the space can also work:
 ```cli
 $ hledger register credit\ card
 ```
 
-Some shell characters still have a special meaning inside double quotes, such as the dollar sign (`$`).
-Eg in `"assets:$account"`, the bash shell would replace `$account` with the value of a shell variable with that name.
-When you don't want that, use single quotes, which escape more strongly:
+On Windows systems, if you are using a Command window rather than Powershell, use double quotes (not single quotes or backslash).
 
+Since hledger's query arguments are [regular expressions] (described below), you can also fill that gap with `.` which matches any character:
 ```cli
-$ hledger balance 'assets:$account'
+$ hledger register credit.card
 ```
 
-### Escaping on Windows
-
-If you are using hledger in a Powershell or Command window on Microsoft Windows, the escaping rules are different:
-
-- In a Powershell window (`powershell`, blue background), you must use double quotes or single quotes (not backslash).
-- In a Command window (`cmd`, black background), you must use double quotes (not single quotes or backslash).
-
-The next two sections were written for Unix-like shells, so might need to be adapted if you're using `cmd` or `powershell`. (Edits welcome.)
 
 ### Escaping regular expression special characters
 
-Many hledger arguments are [regular expressions] (described below), and these too have characters which cause special effects.
-Some of those characters are `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`, and `\`.
-When you don't want these to cause special effects, you can "regex-escape" them by writing `\` (a backslash) before them.
-But since backslash is also special to the shell, you may need to also shell-escape the backslashes.
-Note that `$` only has special meaning to the shell if followed by a word character indicating a variable name.
-When appearing alone at the end of a word as in `cur:\\$` the dollar sign is not considered special and does not *have* ta be escaped.
+Some characters also have special meaning in [regular expressions], which hledger's arguments often are. Those include:
 
-Eg, in the bash shell, to match a literal `$` sign, you could write:
+- `.`, `^`, `$`, `[`, `]`, `(`, `)`, `|`, `\`
 
+To escape one of these, write `\` before it.
+But note this is in addition to the shell escaping above.
+So for characters which are special to both shell and regular expressions, like `\` and `$`, you will sometimes need two levels of escaping.
+
+For example, a balance report that uses a `cur:` query restricting it to just the $ currency, should be written like this:
 ```cli
 $ hledger balance cur:\\$
 ```
+Explanation:
+1. Add a backslash `\` before the dollar sign `$` to protect it from regular expressions (so it will be matched literally with no special meaning).
+2. Add another backslash before that backslash, to protect it from the shell (so the shell won't consume it).
+3. `$` doesn't need to be protected from the shell in this case, because it's not followed by a word character; but it would be harmless to do so.
 
-The escape here is to pass through a literal escape, the dollar sign does not have to be escaped because it is at the end of a word and hence can't be interpreted as a shell variable.
-
-Alternatively, use single quotes to avoid the special meanings of shell characters and see more visually what value will be passed through:
-
+But here's another way to write that, which tends to be easier:
+add backslashes to escape from regular expressions, then enclose with quotes to escape from the shell:
 ```cli
-$ hledger balance 'cur:\$'
+$ hledger balance cur:'\$'
 ```
-
-Here hledger will get a query string of `\$`, which is a regex escaped and hence will match a literal dollar sign.
 
 ### Escaping in other situations
 
@@ -372,16 +364,6 @@ For example, backslash-quoting generally does not work there. Here are some more
 
 [argument file]: #argument-files
 [config file]: #config-file
-
-### Using a wild card
-
-When escaping a special character is too much hassle (or impossible), you can often just write `.` (period) instead.
-In regular expressions, this means "accept any character here".
-Eg:
-
-```cli
-$ hledger register credit.card
-```
 
 ## Unicode characters
 
