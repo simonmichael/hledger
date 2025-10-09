@@ -310,7 +310,7 @@ So you should probably avoid double quotes, unless you want that behaviour, eg i
 $ hledger register "assets:$SOMEACCT"
 ```
 
-But in an older Windows CMD.EXE window, you must use double quotes (not single quotes or backslash):
+But in an older Windows CMD.EXE window, you must use double quotes:
 ```cli
 C:\Users\Me> hledger register "credit card"
 ```
@@ -355,17 +355,19 @@ $ hledger balance cur:'\$'
 
 ### Escaping in other situations
 
-hledger options and arguments are sometimes used in places other than the command line, with different escaping rules.
-For example, backslash-quoting generally does not work there. Here are some more tips.
+hledger options and arguments are sometimes used in places other than the command line, where the escaping/quoting rules are different.
+For example, backslash-quoting may not be available.
+Here's a quick reference:
 
 |                               ||
 |:------------------------------|:--------------------------------------------------------------------------------------------
+| In unix shell                 | Use single quotes and/or backslash (or double quotes for variable interpolation)
+| In Windows `powershell`       | Use single quotes (or double quotes for variable interpolation)
 | In Windows `cmd`              | Use double quotes
-| In Windows `powershell`       | Use single or double quotes
 | In hledger-ui's filter prompt | Use single or double quotes
 | In hledger-web's search form  | Use single or double quotes
-| In an [argument file]         | Don't use spaces, don't shell-escape, do regex-escape when needed
-| In a [config file]            | Use single or double quotes, and enclose the whole argument <br>(`"desc:a b"` not `desc:"a b"`)
+| In an [argument file]         | Don't use spaces, don't shell-escape, do regex-escape, write one argument/option per line
+| In a [config file]            | Use single or double quotes, and enclose the whole argument <br>(`'desc:a b'` not `desc:'a b'`)
 | In `ghci` (the Haskell REPL)  | Use double quotes, and enclose the whole argument
 
 [argument file]: #argument-files
