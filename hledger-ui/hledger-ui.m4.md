@@ -154,6 +154,7 @@ previous screens. (With large files, this could cause a noticeable pause.)
 
 `I` toggles balance assertion checking.
 Disabling balance assertions temporarily can be useful for troubleshooting.
+(If hledger-ui was started with a `--pivot` option, re-enabling balance assertions with the `I` key also does a full journal reload, like `g`.)
 
 `a` runs command-line hledger's add command, and reloads the updated file.
 This allows some basic data entry.
