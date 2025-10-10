@@ -673,7 +673,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
     postingperiodend = postingPeriodEnd . postingDateOrDate2 (whichDate ropts)
       where
         postingPeriodEnd d = fromMaybe err $ case interval_ ropts of
-          NoInterval -> fmap (snd . dayPartitionSpans)    . snd $ reportSpan j rspec
+          NoInterval -> fmap (snd . dayPartitionStartEnd)    . snd $ reportSpan j rspec
           _          -> fmap (snd . lookupDayPartition d) . snd $ reportSpanBothDates j rspec
         -- Should never happen, because there are only invalid dayPartitions
         -- when there are no transactions, in which case this function is never called
@@ -824,7 +824,7 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts, _rs
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
     enlargedreportspan = dbg3 "enlargedreportspan" $
-        maybe (DateSpan Nothing Nothing) (mkSpan . dayPartitionSpans) intervalspans
+        maybe (DateSpan Nothing Nothing) (mkSpan . dayPartitionStartEnd) intervalspans
       where mkSpan (s, e) = DateSpan (Just $ Exact s) (Just . Exact $ addDays 1 e)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
