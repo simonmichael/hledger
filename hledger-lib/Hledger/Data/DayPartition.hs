@@ -3,22 +3,22 @@ A partition of time into contiguous spans, for defining reporting periods.
 -}
 module Hledger.Data.DayPartition
 ( DayPartition
+-- * constructors
 , boundariesToDayPartition
 , boundariesToMaybeDayPartition
-
-, lookupDayPartition
-, unionDayPartitions
-
+-- * conversions
 , dayPartitionToNonEmpty
 , dayPartitionToList
-, dayPartitionSpans
 , dayPartitionToDateSpans
 , dayPartitionToPeriodData
 , maybeDayPartitionToDateSpans
-
+-- * operations
+, unionDayPartitions
+, dayPartitionSpans
+, lookupDayPartition
 , splitSpan
 , intervalBoundaryBefore
-
+-- * tests
 , tests_DayPartition
 ) where
 
@@ -33,96 +33,109 @@ import Hledger.Data.Types
 import Hledger.Utils
 
 
--- | A partition of time into contiguous spans, along with a historical period
--- before any of the spans.
+-- | A partition of time into one or more contiguous periods,
+-- plus a historical period that precedes them.
+-- Note 'DayPartition' does not store per-period data - only the periods' start/end dates.
+
+-- Each period is at least one day in length.
+-- The historical period is open ended, with no start date.
+-- The last period has an end date, but note some queries (like 'dayPartitionFind') ignore that, acting as if the last period is open ended.
+-- Only smart constructors are exported, so that a DayPartition always satisfies these invariants.
 --
--- This is a newtype wrapper around 'PeriodData Day', where the start dates are
--- the keys and the end dates are the values. Spans are stored in inclusive format
--- [start, end]. Note that this differs from 'DateSpan' which uses [start, end)
--- format.
+-- This is implemented as a newtype wrapper around 'PeriodData Day', which is a map from date to date.
+-- The map's keys are the period start dates, and the values are the corresponding period end dates.
+-- Note unlike 'DateSpan', which stores exclusive end dates ( @[start, end)@ ),
+-- here both start and end dates are inclusive ( @[start, end]@ ).
 --
--- The constructor is not exported so that we can ensure the spans are valid
--- partitions of time.
 newtype DayPartition = DayPartition { dayPartitionToPeriodData :: PeriodData Day } deriving (Eq, Ord, Show)
 
--- Developer's note. All constructors must guarantee that:
---   1. The value stored in pdperiods has at least one key.
---   2. The value stored in pdpre equals one day before the smallest key in pdperiods.
---   3. The value stored in each entry of pdperiods equals one day before the
---      next largest key, except for the value associated to the largest key.
-isValidDayPartition :: DayPartition -> Bool
-isValidDayPartition (DayPartition pd) = case ds of
-    [] -> False  -- Must be at least one key in pdperiods
-    xs -> and $ zipWith isContiguous ((nulldate, h) : xs) xs
-  where
-    (h, ds) = periodDataToList pd
-    isContiguous (_, e) (s, _) = addDays 1 e == s
 
+-- constructors:
 
--- | Construct a 'DayPartition' from a non-empty list of boundary days.
+-- | Construct a 'DayPartition' from a non-empty list of period boundary dates (start dates plus a final exclusive end date).
+--
+-- >>> boundariesToDayPartition (fromGregorian 2025 01 01 :| [fromGregorian 2025 02 01])
+-- DayPartition {dayPartitionToPeriodData = PeriodData{ pdpre = 2024-12-31, pdperiods = fromList [(2025-01-01,2025-01-31)]}}
+--
 boundariesToDayPartition :: NonEmpty Day -> DayPartition
 boundariesToDayPartition xs = DayPartition . periodDataFromList (addDays (-1) b) $ case bs of
     []  -> [(b, b)]  -- If only one boundary is supplied, it ends on the same day
     _:_ -> zip (b:bs) $ map (addDays (-1)) bs  -- Guaranteed non-empty
   where b:|bs = NE.nub $ NE.sort xs
 
--- | Construct a 'DayPartition' from a list of boundary days, returning
--- 'Nothing' for the empty list.
+-- | Construct a 'DayPartition' from a list of period boundary dates (start dates plus a final exclusive end date),
+-- if it's a non-empty list.
 boundariesToMaybeDayPartition :: [Day] -> Maybe DayPartition
 boundariesToMaybeDayPartition = fmap boundariesToDayPartition . NE.nonEmpty
 
 
--- | Find the span of a 'DayPartition' which contains a given day.
-lookupDayPartition :: Day -> DayPartition -> (Maybe Day, Day)
-lookupDayPartition d (DayPartition xs) = lookupPeriodDataOrHistorical d xs
+-- conversions:
 
--- | Return the union of two 'DayPartition's if they are consistent, or 'Nothing' otherwise.
-unionDayPartitions :: DayPartition -> DayPartition -> Maybe DayPartition
-unionDayPartitions (DayPartition (PeriodData h as)) (DayPartition (PeriodData h' as')) =
-    if equalIntersection as as' && isValidDayPartition union then Just union else Nothing
-  where
-    union = DayPartition . PeriodData (min h h') $ as <> as'
-    equalIntersection x y = and $ IM.intersectionWith (==) x y
-
-
--- | Convert 'DayPartition' to a non-empty list of start and end dates for the periods.
---
--- Note that the end date of each period will be one day before the start date
--- of the next period.
+-- | Convert 'DayPartition' to a non-empty list of period start and end dates (both inclusive).
+-- Each end date will be one day before the next period's start date.
 dayPartitionToNonEmpty :: DayPartition -> NonEmpty (Day, Day)
 dayPartitionToNonEmpty (DayPartition xs) = NE.fromList . snd $ periodDataToList xs  -- Constructors guarantee this is non-empty
 
--- | Convert 'DayPartition' to a list of start and end dates for the periods.
---
--- Note that the end date of each period will be one day before the start date
--- of the next period.
+-- | Convert 'DayPartition' to a list (which will always be non-empty) of period start and end dates (both inclusive).
+-- Each end date will be one day before the next period's start date.
 dayPartitionToList :: DayPartition -> [(Day, Day)]
 dayPartitionToList = NE.toList . dayPartitionToNonEmpty
 
--- | Return the whole day range spanned by a `PeriodData Day`.
-dayPartitionSpans :: DayPartition -> (Day, Day)
-dayPartitionSpans (DayPartition (PeriodData _ ds)) =
-    -- Guaranteed not to error because the IntMap in non-empty.
-    (intToDay . fst $ IM.findMin ds, snd $ IM.findMax ds)
-
 -- | Convert 'DayPartition' to a list of 'DateSpan's.
---
--- Note that the end date of each period will be equal to the start date of
--- the next period.
+-- Each span will end one day before the next span begins
+-- (the span's exclusive end date will be equal to the next span's start date).
 dayPartitionToDateSpans :: DayPartition -> [DateSpan]
 dayPartitionToDateSpans = map toDateSpan . dayPartitionToList
   where
     toDateSpan (s, e) = DateSpan (toEFDay s) (toEFDay $ addDays 1 e)
     toEFDay = Just . Exact
 
--- Convert a periodic report 'Maybe DayPartition' to a list of 'DateSpans',
--- replacing the empty case with an appropriate placeholder.
---
--- Note that the end date of each period will be equal to the start date of
--- the next period.
+-- Convert a 'Maybe DayPartition' to a list of one or more 'DateSpans'.
+-- Each span will end one day before the next span begins
+-- (the span's exclusive end date will be equal to the next span's start date).
+-- If given Nothing, it returns a single open-ended span.
 maybeDayPartitionToDateSpans :: Maybe DayPartition -> [DateSpan]
 maybeDayPartitionToDateSpans = maybe [DateSpan Nothing Nothing] dayPartitionToDateSpans
 
+
+-- operations:
+
+-- | Check that a DayPartition has been constructed correctly,
+-- with internal invariants satisfied, as well as the external ones described in 'DayPartition'.
+-- Internally, all constructors must guarantee:
+-- 1. The pdperiods map contains at least one key and value.
+-- 2. The value stored in pdpre is one day before pdperiods' smallest key.
+-- 3. Each value stored in pdperiods is one day before the next largest key,
+--    (except for the value associated with the largest key).
+isValidDayPartition :: DayPartition -> Bool
+isValidDayPartition (DayPartition pd) = case ds of
+  [] -> False
+  xs -> and $ zipWith isContiguous ((nulldate, h) : xs) xs
+ where
+  (h, ds) = periodDataToList pd
+  isContiguous (_, e) (s, _) = addDays 1 e == s
+
+-- | Return the union of two 'DayPartition's if that is a valid 'DayPartition',
+-- or 'Nothing' otherwise.
+unionDayPartitions :: DayPartition -> DayPartition -> Maybe DayPartition
+unionDayPartitions (DayPartition (PeriodData h as)) (DayPartition (PeriodData h' as')) =
+  if equalIntersection as as' && isValidDayPartition union then Just union else Nothing
+ where
+  union = DayPartition . PeriodData (min h h') $ as <> as'
+  equalIntersection x y = and $ IM.intersectionWith (==) x y
+
+-- | Get this DayPartition's overall start date and end date (both inclusive).
+dayPartitionSpans :: DayPartition -> (Day, Day)
+dayPartitionSpans (DayPartition (PeriodData _ ds)) =
+  -- Guaranteed not to error because the IntMap is non-empty.
+  (intToDay . fst $ IM.findMin ds, snd $ IM.findMax ds)
+
+lookupDayPartition :: Day -> DayPartition -> (Maybe Day, Day)
+lookupDayPartition d (DayPartition xs) = lookupPeriodDataOrHistorical d xs
+-- | Find the start and end dates of the period within a 'DayPartition' which contains a given day.
+-- If the day is after the end of the last period, it is assumed to be within the last period.
+-- If the day is before the start of the first period (ie, in the historical period),
+-- only the historical period's end date is returned.
 
 -- | Split a 'DateSpan' into a 'DayPartition' consisting of consecutive exact
 -- spans of the specified Interval, or `Nothing` if the span is invalid.
@@ -193,7 +206,6 @@ splitSpan _      (DaysOfWeek days@(n:_))  ds = do
         starts = map (\d -> addDays (toInteger $ d - n) $ nthdayofweekcontaining n s) days
     spansFromBoundaries e bdrys
 
-
 -- | Fill in missing start/end dates for calculating 'splitSpan'.
 dateSpanSplitLimits :: (Day -> Day) -> (Day -> Day) -> DateSpan -> Maybe (Day, Day)
 dateSpanSplitLimits _     _    (DateSpan Nothing   Nothing) = Nothing
@@ -221,8 +233,7 @@ spansFromBoundaries _ []     = Nothing
 spansFromBoundaries e (x:_)  | x >= e = Nothing
 spansFromBoundaries e (x:xs) = Just . boundariesToDayPartition $ takeUntilFailsNE (<e) (x:|xs)
 
-
--- Get the natural start for the given interval that falls on or before the given day,
+-- | Get the natural start for the given interval that falls on or before the given day,
 -- when applicable. Works for Weeks, Months, Quarters, Years, eg.
 intervalBoundaryBefore :: Interval -> Day -> Day
 intervalBoundaryBefore i d =
@@ -230,9 +241,10 @@ intervalBoundaryBefore i d =
     Just ((start, _) :| _ ) -> start
     _ -> d
 
-
 intToDay = ModifiedJulianDay . toInteger
 
+
+-- tests:
 
 tests_DayPartition =
   testGroup "splitSpan" [
