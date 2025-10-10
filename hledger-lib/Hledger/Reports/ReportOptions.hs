@@ -674,7 +674,7 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
       where
         postingPeriodEnd d = fromMaybe err $ case interval_ ropts of
           NoInterval -> fmap (snd . dayPartitionStartEnd)    . snd $ reportSpan j rspec
-          _          -> fmap (snd . lookupDayPartition d) . snd $ reportSpanBothDates j rspec
+          _          -> fmap (snd . dayPartitionFind d) . snd $ reportSpanBothDates j rspec
         -- Should never happen, because there are only invalid dayPartitions
         -- when there are no transactions, in which case this function is never called
         err = error' "journalApplyValuationFromOpts: expected all spans to have an end date"

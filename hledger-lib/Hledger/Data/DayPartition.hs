@@ -15,7 +15,7 @@ module Hledger.Data.DayPartition
 -- * operations
 , unionDayPartitions
 , dayPartitionStartEnd
-, lookupDayPartition
+, dayPartitionFind
 , splitSpan
 , intervalBoundaryBefore
 -- * tests
@@ -130,12 +130,12 @@ dayPartitionStartEnd (DayPartition (PeriodData _ ds)) =
   -- Guaranteed not to error because the IntMap is non-empty.
   (intToDay . fst $ IM.findMin ds, snd $ IM.findMax ds)
 
-lookupDayPartition :: Day -> DayPartition -> (Maybe Day, Day)
-lookupDayPartition d (DayPartition xs) = lookupPeriodDataOrHistorical d xs
 -- | Find the start and end dates of the period within a 'DayPartition' which contains a given day.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
 -- If the day is before the start of the first period (ie, in the historical period),
 -- only the historical period's end date is returned.
+dayPartitionFind :: Day -> DayPartition -> (Maybe Day, Day)
+dayPartitionFind d (DayPartition xs) = lookupPeriodDataOrHistorical d xs
 
 -- | Split a 'DateSpan' into a 'DayPartition' consisting of consecutive exact
 -- spans of the specified Interval, or `Nothing` if the span is invalid.
