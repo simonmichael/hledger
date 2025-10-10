@@ -295,7 +295,7 @@ calculateReportAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle (Just
         mapPeriodData (padPeriodData mempty (dayPartitionToPeriodData colspans)) $
         accountFromPostings getIntervalStartDate ps
 
-    getIntervalStartDate p = fst $ lookupDayPartition (getPostingDate p) colspans
+    getIntervalStartDate p = fst $ dayPartitionFind (getPostingDate p) colspans
     getPostingDate = postingDateOrDate2 (whichDate (_rsReportOpts rspec))
 
 -- | The valuation function to use for the chosen report options.
