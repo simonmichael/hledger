@@ -750,15 +750,24 @@ data Account a = Account {
   ,adata                     :: PeriodData a       -- ^ associated data per report period
   } deriving (Generic, Functor)
 
--- | A general container for storing data values associated to zero or more
--- report periods, and for the pre-report period. Report periods are assumed to
--- be contiguous, and represented only by start dates.
+-- | A general container for storing data values associated with zero or more
+-- contiguous report (sub)periods, and with the (open ended) pre-report period.
+-- The report periods are typically all the same length, but need not be.
 --
--- Data is stored in an 'IntMap' for efficiency, where Days are stored as as
--- Int representing the underlying modified Julian date.
+-- Report periods are represented only by their start dates, used as the keys of an 'IntMap'.
+-- Like the Integer inside the Day type, these Int keys are a count of days before or after 1858-11-17.
+--
+-- Note the use of Int limits the dates this type can represent.
+-- On a 64 bit machine, the range is about 25 quadrillion years into past and future
+-- (-25252734927764696-04-22 to 25252734927768413-06-12).
+-- On a 32 bit machine, it is about 5 million years into past and future
+-- (-5877752-05-08 to 5881469-05-27).
+-- Exceeding the machine's Int range here will silently wrap around,
+-- causing this type (and periodic reports) to give wrong results.
+--
 data PeriodData a = PeriodData {
-   pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
-  ,pdperiods :: IM.IntMap a  -- ^ data for the periods
+   pdpre     :: a            -- ^ data for the period before the report
+  ,pdperiods :: IM.IntMap a  -- ^ data for each period within the report
   } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:
