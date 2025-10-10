@@ -62,7 +62,7 @@ instance Foldable1 PeriodData where
 instance Traversable PeriodData where
   traverse f (PeriodData h as) = liftA2 PeriodData (f h) $ traverse f as
 
--- | The Semigroup instance for 'AccountBalance' will simply take the union of
+-- | The Semigroup instance for 'PeriodData' simply takes the union of
 -- keys in the date map section. This may not be the result you want if the
 -- keys are not identical.
 instance Semigroup a => Semigroup (PeriodData a) where
@@ -71,56 +71,53 @@ instance Semigroup a => Semigroup (PeriodData a) where
 instance Monoid a => Monoid (PeriodData a) where
   mempty = PeriodData mempty mempty
 
--- | Construct an 'PeriodData' from a list.
+-- | Construct a 'PeriodData' from a historical data value and a list of (period start, period data) pairs.
 periodDataFromList :: a -> [(Day, a)] -> PeriodData a
 periodDataFromList h = PeriodData h . IM.fromList . map (\(d, a) -> (dayToInt d, a))
 
--- | Convert 'PeriodData' to a list of pairs.
+-- | Convert 'PeriodData' to a historical data value and a list of (period start, period data) pairs.
 periodDataToList :: PeriodData a -> (a, [(Day, a)])
 periodDataToList (PeriodData h as) = (h, map (\(s, e) -> (intToDay s, e)) $ IM.toList as)
 
-
--- | Get account balance information for the period containing a given 'Day',
--- along with the start of the period, or 'Nothing' if this day lies in the
--- historical period.
+-- | Get the data for the period containing the given 'Day', and that period's start date.
+-- If the day is after the end of the last period, it is assumed to be within the last period.
+-- If the day is before the start of the first period (ie, in the historical period), return Nothing.
 lookupPeriodData :: Day -> PeriodData a -> Maybe (Day, a)
 lookupPeriodData d (PeriodData _ as) = first intToDay <$> IM.lookupLE (dayToInt d) as
 
--- | Get account balance information for the period containing a given 'Day'
--- or the historical data if this day lies in the historical period, along with
--- the start of the period or 'Nothing' if it lies in the historical period.
+-- | Get the data for the period containing the given 'Day', and that period's start date.
+-- If the day is after the end of the last period, it is assumed to be within the last period.
+-- If the day is before the start of the first period (ie, in the historical period),
+-- return the data for the historical period and no start date.
 lookupPeriodDataOrHistorical :: Day -> PeriodData a -> (Maybe Day, a)
 lookupPeriodDataOrHistorical d pd@(PeriodData h _) = case lookupPeriodData d pd of
-    Nothing     -> (Nothing, h)
-    Just (a, b) -> (Just a, b)
+  Nothing     -> (Nothing, h)
+  Just (a, b) -> (Just a, b)
 
--- | Add account balance information to the appropriate location in 'PeriodData'.
+-- | Set historical or period data in the appropriate location in a 'PeriodData'.
 insertPeriodData :: Semigroup a => Maybe Day -> a -> PeriodData a -> PeriodData a
 insertPeriodData mday b balances = case mday of
     Nothing  -> balances{pdpre = pdpre balances <> b}
     Just day -> balances{pdperiods = IM.insertWith (<>) (dayToInt day) b $ pdperiods balances}
 
--- | Merges two 'PeriodData', using the given operation to combine their balance information.
+-- | Merge two 'PeriodData', using the given operation to combine their data values.
 --
 -- This will drop keys if they are not present in both 'PeriodData'.
 opPeriodData :: (a -> b -> c) -> PeriodData a -> PeriodData b -> PeriodData c
 opPeriodData f (PeriodData h1 as1) (PeriodData h2 as2) =
-    PeriodData (f h1 h2) $ IM.intersectionWith f as1 as2
+  PeriodData (f h1 h2) $ IM.intersectionWith f as1 as2
 
--- | Merges two 'PeriodData', using the given operations for balance
--- information only in the first, only in the second, or in both
--- 'PeriodData', respectively.
-mergePeriodData :: (a -> c) -> (b -> c) -> (a -> b -> c)
-                -> PeriodData a -> PeriodData b -> PeriodData c
+-- | Merge two 'PeriodData', using the given operations for combining data
+-- that's only in the first, only in the second, or in both, respectively.
+mergePeriodData :: (a -> c) -> (b -> c) -> (a -> b -> c) -> PeriodData a -> PeriodData b -> PeriodData c
 mergePeriodData only1 only2 f = \(PeriodData h1 as1) (PeriodData h2 as2) ->
-    PeriodData (f h1 h2) $ merge as1 as2
+  PeriodData (f h1 h2) $ merge as1 as2
   where
     merge = IM.mergeWithKey (\_ x y -> Just $ f x y) (fmap only1) (fmap only2)
 
--- | Pad out the datemap of a 'PeriodData' so that every key from another 'PeriodData' is present.
+-- | Pad out the date map of a 'PeriodData' so that every key from another 'PeriodData' is present.
 padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a
 padPeriodData x pad bal = bal{pdperiods = pdperiods bal <> (x <$ pdperiods pad)}
-
 
 intToDay = ModifiedJulianDay . toInteger
 dayToInt = fromInteger . toModifiedJulianDay
