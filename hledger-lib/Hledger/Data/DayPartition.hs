@@ -14,7 +14,7 @@ module Hledger.Data.DayPartition
 , maybeDayPartitionToDateSpans
 -- * operations
 , unionDayPartitions
-, dayPartitionSpans
+, dayPartitionStartEnd
 , lookupDayPartition
 , splitSpan
 , intervalBoundaryBefore
@@ -125,8 +125,8 @@ unionDayPartitions (DayPartition (PeriodData h as)) (DayPartition (PeriodData h'
   equalIntersection x y = and $ IM.intersectionWith (==) x y
 
 -- | Get this DayPartition's overall start date and end date (both inclusive).
-dayPartitionSpans :: DayPartition -> (Day, Day)
-dayPartitionSpans (DayPartition (PeriodData _ ds)) =
+dayPartitionStartEnd :: DayPartition -> (Day, Day)
+dayPartitionStartEnd (DayPartition (PeriodData _ ds)) =
   -- Guaranteed not to error because the IntMap is non-empty.
   (intToDay . fst $ IM.findMin ds, snd $ IM.findMax ds)
 
