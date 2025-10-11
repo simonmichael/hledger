@@ -14,7 +14,7 @@ Before release, and preferably daily/weekly as well:
 - `./Shake changelogs`
 - edit the new changelog items
     - open the five changelogs
-      - in emacs: `M-x dired-find`, `-name CHANGES.md`, `(`, split into 5 columns, open each one, narrow from last release heading to top
+      - in emacs: `C-x d */CHANGES.md`, `(`, split into 5 columns, open each one, narrow from last release heading to top
     - in each changelog
       - paste section headings from top comment if needed
       - process new items, from top-most section heading upward
