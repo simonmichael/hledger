@@ -27,11 +27,11 @@ import Data.Foldable1 (Foldable1(..))
 import Control.Applicative (liftA2)
 #endif
 import Data.Bifunctor (first)
-import Data.IntMap.Strict qualified as IM
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
-import Data.Time (Day(..), fromGregorian)
+import Data.Map qualified as M
+import Data.Time (Day (..), fromGregorian)
 
 import Hledger.Data.Amount
 import Hledger.Data.Types
@@ -44,7 +44,7 @@ instance Show a => Show (PeriodData a) where
         showString "PeriodData"
       . showString "{ pdpre = " . shows h
       . showString ", pdperiods = "
-      . showString "fromList " . shows (map (\(day, x) -> (intToDay day, x)) $ IM.toList ds)
+      . showString "fromList " . shows (map (\(day, x) -> (intToDay day, x)) $ M.toList ds)
       . showChar '}'
 
 instance Foldable PeriodData where
@@ -66,24 +66,24 @@ instance Traversable PeriodData where
 -- keys in the date map section. This may not be the result you want if the
 -- keys are not identical.
 instance Semigroup a => Semigroup (PeriodData a) where
-  PeriodData h1 as1 <> PeriodData h2 as2 = PeriodData (h1 <> h2) $ IM.unionWith (<>) as1 as2
+  PeriodData h1 as1 <> PeriodData h2 as2 = PeriodData (h1 <> h2) $ M.unionWith (<>) as1 as2
 
 instance Monoid a => Monoid (PeriodData a) where
   mempty = PeriodData mempty mempty
 
 -- | Construct a 'PeriodData' from a historical data value and a list of (period start, period data) pairs.
 periodDataFromList :: a -> [(Day, a)] -> PeriodData a
-periodDataFromList h = PeriodData h . IM.fromList . map (\(d, a) -> (dayToInt d, a))
+periodDataFromList h = PeriodData h . M.fromList . map (\(d, a) -> (dayToInt d, a))
 
 -- | Convert 'PeriodData' to a historical data value and a list of (period start, period data) pairs.
 periodDataToList :: PeriodData a -> (a, [(Day, a)])
-periodDataToList (PeriodData h as) = (h, map (\(s, e) -> (intToDay s, e)) $ IM.toList as)
+periodDataToList (PeriodData h as) = (h, map (\(s, e) -> (intToDay s, e)) $ M.toList as)
 
 -- | Get the data for the period containing the given 'Day', and that period's start date.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
 -- If the day is before the start of the first period (ie, in the historical period), return Nothing.
 lookupPeriodData :: Day -> PeriodData a -> Maybe (Day, a)
-lookupPeriodData d (PeriodData _ as) = first intToDay <$> IM.lookupLE (dayToInt d) as
+lookupPeriodData d (PeriodData _ as) = first intToDay <$> M.lookupLE (dayToInt d) as
 
 -- | Get the data for the period containing the given 'Day', and that period's start date.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
@@ -98,14 +98,14 @@ lookupPeriodDataOrHistorical d pd@(PeriodData h _) = case lookupPeriodData d pd 
 insertPeriodData :: Semigroup a => Maybe Day -> a -> PeriodData a -> PeriodData a
 insertPeriodData mday b balances = case mday of
     Nothing  -> balances{pdpre = pdpre balances <> b}
-    Just day -> balances{pdperiods = IM.insertWith (<>) (dayToInt day) b $ pdperiods balances}
+    Just day -> balances{pdperiods = M.insertWith (<>) (dayToInt day) b $ pdperiods balances}
 
 -- | Merge two 'PeriodData', using the given operation to combine their data values.
 --
 -- This will drop keys if they are not present in both 'PeriodData'.
 opPeriodData :: (a -> b -> c) -> PeriodData a -> PeriodData b -> PeriodData c
 opPeriodData f (PeriodData h1 as1) (PeriodData h2 as2) =
-  PeriodData (f h1 h2) $ IM.intersectionWith f as1 as2
+  PeriodData (f h1 h2) $ M.intersectionWith f as1 as2
 
 -- | Merge two 'PeriodData', using the given operations for combining data
 -- that's only in the first, only in the second, or in both, respectively.
@@ -113,7 +113,7 @@ mergePeriodData :: (a -> c) -> (b -> c) -> (a -> b -> c) -> PeriodData a -> Peri
 mergePeriodData only1 only2 f = \(PeriodData h1 as1) (PeriodData h2 as2) ->
   PeriodData (f h1 h2) $ merge as1 as2
   where
-    merge = IM.mergeWithKey (\_ x y -> Just $ f x y) (fmap only1) (fmap only2)
+    merge = M.mergeWithKey (\_ x y -> Just $ f x y) (fmap only1) (fmap only2)
 
 -- | Pad out the date map of a 'PeriodData' so that every key from another 'PeriodData' is present.
 padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a

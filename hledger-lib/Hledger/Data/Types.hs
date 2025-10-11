@@ -40,7 +40,6 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
-import Data.IntMap.Strict qualified as IM
 import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
@@ -754,20 +753,11 @@ data Account a = Account {
 -- contiguous report (sub)periods, and with the (open ended) pre-report period.
 -- The report periods are typically all the same length, but need not be.
 --
--- Report periods are represented only by their start dates, used as the keys of an 'IntMap'.
--- Like the Integer inside the Day type, these Int keys are a count of days before or after 1858-11-17.
---
--- Note the use of Int limits the dates this type can represent.
--- On a 64 bit machine, the range is about 25 quadrillion years into past and future
--- (-25252734927764696-04-22 to 25252734927768413-06-12).
--- On a 32 bit machine, it is about 5 million years into past and future
--- (-5877752-05-08 to 5881469-05-27).
--- Exceeding the machine's Int range here will silently wrap around,
--- causing this type (and periodic reports) to give wrong results.
---
+-- Report periods are represented only by their start dates, used as the keys of a Map.
+-- (As integers, like the one inside the Day type, representing days before/after 1858-11-17.)
 data PeriodData a = PeriodData {
-   pdpre     :: a            -- ^ data for the period before the report
-  ,pdperiods :: IM.IntMap a  -- ^ data for each period within the report
+   pdpre     :: a                -- ^ data for the period before the report
+  ,pdperiods :: M.Map Integer a  -- ^ data for each period within the report
   } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:

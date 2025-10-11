@@ -22,10 +22,10 @@ module Hledger.Data.DayPartition
 , tests_DayPartition
 ) where
 
-import qualified Data.IntMap.Strict as IM
 import Data.List.NonEmpty (NonEmpty(..))
 import qualified Data.List.NonEmpty as NE
-import Data.Time (Day(..), addDays, addGregorianMonthsClip, addGregorianYearsClip, fromGregorian)
+import Data.Map qualified as M
+import Data.Time (Day (..), addDays, addGregorianMonthsClip, addGregorianYearsClip, fromGregorian)
 
 import Hledger.Data.Dates
 import Hledger.Data.PeriodData
@@ -122,13 +122,13 @@ unionDayPartitions (DayPartition (PeriodData h as)) (DayPartition (PeriodData h'
   if equalIntersection as as' && isValidDayPartition union then Just union else Nothing
  where
   union = DayPartition . PeriodData (min h h') $ as <> as'
-  equalIntersection x y = and $ IM.intersectionWith (==) x y
+  equalIntersection x y = and $ M.intersectionWith (==) x y
 
 -- | Get this DayPartition's overall start date and end date (both inclusive).
 dayPartitionStartEnd :: DayPartition -> (Day, Day)
 dayPartitionStartEnd (DayPartition (PeriodData _ ds)) =
   -- Guaranteed not to error because the IntMap is non-empty.
-  (intToDay . fst $ IM.findMin ds, snd $ IM.findMax ds)
+  (intToDay . fst $ M.findMin ds, snd $ M.findMax ds)
 
 -- | Find the start and end dates of the period within a 'DayPartition' which contains a given day.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
