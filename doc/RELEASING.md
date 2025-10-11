@@ -94,7 +94,7 @@ It should be improved each time it is used.
   - [ ] embedded asciinema demos (hledger/embeddedfiles/*.cast)
   - [ ] shell completions (hledger/shell-completion/hledger-completion.bash)  
         `just completions`, commit any changes
-  - [ ] changelogs x 5 (**/CHANGES.md)  
+  - [ ] changelogs x 5 (*/CHANGES.md)  
         `just changelogs [-c]`  
         add changes from site, finance repos  
         `just changelogs-finalise`

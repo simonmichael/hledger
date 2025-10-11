@@ -195,7 +195,7 @@ main = do
         pkgdirs = packages
         pkgandprojdirs = "" : pkgdirs
         cabalfiles = [p </> p <.> "cabal" | p <- packages]
-        changelogs = map (</> "CHANGES.md") pkgandprojdirs
+        changelogs = map (</> "CHANGES.md") pkgdirs ++ ["doc/CHANGES.md"]
         packagemanversionm4s = [p </> ".version.m4" | p <- packages]
         packagemandatem4s = [p </> ".date.m4" | p <- packages]
 
