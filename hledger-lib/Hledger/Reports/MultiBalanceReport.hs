@@ -39,10 +39,10 @@ import Control.Applicative (liftA2)
 #endif
 import Control.Monad (guard)
 import Data.Foldable (toList)
+import Data.HashSet qualified as HS
 import Data.List (sortOn)
 import Data.List.NonEmpty (NonEmpty((:|)))
-import Data.HashSet qualified as HS
-import Data.IntMap.Strict qualified as IM
+import Data.Map qualified as M
 import Data.Maybe (fromMaybe, isJust)
 import Data.Ord (Down(..))
 import Data.Semigroup (sconcat)
@@ -394,7 +394,7 @@ generatePeriodicReport makeRow treeAmt flatAmt ropts colspans acct =
         amt = mixedAmountStripCosts . sortKey . fmap treeAmt . pdperiods . adata
         sortKey = case balanceaccum_ ropts of
           PerPeriod -> maSum
-          _         -> maybe nullmixedamt snd . IM.lookupMax
+          _         -> maybe nullmixedamt snd . M.lookupMax
 
     sortFlatByAmount = case fromMaybe NormallyPositive $ normalbalance_ ropts of
         NormallyPositive -> sortOn (\r -> (Down $ amt r, prrFullName r))
@@ -454,7 +454,7 @@ makeMultiBalanceReportRow = makePeriodicReportRow nullmixedamt sumAndAverageMixe
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-makePeriodicReportRow :: c -> (IM.IntMap c -> (c, c))
+makePeriodicReportRow :: c -> (M.Map Integer c -> (c, c))
                       -> ReportOpts -> (b -> c)
                       -> a -> Account b -> PeriodicReportRow a c
 makePeriodicReportRow nullEntry totalAndAverage ropts balance name acct =
@@ -465,7 +465,7 @@ makePeriodicReportRow nullEntry totalAndAverage ropts balance name acct =
     -- Total for a cumulative/historical report is always the last column.
     rowtotal = case balanceaccum_ ropts of
         PerPeriod -> total
-        _         -> maybe nullEntry snd $ IM.lookupMax rowbals
+        _         -> maybe nullEntry snd $ M.lookupMax rowbals
 
 -- | Map the report rows to percentages if needed
 reportPercent :: ReportOpts -> MultiBalanceReport -> MultiBalanceReport
