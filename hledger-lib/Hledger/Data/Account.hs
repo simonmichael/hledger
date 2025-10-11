@@ -44,7 +44,6 @@ module Hledger.Data.Account
 import Control.Applicative ((<|>))
 import Data.HashSet qualified as HS
 import Data.HashMap.Strict qualified as HM
-import Data.IntMap qualified as IM
 import Data.List (find, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -388,7 +387,7 @@ tests_Account = testGroup "Account" [
       testCase "no postings, no days" $
         accountFromPostings undefined [] @?= accountTree "root" []
      ,testCase "no postings, only 2000-01-01" $
-         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . IM.keys . pdperiods . adata)
+         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . M.keys . pdperiods . adata)
                      (accountFromPostings undefined []) @? "Not all adata have exactly 2000-01-01"
     ]
   ]
