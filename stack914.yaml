@@ -1,0 +1,21 @@
+# stack build plan using GHC 9.14 installed in PATH
+# https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.14
+
+resolver: nightly-2025-10-11
+compiler: ghc-9.14
+notify-if-ghc-untested:   false
+notify-if-cabal-untested: false
+allow-newer: true
+
+packages:
+- hledger-lib
+- hledger
+- hledger-ui
+- hledger-web
+
+extra-deps:
+# currently out of stackage:
+- yesod-static-1.6.1.0
+- yesod-test-1.6.19
+- cryptonite-0.30
+- cryptonite-conduit-0.2.2
