@@ -754,10 +754,9 @@ data Account a = Account {
 -- The report periods are typically all the same length, but need not be.
 --
 -- Report periods are represented only by their start dates, used as the keys of a Map.
--- (As integers, like the one inside the Day type, representing days before/after 1858-11-17.)
 data PeriodData a = PeriodData {
-   pdpre     :: a                -- ^ data for the period before the report
-  ,pdperiods :: M.Map Integer a  -- ^ data for each period within the report
+   pdpre     :: a            -- ^ data for the period before the report
+  ,pdperiods :: M.Map Day a  -- ^ data for each period within the report
   } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:

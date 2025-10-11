@@ -387,7 +387,7 @@ tests_Account = testGroup "Account" [
       testCase "no postings, no days" $
         accountFromPostings undefined [] @?= accountTree "root" []
      ,testCase "no postings, only 2000-01-01" $
-         allAccounts (all (\d -> (ModifiedJulianDay $ toInteger d) == fromGregorian 2000 01 01) . M.keys . pdperiods . adata)
+         allAccounts (all (== fromGregorian 2000 01 01) . M.keys . pdperiods . adata)
                      (accountFromPostings undefined []) @? "Not all adata have exactly 2000-01-01"
     ]
   ]

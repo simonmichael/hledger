@@ -454,7 +454,7 @@ makeMultiBalanceReportRow = makePeriodicReportRow nullmixedamt sumAndAverageMixe
 -- | Build a report row.
 --
 -- Calculate the column totals. These are always the sum of column amounts.
-makePeriodicReportRow :: c -> (M.Map Integer c -> (c, c))
+makePeriodicReportRow :: c -> (M.Map Day c -> (c, c))
                       -> ReportOpts -> (b -> c)
                       -> a -> Account b -> PeriodicReportRow a c
 makePeriodicReportRow nullEntry totalAndAverage ropts balance name acct =
