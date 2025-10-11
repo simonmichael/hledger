@@ -119,6 +119,7 @@ But consider claiming - it's good for the project in several ways.
 [#2465]: https://github.com/simonmichael/hledger/issues/2465
 [#2469]: https://github.com/simonmichael/hledger/issues/2469
 [#2478]: https://github.com/simonmichael/hledger/issues/2478
+[#2479]: https://github.com/simonmichael/hledger/issues/2479
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -216,6 +217,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
 | [#2465]                  | 1.50.2    | [Paul Dest](https://opencollective.com/hledger/expenses/266959)                  | Simon Michael (N/A)
+| [#2479]                  |           | [Simon Michael](https://opencollective.com/hledger/expenses/269085)              | [Simon Michael](https://opencollective.com/hledger/expenses/269085)
 
 
 
