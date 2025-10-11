@@ -26,7 +26,6 @@ import Data.Foldable1 (Foldable1(..))
 #else
 import Control.Applicative (liftA2)
 #endif
-import Data.Bifunctor (first)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -44,7 +43,7 @@ instance Show a => Show (PeriodData a) where
         showString "PeriodData"
       . showString "{ pdpre = " . shows h
       . showString ", pdperiods = "
-      . showString "fromList " . shows (map (\(day, x) -> (intToDay day, x)) $ M.toList ds)
+      . showString "fromList " . shows (M.toList ds)
       . showChar '}'
 
 instance Foldable PeriodData where
@@ -73,17 +72,17 @@ instance Monoid a => Monoid (PeriodData a) where
 
 -- | Construct a 'PeriodData' from a historical data value and a list of (period start, period data) pairs.
 periodDataFromList :: a -> [(Day, a)] -> PeriodData a
-periodDataFromList h = PeriodData h . M.fromList . map (\(d, a) -> (dayToInt d, a))
+periodDataFromList h = PeriodData h . M.fromList
 
 -- | Convert 'PeriodData' to a historical data value and a list of (period start, period data) pairs.
 periodDataToList :: PeriodData a -> (a, [(Day, a)])
-periodDataToList (PeriodData h as) = (h, map (\(s, e) -> (intToDay s, e)) $ M.toList as)
+periodDataToList (PeriodData h as) = (h, M.toList as)
 
 -- | Get the data for the period containing the given 'Day', and that period's start date.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
 -- If the day is before the start of the first period (ie, in the historical period), return Nothing.
 lookupPeriodData :: Day -> PeriodData a -> Maybe (Day, a)
-lookupPeriodData d (PeriodData _ as) = first intToDay <$> M.lookupLE (dayToInt d) as
+lookupPeriodData d (PeriodData _ as) = M.lookupLE d as
 
 -- | Get the data for the period containing the given 'Day', and that period's start date.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
@@ -98,7 +97,7 @@ lookupPeriodDataOrHistorical d pd@(PeriodData h _) = case lookupPeriodData d pd 
 insertPeriodData :: Semigroup a => Maybe Day -> a -> PeriodData a -> PeriodData a
 insertPeriodData mday b balances = case mday of
     Nothing  -> balances{pdpre = pdpre balances <> b}
-    Just day -> balances{pdperiods = M.insertWith (<>) (dayToInt day) b $ pdperiods balances}
+    Just day -> balances{pdperiods = M.insertWith (<>) day b $ pdperiods balances}
 
 -- | Merge two 'PeriodData', using the given operation to combine their data values.
 --
@@ -119,8 +118,6 @@ mergePeriodData only1 only2 f = \(PeriodData h1 as1) (PeriodData h2 as2) ->
 padPeriodData :: a -> PeriodData b -> PeriodData a -> PeriodData a
 padPeriodData x pad bal = bal{pdperiods = pdperiods bal <> (x <$ pdperiods pad)}
 
-intToDay = ModifiedJulianDay . toInteger
-dayToInt = fromInteger . toModifiedJulianDay
 
 -- tests
 
