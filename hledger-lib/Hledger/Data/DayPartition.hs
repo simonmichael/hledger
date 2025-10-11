@@ -128,7 +128,7 @@ unionDayPartitions (DayPartition (PeriodData h as)) (DayPartition (PeriodData h'
 dayPartitionStartEnd :: DayPartition -> (Day, Day)
 dayPartitionStartEnd (DayPartition (PeriodData _ ds)) =
   -- Guaranteed not to error because the IntMap is non-empty.
-  (intToDay . fst $ M.findMin ds, snd $ M.findMax ds)
+  (fst $ M.findMin ds, snd $ M.findMax ds)
 
 -- | Find the start and end dates of the period within a 'DayPartition' which contains a given day.
 -- If the day is after the end of the last period, it is assumed to be within the last period.
@@ -240,8 +240,6 @@ intervalBoundaryBefore i d =
   case dayPartitionToNonEmpty <$> splitSpan True i (DateSpan (Just $ Exact d) (Just . Exact $ addDays 1 d)) of
     Just ((start, _) :| _ ) -> start
     _ -> d
-
-intToDay = ModifiedJulianDay . toInteger
 
 
 -- tests:
