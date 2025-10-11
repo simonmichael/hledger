@@ -1,9 +1,12 @@
+-- cabal config suitable for working with ghc 9.14
+with-compiler: ghc-9.14
+allow-newer: base,containers,ghc,ghc-bignum,template-haskell,time
 packages: hledger-lib
           hledger
           hledger-ui
           hledger-web
 
--- generate a ghc environment file, needed by doctest 
+-- generate a ghc environment file, to let doctest work
 -- (eg: ./.ghc.environment.x86_64-darwin-8.8.3). 
 -- cabal 3 doesn't write these by default.
 -- https://github.com/simonmichael/hledger/issues/1139
@@ -13,3 +16,9 @@ packages: hledger-lib
 -- a second time. Hopefully in practice it won't fail, because of a
 -- preceding cabal build.
 write-ghc-environment-files: always
+
+-- haskell-debugger/cabal.project has these, useful ?
+-- executable-dynamic: True
+-- package *
+--     -- Speeds up a bit
+--     library-vanilla: False
