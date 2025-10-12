@@ -106,9 +106,8 @@ Note rounding can produce unbalanced journal entries, perhaps requiring manual f
 
 Normally, print's output is a valid [hledger journal](#journal), 
 which you can "pipe" to a second hledger command for further processing.
-
 This is sometimes convenient for achieving certain kinds of query
-(though less needed now that queries have become more powerful).
+(though less needed now that queries have become more powerful):
 
 ```cli
 # Show running total of food expenses paid from cash.
@@ -116,12 +115,13 @@ This is sometimes convenient for achieving certain kinds of query
 $ hledger print assets:cash | hledger -f- -I reg expenses:food
 ```
 
-Here are some things which can cause print's output to become unparseable:
+But here are some things which can cause print's output to become unparseable:
 
 - `--round` (see above) can disrupt transaction balancing.
 - [Account aliases](#alias-directive) or [pivoting](#pivoting) can disrupt account names, balance assertions, or balance assignments.
 - [Value reporting](#value-reporting) also can disrupt balance assertions or balance assignments.
 - [Auto postings](#auto-postings) can generate too many amountless postings.
+- [`--infer-costs or --infer-equity`](#equity-conversion-postings) can generate too-complex redundant costs.
 
 ### print, other features
 
