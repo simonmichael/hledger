@@ -17,7 +17,7 @@ software documentation: there isn’t one thing called documentation,
 there are four. They are: tutorials, how-to guides, explanation and
 technical reference. They represent four different purposes or
 functions, and require four different approaches to their creation."
---[Daniele Procida] (https://news.ycombinator.com/item?id=21289832)
+--[Daniele Procida](https://news.ycombinator.com/item?id=21289832)
 </div>
 
 2019: out of date, needs update.
