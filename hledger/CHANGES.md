@@ -26,27 +26,43 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# d7e7cd26
-
-- imp: pivoting on the type tag normalises type values to their short spelling.
-- imp:accounts: --types shows a tag only when type is known
-- imp:accounts: sort options a little
-
-- ;doc:Account names: rewrite, emphasise the two space delimiter
-- ;doc: update command docs
-- ;doc:journal: Editor configuration -> Editors
+# 7c04f67c
 
 Breaking changes
 
 Fixes
 
+- Periodic reports involving dates 25 quadrillion years in the future
+  (on 64 bit machines; or 5 million years on 32 bit machines) were
+  showing wrong results. This was a regression in 1.50, now fixed.
+  (Simon Michael, [#2479])
+
+- In `hledger check accounts` failure messages, non-ascii account names are no longer garbled.
+  This regressed in 1.27 or so.
+  [#2469]
+
 Features
 
 Improvements
 
+- Command line arguments being passed to addons no longer require extra escaping.
+  (Caleb Maclennan)
+
+- Report robustness has been improved through internal refactoring, preventing some possible error messages.
+  (Stephen Morgan, Simon Michael)
+
+- `hledger --pivot=type` tag now normalises its values to their short spelling (`A` instead of `Assets`, etc).
+
+- `hledger accounts --types` no longer shows value-less type tags; untyped accounts are shown without a `type` tag.
+
 - In journal format, an empty `{}` pair is now allowed in amounts, as in Ledger/Beancount (and ignored).
 
 Docs
+
+- Special characters: rewrite (Simon Michael, Caleb Maclennan, [#2468])
+- Tags: rewrite [hledger_site#141]
+- Account names: rewrite, emphasise the two space delimiter
+- rename Editor configuration -> Editors
 
 Examples
 

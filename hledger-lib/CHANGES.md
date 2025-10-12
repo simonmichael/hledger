@@ -17,7 +17,7 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# d7e7cd26
+# 7c04f67c
 
 Breaking changes
 
@@ -25,6 +25,9 @@ Fixes
 
 Improvements
 
+- Hledger.Utils.String:
+  quoteForCommandLine now quotes some additional problem characters, and no longer quotes "7".
+  [#2468]
 - Hledger.Utils.IO:
   - inputToHandle -> textToHandle; set utf8 not utf8_bom
   - readHandlePortably, readHandlePortably' -> hGetContentsPortably
