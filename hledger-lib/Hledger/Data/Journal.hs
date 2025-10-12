@@ -131,11 +131,11 @@ import Data.List ((\\), find, sortBy, union, intercalate)
 import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
-import qualified Data.Map.Strict as M
+import Data.Map.Strict qualified as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
-import qualified Data.Set as S
+import Data.Set qualified as S
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Safe (headMay, headDef, maximumMay, minimumMay, lastDef)
 import Data.Time.Calendar (Day, addDays, fromGregorian, diffDays)
 import Data.Time.Clock.POSIX (POSIXTime)
@@ -1167,7 +1167,7 @@ pivotComponent fieldortagname p
   | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ lstrip $ showAmountCost a; _ -> unknown
   | Just (_, tagvalue) <- postingFindTag fieldortagname p =
       if fieldortagname == "type"
-      then either (const tagvalue) T.show $ parseAccountType True tagvalue
+      then either (const tagvalue) (T.pack . show) $ parseAccountType True tagvalue
       else tagvalue
   | otherwise = unknown
   where

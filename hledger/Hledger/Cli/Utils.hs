@@ -30,13 +30,13 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import qualified Data.List.NonEmpty as NE (toList)
+import Data.List.NonEmpty qualified as NE (toList)
 import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
-import qualified Data.Text.Lazy.IO as TL
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
+import Data.Text.Lazy.IO qualified as TL
 import Data.Time (Day)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Lens.Micro ((^.))
@@ -82,10 +82,13 @@ withJournalDo = withJournal
 -- These happen after parsing, finalising the journal, strict checks, and .latest filtering/updating,
 -- but before report calculation. They are, in processing order:
 -- --pivot, --anonymise error message, --obfuscate.
+--
+-- Why not do these in journalFinalise ?
+-- That step is supposed to check the data's intrinsic correctness, regardless of view options;
+-- whereas here we assume correctness and are just transforming the view (based only on InputOpts).
+-- XXX But it's easy to forget to call this. Current callers include withJournal, journalReload, uiReload, withJournalCached.
 journalTransform :: CliOpts -> Journal -> Journal
 journalTransform opts =
--- XXX Called by withJournal, journalReload, uiReload, withJournalCached.
--- Could it be moved down into journalFinalise ? These steps only depend on InputOpts.
       maybePivot opts
   <&> maybeWarnAboutAnon opts
   <&> maybeObfuscate opts

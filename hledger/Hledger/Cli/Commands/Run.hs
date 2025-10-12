@@ -17,11 +17,11 @@ module Hledger.Cli.Commands.Run (
  ,runOrReplStub
 ) where
 
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map.Strict as Map
+import Data.List.NonEmpty qualified as NE
+import Data.Map.Strict qualified as Map
 import Data.Semigroup (sconcat)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit as C ( Mode )
 import Hledger
 import Hledger.Cli.CliOptions
@@ -160,7 +160,7 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
                       then run (Just jpaths) findBuiltinCommand addons opts
                       else cmdaction opts j
         Nothing | cmdname `elem` addons ->
-          system (printf "%s-%s %s" progname cmdname (unwords' args)) >>= exitWith
+          system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine args)) >>= exitWith
         Nothing ->
           error' $ "Unrecognized command: " ++ unwords (cmdname:args)
     [] -> return ()

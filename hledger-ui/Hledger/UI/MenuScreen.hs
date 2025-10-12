@@ -17,9 +17,9 @@ import Brick.Widgets.List
 import Control.Monad
 import Control.Monad.IO.Class (liftIO)
 import Data.Maybe
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
-import qualified Data.Vector as V
+import Data.Vector qualified as V
 import Data.Vector ((!?))
 import Graphics.Vty (Event(..),Key(..),Modifier(..), Button (BLeft, BScrollDown, BScrollUp))
 import Lens.Micro.Platform
@@ -33,7 +33,7 @@ import Hledger.UI.UITypes
 import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
-import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged)
+import Hledger.UI.ErrorScreen (uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 import Hledger.UI.Editor (runIadd, runEditor, endPosition)
 import Brick.Widgets.Edit (getEditContents, handleEditorEvent)
 import Control.Arrow ((>>>))
@@ -156,7 +156,7 @@ msHandle ev = do
               where
                 p = reportPeriod ui
             e | e `elem` [VtyEvent (EvKey (KChar 'g') []), AppEvent FileChange] -> uiReload copts d ui >>= put'
-            VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (toggleIgnoreBalanceAssertions ui)
+            VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d ui
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
             VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPosition (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui

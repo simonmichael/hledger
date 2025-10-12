@@ -15,23 +15,23 @@ You can help by finding them, or fixing them!
 
 ## Regression finder bounty
 
-For new regression reports (affecting any past release) submitted to the bug tracker, we offer a $50 bounty.
+We offer a $50 bounty for newly reported regression bugs (arising any time in the past, still affecting latest master).
 ([original announcement](https://github.com/simonmichael/hledger/issues/1570))
 
 ## Regression fixer bounty
 
-For regression issues fixed, we offer a separate $50 bounty.
-
-(If you caused the regression, there's no bounty, though we still appreciate you reporting or fixing it!)
-
-## Should I claim the bounty ?
-If you don't want the bounty, you can choose to donate it back to the project treasury.
-But consider accepting it - it's good for the project!
+We offer a separate $50 bounty for regression bug fixes landed in master.
+(If you caused the regression, there's no bounty, though we do appreciate you reporting or fixing it.)
 
 ## Is there a time limit ?
-Yes - once the bounty is confirmed, if you want to claim it please respond within 7 days.
-If we don't hear from you, it will be automatically converted to a project donation at that time.
+Yes - once the bounty is confirmed, please claim it within 7 days.
+If not, it will be automatically converted to a project donation at that time.
 This reduces wasteful admin work.
+
+## Should I claim the bounty ?
+If you don't want the bounty, you can choose to donate it back to the project treasury,
+by saying so or simply by not claiming it within the time limit.
+But consider claiming - it's good for the project in several ways.
 
 ## How to claim the bounty
 
@@ -54,10 +54,6 @@ This reduces wasteful admin work.
 6. Wait for Open Collective to pay it. This should happen within a week (payouts happen twice a week).
 
 ## Regressions reported
-
-- [Issue tracker: all regression reports](https://bugs.hledger.org/regressions)
-- [Open Collective: expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->
-- [Open Collective: payments](https://opencollective.com/hledger/transactions?kind=EXPENSE)
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
 [#1468]: https://github.com/simonmichael/hledger/issues/1468
@@ -121,6 +117,9 @@ This reduces wasteful admin work.
 [#2452]: https://github.com/simonmichael/hledger/issues/2452
 [#2454]: https://github.com/simonmichael/hledger/issues/2454
 [#2465]: https://github.com/simonmichael/hledger/issues/2465
+[#2469]: https://github.com/simonmichael/hledger/issues/2469
+[#2478]: https://github.com/simonmichael/hledger/issues/2478
+[#2479]: https://github.com/simonmichael/hledger/issues/2479
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -173,6 +172,7 @@ Fixer  bounties began on 2024-01-01.
 | **1.27** 2022-09-01      | ---       | ---                                                                              | ---
 | [#1932]                  | 1.27.1    | [Andras Fabian](https://opencollective.com/hledger/expenses/95112)               | N/A
 | [#2018]                  | 1.29.2    | [Allan Odgaard](https://opencollective.com/hledger/expenses/130591)              | N/A
+| [#2469]                  |           | [Quả Cầu](https://opencollective.com/hledger/expenses/267824)                    | Simon Michael (N/A)
 | **1.28** 2022-12-01      | ---       | ---                                                                              | ---
 | **1.29** 2023-03-11      | ---       | ---                                                                              | ---
 | [#2012]                  | 1.32      | Simon Michael   (N/A)                                                            | N/A
@@ -212,7 +212,14 @@ Fixer  bounties began on 2024-01-01.
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
 | [#2417]                  | 1.50      | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | [Simon Michael](https://opencollective.com/hledger/expenses/264102)
+| [#2478]                  |           | [dotlambda](https://opencollective.com/hledger/expenses/269024)                  |
 | **1.50** 2025-09-03      | ---       | ---                                                                              | ---
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
 | [#2465]                  | 1.50.2    | [Paul Dest](https://opencollective.com/hledger/expenses/266959)                  | Simon Michael (N/A)
+| [#2479]                  |           | [Simon Michael](https://opencollective.com/hledger/expenses/269085)              | [Simon Michael](https://opencollective.com/hledger/expenses/269085)
+
+
+
+- [All regression bugs](https://bugs.hledger.org/regressions)
+- [Open Collective expense requests](https://opencollective.com/hledger/expenses)  <!-- not ?amount=50-100 because other currencies -->

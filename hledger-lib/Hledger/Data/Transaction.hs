@@ -68,10 +68,10 @@ import Data.Foldable (foldlM)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Semigroup (Endo(..))
 import Data.Text (Text)
-import qualified Data.Map as M
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Map qualified as M
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day, fromGregorian)
 
 import Hledger.Utils

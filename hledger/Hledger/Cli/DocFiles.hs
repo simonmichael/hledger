@@ -1,4 +1,7 @@
-{-# LANGUAGE TemplateHaskell, OverloadedStrings, PackageImports, ScopedTypeVariables #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-|
 
 Embedded documentation files in various formats, and helpers for viewing them.
@@ -18,7 +21,7 @@ module Hledger.Cli.DocFiles (
 
 import Control.Exception
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BC
+import Data.ByteString.Char8 qualified as BC
 import Data.Maybe (fromMaybe)
 import Data.String
 import System.Environment (setEnv)

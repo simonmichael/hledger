@@ -53,14 +53,14 @@ where
 
 import Control.Exception
 import Control.Monad
--- import qualified Data.ByteString as B
+-- import Data.ByteString qualified as B
 import Data.Char
 import Data.Default (def)
 import Data.List
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import Network.HTTP.Client
 import Network.HTTP.Types (statusCode, hLocation)
 import Network.HTTP.Req as R

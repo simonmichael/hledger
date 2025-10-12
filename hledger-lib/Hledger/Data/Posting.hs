@@ -85,17 +85,17 @@ where
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.Function ((&))
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.List (sort, union)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
-import qualified Data.Set as S
+import Data.Set qualified as S
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day)
 import Safe (maximumBound)
 import Text.DocLayout (realLength)

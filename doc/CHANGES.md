@@ -18,24 +18,30 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# d7e7cd26
+# 7c04f67c
+
 
 Doc updates
 
-- ;doc: rename ANNOUNCE.short
-- ;doc:doc-update.png: update
-- ;doc:DOCS: document current manual updating procedures
-- ;doc:REGRESSIONS
-- ;doc:REGRESSIONS: updates
-- ;doc:RELEASING: updates, formatting
-- ;doc:relnotes: use more reliable changelog links
-
+- AUTHORS.md: move to doc/
+- ANNOUNCE.short: rename
+- CHANGES.md: move to doc/, for easy consistent paths
+- Contributing: mention translation (Lý Minh Nhật)
+- DOCS, doc-update.png: document & diagram latest doc update procedures
+- relnotes: use more reliable changelog links
+- tldr/README
+- RELEASING
+- REGRESSIONS
+- RELEASING: updates, formatting
+- DECISIONS
 - ISSUES
 
 Website
 
 Infrastructure/Misc
 
+- use a nightly branch instead of a nightly tag again on github, it's simpler
+- release script updates
 - ;pkg:stack98: restore needed encoding 0.10 extra dep
 - ;tools: update just releasediag, add just docupdatediag
 - ;tools:just ghnightly* -> nightly*

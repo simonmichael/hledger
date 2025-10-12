@@ -35,9 +35,9 @@ import Control.Applicative ((<|>))
 import Data.Function ((&), on)
 import Data.List (partition, intercalate, sortBy)
 import Data.List.Extra (nubSortBy)
-import qualified Data.Map as M
-import qualified Data.Set as S
-import qualified Data.Text as T
+import Data.Map qualified as M
+import Data.Set qualified as S
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, fromGregorian)
 import Data.MemoUgly (memo)
 import GHC.Generics (Generic)

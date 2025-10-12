@@ -21,12 +21,12 @@ module Hledger.Web.App where
 import Control.Applicative ((<|>))
 import Control.Monad (join, when, unless)
 -- import Control.Monad.Except (runExceptT)  -- now re-exported by Hledger
-import qualified Data.ByteString.Char8 as BC
+import Data.ByteString.Char8 qualified as BC
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Network.HTTP.Types (status403)

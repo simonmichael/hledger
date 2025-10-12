@@ -27,7 +27,7 @@ import Data.List (mapAccumR, nub, partition, sortBy)
 import Data.List.Extra (nubSort)
 import Data.Maybe (catMaybes)
 import Data.Ord (Down(..), comparing)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 
 import Hledger.Data

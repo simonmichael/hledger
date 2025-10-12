@@ -9,7 +9,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 import Data.String.QQ (s)
-import qualified Data.Text.IO as T
+import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.Script
 

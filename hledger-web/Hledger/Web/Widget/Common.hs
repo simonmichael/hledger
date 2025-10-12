@@ -23,11 +23,11 @@ import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import System.FilePath (takeFileName)
 import Text.Blaze ((!), textValue)
-import qualified Text.Blaze.Html5 as H
-import qualified Text.Blaze.Html5.Attributes as A
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
 import Text.Blaze.Internal (preEscapedString)
 import Text.Hamlet (hamletFile)
 import Text.Printf (printf)
@@ -36,7 +36,7 @@ import Yesod
 import Hledger
 import Hledger.Cli.Utils (writeFileWithBackupIfChanged)
 import Hledger.Web.Settings (manualurl)
-import qualified Hledger.Query as Query
+import Hledger.Query qualified as Query
 
 
 journalFile404 :: FilePath -> Journal -> HandlerFor m (FilePath, Text)

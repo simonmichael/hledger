@@ -24,14 +24,14 @@ import Data.List (find, nub)
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
 import Data.Foldable (for_)
-import qualified Data.Map as Map
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Map qualified as Map
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Control.Monad (when)
-import qualified Lucid as L hiding (Html)
+import Lucid qualified as L hiding (Html)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
-import qualified System.IO as IO
+import System.IO qualified as IO
 import Text.Tabular.AsciiWide hiding (render)
 
 import Hledger
@@ -40,7 +40,7 @@ import Hledger.Cli.Utils
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Html (formatRow, htmlAsLazyText, toHtml)
 import Hledger.Write.Ods (printFods)
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 
 aregistermode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Aregister.txt")

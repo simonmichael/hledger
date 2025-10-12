@@ -17,15 +17,15 @@ import Data.List (sortOn)
 import Data.List (foldl')
 #endif
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print
 import System.Console.CmdArgs.Explicit
 import Text.Printf
 import Text.Megaparsec hiding (pos1)
-import qualified Data.Algorithm.Diff as D
+import Data.Algorithm.Diff qualified as D
 
 rewritemode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Rewrite.txt")

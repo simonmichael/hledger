@@ -20,7 +20,7 @@
 import Data.List
 import Data.Maybe
 import Data.String.QQ (s)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar
 import Safe
 -- import Hledger

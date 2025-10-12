@@ -60,7 +60,7 @@ import Data.Either (isRight)
 import Data.List
 import Data.List.Extra (groupSortOn, nubSort)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar
 import Safe (headErr)
 import String.ANSI

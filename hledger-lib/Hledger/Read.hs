@@ -131,7 +131,7 @@ module Hledger.Read (
 ) where
 
 --- ** imports
-import qualified Control.Exception as C
+import Control.Exception qualified as C
 import Control.Monad (unless, when, forM, (>=>))
 import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -143,8 +143,8 @@ import Data.Maybe (catMaybes, fromMaybe)
 import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Data.Time (Day)
 import Safe (headDef, headMay)
 import System.Directory (doesFileExist)

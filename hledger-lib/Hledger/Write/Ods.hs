@@ -16,23 +16,23 @@ import Prelude hiding (Applicative(..))
 import Control.Monad (guard)
 import Control.Applicative (Applicative(..))
 
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text as T
+import Data.Text.Lazy qualified as TL
+import Data.Text qualified as T
 import Data.Text (Text)
 
-import qualified Data.Foldable as Fold
-import qualified Data.List as List
-import qualified Data.Map as Map
-import qualified Data.Set as Set
+import Data.Foldable qualified as Fold
+import Data.List qualified as List
+import Data.Map qualified as Map
+import Data.Set qualified as Set
 import Data.Foldable (fold)
 import Data.Map (Map)
 import Data.Set (Set)
 import Data.Maybe (catMaybes)
 
-import qualified System.IO as IO
+import System.IO qualified as IO
 import Text.Printf (printf)
 
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
 import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)

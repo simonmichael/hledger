@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver lts-24.10 --compile
+{- stack script --resolver nightly-2025-09-30 --compile
    --extra-include-dirs /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/ffi
    --package base-prelude
    --package directory
@@ -195,7 +195,7 @@ main = do
         pkgdirs = packages
         pkgandprojdirs = "" : pkgdirs
         cabalfiles = [p </> p <.> "cabal" | p <- packages]
-        changelogs = map (</> "CHANGES.md") pkgandprojdirs
+        changelogs = map (</> "CHANGES.md") pkgdirs ++ ["doc/CHANGES.md"]
         packagemanversionm4s = [p </> ".version.m4" | p <- packages]
         packagemandatem4s = [p </> ".date.m4" | p <- packages]
 

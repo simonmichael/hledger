@@ -71,7 +71,7 @@ module Hledger.Read.JournalReader (
 where
 
 --- ** imports
-import qualified Control.Exception as C
+import Control.Exception qualified as C
 import Control.Monad (forM_, when, void, unless, filterM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
@@ -79,12 +79,12 @@ import Control.Monad.State.Strict (evalStateT,get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
 import Data.Either (isRight, lefts)
-import qualified Data.Map.Strict as M
+import Data.Map.Strict qualified as M
 import Data.Text (Text)
 import Data.String
 import Data.List
 import Data.Maybe
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar
 import Data.Time.LocalTime
 import Safe
@@ -99,10 +99,10 @@ import Hledger.Data
 import Hledger.Read.Common
 import Hledger.Utils
 
-import qualified Hledger.Read.CsvReader as CsvReader (reader)
-import qualified Hledger.Read.RulesReader as RulesReader (reader)
-import qualified Hledger.Read.TimeclockReader as TimeclockReader (reader)
-import qualified Hledger.Read.TimedotReader as TimedotReader (reader)
+import Hledger.Read.CsvReader qualified as CsvReader (reader)
+import Hledger.Read.RulesReader qualified as RulesReader (reader)
+import Hledger.Read.TimeclockReader qualified as TimeclockReader (reader)
+import Hledger.Read.TimedotReader qualified as TimedotReader (reader)
 import System.Directory (canonicalizePath, doesFileExist)
 import Data.Functor ((<&>))
 

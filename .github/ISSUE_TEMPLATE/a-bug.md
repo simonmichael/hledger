@@ -6,16 +6,22 @@ title: ''
 assignees: ''
 ---
 
-Thanks for reporting.
-Remember to check the manual first (the correct version):
-https://hledger.org/hledger.html
-https://hledger.org/hledger-ui.html
-https://hledger.org/hledger-web.html
+Thanks for helping to make hledger better.
 
-If possible, please mention/include:
-your `hledger --version` output,
-the OS you're running on,
-a link to any relevant doc that you found,
-and a small reproducible example or recipe.
+Before reporting a bug, these are some good places to check:
+The appropriate manual (choosing the correct version at the top of the page):
+               https://hledger.org/hledger.html
+               https://hledger.org/hledger-ui.html
+               https://hledger.org/hledger-web.html
+FAQ:           https://hledger.org/faq.html
+Release notes: https://hledger.org/relnotes.html
+Issue tracker: https://bugs.hledger.org         (some notable issues are pinned)
+Matrix chat:   https://hledger.org/support.html (issues are pinned here too)
 
-(Please remove all of this text before submitting.)
+In your bug report, please include if possible:
+- your `hledger --version` output (or even better, `hledger setup`)
+- which OS you're running on
+- a link to a relevant doc you found, if any
+- a small reproducible example or recipe.
+
+Please remove all of this text before submitting.

@@ -1,18 +1,19 @@
 #!/usr/bin/env stack
 -- stack runghc --verbosity error --package hledger --package hledger-lib --package text --package safe 
 -- (use the local hledger source)
--- -- stack script --compile --resolver lts-24.10 --verbosity info --package hledger --package text
+-- -- stack script --compile --resolver nightly-2025-09-30 --verbosity info --package hledger --package text
 -- -- (use a released hledger from stackage)
 
 -- A custom compound report - like incomestatement but with different,
 -- customisable subheadings/subreports. More verbose and haskelly than
 -- hledger-report1.sh but also more robust and powerful.
 
-{-# LANGUAGE OverloadedStrings, PackageImports #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PackageImports #-}
 
 import Hledger.Cli.Script
-import qualified "text" Data.Text as T
-import qualified "text" Data.Text.IO as T
+import "text" qualified Data.Text as T
+import "text" qualified Data.Text.IO as T
 
 cmdmode = hledgerCommandMode (unlines
   ["report1"

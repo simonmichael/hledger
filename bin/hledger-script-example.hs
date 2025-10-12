@@ -42,8 +42,8 @@ script-example - my new script
 -- This provides most of hledger's API that's useful for scripts.
 import Hledger.Cli.Script
 -- Haskell has a built-in String type; hledger also uses the more efficient Text type.
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 
 -- If you use hledgerCommandMode, and getHledgerCliOpts below, your script will
 -- support -h/--help, -f/--file and other common hledger options.

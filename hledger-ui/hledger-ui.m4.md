@@ -154,6 +154,7 @@ previous screens. (With large files, this could cause a noticeable pause.)
 
 `I` toggles balance assertion checking.
 Disabling balance assertions temporarily can be useful for troubleshooting.
+(If hledger-ui was started with a `--pivot` option, re-enabling balance assertions with the `I` key also reloads the journal, like `g`.)
 
 `a` runs command-line hledger's add command, and reloads the updated file.
 This allows some basic data entry.
@@ -327,8 +328,6 @@ eg to toggle cleared mode, or to explore the history.
 - It may not work at all for you, depending on platform or system configuration.
   On some unix systems, increasing fs.inotify.max_user_watches or fs.file-max parameters in /etc/sysctl.conf might help.
   ([#836](https://github.com/simonmichael/hledger/issues/836))
-- It may not detect file changes made by certain tools, such as Jetbrains IDEs or gedit.
-  ([#1617](https://github.com/simonmichael/hledger/issues/1617))
 - It may not detect changes made from outside a virtual machine, ie by an editor running on the host system.
 - It may not detect file changes on certain less common filesystems.
 - It may use increasing CPU and RAM over time, especially with large files.

@@ -11,8 +11,8 @@ where
 import Data.Function (on)
 import Data.List (groupBy)
 import Data.Maybe (fromMaybe)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Data.Time.Calendar (addDays)
 import System.Console.CmdArgs.Explicit as C
 

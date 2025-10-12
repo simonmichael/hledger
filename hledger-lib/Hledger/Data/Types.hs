@@ -40,17 +40,16 @@ import Data.Bifunctor (first)
 import Data.Decimal (Decimal, DecimalRaw(..))
 import Data.Default (Default(..))
 import Data.Functor (($>))
-import qualified Data.IntMap.Strict as IM
 import Data.List (intercalate, sortBy)
 --XXX https://hackage.haskell.org/package/containers/docs/Data-Map.html
 --Note: You should use Data.Map.Strict instead of this module if:
 --You will eventually need all the values stored.
 --The stored values don't represent large virtual data structures to be lazily computed.
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Ord (comparing)
 import Data.Semigroup (Min(..))
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Time.LocalTime (LocalTime)
@@ -750,13 +749,15 @@ data Account a = Account {
   ,adata                     :: PeriodData a       -- ^ associated data per report period
   } deriving (Generic, Functor)
 
--- | Data values for zero or more report periods, and for the pre-report period.
--- Report periods are assumed to be contiguous, and represented only by start dates
--- (as keys of an IntMap). XXX how does that work, again ?
+-- | A general container for storing data values associated with zero or more
+-- contiguous report (sub)periods, and with the (open ended) pre-report period.
+-- The report periods are typically all the same length, but need not be.
+--
+-- Report periods are represented only by their start dates, used as the keys of a Map.
 data PeriodData a = PeriodData {
-   pdpre     :: a            -- ^ data from the pre-report period (e.g. historical balances)
-  ,pdperiods :: IM.IntMap a  -- ^ data for the periods
-  } deriving (Eq, Functor, Generic)
+   pdpre     :: a            -- ^ data for the period before the report
+  ,pdperiods :: M.Map Day a  -- ^ data for each period within the report
+  } deriving (Eq, Ord, Functor, Generic)
 
 -- | Data that's useful in "balance" reports:
 -- subaccount-exclusive and -inclusive amounts,

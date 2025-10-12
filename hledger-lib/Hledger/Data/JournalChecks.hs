@@ -24,8 +24,8 @@ where
 import Data.Char (isSpace)
 import Data.List.Extra
 import Data.Maybe
-import qualified Data.Map.Strict as M
-import qualified Data.Text as T
+import Data.Map.Strict qualified as M
+import Data.Text qualified as T
 import Safe (atMay, lastMay, headMay)
 import Text.Printf (printf)
 
@@ -63,11 +63,11 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
            "%s:%d:"
           ,"%s"
           ,"Strict account checking is enabled, and"
-          ,"account %s has not been declared."
+          ,"account \"%s\" has not been declared."
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex (show a) a
+          ]) f l ex a a
         where
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 

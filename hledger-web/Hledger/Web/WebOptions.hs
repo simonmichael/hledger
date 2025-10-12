@@ -7,7 +7,7 @@
 module Hledger.Web.WebOptions where
 
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as BC
+import Data.ByteString.Char8 qualified as BC
 import Data.ByteString.UTF8 (fromString)
 import Data.Default (Default(def))
 import Data.Maybe (fromMaybe)
@@ -20,7 +20,7 @@ import Safe (lastMay)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Char (toLower)
 import Data.List (isPrefixOf)
 import Data.Either (fromRight)

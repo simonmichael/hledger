@@ -38,7 +38,7 @@ import Data.List
 import Data.Maybe
 import Data.Ord
 import Data.String.Here
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Graphics.Rendering.Chart
 import Graphics.Rendering.Chart.Backend.Diagrams
 import Safe

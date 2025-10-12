@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack script --resolver lts-24.10
+{- stack script --resolver nightly-2025-09-30
     --package data-default
     --package extra
     --package process
@@ -42,7 +42,7 @@ import Data.Char
 import Data.Default
 import GHC.Generics
 import Data.List.Extra
--- import qualified Data.Text as T
+-- import Data.Text qualified as T
 import System.Environment
 import System.IO.Extra
 -- import System.IO

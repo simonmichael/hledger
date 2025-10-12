@@ -23,15 +23,27 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# d7e7cd26
+# 7c04f67c
 
 Breaking changes
 
 Fixes
 
+- Re-check balance assertions properly when --pivot is used.
+  When hledger-ui is started with --pivot, re-enabling balance
+  assertions with the I key now does a full journal reload, to check
+  balance assertions accurately. It means that in pivot mode, the I key
+  can also show other data changes (as if you pressed the g key).
+  [#2451]
+
+- Watch mode now detects changes made by editors that overwrite files (like VS Code).
+  (Caleb Maclennan)
+
 Features
 
 Improvements
+
+- Allow brick 2.10, vty 6.5.
 
 Docs
 

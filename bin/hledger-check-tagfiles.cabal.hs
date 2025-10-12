@@ -16,7 +16,7 @@ $ hledger check-tagfiles       # compiles every time (?)
 -}
 
 import Control.Monad
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Hledger.Cli.Script
 import System.Directory
 import System.Exit

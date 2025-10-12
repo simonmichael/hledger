@@ -44,7 +44,7 @@ import Control.Monad.Except (ExceptT, liftEither)
 import Control.Monad.State.Strict
 import Data.Char (isSpace)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time (Day)
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char

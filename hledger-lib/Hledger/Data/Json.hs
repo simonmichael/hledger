@@ -20,13 +20,12 @@ import           Data.Aeson
 import           Data.Aeson.Encode.Pretty (Config(..), Indent(..), NumberFormat(..),
                      encodePretty', encodePrettyToTextBuilder')
 --import           Data.Aeson.TH
-import qualified Data.ByteString.Lazy as BL
+import Data.ByteString.Lazy qualified as BL
 import           Data.Decimal (DecimalRaw(..), roundTo)
-import qualified Data.IntMap as IM
 import           Data.Maybe (fromMaybe)
-import qualified Data.Text.Lazy    as TL
-import qualified Data.Text.Lazy.Builder as TB
-import           Data.Time (Day(..))
+import Data.Text.Lazy qualified    as TL
+import Data.Text.Lazy.Builder qualified as TB
+import Data.Map qualified as M
 import           Text.Megaparsec (Pos, SourcePos, mkPos, unPos)
 
 import           Hledger.Data.Types
@@ -161,7 +160,7 @@ instance ToJSON BalanceData
 instance ToJSON a => ToJSON (PeriodData a) where
   toJSON a = object
     [ "pdpre" .= pdpre a
-    , "pdperiods" .= map (\(d, x) -> (ModifiedJulianDay (toInteger d), x)) (IM.toList $ pdperiods a)
+    , "pdperiods" .= (M.toList $ pdperiods a)
     ]
 
 instance ToJSON a => ToJSON (Account a) where
@@ -227,7 +226,7 @@ instance FromJSON BalanceData
 instance FromJSON a => FromJSON (PeriodData a) where
   parseJSON = withObject "PeriodData" $ \v -> PeriodData
     <$> v .: "pdpre"
-    <*> (IM.fromList . map (\(d, x) -> (fromInteger $ toModifiedJulianDay d, x)) <$> v .: "pdperiods")
+    <*> (M.fromList <$> v .: "pdperiods")
 
 -- XXX The ToJSON instance replaces subaccounts with just names.
 -- Here we should try to make use of those to reconstruct the

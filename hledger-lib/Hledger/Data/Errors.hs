@@ -19,7 +19,7 @@ where
 import Data.Function ((&))
 import Data.List (find)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 
 import Hledger.Data.Transaction (showTransaction)
 import Hledger.Data.Posting (postingStripCosts)

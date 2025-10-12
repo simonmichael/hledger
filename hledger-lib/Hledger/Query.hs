@@ -83,7 +83,7 @@ import Data.Either (partitionEithers)
 import Data.List (partition, intercalate)
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, fromGregorian )
 import Safe (headErr, readMay, maximumByMay, maximumMay, minimumMay)
 import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)

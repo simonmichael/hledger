@@ -37,8 +37,8 @@ import System.IO (hPutStrLn, stderr)
 import System.IO.Unsafe (unsafePerformIO)
 import Lens.Micro ((^.))
 import Text.Printf
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 
 import Hledger.Cli.Script
 

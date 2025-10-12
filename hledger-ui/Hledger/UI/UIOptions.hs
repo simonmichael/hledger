@@ -6,7 +6,7 @@ module Hledger.UI.UIOptions where
 import Data.Default (def)
 import Data.Either (fromRight)
 import Data.List (intercalate)
-import qualified Data.Map as M
+import Data.Map qualified as M
 import Data.Maybe (fromMaybe)
 import GitHash (tGitInfoCwdTry)
 import Lens.Micro (set)

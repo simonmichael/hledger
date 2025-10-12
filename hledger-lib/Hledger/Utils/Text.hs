@@ -23,7 +23,6 @@ module Hledger.Utils.Text
   -- escapeSingleQuotes,
   -- escapeQuotes,
   -- words',
-  -- unwords',
   stripquotes,
   -- isSingleQuoted,
   -- isDoubleQuoted,
@@ -55,9 +54,9 @@ import Data.Char (digitToInt)
 import Data.Default (def)
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
-import qualified Data.Text as T
-import qualified Data.Text.Lazy as TL
-import qualified Data.Text.Lazy.Builder as TB
+import Data.Text qualified as T
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Builder qualified as TB
 import Text.DocLayout (charWidth, realLength)
 
 import Test.Tasty (testGroup)
@@ -161,10 +160,6 @@ escapeBackslash = T.replace "\\" "\\\\"
 --       pattern = many (noneOf whitespacechars)
 --       singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'")
 --       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"")
-
--- -- | Quote-aware version of unwords - single-quote strings which contain whitespace
--- unwords' :: [Text] -> Text
--- unwords' = T.unwords . map quoteIfNeeded
 
 -- | Strip one matching pair of single or double quotes on the ends of a string.
 stripquotes :: Text -> Text

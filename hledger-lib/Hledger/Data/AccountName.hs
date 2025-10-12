@@ -63,13 +63,13 @@ where
 import Control.Applicative ((<|>))
 import Control.Monad (foldM)
 import Data.Foldable (asum, find, toList)
-import qualified Data.List.NonEmpty as NE
-import qualified Data.Map as M
+import Data.List.NonEmpty qualified as NE
+import Data.Map qualified as M
 import Data.Maybe (mapMaybe)
 import Data.MemoUgly (memo)
-import qualified Data.Set as S
+import Data.Set qualified as S
 import Data.Text (Text)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Tree (Tree(..), unfoldTree)
 import Safe
 import Text.DocLayout (realLength)

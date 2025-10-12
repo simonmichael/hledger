@@ -88,10 +88,10 @@ Fixes
   [#2465]
 
 - The doc for `--depth` has been clarified, and now mentions the use of quotes.
-  (Quả Cầu, Simon Michael, [hledger_site#140])
+  (Lý Minh Nhật, Simon Michael, [hledger_site#140])
 
 - A typo was fixed in the --depth example in `register`'s doc.
-  ([hledger_site#140], reported by Quả Cầu)
+  ([hledger_site#140], reported by Lý Minh Nhật)
 
 - Our package bounds now avoid hashtables 1.3.x, which fails to build with some gcc versions
   (see https://github.com/gregorycollins/hashtables/issues/97)).

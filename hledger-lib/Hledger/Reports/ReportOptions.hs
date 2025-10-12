@@ -71,7 +71,7 @@ where
 
 import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..), Const(..), (<|>))
-import Control.Monad ((<=<), guard, join)
+import Control.Monad (guard, join)
 import Data.Char (toLower)
 import Data.Either (fromRight)
 import Data.Either.Extra (eitherToMaybe)
@@ -79,10 +79,10 @@ import Data.Functor.Identity (Identity(..))
 import Data.List (partition)
 import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
 import Data.Maybe (fromMaybe, isJust, isNothing)
-import qualified Data.Text as T
+import Data.Text qualified as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
-import Safe (headMay, lastDef, lastMay, maximumMay, readMay)
+import Safe (lastDef, lastMay, maximumMay, readMay)
 
 import Hledger.Data
 import Hledger.Query
@@ -670,16 +670,17 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
     -- with no interval it's the last date of the overall report period
     -- (which for an end value report may have been extended to include the latest non-future P directive).
     -- To get the period's last day, we subtract one from the (exclusive) period end date.
-    postingperiodend  = addDays (-1) . fromMaybe err . mPeriodEnd . postingDateOrDate2 (whichDate ropts)
+    postingperiodend = postingPeriodEnd . postingDateOrDate2 (whichDate ropts)
       where
-        mPeriodEnd = case interval_ ropts of
-          NoInterval -> const . spanEnd . fst $ reportSpan j rspec
-          _          -> spanEnd <=< latestSpanContaining (historical : spans)
+        postingPeriodEnd d = fromMaybe err $ case interval_ ropts of
+          NoInterval -> fmap (snd . dayPartitionStartEnd)    . snd $ reportSpan j rspec
+          _          -> fmap (snd . dayPartitionFind d) . snd $ reportSpanBothDates j rspec
+        -- Should never happen, because there are only invalid dayPartitions
+        -- when there are no transactions, in which case this function is never called
+        err = error' "journalApplyValuationFromOpts: expected all spans to have an end date"
 
-    historical = DateSpan Nothing $ (fmap Exact . spanStart) =<< headMay spans
-    spans = maybePeriodDataToDateSpans . snd $ reportSpanBothDates j rspec
+
     styles = journalCommodityStyles j
-    err = error' "journalApplyValuationFromOpts: expected all spans to have an end date"
 
 -- | Select the Account valuation functions required for performing valuation after summing
 -- amounts. Used in MultiBalanceReport to value historical and similar reports.
@@ -778,18 +779,18 @@ sortKeysDescription = "date, desc, account, amount, absamount"  -- 'description'
 -- (or non-future market price date, when doing an end value report) is used.
 -- If none of these things are present, the null date span is returned.
 -- The report sub-periods caused by a report interval, if any, are also returned.
-reportSpan :: Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpan :: Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpan = reportSpanHelper False
 -- Note: In end value reports, the report end date and valuation date are the same.
 -- If valuation date ever needs to be different, journalApplyValuationFromOptsWith is the place.
 
 -- | Like reportSpan, but considers both primary and secondary dates, not just one or the other.
-reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpanBothDates :: Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpanBothDates = reportSpanHelper True
 
-reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, Maybe (PeriodData Day))
+reportSpanHelper :: Bool -> Journal -> ReportSpec -> (DateSpan, Maybe DayPartition)
 reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts, _rsDay=today} =
-  (enlargedreportspan, dateSpansToPeriodData $ if not (null intervalspans) then intervalspans else [enlargedreportspan])
+    (enlargedreportspan, intervalspans)
   where
     -- The date span specified by -b/-e/-p options and query args if any.
     requestedspan = dbg3 "requestedspan" $
@@ -823,8 +824,8 @@ reportSpanHelper bothdates j ReportSpec{_rsQuery=query, _rsReportOpts=ropts, _rs
     -- The requested span enlarged to enclose a whole number of intervals.
     -- This can be the null span if there were no intervals.
     enlargedreportspan = dbg3 "enlargedreportspan" $
-      DateSpan (fmap Exact . spanStart =<< headMay intervalspans)
-               (fmap Exact . spanEnd =<< lastMay intervalspans)
+        maybe (DateSpan Nothing Nothing) (mkSpan . dayPartitionStartEnd) intervalspans
+      where mkSpan (s, e) = DateSpan (Just $ Exact s) (Just . Exact $ addDays 1 e)
 
 reportStartDate :: Journal -> ReportSpec -> Maybe Day
 reportStartDate j = spanStart . fst . reportSpan j

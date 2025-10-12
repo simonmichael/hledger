@@ -13,12 +13,13 @@ where
 
 import Data.Function ((&))
 import Data.Maybe (isNothing)
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Text.Printf
 
 import Hledger.Data.Types
 import Hledger.Data.Dates
+import Hledger.Data.DayPartition
 import Hledger.Data.Amount
 import Hledger.Data.Posting (post, generatedTransactionTagName)
 import Hledger.Data.Transaction
@@ -198,7 +199,7 @@ instance Show PeriodicTransaction where
 
 runPeriodicTransaction :: Bool -> PeriodicTransaction -> DateSpan -> [Transaction]
 runPeriodicTransaction verbosetags PeriodicTransaction{..} requestedspan =
-    [ t{tdate=d} | (DateSpan (Just efd) _) <- alltxnspans, let d = fromEFDay efd, spanContainsDate requestedspan d ]
+    [ t{tdate=d} | (d, _) <- maybe [] dayPartitionToList alltxnspans, spanContainsDate requestedspan d ]
   where
     t = nulltransaction{
            tsourcepos   = ptsourcepos

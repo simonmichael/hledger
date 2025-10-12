@@ -9,14 +9,14 @@ module Hledger.Write.Html.Blaze (
     formatCell,
     ) where
 
-import qualified Hledger.Write.Html.Attribute as Attr
-import qualified Hledger.Write.Spreadsheet as Spr
+import Hledger.Write.Html.Attribute qualified as Attr
+import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Write.Html.HtmlCommon (Lines, borderStyles)
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
 
-import qualified Text.Blaze.Html4.Transitional.Attributes as HtmlAttr
-import qualified Text.Blaze.Html4.Transitional as Html
-import qualified Data.Text as Text
+import Text.Blaze.Html4.Transitional.Attributes qualified as HtmlAttr
+import Text.Blaze.Html4.Transitional qualified as Html
+import Data.Text qualified as Text
 import Text.Blaze.Html4.Transitional (Html, toHtml, (!))
 import Data.Foldable (traverse_)
 

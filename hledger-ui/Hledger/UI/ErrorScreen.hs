@@ -13,6 +13,7 @@ module Hledger.UI.ErrorScreen
  ,uiCheckBalanceAssertions
  ,uiReload
  ,uiReloadIfFileChanged
+ ,uiToggleBalanceAssertions
  )
 where
 
@@ -102,7 +103,7 @@ esHandle ev = do
                 runEditor pos f
               esReloadIfFileChanged copts d j ui
 
-            VtyEvent (EvKey (KChar 'I') []) -> put' $ uiCheckBalanceAssertions d (popScreen $ toggleIgnoreBalanceAssertions ui)
+            VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d (popScreen ui)
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
@@ -150,6 +151,10 @@ hledgerparseerrorpositionp = do
 
 -- Defined here so it can reference the error screen:
 
+-- | Modify some input options for hledger-ui (enable --forecast).
+uiAdjustOpts :: UIOpts -> CliOpts -> CliOpts
+uiAdjustOpts uopts = enableForecast uopts
+
 -- | Reload the journal from its input files, then update the ui app state accordingly.
 -- This means regenerate the entire screen stack from top level down to the current screen, using the provided today-date.
 -- As a convenience (usually), if journal reloading fails, this enters the error screen, or if already there, updates its message.
@@ -163,8 +168,8 @@ hledgerparseerrorpositionp = do
 uiReload :: CliOpts -> Day -> UIState -> EventM Name UIState UIState
 uiReload copts d ui = liftIO $ do
   ej <-
-    let copts' = enableForecast (astartupopts ui) copts
-    in runExceptT $ journalTransform copts' <$> journalReload copts'
+    let copts1 = uiAdjustOpts (astartupopts ui) copts
+    in runExceptT $ journalTransform copts1 <$> journalReload copts1
   -- dbg1IO "uiReload before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
     Right j  ->
@@ -188,20 +193,24 @@ uiReload copts d ui = liftIO $ do
 -- Also, this one runs in IO, suitable for suspendAndResume.
 uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadIfFileChanged copts d j ui = do
-  let copts' = enableForecast (astartupopts ui) copts
-  ej <- runExceptT $ journalReloadIfChanged copts' d j
+  ej <-
+    let copts1 = uiAdjustOpts (astartupopts ui) copts
+    in runExceptT $ journalReloadIfChanged copts1 d j
   return $ case ej of
     Right (j', _) -> regenerateScreens j' d ui
     Left err -> case aScreen ui of
         ES _ -> ui{aScreen=esNew err}
         _    -> pushScreen (esNew err) ui
 
--- Re-check any balance assertions in the current journal, and if any
--- fail, enter (or update) the error screen. Or if balance assertions
--- are disabled, do nothing.
+-- Re-check any balance assertions in the current journal,
+-- and if any fail, enter (or update) the error screen.
+-- Or if balance assertions are disabled or pivot is active, do nothing.
+-- (When pivot is active, assertions have already been checked on the pre-pivot journal,
+-- and the current post-pivot journal's account names don't match the original assertions.)
 uiCheckBalanceAssertions :: Day -> UIState -> UIState
-uiCheckBalanceAssertions _d ui@UIState{ajournal=j}
-  | ui^.ignore_assertions = ui
+uiCheckBalanceAssertions _d ui@UIState{ajournal=j, aopts=UIOpts{uoCliOpts=CliOpts{inputopts_=InputOpts{pivot_=pval}}}}
+  | ui^.ignore_assertions = ui        -- user disabled checks
+  | not (null pval) = ui              -- post-pivot journal, assertions already checked pre-pivot
   | otherwise =
     case journalCheckBalanceAssertions j of
       Right () -> ui
@@ -209,3 +218,16 @@ uiCheckBalanceAssertions _d ui@UIState{ajournal=j}
         case ui of
           UIState{aScreen=ES sst} -> ui{aScreen=ES sst{_essError=err}}
           _                        -> pushScreen (esNew err) ui
+
+-- | Toggle ignoring balance assertions (when user presses I), and if no longer ignoring, recheck them.
+-- Normally the recheck is done quickly on the in-memory journal.
+-- But if --pivot is active, a full journal reload is done instead
+-- (because we can't check balance assertions after pivoting has occurred).
+-- In that case, this operation could be slower and could reveal other data changes (not just balance assertion failures).
+uiToggleBalanceAssertions :: Day -> UIState -> EventM Name UIState ()
+uiToggleBalanceAssertions d ui@UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{inputopts_=InputOpts{pivot_=pivotval}}}} =
+  let ui' = toggleIgnoreBalanceAssertions ui
+  in case (ui'^.ignore_assertions, null pivotval) of
+    (True, _)      -> put' ui'                                -- ignoring enabled, no check needed
+    (False, True)  -> put' $ uiCheckBalanceAssertions d ui'   -- unpivoted journal, can check in memory
+    (False, False) -> uiReload copts d ui' >>= put'           -- pivoted journal, must reload to check it
