@@ -18,8 +18,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 7c04f67c
-
+# 7e885134
 
 Doc updates
 

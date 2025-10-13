@@ -26,7 +26,7 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 7c04f67c
+# 7e885134
 
 Breaking changes
 
@@ -43,7 +43,16 @@ Fixes
 
 Features
 
+- `commodities`, `payees` and `tags` commands now have a `--find` mode
+  for finding the best match, like `accounts`.
+
 Improvements
+
+- `print`: rename --location to --locations for consistency with `accounts`.
+   (--location still works.)
+
+- `accounts`: rename --positions to --locations for consistency with `print`.
+  (--positions still works, as a hidden deprecated flag.)
 
 - Command line arguments being passed to addons no longer require extra escaping.
   (Caleb Maclennan)
@@ -59,6 +68,9 @@ Improvements
 
 Docs
 
+- aregister: clarify arguments
+- accounts: improve/sync options order
+- print: clarify amount styling; note more parseability breakers
 - Special characters: rewrite (Simon Michael, Caleb Maclennan, [#2468])
 - Tags: rewrite [hledger_site#141]
 - Account names: rewrite, emphasise the two space delimiter
