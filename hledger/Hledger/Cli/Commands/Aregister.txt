@@ -37,24 +37,22 @@ necessarily in historical mode). As a quick rule of thumb: - use
 aregister for reviewing and reconciling real-world asset/liability
 accounts - use register for reviewing detailed revenues/expenses.
 
-aregister requires one argument: the account to report on. You can write
-either the full account name, or a case-insensitive regular expression
-which will select the alphabetically first matched account.
-
-When there are multiple matches, the alphabetically-first choice can be
-surprising; eg if you have assets:per:checking 1 and
-assets:biz:checking 2 accounts, hledger areg checking would select
-assets:biz:checking 2. It's just a convenience to save typing, so if in
-doubt, write the full account name, or a distinctive substring that
-matches uniquely.
+Note this command's non-standard, and required, first argument; it
+specifies the account whose register will be shown. You can write the
+account's name, or (to save typing) a case-insensitive infix regular
+expression matching the name, which selects the alphabetically first
+matched account. (For example, if you have assets:personal checking and
+assets:business checking, hledger areg checking would select
+assets:business checking.)
 
 Transactions involving subaccounts of this account will also be shown.
 aregister ignores depth limits, so its final total will always match a
 historical balance report with similar arguments.
 
-Any additional arguments form a query which will filter the transactions
-shown. Note some queries will disturb the running balance, causing it to
-be different from the account's real-world running balance.
+Any additional arguments are standard query arguments, which will limit
+the transactions shown. Note some queries will disturb the running
+balance, causing it to be different from the account's real-world
+running balance.
 
 An example: this shows the transactions and historical running balance
 during july, in the first account whose name contains "checking":

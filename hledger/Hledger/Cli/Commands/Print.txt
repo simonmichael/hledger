@@ -5,15 +5,11 @@ Show full journal entries, representing transactions.
 Flags:
   -x --explicit             show all amounts explicitly
      --invert               display all amounts with reversed sign
-     --location             add tags showing file paths and line numbers
+     --locations            add tags showing file paths and line numbers
   -m --match=DESC           fuzzy search for one recent transaction with
                             description closest to DESC
      --new                  show only newer-dated transactions added in each
                             file since last run
-     --no-lots              remove lot subaccounts and their balance
-                            assertions
-     --no-lots2             remove lot subaccounts and their costs and
-                            balance assertions (can produce unbalanced entries)
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
@@ -56,7 +52,7 @@ $ hledger print -f examples/sample.journal date:200806
     expenses:supplies            $1
     assets:cash                 $-2
 
-print explicitness
+print amount explicitness
 
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not
@@ -73,19 +69,22 @@ amount (which can arise when a multi-commodity transaction has an
 implicit amount) to be split into multiple single-commodity postings,
 keeping the output parseable.
 
-print amount style
+print alignment
 
 Amounts are shown right-aligned within each transaction (but not aligned
-across all transactions; you can do that with ledger-mode in Emacs).
+across all transactions; you can achieve that with ledger-mode in
+Emacs).
 
-Amounts will be (mostly) normalised to their commodity display style:
-their symbol placement, decimal mark, and digit group marks will be made
-consistent. By default, decimal digits are shown as they are written in
-the journal.
+print amount style
 
-With the --round (Added in 1.32) option, print will try increasingly
-hard to display decimal digits according to the commodity display
-styles:
+Amounts will be displayed mostly in their commodity's display style,
+with standardised symbol placement, decimal mark, and digit group marks.
+This does not apply to their decimal digits; print normally shows the
+same decimal digits that are recorded in each journal entry.
+
+You can override the decimal precisions with print's special --round
+option (since 1.32). --round tries to show amounts with their
+commodities' standard decimal precisions, increasingly strongly:
 
 - --round=none show amounts with original precisions (default)
 - --round=soft add/remove decimal zeros in amounts (except costs)
@@ -93,30 +92,35 @@ styles:
   digits
 - --round=all round all amounts and costs
 
-soft is good for non-lossy cleanup, formatting amounts more consistently
-where it's safe to do so.
+soft is good for non-lossy cleanup, displaying more consistent decimals
+where possible, without making entries unbalanced.
 
-hard and all can cause print to show invalid unbalanced journal entries;
-they may be useful eg for stronger cleanup, with manual fixups when
-needed.
+hard or all can be good for stronger cleanup, when decimal rounding is
+wanted. Note rounding can produce unbalanced journal entries, perhaps
+requiring manual fixup.
 
 print parseability
 
-print's output is usually a valid hledger journal, and you can process
-it again with a second hledger command. This can be useful for certain
-kinds of search (though the same can be achieved with expr: queries
-now):
+Normally, print's output is a valid hledger journal, which you can
+"pipe" to a second hledger command for further processing. This is
+sometimes convenient for achieving certain kinds of query (though less
+needed now that queries have become more powerful):
 
 # Show running total of food expenses paid from cash.
 # -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
 $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
-There are some situations where print's output can become unparseable:
+But here are some things which can cause print's output to become
+unparseable:
 
-- Value reporting affects posting amounts but not balance assertion or
-  balance assignment amounts, potentially causing those to fail.
-- Auto postings can generate postings with too many missing amounts.
-- Account aliases can generate bad account names.
+- --round (see above) can disrupt transaction balancing.
+- Account aliases or pivoting can disrupt account names, balance
+  assertions, or balance assignments.
+- Value reporting also can disrupt balance assertions or balance
+  assignments.
+- Auto postings can generate too many amountless postings.
+- --infer-costs or --infer-equity can generate too-complex redundant
+  costs.
 
 print, other features
 
@@ -126,28 +130,17 @@ With --invert, posting amounts are shown with their sign flipped. It
 could be useful if you have accidentally recorded some transactions with
 the wrong signs.
 
-With --location, print adds the source file and line number to every
-transaction, as a tag.
+With --new, print shows only transactions it has not seen on a previous
+run. This uses the same deduplication system as the import command. (See
+import's docs for details.)
 
 With -m DESC/--match=DESC, print shows one recent transaction whose
 description is most similar to DESC. DESC should contain at least two
 characters. If there is no similar-enough match, no transaction will be
 shown and the program exit code will be non-zero.
 
-With --new, print shows only transactions it has not seen on a previous
-run, using the same deduplication system as the import command (see
-import's docs). (Unlike import, there is no dry run - you'll see the new
-transactions only once.)
-
-With --no-lots, print will hide lot subaccounts, and their balance
-assertions. (Or with --no-lots2, their costs will also be removed,
-possibly producing unbalanced entries.) Lot subaccounts are leaf
-accounts whose last part begins with a date (YYYY-MM-DD or YYYYMMDD).
-This can be useful for converting journal entries which use explicit lot
-subaccounts, if you want to discard lot information. Note the
-limitations: all postings in the same account with similar cost will be
-consolidated, and all posting comments will be removed (including from
-non-lot postings).
+With --locations, print adds the source file and line number to every
+transaction, as a tag.
 
 print output format
 

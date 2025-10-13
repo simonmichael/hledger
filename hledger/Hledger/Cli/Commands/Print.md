@@ -11,10 +11,6 @@ Flags:
                             description closest to DESC
      --new                  show only newer-dated transactions added in each
                             file since last run
-     --no-lots              remove lot subaccounts and their balance
-                            assertions
-     --no-lots2             remove lot subaccounts and their costs and
-                            balance assertions (can produce unbalanced entries)
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
