@@ -11,7 +11,7 @@ Flags:
      --find                 list the first account matched by the first
                             argument (a case-insensitive infix regexp)
      --directives           show as account directives, for use in journals
-     --positions            also show where accounts were declared
+     --locations            also show where accounts were declared
      --types                also show account types when known
   -l --flat                 list/tree mode: show accounts as a flat list
                             (default)
@@ -33,7 +33,7 @@ With `--directives`, it shows valid account directives which could be pasted int
 This is useful together with `--undeclared` when updating your account declarations
 to satisfy `hledger check accounts`.
 
-With `--positions`, it also shows the file and line number of each
+With `--locations`, it also shows the file and line number of each
 account's declaration, if any, and the account's overall declaration order;
 these may be useful when troubleshooting account display order.
 

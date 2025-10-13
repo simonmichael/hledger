@@ -540,13 +540,13 @@ read -r -d "" _hledger_complist_options_accounts <<"__TEXT__"
 --infer-equity
 --infer-market-prices
 --info
+--locations
 --man
 --market
 --monthly
 --pending
 --period=
 --pivot=
---positions
 --pretty
 --quarterly
 --real

@@ -40,14 +40,16 @@ accountsmode = hledgerCommandMode
   ,flagNone ["unused"]       (setboolopt "unused")     "list accounts declared but not used"
   ,flagNone ["find"]         (setboolopt "find")       "list the first account matched by the first argument (a case-insensitive infix regexp)"
   ,flagNone ["directives"]   (setboolopt "directives") "show as account directives, for use in journals"
-  ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
+  ,flagNone ["locations"]    (setboolopt "locations")  "also show where accounts were declared"
   ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
   ]
   ++ flattreeflags False ++
   [flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "flat mode: omit N leading account name parts"]
   )
   cligeneralflagsgroups1
-  hiddenflags
+  (hiddenflags ++
+  [flagNone ["positions"]    (setboolopt "locations") "deprecated, use --locations instead"
+  ])
   ([], Just $ argsFlag "[QUERY..]")
 
 -- | The accounts command.
@@ -57,7 +59,7 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
       directives = boolopt "directives" rawopts
-      positions = boolopt "positions" rawopts
+      locations = boolopt "locations" rawopts
       types = boolopt "types" rawopts
       -- Modified queries. These may not work with boolean queries (#2371).
       -- a depth limit will clip and exclude account names later, but we don't want to exclude accounts at this stage
@@ -115,7 +117,7 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
         (True, Just t) -> pad a <> "    ; type: " <> T.pack (show t)
         _ -> ""
     showAcctDeclOrder a
-      | positions =
+      | locations =
         (if types then "," else pad a <> "    ;") <>
         case lookup a $ jdeclaredaccounts j of
           Just adi ->

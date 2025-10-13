@@ -2219,7 +2219,7 @@ Tips:
 
 - You can list accounts and their types, for troubleshooting:
   ```cli
-  $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH] [--positions]
+  $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH]
   ```
 
 - It's a good idea to declare at least one account for each account type.
