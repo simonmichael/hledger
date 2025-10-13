@@ -77,7 +77,7 @@ import Hledger hiding (setupPager)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Version
-import System.IO (localeEncoding)
+import System.IO (localeEncoding, hFlush, stdout)
 
 
 setupmode = hledgerCommandMode
@@ -111,10 +111,10 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   color <- useColorOnStdout
   when color $ 
     putStrLn $ "Legend: " <> intercalate ", " [
-       good    "good"
-      ,neutral "neutral"
-      ,warning "unknown"
-      ,bad     "warning"
+       ansiGood    "good"
+      ,ansiNeutral "neutral"
+      ,ansiWarning "unknown"
+      ,ansiBad     "warning"
       ]
   meconf <- setupHledger
   setupTerminal meconf
@@ -134,7 +134,8 @@ setupHledger = do
   then p Y prognameandversion
   else i N prognameandversion
 
-  pdesc "is up to date ?"
+  -- flush this one to show what's happening in case user gets a network access warning
+  pdesc "is up to date ? checking..." >> hFlush stdout
   elatestversionnumstr <- getLatestHledgerVersion
   case elatestversionnumstr of
     Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
@@ -473,25 +474,46 @@ supportsColor = (>=! "1.41") -- robust color detection/control (2024)
 supportsPager = (>=! "1.41") -- use a pager for all output (2024)
 supportsBashCompletions = (>=! "1.41") -- up to date bash shell completions (2024)
 
--- yes, no, unknown
+-- Status of a setup question/statement: yes, no, unknown
 data YNU = Y | N | U deriving (Eq)
 
--- ANSI styles
-good    = bold' . brightGreen'
-neutral = bold' . brightBlue'
-warning = bold' . brightYellow'
-bad     = bold' . brightRed'
-
--- Show status, in red/green/yellow if supported.
+-- | Show status, with colours and emojis for added clarity when permitted,
+-- decorating Y and N with "good" and "bad" styles respectively. Used by p.
+-- See also 'showInfo' below.
+--
+-- Status is communicated to the user
+-- 1. as text: "yes"/"no"/"?"
+--
+-- and when colour is permitted,
+-- 2. in one of four ANSI colours
+-- 3. with one of four emojis appended, for added distinctiveness in case of colour blindness.
+--
+-- The emojis chosen are hopefully somewhat likely to render reasonably well even on non-apple machines;
+-- and if they don't, 1 and 2 will still carry the message.
 instance Show YNU where
-  show Y = good    "yes"    -- ✅ apple emojis - won't work everywhere
-  show N = bad     " no"    -- ❌
-  show U = warning "  ?"
+  show Y = ansiGood    $ "yes" `andIfColour` "✅"
+  show N = ansiBad     $ " no" `andIfColour` "❗"
+  show U = ansiWarning $ "  ?" `andIfColour` "🔸"  -- 🔶
 
--- Show status, in blue/yellow if supported.
-showInfo Y = neutral "yes"  -- ℹ️
-showInfo N = neutral " no"  -- ℹ️
-showInfo U = warning "  ?"
+-- | Show status, with colours and emojis for added clarity when permitted,
+-- decorating Y and N with "neutral" style. Used by i.
+-- See also 'YNU''s Show instance above.
+showInfo Y = ansiNeutral $ "yes" `andIfColour` "ℹ️" -- may render as monochrome in some terminals ?
+showInfo N = ansiNeutral $ " no" `andIfColour` "ℹ️"
+showInfo U = ansiWarning $ "  ?" `andIfColour` "🔸"
+
+-- Dev note: confusingly, these things may not correspond:
+-- - "good"/"neutral"/"warning"/"bad" display text & user's perspective
+-- - ansiGood/ansiNeutral/ansiWarning/ansiBad styles defined below
+-- - warn[IO] and error functions defined elsewhere, which ANSI-decorate and display possibly ANSI-decorated text
+
+-- Apply status-related ANSI styles to text.
+ansiGood    = bold' . brightGreen'
+ansiNeutral = bold' . brightBlue'
+ansiWarning = bold' . brightYellow'
+ansiBad     = bold' . brightRed'
+
+andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
 
 -- | Print a test's pass or fail status, as "yes" or "no" or "",
 -- in green/red if supported, and the (possibly empty) provided message.
