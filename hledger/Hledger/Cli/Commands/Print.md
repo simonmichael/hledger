@@ -6,7 +6,7 @@ Show full journal entries, representing transactions.
 Flags:
   -x --explicit             show all amounts explicitly
      --invert               display all amounts with reversed sign
-     --location             add tags showing file paths and line numbers
+     --locations            add tags showing file paths and line numbers
   -m --match=DESC           fuzzy search for one recent transaction with
                             description closest to DESC
      --new                  show only newer-dated transactions added in each
@@ -145,7 +145,7 @@ DESC should contain at least two characters.
 If there is no similar-enough match, 
 no transaction will be shown and the program exit code will be non-zero.
 
-With `--location`, print adds the source file and line number to every transaction, as a tag.
+With `--locations`, print adds the source file and line number to every transaction, as a tag.
 
 ### print output format
 

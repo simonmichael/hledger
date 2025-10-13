@@ -51,7 +51,7 @@ printmode = hledgerCommandMode
   ([
    flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-  ,flagNone ["location"] (setboolopt "location") "add tags showing file paths and line numbers"
+  ,flagNone ["locations"] (setboolopt "locations") "add tags showing file paths and line numbers"
   ,let arg = "DESC" in
    flagReq  ["match","m"] (\s opts -> Right $ setopt "match" s opts) arg
     ("fuzzy search for one recent transaction with description closest to "++arg)
@@ -63,7 +63,10 @@ printmode = hledgerCommandMode
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
-  hiddenflags
+  (hiddenflags ++
+  -- this works already as a unique abbreviation, but declare here in case it ever becomes nonunique
+  [flagNone ["location"] (setboolopt "locations") "deprecated, use --locations instead"
+  ])
   ([], Just $ argsFlag "[QUERY]")
 
 roundFlag = flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
@@ -114,7 +117,7 @@ print' opts@CliOpts{rawopts_=rawopts} j = do
       -- & dbg9With (lbl "amounts before setting full precision".showJournalPostingAmountsDebug)
       & journalMapPostingAmounts mixedAmountSetFullPrecision
       -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalPostingAmountsDebug)
-      & if boolopt "location" rawopts then journalMapTransactions addLocationTag else id
+      & if boolopt "locations" rawopts then journalMapTransactions addLocationTag else id
 
   case maybestringopt "match" $ rawopts_ opts of
     Nothing   -> printEntries opts j'
