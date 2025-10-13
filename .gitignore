@@ -65,9 +65,11 @@ old
 /tmp
 /bench*
 /bin/**
-!/bin/*.hs
-!/bin/*.sh
-!/bin/*.md
+!/bin/*
+/bin/old
+#!/bin/*.hs
+#!/bin/*.sh
+#!/bin/*.md
 /bin/*_.hs
 /examples/[1-9]*.journal
 /hledger/test/cli/addons

@@ -62,7 +62,7 @@ $ hledger print -f examples/sample.journal date:200806
 
 ```
 
-### print explicitness
+### print amount explicitness
 
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not appear in the output.
@@ -79,36 +79,39 @@ to be split into multiple single-commodity postings,
 keeping the output parseable.
 
 
-### print amount style
+### print alignment
 
 Amounts are shown right-aligned within each transaction
-(but not aligned across all transactions; you can do that with ledger-mode in Emacs). 
+(but not aligned across all transactions; you can achieve that with ledger-mode in Emacs). 
 
-Amounts will be (mostly) normalised to their [commodity display style](#commodity-display-style):
-their symbol placement, decimal mark, and digit group marks will be made consistent.
-By default, decimal digits are shown as they are written in the journal.
 
-With the `--round` (*Added in 1.32*) option, `print` will try increasingly hard to
-display decimal digits according to the [commodity display styles](#commodity-display-style):
+### print amount style
+
+Amounts will be displayed mostly in their [commodity's display style](#commodity-display-style),
+with standardised symbol placement, decimal mark, and digit group marks.
+This does not apply to their decimal digits;
+`print` normally shows the same decimal digits that are recorded in each journal entry.
+
+You can override the decimal precisions with `print`'s special `--round` option (*since 1.32*).
+`--round` tries to show amounts with their commodities' standard decimal precisions, increasingly strongly:
 
 - `--round=none` show amounts with original precisions (default)
 - `--round=soft` add/remove decimal zeros in amounts (except costs)
 - `--round=hard` round amounts (except costs), possibly hiding significant digits
 - `--round=all`  round all amounts and costs
 
-`soft` is good for non-lossy cleanup, formatting amounts more
-consistently where it's safe to do so.
+`soft` is good for non-lossy cleanup, displaying more consistent decimals where possible, without making entries unbalanced.
 
-`hard` and `all` can cause `print` to show invalid unbalanced journal entries;
-they may be useful eg for stronger cleanup, with manual fixups when needed.
+`hard` or `all` can be good for stronger cleanup, when decimal rounding is wanted. 
+Note rounding can produce unbalanced journal entries, perhaps requiring manual fixup.
 
 
 ### print parseability
 
-print's output is usually a valid [hledger journal](#journal), 
-and you can process it again with a second hledger command. 
-This can be useful for certain kinds of search
-(though the same can be achieved with `expr:` queries now):
+Normally, print's output is a valid [hledger journal](#journal), 
+which you can "pipe" to a second hledger command for further processing.
+This is sometimes convenient for achieving certain kinds of query
+(though less needed now that queries have become more powerful):
 
 ```cli
 # Show running total of food expenses paid from cash.
@@ -116,12 +119,13 @@ This can be useful for certain kinds of search
 $ hledger print assets:cash | hledger -f- -I reg expenses:food
 ```
 
-There are some situations where print's output can become unparseable:
+But here are some things which can cause print's output to become unparseable:
 
-- [Value reporting](#value-reporting) affects posting amounts but not [balance assertion](#balance-assertions) or [balance assignment](#balance-assignments) amounts, potentially causing those to [fail](https://github.com/simonmichael/hledger/issues/1429).
-- [Auto postings](#auto-postings) can generate postings with [too many missing amounts](https://github.com/simonmichael/hledger/issues/1276).
-- [Account aliases can generate bad account names](#aliases-can-generate-bad-account-names).
-
+- `--round` (see above) can disrupt transaction balancing.
+- [Account aliases](#alias-directive) or [pivoting](#pivoting) can disrupt account names, balance assertions, or balance assignments.
+- [Value reporting](#value-reporting) also can disrupt balance assertions or balance assignments.
+- [Auto postings](#auto-postings) can generate too many amountless postings.
+- [`--infer-costs or --infer-equity`](#equity-conversion-postings) can generate too-complex redundant costs.
 
 ### print, other features
 
