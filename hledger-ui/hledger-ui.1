@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "September 2025" "hledger-ui-1.50.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "October 2025" "hledger-ui-1.50.99 " "hledger User Manuals"
 
 
 
@@ -250,6 +250,9 @@ screen and any previous screens.
 \f[CR]I\f[R] toggles balance assertion checking.
 Disabling balance assertions temporarily can be useful for
 troubleshooting.
+(If hledger\-ui was started with a \f[CR]\-\-pivot\f[R] option,
+re\-enabling balance assertions with the \f[CR]I\f[R] key also reloads
+the journal, like \f[CR]g\f[R].)
 .PP
 \f[CR]a\f[R] runs command\-line hledger\[aq]s add command, and reloads
 the updated file.
@@ -441,10 +444,6 @@ configuration.
 On some unix systems, increasing fs.inotify.max_user_watches or
 fs.file\-max parameters in /etc/sysctl.conf might help.
 (#836)
-.IP \[bu] 2
-It may not detect file changes made by certain tools, such as Jetbrains
-IDEs or gedit.
-(#1617)
 .IP \[bu] 2
 It may not detect changes made from outside a virtual machine, ie by an
 editor running on the host system.

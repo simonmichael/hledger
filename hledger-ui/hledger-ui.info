@@ -256,7 +256,9 @@ any previous screens.  (With large files, this could cause a noticeable
 pause.)
 
    'I' toggles balance assertion checking.  Disabling balance assertions
-temporarily can be useful for troubleshooting.
+temporarily can be useful for troubleshooting.  (If hledger-ui was
+started with a '--pivot' option, re-enabling balance assertions with the
+'I' key also reloads the journal, like 'g'.)
 
    'a' runs command-line hledger's add command, and reloads the updated
 file.  This allows some basic data entry.
@@ -503,8 +505,6 @@ _However._  There are limitations/unresolved bugs with '--watch':
      configuration.  On some unix systems, increasing
      fs.inotify.max_user_watches or fs.file-max parameters in
      /etc/sysctl.conf might help.  (#836)
-   * It may not detect file changes made by certain tools, such as
-     Jetbrains IDEs or gedit.  (#1617)
    * It may not detect changes made from outside a virtual machine, ie
      by an editor running on the host system.
    * It may not detect file changes on certain less common filesystems.
@@ -558,19 +558,19 @@ Node: Top221
 Node: OPTIONS1869
 Node: MOUSE8755
 Node: KEYS9087
-Node: SCREENS14091
-Node: Menu screen14831
-Node: Cash accounts screen15147
-Node: Balance sheet accounts screen15508
-Node: Income statement accounts screen15844
-Node: All accounts screen16229
-Node: Register screen16592
-Node: Transaction screen19035
-Node: Error screen20215
-Node: WATCH MODE20581
-Node: --watch problems21479
-Node: ENVIRONMENT22832
-Node: BUGS23065
+Node: SCREENS14229
+Node: Menu screen14969
+Node: Cash accounts screen15285
+Node: Balance sheet accounts screen15646
+Node: Income statement accounts screen15982
+Node: All accounts screen16367
+Node: Register screen16730
+Node: Transaction screen19173
+Node: Error screen20353
+Node: WATCH MODE20719
+Node: --watch problems21617
+Node: ENVIRONMENT22864
+Node: BUGS23097
 
 End Tag Table
 

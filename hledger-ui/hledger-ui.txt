@@ -223,7 +223,9 @@ KEYS
        pause.)
 
        I  toggles  balance  assertion  checking.  Disabling balance assertions
-       temporarily can be useful for troubleshooting.
+       temporarily can be useful  for  troubleshooting.   (If  hledger-ui  was
+       started  with a --pivot option, re-enabling balance assertions with the
+       I key also reloads the journal, like g.)
 
        a runs command-line hledger's add  command,  and  reloads  the  updated
        file.  This allows some basic data entry.
@@ -398,38 +400,35 @@ WATCH MODE
          tify.max_user_watches or fs.file-max parameters  in  /etc/sysctl.conf
          might help.  (#836)
 
-       o It  may  not  detect file changes made by certain tools, such as Jet-
-         brains IDEs or gedit.  (#1617)
-
-       o It may not detect changes made from outside a virtual machine, ie  by
+       o It  may not detect changes made from outside a virtual machine, ie by
          an editor running on the host system.
 
        o It may not detect file changes on certain less common filesystems.
 
-       o It  may  use  increasing CPU and RAM over time, especially with large
-         files.  (This is probably not --watch specific, you may  be  able  to
+       o It may use increasing CPU and RAM over time,  especially  with  large
+         files.   (This  is  probably not --watch specific, you may be able to
          reproduce it by pressing g repeatedly.)  (#1825)
 
        Tips/workarounds:
 
-       o If  --watch  won't  work for you, press g to reload data manually in-
+       o If --watch won't work for you, press g to reload  data  manually  in-
          stead.
 
-       o If --watch is leaking resources over time, quit and restart (or  sus-
+       o If  --watch is leaking resources over time, quit and restart (or sus-
          pend and resume) hledger-ui when you're not using it.
 
-       o When  running  hledger-ui  inside a VM, also make file changes inside
+       o When running hledger-ui inside a VM, also make  file  changes  inside
          the VM.
 
-       o When working with files mounted from another machine, make  sure  the
+       o When  working  with files mounted from another machine, make sure the
          system clocks on both machines are roughly in agreement.
 
 ENVIRONMENT
-       LEDGER_FILE  The  main  journal  file  to  use  when not specified with
+       LEDGER_FILE The main journal  file  to  use  when  not  specified  with
        -f/--file.  Default: $HOME/.hledger.journal.
 
 BUGS
-       We   welcome   bug   reports   in    the    hledger    issue    tracker
+       We    welcome    bug    reports    in   the   hledger   issue   tracker
        (https://bugs.hledger.org),  or  on  the  hledger  chat  or  mail  list
        (https://hledger.org/support).
 
@@ -437,7 +436,7 @@ BUGS
 
        -f- doesn't work (hledger-ui can't read from stdin).
 
-       --watch is not robust, especially with  large  files  (see  WATCH  MODE
+       --watch  is  not  robust,  especially  with large files (see WATCH MODE
        above).
 
        If you press g with large files, there could be a noticeable pause with
@@ -461,4 +460,4 @@ LICENSE
 SEE ALSO
        hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-ui-1.50.99              September 2025                   HLEDGER-UI(1)
+hledger-ui-1.50.99               October 2025                    HLEDGER-UI(1)

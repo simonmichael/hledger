@@ -487,176 +487,134 @@ File: hledger.info,  Node: Special characters,  Next: Unicode characters,  Up: O
 4.1 Special characters
 ======================
 
-Here we touch on shell escaping/quoting rules, and give some examples.
-This is a slightly complicated topic which you may not need at first,
-but you should be aware of it, so you can return here when needed.
+In commands you type at the command line, certain characters have
+special meaning and sometimes need to be "escaped" or "quoted", by
+prefixing backslashes or enclosing in quotes.
 
    If you are able to minimise the use of special characters in your
-data, you won't need escaping as much, and your command lines will be
-simpler.  For example, avoiding spaces in account names, and using an
-ISO-4217 currency code like 'USD' instead of the '$' currency symbol,
-can be helpful.
+data, you won't have to deal with this as much.  For example, you could
+use hyphen '-' or underscore '_' instead of spaces in account names, and
+you could use the 'USD' currency code instead of the '$' currency symbol
+in amounts.
 
-   But if you want to use spaced account names and '$', go right ahead;
-escaping isn't a big deal.
+   But if you prefer to use spaced account names and '$', it's fine.
+Just be aware of this topic so you can check this doc when needed.
+(These examples are mostly tested on unix; some details might need to be
+adapted if you're on Windows.)
 
 * Menu:
 
 * Escaping shell special characters::
-* Escaping on Windows::
 * Escaping regular expression special characters::
-* Escaping add-on arguments::
 * Escaping in other situations::
-* Using a wild card::
 
 
-File: hledger.info,  Node: Escaping shell special characters,  Next: Escaping on Windows,  Up: Special characters
+File: hledger.info,  Node: Escaping shell special characters,  Next: Escaping regular expression special characters,  Up: Special characters
 
 4.1.1 Escaping shell special characters
 ---------------------------------------
 
-At the command line, characters which have special meaning for your
-shell must be "shell-escaped" (AKA "quoted") if you want hledger to see
-them.  Often these include space, '<', '>', '(', ')', '|', '\', '$'
-and/or '%'.
+These are some characters which may have special meaning to your shell
+(the program which interprets command lines):
 
-   For example, to match an account name containing the phrase "credit
-card", don't write this:
+   * SPACE, '<', '>', '(', ')', '|', '\', '%'
+   * '$' if followed by a word character
+
+   So for example, to match an account name containing spaces, like
+"credit card", don't write:
 
 $ hledger register credit card
 
-   In that command, "credit" and "card" are treated as separate query
-arguments (described below), so this would match accounts containing
-either word.  Instead, enclose the phrase in double or single quotes:
+   Instead, enclose the name in single quotes:
 
-$ hledger register "credit card"
+$ hledger register 'credit card'
 
-   In Unix shells, writing a backslash before the character can also
-work.  Eg:
+   On unix or in Windows powershell, if you use double quotes your shell
+will silently treat '$' as variable interpolation.  So you should
+probably avoid double quotes, unless you want that behaviour, eg in a
+script:
+
+$ hledger register "assets:$SOMEACCT"
+
+   But in an older Windows CMD.EXE window, you must use double quotes:
+
+C:\Users\Me> hledger register "credit card"
+
+   On unix or in Windows powershell, as an alternative to quotes you can
+write a backslash before each special character:
 
 $ hledger register credit\ card
 
-   Some shell characters still have a special meaning inside double
-quotes, such as the dollar sign ('$').  Eg in '"assets:$account"', the
-bash shell would replace '$account' with the value of a shell variable
-with that name.  When you don't want that, use single quotes, which
-escape more strongly:
+   Finally, since hledger's query arguments are regular expressions
+(described below), you could also fill that gap with '.' which matches
+any character:
 
-$ hledger balance 'assets:$account'
+$ hledger register credit.card
 
 
-File: hledger.info,  Node: Escaping on Windows,  Next: Escaping regular expression special characters,  Prev: Escaping shell special characters,  Up: Special characters
+File: hledger.info,  Node: Escaping regular expression special characters,  Next: Escaping in other situations,  Prev: Escaping shell special characters,  Up: Special characters
 
-4.1.2 Escaping on Windows
--------------------------
-
-If you are using hledger in a Powershell or Command window on Microsoft
-Windows, the escaping rules are different:
-
-   * In a Powershell window ('powershell', blue background), you must
-     use double quotes or single quotes (not backslash).
-   * In a Command window ('cmd', black background), you must use double
-     quotes (not single quotes or backslash).
-
-   The next two sections were written for Unix-like shells, so might
-need to be adapted if you're using 'cmd' or 'powershell'.  (Edits
-welcome.)
-
-
-File: hledger.info,  Node: Escaping regular expression special characters,  Next: Escaping add-on arguments,  Prev: Escaping on Windows,  Up: Special characters
-
-4.1.3 Escaping regular expression special characters
+4.1.2 Escaping regular expression special characters
 ----------------------------------------------------
 
-Many hledger arguments are regular expressions (described below), and
-these too have characters which cause special effects.  Some of those
-characters are '.', '^', '$', '[', ']', '(', ')', '|', and '\'.  When
-you don't want these to cause special effects, you can "regex-escape"
-them by writing '\' (a backslash) before them.  But since backslash is
-also special to the shell, you may need to also shell-escape the
-backslashes.
+Some characters also have special meaning in regular expressions, which
+hledger's arguments often are.  Those include:
 
-   Eg, in the bash shell, to match a literal '$' sign, you could write:
+   * '.', '^', '$', '[', ']', '(', ')', '|', '\'
+
+   To escape one of these, write '\' before it.  But note this is in
+addition to the shell escaping above.  So for characters which are
+special to both shell and regular expressions, like '\' and '$', you
+will sometimes need two levels of escaping.
+
+   For example, a balance report that uses a 'cur:' query restricting it
+to just the $ currency, should be written like this:
 
 $ hledger balance cur:\\$
 
-   or:
+   Explanation:
 
-$ hledger balance 'cur:\$'
+  1. Add a backslash '\' before the dollar sign '$' to protect it from
+     regular expressions (so it will be matched literally with no
+     special meaning).
+  2. Add another backslash before that backslash, to protect it from the
+     shell (so the shell won't consume it).
+  3. '$' doesn't need to be protected from the shell in this case,
+     because it's not followed by a word character; but it would be
+     harmless to do so.
 
-   (The dollar sign is regex-escaped by the backslash preceding it.
-Then that backslash is shell-escaped by another backslash, or by single
-quotes.)
+   But here's another way to write that, which tends to be easier: add
+backslashes to escape from regular expressions, then enclose with quotes
+to escape from the shell:
 
-
-File: hledger.info,  Node: Escaping add-on arguments,  Next: Escaping in other situations,  Prev: Escaping regular expression special characters,  Up: Special characters
-
-4.1.4 Escaping add-on arguments
--------------------------------
-
-When you run an external add-on command with 'hledger' (described
-below), any options or arguments being passed through to the add-on
-executable lose one level of shell-escaping, so you must add an extra
-level of shell-escaping to compensate.
-
-   Eg, in the bash shell, to run the 'ui' add-on and match a literal '$'
-sign, you need to write:
-
-$ hledger ui cur:'\\$'
-
-   or:
-
-$ hledger ui cur:\\\\$
-
-   If you are wondering why _four_ backslashes:
-
-   * '$' is unescaped
-   * '\$' is regex-escaped
-   * '\\$' is regex-escaped, then shell-escaped
-   * '\\\\$' is regex-escaped, then shell-escaped, then both slashes are
-     shell-escaped once more for hledger argument pass-through.
-
-   Or you can avoid such triple-escaping, by running the add-on
-executable directly:
-
-$ hledger-ui cur:\\$
+$ hledger balance cur:'\$'
 
 
-File: hledger.info,  Node: Escaping in other situations,  Next: Using a wild card,  Prev: Escaping add-on arguments,  Up: Special characters
+File: hledger.info,  Node: Escaping in other situations,  Prev: Escaping regular expression special characters,  Up: Special characters
 
-4.1.5 Escaping in other situations
+4.1.3 Escaping in other situations
 ----------------------------------
 
 hledger options and arguments are sometimes used in places other than
-the command line, with different escaping rules.  For example,
-backslash-quoting generally does not work there.  Here are some more
-tips.
+the command line, where the escaping/quoting rules are different.  For
+example, backslash-quoting may not be available.  Here's a quick
+reference:
 
+In unix shell      Use single quotes and/or backslash (or double quotes
+                   for variable interpolation)
+In Windows         Use single quotes (or double quotes for variable
+'powershell'       interpolation)
 In Windows 'cmd'   Use double quotes
-In Windows         Use single or double quotes
-'powershell'
 In hledger-ui's    Use single or double quotes
 filter prompt
 In hledger-web's   Use single or double quotes
 search form
 In an argument     Don't use spaces, don't shell-escape, do
-file               regex-escape when needed
+file               regex-escape, write one argument/option per line
 In a config file   Use single or double quotes, and enclose the whole
-                   argument ('"desc:a b"' not 'desc:"a b"')
+                   argument (''desc:a b'' not 'desc:'a b'')
 In 'ghci' (the     Use double quotes, and enclose the whole argument
 Haskell REPL)
-
-
-File: hledger.info,  Node: Using a wild card,  Prev: Escaping in other situations,  Up: Special characters
-
-4.1.6 Using a wild card
------------------------
-
-When escaping a special character is too much hassle (or impossible),
-you can often just write '.' (period) instead.  In regular expressions,
-this means "accept any character here".  Eg:
-
-$ hledger register credit.card
 
 
 File: hledger.info,  Node: Unicode characters,  Next: Regular expressions,  Prev: Special characters,  Up: Options
@@ -1883,15 +1841,15 @@ you may see them referred to as A, L, E, R, X for short.
 
 * Menu:
 
-* The two space delimiter::
+* Two space delimiter::
 * Account hierarchy::
 * Other account name features::
 
 
-File: hledger.info,  Node: The two space delimiter,  Next: Account hierarchy,  Up: Account names
+File: hledger.info,  Node: Two space delimiter,  Next: Account hierarchy,  Up: Account names
 
-8.10.1 The two space delimiter
-------------------------------
+8.10.1 Two space delimiter
+--------------------------
 
 Note the *two or more spaces* delimiter that's sometimes required after
 account names.  hledger's account names, inherited from Ledger, are very
@@ -1919,7 +1877,7 @@ but it lets us use expressive account names while still keeping the
 syntax light.
 
 
-File: hledger.info,  Node: Account hierarchy,  Next: Other account name features,  Prev: The two space delimiter,  Up: Account names
+File: hledger.info,  Node: Account hierarchy,  Next: Other account name features,  Prev: Two space delimiter,  Up: Account names
 
 8.10.2 Account hierarchy
 ------------------------
@@ -2450,59 +2408,97 @@ File: hledger.info,  Node: Tags,  Next: Directives,  Prev: Transaction balancing
 =========
 
 Tags are a way to add extra labels or data fields to transactions,
-postings, or accounts.  They are usually a word or hyphenated word,
-immediately followed by a full colon, written within the comment of a
-transaction, a posting, or an 'account' directive.  (Yes, storing data
-in comments is slightly weird!)
+postings, or accounts, which you can match with a 'tag:' query in
+reports.  (See queries below.)
 
-   You can write each tag on its own comment line, or multiple tags on
-one line, separated by commas.  Tags can also have a value, which is any
-text after the colon until the next comma or end of line, excluding
-surrounding whitespace.  (hledger tag values can't contain commas.)  If
-the same tag name appears multiple times in a comment, each name:value
-pair is preserved.
+   Tags are a single word or hyphenated word, immediately followed by a
+full colon, written within a comment.  (Yes, storing data in comments is
+slightly weird.)  Here's a transaction with a tag:
 
-   An example: in this journal there are six tags, one of them with a
-value:
+2025-01-01 groceries        ; some-tag:
+    assets:checking
+    expenses:food       $1
 
-account assets:checking         ; accounttag:
-account expenses:food
+   A tag can have a value, a single line of text written after the
+colon.  Tag values can't contain newlines.:
 
-2017/1/16 bought groceries      ; transactiontag:
-    ; transactiontag2:
-    assets:checking        $-1
-     ; posting-tag-1:, (belongs to the posting above)
-    expenses:food           $1  ; posting-tag-2:, posting-tag-3: with a value
+2025-01-01 groceries        ; tag1: this is tag1's value
+
+   Multiple tags can be separated by comma.  Tag values can't contain
+commas.:
+
+2025-01-01 groceries        ; tag1:value 1, tag2:value 2, comment text
+
+   A tag can have multiple values:
+
+2025-01-01 groceries        ; tag1:value 1, tag1:value 2
+
+   You can write each tag on its own line of you prefer (but they still
+can't contain commas):
+
+2025-01-01 groceries
+    ; tag1: value 1
+    ; tag2: value 2
+
+   Tags can be attached to individual postings, rather than the overall
+transaction:
+
+2025-01-01 rent
+    assets:checking
+    expenses:rent       $1000  ; postingtag:
+
+   Tags can be attached to accounts, in their account directive:
+
+account assets:checking    ; acct-number: 123-45-6789
 
 * Menu:
 
-* Querying with tags::
+* Tag propagation::
 * Displaying tags::
 * When to use tags ?::
 * Tag names::
-* Special tags::
 
 
-File: hledger.info,  Node: Querying with tags,  Next: Displaying tags,  Up: Tags
+File: hledger.info,  Node: Tag propagation,  Next: Displaying tags,  Up: Tags
 
-8.15.1 Querying with tags
--------------------------
+8.15.1 Tag propagation
+----------------------
 
-Tags are most often used to select a subset of data; you can match
-tagged things by tag name and or tag value with a 'tag:' query.  (See
-queries below.)
+In addition to what they are attached to, tags also affect related data
+in a few ways, allowing more powerful queries:
 
-   When querying for tag names or values, note that postings inherit
-tags from their transaction and from their account, and transactions
-acquire tags from their postings.  So in the example above, - the
-assets:checking posting effectively has four tags (one of its own, one
-from the account, two from the transaction) - the expenses:food posting
-effectively has four tags (two of its own, two from the transaction) -
-the transaction effectively has all six tags (two of its own, and two
-from each posting)
+  1. Accounts -> postings.  Postings inherit tags from their account.
+  2. Transactions -> postings.  Postings inherit tags from their
+     transaction.
+  3. Postings -> transactions.  Transactions also acquire the tags of
+     their postings.
+
+   So when you use a 'tag:' query to match whole transactions,
+individual postings, or accounts, it's good to understand how tags
+behave.  Here's an example showing all three kinds of propagation:
+
+account assets:checking
+account expenses:food           ; atag:
+
+2025-01-01 groceries            ; ttag:
+    assets:checking             ; p1tag:
+    expenses:food           $1  ; p2tag:
+
+data part      has tags       explanation
+---------------------------------------------------------------------------
+assets:checking account       no tags attached
+expenses:food  atag           atag: in comment
+account
+assets:checkingp1tag, ttag    p1tag: in comment, ttag acquired from
+posting                       transaction
+expenses:food  p2tag, atag,   p2tag: in comment, atag from account, ttag
+posting        ttag           from transaction
+groceries      ttag, p1tag,   ttag: in comment, p1tag from first
+transaction    p2tag, atag    posting, p2tag and atag from second
+                              posting
 
 
-File: hledger.info,  Node: Displaying tags,  Next: When to use tags ?,  Prev: Querying with tags,  Up: Tags
+File: hledger.info,  Node: Displaying tags,  Next: When to use tags ?,  Prev: Tag propagation,  Up: Tags
 
 8.15.2 Displaying tags
 ----------------------
@@ -2530,29 +2526,22 @@ trip-related transactions with 'trip: YEAR:PLACE', without disturbing
 your usual account categories.
 
 
-File: hledger.info,  Node: Tag names,  Next: Special tags,  Prev: When to use tags ?,  Up: Tags
+File: hledger.info,  Node: Tag names,  Prev: When to use tags ?,  Up: Tags
 
 8.15.4 Tag names
 ----------------
 
-What is allowed in a tag name ?  Currently, most non-whitespace
-characters.  Eg '😀:' is a valid tag.
+What is allowed in a tag name ?  Most non-whitespace characters.  Eg '😀
+:' is a valid tag.
 
    For extra error checking, you can declare valid tag names with the
-'tag' directive, and then enforce these with the 'check' command.
+'tag' directive, and then enforce these with the 'check' command.  But
+note that tags are detected quite loosely at present, sometimes where
+you didn't intend them.  Eg a comment like '; see https://foo.com' adds
+a 'https' tag.
 
-   But note that tags are detected quite loosely at present, sometimes
-where you didn't intend them.  Eg '; see https://foo.com' contains a
-'https' tag with value '//foo.com'.
-
-
-File: hledger.info,  Node: Special tags,  Prev: Tag names,  Up: Tags
-
-8.15.5 Special tags
--------------------
-
-Some tag names have special significance to hledger.  They are explained
-elsewhere, but here's a quick reference:
+   There are several tag names which have special significance to
+hledger.  They are explained elsewhere, but here's a quick reference:
 
  type                   -- declares an account's type
  date                   -- overrides a posting's date
@@ -2877,7 +2866,7 @@ incomestatement reports, and querying by type:.
 
    * You can list accounts and their types, for troubleshooting:
 
-     $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH] [--positions]
+     $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH]
 
    * It's a good idea to declare at least one account for each account
      type.  Having some types declared and some inferred can disrupt
@@ -7056,8 +7045,8 @@ grouping and display.  PIVOTEXPR can be
 
    * Colons appearing in PIVOTEXPR or in a pivoted tag value will
      generate account hierarchy.
-   * When pivoting a posting has multiple values for a tag, the pivoted
-     value of that tag will be the first value.
+   * When pivoting a posting that has multiple values for a tag, the
+     tag's first value will be used as the pivoted value.
    * When a posting has multiple commodities, the pivoted value of
      "comm"/"cur" will be "".  Also when an unrecognised tag name or
      field is provided, its pivoted value will be "".  (If this causes
@@ -9143,43 +9132,40 @@ Flags:
      --unused               list accounts declared but not used
      --find                 list the first account matched by the first
                             argument (a case-insensitive infix regexp)
-     --types                also show account types when known
-     --positions            also show where accounts were declared
      --directives           show as account directives, for use in journals
+     --locations            also show where accounts were declared
+     --types                also show account types when known
   -l --flat                 list/tree mode: show accounts as a flat list
                             (default)
   -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 
-   This command lists account names - all of them by default.  or just
-the ones which have been used in transactions, or declared with
-'account' directives, or used but not declared, or declared but not
-used, or just the first account name matched by a pattern.
+   This command lists account names - all of them by default, or just
+the ones which have been used in transactions ('-u/--used'), or declared
+with 'account' directives ('-d/--declared'), or used but not declared
+('--undeclared'), or declared but not used ('--unused'), or just the
+first one matched by a pattern ('--find', returning a non-zero exit code
+if it fails).
 
    You can add query arguments to select a subset of transactions or
 accounts.
-
-   It shows a flat list by default.  With '--tree', it uses indentation
-to show the account hierarchy.  In flat mode you can add '--drop N' to
-omit the first few account name components.  Account names can be
-depth-clipped with 'depth:N' or '--depth N' or '-N'.
-
-   With '--types', it also shows each account's type, if it's known.
-(See Declaring accounts > Account types.)
-
-   With '--positions', it also shows the file and line number of each
-account's declaration, if any, and the account's overall declaration
-order; these may be useful when troubleshooting account display order.
 
    With '--directives', it shows valid account directives which could be
 pasted into a journal file.  This is useful together with '--undeclared'
 when updating your account declarations to satisfy 'hledger check
 accounts'.
 
-   The '--find' flag can be used to look up a single account name, in
-the same way that the 'aregister' command does.  It returns the
-alphanumerically-first matched account name, or if none can be found, it
-fails with a non-zero exit code.
+   With '--locations', it also shows the file and line number of each
+account's declaration, if any, and the account's overall declaration
+order; these may be useful when troubleshooting account display order.
+
+   With '--types', it also shows each account's type, if it's known.
+(See Declaring accounts > Account types.)
+
+   It shows a flat list by default.  With '--tree', it uses indentation
+to show the account hierarchy.  In flat mode you can add '--drop N' to
+omit the first few account name components.  Account names can be
+depth-clipped with 'depth:N' or '--depth N' or '-N'.
 
    Examples:
 
@@ -9260,13 +9246,16 @@ Flags:
      --declared             list commodities declared
      --undeclared           list commodities used but not declared
      --unused               list commodities declared but not used
+     --find                 list the first commodity matched by the first
+                            argument (a case-insensitive infix regexp)
 
    This command lists commodity symbols/names - all of them by default,
 or just the ones which have been used in transactions or 'P' directives,
 or declared with 'commodity' directives, or used but not declared, or
-declared but not used.
+declared but not used, or just the first one matched by a pattern (with
+'--find', returning a non-zero exit code if it fails).
 
-   You can add cur: query arguments to further limit the commodities.
+   You can add 'cur:' query arguments to further limit the commodities.
 
 
 File: hledger.info,  Node: descriptions,  Next: files,  Prev: commodities,  Up: Basic report commands
@@ -9337,11 +9326,14 @@ Flags:
      --declared             list payees declared
      --undeclared           list payees used but not declared
      --unused               list payees declared but not used
+     --find                 list the first payee matched by the first
+                            argument (a case-insensitive infix regexp)
 
    This command lists unique payee/payer names - all of them by default,
 or just the ones which have been used in transaction descriptions, or
 declared with 'payee' directives, or used but not declared, or declared
-but not used.
+but not used, or just the first one matched by a pattern (with '--find',
+returning a non-zero exit code if it fails).
 
    The payee/payer name is the part of the transaction description
 before a | character (or if there is no |, the whole description).
@@ -9446,6 +9438,8 @@ Flags:
      --declared             list tags declared
      --undeclared           list tags used but not declared
      --unused               list tags declared but not used
+     --find                 list the first tag whose name is matched by the
+                            first argument (a case-insensitive infix regexp)
      --values               list tag values instead of tag names
      --parsed               show them in the order they were parsed (mostly),
                             including duplicates
@@ -9453,13 +9447,14 @@ Flags:
    This command lists tag names - all of them by default, or just the
 ones which have been used on transactions/postings/accounts, or declared
 with 'tag' directives, or used but not declared, or declared but not
-used.
+used, or just the first one matched by a pattern (with '--find',
+returning a non-zero exit code if it fails).
 
-   You can add one TAGREGEX argument, to show only tags whose name is
-matched by this case-insensitive, infix-matching regular expression.
-
-   After that, you can add query arguments to filter the transactions,
-postings, or accounts providing tags.
+   Note this command's non-standard first argument: it is a
+case-insensitive infix regular expression for matching tag names, which
+limits the tags shown.  Any additional arguments are standard query
+arguments, which limit the transactions, postings, or accounts providing
+tags.
 
    With '--values', the tags' unique non-empty values are listed
 instead.
@@ -9501,15 +9496,11 @@ Show full journal entries, representing transactions.
 Flags:
   -x --explicit             show all amounts explicitly
      --invert               display all amounts with reversed sign
-     --location             add tags showing file paths and line numbers
+     --locations            add tags showing file paths and line numbers
   -m --match=DESC           fuzzy search for one recent transaction with
                             description closest to DESC
      --new                  show only newer-dated transactions added in each
                             file since last run
-     --no-lots              remove lot subaccounts and their balance
-                            assertions
-     --no-lots2             remove lot subaccounts and their costs and
-                            balance assertions (can produce unbalanced entries)
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none - show original decimal digits,
@@ -9554,17 +9545,18 @@ $ hledger print -f examples/sample.journal date:200806
 
 * Menu:
 
-* print explicitness::
+* print amount explicitness::
+* print alignment::
 * print amount style::
 * print parseability::
 * print other features::
 * print output format::
 
 
-File: hledger.info,  Node: print explicitness,  Next: print amount style,  Up: print
+File: hledger.info,  Node: print amount explicitness,  Next: print alignment,  Up: print
 
-28.1.1 print explicitness
--------------------------
+28.1.1 print amount explicitness
+--------------------------------
 
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not
@@ -9582,22 +9574,29 @@ transaction has an implicit amount) to be split into multiple
 single-commodity postings, keeping the output parseable.
 
 
-File: hledger.info,  Node: print amount style,  Next: print parseability,  Prev: print explicitness,  Up: print
+File: hledger.info,  Node: print alignment,  Next: print amount style,  Prev: print amount explicitness,  Up: print
 
-28.1.2 print amount style
--------------------------
+28.1.2 print alignment
+----------------------
 
 Amounts are shown right-aligned within each transaction (but not aligned
-across all transactions; you can do that with ledger-mode in Emacs).
+across all transactions; you can achieve that with ledger-mode in
+Emacs).
 
-   Amounts will be (mostly) normalised to their commodity display style:
-their symbol placement, decimal mark, and digit group marks will be made
-consistent.  By default, decimal digits are shown as they are written in
-the journal.
+
+File: hledger.info,  Node: print amount style,  Next: print parseability,  Prev: print alignment,  Up: print
 
-   With the '--round' (_Added in 1.32_) option, 'print' will try
-increasingly hard to display decimal digits according to the commodity
-display styles:
+28.1.3 print amount style
+-------------------------
+
+Amounts will be displayed mostly in their commodity's display style,
+with standardised symbol placement, decimal mark, and digit group marks.
+This does not apply to their decimal digits; 'print' normally shows the
+same decimal digits that are recorded in each journal entry.
+
+   You can override the decimal precisions with 'print''s special
+'--round' option (_since 1.32_).  '--round' tries to show amounts with
+their commodities' standard decimal precisions, increasingly strongly:
 
    * '--round=none' show amounts with original precisions (default)
    * '--round=soft' add/remove decimal zeros in amounts (except costs)
@@ -9605,40 +9604,44 @@ display styles:
      significant digits
    * '--round=all' round all amounts and costs
 
-   'soft' is good for non-lossy cleanup, formatting amounts more
-consistently where it's safe to do so.
+   'soft' is good for non-lossy cleanup, displaying more consistent
+decimals where possible, without making entries unbalanced.
 
-   'hard' and 'all' can cause 'print' to show invalid unbalanced journal
-entries; they may be useful eg for stronger cleanup, with manual fixups
-when needed.
+   'hard' or 'all' can be good for stronger cleanup, when decimal
+rounding is wanted.  Note rounding can produce unbalanced journal
+entries, perhaps requiring manual fixup.
 
 
 File: hledger.info,  Node: print parseability,  Next: print other features,  Prev: print amount style,  Up: print
 
-28.1.3 print parseability
+28.1.4 print parseability
 -------------------------
 
-print's output is usually a valid hledger journal, and you can process
-it again with a second hledger command.  This can be useful for certain
-kinds of search (though the same can be achieved with 'expr:' queries
-now):
+Normally, print's output is a valid hledger journal, which you can
+"pipe" to a second hledger command for further processing.  This is
+sometimes convenient for achieving certain kinds of query (though less
+needed now that queries have become more powerful):
 
 # Show running total of food expenses paid from cash.
 # -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
 $ hledger print assets:cash | hledger -f- -I reg expenses:food
 
-   There are some situations where print's output can become
+   But here are some things which can cause print's output to become
 unparseable:
 
-   * Value reporting affects posting amounts but not balance assertion
-     or balance assignment amounts, potentially causing those to fail.
-   * Auto postings can generate postings with too many missing amounts.
-   * Account aliases can generate bad account names.
+   * '--round' (see above) can disrupt transaction balancing.
+   * Account aliases or pivoting can disrupt account names, balance
+     assertions, or balance assignments.
+   * Value reporting also can disrupt balance assertions or balance
+     assignments.
+   * Auto postings can generate too many amountless postings.
+   * '--infer-costs or --infer-equity' can generate too-complex
+     redundant costs.
 
 
 File: hledger.info,  Node: print other features,  Next: print output format,  Prev: print parseability,  Up: print
 
-28.1.4 print, other features
+28.1.5 print, other features
 ----------------------------
 
 With '-B'/'--cost', amounts with costs are shown converted to cost.
@@ -9656,13 +9659,13 @@ whose description is most similar to DESC. DESC should contain at least
 two characters.  If there is no similar-enough match, no transaction
 will be shown and the program exit code will be non-zero.
 
-   With '--location', print adds the source file and line number to
+   With '--locations', print adds the source file and line number to
 every transaction, as a tag.
 
 
 File: hledger.info,  Node: print output format,  Prev: print other features,  Up: print
 
-28.1.5 print output format
+28.1.6 print output format
 --------------------------
 
 This command also supports the output destination and output format
@@ -9769,25 +9772,22 @@ thumb: - use 'aregister' for reviewing and reconciling real-world
 asset/liability accounts - use 'register' for reviewing detailed
 revenues/expenses.
 
-   'aregister' requires one argument: the account to report on.  You can
-write either the full account name, or a case-insensitive regular
-expression which will select the alphabetically first matched account.
-
-   When there are multiple matches, the alphabetically-first choice can
-be surprising; eg if you have 'assets:per:checking 1' and
-'assets:biz:checking 2' accounts, 'hledger areg checking' would select
-'assets:biz:checking 2'.  It's just a convenience to save typing, so if
-in doubt, write the full account name, or a distinctive substring that
-matches uniquely.
+   Note this command's non-standard, and required, first argument; it
+specifies the account whose register will be shown.  You can write the
+account's name, or (to save typing) a case-insensitive infix regular
+expression matching the name, which selects the alphabetically first
+matched account.  (For example, if you have 'assets:personal checking'
+and 'assets:business checking', 'hledger areg checking' would select
+'assets:business checking'.)
 
    Transactions involving subaccounts of this account will also be
 shown.  'aregister' ignores depth limits, so its final total will always
 match a historical balance report with similar arguments.
 
-   Any additional arguments form a query which will filter the
-transactions shown.  Note some queries will disturb the running balance,
-causing it to be different from the account's real-world running
-balance.
+   Any additional arguments are standard query arguments, which will
+limit the transactions shown.  Note some queries will disturb the
+running balance, causing it to be different from the account's
+real-world running balance.
 
    An example: this shows the transactions and historical running
 balance during july, in the first account whose name contains
@@ -13103,391 +13103,388 @@ Node: Commands9981
 Node: Add-on commands11263
 Node: Options12314
 Node: Special characters19464
-Node: Escaping shell special characters20414
-Node: Escaping on Windows21658
-Node: Escaping regular expression special characters22391
-Node: Escaping add-on arguments23378
-Node: Escaping in other situations24407
-Node: Using a wild card25366
-Node: Unicode characters25745
-Node: Regular expressions27166
-Node: hledger's regular expressions30425
-Node: Argument files32066
-Node: Config files32769
-Node: Shell completions36038
-Node: Output36527
-Node: Output destination36718
-Node: Output format37276
-Node: Text output39062
-Node: Box-drawing characters40041
-Node: Colour40541
-Node: Paging41127
-Node: HTML output42646
-Node: CSV / TSV output43064
-Node: FODS output43318
-Node: Beancount output44122
-Node: Beancount account names45623
-Node: Beancount commodity names46164
-Node: Beancount virtual postings46811
-Node: Beancount metadata47127
-Node: Beancount costs47907
-Node: Beancount operating currency48323
-Node: SQL output48773
-Node: JSON output49564
-Node: Commodity styles50381
-Node: Debug output51268
-Node: Environment52100
-Node: PART 2 DATA FORMATS52757
-Node: Journal52900
-Node: Journal cheatsheet55365
-Node: Comments61616
-Node: Transactions62560
-Node: Dates63697
-Node: Simple dates63849
-Node: Posting dates64465
-Node: Status65638
-Node: Code67404
-Node: Description67739
-Node: Payee and note68426
-Node: Transaction comments69517
-Node: Postings70033
-Node: Debits and credits71349
-Node: Account names71908
-Node: The two space delimiter72869
-Node: Account hierarchy74286
-Node: Other account name features75173
-Node: Amounts75591
-Node: Decimal marks76620
-Node: Digit group marks77724
-Node: Commodity78359
-Node: Costs79476
-Node: Balance assertions81728
-Node: Assertions and ordering82976
-Node: Assertions and multiple files83695
-Node: Assertions and costs84863
-Node: Assertions and commodities85510
-Node: Assertions and subaccounts87169
-Node: Assertions and status87829
-Node: Assertions and virtual postings88249
-Node: Assertions and auto postings88614
-Node: Assertions and precision89489
-Node: Assertions and hledger add89973
-Node: Posting comments90721
-Node: Transaction balancing91261
-Node: Tags93469
-Node: Querying with tags94763
-Node: Displaying tags95562
-Node: When to use tags ?95958
-Node: Tag names96622
-Node: Special tags97175
-Node: Directives98740
-Node: Directives and multiple files100197
-Node: Directive effects101142
-Node: account directive104298
-Node: Account comments105748
-Node: Account error checking106407
-Node: Account display order107944
-Node: Account types109142
-Node: alias directive112417
-Node: Basic aliases113628
-Node: Regex aliases114503
-Node: Combining aliases115550
-Node: Aliases and multiple files117004
-Node: end aliases directive117787
-Node: Aliases can generate bad account names118155
-Node: Aliases and account types118988
-Node: commodity directive119880
-Node: Commodity directive syntax121467
-Node: Commodity error checking123116
-Node: decimal-mark directive123591
-Node: include directive124170
-Node: P directive126388
-Node: payee directive127422
-Node: tag directive128044
-Node: Periodic transactions128656
-Node: Periodic rule syntax130810
-Node: Periodic rules and relative dates131633
-Node: Two spaces between period expression and description!132410
-Node: Auto postings133371
-Node: Auto postings and multiple files136657
-Node: Auto postings and dates137062
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions137503
-Node: Auto posting tags138349
-Node: Auto postings on forecast transactions only139244
-Node: Other syntax139714
-Node: Balance assignments140486
-Node: Balance assignments and costs142014
-Node: Balance assignments and multiple files142436
-Node: Bracketed posting dates142859
-Node: D directive143557
-Node: apply account directive145330
-Node: Y directive146197
-Node: Secondary dates147185
-Node: Star comments148670
-Node: Valuation expressions149362
-Node: Virtual postings149661
-Node: Other Ledger directives151285
-Node: Other cost/lot notations152047
-Node: CSV154888
-Node: CSV rules cheatsheet157054
-Node: source159153
-Node: Data cleaning / generating commands160552
-Node: archive162414
-Node: encoding163342
-Node: separator164385
-Node: skip165038
-Node: date-format165688
-Node: timezone166633
-Node: newest-first167759
-Node: intra-day-reversed168472
-Node: decimal-mark169074
-Node: fields list169554
-Node: Field assignment171362
-Node: Field names172581
-Node: date field173913
-Node: date2 field174077
-Node: status field174272
-Node: code field174462
-Node: description field174650
-Node: comment field174867
-Node: account field175424
-Node: amount field176142
-Node: currency field178981
-Node: balance field179389
-Node: if block179912
-Node: Matchers181439
-Node: Multiple matchers183429
-Node: Match groups184237
-Node: if table185130
-Node: balance-type187193
-Node: include188020
-Node: Working with CSV188589
-Node: Rapid feedback189141
-Node: Valid CSV189724
-Node: File Extension190600
-Node: Reading CSV from standard input191335
-Node: Reading multiple CSV files191721
-Node: Reading files specified by rule192197
-Node: Valid transactions193594
-Node: Deduplicating importing194419
-Node: Setting amounts195648
-Node: Amount signs198175
-Node: Setting currency/commodity199240
-Node: Amount decimal places200616
-Node: Referencing other fields201873
-Node: How CSV rules are evaluated202981
-Node: Well factored rules205698
-Node: CSV rules examples206188
-Node: Bank of Ireland206386
-Node: Coinbase207983
-Node: Amazon209166
-Node: Paypal211008
-Node: Timeclock218758
-Node: Timedot222811
-Node: Timedot examples226288
-Node: PART 3 REPORTING CONCEPTS228565
-Node: Time periods228729
-Node: Report start & end date229002
-Node: Smart dates230478
-Node: Report intervals232601
-Node: Date adjustments233175
-Node: Start date adjustment233395
-Node: End date adjustment234298
-Node: Period headings235079
-Node: Period expressions236012
-Node: Period expressions with a report interval237917
-Node: More complex report intervals238365
-Node: Multiple weekday intervals240481
-Node: Depth241492
-Node: Queries243072
-Node: Query types245744
-Node: acct query246119
-Node: amt query246430
-Node: code query247127
-Node: cur query247322
-Node: desc query247928
-Node: date query248111
-Node: date2 query248507
-Node: depth query248798
-Node: note query249134
-Node: payee query249400
-Node: real query249681
-Node: status query249886
-Node: type query250126
-Node: tag query250659
-Node: Negative queries251288
-Node: not query251470
-Node: Space-separated queries251757
-Node: Boolean queries252445
-Node: expr query253763
-Node: any query254443
-Node: all query254896
-Node: Queries and command options255478
-Node: Queries and account aliases255926
-Node: Queries and valuation256251
-Node: Pivoting256613
-Node: Generating data258889
-Node: Forecasting260689
-Node: --forecast261345
-Node: Inspecting forecast transactions262446
-Node: Forecast reports263779
-Node: Forecast tags264888
-Node: Forecast period in detail265508
-Node: Forecast troubleshooting266596
-Node: Budgeting267667
-Node: Amount formatting268227
-Node: Commodity display style268471
-Node: Rounding270312
-Node: Trailing decimal marks270917
-Node: Amount parseability271850
-Node: Cost reporting273459
-Node: Recording costs274290
-Node: Reporting at cost276017
-Node: Equity conversion postings276782
-Node: Inferring equity conversion postings279427
-Node: Combining costs and equity conversion postings280569
-Node: Requirements for detecting equity conversion postings281794
-Node: Infer cost and equity by default ?283316
-Node: Value reporting283753
-Node: -V Value284689
-Node: -X Value in specified commodity285016
-Node: Valuation date285366
-Node: Finding market price286199
-Node: --infer-market-prices market prices from transactions287579
-Node: Valuation commodity290623
-Node: --value Flexible valuation292056
-Node: Valuation examples293899
-Node: Interaction of valuation and queries296043
-Node: Effect of valuation on reports296760
-Node: PART 4 COMMANDS304610
-Node: Help commands307399
-Node: commands307585
-Node: demo307793
-Node: help308886
-Node: User interface commands310591
-Node: repl310802
-Node: Examples313066
-Node: run313624
-Node: Examples 2316039
-Node: ui317063
-Node: web317200
-Node: Data entry commands317328
-Node: add317589
-Node: add and balance assertions320163
-Node: add and balance assignments320887
-Node: import321448
-Node: Import dry run322527
-Node: Overlap detection323475
-Node: First import326361
-Node: Importing balance assignments327556
-Node: Import and commodity styles328611
-Node: Import archiving329045
-Node: Import special cases329870
-Node: Deduplication330088
-Node: Varying file name330579
-Node: Multiple versions330963
-Node: Basic report commands332070
-Node: accounts332371
-Node: codes335017
-Node: commodities336039
-Node: descriptions336796
-Node: files337256
-Node: notes337553
-Node: payees338065
-Node: prices338977
-Node: stats339869
-Node: tags341610
-Node: Standard report commands343147
-Node: print343452
-Node: print explicitness346415
-Node: print amount style347335
-Node: print parseability348573
-Node: print other features349492
-Node: print output format350453
-Node: aregister353738
-Node: aregister and posting dates358302
-Node: register359203
-Node: Custom register output366443
-Node: balancesheet367628
-Node: balancesheetequity372593
-Node: cashflow377928
-Node: incomestatement382741
-Node: Advanced report commands387590
-Node: balance387798
-Node: balance features393219
-Node: Simple balance report395322
-Node: Balance report line format397132
-Node: Filtered balance report399492
-Node: List or tree mode400011
-Node: Depth limiting401524
-Node: Dropping top-level accounts402291
-Node: Showing declared accounts402801
-Node: Sorting by amount403531
-Node: Percentages404385
-Node: Multi-period balance report405092
-Node: Balance change end balance407844
-Node: Balance report modes409481
-Node: Calculation mode410160
-Node: Accumulation mode410864
-Node: Valuation mode411965
-Node: Combining balance report modes413309
-Node: Budget report415339
-Node: Using the budget report417639
-Node: Budget date surprises419915
-Node: Selecting budget goals421279
-Node: Budgeting vs forecasting422227
-Node: Balance report layout423904
-Node: Wide layout425109
-Node: Tall layout427514
-Node: Bare layout428820
-Node: Tidy layout430884
-Node: Balance report output432428
-Node: Some useful balance reports433202
-Node: roi434462
-Node: Spaces and special characters in --inv and --pnl436709
-Node: Semantics of --inv and --pnl437435
-Node: IRR and TWR explained439522
-Node: Chart commands442933
-Node: activity443114
-Node: Data generation commands443611
-Node: close443817
-Node: close --clopen446380
-Node: close --close448554
-Node: close --open449078
-Node: close --assert449328
-Node: close --assign449655
-Node: close --retain450334
-Node: close customisation451191
-Node: close and balance assertions452835
-Node: close examples454357
-Node: Retain earnings454594
-Node: Migrate balances to a new file455097
-Node: More detailed close examples456459
-Node: rewrite456681
-Node: Re-write rules in a file459241
-Node: Diff output format460542
-Node: rewrite vs print --auto461812
-Node: Maintenance commands462526
-Node: check462745
-Node: Basic checks463827
-Node: Strict checks464848
-Node: Other checks465785
-Node: Custom checks467537
-Node: diff467992
-Node: setup469200
-Node: test472067
-Node: PART 5 COMMON TASKS472970
-Node: Getting help473203
-Node: Constructing command lines474112
-Node: Starting a journal file474957
-Node: Setting LEDGER_FILE476341
-Node: Setting opening balances477599
-Node: Recording transactions480921
-Node: Reconciling481646
-Node: Reporting484035
-Node: Migrating to a new file488149
-Node: BUGS488598
-Node: Troubleshooting489428
+Node: Escaping shell special characters20454
+Node: Escaping regular expression special characters21813
+Node: Escaping in other situations23328
+Node: Unicode characters24476
+Node: Regular expressions25897
+Node: hledger's regular expressions29156
+Node: Argument files30797
+Node: Config files31500
+Node: Shell completions34769
+Node: Output35258
+Node: Output destination35449
+Node: Output format36007
+Node: Text output37793
+Node: Box-drawing characters38772
+Node: Colour39272
+Node: Paging39858
+Node: HTML output41377
+Node: CSV / TSV output41795
+Node: FODS output42049
+Node: Beancount output42853
+Node: Beancount account names44354
+Node: Beancount commodity names44895
+Node: Beancount virtual postings45542
+Node: Beancount metadata45858
+Node: Beancount costs46638
+Node: Beancount operating currency47054
+Node: SQL output47504
+Node: JSON output48295
+Node: Commodity styles49112
+Node: Debug output49999
+Node: Environment50831
+Node: PART 2 DATA FORMATS51488
+Node: Journal51631
+Node: Journal cheatsheet54096
+Node: Comments60347
+Node: Transactions61291
+Node: Dates62428
+Node: Simple dates62580
+Node: Posting dates63196
+Node: Status64369
+Node: Code66135
+Node: Description66470
+Node: Payee and note67157
+Node: Transaction comments68248
+Node: Postings68764
+Node: Debits and credits70080
+Node: Account names70639
+Node: Two space delimiter71596
+Node: Account hierarchy73001
+Node: Other account name features73884
+Node: Amounts74302
+Node: Decimal marks75331
+Node: Digit group marks76435
+Node: Commodity77070
+Node: Costs78187
+Node: Balance assertions80439
+Node: Assertions and ordering81687
+Node: Assertions and multiple files82406
+Node: Assertions and costs83574
+Node: Assertions and commodities84221
+Node: Assertions and subaccounts85880
+Node: Assertions and status86540
+Node: Assertions and virtual postings86960
+Node: Assertions and auto postings87325
+Node: Assertions and precision88200
+Node: Assertions and hledger add88684
+Node: Posting comments89432
+Node: Transaction balancing89972
+Node: Tags92180
+Node: Tag propagation93699
+Node: Displaying tags95198
+Node: When to use tags ?95591
+Node: Tag names96255
+Node: Directives98236
+Node: Directives and multiple files99693
+Node: Directive effects100638
+Node: account directive103794
+Node: Account comments105244
+Node: Account error checking105903
+Node: Account display order107440
+Node: Account types108638
+Node: alias directive111899
+Node: Basic aliases113110
+Node: Regex aliases113985
+Node: Combining aliases115032
+Node: Aliases and multiple files116486
+Node: end aliases directive117269
+Node: Aliases can generate bad account names117637
+Node: Aliases and account types118470
+Node: commodity directive119362
+Node: Commodity directive syntax120949
+Node: Commodity error checking122598
+Node: decimal-mark directive123073
+Node: include directive123652
+Node: P directive125870
+Node: payee directive126904
+Node: tag directive127526
+Node: Periodic transactions128138
+Node: Periodic rule syntax130292
+Node: Periodic rules and relative dates131115
+Node: Two spaces between period expression and description!131892
+Node: Auto postings132853
+Node: Auto postings and multiple files136139
+Node: Auto postings and dates136544
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions136985
+Node: Auto posting tags137831
+Node: Auto postings on forecast transactions only138726
+Node: Other syntax139196
+Node: Balance assignments139968
+Node: Balance assignments and costs141496
+Node: Balance assignments and multiple files141918
+Node: Bracketed posting dates142341
+Node: D directive143039
+Node: apply account directive144812
+Node: Y directive145679
+Node: Secondary dates146667
+Node: Star comments148152
+Node: Valuation expressions148844
+Node: Virtual postings149143
+Node: Other Ledger directives150767
+Node: Other cost/lot notations151529
+Node: CSV154370
+Node: CSV rules cheatsheet156536
+Node: source158635
+Node: Data cleaning / generating commands160034
+Node: archive161896
+Node: encoding162824
+Node: separator163867
+Node: skip164520
+Node: date-format165170
+Node: timezone166115
+Node: newest-first167241
+Node: intra-day-reversed167954
+Node: decimal-mark168556
+Node: fields list169036
+Node: Field assignment170844
+Node: Field names172063
+Node: date field173395
+Node: date2 field173559
+Node: status field173754
+Node: code field173944
+Node: description field174132
+Node: comment field174349
+Node: account field174906
+Node: amount field175624
+Node: currency field178463
+Node: balance field178871
+Node: if block179394
+Node: Matchers180921
+Node: Multiple matchers182911
+Node: Match groups183719
+Node: if table184612
+Node: balance-type186675
+Node: include187502
+Node: Working with CSV188071
+Node: Rapid feedback188623
+Node: Valid CSV189206
+Node: File Extension190082
+Node: Reading CSV from standard input190817
+Node: Reading multiple CSV files191203
+Node: Reading files specified by rule191679
+Node: Valid transactions193076
+Node: Deduplicating importing193901
+Node: Setting amounts195130
+Node: Amount signs197657
+Node: Setting currency/commodity198722
+Node: Amount decimal places200098
+Node: Referencing other fields201355
+Node: How CSV rules are evaluated202463
+Node: Well factored rules205180
+Node: CSV rules examples205670
+Node: Bank of Ireland205868
+Node: Coinbase207465
+Node: Amazon208648
+Node: Paypal210490
+Node: Timeclock218240
+Node: Timedot222293
+Node: Timedot examples225770
+Node: PART 3 REPORTING CONCEPTS228047
+Node: Time periods228211
+Node: Report start & end date228484
+Node: Smart dates229960
+Node: Report intervals232083
+Node: Date adjustments232657
+Node: Start date adjustment232877
+Node: End date adjustment233780
+Node: Period headings234561
+Node: Period expressions235494
+Node: Period expressions with a report interval237399
+Node: More complex report intervals237847
+Node: Multiple weekday intervals239963
+Node: Depth240974
+Node: Queries242554
+Node: Query types245226
+Node: acct query245601
+Node: amt query245912
+Node: code query246609
+Node: cur query246804
+Node: desc query247410
+Node: date query247593
+Node: date2 query247989
+Node: depth query248280
+Node: note query248616
+Node: payee query248882
+Node: real query249163
+Node: status query249368
+Node: type query249608
+Node: tag query250141
+Node: Negative queries250770
+Node: not query250952
+Node: Space-separated queries251239
+Node: Boolean queries251927
+Node: expr query253245
+Node: any query253925
+Node: all query254378
+Node: Queries and command options254960
+Node: Queries and account aliases255408
+Node: Queries and valuation255733
+Node: Pivoting256095
+Node: Generating data258378
+Node: Forecasting260178
+Node: --forecast260834
+Node: Inspecting forecast transactions261935
+Node: Forecast reports263268
+Node: Forecast tags264377
+Node: Forecast period in detail264997
+Node: Forecast troubleshooting266085
+Node: Budgeting267156
+Node: Amount formatting267716
+Node: Commodity display style267960
+Node: Rounding269801
+Node: Trailing decimal marks270406
+Node: Amount parseability271339
+Node: Cost reporting272948
+Node: Recording costs273779
+Node: Reporting at cost275506
+Node: Equity conversion postings276271
+Node: Inferring equity conversion postings278916
+Node: Combining costs and equity conversion postings280058
+Node: Requirements for detecting equity conversion postings281283
+Node: Infer cost and equity by default ?282805
+Node: Value reporting283242
+Node: -V Value284178
+Node: -X Value in specified commodity284505
+Node: Valuation date284855
+Node: Finding market price285688
+Node: --infer-market-prices market prices from transactions287068
+Node: Valuation commodity290112
+Node: --value Flexible valuation291545
+Node: Valuation examples293388
+Node: Interaction of valuation and queries295532
+Node: Effect of valuation on reports296249
+Node: PART 4 COMMANDS304099
+Node: Help commands306888
+Node: commands307074
+Node: demo307282
+Node: help308375
+Node: User interface commands310080
+Node: repl310291
+Node: Examples312555
+Node: run313113
+Node: Examples 2315528
+Node: ui316552
+Node: web316689
+Node: Data entry commands316817
+Node: add317078
+Node: add and balance assertions319652
+Node: add and balance assignments320376
+Node: import320937
+Node: Import dry run322016
+Node: Overlap detection322964
+Node: First import325850
+Node: Importing balance assignments327045
+Node: Import and commodity styles328100
+Node: Import archiving328534
+Node: Import special cases329359
+Node: Deduplication329577
+Node: Varying file name330068
+Node: Multiple versions330452
+Node: Basic report commands331559
+Node: accounts331860
+Node: codes334372
+Node: commodities335394
+Node: descriptions336402
+Node: files336862
+Node: notes337159
+Node: payees337671
+Node: prices338828
+Node: stats339720
+Node: tags341461
+Node: Standard report commands343285
+Node: print343590
+Node: print amount explicitness346321
+Node: print alignment347259
+Node: print amount style347573
+Node: print parseability348803
+Node: print other features349907
+Node: print output format350869
+Node: aregister354154
+Node: aregister and posting dates358609
+Node: register359510
+Node: Custom register output366750
+Node: balancesheet367935
+Node: balancesheetequity372900
+Node: cashflow378235
+Node: incomestatement383048
+Node: Advanced report commands387897
+Node: balance388105
+Node: balance features393526
+Node: Simple balance report395629
+Node: Balance report line format397439
+Node: Filtered balance report399799
+Node: List or tree mode400318
+Node: Depth limiting401831
+Node: Dropping top-level accounts402598
+Node: Showing declared accounts403108
+Node: Sorting by amount403838
+Node: Percentages404692
+Node: Multi-period balance report405399
+Node: Balance change end balance408151
+Node: Balance report modes409788
+Node: Calculation mode410467
+Node: Accumulation mode411171
+Node: Valuation mode412272
+Node: Combining balance report modes413616
+Node: Budget report415646
+Node: Using the budget report417946
+Node: Budget date surprises420222
+Node: Selecting budget goals421586
+Node: Budgeting vs forecasting422534
+Node: Balance report layout424211
+Node: Wide layout425416
+Node: Tall layout427821
+Node: Bare layout429127
+Node: Tidy layout431191
+Node: Balance report output432735
+Node: Some useful balance reports433509
+Node: roi434769
+Node: Spaces and special characters in --inv and --pnl437016
+Node: Semantics of --inv and --pnl437742
+Node: IRR and TWR explained439829
+Node: Chart commands443240
+Node: activity443421
+Node: Data generation commands443918
+Node: close444124
+Node: close --clopen446687
+Node: close --close448861
+Node: close --open449385
+Node: close --assert449635
+Node: close --assign449962
+Node: close --retain450641
+Node: close customisation451498
+Node: close and balance assertions453142
+Node: close examples454664
+Node: Retain earnings454901
+Node: Migrate balances to a new file455404
+Node: More detailed close examples456766
+Node: rewrite456988
+Node: Re-write rules in a file459548
+Node: Diff output format460849
+Node: rewrite vs print --auto462119
+Node: Maintenance commands462833
+Node: check463052
+Node: Basic checks464134
+Node: Strict checks465155
+Node: Other checks466092
+Node: Custom checks467844
+Node: diff468299
+Node: setup469507
+Node: test472374
+Node: PART 5 COMMON TASKS473277
+Node: Getting help473510
+Node: Constructing command lines474419
+Node: Starting a journal file475264
+Node: Setting LEDGER_FILE476648
+Node: Setting opening balances477906
+Node: Recording transactions481228
+Node: Reconciling481953
+Node: Reporting484342
+Node: Migrating to a new file488456
+Node: BUGS488905
+Node: Troubleshooting489735
 
 End Tag Table
 

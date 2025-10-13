@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2025" "hledger-1.50.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "October 2025" "hledger-1.50.99 " "hledger User Manuals"
 
 
 
@@ -458,157 +458,138 @@ Some queries can be expressed either with options or with arguments.
 Below are more tips for using the command line interface \- feel free to
 skip these until you need them.
 .SS Special characters
-Here we touch on shell escaping/quoting rules, and give some examples.
-This is a slightly complicated topic which you may not need at first,
-but you should be aware of it, so you can return here when needed.
+In commands you type at the command line, certain characters have
+special meaning and sometimes need to be \[dq]escaped\[dq] or
+\[dq]quoted\[dq], by prefixing backslashes or enclosing in quotes.
 .PP
 If you are able to minimise the use of special characters in your data,
-you won\[aq]t need escaping as much, and your command lines will be
-simpler.
-For example, avoiding spaces in account names, and using an ISO\-4217
-currency code like \f[CR]USD\f[R] instead of the \f[CR]$\f[R] currency
-symbol, can be helpful.
+you won\[aq]t have to deal with this as much.
+For example, you could use hyphen \f[CR]\-\f[R] or underscore
+\f[CR]_\f[R] instead of spaces in account names, and you could use the
+\f[CR]USD\f[R] currency code instead of the \f[CR]$\f[R] currency symbol
+in amounts.
 .PP
-But if you want to use spaced account names and \f[CR]$\f[R], go right
-ahead; escaping isn\[aq]t a big deal.
+But if you prefer to use spaced account names and \f[CR]$\f[R], it\[aq]s
+fine.
+Just be aware of this topic so you can check this doc when needed.
+(These examples are mostly tested on unix; some details might need to be
+adapted if you\[aq]re on Windows.)
 .SS Escaping shell special characters
-At the command line, characters which have special meaning for your
-shell must be \[dq]shell\-escaped\[dq] (AKA \[dq]quoted\[dq]) if you
-want hledger to see them.
-Often these include space, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R],
-\f[CR])\f[R], \f[CR]|\f[R], \f[CR]\[rs]\f[R], \f[CR]$\f[R] and/or
-\f[CR]%\f[R].
+These are some characters which may have special meaning to your shell
+(the program which interprets command lines):
+.IP \[bu] 2
+SPACE, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R], \f[CR])\f[R],
+\f[CR]|\f[R], \f[CR]\[rs]\f[R], \f[CR]%\f[R]
+.IP \[bu] 2
+\f[CR]$\f[R] if followed by a word character
 .PP
-For example, to match an account name containing the phrase \[dq]credit
-card\[dq], don\[aq]t write this:
+So for example, to match an account name containing spaces, like
+\[dq]credit card\[dq], don\[aq]t write:
 .IP
 .EX
 $ hledger register credit card
 .EE
 .PP
-In that command, \[dq]credit\[dq] and \[dq]card\[dq] are treated as
-separate query arguments (described below), so this would match accounts
-containing either word.
-Instead, enclose the phrase in double or single quotes:
+Instead, enclose the name in single quotes:
 .IP
 .EX
-$ hledger register \[dq]credit card\[dq]
+$ hledger register \[aq]credit card\[aq]
 .EE
 .PP
-In Unix shells, writing a backslash before the character can also work.
-Eg:
+On unix or in Windows powershell, if you use double quotes your shell
+will silently treat \f[CR]$\f[R] as variable interpolation.
+So you should probably avoid double quotes, unless you want that
+behaviour, eg in a script:
+.IP
+.EX
+$ hledger register \[dq]assets:$SOMEACCT\[dq]
+.EE
+.PP
+But in an older Windows CMD.EXE window, you must use double quotes:
+.IP
+.EX
+C:\[rs]Users\[rs]Me> hledger register \[dq]credit card\[dq]
+.EE
+.PP
+On unix or in Windows powershell, as an alternative to quotes you can
+write a backslash before each special character:
 .IP
 .EX
 $ hledger register credit\[rs] card
 .EE
 .PP
-Some shell characters still have a special meaning inside double quotes,
-such as the dollar sign (\f[CR]$\f[R]).
-Eg in \f[CR]\[dq]assets:$account\[dq]\f[R], the bash shell would replace
-\f[CR]$account\f[R] with the value of a shell variable with that name.
-When you don\[aq]t want that, use single quotes, which escape more
-strongly:
+Finally, since hledger\[aq]s query arguments are regular expressions
+(described below), you could also fill that gap with \f[CR].\f[R] which
+matches any character:
 .IP
 .EX
-$ hledger balance \[aq]assets:$account\[aq]
+$ hledger register credit.card
 .EE
-.SS Escaping on Windows
-If you are using hledger in a Powershell or Command window on Microsoft
-Windows, the escaping rules are different:
-.IP \[bu] 2
-In a Powershell window (\f[CR]powershell\f[R], blue background), you
-must use double quotes or single quotes (not backslash).
-.IP \[bu] 2
-In a Command window (\f[CR]cmd\f[R], black background), you must use
-double quotes (not single quotes or backslash).
-.PP
-The next two sections were written for Unix\-like shells, so might need
-to be adapted if you\[aq]re using \f[CR]cmd\f[R] or
-\f[CR]powershell\f[R].
-(Edits welcome.)
 .SS Escaping regular expression special characters
-Many hledger arguments are regular expressions (described below), and
-these too have characters which cause special effects.
-Some of those characters are \f[CR].\f[R], \f[CR]\[ha]\f[R],
-\f[CR]$\f[R], \f[CR][\f[R], \f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R],
-\f[CR]|\f[R], and \f[CR]\[rs]\f[R].
-When you don\[aq]t want these to cause special effects, you can
-\[dq]regex\-escape\[dq] them by writing \f[CR]\[rs]\f[R] (a backslash)
-before them.
-But since backslash is also special to the shell, you may need to also
-shell\-escape the backslashes.
+Some characters also have special meaning in regular expressions, which
+hledger\[aq]s arguments often are.
+Those include:
+.IP \[bu] 2
+\f[CR].\f[R], \f[CR]\[ha]\f[R], \f[CR]$\f[R], \f[CR][\f[R],
+\f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R], \f[CR]|\f[R], \f[CR]\[rs]\f[R]
 .PP
-Eg, in the bash shell, to match a literal \f[CR]$\f[R] sign, you could
-write:
+To escape one of these, write \f[CR]\[rs]\f[R] before it.
+But note this is in addition to the shell escaping above.
+So for characters which are special to both shell and regular
+expressions, like \f[CR]\[rs]\f[R] and \f[CR]$\f[R], you will sometimes
+need two levels of escaping.
+.PP
+For example, a balance report that uses a \f[CR]cur:\f[R] query
+restricting it to just the $ currency, should be written like this:
 .IP
 .EX
 $ hledger balance cur:\[rs]\[rs]$
 .EE
 .PP
-or:
+Explanation:
+.IP "1." 3
+Add a backslash \f[CR]\[rs]\f[R] before the dollar sign \f[CR]$\f[R] to
+protect it from regular expressions (so it will be matched literally
+with no special meaning).
+.IP "2." 3
+Add another backslash before that backslash, to protect it from the
+shell (so the shell won\[aq]t consume it).
+.IP "3." 3
+\f[CR]$\f[R] doesn\[aq]t need to be protected from the shell in this
+case, because it\[aq]s not followed by a word character; but it would be
+harmless to do so.
+.PP
+But here\[aq]s another way to write that, which tends to be easier: add
+backslashes to escape from regular expressions, then enclose with quotes
+to escape from the shell:
 .IP
 .EX
-$ hledger balance \[aq]cur:\[rs]$\[aq]
-.EE
-.PP
-(The dollar sign is regex\-escaped by the backslash preceding it.
-Then that backslash is shell\-escaped by another backslash, or by single
-quotes.)
-.SS Escaping add\-on arguments
-When you run an external add\-on command with \f[CR]hledger\f[R]
-(described below), any options or arguments being passed through to the
-add\-on executable lose one level of shell\-escaping, so you must add an
-extra level of shell\-escaping to compensate.
-.PP
-Eg, in the bash shell, to run the \f[CR]ui\f[R] add\-on and match a
-literal \f[CR]$\f[R] sign, you need to write:
-.IP
-.EX
-$ hledger ui cur:\[aq]\[rs]\[rs]$\[aq]
-.EE
-.PP
-or:
-.IP
-.EX
-$ hledger ui cur:\[rs]\[rs]\[rs]\[rs]$
-.EE
-.PP
-If you are wondering why \f[I]four\f[R] backslashes:
-.IP \[bu] 2
-\f[CR]$\f[R] is unescaped
-.IP \[bu] 2
-\f[CR]\[rs]$\f[R] is regex\-escaped
-.IP \[bu] 2
-\f[CR]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped
-.IP \[bu] 2
-\f[CR]\[rs]\[rs]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped,
-then both slashes are shell\-escaped once more for hledger argument
-pass\-through.
-.PP
-Or you can avoid such triple\-escaping, by running the add\-on
-executable directly:
-.IP
-.EX
-$ hledger\-ui cur:\[rs]\[rs]$
+$ hledger balance cur:\[aq]\[rs]$\[aq]
 .EE
 .SS Escaping in other situations
 hledger options and arguments are sometimes used in places other than
-the command line, with different escaping rules.
-For example, backslash\-quoting generally does not work there.
-Here are some more tips.
+the command line, where the escaping/quoting rules are different.
+For example, backslash\-quoting may not be available.
+Here\[aq]s a quick reference:
 .PP
 .TS
 tab(@);
 lw(17.5n) lw(52.5n).
 T{
-In Windows \f[CR]cmd\f[R]
+In unix shell
 T}@T{
-Use double quotes
+Use single quotes and/or backslash (or double quotes for variable
+interpolation)
 T}
 T{
 In Windows \f[CR]powershell\f[R]
 T}@T{
-Use single or double quotes
+Use single quotes (or double quotes for variable interpolation)
+T}
+T{
+In Windows \f[CR]cmd\f[R]
+T}@T{
+Use double quotes
 T}
 T{
 In hledger\-ui\[aq]s filter prompt
@@ -623,14 +604,14 @@ T}
 T{
 In an argument file
 T}@T{
-Don\[aq]t use spaces, don\[aq]t shell\-escape, do regex\-escape when
-needed
+Don\[aq]t use spaces, don\[aq]t shell\-escape, do regex\-escape, write
+one argument/option per line
 T}
 T{
 In a config file
 T}@T{
 Use single or double quotes, and enclose the whole argument
-(\f[CR]\[dq]desc:a b\[dq]\f[R] not \f[CR]desc:\[dq]a b\[dq]\f[R])
+(\f[CR]\[aq]desc:a b\[aq]\f[R] not \f[CR]desc:\[aq]a b\[aq]\f[R])
 T}
 T{
 In \f[CR]ghci\f[R] (the Haskell REPL)
@@ -638,15 +619,6 @@ T}@T{
 Use double quotes, and enclose the whole argument
 T}
 .TE
-.SS Using a wild card
-When escaping a special character is too much hassle (or impossible),
-you can often just write \f[CR].\f[R] (period) instead.
-In regular expressions, this means \[dq]accept any character here\[dq].
-Eg:
-.IP
-.EX
-$ hledger register credit.card
-.EE
 .SS Unicode characters
 hledger is expected to handle non\-ascii characters correctly:
 .IP \[bu] 2
@@ -1866,7 +1838,7 @@ In english they are:
 .PP
 These will be discussed more in Account types below.
 In hledger docs you may see them referred to as A, L, E, R, X for short.
-.SS The two space delimiter
+.SS Two space delimiter
 Note the \f[B]two or more spaces\f[R] delimiter that\[aq]s sometimes
 required after account names.
 \ hledger\[aq]s account names, inherited from Ledger, are very
@@ -2381,46 +2353,139 @@ here.)
 .RE
 .SS Tags
 Tags are a way to add extra labels or data fields to transactions,
-postings, or accounts.
-They are usually a word or hyphenated word, immediately followed by a
-full colon, written within the comment of a transaction, a posting, or
-an \f[CR]account\f[R] directive.
-(Yes, storing data in comments is slightly weird!)
-.PP
-You can write each tag on its own comment line, or multiple tags on one
-line, separated by commas.
-Tags can also have a value, which is any text after the colon until the
-next comma or end of line, excluding surrounding whitespace.
-(hledger tag values can\[aq]t contain commas.)
-If the same tag name appears multiple times in a comment, each
-name:value pair is preserved.
-.PP
-An example: in this journal there are six tags, one of them with a
-value:
-.IP
-.EX
-account assets:checking         ; accounttag:
-account expenses:food
-
-2017/1/16 bought groceries      ; transactiontag:
-    ; transactiontag2:
-    assets:checking        $\-1
-     ; posting\-tag\-1:, (belongs to the posting above)
-    expenses:food           $1  ; posting\-tag\-2:, posting\-tag\-3: with a value
-.EE
-.SS Querying with tags
-Tags are most often used to select a subset of data; you can match
-tagged things by tag name and or tag value with a \f[CR]tag:\f[R] query.
+postings, or accounts, which you can match with a \f[CR]tag:\f[R] query
+in reports.
 (See queries below.)
 .PP
-When querying for tag names or values, note that postings inherit tags
-from their transaction and from their account, and transactions acquire
-tags from their postings.
-So in the example above, \- the assets:checking posting effectively has
-four tags (one of its own, one from the account, two from the
-transaction) \- the expenses:food posting effectively has four tags (two
-of its own, two from the transaction) \- the transaction effectively has
-all six tags (two of its own, and two from each posting)
+Tags are a single word or hyphenated word, immediately followed by a
+full colon, written within a comment.
+(Yes, storing data in comments is slightly weird.)
+Here\[aq]s a transaction with a tag:
+.IP
+.EX
+2025\-01\-01 groceries        ; some\-tag:
+    assets:checking
+    expenses:food       $1
+.EE
+.PP
+A tag can have a value, a single line of text written after the colon.
+Tag values can\[aq]t contain newlines.:
+.IP
+.EX
+2025\-01\-01 groceries        ; tag1: this is tag1\[aq]s value
+.EE
+.PP
+Multiple tags can be separated by comma.
+Tag values can\[aq]t contain commas.:
+.IP
+.EX
+2025\-01\-01 groceries        ; tag1:value 1, tag2:value 2, comment text
+.EE
+.PP
+A tag can have multiple values:
+.IP
+.EX
+2025\-01\-01 groceries        ; tag1:value 1, tag1:value 2
+.EE
+.PP
+You can write each tag on its own line of you prefer (but they still
+can\[aq]t contain commas):
+.IP
+.EX
+2025\-01\-01 groceries
+    ; tag1: value 1
+    ; tag2: value 2
+.EE
+.PP
+Tags can be attached to individual postings, rather than the overall
+transaction:
+.IP
+.EX
+2025\-01\-01 rent
+    assets:checking
+    expenses:rent       $1000  ; postingtag:
+.EE
+.PP
+Tags can be attached to accounts, in their account directive:
+.IP
+.EX
+account assets:checking    ; acct\-number: 123\-45\-6789
+.EE
+.SS Tag propagation
+In addition to what they are attached to, tags also affect related data
+in a few ways, allowing more powerful queries:
+.IP "1." 3
+Accounts \-> postings.
+Postings inherit tags from their account.
+.IP "2." 3
+Transactions \-> postings.
+Postings inherit tags from their transaction.
+.IP "3." 3
+Postings \-> transactions.
+Transactions also acquire the tags of their postings.
+\ 
+.PP
+So when you use a \f[CR]tag:\f[R] query to match whole transactions,
+individual postings, or accounts, it\[aq]s good to understand how tags
+behave.
+Here\[aq]s an example showing all three kinds of propagation:
+.IP
+.EX
+account assets:checking
+account expenses:food           ; atag:
+
+2025\-01\-01 groceries            ; ttag:
+    assets:checking             ; p1tag:
+    expenses:food           $1  ; p2tag:
+.EE
+.PP
+.TS
+tab(@);
+lw(13.3n) lw(13.8n) lw(43.0n).
+T{
+data part
+T}@T{
+has tags
+T}@T{
+explanation
+T}
+_
+T{
+assets:checking\ account
+T}@T{
+T}@T{
+no tags attached
+T}
+T{
+expenses:food account
+T}@T{
+atag
+T}@T{
+atag: in comment
+T}
+T{
+assets:checking posting
+T}@T{
+p1tag, ttag
+T}@T{
+p1tag: in comment, ttag acquired from transaction
+T}
+T{
+expenses:food posting
+T}@T{
+p2tag, atag, ttag
+T}@T{
+p2tag: in comment, atag from account, ttag from transaction
+T}
+T{
+groceries transaction
+T}@T{
+ttag, p1tag, p2tag, atag
+T}@T{
+ttag: in comment, p1tag from first posting, p2tag and atag from second
+posting
+T}
+.TE
 .SS Displaying tags
 You can use the \f[CR]tags\f[R] command to list tag names or values.
 .PP
@@ -2442,19 +2507,18 @@ For example, you could tag trip\-related transactions with
 categories.
 .SS Tag names
 What is allowed in a tag name ?
-Currently, most non\-whitespace characters.
+Most non\-whitespace characters.
 Eg \f[CR]😀:\f[R] is a valid tag.
 .PP
 For extra error checking, you can declare valid tag names with the
 \f[CR]tag\f[R] directive, and then enforce these with the
 \f[CR]check\f[R] command.
-.PP
 But note that tags are detected quite loosely at present, sometimes
 where you didn\[aq]t intend them.
-Eg \f[CR]; see https://foo.com\f[R] contains a \f[CR]https\f[R] tag with
-value \f[CR]//foo.com\f[R].
-.SS Special tags
-Some tag names have special significance to hledger.
+Eg a comment like \f[CR]; see https://foo.com\f[R] adds a
+\f[CR]https\f[R] tag.
+.PP
+There are several tag names which have special significance to hledger.
 They are explained elsewhere, but here\[aq]s a quick reference:
 .IP
 .EX
@@ -2964,7 +3028,7 @@ You can list accounts and their types, for troubleshooting:
 .RS 2
 .IP
 .EX
-$ hledger accounts \-\-types [ACCTPAT] [type:TYPECODES] [\-DEPTH] [\-\-positions]
+$ hledger accounts \-\-types [ACCTPAT] [type:TYPECODES] [\-DEPTH]
 .EE
 .RE
 .IP \[bu] 2
@@ -7213,8 +7277,8 @@ Some special cases:
 Colons appearing in PIVOTEXPR or in a pivoted tag value will generate
 account hierarchy.
 .IP \[bu] 2
-When pivoting a posting has multiple values for a tag, the pivoted value
-of that tag will be the first value.
+When pivoting a posting that has multiple values for a tag, the
+tag\[aq]s first value will be used as the pivoted value.
 .IP \[bu] 2
 When a posting has multiple commodities, the pivoted value of
 \[dq]comm\[dq]/\[dq]cur\[dq] will be \[dq]\[dq].
@@ -9400,22 +9464,39 @@ Flags:
      \-\-unused               list accounts declared but not used
      \-\-find                 list the first account matched by the first
                             argument (a case\-insensitive infix regexp)
-     \-\-types                also show account types when known
-     \-\-positions            also show where accounts were declared
      \-\-directives           show as account directives, for use in journals
+     \-\-locations            also show where accounts were declared
+     \-\-types                also show account types when known
   \-l \-\-flat                 list/tree mode: show accounts as a flat list
                             (default)
   \-t \-\-tree                 list/tree mode: show accounts as a tree
      \-\-drop=N               flat mode: omit N leading account name parts
 .EE
 .PP
-This command lists account names \- all of them by default.
-or just the ones which have been used in transactions, or declared with
-\f[CR]account\f[R] directives, or used but not declared, or declared but
-not used, or just the first account name matched by a pattern.
+This command lists account names \- all of them by default, or just the
+ones which have been used in transactions (\f[CR]\-u/\-\-used\f[R]), or
+declared with \f[CR]account\f[R] directives
+(\f[CR]\-d/\-\-declared\f[R]), or used but not declared
+(\f[CR]\-\-undeclared\f[R]), or declared but not used
+(\f[CR]\-\-unused\f[R]), or just the first one matched by a pattern
+(\f[CR]\-\-find\f[R], returning a non\-zero exit code if it fails).
 .PP
 You can add query arguments to select a subset of transactions or
 accounts.
+.PP
+With \f[CR]\-\-directives\f[R], it shows valid account directives which
+could be pasted into a journal file.
+This is useful together with \f[CR]\-\-undeclared\f[R] when updating
+your account declarations to satisfy \f[CR]hledger check accounts\f[R].
+.PP
+With \f[CR]\-\-locations\f[R], it also shows the file and line number of
+each account\[aq]s declaration, if any, and the account\[aq]s overall
+declaration order; these may be useful when troubleshooting account
+display order.
+.PP
+With \f[CR]\-\-types\f[R], it also shows each account\[aq]s type, if
+it\[aq]s known.
+(See Declaring accounts > Account types.)
 .PP
 It shows a flat list by default.
 With \f[CR]\-\-tree\f[R], it uses indentation to show the account
@@ -9424,25 +9505,6 @@ In flat mode you can add \f[CR]\-\-drop N\f[R] to omit the first few
 account name components.
 Account names can be depth\-clipped with \f[CR]depth:N\f[R] or
 \f[CR]\-\-depth N\f[R] or \f[CR]\-N\f[R].
-.PP
-With \f[CR]\-\-types\f[R], it also shows each account\[aq]s type, if
-it\[aq]s known.
-(See Declaring accounts > Account types.)
-.PP
-With \f[CR]\-\-positions\f[R], it also shows the file and line number of
-each account\[aq]s declaration, if any, and the account\[aq]s overall
-declaration order; these may be useful when troubleshooting account
-display order.
-.PP
-With \f[CR]\-\-directives\f[R], it shows valid account directives which
-could be pasted into a journal file.
-This is useful together with \f[CR]\-\-undeclared\f[R] when updating
-your account declarations to satisfy \f[CR]hledger check accounts\f[R].
-.PP
-The \f[CR]\-\-find\f[R] flag can be used to look up a single account
-name, in the same way that the \f[CR]aregister\f[R] command does.
-It returns the alphanumerically\-first matched account name, or if none
-can be found, it fails with a non\-zero exit code.
 .PP
 Examples:
 .IP
@@ -9526,14 +9588,19 @@ Flags:
      \-\-declared             list commodities declared
      \-\-undeclared           list commodities used but not declared
      \-\-unused               list commodities declared but not used
+     \-\-find                 list the first commodity matched by the first
+                            argument (a case\-insensitive infix regexp)
 .EE
 .PP
 This command lists commodity symbols/names \- all of them by default, or
 just the ones which have been used in transactions or \f[CR]P\f[R]
 directives, or declared with \f[CR]commodity\f[R] directives, or used
-but not declared, or declared but not used.
+but not declared, or declared but not used, or just the first one
+matched by a pattern (with \f[CR]\-\-find\f[R], returning a non\-zero
+exit code if it fails).
 .PP
-You can add cur: query arguments to further limit the commodities.
+You can add \f[CR]cur:\f[R] query arguments to further limit the
+commodities.
 .SS descriptions
 List the unique descriptions used in transactions.
 .IP
@@ -9593,12 +9660,15 @@ Flags:
      \-\-declared             list payees declared
      \-\-undeclared           list payees used but not declared
      \-\-unused               list payees declared but not used
+     \-\-find                 list the first payee matched by the first
+                            argument (a case\-insensitive infix regexp)
 .EE
 .PP
 This command lists unique payee/payer names \- all of them by default,
 or just the ones which have been used in transaction descriptions, or
 declared with \f[CR]payee\f[R] directives, or used but not declared, or
-declared but not used.
+declared but not used, or just the first one matched by a pattern (with
+\f[CR]\-\-find\f[R], returning a non\-zero exit code if it fails).
 .PP
 The payee/payer name is the part of the transaction description before a
 | character (or if there is no |, the whole description).
@@ -9700,6 +9770,8 @@ Flags:
      \-\-declared             list tags declared
      \-\-undeclared           list tags used but not declared
      \-\-unused               list tags declared but not used
+     \-\-find                 list the first tag whose name is matched by the
+                            first argument (a case\-insensitive infix regexp)
      \-\-values               list tag values instead of tag names
      \-\-parsed               show them in the order they were parsed (mostly),
                             including duplicates
@@ -9708,13 +9780,14 @@ Flags:
 This command lists tag names \- all of them by default, or just the ones
 which have been used on transactions/postings/accounts, or declared with
 \f[CR]tag\f[R] directives, or used but not declared, or declared but not
-used.
+used, or just the first one matched by a pattern (with
+\f[CR]\-\-find\f[R], returning a non\-zero exit code if it fails).
 .PP
-You can add one TAGREGEX argument, to show only tags whose name is
-matched by this case\-insensitive, infix\-matching regular expression.
-.PP
-After that, you can add query arguments to filter the transactions,
-postings, or accounts providing tags.
+Note this command\[aq]s non\-standard first argument: it is a
+case\-insensitive infix regular expression for matching tag names, which
+limits the tags shown.
+Any additional arguments are standard query arguments, which limit the
+transactions, postings, or accounts providing tags.
 .PP
 With \f[CR]\-\-values\f[R], the tags\[aq] unique non\-empty values are
 listed instead.
@@ -9737,15 +9810,11 @@ Show full journal entries, representing transactions.
 Flags:
   \-x \-\-explicit             show all amounts explicitly
      \-\-invert               display all amounts with reversed sign
-     \-\-location             add tags showing file paths and line numbers
+     \-\-locations            add tags showing file paths and line numbers
   \-m \-\-match=DESC           fuzzy search for one recent transaction with
                             description closest to DESC
      \-\-new                  show only newer\-dated transactions added in each
                             file since last run
-     \-\-no\-lots              remove lot subaccounts and their balance
-                            assertions
-     \-\-no\-lots2             remove lot subaccounts and their costs and
-                            balance assertions (can produce unbalanced entries)
      \-\-round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
                             none \- show original decimal digits,
@@ -9791,7 +9860,7 @@ $ hledger print \-f examples/sample.journal date:200806
     expenses:supplies            $1
     assets:cash                 $\-2
 .EE
-.SS print explicitness
+.SS print amount explicitness
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not
 appear in the output.
@@ -9809,19 +9878,20 @@ The \f[CR]\-x\f[R]/\f[CR]\-\-explicit\f[R] flag will cause any postings
 with a multi\-commodity amount (which can arise when a multi\-commodity
 transaction has an implicit amount) to be split into multiple
 single\-commodity postings, keeping the output parseable.
-.SS print amount style
+.SS print alignment
 Amounts are shown right\-aligned within each transaction (but not
-aligned across all transactions; you can do that with ledger\-mode in
-Emacs).
+aligned across all transactions; you can achieve that with ledger\-mode
+in Emacs).
+.SS print amount style
+Amounts will be displayed mostly in their commodity\[aq]s display style,
+with standardised symbol placement, decimal mark, and digit group marks.
+This does not apply to their decimal digits; \f[CR]print\f[R] normally
+shows the same decimal digits that are recorded in each journal entry.
 .PP
-Amounts will be (mostly) normalised to their commodity display style:
-their symbol placement, decimal mark, and digit group marks will be made
-consistent.
-By default, decimal digits are shown as they are written in the journal.
-.PP
-With the \f[CR]\-\-round\f[R] (\f[I]Added in 1.32\f[R]) option,
-\f[CR]print\f[R] will try increasingly hard to display decimal digits
-according to the commodity display styles:
+You can override the decimal precisions with \f[CR]print\f[R]\[aq]s
+special \f[CR]\-\-round\f[R] option (\f[I]since 1.32\f[R]).
+\f[CR]\-\-round\f[R] tries to show amounts with their commodities\[aq]
+standard decimal precisions, increasingly strongly:
 .IP \[bu] 2
 \f[CR]\-\-round=none\f[R] show amounts with original precisions
 (default)
@@ -9834,17 +9904,18 @@ significant digits
 .IP \[bu] 2
 \f[CR]\-\-round=all\f[R] round all amounts and costs
 .PP
-\f[CR]soft\f[R] is good for non\-lossy cleanup, formatting amounts more
-consistently where it\[aq]s safe to do so.
+\f[CR]soft\f[R] is good for non\-lossy cleanup, displaying more
+consistent decimals where possible, without making entries unbalanced.
 .PP
-\f[CR]hard\f[R] and \f[CR]all\f[R] can cause \f[CR]print\f[R] to show
-invalid unbalanced journal entries; they may be useful eg for stronger
-cleanup, with manual fixups when needed.
+\f[CR]hard\f[R] or \f[CR]all\f[R] can be good for stronger cleanup, when
+decimal rounding is wanted.
+Note rounding can produce unbalanced journal entries, perhaps requiring
+manual fixup.
 .SS print parseability
-print\[aq]s output is usually a valid hledger journal, and you can
-process it again with a second hledger command.
-This can be useful for certain kinds of search (though the same can be
-achieved with \f[CR]expr:\f[R] queries now):
+Normally, print\[aq]s output is a valid hledger journal, which you can
+\[dq]pipe\[dq] to a second hledger command for further processing.
+This is sometimes convenient for achieving certain kinds of query
+(though less needed now that queries have become more powerful):
 .IP
 .EX
 # Show running total of food expenses paid from cash.
@@ -9852,15 +9923,21 @@ achieved with \f[CR]expr:\f[R] queries now):
 $ hledger print assets:cash | hledger \-f\- \-I reg expenses:food
 .EE
 .PP
-There are some situations where print\[aq]s output can become
+But here are some things which can cause print\[aq]s output to become
 unparseable:
 .IP \[bu] 2
-Value reporting affects posting amounts but not balance assertion or
-balance assignment amounts, potentially causing those to fail.
+\f[CR]\-\-round\f[R] (see above) can disrupt transaction balancing.
 .IP \[bu] 2
-Auto postings can generate postings with too many missing amounts.
+Account aliases or pivoting can disrupt account names, balance
+assertions, or balance assignments.
 .IP \[bu] 2
-Account aliases can generate bad account names.
+Value reporting also can disrupt balance assertions or balance
+assignments.
+.IP \[bu] 2
+Auto postings can generate too many amountless postings.
+.IP \[bu] 2
+\f[CR]\-\-infer\-costs or \-\-infer\-equity\f[R] can generate
+too\-complex redundant costs.
 .SS print, other features
 With \f[CR]\-B\f[R]/\f[CR]\-\-cost\f[R], amounts with costs are shown
 converted to cost.
@@ -9882,8 +9959,8 @@ DESC should contain at least two characters.
 If there is no similar\-enough match, no transaction will be shown and
 the program exit code will be non\-zero.
 .PP
-With \f[CR]\-\-location\f[R], print adds the source file and line number
-to every transaction, as a tag.
+With \f[CR]\-\-locations\f[R], print adds the source file and line
+number to every transaction, as a tag.
 .SS print output format
 This command also supports the output destination and output format
 options The output formats supported are \f[CR]txt\f[R],
@@ -10003,25 +10080,21 @@ As a quick rule of thumb: \- use \f[CR]aregister\f[R] for reviewing and
 reconciling real\-world asset/liability accounts \- use
 \f[CR]register\f[R] for reviewing detailed revenues/expenses.
 .PP
-\f[CR]aregister\f[R] requires one argument: the account to report on.
-You can write either the full account name, or a case\-insensitive
-regular expression which will select the alphabetically first matched
-account.
-.PP
-When there are multiple matches, the alphabetically\-first choice can be
-surprising; eg if you have \f[CR]assets:per:checking 1\f[R] and
-\f[CR]assets:biz:checking 2\f[R] accounts,
-\f[CR]hledger areg checking\f[R] would select
-\f[CR]assets:biz:checking 2\f[R].
-It\[aq]s just a convenience to save typing, so if in doubt, write the
-full account name, or a distinctive substring that matches uniquely.
+Note this command\[aq]s non\-standard, and required, first argument; it
+specifies the account whose register will be shown.
+You can write the account\[aq]s name, or (to save typing) a
+case\-insensitive infix regular expression matching the name, which
+selects the alphabetically first matched account.
+(For example, if you have \f[CR]assets:personal checking\f[R] and
+\f[CR]assets:business checking\f[R], \f[CR]hledger areg checking\f[R]
+would select \f[CR]assets:business checking\f[R].)
 .PP
 Transactions involving subaccounts of this account will also be shown.
 \f[CR]aregister\f[R] ignores depth limits, so its final total will
 always match a historical balance report with similar arguments.
 .PP
-Any additional arguments form a query which will filter the transactions
-shown.
+Any additional arguments are standard query arguments, which will limit
+the transactions shown.
 Note some queries will disturb the running balance, causing it to be
 different from the account\[aq]s real\-world running balance.
 .PP
