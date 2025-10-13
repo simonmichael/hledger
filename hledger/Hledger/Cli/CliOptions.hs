@@ -81,8 +81,9 @@ module Hledger.Cli.CliOptions (
 
   -- * Other utils
   topicForMode,
-  UsedOrDeclared(..),
-  usedOrDeclaredFromOpts,
+  DeclarablesSelector(..),
+  declarablesSelectorFromOpts,
+  findMatchedByArgument,
 
 --  -- * Convenience re-exports
 --  module Data.String.Here,
@@ -120,7 +121,8 @@ import Hledger
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Version
 import Data.Time.Clock.POSIX (POSIXTime)
-import Data.List (isPrefixOf, isSuffixOf)
+import Data.List (find, isPrefixOf, isSuffixOf)
+import Data.Function ((&))
 
 
 -- | The name of this program's executable.
@@ -825,28 +827,49 @@ registerWidthsFromOpts CliOpts{width_=Just s}  =
           eof
           return (totalwidth, descwidth)
 
--- A common choice for filtering lists of declarable things.
-data UsedOrDeclared
+-- Some common ways to select items from a list of declarable things.
+-- Used by the accounts, commodities, payees, tags commands, eg.
+data DeclarablesSelector
   = Used
   | Declared
   | Undeclared
   | Unused
+  | Find
   deriving (Show, Eq)
 
 -- Get the flag of this kind from opts, or raise an error if there's more than one.
-usedOrDeclaredFromOpts :: CliOpts -> Maybe UsedOrDeclared
-usedOrDeclaredFromOpts CliOpts{rawopts_=rawopts} =
+declarablesSelectorFromOpts :: CliOpts -> Maybe DeclarablesSelector
+declarablesSelectorFromOpts CliOpts{rawopts_=rawopts} =
   case ( boolopt "used"       rawopts
        , boolopt "declared"   rawopts
        , boolopt "undeclared" rawopts
        , boolopt "unused"     rawopts
+       , boolopt "find"       rawopts
        ) of
-    (False, False, False, False) -> Nothing
-    (True, False, False, False) -> Just Used
-    (False, True, False, False) -> Just Declared
-    (False, False, True, False) -> Just Undeclared
-    (False, False, False, True) -> Just Unused
-    _ -> error' "please pick at most one of --used, --declared, --undeclared, --unused"
+    (False, False, False, False, False) -> Nothing
+    (True,  False, False, False, False) -> Just Used
+    (False, True,  False, False, False) -> Just Declared
+    (False, False, True,  False, False) -> Just Undeclared
+    (False, False, False, True,  False) -> Just Unused
+    (False, False, False, False, True ) -> Just Find
+    _ -> error' "please pick at most one of --used, --declared, --undeclared, --unused, --find"
+
+-- | A helper for the --find mode offered by commands like accounts, commodities, payees, tags (see also 'DeclarablesSelector').
+-- Interpret the first command argument found in rawopts as a case insensitive regular expression,
+-- then return the first of the provided items that it matches;
+-- or raise an error if there's no valid argument or no matched item.
+-- This function's second argument describes the items' type, for the error message.
+findMatchedByArgument :: RawOpts -> String -> [T.Text] -> T.Text
+findMatchedByArgument rawopts itemtype items =
+  let
+    arg = headDef err $ listofstringopt "args" rawopts
+      where err = error' $ "With --find, please provide a " ++ itemtype ++ " name or\n" ++
+              itemtype ++ " pattern (case-insensitive, infix, regexp) as first command argument."
+    firstmatch = case toRegexCI $ T.pack arg of  -- keep synced with aregister's matching
+      Right re -> find (regexMatchText re)
+      Left  _  -> const Nothing
+  in firstmatch items
+    & fromMaybe (error' $ show arg ++ " did not match any " ++ itemtype ++ ".")
 
 -- Other utils
 

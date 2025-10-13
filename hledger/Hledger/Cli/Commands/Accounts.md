@@ -10,42 +10,39 @@ Flags:
      --unused               list accounts declared but not used
      --find                 list the first account matched by the first
                             argument (a case-insensitive infix regexp)
-     --types                also show account types when known
-     --positions            also show where accounts were declared
      --directives           show as account directives, for use in journals
+     --positions            also show where accounts were declared
+     --types                also show account types when known
   -l --flat                 list/tree mode: show accounts as a flat list
                             (default)
   -t --tree                 list/tree mode: show accounts as a tree
      --drop=N               flat mode: omit N leading account name parts
 ```
 
-This command lists account names - all of them by default.
-or just the ones which have been used in transactions,
-or declared with `account` directives,
-or used but not declared,
-or declared but not used,
-or just the first account name matched by a pattern.
+This command lists account names -
+all of them by default,
+or just the ones which have been used in transactions (`-u/--used`),
+or declared with `account` directives (`-d/--declared`),
+or used but not declared (`--undeclared`),
+or declared but not used (`--unused`),
+or just the first one matched by a pattern (`--find`, returning a non-zero exit code if it fails).
 
-You can add query arguments to select a subset of transactions or accounts.
-
-It shows a flat list by default. With `--tree`, it uses indentation to show the account hierarchy.
-In flat mode you can add `--drop N` to omit the first few account name components.
-Account names can be depth-clipped with `depth:N` or `--depth N` or `-N`.
-
-With `--types`, it also shows each account's type, if it's known.
-(See Declaring accounts > Account types.)
-
-With `--positions`, it also shows the file and line number of each
-account's declaration, if any, and the account's overall declaration order;
-these may be useful when troubleshooting account display order.
+You can add [query arguments](#queries) to select a subset of transactions or accounts.
 
 With `--directives`, it shows valid account directives which could be pasted into a journal file.
 This is useful together with `--undeclared` when updating your account declarations
 to satisfy `hledger check accounts`.
 
-The `--find` flag can be used to look up a single account name, in the same way
-that the `aregister` command does. It returns the alphanumerically-first matched
-account name, or if none can be found, it fails with a non-zero exit code.
+With `--positions`, it also shows the file and line number of each
+account's declaration, if any, and the account's overall declaration order;
+these may be useful when troubleshooting account display order.
+
+With `--types`, it also shows each account's type, if it's known.
+(See Declaring accounts > Account types.)
+
+It shows a flat list by default. With `--tree`, it uses indentation to show the account hierarchy.
+In flat mode you can add `--drop N` to omit the first few account name components.
+Account names can be depth-clipped with `depth:N` or `--depth N` or `-N`.
 
 Examples:
 

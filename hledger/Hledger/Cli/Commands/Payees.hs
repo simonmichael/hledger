@@ -30,6 +30,7 @@ payeesmode = hledgerCommandMode
   ,flagNone ["declared"]     (setboolopt "declared")   "list payees declared"
   ,flagNone ["undeclared"]   (setboolopt "undeclared") "list payees used but not declared"
   ,flagNone ["unused"]       (setboolopt "unused")     "list payees declared but not used"
+  ,flagNone ["find"]         (setboolopt "find")       "list the first payee matched by the first argument (a case-insensitive infix regexp)"
   ]
   cligeneralflagsgroups1
   hiddenflags
@@ -37,7 +38,7 @@ payeesmode = hledgerCommandMode
 
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
-payees opts@CliOpts{reportspec_=ReportSpec{_rsQuery=query}} j = do
+payees opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
     -- XXX matchesPayeeWIP is currently an alias for matchesDescription, not sure if it matters
     matchedused       = dbg5 "matchedused"       $ nubSort $ map transactionPayee $ filter (matchesTransaction query) $ jtxns j
@@ -45,10 +46,13 @@ payees opts@CliOpts{reportspec_=ReportSpec{_rsQuery=query}} j = do
     matchedunused     = dbg5 "matchedunused"     $ nubSort $ matcheddeclared \\ matchedused
     matchedundeclared = dbg5 "matchedundeclared" $ nubSort $ matchedused     \\ matcheddeclared
     matchedall        = dbg5 "matchedall"        $ nubSort $ matcheddeclared ++ matchedused
-  mapM_ T.putStrLn $ case usedOrDeclaredFromOpts opts of
+    found             = dbg5 "found"             $ findMatchedByArgument rawopts "payee" all'
+      where all' = nubSort $ map transactionPayee (jtxns j) <> journalPayeesDeclared j
+  mapM_ T.putStrLn $ case declarablesSelectorFromOpts opts of
     Nothing         -> matchedall
     Just Used       -> matchedused
     Just Declared   -> matcheddeclared
     Just Undeclared -> matchedundeclared
     Just Unused     -> matchedunused
+    Just Find       -> [found]
 

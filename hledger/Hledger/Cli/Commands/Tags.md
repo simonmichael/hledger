@@ -2,7 +2,7 @@
 
 List the tag names used or declared in the journal, or their values.
 <!-- This section has the same name as Journal > Tags; 
-     if reordering this and that, update all #tags[-1] links -->
+     if changing their relative order, all #tags[-1] links need to be updated -->
 
 ```flags
 Flags:
@@ -10,22 +10,24 @@ Flags:
      --declared             list tags declared
      --undeclared           list tags used but not declared
      --unused               list tags declared but not used
+     --find                 list the first tag whose name is matched by the
+                            first argument (a case-insensitive infix regexp)
      --values               list tag values instead of tag names
      --parsed               show them in the order they were parsed (mostly),
                             including duplicates
 ```
 
-This command lists tag names - all of them by default,
+This command lists tag names -
+all of them by default,
 or just the ones which have been used on transactions/postings/accounts,
 or declared with `tag` directives,
 or used but not declared,
-or declared but not used.
+or declared but not used,
+or just the first one matched by a pattern (with `--find`, returning a non-zero exit code if it fails).
 
-You can add one TAGREGEX argument, to show only tags whose name is
-matched by this case-insensitive, infix-matching regular expression.
-
-After that, you can add query arguments to filter the 
-transactions, postings, or accounts providing tags.
+Note this command's non-standard first argument:
+it is a case-insensitive infix regular expression for matching tag names, which limits the tags shown.
+Any additional arguments are standard [query arguments](#queries), which limit the transactions, postings, or accounts providing tags.
 
 With `--values`, the tags' unique non-empty values are listed instead.
 

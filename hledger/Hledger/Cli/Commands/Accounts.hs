@@ -22,10 +22,8 @@ module Hledger.Cli.Commands.Accounts (
 
 import Control.Monad (forM_)
 import Data.List
-import Data.Maybe (fromMaybe)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Safe (headDef)
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
@@ -41,7 +39,6 @@ accountsmode = hledgerCommandMode
   ,flagNone ["undeclared"]   (setboolopt "undeclared") "list accounts used but not declared"
   ,flagNone ["unused"]       (setboolopt "unused")     "list accounts declared but not used"
   ,flagNone ["find"]         (setboolopt "find")       "list the first account matched by the first argument (a case-insensitive infix regexp)"
-
   ,flagNone ["directives"]   (setboolopt "directives") "show as account directives, for use in journals"
   ,flagNone ["positions"]    (setboolopt "positions")  "also show where accounts were declared"
   ,flagNone ["types"]        (setboolopt "types")      "also show account types when known"
@@ -78,27 +75,16 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
         map fst $ jdeclaredaccounts j
       matchedundeclared = dbg5 "matchedundeclared" $ nub $ matchedused \\ matcheddeclared
       matchedunused = dbg5 "matchedunused" $ nub $ matcheddeclared \\ matchedused
-      -- keep synced with aregister
-      matchedacct = dbg5 "matchedacct" $
-        fromMaybe (error' $ show apat ++ " did not match any account.")   -- PARTIAL:
-            . firstMatch $ journalAccountNamesDeclaredOrImplied j
-        where
-          firstMatch = case toRegexCI $ T.pack apat of
-              Right re -> find (regexMatchText re)
-              Left  _  -> const Nothing
-          apat = headDef
-            (error' "With --find, please provide an account name or\naccount pattern (case-insensitive, infix, regexp) as first command argument.")
-            $ listofstringopt "args" rawopts
+      found = dbg5 "matchedacct" $ findMatchedByArgument rawopts "account" $ journalAccountNamesDeclaredOrImplied j
       matchedall = matcheddeclared ++ matchedused
       accts = dbg5 "accts to show" $
-        case (usedOrDeclaredFromOpts opts, boolopt "find" rawopts) of
-          (Nothing,         False) -> matchedall
-          (Nothing,         True)  -> [matchedacct]
-          (Just Used,       False) -> matchedused
-          (Just Declared,   False) -> matcheddeclared
-          (Just Undeclared, False) -> matchedundeclared
-          (Just Unused,     False) -> matchedunused
-          _ -> error' "please pick at most one of --used, --declared, --undeclared, --unused, --find"
+        case declarablesSelectorFromOpts opts of
+          Nothing         -> matchedall
+          Just Used       -> matchedused
+          Just Declared   -> matcheddeclared
+          Just Undeclared -> matchedundeclared
+          Just Unused     -> matchedunused
+          Just Find       -> [found]
 
   -- 2. sort them by declaration order (then undeclared accounts alphabetically)
   -- within each group of siblings
