@@ -62,7 +62,7 @@ import Data.Maybe
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Network.HTTP.Client
-import Network.HTTP.Types (statusCode, hLocation)
+import Network.HTTP.Types (statusCode)  --, hLocation)
 import Network.HTTP.Req as R
 import Safe
 import System.Directory
@@ -143,7 +143,8 @@ setupHledger = do
     mlatestversion = either (const Nothing) toVersion elatestversionnumstr
     latestVersionStr = either (const "") id elatestversionnumstr
     msg = showVersion (hbinPackageVersion binaryinfo) <> " installed, latest is " <> latestVersionStr
-  -- flush this output to show what's happening in case of delay or a network access warning
+  -- use pcaseFlush to show this output before the HTTP request, to show what's happening in case of delay or a network access warning
+  -- XXX ineffective, getLatestHledgerVersion runs first
   pcaseFlush "is up to date ? checking..."
     [ (isLeft elatestversionnumstr,
        p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> either id (const "") elatestversionnumstr))
@@ -643,63 +644,41 @@ pcaseFlush name cases
   | debugLevel > 0 = mapM_ ((pdesc name >> hFlush stdout >>) . snd) cases
   | otherwise = pdesc name >> hFlush stdout >> fromMaybe (return ()) (lookup True cases)
 
--- | Like pcase, but takes a test result value and a list of (value, action) pairs.
--- Runs the first action where the value matches the result value.
--- Or with --debug, runs all actions in sequence, printing all possible test outputs.
--- pmatch :: (Eq a) => String -> a -> [(a, IO ())] -> IO ()
--- pmatch name result cases
---   | debugLevel > 0 = mapM_ ((pdesc name >>) . snd) cases
---   | otherwise = pdesc name >> fromMaybe (return ()) (lookup result cases)
-
-(getLatestHledgerVersion, latestHledgerVersionUrlStr) =
-  -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")
-  (getLatestHledgerVersionFromHledgerOrg, "https://hledger.org/install.html")
+getLatestHledgerVersion    = getLatestHledgerVersionFromHledgerOrg  -- keep
+latestHledgerVersionUrlStr = "https://hledger.org/install.html"     -- synced
 
 httptimeout = 10000000  -- 10s
 
--- | Get the current hledger release version from the internet.
--- Currently requests the latest doc page from Hackage and inspects the redirect path.
--- Should catch all normal errors, and time out after 10 seconds.
-getLatestHledgerVersionFromHackage :: IO (Either String String)
-getLatestHledgerVersionFromHackage = do
-  let url = https "hackage.haskell.org" /: "package" /: "hledger" /: "docs" /: ""
-  result <- try $ runReq defaultHttpConfig{httpConfigRedirectCount=0} $
-    req HEAD url NoReqBody bsResponse (R.responseTimeout httptimeout)
-  case result of
-    Right _ -> return $ Left "expected a redirect"
-    Left (VanillaHttpException (HttpExceptionRequest _ (StatusCodeException rsp _))) -> do
-      let status = statusCode $ responseStatus rsp
-      if status >= 300 && status < 400
-        then do
-          let locationHeader = lookup hLocation (responseHeaders rsp)
-          case fmap T.decodeUtf8 locationHeader of
-            Nothing       -> return $ Left "no Location header"
-            Just location -> do
-              let packagename = take 1 $ drop 1 $ reverse $ T.splitOn "/" location
-              case packagename of
-                [n] -> return $ Right $ dropWhile (`notElem` ['0'..'9']) $ T.unpack n
-                _   -> return $ Left "couldn't parse Location"
-        else return $ Left $ "HTTP status " ++ show status
-    Left err -> return $ Left $ "other exception: " ++ show err
-
--- | Like the above, but get the version from the first number on the hledger.org Install page.
+-- | Get the current hledger release version from the first number on the hledger.org/install.html page.
 getLatestHledgerVersionFromHledgerOrg :: IO (Either String String)
 getLatestHledgerVersionFromHledgerOrg = do
   let url = https "hledger.org" /: "install.html"
-  do
-    result <- try $ runReq defaultHttpConfig $ req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
-    case result of
-      Left (e :: R.HttpException) -> return $ Left $ show e
-      Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
-        Left e  -> return $ Left $ show e
-        Right t -> return $
-          if null version then Left "couldn't parse version" else Right version
-          where
-            -- keep synced
-            versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
-            version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
-  -- work around potential failure on mac (& possible security issue, reported upstream)
-  `catch` (\(_ :: IOError) -> return $ Left "req failed (mac PATH issue ?)")
+  result <- try $ runReq defaultHttpConfig $ req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
+  case result of
+    Left e    -> return $ Left $ formatHttpException e
+    Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
+      Left e   -> return $ Left $ show e
+      Right t  -> return $
+        if null version then Left "couldn't parse version" else Right version
+        where
+          -- keep synced
+          versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
+          version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
+  -- handle a potential req failure on mac (https://github.com/mrkkrp/req/issues/185) more gracefully.
+  `catch` (\(_ :: IOError) -> return $ Left "req IO error (if on mac, perhaps PATH is misconfigured ?)")
+
+-- | Convert an HTTP exception to a user-friendly error message.
+formatHttpException :: R.HttpException -> String
+formatHttpException (VanillaHttpException (HttpExceptionRequest _ err)) = case err of
+  -- https://hackage.haskell.org/package/http-client-0.7.17/docs/Network-HTTP-Client.html#t:HttpExceptionContent
+  ConnectionTimeout         -> "connection timed out"
+  ResponseTimeout           -> "request timed out"
+  StatusCodeException rsp _ -> "HTTP status " ++ show (statusCode $ responseStatus rsp)
+  ConnectionFailure _       -> "connection failed"   -- these two can be caused
+  InternalException _       -> "connection failed"   -- by any kind of exception
+  _                         -> "network error: " ++ show err  -- some other failure
+formatHttpException (VanillaHttpException (InvalidUrlException _ msg)) = "invalid URL: " ++ msg
+formatHttpException (JsonHttpException msg) = "JSON error: " ++ msg
 
 -- | Try to run the hledger in PATH with one or more sets of command line arguments.
 -- Returns the output from the first set of arguments that runs successfully,
