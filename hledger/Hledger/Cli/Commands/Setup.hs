@@ -78,6 +78,7 @@ import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Version
 import System.IO (localeEncoding, hFlush, stdout)
+import Data.Either (isLeft, isRight)
 
 
 setupmode = hledgerCommandMode
@@ -129,60 +130,110 @@ setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
 
-  pdesc "is a released version ?"
-  if isReleaseVersion $ hbinPackageVersion binaryinfo
-  then p Y prognameandversion
-  else i N prognameandversion
+  -- Output helpers like pbool and pcase make this code more convoluted, but
+  -- they provide a valuable testing aid: with --debug they show all possible outputs.
 
-  -- flush this one to show what's happening in case user gets a network access warning
-  pdesc "is up to date ? checking..." >> hFlush stdout
+  pbool "is a released version ?"
+    (isReleaseVersion $ hbinPackageVersion binaryinfo)
+    (p Y prognameandversion)
+    (i N prognameandversion)
+
   elatestversionnumstr <- getLatestHledgerVersion
-  case elatestversionnumstr of
-    Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
-    Right latestversionnumstr ->
-      case toVersion latestversionnumstr of
-        Nothing -> p U "couldn't parse latest version number"
-        Just latestversion -> p
-          (if hbinPackageVersion binaryinfo >= latestversion then Y else N)
-          (showVersion (hbinPackageVersion binaryinfo) <> " installed, latest is " <> latestversionnumstr)
+  let
+    mlatestversion = either (const Nothing) toVersion elatestversionnumstr
+    latestVersionStr = either (const "") id elatestversionnumstr
+    msg = showVersion (hbinPackageVersion binaryinfo) <> " installed, latest is " <> latestVersionStr
+  -- flush this output to show what's happening in case of delay or a network access warning
+  pcaseFlush "is up to date ? checking..."
+    [ (isLeft elatestversionnumstr,
+       p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> either id (const "") elatestversionnumstr))
+    , (isNothing mlatestversion,
+       p U "couldn't parse latest version number")
+    , (hbinPackageVersion binaryinfo >= fromJust mlatestversion,
+       p Y msg)
+    , (hbinPackageVersion binaryinfo < fromJust mlatestversion,
+       p N msg)
+    ]
 
-  pdesc "is a native binary for this machine ?"
-  case hbinArch binaryinfo of
-    Nothing -> p U $ "couldn't detect this binary's architecture"
-    Just a | a /= arch -> p N $ "binary is for " <> a <> ", system is " <> arch <> ", may run slowly"
-    Just a -> p Y a
+  let mArch = hbinArch binaryinfo
+  pcase "is a native binary for this machine ?"
+    [ (isNothing mArch,
+       p U "couldn't detect this binary's architecture")
+    , (isJust mArch && fromJust mArch /= arch,
+       p N $ "binary is for " <> fromJust mArch <> ", system is " <> arch <> ", may run slowly")
+    , (isJust mArch && fromJust mArch == arch,
+       p Y (fromJust mArch))
+    ]
 
-  pdesc "is installed in PATH (this version) ?"
+  -- pdesc "is installed in PATH (this version) ?"
+  -- pathexes  <- findExecutables progname
+  -- let
+  --   (failaction, failmsg) =
+  --     -- (exitFailure , "Please install this hledger in PATH then run setup again.")
+  --     (return ()   , " Some of this info may not apply to that hledger version. Continuing anyway..")
+  -- case pathexes of
+  --   [] -> p N failmsg >> failaction
+  --   exe:_ -> do
+  --     eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
+  --     case eerrout of
+  --       Left  err -> p U (progname <> " --version failed: " <> err) >> failaction
+  --       Right out -> do
+  --         case parseHledgerVersion out of
+  --           Left  _ -> p U ("couldn't parse " <> progname <> " --version: " <> rstrip out) >> exitFailure
+  --           Right pathbin -> do
+  --             let pathversion = hbinVersionOutput pathbin
+  --             if pathversion /= prognameandversion
+  --             then p N (chomp $ unlines [
+  --                ""
+  --               ," A different hledger version was found in PATH: " <> pathversion
+  --               ," at: " <> exe
+  --               ,failmsg
+  --               ]) >> failaction
+  --             else p Y exe
   pathexes  <- findExecutables progname
   let
+    exe = headDef "" pathexes
     (failaction, failmsg) =
       -- (exitFailure , "Please install this hledger in PATH then run setup again.")
       (return ()   , " Some of this info may not apply to that hledger version. Continuing anyway..")
-  case pathexes of
-    [] -> p N failmsg >> failaction
-    exe:_ -> do
-      eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
-      case eerrout of
-        Left  err -> p U (progname <> " --version failed: " <> err) >> failaction
-        Right out -> do
-          case parseHledgerVersion out of
-            Left  _ -> p U ("couldn't parse " <> progname <> " --version: " <> rstrip out) >> exitFailure
-            Right pathbin -> do
-              let pathversion = hbinVersionOutput pathbin
-              if pathversion /= prognameandversion
-              then p N (chomp $ unlines [
-                 ""
-                ," A different hledger version was found in PATH: " <> pathversion
-                ," at: " <> exe
-                ,failmsg
-                ]) >> failaction
-              else p Y exe
+  -- Check for a hledger in PATH in various ways, getting a single PathCheckResult
+  result <- if null pathexes
+    then return PCNotFound
+    else do
+      everout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
+      return $ case everout of
+        Left err -> PCVersionFailed err
+        Right out -> case parseHledgerVersion out of
+          Left _ -> PCVersionUnparseable out
+          Right pathbin ->
+            let pathversion = hbinVersionOutput pathbin
+            in if pathversion == prognameandversion
+               then PCVersionMatch
+               else PCVersionMismatch pathversion
+  -- Print the appropriate test result, or all of them when in debug mode
+  pcase "is installed in PATH (this version) ?"
+    [ (case result of PCNotFound -> True; _ -> False,
+       p N failmsg >> failaction)
+    , (case result of PCVersionFailed _ -> True; _ -> False,
+       p U (progname <> " --version failed: " <> case result of PCVersionFailed err -> err; _ -> "") >> failaction)
+    , (case result of PCVersionUnparseable _ -> True; _ -> False,
+       p U ("couldn't parse " <> progname <> " --version: " <> rstrip (case result of PCVersionUnparseable out -> out; _ -> "")))
+    , (case result of PCVersionMismatch _ -> True; _ -> False,
+       p N (chomp $ unlines [
+          ""
+         ," A different hledger version was found in PATH: " <> case result of PCVersionMismatch ver -> ver; _ -> ""
+         ," at: " <> exe
+         ,failmsg
+         ]) >> failaction)
+    , (case result of PCVersionMatch -> True; _ -> False,
+       p Y exe)
+    ]
 
-  pdesc "has a system text encoding configured ?"
   let encoding = localeEncoding  -- the initial system encoding
-  if map toLower (show encoding) == "ascii"
-  then p N (show encoding <> ", please configure an encoding for non-ascii data")
-  else p Y (show encoding <> ", data files must use this encoding")
+  pbool "has a system text encoding configured ?"
+    (map toLower (show encoding) /= "ascii")
+    (p Y (show encoding <> ", data files must use this encoding"))
+    (p N (show encoding <> ", please configure an encoding for non-ascii data"))
 
   -- pdesc "can handle UTF-8 text ?"
   -- let
@@ -195,37 +246,34 @@ setupHledger = do
   -- pdesc "can report text decoding failures ?"
   -- i U (T.unpack $ T.decodeUtf8 eAcuteLatin1)
 
-  pdesc "has a user config file ?"
   muf <- activeUserConfFile
   mlf <- activeLocalConfFile
-  let
-    (ok, msg) = case muf of
-      Just f  -> (Y, f <> if isJust mlf then " (overridden)" else "")
-      Nothing -> (N, "")
-  i ok msg
+  let err = error' "setup: unexpected empty muf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
+  pbool "has a user config file ?"
+    (isJust muf)
+    (i Y (fromMaybe err muf <> if isJust mlf then " (overridden)" else ""))
+    (i N "")
 
-  pdesc "has a local config file ?"
-  let
-    (ok, msg) = case mlf of
-      Just f  -> (Y, f)
-      Nothing -> (N, "")
-  i ok msg
+  let err = error' "setup: unexpected empty mlf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
+  pbool "has a local config file ?"
+    (isJust mlf)
+    (i Y (fromMaybe err mlf))
+    (i N "")
 
   if (isJust muf || isJust mlf) then do
-    pdesc "the config file is readable ?"
     econf <- getConf def
+    pbool "the config file is readable ?"
+      (isRight econf)
+      (p Y "")
+      (p N $ either id (const "") econf)
     case econf of
-      Left e -> p N e >> return (Just $ Left e)
-      Right (conf, _) -> do
-        p Y ""
-
-        -- pdesc "common general options are configured ?"
-        -- --infer-costs"
-        -- print --explicit --infer-costs"
-
-        return $ Just $ Right conf
+      Left e          -> return $ Just (Left e)
+      Right (conf, _) -> return $ Just (Right conf)
   else
     return Nothing
+
+-- | Various possible results of checking for hledger in PATH.
+data PathCheckResult = PCNotFound | PCVersionFailed String | PCVersionUnparseable String | PCVersionMismatch String | PCVersionMatch
 
 ------------------------------------------------------------------------------
 
@@ -549,13 +597,59 @@ iInBlueBoxEmoji          = "ℹ️ "
 -- Append a space and the second text, if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
 andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
 
--- | Print a setup test groups heading.
+-- | Print a setup test group's heading.
 pgroup :: String -> IO ()
 pgroup s = putStrLn $ "\n" <> bold' s
 
 -- | Print a setup test's description, formatting and padding it to a fixed width.
 pdesc :: String -> IO ()
 pdesc s = printf "* %-40s" s
+
+-- Print the output for a test, formatting the given description,
+-- running the appropriate output action based on the given (lazy) boolean test result.
+-- Or with --debug, print the outputs for both cases (useful for output testing).
+pbool :: String -> Bool -> IO () -> IO () -> IO ()
+pbool desc result showtrue showfalse
+  | debugLevel > 0 = t >> f
+  | result = t
+  | otherwise = f
+ where
+  t = pdesc desc >> showtrue
+  f = pdesc desc >> showfalse
+
+-- Like pbool, but flush output after printing the test's description,
+-- to help show what's going on if evaluating the test result takes a long time
+-- or pops up a network access warning.
+pboolFlush :: String -> Bool -> IO () -> IO () -> IO ()
+pboolFlush name result showtrue showfalse
+  | debugLevel > 0 = t >> f
+  | result = t
+  | otherwise = f
+ where
+  t = pdesc name >> hFlush stdout >> showtrue
+  f = pdesc name >> hFlush stdout >> showfalse
+
+-- | A generalisation of pbool, that takes a list of (matched, action) pairs.
+-- Runs the first action where matched was true.
+-- Or with --debug, runs all actions in sequence, printing all possible test outputs.
+pcase :: String -> [(Bool, IO ())] -> IO ()
+pcase name cases
+  | debugLevel > 0 = mapM_ ((pdesc name >>) . snd) cases
+  | otherwise = pdesc name >> fromMaybe (return ()) (lookup True cases)
+
+-- | Like pboolFlush, but for pcase.
+pcaseFlush :: String -> [(Bool, IO ())] -> IO ()
+pcaseFlush name cases
+  | debugLevel > 0 = mapM_ ((pdesc name >> hFlush stdout >>) . snd) cases
+  | otherwise = pdesc name >> hFlush stdout >> fromMaybe (return ()) (lookup True cases)
+
+-- | Like pcase, but takes a test result value and a list of (value, action) pairs.
+-- Runs the first action where the value matches the result value.
+-- Or with --debug, runs all actions in sequence, printing all possible test outputs.
+-- pmatch :: (Eq a) => String -> a -> [(a, IO ())] -> IO ()
+-- pmatch name result cases
+--   | debugLevel > 0 = mapM_ ((pdesc name >>) . snd) cases
+--   | otherwise = pdesc name >> fromMaybe (return ()) (lookup result cases)
 
 (getLatestHledgerVersion, latestHledgerVersionUrlStr) =
   -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")
