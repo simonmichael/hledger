@@ -386,7 +386,7 @@ setupJournal meconf = do
         undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
       if null undeclaredcommodities
       then p Y (show numcommodities <> " commodities")
-      else p N (show (length undeclaredcommodities) <> " undeclared commodities")
+      else w N (show (length undeclaredcommodities) <> " undeclared commodities")
 
       let
         accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
@@ -434,28 +434,32 @@ setupJournal meconf = do
       -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
 
       pdesc "all accounts are declared ?"
-      if null undeclaredaccts then p Y (show numaccts <> " accounts") else i N (show (length undeclaredaccts) <> " undeclared accounts")
+      if null undeclaredaccts
+      then p Y (show numaccts <> " accounts")
+      else w N (show (length undeclaredaccts) <> " undeclared accounts")
 
       pdesc "all accounts have types ?"
-      if null untypedaccts then p Y "" else i N (show (length untypedaccts) <> " accounts without types")
+      if null untypedaccts
+      then p Y ""
+      else i N (show (length untypedaccts) <> " accounts have no type")
 
       pdesc "accounts of all types exist ?"
       if null typesnotfound
       then p Y (concatMap show accttypes <> " accounts detected")
-      else p N (concatMap show typesnotfound <> " accounts not found; some reports may not work")
+      else w N (concatMap show typesnotfound <> " accounts not found; some reports may not work")
 
       pdesc "commodities/accounts are being checked ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
-      then i Y "commodities and accounts must be declared"
+      then p Y "commodities and accounts must be declared"
       else i N "you can use -s to check them"
 
       pdesc "balance assertions are being checked ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
       if 
         | ignoreassertions && not strict -> i N "you can use -s to check them"
-        | not strict -> i Y "you can use -I to ignore them"
-        | otherwise -> i Y "can't ignore assertions (-s in config file)"
+        | not strict                     -> p Y "you can use -I to ignore them"
+        | otherwise                      -> p Y "can't ignore assertions (-s in config file)"
 
 ------------------------------------------------------------------------------
 
@@ -474,12 +478,17 @@ supportsColor = (>=! "1.41") -- robust color detection/control (2024)
 supportsPager = (>=! "1.41") -- use a pager for all output (2024)
 supportsBashCompletions = (>=! "1.41") -- up to date bash shell completions (2024)
 
--- Status of a setup question/statement: yes, no, unknown
+-- Status of a setup question/statement: yes, no, unknown.
 data YNU = Y | N | U deriving (Eq)
 
--- | Show status, with colours and emojis for added clarity when permitted,
--- decorating Y and N with "good" and "bad" styles respectively. Used by p.
--- See also 'showInfo' below.
+-- Show a status as unstyled english text.
+instance Show YNU where
+  show Y = "yes"
+  show N = " no"
+  show U = "  ?"
+
+-- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/bad styles for Y/N;
+-- and the (possibly empty) provided message. See also 'w' and 'i'.
 --
 -- Status is communicated to the user
 -- 1. as text: "yes"/"no"/"?"
@@ -490,39 +499,46 @@ data YNU = Y | N | U deriving (Eq)
 --
 -- The emojis chosen are hopefully somewhat likely to render reasonably well even on non-apple machines;
 -- and if they don't, 1 and 2 will still carry the message.
-instance Show YNU where
-  show Y = ansiGood    $ "yes" `andIfColour` "✅"
-  show N = ansiBad     $ " no" `andIfColour` "❗"
-  show U = ansiWarning $ "  ?" `andIfColour` "🔸"  -- 🔶
+--
+-- Note these things are distinct and not necessarily corresponding, which could be confusing:
+-- - "good"/"neutral"/"warning"/"bad" test status, in display text & user's perspective
+-- - ansiGood/ansiNeutral/ansiWarning/ansiBad styles, defined below
+-- - warn[IO] and error functions defined elsewhere, which apply their own warning and error ANSI styles,
+--   to (possibly ANSI-styled) text.
+--
+p :: YNU -> String -> IO ()
+p status msg = putStrLn $ unwords ["", showGoodBad status, "", msg]
+  where
+    showGoodBad Y = ansiGood    $ "yes" `andIfColour` "✅"
+    showGoodBad N = ansiBad     $ " no" `andIfColour` "❗"
+    showGoodBad U = ansiWarning $ "  ?" `andIfColour` "🔸"  -- 🔶
 
--- | Show status, with colours and emojis for added clarity when permitted,
--- decorating Y and N with "neutral" style. Used by i.
--- See also 'YNU''s Show instance above.
-showInfo Y = ansiNeutral $ "yes" `andIfColour` "ℹ️" -- may render as monochrome in some terminals ?
-showInfo N = ansiNeutral $ " no" `andIfColour` "ℹ️"
-showInfo U = ansiWarning $ "  ?" `andIfColour` "🔸"
+-- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/warning styles for Y/N;
+-- and the (possibly empty) provided message.
+w :: YNU -> String -> IO ()
+w status msg = putStrLn $ unwords ["", showGoodWarn status, "", msg]
+  where
+    showGoodWarn Y = ansiGood    $ "yes" `andIfColour` "ℹ️" -- may render as monochrome in some terminals ?
+    showGoodWarn N = ansiWarning $ " no" `andIfColour` "🔸"
+    showGoodWarn U = ansiWarning $ "  ?" `andIfColour` "🔸"
 
--- Dev note: confusingly, these things may not correspond:
--- - "good"/"neutral"/"warning"/"bad" display text & user's perspective
--- - ansiGood/ansiNeutral/ansiWarning/ansiBad styles defined below
--- - warn[IO] and error functions defined elsewhere, which ANSI-decorate and display possibly ANSI-decorated text
+-- | Print a status, ANSI-styled and emoji-decorated when permitted, using the neutral style for Y/N;
+-- and the (possibly empty) provided message.
+i :: YNU -> String -> IO ()
+i status msg = putStrLn $ unwords ["", showNeutral status, "", msg]
+  where
+    showNeutral Y = ansiNeutral $ "yes" `andIfColour` "ℹ️"
+    showNeutral N = ansiNeutral $ " no" `andIfColour` "ℹ️"
+    showNeutral U = ansiWarning $ "  ?" `andIfColour` "🔸"
 
--- Apply status-related ANSI styles to text.
+-- Apply setup-status-related ANSI styles to text.
 ansiGood    = bold' . brightGreen'
 ansiNeutral = bold' . brightBlue'
 ansiWarning = bold' . brightYellow'
 ansiBad     = bold' . brightRed'
 
+-- Append a space and the second text, if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
 andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
-
--- | Print a test's pass or fail status, as "yes" or "no" or "",
--- in green/red if supported, and the (possibly empty) provided message.
-p :: YNU -> String -> IO ()
-p ok msg = putStrLn $ unwords ["", show ok, "", msg]
-
--- | Like p, but display the status as info, in neutral blue.
-i :: YNU -> String -> IO ()
-i ok msg = putStrLn $ unwords ["", showInfo ok, "", msg]
 
 -- | Print a setup test groups heading.
 pgroup :: String -> IO ()
