@@ -172,7 +172,7 @@ setupHledger = do
     exe = headDef "" pathexes
     (failaction, failmsg) =
       -- (exitFailure , "Please install this hledger in PATH then run setup again.")
-      (return ()   , " Some of this info may not apply to that hledger version. Continuing anyway..")
+      (return ()   , "Some of this info may not apply to that hledger version. Continuing anyway..")
   -- Check for a hledger in PATH in various ways, getting a single PathCheckResult
   result <- if null pathexes
     then return PCNotFound
