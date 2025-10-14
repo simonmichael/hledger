@@ -79,6 +79,7 @@ import Hledger.Cli.Conf
 import Hledger.Cli.Version
 import System.IO (localeEncoding, hFlush, stdout)
 import Data.Either (isLeft, isRight)
+import Control.Arrow ((>>>))
 
 
 setupmode = hledgerCommandMode
@@ -112,10 +113,10 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   color <- useColorOnStdout
   when color $ 
     putStrLn $ "Legend: " <> intercalate ", " [
-       ansiGood    "good"
-      ,ansiInfo    "info"
-      ,ansiWarning "warning"
-      ,ansiProblem "problem"
+       styleGood    "good"
+      ,styleInfo    "info"
+      ,styleWarning "warning"
+      ,styleBad     "problem"
       ]
   meconf <- setupHledger
   setupTerminal meconf
@@ -476,33 +477,42 @@ instance Show YNU where
 p :: YNU -> String -> IO ()
 p status msg = putStrLn $ unwords ["", showGoodBad status, "", msg]
   where
-    showGoodBad Y = ansiGood    $ "yes" `andIfColour` checkmarkInGreenBoxEmoji
-    showGoodBad N = ansiProblem $ " no" `andIfColour` redExclamationMarkEmoji
-    showGoodBad U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
+    showGoodBad Y = styleGood    "yes"
+    showGoodBad N = styleBad     " no"
+    showGoodBad U = styleWarning "  ?"
 
--- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/warning styles for Y/N;
--- and the (possibly empty) provided message.
+-- | Print a status, ANSI-styled and emoji-decorated when permitted,
+-- using the good/warning styles for Y/N; and the (possibly empty) provided message.
 w :: YNU -> String -> IO ()
 w status msg = putStrLn $ unwords ["", showGoodWarn status, "", msg]
   where
-    showGoodWarn Y = ansiGood    $ "yes" `andIfColour` iInBlueBoxEmoji
-    showGoodWarn N = ansiWarning $ " no" `andIfColour` yellowDiamondEmoji
-    showGoodWarn U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
+    showGoodWarn Y = styleGood    "yes"
+    showGoodWarn N = styleWarning " no"
+    showGoodWarn U = styleWarning "  ?"
 
--- | Print a status, ANSI-styled and emoji-decorated when permitted, using the neutral style for Y/N;
--- and the (possibly empty) provided message.
+-- | Print a status, ANSI-styled and emoji-decorated when permitted,
+-- using the info style for Y/N; and the (possibly empty) provided message.
 i :: YNU -> String -> IO ()
 i status msg = putStrLn $ unwords ["", showInfo status, "", msg]
   where
-    showInfo Y = ansiInfo    $ "yes" `andIfColour` iInBlueBoxEmoji
-    showInfo N = ansiInfo    $ " no" `andIfColour` iInBlueBoxEmoji
-    showInfo U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
+    showInfo Y = styleInfo    "yes"
+    showInfo N = styleInfo    " no"
+    showInfo U = styleWarning "  ?"
+
+styleGood    = ansiGood    >>> appendIfColor checkmarkInGreenBoxEmoji
+styleInfo    = ansiInfo    >>> appendIfColor iInBlueBoxEmoji
+styleWarning = ansiWarning >>> appendIfColor yellowDiamondEmoji
+styleBad     = ansiProblem >>> appendIfColor redExclamationMarkEmoji
 
 -- Apply setup-status-related ANSI styles to text.
 ansiGood    = bold' . brightGreen'
 ansiInfo    = bold' . brightBlue'
 ansiWarning = bold' . brightYellow'
 ansiProblem = bold' . brightRed'
+
+-- Append a space and the given text to the second text, 
+-- if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
+appendIfColor suffix t = t <> if useColorOnStdoutUnsafe then " " <> suffix else ""
 
 -- Use only reasonably well-supported emojis here.
 checkmarkInGreenBoxEmoji = "✅"
@@ -512,9 +522,6 @@ iInBlueBoxEmoji          = "ℹ️ "
 yellowDiamondEmoji       = "🔸"
 largeYellowDiamondEmoji  = "🔶"
 redExclamationMarkEmoji  = "❗"
-
--- Append a space and the second text, if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
-andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
 
 -- | Print a setup test group's heading.
 pgroup :: String -> IO ()
