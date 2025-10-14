@@ -130,8 +130,9 @@ setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
 
-  -- Output helpers like pbool and pcase make this code more convoluted, but
-  -- they provide a valuable testing aid: with --debug they show all possible outputs.
+  -- The pbool and pcase output helpers sometimes make this code convoluted,
+  -- but they provide a valuable aid for testing this command:
+  -- with --debug they show all possible outputs.
 
   pbool "is a released version ?"
     (isReleaseVersion $ hbinPackageVersion binaryinfo)
@@ -221,16 +222,14 @@ setupHledger = do
 
   muf <- activeUserConfFile
   mlf <- activeLocalConfFile
-  let err = error' "setup: unexpected empty muf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
   pbool "has a user config file ?"
     (isJust muf)
-    (i Y (fromMaybe err muf <> if isJust mlf then " (overridden)" else ""))
+    (i Y (maybe "" id muf <> if isJust mlf then " (overridden)" else ""))
     (i N "")
 
-  let err = error' "setup: unexpected empty mlf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
   pbool "has a local config file ?"
     (isJust mlf)
-    (i Y (fromMaybe err mlf))
+    (i Y (maybe "" id mlf))
     (i N "")
 
   if (isJust muf || isJust mlf) then do
@@ -258,84 +257,88 @@ setupTerminal meconf = do
       Just (Right conf) -> find predicate $ reverse $ confLookup "general" conf
       _ -> Nothing
 
-  pdesc "the NO_COLOR variable is defined ?"
   mnocolor <- lookupEnv "NO_COLOR"
-  case mnocolor of
-    Nothing -> i N ""
-    Just _  -> i Y ""
+  pbool "the NO_COLOR variable is defined ?"
+    (isJust mnocolor)
+    (i Y "")
+    (i N "")
 
-  meconfigcolor <- do
-    pdesc "--color is configured by config file ?"
-    let mcolorarg = conflookup (\a -> any (`isPrefixOf` a) ["--color", "--colour"])
-    case mcolorarg of
-      Nothing -> i N "" >> return Nothing
-      Just a  -> do
-        i Y a
-        let
-          arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
-        return $ Just $ parseYNA arg
+  let mconfigcoloropt = conflookup (\a -> any (`isPrefixOf` a) ["--color", "--colour"])
+  pbool "--color is configured by config file ?"
+    (isJust mconfigcoloropt)
+    (i Y (maybe "" id mconfigcoloropt))
+    (i N "")
 
-  pdesc "hledger will use color by default ?"
-  case (meconfigcolor, isJust mnocolor) of
-    (Just (Right Yes), _)     -> p Y ""
-    (Just (Right No),  _)     -> i N ""
-    (_,                True)  -> i N ""
-    (_,                False) -> p Y ""
+  let mconfigcolor = mconfigcoloropt >>= either (const Nothing) Just . parseYNA . optval
+        where optval = reverse . takeWhile (`notElem` ['=',' ']) . reverse
+  pcase "hledger will use color by default ?"
+    [ (mconfigcolor == Just Yes, p Y "")
+    , (mconfigcolor == Just No,  i N "")
+    , (isJust mnocolor,          i N "")
+    , (True,                     p Y "")  -- default
+    ]
 
-  pdesc "the PAGER variable is defined ?"
   mv <- lookupEnv "PAGER"
-  case mv of
-    Nothing -> i N ""
-    Just v  -> i Y v
+  pbool "the PAGER variable is defined ?"
+    (isJust mv)
+    (i Y (maybe "" id mv))
+    (i N "")
 
-  pdesc "--pager is configured by config file ?"
   let mpagerarg = conflookup ("--pager" `isPrefixOf`)
-  meconfpager <- case mpagerarg of
-    Nothing -> i N "" >> return Nothing
-    Just a  -> do
-      i Y a
-      let arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
-      return $ Just $ parseYNA arg
+  pbool "--pager is configured by config file ?"
+    (isJust mpagerarg)
+    (i Y (maybe "" id mpagerarg))
+    (i N "")
+  let meconfpager = mpagerarg >>= \a ->
+        let arg = reverse $ takeWhile (`notElem` ['=',' ']) $ reverse a
+        in Just $ parseYNA arg
 
-  pdesc "hledger will use a pager when needed ?"
   mpager <- findPager
+  pcase "hledger will use a pager when needed ?"
+    [ (isNothing mpager,
+       i N "no pager was found")
+    , (isJust mpager && meconfpager == Just (Right No),
+       i N "disabled in config file")
+    , (isJust mpager,
+       p Y (maybe "" id mpager))
+    ]
+
   case mpager of
-    Nothing    -> i N "no pager was found"
-    Just pager ->
-      case meconfpager of
-        Just (Right No) -> i N "disabled in config file"
-        _ -> do
-          p Y pager
+    Nothing -> return ()
+    Just _ | meconfpager == Just (Right No) -> return ()
+    Just pager -> do
 
-          when (map toLower (takeBaseName pager) == "more") $ do
-            pdesc "the MORE variable is defined ?"
-            mv <- lookupEnv "MORE"
-            case mv of
-              Nothing -> i N ""
-              Just v  -> i Y v
+      when (map toLower (takeBaseName pager) == "more") $ do
+        mv <- lookupEnv "MORE"
+        pbool "the MORE variable is defined ?"
+          (isJust mv)
+          (i Y (maybe "" id mv))
+          (i N "")
 
-          when (map toLower (takeBaseName pager) == "less") $ do
-            pdesc "the LESS variable is defined ?"
-            mLESS <- lookupEnv "LESS"
-            case mLESS of
-              Nothing -> i N ""
-              Just _  -> i Y ""
+      when (map toLower (takeBaseName pager) == "less") $ do
+        mLESS <- lookupEnv "LESS"
+        pbool "the LESS variable is defined ?"
+          (isJust mLESS)
+          (i Y "")
+          (i N "")
 
-            pdesc "the HLEDGER_LESS variable is defined ?"
-            mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
-            case mHLEDGER_LESS of
-              Nothing -> i N ""
-              Just v  -> i Y v
+        mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
+        pbool "the HLEDGER_LESS variable is defined ?"
+          (isJust mHLEDGER_LESS)
+          (i Y (maybe "" id mHLEDGER_LESS))
+          (i N "")
 
-            when (isNothing mHLEDGER_LESS) $ do
-              pdesc "adjusting LESS variable for color etc. ?"
-              usecolor <- useColorOnStdout
-              i (if usecolor then Y else N) ""
+        when (isNothing mHLEDGER_LESS) $ do
+          usecolor <- useColorOnStdout
+          pbool "adjusting LESS variable for color etc. ?"
+            usecolor
+            (i Y "")
+            (i N "")
 
-  pdesc "tables will use box-drawing chars ?"
-  if isJust $ conflookup ("--pretty"==)
-  then p Y ""
-  else i N "you can use --pretty to enable them"
+  pbool "tables will use box-drawing chars ?"
+    (isJust $ conflookup ("--pretty"==))
+    (p Y "")
+    (i N "you can use --pretty to enable them")
 
   -- pdesc "bash shell completions are installed ?" >> p U ""
   -- pdesc "zsh shell completions are installed ?" >> p U ""
@@ -361,10 +364,9 @@ setupJournal meconf = do
   -- i ok msg
 
   mf <- lookupEnv journalEnvVar
-  let err = error' "setup: unexpected empty mf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
   pbool "the LEDGER_FILE variable is defined ?"
     (isJust mf)
-    (i Y (fromMaybe err mf))
+    (i Y (maybe "" id mf))
     (i N "")
 
   jfile <- defaultJournalPath
