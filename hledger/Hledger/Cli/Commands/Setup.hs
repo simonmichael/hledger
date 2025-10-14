@@ -509,33 +509,42 @@ instance Show YNU where
 p :: YNU -> String -> IO ()
 p status msg = putStrLn $ unwords ["", showGoodBad status, "", msg]
   where
-    showGoodBad Y = ansiGood    $ "yes" `andIfColour` "✅"
-    showGoodBad N = ansiBad     $ " no" `andIfColour` "❗"
-    showGoodBad U = ansiWarning $ "  ?" `andIfColour` "🔸"  -- 🔶
+    showGoodBad Y = ansiGood    $ "yes" `andIfColour` checkmarkInGreenBoxEmoji
+    showGoodBad N = ansiBad     $ " no" `andIfColour` redExclamationMarkEmoji
+    showGoodBad U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
 
 -- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/warning styles for Y/N;
 -- and the (possibly empty) provided message.
 w :: YNU -> String -> IO ()
 w status msg = putStrLn $ unwords ["", showGoodWarn status, "", msg]
   where
-    showGoodWarn Y = ansiGood    $ "yes" `andIfColour` "ℹ️" -- may render as monochrome in some terminals ?
-    showGoodWarn N = ansiWarning $ " no" `andIfColour` "🔸"
-    showGoodWarn U = ansiWarning $ "  ?" `andIfColour` "🔸"
+    showGoodWarn Y = ansiGood    $ "yes" `andIfColour` iInBlueBoxEmoji
+    showGoodWarn N = ansiWarning $ " no" `andIfColour` yellowDiamondEmoji
+    showGoodWarn U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
 
 -- | Print a status, ANSI-styled and emoji-decorated when permitted, using the neutral style for Y/N;
 -- and the (possibly empty) provided message.
 i :: YNU -> String -> IO ()
 i status msg = putStrLn $ unwords ["", showNeutral status, "", msg]
   where
-    showNeutral Y = ansiNeutral $ "yes" `andIfColour` "ℹ️"
-    showNeutral N = ansiNeutral $ " no" `andIfColour` "ℹ️"
-    showNeutral U = ansiWarning $ "  ?" `andIfColour` "🔸"
+    showNeutral Y = ansiNeutral $ "yes" `andIfColour` iInBlueBoxEmoji
+    showNeutral N = ansiNeutral $ " no" `andIfColour` iInBlueBoxEmoji
+    showNeutral U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
 
 -- Apply setup-status-related ANSI styles to text.
 ansiGood    = bold' . brightGreen'
 ansiNeutral = bold' . brightBlue'
 ansiWarning = bold' . brightYellow'
 ansiBad     = bold' . brightRed'
+
+-- Use only reasonably well-supported emojis here.
+checkmarkInGreenBoxEmoji = "✅"
+redExclamationMarkEmoji  = "❗"
+yellowDiamondEmoji       = "🔸"
+largeYellowDiamondEmoji  = "🔶"
+-- This one may render as monochrome in some terminals ?
+-- Also it seems more likely to be single rather than double width, so a space is added to compensate.
+iInBlueBoxEmoji          = "ℹ️ "
 
 -- Append a space and the second text, if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
 andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
