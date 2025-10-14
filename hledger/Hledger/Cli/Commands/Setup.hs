@@ -166,31 +166,6 @@ setupHledger = do
        p Y (fromJust mArch))
     ]
 
-  -- pdesc "is installed in PATH (this version) ?"
-  -- pathexes  <- findExecutables progname
-  -- let
-  --   (failaction, failmsg) =
-  --     -- (exitFailure , "Please install this hledger in PATH then run setup again.")
-  --     (return ()   , " Some of this info may not apply to that hledger version. Continuing anyway..")
-  -- case pathexes of
-  --   [] -> p N failmsg >> failaction
-  --   exe:_ -> do
-  --     eerrout <- tryHledgerArgs [["--version", "--no-conf"], ["--version"]]
-  --     case eerrout of
-  --       Left  err -> p U (progname <> " --version failed: " <> err) >> failaction
-  --       Right out -> do
-  --         case parseHledgerVersion out of
-  --           Left  _ -> p U ("couldn't parse " <> progname <> " --version: " <> rstrip out) >> exitFailure
-  --           Right pathbin -> do
-  --             let pathversion = hbinVersionOutput pathbin
-  --             if pathversion /= prognameandversion
-  --             then p N (chomp $ unlines [
-  --                ""
-  --               ," A different hledger version was found in PATH: " <> pathversion
-  --               ," at: " <> exe
-  --               ,failmsg
-  --               ]) >> failaction
-  --             else p Y exe
   pathexes  <- findExecutables progname
   let
     exe = headDef "" pathexes
@@ -244,9 +219,6 @@ setupHledger = do
   --   Left _  -> p N "hledger's docs and examples use UTF-8"
   --   Right t -> p Y (T.unpack t)
 
-  -- pdesc "can report text decoding failures ?"
-  -- i U (T.unpack $ T.decodeUtf8 eAcuteLatin1)
-
   muf <- activeUserConfFile
   mlf <- activeLocalConfFile
   let err = error' "setup: unexpected empty muf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
@@ -266,7 +238,7 @@ setupHledger = do
     pbool "the config file is readable ?"
       (isRight econf)
       (p Y "")
-      (p N $ either id (const "") econf)
+      (p N $ either ('\n':) (const "actually it's fine") econf)
     case econf of
       Left e          -> return $ Just (Left e)
       Right (conf, _) -> return $ Just (Right conf)
@@ -388,54 +360,38 @@ setupJournal meconf = do
   --   Nothing -> return (N, "")
   -- i ok msg
 
-  pdesc "the LEDGER_FILE variable is defined ?"
   mf <- lookupEnv journalEnvVar
-  let
-    (ok, msg) = case mf of
-      Just f  -> (Y, f)
-      Nothing -> (N, "")
-  i ok msg
+  let err = error' "setup: unexpected empty mf value"  -- PARTIAL: shouldn't happen, because of pbool's logic
+  pbool "the LEDGER_FILE variable is defined ?"
+    (isJust mf)
+    (i Y (fromMaybe err mf))
+    (i N "")
 
-  -- case mf of
-  --   Nothing -> return ()
-  --   Just f -> do
-  --     pdesc "$LEDGER_FILE journal exists ?"
-  --     e <- doesFileExist f
-  --     i e "" ""
-
-  -- when (isJust mh && isJust mf) $ do
-  --   pdesc "$LEDGER_FILE is masking home journal ?"
-  --   i Y ""
-
-  pdesc "a default journal file is readable ?"
   jfile <- defaultJournalPath
-  -- let
-  --   args = concat [
-  --     ["print"],
-  --     ["--ignore-assertions" | supportsIgnoreAssertions version],
-  --     ["--no-conf" | supportsConfigFiles version]
-  --     ]
-  -- (exit, _, err) <- readProcessWithExitCode progname args ""
-  -- XXX can this ignore assertions and config files, like the above ?
+  -- XXX can this ignore assertions and config files ?
   ej <- defaultJournalSafely
+  pbool "a default journal file is readable ?"
+    (isRight ej)
+    (p Y jfile)
+    (p N $ either ('\n' :) (const "actually it's fine") ej)
+
   case ej of
-    Left estr -> p N (jfile <> ":\n" <> estr)
+    Left _ -> return ()
     Right j@Journal{..} -> do
-      p Y jfile
 
-      pdesc "it includes additional files ?"
       let numfiles = length jfiles
-      if numfiles > 1
-      then i Y (show (numfiles - 1) <> " files")
-      else i N ""
+      pbool "it includes additional files ?"
+        (numfiles > 1)
+        (i Y (show (numfiles - 1) <> " files"))
+        (i N "")
 
-      pdesc "all commodities are declared ?"
       let
         numcommodities = length $ journalCommodities j
         undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
-      if null undeclaredcommodities
-      then p Y (show numcommodities <> " commodities")
-      else w N (show (length undeclaredcommodities) <> " undeclared commodities")
+      pbool "all commodities are declared ?"
+        (null undeclaredcommodities)
+        (p Y (show numcommodities <> " commodities"))
+        (w N (show (length undeclaredcommodities) <> " undeclared commodities"))
 
       let
         accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
@@ -445,70 +401,34 @@ setupJournal meconf = do
         numaccts = length $ journalAccountNames j
         untypedaccts = journalAccountNames j \\ acctswithdeclaredorinferredtype
         undeclaredaccts = journalAccountNamesUsed j \\ journalAccountNamesDeclared j
-        -- hasdeclaredaccts t = case M.lookup t jdeclaredaccounttypes of
-        --   Just (_ : _) -> True
-        --   _ -> False
 
-      -- pdesc "Asset accounts declared ?"    
-      -- if hasdeclaredaccts Asset then i Y "" else i N ""
+      pbool "all accounts are declared ?"
+        (null undeclaredaccts)
+        (p Y (show numaccts <> " accounts"))
+        (w N (show (length undeclaredaccts) <> " undeclared accounts"))
 
-      -- pdesc "Liability accounts declared ?"
-      -- if hasdeclaredaccts Liability then i Y "" else i N ""
+      pbool "all accounts have types ?"
+        (null untypedaccts)
+        (p Y "")
+        (i N (show (length untypedaccts) <> " accounts have no type"))
 
-      -- pdesc "Equity accounts declared ?"
-      -- if hasdeclaredaccts Equity then i Y "" else i N ""
+      pbool "accounts of all types exist ?"
+        (null typesnotfound)
+        (p Y (concatMap show accttypes <> " accounts detected"))
+        (w N ("no " <> concatMap show typesnotfound <> " accounts found, some features may not work"))
 
-      -- pdesc "Revenue accounts declared ?"
-      -- if hasdeclaredaccts Revenue then i Y "" else i N ""
-
-      -- pdesc "Expense accounts declared ?"
-      -- if hasdeclaredaccts Expense then i Y "" else i N ""
-
-      -- pdesc "Cash accounts declared ?"
-      -- if hasdeclaredaccts Cash then i Y "" else i N ""
-
-      -- pdesc "Conversion accounts declared ?"
-      -- if hasdeclaredaccts Conversion then i Y "" else i N ""  -- ("--infer-equity will use a default conversion account name")
-
-      -- XXX hard to detect accounts where type was inferred from name
-      -- unless arealltypesdeclared $ do
-      -- let
-      --   acctswithdeclaredtype           = concat (M.elems jdeclaredaccounttypes)
-      --   acctswithinferredtype           = acctswithdeclaredorinferredtype \\ acctswithdeclaredtype
-      --   arealltypesdeclared = all hasdeclaredaccts accttypes
-      --   typesinferredfromnames =
-      --     if arealltypesdeclared then []
-      --     else sort $ nub $ catMaybes $ map (flip M.lookup jaccounttypes) acctswithinferredtype
-      -- pdesc "types detected from account names ?"
-      -- if null typesinferredfromnames then i N "" else i Y (concatMap show typesinferredfromnames)
-
-      pdesc "all accounts are declared ?"
-      if null undeclaredaccts
-      then p Y (show numaccts <> " accounts")
-      else w N (show (length undeclaredaccts) <> " undeclared accounts")
-
-      pdesc "all accounts have types ?"
-      if null untypedaccts
-      then p Y ""
-      else i N (show (length untypedaccts) <> " accounts have no type")
-
-      pdesc "accounts of all types exist ?"
-      if null typesnotfound
-      then p Y (concatMap show accttypes <> " accounts detected")
-      else w N ("no " <> concatMap show typesnotfound <> " accounts found, some features may not work")
-
-      pdesc "commodities/accounts are being checked ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
-      if strict
-      then p Y "commodities and accounts must be declared"
-      else i N "you can use -s to check them"
+      pbool "commodities/accounts are being checked ?"
+        strict
+        (p Y "commodities and accounts must be declared")
+        (i N "you can use -s to check them")
 
-      pdesc "balance assertions are being checked ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
-      if 
-        | ignoreassertions && not strict -> i N "you can use -s to check them"
-        | not strict                     -> p Y "you can use -I to ignore them"
-        | otherwise                      -> p Y "can't ignore assertions (-s in config file)"
+      pcase "balance assertions are being checked ?"
+        [ (ignoreassertions && not strict, i N "you can use -s to check them")
+        , (not strict,                     p Y "you can use -I to ignore them")
+        , (otherwise,                      p Y "can't ignore assertions (-s in config file)")
+        ]
 
 ------------------------------------------------------------------------------
 
