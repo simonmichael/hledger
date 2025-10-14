@@ -499,7 +499,7 @@ i result msg = putStrLn $ unwords ["", showInfo result, "", msg]
     showInfo U = styleWarning "  ?"
 
 styleGood    = ansiGood    >>> appendIfColor checkmarkInGreenBoxEmoji
-styleInfo    = ansiInfo    >>> appendIfColor iInBlueBoxEmoji
+styleInfo    = ansiInfo    >>> appendIfColor blueSquareEmoji
 styleWarning = ansiWarning >>> appendIfColor yellowDiamondEmoji
 styleBad     = ansiProblem >>> appendIfColor redExclamationMarkEmoji
 
@@ -515,11 +515,8 @@ appendIfColor suffix t = t <> if useColorOnStdoutUnsafe then " " <> suffix else 
 
 -- Use only reasonably well-supported emojis here.
 checkmarkInGreenBoxEmoji = "✅"
--- This one may render as monochrome in some terminals ?
--- Also it seems more likely to be single rather than double width, so a space is added to compensate.
-iInBlueBoxEmoji          = "ℹ️ "
-yellowDiamondEmoji       = "🔸"
-largeYellowDiamondEmoji  = "🔶"
+blueSquareEmoji          = "🟦"
+yellowDiamondEmoji       = "🔶"
 redExclamationMarkEmoji  = "❗"
 
 -- | Print a setup test group's heading.
