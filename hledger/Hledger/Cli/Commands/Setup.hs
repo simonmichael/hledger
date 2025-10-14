@@ -113,9 +113,9 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
   when color $ 
     putStrLn $ "Legend: " <> intercalate ", " [
        ansiGood    "good"
-      ,ansiNeutral "neutral"
-      ,ansiWarning "unknown"
-      ,ansiBad     "warning"
+      ,ansiInfo    "info"
+      ,ansiWarning "warning"
+      ,ansiProblem "problem"
       ]
   meconf <- setupHledger
   setupTerminal meconf
@@ -449,39 +449,35 @@ supportsColor = (>=! "1.41") -- robust color detection/control (2024)
 supportsPager = (>=! "1.41") -- use a pager for all output (2024)
 supportsBashCompletions = (>=! "1.41") -- up to date bash shell completions (2024)
 
--- Status of a setup question/statement: yes, no, unknown.
+-- Result of a setup question/statement: yes, no, unknown.
 data YNU = Y | N | U deriving (Eq)
 
--- Show a status as unstyled english text.
+-- Show a setup test result as unstyled english text.
 instance Show YNU where
   show Y = "yes"
   show N = " no"
   show U = "  ?"
 
--- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/bad styles for Y/N;
--- and the (possibly empty) provided message. See also 'w' and 'i'.
+-- | Print a setup test result, ANSI-styled and emoji-decorated when permitted,
+-- using the good/problem styles for Y/N; and the (possibly empty) provided message.
 --
--- Status is communicated to the user
--- 1. as text: "yes"/"no"/"?"
+-- In these display helpers (see also 'w' and 'i'):
+-- test results are communicated to the user as text: "yes"/"no"/"?".
 --
--- and when colour is permitted,
--- 2. in one of four ANSI colours
--- 3. with one of four emojis appended, for added distinctiveness in case of colour blindness.
+-- Additionally, when colour is permitted, the significance/severity
+-- of each test result is communicated,:
 --
+-- 1. by ANSI-colouring the result text (in green, blue, yellow, or red)
+--
+-- 2. by appending an emoji, for added distinctiveness in case of colour blindness.
 -- The emojis chosen are hopefully somewhat likely to render reasonably well even on non-apple machines;
--- and if they don't, 1 and 2 will still carry the message.
---
--- Note these things are distinct and not necessarily corresponding, which could be confusing:
--- - "good"/"neutral"/"warning"/"bad" test status, in display text & user's perspective
--- - ansiGood/ansiNeutral/ansiWarning/ansiBad styles, defined below
--- - warn[IO] and error functions defined elsewhere, which apply their own warning and error ANSI styles,
---   to (possibly ANSI-styled) text.
+-- but when they don't, 1 and/or 2 should still be informative.
 --
 p :: YNU -> String -> IO ()
 p status msg = putStrLn $ unwords ["", showGoodBad status, "", msg]
   where
     showGoodBad Y = ansiGood    $ "yes" `andIfColour` checkmarkInGreenBoxEmoji
-    showGoodBad N = ansiBad     $ " no" `andIfColour` redExclamationMarkEmoji
+    showGoodBad N = ansiProblem $ " no" `andIfColour` redExclamationMarkEmoji
     showGoodBad U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
 
 -- | Print a status, ANSI-styled and emoji-decorated when permitted, using the good/warning styles for Y/N;
@@ -496,26 +492,26 @@ w status msg = putStrLn $ unwords ["", showGoodWarn status, "", msg]
 -- | Print a status, ANSI-styled and emoji-decorated when permitted, using the neutral style for Y/N;
 -- and the (possibly empty) provided message.
 i :: YNU -> String -> IO ()
-i status msg = putStrLn $ unwords ["", showNeutral status, "", msg]
+i status msg = putStrLn $ unwords ["", showInfo status, "", msg]
   where
-    showNeutral Y = ansiNeutral $ "yes" `andIfColour` iInBlueBoxEmoji
-    showNeutral N = ansiNeutral $ " no" `andIfColour` iInBlueBoxEmoji
-    showNeutral U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
+    showInfo Y = ansiInfo    $ "yes" `andIfColour` iInBlueBoxEmoji
+    showInfo N = ansiInfo    $ " no" `andIfColour` iInBlueBoxEmoji
+    showInfo U = ansiWarning $ "  ?" `andIfColour` yellowDiamondEmoji
 
 -- Apply setup-status-related ANSI styles to text.
 ansiGood    = bold' . brightGreen'
-ansiNeutral = bold' . brightBlue'
+ansiInfo    = bold' . brightBlue'
 ansiWarning = bold' . brightYellow'
-ansiBad     = bold' . brightRed'
+ansiProblem = bold' . brightRed'
 
 -- Use only reasonably well-supported emojis here.
 checkmarkInGreenBoxEmoji = "✅"
-redExclamationMarkEmoji  = "❗"
-yellowDiamondEmoji       = "🔸"
-largeYellowDiamondEmoji  = "🔶"
 -- This one may render as monochrome in some terminals ?
 -- Also it seems more likely to be single rather than double width, so a space is added to compensate.
 iInBlueBoxEmoji          = "ℹ️ "
+yellowDiamondEmoji       = "🔸"
+largeYellowDiamondEmoji  = "🔶"
+redExclamationMarkEmoji  = "❗"
 
 -- Append a space and the second text, if colour is permitted on stdout (using 'useColorOnStdoutUnsafe').
 andIfColour a b = a <> if useColorOnStdoutUnsafe then " " <> b else ""
