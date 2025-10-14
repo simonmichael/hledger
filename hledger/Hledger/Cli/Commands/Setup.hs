@@ -467,33 +467,32 @@ instance Show YNU where
 --
 -- Additionally, when colour is permitted, the significance/severity
 -- of each test result is communicated,:
---
 -- 1. by ANSI-colouring the result text (in green, blue, yellow, or red)
---
 -- 2. by appending an emoji, for added distinctiveness in case of colour blindness.
+--
 -- The emojis chosen are hopefully somewhat likely to render reasonably well even on non-apple machines;
--- but when they don't, 1 and/or 2 should still be informative.
+-- but when they don't, the text and/or colour should still be informative.
 --
 p :: YNU -> String -> IO ()
-p status msg = putStrLn $ unwords ["", showGoodBad status, "", msg]
+p result msg = putStrLn $ unwords ["", showGoodBad result, "", msg]
   where
     showGoodBad Y = styleGood    "yes"
     showGoodBad N = styleBad     " no"
     showGoodBad U = styleWarning "  ?"
 
--- | Print a status, ANSI-styled and emoji-decorated when permitted,
+-- | Print a setup test result, ANSI-styled and emoji-decorated when permitted,
 -- using the good/warning styles for Y/N; and the (possibly empty) provided message.
 w :: YNU -> String -> IO ()
-w status msg = putStrLn $ unwords ["", showGoodWarn status, "", msg]
+w result msg = putStrLn $ unwords ["", showGoodWarn result, "", msg]
   where
     showGoodWarn Y = styleGood    "yes"
     showGoodWarn N = styleWarning " no"
     showGoodWarn U = styleWarning "  ?"
 
--- | Print a status, ANSI-styled and emoji-decorated when permitted,
+-- | Print a setup test result, ANSI-styled and emoji-decorated when permitted,
 -- using the info style for Y/N; and the (possibly empty) provided message.
 i :: YNU -> String -> IO ()
-i status msg = putStrLn $ unwords ["", showInfo status, "", msg]
+i result msg = putStrLn $ unwords ["", showInfo result, "", msg]
   where
     showInfo Y = styleInfo    "yes"
     showInfo N = styleInfo    " no"
@@ -504,7 +503,7 @@ styleInfo    = ansiInfo    >>> appendIfColor iInBlueBoxEmoji
 styleWarning = ansiWarning >>> appendIfColor yellowDiamondEmoji
 styleBad     = ansiProblem >>> appendIfColor redExclamationMarkEmoji
 
--- Apply setup-status-related ANSI styles to text.
+-- Apply setup-severity-related ANSI styles to text.
 ansiGood    = bold' . brightGreen'
 ansiInfo    = bold' . brightBlue'
 ansiWarning = bold' . brightYellow'
