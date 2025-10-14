@@ -10182,60 +10182,53 @@ Maintenance commands
               Flags:
               no command-specific flags
 
-       setup tests your hledger installation and prints  a  list  of  results,
-       sometimes  with helpful hints.  This is a good first command to run af-
-       ter installing hledger.  Also after upgrading, or when something's  not
-       working, or just when you want a reminder of where things are.
+       setup checks your hledger installation and reports the  results,  some-
+       times with helpful hints.
 
-       It  makes one network request to detect the latest hledger release ver-
-       sion.  It's ok if this fails or times out.  It will use ANSI  color  by
-       default,  unless  disabled by NO_COLOR or --color=n.  It does not use a
+       This  is a great command to run after installing hledger.  Or after up-
+       grading, or when something's not working, or just when you want  a  re-
+       minder of where your files are.
+
+       setup  attempts  to make one HTTP request, to hledger.org to detect the
+       latest hledger release version.  It will use ANSI color by default, un-
+       less that is disabled by NO_COLOR or --color=no.  It  does  not  use  a
        pager or a config file.
 
-       It expects that the hledger version you are  running  is  installed  in
-       your  PATH.   If  not,  it  will stop until you have done that (to keep
-       things simple).
-
-       Example:
+       Example output:
 
               $ hledger setup
               Checking your hledger setup..
-              Legend: good, neutral, unknown, warning
+              Legend: good , info  , warning , problem
 
               hledger
-              * is a released version ?                   no  hledger 1.42.99-gbca4b39c5-20250425, mac-aarch64
-              * is up to date ?                          yes  1.42.99 installed, latest is 1.42.1
-              * is a native binary for this machine ?    yes  aarch64
-              * is installed in PATH ?                   yes  /Users/simon/.local/bin/hledger
-              * has a system text encoding configured ?  yes  UTF-8, data files should use this encoding
-              * has a user config file ? (optional)       no
-              * current directory has a local config ?   yes  /Users/simon/src/hledger/hledger.conf
-              * the config file is readable ?            yes  /Users/simon/src/hledger/hledger.conf
+              * is a released version ?                   no    hledger 1.50.99-gd8996c05c-20251013, mac-aarch64
+              * is up to date ? checking...              yes   1.50.99 installed, latest is 1.50.2
+              * is a native binary for this machine ?    yes   aarch64
+              * is installed in PATH (this version) ?    yes   /Users/simon/.local/bin/hledger
+              * has a system text encoding configured ?  yes   UTF-8, data files must use this encoding
+              * has a user config file ?                 yes    /Users/simon/.hledger.conf (overridden)
+              * has a local config file ?                yes    /Users/simon/src/hledger/hledger.conf
+              * the config file is readable ?            yes
 
               terminal
               * the NO_COLOR variable is defined ?        no
               * --color is configured by config file ?    no
               * hledger will use color by default ?      yes
-              * the PAGER variable is defined ?          yes  less
+              * the PAGER variable is defined ?          yes    cat
               * --pager is configured by config file ?    no
-              * hledger will use a pager when needed ?   yes  /opt/homebrew/bin/less
-              * the LESS variable is defined ?           yes
-              * the HLEDGER_LESS variable is defined ?    no
-              * adjusting LESS variable for color etc. ? yes
-              * --pretty is enabled by config file ?      no  tables will use ASCII characters
-              * bash shell completions are installed ?     ?
-              * zsh shell completions are installed ?      ?
+              * hledger will use a pager when needed ?   yes   /bin/cat
+              * tables will use box-drawing chars ?       no    you can use --pretty to enable them
 
               journal
-              * the LEDGER_FILE variable is defined ?    yes  /Users/simon/finance/2025/2025.journal
-              * a default journal file is readable ?     yes  /Users/simon/finance/2025/2025.journal
-              * it includes additional files ?           yes  15
-              * all commodities are declared ?           yes  10
-              * all accounts are declared ?              yes  160
-              * all accounts have types ?                 no  14 untyped
-              * accounts of each type were detected ?    yes  ALERXCV
-              * commodities/accounts are checked ?        no  use -s to check commodities/accounts
-              * balance assertions are checked ?         yes  use -I to ignore assertions
+              * the LEDGER_FILE variable is defined ?    yes    examples/sample.journal
+              * a default journal file is readable ?     yes   ./examples/sample.journal
+              * it includes additional files ?            no
+              * all commodities are declared ?            no   1 undeclared commodities
+              * all accounts are declared ?               no   8 undeclared accounts
+              * all accounts have types ?                yes
+              * accounts of all types exist ?             no   no EV accounts found, some features may not work
+              * commodities/accounts are being checked ?  no    you can use -s to check them
+              * balance assertions are being checked ?   yes   you can use -I to ignore them
 
    test
        Run built-in unit tests.
@@ -10243,17 +10236,17 @@ Maintenance commands
               Flags:
               no command-specific flags
 
-       This command runs the unit tests built in to hledger  and  hledger-lib,
-       printing  the results on stdout.  If any test fails, the exit code will
+       This  command  runs the unit tests built in to hledger and hledger-lib,
+       printing the results on stdout.  If any test fails, the exit code  will
        be non-zero.
 
-       This is mainly used by hledger developers, but you can also use  it  to
-       sanity-check  the  installed  hledger executable on your platform.  All
-       tests are expected to pass - if you ever see a failure,  please  report
+       This  is  mainly used by hledger developers, but you can also use it to
+       sanity-check the installed hledger executable on  your  platform.   All
+       tests  are  expected to pass - if you ever see a failure, please report
        as a bug!
 
-       Any  arguments  before  a  -- argument will be passed to the tasty test
-       runner as test-selecting -p patterns, and any arguments after  --  will
+       Any arguments before a -- argument will be passed  to  the  tasty  test
+       runner  as  test-selecting -p patterns, and any arguments after -- will
        be passed to tasty unchanged.
 
        Examples:
@@ -10263,7 +10256,7 @@ Maintenance commands
               $ hledger test -- -h         # show tasty's options
 
 PART 5: COMMON TASKS
-       Here  are  some  quick  examples  of  how  to  do some basic tasks with
+       Here are some quick examples  of  how  to  do  some  basic  tasks  with
        hledger.
 
 Getting help
@@ -10273,37 +10266,37 @@ Getting help
               $ hledger --help         # show common options
               $ hledger CMD --help     # show CMD's options, common options and CMD's documentation
 
-       You can also view your hledger version's manual in several  formats  by
+       You  can  also view your hledger version's manual in several formats by
        using the help command.  Eg:
 
               $ hledger help           # show the hledger manual with info, man or $PAGER (best available)
               $ hledger help journal   # show the journal topic in the hledger manual
               $ hledger help --help    # find out more about the help command
 
-       To   view   manuals   and   introductory   docs   on   the  web,  visit
-       https://hledger.org.   Chat  and  mail  list  support  and   discussion
+       To  view  manuals   and   introductory   docs   on   the   web,   visit
+       https://hledger.org.    Chat  and  mail  list  support  and  discussion
        archives can be found at https://hledger.org/support.
 
 Constructing command lines
-       hledger  has  a  flexible command line interface.  We strive to keep it
-       simple and ergonomic, but if you run into one of the  sharp  edges  de-
+       hledger has a flexible command line interface.  We strive  to  keep  it
+       simple  and  ergonomic,  but if you run into one of the sharp edges de-
        scribed in OPTIONS, here are some tips that might help:
 
-       o command-specific  options must go after the command (it's fine to put
+       o command-specific options must go after the command (it's fine to  put
          common options there too: hledger CMD OPTS ARGS)
 
-       o you can run addon commands via hledger (hledger  ui  [ARGS])  or  di-
+       o you  can  run  addon  commands via hledger (hledger ui [ARGS]) or di-
          rectly (hledger-ui [ARGS])
 
        o enclose "problematic" arguments in single quotes
 
-       o if  needed, also add a backslash to hide regular expression metachar-
+       o if needed, also add a backslash to hide regular expression  metachar-
          acters from the shell
 
        o to see how a misbehaving command line is being parsed, add --debug=2.
 
 Starting a journal file
-       hledger  looks  for  your  accounting   data   in   a   journal   file,
+       hledger   looks   for   your   accounting   data  in  a  journal  file,
        $HOME/.hledger.journal by default:
 
               $ hledger stats
@@ -10311,9 +10304,9 @@ Starting a journal file
               Please create it first, eg with "hledger add" or a text editor.
               Or, specify an existing journal file with -f or LEDGER_FILE.
 
-       You  can  override this by setting the LEDGER_FILE environment variable
-       (see below).  It's a good practice to keep this  important  file  under
-       version  control,  and  to start a new file each year.  So you could do
+       You can override this by setting the LEDGER_FILE  environment  variable
+       (see  below).   It's  a good practice to keep this important file under
+       version control, and to start a new file each year.  So  you  could  do
        something like this:
 
               $ mkdir ~/finance
@@ -10339,52 +10332,52 @@ Starting a journal file
 Setting LEDGER_FILE
        How to set LEDGER_FILE permanently depends on your setup:
 
-       On unix and mac, running these commands in the terminal will  work  for
+       On  unix  and mac, running these commands in the terminal will work for
        many people; adapt as needed:
 
               $ echo 'export LEDGER_FILE=~/finance/2023.journal' >> ~/.profile
               $ source ~/.profile
 
-       When  correctly  configured,  in  a  new  terminal  window  env  | grep
+       When correctly  configured,  in  a  new  terminal  window  env  |  grep
        LEDGER_FILE will show your file, and so will hledger files.
 
-       On mac, this additional step might  be  helpful  for  GUI  applications
-       (like  Emacs started from the dock): add an entry to ~/.MacOSX/environ-
+       On  mac,  this  additional  step  might be helpful for GUI applications
+       (like Emacs started from the dock): add an entry to  ~/.MacOSX/environ-
        ment.plist like
 
               {
                 "LEDGER_FILE" : "~/finance/2023.journal"
               }
 
-       and then run killall Dock in a terminal  window  (or  restart  the  ma-
+       and  then  run  killall  Dock  in a terminal window (or restart the ma-
        chine).
 
        On Windows, see https://www.java.com/en/download/help/path.html, or try
-       running  these  commands in a powershell window (let us know if it per-
+       running these commands in a powershell window (let us know if  it  per-
        sists across a reboot, and if you need to be an Administrator):
 
               > CD
               > MKDIR finance
               > SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
 
-       When correctly configured, in a new  terminal  window  $env:LEDGER_FILE
+       When  correctly  configured,  in a new terminal window $env:LEDGER_FILE
        will show the file path, and so will hledger files.
 
 Setting opening balances
-       Pick  a  starting  date  for which you can look up the balances of some
-       real-world assets (bank accounts, wallet..)   and  liabilities  (credit
+       Pick a starting date for which you can look up  the  balances  of  some
+       real-world  assets  (bank  accounts, wallet..)  and liabilities (credit
        cards..).
 
-       To  avoid  a  lot of data entry, you may want to start with just one or
+       To avoid a lot of data entry, you may want to start with  just  one  or
        two accounts, like your checking account or cash wallet; and pick a re-
-       cent starting date, like today or the start of the week.  You  can  al-
-       ways  come  back later and add more accounts and older transactions, eg
+       cent  starting  date, like today or the start of the week.  You can al-
+       ways come back later and add more accounts and older  transactions,  eg
        going back to january 1st.
 
-       Add an opening balances transaction to the journal, declaring the  bal-
+       Add  an opening balances transaction to the journal, declaring the bal-
        ances on this date.  Here are two ways to do it:
 
-       o The  first way: open the journal in any text editor and save an entry
+       o The first way: open the journal in any text editor and save an  entry
          like this:
 
                 2023-01-01 * opening balances
@@ -10394,19 +10387,19 @@ Setting opening balances
                     liabilities:creditcard               $-50   = $-50
                     equity:opening/closing balances
 
-         These are start-of-day balances, ie whatever was in  the  account  at
+         These  are  start-of-day  balances, ie whatever was in the account at
          the end of the previous day.
 
-         The  *  after  the  date  is  an optional status flag.  Here it means
+         The * after the date is an  optional  status  flag.   Here  it  means
          "cleared & confirmed".
 
-         The currency symbols are optional, but usually a good idea as  you'll
+         The  currency symbols are optional, but usually a good idea as you'll
          be dealing with multiple currencies sooner or later.
 
-         The  = amounts are optional balance assertions, providing extra error
+         The = amounts are optional balance assertions, providing extra  error
          checking.
 
-       o The second way: run hledger add and follow the prompts  to  record  a
+       o The  second  way:  run hledger add and follow the prompts to record a
          similar transaction:
 
                 $ hledger add
@@ -10443,18 +10436,18 @@ Setting opening balances
                 Starting the next transaction (. or ctrl-D/ctrl-C to quit)
                 Date [2023-01-01]: .
 
-       If  you're  using  version control, this could be a good time to commit
+       If you're using version control, this could be a good  time  to  commit
        the journal.  Eg:
 
               $ git commit -m 'initial balances' 2023.journal
 
 Recording transactions
-       As you spend or receive money, you can record these transactions  using
-       one  of  the  methods  above (text editor, hledger add) or by using the
-       hledger-iadd or hledger-web add-ons, or by using the import command  to
+       As  you spend or receive money, you can record these transactions using
+       one of the methods above (text editor, hledger add)  or  by  using  the
+       hledger-iadd  or hledger-web add-ons, or by using the import command to
        convert CSV data downloaded from your bank.
 
-       Here  are  some  simple transactions, see the hledger_journal(5) manual
+       Here are some simple transactions, see  the  hledger_journal(5)  manual
        and hledger.org for more ideas:
 
               2023/1/10 * gift received
@@ -10470,22 +10463,22 @@ Recording transactions
                 assets:bank:checking    $1000
 
 Reconciling
-       Periodically you should reconcile - compare your hledger-reported  bal-
-       ances  against  external sources of truth, like bank statements or your
-       bank's website - to be sure that your ledger accurately represents  the
-       real-world  balances  (and,  that  the real-world institutions have not
-       made a mistake!).  This gets easy and fast with (1)  practice  and  (2)
-       frequency.   If  you do it daily, it can take 2-10 minutes.  If you let
-       it pile up, expect it to take longer as you hunt down errors  and  dis-
+       Periodically  you should reconcile - compare your hledger-reported bal-
+       ances against external sources of truth, like bank statements  or  your
+       bank's  website - to be sure that your ledger accurately represents the
+       real-world balances (and, that the  real-world  institutions  have  not
+       made  a  mistake!).   This gets easy and fast with (1) practice and (2)
+       frequency.  If you do it daily, it can take 2-10 minutes.  If  you  let
+       it  pile  up, expect it to take longer as you hunt down errors and dis-
        crepancies.
 
        A typical workflow:
 
-       1. Reconcile  cash.   Count  what's  in your wallet.  Compare with what
-          hledger reports (hledger bal cash).  If they are different,  try  to
-          remember  the  missing transaction, or look for the error in the al-
-          ready-recorded transactions.   A  register  report  can  be  helpful
-          (hledger  reg cash).  If you can't find the error, add an adjustment
+       1. Reconcile cash.  Count what's in your  wallet.   Compare  with  what
+          hledger  reports  (hledger bal cash).  If they are different, try to
+          remember the missing transaction, or look for the error in  the  al-
+          ready-recorded  transactions.   A  register  report  can  be helpful
+          (hledger reg cash).  If you can't find the error, add an  adjustment
           transaction.  Eg if you have $105 after the above, and can't explain
           the missing $2, it could be:
 
@@ -10495,26 +10488,26 @@ Reconciling
 
        2. Reconcile checking.  Log in to your bank's website.  Compare today's
           (cleared) balance with hledger's cleared balance (hledger bal check-
-          ing -C).  If they are different, track down the error or record  the
-          missing  transaction(s) or add an adjustment transaction, similar to
+          ing  -C).  If they are different, track down the error or record the
+          missing transaction(s) or add an adjustment transaction, similar  to
           the above.  Unlike the cash case, you can usually compare the trans-
-          action history and running balance from your bank with the  one  re-
-          ported  by hledger reg checking -C.  This will be easier if you gen-
-          erally record transaction dates quite similar to your bank's  clear-
+          action  history  and running balance from your bank with the one re-
+          ported by hledger reg checking -C.  This will be easier if you  gen-
+          erally  record transaction dates quite similar to your bank's clear-
           ing dates.
 
        3. Repeat for other asset/liability accounts.
 
-       Tip:  instead of the register command, use hledger-ui to see a live-up-
+       Tip: instead of the register command, use hledger-ui to see a  live-up-
        dating register while you edit the journal: hledger-ui --watch --regis-
        ter checking -C
 
-       After reconciling, it could be a  good  time  to  mark  the  reconciled
-       transactions'  status  as "cleared and confirmed", if you want to track
-       that, by adding the * marker.  Eg in the  paycheck  transaction  above,
+       After  reconciling,  it  could  be  a  good time to mark the reconciled
+       transactions' status as "cleared and confirmed", if you want  to  track
+       that,  by  adding  the * marker.  Eg in the paycheck transaction above,
        insert * between 2023-01-15 and paycheck
 
-       If  you're using version control, this can be another good time to com-
+       If you're using version control, this can be another good time to  com-
        mit:
 
               $ git commit -m 'txns' 2023.journal
@@ -10586,7 +10579,7 @@ Reporting
               --------------------
                                  0
 
-       Show only asset and liability balances, as  a  flat  list,  limited  to
+       Show  only  asset  and  liability  balances, as a flat list, limited to
        depth 2:
 
               $ hledger bal assets liabilities -2
@@ -10596,7 +10589,7 @@ Reporting
               --------------------
                              $4055
 
-       Show  the  same  thing  without negative numbers, formatted as a simple
+       Show the same thing without negative numbers,  formatted  as  a  simple
        balance sheet:
 
               $ hledger bs -2
@@ -10663,62 +10656,62 @@ Reporting
               2023-01-13 ****
 
 Migrating to a new file
-       At the end of the year, you may want to continue your journal in a  new
+       At  the end of the year, you may want to continue your journal in a new
        file, so that old transactions don't slow down or clutter your reports,
-       and  to  help ensure the integrity of your accounting history.  See the
+       and to help ensure the integrity of your accounting history.   See  the
        close command.
 
        If using version control, don't forget to git add the new file.
 
 BUGS
-       We   welcome   bug   reports   in    the    hledger    issue    tracker
+       We    welcome    bug    reports    in   the   hledger   issue   tracker
        (https://bugs.hledger.org),  or  on  the  hledger  chat  or  mail  list
        (https://hledger.org/support).
 
        Some known issues and limitations:
 
-       hledger uses the system's text encoding when  reading  non-ascii  text.
-       If  no system encoding is configured, or if the data's encoding is dif-
-       ferent, hledger will give an error.  (See Text encoding,  Troubleshoot-
+       hledger  uses  the  system's text encoding when reading non-ascii text.
+       If no system encoding is configured, or if the data's encoding is  dif-
+       ferent,  hledger will give an error.  (See Text encoding, Troubleshoot-
        ing.)
 
-       On  Microsoft  Windows, depending what kind of terminal window you use,
-       non-ascii characters, ANSI text formatting, and/or  the  add  command's
-       TAB  key,  may not be fully supported.  (For best results, try a power-
+       On Microsoft Windows, depending what kind of terminal window  you  use,
+       non-ascii  characters,  ANSI  text formatting, and/or the add command's
+       TAB key, may not be fully supported.  (For best results, try  a  power-
        shell window.)
 
        When processing large data files, hledger uses more memory than Ledger.
 
    Troubleshooting
-       Here are some common issues you might encounter when you  run  hledger,
-       and  how  to  resolve them (and remember also you can usually get quick
+       Here  are  some common issues you might encounter when you run hledger,
+       and how to resolve them (and remember also you can  usually  get  quick
        Support):
 
        PATH issues: I get an error like "No command 'hledger' found"
        Depending how you installed hledger, the executables may not be in your
-       shell's PATH.  Eg on unix systems, stack  installs  hledger  in  ~/.lo-
+       shell's  PATH.   Eg  on  unix systems, stack installs hledger in ~/.lo-
        cal/bin and cabal installs it in ~/.cabal/bin.  You may need to add one
-       of  these  directories to your shell's PATH, and/or open a new terminal
+       of these directories to your shell's PATH, and/or open a  new  terminal
        window.
 
-       LEDGER_FILE issues: I configured LEDGER_FILE but hledger is  not  using
+       LEDGER_FILE  issues:  I configured LEDGER_FILE but hledger is not using
        it
-       o LEDGER_FILE  should  be a real environment variable, not just a shell
+       o LEDGER_FILE should be a real environment variable, not just  a  shell
          variable.  Eg on unix, the command env | grep LEDGER_FILE should show
-         it.   You  may   need   to   use   export   (see   https://stackover-
+         it.    You   may   need   to   use   export  (see  https://stackover-
          flow.com/a/7411509).  On Windows, $env:LEDGER_FILE should show it.
 
-       o You  may  need  to  force your shell to see the new configuration.  A
+       o You may need to force your shell to see  the  new  configuration.   A
          simple way is to close your terminal window and open a new one.
 
        Text decoding issues: I get errors like "Illegal byte sequence" or "In-
-       valid or incomplete multibyte or wide character" or  "commitAndRelease-
+       valid  or incomplete multibyte or wide character" or "commitAndRelease-
        Buffer: invalid argument (invalid character)"
-       hledger  usually  needs  its  input to be decodable with the system lo-
+       hledger usually needs its input to be decodable  with  the  system  lo-
        cale's text encoding.  See Text encoding and Install: Text encoding.
 
        COMPATIBILITY ISSUES: hledger gives an error with my Ledger file
-       Not all of Ledger's journal file syntax or feature  set  is  supported.
+       Not  all  of  Ledger's journal file syntax or feature set is supported.
        See hledger and Ledger for full details.
 
 

@@ -12483,60 +12483,53 @@ Check the status of the hledger installation.
 Flags:
 no command-specific flags
 
-   'setup' tests your hledger installation and prints a list of results,
-sometimes with helpful hints.  This is a good first command to run after
-installing hledger.  Also after upgrading, or when something's not
-working, or just when you want a reminder of where things are.
+   'setup' checks your hledger installation and reports the results,
+sometimes with helpful hints.
 
-   It makes one network request to detect the latest hledger release
-version.  It's ok if this fails or times out.  It will use ANSI color by
-default, unless disabled by NO_COLOR or -color=n.  It does not use a
-pager or a config file.
+   This is a great command to run after installing hledger.  Or after
+upgrading, or when something's not working, or just when you want a
+reminder of where your files are.
 
-   It expects that the hledger version you are running is installed in
-your PATH. If not, it will stop until you have done that (to keep things
-simple).
+   'setup' attempts to make one HTTP request, to hledger.org to detect
+the latest hledger release version.  It will use ANSI color by default,
+unless that is disabled by 'NO_COLOR' or '--color=no'.  It does not use
+a pager or a config file.
 
-   Example:
+   Example output:
 
 $ hledger setup
 Checking your hledger setup..
-Legend: good, neutral, unknown, warning
+Legend: good ✅, info ℹ️ , warning 🔸, problem ❗
 
 hledger
-* is a released version ?                   no  hledger 1.42.99-gbca4b39c5-20250425, mac-aarch64
-* is up to date ?                          yes  1.42.99 installed, latest is 1.42.1
-* is a native binary for this machine ?    yes  aarch64
-* is installed in PATH ?                   yes  /Users/simon/.local/bin/hledger
-* has a system text encoding configured ?  yes  UTF-8, data files should use this encoding
-* has a user config file ? (optional)       no  
-* current directory has a local config ?   yes  /Users/simon/src/hledger/hledger.conf
-* the config file is readable ?            yes  /Users/simon/src/hledger/hledger.conf
+* is a released version ?                   no ℹ️   hledger 1.50.99-gd8996c05c-20251013, mac-aarch64
+* is up to date ? checking...              yes ✅  1.50.99 installed, latest is 1.50.2
+* is a native binary for this machine ?    yes ✅  aarch64
+* is installed in PATH (this version) ?    yes ✅  /Users/simon/.local/bin/hledger
+* has a system text encoding configured ?  yes ✅  UTF-8, data files must use this encoding
+* has a user config file ?                 yes ℹ️   /Users/simon/.hledger.conf (overridden)
+* has a local config file ?                yes ℹ️   /Users/simon/src/hledger/hledger.conf
+* the config file is readable ?            yes ✅  
 
 terminal
-* the NO_COLOR variable is defined ?        no  
-* --color is configured by config file ?    no  
-* hledger will use color by default ?      yes  
-* the PAGER variable is defined ?          yes  less
-* --pager is configured by config file ?    no  
-* hledger will use a pager when needed ?   yes  /opt/homebrew/bin/less
-* the LESS variable is defined ?           yes  
-* the HLEDGER_LESS variable is defined ?    no  
-* adjusting LESS variable for color etc. ? yes  
-* --pretty is enabled by config file ?      no  tables will use ASCII characters
-* bash shell completions are installed ?     ?  
-* zsh shell completions are installed ?      ?  
+* the NO_COLOR variable is defined ?        no ℹ️   
+* --color is configured by config file ?    no ℹ️   
+* hledger will use color by default ?      yes ✅  
+* the PAGER variable is defined ?          yes ℹ️   cat
+* --pager is configured by config file ?    no ℹ️   
+* hledger will use a pager when needed ?   yes ✅  /bin/cat
+* tables will use box-drawing chars ?       no ℹ️   you can use --pretty to enable them
 
 journal
-* the LEDGER_FILE variable is defined ?    yes  /Users/simon/finance/2025/2025.journal
-* a default journal file is readable ?     yes  /Users/simon/finance/2025/2025.journal
-* it includes additional files ?           yes  15
-* all commodities are declared ?           yes  10
-* all accounts are declared ?              yes  160
-* all accounts have types ?                 no  14 untyped
-* accounts of each type were detected ?    yes  ALERXCV
-* commodities/accounts are checked ?        no  use -s to check commodities/accounts
-* balance assertions are checked ?         yes  use -I to ignore assertions
+* the LEDGER_FILE variable is defined ?    yes ℹ️   examples/sample.journal
+* a default journal file is readable ?     yes ✅  ./examples/sample.journal
+* it includes additional files ?            no ℹ️   
+* all commodities are declared ?            no 🔸  1 undeclared commodities
+* all accounts are declared ?               no 🔸  8 undeclared accounts
+* all accounts have types ?                yes ✅  
+* accounts of all types exist ?             no 🔸  no EV accounts found, some features may not work
+* commodities/accounts are being checked ?  no ℹ️   you can use -s to check them
+* balance assertions are being checked ?   yes ✅  you can use -I to ignore them
 
 
 File: hledger.info,  Node: test,  Prev: setup,  Up: Maintenance commands
@@ -13472,19 +13465,19 @@ Node: Other checks466092
 Node: Custom checks467844
 Node: diff468299
 Node: setup469507
-Node: test472374
-Node: PART 5 COMMON TASKS473277
-Node: Getting help473510
-Node: Constructing command lines474419
-Node: Starting a journal file475264
-Node: Setting LEDGER_FILE476648
-Node: Setting opening balances477906
-Node: Recording transactions481228
-Node: Reconciling481953
-Node: Reporting484342
-Node: Migrating to a new file488456
-Node: BUGS488905
-Node: Troubleshooting489735
+Node: test472168
+Node: PART 5 COMMON TASKS473071
+Node: Getting help473304
+Node: Constructing command lines474213
+Node: Starting a journal file475058
+Node: Setting LEDGER_FILE476442
+Node: Setting opening balances477700
+Node: Recording transactions481022
+Node: Reconciling481747
+Node: Reporting484136
+Node: Migrating to a new file488250
+Node: BUGS488699
+Node: Troubleshooting489529
 
 End Tag Table
 
