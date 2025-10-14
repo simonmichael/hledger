@@ -446,7 +446,7 @@ setupJournal meconf = do
       pdesc "accounts of all types exist ?"
       if null typesnotfound
       then p Y (concatMap show accttypes <> " accounts detected")
-      else w N (concatMap show typesnotfound <> " accounts not found; some reports may not work")
+      else w N ("no " <> concatMap show typesnotfound <> " accounts found, some features may not work")
 
       pdesc "commodities/accounts are being checked ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
