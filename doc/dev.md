@@ -124,7 +124,7 @@ versions:
 **Homebrew:**\
 [hledger](https://formulae.brew.sh/formula/hledger)\
 our [homebrew requested installs in last 365 days](https://formulae.brew.sh/analytics/install-on-request/365d):\
-2025: #1872 of 26k, top 7%\
+2025: #1632 of 28k, top 6%\
 2023: #1821 of 24k, top 8%\
 2020: #1520 of 10k, top 15%
 <!--
