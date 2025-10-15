@@ -794,6 +794,10 @@ LOCALSITEURL := 'http://localhost:3000/index.html'
     make -C site snapshot-{{ VER }}
     echo "{{ VER }} manuals created. Please add the new version to site.js, Makefile, and hledger.org.caddy."
 
+# restart hledger.org's caddy server, after config changes
+site-restart:
+    osh -i -c 'hledgerorgssh systemctl restart caddy'
+
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
     --haddock-arguments="--no-warnings" \
