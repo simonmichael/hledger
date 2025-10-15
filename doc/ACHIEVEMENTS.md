@@ -12,7 +12,6 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~among top 50 starred haskell projects on github~~
 - ~~discussed on Hacker News~~
 - ~~match ledger IRC channel size~~
-- ~~mentioned in "what good Haskell software exists" discussions~~
 - ~~among top 40 starred haskell projects on github~~
 - ~~multiple people providing support~~
 - ~~pretty good tutorial docs~~
@@ -21,15 +20,23 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~2k github stars~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
+- **consistently mentioned in "good Haskell apps" discussions**
+- **2 low regression releases in a row** (2 major releases plus 3 more months with no new regressions found)
 - **200 committers**
 - **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
 - **match ledger speed**
 - **2.0 release**
+- **3 low regression releases in a row**
 - **match ledger committers**
+- **match beancount stars**
 - **match ledger stars**
+- **in top 10 github starred haskell projects**
+- **4 low regression releases in a row**
+<!--
+mail lists are a choice these days, we don't use ours much
 - **match beancount mail list**
 - **match ledger mail list**
-- **in top 10 github starred haskell projects**
+-->
 
 ### Stars
 
@@ -47,3 +54,5 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 | 2018 | #53 |
 | 2017 | #54 |
 | 2016 | #71 |
+
+See also: [ROADMAP](ROADMAP.md)
