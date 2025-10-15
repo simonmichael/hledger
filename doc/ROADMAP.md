@@ -9,6 +9,8 @@
 Ideas of where the hledger project should be going next.
 Being listed here suggests a bit of commitment, perhaps even a schedule.
 
+See also: [ACHIEVEMENTS](ACHIEVEMENTS.md)
+
 ## 2025
 
 - progress on automated lot tracking
@@ -92,5 +94,3 @@ real-world usefulness.
 - hledger 1.16, december
   - ghc 8.8 support, more powerful CSV conversion, updated home page,
     faq, manuals, reduce install hassles with terminfo C lib
-
-See also: [ACHIEVEMENTS](ACHIEVEMENTS.md)
