@@ -17,7 +17,7 @@ See also: [ACHIEVEMENTS](ACHIEVEMENTS.md)
 - fix hledger-ui --watch memory leak
 - up-to-date, effective project finance reports
 - easier file/script management when importing
-- robust, easy setup & get started experience
+- easier setup & get started process
 
 ## 2024
 
