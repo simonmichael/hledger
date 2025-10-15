@@ -21,11 +21,11 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~2k github stars~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
-- **match ledger speed**
-- **match ledger committers**
 - **200 committers**
 - **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
+- **match ledger speed**
 - **2.0 release**
+- **match ledger committers**
 - **match ledger stars**
 - **match beancount mail list**
 - **match ledger mail list**
