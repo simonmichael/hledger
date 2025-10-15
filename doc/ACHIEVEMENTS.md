@@ -38,12 +38,12 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 [Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) rank
 ([all projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories)):
 
-  |      |     |
-  |------|-----|
-  | 2025 | #19 |
-  | 2023 | #32 |
-  | 2022 | #34 |
-  | 2020 | #36 |
-  | 2018 | #53 |
-  | 2017 | #54 |
-  | 2016 | #71 |
+|      |     |
+|------|-----|
+| 2025 | #19 |
+| 2023 | #32 |
+| 2022 | #34 |
+| 2020 | #36 |
+| 2018 | #53 |
+| 2017 | #54 |
+| 2016 | #71 |
