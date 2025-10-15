@@ -62,19 +62,6 @@ main repo: <https://code.hledger.org>
 <https://unassignedprs.hledger.org>,
 [PULLREQUESTS](PULLREQUESTS.md)
 
-[star-history.com](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date) PTA apps' github star history\
-[stars.hledger.org](https://stars.hledger.org) our rank among github-starred haskell projects:
-
-|      |     |
-|------|-----|
-| 2025 | #19 |
-| 2023 | #32 |
-| 2022 | #34 |
-| 2020 | #36 |
-| 2018 | #53 |
-| 2017 | #54 |
-| 2016 | #71 |
-
 site repo: <https://site.hledger.org>
 
 finance repo: <https://finance.hledger.org>
