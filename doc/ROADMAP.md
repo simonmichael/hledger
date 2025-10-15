@@ -9,6 +9,13 @@
 Ideas of where the hledger project should be going next.
 Being listed here suggests a bit of commitment, perhaps even a schedule.
 
+## 2025
+
+- progress on automated lot tracking
+- up-to-date, effective project finance reports
+- easier file/script management when importing
+- robust, easy setup & get started experience
+
 ## 2024
 
 **Targets:**
