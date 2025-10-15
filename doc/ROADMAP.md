@@ -12,6 +12,7 @@ Being listed here suggests a bit of commitment, perhaps even a schedule.
 ## 2025
 
 - progress on automated lot tracking
+- fix hledger-ui --watch memory leak
 - up-to-date, effective project finance reports
 - easier file/script management when importing
 - robust, easy setup & get started experience
@@ -91,3 +92,5 @@ real-world usefulness.
 - hledger 1.16, december
   - ghc 8.8 support, more powerful CSV conversion, updated home page,
     faq, manuals, reduce install hassles with terminfo C lib
+
+See also: [ACHIEVEMENTS](ACHIEVEMENTS.md)
