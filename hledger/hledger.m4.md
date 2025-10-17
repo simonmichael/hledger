@@ -920,7 +920,7 @@ $ hledger print -c '$1.000,0'
 
 This option can be repeated to set the display style for multiple
 commodities/currencies. Its argument is as described in 
-the [commodity directive](#commodity-directive).
+the [commodity directive](#commodity-directive). Note that omitting the commodity symbol will set the display style for just the no-symbol commodity, not all commodities.
 
 In some cases hledger will adjust number formatting to improve their parseability
 (such as adding [trailing decimal marks](#trailing-decimal-marks) when needed).
@@ -2219,7 +2219,7 @@ Tips:
 
 - You can list accounts and their types, for troubleshooting:
   ```cli
-  $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH]
+  $ hledger accounts --types [ACCTPAT] [type:TYPECODES] [-DEPTH] [--locations]
   ```
 
 - It's a good idea to declare at least one account for each account type.
@@ -2479,6 +2479,10 @@ and will not affect sibling or parent files.
 So if you are relying on them (especially 4) and using multiple files,
 placing your commodity directives in a top-level parent file might be important.
 Or, keep your decimal marks unambiguous and your entries well balanced and precise.
+
+Omitting the commodity symbol will set the display style for just the no-symbol commodity, not all commodities.
+
+Commodity styles can be [overridden](#commodity-styles) by the `-c/--commodity-style` command line option.
 
 (Related: [#793](https://github.com/simonmichael/hledger/issues/793))
 
