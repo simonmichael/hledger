@@ -16,6 +16,7 @@ module Hledger.Cli.CompoundBalanceCommand (
 
 import Control.Monad (guard)
 import Data.Bifunctor (second)
+import Data.Foldable (traverse_)
 import Data.Function ((&))
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
@@ -36,7 +37,7 @@ import Hledger.Cli.Commands.Balance
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
-import Hledger.Write.Html (htmlAsLazyText, styledTableHtml, Html)
+import Hledger.Write.Html (formatRow, htmlAsLazyText, Html)
 import Hledger.Write.Html.Attribute (stylesheet, tableStyle, alignleft)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Spreadsheet qualified as Spr
@@ -339,7 +340,8 @@ compoundBalanceReportAsHtml ropts cbr =
       ]
     table_ $ do
       tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
-      styledTableHtml $ NonEmpty.toList $ fmap (map (fmap L.toHtml)) cells
+      -- Do not use `styledTableHtml` here since that leads to nested `<table>`s.
+      traverse_ formatRow $ fmap (map (fmap L.toHtml)) cells
 
 -- | Render a compound balance report as Spreadsheet.
 compoundBalanceReportAsSpreadsheet ::
