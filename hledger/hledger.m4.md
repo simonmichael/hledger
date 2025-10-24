@@ -6858,42 +6858,77 @@ Market prices            : 0 ()
 
 ## Setting LEDGER_FILE
 
-How to set `LEDGER_FILE` permanently depends on your setup:
+### Set LEDGER_FILE on unix
 
-On unix and mac, running these commands in the terminal will work for many people; adapt as needed:
+It depends on your shell, but running these commands in the terminal will work for many people;
+adapt if needed:
 ```cli
-$ echo 'export LEDGER_FILE=~/finance/2023.journal' >> ~/.profile
+$ echo 'export LEDGER_FILE=~/finance/my.journal' >> ~/.profile
 $ source ~/.profile
 ```
 
 <!-- 
 fish: 
-set -Ux LEDGER_FILE ~/finance/2023.journal
+set -Ux LEDGER_FILE ~/finance/my.journal
 -->
 
-When correctly configured, in a new terminal window `env | grep LEDGER_FILE` will show your file,
-and so will `hledger files`.
+When correctly configured:
 
-On mac, this additional step might be helpful for GUI applications (like Emacs started from the dock):
-add an entry to `~/.MacOSX/environment.plist` like
+- `env | grep LEDGER_FILE` will show your new setting
+- and so should `hledger setup` and (once the file exists) `hledger files`.
 
-```json
-{
-  "LEDGER_FILE" : "~/finance/2023.journal"
-}
-```
-and then run `killall Dock` in a terminal window (or restart the machine).
+### Set LEDGER_FILE on mac
 
-On Windows, see <https://www.java.com/en/download/help/path.html>,
-or try running these commands in a powershell window
-(let us know if it persists across a reboot, and if you need to be an Administrator):
-```cli
-> CD
-> MKDIR finance
-> SETX LEDGER_FILE "C:\Users\USERNAME\finance\2023.journal"
-```
-When correctly configured, in a new terminal window `$env:LEDGER_FILE` will show the file path,
-and so will `hledger files`.
+In a terminal window, follow the unix procedure above.
+
+Also, this optional step may be helpful for GUI applications:
+
+1. Add an entry to `~/.MacOSX/environment.plist` like
+
+    ```json
+    {
+      "LEDGER_FILE" : "~/finance/my.journal"
+    }
+    ```
+2. Run `killall Dock` in a terminal window (or restart the machine), to complete the change.
+
+When correctly configured for GUI applications:
+
+- apps started from the dock or a spotlight search, such as a GUI Emacs,
+  will be aware of the new LEDGER_FILE setting.
+
+### Set LEDGER_FILE on Windows
+
+Using the gui is easiest:
+
+1. In task bar, search for `environment variables`, and choose "Edit environment variables for your account".
+2. Create or change a `LEDGER_FILE` setting in the User variables pane.
+   A typical value would be `C:\Users\USERNAME\finance\my.journal`.
+3. Click OK to complete the change.
+4. And open a new powershell window. (Existing windows won't see the change.)
+
+Or at the command line, you can do it this way:
+
+1. In a powershell window, run `[Environment]::SetEnvironmentVariable("LEDGER_FILE", "C:\User\USERNAME\finance\my.journal", [System.EnvironmentVariableTarget]::User)`
+2. And open a new powershell window. (Existing windows won't see the change.)
+
+Warning, doing this from the Windows command line can be tricky; other methods you may find online:
+
+- may not affect the current window
+- may not be persistent
+- may not work unless you are an administrator
+- may limit values to 1024 characters
+- may break dynamic references to other variables
+- may require a new-enough version of powershell
+- or may be intended for the older command window.
+- If you still have trouble, see eg
+  [Setting Windows PowerShell environment variables](https://stackoverflow.com/questions/714877/setting-windows-powershell-environment-variables)
+  or [Adding path permanently to windows using powershell doesn't appear to work](https://stackoverflow.com/questions/69236623/adding-path-permanently-to-windows-using-powershell-doesnt-appear-to-work).
+
+When correctly configured:
+
+- in a new powershell window, `$env:LEDGER_FILE` will show your new setting
+- and so should `hledger setup` and (once the file exists) `hledger files`.
 
 ## Setting opening balances
 
