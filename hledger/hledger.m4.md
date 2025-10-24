@@ -966,8 +966,17 @@ If `less` is your [pager](#paging), this variable specifies the `less` options h
 (Otherwise, `LESS` + custom options are used.)
 
 **LEDGER_FILE**
-The main journal file to use when not specified with `-f/--file`.
-Default: `$HOME/.hledger.journal`.
+The default journal file, to be used when no `-f/--file` option is provided.
+For example, it could be `~/finance/main.journal`.
+This can also be a glob pattern, eg `./2???.journal`.
+(If the glob matches multiple files, only the alphanumerically first one is used.)
+If LEDGER_FILE points to a non-existent file, an error will be raised.
+If the value is the empty string, it is ignored.
+
+If LEDGER_FILE is not set and `-f` is not provided, the default journal file is `$HOME/.hledger.journal`
+(or if a home directory can't be detected, `./.hledger.journal`).
+
+See also [Common tasks > Setting LEDGER_FILE](#setting-ledger_file).
 
 **NO_COLOR**
 If this environment variable exists (with any value, including empty),

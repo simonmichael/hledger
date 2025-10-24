@@ -174,7 +174,6 @@ import Text.Printf (printf)
 --- ** journal reading
 
 journalEnvVar           = "LEDGER_FILE"
-journalEnvVar2          = "LEDGER"
 journalDefaultFilename  = ".hledger.journal"
 
 -- | Read the default journal file specified by the environment, 
@@ -202,29 +201,31 @@ defaultJournalSafelyWith iopts = (do
      C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ show e)
     ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
     ]
--- | Get the default journal file path specified by the environment.
--- Like ledger, we look first for the LEDGER_FILE environment
--- variable, and if that does not exist, for the legacy LEDGER
--- environment variable. If neither is set, or the value is blank,
--- return the hard-coded default, which is @.hledger.journal@ in the
--- users's home directory (or in the current directory, if we cannot
--- determine a home directory).
+
+-- | Get the default journal file path.
+--
+-- This looks for the LEDGER_FILE environment variable, like Ledger.
+-- The value should be a file path; ~ at the start is supported, meaning user's home directory.
+-- The value can also be a glob pattern, for convenience; if so we consider only the first matched file.
+--
+-- If no such file exists, an error is raised.
+--
+-- If LEDGER_FILE is unset or set to the empty string, we return a default file path:
+-- @.hledger.journal@ in the user's home directory.
+-- Or if we can't find the user's home directory, in the current directory.
+--
 defaultJournalPath :: IO String
 defaultJournalPath = do
-  p <- envJournalPath
-  if null p
-  then defpath
+  glob <- getEnv journalEnvVar `C.catch` (\(_::C.IOException) -> return "")
+  if null glob
+  then do
+    homedir <- fromMaybe "" <$> getHomeSafe
+    return $ homedir </> journalDefaultFilename
   else do
-    ps <- expandGlob "." p `C.catch` (\(_::C.IOException) -> return [])
-    maybe defpath return $ headMay ps
-    where
-      envJournalPath =
-        getEnv journalEnvVar
-         `C.catch` (\(_::C.IOException) -> getEnv journalEnvVar2
-                                            `C.catch` (\(_::C.IOException) -> return ""))
-      defpath = do
-        home <- fromMaybe "" <$> getHomeSafe
-        return $ home </> journalDefaultFilename
+    mf <- headMay <$> expandGlob "." glob `C.catch` (\(_::C.IOException) -> return [])
+    case mf of
+      Just f -> return f
+      Nothing -> error' $ "LEDGER_FILE points to nonexistent file \"" <> glob <> "\""
 
 -- | @readJournal iopts mfile txt@
 --
