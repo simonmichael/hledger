@@ -1238,7 +1238,7 @@ Improvements
   medium mathematical space.
 
 - Glob patterns in `$LEDGER_FILE` are now respected.
-  Eg, setting it to `*.journal'` or `2???.journal` now works as expected.
+  Eg, setting it to `*.journal` or `2???.journal` now works as expected.
 
 - When hledger is reading a symbolically-linked journal file,
   relative paths in include directives are now evaluated
