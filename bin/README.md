@@ -78,6 +78,7 @@ Example usage with hledger 1.50+:
 download multi-account JSON once with `simplefinjson >simplefin.json`,
 and in each account's CSV [rules file](https://hledger.org/hledger.html#csv), extract that account's CSV, eg:
 `source | simplefincsv simplefin.json 'wells fargo.*checking'`.
+See also [hledger and SimpleFIN](https://hledger.org/simplefin.html).
 
 ## hledger command line scripts
 
