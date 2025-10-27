@@ -88,9 +88,13 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       []     -> error' $ help <> ".\nPlease provide an account name or a (case-insensitive, infix, regexp) pattern."
       (a:as) -> return (a, map T.pack as)
   let
-    -- keep synced with findMatchedByArgument's matching
+    -- related: findMatchedByArgument
+    -- Here, we select the first matched according to display order -
+    -- ie the first declared if the accounts are declaraed, otherwise the alphanumerically first.
     acct = fromMaybe (error' $ help <> ",\nbut " ++ show apat++" did not match any account.")   -- PARTIAL:
-           . firstMatch $ journalAccountNamesDeclaredOrImplied j
+           . firstMatch $
+            sortAccountNamesByDeclaration j False $
+            journalAccountNamesDeclaredOrImplied j
     firstMatch = case toRegexCI $ T.pack apat of
         Right re -> find (regexMatchText re)
         Left  _  -> const Nothing
