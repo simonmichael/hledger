@@ -5320,33 +5320,40 @@ Examples:
 
 # Depth
 
-With the `--depth NUM` option (short form: `-NUM`), 
+With the `--depth NUM` option (short form, usually preferred: `-NUM`), 
 reports will show accounts only to the specified depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
 This flag has the same effect as a `depth:` query argument.
 So all of these are equivalent: `depth:2`, `--depth=2`, `-2`.
 
-In place of a single number which limits the depth for all accounts, you can
-also provide depth limits for specific accounts, by providing a `REGEX=DEPTH` argument
-instead of just a `DEPTH` *(since 1.41)*.
-For example, `--depth assets=2` (or `depth:assets=2`)
-will collapse accounts matching the regular expression "assets" to depth 2.
+You can also provide custom depths for specific accounts,
+by providing a `REGEX=NUM` argument instead of just `NUM` *(since 1.41)*.
+For example, `--depth assets=2` (or `depth:assets=2`) will collapse accounts matching the regular expression "assets" to depth 2.
 So `assets:bank:savings` would be collapsed to `assets:bank`, but `liabilities:bank:credit card` would not be affected.
 
-(If REGEX contains spaces or other special characters, enclose it in quotes in the [usual way](#special-characters).
-Eg: `--depth 'credit card=2'`)
+If REGEX contains spaces or other special characters, enclose it in quotes in the [usual way](#special-characters).
+Eg: `--depth 'credit card=2'`
 
-Specific depth options and a general depth option can be combined.
-Eg `--depth assets=3 --depth expenses=2 --depth 1` would collapse
-accounts containing "assets" to depth 3,
-accounts containing "expenses" to depth 2,
-and all other accounts to depth 1.
+## Combining depth options
 
-If an account is matched by more than one regular expression depth argument, the most specific (deepest) match will be used.
-For example, with `--depth assets=1 --depth savings=2`, 
-`assets:bank:savings` will be collapsed to depth 2, not depth 1
-(because "savings" matches a deeper part of it than "assets" does).
+If a command line contains multiple general depth options, the last one wins. 
+(Useful for overriding a depth specified by scripts.)
 
+Or a command may contain a combination of general and custom depth options.
+In this case, the most specifically (deepest) matching option wins.
+Some examples:
+
+- `--depth assets=3 --depth expenses=2 --depth 1` would collapse
+  accounts containing "assets" to depth 3,
+  accounts containing "expenses" to depth 2,
+  and all other accounts to depth 1.
+
+- `--depth assets=1 --depth savings=2` would collapse
+  `assets:bank:savings` to depth 2
+  (not depth 1; because "savings" matches a deeper part of the account name than "assets").
+
+Note currently, to override a custom depth option `--depth REGEX=NUM` with a later option,
+the later option must use the same REGEX.
 
 # Queries
 
