@@ -156,6 +156,7 @@ It should be improved each time it is used.
       `just ghbin-download` <!-- (or if throttled: `just ghbin-open`, download to tmp/, unzip the unix ones) -->  
       `just ghrel-bin-upload VER`  
   - github release published  
+      decide if release should be immutable (artifacts attached, all correct ?) then adjust repo settings  
       review,
       publish
   - github nightly release updated  

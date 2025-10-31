@@ -53,6 +53,16 @@ If you have [eget](https://github.com/zyedidia/eget), that's a convenient way to
 eget simonmichael/hledger --all
 ```
 
+From hledger 1.51 on, the github releases are immutable, and can be verified as follows:
+
+```
+gh --version  # ensure you have github CLI 2.81.0+
+gh release verify $REL  # check the $REL github release is immutable
+curl -fLO https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.tar.gz  # eg
+gh release verify-asset $REL ./hledger-linux-x64.tar.gz  # check the tarball is correct
+tar xzv -f hledger-linux-x64.tar.gz -C/usr/local/bin hledger hledger-ui hledger-web
+```
+
 Otherwise:
 
 </xdetails>
