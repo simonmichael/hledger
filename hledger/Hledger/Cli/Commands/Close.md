@@ -130,8 +130,7 @@ In all modes, the following things can be overridden:
 - the closing/opening dates, with `-e OPENDATE`
 - the balancing account, with `--close-acct=ACCT` and/or `--open-acct=ACCT`
 - the transaction descriptions, with `--close-desc=DESC` and `--open-desc=DESC`
-- the value of the transaction's `clopen` tag, with a `TAGVAL` argument to the
-  mode flag.\
+- the value of the transaction's `clopen` tag, with an argument for the mode flag.\
   (Eg: `--close=foo` or `--clopen=2025-main`)
 
 By default, the closing date is yesterday, or the journal's end date, whichever is later;
