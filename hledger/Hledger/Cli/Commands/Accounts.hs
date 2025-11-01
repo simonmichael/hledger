@@ -92,14 +92,22 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
   -- within each group of siblings
       sortedaccts = sortAccountNamesByDeclaration j tree accts
 
+  -- 2a. in tree mode, add parent accounts for tree structure context
+      acctswithparents =
+        if tree
+        then dbg4 "acctswithparents" $
+             sortAccountNamesByDeclaration j tree $  -- re-sort after adding parents
+             expandAccountNames sortedaccts          -- add all parent accounts
+        else sortedaccts
+
   -- 3. if there's a depth limit, depth-clip and remove any no longer useful items
       clippedaccts =
         dbg4 "clippedaccts" $
-        filter (matchesAccount acctq) $  -- clipping can leave accounts that no longer match the query, remove such
+        (if tree then id else filter (matchesAccount acctq)) $  -- in tree mode, keep parent accounts even if they don't match
         nub $                            -- clipping can leave duplicates (adjacent, hopefully)
         filter (not . T.null) $          -- depth:0 can leave nulls
         map (clipAccountName dep) $      -- clip at depth if specified
-        sortedaccts
+        acctswithparents                 -- use expanded list instead of sortedaccts
 
   -- 4. print what remains as a list or tree, maybe applying --drop in the former case.
   -- Add various bits of info if enabled.
