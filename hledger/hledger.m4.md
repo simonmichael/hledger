@@ -520,16 +520,32 @@ See [Special characters](#special-characters).
 ## Argument files
 
 You can save a set of command line options and arguments in a file,
-and then reuse them by writing `@FILENAME` as a command line argument.
-Eg: `hledger bal @cash.args`.
+and then use them by writing `@FILE.args` as a hledger command argument.
+The `.args` file extension is conventional, but not required.
+In an argument file,
 
-The syntax in an argument file is quite restrictive:
-
-- Each line should contain just one option or argument.
+- Each line can contain one argument, flag, or option.
+- Blank lines or lines beginning with `#` are ignored.
 - An option's flag and value should be joined by `=`.
-- An option value or an argument may contain spaces.
-- But don't use single or double quotes. 
-- And generally use one less level of quoting/escaping than at the command line.
+- An option value or an argument may contain spaces. Don't use single or double quotes.
+- And generally, use one less level of quoting/escaping than at the command line.
+  Eg `cur:\$`, not `cur:\\$` as on the command line.
+
+For example:
+```text
+# cash.args
+
+assets:cash
+assets:charles schwab:sweep
+cur:\$
+-c=$1.
+```
+```cli
+$ hledger bal @cash.args
+```
+
+
+
 
 ## Config files
 
