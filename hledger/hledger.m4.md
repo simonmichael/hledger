@@ -524,6 +524,7 @@ and then reuse them by writing `@FILENAME` as a command line argument.
 Eg: `hledger bal @cash.args`.
 
 The syntax in an argument file is quite restrictive:
+
 - Each line should contain just one option or argument.
 - An option's flag and value should be joined by `=`.
 - An option value or an argument may contain spaces.
