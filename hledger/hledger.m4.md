@@ -521,13 +521,14 @@ See [Special characters](#special-characters).
 
 You can save a set of command line options and arguments in a file,
 and then reuse them by writing `@FILENAME` as a command line argument.
-Eg: `hledger bal @foo.args`.
+Eg: `hledger bal @cash.args`.
 
-An argument file's format is more restrictive than the command line.
-Each line should contain just one option or argument.
-Don't use spaces except inside quotes; write `=` or nothing between a flag and its argument.
-If you use quotes, they must enclose the whole line.
-For the special characters mentioned above, use one less level of quoting than you would at the command line.
+The syntax in an argument file is quite restrictive:
+- Each line should contain just one option or argument.
+- An option's flag and value should be joined by `=`.
+- An option value or an argument may contain spaces.
+- But don't use single or double quotes. 
+- And generally use one less level of quoting/escaping than at the command line.
 
 ## Config files
 
