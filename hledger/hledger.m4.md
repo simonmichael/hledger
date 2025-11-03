@@ -6220,6 +6220,16 @@ using the [market prices](#p-directive) in effect on the *valuation date(s)*, if
 Use this when you want to (eg) show everything in your base currency as far as possible.
 (Commodities for which no conversion rate can be found, will not be converted.)
 
+COMM should be the full commodity symbol or name.
+Remember to quote [special shell characters](#special-characters), if needed.
+Some examples:
+
+- `-X€`
+- `-X$`    (nothing after $, no quoting needed)
+- `-X CNY`
+- `-X 'red apples'`  (space needs quoting)
+- `-X 'r&r'`  (& needs quoting)
+
 ## -V: Value in default commodity(s)
 
 The `-V/--market` flag is a variant of `-X` where you don't have to specify COMM.
