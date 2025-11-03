@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "October 2025" "hledger-1.50.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "November 2025" "hledger-1.50.99 " "hledger User Manuals"
 
 
 
@@ -779,17 +779,39 @@ special meaning to the shell and so must be escaped at least once more.
 See Special characters.
 .SS Argument files
 You can save a set of command line options and arguments in a file, and
-then reuse them by writing \f[CR]\[at]FILENAME\f[R] as a command line
+then use them by writing \f[CR]\[at]FILE.args\f[R] as a hledger command
 argument.
-Eg: \f[CR]hledger bal \[at]foo.args\f[R].
+The \f[CR].args\f[R] file extension is conventional, but not required.
+In an argument file,
+.IP \[bu] 2
+Each line can contain one argument, flag, or option.
+.IP \[bu] 2
+Blank lines or lines beginning with \f[CR]#\f[R] are ignored.
+.IP \[bu] 2
+An option\[aq]s flag and value should be joined by \f[CR]=\f[R].
+.IP \[bu] 2
+An option value or an argument may contain spaces.
+Don\[aq]t use single or double quotes.
+.IP \[bu] 2
+And generally, use one less level of quoting/escaping than at the
+command line.
+Eg \f[CR]cur:\[rs]$\f[R], not \f[CR]cur:\[rs]\[rs]$\f[R] as on the
+command line.
 .PP
-An argument file\[aq]s format is more restrictive than the command line.
-Each line should contain just one option or argument.
-Don\[aq]t use spaces except inside quotes; write \f[CR]=\f[R] or nothing
-between a flag and its argument.
-If you use quotes, they must enclose the whole line.
-For the special characters mentioned above, use one less level of
-quoting than you would at the command line.
+For example:
+.IP
+.EX
+# cash.args
+
+assets:cash
+assets:charles schwab:sweep
+cur:\[rs]$
+\-c=$1.
+.EE
+.IP
+.EX
+$ hledger bal \[at]cash.args
+.EE
 .SS Config files
 With hledger 1.40+, you can save extra command line options and
 arguments in a more featureful hledger config file.
@@ -1313,6 +1335,8 @@ $ hledger print \-c \[aq]$1.000,0\[aq]
 This option can be repeated to set the display style for multiple
 commodities/currencies.
 Its argument is as described in the commodity directive.
+Note that omitting the commodity symbol will set the display style for
+just the no\-symbol commodity, not all commodities.
 .PP
 In some cases hledger will adjust number formatting to improve their
 parseability (such as adding trailing decimal marks when needed).
@@ -3028,7 +3052,7 @@ You can list accounts and their types, for troubleshooting:
 .RS 2
 .IP
 .EX
-$ hledger accounts \-\-types [ACCTPAT] [type:TYPECODES] [\-DEPTH]
+$ hledger accounts \-\-types [ACCTPAT] [type:TYPECODES] [\-DEPTH] [\-\-locations]
 .EE
 .RE
 .IP \[bu] 2
@@ -3321,6 +3345,12 @@ placing your commodity directives in a top\-level parent file might be
 important.
 Or, keep your decimal marks unambiguous and your entries well balanced
 and precise.
+.PP
+Omitting the commodity symbol will set the display style for just the
+no\-symbol commodity, not all commodities.
+.PP
+Commodity styles can be overridden by the
+\f[CR]\-c/\-\-commodity\-style\f[R] command line option.
 .PP
 (Related: #793)
 .SS Commodity directive syntax
@@ -6791,18 +6821,17 @@ dates will be Sat, Sun; periods will be Sat, Sun\-Fri
 T}
 .TE
 .SH Depth
-With the \f[CR]\-\-depth NUM\f[R] option (short form: \f[CR]\-NUM\f[R]),
-reports will show accounts only to the specified depth, hiding deeper
-subaccounts.
+With the \f[CR]\-\-depth NUM\f[R] option (short form, usually preferred:
+\f[CR]\-NUM\f[R]), reports will show accounts only to the specified
+depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
 This flag has the same effect as a \f[CR]depth:\f[R] query argument.
 So all of these are equivalent: \f[CR]depth:2\f[R],
 \f[CR]\-\-depth=2\f[R], \f[CR]\-2\f[R].
 .PP
-In place of a single number which limits the depth for all accounts, you
-can also provide depth limits for specific accounts, by providing a
-\f[CR]REGEX=DEPTH\f[R] argument instead of just a \f[CR]DEPTH\f[R]
-\f[I](since 1.41)\f[R].
+You can also provide custom depths for specific accounts, by providing a
+\f[CR]REGEX=NUM\f[R] argument instead of just \f[CR]NUM\f[R] \f[I](since
+1.41)\f[R].
 For example, \f[CR]\-\-depth assets=2\f[R] (or
 \f[CR]depth:assets=2\f[R]) will collapse accounts matching the regular
 expression \[dq]assets\[dq] to depth 2.
@@ -6810,22 +6839,32 @@ So \f[CR]assets:bank:savings\f[R] would be collapsed to
 \f[CR]assets:bank\f[R], but \f[CR]liabilities:bank:credit card\f[R]
 would not be affected.
 .PP
-(If REGEX contains spaces or other special characters, enclose it in
+If REGEX contains spaces or other special characters, enclose it in
 quotes in the usual way.
-Eg: \f[CR]\-\-depth \[aq]credit card=2\[aq]\f[R])
+Eg: \f[CR]\-\-depth \[aq]credit card=2\[aq]\f[R]
+.SS Combining depth options
+If a command line contains multiple general depth options, the last one
+wins.
+(Useful for overriding a depth specified by scripts.)
 .PP
-Specific depth options and a general depth option can be combined.
-Eg \f[CR]\-\-depth assets=3 \-\-depth expenses=2 \-\-depth 1\f[R] would
+Or a command may contain a combination of general and custom depth
+options.
+In this case, the most specifically (deepest) matching option wins.
+Some examples:
+.IP \[bu] 2
+\f[CR]\-\-depth assets=3 \-\-depth expenses=2 \-\-depth 1\f[R] would
 collapse accounts containing \[dq]assets\[dq] to depth 3, accounts
 containing \[dq]expenses\[dq] to depth 2, and all other accounts to
 depth 1.
+.IP \[bu] 2
+\f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R] would collapse
+\f[CR]assets:bank:savings\f[R] to depth 2 (not depth 1; because
+\[dq]savings\[dq] matches a deeper part of the account name than
+\[dq]assets\[dq]).
 .PP
-If an account is matched by more than one regular expression depth
-argument, the most specific (deepest) match will be used.
-For example, with \f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R],
-\f[CR]assets:bank:savings\f[R] will be collapsed to depth 2, not depth 1
-(because \[dq]savings\[dq] matches a deeper part of it than
-\[dq]assets\[dq] does).
+Note currently, to override a custom depth option
+\f[CR]\-\-depth REGEX=NUM\f[R] with a later option, the later option
+must use the same REGEX.
 .SH Queries
 Many hledger commands accept query arguments, which restrict their scope
 and let you report on a precise subset of your data.
@@ -12216,9 +12255,21 @@ Flags:
 .EE
 .PP
 \f[CR]close\f[R] has six modes, selected by choosing one of the mode
-flags (\f[CR]\-\-close\f[R] is the default).
-They all do much the same operation, but with different defaults, useful
-in different situations.
+flags: \f[CR]\-\-clopen\f[R], \f[CR]\-\-close\f[R] (default),
+\f[CR]\-\-open\f[R], \f[CR]\-\-assert\f[R], \f[CR]\-\-assign\f[R], or
+\f[CR]\-\-retain\f[R].
+They are all doing the same kind of operation, but with different
+defaults for different situations.
+.PP
+The journal entries generated by \f[CR]close\f[R] will have a
+\f[CR]clopen:\f[R] tag, which is helpful when you want to exclude them
+from reports.
+If the main journal file name contains a number, the tag\[aq]s value
+will be that base file name with the number incremented.
+Eg if the journal file is 2025.journal, the tag will be
+\f[CR]clopen:2026\f[R].
+Or you can set the tag value by providing an argument to the mode flag.
+Eg \f[CR]\-\-close=foo\f[R] or \f[CR]\-\-clopen=2025\-main\f[R].
 .SS close \-\-clopen
 This is useful if migrating balances to a new journal file at the start
 of a new year.
@@ -12263,13 +12314,6 @@ AL or ALE accounts, but not the RX accounts (Revenue, Expense).
 .PP
 Assertions will be added indicating and checking the new balances of the
 closed/opened accounts.
-.PP
-The generated transactions will have a \f[CR]clopen:\f[R] tag.
-If the main journal\[aq]s base file name contains a number (eg a year
-number), the tag\[aq]s value will be that base file name with the number
-incremented.
-Or you can choose the tag value yourself, by using
-\f[CR]\-\-clopen=TAGVAL\f[R].
 .SS close \-\-close
 This prints just the closing balances transaction of
 \f[CR]\-\-clopen\f[R].
@@ -12321,16 +12365,16 @@ In all modes, the following things can be overridden:
 .IP \[bu] 2
 the accounts to be closed/opened, with account query arguments
 .IP \[bu] 2
+the closing/opening dates, with \f[CR]\-e OPENDATE\f[R]
+.IP \[bu] 2
 the balancing account, with \f[CR]\-\-close\-acct=ACCT\f[R] and/or
 \f[CR]\-\-open\-acct=ACCT\f[R]
 .IP \[bu] 2
 the transaction descriptions, with \f[CR]\-\-close\-desc=DESC\f[R] and
 \f[CR]\-\-open\-desc=DESC\f[R]
 .IP \[bu] 2
-the transaction\[aq]s tag value, with a \f[CR]\-\-MODE=NEW\f[R] option
-argument
-.IP \[bu] 2
-the closing/opening dates, with \f[CR]\-e OPENDATE\f[R]
+the transactions\[aq] \f[CR]clopen\f[R] tag value, with a
+\f[CR]TAGVAL\f[R] argument for the mode flag (see above).
 .PP
 By default, the closing date is yesterday, or the journal\[aq]s end
 date, whichever is later; and the opening date is always one day after
@@ -12665,8 +12709,6 @@ This prevents wrong conversions caused by typos.
 .IP \[bu] 2
 \f[B]commodities\f[R] \- all commodity symbols used must be declared.
 This guards against mistyping or omitting commodity symbols.
-Declaring commodities also sets their precision for display and
-transaction balancing.
 .IP \[bu] 2
 \f[B]accounts\f[R] \- all account names used must be declared.
 This prevents the use of mis\-spelled or outdated account names.
@@ -12850,7 +12892,7 @@ $ hledger test \-\- \-h         # show tasty\[aq]s options
 .PP
 .SH PART 5: COMMON TASKS
 Here are some quick examples of how to do some basic tasks with hledger.
-.SH Getting help
+.SS Getting help
 Here\[aq]s how to list commands and view options and command docs:
 .IP
 .EX
@@ -12873,7 +12915,7 @@ To view manuals and introductory docs on the web, visit
 https://hledger.org.
 Chat and mail list support and discussion archives can be found at
 https://hledger.org/support.
-.SH Constructing command lines
+.SS Constructing command lines
 hledger has a flexible command line interface.
 We strive to keep it simple and ergonomic, but if you run into one of
 the sharp edges described in OPTIONS, here are some tips that might
@@ -12892,7 +12934,7 @@ metacharacters from the shell
 .IP \[bu] 2
 to see how a misbehaving command line is being parsed, add
 \f[CR]\-\-debug=2\f[R].
-.SH Starting a journal file
+.SS Starting a journal file
 hledger looks for your accounting data in a journal file,
 \f[CR]$HOME/.hledger.journal\f[R] by default:
 .IP
@@ -12930,48 +12972,97 @@ Accounts                 : 0 (depth 0)
 Commodities              : 0 ()
 Market prices            : 0 ()
 .EE
-.SH Setting LEDGER_FILE
-How to set \f[CR]LEDGER_FILE\f[R] permanently depends on your setup:
-.PP
-On unix and mac, running these commands in the terminal will work for
-many people; adapt as needed:
+.SS Setting LEDGER_FILE
+.SS Set LEDGER_FILE on unix
+It depends on your shell, but running these commands in the terminal
+will work for many people; adapt if needed:
 .IP
 .EX
-$ echo \[aq]export LEDGER_FILE=\[ti]/finance/2023.journal\[aq] >> \[ti]/.profile
+$ echo \[aq]export LEDGER_FILE=\[ti]/finance/my.journal\[aq] >> \[ti]/.profile
 $ source \[ti]/.profile
 .EE
 .PP
-When correctly configured, in a new terminal window
-\f[CR]env | grep LEDGER_FILE\f[R] will show your file, and so will
+When correctly configured:
+.IP \[bu] 2
+\f[CR]env | grep LEDGER_FILE\f[R] will show your new setting
+.IP \[bu] 2
+and so should \f[CR]hledger setup\f[R] and (once the file exists)
 \f[CR]hledger files\f[R].
+.SS Set LEDGER_FILE on mac
+In a terminal window, follow the unix procedure above.
 .PP
-On mac, this additional step might be helpful for GUI applications (like
-Emacs started from the dock): add an entry to
-\f[CR]\[ti]/.MacOSX/environment.plist\f[R] like
+Also, this optional step may be helpful for GUI applications:
+.IP "1." 3
+Add an entry to \f[CR]\[ti]/.MacOSX/environment.plist\f[R] like
+.RS 4
 .IP
 .EX
 {
-  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/2023.journal\[dq]
+  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/my.journal\[dq]
 }
 .EE
+.RE
+.IP "2." 3
+Run \f[CR]killall Dock\f[R] in a terminal window (or restart the
+machine), to complete the change.
 .PP
-and then run \f[CR]killall Dock\f[R] in a terminal window (or restart
-the machine).
+When correctly configured for GUI applications:
+.IP \[bu] 2
+apps started from the dock or a spotlight search, such as a GUI Emacs,
+will be aware of the new LEDGER_FILE setting.
+.SS Set LEDGER_FILE on Windows
+Using the gui is easiest:
+.IP "1." 3
+In task bar, search for \f[CR]environment variables\f[R], and choose
+\[dq]Edit environment variables for your account\[dq].
+.IP "2." 3
+Create or change a \f[CR]LEDGER_FILE\f[R] setting in the User variables
+pane.
+A typical value would be
+\f[CR]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]my.journal\f[R].
+.IP "3." 3
+Click OK to complete the change.
+.IP "4." 3
+And open a new powershell window.
+(Existing windows won\[aq]t see the change.)
 .PP
-On Windows, see https://www.java.com/en/download/help/path.html, or try
-running these commands in a powershell window (let us know if it
-persists across a reboot, and if you need to be an Administrator):
-.IP
-.EX
-> CD
-> MKDIR finance
-> SETX LEDGER_FILE \[dq]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]2023.journal\[dq]
-.EE
+Or at the command line, you can do it this way:
+.IP "1." 3
+In a powershell window, run
+\f[CR][Environment]::SetEnvironmentVariable(\[dq]LEDGER_FILE\[dq], \[dq]C:\[rs]User\[rs]USERNAME\[rs]finance\[rs]my.journal\[dq], [System.EnvironmentVariableTarget]::User)\f[R]
+.IP "2." 3
+And open a new powershell window.
+(Existing windows won\[aq]t see the change.)
 .PP
-When correctly configured, in a new terminal window
-\f[CR]$env:LEDGER_FILE\f[R] will show the file path, and so will
+Warning, doing this from the Windows command line can be tricky; other
+methods you may find online:
+.IP \[bu] 2
+may not affect the current window
+.IP \[bu] 2
+may not be persistent
+.IP \[bu] 2
+may not work unless you are an administrator
+.IP \[bu] 2
+may limit values to 1024 characters
+.IP \[bu] 2
+may break dynamic references to other variables
+.IP \[bu] 2
+may require a new\-enough version of powershell
+.IP \[bu] 2
+or may be intended for the older command window.
+.IP \[bu] 2
+If you still have trouble, see eg Setting Windows PowerShell environment
+variables or Adding path permanently to windows using powershell
+doesn\[aq]t appear to work.
+.PP
+When correctly configured:
+.IP \[bu] 2
+in a new powershell window, \f[CR]$env:LEDGER_FILE\f[R] will show your
+new setting
+.IP \[bu] 2
+and so should \f[CR]hledger setup\f[R] and (once the file exists)
 \f[CR]hledger files\f[R].
-.SH Setting opening balances
+.SS Setting opening balances
 Pick a starting date for which you can look up the balances of some
 real\-world assets (bank accounts, wallet..)
 and liabilities (credit cards..).
@@ -13060,7 +13151,7 @@ Eg:
 .EX
 $ git commit \-m \[aq]initial balances\[aq] 2023.journal
 .EE
-.SH Recording transactions
+.SS Recording transactions
 As you spend or receive money, you can record these transactions using
 one of the methods above (text editor, hledger add) or by using the
 hledger\-iadd or hledger\-web add\-ons, or by using the import command
@@ -13082,7 +13173,7 @@ hledger.org for more ideas:
   income:salary
   assets:bank:checking    $1000
 .EE
-.SH Reconciling
+.SS Reconciling
 Periodically you should reconcile \- compare your hledger\-reported
 balances against external sources of truth, like bank statements or your
 bank\[aq]s website \- to be sure that your ledger accurately represents
@@ -13143,7 +13234,7 @@ commit:
 .EX
 $ git commit \-m \[aq]txns\[aq] 2023.journal
 .EE
-.SH Reporting
+.SS Reporting
 Here are some basic reports.
 .PP
 Show all transactions:
@@ -13301,7 +13392,7 @@ $ hledger activity \-W
 2023\-01\-06 ****
 2023\-01\-13 ****
 .EE
-.SH Migrating to a new file
+.SS Migrating to a new file
 At the end of the year, you may want to continue your journal in a new
 file, so that old transactions don\[aq]t slow down or clutter your
 reports, and to help ensure the integrity of your accounting history.
