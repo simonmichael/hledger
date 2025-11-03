@@ -82,8 +82,8 @@ These are not wanted by everyone, but can be run using the `check` command:
   This will encourage adding balance assertions for your active asset/liability accounts,
   which in turn should encourage you to reconcile regularly with those real world balances -
   another strong defense against errors.
-  [`hledger close --assert`](#close---assert) can help generate assertion entries.
-  (Over time these become somewhat redundant, so you might choose to remove them later to reduce clutter.)
+  ([`hledger close --assert >>$LEDGER_FILE`](#close---assert) is a convenient way to add new balance assertions.
+  Later these become quite redundant, and you might choose to remove them to reduce clutter.)
 
 - **uniqueleafnames** - no two accounts may have the same last account name part
   (eg the `checking` in `assets:bank:checking`).
