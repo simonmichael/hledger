@@ -717,7 +717,7 @@ If this isn't working or you want to override it, you can use the `-w`/`--width`
 Balance reports (`balance`, `balancesheet`, `incomestatement`...) use whatever width they need.
 Multi-period multi-currency reports can often be wider than the window. Besides using a pager,
 helpful techniques for this situation include
-`--layout=bare`, `-V`, `cur:`, `--transpose`, `--tree`, `--depth`, `--drop`, switching to html output, etc.
+`--layout=bare`, `-X COMM`, `cur:`, `--transpose`, `--tree`, `--depth`, `--drop`, switching to html output, etc.
 
 #### Box-drawing characters
 
@@ -6308,17 +6308,25 @@ This is controlled by the `--value=TYPE[,COMMODITY]` option.
 We also provide simpler `-V` and `-X COMMODITY` aliases for this, which are often sufficient.
 The market prices are declared with a special `P` directive, and/or they can be inferred from the costs recorded in transactions, by using the `--infer-market-prices` flag.
 
-## -V: Value
-
-The `-V/--market` flag converts amounts to market value in their
-default *valuation commodity*, using the
-[market prices](#p-directive) in effect on the *valuation date(s)*, if any.
-More on these in a minute.
-
 ## -X: Value in specified commodity
 
-The `-X/--exchange=COMM` option is like `-V`, except you tell it which
-currency you want to convert to, and it tries to convert everything to that.
+The `-X COMM` (or `--exchange=COMM`) option converts amounts to their market value in the specified commodity,
+using the [market prices](#p-directive) in effect on the *valuation date(s)*, if any.
+(More on these in a minute.)
+
+Use this when you want to (eg) show everything in your base currency as far as possible.
+(Commodities for which no conversion rate can be found, will not be converted.)
+
+## -V: Value in default commodity(s)
+
+The `-V/--market` flag is a variant of `-X` where you don't have to specify COMM.
+Instead it tries to guess a *default valuation commodity* for each original commodity,
+based on the [market prices](#p-directive) in effect on the *valuation date(s)*.
+
+`-V` can often be a convenient shortcut for `-X MYCURRENCY`, but not always;
+depending on your data it could guess multiple valuation commodities.
+Usually you want to convert to a single commodity, so it's better to use `-X`,
+unless you're sure `-V` is doing what you want.
 
 ## Valuation date
 
