@@ -56,8 +56,7 @@ Strict mode also always enables the `assertions` check.
 
 - **commodities** - all commodity symbols used must be [declared](#commodity-error-checking).
   This guards against mistyping or omitting commodity symbols.
-  Declaring commodities also sets their precision for display and transaction balancing.
-
+  
 - **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
 
