@@ -95,7 +95,7 @@ You can build your own custom checks with [add-on command scripts].
 See also [Cookbook > Scripting](scripting.html).
 Here are some examples from [hledger/bin/](https://github.com/simonmichael/hledger/tree/master/bin):
 
-- **hledger-check-tagfiles** - all tag values containing / (a forward slash) exist as file paths
+- **hledger-check-tagfiles** - all tag values containing `/` exist as file paths
 
 - **hledger-check-fancyassertions** - more complex balance assertions are passing
 
