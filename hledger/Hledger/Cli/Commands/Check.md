@@ -83,8 +83,7 @@ These are not wanted by everyone, but can be run using the `check` command:
   which in turn should encourage you to reconcile regularly with those real world balances -
   another strong defense against errors.
   [`hledger close --assert`](#close---assert) can help generate assertion entries.
-  Over time the older assertions become somewhat redundant, and you can remove them if you like
-  (they don't affect performance much, but they add some noise to the journal).
+  (Over time these become somewhat redundant, so you might choose to remove them later to reduce clutter.)
 
 - **uniqueleafnames** - no two accounts may have the same last account name part
   (eg the `checking` in `assets:bank:checking`).
