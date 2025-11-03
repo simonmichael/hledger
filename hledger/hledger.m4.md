@@ -6331,7 +6331,7 @@ Some examples:
 
 The `-V/--market` flag is a variant of `-X` where you don't have to specify COMM.
 Instead it tries to guess a *default valuation commodity* for each original commodity,
-based on the [market prices](#p-directive) in effect on the *valuation date(s)*.
+based on the [market prices](#p-directive) in effect on the valuation date(s).
 
 `-V` can often be a convenient shortcut for `-X MYCURRENCY`, but not always;
 depending on your data it could guess multiple valuation commodities.
