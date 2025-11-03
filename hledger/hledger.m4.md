@@ -6226,9 +6226,9 @@ Some examples:
 
 - `-X€`
 - `-X$`    (nothing after $, no quoting needed)
-- `-X CNY`
-- `-X 'red apples'`  (space needs quoting)
-- `-X 'r&r'`  (& needs quoting)
+- `-X CNY` (the space after -X is optional)
+- `-X 'red apples'`
+- `-X 'r&r'`
 
 ## -V: Value in default commodity(s)
 
