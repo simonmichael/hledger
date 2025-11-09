@@ -23,7 +23,7 @@ If you are an Emacs user, you can also configure flycheck-hledger to run these c
 providing instant feedback as you edit the journal.
 
 Here are the checks currently available.
-Generally, they are performed in the order they are shown here (and only the first failure is reported).
+They are generally checked in the order they are shown here, and only the first failure will be reported.
 
 ### Basic checks
 
@@ -36,27 +36,26 @@ These important checks are performed by default, by almost all hledger commands:
 - **autobalanced** - all transactions are [balanced](#postings),
   after automatically inferring missing amounts and conversion rates
   and then converting  amounts to cost.
-  This ensures that each transaction's entry is well formed.
+  This ensures that each transaction's journal entry is well formed.
 
-- **assertions** - all [balance assertions] in the journal are passing.
-  Balance assertions are a strong defense against errors; they help catch many problems.
-  If this check gets in your way, you can disable it with `-I`/`--ignore-assertions`.
-  Or you can add that to your config file to disable it by default
-  (and then use `-s`/`--strict` or `hledger check assertions` to enable it).
+- **assertions** - all balance assertions in the journal are passing.
+  [Balance assertions] are a strong defense against errors, catching many problems.
+  This check is on by default, but if it gets in your way, you can disable it temporarily
+  with `-I`/`--ignore-assertions`, or as a default by adding that flag to your config file.
+  (Then use `-s`/`--strict` or `hledger check assertions` when you want to enable it).
 
 ### Strict checks
 
-These additional checks are performed by all commands when the `-s`/`--strict` flag is used ([strict mode]). 
-They provide extra error-catching power to keep your data clean and correct.
-Strict mode also always enables the `assertions` check.
+When the `-s`/`--strict` flag is used (AKA [strict mode]), all commands will perform the following additional checks (and `assertions`, above).
+These provide extra error-catching power to help you keep your data clean and correct:
 
-- **balanced** - like `autobalanced`, but all conversions between commodities must
-  use explicit [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
+- **balanced** - like `autobalanced`, but implicit conversions between commodities are not allowed;
+  all conversion transactions must use [cost notation](#recording-costs) or [equity postings](#equity-conversion-postings).
   This prevents wrong conversions caused by typos.
 
 - **commodities** - all commodity symbols used must be [declared](#commodity-error-checking).
   This guards against mistyping or omitting commodity symbols.
-  
+
 - **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
 
