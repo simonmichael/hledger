@@ -37,6 +37,7 @@ This is a more "real world", bank-like view than the [`register`](#register)
 command (which shows individual postings, possibly from multiple accounts,
 not necessarily in historical mode). 
 As a quick rule of thumb:
+
 - use `aregister` for reviewing and reconciling real-world asset/liability accounts
 - use `register` for reviewing detailed revenues/expenses.
 
