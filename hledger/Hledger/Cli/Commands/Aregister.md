@@ -38,8 +38,8 @@ command (which shows individual postings, possibly from multiple accounts,
 not necessarily in historical mode). 
 As a quick rule of thumb:
 
-- use `aregister` for reviewing and reconciling real-world asset/liability accounts
-- use `register` for reviewing detailed revenues/expenses.
+- `aregister` is best when reconciling real-world asset/liability accounts
+- `register` is best when reviewing individual revenues/expenses.
 
 Note this command's non-standard, and required, first argument; it specifies the account whose register will be shown.
 You can write the account's name, or (to save typing) a case-insensitive infix regular expression matching the name,
