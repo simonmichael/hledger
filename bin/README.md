@@ -406,6 +406,23 @@ $ hledger timedothm sample.timedothm reg -w80
                                 (time)                        0:30          2:00
 ```
 
+### hledgerj1
+
+[`hledgerj1`](https://github.com/simonmichael/hledger/blob/master/bin/hledgerj1)
+is a small example of a wrapper script that preprocesses the journal,
+converting it from a custom format, in this case a one-line journal format
+where slash represents newline. Eg:
+```text
+2025-01-04 shopping / assets:bank:checking / expenses:food  200 USD / expenses:supplies  50 USD
+```
+```cli
+$ hledgerj1 a.j1 print
+2025-01-04 shopping
+    assets:bank:checking
+    expenses:food                200 USD
+    expenses:supplies             50 USD
+
+```
 
 ## hledger haskell scripts
 
