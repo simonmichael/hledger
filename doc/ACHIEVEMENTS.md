@@ -40,10 +40,9 @@ mail lists are a choice these days, we don't use ours much
 
 ### Stars
 
-[Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date) (with Ledger and Beancount)
+- [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date), with Ledger and Beancount
 
-[Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) rank
-([all projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories)):
+- [Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) rank:
 
 |      | all projects | non programming tools
 |------|--------------|-------------------------------------------------
@@ -54,5 +53,7 @@ mail lists are a choice these days, we don't use ours much
 | 2018 | #53          |
 | 2017 | #54          |
 | 2016 | #71          |
+
+- [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories) rank
 
 See also: [ROADMAP](ROADMAP.md)
