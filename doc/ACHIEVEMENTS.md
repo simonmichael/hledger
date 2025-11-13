@@ -45,14 +45,14 @@ mail lists are a choice these days, we don't use ours much
 [Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) rank
 ([all projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories)):
 
-|      |     |
-|------|-----|
-| 2025 | #19 |
-| 2023 | #32 |
-| 2022 | #34 |
-| 2020 | #36 |
-| 2018 | #53 |
-| 2017 | #54 |
-| 2016 | #71 |
+|      | all projects | non programming tools
+|------|--------------|-------------------------------------------------
+| 2025 | #19          | #5 (after pandoc, simplex chat, kmonad, cardano)
+| 2023 | #32          |
+| 2022 | #34          |
+| 2020 | #36          |
+| 2018 | #53          |
+| 2017 | #54          |
+| 2016 | #71          |
 
 See also: [ROADMAP](ROADMAP.md)
