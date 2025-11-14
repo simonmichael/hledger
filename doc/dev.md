@@ -37,6 +37,15 @@ and then symlinked into the hledger_site repo for rendering on hledger.org.
 - [TESTS](TESTS.md)
 - [VERSIONNUMBERS](VERSIONNUMBERS.md)
 
+Dev notes on joyful.com:
+
+- <https://joyful.com/hledger>
+- <https://joyful.com/PTA+transaction+balancing>
+- <https://joyful.com/PTA+lot+tracking>
+- <https://joyful.com/hledger+lot+tracking>
+- <https://joyful.com/hledger+workflow+2025>
+- <https://joyful.com/hledger+project+report+2024>
+
 See also:
 
 - <https://deepwiki.com/simonmichael/hledger> - an AI-generated presentation of hledger's user and dev docs.
