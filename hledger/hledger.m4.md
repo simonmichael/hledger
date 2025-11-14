@@ -3294,9 +3294,9 @@ Or the source rule can specify a data-generating command, with no file pattern: 
 In this case the command receives no input; it should output CSV data suitable for the conversion rules.
 -->
 
-### Data cleaning / generating commands
+### Data cleaning / data generating commands
 
-After `source`'s file pattern, you can write `|` (pipe) and a data cleaning command.
+After `source`'s file pattern, you can write `|` (pipe) and a data cleaning command (or command pipeline).
 If hledger's CSV rules aren't enough, you can pre-process the downloaded data here with a shell command or script, to make it more suitable for conversion.
 The command will be executed by your default shell, in the directory of the rules file, will receive the data file's content as standard input,
 and should output zero or more lines of character-separated-values, suitable for conversion by the CSV rules.
