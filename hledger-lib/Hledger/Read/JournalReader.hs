@@ -303,8 +303,7 @@ includedirectivep :: MonadIO m => InputOpts -> ErroringJournalParser m ()
 includedirectivep iopts = do
   -- save the position at start of include directive, for error messages
   eoff <- getOffset
-  -- and the parent file's path, for error messages and debug output
-  parentf <- getSourcePos >>= sourcePosFilePath
+  pos <- getSourcePos
 
   -- parse the directive
   string "include"
@@ -312,6 +311,7 @@ includedirectivep iopts = do
   prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
   lift followingcommentp
   let (mprefix,glb) = splitReaderPrefix prefixedglob
+  parentf <- sourcePosFilePath pos   -- a little slow, don't do too often
   when (null $ dbg6 (parentf <> " include: glob pattern") glb) $
     customFailure $ parseErrorAt eoff $ "include needs a file path or glob pattern argument"
 
@@ -496,6 +496,8 @@ includedirectivep iopts = do
 -- (since the parse file's path is probably always absolute).
 sourcePosFilePath :: (MonadIO m) => SourcePos -> m FilePath
 sourcePosFilePath = liftIO . canonicalizePath . sourceName
+-- "canonicalizePath is a very big hammer. If you only need an absolute path, makeAbsolute is sufficient"
+-- but we only do this once per include directive, seems ok to leave it as is.
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
