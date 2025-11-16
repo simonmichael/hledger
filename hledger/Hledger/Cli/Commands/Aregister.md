@@ -43,9 +43,10 @@ As a quick rule of thumb:
 
 Note this command's non-standard, and required, first argument; it specifies the account whose register will be shown.
 You can write the account's name, or (to save typing) a case-insensitive infix regular expression matching the name,
-which selects the alphabetically first matched account.
-(For example, if you have `assets:personal checking` and `assets:business checking`,
-`hledger areg checking` would select `assets:business checking`.)
+which selects the first matched account (in [display order](hledger.md#account-display-order) if any, otherwise alphabetically).
+For example, if you have `assets:personal checking` and `assets:business checking`,
+`hledger areg checking` will select `assets:business checking`
+(unless you used `account` directives to change their display order).
 
 Transactions involving subaccounts of this account will also be shown.
 `aregister` ignores depth limits, so its final total will always match 
