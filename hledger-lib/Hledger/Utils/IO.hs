@@ -406,7 +406,7 @@ expandHomePath = \case
     ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
     p            -> return p
 
--- | Given a current directory, convert a possibly relative, possibly tilde-containing
+-- | Given a current directory, convert a possibly relative, possibly tilde-prefixed
 -- file path to an absolute one.
 -- ~username is not supported. Leaves "-" unchanged. Can raise an error.
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
