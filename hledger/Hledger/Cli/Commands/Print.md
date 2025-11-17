@@ -122,6 +122,8 @@ But here are some things which can cause print's output to become unparseable:
 - [Value reporting](#value-reporting) also can disrupt balance assertions or balance assignments.
 - [Auto postings](#auto-postings) can generate too many amountless postings.
 - [`--infer-costs or --infer-equity`](#equity-conversion-postings) can generate too-complex redundant costs.
+- Because print always shows transactions in date order, balance assertions involving non-date-ordered transactions
+  (and same-day postings) could be disrupted.
 
 ### print, other features
 
