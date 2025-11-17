@@ -72,11 +72,11 @@ will influence how the new balance assertion is checked.
 
 ## add and balance assignments
 
-When `add` runs, all balance assignments have already been processed and converted to balance assertions.
-So balance assignments will not be recalculated during a `hledger add` session.
+You can't add a new balance assignment using `add`.
+Also, existing balance assignments will not be recalculated during a `hledger add` session.
+(Because by the time `add` runs, they have been converted to explicit amounts plus balance assertions.)
 
-This means that if you try to `add` a new posting which is dated earlier than an existing balance assignment
-(now a balance assertion), that posting will break the assertion and be rejected.
-To allow it, you could disable assertions temporarily with `hledger add -I`.
+This means that if you try to `add` a new posting which is dated earlier than an existing balance assignment,
+it will be rejected (because it would break the corresponding assertion).
+Unless you disable assertions temporarily with `hledger add -I`.
 
-Also, you can't add a new balance assignment using `add`.
