@@ -1,6 +1,6 @@
 {-|
-A history-aware add command to help with data entry.
-|-}
+A history-aware, tab-completing interactive add command to help with data entry.
+-}
 
 {-# OPTIONS_GHC -fno-warn-missing-signatures -fno-warn-unused-do-bind #-}
 {-# LANGUAGE FlexibleContexts #-}
@@ -38,7 +38,7 @@ import Data.Text.Lazy.IO qualified as TL
 import Data.Time.Calendar (Day, toGregorian)
 import Data.Time.Format (formatTime, defaultTimeLocale)
 import Lens.Micro ((^.))
-import Safe (headDef, headMay, atMay)
+import Safe (headDef, headMay, atMay, lastMay)
 import System.Console.CmdArgs.Explicit (flagNone)
 import System.Console.Haskeline (runInputT, defaultSettings, setComplete)
 import System.Console.Haskeline.Completion (CompletionFunc, completeWord, isFinished, noCompletion, simpleCompletion)
@@ -209,11 +209,12 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                              ,tcomment=txnCmnt
                              ,tpostings=esPostings
                              }
-      case balanceTransaction defbalancingopts t of -- imprecise balancing (?)
+          bopts = balancingopts_ (inputopts_ esOpts)
+      case balanceTransactionInJournal t esJournal bopts of
         Right t' ->
           confirmedTransactionWizard prevInput es (EndStage t' : stack)
         Left err -> do
-          liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ "please re-enter.")
+          liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ ", please re-enter.")
           let notFirstEnterPost stage = case stage of
                 EnterNewPosting _ Nothing -> False
                 _ -> True
@@ -237,9 +238,10 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       confirmedTransactionWizard prevInput es{esPostings=init esPostings} (dropWhile notPrevAmountAndNotEnterDesc stack)
 
   EnterAmountAndComment txnParams account -> amountAndCommentWizard prevInput es >>= \case
-    Just (amt, assertion, (comment, tags, pdate1, pdate2)) -> do
-      let p = nullposting{paccount=T.pack $ stripbrackets account
-                          ,pamount=mixedAmount amt
+    Just (mamt, assertion, (comment, tags, pdate1, pdate2)) -> do
+      let mixedamt = maybe missingmixedamt mixedAmount mamt
+          p = nullposting{paccount=T.pack $ stripbrackets account
+                          ,pamount=mixedamt
                           ,pcomment=T.dropAround isNewline comment
                           ,ptype=accountNamePostingType $ T.pack account
                           ,pbalanceassertion = assertion
@@ -247,7 +249,7 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                           ,pdate2=pdate2
                           ,ptags=tags
                           }
-          amountAndCommentString = showAmount amt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
+          amountAndCommentString = showMixedAmountOneLine mixedamt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length esPostings) amountAndCommentString (prevAmountAndCmnt prevInput)
           es' = es{esPostings=esPostings++[p], esArgs=drop 1 esArgs}
           -- Include a dummy posting to balance the unfinished transation in assertion checking
@@ -255,8 +257,17 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
                                      ,tdate = txnDate txnParams
                                      ,tdescription = txnDesc txnParams }
           bopts = balancingopts_ (inputopts_ esOpts)
-          validated = balanceTransaction bopts dummytxn >>= transactionCheckAssertions bopts esJournal
-      case validated of
+          balanceassignment = mixedamt==missingmixedamt && isJust assertion
+          etxn
+            -- If the new posting is doing a balance assignment,
+            -- don't attempt to balance the transaction or check assertions yet
+            | balanceassignment = Right dummytxn
+            -- Otherwise, balance the transaction in context of the whole journal,
+            -- maybe filling its balance assignments if any,
+            -- and maybe checking all the journal's balance assertions.
+            | otherwise = balanceTransactionInJournal dummytxn esJournal bopts
+
+      case etxn of
         Left err -> do
           liftIO (hPutStrLn stderr err)
           confirmedTransactionWizard prevInput es (EnterAmountAndComment txnParams account : stack)
@@ -277,6 +288,23 @@ confirmedTransactionWizard prevInput es@EntryState{..} stack@(currentStage : _) 
       Nothing  -> confirmedTransactionWizard prevInput es (drop 2 stack)
   where
     replaceNthOrAppend n newElem xs = take n xs ++ [newElem] ++ drop (n + 1) xs
+
+
+-- | Balance and check a transaction with awareness of the whole journal it will be added to.
+-- This means add it to the journal, balance it, calculate any balance assignments in it,
+-- then maybe check all the journal's balance assertions,
+-- then return the now fully balanced and checked transaction, or an error message.
+balanceTransactionInJournal :: Transaction -> Journal -> BalancingOpts -> Either String Transaction
+balanceTransactionInJournal t j bopts = do
+  -- Add the transaction at the end of the journal, as the add command will.
+  let j' = j{jtxns = jtxns j ++ [t]}
+  -- Try to balance and check the whole journal, and specifically the new transaction.
+  Journal{jtxns=ts} <- journalBalanceTransactions bopts j'
+  -- Extract the balanced & checked transaction.
+  maybe
+    (Left "confirmedTransactionWizard: unexpected empty journal") -- should not happen
+    Right
+    (lastMay ts)
 
 -- | A workaround we seem to need for #2410 right now: wizards' input-reading functions disrupt ANSI codes
 -- somehow, so these variants first print the ANSI coded prompt as ordinary output, then do the input with no prompt.
@@ -352,7 +380,7 @@ accountWizard PrevInput{..} EntryState{..} = do
 
 type Comment = (Text, [Tag], Maybe Day, Maybe Day)
 
-amountAndCommentWizard :: PrevInput -> EntryState -> Wizard Haskeline (Maybe (Amount, Maybe BalanceAssertion, Comment))
+amountAndCommentWizard :: PrevInput -> EntryState -> Wizard Haskeline (Maybe (Maybe Amount, Maybe BalanceAssertion, Comment))
 amountAndCommentWizard previnput@PrevInput{..} entrystate@EntryState{..} = do
   let pnum = length esPostings + 1
       (mhistoricalp,followedhistoricalsofar) =
@@ -389,16 +417,16 @@ amountAndCommentWizard previnput@PrevInput{..} entrystate@EntryState{..} = do
             ""
             (T.pack s)
       nodefcommodityj = esJournal{jparsedefaultcommodity=Nothing}
-      amountandcommentp :: JournalParser Identity (Amount, Maybe BalanceAssertion, Comment)
+      amountandcommentp :: JournalParser Identity (Maybe Amount, Maybe BalanceAssertion, Comment)
       amountandcommentp = do
-        a <- amountp
+        mamt <- optional amountp
         lift skipNonNewlineSpaces
-        assertion <- optional balanceassertionp
+        massertion <- optional balanceassertionp
         com <- T.pack <$> fromMaybe "" `fmap` optional (char ';' >> many anySingle)
         case rtp (postingcommentp (let (y,_,_) = toGregorian esDefDate in Just y)) (T.cons ';' com) of
           Left err -> fail $ customErrorBundlePretty err
           -- Keep our original comment string from the user to add to the journal
-          Right (_, tags, date1', date2') -> return $ (a, assertion, (com, tags, date1', date2'))
+          Right (_, tags, date1', date2') -> return $ (mamt, massertion, (com, tags, date1', date2'))
       balancingamt = maNegate . sumPostings $ filter isReal esPostings
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision

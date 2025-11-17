@@ -60,23 +60,18 @@ There is a detailed tutorial at <https://hledger.org/add.html>.
 
 ## add and balance assertions
 
-Since hledger 1.43, whenever you enter a posting amount,
-`add` will re-check all [balance assertions](#balance-assertions) in the journal,
-and if any of them fail, it will report the problem and ask for the amount again.
+Since hledger 1.43, you can add a [balance assertion](#balance-assertions) by writing `AMOUNT = BALANCE` when asked for an amount. Eg `100 = 500`.
 
-You can use `-I`/`--ignore-assertions` to disable assertion checking temporarily.
-
-You can also add a new balance assertion by writing it after an amount, eg `$100 = $500`.
-The new transaction's date, and the new posting's posting date if any (entered in a comment following the amount),
-will influence how the new balance assertion is checked.
+Also, each time you enter a new amount, hledger re-checks all balance assertions in the journal
+and rejects the new amount if it would make any of them fail.
+You can run `add` with `-I`/`--ignore-assertions` to disable balance assertion checking.
 
 ## add and balance assignments
 
-You can't add a new balance assignment using `add`.
-Also, existing balance assignments will not be recalculated during a `hledger add` session.
-(Because by the time `add` runs, they have been converted to explicit amounts plus balance assertions.)
+You can add a [balance assignment](#balance-assignments) by writing just `= BALANCE` when asked for an amount.
+The missing amount will be calculated automatically.
 
-This means that if you try to `add` a new posting which is dated earlier than an existing balance assignment,
-it will be rejected (because it would break the corresponding assertion).
-Unless you disable assertions temporarily with `hledger add -I`.
+`add` normally won't let you add a new posting which is dated earlier than an existing balance assignment.
+(Because when `add` runs, existing balance assignments have already been calculated and converted to explicit amounts plus balance assertions.)
+You can work around this by disabling balance assertion checking with `-I`.
 
