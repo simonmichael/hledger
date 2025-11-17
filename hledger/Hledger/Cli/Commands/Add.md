@@ -64,16 +64,19 @@ Since hledger 1.43, whenever you enter a posting amount,
 `add` will re-check all [balance assertions](#balance-assertions) in the journal,
 and if any of them fail, it will report the problem and ask for the amount again.
 
-You can also add a new balance assertion, following the amount as in journal format.
-
-The new transaction's date, and the new posting's posting date if any (entered in a comment following the amount),
-will influence assertion checking.
-
 You can use `-I`/`--ignore-assertions` to disable assertion checking temporarily.
+
+You can also add a new balance assertion by writing it after an amount, eg `$100 = $500`.
+The new transaction's date, and the new posting's posting date if any (entered in a comment following the amount),
+will influence how the new balance assertion is checked.
 
 ## add and balance assignments
 
-Balance assignments are not recalculated during a `hledger add` session.
-When `add` runs, it sees the journal with all balance assignments already processed and converted to assertions.
-So if you add a new posting which is dated earlier than a balance assignment, it will break the assertion and be rejected.
-You can make it work by using  `hledger add -I`.
+When `add` runs, all balance assignments have already been processed and converted to balance assertions.
+So balance assignments will not be recalculated during a `hledger add` session.
+
+This means that if you try to `add` a new posting which is dated earlier than an existing balance assignment
+(now a balance assertion), that posting will break the assertion and be rejected.
+To allow it, you could disable assertions temporarily with `hledger add -I`.
+
+Also, you can't add a new balance assignment using `add`.
