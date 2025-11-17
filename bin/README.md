@@ -233,12 +233,14 @@ $ watchaccounts -f time.journal client1 date:thismonth -l
 ### sortandmergepostings
 
 [`sortandmergepostings`](https://github.com/simonmichael/hledger/blob/master/bin/sortandmergepostings)
-is an adventuresome awk script intended to clean up and merge similar postings in a transaction
+is an adventuresome AWK script intended to clean up and merge similar postings in a transaction
 (see [original discussion](https://unix.stackexchange.com/questions/526995/re-order-lines-and-merge-others-based-on-a-specific-criteria/527004)).
 It sorts postings so that positive ones are first, negative ones last.
-Within each sign, postings are sorted alphabetically by account name.
-Lastly if there are multiple postings to the same account in the same direction, it tries to merge them (by leaving some amounts blank).
-Piping the output to `hledger print` can recalculate the missing amounts.
+Within each sign, postings are sorted by commodity.
+Within each commodity group, postings are sorted by amount.
+Among identical amounts in the same group, postings are sorted alphabetically by account name.
+Once sorted, if there are multiple postings to the same account in the same direction with the same commodity and comments, it tries to merge them (by leaving some amounts blank).
+Subsequently piping the output to `hledger print` can recalculate the missing amounts.
 Multiple runs might be needed to clean up all duplicates.
 ```cli
 $ sortandmergepostings input.journal | hledger -f - print -x
