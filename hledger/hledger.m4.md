@@ -3224,16 +3224,18 @@ The following kinds of rule can appear in the rules file, in any order.
 | [**`archive`**](#archive)                       | optionally enable an archive of imported files                                                 |
 | [**`encoding`**](#encoding)                     | optionally declare which text encoding the data has                                            |
 | [**`separator`**](#separator)                   | declare the field separator, instead of relying on file extension                              |
-| [**`skip`**](#skip)                             | skip one or more header lines at start of file                                                 |
+| [**`decimal-mark`**](#decimal-mark-1)           | declare the decimal mark used in CSV amounts, when ambiguous                                   |
 | [**`date-format`**](#date-format)               | declare how to parse CSV dates/date-times                                                      |
 | [**`timezone`**](#timezone)                     | declare the time zone of ambiguous CSV date-times                                              |
 | [**`newest-first`**](#newest-first)             | improve txn order when: there are multiple records, newest first, all with the same date       |
 | [**`intra-day-reversed`**](#intra-day-reversed) | improve txn order when: same-day txns are in opposite order to the overall file                |
-| [**`decimal-mark`**](#decimal-mark-1)           | declare the decimal mark used in CSV amounts, when ambiguous                                   |
+| [**`skip`**](#skip)                             | (at top level) skip header line(s) at start of file                                            |
 | [**`fields` list**](#fields-list)               | name CSV fields for easy reference, and optionally assign their values to hledger fields       |
 | [**Field assignment**](#field-assignment)       | assign a CSV value or interpolated text value to a hledger field                               |
 | [**`if` block**](#if-block)                     | conditionally assign values to hledger fields, or `skip` a record or `end` (skip rest of file) |
 | [**`if` table**](#if-table)                     | conditionally assign values to hledger fields, using compact syntax                            |
+| [**`skip`**](#if-block)                         | (inside an `if` rule) skip current record(s)                                                   |
+| [**`end`**](#if-block)                          | (inside an `if` rule) skip all remaining records                                               |
 | [**`balance-type`**](#balance-type)             | select which type of balance assertions/assignments to generate                                |
 | [**`include`**](#include)                       | inline another CSV rules file                                                                  |
 
