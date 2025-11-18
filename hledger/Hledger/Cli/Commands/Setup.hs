@@ -358,7 +358,7 @@ setupJournal meconf = do
   --   i Y ""
 
   pdesc "a default journal file is readable ?"
-  jfile <- defaultJournalPath
+  ef <- defaultJournalPathSafely
   -- let
   --   args = concat [
   --     ["print"],
@@ -368,10 +368,12 @@ setupJournal meconf = do
   -- (exit, _, err) <- readProcessWithExitCode progname args ""
   -- XXX can this ignore assertions and config files, like the above ?
   ej <- defaultJournalSafely
-  case ej of
-    Left estr -> p N (jfile <> ":\n" <> estr)
-    Right j@Journal{..} -> do
-      p Y jfile
+  let trim s = either (const s) id $ regexReplace (toRegex' "^Error: ") "" s
+  case (ef, ej) of
+    (Left err, _) -> p N $ trim err
+    (Right f, Left err) -> p N (f <> ":\n" <> trim err)
+    (Right f, Right j@Journal{..}) -> do
+      p Y f
 
       pdesc "it includes additional files ?"
       let numfiles = length jfiles
