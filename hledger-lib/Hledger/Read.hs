@@ -88,10 +88,11 @@ module Hledger.Read (
 
   -- * Journal files
   defaultJournal,
-  defaultJournalWith,
   defaultJournalSafely,
-  defaultJournalSafelyWith,
+  defaultJournalWith,
+  defaultJournalWithSafely,
   defaultJournalPath,
+  defaultJournalPathSafely,
   requireJournalFileExists,
   ensureJournalFileExists,
   journalEnvVar,
@@ -181,51 +182,64 @@ journalDefaultFilename  = ".hledger.journal"
 defaultJournal :: IO Journal
 defaultJournal = defaultJournalSafely >>= either error' return -- PARTIAL:
 
--- | Read the default journal file specified by the environment,
--- with the given input options, or raise an error.
-defaultJournalWith :: InputOpts -> IO Journal
-defaultJournalWith iopts = defaultJournalSafelyWith iopts >>= either error' return -- PARTIAL:
-
--- | Read the default journal file specified by the environment,
--- with default input options, or return an error message.
+-- | Like defaultJournal, but return an error message instead of raising an error.
 defaultJournalSafely :: IO (Either String Journal)
-defaultJournalSafely = defaultJournalSafelyWith definputopts
+defaultJournalSafely = defaultJournalWithSafely definputopts
 
--- | Read the default journal file specified by the environment,
--- with the given input options, or return an error message.
-defaultJournalSafelyWith :: InputOpts -> IO (Either String Journal)
-defaultJournalSafelyWith iopts = (do
+-- | Like defaultJournal, but use the given input options.
+defaultJournalWith :: InputOpts -> IO Journal
+defaultJournalWith iopts = defaultJournalWithSafely iopts >>= either error' return -- PARTIAL:
+
+-- | Like defaultJournalWith, but return an error message instead of raising an error.
+defaultJournalWithSafely :: InputOpts -> IO (Either String Journal)
+defaultJournalWithSafely iopts = (do
   f <- defaultJournalPath
   runExceptT $ readJournalFile iopts f
-  ) `C.catches` [  -- XXX
+  )
+  `C.catches` [  -- XXX
      C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ show e)
     ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
     ]
 
--- | Get the default journal file path.
+-- | Get the default journal file path, and check that it exists; or raise an error.
 --
 -- This looks for the LEDGER_FILE environment variable, like Ledger.
 -- The value should be a file path; ~ at the start is supported, meaning user's home directory.
 -- The value can also be a glob pattern, for convenience; if so we consider only the first matched file.
---
 -- If no such file exists, an error is raised.
 --
 -- If LEDGER_FILE is unset or set to the empty string, we return a default file path:
 -- @.hledger.journal@ in the user's home directory.
 -- Or if we can't find the user's home directory, in the current directory.
+-- If this default file doesn't exist, an error is raised.
 --
 defaultJournalPath :: IO String
 defaultJournalPath = do
-  glob <- getEnv journalEnvVar `C.catch` (\(_::C.IOException) -> return "")
-  if null glob
+  ledgerfile <- getEnv journalEnvVar `C.catch` (\(_::C.IOException) -> return "")
+  if null ledgerfile
   then do
     homedir <- fromMaybe "" <$> getHomeSafe
-    return $ homedir </> journalDefaultFilename
+    let defaultfile = homedir </> journalDefaultFilename
+    exists <- doesFileExist defaultfile
+    if exists then return defaultfile
+    -- else error' $ "LEDGER_FILE is unset and \"" <> defaultfile <> "\" was not found"
+    else error' $ "neither LEDGER_FILE nor \"" <> defaultfile <> "\" were found"
   else do
-    mf <- headMay <$> expandGlob "." glob `C.catch` (\(_::C.IOException) -> return [])
+    mf <- headMay <$> expandGlob "." ledgerfile `C.catch` (\(_::C.IOException) -> return [])
     case mf of
       Just f -> return f
-      Nothing -> error' $ "LEDGER_FILE points to nonexistent file \"" <> glob <> "\""
+      Nothing -> error' $ "LEDGER_FILE points to nonexistent \"" <> ledgerfile <> "\""
+
+-- | Like defaultJournalPath, but return an error message instead of raising an error.
+defaultJournalPathSafely :: IO (Either String String)
+defaultJournalPathSafely = (do
+  f <- defaultJournalPath
+  return $ Right f
+  )
+  `C.catches` [
+     C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ show e)
+    ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
+    ]
 
 -- | @readJournal iopts mfile txt@
 --
