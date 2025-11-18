@@ -68,7 +68,7 @@ You can run `add` with `-I`/`--ignore-assertions` to disable balance assertion c
 
 ## add and balance assignments
 
-Since hledger 1.51, you can add a [balance assignment](#balance-assignments) by writing just `= BALANCE` when asked for an amount.
+Since hledger 1.51, you can add a [balance assignment](#balance-assignments) by writing `= BALANCE` (or `==`, `=*` etc) when asked for an amount.
 The missing amount will be calculated automatically.
 
 `add` normally won't let you add a new posting which is dated earlier than an existing balance assignment.
