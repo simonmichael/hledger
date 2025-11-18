@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# f3875bcc
+# 1.50.3 2025-11-18
 
 - The old "threaded" build flag, which cabal could turn off, has been dropped.
   [#2495]

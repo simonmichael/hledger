@@ -17,7 +17,7 @@ Internal/api/developer-ish changes in the hledger-lib (and hledger) packages.
 For user-visible changes, see the hledger package changelog.
 
 
-# f3875bcc
+# 1.50.3 2025-11-18
 
 # 1.50.2 2025-09-26
 

@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# f3875bcc
+# 1.50.3 2025-11-18
 
 - `--watch` mode now also detects changes from apps which overwrite the file, such as VS Code.
   (Caleb Maclennan)
