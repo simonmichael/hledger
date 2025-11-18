@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "September 2025" "hledger-1.50.2 " "hledger User Manuals"
+.TH "HLEDGER" "1" "November 2025" "hledger-1.50.3 " "hledger User Manuals"
 
 
 
@@ -27,7 +27,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version 1.50.2.
+This manual is for hledger\[aq]s command line interface, version 1.50.3.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -457,157 +457,138 @@ Some queries can be expressed either with options or with arguments.
 Below are more tips for using the command line interface \- feel free to
 skip these until you need them.
 .SS Special characters
-Here we touch on shell escaping/quoting rules, and give some examples.
-This is a slightly complicated topic which you may not need at first,
-but you should be aware of it, so you can return here when needed.
+In commands you type at the command line, certain characters have
+special meaning and sometimes need to be \[dq]escaped\[dq] or
+\[dq]quoted\[dq], by prefixing backslashes or enclosing in quotes.
 .PP
 If you are able to minimise the use of special characters in your data,
-you won\[aq]t need escaping as much, and your command lines will be
-simpler.
-For example, avoiding spaces in account names, and using an ISO\-4217
-currency code like \f[CR]USD\f[R] instead of the \f[CR]$\f[R] currency
-symbol, can be helpful.
+you won\[aq]t have to deal with this as much.
+For example, you could use hyphen \f[CR]\-\f[R] or underscore
+\f[CR]_\f[R] instead of spaces in account names, and you could use the
+\f[CR]USD\f[R] currency code instead of the \f[CR]$\f[R] currency symbol
+in amounts.
 .PP
-But if you want to use spaced account names and \f[CR]$\f[R], go right
-ahead; escaping isn\[aq]t a big deal.
+But if you prefer to use spaced account names and \f[CR]$\f[R], it\[aq]s
+fine.
+Just be aware of this topic so you can check this doc when needed.
+(These examples are mostly tested on unix; some details might need to be
+adapted if you\[aq]re on Windows.)
 .SS Escaping shell special characters
-At the command line, characters which have special meaning for your
-shell must be \[dq]shell\-escaped\[dq] (AKA \[dq]quoted\[dq]) if you
-want hledger to see them.
-Often these include space, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R],
-\f[CR])\f[R], \f[CR]|\f[R], \f[CR]\[rs]\f[R], \f[CR]$\f[R] and/or
-\f[CR]%\f[R].
+These are some characters which may have special meaning to your shell
+(the program which interprets command lines):
+.IP \[bu] 2
+SPACE, \f[CR]<\f[R], \f[CR]>\f[R], \f[CR](\f[R], \f[CR])\f[R],
+\f[CR]|\f[R], \f[CR]\[rs]\f[R], \f[CR]%\f[R]
+.IP \[bu] 2
+\f[CR]$\f[R] if followed by a word character
 .PP
-For example, to match an account name containing the phrase \[dq]credit
-card\[dq], don\[aq]t write this:
+So for example, to match an account name containing spaces, like
+\[dq]credit card\[dq], don\[aq]t write:
 .IP
 .EX
 $ hledger register credit card
 .EE
 .PP
-In that command, \[dq]credit\[dq] and \[dq]card\[dq] are treated as
-separate query arguments (described below), so this would match accounts
-containing either word.
-Instead, enclose the phrase in double or single quotes:
+Instead, enclose the name in single quotes:
 .IP
 .EX
-$ hledger register \[dq]credit card\[dq]
+$ hledger register \[aq]credit card\[aq]
 .EE
 .PP
-In Unix shells, writing a backslash before the character can also work.
-Eg:
+On unix or in Windows powershell, if you use double quotes your shell
+will silently treat \f[CR]$\f[R] as variable interpolation.
+So you should probably avoid double quotes, unless you want that
+behaviour, eg in a script:
+.IP
+.EX
+$ hledger register \[dq]assets:$SOMEACCT\[dq]
+.EE
+.PP
+But in an older Windows CMD.EXE window, you must use double quotes:
+.IP
+.EX
+C:\[rs]Users\[rs]Me> hledger register \[dq]credit card\[dq]
+.EE
+.PP
+On unix or in Windows powershell, as an alternative to quotes you can
+write a backslash before each special character:
 .IP
 .EX
 $ hledger register credit\[rs] card
 .EE
 .PP
-Some shell characters still have a special meaning inside double quotes,
-such as the dollar sign (\f[CR]$\f[R]).
-Eg in \f[CR]\[dq]assets:$account\[dq]\f[R], the bash shell would replace
-\f[CR]$account\f[R] with the value of a shell variable with that name.
-When you don\[aq]t want that, use single quotes, which escape more
-strongly:
+Finally, since hledger\[aq]s query arguments are regular expressions
+(described below), you could also fill that gap with \f[CR].\f[R] which
+matches any character:
 .IP
 .EX
-$ hledger balance \[aq]assets:$account\[aq]
+$ hledger register credit.card
 .EE
-.SS Escaping on Windows
-If you are using hledger in a Powershell or Command window on Microsoft
-Windows, the escaping rules are different:
-.IP \[bu] 2
-In a Powershell window (\f[CR]powershell\f[R], blue background), you
-must use double quotes or single quotes (not backslash).
-.IP \[bu] 2
-In a Command window (\f[CR]cmd\f[R], black background), you must use
-double quotes (not single quotes or backslash).
-.PP
-The next two sections were written for Unix\-like shells, so might need
-to be adapted if you\[aq]re using \f[CR]cmd\f[R] or
-\f[CR]powershell\f[R].
-(Edits welcome.)
 .SS Escaping regular expression special characters
-Many hledger arguments are regular expressions (described below), and
-these too have characters which cause special effects.
-Some of those characters are \f[CR].\f[R], \f[CR]\[ha]\f[R],
-\f[CR]$\f[R], \f[CR][\f[R], \f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R],
-\f[CR]|\f[R], and \f[CR]\[rs]\f[R].
-When you don\[aq]t want these to cause special effects, you can
-\[dq]regex\-escape\[dq] them by writing \f[CR]\[rs]\f[R] (a backslash)
-before them.
-But since backslash is also special to the shell, you may need to also
-shell\-escape the backslashes.
+Some characters also have special meaning in regular expressions, which
+hledger\[aq]s arguments often are.
+Those include:
+.IP \[bu] 2
+\f[CR].\f[R], \f[CR]\[ha]\f[R], \f[CR]$\f[R], \f[CR][\f[R],
+\f[CR]]\f[R], \f[CR](\f[R], \f[CR])\f[R], \f[CR]|\f[R], \f[CR]\[rs]\f[R]
 .PP
-Eg, in the bash shell, to match a literal \f[CR]$\f[R] sign, you could
-write:
+To escape one of these, write \f[CR]\[rs]\f[R] before it.
+But note this is in addition to the shell escaping above.
+So for characters which are special to both shell and regular
+expressions, like \f[CR]\[rs]\f[R] and \f[CR]$\f[R], you will sometimes
+need two levels of escaping.
+.PP
+For example, a balance report that uses a \f[CR]cur:\f[R] query
+restricting it to just the $ currency, should be written like this:
 .IP
 .EX
 $ hledger balance cur:\[rs]\[rs]$
 .EE
 .PP
-or:
+Explanation:
+.IP "1." 3
+Add a backslash \f[CR]\[rs]\f[R] before the dollar sign \f[CR]$\f[R] to
+protect it from regular expressions (so it will be matched literally
+with no special meaning).
+.IP "2." 3
+Add another backslash before that backslash, to protect it from the
+shell (so the shell won\[aq]t consume it).
+.IP "3." 3
+\f[CR]$\f[R] doesn\[aq]t need to be protected from the shell in this
+case, because it\[aq]s not followed by a word character; but it would be
+harmless to do so.
+.PP
+But here\[aq]s another way to write that, which tends to be easier: add
+backslashes to escape from regular expressions, then enclose with quotes
+to escape from the shell:
 .IP
 .EX
-$ hledger balance \[aq]cur:\[rs]$\[aq]
-.EE
-.PP
-(The dollar sign is regex\-escaped by the backslash preceding it.
-Then that backslash is shell\-escaped by another backslash, or by single
-quotes.)
-.SS Escaping add\-on arguments
-When you run an external add\-on command with \f[CR]hledger\f[R]
-(described below), any options or arguments being passed through to the
-add\-on executable lose one level of shell\-escaping, so you must add an
-extra level of shell\-escaping to compensate.
-.PP
-Eg, in the bash shell, to run the \f[CR]ui\f[R] add\-on and match a
-literal \f[CR]$\f[R] sign, you need to write:
-.IP
-.EX
-$ hledger ui cur:\[aq]\[rs]\[rs]$\[aq]
-.EE
-.PP
-or:
-.IP
-.EX
-$ hledger ui cur:\[rs]\[rs]\[rs]\[rs]$
-.EE
-.PP
-If you are wondering why \f[I]four\f[R] backslashes:
-.IP \[bu] 2
-\f[CR]$\f[R] is unescaped
-.IP \[bu] 2
-\f[CR]\[rs]$\f[R] is regex\-escaped
-.IP \[bu] 2
-\f[CR]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped
-.IP \[bu] 2
-\f[CR]\[rs]\[rs]\[rs]\[rs]$\f[R] is regex\-escaped, then shell\-escaped,
-then both slashes are shell\-escaped once more for hledger argument
-pass\-through.
-.PP
-Or you can avoid such triple\-escaping, by running the add\-on
-executable directly:
-.IP
-.EX
-$ hledger\-ui cur:\[rs]\[rs]$
+$ hledger balance cur:\[aq]\[rs]$\[aq]
 .EE
 .SS Escaping in other situations
 hledger options and arguments are sometimes used in places other than
-the command line, with different escaping rules.
-For example, backslash\-quoting generally does not work there.
-Here are some more tips.
+the command line, where the escaping/quoting rules are different.
+For example, backslash\-quoting may not be available.
+Here\[aq]s a quick reference:
 .PP
 .TS
 tab(@);
 lw(17.5n) lw(52.5n).
 T{
-In Windows \f[CR]cmd\f[R]
+In unix shell
 T}@T{
-Use double quotes
+Use single quotes and/or backslash (or double quotes for variable
+interpolation)
 T}
 T{
 In Windows \f[CR]powershell\f[R]
 T}@T{
-Use single or double quotes
+Use single quotes (or double quotes for variable interpolation)
+T}
+T{
+In Windows \f[CR]cmd\f[R]
+T}@T{
+Use double quotes
 T}
 T{
 In hledger\-ui\[aq]s filter prompt
@@ -622,14 +603,14 @@ T}
 T{
 In an argument file
 T}@T{
-Don\[aq]t use spaces, don\[aq]t shell\-escape, do regex\-escape when
-needed
+Don\[aq]t use spaces, don\[aq]t shell\-escape, do regex\-escape, write
+one argument/option per line
 T}
 T{
 In a config file
 T}@T{
 Use single or double quotes, and enclose the whole argument
-(\f[CR]\[dq]desc:a b\[dq]\f[R] not \f[CR]desc:\[dq]a b\[dq]\f[R])
+(\f[CR]\[aq]desc:a b\[aq]\f[R] not \f[CR]desc:\[aq]a b\[aq]\f[R])
 T}
 T{
 In \f[CR]ghci\f[R] (the Haskell REPL)
@@ -637,15 +618,6 @@ T}@T{
 Use double quotes, and enclose the whole argument
 T}
 .TE
-.SS Using a wild card
-When escaping a special character is too much hassle (or impossible),
-you can often just write \f[CR].\f[R] (period) instead.
-In regular expressions, this means \[dq]accept any character here\[dq].
-Eg:
-.IP
-.EX
-$ hledger register credit.card
-.EE
 .SS Unicode characters
 hledger is expected to handle non\-ascii characters correctly:
 .IP \[bu] 2
@@ -806,17 +778,39 @@ special meaning to the shell and so must be escaped at least once more.
 See Special characters.
 .SS Argument files
 You can save a set of command line options and arguments in a file, and
-then reuse them by writing \f[CR]\[at]FILENAME\f[R] as a command line
+then use them by writing \f[CR]\[at]FILE.args\f[R] as a hledger command
 argument.
-Eg: \f[CR]hledger bal \[at]foo.args\f[R].
+The \f[CR].args\f[R] file extension is conventional, but not required.
+In an argument file,
+.IP \[bu] 2
+Each line can contain one argument, flag, or option.
+.IP \[bu] 2
+Blank lines or lines beginning with \f[CR]#\f[R] are ignored.
+.IP \[bu] 2
+An option\[aq]s flag and value should be joined by \f[CR]=\f[R].
+.IP \[bu] 2
+An option value or an argument may contain spaces.
+Don\[aq]t use single or double quotes.
+.IP \[bu] 2
+And generally, use one less level of quoting/escaping than at the
+command line.
+Eg \f[CR]cur:\[rs]$\f[R], not \f[CR]cur:\[rs]\[rs]$\f[R] as on the
+command line.
 .PP
-An argument file\[aq]s format is more restrictive than the command line.
-Each line should contain just one option or argument.
-Don\[aq]t use spaces except inside quotes; write \f[CR]=\f[R] or nothing
-between a flag and its argument.
-If you use quotes, they must enclose the whole line.
-For the special characters mentioned above, use one less level of
-quoting than you would at the command line.
+For example:
+.IP
+.EX
+# cash.args
+
+assets:cash
+assets:charles schwab:sweep
+cur:\[rs]$
+\-c=$1.
+.EE
+.IP
+.EX
+$ hledger bal \[at]cash.args
+.EE
 .SS Config files
 With hledger 1.40+, you can save extra command line options and
 arguments in a more featureful hledger config file.
@@ -1127,7 +1121,7 @@ use whatever width they need.
 Multi\-period multi\-currency reports can often be wider than the
 window.
 Besides using a pager, helpful techniques for this situation include
-\f[CR]\-\-layout=bare\f[R], \f[CR]\-V\f[R], \f[CR]cur:\f[R],
+\f[CR]\-\-layout=bare\f[R], \f[CR]\-X COMM\f[R], \f[CR]cur:\f[R],
 \f[CR]\-\-transpose\f[R], \f[CR]\-\-tree\f[R], \f[CR]\-\-depth\f[R],
 \f[CR]\-\-drop\f[R], switching to html output, etc.
 .SS Box\-drawing characters
@@ -1371,9 +1365,20 @@ These environment variables affect hledger:
 specifies the \f[CR]less\f[R] options hledger should use.
 (Otherwise, \f[CR]LESS\f[R] + custom options are used.)
 .PP
-\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
-with \f[CR]\-f/\-\-file\f[R].
-Default: \f[CR]$HOME/.hledger.journal\f[R].
+\f[B]LEDGER_FILE\f[R] The default journal file, to be used when no
+\f[CR]\-f/\-\-file\f[R] option is provided.
+For example, it could be \f[CR]\[ti]/finance/main.journal\f[R].
+This can also be a glob pattern, eg \f[CR]./2???.journal\f[R].
+(If the glob matches multiple files, only the alphanumerically first one
+is used.)
+If LEDGER_FILE points to a non\-existent file, an error will be raised.
+If the value is the empty string, it is ignored.
+.PP
+If LEDGER_FILE is not set and \f[CR]\-f\f[R] is not provided, the
+default journal file is \f[CR]$HOME/.hledger.journal\f[R] (or if a home
+directory can\[aq]t be detected, \f[CR]./.hledger.journal\f[R]).
+.PP
+See also Common tasks > Setting LEDGER_FILE.
 .PP
 \f[B]NO_COLOR\f[R] If this environment variable exists (with any value,
 including empty), hledger will not use ANSI color codes in terminal
@@ -4179,9 +4184,9 @@ T}@T{
 declare the field separator, instead of relying on file extension
 T}
 T{
-\f[B]\f[CB]skip\f[B]\f[R]
+\f[B]\f[CB]decimal\-mark\f[B]\f[R]
 T}@T{
-skip one or more header lines at start of file
+declare the decimal mark used in CSV amounts, when ambiguous
 T}
 T{
 \f[B]\f[CB]date\-format\f[B]\f[R]
@@ -4206,9 +4211,9 @@ improve txn order when: same\-day txns are in opposite order to the
 overall file
 T}
 T{
-\f[B]\f[CB]decimal\-mark\f[B]\f[R]
+\f[B]\f[CB]skip\f[B]\f[R]
 T}@T{
-declare the decimal mark used in CSV amounts, when ambiguous
+(at top level) skip header line(s) at start of file
 T}
 T{
 \f[B]\f[CB]fields\f[B] list\f[R]
@@ -4231,6 +4236,16 @@ T{
 \f[B]\f[CB]if\f[B] table\f[R]
 T}@T{
 conditionally assign values to hledger fields, using compact syntax
+T}
+T{
+\f[B]\f[CB]skip\f[B]\f[R]
+T}@T{
+(inside an \f[CR]if\f[R] rule) skip current record(s)
+T}
+T{
+\f[B]\f[CB]end\f[B]\f[R]
+T}@T{
+(inside an \f[CR]if\f[R] rule) skip all remaining records
 T}
 T{
 \f[B]\f[CB]balance\-type\f[B]\f[R]
@@ -4289,9 +4304,9 @@ All this enables a convenient workflow where can you just download CSV
 files, then run \f[CR]hledger import rules/*\f[R].
 .PP
 See also \[dq]Working with CSV > Reading files specified by rule\[dq].
-.SS Data cleaning / generating commands
+.SS Data cleaning / data generating commands
 After \f[CR]source\f[R]\[aq]s file pattern, you can write \f[CR]|\f[R]
-(pipe) and a data cleaning command.
+(pipe) and a data cleaning command (or command pipeline).
 If hledger\[aq]s CSV rules aren\[aq]t enough, you can pre\-process the
 downloaded data here with a shell command or script, to make it more
 suitable for conversion.
@@ -6689,18 +6704,17 @@ dates will be Sat, Sun; periods will be Sat, Sun\-Fri
 T}
 .TE
 .SH Depth
-With the \f[CR]\-\-depth NUM\f[R] option (short form: \f[CR]\-NUM\f[R]),
-reports will show accounts only to the specified depth, hiding deeper
-subaccounts.
+With the \f[CR]\-\-depth NUM\f[R] option (short form, usually preferred:
+\f[CR]\-NUM\f[R]), reports will show accounts only to the specified
+depth, hiding deeper subaccounts.
 Use this when you want a summary with less detail.
 This flag has the same effect as a \f[CR]depth:\f[R] query argument.
 So all of these are equivalent: \f[CR]depth:2\f[R],
 \f[CR]\-\-depth=2\f[R], \f[CR]\-2\f[R].
 .PP
-In place of a single number which limits the depth for all accounts, you
-can also provide depth limits for specific accounts, by providing a
-\f[CR]REGEX=DEPTH\f[R] argument instead of just a \f[CR]DEPTH\f[R]
-\f[I](since 1.41)\f[R].
+You can also provide custom depths for specific accounts, by providing a
+\f[CR]REGEX=NUM\f[R] argument instead of just \f[CR]NUM\f[R] \f[I](since
+1.41)\f[R].
 For example, \f[CR]\-\-depth assets=2\f[R] (or
 \f[CR]depth:assets=2\f[R]) will collapse accounts matching the regular
 expression \[dq]assets\[dq] to depth 2.
@@ -6708,22 +6722,32 @@ So \f[CR]assets:bank:savings\f[R] would be collapsed to
 \f[CR]assets:bank\f[R], but \f[CR]liabilities:bank:credit card\f[R]
 would not be affected.
 .PP
-(If REGEX contains spaces or other special characters, enclose it in
+If REGEX contains spaces or other special characters, enclose it in
 quotes in the usual way.
-Eg: \f[CR]\-\-depth \[aq]credit card=2\[aq]\f[R])
+Eg: \f[CR]\-\-depth \[aq]credit card=2\[aq]\f[R]
+.SS Combining depth options
+If a command line contains multiple general depth options, the last one
+wins.
+(Useful for overriding a depth specified by scripts.)
 .PP
-Specific depth options and a general depth option can be combined.
-Eg \f[CR]\-\-depth assets=3 \-\-depth expenses=2 \-\-depth 1\f[R] would
+Or a command may contain a combination of general and custom depth
+options.
+In this case, the most specifically (deepest) matching option wins.
+Some examples:
+.IP \[bu] 2
+\f[CR]\-\-depth assets=3 \-\-depth expenses=2 \-\-depth 1\f[R] would
 collapse accounts containing \[dq]assets\[dq] to depth 3, accounts
 containing \[dq]expenses\[dq] to depth 2, and all other accounts to
 depth 1.
+.IP \[bu] 2
+\f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R] would collapse
+\f[CR]assets:bank:savings\f[R] to depth 2 (not depth 1; because
+\[dq]savings\[dq] matches a deeper part of the account name than
+\[dq]assets\[dq]).
 .PP
-If an account is matched by more than one regular expression depth
-argument, the most specific (deepest) match will be used.
-For example, with \f[CR]\-\-depth assets=1 \-\-depth savings=2\f[R],
-\f[CR]assets:bank:savings\f[R] will be collapsed to depth 2, not depth 1
-(because \[dq]savings\[dq] matches a deeper part of it than
-\[dq]assets\[dq] does).
+Note currently, to override a custom depth option
+\f[CR]\-\-depth REGEX=NUM\f[R] with a later option, the later option
+must use the same REGEX.
 .SH Queries
 Many hledger commands accept query arguments, which restrict their scope
 and let you report on a precise subset of your data.
@@ -7878,15 +7902,43 @@ aliases for this, which are often sufficient.
 The market prices are declared with a special \f[CR]P\f[R] directive,
 and/or they can be inferred from the costs recorded in transactions, by
 using the \f[CR]\-\-infer\-market\-prices\f[R] flag.
-.SS \-V: Value
-The \f[CR]\-V/\-\-market\f[R] flag converts amounts to market value in
-their default \f[I]valuation commodity\f[R], using the market prices in
-effect on the \f[I]valuation date(s)\f[R], if any.
-More on these in a minute.
 .SS \-X: Value in specified commodity
-The \f[CR]\-X/\-\-exchange=COMM\f[R] option is like \f[CR]\-V\f[R],
-except you tell it which currency you want to convert to, and it tries
-to convert everything to that.
+The \f[CR]\-X COMM\f[R] (or \f[CR]\-\-exchange=COMM\f[R]) option
+converts amounts to their market value in the specified commodity, using
+the market prices in effect on the \f[I]valuation date(s)\f[R], if any.
+(More on these in a minute.)
+.PP
+Use this when you want to (eg) show everything in your base currency as
+far as possible.
+(Commodities for which no conversion rate can be found, will not be
+converted.)
+.PP
+COMM should be the full commodity symbol or name.
+Remember to quote special shell characters, if needed.
+Some examples:
+.IP \[bu] 2
+\f[CR]\-X€\f[R]
+.IP \[bu] 2
+\f[CR]\-X$\f[R] (nothing after $, no quoting needed)
+.IP \[bu] 2
+\f[CR]\-X CNY\f[R] (the space after \-X is optional)
+.IP \[bu] 2
+\f[CR]\-X \[aq]red apples\[aq]\f[R]
+.IP \[bu] 2
+\f[CR]\-X \[aq]r&r\[aq]\f[R]
+.SS \-V: Value in default commodity(s)
+The \f[CR]\-V/\-\-market\f[R] flag is a variant of \f[CR]\-X\f[R] where
+you don\[aq]t have to specify COMM.
+Instead it tries to guess a \f[I]default valuation commodity\f[R] for
+each original commodity, based on the market prices in effect on the
+valuation date(s).
+.PP
+\f[CR]\-V\f[R] can often be a convenient shortcut for
+\f[CR]\-X MYCURRENCY\f[R], but not always; depending on your data it
+could guess multiple valuation commodities.
+Usually you want to convert to a single commodity, so it\[aq]s better to
+use \f[CR]\-X\f[R], unless you\[aq]re sure \f[CR]\-V\f[R] is doing what
+you want.
 .SS Valuation date
 Market prices can change from day to day.
 hledger will use the prices on a particular valuation date (or on more
@@ -9075,27 +9127,29 @@ Provide answers for the first four prompts:
 .PP
 There is a detailed tutorial at https://hledger.org/add.html.
 .SS add and balance assertions
-Since hledger 1.43, whenever you enter a posting amount, \f[CR]add\f[R]
-will re\-check all balance assertions in the journal, and if any of them
-fail, it will report the problem and ask for the amount again.
+Since hledger 1.43, you can add a balance assertion by writing
+\f[CR]AMOUNT = BALANCE\f[R] when asked for an amount.
+Eg \f[CR]100 = 500\f[R].
 .PP
-You can also add a new balance assertion, following the amount as in
-journal format.
-.PP
-The new transaction\[aq]s date, and the new posting\[aq]s posting date
-if any (entered in a comment following the amount), will influence
+Also, each time you enter a new amount, hledger re\-checks all balance
+assertions in the journal and rejects the new amount if it would make
+any of them fail.
+You can run \f[CR]add\f[R] with
+\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable balance
 assertion checking.
-.PP
-You can use \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable
-assertion checking temporarily.
 .SS add and balance assignments
-Balance assignments are not recalculated during a \f[CR]hledger add\f[R]
-session.
-When \f[CR]add\f[R] runs, it sees the journal with all balance
-assignments already processed and converted to assertions.
-So if you add a new posting which is dated earlier than a balance
-assignment, it will break the assertion and be rejected.
-You can make it work by using \f[CR]hledger add \-I\f[R].
+Since hledger 1.50.3, you can add a balance assignment by writing
+\f[CR]= BALANCE\f[R] (or \f[CR]==\f[R], \f[CR]=*\f[R] etc) when asked
+for an amount.
+The missing amount will be calculated automatically.
+.PP
+\f[CR]add\f[R] normally won\[aq]t let you add a new posting which is
+dated earlier than an existing balance assignment.
+(Because when \f[CR]add\f[R] runs, existing balance assignments have
+already been calculated and converted to amounts and balance
+assertions.)
+You can allow it by disabling balance assertion checking with
+\f[CR]\-I\f[R].
 .SS import
 Import new transactions from one or more data files to the main journal.
 .IP
@@ -9749,7 +9803,7 @@ $ hledger print \-f examples/sample.journal date:200806
     expenses:supplies            $1
     assets:cash                 $\-2
 .EE
-.SS print explicitness
+.SS print amount explicitness
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not
 appear in the output.
@@ -9767,19 +9821,20 @@ The \f[CR]\-x\f[R]/\f[CR]\-\-explicit\f[R] flag will cause any postings
 with a multi\-commodity amount (which can arise when a multi\-commodity
 transaction has an implicit amount) to be split into multiple
 single\-commodity postings, keeping the output parseable.
-.SS print amount style
+.SS print alignment
 Amounts are shown right\-aligned within each transaction (but not
-aligned across all transactions; you can do that with ledger\-mode in
-Emacs).
+aligned across all transactions; you can achieve that with ledger\-mode
+in Emacs).
+.SS print amount style
+Amounts will be displayed mostly in their commodity\[aq]s display style,
+with standardised symbol placement, decimal mark, and digit group marks.
+This does not apply to their decimal digits; \f[CR]print\f[R] normally
+shows the same decimal digits that are recorded in each journal entry.
 .PP
-Amounts will be (mostly) normalised to their commodity display style:
-their symbol placement, decimal mark, and digit group marks will be made
-consistent.
-By default, decimal digits are shown as they are written in the journal.
-.PP
-With the \f[CR]\-\-round\f[R] (\f[I]Added in 1.32\f[R]) option,
-\f[CR]print\f[R] will try increasingly hard to display decimal digits
-according to the commodity display styles:
+You can override the decimal precisions with \f[CR]print\f[R]\[aq]s
+special \f[CR]\-\-round\f[R] option (\f[I]since 1.32\f[R]).
+\f[CR]\-\-round\f[R] tries to show amounts with their commodities\[aq]
+standard decimal precisions, increasingly strongly:
 .IP \[bu] 2
 \f[CR]\-\-round=none\f[R] show amounts with original precisions
 (default)
@@ -9792,17 +9847,18 @@ significant digits
 .IP \[bu] 2
 \f[CR]\-\-round=all\f[R] round all amounts and costs
 .PP
-\f[CR]soft\f[R] is good for non\-lossy cleanup, formatting amounts more
-consistently where it\[aq]s safe to do so.
+\f[CR]soft\f[R] is good for non\-lossy cleanup, displaying more
+consistent decimals where possible, without making entries unbalanced.
 .PP
-\f[CR]hard\f[R] and \f[CR]all\f[R] can cause \f[CR]print\f[R] to show
-invalid unbalanced journal entries; they may be useful eg for stronger
-cleanup, with manual fixups when needed.
+\f[CR]hard\f[R] or \f[CR]all\f[R] can be good for stronger cleanup, when
+decimal rounding is wanted.
+Note rounding can produce unbalanced journal entries, perhaps requiring
+manual fixup.
 .SS print parseability
-print\[aq]s output is usually a valid hledger journal, and you can
-process it again with a second hledger command.
-This can be useful for certain kinds of search (though the same can be
-achieved with \f[CR]expr:\f[R] queries now):
+Normally, print\[aq]s output is a valid hledger journal, which you can
+\[dq]pipe\[dq] to a second hledger command for further processing.
+This is sometimes convenient for achieving certain kinds of query
+(though less needed now that queries have become more powerful):
 .IP
 .EX
 # Show running total of food expenses paid from cash.
@@ -9810,15 +9866,25 @@ achieved with \f[CR]expr:\f[R] queries now):
 $ hledger print assets:cash | hledger \-f\- \-I reg expenses:food
 .EE
 .PP
-There are some situations where print\[aq]s output can become
+But here are some things which can cause print\[aq]s output to become
 unparseable:
 .IP \[bu] 2
-Value reporting affects posting amounts but not balance assertion or
-balance assignment amounts, potentially causing those to fail.
+\f[CR]\-\-round\f[R] (see above) can disrupt transaction balancing.
 .IP \[bu] 2
-Auto postings can generate postings with too many missing amounts.
+Account aliases or pivoting can disrupt account names, balance
+assertions, or balance assignments.
 .IP \[bu] 2
-Account aliases can generate bad account names.
+Value reporting also can disrupt balance assertions or balance
+assignments.
+.IP \[bu] 2
+Auto postings can generate too many amountless postings.
+.IP \[bu] 2
+\f[CR]\-\-infer\-costs or \-\-infer\-equity\f[R] can generate
+too\-complex redundant costs.
+.IP \[bu] 2
+Because print always shows transactions in date order, balance
+assertions involving non\-date\-ordered transactions (and same\-day
+postings) could be disrupted.
 .SS print, other features
 With \f[CR]\-B\f[R]/\f[CR]\-\-cost\f[R], amounts with costs are shown
 converted to cost.
@@ -9957,9 +10023,12 @@ option.
 This is a more \[dq]real world\[dq], bank\-like view than the
 \f[CR]register\f[R] command (which shows individual postings, possibly
 from multiple accounts, not necessarily in historical mode).
-As a quick rule of thumb: \- use \f[CR]aregister\f[R] for reviewing and
-reconciling real\-world asset/liability accounts \- use
-\f[CR]register\f[R] for reviewing detailed revenues/expenses.
+As a quick rule of thumb:
+.IP \[bu] 2
+\f[CR]aregister\f[R] is best when reconciling real\-world
+asset/liability accounts
+.IP \[bu] 2
+\f[CR]register\f[R] is best when reviewing individual revenues/expenses.
 .PP
 \f[CR]aregister\f[R] requires one argument: the account to report on.
 You can write either the full account name, or a case\-insensitive
@@ -12101,9 +12170,21 @@ Flags:
 .EE
 .PP
 \f[CR]close\f[R] has six modes, selected by choosing one of the mode
-flags (\f[CR]\-\-close\f[R] is the default).
-They all do much the same operation, but with different defaults, useful
-in different situations.
+flags: \f[CR]\-\-clopen\f[R], \f[CR]\-\-close\f[R] (default),
+\f[CR]\-\-open\f[R], \f[CR]\-\-assert\f[R], \f[CR]\-\-assign\f[R], or
+\f[CR]\-\-retain\f[R].
+They are all doing the same kind of operation, but with different
+defaults for different situations.
+.PP
+The journal entries generated by \f[CR]close\f[R] will have a
+\f[CR]clopen:\f[R] tag, which is helpful when you want to exclude them
+from reports.
+If the main journal file name contains a number, the tag\[aq]s value
+will be that base file name with the number incremented.
+Eg if the journal file is 2025.journal, the tag will be
+\f[CR]clopen:2026\f[R].
+Or you can set the tag value by providing an argument to the mode flag.
+Eg \f[CR]\-\-close=foo\f[R] or \f[CR]\-\-clopen=2025\-main\f[R].
 .SS close \-\-clopen
 This is useful if migrating balances to a new journal file at the start
 of a new year.
@@ -12148,13 +12229,6 @@ AL or ALE accounts, but not the RX accounts (Revenue, Expense).
 .PP
 Assertions will be added indicating and checking the new balances of the
 closed/opened accounts.
-.PP
-The generated transactions will have a \f[CR]clopen:\f[R] tag.
-If the main journal\[aq]s base file name contains a number (eg a year
-number), the tag\[aq]s value will be that base file name with the number
-incremented.
-Or you can choose the tag value yourself, by using
-\f[CR]\-\-clopen=TAGVAL\f[R].
 .SS close \-\-close
 This prints just the closing balances transaction of
 \f[CR]\-\-clopen\f[R].
@@ -12206,16 +12280,16 @@ In all modes, the following things can be overridden:
 .IP \[bu] 2
 the accounts to be closed/opened, with account query arguments
 .IP \[bu] 2
+the closing/opening dates, with \f[CR]\-e OPENDATE\f[R]
+.IP \[bu] 2
 the balancing account, with \f[CR]\-\-close\-acct=ACCT\f[R] and/or
 \f[CR]\-\-open\-acct=ACCT\f[R]
 .IP \[bu] 2
 the transaction descriptions, with \f[CR]\-\-close\-desc=DESC\f[R] and
 \f[CR]\-\-open\-desc=DESC\f[R]
 .IP \[bu] 2
-the transaction\[aq]s tag value, with a \f[CR]\-\-MODE=NEW\f[R] option
-argument
-.IP \[bu] 2
-the closing/opening dates, with \f[CR]\-e OPENDATE\f[R]
+the transactions\[aq] \f[CR]clopen\f[R] tag value, with a
+\f[CR]TAGVAL\f[R] argument for the mode flag (see above).
 .PP
 By default, the closing date is yesterday, or the journal\[aq]s end
 date, whichever is later; and the opening date is always one day after
@@ -12513,8 +12587,8 @@ If you are an Emacs user, you can also configure flycheck\-hledger to
 run these checks, providing instant feedback as you edit the journal.
 .PP
 Here are the checks currently available.
-Generally, they are performed in the order they are shown here (and only
-the first failure is reported).
+They are generally checked in the order they are shown here, and only
+the first failure will be reported.
 .SS Basic checks
 These important checks are performed by default, by almost all hledger
 commands:
@@ -12526,32 +12600,31 @@ This ensures that all files exist and are readable.
 \f[B]autobalanced\f[R] \- all transactions are balanced, after
 automatically inferring missing amounts and conversion rates and then
 converting amounts to cost.
-This ensures that each transaction\[aq]s entry is well formed.
+This ensures that each transaction\[aq]s journal entry is well formed.
 .IP \[bu] 2
 \f[B]assertions\f[R] \- all balance assertions in the journal are
 passing.
-Balance assertions are a strong defense against errors; they help catch
-many problems.
-If this check gets in your way, you can disable it with
-\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R].
-Or you can add that to your config file to disable it by default (and
-then use \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
-\f[CR]hledger check assertions\f[R] to enable it).
+Balance assertions are a strong defense against errors, catching many
+problems.
+This check is on by default, but if it gets in your way, you can disable
+it temporarily with \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R], or
+as a default by adding that flag to your config file.
+(Then use \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
+\f[CR]hledger check assertions\f[R] when you want to enable it).
 .SS Strict checks
-These additional checks are performed by all commands when the
-\f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] flag is used (strict mode).
-They provide extra error\-catching power to keep your data clean and
-correct.
-Strict mode also always enables the \f[CR]assertions\f[R] check.
+When the \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] flag is used (AKA strict
+mode), all commands will perform the following additional checks (and
+\f[CR]assertions\f[R], above).
+These provide extra error\-catching power to help you keep your data
+clean and correct:
 .IP \[bu] 2
-\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but all conversions
-between commodities must use explicit cost notation or equity postings.
+\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but implicit
+conversions between commodities are not allowed; all conversion
+transactions must use cost notation or equity postings.
 This prevents wrong conversions caused by typos.
 .IP \[bu] 2
 \f[B]commodities\f[R] \- all commodity symbols used must be declared.
 This guards against mistyping or omitting commodity symbols.
-Declaring commodities also sets their precision for display and
-transaction balancing.
 .IP \[bu] 2
 \f[B]accounts\f[R] \- all account names used must be declared.
 This prevents the use of mis\-spelled or outdated account names.
@@ -12580,10 +12653,10 @@ This will encourage adding balance assertions for your active
 asset/liability accounts, which in turn should encourage you to
 reconcile regularly with those real world balances \- another strong
 defense against errors.
-\f[CR]hledger close \-\-assert\f[R] can help generate assertion entries.
-Over time the older assertions become somewhat redundant, and you can
-remove them if you like (they don\[aq]t affect performance much, but
-they add some noise to the journal).
+(\f[CR]hledger close \-\-assert >>$LEDGER_FILE\f[R] is a convenient way
+to add new balance assertions.
+Later these become quite redundant, and you might choose to remove them
+to reduce clutter.)
 .IP \[bu] 2
 \f[B]uniqueleafnames\f[R] \- no two accounts may have the same last
 account name part (eg the \f[CR]checking\f[R] in
@@ -12595,8 +12668,8 @@ You can build your own custom checks with add\-on command scripts.
 See also Cookbook > Scripting.
 Here are some examples from hledger/bin/:
 .IP \[bu] 2
-\f[B]hledger\-check\-tagfiles\f[R] \- all tag values containing / (a
-forward slash) exist as file paths
+\f[B]hledger\-check\-tagfiles\f[R] \- all tag values containing
+\f[CR]/\f[R] exist as file paths
 .IP \[bu] 2
 \f[B]hledger\-check\-fancyassertions\f[R] \- more complex balance
 assertions are passing
