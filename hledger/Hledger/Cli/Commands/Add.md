@@ -66,3 +66,12 @@ Also, each time you enter a new amount, hledger re-checks all balance assertions
 and rejects the new amount if it would make any of them fail.
 You can run `add` with `-I`/`--ignore-assertions` to disable balance assertion checking.
 
+## add and balance assignments
+
+Since hledger 1.50.3, you can add a [balance assignment](#balance-assignments) by writing `= BALANCE` (or `==`, `=*` etc) when asked for an amount.
+The missing amount will be calculated automatically.
+
+`add` normally won't let you add a new posting which is dated earlier than an existing balance assignment.
+(Because when `add` runs, existing balance assignments have already been calculated and converted to amounts and balance assertions.)
+You can allow it by disabling balance assertion checking with `-I`.
+
