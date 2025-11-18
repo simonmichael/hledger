@@ -64,20 +64,104 @@ h2, h2:last-child > h3 { margin-top:4em; }
 </style>
 
 Major releases and user-visible changes, collected from the changelogs (
-[hledger](https://hackage.haskell.org/package/hledger-1.50.2/changelog),
-[hledger-ui](https://hackage.haskell.org/package/hledger-ui-1.50.2/changelog),
-[hledger-web](https://hackage.haskell.org/package/hledger-web-1.50.2/changelog)
+[hledger](https://hackage.haskell.org/package/hledger-1.50.3/changelog),
+[hledger-ui](https://hackage.haskell.org/package/hledger-ui-1.50.3/changelog),
+[hledger-web](https://hackage.haskell.org/package/hledger-web-1.50.3/changelog)
 ).
 <!-- https://hackage.haskell.org/package/P/changelog is supposed to show the same as https://hackage.haskell.org/package/P-LATESTVER/changelog but it updates very slowly alas -->
 
 
 
+## 2025-11-18 hledger-1.50.3
+
+### hledger 1.50.3
+
+Fixes
+
+- hledger versions 1.50-1.50.2 ran much slower than normal (depending on the speed of your hard drive).
+  This 1.50.3 release fixes that; so please upgrade, and avoid those older 1.50 releases.
+  [#2493]
+
+- A regression in 1.50, where very large dates could produce wrong reports, has been fixed.
+  (Affecting dates outside the range -25252734927764696-04-22..25252734927768413-06-12
+  on 64 bit machines, or -5877752-05-08..5881469-05-27 on 32 bit machines.)
+  [#2479]
+
+- If the `LEDGER_FILE` environment variable is set to a nonexistent file, we now report an error
+  rather than silently falling back on a default file path, which was confusing.
+  Also, we no longer support the legacy `LEDGER` environment variable as a fallback.
+  [#2485]
+
+- `setup` now shows tidier output when a LEDGER_FILE or default file is not found,
+
+- `add` now checks balance assertions more robustly, with awareness of how everything is ordered in the journal.
+  Also, it now allows adding balance assignments.
+  [#2478]
+
+- `check accounts` no longer garbles non-ascii account names in its output.
+  [#2469]
+
+- We now escape special characters properly when passing arguments to addons
+  (with just one level of quoting/escaping, not two).
+  And related docs have been improved.
+  (Caleb Maclennan, Simon Michael, [#2468])
+
+- Internal report code which could produce certain date-related errors has been made robust again.
+  (Stephen Morgan)
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  This will hopefully prevent wrong builds like Debian's #1120833.
+  [#2495]
+
+- Docs updated: add, areg, argument files, check, close, csv, depth, print, print, Special characters, Value reporting
+
+
+### hledger-ui 1.50.3
+
+- `--watch` mode now also detects changes from apps which overwrite the file, such as VS Code.
+  (Caleb Maclennan)
+
+- When hledger-ui is started with --pivot, re-enabling balance assertions
+  with the I key now does a full journal reload, to check assertions more accurately.
+  [#2451]
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  [#2495]
+
+- Allow brick 2.10, vty 6.5.
+
+- Uses hledger 1.50.3.
+
+
+### hledger-web 1.50.3
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  [#2495]
+
+- Uses hledger 1.50.3
+
+
+### credits 1.50.3
+
+Simon Michael,
+Caleb Maclennan,
+Stephen Morgan.
+
+
+[#2451]: https://github.com/simonmichael/hledger/issues/2451
+[#2468]: https://github.com/simonmichael/hledger/issues/2468
+[#2469]: https://github.com/simonmichael/hledger/issues/2469
+[#2478]: https://github.com/simonmichael/hledger/issues/2478
+[#2479]: https://github.com/simonmichael/hledger/issues/2479
+[#2485]: https://github.com/simonmichael/hledger/issues/2485
+[#2493]: https://github.com/simonmichael/hledger/issues/2493
+[#2495]: https://github.com/simonmichael/hledger/issues/2495
+[#2495]: https://github.com/simonmichael/hledger/issues/2495
+[#2495]: https://github.com/simonmichael/hledger/issues/2495
 
 
 
 ## 2025-09-26 hledger-1.50.2
-
-
 ### hledger 1.50.2
 
 
