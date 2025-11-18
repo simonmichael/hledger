@@ -738,7 +738,7 @@ changelogs *OPTS:
 
 # Drop any uncommitted changes to the project and package changelogs.
 changelogs-reset:
-    git checkout CHANGES.md */CHANGES.md
+    git checkout */CHANGES.md
 
 # Set changelog headings to the specified commit, or HEAD. Run on release branch.
 changelogs-catchup *COMMIT:
@@ -749,7 +749,7 @@ changelogs-catchup *COMMIT:
     for p in $PACKAGES; do \
       sed -i "0,/^# /s/^# .*$/# $C/" $p/CHANGES.md; \
     done
-    sed -i "0,/^# /s/^# .*$/# $C/" CHANGES.md
+    sed -i "0,/^# /s/^# .*$/# $C/" doc/CHANGES.md
     echo "Changelog headings have been set to $C"
 
 # Set changelog headings for a full release today. Run on release branch.
@@ -761,8 +761,8 @@ changelogs-finalise:
     for p in $PACKAGES; do \
       sed -i "0,/^# /s/^# .*$/# `cat $p/.version` $date/" $p/CHANGES.md; \
     done
-    sed -i "0,/^# /s/^# .*$/# `cat .version` $date/" CHANGES.md
-    git commit -m ";doc: finalise changelogs for `cat .version` on $date" CHANGES.md */CHANGES.md
+    sed -i "0,/^# /s/^# .*$/# `cat .version` $date/" doc/CHANGES.md
+    git commit -m ";doc: finalise changelogs for `cat .version` on $date" */CHANGES.md
 
 # see also Shake.hs
 # http://www.haskell.org/haddock/doc/html/invoking.html
