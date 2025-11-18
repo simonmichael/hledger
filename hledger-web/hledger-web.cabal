@@ -120,17 +120,17 @@ flag debug
 
 flag dev
   description: Turn on development settings, like auto-reload templates.
-  manual: False
+  manual: True
   default: False
 
 flag library-only
   description: Build for use with "yesod devel"
-  manual: False
+  manual: True
   default: False
 
 flag threaded
   description: Build with support for multithreaded execution.
-  manual: False
+  manual: True
   default: True
 
 library

@@ -45,7 +45,7 @@ flag debug
 
 flag threaded
   description: Build with support for multithreaded execution
-  manual: False
+  manual: True
   default: True
 
 library
