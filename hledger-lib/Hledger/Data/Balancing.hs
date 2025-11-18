@@ -16,7 +16,7 @@ module Hledger.Data.Balancing
 , defbalancingopts
   -- * transaction balancing
 , isTransactionBalanced
-, balanceTransaction
+, balanceSingleTransaction
 , balanceTransactionHelper
   -- * assertion validation
 , transactionCheckAssertions
@@ -173,32 +173,21 @@ transactionCheckAssertions bopts j t =
       Right _ -> Right t
       Left e -> Left e
 
--- | Balance this transaction, ensuring that its postings
+-- | Balance this isolated transaction, ensuring that its postings
 -- (and its balanced virtual postings) sum to 0,
 -- by inferring a missing amount or conversion price(s) if needed.
 -- Or if balancing is not possible, because the amounts don't sum to 0 or
 -- because there's more than one missing amount, return an error message.
 --
--- Transactions with balance assignments can have more than one
--- missing amount; to balance those you should use the more powerful
--- journalBalanceTransactions.
---
--- The "sum to 0" test is done using commodity display precisions,
--- if provided, so that the result agrees with the numbers users can see.
---
-balanceTransaction ::
-     BalancingOpts
-  -> Transaction
-  -> Either String Transaction
-balanceTransaction bopts = fmap fst . balanceTransactionHelper bopts
+-- Note this is not as accurate as @balanceTransactionInJournal@,
+-- which considers the whole journal when calculating balance assignments and balance assertions.
+balanceSingleTransaction :: BalancingOpts -> Transaction -> Either String Transaction
+balanceSingleTransaction bopts = fmap fst . balanceTransactionHelper bopts
 
--- | Helper used by balanceTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
+-- | Helper used by balanceSingleTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
 -- use one of those instead.
 -- It also returns a list of accounts and amounts that were inferred.
-balanceTransactionHelper ::
-     BalancingOpts
-  -> Transaction
-  -> Either String (Transaction, [(AccountName, MixedAmount)])
+balanceTransactionHelper :: BalancingOpts -> Transaction -> Either String (Transaction, [(AccountName, MixedAmount)])
 balanceTransactionHelper bopts t = do
   let lbl = lbl_ "balanceTransactionHelper"
   (t', inferredamtsandaccts) <- t
@@ -411,7 +400,7 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
 --   journalBalanceTransactions
 --    runST
 --     runExceptT
---      balanceTransaction (Transaction.hs)
+--      balanceSingleTransaction (Transaction.hs)
 --       balanceTransactionHelper
 --      runReaderT
 --       balanceTransactionAndCheckAssertionsB
@@ -422,7 +411,7 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
 --   journalCheckBalanceAssertions
 --    journalBalanceTransactions
 --  transactionWizard, postingsBalanced (Add.hs), tests (Transaction.hs)
---   balanceTransaction (Transaction.hs)  XXX hledger add won't allow balance assignments + missing amount ?
+--   balanceSingleTransaction (Transaction.hs)  XXX hledger add won't allow balance assignments + missing amount ?
 
 -- | Monad used for statefully balancing/amount-inferring/assertion-checking
 -- a sequence of transactions.
@@ -532,7 +521,7 @@ journalBalanceTransactions bopts' j' =
         -- postponing those which do until later. The balanced ones are split into their postings,
         -- keeping these and the not-yet-balanced transactions in the same relative order.
         psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
-          t | null $ assignmentPostings t -> case balanceTransaction bopts t of
+          t | null $ assignmentPostings t -> case balanceSingleTransaction bopts t of
               Left  e  -> throwError e
               Right t' -> do
                 lift $ writeArray balancedtxns (tindex t') t'
@@ -810,10 +799,10 @@ tests_Balancing =
          (fst <$> transactionInferBalancingAmount M.empty nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` missingamt]}) @?=
            Right nulltransaction{tpostings = ["a" `post` usd (-5), "b" `post` (eur 3 @@ usd 4), "c" `post` usd 1]}
 
-    , testGroup "balanceTransaction" [
+    , testGroup "balanceSingleTransaction" [
          testCase "detect unbalanced entry, sign error" $
           assertLeft
-            (balanceTransaction defbalancingopts
+            (balanceSingleTransaction defbalancingopts
                (Transaction
                   0
                   ""
@@ -828,7 +817,7 @@ tests_Balancing =
                   [posting {paccount = "a", pamount = mixedAmount (usd 1)}, posting {paccount = "b", pamount = mixedAmount (usd 1)}]))
         ,testCase "detect unbalanced entry, multiple missing amounts" $
           assertLeft $
-             balanceTransaction defbalancingopts
+             balanceSingleTransaction defbalancingopts
                (Transaction
                   0
                   ""
@@ -845,7 +834,7 @@ tests_Balancing =
                   ])
         ,testCase "one missing amount is inferred" $
           (pamount . last . tpostings <$>
-           balanceTransaction defbalancingopts
+           balanceSingleTransaction defbalancingopts
              (Transaction
                 0
                 ""
@@ -861,7 +850,7 @@ tests_Balancing =
           Right (mixedAmount $ usd (-1))
         ,testCase "conversion price is inferred" $
           (pamount . headErr . tpostings <$>  -- PARTIAL headErr succeeds because non-null postings list
-           balanceTransaction defbalancingopts
+           balanceSingleTransaction defbalancingopts
              (Transaction
                 0
                 ""
@@ -877,9 +866,9 @@ tests_Balancing =
                 , posting {paccount = "b", pamount = mixedAmount (eur (-1))}
                 ])) @?=
           Right (mixedAmount $ usd 1.35 @@ eur 1)
-        ,testCase "balanceTransaction balances based on cost if there are unit prices" $
+        ,testCase "balanceSingleTransaction balances based on cost if there are unit prices" $
           assertRight $
-          balanceTransaction defbalancingopts
+          balanceSingleTransaction defbalancingopts
             (Transaction
                0
                ""
@@ -894,9 +883,9 @@ tests_Balancing =
                [ posting {paccount = "a", pamount = mixedAmount $ usd 1 `at` eur 2}
                , posting {paccount = "a", pamount = mixedAmount $ usd (-2) `at` eur 1}
                ])
-        ,testCase "balanceTransaction balances based on cost if there are total prices" $
+        ,testCase "balanceSingleTransaction balances based on cost if there are total prices" $
           assertRight $
-          balanceTransaction defbalancingopts
+          balanceSingleTransaction defbalancingopts
             (Transaction
                0
                ""

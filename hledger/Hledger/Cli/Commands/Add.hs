@@ -346,7 +346,7 @@ descriptionAndCommentWizard PrevInput{..} EntryState{..} = do
       return $ Just (desc, comment)
 
 postingsBalanced :: [Posting] -> Bool
-postingsBalanced ps = isRight $ balanceTransaction defbalancingopts nulltransaction{tpostings=ps}
+postingsBalanced ps = isRight $ balanceSingleTransaction defbalancingopts nulltransaction{tpostings=ps}
 
 accountWizard PrevInput{..} EntryState{..} = do
   let pnum = length esPostings + 1

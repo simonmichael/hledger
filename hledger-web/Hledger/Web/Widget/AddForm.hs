@@ -96,7 +96,7 @@ validateTransaction ::
   -> FormResult (Transaction, FilePath)
 validateTransaction deffile dateRes descRes postingsRes fileRes =
   case makeTransaction <$> dateRes <*> descRes <*> postingsRes <*> fileRes of
-    FormSuccess (txn,f) -> case balanceTransaction defbalancingopts txn of
+    FormSuccess (txn,f) -> case balanceSingleTransaction defbalancingopts txn of
       Left e     -> FormFailure [T.pack e]
       Right txn' -> FormSuccess (txn',f)
     x -> x
