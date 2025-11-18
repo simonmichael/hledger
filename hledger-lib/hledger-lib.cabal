@@ -60,7 +60,6 @@ library
       Hledger.Data.Balancing
       Hledger.Data.Currency
       Hledger.Data.Dates
-      Hledger.Data.DayPartition
       Hledger.Data.Errors
       Hledger.Data.Journal
       Hledger.Data.JournalChecks
@@ -117,6 +116,7 @@ library
       Text.WideString
   other-modules:
       Hledger.Data.BalanceData
+      Hledger.Data.DayPartition
       Hledger.Data.PeriodData
       Paths_hledger_lib
   autogen-modules:
@@ -173,7 +173,7 @@ library
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
 
@@ -233,7 +233,7 @@ test-suite doctest
     , uglymemo
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
   if impl(ghc >= 9.0) && impl(ghc < 9.2)
@@ -296,6 +296,6 @@ test-suite unittest
     , unordered-containers >=0.2
     , utf8-string >=0.3.5
   buildable: True
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG

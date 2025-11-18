@@ -39,14 +39,9 @@ source-repository head
   location: https://github.com/simonmichael/hledger
 
 flag debug
-  description: Build with GHC 9.10+'s stack traces enabled
+  description: Build with GHC 9.10+ stack traces enabled
   manual: True
   default: False
-
-flag threaded
-  description: Build with support for multithreaded execution
-  manual: True
-  default: True
 
 library
   exposed-modules:
@@ -106,7 +101,7 @@ library
     , vector
     , vty >=6.1 && <6.6
     , vty-crossplatform >=0.4.0.0 && <0.5.0.0
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
   if os(windows)
@@ -124,13 +119,11 @@ executable hledger-ui
       Paths_hledger_ui
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -with-rtsopts=-T
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
   cpp-options: -DVERSION="1.50.3"
   build-depends:
       base >=4.18 && <4.22
     , hledger-ui
-  default-language: Haskell2010
+  default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
-  if flag(threaded)
-    ghc-options: -threaded
