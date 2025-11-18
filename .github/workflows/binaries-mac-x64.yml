@@ -9,9 +9,10 @@ on:
 
 jobs:
   build:
-    runs-on: macos-13
+    runs-on: macos-15-intel
       # arch:  x64
-      # image: https://github.com/actions/runner-images/blob/main/images/macos/macos-13-Readme.md
+      # image: somewhere near https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
+      # https://github.com/actions/runner-images/issues/13046
 
     env:
       stack: stack
