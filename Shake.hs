@@ -734,7 +734,7 @@ main = do
               ,":!tests"
               ]
 
-            mpkg = if dir=="." then Nothing else Just dir where dir = takeDirectory out
+            mpkg = if dir=="doc" then Nothing else Just dir where dir = takeDirectory out
 
           -- Parse the changelog.
           oldlines <- liftIO $ lines <$> readFileStrictly out
