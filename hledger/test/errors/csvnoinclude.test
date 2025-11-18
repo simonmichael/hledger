@@ -1,3 +1,9 @@
 $$$ hledger check -f  csvnoinclude.j
->>>2 /CSV files can't be included yet/
+>>>2 /hledger: Error: .*csvnoinclude.j,
+\/Users\/simon\/src\/hledger\/hledger\/test\/errors\/csvnoinclude.csv:1:1:
+  \|
+1 \| <empty line>
+  \| \^
+sorry, CSV files can't be included yet
+/
 >>>= 1

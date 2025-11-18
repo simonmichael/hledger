@@ -1,10 +1,11 @@
 $$$ hledger check balanced -f balanced.j
->>>2 /Error: .*balanced.j:5-7:
+>>>2 /hledger: Error: .*balanced.j:5-7:
 5 \| 2022-01-01
   \|     a             1 A
   \|     b            -1 B
 
 This multi-commodity transaction is unbalanced.
 Automatic commodity conversion is not enabled.
-The real postings' sum should be 0 but is: 1 A, -1 B/
+The real postings' sum should be 0 but is: 1 A, -1 B
+Consider adjusting this entry's amounts, adding/
 >>>= 1
