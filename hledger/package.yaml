@@ -94,7 +94,7 @@ flags:
   threaded:
     description: Build with support for multithreaded execution
     default: true
-    manual:  false
+    manual:  true
   debug:
     description: Build with GHC 9.10+'s stack traces enabled
     default: false

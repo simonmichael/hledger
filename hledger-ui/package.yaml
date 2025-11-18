@@ -36,7 +36,7 @@ flags:
   threaded:
     description: Build with support for multithreaded execution
     default: true
-    manual:  false
+    manual:  true
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
 #    default: false

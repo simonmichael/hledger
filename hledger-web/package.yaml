@@ -50,15 +50,15 @@ flags:
   library-only:
     description: Build for use with "yesod devel"
     default: false
-    manual:  false
+    manual:  true
   dev:
     description: Turn on development settings, like auto-reload templates.
     default: false
-    manual:  false
+    manual:  true
   threaded:
     description: Build with support for multithreaded execution.
     default: true
-    manual:  false
+    manual:  true
   debug:
     description: Build with GHC 9.10+'s stack traces enabled   # '
     default: false
