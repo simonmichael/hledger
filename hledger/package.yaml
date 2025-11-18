@@ -91,10 +91,6 @@ extra-source-files:
 - Hledger/Cli/Commands/Test.txt
 
 flags:
-  threaded:
-    description: Build with support for multithreaded execution
-    default: true
-    manual:  true
   debug:
     description: Build with GHC 9.10+ stack traces enabled
     default: false
@@ -223,10 +219,9 @@ executables:
   hledger:
     source-dirs: app
     main: hledger-cli.hs
-    ghc-options: -with-rtsopts=-T  # for stats command
-    when:
-    - condition: flag(threaded)
-      ghc-options: -threaded
+    # -threaded is needed for runPager, at least
+    # -T is for the stats command
+    ghc-options: -threaded -with-rtsopts=-T
     dependencies:
     - hledger
 

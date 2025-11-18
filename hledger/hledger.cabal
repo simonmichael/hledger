@@ -101,11 +101,6 @@ flag debug
   manual: True
   default: False
 
-flag threaded
-  description: Build with support for multithreaded execution
-  manual: True
-  default: True
-
 library
   exposed-modules:
       Hledger.Cli
@@ -212,7 +207,7 @@ executable hledger
       Paths_hledger
   hs-source-dirs:
       app
-  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path -with-rtsopts=-T
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -optP-Wno-nonportable-include-path -threaded -with-rtsopts=-T
   cpp-options: -DVERSION="1.50.99"
   build-depends:
       Decimal >=0.5.1
@@ -257,8 +252,6 @@ executable hledger
   default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
-  if flag(threaded)
-    ghc-options: -threaded
 
 test-suite unittest
   type: exitcode-stdio-1.0
