@@ -125,7 +125,7 @@ jobs:
     - name: Install shelltestrunner
       run: |
         export PATH=~/.local/bin:$PATH
-        if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install --verbosity=error shelltestrunner; fi
+        if [[ ! -x ~/.local/bin/shelltest || true ]]; then $stack install --verbosity=error shelltestrunner-1.11; fi
         shelltest --version
 
     - name: Test functional tests (excluding addons)
