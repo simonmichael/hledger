@@ -49,7 +49,7 @@ verToStr = intercalate "."
 main = do
   setBacktraceMechanismState HasCallStackBacktrace False
   -- gather latest release changes & info
-  (projectChangesHeading, projectChanges)       <- changelogFirstSection <$> readFile "CHANGES.md"
+  (projectChangesHeading, projectChanges)       <- changelogFirstSection <$> readFile "doc/CHANGES.md"
   (hledgerChangesHeading, hledgerChanges)       <- changelogFirstSection <$> readFile "hledger/CHANGES.md"
   (hledgerUiChangesHeading, hledgerUiChanges)   <- changelogFirstSection <$> readFile "hledger-ui/CHANGES.md"
   (hledgerWebChangesHeading, hledgerWebChanges) <- changelogFirstSection <$> readFile "hledger-web/CHANGES.md"
