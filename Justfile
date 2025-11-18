@@ -1009,6 +1009,10 @@ reltags:
     git tag --force --sign `cat .version` -m "Release `cat .version`"
     echo "Release has been tagged!"
 
+# Push the current HEAD to github oldest branch, testing the build with oldest supported GHC.
+@oldest:
+    git push -f origin HEAD:oldest
+
 # Push the current HEAD to github binaries branch, generating platform binaries.
 @ghbin:
     # assumes the github remote is named "origin"
