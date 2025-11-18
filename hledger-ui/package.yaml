@@ -30,12 +30,8 @@ extra-source-files:
 
 flags:
   debug:
-    description: Build with GHC 9.10+'s stack traces enabled
+    description: Build with GHC 9.10+ stack traces enabled
     default: false
-    manual:  true
-  threaded:
-    description: Build with support for multithreaded execution
-    default: true
     manual:  true
 #  ghcdebug:
 #    description: Build with support for attaching a ghc-debug client
@@ -128,9 +124,7 @@ executables:
   hledger-ui:
     source-dirs: app
     main: hledger-ui.hs
+    # -threaded is needed for runPager, at least
+    ghc-options: -threaded
     dependencies:
     - hledger-ui
-    ghc-options: -with-rtsopts=-T  # for stats command
-    when:
-    - condition: flag(threaded)
-      ghc-options: -threaded

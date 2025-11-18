@@ -55,10 +55,6 @@ flags:
     description: Turn on development settings, like auto-reload templates.
     default: false
     manual:  true
-  threaded:
-    description: Build with support for multithreaded execution.
-    default: true
-    manual:  true
   debug:
     description: Build with GHC 9.10+'s stack traces enabled   # '
     default: false
@@ -77,10 +73,9 @@ ghc-options:
 # not included in -Wall by older GHC versions:
 - -Wincomplete-record-updates
 - -Wincomplete-uni-patterns
+- -threaded  # needed for runPager & probably other things
 
 when:
-- condition: flag(threaded)
-  ghc-options: -threaded
 - condition: (flag(dev)) || (flag(library-only))
   cpp-options: -DDEVELOPMENT
 # This causes a warning when uploading to hackage:
