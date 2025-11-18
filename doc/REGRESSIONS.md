@@ -218,7 +218,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
 | [#2417]                  | 1.50      | [Frank Schmidt](https://opencollective.com/hledger/expenses/256445)              | [Simon Michael](https://opencollective.com/hledger/expenses/264102)
-| [#2478]                  | 1.50.3    | [dotlambda](https://opencollective.com/hledger/expenses/269024)                  | [Simon Michael] (https://opencollective.com/hledger/expenses/274083)
+| [#2478]                  | 1.50.3    | [dotlambda](https://opencollective.com/hledger/expenses/269024)                  | [Simon Michael](https://opencollective.com/hledger/expenses/274083)
 | **1.50** 2025-09-03      | ---       | ---                                                                              | ---
 | [#2452]                  | 1.50.1    | [Samim Pezeshki](https://opencollective.com/hledger/expenses/264435)             | Stephen Morgan (N/A)
 | [#2454]                  | 1.50.1    | [Nic Mollel](https://opencollective.com/hledger/expenses/265257)                 | Stephen Morgan (N/A)
