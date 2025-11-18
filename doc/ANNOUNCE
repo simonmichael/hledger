@@ -1,20 +1,14 @@
-I'm pleased to announce hledger 1.50, loaded with good things:
+I'm pleased to announce hledger 1.50.3.
+This release fixes a big performance regression in the 1.50 series,
+so you should avoid 1.50-1.50.2 and upgrade to this one.
+Thank you to contributors Caleb Maclennan and Stephen Morgan.
 
-- Better transaction balancing
-- include improvements
-- auto posting account interpolation
-- csv data commands
-- import archiving
-- timeclock improvements
-- fixes
-
-Thank you to contributors Stephen Morgan, Jay Neubrand, Lukas Fleischer, and savanto.
-
-Best wishes!
+Best,
 -Simon
 
-- https://github.com/simonmichael/hledger/releases/1.50
-- https://hledger.org/relnotes.html#2025-09-03-hledger-150
+
+- https://github.com/simonmichael/hledger/releases/1.50.3
+- https://hledger.org/relnotes.html#2025-11-18-hledger-1503
 - https://hledger.org/install
 
 
