@@ -6929,7 +6929,7 @@ set -Ux LEDGER_FILE ~/finance/my.journal
 When correctly configured:
 
 - `env | grep LEDGER_FILE` will show your new setting
-- and so should `hledger setup` and (once the file exists) `hledger files`.
+- and so should `hledger setup` and `hledger files`.
 
 ### Set LEDGER_FILE on mac
 
