@@ -111,7 +111,7 @@ jobs:
 
     # - name: Install shelltestrunner
     ## - export PATH=~/.local/bin:$PATH
-    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.10; fi
+    # - if [[ ! -x ~/.local/bin/shelltest ]]; then stack install shelltestrunner-1.11; fi
     # - shelltest --version
 
     # run hledger-lib/hledger functional tests, skipping the ones for addons

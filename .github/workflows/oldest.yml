@@ -136,14 +136,14 @@ jobs:
       run: |
         $stack install --test --bench hledger-web --fast --ghc-options=-Werror
 
-    # XXX disable until this is fixed: shelltestrunner-1.10/src/shelltest.hs:125:20: error:
+    # XXX disable until this is fixed: shelltestrunner-1.11/src/shelltest.hs:125:20: error:
     # shelltestrunner      >     Not in scope: ‘configFailFast’
     # shelltestrunner      >     Perhaps you meant ‘configFastFail’ (imported from Test.Hspec.Core.Runner)
 
     # - name: Install shelltestrunner
     #   run: |
     #     export PATH=~/.local/bin:$PATH
-    #     if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.10; fi
+    #     if [[ ! -x ~/.local/bin/shelltest ]]; then $stack install shelltestrunner-1.11; fi
     #     shelltest --version
 
     # - name: Test functional tests (excluding addons)
