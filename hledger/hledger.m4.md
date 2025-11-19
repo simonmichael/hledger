@@ -4002,7 +4002,7 @@ Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match i
 
 The pattern is, as usual in hledger, a POSIX extended regular expression
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`) and nothing else.
-If you have trouble with it, see "Regular expressions" in the hledger manual (<https://hledger.org/hledger.html#regular-expressions>).
+For more details and tips, see [Regular expressions in CSV rules](#regular-expressions-in-csv-rules) below.
 
 ### Multiple matchers
 
@@ -4272,6 +4272,34 @@ data. See:
 
 - <https://hledger.org/cookbook.html#setups-and-workflows>
 - <https://plaintextaccounting.org> -> data import/conversion
+
+### Regular expressions in CSV rules
+
+Regular expressions in `if` conditions (AKA matchers) are as described at <https://hledger.org/hledger.html#regular-expressions> -
+a POSIX extended regular expression, that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`), and nothing else.
+
+Here are some examples that might be useful in CSV rules:
+
+- Is field "foo" truly empty ? `if %foo ^$`
+- Is it empty or containing only whitespace ? `if %foo ^ *$`
+- Is it non-empty ? `if %foo .`
+- Does it contain non-whitespace ? `if %foo [^ ]`
+
+Testing the value of numeric fields is a little harder.
+You can't use hledger queries like `amt:0` or `amt:>10` in CSV rules.
+But you can often achieve the same thing with a regular expression.
+
+Also, remember the content and layout of number fields in CSV can vary a lot.
+And can change if you switch data providers in future.
+So it's a good idea to write defensive, robust regexps for numeric fields.
+
+Here are some examples; you may need to adapt them to your data:
+
+- Does foo contain a non-zero number ? `if %foo [1-9]`
+- Is it negative ? `if %foo -`
+- Is it non-negative ? `if ! %foo -`
+- Is it >= 10 ? `if %foo [1-9][0-9]+\.|` (assuming a decimal period and no leading zeroes)
+- Is it >=10 and < 20 ? `if %foo \b1[0-9]\.|`
 
 ### Setting amounts
 
