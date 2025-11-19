@@ -499,7 +499,7 @@ balanceTransactionInJournal t j bopts = do
   Journal{jtxns=ts} <- journalBalanceTransactions bopts j'
   -- Extract the balanced & checked transaction.
   maybe
-    (Left "transactionWizard: unexpected empty journal") -- should not happen
+    (Left "balanceTransactionInJournal: unexpected empty journal") -- should not happen
     Right
     (lastMay ts)
 
