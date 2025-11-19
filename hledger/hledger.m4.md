@@ -3660,8 +3660,6 @@ Eg, here the overall record order is newest first, but same-day records are olde
 intra-day-reversed
 ```
 
-
-
 ## `decimal-mark`
 
 ```rules
@@ -3676,6 +3674,31 @@ hledger automatically accepts either period or comma as a decimal mark when pars
 (cf [Amounts](#amounts)).
 However if any numbers in the CSV contain digit group marks, such as thousand-separating commas,
 you should declare the decimal mark explicitly with this rule, to avoid misparsed numbers.
+
+## CSV fields and hledger fields
+
+This can be confusing, so here's an overview. (It mentions some things we haven't covered yet.)
+
+- **CSV fields** are provided by your data file.
+  Their default name is their position in the CSV record, starting with 1.
+  You can also give them a readable name (with the `fields` rule).
+
+- **hledger fields** are predefined.
+  They correspond to parts of a transaction's journal entry (mostly).
+  `date`, `description`, `account1`, `amount1`, `account2` are some of these.
+
+- These are the only fields you'll work with; you can't make new ones in a rules file.
+  (If you need extra CSV fields, you can add them to the data in preprocessing, before running the rules.)
+
+- You'll be reading CSV fields. (They can't be written to.) They'll be on the right hand side, with a % prefix. Eg
+  - testing a CSV field's value: `if %CSVFIELD ...`
+  - interpolating its value:     `HLEDGERFIELD %CSVFIELD`
+
+- You'll be writing to hledger fields. (They can't be read.) They'll be on the left hand side, with no prefix. Eg
+  - setting the transaction's description: `description VALUE`
+
+- You can give a CSV field the same name as one of the hledger fields.
+  If you do, its value will be automatically assigned to that hledger field.
 
 ## `fields` list
 
