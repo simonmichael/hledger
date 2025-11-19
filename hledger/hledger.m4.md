@@ -4275,8 +4275,9 @@ data. See:
 
 ### Regular expressions in CSV rules
 
-Regular expressions in `if` conditions (AKA matchers) are as described at <https://hledger.org/hledger.html#regular-expressions> -
-a POSIX extended regular expression, that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`), and nothing else.
+Regular expressions in `if` conditions (AKA matchers) are POSIX extended regular expressions,
+that also support GNU word boundaries (`\b`, `\B`, `\<`, `\>`), and nothing else.
+(For more detail, see [Regular expressions](#regular-expressions).)
 
 Here are some examples that might be useful in CSV rules:
 
@@ -4289,17 +4290,18 @@ Testing the value of numeric fields is a little harder.
 You can't use hledger queries like `amt:0` or `amt:>10` in CSV rules.
 But you can often achieve the same thing with a regular expression.
 
-Also, remember the content and layout of number fields in CSV can vary a lot.
-And can change if you switch data providers in future.
-So it's a good idea to write defensive, robust regexps for numeric fields.
+Note the content and layout of number fields in CSV varies,
+and can change over time (eg if you switch data providers).
+So numeric regexps are always somewhat specific to your particular CSV data;
+and it's a good idea to make them defensive and robust if you can.
 
-Here are some examples; you may need to adapt them to your data:
+Here are some examples:
 
 - Does foo contain a non-zero number ? `if %foo [1-9]`
 - Is it negative ? `if %foo -`
 - Is it non-negative ? `if ! %foo -`
-- Is it >= 10 ? `if %foo [1-9][0-9]+\.|` (assuming a decimal period and no leading zeroes)
-- Is it >=10 and < 20 ? `if %foo \b1[0-9]\.|`
+- Is it >= 10 ? `if %foo [1-9][0-9]+\.` (assuming there's always a decimal period and no leading zeroes)
+- Is it >= 10 and < 20 ? `if %foo \b1[0-9]\.`
 
 ### Setting amounts
 
