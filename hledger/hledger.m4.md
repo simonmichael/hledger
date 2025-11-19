@@ -3703,7 +3703,8 @@ This can be confusing, so let's start with an overview:
 
 - hledger fields can only be written to, not read. They'll be on the left hand side (or in a fields list), with no prefix. Eg
   - setting the transaction's description to a value: `description VALUE`
-  - setting the transaction's description to the second CSV field's value  `fields date, description, ...`
+  - setting the transaction's description to the second CSV field's value:\
+    `fields date, description, amount`
 
 ## `fields` list
 
