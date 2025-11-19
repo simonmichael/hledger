@@ -87,6 +87,48 @@ API
    - renamed withJournalDo -> withJournal. The old name is still available but deprecated.
 
 
+# 1.50.3 2025-11-18
+
+Fixes
+
+- hledger versions 1.50-1.50.2 ran much slower than normal (depending on the speed of your hard drive).
+  This 1.50.3 release fixes that; so please upgrade, and avoid those older 1.50 releases.
+  [#2493]
+
+- A regression in 1.50, where very large dates could produce wrong reports, has been fixed.
+  (Affecting dates outside the range -25252734927764696-04-22..25252734927768413-06-12
+  on 64 bit machines, or -5877752-05-08..5881469-05-27 on 32 bit machines.)
+  [#2479]
+
+- If the `LEDGER_FILE` environment variable is set to a nonexistent file, we now report an error
+  rather than silently falling back on a default file path, which was confusing.
+  Also, we no longer support the legacy `LEDGER` environment variable as a fallback.
+  [#2485]
+
+- `setup` now shows tidier output when a LEDGER_FILE or default file is not found,
+
+- `add` now checks balance assertions more robustly, with awareness of how everything is ordered in the journal.
+  Also, it now allows adding balance assignments.
+  [#2478]
+
+- `check accounts` no longer garbles non-ascii account names in its output.
+  [#2469]
+
+- We now escape special characters properly when passing arguments to addons
+  (with just one level of quoting/escaping, not two).
+  And related docs have been improved.
+  (Caleb Maclennan, Simon Michael, [#2468])
+
+- Internal report code which could produce certain date-related errors has been made robust again.
+  (Stephen Morgan)
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  This will hopefully prevent wrong builds like Debian's #1120833.
+  [#2495]
+
+- Docs updated: add, areg, argument files, check, close, csv, depth, print, print, Special characters, Value reporting
+
+
 # 1.50.2 2025-09-26
 
 Fixes

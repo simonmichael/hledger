@@ -38,6 +38,14 @@ Docs
 API
 
 
+# 1.50.3 2025-11-18
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  [#2495]
+
+- Uses hledger 1.50.3
+
+
 # 1.50.2 2025-09-26
 
 - Uses hledger 1.50.2

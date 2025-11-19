@@ -50,6 +50,23 @@ Docs
 API
 
 
+# 1.50.3 2025-11-18
+
+- `--watch` mode now also detects changes from apps which overwrite the file, such as VS Code.
+  (Caleb Maclennan)
+
+- When hledger-ui is started with --pivot, re-enabling balance assertions
+  with the I key now does a full journal reload, to check assertions more accurately.
+  [#2451]
+
+- The old "threaded" build flag, which cabal could turn off, has been dropped.
+  [#2495]
+
+- Allow brick 2.10, vty 6.5.
+
+- Uses hledger 1.50.3.
+
+
 # 1.50.2 2025-09-26
 
 - Uses hledger 1.50.2
