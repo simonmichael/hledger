@@ -1122,7 +1122,7 @@ use whatever width they need.
 Multi\-period multi\-currency reports can often be wider than the
 window.
 Besides using a pager, helpful techniques for this situation include
-\f[CR]\-\-layout=bare\f[R], \f[CR]\-V\f[R], \f[CR]cur:\f[R],
+\f[CR]\-\-layout=bare\f[R], \f[CR]\-X COMM\f[R], \f[CR]cur:\f[R],
 \f[CR]\-\-transpose\f[R], \f[CR]\-\-tree\f[R], \f[CR]\-\-depth\f[R],
 \f[CR]\-\-drop\f[R], switching to html output, etc.
 .SS Box\-drawing characters
@@ -1368,9 +1368,20 @@ These environment variables affect hledger:
 specifies the \f[CR]less\f[R] options hledger should use.
 (Otherwise, \f[CR]LESS\f[R] + custom options are used.)
 .PP
-\f[B]LEDGER_FILE\f[R] The main journal file to use when not specified
-with \f[CR]\-f/\-\-file\f[R].
-Default: \f[CR]$HOME/.hledger.journal\f[R].
+\f[B]LEDGER_FILE\f[R] The default journal file, to be used when no
+\f[CR]\-f/\-\-file\f[R] option is provided.
+For example, it could be \f[CR]\[ti]/finance/main.journal\f[R].
+This can also be a glob pattern, eg \f[CR]./2???.journal\f[R].
+(If the glob matches multiple files, only the alphanumerically first one
+is used.)
+If LEDGER_FILE points to a non\-existent file, an error will be raised.
+If the value is the empty string, it is ignored.
+.PP
+If LEDGER_FILE is not set and \f[CR]\-f\f[R] is not provided, the
+default journal file is \f[CR]$HOME/.hledger.journal\f[R] (or if a home
+directory can\[aq]t be detected, \f[CR]./.hledger.journal\f[R]).
+.PP
+See also Common tasks > Setting LEDGER_FILE.
 .PP
 \f[B]NO_COLOR\f[R] If this environment variable exists (with any value,
 including empty), hledger will not use ANSI color codes in terminal
@@ -4311,9 +4322,9 @@ T}@T{
 declare the field separator, instead of relying on file extension
 T}
 T{
-\f[B]\f[CB]skip\f[B]\f[R]
+\f[B]\f[CB]decimal\-mark\f[B]\f[R]
 T}@T{
-skip one or more header lines at start of file
+declare the decimal mark used in CSV amounts, when ambiguous
 T}
 T{
 \f[B]\f[CB]date\-format\f[B]\f[R]
@@ -4338,9 +4349,9 @@ improve txn order when: same\-day txns are in opposite order to the
 overall file
 T}
 T{
-\f[B]\f[CB]decimal\-mark\f[B]\f[R]
+\f[B]\f[CB]skip\f[B]\f[R]
 T}@T{
-declare the decimal mark used in CSV amounts, when ambiguous
+(at top level) skip header line(s) at start of file
 T}
 T{
 \f[B]\f[CB]fields\f[B] list\f[R]
@@ -4363,6 +4374,16 @@ T{
 \f[B]\f[CB]if\f[B] table\f[R]
 T}@T{
 conditionally assign values to hledger fields, using compact syntax
+T}
+T{
+\f[B]\f[CB]skip\f[B]\f[R]
+T}@T{
+(inside an \f[CR]if\f[R] rule) skip current record(s)
+T}
+T{
+\f[B]\f[CB]end\f[B]\f[R]
+T}@T{
+(inside an \f[CR]if\f[R] rule) skip all remaining records
 T}
 T{
 \f[B]\f[CB]balance\-type\f[B]\f[R]
@@ -4421,9 +4442,9 @@ All this enables a convenient workflow where can you just download CSV
 files, then run \f[CR]hledger import rules/*\f[R].
 .PP
 See also \[dq]Working with CSV > Reading files specified by rule\[dq].
-.SS Data cleaning / generating commands
+.SS Data cleaning / data generating commands
 After \f[CR]source\f[R]\[aq]s file pattern, you can write \f[CR]|\f[R]
-(pipe) and a data cleaning command.
+(pipe) and a data cleaning command (or command pipeline).
 If hledger\[aq]s CSV rules aren\[aq]t enough, you can pre\-process the
 downloaded data here with a shell command or script, to make it more
 suitable for conversion.
@@ -8019,15 +8040,43 @@ aliases for this, which are often sufficient.
 The market prices are declared with a special \f[CR]P\f[R] directive,
 and/or they can be inferred from the costs recorded in transactions, by
 using the \f[CR]\-\-infer\-market\-prices\f[R] flag.
-.SS \-V: Value
-The \f[CR]\-V/\-\-market\f[R] flag converts amounts to market value in
-their default \f[I]valuation commodity\f[R], using the market prices in
-effect on the \f[I]valuation date(s)\f[R], if any.
-More on these in a minute.
 .SS \-X: Value in specified commodity
-The \f[CR]\-X/\-\-exchange=COMM\f[R] option is like \f[CR]\-V\f[R],
-except you tell it which currency you want to convert to, and it tries
-to convert everything to that.
+The \f[CR]\-X COMM\f[R] (or \f[CR]\-\-exchange=COMM\f[R]) option
+converts amounts to their market value in the specified commodity, using
+the market prices in effect on the \f[I]valuation date(s)\f[R], if any.
+(More on these in a minute.)
+.PP
+Use this when you want to (eg) show everything in your base currency as
+far as possible.
+(Commodities for which no conversion rate can be found, will not be
+converted.)
+.PP
+COMM should be the full commodity symbol or name.
+Remember to quote special shell characters, if needed.
+Some examples:
+.IP \[bu] 2
+\f[CR]\-X€\f[R]
+.IP \[bu] 2
+\f[CR]\-X$\f[R] (nothing after $, no quoting needed)
+.IP \[bu] 2
+\f[CR]\-X CNY\f[R] (the space after \-X is optional)
+.IP \[bu] 2
+\f[CR]\-X \[aq]red apples\[aq]\f[R]
+.IP \[bu] 2
+\f[CR]\-X \[aq]r&r\[aq]\f[R]
+.SS \-V: Value in default commodity(s)
+The \f[CR]\-V/\-\-market\f[R] flag is a variant of \f[CR]\-X\f[R] where
+you don\[aq]t have to specify COMM.
+Instead it tries to guess a \f[I]default valuation commodity\f[R] for
+each original commodity, based on the market prices in effect on the
+valuation date(s).
+.PP
+\f[CR]\-V\f[R] can often be a convenient shortcut for
+\f[CR]\-X MYCURRENCY\f[R], but not always; depending on your data it
+could guess multiple valuation commodities.
+Usually you want to convert to a single commodity, so it\[aq]s better to
+use \f[CR]\-X\f[R], unless you\[aq]re sure \f[CR]\-V\f[R] is doing what
+you want.
 .SS Valuation date
 Market prices can change from day to day.
 hledger will use the prices on a particular valuation date (or on more
@@ -9216,27 +9265,29 @@ Provide answers for the first four prompts:
 .PP
 There is a detailed tutorial at https://hledger.org/add.html.
 .SS add and balance assertions
-Since hledger 1.43, whenever you enter a posting amount, \f[CR]add\f[R]
-will re\-check all balance assertions in the journal, and if any of them
-fail, it will report the problem and ask for the amount again.
+Since hledger 1.43, you can add a balance assertion by writing
+\f[CR]AMOUNT = BALANCE\f[R] when asked for an amount.
+Eg \f[CR]100 = 500\f[R].
 .PP
-You can also add a new balance assertion, following the amount as in
-journal format.
-.PP
-The new transaction\[aq]s date, and the new posting\[aq]s posting date
-if any (entered in a comment following the amount), will influence
+Also, each time you enter a new amount, hledger re\-checks all balance
+assertions in the journal and rejects the new amount if it would make
+any of them fail.
+You can run \f[CR]add\f[R] with
+\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable balance
 assertion checking.
-.PP
-You can use \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R] to disable
-assertion checking temporarily.
 .SS add and balance assignments
-Balance assignments are not recalculated during a \f[CR]hledger add\f[R]
-session.
-When \f[CR]add\f[R] runs, it sees the journal with all balance
-assignments already processed and converted to assertions.
-So if you add a new posting which is dated earlier than a balance
-assignment, it will break the assertion and be rejected.
-You can make it work by using \f[CR]hledger add \-I\f[R].
+Since hledger 1.51, you can add a balance assignment by writing
+\f[CR]= BALANCE\f[R] (or \f[CR]==\f[R], \f[CR]=*\f[R] etc) when asked
+for an amount.
+The missing amount will be calculated automatically.
+.PP
+\f[CR]add\f[R] normally won\[aq]t let you add a new posting which is
+dated earlier than an existing balance assignment.
+(Because when \f[CR]add\f[R] runs, existing balance assignments have
+already been calculated and converted to amounts and balance
+assertions.)
+You can allow it by disabling balance assertion checking with
+\f[CR]\-I\f[R].
 .SS import
 Import new transactions from one or more data files to the main journal.
 .IP
@@ -9977,6 +10028,10 @@ Auto postings can generate too many amountless postings.
 .IP \[bu] 2
 \f[CR]\-\-infer\-costs or \-\-infer\-equity\f[R] can generate
 too\-complex redundant costs.
+.IP \[bu] 2
+Because print always shows transactions in date order, balance
+assertions involving non\-date\-ordered transactions (and same\-day
+postings) could be disrupted.
 .SS print, other features
 With \f[CR]\-B\f[R]/\f[CR]\-\-cost\f[R], amounts with costs are shown
 converted to cost.
@@ -10115,9 +10170,12 @@ option.
 This is a more \[dq]real world\[dq], bank\-like view than the
 \f[CR]register\f[R] command (which shows individual postings, possibly
 from multiple accounts, not necessarily in historical mode).
-As a quick rule of thumb: \- use \f[CR]aregister\f[R] for reviewing and
-reconciling real\-world asset/liability accounts \- use
-\f[CR]register\f[R] for reviewing detailed revenues/expenses.
+As a quick rule of thumb:
+.IP \[bu] 2
+\f[CR]aregister\f[R] is best when reconciling real\-world
+asset/liability accounts
+.IP \[bu] 2
+\f[CR]register\f[R] is best when reviewing individual revenues/expenses.
 .PP
 Note this command\[aq]s non\-standard, and required, first argument; it
 specifies the account whose register will be shown.
@@ -12672,8 +12730,8 @@ If you are an Emacs user, you can also configure flycheck\-hledger to
 run these checks, providing instant feedback as you edit the journal.
 .PP
 Here are the checks currently available.
-Generally, they are performed in the order they are shown here (and only
-the first failure is reported).
+They are generally checked in the order they are shown here, and only
+the first failure will be reported.
 .SS Basic checks
 These important checks are performed by default, by almost all hledger
 commands:
@@ -12685,26 +12743,27 @@ This ensures that all files exist and are readable.
 \f[B]autobalanced\f[R] \- all transactions are balanced, after
 automatically inferring missing amounts and conversion rates and then
 converting amounts to cost.
-This ensures that each transaction\[aq]s entry is well formed.
+This ensures that each transaction\[aq]s journal entry is well formed.
 .IP \[bu] 2
 \f[B]assertions\f[R] \- all balance assertions in the journal are
 passing.
-Balance assertions are a strong defense against errors; they help catch
-many problems.
-If this check gets in your way, you can disable it with
-\f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R].
-Or you can add that to your config file to disable it by default (and
-then use \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
-\f[CR]hledger check assertions\f[R] to enable it).
+Balance assertions are a strong defense against errors, catching many
+problems.
+This check is on by default, but if it gets in your way, you can disable
+it temporarily with \f[CR]\-I\f[R]/\f[CR]\-\-ignore\-assertions\f[R], or
+as a default by adding that flag to your config file.
+(Then use \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] or
+\f[CR]hledger check assertions\f[R] when you want to enable it).
 .SS Strict checks
-These additional checks are performed by all commands when the
-\f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] flag is used (strict mode).
-They provide extra error\-catching power to keep your data clean and
-correct.
-Strict mode also always enables the \f[CR]assertions\f[R] check.
+When the \f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R] flag is used (AKA strict
+mode), all commands will perform the following additional checks (and
+\f[CR]assertions\f[R], above).
+These provide extra error\-catching power to help you keep your data
+clean and correct:
 .IP \[bu] 2
-\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but all conversions
-between commodities must use explicit cost notation or equity postings.
+\f[B]balanced\f[R] \- like \f[CR]autobalanced\f[R], but implicit
+conversions between commodities are not allowed; all conversion
+transactions must use cost notation or equity postings.
 This prevents wrong conversions caused by typos.
 .IP \[bu] 2
 \f[B]commodities\f[R] \- all commodity symbols used must be declared.
@@ -12737,10 +12796,10 @@ This will encourage adding balance assertions for your active
 asset/liability accounts, which in turn should encourage you to
 reconcile regularly with those real world balances \- another strong
 defense against errors.
-\f[CR]hledger close \-\-assert\f[R] can help generate assertion entries.
-Over time the older assertions become somewhat redundant, and you can
-remove them if you like (they don\[aq]t affect performance much, but
-they add some noise to the journal).
+(\f[CR]hledger close \-\-assert >>$LEDGER_FILE\f[R] is a convenient way
+to add new balance assertions.
+Later these become quite redundant, and you might choose to remove them
+to reduce clutter.)
 .IP \[bu] 2
 \f[B]uniqueleafnames\f[R] \- no two accounts may have the same last
 account name part (eg the \f[CR]checking\f[R] in
@@ -12752,8 +12811,8 @@ You can build your own custom checks with add\-on command scripts.
 See also Cookbook > Scripting.
 Here are some examples from hledger/bin/:
 .IP \[bu] 2
-\f[B]hledger\-check\-tagfiles\f[R] \- all tag values containing / (a
-forward slash) exist as file paths
+\f[B]hledger\-check\-tagfiles\f[R] \- all tag values containing
+\f[CR]/\f[R] exist as file paths
 .IP \[bu] 2
 \f[B]hledger\-check\-fancyassertions\f[R] \- more complex balance
 assertions are passing
@@ -12986,8 +13045,7 @@ When correctly configured:
 .IP \[bu] 2
 \f[CR]env | grep LEDGER_FILE\f[R] will show your new setting
 .IP \[bu] 2
-and so should \f[CR]hledger setup\f[R] and (once the file exists)
-\f[CR]hledger files\f[R].
+and so should \f[CR]hledger setup\f[R] and \f[CR]hledger files\f[R].
 .SS Set LEDGER_FILE on mac
 In a terminal window, follow the unix procedure above.
 .PP
