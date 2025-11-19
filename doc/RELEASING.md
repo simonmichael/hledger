@@ -116,6 +116,7 @@ It should be improved each time it is used.
   - release notes @ hledger.org (doc/relnotes.md)  
       `just relnotes` *(XXX minor release: moves previous release's summary, adds whitespace)*  
       add summary (major release only)  
+      add issue links with md-issue-refs  
       bump changelog links at the top  
       commit
   - github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
@@ -159,7 +160,7 @@ It should be improved each time it is used.
       decide if release should be immutable (artifacts attached, all correct ?) then adjust repo settings  
       review,
       publish
-  - github nightly release updated  
+  - github nightly release updated *(XXX nightly release deleted, needs reviving)*  
       in master, update changes link in doc/ghnightlynotes.md
       `just nightlyrel-notes`  
   - install instructions tested and working
