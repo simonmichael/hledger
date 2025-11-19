@@ -33,9 +33,10 @@ this behaviour using the --cumulative option.
 
 This is a more "real world", bank-like view than the register command
 (which shows individual postings, possibly from multiple accounts, not
-necessarily in historical mode). As a quick rule of thumb: - use
-aregister for reviewing and reconciling real-world asset/liability
-accounts - use register for reviewing detailed revenues/expenses.
+necessarily in historical mode). As a quick rule of thumb:
+
+- aregister is best when reconciling real-world asset/liability accounts
+- register is best when reviewing individual revenues/expenses.
 
 Note this command's non-standard, and required, first argument; it
 specifies the account whose register will be shown. You can write the

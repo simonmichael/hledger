@@ -121,6 +121,9 @@ unparseable:
 - Auto postings can generate too many amountless postings.
 - --infer-costs or --infer-equity can generate too-complex redundant
   costs.
+- Because print always shows transactions in date order, balance
+  assertions involving non-date-ordered transactions (and same-day
+  postings) could be disrupted.
 
 print, other features
 
