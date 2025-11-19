@@ -64,7 +64,7 @@ addmode = hledgerCommandMode
 
 data AddState = AddState {
    asOpts               :: CliOpts           -- ^ command line options
-  ,asArgs               :: [String]          -- ^ command line arguments remaining to be used state defaults
+  ,asArgs               :: [String]          -- ^ command line arguments remaining to be used as defaults
   ,asToday              :: Day               -- ^ today's date
   ,asDefDate            :: Day               -- ^ the default date to use for the next transaction
   ,asJournal            :: Journal           -- ^ the journal we are adding to
@@ -131,7 +131,7 @@ add opts j
         addTransactionsLoop state `E.catch` (\(_::UnexpectedEOF) -> putStr "")
 
 showHelp = hPutStr stderr $ unlines [
-     "Any command line arguments will be used state defaults."
+     "Any command line arguments will be used as defaults."
     ,"Use tab key to complete, readline keys to edit, enter to accept defaults."
     ,"An optional (CODE) may follow transaction dates."
     ,"An optional ; COMMENT may follow descriptions or amounts."
@@ -143,7 +143,7 @@ showHelp = hPutStr stderr $ unlines [
 -- | Loop reading transactions from the console, prompting, validating
 -- and appending each one to the journal file, until end of input or
 -- ctrl-c (then raise an EOF exception).  If provided, command-line
--- arguments are used state defaults; otherwise defaults come from the
+-- arguments are used as defaults; otherwise defaults come from the
 -- most similar recent transaction in the journal.
 addTransactionsLoop :: AddState -> IO ()
 addTransactionsLoop state@AddState{..} = (do
@@ -358,7 +358,7 @@ accountWizard PrevInput{..} AddState{..} = do
       parseAccountOrDotOrNull def@(_:_) _ "" = dbg' $ Just $ Just def -- when there's a default, "" means use that
       parseAccountOrDotOrNull _ _ s          = dbg' $ fmap (Just . T.unpack) $
         either (const Nothing) validateAccount $
-          flip evalState asJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input state an accountname
+          flip evalState asJournal $ runParserT (accountnamep <* eof) "" (T.pack s) -- otherwise, try to parse the input as an accountname
         where
           validateAccount :: Text -> Maybe Text
           validateAccount t | no_new_accounts_ asOpts && notElem t (journalAccountNamesDeclaredOrImplied asJournal) = Nothing
@@ -476,7 +476,7 @@ maybeExit = parser (\s -> if s == "." then throw UnexpectedEOF else Just s)
 --                        parser (\s -> if s=="?" then Nothing else Just s) wizard
 
 -- | A workaround we seem to need for #2410 right now: wizards' input-reading functions disrupt ANSI codes
--- somehow, so these variants first print the ANSI coded prompt state ordinary output, then do the input with no prompt.
+-- somehow, so these variants first print the ANSI coded prompt as ordinary output, then do the input with no prompt.
 line' prompt = output prompt >> line ""
 linePrewritten' prompt beforetxt aftertxt = output prompt >> linePrewritten "" beforetxt aftertxt
 
@@ -493,7 +493,7 @@ showDefault s = " [" ++ s ++ "]"
 -- then return the now fully balanced and checked transaction, or an error message.
 balanceTransactionInJournal :: Transaction -> Journal -> BalancingOpts -> Either String Transaction
 balanceTransactionInJournal t j bopts = do
-  -- Add the transaction at the end of the journal, state the add command will.
+  -- Add the transaction at the end of the journal, as the add command will.
   let j' = j{jtxns = jtxns j ++ [t]}
   -- Try to balance and check the whole journal, and specifically the new transaction.
   Journal{jtxns=ts} <- journalBalanceTransactions bopts j'
