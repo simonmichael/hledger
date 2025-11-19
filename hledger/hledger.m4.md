@@ -4300,7 +4300,7 @@ Here are some examples:
 - Does foo contain a non-zero number ? `if %foo [1-9]`
 - Is it negative ? `if %foo -`
 - Is it non-negative ? `if ! %foo -`
-- Is it >= 10 ? `if %foo [1-9][0-9]+\.` (assuming there's always a decimal period and no leading zeroes)
+- Is it >= 10 ? `if %foo [1-9][0-9]+\.` (assuming a decimal period and no leading zeros)
 - Is it >= 10 and < 20 ? `if %foo \b1[0-9]\.`
 
 ### Setting amounts
