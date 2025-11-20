@@ -15,8 +15,8 @@ module Hledger.Cli.Commands.Stats (
 )
 where
 
+import Control.Monad (when)
 import Data.Default (def)
-import System.FilePath (takeFileName)
 import Data.List (intercalate, nub, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Map qualified as Map
@@ -24,23 +24,27 @@ import Data.Maybe (fromMaybe)
 import Data.HashSet (size, fromList)
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
-import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day, addDays, diffDays)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import GHC.Stats
+import GitHash (tGitInfoCwdTry)
 import System.Console.CmdArgs.Explicit hiding (Group)
+import System.FilePath (takeFileName)
 import System.Mem (performMajorGC)
 import Text.Printf (printf)
 import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutputLazyText)
+import Hledger.Cli.Utils (writeOutput)
+import Hledger.Cli.Version (packageversion, versionStringWith)
 
 
 statsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Stats.txt")
-  [ flagNone ["verbose","v"]    (setboolopt "verbose") "show more detailed output"
+  [ flagNone ["1"] (setboolopt "") "show a single line of output"
+      -- Cli.hs converts -1 to --depth=1, no point giving it another name here
+  , flagNone ["verbose","v"] (setboolopt "verbose") "show more detailed output"
   ,flagReq  ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE."
   ]
   cligeneralflagsgroups1
@@ -51,54 +55,75 @@ statsmode = hledgerCommandMode
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
 stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
-  let today = _rsDay rspec
-      verbose = boolopt "verbose" rawopts
-      q = _rsQuery rspec
-      l = ledgerFromJournal q j
-      intervalspans = snd $ reportSpanBothDates j rspec
-      ismultiperiod = length intervalspans > 1
-      (ls, txncounts) = unzip . map (showLedgerStats verbose l today) $ maybeDayPartitionToDateSpans intervalspans
-      numtxns = sum txncounts
-      txt = (if ismultiperiod then id else TL.init) $ TB.toLazyText $ unlinesB ls
-  writeOutputLazyText opts txt
   t <- getPOSIXTime
-  let dt = t - progstarttime_
-  rtsStatsEnabled <- getRTSStatsEnabled
-  if rtsStatsEnabled
+  -- the first lines - general journal stats for one or more periods
+  let
+    today = _rsDay rspec
+    oneline = intopt "depth" rawopts == 1
+    verbose = boolopt "verbose" rawopts
+    q = _rsQuery rspec
+    l = ledgerFromJournal q j
+    intervalspans = snd $ reportSpanBothDates j rspec
+    ismultiperiod = length intervalspans > 1
+    (txts, tnums) = unzip . map (showLedgerStats verbose l today) $ maybeDayPartitionToDateSpans intervalspans
+    out1 = (if ismultiperiod then id else init) $ unlines txts
+
+  -- the last line - overall performance stats, with memory info if available,
+  -- in human-friendly or machine-friendly format
+  -- normal:
+  --  Runtime stats       : 0.14 s elapsed, 7606 txns/s
+  --  Runtime stats       : 0.14 s elapsed, 7606 txns/s, 6 MB live, 18 MB alloc
+  -- oneline:
+  --  SHORTVERSION(<SPC><TAB>VALUE[<SPC>DESC])+
+  --  1.50.99<SPC><TAB>hledger 1.50.99-g0835a2485-20251119, mac-aarch64<SPC><TAB>2025.journal<SPC><TAB>1.99 s elapsed<SPC><TAB>524 txns/s
+  --  1.50.99<SPC><TAB>hledger 1.50.99-g0835a2485-20251119, mac-aarch64<SPC><TAB>2025.journal<SPC><TAB>1.99 s elapsed<SPC><TAB>524 txns/s<SPC><TAB>788 MB live<SPC><TAB>2172 MB alloc
+  -- 
+  rtsstats <- getRTSStatsEnabled
+  (maxlivemb, maxinusemb) <- if rtsstats
   then do
-    -- do one last GC for most accurate memory stats; probably little effect, hopefully little wasted time
+    -- do one last garbage collection; probably little effect, hopefully little wasted time
     performMajorGC
     RTSStats{..} <- getRTSStats
-    printf
-      (intercalate ", "
-        ["Runtime stats       : %.2f s elapsed"  -- keep synced
-        ,"%.0f txns/s"                           --
-        -- ,"%0.0f MB avg live"
-        ,"%0.0f MB live"
-        ,"%0.0f MB alloc"
-        -- ,"(%0.0f MiB"
-        -- ,"%0.0f MiB)"
-        ] ++ "\n")
-      (realToFrac dt :: Float)
-      (fromIntegral numtxns / realToFrac dt :: Float)
-      -- (toMegabytes $ fromIntegral cumulative_live_bytes / fromIntegral major_gcs)
-      (toMegabytes max_live_bytes)
-      (toMegabytes max_mem_in_use_bytes)
+    return (toMegabytes max_live_bytes, toMegabytes max_mem_in_use_bytes)
   else
-    printf
-      (intercalate ", "
-        ["Runtime stats       : %.2f s elapsed"  -- keep
-        ,"%.0f txns/s"
-        ] ++ "\n(add +RTS -T -RTS for more)\n")
-      (realToFrac dt :: Float)
-      (fromIntegral numtxns / realToFrac dt :: Float)
+    return (0,0)
+  let
+    (label, sep)
+      | oneline   = (lstrip $ versionStringWith $$tGitInfoCwdTry False "" packageversion <> "\t", "\t")
+      | otherwise = ("Runtime stats       : ", ", ")
+    dt = t - progstarttime_
+    tnum = sum tnums
+    ss =
+      [ takeFileName $ journalFilePath j | oneline ]
+      <> [
+       printf "%.2f s elapsed" (realToFrac dt :: Float)
+      ,printf "%.0f txns/s" (fromIntegral tnum / realToFrac dt :: Float)
+      ]
+      <> if rtsstats then [
+       printf "%0.0f MB live" maxlivemb
+      ,printf "%0.0f MB alloc" maxinusemb
+      -- printf "%0.0f MB avg live" (toMegabytes $ fromIntegral cumulative_live_bytes / fromIntegral major_gcs)
+      ]
+      else [
+       "(add +RTS -T -RTS for more)"
+      ]
+    out2 = label <> intercalate sep ss <> "\n"
+
+  when (not oneline) $ writeOutput opts out1
+  when (oneline && debugLevel>0) $ do
+    let tabstops = intercalate (replicate 7 ' ') (replicate 21 ".") <> "\n"
+    writeOutput opts tabstops
+  writeOutput opts $ (if ismultiperiod then "\n" else "") <> out2
 
 toMegabytes n = realToFrac n / 1000000 ::Float  -- SI preferred definition, 10^6
 -- toMebibytes n = realToFrac n / 1048576 ::Float  -- traditional computing definition, 2^20
 
-showLedgerStats :: Bool -> Ledger -> Day -> DateSpan -> (TB.Builder, Int)
+-- | Generate multiline stats output, possibly verbose,
+-- for the given ledger and date period and current date.
+-- Also return the number of transactions in the period.
+showLedgerStats :: Bool -> Ledger -> Day -> DateSpan -> (String, Int)
 showLedgerStats verbose l today spn =
-    (unlinesB $ map (renderRowB def{tableBorders=False, borderSpaces=False} . showRow) stts
+    (unlines $ map (TL.unpack . renderRow def{tableBorders=False, borderSpaces=False} . showRow) stts
     ,tnum)
   where
     showRow (label, val) = Group NoLine $ map (Header . textCell TopLeft)
@@ -106,7 +131,7 @@ showLedgerStats verbose l today spn =
     w = 20  -- keep synced with labels above
     -- w = maximum $ map (T.length . fst) stts
     (stts, tnum) = ([
-       ("Main file", path') -- ++ " (from " ++ source ++ ")")
+       ("Main file", path' :: String) -- ++ " (from " ++ source ++ ")")
       ,("Included files", if verbose then unlines includedpaths else show (length includedpaths))
       ,("Txns span", printf "%s to %s (%d days)" (showstart spn) (showend spn) days)
       ,("Last txn", maybe "none" show lastdate ++ showelapsed lastelapsed)
@@ -121,7 +146,7 @@ showLedgerStats verbose l today spn =
     -- Unmarked txns      : %(unmarked)s
     -- Days since reconciliation   : %(reconcileelapsed)s
     -- Days since last txn : %(recentelapsed)s
-     ] 
+     ]
      ,tnum1)
        where
          j = ljournal l
