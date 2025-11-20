@@ -13,11 +13,11 @@ COPY hledger-lib/package.yaml hledger-lib/package.yaml
 COPY hledger/package.yaml hledger/package.yaml
 COPY hledger-ui/package.yaml hledger-ui/package.yaml
 COPY hledger-web/package.yaml hledger-web/package.yaml
-RUN stack install --dependencies-only --stack-yaml=stack912.yaml
+RUN stack install --dependencies-only
 
 # Actually compile sources
 COPY . .
-RUN stack install --stack-yaml=stack912.yaml
+RUN stack install
 
 FROM debian:stable-slim
 
