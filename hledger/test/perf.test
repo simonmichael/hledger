@@ -1,0 +1,12 @@
+# * performance tests
+# This file is run after the other functional tests have completed,
+# so that they don't slow it down.
+
+# ** 1. Log performance stats to a persistent perf.log.
+# so that we can detect changes over time.
+# Ideally we would detect regressions and fail automatically,
+# but it's hard to ensure consistent machine performance.
+$ hledger stats -1 -f ../../examples/10ktxns-1kaccts.journal >>../../perf.log
+
+# ** 2. Test that it hits at least 14k txns/s within a few runs.
+$ hledger stats -1 -f ../../examples/10ktxns-1kaccts.journal >>../../perf.log; hledger stats -1 -f ../../examples/10ktxns-1kaccts.journal >>../../perf.log; hledger stats -1 -f ../../examples/10ktxns-1kaccts.journal >>../../perf.log; tail -3 ../../perf.log | grep -qE '[1-9][4-9]... txns/s' 

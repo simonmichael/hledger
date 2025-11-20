@@ -482,12 +482,22 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
 
 #  --hide-successes
 
-# build hledger warning-free and run functional tests, with any shelltest OPTS (requires mktestaddons)
+# build hledger warning-free and run functional tests, with any shelltest OPTS. (after mktestaddons)
 @functest *STOPTS:
     $STACK build --ghc-options=-Werror hledger
     time (({{ SHELLTEST }} --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
+        -x hledger/test/perf.test \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
+        && echo $@ PASSED) || (echo $@ FAILED; false))
+# too fragile
+#    echo
+#    just perftest {{ STOPTS }}
+
+# run performance tests with the hledger in PATH, logging to perf.log and expecting a certain txns/s. Accepts shelltest OPTS.
+@perftest *STOPTS:
+    echo "Running performance tests..."
+    time (({{ SHELLTEST }} --hide {{ if STOPTS == '' { '' } else { STOPTS } }} hledger/test/perf.test \
         && echo $@ PASSED) || (echo $@ FAILED; false))
 
 ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
