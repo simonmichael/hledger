@@ -4712,6 +4712,59 @@ when parsing numbers (cf Amounts).
 However if any numbers in the CSV contain digit group marks, such as
 thousand\-separating commas, you should declare the decimal mark
 explicitly with this rule, to avoid misparsed numbers.
+.SS CSV fields and hledger fields
+This can be confusing, so let\[aq]s start with an overview:
+.IP \[bu] 2
+\f[B]CSV fields\f[R] are provided by your data file.
+They are named by their position in the CSV record, starting with 1.
+You can also give them a readable name.
+.IP \[bu] 2
+\f[B]hledger fields\f[R] are predefined; \f[CR]date\f[R],
+\f[CR]description\f[R], \f[CR]account1\f[R], \f[CR]amount1\f[R],
+\f[CR]account2\f[R] are some of them.
+They correspond to parts of a transaction\[aq]s journal entry, mostly.
+.IP \[bu] 2
+The CSV fields and hledger fields are the only fields you\[aq]ll be
+working with; you can\[aq]t define new fields, or variables as in a
+programming language.
+(But you could add extra CSV fields to the data in preprocessing, before
+running the rules.)
+.IP \[bu] 2
+For each CSV record, you\[aq]ll assign values to one or more of the
+hledger fields to build up a transaction (journal entry).
+Values can be static text, CSV field values from the current record, or
+a combination of these.
+.IP \[bu] 2
+For simple cases, you can give a CSV field the same name as one of the
+hledger fields, then its value will be automatically assigned to that
+hledger field.
+.IP \[bu] 2
+CSV fields can only be read, not written to.
+They\[aq]ll be on the right hand side, with a % prefix.
+Eg
+.RS 2
+.IP \[bu] 2
+testing a CSV field\[aq]s value: \f[CR]if %CSVFIELD ...\f[R]
+.IP \[bu] 2
+interpolating its value: \f[CR]HLEDGERFIELD %CSVFIELD\f[R]
+.RE
+.IP \[bu] 2
+hledger fields can only be written to, not read.
+They\[aq]ll be on the left hand side (or in a fields list), with no
+prefix.
+Eg
+.RS 2
+.IP \[bu] 2
+setting the transaction\[aq]s description to a value:
+\f[CR]description VALUE\f[R]
+.IP \[bu] 2
+setting the transaction\[aq]s description to the second CSV field\[aq]s
+value:
+.PD 0
+.P
+.PD
+\f[CR]fields date, description, amount\f[R]
+.RE
 .SS \f[CR]fields\f[R] list
 .IP
 .EX
@@ -5081,8 +5134,7 @@ The pattern is, as usual in hledger, a POSIX extended regular expression
 that also supports GNU word boundaries (\f[CR]\[rs]b\f[R],
 \f[CR]\[rs]B\f[R], \f[CR]\[rs]<\f[R], \f[CR]\[rs]>\f[R]) and nothing
 else.
-If you have trouble with it, see \[dq]Regular expressions\[dq] in the
-hledger manual (https://hledger.org/hledger.html#regular\-expressions).
+For more details and tips, see Regular expressions in CSV rules below.
 .SS Multiple matchers
 When an if block has multiple matchers, each on its own line,
 .IP \[bu] 2
@@ -5381,6 +5433,55 @@ See:
 https://hledger.org/cookbook.html#setups\-and\-workflows
 .IP \[bu] 2
 https://plaintextaccounting.org \-> data import/conversion
+.SS Regular expressions in CSV rules
+Regular expressions in \f[CR]if\f[R] conditions (AKA matchers) are POSIX
+extended regular expressions, that also support GNU word boundaries
+(\f[CR]\[rs]b\f[R], \f[CR]\[rs]B\f[R], \f[CR]\[rs]<\f[R],
+\f[CR]\[rs]>\f[R]), and nothing else.
+(For more detail, see Regular expressions.)
+.PP
+Here are some examples that might be useful in CSV rules:
+.IP \[bu] 2
+Is field \[dq]foo\[dq] truly empty ?
+\f[CR]if %foo \[ha]$\f[R]
+.IP \[bu] 2
+Is it empty or containing only whitespace ?
+\f[CR]if %foo \[ha] *$\f[R]
+.IP \[bu] 2
+Is it non\-empty ?
+\f[CR]if %foo .\f[R]
+.IP \[bu] 2
+Does it contain non\-whitespace ?
+\f[CR]if %foo [\[ha] ]\f[R]
+.PP
+Testing the value of numeric fields is a little harder.
+You can\[aq]t use hledger queries like \f[CR]amt:0\f[R] or
+\f[CR]amt:>10\f[R] in CSV rules.
+But you can often achieve the same thing with a regular expression.
+.PP
+Note the content and layout of number fields in CSV varies, and can
+change over time (eg if you switch data providers).
+So numeric regexps are always somewhat specific to your particular CSV
+data; and it\[aq]s a good idea to make them defensive and robust if you
+can.
+.PP
+Here are some examples:
+.IP \[bu] 2
+Does foo contain a non\-zero number ?
+\f[CR]if %foo [1\-9]\f[R]
+.IP \[bu] 2
+Is it negative ?
+\f[CR]if %foo \-\f[R]
+.IP \[bu] 2
+Is it non\-negative ?
+\f[CR]if ! %foo \-\f[R]
+.IP \[bu] 2
+Is it >= 10 ?
+\f[CR]if %foo [1\-9][0\-9]+\[rs].\f[R] (assuming a decimal period and no
+leading zeros)
+.IP \[bu] 2
+Is it >= 10 and < 20 ?
+\f[CR]if %foo \[rs]b1[0\-9]\[rs].\f[R]
 .SS Setting amounts
 Continuing from amount field above, here are more tips for
 amount\-setting:
@@ -9802,6 +9903,7 @@ Show journal and performance statistics.
 .IP
 .EX
 Flags:
+  \-1                        show a single line of output
   \-v \-\-verbose              show more detailed output
   \-o \-\-output\-file=FILE     write output to FILE.
 .EE
@@ -9810,26 +9912,27 @@ The stats command shows summary information for the whole journal, or a
 matched part of it.
 With a reporting interval, it shows a report for each report period.
 .PP
-The default output is fairly impersonal, though it reveals the main file
-name.
-With \f[CR]\-v/\-\-verbose\f[R], more details are shown, like file
-paths, included files, and commodity names.
+It also shows some performance statistics:
+.IP \[bu] 2
+how long the program ran for
+.IP \[bu] 2
+the number of transactions processed per second
+.IP \[bu] 2
+the peak live memory in use by the program to do its work
+.IP \[bu] 2
+the peak allocated memory as seen by the program
 .PP
-It also shows some run time statistics:
-.IP \[bu] 2
-elapsed time
-.IP \[bu] 2
-throughput: the number of transactions processed per second
-.IP \[bu] 2
-live: the peak memory in use by the program to do its work
-.IP \[bu] 2
-alloc: the peak memory allocation from the OS as seen by GHC.
-Measuring this externally, eg with GNU time, is more accurate; usually
-that will be a larger number; sometimes (with swapping?)
-smaller.
+By default, the output is reasonably discreet; it reveals the main file
+name, your activity level, and the speed of your machine.
 .PP
-The \f[CR]stats\f[R] command\[aq]s run time is similar to that of a
-balance report.
+With \f[CR]\-v/\-\-verbose\f[R], more details are shown: the full paths
+of all files, and the names of the commodities you work with.
+.PP
+With \f[CR]\-1\f[R], only one line of output is shown, in a
+machine\-friendly tab\-separated format: the program version, the main
+journal file name, and the performance stats,
+.PP
+The run time of \f[CR]stats\f[R] is similar to that of a balance report.
 .PP
 Example:
 .IP
@@ -9847,6 +9950,11 @@ Accounts            : 1000 (depth 10)
 Commodities         : 26
 Market prices       : 1000
 Runtime stats       : 0.12 s elapsed, 8266 txns/s, 4 MB live, 16 MB alloc
+.EE
+.IP
+.EX
+$ hledger stats \-1 \-f examples/10ktxns\-1kaccts.journal
+1.50.99\-g0835a2485\-20251119, mac\-aarch64    10ktxns\-1kaccts.journal 0.66 s elapsed  15244 txns/s    28 MB live  86 MB alloc
 .EE
 .PP
 This command supports the \-o/\-\-output\-file option (but not

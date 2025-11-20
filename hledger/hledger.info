@@ -4179,6 +4179,7 @@ https://github.com/simonmichael/hledger/tree/master/examples/csv.
 * newest-first::
 * intra-day-reversed::
 * decimal-mark::
+* CSV fields and hledger fields::
 * fields list::
 * Field assignment::
 * Field names::
@@ -4524,7 +4525,7 @@ first, but same-day records are oldest first:
 intra-day-reversed
 
 
-File: hledger.info,  Node: decimal-mark,  Next: fields list,  Prev: intra-day-reversed,  Up: CSV
+File: hledger.info,  Node: decimal-mark,  Next: CSV fields and hledger fields,  Prev: intra-day-reversed,  Up: CSV
 
 9.11 'decimal-mark'
 ===================
@@ -4542,9 +4543,54 @@ should declare the decimal mark explicitly with this rule, to avoid
 misparsed numbers.
 
 
-File: hledger.info,  Node: fields list,  Next: Field assignment,  Prev: decimal-mark,  Up: CSV
+File: hledger.info,  Node: CSV fields and hledger fields,  Next: fields list,  Prev: decimal-mark,  Up: CSV
 
-9.12 'fields' list
+9.12 CSV fields and hledger fields
+==================================
+
+This can be confusing, so let's start with an overview:
+
+   * *CSV fields* are provided by your data file.  They are named by
+     their position in the CSV record, starting with 1.  You can also
+     give them a readable name.
+
+   * *hledger fields* are predefined; 'date', 'description', 'account1',
+     'amount1', 'account2' are some of them.  They correspond to parts
+     of a transaction's journal entry, mostly.
+
+   * The CSV fields and hledger fields are the only fields you'll be
+     working with; you can't define new fields, or variables as in a
+     programming language.  (But you could add extra CSV fields to the
+     data in preprocessing, before running the rules.)
+
+   * For each CSV record, you'll assign values to one or more of the
+     hledger fields to build up a transaction (journal entry).  Values
+     can be static text, CSV field values from the current record, or a
+     combination of these.
+
+   * For simple cases, you can give a CSV field the same name as one of
+     the hledger fields, then its value will be automatically assigned
+     to that hledger field.
+
+   * CSV fields can only be read, not written to.  They'll be on the
+     right hand side, with a % prefix.  Eg
+
+        * testing a CSV field's value: 'if %CSVFIELD ...'
+        * interpolating its value: 'HLEDGERFIELD %CSVFIELD'
+
+   * hledger fields can only be written to, not read.  They'll be on the
+     left hand side (or in a fields list), with no prefix.  Eg
+
+        * setting the transaction's description to a value: 'description
+          VALUE'
+        * setting the transaction's description to the second CSV
+          field's value:
+          'fields date, description, amount'
+
+
+File: hledger.info,  Node: fields list,  Next: Field assignment,  Prev: CSV fields and hledger fields,  Up: CSV
+
+9.13 'fields' list
 ==================
 
 fields FIELDNAME1, FIELDNAME2, ...
@@ -4589,7 +4635,7 @@ field (and generating a balance assertion).
 
 File: hledger.info,  Node: Field assignment,  Next: Field names,  Prev: fields list,  Up: CSV
 
-9.13 Field assignment
+9.14 Field assignment
 =====================
 
 HLEDGERFIELD FIELDVALUE
@@ -4623,7 +4669,7 @@ comment note: %somefield - %anotherfield, date: %1
 
 File: hledger.info,  Node: Field names,  Next: if block,  Prev: Field assignment,  Up: CSV
 
-9.14 Field names
+9.15 Field names
 ================
 
 Note the two kinds of field names mentioned here, and used only in
@@ -4672,7 +4718,7 @@ happens when you assign values to them:
 
 File: hledger.info,  Node: date field,  Next: date2 field,  Up: Field names
 
-9.14.1 date field
+9.15.1 date field
 -----------------
 
 Assigning to 'date' sets the transaction date.
@@ -4680,7 +4726,7 @@ Assigning to 'date' sets the transaction date.
 
 File: hledger.info,  Node: date2 field,  Next: status field,  Prev: date field,  Up: Field names
 
-9.14.2 date2 field
+9.15.2 date2 field
 ------------------
 
 'date2' sets the transaction's secondary date, if any.
@@ -4688,7 +4734,7 @@ File: hledger.info,  Node: date2 field,  Next: status field,  Prev: date field, 
 
 File: hledger.info,  Node: status field,  Next: code field,  Prev: date2 field,  Up: Field names
 
-9.14.3 status field
+9.15.3 status field
 -------------------
 
 'status' sets the transaction's status, if any.
@@ -4696,7 +4742,7 @@ File: hledger.info,  Node: status field,  Next: code field,  Prev: date2 field, 
 
 File: hledger.info,  Node: code field,  Next: description field,  Prev: status field,  Up: Field names
 
-9.14.4 code field
+9.15.4 code field
 -----------------
 
 'code' sets the transaction's code, if any.
@@ -4704,7 +4750,7 @@ File: hledger.info,  Node: code field,  Next: description field,  Prev: status f
 
 File: hledger.info,  Node: description field,  Next: comment field,  Prev: code field,  Up: Field names
 
-9.14.5 description field
+9.15.5 description field
 ------------------------
 
 'description' sets the transaction's description, if any.
@@ -4712,7 +4758,7 @@ File: hledger.info,  Node: description field,  Next: comment field,  Prev: code 
 
 File: hledger.info,  Node: comment field,  Next: account field,  Prev: description field,  Up: Field names
 
-9.14.6 comment field
+9.15.6 comment field
 --------------------
 
 'comment' sets the transaction's comment, if any.
@@ -4730,7 +4776,7 @@ or a year-less date, will be ignored.
 
 File: hledger.info,  Node: account field,  Next: amount field,  Prev: comment field,  Up: Field names
 
-9.14.7 account field
+9.15.7 account field
 --------------------
 
 Assigning to 'accountN', where N is 1 to 99, sets the account name of
@@ -4748,7 +4794,7 @@ or "income:unknown").
 
 File: hledger.info,  Node: amount field,  Next: currency field,  Prev: account field,  Up: Field names
 
-9.14.8 amount field
+9.15.8 amount field
 -------------------
 
 There are several ways to set posting amounts from CSV, useful in
@@ -4806,7 +4852,7 @@ different situations.
 
 File: hledger.info,  Node: currency field,  Next: balance field,  Prev: amount field,  Up: Field names
 
-9.14.9 currency field
+9.15.9 currency field
 ---------------------
 
 'currency' sets a currency symbol, to be prepended to all postings'
@@ -4819,7 +4865,7 @@ amount.
 
 File: hledger.info,  Node: balance field,  Prev: currency field,  Up: Field names
 
-9.14.10 balance field
+9.15.10 balance field
 ---------------------
 
 'balanceN' sets a balance assertion amount (or if the posting amount is
@@ -4837,7 +4883,7 @@ and currency.
 
 File: hledger.info,  Node: if block,  Next: Matchers,  Prev: Field names,  Up: CSV
 
-9.15 'if' block
+9.16 'if' block
 ===============
 
 Rules can be applied conditionally, depending on patterns in the CSV
@@ -4892,7 +4938,7 @@ if ,,,,
 
 File: hledger.info,  Node: Matchers,  Next: if table,  Prev: if block,  Up: CSV
 
-9.16 Matchers
+9.17 Matchers
 =============
 
 There are two kinds of matcher:
@@ -4932,9 +4978,8 @@ will match if "whole foods" is NOT present.  _Added in 1.32._
 
    The pattern is, as usual in hledger, a POSIX extended regular
 expression that also supports GNU word boundaries ('\b', '\B', '\<',
-'\>') and nothing else.  If you have trouble with it, see "Regular
-expressions" in the hledger manual
-(https://hledger.org/hledger.html#regular-expressions).
+'\>') and nothing else.  For more details and tips, see Regular
+expressions in CSV rules below.
 
 * Menu:
 
@@ -4944,7 +4989,7 @@ expressions" in the hledger manual
 
 File: hledger.info,  Node: Multiple matchers,  Next: Match groups,  Up: Matchers
 
-9.16.1 Multiple matchers
+9.17.1 Multiple matchers
 ------------------------
 
 When an if block has multiple matchers, each on its own line,
@@ -4963,7 +5008,7 @@ and the date field contains "2025-01-01".  _Added in 1.42._
 
 File: hledger.info,  Node: Match groups,  Prev: Multiple matchers,  Up: Matchers
 
-9.16.2 Match groups
+9.17.2 Match groups
 -------------------
 
 _Added in 1.32_
@@ -4991,7 +5036,7 @@ if %account1 liabilities:family:(expenses:.*)
 
 File: hledger.info,  Node: if table,  Next: balance-type,  Prev: Matchers,  Up: CSV
 
-9.17 'if' table
+9.18 'if' table
 ===============
 
 "if tables" are an alternative to if blocks; they can express many
@@ -5052,7 +5097,7 @@ atm transaction fee,expenses:business:banking,deductible? check it
 
 File: hledger.info,  Node: balance-type,  Next: include,  Prev: if table,  Up: CSV
 
-9.18 'balance-type'
+9.19 'balance-type'
 ===================
 
 Balance assertions generated by assigning to balanceN are of the simple
@@ -5075,7 +5120,7 @@ balance-type ==*
 
 File: hledger.info,  Node: include,  Next: Working with CSV,  Prev: balance-type,  Up: CSV
 
-9.19 'include'
+9.20 'include'
 ==============
 
 include RULESFILE
@@ -5098,7 +5143,7 @@ include categorisation.rules
 
 File: hledger.info,  Node: Working with CSV,  Next: CSV rules examples,  Prev: include,  Up: CSV
 
-9.20 Working with CSV
+9.21 Working with CSV
 =====================
 
 Some tips:
@@ -5113,6 +5158,7 @@ Some tips:
 * Reading files specified by rule::
 * Valid transactions::
 * Deduplicating importing::
+* Regular expressions in CSV rules::
 * Setting amounts::
 * Amount signs::
 * Setting currency/commodity::
@@ -5124,7 +5170,7 @@ Some tips:
 
 File: hledger.info,  Node: Rapid feedback,  Next: Valid CSV,  Up: Working with CSV
 
-9.20.1 Rapid feedback
+9.21.1 Rapid feedback
 ---------------------
 
 It's a good idea to get rapid feedback while creating/troubleshooting
@@ -5140,7 +5186,7 @@ output.
 
 File: hledger.info,  Node: Valid CSV,  Next: File Extension,  Prev: Rapid feedback,  Up: Working with CSV
 
-9.20.2 Valid CSV
+9.21.2 Valid CSV
 ----------------
 
 Note that hledger will only accept valid CSV conforming to RFC 4180, and
@@ -5161,7 +5207,7 @@ permissive CSV parser like python's csv lib.
 
 File: hledger.info,  Node: File Extension,  Next: Reading CSV from standard input,  Prev: Valid CSV,  Up: Working with CSV
 
-9.20.3 File Extension
+9.21.3 File Extension
 ---------------------
 
 To help hledger choose the CSV file reader and show the right error
@@ -5181,7 +5227,7 @@ rule if needed.
 
 File: hledger.info,  Node: Reading CSV from standard input,  Next: Reading multiple CSV files,  Prev: File Extension,  Up: Working with CSV
 
-9.20.4 Reading CSV from standard input
+9.21.4 Reading CSV from standard input
 --------------------------------------
 
 You'll need the file format prefix when reading CSV from stdin also,
@@ -5192,7 +5238,7 @@ $ cat foo.dat | hledger -f ssv:- print
 
 File: hledger.info,  Node: Reading multiple CSV files,  Next: Reading files specified by rule,  Prev: Reading CSV from standard input,  Up: Working with CSV
 
-9.20.5 Reading multiple CSV files
+9.21.5 Reading multiple CSV files
 ---------------------------------
 
 If you use multiple '-f' options to read multiple CSV files at once,
@@ -5203,7 +5249,7 @@ will be used for all the CSV files.
 
 File: hledger.info,  Node: Reading files specified by rule,  Next: Valid transactions,  Prev: Reading multiple CSV files,  Up: Working with CSV
 
-9.20.6 Reading files specified by rule
+9.21.6 Reading files specified by rule
 --------------------------------------
 
 Instead of specifying a CSV file in the command line, you can specify a
@@ -5232,7 +5278,7 @@ most recent.
 
 File: hledger.info,  Node: Valid transactions,  Next: Deduplicating importing,  Prev: Reading files specified by rule,  Up: Working with CSV
 
-9.20.7 Valid transactions
+9.21.7 Valid transactions
 -------------------------
 
 After reading a CSV file, hledger post-processes and validates the
@@ -5249,9 +5295,9 @@ assertions generated from CSV right away, pipe into another hledger:
 $ hledger -f file.csv print | hledger -f- print
 
 
-File: hledger.info,  Node: Deduplicating importing,  Next: Setting amounts,  Prev: Valid transactions,  Up: Working with CSV
+File: hledger.info,  Node: Deduplicating importing,  Next: Regular expressions in CSV rules,  Prev: Valid transactions,  Up: Working with CSV
 
-9.20.8 Deduplicating, importing
+9.21.8 Deduplicating, importing
 -------------------------------
 
 When you download a CSV file periodically, eg to get your latest bank
@@ -5279,10 +5325,46 @@ CSV data.  See:
    * https://plaintextaccounting.org -> data import/conversion
 
 
-File: hledger.info,  Node: Setting amounts,  Next: Amount signs,  Prev: Deduplicating importing,  Up: Working with CSV
+File: hledger.info,  Node: Regular expressions in CSV rules,  Next: Setting amounts,  Prev: Deduplicating importing,  Up: Working with CSV
 
-9.20.9 Setting amounts
-----------------------
+9.21.9 Regular expressions in CSV rules
+---------------------------------------
+
+Regular expressions in 'if' conditions (AKA matchers) are POSIX extended
+regular expressions, that also support GNU word boundaries ('\b', '\B',
+'\<', '\>'), and nothing else.  (For more detail, see Regular
+expressions.)
+
+   Here are some examples that might be useful in CSV rules:
+
+   * Is field "foo" truly empty ?  'if %foo ^$'
+   * Is it empty or containing only whitespace ?  'if %foo ^ *$'
+   * Is it non-empty ?  'if %foo .'
+   * Does it contain non-whitespace ?  'if %foo [^ ]'
+
+   Testing the value of numeric fields is a little harder.  You can't
+use hledger queries like 'amt:0' or 'amt:>10' in CSV rules.  But you can
+often achieve the same thing with a regular expression.
+
+   Note the content and layout of number fields in CSV varies, and can
+change over time (eg if you switch data providers).  So numeric regexps
+are always somewhat specific to your particular CSV data; and it's a
+good idea to make them defensive and robust if you can.
+
+   Here are some examples:
+
+   * Does foo contain a non-zero number ?  'if %foo [1-9]'
+   * Is it negative ?  'if %foo -'
+   * Is it non-negative ?  'if ! %foo -'
+   * Is it >= 10 ?  'if %foo [1-9][0-9]+\.' (assuming a decimal period
+     and no leading zeros)
+   * Is it >= 10 and < 20 ?  'if %foo \b1[0-9]\.'
+
+
+File: hledger.info,  Node: Setting amounts,  Next: Amount signs,  Prev: Regular expressions in CSV rules,  Up: Working with CSV
+
+9.21.10 Setting amounts
+-----------------------
 
 Continuing from amount field above, here are more tips for
 amount-setting:
@@ -5348,7 +5430,7 @@ amount-setting:
 
 File: hledger.info,  Node: Amount signs,  Next: Setting currency/commodity,  Prev: Setting amounts,  Up: Working with CSV
 
-9.20.10 Amount signs
+9.21.11 Amount signs
 --------------------
 
 There is some special handling making it easier to parse and to reverse
@@ -5378,7 +5460,7 @@ its absolute value, ie discard its sign.
 
 File: hledger.info,  Node: Setting currency/commodity,  Next: Amount decimal places,  Prev: Amount signs,  Up: Working with CSV
 
-9.20.11 Setting currency/commodity
+9.21.12 Setting currency/commodity
 ----------------------------------
 
 If the currency/commodity symbol is included in the CSV's amount
@@ -5426,7 +5508,7 @@ that would trigger the prepending effect, which we don't want here.
 
 File: hledger.info,  Node: Amount decimal places,  Next: Referencing other fields,  Prev: Setting currency/commodity,  Up: Working with CSV
 
-9.20.12 Amount decimal places
+9.21.13 Amount decimal places
 -----------------------------
 
 When you are reading CSV data, eg with a command like 'hledger -f
@@ -5455,7 +5537,7 @@ want, add a 'commodity' directive to specify them.
 
 File: hledger.info,  Node: Referencing other fields,  Next: How CSV rules are evaluated,  Prev: Amount decimal places,  Up: Working with CSV
 
-9.20.13 Referencing other fields
+9.21.14 Referencing other fields
 --------------------------------
 
 In field assignments, you can interpolate only CSV fields, not hledger
@@ -5492,7 +5574,7 @@ if something
 
 File: hledger.info,  Node: How CSV rules are evaluated,  Next: Well factored rules,  Prev: Referencing other fields,  Up: Working with CSV
 
-9.20.14 How CSV rules are evaluated
+9.21.15 How CSV rules are evaluated
 -----------------------------------
 
 Here's how to think of CSV rules being evaluated.  If you get a
@@ -5552,7 +5634,7 @@ hledger command the user specified.
 
 File: hledger.info,  Node: Well factored rules,  Prev: How CSV rules are evaluated,  Up: Working with CSV
 
-9.20.15 Well factored rules
+9.21.16 Well factored rules
 ---------------------------
 
 Some things than can help reduce duplication and complexity in rules
@@ -5568,7 +5650,7 @@ files:
 
 File: hledger.info,  Node: CSV rules examples,  Prev: Working with CSV,  Up: CSV
 
-9.21 CSV rules examples
+9.22 CSV rules examples
 =======================
 
 * Menu:
@@ -5581,7 +5663,7 @@ File: hledger.info,  Node: CSV rules examples,  Prev: Working with CSV,  Up: CSV
 
 File: hledger.info,  Node: Bank of Ireland,  Next: Coinbase,  Up: CSV rules examples
 
-9.21.1 Bank of Ireland
+9.22.1 Bank of Ireland
 ----------------------
 
 Here's a CSV with two amount fields (Debit and Credit), and a balance
@@ -5634,7 +5716,7 @@ imported into a journal file.
 
 File: hledger.info,  Node: Coinbase,  Next: Amazon,  Prev: Bank of Ireland,  Up: CSV rules examples
 
-9.21.2 Coinbase
+9.22.2 Coinbase
 ---------------
 
 A simple example with some CSV from Coinbase.  The spot price is
@@ -5661,7 +5743,7 @@ $ hledger print -f coinbase.csv
 
 File: hledger.info,  Node: Amazon,  Next: Paypal,  Prev: Coinbase,  Up: CSV rules examples
 
-9.21.3 Amazon
+9.22.3 Amazon
 -------------
 
 Here we convert amazon.com order history, and use an if block to
@@ -5719,7 +5801,7 @@ $ hledger -f amazon-orders.csv print
 
 File: hledger.info,  Node: Paypal,  Prev: Amazon,  Up: CSV rules examples
 
-9.21.4 Paypal
+9.22.4 Paypal
 -------------
 
 Here's a real-world rules file for (customised) Paypal CSV, with some
@@ -9440,6 +9522,7 @@ File: hledger.info,  Node: stats,  Next: tags,  Prev: prices,  Up: Basic report 
 Show journal and performance statistics.
 
 Flags:
+  -1                        show a single line of output
   -v --verbose              show more detailed output
   -o --output-file=FILE     write output to FILE.
 
@@ -9447,22 +9530,24 @@ Flags:
 a matched part of it.  With a reporting interval, it shows a report for
 each report period.
 
-   The default output is fairly impersonal, though it reveals the main
-file name.  With '-v/--verbose', more details are shown, like file
-paths, included files, and commodity names.
+   It also shows some performance statistics:
 
-   It also shows some run time statistics:
+   * how long the program ran for
+   * the number of transactions processed per second
+   * the peak live memory in use by the program to do its work
+   * the peak allocated memory as seen by the program
 
-   * elapsed time
-   * throughput: the number of transactions processed per second
-   * live: the peak memory in use by the program to do its work
-   * alloc: the peak memory allocation from the OS as seen by GHC.
-     Measuring this externally, eg with GNU time, is more accurate;
-     usually that will be a larger number; sometimes (with swapping?)
-     smaller.
+   By default, the output is reasonably discreet; it reveals the main
+file name, your activity level, and the speed of your machine.
 
-   The 'stats' command's run time is similar to that of a balance
-report.
+   With '-v/--verbose', more details are shown: the full paths of all
+files, and the names of the commodities you work with.
+
+   With '-1', only one line of output is shown, in a machine-friendly
+tab-separated format: the program version, the main journal file name,
+and the performance stats,
+
+   The run time of 'stats' is similar to that of a balance report.
 
    Example:
 
@@ -9479,6 +9564,9 @@ Accounts            : 1000 (depth 10)
 Commodities         : 26
 Market prices       : 1000
 Runtime stats       : 0.12 s elapsed, 8266 txns/s, 4 MB live, 16 MB alloc
+
+$ hledger stats -1 -f examples/10ktxns-1kaccts.journal
+1.50.99-g0835a2485-20251119, mac-aarch64    10ktxns-1kaccts.journal 0.66 s elapsed  15244 txns/s    28 MB live  86 MB alloc
 
    This command supports the -o/-output-file option (but not
 -O/-output-format).
@@ -13366,270 +13454,272 @@ Node: Virtual postings149983
 Node: Other Ledger directives151607
 Node: Other cost/lot notations152369
 Node: CSV155210
-Node: CSV rules cheatsheet157376
-Node: source159674
-Node: Data cleaning / data generating commands161078
-Node: archive162977
-Node: encoding163905
-Node: separator164948
-Node: skip165601
-Node: date-format166251
-Node: timezone167196
-Node: newest-first168322
-Node: intra-day-reversed169035
-Node: decimal-mark169637
-Node: fields list170117
-Node: Field assignment171925
-Node: Field names173144
-Node: date field174476
-Node: date2 field174640
-Node: status field174835
-Node: code field175025
-Node: description field175213
-Node: comment field175430
-Node: account field175987
-Node: amount field176705
-Node: currency field179544
-Node: balance field179952
-Node: if block180475
-Node: Matchers182002
-Node: Multiple matchers183992
-Node: Match groups184800
-Node: if table185693
-Node: balance-type187756
-Node: include188583
-Node: Working with CSV189152
-Node: Rapid feedback189704
-Node: Valid CSV190287
-Node: File Extension191163
-Node: Reading CSV from standard input191898
-Node: Reading multiple CSV files192284
-Node: Reading files specified by rule192760
-Node: Valid transactions194157
-Node: Deduplicating importing194982
-Node: Setting amounts196211
-Node: Amount signs198738
-Node: Setting currency/commodity199803
-Node: Amount decimal places201179
-Node: Referencing other fields202436
-Node: How CSV rules are evaluated203544
-Node: Well factored rules206261
-Node: CSV rules examples206751
-Node: Bank of Ireland206949
-Node: Coinbase208546
-Node: Amazon209729
-Node: Paypal211571
-Node: Timeclock219321
-Node: Timedot223374
-Node: Timedot examples226851
-Node: PART 3 REPORTING CONCEPTS229128
-Node: Time periods229292
-Node: Report start & end date229565
-Node: Smart dates231041
-Node: Report intervals233164
-Node: Date adjustments233738
-Node: Start date adjustment233958
-Node: End date adjustment234861
-Node: Period headings235642
-Node: Period expressions236575
-Node: Period expressions with a report interval238480
-Node: More complex report intervals238928
-Node: Multiple weekday intervals241044
-Node: Depth242055
-Node: Combining depth options243041
-Node: Queries243991
-Node: Query types246663
-Node: acct query247038
-Node: amt query247349
-Node: code query248046
-Node: cur query248241
-Node: desc query248847
-Node: date query249030
-Node: date2 query249426
-Node: depth query249717
-Node: note query250053
-Node: payee query250319
-Node: real query250600
-Node: status query250805
-Node: type query251045
-Node: tag query251578
-Node: Negative queries252207
-Node: not query252389
-Node: Space-separated queries252676
-Node: Boolean queries253364
-Node: expr query254682
-Node: any query255362
-Node: all query255815
-Node: Queries and command options256397
-Node: Queries and account aliases256845
-Node: Queries and valuation257170
-Node: Pivoting257532
-Node: Generating data259815
-Node: Forecasting261615
-Node: --forecast262271
-Node: Inspecting forecast transactions263372
-Node: Forecast reports264705
-Node: Forecast tags265814
-Node: Forecast period in detail266434
-Node: Forecast troubleshooting267522
-Node: Budgeting268593
-Node: Amount formatting269153
-Node: Commodity display style269397
-Node: Rounding271238
-Node: Trailing decimal marks271843
-Node: Amount parseability272776
-Node: Cost reporting274385
-Node: Recording costs275216
-Node: Reporting at cost276943
-Node: Equity conversion postings277708
-Node: Inferring equity conversion postings280353
-Node: Combining costs and equity conversion postings281495
-Node: Requirements for detecting equity conversion postings282720
-Node: Infer cost and equity by default ?284242
-Node: Value reporting284679
-Node: -X Value in specified commodity285637
-Node: -V Value in default commoditys286497
-Node: Valuation date287234
-Node: Finding market price288066
-Node: --infer-market-prices market prices from transactions289446
-Node: Valuation commodity292490
-Node: --value Flexible valuation293923
-Node: Valuation examples295766
-Node: Interaction of valuation and queries297910
-Node: Effect of valuation on reports298627
-Node: PART 4 COMMANDS306477
-Node: Help commands309266
-Node: commands309452
-Node: demo309660
-Node: help310753
-Node: User interface commands312458
-Node: repl312669
-Node: Examples314933
-Node: run315491
-Node: Examples 2317906
-Node: ui318930
-Node: web319067
-Node: Data entry commands319195
-Node: add319456
-Node: add and balance assertions322030
-Node: add and balance assignments322604
-Node: import323297
-Node: Import dry run324376
-Node: Overlap detection325324
-Node: First import328210
-Node: Importing balance assignments329405
-Node: Import and commodity styles330460
-Node: Import archiving330894
-Node: Import special cases331719
-Node: Deduplication331937
-Node: Varying file name332428
-Node: Multiple versions332812
-Node: Basic report commands333919
-Node: accounts334220
-Node: codes336732
-Node: commodities337754
-Node: descriptions338762
-Node: files339222
-Node: notes339519
-Node: payees340031
-Node: prices341188
-Node: stats342080
-Node: tags343821
-Node: Standard report commands345645
-Node: print345950
-Node: print amount explicitness348681
-Node: print alignment349619
-Node: print amount style349933
-Node: print parseability351163
-Node: print other features352440
-Node: print output format353402
-Node: aregister356687
-Node: aregister and posting dates361152
-Node: register362053
-Node: Custom register output369293
-Node: balancesheet370478
-Node: balancesheetequity375443
-Node: cashflow380778
-Node: incomestatement385591
-Node: Advanced report commands390440
-Node: balance390648
-Node: balance features396069
-Node: Simple balance report398172
-Node: Balance report line format399982
-Node: Filtered balance report402342
-Node: List or tree mode402861
-Node: Depth limiting404374
-Node: Dropping top-level accounts405141
-Node: Showing declared accounts405651
-Node: Sorting by amount406381
-Node: Percentages407235
-Node: Multi-period balance report407942
-Node: Balance change end balance410694
-Node: Balance report modes412331
-Node: Calculation mode413010
-Node: Accumulation mode413714
-Node: Valuation mode414815
-Node: Combining balance report modes416159
-Node: Budget report418189
-Node: Using the budget report420489
-Node: Budget date surprises422765
-Node: Selecting budget goals424129
-Node: Budgeting vs forecasting425077
-Node: Balance report layout426754
-Node: Wide layout427959
-Node: Tall layout430364
-Node: Bare layout431670
-Node: Tidy layout433734
-Node: Balance report output435278
-Node: Some useful balance reports436052
-Node: roi437312
-Node: Spaces and special characters in --inv and --pnl439559
-Node: Semantics of --inv and --pnl440285
-Node: IRR and TWR explained442372
-Node: Chart commands445783
-Node: activity445964
-Node: Data generation commands446461
-Node: close446667
-Node: close --clopen449732
-Node: close --close451628
-Node: close --open452152
-Node: close --assert452402
-Node: close --assign452729
-Node: close --retain453408
-Node: close customisation454265
-Node: close and balance assertions455943
-Node: close examples457465
-Node: Retain earnings457702
-Node: Migrate balances to a new file458205
-Node: More detailed close examples459567
-Node: rewrite459789
-Node: Re-write rules in a file462349
-Node: Diff output format463650
-Node: rewrite vs print --auto464920
-Node: Maintenance commands465634
-Node: check465853
-Node: Basic checks466936
-Node: Strict checks468002
-Node: Other checks468875
-Node: Custom checks470577
-Node: diff471016
-Node: setup472224
-Node: test475091
-Node: PART 5 COMMON TASKS475994
-Node: Getting help476443
-Node: Constructing command lines477344
-Node: Starting a journal file478209
-Node: Setting LEDGER_FILE479613
-Node: Set LEDGER_FILE on unix479901
-Node: Set LEDGER_FILE on mac480418
-Node: Set LEDGER_FILE on Windows481146
-Node: Setting opening balances482869
-Node: Recording transactions486211
-Node: Reconciling486956
-Node: Reporting489365
-Node: Migrating to a new file493499
-Node: BUGS493955
-Node: Troubleshooting494781
+Node: CSV rules cheatsheet157410
+Node: source159708
+Node: Data cleaning / data generating commands161112
+Node: archive163011
+Node: encoding163939
+Node: separator164982
+Node: skip165635
+Node: date-format166285
+Node: timezone167230
+Node: newest-first168356
+Node: intra-day-reversed169069
+Node: decimal-mark169671
+Node: CSV fields and hledger fields170169
+Node: fields list172045
+Node: Field assignment173870
+Node: Field names175089
+Node: date field176421
+Node: date2 field176585
+Node: status field176780
+Node: code field176970
+Node: description field177158
+Node: comment field177375
+Node: account field177932
+Node: amount field178650
+Node: currency field181489
+Node: balance field181897
+Node: if block182420
+Node: Matchers183947
+Node: Multiple matchers185875
+Node: Match groups186683
+Node: if table187576
+Node: balance-type189639
+Node: include190466
+Node: Working with CSV191035
+Node: Rapid feedback191624
+Node: Valid CSV192207
+Node: File Extension193083
+Node: Reading CSV from standard input193818
+Node: Reading multiple CSV files194204
+Node: Reading files specified by rule194680
+Node: Valid transactions196077
+Node: Deduplicating importing196902
+Node: Regular expressions in CSV rules198148
+Node: Setting amounts199640
+Node: Amount signs202178
+Node: Setting currency/commodity203243
+Node: Amount decimal places204619
+Node: Referencing other fields205876
+Node: How CSV rules are evaluated206984
+Node: Well factored rules209701
+Node: CSV rules examples210191
+Node: Bank of Ireland210389
+Node: Coinbase211986
+Node: Amazon213169
+Node: Paypal215011
+Node: Timeclock222761
+Node: Timedot226814
+Node: Timedot examples230291
+Node: PART 3 REPORTING CONCEPTS232568
+Node: Time periods232732
+Node: Report start & end date233005
+Node: Smart dates234481
+Node: Report intervals236604
+Node: Date adjustments237178
+Node: Start date adjustment237398
+Node: End date adjustment238301
+Node: Period headings239082
+Node: Period expressions240015
+Node: Period expressions with a report interval241920
+Node: More complex report intervals242368
+Node: Multiple weekday intervals244484
+Node: Depth245495
+Node: Combining depth options246481
+Node: Queries247431
+Node: Query types250103
+Node: acct query250478
+Node: amt query250789
+Node: code query251486
+Node: cur query251681
+Node: desc query252287
+Node: date query252470
+Node: date2 query252866
+Node: depth query253157
+Node: note query253493
+Node: payee query253759
+Node: real query254040
+Node: status query254245
+Node: type query254485
+Node: tag query255018
+Node: Negative queries255647
+Node: not query255829
+Node: Space-separated queries256116
+Node: Boolean queries256804
+Node: expr query258122
+Node: any query258802
+Node: all query259255
+Node: Queries and command options259837
+Node: Queries and account aliases260285
+Node: Queries and valuation260610
+Node: Pivoting260972
+Node: Generating data263255
+Node: Forecasting265055
+Node: --forecast265711
+Node: Inspecting forecast transactions266812
+Node: Forecast reports268145
+Node: Forecast tags269254
+Node: Forecast period in detail269874
+Node: Forecast troubleshooting270962
+Node: Budgeting272033
+Node: Amount formatting272593
+Node: Commodity display style272837
+Node: Rounding274678
+Node: Trailing decimal marks275283
+Node: Amount parseability276216
+Node: Cost reporting277825
+Node: Recording costs278656
+Node: Reporting at cost280383
+Node: Equity conversion postings281148
+Node: Inferring equity conversion postings283793
+Node: Combining costs and equity conversion postings284935
+Node: Requirements for detecting equity conversion postings286160
+Node: Infer cost and equity by default ?287682
+Node: Value reporting288119
+Node: -X Value in specified commodity289077
+Node: -V Value in default commoditys289937
+Node: Valuation date290674
+Node: Finding market price291506
+Node: --infer-market-prices market prices from transactions292886
+Node: Valuation commodity295930
+Node: --value Flexible valuation297363
+Node: Valuation examples299206
+Node: Interaction of valuation and queries301350
+Node: Effect of valuation on reports302067
+Node: PART 4 COMMANDS309917
+Node: Help commands312706
+Node: commands312892
+Node: demo313100
+Node: help314193
+Node: User interface commands315898
+Node: repl316109
+Node: Examples318373
+Node: run318931
+Node: Examples 2321346
+Node: ui322370
+Node: web322507
+Node: Data entry commands322635
+Node: add322896
+Node: add and balance assertions325470
+Node: add and balance assignments326044
+Node: import326737
+Node: Import dry run327816
+Node: Overlap detection328764
+Node: First import331650
+Node: Importing balance assignments332845
+Node: Import and commodity styles333900
+Node: Import archiving334334
+Node: Import special cases335159
+Node: Deduplication335377
+Node: Varying file name335868
+Node: Multiple versions336252
+Node: Basic report commands337359
+Node: accounts337660
+Node: codes340172
+Node: commodities341194
+Node: descriptions342202
+Node: files342662
+Node: notes342959
+Node: payees343471
+Node: prices344628
+Node: stats345520
+Node: tags347578
+Node: Standard report commands349402
+Node: print349707
+Node: print amount explicitness352438
+Node: print alignment353376
+Node: print amount style353690
+Node: print parseability354920
+Node: print other features356197
+Node: print output format357159
+Node: aregister360444
+Node: aregister and posting dates364909
+Node: register365810
+Node: Custom register output373050
+Node: balancesheet374235
+Node: balancesheetequity379200
+Node: cashflow384535
+Node: incomestatement389348
+Node: Advanced report commands394197
+Node: balance394405
+Node: balance features399826
+Node: Simple balance report401929
+Node: Balance report line format403739
+Node: Filtered balance report406099
+Node: List or tree mode406618
+Node: Depth limiting408131
+Node: Dropping top-level accounts408898
+Node: Showing declared accounts409408
+Node: Sorting by amount410138
+Node: Percentages410992
+Node: Multi-period balance report411699
+Node: Balance change end balance414451
+Node: Balance report modes416088
+Node: Calculation mode416767
+Node: Accumulation mode417471
+Node: Valuation mode418572
+Node: Combining balance report modes419916
+Node: Budget report421946
+Node: Using the budget report424246
+Node: Budget date surprises426522
+Node: Selecting budget goals427886
+Node: Budgeting vs forecasting428834
+Node: Balance report layout430511
+Node: Wide layout431716
+Node: Tall layout434121
+Node: Bare layout435427
+Node: Tidy layout437491
+Node: Balance report output439035
+Node: Some useful balance reports439809
+Node: roi441069
+Node: Spaces and special characters in --inv and --pnl443316
+Node: Semantics of --inv and --pnl444042
+Node: IRR and TWR explained446129
+Node: Chart commands449540
+Node: activity449721
+Node: Data generation commands450218
+Node: close450424
+Node: close --clopen453489
+Node: close --close455385
+Node: close --open455909
+Node: close --assert456159
+Node: close --assign456486
+Node: close --retain457165
+Node: close customisation458022
+Node: close and balance assertions459700
+Node: close examples461222
+Node: Retain earnings461459
+Node: Migrate balances to a new file461962
+Node: More detailed close examples463324
+Node: rewrite463546
+Node: Re-write rules in a file466106
+Node: Diff output format467407
+Node: rewrite vs print --auto468677
+Node: Maintenance commands469391
+Node: check469610
+Node: Basic checks470693
+Node: Strict checks471759
+Node: Other checks472632
+Node: Custom checks474334
+Node: diff474773
+Node: setup475981
+Node: test478848
+Node: PART 5 COMMON TASKS479751
+Node: Getting help480200
+Node: Constructing command lines481101
+Node: Starting a journal file481966
+Node: Setting LEDGER_FILE483370
+Node: Set LEDGER_FILE on unix483658
+Node: Set LEDGER_FILE on mac484175
+Node: Set LEDGER_FILE on Windows484903
+Node: Setting opening balances486626
+Node: Recording transactions489968
+Node: Reconciling490713
+Node: Reporting493122
+Node: Migrating to a new file497256
+Node: BUGS497712
+Node: Troubleshooting498538
 
 End Tag Table
 
