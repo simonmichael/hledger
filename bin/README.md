@@ -280,6 +280,11 @@ $ hledger bar -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 ```
 (or with hledger <1.50: `hledger bar -- ...`)
 
+### hledger-check-buynothing
+
+[`hledger-check-buynothing`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-buynothing)
+checks for no activity in Expense accounts on Buy Nothing Day (or other period).
+
 ### hledger-git
 
 [`hledger-git`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-git)
