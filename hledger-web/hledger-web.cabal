@@ -134,6 +134,7 @@ library
       Hledger.Web.App
       Hledger.Web.Application
       Hledger.Web.Handler.AddR
+      Hledger.Web.Handler.ApiR
       Hledger.Web.Handler.EditR
       Hledger.Web.Handler.JournalR
       Hledger.Web.Handler.MiscR
