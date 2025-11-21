@@ -1206,6 +1206,10 @@ tags:
 @rels:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
 
+# Show major release dates and versions (of the hledger package).
+@rels-major:
+    awk '/^#+ +[0-9]+\.[0-9]+ .*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
+
 # Show the release notes for VERSION.
 @showrelnotes VER:
     awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
