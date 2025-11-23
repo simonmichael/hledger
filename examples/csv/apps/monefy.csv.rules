@@ -1,3 +1,5 @@
+# https://www.monefy.com
+
 skip 1
 fields date, account, category, amount_, currency_, converted_amount, converted_currency, description
 date-format %d/%m/%Y
