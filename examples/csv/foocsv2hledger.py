@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-# An example of using Python to convert a certain CSV to hledger journal entries.
-# This won't work as-is (unless you have this particular kind of CSV);
-# use it for inspiration. hledger's own CSV rules are not used at all here.
+# Here's an example of converting a particular CSV to hledger journal
+# entries with your own custom script, without using hledger at all.
+# This is worth considering if the conversion is hard to do with hledger's CSV rules.
+# (You give up some of the domain knowledge built in to rules,
+# but gain the full power of a programming language.)
+#
+# This script won't work as-is (without the original foo.csv); use it for inspiration.
 
 
 __version__ = "1.0"
