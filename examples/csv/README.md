@@ -5,4 +5,6 @@ which help hledger read many kinds of exported character-separated data.
 If you've made one which might be useful to others, please add it here!
 
 These aren't necessarily maintained, and may not work out of the box for you,
-but at they are at least a good source of examples and starting points.
+but at they are at least a good source of ideas and examples.
+
+Other things related to CSV conversion can also be found here.
