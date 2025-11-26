@@ -18,42 +18,54 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 7e885134
+# fc85fa26
 
-Doc updates
+Docs updated
 
-- AUTHORS.md: move to doc/
-- ANNOUNCE.short: rename
-- CHANGES.md: move to doc/, for easy consistent paths
+- ACHIEVEMENTS
+- ANNOUNCE.short
+- AUTHORS
+- bin/README
+- CHANGES.md: move to doc/ for consistent paths
 - Contributing: mention translation (Lý Minh Nhật)
-- DOCS, doc-update.png: document & diagram latest doc update procedures
-- relnotes: use more reliable changelog links
-- tldr/README
-- RELEASING
-- REGRESSIONS
-- RELEASING: updates, formatting
 - DECISIONS
+- dev
+- DOCS: document & diagram latest doc update procedures
 - ISSUES
+- REGRESSIONS
+- RELEASING
+- relnotes: more reliable changelog links
+- ROADMAP
+- tldr/README
 
 Website
 
 Infrastructure/Misc
 
-- use a nightly branch instead of a nightly tag again on github, it's simpler
+- add performance tests, logged to perf.log, run by just perftest
+- bump stack snapshots
+- drop the hledger-install script
+- just changelogs* update
+- just docupdatediag
+- just ghci-ui: :main (and :rmain) now works again
+- just ghnightly* -> nightly*
+- just oldest
+- just releasediag update
+- just rels-major
+- just site-restart
+- Justfile reorg, cleanups
 - release script updates
-- ;pkg:stack98: restore needed encoding 0.10 extra dep
-- ;tools: update just releasediag, add just docupdatediag
-- ;tools:just ghnightly* -> nightly*
-- ;tools:just: reorganise, cleanups
-- ;tools:Shake manuals: more contributor instructions in the header comment [hledger_site#140]
+- Shake manuals: more contributor instructions in the header comment [hledger_site#140]
 - stack92: add valid hashtables version
 - stack94: add valid hashtables version
 - stack96: add valid hashtables version 
 - stack98: include valid hashtables version
-
-- bump stack snapshots
-- drop the hledger-install script
-- just ghci-ui: :main (and :rmain) now works again
+- stack98: restore needed encoding 0.10 extra dep
+- stop git ignoring site/src/, allowing web docs to be easily opened in vscode
+- tools/relnotes.hs update
+- use a nightly branch instead of a nightly tag on github, it's simpler
+- workflows: use shelltestrunner 1.11
+- workflows:binaries-mac-x64: switch to macos-15-intel
 
 
 # 1.50.3 2025-11-18

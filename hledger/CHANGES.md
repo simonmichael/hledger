@@ -26,7 +26,175 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# 7e885134
+# fc85fa26
+
+- pkg:Dockerfile: a likely fix, not tested
+
+- ;dev: add performance tests, logging to perf.log, run by just perftest
+
+- ;doc: update embedded manuals
+
+- ;doc: update command docs
+
+- imp:stats: one-line mode; fix -o; doc updates
+  The new -1 flag prints a single line of output in machine-friendly
+  tab-separated format, including the program version, journal file
+  name, and performance stats.
+
+  Also -o now redirects all output, including the performance stats.
+
+- ;doc:csv: CSV fields and hledger fields: edits
+
+- ;doc:csv: CSV fields and hledger fields: edits
+
+- ;doc:csv: Regular expressions in CSV rules: edits
+
+- ;doc:csv: Regular expressions in CSV rules: edits
+
+- ;doc:csv: Regular expressions in CSV rules
+
+- ;doc:csv: CSV fields and hledger fields
+
+- ;doc: update embedded manuals
+
+- ;doc: update command docs
+
+- ;dev: update internal error message
+
+- fix:add: clean up typos after an over-eager search-replace
+
+- ;doc: add the 1.50.3 changelogs
+
+- dev:add: refactor, simplify names
+
+- dev: balanceTransaction -> balanceSingleTransaction
+
+- ;dev:test:errors: make csvnoinclude test more robust
+  It was failing on github's machines.
+
+- ;dev:add: add missing test file
+
+- ;dev:test:errors: readme
+
+- ;doc: Setting LEDGER_FILE: update
+
+- ;dev:tests:errors: update readme, tests
+
+- imp:setup: tidier output for missing LEDGER_FILE or default file
+
+- fix!: error if LEDGER_FILE points to a nonexistent file [#2485]
+  Avoiding potentially confusing silent fallback. Also,
+
+  - Drop support for Ledger's legacy LEDGER environment variable;
+    we now support only LEDGER_FILE, for simplicity.
+
+  - Clarify the behaviour, eg when a glob pattern matches multiple files
+    or when the value is empty.
+
+- ;doc:add: edits
+
+- ;doc:add: now balance assignment adding, as a separate commit
+
+- ;doc:add: don't mention balance assignment adding yet
+  It doesn't really belong in the upcoming minor release; but it got
+  committed along with a fix which does.
+
+- fix:add: check balance assertions more accurately; allow balance assignments [#2478]
+  Balance assertions are now checked more accurately, with awareness of
+  how everything is ordered in the journal.
+  Also, it's now possible to add balance assignments.
+
+- imp:cli,ui,web: always build with -threaded [#2495]
+  It's required for runPager and presumably for the web server among
+  other things. The old "threaded" build flag has been dropped.
+
+- fix:pkg: make threaded (and dev and library-only) build flags manual [#2495]
+  The threaded runtime is required at least for hledger's pager output,
+  and probably for other things. It's controlled by the "threaded" build
+  flag for some historical reason. Now, that flag is marked as manual,
+  so that it can no longer be toggled by cabal. (Probably the build flag
+  should be dropped, that can be tried later.)
+
+  Related: Debian bug #1120833, causing an unusable hledger-1.50.2 package.
+
+- ;doc:csv:if: link skip, end more clearly
+
+- ;doc:print: note another way print can disrupt journal readability
+  (same-day balance assertions)
+
+- ;doc:add: balance assertions/assignments: edits [#2494]
+
+- ;doc:add: balance assertions/assignments: clarify, fix [#2494]
+
+- ;doc:csv:source: wording
+
+- ;doc:areg: edits
+
+- ;doc:areg: formatting
+
+- ;doc:check: edits, correction
+
+- imp: Show parent accounts in tree mode for context (samahri)
+
+- fix: html: Nested tables resulting in broken HTML on export (Joschua Kesper)
+  A HTML export results in a table which has a stylesheet and another table
+  nested inside. This is not valid HTML and gets auto corrected by closing the
+  first table and opening another table. The result is the heading of the table
+  can expand further than the remaining table.
+
+  This results in a few notable changes:
+
+  - The date is in a far bigger cell and it's very noticeable it's centered compared to the amounts
+    (we may want to right align the date, though I don't have any particular thoughts about this)
+  - We no longer have two consecutive lines with black background and the start
+  - The table is as big as the heading (+ the default left margin)
+
+- Summary: ;doc:Value reporting: edits
+
+- Summary: ;doc:Value reporting: edits
+
+- ;doc:Value reporting: more advice, examples for COMM
+
+- ;doc:Value reporting: warn about -V, emphasise -X
+
+- ;doc:check: edit
+
+- ;doc:check: edit
+
+- ;doc:check: edit
+
+- ;doc: update embedded manuals
+
+- ;fix:check:doc: drop obsolete note about transaction balancing
+
+- ;doc:argument files: edits
+
+- ;doc:argument files: edits
+
+- ;doc:argument files: corrections
+
+- ;fix:close:doc:customisation: edit [#2492]
+
+- ;fix:close:doc:customisation: edit [#2492]
+
+- ;fix:close:doc:customisation: clarify [#2492]
+
+- ;doc:depth: rewrite, note combining issue
+
+- ;doc:CHANGES, relnotes:hledger 1.33: fix typo
+
+- ;doc: Setting LEDGER_FILE: rewrite, new windows procedures
+
+- ;doc: demote COMMON TASKS subheadings
+
+- ;docs:manual: add info about the -c command line option in the commodity directy section (ooker)
+
+- ;imp:setup: accounts of all types wording
+
+- ;doc:changelogs
+
+
+
 
 Breaking changes
 
@@ -78,7 +246,16 @@ Docs
 
 Examples
 
+- examples: organise/start the CSV rules library
+
 Scripts/addons
+
+- bin: hledger-check-buynothing
+- bin: sortandmergepostings: Overhaul for more robust determinism (Caleb Maclennan)
+  - Avoids non-deterministic flip-flopping when the alphabetical account sort has multiple commodities
+  - Sorts postings commodities so commodities are in the same order across transactions
+  - Sorts postings with matching commodity by posting amount
+- scripts: hledgerj1: example of a wrapper reading a custom format
 
 API
 

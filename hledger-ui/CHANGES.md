@@ -23,7 +23,29 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 7e885134
+# fc85fa26
+
+- ;doc: add the 1.50.3 changelogs
+
+- imp:cli,ui,web: always build with -threaded [#2495]
+  It's required for runPager and presumably for the web server among
+  other things. The old "threaded" build flag has been dropped.
+
+- fix:pkg: make threaded (and dev and library-only) build flags manual [#2495]
+  The threaded runtime is required at least for hledger's pager output,
+  and probably for other things. It's controlled by the "threaded" build
+  flag for some historical reason. Now, that flag is marked as manual,
+  so that it can no longer be toggled by cabal. (Probably the build flag
+  should be dropped, that can be tried later.)
+
+  Related: Debian bug #1120833, causing an unusable hledger-1.50.2 package.
+
+- ;doc: update embedded manuals
+
+- ;doc:changelogs
+
+
+
 
 Breaking changes
 
