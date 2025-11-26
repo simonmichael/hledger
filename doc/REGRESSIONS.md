@@ -56,8 +56,7 @@ But consider claiming - it's good for the project in several ways.
 ## Regressions reported
 
 We aim for zero regressions,
-but with a project of hledger's flexibility, features, large surface area, and level of funding,
-that's not easy!
+but with a project of hledger's flexibility, features, and level of funding, that's not easy!
 Here are the regressions found since 2020.
 
 [#1439]: https://github.com/simonmichael/hledger/issues/1439
