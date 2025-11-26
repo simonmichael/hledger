@@ -57,6 +57,9 @@ set export := true
 # The --wrap-process change is needed for watchexec 2.1.2 on mac, https://github.com/watchexec/watchexec/issues/864
 WATCHEXEC := 'watchexec --wrap-process=session'
 
+# Open a web browser
+OPEN := 'open -a safari'
+
 # grep-like rg
 #RG_ := 'rg --sort=path --no-heading -i'
 #TODAY := `date +%Y-%m-%d`
@@ -884,11 +887,11 @@ haddock-open:
 
 # View the packages diagrams.
 @packagediags-view:
-    # open -a safari hledger-lib/packages.svg
-    # open -a safari hledger/packages.svg
-    # open -a safari hledger-ui/packages.svg
-    # open -a safari hledger-web/packages.svg
-    open -a safari packages.svg
+    # $OPEN hledger-lib/packages.svg
+    # $OPEN hledger/packages.svg
+    # $OPEN hledger-ui/packages.svg
+    # $OPEN hledger-web/packages.svg
+    $OPEN packages.svg
 
 # # Generate a packages diagram for a hledger package.
 # @packagediag PKG:
@@ -904,10 +907,10 @@ haddock-open:
 
 # View the modules diagrams.
 @modulediags-view:
-    open -a safari hledger-lib/modules.svg
-    open -a safari hledger/modules.svg
-    open -a safari hledger-ui/modules.svg
-    open -a safari hledger-web/modules.svg
+    $OPEN hledger-lib/modules.svg
+    $OPEN hledger/modules.svg
+    $OPEN hledger-ui/modules.svg
+    $OPEN hledger-web/modules.svg
 
 # Generate a modules diagram for a hledger package.
 @modulediag PKG:
@@ -968,6 +971,9 @@ log-push:
 # Update the short version of the hledger script example (by removing docs).
 bin-short:
     awk '/^----/ { b=!b; next } !b' bin/hledger-script-example.hs | rg -v '^ *-- \w' > bin/hledger-script-example-short.hs
+
+@site-caching-open:
+    $OPEN https://dash.cloudflare.com/f629035917dd3b99b1e37ae20c15ff09/hledger.org/caching/configuration
 
 # ** Releasing ------------------------------------------------------------
 RELEASING:
@@ -1718,7 +1724,7 @@ installcommithook:
 
 # Browse the All workflows status page on github.
 @ghworkflows-open:
-    open -a safari https://ci.hledger.org
+    $OPEN https://ci.hledger.org
 
 # Browse the latest run of the named workflow.
 @ghrun-open WORKFLOW:
