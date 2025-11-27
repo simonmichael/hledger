@@ -416,6 +416,7 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHome
 -- | Like expandPath, but treats the expanded path as a glob, and returns
 -- zero or more matched absolute file paths, alphabetically sorted.
 -- Can raise an error.
+-- For a more elaborate glob expander, see 'findMatchedFiles' (used by the include directive).
 expandGlob :: FilePath -> FilePath -> IO [FilePath]
 expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
 
