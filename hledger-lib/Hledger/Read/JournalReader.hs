@@ -32,6 +32,7 @@ Hledger.Read.Common, to avoid import cycles.
 {-# LANGUAGE OverloadedStrings   #-}
 {-# LANGUAGE PackageImports      #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE MultiWayIf #-}
 
 --- ** exports
 module Hledger.Read.JournalReader (
@@ -72,13 +73,14 @@ where
 
 --- ** imports
 import Control.Exception qualified as C
-import Control.Monad (forM_, when, void, unless, filterM)
+import Control.Monad (forM_, when, void, unless, filterM, forM)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Except (ExceptT(..), runExceptT)
 import Control.Monad.State.Strict (evalStateT,get,modify',put)
 import Control.Monad.Trans.Class (lift)
 import Data.Char (toLower)
 import Data.Either (isRight, lefts)
+import Data.Functor ((<&>))
 import Data.Map.Strict qualified as M
 import Data.Text (Text)
 import Data.String
@@ -91,6 +93,7 @@ import Safe
 import Text.Megaparsec hiding (parse)
 import Text.Megaparsec.Char
 import Text.Printf
+import System.Directory (canonicalizePath, doesFileExist, makeAbsolute)
 import System.FilePath
 import "Glob" System.FilePath.Glob hiding (match)
 -- import "filepattern" System.FilePattern.Directory
@@ -103,8 +106,6 @@ import Hledger.Read.CsvReader qualified as CsvReader (reader)
 import Hledger.Read.RulesReader qualified as RulesReader (reader)
 import Hledger.Read.TimeclockReader qualified as TimeclockReader (reader)
 import Hledger.Read.TimedotReader qualified as TimedotReader (reader)
-import System.Directory (canonicalizePath, doesFileExist)
-import Data.Functor ((<&>))
 
 --- ** doctest setup
 -- $setup
@@ -341,7 +342,7 @@ includedirectivep iopts = do
         Just fmt -> map ((show fmt++":")++) paths
 
   -- Parse each one, as if inlined here.
-  forM_ prefixedpaths $ parseIncludedFile iopts eoff
+  forM_ prefixedpaths $ parseIncludedFile iopts
 
   where
 
@@ -407,8 +408,29 @@ includedirectivep iopts = do
       -- Exclude any directories or symlinks to directories, and canonicalise, and sort.
       files <- liftIO $
         filterM doesFileExist paths
-        >>= mapM canonicalizePath
+        >>= mapM makeAbsolute
         <&> sort
+
+      -- -- If a glob was used, exclude the current file, for convenience.
+      -- let
+      --   files3 =
+      --     dbg6 (parentf <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
+      --     (if isglob then filter (/= parentf) else id) files
+
+      -- Throw an error if one of these files is among the grandparent files, forming a cycle.
+      -- Though, ignore the immediate parent file for convenience. XXX inconsistent - should it ignore all cyclic includes ?
+      -- We used to store the canonical paths, then switched to non-canonical paths for more useful output,
+      -- which means for each include directive we must re-canonicalise everything here; noticeable ? XXX
+      parentj <- get
+      let parentfiles = jincludefilestack parentj
+      cparentfiles <- liftIO $ mapM canonicalizePath parentfiles
+      let cparentf = take 1 parentfiles
+      files2 <- forM files $ \f -> do
+        cf <- liftIO $ canonicalizePath f
+        if
+          | [cf] == cparentf -> return cf  -- current file - return canonicalised, will be excluded later
+          | cf `elem` drop 1 cparentfiles -> customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ f
+          | otherwise -> return f
 
       -- Work around a Glob bug with dot dirs: while **/ ignores dot dirs in the starting and ending dirs,
       -- it does search dot dirs in between those two (Glob #49).
@@ -418,38 +440,33 @@ includedirectivep iopts = do
       -- things in dot dirs. An --old-glob command line flag disables this workaround, for backward compatibility.
       oldglobflag <- liftIO $ getFlag ["old-glob"]
       let
-        files2 = (if isglob && not oldglobflag then filter (not.hasdotdir) else id) files
+        files3 = (if isglob && not oldglobflag then filter (not.hasdotdir) else id) files2
           where
             hasdotdir p = any isdotdir $ splitPath p
               where
                 isdotdir c = "." `isPrefixOf` c && "/" `isSuffixOf` c
 
       -- Throw an error if no files were matched.
-      when (null files2) $
-        customFailure $ parseErrorAt off $ "No files were matched by glob pattern: " ++ globpattern
+      when (null files3) $ customFailure $ parseErrorAt off $ "No files were matched by: " ++ globpattern
 
-      -- If a glob was used, exclude the current file, for convenience.
+      -- If the current file got included, ignore it.
+      -- This is done last to avoid triggering the error above.
       let
-        files3 =
-          dbg6 (parentf <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
-          (if isglob then filter (/= parentf) else id) files2
+        files4 =
+          dbg6 (parentf <> " include: matched files (excluding current file)") $
+          filter (not.(`elem` cparentf)) files3
 
-      return files3
+      return files4
 
     -- Parse the given included file (and any deeper includes, recursively) as if it was inlined in the current (parent) file.
     -- The offset of the start of the include directive in the parent file is provided for error messages.
-    parseIncludedFile :: MonadIO m => InputOpts -> Int -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile iopts1 eoff prefixedpath = do
+    parseIncludedFile :: MonadIO m => InputOpts -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile iopts1 prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
-
-      -- Throw an error if a cycle is detected
-      parentj <- get
-      let parentfilestack = jincludefilestack parentj
-      when (dbg7 "parseIncludedFile: reading" filepath `elem` parentfilestack) $
-        customFailure $ parseErrorAt eoff $ "This included file forms a cycle: " ++ filepath
 
       -- Read the file's content, or throw an error
       childInput <- lift $ readFilePortably filepath `orRethrowIOError` "failed to read a file"
+      parentj <- get
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
       -- Choose a reader based on the file path prefix or file extension,
@@ -496,13 +513,11 @@ includedirectivep iopts = do
           ,jincludefilestack      = filepath : jincludefilestack j
           }
 
--- Get the canonical path of the file referenced by this parse position.
--- Symbolic links will be dereferenced. This probably will always succeed
--- (since the parse file's path is probably always absolute).
+-- Get the absolute path of the file referenced by this parse position.
+-- (Symbolic links will not be dereferenced.)
+-- This probably will always succeed, since the parse file's path is probably always absolute.
 sourcePosFilePath :: (MonadIO m) => SourcePos -> m FilePath
-sourcePosFilePath = liftIO . canonicalizePath . sourceName
--- "canonicalizePath is a very big hammer. If you only need an absolute path, makeAbsolute is sufficient"
--- but we only do this once per include directive, seems ok to leave it as is.
+sourcePosFilePath = liftIO . makeAbsolute . sourceName
 
 -- | Lift an IO action into the exception monad, rethrowing any IO
 -- error with the given message prepended.
@@ -1263,8 +1278,8 @@ tests_JournalReader = testGroup "JournalReader" [
      assertParse ignoredpricecommoditydirectivep "N $\n"
 
   ,testGroup "includedirectivep" [
-      testCase "include" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile\n" "No files were matched by glob pattern: nosuchfile"
-     ,testCase "glob" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile*\n" "No files were matched by glob pattern: nosuchfile*"
+      testCase "include" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile\n" "No files were matched by: nosuchfile"
+     ,testCase "glob" $ assertParseErrorE (includedirectivep definputopts) "include nosuchfile*\n" "No files were matched by: nosuchfile*"
      ]
 
   ,testCase "marketpricedirectivep" $ assertParseEq marketpricedirectivep

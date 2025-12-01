@@ -35,7 +35,7 @@ include ~/a.j
 $  HOME="$PWD" hledger -f - print
 2025-01-01 a
 
->= 0
+>=
 
 # ** 4. include followed by whitespace and/or comment -> missing argument error
 <
@@ -79,10 +79,9 @@ $ hledger -f- files
 >2 /Invalid glob/
 >=1
 
-# ** 10. Including the current file literally -> cycle error.
-$ hledger -f self.j files
->2 /included file forms a cycle/
->=1
+# ** 10. Including the current file literally -> harmless, current file is ignored.
+$ hledger -f self.j files | sed -E 's|.*/||'
+self.j
 
 # ** 11. Including a multi-file cycle, all literally -> cycle error.
 $ hledger -f cycle/cycle.j files
@@ -90,7 +89,7 @@ $ hledger -f cycle/cycle.j files
 >=1
 
 # ** 12. Including the current file via glob -> harmless, globs ignore current file.
-$ hledger -f glob-self.j files | sed -E 's|.*hledger/test/journal/include/||'
+$ hledger -f glob-self.j files | sed -E 's|.*/||'
 glob-self.j
 
 # ** 13. Including a cycle, involving globs -> cycle error
@@ -101,6 +100,7 @@ $ hledger -f cycle/globcycle.j files
 # ** 14. Old-style deep glob **/*.j -> all non-dot .j files in current dir or non-dot subdirs.
 <
 include glob-deep/**/*.j
+
 $ hledger -f - files | sed -E 's|.*/glob-deep/|glob-deep/|'
 -
 glob-deep/a.j
@@ -112,8 +112,6 @@ glob-deep/b/bb/bb.j
 glob-deep/c/c.j
 
 # ** 15. Simpler deep glob **.j -> same as above.
-<
-include glob-deep/**/*.j
 $ hledger -f - files | sed -E 's|.*/glob-deep/|glob-deep/|'
 -
 glob-deep/a.j
@@ -124,25 +122,18 @@ glob-deep/b/b.j
 glob-deep/b/bb/bb.j
 glob-deep/c/c.j
 
-# ** 16. --old-glob preserves pre-1.50 glob behaviour: avoiding dot things at top (.c/) and bottom (b/.d.j),
-# but searching intermediate dot dirs (b/.e/).
+# ** 16. --old-glob preserves pre-1.50 glob behaviour: avoiding dot things at top (.c/)
+# and at bottom (b/.d.j), searching intermediate dot dirs (b/.e/).
 <
 include glob-dot/**.j
+
 $ hledger -f - files --old-glob | sed -E 's|.*/glob-dot/||'
 -
 a.j
 b/.e/e.j
 b/b.j
 
-# ** 17. Otherwise, globs avoid all paths involving dot dirs (.c/, b/.d.j, b/.e/) (a workaround).
-<
-include glob-dot/**.j
-$ hledger -f - files | sed -E 's|.*/glob-dot/||'
--
-a.j
-b/b.j
-
-# ** 18. A non-glob path can match dot things.
+# ** 17. Dot things can be matched by an explicit non-glob path.
 <
 include glob-dot/.c/c.j
 include glob-dot/b/.d.j
@@ -153,27 +144,36 @@ $ hledger -f - files | sed -E 's|.*/glob-dot/||'
 b/.d.j
 b/.e/e.j
 
-# ** 19. A glob follows a symlink to a regular file (and shows the target file's path).
+# ** 18. They can't be matched by a glob path, even if explicitly mentioned, by default.
+<
+include glob-dot/.c/c.j*
+$ hledger -f - files | sed -E 's|.*/glob-dot/||'
+>2 /No files were matched/
+#>=1  # sed hides the exit code
+
+# ** 19. They can be matched by an explicit glob path if --old-glob is used.
+<
+include glob-dot/.c/c.j*
+$ hledger -f - files --old-glob | sed -E 's|.*/glob-dot/||'
+-
+.c/c.j
+
+# ** 20. A glob follows a symlink to a regular file. (And shows the symlink's path.)
 $ hledger -f glob-symlinked-file/a.j files | sed -E 's|.*/glob-symlinked-file/||'
 a.j
-c.j
+b.j
 
-# ** 20. A glob follows a symlink to a regular dir.
+# ** 21. A glob follows a symlink to a regular dir.
 $ hledger -f glob-symlinked-dir/a.j files | sed -E 's|.*/glob-symlinked-dir/||'
 a.j
-c/c.j
+b/c.j
 
-# ** 21. A glob follows a symlink to a dot file.
+# ** 22. A glob follows a symlink to a dot file.
 $ hledger -f glob-symlinked-dotfile/a.j files | sed -E 's|.*/glob-symlinked-dotfile/||'
 a.j
-.c.j
+b.j
 
-# ** 22. A glob does not follow a symlink to a dot dir.
+# ** 23. A glob follows a symlink to a dot dir.
 $ hledger -f glob-symlinked-dotdir/a.j files | sed -E 's|.*/glob-symlinked-dotdir/||'
->2 /No files were matched by glob pattern/
-#>=1  # sed hides this
-
-# ** 23. A glob does follow a symlink to a dot dir if --old-glob is used.
-$ hledger -f glob-symlinked-dotdir/a.j files --old-glob | sed -E 's|.*/glob-symlinked-dotdir/||'
 a.j
-.c/c.j
+b/c.j
