@@ -304,16 +304,21 @@ includedirectivep iopts = do
   -- save the position at start of include directive, for error messages
   eoff <- getOffset
   pos <- getSourcePos
+  let errorNoArg = customFailure $ parseErrorAt eoff "include needs a file path or glob pattern argument"
 
   -- parse the directive
   string "include"
-  lift skipNonNewlineSpaces1
-  prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
-  lift followingcommentp
+  -- notFollowedBy newline <?> "a file path or glob pattern argument"
+  prefixedglob <- (do
+    lift skipNonNewlineSpaces1
+    prefixedglob <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
+    lift followingcommentp
+    return prefixedglob
+    ) <|> errorNoArg
+
   let (mprefix,glb) = splitReaderPrefix prefixedglob
   parentf <- sourcePosFilePath pos   -- a little slow, don't do too often
-  when (null $ dbg6 (parentf <> " include: glob pattern") glb) $
-    customFailure $ parseErrorAt eoff $ "include needs a file path or glob pattern argument"
+  when (null $ dbg6 (parentf <> " include: glob pattern") glb) errorNoArg
 
   -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
   -- Also report whether a glob pattern was used, and not just a literal file path.
