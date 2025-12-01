@@ -481,14 +481,14 @@ STACKTEST := STACK + ' test --fast'
 @unittest:
     ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-SHELLTEST := STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
+SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 
 #  --hide-successes
 
 # build hledger warning-free and run functional tests, with any shelltest OPTS. (after mktestaddons)
 @functest *STOPTS:
     $STACK build --ghc-options=-Werror hledger
-    time (({{ SHELLTEST }} --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
+    time (({{ SHELLTEST }} --exclude=/_ --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
         -x hledger/test/perf.test \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
@@ -500,7 +500,7 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --exclude=/_ --threads=32'
 # run performance tests with the hledger in PATH, logging to perf.log and expecting a certain txns/s. Accepts shelltest OPTS.
 @perftest *STOPTS:
     echo "Running performance tests..."
-    time (({{ SHELLTEST }} --hide {{ if STOPTS == '' { '' } else { STOPTS } }} hledger/test/perf.test \
+    time (({{ SHELLTEST }} {{ if STOPTS == '' { '' } else { STOPTS } }} hledger/test/_perf.test \
         && echo $@ PASSED) || (echo $@ FAILED; false))
 
 ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
@@ -1704,7 +1704,7 @@ TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFI
 #     run some tests to validate the development environment\
 #     )
 #     @echo sanity-checking developer environment:
-#     @({{ SHELLTEST }} checks \
+#     @({{ SHELLTEST }} --exclude=/_ checks \
 #         && echo $@ PASSED) || echo $@ FAILED
 
 # sym-link some directories required by hledger-web dev builds
