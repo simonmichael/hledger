@@ -70,7 +70,6 @@ usage =
   ,"./Shake cmddocs [-c]     update all hledger's COMMAND.md and COMMAND.txt files,"
   ,"                         used for --help, manuals etc. (run after changing"
   ,"                         COMMAND.md or command options or general options)"
-  ,"./Shake mandates         update the date shown in some manual formats"
   ,"./Shake manuals [-c]     update the packages' embedded info/man/txt manuals"
   ,"./Shake changelogs [-c] [-n/--dry-run]"
   ,"                         update CHANGES.md files, adding new commits & headings"
@@ -419,7 +418,8 @@ main = do
       -- NB you should run "Shake cmddocs" before this, it's not automatic (?)
       phony "manuals" $ do
         need $ concat [
-               nroffmanuals
+               ["mandates"]
+              ,nroffmanuals
               ,infomanuals
               -- ,[infodir]
               ,txtmanuals
@@ -430,7 +430,6 @@ main = do
             concat [commandmds, packagemandatem4s, nroffmanuals, infomanuals, infodirentries, txtmanuals]  -- infodir
 
       -- Update the dates to show in man pages, to the current month and year.
-      -- Currently must be run manually when needed.
       -- Dates are stored in PKG/.date.m4, and are committed along with manuals by Shake manuals -c.
       phony "mandates" $ do
         date <- chomp . fromStdout <$> (cmd Shell "date +'%B %Y'" :: Action (Stdout String))
