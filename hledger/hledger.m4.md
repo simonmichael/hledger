@@ -2625,9 +2625,9 @@ So, you can do
 - `include **.journal` to include all other journal files in this directory and below (excluding dot directories/files)
 - `include timelogs/2???.timedot` to include all timedot files named like a year number.
 
-There is a limitation: hledger's globs always exclude paths involving dot files or dot directories.
-This is a workaround for unavoidable dot directory traversal; 
-you can disable it and revert to older behaviour with the `--old-glob` flag, for now.
+Note `*` and `**` mostly won't implicitly match dot files or dot directories,
+but `**` does implicitly search non-top-level dot directories.
+If this causes problems, make your glob pattern more specific (eg `**.journal` instead of `**`).
 
 If you are using many, or deeply nested, include files, and have an error that's hard to pinpoint:
 a good troubleshooting command is `hledger files --debug=6` (or 7).
