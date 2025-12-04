@@ -1,9 +1,9 @@
-hledger 1.50.3 is out, fixing a big performance regression in the 1.50 series
-(so you should upgrade to this one.)
-Thank you to contributors Caleb Maclennan and Stephen Morgan.
+hledger-1.50.4 fixes 1.50's journal include directive,
+so that it no longer ignores paths containing dot files/directories,
+and it no longer shows symbolic links dereferenced.
 
-- https://github.com/simonmichael/hledger/releases/1.50.3
-- https://hledger.org/relnotes.html#2025-11-18-hledger-1503
+- https://github.com/simonmichael/hledger/releases/1.50.4
+- https://hledger.org/relnotes.html#2025-12-04-hledger-1504
 - https://hledger.org/install
 
 #hledger is free, robust, friendly, multicurrency, double-entry,
