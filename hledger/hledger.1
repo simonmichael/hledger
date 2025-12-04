@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "November 2025" "hledger-1.50.3 " "hledger User Manuals"
+.TH "HLEDGER" "1" "December 2025" "hledger-1.50.4 " "hledger User Manuals"
 
 
 
@@ -27,7 +27,7 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-This manual is for hledger\[aq]s command line interface, version 1.50.3.
+This manual is for hledger\[aq]s command line interface, version 1.50.4.
 It also describes the common options, file formats and concepts used by
 all hledger programs.
 It might accidentally teach you some bookkeeping/accounting as well!
@@ -3341,23 +3341,23 @@ character; \f[CR][a\-z]\f[R] to match any character in a range;
 separator (like \f[CR]/\f[R]); \f[CR]**\f[R] to match zero or more
 subdirectories and/or zero or more characters at the start of a file
 name; etc.
-Also, hledger\[aq]s globs always exclude the including file itself.
+For convenience, \f[CR]include\f[R] always excludes the current file.
 So, you can do
 .IP \[bu] 2
 \f[CR]include *.journal\f[R] to include all other journal files in the
 current directory (excluding dot files)
 .IP \[bu] 2
 \f[CR]include **.journal\f[R] to include all other journal files in this
-directory and below (excluding dot directories/files)
+directory and below (excluding dot files and top\-level dot directories)
 .IP \[bu] 2
 \f[CR]include timelogs/2???.timedot\f[R] to include all timedot files
 named like a year number.
 .PP
-There is a limitation: hledger\[aq]s globs always exclude paths
-involving dot files or dot directories.
-This is a workaround for unavoidable dot directory traversal; you can
-disable it and revert to older behaviour with the
-\f[CR]\-\-old\-glob\f[R] flag, for now.
+Note \f[CR]*\f[R] and \f[CR]**\f[R] usually won\[aq]t match dot files or
+dot directories, with one exception: \f[CR]**\f[R] does search
+non\-top\-level dot directories.
+If this causes problems, make your glob pattern more specific (eg
+\f[CR]**.journal\f[R] instead of \f[CR]**\f[R]).
 .PP
 If you are using many, or deeply nested, include files, and have an
 error that\[aq]s hard to pinpoint: a good troubleshooting command is
