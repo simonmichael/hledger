@@ -2521,15 +2521,13 @@ hledger's globs are similar to zsh's:
 `*` to match zero or more characters that aren't a path separator (like `/`);
 `**` to match zero or more subdirectories and/or zero or more characters at the start of a file name;
 etc.
-Also, hledger's globs always exclude the including file itself.
-So, you can do 
+For convenience, `include` always excludes the current file. So, you can do 
 
 - `include *.journal` to include all other journal files in the current directory (excluding [dot files](https://en.wikipedia.org/wiki/Hidden_file_and_hidden_directory))
-- `include **.journal` to include all other journal files in this directory and below (excluding dot directories/files)
+- `include **.journal` to include all other journal files in this directory and below (excluding dot files and top-level dot directories)
 - `include timelogs/2???.timedot` to include all timedot files named like a year number.
 
-Note `*` and `**` mostly won't implicitly match dot files or dot directories,
-but `**` does implicitly search non-top-level dot directories.
+Note `*` and `**` usually won't match dot files or dot directories, with one exception: `**` does search non-top-level dot directories.
 If this causes problems, make your glob pattern more specific (eg `**.journal` instead of `**`).
 
 If you are using many, or deeply nested, include files, and have an error that's hard to pinpoint:
