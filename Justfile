@@ -792,6 +792,16 @@ quickprof CMD: #hledgerprof #samplejournals
 # ** Documenting ------------------------------------------------------------
 DOCUMENTING:
 
+# Update manuals - build hledger, regenerate flag docs, regenerate manuals
+manuals:
+    $STACK build hledger
+    ./Shake cmddocs -c
+    ./Shake manuals -c
+
+# Update the site's snapshot of the manuals for this branch's major release version.
+manuals-site: manuals
+    make -C site snapshot-$(just majorver)
+
 # Add latest commit messages to the changelogs. (Runs ./Shake changelogs [OPTS])
 changelogs *OPTS:
     ./Shake changelogs {{ OPTS }}
@@ -849,11 +859,6 @@ LOCALSITEURL := 'http://localhost:3000/index.html'
     (printf "\nbrowser will open in {{ BROWSEDELAY }}s (adjust BROWSE if needed)...\n\n"; sleep $BROWSEDELAY; $BROWSE "$LOCALSITEURL" ) &
     $WATCHEXEC --no-vcs-ignore -e md,m4 -i hledger.md -i hledger-ui.md -i hledger-web.md -r './Shake webmanuals && make -sC site serve'
 # --no-vcs-ignore to include site/src/*.md
-
-# In the site repo, commit a snapshot of the manuals with this version number.
-@site-manuals-snapshot VER:
-    make -C site snapshot-{{ VER }}
-    echo "{{ VER }} manuals created. Please add the new version to site.js, Makefile, and hledger.org.caddy."
 
 STACKHADDOCK := 'time ' + STACK + ' --verbosity=error haddock --fast --no-keep-going \
     --only-locals --no-haddock-deps --no-haddock-hyperlink-source \
@@ -1197,8 +1202,6 @@ relbranch VER:
 # Too much at once, allow smaller steps.
 #    echo "Updating all command help texts for embedding..."
 #    ./Shake cmddocs -c
-#    echo "Updating all dates in man pages..."
-#    ./Shake mandates
 #    echo "Generating all the manuals in all formats...."
 #    ./Shake manuals -c
 #    # echo "Updating CHANGES.md files with latest commits..."
@@ -1275,6 +1278,16 @@ nightly-push:
 # Does this dotted version number have a .99 third part and a fourth part ?
 @_versionIsPreview VER:
     echo {{ if VER =~ '(\d+\.){2}99\.\d+' { 'y' } else { '' } }}
+
+# Show the hledger version number that's configured for the current branch.
+@ver:
+    cat .version
+
+# Show the hledger major version number that's configured for the current branch.
+@majorver:
+    just _versionMajorPart $(cat .version)
+
+# Show the hledger major version number that's configured for the current branch.
 
 # Increment a major version number to the next.
 # @majorVersionIncrement MAJORVER:
@@ -1597,8 +1610,6 @@ devtag:
     git push origin "$DEVVER"
     echo "Setting versions to $DEVVER.."
     ./Shake setversion "$DEVVER" -c
-    echo "Setting man page dates to $(date +'%B %Y').."
-    ./Shake mandates
     echo "Regenerating manuals.."
     ./Shake manuals -c
     echo "Consider also: with $RELVER installed, ./Shake cmddocs -c"
