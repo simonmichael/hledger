@@ -322,9 +322,9 @@ includedirectivep iopts = do
   when (null $ dbg6 (parentf <> " include: glob pattern") glb) errorNoArg
 
   -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
+  paths <- findMatchedFiles eoff parentf glb
   -- Also report whether a glob pattern was used, and not just a literal file path.
   -- (paths, isglob) <- findMatchedFiles off pos glb
-  paths <- findMatchedFiles eoff parentf glb
 
   -- XXX worth the trouble ? no
   -- Comprehensively exclude files already processed. Some complexities here:
@@ -354,12 +354,8 @@ includedirectivep iopts = do
     -- Converts ** without a slash to **/*, like zsh's GLOB_STAR_SHORT, so ** also matches file name parts.
     -- Checks if any matched paths are directories and excludes those.
     -- Converts all matched paths to their canonical form.
-    --
-    -- Glob patterns never match dot files or files under dot directories,
-    -- even if it seems like they should; this is a workaround for Glob bug #49.
-    -- This workaround is disabled if the --old-glob flag is present in the command line
-    -- (detected with unsafePerformIO; it's not worth a ton of boilerplate).
-    -- In that case, be aware ** recursive globs will search intermediate dot directories.
+    -- Note * and ** mostly won't implicitly match dot files or dot directories,
+    -- but ** will implicitly search non-top-level dot directories (see #2498, Glob#49).
 
     findMatchedFiles :: (MonadIO m) => Int -> FilePath -> FilePath -> JournalParser m [FilePath]
     findMatchedFiles off parentf globpattern = do
@@ -375,8 +371,8 @@ includedirectivep iopts = do
       -- * at the start of a file name ignores dot-named files and directories, by default.
       -- ** (or zero or more consecutive *'s) not followed by slash is equivalent to *.
       -- A **/ component matches any number of directory parts.
-      -- A **/ ignores dot-named directories in its starting and ending directories, by default.
-      -- But **/ does search intermediate dot-named directories. Eg it can find a/.b/c.
+      -- A **/ does not implicitly search top-level dot directories or implicitly match do files,
+      -- but it does search non-top-level dot directories. Eg ** will find the c file in a/.b/c.
 
       -- expand a tilde at the start of the glob pattern, or throw an error
       expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
@@ -400,7 +396,6 @@ includedirectivep iopts = do
       g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob' of
         Left e  -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
         Right x -> pure x
-      let isglob = not $ isLiteral g
 
       -- Find all matched paths. These might include directories or the current file.
       paths <- liftIO $ globDir1 g cwd
@@ -410,12 +405,6 @@ includedirectivep iopts = do
         filterM doesFileExist paths
         >>= mapM makeAbsolute
         <&> sort
-
-      -- -- If a glob was used, exclude the current file, for convenience.
-      -- let
-      --   files3 =
-      --     dbg6 (parentf <> " include: matched files" <> if isglob then " (excluding current file)" else "") $
-      --     (if isglob then filter (/= parentf) else id) files
 
       -- Throw an error if one of these files is among the grandparent files, forming a cycle.
       -- Though, ignore the immediate parent file for convenience. XXX inconsistent - should it ignore all cyclic includes ?
@@ -432,31 +421,16 @@ includedirectivep iopts = do
           | cf `elem` drop 1 cparentfiles -> customFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ f
           | otherwise -> return f
 
-      -- Work around a Glob bug with dot dirs: while **/ ignores dot dirs in the starting and ending dirs,
-      -- it does search dot dirs in between those two (Glob #49).
-      -- This could be inconvenient, eg making it hard to avoid VCS directories in a source tree.
-      -- We work around as follows: when any glob was used, paths involving dot dirs are excluded in post processing.
-      -- Unfortunately this means valid globs like .dotdir/* can't be used; only literal paths can match
-      -- things in dot dirs. An --old-glob command line flag disables this workaround, for backward compatibility.
-      oldglobflag <- liftIO $ getFlag ["old-glob"]
-      let
-        files3 = (if isglob && not oldglobflag then filter (not.hasdotdir) else id) files2
-          where
-            hasdotdir p = any isdotdir $ splitPath p
-              where
-                isdotdir c = "." `isPrefixOf` c && "/" `isSuffixOf` c
-
       -- Throw an error if no files were matched.
-      when (null files3) $ customFailure $ parseErrorAt off $ "No files were matched by: " ++ globpattern
+      when (null files2) $ customFailure $ parseErrorAt off $ "No files were matched by: " ++ globpattern
 
-      -- If the current file got included, ignore it.
-      -- This is done last to avoid triggering the error above.
+      -- If the current file got included, ignore it (last, to avoid triggering the error above).
       let
-        files4 =
+        files3 =
           dbg6 (parentf <> " include: matched files (excluding current file)") $
-          filter (not.(`elem` cparentf)) files3
+          filter (not.(`elem` cparentf)) files2
 
-      return files4
+      return files3
 
     -- Parse the given included file (and any deeper includes, recursively) as if it was inlined in the current (parent) file.
     -- The offset of the start of the include directive in the parent file is provided for error messages.
