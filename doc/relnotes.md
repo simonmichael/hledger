@@ -77,8 +77,53 @@ Major releases and user-visible changes, collected from the changelogs (
 
 
 
-## 2025-11-18 hledger-1.50.3
 
+## 2025-12-04 hledger-1.50.4
+
+### hledger 1.50.4
+
+Fixes
+
+- An `include` directive with no argument now gives consistent error messages.
+
+- journal format's `include` directive no longer excludes paths containing dotted directories/files.
+  1.50-1.50.3 contained an overzealous workaround that sometimes wrongly excluded paths containing a dot dir or dot file.
+  Now the pre-1.50 behaviour is restored
+  (`*` and `**` generally avoid dot files and dot directories, except `**` will search non-top-level dot directories).
+  [#2498]
+
+- Symbolic links found by `include` directives are once again shown as-is, not dereferenced.
+  (1.50-1.50.3 showed them dereferenced, eg in `hledger files` output.)
+
+  There is some related new behaviour: each time an include directive is parsed,
+  all the parent file paths and the new include file path(s) are re-canonicalised.
+  Previous hledger versions did not do this; it's expected to be unnoticeable,
+  but if you notice any slowdown caused by having many include directives and a slow filesystem,
+  please report it.
+
+[#2498]: https://github.com/simonmichael/hledger/issues/2498
+
+
+### hledger-ui 1.50.4
+
+
+- Uses hledger 1.50.4.
+
+
+### hledger-web 1.50.4
+
+
+- Uses hledger 1.50.4.
+
+
+### credits 1.50.4
+
+Simon Michael.
+
+[#2498]: https://github.com/simonmichael/hledger/issues/2498
+
+
+## 2025-11-18 hledger-1.50.3
 ### hledger 1.50.3
 
 Fixes
@@ -163,6 +208,7 @@ Stephen Morgan.
 [#2495]: https://github.com/simonmichael/hledger/issues/2495
 [#2495]: https://github.com/simonmichael/hledger/issues/2495
 [#2495]: https://github.com/simonmichael/hledger/issues/2495
+
 
 
 ## 2025-09-26 hledger-1.50.2
@@ -10474,3 +10520,5 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
