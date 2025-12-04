@@ -1255,271 +1255,6 @@ nightly-push:
 @rels:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
 
-# *** hledger version number helpers
-# (as hidden recipes, since just doesn't support global custom functions)
-# See doc/RELEASING.md > Glossary.
-
-# First 0-2 parts of a dotted version number.
-@_versionMajorPart VER:
-    echo {{ replace_regex(VER, '(\d+(\.\d+)?).*', '$1') }}
-
-# Third part of a dotted version number, if any.
-@_versionMinorPart VER:
-    echo {{ if VER =~ '\d+(\.\d+){2,}' { replace_regex(VER, '\d+\.\d+\.(\d+).*', '$1') } else { '' } }}
-
-# Fourth part of a dotted version number, if any.
-@_versionFourthPart VER:
-    echo {{ if VER =~ '\d+(\.\d+){3,}' { replace_regex(VER, '\d+(\.\d+){2}\.(\d+).*', '$2') } else { '' } }}
-
-# Does this dotted version number have a .99 third part and no fourth part ?
-@_versionIsDev VER:
-    echo {{ if VER =~ '(\d+\.){2}99$' { 'y' } else { '' } }}
-
-# Does this dotted version number have a .99 third part and a fourth part ?
-@_versionIsPreview VER:
-    echo {{ if VER =~ '(\d+\.){2}99\.\d+' { 'y' } else { '' } }}
-
-# Show the hledger version number that's configured for the current branch.
-@ver:
-    cat .version
-
-# Show the hledger major version number that's configured for the current branch.
-@majorver:
-    just _versionMajorPart $(cat .version)
-
-# Show the hledger major version number that's configured for the current branch.
-
-# Increment a major version number to the next.
-# @majorVersionIncrement MAJORVER:
-#     python3 -c "print({{MAJORVER}} + 0.01)"
-
-# Appropriate release branch name for the given version number.
-_versionReleaseBranch VER:
-    #!/usr/bin/env bash
-    MAJOR=$(just _versionMajorPart {{ VER }})
-    if [[ $(just _versionIsDev {{ VER }}) == y ]] then
-      echo "{{ VER }} is not a releasable version" >&2
-      exit 1
-    elif [[ $(just _versionIsPreview {{ VER }}) == y ]] then
-      # echo "$(just majorVersionIncrement "$MAJOR")-branch"
-      echo "{{ VER }} is not a releasable version" >&2
-      exit 1
-    else
-      echo "$MAJOR-branch"
-    fi
-
-# *** git helpers
-
-# Does the named branch exist in this git repo ?
-@_gitBranchExists BRANCH:
-    git branch -l {{ BRANCH }} | grep -q {{ BRANCH }}
-
-# Switch to the named git branch, creating it if it doesn't exist.
-_gitSwitchAutoCreate BRANCH:
-    #!/usr/bin/env bash
-    if just _gitBranchExists {{ BRANCH }}; then
-      git switch {{ BRANCH }}
-    else
-      git switch -c {{ BRANCH }}
-    fi
-
-# # old/desired release process:
-# #  a normal release: echo 0.7   >.version; make release
-# #  a bugfix release: echo 0.7.1 >.version; make release
-# #release: releasetest bumpversion tagrelease $(call def-help,release, prepare and test a release and tag the repo )
-# #publish: hackageupload pushtags $(call def-help,upload, publish latest hackage packages and push tags to github )
-# #releaseandpublish: release upload $(call def-help,releaseandpublish, release and upload and publish updated docs )
-# ISCLEAN=git diff-index --quiet HEAD --
-# # stop if the working directory has uncommitted changes
-# iscleanwd:
-#     @$(ISCLEAN) || (echo "please clean the working directory first"; false)
-# # stop if the given file(s) have uncommitted changes
-# isclean-%:
-#     @$(ISCLEAN) $* || (echo "please clean these files first: $*"; false)
-
-# # Update all cabal files based on latest package.yaml files using a specific hpack version.
-# # To avoid warnings, this should be the same version as stack's built-in hpack.
-# cabal-with-hpack-%:
-#     $(STACK) build --with-hpack hpack-$* --dry-run --silent
-# # updatecabal: gencabal $(call def-help,updatecabal, regenerate cabal files and commit )
-# #     @read -p "please review changes then press enter to commit $(shell ls */*.cabal)"
-# #     git commit -m "update cabal files" $(shell ls */*.cabal)
-# # we use shake for this job; so dependencies aren't checked here
-# manuals: Shake $(call def-help,manuals, regenerate and commit CLI help and manuals (might need -B) )
-#     ./Shake manuals
-#     git commit -m ";doc: regen manuals" -m "[ci skip]" hledger*/hledger*.{1,5,info,txt} hledger/Hledger/Cli/Commands/*.txt
-# tag: $(call def-help,tag, make git release tags for the project and all packages )
-#     @for p in $(PACKAGES); do make tag-$$p; done
-#     @make tag-project
-# tag-%: $(call def-help,tag-PKG, make a git release tag for PKG )
-#     git tag -fs $*-`cat $*/.version` -m "Release $*-`cat $*/.version`"
-# tag-project: $(call def-help,tag-project, make a git release tag for the project as a whole )
-#     git tag -fs `cat .version` -m "Release `cat .version`, https://hledger.org/release-notes.html#hledger-`cat .version | sed -e 's/\./-/g'`"
-#     @printf "if tagging a major release, please also review and run this command:\n"
-#     @printf " git tag -fs `cat .version`.99 master -m \"Start of next release cycle. This tag influences git describe and dev builds' version strings.\"\n"
-# # hackageupload-dry: \
-# #     $(call def-help,hackageupload-dry,\
-# #     upload all packages to hackage; dry run\
-# #     )
-# #     for p in $(PACKAGES); do cabal upload $$p/dist/$$p-$(VERSION).tar.gz -v2 --check; done
-# hackageupload: \
-#     $(call def-help,hackageupload, upload all packages to hackage    from a release branch)
-#     tools/hackageupload $(PACKAGES)
-# # showreleasestats stats: \
-# #     showreleasedays \
-# #     showunreleasedchangecount \
-# #     showloc \
-# #     showtestcount \
-# #     showunittestcoverage \
-# #     showreleaseauthors \
-# #     showunreleasedcodechanges \
-# #     showunpushedchanges \
-# #     $(call def-help,showreleasestats stats,\
-# #     show project stats useful for release notes\
-# #     )
-# # #    showerrors
-# # FROMTAG=.
-# # showreleasedays: \
-# #     $(call def-help,showreleasedays,\
-# #     \
-# #     )
-# #     @echo Days since last release:
-# #     @tools/dayssincetag.hs $(FROMTAG) | head -1 | cut -d' ' -f-1
-# #     @echo
-# # # XXX
-# # showunreleasedchangecount: \
-# #     $(call def-help,showunreleasedchangecount,\
-# #     \
-# #     )
-# #     @echo Commits since last release:
-# #     @darcs changes --from-tag $(FROMTAG) --count
-# #     @echo
-
-# show a precise git-describe version string
-@describe:
-    git describe --tags --match 'hledger-[0-9]*' --dirty
-
-# show all commit author names
-@authors:
-    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
-    git shortlog -sn
-
-# show all commit author names and emails
-@authorsv:
-    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
-    git shortlog -sne
-
-SCC := 'scc -z --cocomo-project-type semi-detached -f wide -s code'
-
-# count lines of code with scc
-scc:
-    echo "Lines of code including tests:"
-    {{ SCC }} -i hs,sh,m4,hamlet
-
-# count lines of code with scc, showing all files
-sccv:
-    echo "Lines of code including tests:"
-    {{ SCC }} -i hs,sh,m4,hamlet --by-file
-
-# # `ls $(SOURCEFILES)`
-# # sloc: \
-# #     $(call def-help,sloc,\
-# #     \
-# #     )
-# #     @sloccount hledger-lib hledger hledger-web
-# # cloc: \
-# #     $(call def-help,cloc,\
-# #     \
-# #     )
-# #     @echo
-# #     @echo "Lines of code as of `date`:"
-# #     @echo
-# #     @echo "hledger-lib, hledger"
-# #     @cloc -q hledger-lib hledger             2>&1 | grep -v 'defined('
-# #     @echo
-# #     @echo "hledger-web"
-# #     @cloc -q hledger-web                     2>&1 | grep -v 'defined('
-# #     @echo
-# #     @echo "hledger-lib, hledger, hledger-web"
-# #     @cloc -q hledger-lib hledger hledger-web 2>&1 | grep -v 'defined('
-# # showtestcount: \
-# #     $(call def-help,showtestcount,\
-# #     \
-# #     )
-# #     @echo "Unit tests:"
-# #     @hledger test 2>&1 | cut -d' ' -f2
-# #     @echo "Functional tests:"
-# #     @make --no-print functest | egrep '^ Total' | awk '{print $$2}'
-# #     @echo
-# # showunittestcoverage: \
-# #     $(call def-help,showunittestcoverage,\
-# #     \
-# #     )
-# #     @echo Unit test coverage:
-# #     @make --no-print quickcoverage | grep 'expressions'
-# #     @echo
-# # # showerrors:
-# # #     @echo Known errors:
-# # #     @awk '/^** errors/, /^** / && !/^** errors/' NOTES.org | grep '^\*\*\* ' | tail +1
-# # #     @echo
-# # # XXX
-# # showunpushedchanges showunpushed: \
-# #     $(call def-help,showunpushedchanges showunpushed,\
-# #     \
-# #     )
-# #     @echo "Changes not yet pushed upstream (to `darcs show repo | grep 'Default Remote' | cut -c 17-`):"
-# #     @-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
-# #     @echo
-# # # XXX
-# # showunreleasedcodechanges showunreleased showchanges: \
-# #     $(call def-help,showunreleasedcodechanges showunreleased showchanges,\
-# #     \
-# #     )
-# #     @echo "hledger code changes since last release:"
-# #     @darcs changes --from-tag $(FROMTAG) --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
-# #     @echo
-# # # XXX
-# # showcodechanges: \
-# #     $(call def-help,showcodechanges,\
-# #     \
-# #     )
-# #     @echo "hledger code changes:"
-# #     @darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
-# #     @echo
-# nix-hledger-version: $(call def-help,nix-hledger-version, show which version of hledger has reached nixpkgs)
-#     @curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger"'
-# nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
-#     @curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
-# nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
-#     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
-# list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
-#     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
-
-# update shell completions in hledger package
-@completions:
-    make -C hledger/shell-completion/
-    echo "now please commit any changes in hledger/shell-completion/"
-
-# Check that we're on a release branch. (Hopefully the latest.)
-_on-release-branch:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    BRANCH=$(git branch --show-current)
-    if [[ ! $BRANCH =~ ^[0-9.]*-branch ]]; then
-        echo "You are currently on $BRANCH branch. Please switch to the latest release branch."
-        exit 1
-    fi
-
-# Check that we're on the master branch.
-_on-master-branch:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    BRANCH=$(git branch --show-current)
-    if [[ ! $BRANCH =~ master ]]; then
-        echo "You are currently on $BRANCH branch. Please switch to the master branch."
-        exit 1
-    fi
-
 # Make draft release notes from changelogs. Run on release branch.
 @relnotes:
     just _on-release-branch
@@ -1626,9 +1361,232 @@ tags:
 @hackageupload:
     tools/hackageupload $PACKAGES
 
+# *** hledger version number helpers
+# (as hidden recipes, since just doesn't support global custom functions)
+# See doc/RELEASING.md > Glossary.
+
+# First 0-2 parts of a dotted version number.
+@_versionMajorPart VER:
+    echo {{ replace_regex(VER, '(\d+(\.\d+)?).*', '$1') }}
+
+# Third part of a dotted version number, if any.
+@_versionMinorPart VER:
+    echo {{ if VER =~ '\d+(\.\d+){2,}' { replace_regex(VER, '\d+\.\d+\.(\d+).*', '$1') } else { '' } }}
+
+# Fourth part of a dotted version number, if any.
+@_versionFourthPart VER:
+    echo {{ if VER =~ '\d+(\.\d+){3,}' { replace_regex(VER, '\d+(\.\d+){2}\.(\d+).*', '$2') } else { '' } }}
+
+# Does this dotted version number have a .99 third part and no fourth part ?
+@_versionIsDev VER:
+    echo {{ if VER =~ '(\d+\.){2}99$' { 'y' } else { '' } }}
+
+# Does this dotted version number have a .99 third part and a fourth part ?
+@_versionIsPreview VER:
+    echo {{ if VER =~ '(\d+\.){2}99\.\d+' { 'y' } else { '' } }}
+
+# Show the hledger version number that's configured for the current branch.
+@ver:
+    cat .version
+
+# Show the hledger major version number that's configured for the current branch.
+@majorver:
+    just _versionMajorPart $(cat .version)
+
+# Show the hledger major version number that's configured for the current branch.
+
+# Increment a major version number to the next.
+# @majorVersionIncrement MAJORVER:
+#     python3 -c "print({{MAJORVER}} + 0.01)"
+
+# Appropriate release branch name for the given version number.
+_versionReleaseBranch VER:
+    #!/usr/bin/env bash
+    MAJOR=$(just _versionMajorPart {{ VER }})
+    if [[ $(just _versionIsDev {{ VER }}) == y ]] then
+      echo "{{ VER }} is not a releasable version" >&2
+      exit 1
+    elif [[ $(just _versionIsPreview {{ VER }}) == y ]] then
+      # echo "$(just majorVersionIncrement "$MAJOR")-branch"
+      echo "{{ VER }} is not a releasable version" >&2
+      exit 1
+    else
+      echo "$MAJOR-branch"
+    fi
+
+# *** git helpers
+
+# Does the named branch exist in this git repo ?
+@_gitBranchExists BRANCH:
+    git branch -l {{ BRANCH }} | grep -q {{ BRANCH }}
+
+# Switch to the named git branch, creating it if it doesn't exist.
+_gitSwitchAutoCreate BRANCH:
+    #!/usr/bin/env bash
+    if just _gitBranchExists {{ BRANCH }}; then
+      git switch {{ BRANCH }}
+    else
+      git switch -c {{ BRANCH }}
+    fi
+
+# show a precise git-describe version string
+@describe:
+    git describe --tags --match 'hledger-[0-9]*' --dirty
+
+# show all commit author names
+@authors:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sn
+
+# show all commit author names and emails
+@authorsv:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sne
+
+# Check that we're on a release branch. (Hopefully the latest.)
+_on-release-branch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH=$(git branch --show-current)
+    if [[ ! $BRANCH =~ ^[0-9.]*-branch ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the latest release branch."
+        exit 1
+    fi
+
+# Check that we're on the master branch.
+_on-master-branch:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    BRANCH=$(git branch --show-current)
+    if [[ ! $BRANCH =~ master ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the master branch."
+        exit 1
+    fi
+
 
 # ** Misc ------------------------------------------------------------
 MISC:
+
+# update shell completions in hledger package
+@completions:
+    make -C hledger/shell-completion/
+    echo "now please commit any changes in hledger/shell-completion/"
+
+SCC := 'scc -z --cocomo-project-type semi-detached -f wide -s code'
+
+# count lines of code with scc
+scc:
+    echo "Lines of code including tests:"
+    {{ SCC }} -i hs,sh,m4,hamlet
+
+# count lines of code with scc, showing all files
+sccv:
+    echo "Lines of code including tests:"
+    {{ SCC }} -i hs,sh,m4,hamlet --by-file
+
+# # showreleasestats stats: \
+# #     showreleasedays \
+# #     showunreleasedchangecount \
+# #     showloc \
+# #     showtestcount \
+# #     showunittestcoverage \
+# #     showreleaseauthors \
+# #     showunreleasedcodechanges \
+# #     showunpushedchanges \
+# #     $(call def-help,showreleasestats stats,\
+# #     show project stats useful for release notes\
+# #     )
+# # #    showerrors
+# # FROMTAG=.
+# # showreleasedays: \
+# #     $(call def-help,showreleasedays,\
+# #     \
+# #     )
+# #     @echo Days since last release:
+# #     @tools/dayssincetag.hs $(FROMTAG) | head -1 | cut -d' ' -f-1
+# #     @echo
+# # # XXX
+# # showunreleasedchangecount: \
+# #     $(call def-help,showunreleasedchangecount,\
+# #     \
+# #     )
+# #     @echo Commits since last release:
+# #     @darcs changes --from-tag $(FROMTAG) --count
+# #     @echo
+
+# # `ls $(SOURCEFILES)`
+# # sloc: \
+# #     $(call def-help,sloc,\
+# #     \
+# #     )
+# #     @sloccount hledger-lib hledger hledger-web
+# # cloc: \
+# #     $(call def-help,cloc,\
+# #     \
+# #     )
+# #     @echo
+# #     @echo "Lines of code as of `date`:"
+# #     @echo
+# #     @echo "hledger-lib, hledger"
+# #     @cloc -q hledger-lib hledger             2>&1 | grep -v 'defined('
+# #     @echo
+# #     @echo "hledger-web"
+# #     @cloc -q hledger-web                     2>&1 | grep -v 'defined('
+# #     @echo
+# #     @echo "hledger-lib, hledger, hledger-web"
+# #     @cloc -q hledger-lib hledger hledger-web 2>&1 | grep -v 'defined('
+# # showtestcount: \
+# #     $(call def-help,showtestcount,\
+# #     \
+# #     )
+# #     @echo "Unit tests:"
+# #     @hledger test 2>&1 | cut -d' ' -f2
+# #     @echo "Functional tests:"
+# #     @make --no-print functest | egrep '^ Total' | awk '{print $$2}'
+# #     @echo
+# # showunittestcoverage: \
+# #     $(call def-help,showunittestcoverage,\
+# #     \
+# #     )
+# #     @echo Unit test coverage:
+# #     @make --no-print quickcoverage | grep 'expressions'
+# #     @echo
+# # # showerrors:
+# # #     @echo Known errors:
+# # #     @awk '/^** errors/, /^** / && !/^** errors/' NOTES.org | grep '^\*\*\* ' | tail +1
+# # #     @echo
+# # # XXX
+# # showunpushedchanges showunpushed: \
+# #     $(call def-help,showunpushedchanges showunpushed,\
+# #     \
+# #     )
+# #     @echo "Changes not yet pushed upstream (to `darcs show repo | grep 'Default Remote' | cut -c 17-`):"
+# #     @-darcs push simon@joyful.com:/repos/hledger --dry-run | grep '*' | tac
+# #     @echo
+# # # XXX
+# # showunreleasedcodechanges showunreleased showchanges: \
+# #     $(call def-help,showunreleasedcodechanges showunreleased showchanges,\
+# #     \
+# #     )
+# #     @echo "hledger code changes since last release:"
+# #     @darcs changes --from-tag $(FROMTAG) --matches "not (name docs: or name doc: or name site: or name tools:)" | grep '*'
+# #     @echo
+# # # XXX
+# # showcodechanges: \
+# #     $(call def-help,showcodechanges,\
+# #     \
+# #     )
+# #     @echo "hledger code changes:"
+# #     @darcs changes --matches "not (name docs: or name site: or name tools:)" | egrep '^ +(\*|tagged)'
+# #     @echo
+# nix-hledger-version: $(call def-help,nix-hledger-version, show which version of hledger has reached nixpkgs)
+#     @curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger"'
+# nix-hledger-versions: $(call def-help,nix-hledger-versions, show versions of all hledger packages in nixpkgs)
+#     @curl -s https://raw.githubusercontent.com/NixOS/nixpkgs/master/pkgs/development/haskell-modules/hackage-packages.nix | grep -A1 'pname = "hledger'
+# nix-view-commits: $(call def-help,nix-view-commits, show recent haskell commits in nixpkgs)
+#     @open 'https://github.com/NixOS/nixpkgs/commits/master/pkgs/development/haskell-modules/hackage-packages.nix'
+# list-commits: $(call def-help,list-commits, list all commits chronologically and numbered)
+#     @git log --format='%ad %h %s (%an)' --date=short --reverse | cat -n
 
 # show upcoming planned dated tasks
 schedule *PERIOD:
