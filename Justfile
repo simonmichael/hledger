@@ -1041,6 +1041,10 @@ reltags:
     just ghrun-open binaries-mac-x64
     just ghrun-open binaries-windows-x64
 
+# Push the 5 release tags for the specified release version. Do this after building release binaries and before creating the github release.
+reltags-push VER:
+    git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
+
 # XXX
 # Release binaries are downloaded to local machine, repacked, and uploaded to GH release.
 # Nightly binaries are copied from their last runs by a workflow on GH.
@@ -1078,10 +1082,6 @@ ghrel-bin-upload VER:
     # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
     # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
-
-# Push the 5 release tags for the specified release version.
-reltags-push VER:
-    git push origin {{ VER }} hledger-{{ VER }} hledger-lib-{{ VER }} hledger-ui-{{ VER }} hledger-web-{{ VER }}
 
 # After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag. And update the versions/help/manuals there.
 devtag-push:
