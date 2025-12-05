@@ -1714,3 +1714,15 @@ TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFI
 time *ARGS:
     hledger -n -f $TIMEDIR/time-all.journal bal hledger -YTA --transpose -0 {{ ARGS }}
 
+# Cherry picked from master. Justfile has diverged in this branch.
+# After ghbin-download: upload the downloaded binaries to the current release branch's github release.
+ghrel-bin-upload:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-release-branch
+    VER=$(just ver)
+    read -p "Warning! uploading binaries to release $VER, are you sure ? Enter to proceed: "
+    gh release upload --clobber "$VER" tmp/hledger-linux-x64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-mac-arm64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-windows-x64.zip
