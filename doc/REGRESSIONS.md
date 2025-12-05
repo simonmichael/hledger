@@ -229,6 +229,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2498]                  | 1.50.4    | Peter Sagerson (donated)                                                         | Simon Michael (N/A)
 | **1.50.2** 2025-09-26    | ---       | ---                                                                              | ---
 | [#2495]                  | 1.50.3    | alix-aspersa                                                                     | [Simon Michael](https://opencollective.com/hledger/expenses/274113)
+| **1.51** 2025-12-05      | ---       | ---                                                                              | ---
 
 
 
