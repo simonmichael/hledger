@@ -18,7 +18,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 2f18c858
+# 1.51 2025-12-05
 
 Docs updated
 
@@ -40,7 +40,6 @@ Docs updated
 
 Infrastructure/Misc
 
-- add performance tests, logged to perf.log, run by just perftest
 - bump stack snapshots
 - Dockerfile fixed (probably)
 - drop the hledger-install script
@@ -49,6 +48,7 @@ Infrastructure/Misc
 - just ghci-ui: :main (and :rmain) now works again
 - just ghnightly* -> nightly*
 - just oldest
+- just perftest: run performance tests, logged to perf.log
 - just releasediag update
 - just rels-major
 - just site-restart
