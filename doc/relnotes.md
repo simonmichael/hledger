@@ -72,8 +72,169 @@ Major releases and user-visible changes, collected from the changelogs (
 
 
 
-## 2025-12-04 hledger-1.50.4
 
+## 2025-12-05 hledger-1.51
+
+**Small improvements, doc updates**
+
+### hledger 1.51
+
+Fixes
+
+- HTML output no longer contains invalid nested tables (Joschua Kesper). This may cause some visual changes, hopefully all for the better.
+- `stats`: `-o` now redirects all output, including the performance stats.
+
+Features
+
+- `commodities`, `payees` and `tags` commands now have a `--find` mode for finding the best match (like the `accounts` command).
+- `stats`: A new `-1` flag prints a single line of output in machine-friendly tab-separated format, including the program version, journal file name, and performance stats.
+
+Improvements
+
+- In journal format, an empty `{}` pair is now allowed (and ignored) in amounts, slightly improving Ledger/Beancount compatibility.
+- `accounts` in `--tree` mode, when showing a subset of accounts, now shows parent accounts for context, like the `balance` command.
+  (Sam Almahri, [#2427])
+- `accounts --types` no longer shows value-less type tags; untyped accounts are shown without a `type` tag.
+- When pivoting on account type with `--pivot=type`, account types will be normalised to their short spelling (`A` instead of `Assets`, etc).
+- `accounts`: the `--positions` flag has been renamed to `--locations`.
+- `print`: the `--location` flag has been renamed to `--locations`.
+- `setup`: tidier output for missing LEDGER_FILE or default file; wording improvements
+
+Docs
+
+- Account names: rewrite, emphasise the two space delimiter
+- accounts: improve/sync options order
+- add: balance assertions/assignments: clarify, fix [#2494]
+- aregister: formatting
+- aregister: clarify arguments
+- argument files: corrections
+- check: drop obsolete note about transaction balancing
+- check: edits, correction
+- close: customisation: clarify [#2492]
+- commodity directive: add info about the -c command line option (Ooker)
+- COMMON TASKS: demote subheadings
+- csv: new "CSV fields and hledger fields" section
+- csv: new "Regular expressions in CSV rules" section
+- csv: link the `if`-specific `skip` and `end` ruels more clearly
+- depth: rewrite, note combining issue
+- print: clarify amount styling; note more parseability breakers
+- print: note another way print can disrupt journal readability (same-day balance assertions)
+- rename Editor configuration -> Editors
+- Setting LEDGER_FILE: rewrite, new windows procedures
+- Special characters: rewrite (Simon Michael, Caleb Maclennan, [#2468])
+- Tags: rewrite [hledger_site#141]
+- Value reporting: more advice, examples for COMM
+- Value reporting: warn about -V, emphasise -X
+
+Examples
+
+- Organise/rename examples/csv/ as the [CSV rules library](https://github.com/simonmichael/hledger/tree/master/examples/csv)
+
+Scripts/addons
+
+- `hledger-check-buynothing`: check Buy Nothing Day compliance
+- `hledgerj1`: example of a wrapper for reading a custom data format
+- `sortandmergepostings`: Overhaul for more robust determinism (Caleb Maclennan)
+  - Avoids non-deterministic flip-flopping when the alphabetical account sort has multiple commodities
+  - Sorts postings commodities so commodities are in the same order across transactions
+  - Sorts postings with matching commodity by posting amount
+
+API
+
+-  Hledger.Cli.Utils:
+   - stop exporting pivotByOpts, anonymiseByOpts
+   - renamed withJournalDo -> withJournal. The old name is still available but deprecated.
+
+
+### hledger-ui 1.51
+
+Improvements
+
+- Allow brick 2.10, vty 6.5.
+
+- Uses hledger 1.51.
+
+
+### hledger-web 1.51
+
+Improvements
+
+- Uses hledger 1.51.
+
+
+### project changes 1.51
+
+Docs updated
+
+- ACHIEVEMENTS
+- ANNOUNCE.short
+- AUTHORS
+- bin/README
+- CHANGES.md: move to doc/ for consistent paths
+- Contributing: mention translation (Lý Minh Nhật)
+- DECISIONS
+- dev
+- DOCS: document & diagram latest doc update procedures
+- ISSUES
+- REGRESSIONS
+- RELEASING
+- relnotes: more reliable changelog links
+- ROADMAP
+- tldr/README
+
+Infrastructure/Misc
+
+- bump stack snapshots
+- Dockerfile fixed (probably)
+- drop the hledger-install script
+- just changelogs* update
+- just docupdatediag
+- just ghci-ui: :main (and :rmain) now works again
+- just ghnightly* -> nightly*
+- just oldest
+- just perftest: run performance tests, logged to perf.log
+- just releasediag update
+- just rels-major
+- just site-restart
+- just: devtag-push: simplify
+- just: ghrel-bin-upload
+- just: manuals, manuals-site
+- just: reltags: cleanup
+- just: ver, majorver
+- Justfile: less safari dependence
+- Justfile reorg, cleanups
+- release script updates
+- Shake: drop mandates target, update manual dates automatically
+- Shake manuals: more contributor instructions in the header comment [hledger_site#140]
+- stack92: add valid hashtables version
+- stack94: add valid hashtables version
+- stack96: add valid hashtables version 
+- stack98: include valid hashtables version
+- stack98: restore needed encoding 0.10 extra dep
+- stop git ignoring site/src/, allowing web docs to be easily opened in vscode
+- tools/relnotes.hs update
+- use a nightly branch instead of a nightly tag on github, it's simpler
+- workflows: use shelltestrunner 1.11
+- workflows:binaries-mac-x64: switch to macos-15-intel
+
+
+### credits 1.51
+
+Simon Michael,
+Caleb Maclennan,
+Joschua Kesper,
+Ooker,
+Sam Almahri.
+
+
+[#2427]: https://github.com/simonmichael/hledger/issues/2427
+[#2468]: https://github.com/simonmichael/hledger/issues/2468
+[#2492]: https://github.com/simonmichael/hledger/issues/2492
+[#2494]: https://github.com/simonmichael/hledger/issues/2494
+
+
+
+## 2025-12-04 hledger-1.50.4
 ### hledger 1.50.4
 
 Fixes
@@ -115,6 +276,7 @@ Fixes
 Simon Michael.
 
 [#2498]: https://github.com/simonmichael/hledger/issues/2498
+
 
 
 ## 2025-11-18 hledger-1.50.3
@@ -10515,5 +10677,7 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
