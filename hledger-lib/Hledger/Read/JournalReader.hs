@@ -106,6 +106,7 @@ import Hledger.Read.CsvReader qualified as CsvReader (reader)
 import Hledger.Read.RulesReader qualified as RulesReader (reader)
 import Hledger.Read.TimeclockReader qualified as TimeclockReader (reader)
 import Hledger.Read.TimedotReader qualified as TimedotReader (reader)
+import Data.Function ((&))
 
 --- ** doctest setup
 -- $setup
@@ -342,7 +343,7 @@ includedirectivep iopts = do
         Just fmt -> map ((show fmt++":")++) paths
 
   -- Parse each one, as if inlined here.
-  forM_ prefixedpaths $ parseIncludedFile iopts
+  forM_ prefixedpaths $ parseIncludedFile iopts eoff
 
   where
 
@@ -375,7 +376,7 @@ includedirectivep iopts = do
       -- but it does search non-top-level dot directories. Eg ** will find the c file in a/.b/c.
 
       -- expand a tilde at the start of the glob pattern, or throw an error
-      expandedglob <- lift $ expandHomePath globpattern `orRethrowIOError` "failed to expand ~"
+      expandedglob <- lift $ expandHomePath globpattern & handleIOError off "failed to expand ~"
 
       -- get the directory of the including file
       let cwd = takeDirectory parentf
@@ -434,12 +435,12 @@ includedirectivep iopts = do
 
     -- Parse the given included file (and any deeper includes, recursively) as if it was inlined in the current (parent) file.
     -- The offset of the start of the include directive in the parent file is provided for error messages.
-    parseIncludedFile :: MonadIO m => InputOpts -> PrefixedFilePath -> ErroringJournalParser m ()
-    parseIncludedFile iopts1 prefixedpath = do
+    parseIncludedFile :: MonadIO m => InputOpts -> Int -> PrefixedFilePath -> ErroringJournalParser m ()
+    parseIncludedFile iopts1 off prefixedpath = do
       let (_mprefix,filepath) = splitReaderPrefix prefixedpath
 
       -- Read the file's content, or throw an error
-      childInput <- lift $ readFilePortably filepath `orRethrowIOError` "failed to read a file"
+      childInput <- lift $ readFilePortably filepath & handleIOError off "failed to read a file"
       parentj <- get
       let initChildj = newJournalWithParseStateFrom filepath parentj
 
@@ -493,14 +494,14 @@ includedirectivep iopts = do
 sourcePosFilePath :: (MonadIO m) => SourcePos -> m FilePath
 sourcePosFilePath = liftIO . makeAbsolute . sourceName
 
--- | Lift an IO action into the exception monad, rethrowing any IO
--- error with the given message prepended.
-orRethrowIOError :: MonadIO m => IO a -> String -> TextParser m a
-orRethrowIOError io msg = do
+-- | Lift an IO action into the exception monad, converting any IO error
+-- to a parse error message at the given offset.
+handleIOError :: MonadIO m => Int -> String -> IO a -> TextParser m a
+handleIOError off msg io = do
   eResult <- liftIO $ (Right <$> io) `C.catch` \(e::C.IOException) -> pure $ Left $ printf "%s:\n%s" msg (show e)
   case eResult of
     Right res -> pure res
-    Left errMsg -> fail errMsg
+    Left errMsg -> setOffset off >> fail errMsg
 
 -- Parse an account directive, adding its info to the journal's
 -- list of account declarations.
