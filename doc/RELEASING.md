@@ -58,11 +58,38 @@ Release readiness and the release process go from the bottom of this diagram to 
 [![release diagram](RELEASING.png)](RELEASING.png)
 <!-- source: RELEASING.canvas (Obsidian) -->
 
+## Release script
+Short version, based on the checklist below.
+Last updated: 2025-12
+
+1. **finish fixes/features/docs in master**
+2. **begin draft builds:** `j ghbin oldest`
+3. **in release branch, update code:** `j relbranch VER`; minor: cherry-pick new changes from master
+4. **update manuals and website manuals:** `j manuals-site`
+5. **major: update website scripts/redirects:** update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
+6. **update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
+7. **update relnotes:** `j relnotes`; edit; commit
+8. **update announcements:** edit `doc/ANNOUNCE`, `doc/ANNOUNCE.short`
+9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghnightlynotes.md`, `site/src/install.md`
+10. **tag:** `j reltags`
+11. **make release builds:** `j ghbin`
+12. **in master, merge updates from release branch**
+13. **release to hackage:** `j hackageupload`
+14. **push to github:** VER-branch, `j reltags-push VER`, master, site repo
+15. **activate website scripts/redirects:** `j site-restart`
+16. **release to github:** make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
+17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
+18. **after major: update dev version, dev tag:** `j devtag-push`
+19. **update manuals:** `j manuals`
+20. **update changelogs:** `j changelogs`; edit
+
+
 ## Release checklist
 
 This is the guide for doing a hledger release.
 It corresponds to the diagram above, with more detail of waypoints, required artifacts, and related commands.
 It should be improved each time it is used.
+Last updated: 2025-11
 
 <!-- Trailing double spaces are used for line breaks -->
 
