@@ -56,26 +56,20 @@ Docs
 - Account names: rewrite, emphasise the two space delimiter
 - accounts: improve/sync options order
 - add: balance assertions/assignments: clarify, fix [#2494]
-- aregister: formatting
 - aregister: clarify arguments
 - argument files: corrections
 - check: drop obsolete note about transaction balancing
-- check: edits, correction
 - close: customisation: clarify [#2492]
-- commodity directive: add info about the -c command line option (ooker)
+- commodity directive: add info about the -c command line option (Ooker)
 - COMMON TASKS: demote subheadings
-- csv: new "CSV fields and hledger fields" section
-- csv: new "Regular expressions in CSV rules" section
-- csv: link the `if`-specific `skip` and `end` ruels more clearly
+- csv: "CSV fields and hledger fields"; "Regular expressions in CSV rules"; link the `if`-specific `skip` and `end` rules more clearly
 - depth: rewrite, note combining issue
+- Editor configuration -> Editors
 - print: clarify amount styling; note more parseability breakers
-- print: note another way print can disrupt journal readability (same-day balance assertions)
-- rename Editor configuration -> Editors
 - Setting LEDGER_FILE: rewrite, new windows procedures
 - Special characters: rewrite (Simon Michael, Caleb Maclennan, [#2468])
 - Tags: rewrite [hledger_site#141]
-- Value reporting: more advice, examples for COMM
-- Value reporting: warn about -V, emphasise -X
+- Value reporting: more advice, examples for COMM, warn about -V/emphasise -X
 
 Examples
 
