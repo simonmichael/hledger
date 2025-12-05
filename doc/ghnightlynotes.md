@@ -1,6 +1,6 @@
 Here you can find unreleased "nightly" binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html), you can help to make the next release better.
 
-These binaries have the following changes since the 1.50.4 release: https://github.com/simonmichael/hledger/compare/1.50.4...nightly
+These binaries have the following changes since the 1.51 release: https://github.com/simonmichael/hledger/compare/1.51...nightly
 
 <details>
 <summary>
