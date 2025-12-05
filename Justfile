@@ -1075,12 +1075,12 @@ ghbin-download:
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
 # After ghbin-download: upload the downloaded binaries to the current release branch's github release.
-ghrel-bin-upload:
+ghrel-upload:
     #!/usr/bin/env bash
     set -euo pipefail
     just _on-release-branch
     VER=$(just ver)
-    @read -p "Warning! uploading binaries to release $VER, are you sure ? Enter to proceed: "
+    read -p "Warning! uploading binaries to release $VER, are you sure ? Enter to proceed: "
     gh release upload --clobber "$VER" tmp/hledger-linux-x64.tar.gz
     gh release upload --clobber "$VER" tmp/hledger-mac-arm64.tar.gz
     gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
