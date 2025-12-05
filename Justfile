@@ -1086,22 +1086,19 @@ ghrel-bin-upload:
     gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
     gh release upload --clobber "$VER" tmp/hledger-windows-x64.zip
 
-# After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag. And update the versions/help/manuals there.
+# After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag.
 devtag-push:
     #!/usr/bin/env bash
     set -euo pipefail
     RELVER=$(just relver)
     DEVVER=$RELVER.99
     just _on-master-branch
+    echo "Setting versions to $DEVVER.."
+    ./Shake setversion "$DEVVER" -c
     echo "Creating tag $DEVVER.."
     git tag --force --sign "$DEVVER" -m "start of post-$RELVER dev cycle"
     echo "Pushing tag $DEVVER.."
     git push origin "$DEVVER"
-    echo "Setting versions to $DEVVER.."
-    ./Shake setversion "$DEVVER" -c
-    echo "Regenerating manuals.."
-    ./Shake manuals -c
-    echo "Consider also: with $RELVER installed, ./Shake cmddocs -c"
 
 # XXX There's a tag and a github prerelease, both named nightly, creating confusion.
 # Try replacing the tag with a github nightly branch again.
