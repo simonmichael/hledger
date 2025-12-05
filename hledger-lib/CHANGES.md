@@ -17,51 +17,20 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# fc85fa26
-
-- ;doc: add the 1.50.3 changelogs
-
-- dev: balanceTransaction -> balanceSingleTransaction
-
-- imp:lib:Hledger.Read: safer defaultJournal* functions
-
-- fix!: error if LEDGER_FILE points to a nonexistent file [#2485]
-  Avoiding potentially confusing silent fallback. Also,
-
-  - Drop support for Ledger's legacy LEDGER environment variable;
-    we now support only LEDGER_FILE, for simplicity.
-
-  - Clarify the behaviour, eg when a glob pattern matches multiple files
-    or when the value is empty.
-
-- fix:journal: repair 1.50's journal reading slowness [#2493]
-  Since 1.50, sourceFilePath, which does IO operations, was being called for every item in the journal.
-  On my machine this was causing a ~40% slowdown,
-  but probably it could be more depending on storage system.
-
-  Now it's once again called only once per include directive.
-  Speed seems slightly better now than 1.43 for some reason
-  (eg: 13k txns/s -> 8k txns/s -> 14k txns/s).
-
-- ;doc: update embedded manuals
-
-- ;doc:changelogs
-
-
-
+# 2f18c858
 
 Breaking changes
 
-Fixes
+- Hledger.Data.Balancing: balanceTransaction -> balanceSingleTransaction
+- Hledger.Utils.IO:
+  - inputToHandle -> textToHandle; set utf8 not utf8_bom
+  - readHandlePortably, readHandlePortably' -> hGetContentsPortably
 
 Improvements
 
 - Hledger.Utils.String:
   quoteForCommandLine now quotes some additional problem characters, and no longer quotes "7".
   [#2468]
-- Hledger.Utils.IO:
-  - inputToHandle -> textToHandle; set utf8 not utf8_bom
-  - readHandlePortably, readHandlePortably' -> hGetContentsPortably
 
 
 # 1.50.4 2025-12-04

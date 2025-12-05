@@ -18,7 +18,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# fc85fa26
+# 2f18c858
 
 Docs updated
 
@@ -38,12 +38,11 @@ Docs updated
 - ROADMAP
 - tldr/README
 
-Website
-
 Infrastructure/Misc
 
 - add performance tests, logged to perf.log, run by just perftest
 - bump stack snapshots
+- Dockerfile fixed (probably)
 - drop the hledger-install script
 - just changelogs* update
 - just docupdatediag
@@ -53,8 +52,15 @@ Infrastructure/Misc
 - just releasediag update
 - just rels-major
 - just site-restart
+- just: devtag-push: simplify
+- just: ghrel-bin-upload
+- just: manuals, manuals-site
+- just: reltags: cleanup
+- just: ver, majorver
+- Justfile: less safari dependence
 - Justfile reorg, cleanups
 - release script updates
+- Shake: drop mandates target, update manual dates automatically
 - Shake manuals: more contributor instructions in the header comment [hledger_site#140]
 - stack92: add valid hashtables version
 - stack94: add valid hashtables version
