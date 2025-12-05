@@ -1,15 +1,11 @@
-hledger-1.50.4 fixes 1.50's journal include directive,
-so that it no longer ignores paths containing dot files/directories,
-and it no longer shows symbolic links dereferenced.
+Following on the heels of 1.50.4, hledger-1.51 brings some small improvements and many doc updates.
 
 Best,
 -Simon
 
-
-- https://github.com/simonmichael/hledger/releases/1.50.4
-- https://hledger.org/relnotes.html#2025-12-04-hledger-1504
+- https://github.com/simonmichael/hledger/releases/1.51
+- https://hledger.org/relnotes.html#2025-12-05-hledger-151
 - https://hledger.org/install
-
 
 hledger is free, robust, friendly, multicurrency, double-entry,
 plain text accounting software for unix, mac, windows, and the web.
