@@ -72,6 +72,11 @@ Docs
 API
 
 
+# 1.50.4 2025-12-04
+
+- Uses hledger 1.50.4.
+
+
 # 1.50.3 2025-11-18
 
 - `--watch` mode now also detects changes from apps which overwrite the file, such as VS Code.

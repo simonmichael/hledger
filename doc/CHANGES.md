@@ -68,6 +68,8 @@ Infrastructure/Misc
 - workflows:binaries-mac-x64: switch to macos-15-intel
 
 
+# 1.50.4 2025-12-04
+
 # 1.50.3 2025-11-18
 
 # 1.50.2 2025-09-26
