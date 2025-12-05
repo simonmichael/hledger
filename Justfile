@@ -1074,17 +1074,17 @@ ghbin-download:
     just _on-release-branch
     doc/ghrelnotes `cat .version` | gh release edit `cat .version` -F-
 
-# After ghbin-download: upload the downloaded binaries to the specified github release.
-ghrel-bin-upload VER:
-    @read -p "Warning! uploading binaries to release {{ VER }}, are you sure ? Enter to proceed: "
-    gh release upload --clobber {{ VER }} tmp/hledger-linux-x64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-mac-arm64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-mac-x64.tar.gz
-    gh release upload --clobber {{ VER }} tmp/hledger-windows-x64.zip
-    # gh release upload {{ VER }} tmp/hledger-linux-x64/hledger-linux-x64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-mac-arm64/hledger-mac-arm64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-mac-x64/hledger-mac-x64.tar.gz
-    # gh release upload {{ VER }} tmp/hledger-windows-x64/hledger-windows-x64.tar.gz
+# After ghbin-download: upload the downloaded binaries to the current release branch's github release.
+ghrel-bin-upload:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    just _on-release-branch
+    VER=$(just ver)
+    @read -p "Warning! uploading binaries to release $VER, are you sure ? Enter to proceed: "
+    gh release upload --clobber "$VER" tmp/hledger-linux-x64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-mac-arm64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
+    gh release upload --clobber "$VER" tmp/hledger-windows-x64.zip
 
 # After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag. And update the versions/help/manuals there.
 devtag-push:
