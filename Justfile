@@ -1221,20 +1221,6 @@ tags:
 @showrelnotes VER:
     awk "/^## .*-${VER//./\\.}$/ {p=1;print;next}; /^## / {p=0}; p" doc/relnotes.md
 
-# show a precise git-describe version string
-@describe:
-    git describe --tags --match 'hledger-[0-9]*' --dirty
-
-# show all commit author names
-@authors:
-    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
-    git shortlog -sn
-
-# show all commit author names and emails
-@authorsv:
-    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
-    git shortlog -sne
-
 SCC := 'scc -z --cocomo-project-type semi-detached -f wide -s code'
 
 # count lines of code with scc
@@ -1489,6 +1475,20 @@ _gitSwitchAutoCreate BRANCH:
     else
       git switch -c {{ BRANCH }}
     fi
+
+# show a precise git-describe version string
+@describe:
+    git describe --tags --match 'hledger-[0-9]*' --dirty
+
+# show all commit author names
+@authors:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sn
+
+# show all commit author names and emails
+@authorsv:
+    echo "Commit authors ($(git shortlog -sn | wc -l | awk '{print $1}'))":
+    git shortlog -sne
 
 # Check that we're on a release branch. (Hopefully the latest.)
 _on-release-branch:
