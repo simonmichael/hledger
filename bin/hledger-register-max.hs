@@ -23,7 +23,7 @@ import Control.Monad
 import Data.List
 import Data.Maybe
 import Data.Ord
-import "text" qualified Data.Text as T
+import qualified "text" Data.Text as T
 import Data.Text.IO qualified as T
 import Safe
 import System.Environment
