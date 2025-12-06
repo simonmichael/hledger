@@ -223,7 +223,7 @@ defaultJournalPath = do
     exists <- doesFileExist defaultfile
     if exists then return defaultfile
     -- else error' $ "LEDGER_FILE is unset and \"" <> defaultfile <> "\" was not found"
-    else error' $ "neither LEDGER_FILE nor \"" <> defaultfile <> "\" were found"
+    else error' $ "neither LEDGER_FILE nor \"" <> defaultfile <> "\" was found"
   else do
     mf <- headMay <$> expandGlob "." ledgerfile `C.catch` (\(_::C.IOException) -> return [])
     case mf of
