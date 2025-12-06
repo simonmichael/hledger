@@ -1,4 +1,5 @@
 # * include directive
+# Here be dragons.
 
 # ** 1. The old !include spelling still works.
 <
@@ -148,3 +149,35 @@ b.j
 $ hledger -f glob-symlinked-dotdir/a.j files | sed -E 's|.*/glob-symlinked-dotdir/||'
 a.j
 b/c.j
+# ** 20. Reading an unreadable file directly says permission denied.
+# (Keep this out of the source tree to avoid breaking shelltest and other things.)
+$  touch /tmp/unreadable.$$ && chmod -r /tmp/unreadable.$$ && hledger -f /tmp/unreadable.$$ files; rm -f /tmp/unreadable.$$
+>2 /Error:.*permission denied/
+
+# ** 0. A symlink to an unreadable file also says permission denied.
+#$  touch /tmp/unreadable.$$ && chmod -r /tmp/unreadable.$$ && ln -s /tmp/unreadable.$$ /tmp/symlink.$$ && hledger -f /tmp/symlink.$$ files; rm -f /tmp/{unreadable,symlink}.$$
+#>2 /Error:.*permission denied/
+
+# ** 0. A symlink to a readable file in an unsearchable dir says file not found. Fair enough I suppose.
+
+# ** 0. #2499 describes this failure with 1.50.3 which I have not been able to reproduce:
+# In ~/.hledger.journal I have: !include doc/private/money/hledger.journal
+#
+# That worked with versions up to 1.32.3, but not with hledger 1.50.3 (linux-x86_64):
+# joey@darkstar:~>hledger bal
+# hledger: Error: /home/joey/.hledger.journal:3:2:
+# |
+# 3 | !include doc/private/money/hledger.journal
+# | ^
+# No files were matched by glob pattern: doc/private/money/hledger.journal
+#
+# To get it to work I had to prefix the path with "~/".
+#
+# --old-glob does not change this behavior.
+#
+# My ~/.hledger.journal is a symlink to .etc/.hledger.journal
+
+# ** 21. But I did find this possibly related regression in 1.50.4 & 1.51:
+# Failing test:
+# $ hledger -f symlink-to-relative-include.j files
+# > //
