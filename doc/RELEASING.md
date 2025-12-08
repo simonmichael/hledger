@@ -69,17 +69,17 @@ Last updated: 2025-12
 5. **major: update website scripts/redirects:** update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
 6. **update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
 7. **update relnotes:** `j relnotes`; edit; commit
-8. **update announcements:** edit `doc/ANNOUNCE`, `doc/ANNOUNCE.short`
+8. **update announcements:** edit `doc/ANNOUNCE`
 9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghnightlynotes.md`, `site/src/install.md`
 10. **tag:** `j reltags`
 11. **make release builds:** `j ghbin`
 12. **in master, merge updates from release branch**
 13. **release to hackage:** `j hackageupload`
-14. **push to github:** VER-branch, `j reltags-push VER`, master, site repo
-15. **activate website scripts/redirects:** `j site-restart`
-16. **release to github:** make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
+14. **push to github:** `j reltags-push VER`, VER-branch, master, site repo
+15. **release to github:** make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
+16. **major: activate website scripts/redirects:** `j site-restart`
 17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
-18. **after major: update dev version, dev tag:** `j devtag-push`
+18. **major: update dev version, dev tag:** `j devtag-push`
 19. **update manuals:** `j manuals`
 20. **update changelogs:** `j changelogs`; edit
 
@@ -148,8 +148,7 @@ Last updated: 2025-11
       commit
   - github binary install docs (doc/ghrelnotes.md) up to date and pre-tested
   - Install page (site/src/install.md) up to date and pre-tested
-  - draft long announcement for chat, mail list (doc/ANNOUNCE)
-  - draft short announcement for mastodon etc (doc/ANNOUNCE.short)
+  - draft announcement for chat, mail list, mastodon etc (doc/ANNOUNCE)
   - release tags  
       `just reltags`
   - release binaries built from tag  
