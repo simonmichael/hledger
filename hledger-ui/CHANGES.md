@@ -23,6 +23,11 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1.51.1 2025-12-08
+
+- Uses hledger 1.51.1.
+
+
 # 1.51 2025-12-05
 
 Improvements
