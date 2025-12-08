@@ -319,7 +319,7 @@ includedirectivep iopts = do
     ) <|> errorNoArg
 
   let (mprefix,glb) = splitReaderPrefix prefixedglob
-  parentf <- sourcePosFilePath pos   -- a little slow, don't do too often
+  parentf <- sourcePosFilePath pos
   when (null $ dbg6 (parentf <> " include: glob pattern") glb) errorNoArg
 
   -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
@@ -379,7 +379,8 @@ includedirectivep iopts = do
       expandedglob <- lift $ expandHomePath globpattern & handleIOError off "failed to expand ~"
 
       -- get the directory of the including file
-      let cwd = takeDirectory parentf
+      -- need to canonicalise a symlink parentf so takeDirectory works correctly [#2503]
+      cwd <- fmap takeDirectory <$> liftIO $ canonicalizePath parentf
 
       -- Don't allow 3 or more stars.
       when ("***" `isInfixOf` expandedglob) $

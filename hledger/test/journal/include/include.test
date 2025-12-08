@@ -177,7 +177,6 @@ $  touch /tmp/unreadable.$$ && chmod -r /tmp/unreadable.$$ && hledger -f /tmp/un
 #
 # My ~/.hledger.journal is a symlink to .etc/.hledger.journal
 
-# ** 21. But I did find this possibly related regression in 1.50.4 & 1.51:
-# Failing test:
-# $ hledger -f symlink-to-relative-include.j files
-# > //
+# ** 21. But I did find this possibly related regression in 1.50.4 & 1.51 [#2503].
+$ hledger -f symlink-to-relative-include.j files
+> //
