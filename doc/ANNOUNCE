@@ -1,13 +1,8 @@
-hledger-1.50.4 fixes 1.50's journal include directive,
-so that it no longer ignores paths containing dot files/directories,
-and it no longer shows symbolic links dereferenced.
+hledger-1.50.5 fixes a new issue with 1.50's journal include directive,
+breakage with relative include paths in sym-linked files, caused by 1.50.4.
 
-Best,
--Simon
-
-
-- https://github.com/simonmichael/hledger/releases/1.50.4
-- https://hledger.org/relnotes.html#2025-12-04-hledger-1504
+- https://github.com/simonmichael/hledger/releases/1.50.5
+- https://hledger.org/relnotes.html#2025-12-08-hledger-1505
 - https://hledger.org/install
 
 
