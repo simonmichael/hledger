@@ -167,6 +167,7 @@ import Hledger.Utils
 import Prelude hiding (getContents, writeFile)
 import Hledger.Data.JournalChecks (journalStrictChecks)
 import Text.Printf (printf)
+import Hledger.Data.Journal (journalNumberTransactions)
 
 --- ** doctest setup
 -- $setup
@@ -353,7 +354,10 @@ readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
 readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal, [LatestDatesForFile])
 readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
-  return (maybe def sconcat $ nonEmpty js, catMaybes lastdates)
+  -- Also renumber the concatenated transactions. In 1.51 and before, tindex restarted from 1 in each file.
+  -- Now we ensure tindex is unique across all files. This helps aregister preserve txns' parse order,
+  -- and with luck won't cause problems for anyone.
+  return (journalNumberTransactions $ maybe def sconcat $ nonEmpty js, catMaybes lastdates)
 
 -- | An easy version of 'readJournal' which assumes default options, and fails in the IO monad.
 readJournal' :: Handle -> IO Journal
