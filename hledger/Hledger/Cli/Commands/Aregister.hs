@@ -89,7 +89,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       (a:as) -> return (a, map T.pack as)
   let
     -- keep synced with findMatchedByArgument's matching
-    acct = fromMaybe (error' $ help <> ",\nbut " ++ show apat++" did not match any account.")   -- PARTIAL:
+    acct = fromMaybe (error' $ help <> ", but " ++ show apat++" did not match any account.")   -- PARTIAL:
            . firstMatch $ journalAccountNamesDeclaredOrImplied j
     firstMatch = case toRegexCI $ T.pack apat of
         Right re -> find (regexMatchText re)
