@@ -228,6 +228,40 @@ Sam Almahri.
 
 
 
+## 2025-12-08 hledger-1.50.5
+
+
+### hledger 1.50.5
+
+Fixes
+
+- Relative includes from a symlinked file work again, fixing some fallout from 1.50.4's fixes.
+  [#2503]
+
+[#2503]: https://github.com/simonmichael/hledger/issues/2503
+
+
+### hledger-ui 1.50.5
+
+
+- Uses hledger 1.50.5.
+
+
+### hledger-web 1.50.5
+
+
+- Uses hledger 1.50.5.
+
+
+
+
+### credits 1.50.5
+
+
+Simon Michael.
+
+
+
 ## 2025-12-04 hledger-1.50.4
 ### hledger 1.50.4
 
