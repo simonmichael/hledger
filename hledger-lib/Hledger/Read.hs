@@ -351,12 +351,11 @@ readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
 -- The implementation of readJournalFiles.
 -- With --new, it also returns the latest transaction date(s) read in each file
 -- (used by the import command).
+-- This also renumbers the transactions, ensuring their tindex values are unique;
+-- that's also done elsewhere, but some code (accountTransactionsReport) needs it done sooner.
 readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal, [LatestDatesForFile])
 readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
-  -- Also renumber the concatenated transactions. In 1.51 and before, tindex restarted from 1 in each file.
-  -- Now we ensure tindex is unique across all files. This helps aregister preserve txns' parse order,
-  -- and with luck won't cause problems for anyone.
   return (journalNumberTransactions $ maybe def sconcat $ nonEmpty js, catMaybes lastdates)
 
 -- | An easy version of 'readJournal' which assumes default options, and fails in the IO monad.
