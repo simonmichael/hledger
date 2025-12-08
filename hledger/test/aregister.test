@@ -46,6 +46,7 @@ Transactions in assets:checking and subaccounts (matching query):
 # matching postings) then by parse order. (#1642)
 # Also, make sure to use the posting date of matching transactions, if it
 # differs from the transaction date.
+# Also, parse order respects the order of -f options on command line (not tested here).
 <
 ~ 2021-01-03  sixth, because forecast transactions come after normal transactions
     (a)           6
