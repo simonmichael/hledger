@@ -73,6 +73,57 @@ Major releases and user-visible changes, collected from the changelogs (
 
 
 
+## 2025-12-08 hledger-1.51.1
+
+### hledger 1.51.1
+
+
+Fixes
+
+- Relative includes from a symbolically-linked journal file now work again.
+  This was fallout from 1.50.4's fixes.
+  [#2503]
+
+- When journal's include directive has an IO error, like trying to
+  include an existing but unreadable file, or failing to find a home
+  directory when expanding ~, it now shows the problematic include
+  directive (previously the line number was off by one).
+
+- `aregister`: respect the order of -f options when showing same-day transactions from multiple files.
+  If transactions on the same date are coming from two files specified
+  with -f options, we expect them to be displayed in parse order, ie
+  respecting the order of the -f options. This wasn't always the case,
+  now it is.
+
+- `aregister`: show "ACCTPAT matches no account" error on just one line.
+
+- Fix build failures with the scripts in bin/.
+  (Dmitry Astapov, [#2497])
+
+[#2503]: https://github.com/simonmichael/hledger/issues/2503
+[#2497]: https://github.com/simonmichael/hledger/issues/2497
+
+
+### hledger-ui 1.51.1
+
+
+- Uses hledger 1.51.1.
+
+
+### hledger-web 1.51.1
+
+
+- Uses hledger 1.51.1.
+
+
+### credits 1.51.1
+
+
+Simon Michael,
+Dmitry Astapov,
+
+
+
 ## 2025-12-05 hledger-1.51
 
 **Small improvements, doc updates**
