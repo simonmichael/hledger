@@ -26,6 +26,16 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.50.5 2025-12-08
+
+Fixes
+
+- Relative includes from a symlinked file work again, fixing some fallout from 1.50.4's fixes.
+  [#2503]
+
+[#2503]: https://github.com/simonmichael/hledger/issues/2503
+
+
 # 1.50.4 2025-12-04
 
 Fixes
