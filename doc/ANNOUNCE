@@ -1,17 +1,20 @@
-hledger-1.51.1 fixes breakage with relative include paths in sym-linked files,
-caused by 1.50.4's fixes (and a few other things).
+hledger-1.51.1 fixes breakage with relative include paths in sym-linked files, caused by 1.50.4's fixes (and a few other things).
 
-- https://github.com/simonmichael/hledger/releases/1.51.1
 - https://hledger.org/relnotes.html#2025-12-08-hledger-1511
+- https://github.com/simonmichael/hledger/releases/1.51.1
 - https://hledger.org/install
 
-#hledger is free, robust, friendly, multicurrency, double-entry,
-#plaintextaccounting software for unix, mac, windows, and the web,
+#hledger is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
+It is built around human-readable, version-controllable, future-proof plain text files.
+The UIs will seem basic at first, but it is powerful, flexible, and fun to use.
 
-Written in Haskell for reliability, it is built around human-readable,
-version-controllable plain text files. It is inspired by and largely
-compatible with Ledger CLI, and convertible to and from Beancount.
+It can help you learn bookkeeping, untangle accounting messes, track your financial status and history, 
+run forecasts, set budgets and saving goals, produce detailed time reports, convert/transform financial data,
+check the correctness of other systems, and create more balance and calm in your life.
+It is a combination of accounting appliance, swiss army penknife, bootcamp/refresher course, and supportive community.
 
-For more info or help, see https://hledger.org and the support page.
-Newcomers, experts, contributors, sponsors, feedback are welcome!
+For more info or help, see https://hledger.org. Beginners, experts, feedback, contributors, sponsors welcome!
 
+
+
+(Latest source text for announcements & blurbs, truncate as needed.)
