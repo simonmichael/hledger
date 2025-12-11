@@ -6,6 +6,7 @@ _*
 *.o
 \#*
 .\#*
+.trash
 
 # dev stuff
 .build
@@ -20,23 +21,13 @@ TAGS
 stylish-haskell.yaml
 *.m4-e
 
-# test files
-/[0-9]*
-#*.j
-[a-z0-9]
-#[a-z0-9].*
-[a-z0-9][a-z0-9]
-![a-z0-9]/
-![a-z0-9].*/
-![a-z0-9][a-z0-9]/
-![a-z0-9][a-z0-9].*/
-
 # haskell stuff
 *.dyn_hi
 *.dyn_o
 *.hi
 *.p_o
 *.hp
+*.prof
 package.yaml-e
 .cabal-sandbox/
 cabal-dev*
@@ -53,6 +44,29 @@ Setup
 modules*.svg
 packages*.svg
 /*.packages
+/headroom-templates
+.headroom.yaml
+
+# test files
+/[0-9]*
+#*.j
+[a-z0-9]
+#[a-z0-9].*
+[a-z0-9][a-z0-9]
+![a-z0-9]/
+![a-z0-9].*/
+![a-z0-9][a-z0-9]/
+![a-z0-9][a-z0-9].*/
+
+# hledger-web stuff
+/config
+/messages
+/static
+/templates
+hledger-web/static/tmp/
+hledger-web/yesod-devel/
+.hledger-web_client_session_key.aes
+/hledger-web/demo/
 
 # hledger stuff
 #*.webmanual.md
@@ -64,14 +78,12 @@ old
 /*.prof.*
 /tmp
 /bench*
-/bin/**
-!/bin/*
-/bin/old
-#!/bin/*.hs
-#!/bin/*.sh
-#!/bin/*.md
-/bin/*_.hs
-/examples/[1-9]*.journal
+
+#/bin - see bin/.gitignore
+
+/examples
+#/examples/[1-9]*.journal
+
 /hledger/test/cli/addons
 /hledger/hledger.md
 /hledger-ui/hledger-ui.md
@@ -86,27 +98,6 @@ old
 /tools/pandoc-drop-notes
 /tools/pandoc-drop-toc
 /tools/generatetimeclock
-
-# hledger-web stuff
-/config
-/messages
-/static
-/templates
-hledger-web/static/tmp/
-hledger-web/yesod-devel/
-.hledger-web_client_session_key.aes
-
-# sandstorm stuff
-# .vagrant
-# *.spk
-
-# recent stuff
-/checks
-/headroom-templates
-.headroom.yaml
-*.prof
-/artifacts/
-/tools/docshelltest
 /hledger-lib/test/doctests
 /examples/edk-hledger-ui-mobile.gif
 /examples/tty-ui-1.gif
@@ -114,7 +105,9 @@ hledger-web/yesod-devel/
 !/site/src/*.md
 /finance
 /examples/demo/
-/hledger-web/demo/
 /doc/ghrelnotes.md
-.aider*
 /doc/RELEASING2.md
+/checks
+/tools/docshelltest
+.latest.*
+.github/workflows/ci-arm.yml
