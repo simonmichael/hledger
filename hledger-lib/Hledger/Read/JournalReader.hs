@@ -410,12 +410,11 @@ includedirectivep iopts = do
 
       -- Throw an error if one of these files is among the grandparent files, forming a cycle.
       -- Though, ignore the immediate parent file for convenience. XXX inconsistent - should it ignore all cyclic includes ?
-      -- We used to store the canonical paths, then switched to non-canonical paths for more useful output,
-      -- which means for each include directive we must re-canonicalise everything here; noticeable ? XXX
+      -- Use canonical paths for cycle detection, show nominal absolute paths in error messages.
       parentj <- get
       let parentfiles = jincludefilestack parentj
-      cparentfiles <- liftIO $ mapM canonicalizePath parentfiles
-      let cparentf = take 1 parentfiles
+          cparentfiles = map snd parentfiles
+          cparentf = take 1 cparentfiles
       files2 <- forM files $ \f -> do
         cf <- liftIO $ canonicalizePath f
         if
@@ -442,8 +441,9 @@ includedirectivep iopts = do
 
       -- Read the file's content, or throw an error
       childInput <- lift $ readFilePortably filepath & handleIOError off "failed to read a file"
+      cfilepath <- liftIO $ canonicalizePath filepath
       parentj <- get
-      let initChildj = newJournalWithParseStateFrom filepath parentj
+      let initChildj = newJournalWithParseStateFrom filepath cfilepath parentj
 
       -- Choose a reader based on the file path prefix or file extension,
       -- defaulting to JournalReader. Duplicating readJournal a bit here.
@@ -470,14 +470,14 @@ includedirectivep iopts = do
 
           where
             childfilename = takeFileName filepath
-            parentfilename = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
+            parentfilename = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
 
       -- And update the current parse state.
       put parentj'
 
       where
-        newJournalWithParseStateFrom :: FilePath -> Journal -> Journal
-        newJournalWithParseStateFrom filepath j = nulljournal{
+        newJournalWithParseStateFrom :: FilePath -> FilePath -> Journal -> Journal
+        newJournalWithParseStateFrom filepath cfilepath j = nulljournal{
           jparsedefaultyear      = jparsedefaultyear j
           ,jparsedefaultcommodity = jparsedefaultcommodity j
           ,jparseparentaccounts   = jparseparentaccounts j
@@ -486,7 +486,7 @@ includedirectivep iopts = do
           ,jdeclaredcommodities           = jdeclaredcommodities j
           -- ,jparsetransactioncount = jparsetransactioncount j
           ,jparsetimeclockentries = jparsetimeclockentries j
-          ,jincludefilestack      = filepath : jincludefilestack j
+          ,jincludefilestack      = (filepath, cfilepath) : jincludefilestack j
           }
 
 -- Get the absolute path of the file referenced by this parse position.

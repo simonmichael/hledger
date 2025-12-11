@@ -245,7 +245,7 @@ journalConcat :: Journal -> Journal -> Journal
 journalConcat j1 j2 =
   let
     f1 = takeFileName $ journalFilePath j1
-    f2 = maybe "(unknown)" takeFileName $ headMay $ jincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
+    f2 = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
   in
     dbgJournalAcctDeclOrder ("journalConcat: " <> f1 <> " <> " <> f2 <> ", acct decls renumbered: ") $
     journalRenumberAccountDeclarations $

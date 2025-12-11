@@ -151,6 +151,7 @@ import Data.Time.Calendar (Day, fromGregorianValid, toGregorian)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
+import System.Directory (canonicalizePath)
 import System.FilePath (takeFileName)
 import System.IO (Handle)
 import Text.Megaparsec
@@ -314,11 +315,12 @@ parseAndFinaliseJournal parser iopts f txt =
 -- Timeclock and Timedot files.
 initialiseAndParseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts
                           -> FilePath -> Text -> ExceptT String IO Journal
-initialiseAndParseJournal parser iopts f txt =
-    prettyParseErrors $ runParserT (evalStateT parser initJournal) f txt
+initialiseAndParseJournal parser iopts f txt = do
+    cf <- liftIO $ canonicalizePath f
+    prettyParseErrors $ runParserT (evalStateT parser (initJournal cf)) f txt
   where
     y = first3 . toGregorian $ _ioDay iopts
-    initJournal = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [f]}
+    initJournal cf = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [(f, cf)]}
     -- Flatten parse errors and final parse errors, and output each as a pretty String.
     prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
                       -> ExceptT String IO a
