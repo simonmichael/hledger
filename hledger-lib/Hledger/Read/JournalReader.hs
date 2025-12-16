@@ -318,12 +318,12 @@ includedirectivep iopts = do
     return prefixedglob
     ) <|> errorNoArg
 
-  let (mprefix,glb) = splitReaderPrefix prefixedglob
+  let (mprefix,path) = splitReaderPrefix prefixedglob
   parentf <- sourcePosFilePath pos
-  when (null $ dbg6 (parentf <> " include: glob pattern") glb) errorNoArg
+  when (null $ dbg6 (parentf <> " include: path ") path) errorNoArg
 
   -- Find the file or glob-matched files (just the ones from this include directive), with some IO error checking.
-  paths <- findMatchedFiles eoff parentf glb
+  paths <- findMatchedFiles eoff parentf path
   -- Also report whether a glob pattern was used, and not just a literal file path.
   -- (paths, isglob) <- findMatchedFiles off pos glb
 
@@ -359,7 +359,7 @@ includedirectivep iopts = do
     -- but ** will implicitly search non-top-level dot directories (see #2498, Glob#49).
 
     findMatchedFiles :: (MonadIO m) => Int -> FilePath -> FilePath -> JournalParser m [FilePath]
-    findMatchedFiles off parentf globpattern = do
+    findMatchedFiles off parentf path = do
 
       -- Some notes about the Glob library that we use (related: https://github.com/Deewiant/glob/issues/49):
       -- It does not expand tilde.
@@ -374,39 +374,39 @@ includedirectivep iopts = do
       -- A **/ component matches any number of directory parts.
       -- A **/ does not implicitly search top-level dot directories or implicitly match do files,
       -- but it does search non-top-level dot directories. Eg ** will find the c file in a/.b/c.
+      -- It tends to get attributes of all files in a directory.
 
       -- expand a tilde at the start of the glob pattern, or throw an error
-      expandedglob <- lift $ expandHomePath globpattern & handleIOError off "failed to expand ~"
+      expandedpath <- lift $ expandHomePath path & handleIOError off "failed to expand ~"
 
       -- get the directory of the including file
       -- need to canonicalise a symlink parentf so takeDirectory works correctly [#2503]
       cwd <- fmap takeDirectory <$> liftIO $ canonicalizePath parentf
 
       -- Don't allow 3 or more stars.
-      when ("***" `isInfixOf` expandedglob) $
+      when ("***" `isInfixOf` expandedpath) $
         customFailure $ parseErrorAt off $ "Invalid glob pattern: too many stars, use * or **"
 
       -- Make ** also match file name parts like zsh's GLOB_STAR_SHORT.
       let
-        finalglob =
+        finalpath =
           -- ** without a slash is equivalent to **/*
-          case regexReplace (toRegex' $ T.pack "\\*\\*([^/\\])") "**/*\\1" expandedglob of
+          case regexReplace (toRegex' $ T.pack "\\*\\*([^/\\])") "**/*\\1" expandedpath of
             Right s -> s
-            Left  _ -> expandedglob   -- ignore any error, there should be none
+            Left  _ -> expandedpath   -- ignore any error, there should be none
 
       -- Compile as a Pattern. Can throw an error.
-      pat <- case tryCompileWith compDefault{errorRecovery=False} finalglob of
+      pat <- case tryCompileWith compDefault{errorRecovery=False} finalpath of
         Left e  -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
         Right x -> pure x
 
-      -- Find all matched paths. These might include directories or the current file.
-      -- Glob seems to get attributes of all files in a directory, which disturbs build systems
-      -- which detect dependencies based on filesystem operations (eg tup).
-      -- So avoid using it if not needed.
-      paths <- liftIO $
+      -- Find all paths matched by the glob pattern.
+      -- If it is a literal (non-glob) path, don't use the Glob lib, because it gets attributes
+      -- of all files in the directory, which confuses build systems like tup.
+      paths <-
         if isLiteral pat
-        then return $ if isAbsolute finalglob then [finalglob] else [cwd </> finalglob]
-        else globDir1 pat cwd
+        then return $ if isAbsolute finalpath then [finalpath] else [cwd </> finalpath]
+        else liftIO $ globDir1 pat cwd
 
       -- Exclude any directories or symlinks to directories, and canonicalise, and sort.
       files <- liftIO $
@@ -429,7 +429,7 @@ includedirectivep iopts = do
           | otherwise -> return f
 
       -- Throw an error if no files were matched.
-      when (null files2) $ customFailure $ parseErrorAt off $ "No files were matched by: " ++ globpattern
+      when (null files2) $ customFailure $ parseErrorAt off $ "No files were matched by: " ++ path
 
       -- If the current file got included, ignore it (last, to avoid triggering the error above).
       let
