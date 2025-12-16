@@ -388,19 +388,25 @@ includedirectivep iopts = do
 
       -- Make ** also match file name parts like zsh's GLOB_STAR_SHORT.
       let
-        expandedglob' =
+        finalglob =
           -- ** without a slash is equivalent to **/*
           case regexReplace (toRegex' $ T.pack "\\*\\*([^/\\])") "**/*\\1" expandedglob of
             Right s -> s
             Left  _ -> expandedglob   -- ignore any error, there should be none
 
       -- Compile as a Pattern. Can throw an error.
-      g <- case tryCompileWith compDefault{errorRecovery=False} expandedglob' of
+      pat <- case tryCompileWith compDefault{errorRecovery=False} finalglob of
         Left e  -> customFailure $ parseErrorAt off $ "Invalid glob pattern: " ++ e
         Right x -> pure x
 
       -- Find all matched paths. These might include directories or the current file.
-      paths <- liftIO $ globDir1 g cwd
+      -- Glob seems to get attributes of all files in a directory, which disturbs build systems
+      -- which detect dependencies based on filesystem operations (eg tup).
+      -- So avoid using it if not needed.
+      paths <- liftIO $
+        if isLiteral pat
+        then return $ if isAbsolute finalglob then [finalglob] else [cwd </> finalglob]
+        else globDir1 pat cwd
 
       -- Exclude any directories or symlinks to directories, and canonicalise, and sort.
       files <- liftIO $
