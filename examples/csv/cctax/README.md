@@ -1,13 +1,15 @@
 ## Cryptocurrency tax reporting
 
-(This is the README in the hledger repo's `examples/csv/cctax/` directory,
-also published as the [Cryptocurrency tax reporting] page on hledger.org.)
+(This is the README in the hledger repo's [examples/csv/cctax/][cctax] directory,
+also published as the [Cryptocurrency tax reporting] page on hledger.org.
+The information here was last updated in 2025-12.
+)
 <!-- This page can be viewed on github or hledger.org, so use absolute urls -->
 [Cryptocurrency tax reporting]: https://hledger.org/cctax.html
+[cctax]:                        https://github.com/simonmichael/hledger/tree/master/examples/csv/cctax
 
 In this directory we are not concerned with importing to hledger,
 but with exporting from hledger to cryptocurrency tax calculators.
-The information here was last updated in 2025-12.
 
 Why do this ?
 In most countries, the revenue and capital gain from receiving/selling/trading cryptocurrencies (cc) is taxable and must be reported.
