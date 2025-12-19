@@ -1,4 +1,4 @@
-## Cryptocurrency tax reporting
+# Cryptocurrency tax reporting
 
 (This is the README in the hledger repo's [examples/csv/cctax/][cctax] directory,
 also published as the [Cryptocurrency tax reporting] page on hledger.org.
@@ -47,7 +47,9 @@ There are several ways you could calculate gains. Eg, assuming the worst case (U
    and selecting the appropriate lots/costs in disposal transactions.
    This is intuitive and robust. But also tedious, and above a certain level of activity it becomes unmanageable.
 
-2. Calculate gains using the built-in lot tracking syntax of Ledger or Beancount. Beancount's is more robust.
+2. Calculate gains using the built-in lot tracking syntax of Ledger or Beancount. 
+   (hledger doesn't have this feature.)
+   Beancount's is more robust.
    These may be too limited to calculate gains accurately, eg when there are inter-wallet transfers.
    There may be additional plugins which help.
 
@@ -58,15 +60,17 @@ There are several ways you could calculate gains. Eg, assuming the worst case (U
    When they are hacked or infiltrated, potentially your entire past, present and future cryptocurrency activities can be analysed.
 
 4. Offline cryptocurrency tax calculators. These tend to be more private.
+   - [BittyTax] - UK and US variants (can do wallet-based cost tracking by using multiple configs)
    - [rotki]    - freemium, featureful, does not support US yet (wallet-based cost tracking, <https://github.com/rotki/rotki/issues/2438>)
    - [RP2]      - does not support US yet (<https://github.com/eprbell/rp2/issues/135>)
-   - [BittyTax] - UK and US variants (can do wallet-based cost tracking by using multiple configs)
 
+[bittytax]: https://github.com/BittyTax/BittyTax
 [rotki]: http://rotki.com
 [rp2]: https://github.com/eprbell/rp2
-[bittytax]: https://github.com/BittyTax/BittyTax
 
 The main focus in this directory is exporting to offline calculators.
 Examples of their CSV import format are collected here.
 Each record represents an event in a particular cryptocurrency "wallet" (on an exchange or on a blockchain).
 There are basic events like deposit, withdrawal, buy, sell, expense, income; and some more specialised event types.
+
+[examples/csv/cctax/][cctax]
