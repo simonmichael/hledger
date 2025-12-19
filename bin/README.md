@@ -7,8 +7,8 @@
 
 (This is the README in the hledger repo's `bin/` directory,
 also published as the [Scripts and add-ons] page on hledger.org.)
-
 <!-- This page can be viewed on github or hledger.org, so use absolute urls here: -->
+
 [Scripts and add-ons]: https://hledger.org/scripts.html
 [Scripting hledger]:   https://hledger.org/scripting.html
 [bin]:                 https://github.com/simonmichael/hledger/tree/master/bin
