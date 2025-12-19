@@ -23,6 +23,7 @@ import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
 import Data.Decimal
+import Data.Set qualified as S
 import Data.Text qualified as T
 import Data.Text.Lazy.IO qualified as TL
 import Safe (headDef)
@@ -83,9 +84,13 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
     makeQuery flag = do
         q <- either usageError (return . fst) . parseQuery today . T.pack $ stringopt flag rawopts
         return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]
+    cantCompute msg = error' $ msg ++ " - will be unable to compute the rates of return"
 
   investmentsQuery <- makeQuery "investment"
   pnlQuery         <- makeQuery "pnl"
+
+  when (pnlQuery == Any) $
+    cantCompute "Need some transactions classed as investment and not pnl, but the pnl query matches any transaction"
 
   let
     filteredj = filterJournalTransactions investmentsQuery j
@@ -96,7 +101,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
 
   let (fullPeriodDateSpan, mspans) = reportSpan filteredj rspec
 
-  let err = error' "Undefined start or end of the period - will be unable to compute the rates of return"
+  let err = cantCompute "Undefined start or end of the period"
       spans = maybe err (map (second (addDays 1)) . dayPartitionToList) mspans
       fullPeriod = case fullPeriodDateSpan of
         DateSpan (Just b) (Just e) -> (fromEFDay b, fromEFDay e)
@@ -125,14 +130,20 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
                                             , Not pnlQuery
                                             , Date spn ] )
 
-          pnl =
+          pnl = dbg3 "pnl" $
             cashFlowApplyCostValue $
             calculateCashFlow wd trans (And [ Not investmentsQuery
                                             , pnlQuery
                                             , Date spn ] )
 
+          spanCommodities = dbg3 "spanCommodities" $
+            S.unions $ (maCommodities valueBefore) : (maCommodities valueAfter) : map (maCommodities.snd) (cashFlow ++ pnl)
+
           thisSpan = dbg3 "processing span" $
                      OneSpan b e valueBefore valueAfter cashFlow pnl
+
+        when (S.size spanCommodities > 1) $
+          multiCommodityError $ "Period " ++ show (b,e) ++ " has multiple commodities: " ++ (T.unpack $ T.intercalate ", " $ map showCommoditySymbol (S.toList spanCommodities))
 
         irr <- internalRateOfReturn styles showCashFlow prettyTables thisSpan
         (periodTwr, annualizedTwr) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
@@ -194,7 +205,7 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
 
       valueBefore = dbg3 ("value at the start of the interval, "++show begin) $ unMix valueBeforeAmt
       valueAfter = dbg3 ("value at the end of the interval, "++show end) $ unMix valueAfterAmt
-      
+
       investmentPostings = concatMap (filter (matchesPosting investmentsQuery) . realPostings) trans
 
       totalInvestmentPostingsTill date = sumPostings $ filter (matchesPosting (Date (DateSpan Nothing (Just $ Exact date)))) investmentPostings
@@ -207,7 +218,7 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
   -- We are dividing the period [begin, end) into subperiods on each cashflow, and then compute
   -- the rate of return for each subperiod. For this we need to know the value of the investment
   -- at the beginning and end of each subperiod, adjusted for cashflow.
-  -- 
+  --
   -- Subperiods are going to be [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter]
   -- , where v_i is the value of investment computed immediately after cashflow c_i
   --
@@ -318,9 +329,11 @@ unMix :: MixedAmount -> Quantity
 unMix a =
   case (unifyMixedAmount a) of
     Just a' -> aquantity a'
-    Nothing -> error' $ "Amounts could not be converted to a single commodity: " ++ show (map showAmount $ amounts a) ++
-               "\nConsider using --value to force all costs to be in a single commodity." ++
-               "\nFor example, \"--value=end,<commodity> --infer-market-prices\", where commodity is the one that was used for investment valuations."
+    Nothing -> multiCommodityError $ "Amounts could not be converted to a single commodity: " ++ show (map showAmount $ amounts a)
+
+multiCommodityError msg = error' $ msg ++
+    "\nConsider using --value to force all costs to be in a single commodity." ++
+    "\nFor example, \"--value=end,<commodity> --infer-market-prices\", where commodity is the one that you want to value the investment in."
 
 -- Show Decimal rounded to two decimal places, unless it has less places already. This ensures that "2" won't be shown as "2.00"
 showDecimal :: Decimal -> String
