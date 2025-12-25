@@ -401,6 +401,7 @@ getHomeSafe = fmap Just getHomeDirectory `catch` (\(_ :: IOException) -> return 
 -- ~username is not supported. Can raise an error.
 expandHomePath :: FilePath -> IO FilePath
 expandHomePath = \case
+    "~"          -> getHomeDirectory
     ('~':'/':p)  -> (</> p) <$> getHomeDirectory
     ('~':'\\':p) -> (</> p) <$> getHomeDirectory
     ('~':_)      -> ioError $ userError "~USERNAME in paths is not supported"
