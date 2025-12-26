@@ -86,7 +86,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day, fromGregorian )
 import Safe (headErr, readMay, maximumByMay, maximumMay, minimumMay)
-import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy)
+import Text.Megaparsec (between, noneOf, sepBy, try, (<?>), notFollowedBy, anySingle)
 import Text.Megaparsec.Char (char, string, string')
 
 
@@ -241,12 +241,20 @@ words'' prefixes = fromparse . parsewith maybePrefixedQuotedPhrases -- XXX
             prefix = not' <> next
         p <- singleQuotedPattern <|> doubleQuotedPattern
         return $ prefix <> stripquotes p
-      singleQuotedPattern :: SimpleTextParser T.Text
-      singleQuotedPattern = stripquotes . T.pack <$> between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char]))
-      doubleQuotedPattern :: SimpleTextParser T.Text
-      doubleQuotedPattern = stripquotes . T.pack <$> between (char '"') (char '"') (many $ noneOf ("\"" :: [Char]))
       patterns :: SimpleTextParser T.Text
       patterns = T.pack <$> many (noneOf (" \n\r" :: [Char]))
+
+singleQuotedPattern :: SimpleTextParser T.Text
+singleQuotedPattern = quotedPattern '\''
+
+doubleQuotedPattern :: SimpleTextParser T.Text
+doubleQuotedPattern = quotedPattern '"'
+
+quotedPattern :: Char -> SimpleTextParser T.Text
+quotedPattern quote = stripquotes . T.pack <$> between (char quote) (char quote) (many $ escapedChar <|> noneOf [quote])
+    where
+        escapedChar :: SimpleTextParser Char
+        escapedChar = char '\\' >> anySingle
 
 -- XXX
 -- keep synced with patterns below, excluding "not"
@@ -425,8 +433,8 @@ parseBooleanQuery d t =
                             -- if it is not one of the keywords "not", "and", "or".
                             queryArgP :: SimpleTextParser T.Text
                             queryArgP = choice'
-                              [ stripquotes . T.pack <$> between (char '\'') (char '\'') (many $ noneOf ("'" :: [Char])),
-                                stripquotes . T.pack <$> between (char '"') (char '"') (many $ noneOf ("\"" :: [Char])),
+                              [ singleQuotedPattern,
+                                doubleQuotedPattern,
                                 T.pack <$> (notFollowedBy keywordP >> (many $ noneOf (") \n\r" :: [Char]))) ]
 
                               where
@@ -1052,7 +1060,9 @@ tests_Query = testGroup "Query" [
 
   ,testCase "parseBooleanQuery" $ do
      parseBooleanQuery nulldate "(tag:'atag=a')"     @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "a"), [])
+     parseBooleanQuery nulldate "(tag:'atag=\\'a')"  @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "'a"), [])
      parseBooleanQuery nulldate "(  tag:\"atag=a\"  )"     @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "a"), [])
+     parseBooleanQuery nulldate "(tag:\"atag=\\\"a\")"     @?= Right (Tag (toRegexCI' "atag") (Just $ toRegexCI' "\"a"), [])
      parseBooleanQuery nulldate "(acct:'expenses:food')"     @?= Right (Acct $ toRegexCI' "expenses:food", [])
      parseBooleanQuery nulldate "(((acct:'expenses:food')))" @?= Right (Acct $ toRegexCI' "expenses:food", [])
      parseBooleanQuery nulldate "acct:'expenses:food' AND desc:'b'" @?= Right (And [Acct $ toRegexCI' "expenses:food", Desc $ toRegexCI' "b"], [])
@@ -1079,6 +1089,9 @@ tests_Query = testGroup "Query" [
       (words'' ["desc:"] "not:desc:'a b'") @?= ["not:desc:a b"]
       (words'' queryprefixes "\"acct:expenses:autres d\233penses\"") @?= ["acct:expenses:autres d\233penses"]
       (words'' queryprefixes "\"")              @?= ["\""]
+      (words'' [] "\"a\\\"a\\\"\"")        @?= ["a\"a\""]
+      (words'' [] "'\\'a'")                @?= ["'a"]
+
 
   ,testCase "filterQuery" $ do
      filterQuery queryIsDepth Any       @?= Any
