@@ -21,3 +21,18 @@
 /commodities                       CommoditiesR          GET
 /accounts                          AccountsR             GET
 /accounttransactions/#AccountName  AccounttransactionsR  GET
+
+-- v1 API endpoints
+
+/api/v1/openapi.json               OpenApiV1R              GET
+/api/v1/accounts                   ApiAccountsR            GET
+/api/v1/accounts/#Text             ApiAccountR             GET
+/api/v1/accounts/#Text/balance     ApiAccountBalanceR      GET
+/api/v1/transactions               ApiTransactionsR        GET -- POST
+/api/v1/register                   ApiRegisterReportR      GET
+/api/v1/balance                    ApiBalanceReportR       GET
+
+-- others to implement someday?
+-- /api/v1/transactions/#Text         ApiTransactionR         GET PUT DELETE
+-- /api/v1/income-statement           ApiIncomeStatementR     GET
+-- /api/v1/balance-sheet              ApiBalanceSheetR        GET
