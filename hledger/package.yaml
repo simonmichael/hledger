@@ -114,7 +114,7 @@ dependencies:
 - extra >=1.7.11
 - filepath
 - githash >=0.1.6.2
-- haskeline >=0.6
+- haskeline >=0.8.4.0
 - http-client
 - http-types
 - megaparsec >=7.0.0 && <9.8

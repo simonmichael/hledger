@@ -11,6 +11,8 @@ packages:
 extra-deps:
 - encoding-0.10
 - hashtables-1.4.2
+# for #2410, #2512:
+- haskeline-0.8.4.1
 
 nix:
   pure: false

@@ -14,6 +14,8 @@ packages:
 - hledger-web
 
 extra-deps:
+# for #2410, #2512:
+- haskeline-0.8.4.1
 # currently out of stackage:
 - yesod-static-1.6.1.0
 - yesod-test-1.6.19
