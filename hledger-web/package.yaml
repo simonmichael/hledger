@@ -65,7 +65,7 @@ flags:
 #    manual:  true
 
 dependencies:
-- base >=4.18 && <4.22
+- base >=4.18 && <4.23
 
 cpp-options: -DVERSION="1.51.99"
 
