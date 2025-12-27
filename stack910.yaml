@@ -10,6 +10,10 @@ packages:
 - hledger-ui
 - hledger-web
 
+extra-deps:
+# for #2410, #2512:
+- haskeline-0.8.4.1
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]

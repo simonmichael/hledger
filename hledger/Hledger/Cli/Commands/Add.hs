@@ -284,7 +284,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
          retryMsg "Please enter y or n." $
           parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
           defaultTo' def $ nonEmpty $
-          line' $ green' $ printf "Save this transaction to the journal ?%s: " (showDefault def)
+          line $ green' $ printf "Save this transaction to the journal ?%s: " (showDefault def)
     case y of
       Just 'y' -> return t
       Just _   -> throw RestartTransactionException
@@ -303,7 +303,7 @@ dateWizard PrevInput{..} AddState{..} = do
    defaultTo' def $ nonEmpty $
    maybeExit $
    -- maybeShowHelp $
-   linePrewritten' (green' $ printf "Date%s: " (showDefault def)) (fromMaybe "" prevDateAndCode) ""
+   linePrewritten (green' $ printf "Date%s: " (showDefault def)) (fromMaybe "" prevDateAndCode) ""
     where
       parseSmartDateAndCode refdate s = if s == "<" then return Nothing else either (const Nothing) (\(d,c) -> return $ Just (fixSmartDate refdate d, c)) edc
           where
@@ -325,7 +325,7 @@ descriptionWizard PrevInput{..} AddState{..} = do
   let def = headDef "" asArgs
   s <- withCompletion (descriptionCompleter asJournal def) $
        defaultTo' def $ nonEmpty $
-       linePrewritten' (green' $ printf "Description%s: " (showDefault def)) (fromMaybe "" prevDescAndCmnt) ""
+       linePrewritten (green' $ printf "Description%s: " (showDefault def)) (fromMaybe "" prevDescAndCmnt) ""
   if s == "<"
     then return Nothing
     else do
@@ -348,7 +348,7 @@ accountWizard PrevInput{..} AddState{..} = do
    parser (parseAccountOrDotOrNull def canfinish) $
    withCompletion (accountCompleter asJournal def) $
    defaultTo' def $ -- nonEmpty $
-   linePrewritten' (green' $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)) (fromMaybe "" $ prevAccount `atMay` length asPostings) ""
+   linePrewritten (green' $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)) (fromMaybe "" $ prevAccount `atMay` length asPostings) ""
     where
       canfinish = not (null asPostings) && postingsAreBalanced asPostings
       parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe (Maybe String)
@@ -388,7 +388,7 @@ amountWizard previnput@PrevInput{..} state@AddState{..} = do
    withCompletion (amountCompleter def) $
    defaultTo' def $
    nonEmpty $
-   linePrewritten' (green' $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length asPostings) ""
+   linePrewritten (green' $ printf "Amount  %d%s: " pnum (showDefault def)) (fromMaybe "" $ prevAmountAndCmnt `atMay` length asPostings) ""
     where
       -- Custom parser that combines with Wizard to use IO via outputLn
       parser' f a = a >>= \input ->
@@ -474,11 +474,6 @@ maybeExit = parser (\s -> if s == "." then throw UnexpectedEOF else Just s)
 -- maybeShowHelp :: Wizard Haskeline String -> Wizard Haskeline String
 -- maybeShowHelp wizard = maybe (liftIO showHelp >> wizard) return $
 --                        parser (\s -> if s=="?" then Nothing else Just s) wizard
-
--- | A workaround we seem to need for #2410 right now: wizards' input-reading functions disrupt ANSI codes
--- somehow, so these variants first print the ANSI coded prompt as ordinary output, then do the input with no prompt.
-line' prompt = output prompt >> line ""
-linePrewritten' prompt beforetxt aftertxt = output prompt >> linePrewritten "" beforetxt aftertxt
 
 defaultTo' = flip defaultTo
 
