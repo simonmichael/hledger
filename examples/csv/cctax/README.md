@@ -24,7 +24,7 @@ with those, you are responsible for calculating gains.
 
 In some countries, such as the USA, this requires:
 - tracking the acquisition date, cost, and wallet of every purchase/acquisition over your lifetime
-- tracking their movements/splits/merges
+- tracking these across movements/splits/merges
 - disposing (selling/spending) them in a required order, such as:
   - FIFO - first in first out
   - LIFO - last in first out
