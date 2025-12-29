@@ -6974,13 +6974,13 @@ Market prices            : 0 ()
 It depends on your shell, but running these commands in the terminal will work for many people;
 adapt if needed:
 ```cli
-$ echo 'export LEDGER_FILE=~/finance/my.journal' >> ~/.profile
+$ echo 'export LEDGER_FILE=~/finance/main.journal' >> ~/.profile
 $ source ~/.profile
 ```
 
 <!-- 
 fish: 
-set -Ux LEDGER_FILE ~/finance/my.journal
+set -Ux LEDGER_FILE ~/finance/main.journal
 -->
 
 When correctly configured:
@@ -6998,7 +6998,7 @@ Also, this optional step may be helpful for GUI applications:
 
     ```json
     {
-      "LEDGER_FILE" : "~/finance/my.journal"
+      "LEDGER_FILE" : "~/finance/main.journal"
     }
     ```
 2. Run `killall Dock` in a terminal window (or restart the machine), to complete the change.
@@ -7010,17 +7010,21 @@ When correctly configured for GUI applications:
 
 ### Set LEDGER_FILE on Windows
 
-Using the gui is easiest:
+It can be easier to create a default file at `C:\Users\USER\.hledger.journal`,
+and have it [include](hledger.md#include-directive) your other files.
+See [I'm on Windows, how do I keep my files in AppData\Roaming ?](faq.md#im-on-windows-how-do-i-keep-my-files-in-appdataroaming-)
+
+Otherwise: using the gui is easiest:
 
 1. In task bar, search for `environment variables`, and choose "Edit environment variables for your account".
 2. Create or change a `LEDGER_FILE` setting in the User variables pane.
-   A typical value would be `C:\Users\USERNAME\finance\my.journal`.
+   A typical value would be `C:\Users\USER\finance\main.journal`.
 3. Click OK to complete the change.
 4. And open a new powershell window. (Existing windows won't see the change.)
 
 Or at the command line, you can do it this way:
 
-1. In a powershell window, run `[Environment]::SetEnvironmentVariable("LEDGER_FILE", "C:\User\USERNAME\finance\my.journal", [System.EnvironmentVariableTarget]::User)`
+1. In a powershell window, run `[Environment]::SetEnvironmentVariable("LEDGER_FILE", "C:\User\USER\finance\main.journal", [System.EnvironmentVariableTarget]::User)`
 2. And open a new powershell window. (Existing windows won't see the change.)
 
 Warning, doing this from the Windows command line can be tricky; other methods you may find online:
