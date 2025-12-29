@@ -32,13 +32,13 @@ module Hledger.Data.Valuation (
 where
 
 import Control.Applicative ((<|>))
-import Data.Function ((&), on)
+import Data.Function ((&))
 import Data.List (partition, intercalate, sortBy)
-import Data.List.Extra (nubSortBy)
 import Data.Map qualified as M
 import Data.Set qualified as S
 import Data.Text qualified as T
 import Data.Time.Calendar (Day, fromGregorian)
+import Data.Maybe (fromMaybe, mapMaybe)
 import Data.MemoUgly (memo)
 import GHC.Generics (Generic)
 import Safe (headMay, lastMay)
@@ -84,6 +84,92 @@ valuationTypeValuationCommodity = \case
 -- given date.
 type PriceOracle = (Day, CommoditySymbol, Maybe CommoditySymbol) -> Maybe (CommoditySymbol, Quantity)
 
+-- | An index of market prices for efficient lookup by commodity pair and date.
+-- Maps each (from, to) commodity pair to a Map from date to the effective price,
+-- where declared prices take precedence over inferred prices on the same day.
+-- This allows O(log n) lookup per pair via M.lookupLE.
+type PriceIndex = M.Map (CommoditySymbol, CommoditySymbol) (M.Map Day MarketPrice)
+
+-- | Build a price index from declared and inferred market prices.
+-- This is O(n log n) but done only once, enabling fast lookups later.
+buildPriceIndex :: [MarketPrice] -> [MarketPrice] -> PriceIndex
+buildPriceIndex declaredprices inferredprices =
+  let
+    -- Label each price with precedence (declared=True > inferred=False) and parse order
+    declaredprices' = [(mpdate p, True, i, p) | (i, p) <- zip [1..] declaredprices]
+    inferredprices' = [(mpdate p, False, i, p) | (i, p) <- zip [1..] inferredprices]
+    allprices = declaredprices' ++ inferredprices'
+    -- Group by commodity pair
+    grouped = M.fromListWith (++)
+      [((mpfrom p, mpto p), [(d, prec, order, p)]) | (d, prec, order, p) <- allprices]
+    -- Build inner Map: sort ascending by (date, prec, order), then M.fromList
+    -- keeps the last entry per date (highest precedence/parseorder wins)
+    buildInnerMap prices =
+      prices
+      & sortBy compare
+      & map (\(d, _, _, p) -> (d, p))
+      & M.fromList
+  in
+    M.map buildInnerMap grouped
+
+-- | Look up effective prices for all commodity pairs at a given date using the index.
+-- Returns at most one price per commodity pair: the latest price on or before the date.
+-- O(pairs × log n) where n is the number of prices per pair.
+lookupEffectivePricesFromIndex :: Day -> PriceIndex -> [MarketPrice]
+lookupEffectivePricesFromIndex d idx =
+  mapMaybe (fmap snd . M.lookupLE d) (M.elems idx)
+
+-- | Index for default valuation commodity lookup.
+-- Maps source commodity to a map of (date -> destination), supporting O(log n) lookup
+-- of the latest destination commodity on or before any given date.
+type DefaultValuationIndex = M.Map CommoditySymbol (M.Map Day CommoditySymbol)
+
+-- | Build an index for default valuation commodity lookup from a list of market prices.
+buildDefaultValuationIndex :: [MarketPrice] -> DefaultValuationIndex
+buildDefaultValuationIndex prices =
+  let
+    -- Label with parse order
+    labeled = [(mpfrom p, mpdate p, i, mpto p) | (i, p) <- zip [1..] prices]
+    -- Group by source commodity
+    grouped = M.fromListWith (++) [(from, [(d, ord, to)]) | (from, d, ord, to) <- labeled]
+    -- Build inner Map: sort by (date, parseorder), then M.fromList keeps last (highest parseorder per date)
+    buildInnerMap entries = M.fromList [(d, to) | (d, _, to) <- sortBy compare entries]
+  in
+    M.map buildInnerMap grouped
+
+-- | Combined indexes for efficient price lookup.
+data PriceIndexes = PriceIndexes
+  { piForward :: !PriceIndex                    -- ^ Index for forward prices (declared + inferred)
+  , piDeclaredDefault :: !DefaultValuationIndex -- ^ Index for declared prices (for default valuation)
+  , piInferredDefault :: !DefaultValuationIndex -- ^ Index for inferred prices (fallback for default valuation)
+  }
+
+-- | Build all price indexes from declared and inferred market prices.
+-- This is O(n log n) but done only once.
+buildPriceIndexes :: [MarketPrice] -> [MarketPrice] -> PriceIndexes
+buildPriceIndexes declaredprices inferredprices = PriceIndexes
+  { piForward = buildPriceIndex declaredprices inferredprices
+  , piDeclaredDefault = buildDefaultValuationIndex declaredprices
+  , piInferredDefault = buildDefaultValuationIndex inferredprices
+  }
+
+-- | Look up default valuation commodities for all source commodities at a given date.
+-- Fallback logic: declared at date d, then declared at any date, then inferred at date d.
+lookupDefaultValuations :: Day -> PriceIndexes -> M.Map CommoditySymbol CommoditySymbol
+lookupDefaultValuations d PriceIndexes{..} =
+    fromMaybe fallback (tryDeclaredAtDate <|> tryDeclaredLatest)
+  where
+    nonEmpty m = if M.null m then Nothing else Just m
+
+    tryDeclaredAtDate = nonEmpty $ lookupDefaults (Just d) piDeclaredDefault
+    tryDeclaredLatest = nonEmpty $ lookupDefaults Nothing  piDeclaredDefault
+    fallback          = lookupDefaults (Just d) piInferredDefault
+
+    lookupDefaults mdate = M.mapMaybe $ \innerMap ->
+      case mdate of
+        Nothing -> snd <$> M.lookupMax innerMap
+        Just dt -> snd <$> M.lookupLE dt innerMap
+
 -- | Generate a price oracle (memoising price lookup function) from a
 -- journal's directive-declared and transaction-inferred market
 -- prices. For best performance, generate this only once per journal,
@@ -98,7 +184,9 @@ journalPriceOracle infer Journal{jpricedirectives, jinferredmarketprices} =
     inferredprices =
       (if infer then jinferredmarketprices else [])
       & dbg2Msg ("use prices inferred from costs? " <> if infer then "yes" else "no")
-    makepricegraph = memo $ makePriceGraph declaredprices inferredprices
+    -- Build indexes once for all lookups
+    indexes = buildPriceIndexes declaredprices inferredprices
+    makepricegraph = memo $ makePriceGraph indexes
   in
     memo $ uncurry3 $ priceLookup makepricegraph
 
@@ -318,7 +406,7 @@ tests_priceLookup =
       ,p 2000 01 01 "E"  2 "D"
       ,p 2001 01 01 "A" 11 "B"
       ]
-    makepricegraph = makePriceGraph ps1 []
+    makepricegraph = makePriceGraph (buildPriceIndexes ps1 [])
   in testCase "priceLookup" $ do
     priceLookup makepricegraph (fromGregorian 1999 01 01) "A" Nothing    @?= Nothing
     priceLookup makepricegraph (fromGregorian 2000 01 01) "A" Nothing    @?= Just ("B",10)
@@ -466,8 +554,9 @@ prefix l = if null l then (""++) else ((l++": ")++)
 --    the `--infer-market-prices` flag is used, then the price commodity from
 --    the latest transaction price for A on or before valuation date."
 --
-makePriceGraph :: [MarketPrice] -> [MarketPrice] -> Day -> PriceGraph
-makePriceGraph alldeclaredprices allinferredprices d =
+-- | Build the price graph using pre-built indexes for O(pairs × log n) lookup.
+makePriceGraph :: PriceIndexes -> Day -> PriceGraph
+makePriceGraph indexes d =
   dbg9 ("makePriceGraph "++show d) $
   PriceGraph{
      pgDate = d
@@ -478,10 +567,9 @@ makePriceGraph alldeclaredprices allinferredprices d =
   where
     -- XXX logic duplicated in Hledger.Cli.Commands.Prices.prices, keep synced
 
-    -- prices in effect on date d, either declared or inferred
-    visibledeclaredprices = dbg9 "visibledeclaredprices" $ filter ((<=d).mpdate) alldeclaredprices
-    visibleinferredprices = dbg9 "visibleinferredprices" $ filter ((<=d).mpdate) allinferredprices
-    forwardprices = effectiveMarketPrices visibledeclaredprices visibleinferredprices
+    -- get the latest effective price for each commodity pair on or before date d
+    forwardprices = dbg9 "effective forward prices" $
+      lookupEffectivePricesFromIndex d (piForward indexes)
 
     -- infer any additional reverse prices not already declared or inferred
     reverseprices = dbg9 "additional reverse prices" $
@@ -492,42 +580,9 @@ makePriceGraph alldeclaredprices allinferredprices d =
         forwardpairs = S.fromList [(mpfrom,mpto) | MarketPrice{..} <- forwardprices]
     allprices = forwardprices ++ reverseprices
 
-    -- determine a default valuation commodity for each source commodity
-    -- somewhat but not quite like effectiveMarketPrices
-    defaultdests = M.fromList [(mpfrom,mpto) | MarketPrice{..} <- pricesfordefaultcomms]
-      where
-        pricesfordefaultcomms = dbg9 "prices for choosing default valuation commodities, by date then parse order" $
-          ps
-          & zip [1..]  -- label items with their parse order
-          & sortBy (compare `on` (\(parseorder,MarketPrice{..})->(mpdate,parseorder)))  -- sort by increasing date then increasing parse order
-          & map snd    -- discard labels
-          where
-            ps | not $ null visibledeclaredprices = visibledeclaredprices
-               | not $ null alldeclaredprices     = alldeclaredprices
-               | otherwise                        = visibleinferredprices  -- will be null without --infer-market-prices
-
--- | Given a list of P-declared market prices in parse order and a
--- list of transaction-inferred market prices in parse order, select
--- just the latest prices that are in effect for each commodity pair.
--- That is, for each commodity pair, the latest price by date then
--- parse order, with declared prices having precedence over inferred
--- prices on the same day.
-effectiveMarketPrices :: [MarketPrice] -> [MarketPrice] -> [MarketPrice]
-effectiveMarketPrices declaredprices inferredprices =
-  let
-    -- label each item with its same-day precedence, then parse order
-    declaredprices' = [(1, i, p) | (i,p) <- zip [1..] declaredprices]
-    inferredprices' = [(0, i, p) | (i,p) <- zip [1..] inferredprices]
-  in
-    dbg9 "effective forward prices" $
-    -- combine
-    declaredprices' ++ inferredprices'
-    -- sort by decreasing date then decreasing precedence then decreasing parse order
-    & sortBy (flip compare `on` (\(precedence,parseorder,mp)->(mpdate mp,precedence,parseorder)))
-    -- discard the sorting labels
-    & map third3
-    -- keep only the first (ie the newest, highest precedence, latest parsed) price for each pair
-    & nubSortBy (compare `on` (\(MarketPrice{..})->(mpfrom,mpto)))
+    -- use indexed lookup for default valuation commodities
+    defaultdests = dbg9 "default valuation commodities" $
+      lookupDefaultValuations d indexes
 
 marketPriceReverse :: MarketPrice -> MarketPrice
 marketPriceReverse mp@MarketPrice{..} = 
