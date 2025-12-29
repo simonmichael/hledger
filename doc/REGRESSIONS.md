@@ -128,6 +128,7 @@ Here are the regressions found since 2020.
 [#2495]: https://github.com/simonmichael/hledger/issues/2495
 [#2498]: https://github.com/simonmichael/hledger/issues/2498
 [#2503]: https://github.com/simonmichael/hledger/issues/2503
+[#2512]: https://github.com/simonmichael/hledger/issues/2512
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -215,7 +216,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2386]                  | 1.42.2    | Simon Michael  (N/A)                                                             | N/A
 | [#2389]                  | 1.42.2    | [Simaex](https://opencollective.com/hledger/expenses/251451)                     | [Simon Michael](https://opencollective.com/hledger/expenses/250298)
 | **1.43** 2025-06-01      | ---       | ---                                                                              | ---
-| [#2396]                  | 1.43.1    | Simaex (donated)                                                                 | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
+| [#2396]                  | 1.43.1    | aragaer (donated)                                                                | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2397]                  | 1.43.1    | Dmitry Astapov (donated)                                                         | [Simon Michael](https://opencollective.com/hledger/expenses/252666)
 | [#2405]                  | 1.43.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2406]                  | 1.43.2    | [Wojciech Geisler](https://opencollective.com/hledger/expenses/253455)           | [Simon Michael](https://opencollective.com/hledger/expenses/253673)
@@ -228,6 +229,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2479]                  | 1.50.3    | [Simon Michael](https://opencollective.com/hledger/expenses/269085)              | [Simon Michael](https://opencollective.com/hledger/expenses/269085)
 | [#2493]                  | 1.50.3    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2498]                  | 1.50.4    | Peter Sagerson (donated)                                                         | Simon Michael (N/A)
+| [#2512]                  |           | amano-kenji (donated)                                                            | Simon Michael (N/A)
 | **1.50.2** 2025-09-26    | ---       | ---                                                                              | ---
 | [#2495]                  | 1.50.3    | alix-aspersa                                                                     | [Simon Michael](https://opencollective.com/hledger/expenses/274113)
 | **1.51** 2025-12-05      | ---       | ---                                                                              | ---
