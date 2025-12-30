@@ -39,7 +39,8 @@ Here are the formats we provide rules for, and their limitations:
 | Default + fees as columns | from 2024 (inferrable from 2021/06) | from 2021/06                          | yes             | from 2024         | no                  | simplest if you have no data before 2021-06 | opencollective-columns.rules |
 | Default                   | from 2024                           | from 2021/06                          | from 2024       | from 2024         | no                  | simplest if you have no data before 2024    | opencollective-default.rules |
 
-opencollective-legacy.rules is used by the hledger project and is the best-tested.
+Only the Legacy format provides accurate pre-2024 contributions and fees, and balance information.
+opencollective-legacy.rules is the best-tested of these rule files.
 
 ## How to test your conversion
 
