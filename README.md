@@ -8,14 +8,18 @@
 [![Repo Health](https://api.gitscope.dev/api/badges/simonmichael/hledger/health.svg "Overall repository health score from 0-100%. Calculated from activity, maintenance, community engagement, and issue management.")](https://gitscope.dev/docs/badges)
 [![Maintained](https://api.gitscope.dev/api/badges/simonmichael/hledger/maintained.svg "Maintenance status: very active, active, maintained, or stale based on recent commit and issue activity.")](https://gitscope.dev/docs/badges)
 [![Response Time](https://api.gitscope.dev/api/badges/simonmichael/hledger/response-time.svg "Average time maintainers take to respond to new issues.")](https://gitscope.dev/docs/badges)
-[![Open Issues Including Wishes](https://img.shields.io/github/issues/simonmichael/hledger.svg "Open issues of all kinds, including wishes. Click to see open bugs, a smaller number.")](https://github.com/simonmichael/hledger/issues?q=is%3Aissue%20label%3AA-BUG%20state%3Aopen)
-[![Issues Resolved](https://api.gitscope.dev/api/badges/simonmichael/hledger/resolved.svg "Percentage of issues resolved/closed during last N days. Higher is better. Click to see closed bugs.")](https://github.com/simonmichael/hledger/issues?q=is%3Aissue%20label%3AA-BUG%20state%3Aclosed)
+[![Contributors](https://api.gitscope.dev/api/badges/simonmichael/hledger/contributors.svg "Total number of unique contributors to the repository. The true number as of 2025 is 185+.")](https://hledger.org/CREDITS.html)
 \
 [![Documentation](https://api.gitscope.dev/api/badges/simonmichael/hledger/docs.svg "Documentation quality indicator based on README completeness, wiki presence, and linked documentation.")](https://hledger.org/doc.html)
-[![Contributors](https://api.gitscope.dev/api/badges/simonmichael/hledger/contributors.svg "Total number of unique contributors to the repository. The true number as of 2025 is 185+.")](https://hledger.org/CREDITS.html)
+[![Open issues, all kinds](https://img.shields.io/github/issues/simonmichael/hledger.svg "Open issues, all kinds.")](https://github.com/simonmichael/hledger/issues?q=is:issue+state:open)
+[![Open bugs](https://api.gitscope.dev/api/badges/simonmichael/hledger/label/A-BUG.svg "Open bugs")](https://github.com/simonmichael/hledger/issues?q=is:issue+label:A-BUG+state:open) 
+[![Open wishes](https://api.gitscope.dev/api/badges/simonmichael/hledger/label/A-WISH.svg "Open wishes")](https://github.com/simonmichael/hledger/issues?q=is:issue+label:A-WISH+state:open)
+[![Issues Resolved](https://api.gitscope.dev/api/badges/simonmichael/hledger/resolved.svg "Percentage of issues resolved/closed during last N days. Higher is better. Click to see closed bugs.")](https://github.com/simonmichael/hledger/issues?q=is:issue+state:closed)
+
+<!--
 [![Contributor Friendly](https://api.gitscope.dev/api/badges/simonmichael/hledger/contributor-friendly.svg "Does the project welcome new contributors based on good first issues, contributing guides, and response patterns.")](https://hledger.org/CONTRIBUTING.html)
 [![Issues Welcome](https://api.gitscope.dev/api/badges/simonmichael/hledger/issues.svg "Does the project actively accept and respond to issue reports.")](https://hledger.org/ISSUES.html)
-
+-->
 
 Welcome! This is a brief intro to hledger. For a more detailed version, see the home page: **<https://hledger.org>**
 
