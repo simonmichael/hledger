@@ -28,7 +28,7 @@ Additionally, the data available varies by era:
 - With the "as columns" option on, payment processor fees are available for all eras. Otherwise, processor fee records start in 2024-01.
 - Payment processor cover records start in 2024-01.
 
-In eras where fees are not available, contribution amounts are under-reported.
+In eras where fees are not available, contribution amounts can be under-reported.
 Eg, a $10 contribution with a $1 host fee and $0.59 payment processor fee might be reported as just a $8.41 contribution.
 
 Here are the formats we provide rules for, and their limitations:
@@ -39,8 +39,8 @@ Here are the formats we provide rules for, and their limitations:
 | Default + fees as columns | from 2024 (inferrable from 2021/06) | from 2021/06                          | yes             | from 2024         | no                  | simplest if you have no data before 2021-06 | opencollective-columns.rules |
 | Default                   | from 2024                           | from 2021/06                          | from 2024       | from 2024         | no                  | simplest if you have no data before 2024    | opencollective-default.rules |
 
-Only the Legacy format provides accurate pre-2024 contributions and fees, and balance information.
-opencollective-legacy.rules is the best-tested of these rule files.
+Note to get accurate pre-2024 contributions and fees, or balance information, the Legacy format is needed.
+opencollective-legacy.rules is the best-tested of these rules files.
 
 ## How to test your conversion
 
