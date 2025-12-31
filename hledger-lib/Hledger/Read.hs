@@ -150,7 +150,7 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Data.Time (Day)
-import Safe (headDef, headMay)
+import Safe (headDef)
 import System.Directory (doesFileExist)
 import System.Environment (getEnv)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
@@ -223,18 +223,8 @@ defaultJournalPath = do
     homedir <- fromMaybe "" <$> getHomeSafe
     let defaultfile = homedir </> journalDefaultFilename
     return defaultfile
-  else do
-    -- If it contains glob metacharacters, expand the pattern and error if no matches.
-    -- Otherwise just expand ~ and return the path, even if the file doesn't exist yet.
-    let hasGlobChars = any (`elem` p) ("*?[{" :: [Char])
-    if hasGlobChars
-      then do
-        mf <- headMay <$> expandGlob "." p `C.catch` (\(_::C.IOException) -> return [])
-        case mf of
-          Just f -> return f
-          Nothing -> error' $ "LEDGER_FILE glob pattern \"" <> p <> "\" matched no files"
-      else
-        expandPath "." p
+  else
+    expandPathOrGlob "." p
 
 -- | Like defaultJournalPath, but return an error message instead of raising an error.
 defaultJournalPathSafely :: IO (Either String String)
