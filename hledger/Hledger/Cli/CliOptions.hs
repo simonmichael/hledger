@@ -741,7 +741,7 @@ journalFilePathFromOpts opts = do
   case mbpaths of
     Just paths -> return paths
     Nothing -> do
-      f <- defaultJournalPath
+      f <- defaultExistingJournalPath
       return $ NE.fromList [f]
 
 -- | Like journalFilePathFromOpts, but does not use defaultJournalPath

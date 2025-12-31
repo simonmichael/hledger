@@ -107,7 +107,6 @@ import Data.Either (isRight)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List
-import Data.List.NonEmpty qualified as NE
 import Data.Maybe (isJust, fromMaybe, fromJust)
 import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -426,10 +425,9 @@ main = handleExit $ withGhcDebug' $ do
         | cmdname `elem` ["commands","demo","help","setup","test"] ->
           cmdaction opts (ignoredjournal cmdname)
 
-        -- 6.4.3. builtin command which should create the journal if missing - do that and run it
-        | cmdname `elem` ["add","import"] -> do
-          ensureJournalFileExists . NE.head =<< journalFilePathFromOpts opts
-          withJournal opts (cmdaction opts)
+        -- 6.4.3. builtin command which can work with a non-existent journal
+        | cmdname `elem` ["add","import"] ->
+          withPossibleJournal opts (cmdaction opts)
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts

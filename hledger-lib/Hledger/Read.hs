@@ -93,6 +93,8 @@ module Hledger.Read (
   defaultJournalWithSafely,
   defaultJournalPath,
   defaultJournalPathSafely,
+  defaultExistingJournalPath,
+  defaultExistingJournalPathSafely,
   requireJournalFileExists,
   ensureJournalFileExists,
   journalEnvVar,
@@ -103,6 +105,7 @@ module Hledger.Read (
   runExceptT,
   readJournal,
   readJournalFile,
+  readPossibleJournalFile,
   readJournalFiles,
   readJournalFilesAndLatestDates,
 
@@ -153,21 +156,18 @@ import System.Environment (getEnv)
 import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
 import System.Info (os)
 import System.IO (Handle, hPutStrLn, stderr)
+import Text.Printf (printf)
 
 import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
+import Hledger.Data.Journal (journalNumberTransactions, nulljournal)
+import Hledger.Data.JournalChecks (journalStrictChecks)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import Hledger.Read.InputOptions
 import Hledger.Read.JournalReader as JournalReader
 import Hledger.Read.CsvReader (tests_CsvReader)
 import Hledger.Read.RulesReader (tests_RulesReader)
--- import Hledger.Read.TimedotReader (tests_TimedotReader)
--- import Hledger.Read.TimeclockReader (tests_TimeclockReader)
 import Hledger.Utils
-import Prelude hiding (getContents, writeFile)
-import Hledger.Data.JournalChecks (journalStrictChecks)
-import Text.Printf (printf)
-import Hledger.Data.Journal (journalNumberTransactions)
 
 --- ** doctest setup
 -- $setup
@@ -202,39 +202,62 @@ defaultJournalWithSafely iopts = (do
     ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
     ]
 
--- | Get the default journal file path, and check that it exists; or raise an error.
+-- | Get the default journal file path - either $LEDGER_FILE or $HOME/.hledger.journal file.
 --
 -- This looks for the LEDGER_FILE environment variable, like Ledger.
--- The value should be a file path; ~ at the start is supported, meaning user's home directory.
--- The value can also be a glob pattern, for convenience; if so we consider only the first matched file.
--- If no such file exists, an error is raised.
+-- The value should be a file path, possibly with ~ at the start meaning the current user's home directory.
+-- Or the value can be a glob pattern (containing *, ?, [ or {) ), in which case the first matching file path is used.
+-- When it's a glob pattern that matches no existing files, an error is raised.
 --
--- If LEDGER_FILE is unset or set to the empty string, we return a default file path:
--- @.hledger.journal@ in the user's home directory.
--- Or if we can't find the user's home directory, in the current directory.
--- If this default file doesn't exist, an error is raised.
+-- If LEDGER_FILE is unset or set to the empty string, this returns a default file path:
+-- @.hledger.journal@ in the user's home directory,
+-- or if we can't find the user's home directory, in the current directory.
+--
+-- The referenced file can be nonexistent.
 --
 defaultJournalPath :: IO String
 defaultJournalPath = do
-  ledgerfile <- getEnv journalEnvVar `C.catch` (\(_::C.IOException) -> return "")
-  if null ledgerfile
+  p <- getEnv journalEnvVar `C.catch` (\(_::C.IOException) -> return "")
+  if null p
   then do
     homedir <- fromMaybe "" <$> getHomeSafe
     let defaultfile = homedir </> journalDefaultFilename
-    exists <- doesFileExist defaultfile
-    if exists then return defaultfile
-    -- else error' $ "LEDGER_FILE is unset and \"" <> defaultfile <> "\" was not found"
-    else error' $ "neither LEDGER_FILE nor \"" <> defaultfile <> "\" was found"
+    return defaultfile
   else do
-    mf <- headMay <$> expandGlob "." ledgerfile `C.catch` (\(_::C.IOException) -> return [])
-    case mf of
-      Just f -> return f
-      Nothing -> error' $ "LEDGER_FILE points to nonexistent \"" <> ledgerfile <> "\""
+    -- If it contains glob metacharacters, expand the pattern and error if no matches.
+    -- Otherwise just expand ~ and return the path, even if the file doesn't exist yet.
+    let hasGlobChars = any (`elem` p) ("*?[{" :: [Char])
+    if hasGlobChars
+      then do
+        mf <- headMay <$> expandGlob "." p `C.catch` (\(_::C.IOException) -> return [])
+        case mf of
+          Just f -> return f
+          Nothing -> error' $ "LEDGER_FILE glob pattern \"" <> p <> "\" matched no files"
+      else
+        expandPath "." p
 
 -- | Like defaultJournalPath, but return an error message instead of raising an error.
 defaultJournalPathSafely :: IO (Either String String)
 defaultJournalPathSafely = (do
   f <- defaultJournalPath
+  return $ Right f
+  )
+  `C.catches` [
+     C.Handler (\(e :: C.ErrorCall)   -> return $ Left $ show e)
+    ,C.Handler (\(e :: C.IOException) -> return $ Left $ show e)
+    ]
+
+-- | Like defaultJournalPath, but also checks that the file exists, and raises an error if it doesn't.
+defaultExistingJournalPath :: IO String
+defaultExistingJournalPath = do
+  f <- defaultJournalPath
+  requireJournalFileExists f
+  return f
+
+-- | Like defaultExistingJournalPath, but returns an error message instead of raising an error.
+defaultExistingJournalPathSafely :: IO (Either String String)
+defaultExistingJournalPathSafely = (do
+  f <- defaultExistingJournalPath
   return $ Right f
   )
   `C.catches` [
@@ -322,7 +345,21 @@ readJournalFileAndLatestDates iopts prefixedfile = do
     else
       return (j, Nothing)
 
--- | Read a Journal from each specified file path (using @readJournalFile@) 
+-- | Like readJournalFile, but if the file does not exist, returns an empty journal
+-- with the file path set. This is useful for commands like add and import that
+-- need to work with a potentially non-existent journal file.
+readPossibleJournalFile :: InputOpts -> PrefixedFilePath -> ExceptT String IO Journal
+readPossibleJournalFile iopts prefixedfile = do
+  let (_, f) = splitReaderPrefix prefixedfile
+  if f == "-"
+    then readJournalFile iopts prefixedfile
+    else do
+      exists <- liftIO $ doesFileExist f
+      if exists
+        then readJournalFile iopts prefixedfile
+        else return $ nulljournal{jfiles = [(f, "")]}
+
+-- | Read a Journal from each specified file path (using @readJournalFile@)
 -- and combine them into one; or return the first error message.
 --
 -- Combining Journals means concatenating them, basically.
