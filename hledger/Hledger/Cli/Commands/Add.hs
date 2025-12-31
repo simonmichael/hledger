@@ -528,7 +528,9 @@ journalAddTransaction j@Journal{jtxns=ts} opts t = do
 appendToJournalFileOrStdout :: FilePath -> Text -> IO ()
 appendToJournalFileOrStdout f s
   | f == "-"  = T.putStr s'
-  | otherwise = appendFile f $ T.unpack s'
+  | otherwise = do
+      ensureJournalFileExists f
+      appendFile f $ T.unpack s'
   where s' = "\n" <> ensureOneNewlineTerminated s
 
 -- | Replace a string's 0 or more terminating newlines with exactly one.
