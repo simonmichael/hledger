@@ -1,4 +1,6 @@
-Here are notes on Open Collective's complicated CSV story (as of 2025-12, based on hledger's open collective).
+# Converting Open Collective CSV
+
+Here are notes on Open Collective's CSV (as of 2025-12, based on hledger's open collective).
 
 On the Transactions screen, first remove any filters so that all transactions will be exported, including:
 
