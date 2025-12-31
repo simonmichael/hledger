@@ -40,6 +40,7 @@ module Hledger.Utils.IO (
   expandHomePath,
   expandPath,
   expandGlob,
+  expandPathOrGlob,
   sortByModTime,
   openFileOrStdin,
   readFileOrStdinPortably,
@@ -419,6 +420,26 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHome
 -- For a more elaborate glob expander, see 'findMatchedFiles' (used by the include directive).
 expandGlob :: FilePath -> FilePath -> IO [FilePath]
 expandGlob curdir p = expandPath curdir p >>= glob <&> sort  -- PARTIAL:
+
+-- | Like expandPath, but if the path contains glob metacharacters (* ? [ {),
+-- treats it as a glob pattern and expands it, returning the first match.
+-- Raises an error if the glob pattern matches no files.
+-- If the path contains no glob metacharacters, just expands ~ and returns the path,
+-- even if the file doesn't exist yet.
+-- This is useful for options like -f and LEDGER_FILE that should:
+-- - accept non-existent files (for commands like add/import that create them)
+-- - expand glob patterns and error if they don't match anything
+expandPathOrGlob :: FilePath -> FilePath -> IO FilePath
+expandPathOrGlob curdir p = do
+  let hasGlobChars = any (`elem` p) ("*?[{" :: [Char])
+  if hasGlobChars
+    then do
+      matches <- expandGlob curdir p `catch` (\(_::IOException) -> return [])
+      case headMay matches of
+        Just f -> return f
+        Nothing -> error' $ "glob pattern \"" <> p <> "\" matched no files"
+    else
+      expandPath curdir p
 
 -- | Given a list of existing file paths, sort them by modification time (from oldest to newest).
 sortByModTime :: [FilePath] -> IO [FilePath]
