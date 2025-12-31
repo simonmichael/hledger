@@ -41,14 +41,33 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-ghcup-${{ env.ghcid }}
 
-    - name: Cache - ~/.cabal
-      id:   cabal
+    - name: Cache - ~/.cabal/store
+      id:   cabal-store
       uses: actions/cache@v4
       with:
-        path: ~/.cabal
-        key: ${{ runner.os }}-x64-cabal-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
+        path: ~/.cabal/store
+        key: ${{ runner.os }}-x64-cabal-store-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-cabal-${{ env.ghcid }}
+             ${{ runner.os }}-x64-cabal-store-${{ env.ghcid }}
+
+    - name: Cache - ~/.cabal (excluding store)
+      id:   cabal-config
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cabal
+          !~/.cabal/store
+        key: ${{ runner.os }}-x64-cabal-config-${{ env.ghcid }}-${{ hashFiles('cabal.project*') }}
+        restore-keys: |
+             ${{ runner.os }}-x64-cabal-config-${{ env.ghcid }}
+
+    - name: Cache - dist-newstyle
+      uses: actions/cache@v4
+      with:
+        path: dist-newstyle
+        key: ${{ runner.os }}-x64-dist-newstyle-${{ env.ghcid }}-${{ hashFiles('**/*.cabal', 'cabal.project*') }}
+        restore-keys: |
+             ${{ runner.os }}-x64-dist-newstyle-${{ env.ghcid }}
 
     # actions:
 
