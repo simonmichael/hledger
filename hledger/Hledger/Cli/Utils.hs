@@ -12,6 +12,7 @@ module Hledger.Cli.Utils
      unsupportedOutputFormatError,
      withJournal,
      withJournalDo,
+     withPossibleJournal,
      writeOutput,
      writeOutputLazyText,
      journalTransform,
@@ -30,7 +31,7 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import Data.List.NonEmpty qualified as NE (toList)
+import Data.List.NonEmpty qualified as NE (head, toList)
 import Data.Maybe
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -77,6 +78,18 @@ withJournal opts cmd = do
 
 {-# DEPRECATED withJournalDo "renamed, please use withJournal instead" #-}
 withJournalDo = withJournal
+
+-- | Like withJournal, but if the journal file does not exist, provides an empty
+-- journal with the file path set. This is useful for commands like add and import
+-- that need to work with a potentially non-existent journal file.
+withPossibleJournal :: CliOpts -> (Journal -> IO a) -> IO a
+withPossibleJournal opts cmd = do
+  journalpaths <- journalFilePathFromOptsNoDefault opts
+  f <- case journalpaths of
+    Just paths -> return $ NE.head paths
+    Nothing -> defaultJournalPath
+  j <- runExceptT $ journalTransform opts <$> readPossibleJournalFile (inputopts_ opts) f
+  either error' cmd j  -- PARTIAL:
 
 -- | Apply some journal transformations, if enabled by options, that should happen late.
 -- These happen after parsing, finalising the journal, strict checks, and .latest filtering/updating,
