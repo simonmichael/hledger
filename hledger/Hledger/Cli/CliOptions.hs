@@ -755,7 +755,7 @@ journalFilePathFromOptsNoDefault opts = do
 expandPathPreservingPrefix :: FilePath -> PrefixedFilePath -> IO PrefixedFilePath
 expandPathPreservingPrefix d prefixedf = do
   let (p,f) = splitReaderPrefix prefixedf
-  f' <- expandPath d f
+  f' <- expandPathOrGlob d f
   return $ case p of
     Just p'  -> (show p') ++ ":" ++ f'
     Nothing -> f'
