@@ -7,6 +7,8 @@ _*
 \#*
 .\#*
 .trash
+*.gz
+*.zip
 
 # dev stuff
 .build
@@ -47,16 +49,24 @@ packages*.svg
 /headroom-templates
 .headroom.yaml
 
-# test files
+# ignore typical test file names (but not dirs)
+
 /[0-9]*
-#*.j
+!/[0-9]*/
+
 [a-z0-9]
-#[a-z0-9].*
-[a-z0-9][a-z0-9]
 ![a-z0-9]/
-![a-z0-9].*/
+
+[a-z0-9][a-z0-9]
 ![a-z0-9][a-z0-9]/
+
+/[a-z0-9].*
+![a-z0-9].*/
+
+/[a-z0-9][a-z0-9].*/
 ![a-z0-9][a-z0-9].*/
+
+/test*
 
 # hledger-web stuff
 /config
