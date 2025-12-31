@@ -397,8 +397,8 @@ getCurrentZonedTime = do
 getHomeSafe :: IO (Maybe FilePath)
 getHomeSafe = fmap Just getHomeDirectory `catch` (\(_ :: IOException) -> return Nothing)
 
--- | Expand a tilde (representing home directory) at the start of a file path.
--- ~username is not supported. Can raise an error.
+-- | Expand a single tilde (representing home directory) at the start of a file path.
+-- ~username is not supported. This can raise an IO error.
 expandHomePath :: FilePath -> IO FilePath
 expandHomePath = \case
     "~"          -> getHomeDirectory
@@ -409,12 +409,14 @@ expandHomePath = \case
 
 -- | Given a current directory, convert a possibly relative, possibly tilde-prefixed
 -- file path to an absolute one.
--- ~username is not supported. Leaves "-" unchanged. Can raise an error.
+-- ~username is not supported.
+-- If the file path is "-", it is left as-is.
+-- This can an raise an IO error.
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p  -- PARTIAL:
 
--- | Like expandPath, but treats the expanded path as a glob, and returns
+-- | Like @expandPath@, but treats the expanded path as a glob, and returns
 -- zero or more matched absolute file paths, alphabetically sorted.
 -- Can raise an error.
 -- For a more elaborate glob expander, see 'findMatchedFiles' (used by the include directive).
