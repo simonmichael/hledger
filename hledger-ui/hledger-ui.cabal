@@ -73,7 +73,7 @@ library
   build-depends:
       ansi-terminal >=0.9
     , async
-    , base >=4.18 && <4.22
+    , base >=4.18 && <4.23
     , brick >=2.1.1 && <2.3.2 || >2.3.2 && <2.11
     , cmdargs >=0.8
     , containers >=0.5.9
@@ -100,7 +100,7 @@ library
     , transformers
     , vector
     , vty >=6.1 && <6.6
-    , vty-crossplatform >=0.4.0.0 && <0.6
+    , vty-crossplatform >=0.4.0.0 && <0.5.0.0
   default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
@@ -122,7 +122,7 @@ executable hledger-ui
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
   cpp-options: -DVERSION="1.51.1"
   build-depends:
-      base >=4.18 && <4.22
+      base >=4.18 && <4.23
     , hledger-ui
   default-language: GHC2021
   if (flag(debug))
