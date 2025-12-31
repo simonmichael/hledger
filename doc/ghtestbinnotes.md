@@ -34,7 +34,7 @@ At the command line:
 
 ```
 cd /usr/local/bin
-curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-linux-x64.tar.gz
+curl -fLOC- https://github.com/simonmichael/hledger/releases/download/testbin/hledger-linux-x64.tar.gz
 tar xzf hledger-linux-x64.tar.gz
 cd
 hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
@@ -58,19 +58,19 @@ and/or [Homebrew](https://brew.sh), and let me know.)
 For ARM macs:
   ```
   cd /usr/local/bin
-  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-mac-arm64.tar.gz
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/testbin/hledger-mac-arm64.tar.gz
   tar xzf hledger-mac-arm64.tar.gz
   cd
-  hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
+  hledger --version; hledger-ui --version; hledger-web --version    # should show a .99 version with the testbin release's date
   ```
 
 For Intel macs:
   ```
   cd /usr/local/bin
-  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-mac-x64.tar.gz
+  curl -fLOC- https://github.com/simonmichael/hledger/releases/download/testbin/hledger-mac-x64.tar.gz
   tar xzf hledger-mac-x64.tar.gz
   cd
-  hledger --version; hledger-ui --version; hledger-web --version    # should show a recent .99 version
+  hledger --version; hledger-ui --version; hledger-web --version    # should show a .99 version with the testbin release's date
   ```
 
 </xdetails>
@@ -93,10 +93,10 @@ In a powershell window (press `WINDOWS-R`, `powershell`, `ENTER`):
 2. Download and install the release binaries:
     ```
     cd $HOME\bin
-    curl https://github.com/simonmichael/hledger/releases/download/refs/tags/1.42.99/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+    curl https://github.com/simonmichael/hledger/releases/download/testbin/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
     Expand-Archive hledger-windows-x64.zip -DestinationPath . -Force
     cd $HOME
-    hledger --version; hledger-ui --version; hledger-web --version    # should show refs/tags/1.42.99; if not, check why: where.exe hledger
+    hledger --version; hledger-ui --version; hledger-web --version    # should show a .99 version with the testbin release's date; if not: where.exe hledger
     ```
 
 3. Ensure a default journal file exists, and without a problematic encoding (I'm not sure if/why "ascii" was needed here).
