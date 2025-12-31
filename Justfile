@@ -1100,34 +1100,26 @@ devtag-push:
     echo "Pushing tag $DEVVER.."
     git push origin "$DEVVER"
 
-# XXX There's a tag and a github prerelease, both named nightly, creating confusion.
-# Try replacing the tag with a github nightly branch again.
-
-# # After release: point the nightly tag at the release and push the tag.
-# @nightlytag-push:
-#     git tag -f nightly $(just relver)
-#     git push -f origin nightly
-
-# Between releases: push HEAD to github nightly branch and start building new platform binaries.
-nightlybin:
+# Between releases: push HEAD to github testbin branch and start building new platform binaries.
+testbin:
     #!/usr/bin/env bash
     set -euo pipefail
-    git push -f origin HEAD:nightly
+    git push -f origin HEAD:testbin
     git push -f origin HEAD:binaries
-    printf "When binaries have built successfully, run:\n just nightlyrel-bin\n"
+    printf "When binaries have built successfully, run:\n just testbin-bin\n"
     just ghworkflows-open
 
-# Browse the github nightly prerelease.
-@nightlyrel-open:
-    gh release view -w nightly
+# Browse the github testbin prerelease.
+@testbin-open:
+    gh release view -w testbin
 
-# Push the nightly prerelease notes to the github nightly prerelease.
-@nightlyrel-notes:
-    gh release edit nightly -F doc/ghnightlynotes.md
+# Push the testbin prerelease notes to the github testbin prerelease.
+@testbin-notes:
+    gh release edit testbin -F doc/ghtestbinnotes.md
 
-# After building nightly binaries (nightlybin), copy them to the github nightly prerelease.
-@nightlyrel-bin:
-    gh workflow run nightly
+# After building testbin binaries (testbin), copy them to the github testbin prerelease.
+@testbin-bin:
+    gh workflow run testbin
 
 # ** Installing ------------------------------------------------------------
 INSTALLING:

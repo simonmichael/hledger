@@ -1,6 +1,6 @@
-Here you can find unreleased "nightly" binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html), you can help to make the next release better.
+Here you can find unreleased test binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html), you can help to make the next release better.
 
-These binaries have the following changes since the 1.51 release: https://github.com/simonmichael/hledger/compare/1.51...nightly
+These binaries have the following changes since the 1.51 release: https://github.com/simonmichael/hledger/compare/1.51...testbin
 
 <details>
 <summary>
