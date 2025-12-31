@@ -151,9 +151,9 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Data.Time (Day)
 import Safe (headDef)
-import System.Directory (doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.Environment (getEnv)
-import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeFileName)
+import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeDirectory, takeFileName)
 import System.Info (os)
 import System.IO (Handle, hPutStrLn, stderr)
 import Text.Printf (printf)
@@ -431,6 +431,10 @@ ensureJournalFileExists f = do
   exists <- doesFileExist f
   unless exists $ do
     hPutStrLn stderr $ "Creating hledger journal file " <> show f
+    -- Create parent directories if they don't exist
+    let dir = takeDirectory f
+    unless (null dir || dir == ".") $
+      createDirectoryIfMissing True dir
     -- note Hledger.Utils.UTF8.* do no line ending conversion on windows,
     -- we currently require unix line endings on all platforms.
     newJournalContent >>= T.writeFile f
