@@ -494,12 +494,13 @@ If they're not doing what you expect, it's important to know exactly what they s
    aliases](#regex-aliases) or [CSV rules](#csv-rules), where [backreferences]
    can be used in the replacement string to reference [capturing groups] in the
    search regexp. Otherwise, if you write `\1`, it will match the digit `1`.
-6. they do not support [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
+6. they do not support [lazy quantifiers] (`*?`), [mode modifiers] (`(?s)`), character classes (`\w`, `\d`), or anything else not mentioned above.
 7. they may not (I'm guessing not) properly support right-to-left or bidirectional text.
 
 [POSIX ERE]: http://www.regular-expressions.info/posix.html#ere
 [backreferences]: https://www.regular-expressions.info/backref.html
 [capturing groups]: http://www.regular-expressions.info/refcapture.html
+[lazy quantifiers]: http://www.regular-expressions.info/repeat.html#lazy
 [mode modifiers]: http://www.regular-expressions.info/modifiers.html
 [GNU word boundaries]: http://www.regular-expressions.info/wordboundaries.html
 
