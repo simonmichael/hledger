@@ -66,8 +66,83 @@ h2, h2:last-child > h3 { margin-top:4em; }
 Major releases and user-visible changes.
 
 
-## 2025-12-08 hledger-1.51.1
 
+## 2026-01-08 hledger-1.51.2
+
+
+### hledger 1.51.2
+
+
+Fixes
+
+- The `add` and `import` commands now once again auto-create the journal file
+  if it does not exist yet, fixing a regression in 1.50.3.
+  Also they now create it lazily, only when they have data to write,
+  not unconditionally at the start.
+  [#2514]
+
+- The `roi` command has some more sanity checks, and some error messages
+  have been clarified.
+  (Dmitry Astapov,  [#2505])
+
+Improvements
+
+- The `-f` option now reports an error if you give it a glob pattern
+  (a path containing `[`, `{`, `*`, or `?`) that matches nothing.
+  This makes it consistent with `LEDGER_FILE`.
+
+- Journal format's `include` directive no longer unnecessarily reads
+  the attributes of all files in a directory. This works better with
+  build tools like tup which detect filesystem operations.
+
+- Journal format's `include` directive has been optimised,
+  repairing a slight slowdown introduced in 1.50.3.
+  It no longer calls `canonicalizePath` unnecessarily.
+  This might be noticeable with many includes on a slow filesystem.
+
+- Allow base 4.22 / ghc 9.14.
+
+API
+
+- Hledger.Cli.Utils:
+  withPossibleJournal
+
+[#2505]: https://github.com/simonmichael/hledger/issues/2505
+[#2514]: https://github.com/simonmichael/hledger/issues/2514
+
+
+### hledger-ui 1.51.2
+
+
+- hledger add invoked via the `a` key now shows output properly,
+  fixing a regression in 1.50. [#2512]
+
+- Allow vty-crossplatform 0.5. (Jens Petersen)
+
+- Allow base 4.22 / ghc 9.14.
+
+[#2512]: https://github.com/simonmichael/hledger/issues/2512
+
+
+### hledger-web 1.51.2
+
+
+- The register view now prevents line wrapping in dates when the window is narrow. [#2520]
+
+- Allow base 4.22 / ghc 9.14.
+
+[#2520]: https://github.com/simonmichael/hledger/issues/2520
+
+
+### credits 1.51.2
+
+Simon Michael,
+Dmitry Astapov,
+Jens Petersen.
+
+
+
+## 2025-12-08 hledger-1.51.1
 ### hledger 1.51.1
 
 
@@ -10747,7 +10822,4 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
-
-
-
 
