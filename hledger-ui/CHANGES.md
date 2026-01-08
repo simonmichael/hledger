@@ -23,6 +23,17 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1.51.2 2026-01-08
+
+- hledger add invoked via the `a` key now shows output properly,
+  fixing a regression in 1.50. [#2512]
+
+- Allow vty-crossplatform 0.5. (Jens Petersen)
+
+- Allow base 4.22 / ghc 9.14.
+
+[#2512]: https://github.com/simonmichael/hledger/issues/2512
+
 # 1.51.1 2025-12-08
 
 - Uses hledger 1.51.1.

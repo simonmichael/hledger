@@ -17,6 +17,11 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
+# 1.51.2 2026-01-08
+
+- Allow base 4.22 / ghc 9.14.
+
+
 # 1.51.1 2025-12-08
 
 
@@ -34,6 +39,16 @@ Improvements
 - Hledger.Utils.String:
   quoteForCommandLine now quotes some additional problem characters, and no longer quotes "7".
   [#2468]
+
+API
+
+- Hledger.Read:
+  defaultExistingJournalPath
+  defaultExistingJournalPathSafely
+  readPossibleJournalFile
+
+- Hledger.Utils.IO:
+  expandPathOrGlob
 
 
 # 1.50.4 2025-12-04
