@@ -20,7 +20,7 @@
     <tbody>
       $forall (torig, tacct, split, _acct, amt, bal) <- items
         <tr ##{tindex torig} title="#{showTransaction torig}" style="vertical-align:top;">
-          <td .date>
+          <td .date nowrap>
             <a href="@?{(JournalR, [("q", T.unwords $ removeInacct qparam)])}##{transactionFrag torig}">
               #{show (tdate tacct)}
           <td>
