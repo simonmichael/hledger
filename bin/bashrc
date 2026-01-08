@@ -1,7 +1,7 @@
 # Some hledger/PTA-related bash scripts. See also Justfile.
 
 export FIRSTYEAR="${FIRSTYEAR:-2020}"
-export YEAR="${YEAR:-$(date -I)}"
+export YEAR="${YEAR:-$(date +%Y)}"
 export FINDIR=~/finance
 export LEDGER_FILE=$FINDIR/$YEAR/$YEAR.journal
 
