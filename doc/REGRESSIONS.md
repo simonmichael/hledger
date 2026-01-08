@@ -230,11 +230,11 @@ Fixer  bounties began on 2024-01-01.
 | [#2479]                  | 1.50.3    | [Simon Michael](https://opencollective.com/hledger/expenses/269085)              | [Simon Michael](https://opencollective.com/hledger/expenses/269085)
 | [#2493]                  | 1.50.3    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | [#2498]                  | 1.50.4    | Peter Sagerson (donated)                                                         | Simon Michael (N/A)
-| [#2512]                  |           | amano-kenji (donated)                                                            | Simon Michael (N/A)
+| [#2512]                  | 1.51.2    | amano-kenji (donated)                                                            | Simon Michael (N/A)
 | **1.50.2** 2025-09-26    | ---       | ---                                                                              | ---
 | [#2495]                  | 1.50.3    | alix-aspersa                                                                     | [Simon Michael](https://opencollective.com/hledger/expenses/274113)
 | **1.50.3** 2025-11-18    | ---       | ---                                                                              | ---
-| [#2514]                  |           | Simon Michael (N/A)                                                              | 
+| [#2514]                  | 1.51.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.51** 2025-12-05      | ---       | ---                                                                              | ---
 | [#2503]                  | 1.50.5, 1.51.1 | Simon Michael (N/A)                                                         | Simon Michael (N/A)
 
