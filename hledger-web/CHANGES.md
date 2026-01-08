@@ -23,6 +23,15 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 1.51.2 2026-01-08
+
+- The register view now prevents line wrapping in dates when the window is narrow. [#2520]
+
+- Allow base 4.22 / ghc 9.14.
+
+[#2520]: https://github.com/simonmichael/hledger/issues/2520
+
+
 # 1.51.1 2025-12-08
 
 - Uses hledger 1.51.1.

@@ -17,8 +17,11 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# 1.51.1 2025-12-08
+# 1.51.2 2026-01-08
 
+- Allow base 4.22 / ghc 9.14.
+
+# 1.51.1 2025-12-08
 
 # 1.51 2025-12-05
 

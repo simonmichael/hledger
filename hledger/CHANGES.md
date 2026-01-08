@@ -26,6 +26,46 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# 1.51.2 2026-01-08
+
+Fixes
+
+- The `add` and `import` commands now once again auto-create the journal file
+  if it does not exist yet, fixing a regression in 1.50.3.
+  Also they now create it lazily, only when they have data to write,
+  not unconditionally at the start.
+  [#2514]
+
+- The `roi` command has some more sanity checks, and some error messages
+  have been clarified.
+  (Dmitry Astapov,  [#2505])
+
+Improvements
+
+- The `-f` option now reports an error if you give it a glob pattern
+  (a path containing `[`, `{`, `*`, or `?`) that matches nothing.
+  This makes it consistent with `LEDGER_FILE`.
+
+- Journal format's `include` directive no longer unnecessarily reads
+  the attributes of all files in a directory. This works better with
+  build tools like tup which detect filesystem operations.
+
+- Journal format's `include` directive has been optimised,
+  repairing a slight slowdown introduced in 1.50.3.
+  It no longer calls `canonicalizePath` unnecessarily.
+  This might be noticeable with many includes on a slow filesystem.
+
+- Allow base 4.22 / ghc 9.14.
+
+API
+
+- Hledger.Cli.Utils:
+  withPossibleJournal
+
+[#2505]: https://github.com/simonmichael/hledger/issues/2505
+[#2514]: https://github.com/simonmichael/hledger/issues/2514
+
+
 # 1.51.1 2025-12-08
 
 Fixes
