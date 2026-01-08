@@ -167,7 +167,7 @@ library
     , filepath
     , githash >=0.1.6.2
     , hashable >=1.2.4
-    , haskeline >=0.6
+    , haskeline >=0.8.4.0
     , hledger-lib >=1.51.2 && <1.52
     , http-client
     , http-types
@@ -222,7 +222,7 @@ executable hledger
     , extra >=1.7.11
     , filepath
     , githash >=0.1.6.2
-    , haskeline >=0.6
+    , haskeline >=0.8.4.0
     , hledger
     , hledger-lib >=1.51.2 && <1.52
     , http-client
@@ -273,7 +273,7 @@ test-suite unittest
     , extra >=1.7.11
     , filepath
     , githash >=0.1.6.2
-    , haskeline >=0.6
+    , haskeline >=0.8.4.0
     , hledger
     , hledger-lib >=1.51.2 && <1.52
     , http-client
@@ -325,7 +325,7 @@ benchmark bench
     , extra >=1.7.11
     , filepath
     , githash >=0.1.6.2
-    , haskeline >=0.6
+    , haskeline >=0.8.4.0
     , hledger
     , hledger-lib >=1.51.2 && <1.52
     , html
