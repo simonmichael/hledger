@@ -121,7 +121,7 @@ In a powershell window (press `WINDOWS-R`, `powershell`, `ENTER`):
 
 ```
 cd ~
-curl https://github.com/simonmichael/hledger/releases/download/1.51/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
+curl https://github.com/simonmichael/hledger/releases/download/1.51.2/hledger-windows-x64.zip -OutFile hledger-windows-x64.zip
 Expand-Archive hledger-windows-x64.zip -Force -DestinationPath AppData\Roaming\local\bin
 hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
 ```
