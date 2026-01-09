@@ -17,7 +17,7 @@ all: \
 dc%:
 	git clone --filter=blob:none --sparse http://salsa.debian.org/debconf-team/public/data/$@
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
-	git -C $@ apply ../patches/$@.patch
+	git -C $@ apply --allow-empty ../patches/$@.patch
 
 # make check-ledger, check-hledger - check readability of all years
 check-%:

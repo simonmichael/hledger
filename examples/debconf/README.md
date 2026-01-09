@@ -7,5 +7,6 @@ Each year has its own repo, and the repos are big.
 To clone just the accounting data for a few recent years: `make`
 To clone all years, starting 2017: `make all`
 Some patches for hledger readability will be applied. (These might need updating from time to time.)
-To check h/ledger readability: `make check-hledger`
-To check ledger readability: `make check-ledger`
+
+To check hledger readability: `make check-hledger`
+To check ledger  readability: `make check-ledger`
