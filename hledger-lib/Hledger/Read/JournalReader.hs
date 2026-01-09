@@ -563,10 +563,12 @@ parseAccountTypeCode s =
     "c"          -> Right Cash
     "conversion" -> Right Conversion
     "v"          -> Right Conversion
+    "gains"      -> Right Gain
+    "g"          -> Right Gain
     _            -> Left err
   where
     err = T.unpack $ "invalid account type code "<>s<>", should be one of " <>
-            T.intercalate ", " ["A","L","E","R","X","C","V","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"]
+            T.intercalate ", " ["A","L","E","R","X","C","V","G","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain"]
 
 -- Add an account declaration to the journal, auto-numbering it.
 addAccountDeclaration :: (AccountName,Text,[Tag],SourcePos) -> JournalParser m ()
