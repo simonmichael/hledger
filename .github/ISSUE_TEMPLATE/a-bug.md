@@ -19,9 +19,10 @@ Issue tracker: https://bugs.hledger.org         (some notable issues are pinned)
 Matrix chat:   https://hledger.org/support.html (issues are pinned here too)
 
 In your bug report, please include if possible:
-- your `hledger --version` output (or even better, `hledger setup`)
+- output of `hledger --version` (or best of all, `hledger setup`).
+  It's best if your hledger version is not too old. https://hledger.org/install.html shows the current version and how to upgrade.
 - which OS you're running on
 - a link to a relevant doc you found, if any
 - a small reproducible example or recipe.
 
-Please remove all of this text before submitting.
+(And remember to remove all of this boilerplate text before submitting.)
