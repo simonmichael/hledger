@@ -1,0 +1,9 @@
+diff --git a/budget/commodities.inc b/budget/commodities.inc
+index 8a644c7..ab13ae7 100644
+--- a/budget/commodities.inc
++++ b/budget/commodities.inc
+@@ -23,3 +23,3 @@ commodity TWD
+    note Taiwan New Dollar
+-   format TWD 1,000
++   format TWD 1,000.00
+    default
