@@ -114,7 +114,10 @@ dependencies:
 - extra >=1.7.11
 - filepath
 - githash >=0.1.6.2
-- haskeline >=0.8.4.0
+# haskeline 0.8.4.0 fixes https://github.com/haskell/haskeline/issues/130 and https://github.com/simonmichael/hledger/issues/2410,
+# but isn't yet shipped with GHC. Dev and release builds can require it,
+# but for hledger in stackage we must allow older haskeline and live with #2410 for now.
+- haskeline >=0.6
 - http-client
 - http-types
 - megaparsec >=7.0.0 && <9.8
