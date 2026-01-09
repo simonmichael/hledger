@@ -1,17 +1,17 @@
 recent: \
- dc25 \
  dc24 \
+ dc25 \
 
 all: \
- dc25 \
- dc24 \
- dc23 \
- dc22 \
- dc21 \
- dc20 \
- dc19 \
- dc18 \
  dc17 \
+ dc18 \
+ dc19 \
+ dc20 \
+ dc21 \
+ dc22 \
+ dc23 \
+ dc24 \
+ dc25 \
 
 # make dc-YY - clone the budget directory for this year and make it hledger-readable
 dc%:
@@ -25,6 +25,9 @@ check-%:
 
 
 # maintenance
+
+clean:
+	rm -rf dc*
 
 # make rg-PAT - ripgrep for PAT in ledger,inc,db files in all years
 rg-%:
