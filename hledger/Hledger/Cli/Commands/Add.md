@@ -41,6 +41,9 @@ Notes:
   It does not do this; we assume that if you are using a `D` directive
   you prefer not to see the commodity symbol repeated on amounts in the journal.
 - `add` creates entries in journal format; it won't work with timeclock or timedot files.
+- There is a known issue on Windows if this hledger version is built from stackage: the prompts will show ANSI junk instead of colours (#2410).
+  You can avoid this by using official hledger release binaries or by building it with haskeline >=0.8.4;
+  or by running `add` with `--color=no`, perhaps configured in your config file.
 
 Examples:
 
