@@ -1,10 +1,8 @@
 recent: \
- dc26 \
  dc25 \
  dc24 \
 
 all: \
- dc26 \
  dc25 \
  dc24 \
  dc23 \
@@ -19,7 +17,7 @@ all: \
 dc%:
 	git clone --filter=blob:none --sparse http://salsa.debian.org/debconf-team/public/data/$@
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
-	git -C $$d apply ../patches/$$d.patch
+	git -C $@ apply ../patches/$@.patch
 
 # make check-ledger, check-hledger - check readability of all years
 check-%:
