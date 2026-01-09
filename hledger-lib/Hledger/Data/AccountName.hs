@@ -30,6 +30,7 @@ module Hledger.Data.AccountName (
   ,equityAccountRegex
   ,conversionAccountRegex
   ,revenueAccountRegex
+  ,gainAccountRegex
   ,expenseAccountRegex
   ,acctsep
   ,acctsepchar
@@ -99,6 +100,7 @@ liabilityAccountRegex  = toRegexCI' "^(debts?|liabilit(y|ies))(:|$)"
 equityAccountRegex     = toRegexCI' "^equity(:|$)"
 conversionAccountRegex = toRegexCI' "^equity:(trade|trades|trading|conversion)(:|$)"
 revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
+gainAccountRegex       = toRegexCI' "^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)"
 expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
 
 -- | Try to guess an account's type from its name,
@@ -110,6 +112,7 @@ accountNameInferType a
   | regexMatchText liabilityAccountRegex  a = Just Liability
   | regexMatchText conversionAccountRegex a = Just Conversion
   | regexMatchText equityAccountRegex     a = Just Equity
+  | regexMatchText gainAccountRegex       a = Just Gain
   | regexMatchText revenueAccountRegex    a = Just Revenue
   | regexMatchText expenseAccountRegex    a = Just Expense
   | otherwise                               = Nothing
@@ -447,6 +450,13 @@ tests_AccountName = testGroup "AccountName" [
     accountNameInferType "revenues"          @?= Just Revenue
     accountNameInferType "revenue"           @?= Just Revenue
     accountNameInferType "income"            @?= Just Revenue
+    accountNameInferType "income:gains"          @?= Just Gain
+    accountNameInferType "revenue:gain"          @?= Just Gain
+    accountNameInferType "revenues:capital-gains" @?= Just Gain
+    accountNameInferType "income:capitalgain"    @?= Just Gain
+    accountNameInferType "income:losses"         @?= Just Gain
+    accountNameInferType "revenue:capital-loss"  @?= Just Gain
+    accountNameInferType "income:gains:realized" @?= Just Gain
   ,testCase "joinAccountNames" $ do
     joinAccountNames "assets" "cash"     @?= "assets:cash"
     joinAccountNames "assets:cash" "a"   @?= "assets:cash:a"

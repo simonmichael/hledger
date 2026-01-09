@@ -2212,16 +2212,17 @@ and two more representing changes in these:
 | `Revenue` | `R` | inflows  (also known as `Income`) |
 | `Expense` | `X` | outflows |
 
-hledger also uses a couple of subtypes:
+hledger also uses a few subtypes:
 
 ||||
 |-|-|-|
-| `Cash` | `C` | liquid assets |
-| `Conversion` | `V` | commodity conversions equity |
+| `Cash` | `C` | liquid assets (subtype of Asset) |
+| `Conversion` | `V` | commodity conversions equity (subtype of Equity) |
+| `Gain` | `G` | capital gains/losses (subtype of Revenue) |
 
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
-As a convenience, hledger will detect these types automatically from english account names.
+As a convenience, hledger will detect most of these types automatically from english account names.
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
@@ -2239,6 +2240,8 @@ account assets:bank        ; type: C
 account assets:cash        ; type: C
 
 account equity:conversion  ; type: V
+
+account revenues:capital   ; type: G
 ```
 
 This enables the easy [balancesheet], [balancesheetequity], [cashflow] and [incomestatement] reports, and querying by [type:](#queries).
@@ -5682,8 +5685,9 @@ Match unmarked, pending, or cleared transactions respectively.
 **`type:TYPECODES`**\
 Match by account type (see [Declaring accounts > Account types](#account-types)).
 `TYPECODES` is one or more of the single-letter account type codes
-`ALERXCV`, case insensitive. 
-Note `type:A` and `type:E` will also match their respective subtypes `C` (Cash) and `V` (Conversion).
+`ALERXCVG`, case insensitive.
+Note `type:A`, `type:E`, and `type:R` will also match their respective subtypes
+`C` (Cash), `V` (Conversion), and `G` (Gain).
 Certain kinds of account alias can disrupt account types, see 
 [Rewriting accounts > Aliases and account types](#aliases-and-account-types).
 

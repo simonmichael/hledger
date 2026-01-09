@@ -274,3 +274,23 @@ $ hledger -f- close --clopen -e 2001 --round=hard -c '$1.0'
     equity:opening/closing balances
 
 >=
+
+# ** 20. With --retain, Gain accounts (subtype of Revenue) are also closed.
+<
+account revenues  ; type:R
+account gains     ; type:G
+account expenses  ; type:X
+
+2016/1/1
+    revenues     $-100
+    gains        $-50
+    expenses      $150
+
+$ hledger close -f- -e 2017 --retain
+2016-12-31 retain earnings  ; retain:
+    revenues                            $100 = $0
+    gains                                $50 = $0
+    expenses                           $-150 = $0
+    equity:retained earnings
+
+>=0

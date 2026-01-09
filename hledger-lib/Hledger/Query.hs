@@ -514,11 +514,11 @@ parseTypeCodes s =
     help = "type:'s argument should be one or more of " ++ accountTypeChoices False
 
 accountTypeChoices :: Bool -> String
-accountTypeChoices allowlongform = 
-  intercalate ", " 
+accountTypeChoices allowlongform =
+  intercalate ", "
     -- keep synced with parseAccountType
-    $ ["A","L","E","R","X","C","V"]
-    ++ if allowlongform then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion"] else []
+    $ ["A","L","E","R","X","C","V","G"]
+    ++ if allowlongform then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain"] else []
 
 -- | Case-insensitively parse one single-letter code, or one long-form word if permitted, to an account type.
 -- On failure, returns the unparseable text.
@@ -533,6 +533,7 @@ parseAccountType allowlongform s =
     "x"                          -> Right Expense
     "c"                          -> Right Cash
     "v"                          -> Right Conversion
+    "g"                          -> Right Gain
     "asset"      | allowlongform -> Right Asset
     "liability"  | allowlongform -> Right Liability
     "equity"     | allowlongform -> Right Equity
@@ -540,6 +541,7 @@ parseAccountType allowlongform s =
     "expense"    | allowlongform -> Right Expense
     "cash"       | allowlongform -> Right Cash
     "conversion" | allowlongform -> Right Conversion
+    "gains"      | allowlongform -> Right Gain
     _                            -> Left $ T.unpack s
 
 -- | Parse the value part of a "status:" query, or return an error.

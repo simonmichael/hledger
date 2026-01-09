@@ -181,6 +181,7 @@ data AccountType =
   | Expense
   | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
   | Conversion -- ^ a subtype of Equity - account with which to balance commodity conversions
+  | Gain      -- ^ a subtype of Revenue - capital gains/losses
   deriving (Eq,Ord,Generic)
 
 instance Show AccountType where
@@ -191,6 +192,7 @@ instance Show AccountType where
   show Expense    = "X"
   show Cash       = "C"
   show Conversion = "V"
+  show Gain       = "G"
 
 isBalanceSheetAccountType :: AccountType -> Bool
 isBalanceSheetAccountType t = t `elem` [
@@ -204,7 +206,8 @@ isBalanceSheetAccountType t = t `elem` [
 isIncomeStatementAccountType :: AccountType -> Bool
 isIncomeStatementAccountType t = t `elem` [
   Revenue,
-  Expense
+  Expense,
+  Gain
   ]
 
 -- | Check whether the first argument is a subtype of the second: either equal
@@ -219,6 +222,8 @@ isAccountSubtypeOf Cash       Cash       = True
 isAccountSubtypeOf Cash       Asset      = True
 isAccountSubtypeOf Conversion Conversion = True
 isAccountSubtypeOf Conversion Equity     = True
+isAccountSubtypeOf Gain       Gain       = True
+isAccountSubtypeOf Gain       Revenue    = True
 isAccountSubtypeOf _          _          = False
 
 -- not worth the trouble, letters defined in accountdirectivep for now
