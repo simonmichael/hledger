@@ -21,5 +21,5 @@ dc%:
 
 # make check-ledger, check-hledger - check readability
 check-%:
-	@for d in dc*; do printf "$$d: "; ledger -f $$d/budget/journal.ledger stats >/dev/null && echo ok; done
+	@for d in dc*; do printf "$$d: "; $* -f $$d/budget/journal.ledger stats >/dev/null && echo ok; done
 
