@@ -38,6 +38,12 @@ Here are some scripts which don't use hledger directly, but might be useful to h
 (For more, see also: [plaintextaccounting.org > Software](https://plaintextaccounting.org#software)).
 
 
+### ledgereval
+
+[`ledgereval`](https://github.com/simonmichael/hledger/blob/master/bin/ledgereval
+is a helper for evaluating Ledger value expressions.
+It's useful eg when converting amount expressions like `(1 USD + 2 USD)` to simple amounts.
+
 ### pricehist
 
 [pricehist](https://pypi.org/project/pricehist) is useful for downloading market prices / conversion rates; recommended.
