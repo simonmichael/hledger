@@ -18,3 +18,8 @@ all: \
 dc%:
 	git clone --filter=blob:none --sparse http://salsa.debian.org/debconf-team/public/data/$@
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
+
+# make check-ledger, check-hledger - check readability
+check-%:
+	@for d in dc*; do printf "$$d: "; ledger -f $$d/budget/journal.ledger stats >/dev/null && echo ok; done
+
