@@ -21,15 +21,27 @@ dc%:
 	git clone --filter=blob:none --sparse http://salsa.debian.org/debconf-team/public/data/$@
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
 	git -C $@ apply --allow-empty ../patches/$@.patch
-	printf 'include $@/budget/journal.ledger\ninclude $@/budget/forex.db\n' > 20$*.ledger
+	printf 'include $@/budget/journal.ledger\ninclude $@/budget/forex.db\n' > $*.hledger
 
-# make check-ledger, check-hledger - check readability of all years (main journal)
-check-%:
-	@for d in dc*; do printf "$$d: "; $* -f $$d/budget/journal.ledger stats >/dev/null && echo ok; done
+# make cmd-'CMD' - run a command in each repo's budget directory
+cmd-%:
+	@for d in dc*; do printf "\n$$d:\n"; (cd $$d/budget; $*;) done
 
-# make hledger-'ARGS' - run a hledger command on all years (main journal)
+# make hledger-'HLEDGERARGS' - run a hledger command on each repo's main journal
 hledger-%:
-	@for d in dc*; do printf "\n$$d:\n"; hledger -f $$d/budget/journal.ledger $*; done
+	@for d in dc*; do printf "\n$$d:\n"; hledger -f $$(echo $$d | sed 's/dc//').hledger $*; done
+
+# check hledger readability of all repos' main journal
+hledger-check:
+	@for d in dc*; do printf "$$d: ";    hledger -f $$(echo $$d | sed 's/dc//').hledger stats >/dev/null && echo ok; done
+
+# make ledger-'LEDGERARGS' - run a ledger command on each repo's main journal
+ledger-%:
+	@for d in dc*; do printf "\n$$d:\n"; ledger -f $$d/budget/journal.ledger --price-db $$d/budget/forex.db $*; done
+
+# check Ledger readability of all repos' main journal
+ledger-check:
+	@for d in dc*; do printf "$$d: ";    ledger -f $$d/budget/journal.ledger --price-db $$d/budget/forex.db stats >/dev/null && echo ok; done
 
 
 # maintenance
@@ -49,11 +61,7 @@ fixups:
 	sed -i -E 's/^( +format +\w+ +[0-9]+(,[0-9]+)+)$$/\1.00/' dc*/budget/commodities.inc
 	# convert amount expressions to simple amounts (use ledgereval or ledger eval)
 
-# show uncommitted changes in each year
-diff:
-	for d in dc*; do echo $$d:; git -C $$d diff; done
-
 # save patch files for each year
 save-patches:
-	for d in dc*; do GIT_PAGER= git -C $$d diff >patches/$$d.patch; done
+	for d in dc*; do git --no-pager -C $$d diff > patches/$$d.patch; done
 

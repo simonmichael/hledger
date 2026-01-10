@@ -2,4 +2,4 @@ alias Expenses=expenses
 alias incomes=income
 alias Incomes=income
 
-include 2*.ledger
+include [0-9]*.hledger
