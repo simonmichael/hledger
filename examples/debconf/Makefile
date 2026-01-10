@@ -1,7 +1,4 @@
-recent: \
- dc24 \
- dc25 \
-
+# download ledgers for all years
 all: \
  dc17 \
  dc18 \
@@ -12,12 +9,19 @@ all: \
  dc23 \
  dc24 \
  dc25 \
+# dc26 \
 
-# make dc-YY - clone the budget directory for this year and make it hledger-readable
+recent: \
+ dc24 \
+ dc25 \
+# dc26 \
+
+# make dc-YY - clone the budget directory for this year, make it hledger-readable, add a top-level file
 dc%:
 	git clone --filter=blob:none --sparse http://salsa.debian.org/debconf-team/public/data/$@
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
 	git -C $@ apply --allow-empty ../patches/$@.patch
+	printf 'include $@/budget/journal.ledger\ninclude $@/budget/forex.db\n' > 20$*.ledger
 
 # make check-ledger, check-hledger - check readability of all years (main journal)
 check-%:
@@ -27,29 +31,17 @@ check-%:
 hledger-%:
 	@for d in dc*; do printf "\n$$d:\n"; hledger -f $$d/budget/journal.ledger $*; done
 
-stats:
-	@make -s hledger-stats
-
-accounts:
-	@make -s hledger-accounts
-
-is:
-	@make -s hledger-'is -2'
-
-bs:
-	@make -s hledger-'bs -2'
-
 
 # maintenance
 
 clean:
-	rm -rf dc*
+	rm -rf dc* 2*.ledger
 
 # make rg-PAT - ripgrep for PAT in ledger,inc,db files in all years
 rg-%:
 	rg -g '*.{ledger,inc,db}' '$*'
 
-# apply hledger readability fixes to all years
+# make all years hledger-readable
 fixups:
 	# ensure at least two whitespace chars before amounts:
 	sed -i -E 's/(\w)\t(\w)/ \t/' dc*/budget/*.ledger
