@@ -10,3 +10,16 @@ Or to clone all years, starting 2017: `make all`
 Some patches for hledger readability will be applied; those might need updating from time to time.\
 To check hledger readability: `make check-hledger`\
 To check ledger  readability: `make check-ledger`
+
+To run some basic reports in all years:
+
+- `make is`
+- `make bs`
+- `make accounts`
+- `make stats | grep 'Txns  '`
+
+To run an any hledger report in all years: `make hledger-'ARGS'`\
+Eg:
+
+- `make hledger-'activity -W'`
+- `make hledger-'is -tYT --layout=bare'`

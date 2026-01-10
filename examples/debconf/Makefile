@@ -19,9 +19,25 @@ dc%:
 	git -C $@ sparse-checkout set --no-cone budget '!budget/invoices'
 	git -C $@ apply --allow-empty ../patches/$@.patch
 
-# make check-ledger, check-hledger - check readability of all years
+# make check-ledger, check-hledger - check readability of all years (main journal)
 check-%:
 	@for d in dc*; do printf "$$d: "; $* -f $$d/budget/journal.ledger stats >/dev/null && echo ok; done
+
+# make hledger-'ARGS' - run a hledger command on all years (main journal)
+hledger-%:
+	@for d in dc*; do printf "\n$$d:\n"; hledger -f $$d/budget/journal.ledger $*; done
+
+stats:
+	@make -s hledger-stats
+
+accounts:
+	@make -s hledger-accounts
+
+is:
+	@make -s hledger-'is -2'
+
+bs:
+	@make -s hledger-'bs -2'
 
 
 # maintenance
