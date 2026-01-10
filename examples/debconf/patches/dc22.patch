@@ -1,3 +1,14 @@
+diff --git a/budget/commodities.inc b/budget/commodities.inc
+index 023894b..41dbcce 100644
+--- a/budget/commodities.inc
++++ b/budget/commodities.inc
+@@ -14 +14,6 @@ commodity CHF
+    nomarket
++
++commodity CNY
++   note Chinese yuan
++   format CNY 1,000.00
++   nomarket
 diff --git a/budget/expenses.ledger b/budget/expenses.ledger
 index dc887c6..90cb494 100644
 --- a/budget/expenses.ledger
