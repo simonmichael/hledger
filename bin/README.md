@@ -40,7 +40,7 @@ Here are some scripts which don't use hledger directly, but might be useful to h
 
 ### ledgereval
 
-[`ledgereval`](https://github.com/simonmichael/hledger/blob/master/bin/ledgereval
+[ledgereval](https://github.com/simonmichael/hledger/blob/master/bin/ledgereval)
 is a helper for evaluating Ledger value expressions.
 It's useful eg when converting amount expressions like `(1 USD + 2 USD)` to simple amounts.
 
