@@ -602,7 +602,7 @@ journalAccountType Journal{jaccounttypes} = accountNameType jaccounttypes
 
 -- | Add a map of all known account types to the journal.
 journalAddAccountTypes :: Journal -> Journal
-journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j}
+journalAddAccountTypes j = j{jaccounttypes = journalAccountTypes j} `seq` j
 
 -- | An account type inherited from the parent account(s),
 -- and whether it was originally declared by an account directive (true) or inferred from an account name (false).
@@ -640,7 +640,7 @@ journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
 -- (including those inherited from parent accounts).
 -- If the same tag exists on posting and account, the latter is ignored.
 journalPostingsAddAccountTags :: Journal -> Journal
-journalPostingsAddAccountTags j = journalMapPostings addtags j
+journalPostingsAddAccountTags j = journalMapPostings addtags j `seq` j
   where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
 
 -- | Remove all tags from the journal's postings except those provided by their account.
@@ -864,7 +864,7 @@ journalReverse j =
     ,jtxnmodifiers     = reverse $ jtxnmodifiers j
     ,jperiodictxns     = reverse $ jperiodictxns j
     ,jpricedirectives  = reverse $ jpricedirectives j
-    }
+    } `seq` j
 
 -- | Set this journal's last read time, ie when its files were last read.
 journalSetLastReadTime :: POSIXTime -> Journal -> Journal
@@ -907,7 +907,8 @@ journalStyleAmounts :: Journal -> Either String Journal
 journalStyleAmounts = fmap journalapplystyles . journalInferCommodityStyles
   where
     journalapplystyles j@Journal{jpricedirectives=pds} =
-      journalMapPostings (styleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
+      let j' = journalMapPostings (styleAmounts styles) j{jpricedirectives=map fixpricedirective pds}
+      in j' `seq` j'
       where
         styles = journalCommodityStylesWith NoRounding j  -- defer rounding, in case of print --round=none
         fixpricedirective pd@PriceDirective{pdamount=a} = pd{pdamount=styleAmounts styles a}
@@ -941,7 +942,8 @@ journalInferCommodityStyles :: Journal -> Either String Journal
 journalInferCommodityStyles j =
   case commodityStylesFromAmounts $ journalStyleInfluencingAmounts False j of
     Left e   -> Left e
-    Right cs -> Right j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
+    Right cs -> let j' = j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
+                 in j' `seq` Right j'
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal
@@ -968,12 +970,13 @@ journalInferCommodityStyles j =
 -- been balanced and posting amounts have appropriate prices attached.
 journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
-  j{jinferredmarketprices =
+  let j' = j{jinferredmarketprices =
        dbg4With (("jinferredmarketprices:\n"<>) . showMarketPrices) $
        map priceDirectiveToMarketPrice .
        concatMap postingPriceDirectivesFromCost $
        journalPostings j
-   }
+    }
+  in j' `seq` j'
 
 -- | Convert all this journal's amounts to cost using their attached prices, if any.
 journalToCost :: ConversionOp -> Journal -> Journal
@@ -987,7 +990,7 @@ journalToCost cost j@Journal{jtxns=ts} = j{jtxns=map (transactionToCost cost) ts
 journalTagCostsAndEquityAndMaybeInferCosts :: Bool -> Bool -> Journal -> Either String Journal
 journalTagCostsAndEquityAndMaybeInferCosts verbosetags addcosts j = do
   let conversionaccts = journalConversionAccounts j
-  ts <- mapM (transactionTagCostsAndEquityAndMaybeInferCosts verbosetags addcosts conversionaccts) $ jtxns j
+  ts <- traverse (transactionTagCostsAndEquityAndMaybeInferCosts verbosetags addcosts conversionaccts) $ jtxns j
   return j{jtxns=ts}
 
 -- | Add equity postings inferred from costs, where needed and possible.
