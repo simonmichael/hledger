@@ -13,9 +13,10 @@ To check hledger readability: `make check-hledger`\
 To check ledger  readability: `make check-ledger`
 
 For convenient reporting, a top-level journal file is created for each year's repo.\
-These also include the forex.db files, allowing currency conversion (when rates exist; you might need to fetch more).\
+These also include the forex.db files, allowing currency conversion (when rates exist; you might need to fetch more).
 
-The `hledger.conf` file sets a few non-essential defaults when you are in this directory.\
+The `hledger.conf` file sets a few non-essential defaults when you are in this directory.
+
 Here are hledger's 
 [manual](https://hledger.org/hledger.html)
 and [other docs](https://hledger.org/doc.html).
@@ -28,7 +29,7 @@ Single year reports:
 - `hledger -f 2025.ledger is -V`
 - `hledger -f 2025.ledger is -VQSTt --drop 1`
 
-The `all.ledger` file reads all the downloaded repos at once:
+The `all.ledger` file reads from all the downloaded repos:
 
 - `hledger -f all.ledger is -1 -YTN`
 - `hledger -f all.ledger is -1 -YT -X USD`
