@@ -2,34 +2,14 @@
 # * Project scripts, using https://github.com/casey/just (last tested with 1.25)
 # Usage: alias j=just, run j to list available scripts.
 #
-# After many years with make and plain shell and haskell for
-# scripting, just is better enough, and the goal of clean consolidated
-# efficient project automation is so valuable, that I am relying on it
-# even though it's not installed by default.
-#
-# All of Makefile has been absorbed below; uncomment/update/drop
-# remaining bits when needed. Makefile will be removed some time soon.
-#
-# just currently lacks make-style file dependency tracking.  When that
-# is needed for efficiency, or when more powerful code is needed, use
-# Shake.hs instead of just.
-#
-#
-# Lines beginning with "# * ", "# ** ", etc are section headings,
-# foldable in Emacs outshine-mode. Here's some more highlighting you can add
-# for readability:
-# (add-hook 'just-mode-hook (lambda ()
-#   (display-line-numbers-mode 1)
-#   (highlight-lines-matching-regexp "^# \\*\\*? " 'hi-yellow)  ; level 1-2 outshine headings
-#   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
-#   ))
-#
-# This file is formatted by `just format`, which currently eats blank lines a bit.
-# (It also commits.)
-#
-# 'set export' below makes constants and arguments available as $VAR as well as {{ VAR }}.
-# $ makes just code more like shell code.
-# {{ }} handles multi-word values better and is fully evaluated in -n/--dry-run output.
+# Maintainable robust project automation is essential.
+# We rely on just for project automation scripts,
+# even though it's less likely to be installed by default than make.
+# After many years with make and plain shell and haskell for scripting,
+# just is better enough that it's worthwhile.
+# The big current limitation of just is the lack of file dependencies.
+# When that is needed, or when more powerful scripting is needed,
+# call out to Shake.hs, which handles both of those well.
 #
 # Reference:
 # https://docs.rs/regex/1.5.4/regex/#syntax Regexps
@@ -37,19 +17,30 @@
 # https://cheatography.com/linux-china/cheat-sheets/justfile Cheatsheet
 # https://github.com/casey/just/discussions
 #
-# Other tools used below include:
-# - stack           - installs libs and runs ghc
+# Here are other tools required by some of the scripts below:
+# - ghc             - a haskell compiler in PATH (installing with ghcup is recommended)
+# - ghcid           - recompiles and optionally runs tests on file change
+# - stack           - installs haskell libs, runs ghc
 # - shelltestrunner - runs functional tests
 # - quickbench      - runs benchmarks
-# - ghcid           - recompiles and optionally runs tests on file change
 # - hasktags        - generates tag files for code navigation
 # - profiterole     - simplifies profiles
 # - profiteur       - renders profiles as html
 # - dateround       - from dateutils
+#
+# Lines beginning with "# * ", "# ** " in this file are emacs outshine-mode headings, foldable with TAB.
+# You could add emacs highlighting like so, if needed:
+# (add-hook 'just-mode-hook (lambda ()
+#   (highlight-lines-matching-regexp "^# \\*\\*? " 'hi-yellow)  ; level 1-2 outshine headings
+#   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
+#   ))
 
 # ** just Helpers ------------------------------------------------------------
 JUST_HELPERS: help
 
+# Make constants and arguments available as $VAR as well as {{ VAR }}.
+# ($VAR makes just code more like shell code;
+# {{ VAR }} handles spaces better and is fully evaluated in -n/--dry-run output.)
 set export := true
 
 # and/or: -q --bell --stop-timeout=1
@@ -82,7 +73,7 @@ alias h := help
 @check:
     just --fmt --unstable --check
 
-# if this justfile is error free but in non-standard format, reformat it, and if it has changes, commit it
+# if this justfile is error free but in non-standard format, reformat it, and if it has changes, commit it. (Eats blank lines and messes with comment layout a bit.)
 @format:
     just -q chk || just -q --fmt --unstable && git diff --quiet || git commit -m ';just: format' -- {{ justfile() }}
 
@@ -608,11 +599,6 @@ samplejournals:
     tools/generatejournal 10000 90000 10   > examples/10ktxns-90kaccts.journal
     tools/generatejournal 10000 100000 10  > examples/10ktxns-100kaccts.journal
     tools/generatejournal 10000 1000000 10 > examples/10ktxns-1maccts.journal
-
-# The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
-# can't use $GHC or {{GHC}} here for some reason
-
-OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
 
 #    tools/generatejournal.hs 3 5 5 --chinese > examples/chinese.journal  # don't regenerate, keep the simple version
 # $ just --set BENCHEXES ledger,hledger  bench
@@ -1153,10 +1139,16 @@ INSTALLING:
 # download github release VER binaries for OS (linux, mac) and ARCH (x64, arm64) to bin/old/hledger*-VER
 @installrel VER OS ARCH:
     #!/usr/bin/env bash
+
+    # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
+    # can't use $GHC or {{GHC}} here for some reason
+    OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
+
     # if [[ "$OS" == "windows" ]]; then
     #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
     # else
     # fi
+
     cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.tar.gz | `type -P gtar || echo tar` xzf - --transform 's/$/-{{ VER }}/'
 
 # # download recent versions of the hledger executables from github to bin/hledger*-VER
