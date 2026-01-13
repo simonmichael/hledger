@@ -1,0 +1,149 @@
+# * Lot syntax
+
+# ** 1. Ledger-style lot syntax is parsed and reproduced in print output.
+<
+2026-01-01
+    assets:investment    10 AAPL @ $100 {$100} [2026-01-01] (lot A)
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL @ $100 {$100} [2026-01-01] (lot A)
+    assets:cash
+
+>=
+
+# ** 2. Lot info appears in the acostbasis field in JSON output.
+$ hledger -f- print -O json
+[
+  {
+    "tcode": "",
+    "tcomment": "",
+    "tdate": "2026-01-01",
+    "tdate2": null,
+    "tdescription": "",
+    "tindex": 1,
+    "tpostings": [
+      {
+        "paccount": "assets:investment",
+        "pamount": [
+          {
+            "acommodity": "AAPL",
+            "acost": {
+              "contents": {
+                "acommodity": "$",
+                "acost": null,
+                "acostbasis": null,
+                "aquantity": {
+                  "decimalMantissa": 100,
+                  "decimalPlaces": 0,
+                  "floatingPoint": 100
+                },
+                "astyle": {
+                  "ascommodityside": "L",
+                  "ascommodityspaced": false,
+                  "asdecimalmark": null,
+                  "asdigitgroups": null,
+                  "asprecision": 0,
+                  "asrounding": "NoRounding"
+                }
+              },
+              "tag": "UnitCost"
+            },
+            "acostbasis": {
+              "cbCost": {
+                "acommodity": "$",
+                "acost": null,
+                "acostbasis": null,
+                "aquantity": {
+                  "decimalMantissa": 100,
+                  "decimalPlaces": 0,
+                  "floatingPoint": 100
+                },
+                "astyle": {
+                  "ascommodityside": "L",
+                  "ascommodityspaced": false,
+                  "asdecimalmark": null,
+                  "asdigitgroups": null,
+                  "asprecision": 0,
+                  "asrounding": "NoRounding"
+                }
+              },
+              "cbDate": "2026-01-01",
+              "cbLabel": "lot A"
+            },
+            "aquantity": {
+              "decimalMantissa": 10,
+              "decimalPlaces": 0,
+              "floatingPoint": 10
+            },
+            "astyle": {
+              "ascommodityside": "R",
+              "ascommodityspaced": true,
+              "asdecimalmark": null,
+              "asdigitgroups": null,
+              "asprecision": 0,
+              "asrounding": "NoRounding"
+            }
+          }
+        ],
+        "pbalanceassertion": null,
+        "pcomment": "",
+        "pdate": null,
+        "pdate2": null,
+        "poriginal": null,
+        "pstatus": "Unmarked",
+        "ptags": [],
+        "ptransaction_": "1",
+        "ptype": "RegularPosting"
+      },
+      {
+        "paccount": "assets:cash",
+        "pamount": [
+          {
+            "acommodity": "$",
+            "acost": null,
+            "acostbasis": null,
+            "aquantity": {
+              "decimalMantissa": -1000,
+              "decimalPlaces": 0,
+              "floatingPoint": -1000
+            },
+            "astyle": {
+              "ascommodityside": "L",
+              "ascommodityspaced": false,
+              "asdecimalmark": null,
+              "asdigitgroups": null,
+              "asprecision": 0,
+              "asrounding": "NoRounding"
+            }
+          }
+        ],
+        "pbalanceassertion": null,
+        "pcomment": "",
+        "pdate": null,
+        "pdate2": null,
+        "poriginal": null,
+        "pstatus": "Unmarked",
+        "ptags": [],
+        "ptransaction_": "1",
+        "ptype": "RegularPosting"
+      }
+    ],
+    "tprecedingcomment": "",
+    "tsourcepos": [
+      {
+        "sourceColumn": 1,
+        "sourceLine": 1,
+        "sourceName": "-"
+      },
+      {
+        "sourceColumn": 1,
+        "sourceLine": 4,
+        "sourceName": "-"
+      }
+    ],
+    "tstatus": "Unmarked",
+    "ttags": []
+  }
+]

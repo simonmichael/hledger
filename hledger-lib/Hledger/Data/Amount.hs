@@ -94,6 +94,8 @@ module Hledger.Data.Amount (
   showAmountB,
   showAmountCost,
   showAmountCostB,
+  showAmountCostBasis,
+  showAmountCostBasisB,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
@@ -247,6 +249,7 @@ data AmountFormat = AmountFormat
   , displayMinWidth         :: Maybe Int  -- ^ Minimum width to pad to
   , displayMaxWidth         :: Maybe Int  -- ^ Maximum width to clip to
   , displayCost             :: Bool       -- ^ Whether to display Amounts' costs.
+  , displayCostBasis        :: Bool       -- ^ Whether to display Amounts' cost basis (Ledger-style lot syntax).
   , displayColour           :: Bool       -- ^ Whether to ansi-colourise negative Amounts.
   , displayQuotes           :: Bool       -- ^ Whether to enclose complex symbols in quotes (normally true)
   } deriving (Show)
@@ -266,6 +269,7 @@ defaultFmt = AmountFormat {
   , displayMinWidth         = Just 0
   , displayMaxWidth         = Nothing
   , displayCost             = True
+  , displayCostBasis        = True
   , displayColour           = False
   , displayQuotes           = True
   }
@@ -274,9 +278,9 @@ defaultFmt = AmountFormat {
 fullZeroFmt :: AmountFormat
 fullZeroFmt = defaultFmt{displayZeroCommodity=True}
 
--- | Like defaultFmt but don't show costs.
+-- | Like defaultFmt but don't show costs or cost basis.
 noCostFmt :: AmountFormat
-noCostFmt = defaultFmt{displayCost=False}
+noCostFmt = defaultFmt{displayCost=False, displayCostBasis=False}
 
 -- | Like defaultFmt but display all amounts on one line.
 oneLineFmt :: AmountFormat
@@ -716,11 +720,11 @@ showAmountB :: AmountFormat -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
   afmt@AmountFormat{displayCommodity, displayZeroCommodity, displayDigitGroups
-                   ,displayForceDecimalMark, displayCost, displayColour, displayQuotes}
+                   ,displayForceDecimalMark, displayCost, displayCostBasis, displayColour, displayQuotes}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> cost
-      R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> cost
+      L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> cost <> costbasis
+      R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> cost <> costbasis
   where
     color = if displayColour && isNegativeAmount a then colorB Dull Red else id
     quantity = showAmountQuantity displayForceDecimalMark $
@@ -730,6 +734,7 @@ showAmountB
       | otherwise = (quantity, (if displayQuotes then quoteCommoditySymbolIfNeeded else id) $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     cost = if displayCost then showAmountCostB afmt a else mempty
+    costbasis = if displayCostBasis then showAmountCostBasisB afmt a else mempty
 
 -- Show an amount's cost as @ UNITCOST or @@ TOTALCOST, plus a leading space, or "" if there's no cost.
 showAmountCost :: Amount -> String
@@ -747,6 +752,27 @@ showAmountCostDebug :: Maybe AmountCost -> String
 showAmountCostDebug Nothing                = ""
 showAmountCostDebug (Just (UnitCost pa))  = "@ "  ++ showAmountDebug pa
 showAmountCostDebug (Just (TotalCost pa)) = "@@ " ++ showAmountDebug pa
+
+-- | Show an amount's cost basis as Ledger-style lot syntax: {LOTCOST} [LOTDATE] (LOTNOTE).
+showAmountCostBasis :: Amount -> String
+showAmountCostBasis = wbUnpack . showAmountCostBasisB defaultFmt
+
+-- showAmountCostBasis, efficient builder version.
+showAmountCostBasisB :: AmountFormat -> Amount -> WideBuilder
+showAmountCostBasisB afmt amt = case acostbasis amt of
+  Nothing -> mempty
+  Just CostBasis{cbCost, cbDate, cbLabel} ->
+    lotcost <> lotdate <> lotnote
+    where
+      lotcost = case cbCost of
+        Nothing -> mempty
+        Just a  -> WideBuilder (TB.fromString " {") 2 <> showAmountB afmt a <> WideBuilder (TB.singleton '}') 1
+      lotdate = case cbDate of
+        Nothing -> mempty
+        Just d  -> WideBuilder (TB.fromString " [") 2 <> wbFromText (T.pack $ show d) <> WideBuilder (TB.singleton ']') 1
+      lotnote = case cbLabel of
+        Nothing -> mempty
+        Just l  -> WideBuilder (TB.fromString " (") 2 <> wbFromText l <> WideBuilder (TB.singleton ')') 1
 
 -- | Colour version. For a negative amount, adds ANSI codes to change the colour,
 -- currently to hard-coded red.
