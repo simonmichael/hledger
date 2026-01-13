@@ -478,6 +478,7 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 
 # build hledger warning-free and run functional tests, with any shelltest OPTS. (after mktestaddons)
 @functest *STOPTS:
+    #!/usr/bin/env bash
     $STACK build --ghc-options=-Werror hledger
     time (({{ SHELLTEST }} --exclude=/_ --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
@@ -490,6 +491,7 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 
 # run performance tests with the hledger in PATH, logging to perf.log and expecting a certain txns/s. Accepts shelltest OPTS.
 @perftest *STOPTS:
+    #!/usr/bin/env bash
     echo "Running performance tests..."
     time (({{ SHELLTEST }} {{ if STOPTS == '' { '' } else { STOPTS } }} hledger/test/_perf.test \
         && echo $@ PASSED) || (echo $@ FAILED; false))
