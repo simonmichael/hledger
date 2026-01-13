@@ -305,7 +305,7 @@ instance Num Amount where
 -- | The empty simple amount - a zero with no commodity symbol or cost
 -- and the default amount display style.
 nullamt :: Amount
-nullamt = Amount{acommodity="", aquantity=0, acost=Nothing, astyle=amountstyle}
+nullamt = Amount{acommodity="", aquantity=0, astyle=amountstyle, acost=Nothing, acostbasis=Nothing}
 
 -- | A special amount used as a marker, meaning
 -- "no explicit amount provided here, infer it when needed".

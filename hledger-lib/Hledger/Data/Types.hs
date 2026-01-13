@@ -338,12 +338,22 @@ data Commodity = Commodity {
   cformat :: Maybe AmountStyle
   } deriving (Show,Eq,Generic) --,Ord)
 
+-- | The cost basis of an individual lot - some quantity of an asset acquired at a given date and time.
+-- This can represent a definite cost basis, which must have a cost and date; the label is optional.
+-- Or it can represent
+data CostBasis = CostBasis {
+  cbCost  :: !(Maybe Amount),    -- ^ nominal acquisition cost
+  cbDate  :: !(Maybe Day),       -- ^ nominal acquisition date
+  cbLabel :: !(Maybe Text)       -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+} deriving (Show,Eq,Generic,Ord)
+
 data Amount = Amount {
-      acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
-      aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
-      astyle      :: !AmountStyle,
-      acost       :: !(Maybe AmountCost)  -- ^ the (fixed, transaction-specific) cost in another commodity of this amount, if any
-    } deriving (Eq,Ord,Generic,Show)
+  acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
+  aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
+  astyle      :: !AmountStyle,
+  acost       :: !(Maybe AmountCost),    -- ^ transacted exchange rate - the unit or total cost, in another commodity, used for this amount within its transaction
+  acostbasis  :: !(Maybe CostBasis)    -- ^ the cost basis of an investment lot represented by this amount. Or, a matcher to select such a lot from the available lots.
+} deriving (Eq,Ord,Generic,Show)
 
 -- | Types with this class have one or more amounts,
 -- which can have display styles applied to them.
@@ -807,6 +817,7 @@ instance NFData AmountPrecision
 instance NFData AmountStyle
 instance NFData BalanceAssertion
 instance NFData Commodity
+instance NFData CostBasis
 instance NFData DateSpan
 instance NFData DigitGroupStyle
 instance NFData EFDay

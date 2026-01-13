@@ -290,7 +290,7 @@ commodityStyleFromRawOpts rawOpts =
     optList = listofstringopt "commodity-style" rawOpts
     parseCommodity optStr = case parseamount optStr of
       Left _ -> Left optStr
-      Right (Amount acommodity _ astyle _) -> Right (acommodity, astyle)
+      Right (Amount acommodity _ astyle _ _) -> Right (acommodity, astyle)
 
 transactionBalancingPrecisionFromOpts :: RawOpts -> Either String TransactionBalancingPrecision
 transactionBalancingPrecisionFromOpts rawopts =
