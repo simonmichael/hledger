@@ -36,9 +36,9 @@ Or you can build it from source yourself.
 Or you can install up to date binaries from this page, by following the appropriate instructions below.
 If you find problems with these instructions, please [let us know](https://hledger.org/support).
 
-<!--
 Updates to binaries:
-- YYYY-MM-DD: description. [#NNNN](https://github.com/simonmichael/hledger/issues/NNNN)
+- 2026-01-12: Fixed the hledger-linux-x64.tar.gz asset below, it previously contained a dev build. [#2526](https://github.com/simonmichael/hledger/issues/2526)
+<!--
 -->
 
 <xdetails>
