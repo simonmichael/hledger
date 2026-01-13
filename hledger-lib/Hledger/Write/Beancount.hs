@@ -43,7 +43,8 @@ import Hledger.Data.Transaction (payeeAndNoteFromDescription')
 import Data.Function ((&))
 import Data.List.Extra (groupOnKey)
 import Data.Bifunctor (first)
-import Data.List (sort)
+import Data.List (intersperse, sort)
+import Data.Maybe (catMaybes)
 
 --- ** doctest setup
 -- $setup
@@ -199,10 +200,11 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = showMixedAmountLinesB displayopts a'
+      | otherwise   = map addCostBasis $ showMixedAmountLinesPartsB displayopts a'
         where
-          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
+          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False, displayCostBasis=False }
           a' = mapMixedAmount amountToBeancount $ pamount p
+          addCostBasis (builder, amt) = builder <> showAmountCostBasisBeancountB displayopts amt
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     -- when there is a balance assertion, show it only on the last posting line
@@ -314,6 +316,24 @@ amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', as
       where
         costToBeancount (TotalCost amt) = TotalCost $ amountToBeancount amt
         costToBeancount (UnitCost  amt) = UnitCost  $ amountToBeancount amt
+
+-- | Show an amount's cost basis in Beancount lot syntax: {cost, date, label}
+-- Returns a WideBuilder with the formatted cost basis, or mempty if there's no cost basis.
+showAmountCostBasisBeancountB :: AmountFormat -> Amount -> WideBuilder
+showAmountCostBasisBeancountB afmt amt = case acostbasis amt of
+  Nothing -> mempty
+  Just CostBasis{cbCost, cbDate, cbLabel} ->
+    case parts of
+      [] -> mempty
+      _  -> WideBuilder (TB.fromString " {") 2 <> contents <> WideBuilder (TB.singleton '}') 1
+    where
+      parts = catMaybes
+        [ fmap (showAmountB afmt . amountToBeancount) cbCost
+        , fmap (wbFromText . T.pack . show) cbDate
+        , fmap (wbFromText . quote) cbLabel
+        ]
+      contents = mconcat $ Data.List.intersperse (WideBuilder (TB.fromString ", ") 2) parts
+      quote t = "\"" <> t <> "\""
 
 type BeancountCommoditySymbol = CommoditySymbol
 
