@@ -83,6 +83,7 @@ decimalKV d = let d' = if decimalPlaces d <= 10 then d else roundTo 10 d in
     , "floatingPoint"   .= (realToFrac d' :: Double)
     ]
 
+instance ToJSON CostBasis
 instance ToJSON Amount
 instance ToJSON Rounding
 instance ToJSON AmountStyle
@@ -200,6 +201,7 @@ instance FromJSON SourcePos
 instance FromJSON Pos where
   parseJSON = fmap mkPos . parseJSON
 
+instance FromJSON CostBasis
 instance FromJSON Amount
 instance FromJSON Rounding
 instance FromJSON AmountStyle
