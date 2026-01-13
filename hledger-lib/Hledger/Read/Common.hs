@@ -128,7 +128,7 @@ where
 
 --- ** imports
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
-import Control.Monad (foldM, liftM2, when, unless, (>=>), (<=<))
+import Control.Monad (foldM, join, liftM2, when, unless, (>=>), (<=<))
 import Control.Monad.Fail qualified as Fail (fail)
 import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -833,18 +833,22 @@ amountp = amountp' False
 -- if not, a commodity-less amount will have the default commodity applied to it.
 amountp' :: Bool -> JournalParser m Amount
 amountp' mult =
-  -- dbg "amountp'" $ 
+  -- dbg "amountp'" $
   label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
-  (mcost, _valuationexpr, _mlotcost, _mlotdate, _mlotnote) <- runPermutation $
+  (mcost, _valuationexpr, mlotcost, mlotdate, mlotnote) <- runPermutation $
     -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
     (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
           <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
-  pure $ amt { acost = mcost }
+  let mcostbasis =
+        case (mlotcost, mlotdate, mlotnote) of
+          (Nothing, Nothing, Nothing) -> Nothing
+          _ -> Just $ CostBasis { cbCost = join mlotcost, cbDate = mlotdate, cbLabel = mlotnote }
+  pure $ amt { acost = mcost, acostbasis = mcostbasis }
 
 -- An amount with optional cost, but no cost basis.
 amountnobasisp :: JournalParser m Amount
@@ -1026,10 +1030,9 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style lot cost,
--- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {},
--- and discard it.
-lotcostp :: JournalParser m ()
+-- Parse a Ledger-style lot cost:
+-- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}.
+lotcostp :: JournalParser m (Maybe Amount)
 lotcostp =
   -- dbg "lotcostp" $
   label "ledger-style lot cost" $ do
@@ -1038,33 +1041,34 @@ lotcostp =
   lift skipNonNewlineSpaces
   _fixed <- fmap isJust $ optional $ char '='
   lift skipNonNewlineSpaces
-  _a <- option 0 $ simpleamountp False
+  ma <- optional $ simpleamountp False
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
+  pure ma
 
--- Parse a Ledger-style [LOTDATE], and discard it.
-lotdatep :: JournalParser m ()
+-- Parse a Ledger-style [LOTDATE].
+lotdatep :: JournalParser m Day
 lotdatep =
   -- dbg "lotdatep" $
   label "ledger-style lot date" $ do
   char '['
   lift skipNonNewlineSpaces
-  _d <- datep
+  d <- datep
   lift skipNonNewlineSpaces
   char ']'
-  return ()
+  return d
 
--- Parse a Ledger-style (LOT NOTE), and discard it.
-lotnotep :: JournalParser m ()
+-- Parse a Ledger-style (LOT NOTE).
+lotnotep :: JournalParser m Text
 lotnotep =
   -- dbg "lotnotep" $
   label "ledger-style lot note" $ do
   char '('
   lift skipNonNewlineSpaces
-  _note <- stripEnd . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
+  note <- stripEnd . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
   char ')'
-  return ()
+  return note
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.

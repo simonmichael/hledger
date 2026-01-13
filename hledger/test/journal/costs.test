@@ -184,7 +184,7 @@ $ hledger -f - balance
 >2 /transaction is unbalanced/
 >=1
 
-# ** 17. Differently-priced lots of a commodity should be merged in balance report
+# ** 17. Differently-priced amounts of a commodity should be merged in balance report
 <
 2011/1/1
   (a)   £1 @ $2
@@ -455,7 +455,7 @@ $ hledger -f- print --infer-costs
 
 >=0
 
-# ** 36. Can manually match lots of different posting groups so long as there is no conflict
+# ** 36. Can manually match the corresponding amounts of different conversion posting groups so long as there is no conflict
 <
 2011/01/01
     expenses:food                 €110 @@ £80
