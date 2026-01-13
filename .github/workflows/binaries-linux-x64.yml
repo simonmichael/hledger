@@ -15,7 +15,6 @@ jobs:
     container: alpine:latest
 
     env:
-      stack: stack
       ghcid: 9.12.2
 
     steps:
@@ -28,7 +27,7 @@ jobs:
 
     - name: Install general tools with system package manager
       run: |
-        apk --no-cache add gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl
+        apk --no-cache add gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static binutils-gold curl gcc g++ git make xz tar perl file
 
     # CACHES
 
@@ -117,12 +116,12 @@ jobs:
         strip tmp/hledger-web
         cd tmp
         tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
-        ldd hledger || true
-        ldd hledger-ui || true
-        ldd hledger-web || true
-        # file hledger
-        # file hledger-ui
-        # file hledger-web
+        file hledger
+        file hledger-ui
+        file hledger-web
+        if ldd hledger     2>&1 | grep -qi "not.*dynamic"; then echo "hledger:     statically linked"; else echo "hledger     dependencies:"; ldd hledger    ; fi
+        if ldd hledger-ui  2>&1 | grep -qi "not.*dynamic"; then echo "hledger-ui:  statically linked"; else echo "hledger-ui  dependencies:"; ldd hledger-ui ; fi
+        if ldd hledger-web 2>&1 | grep -qi "not.*dynamic"; then echo "hledger-web: statically linked"; else echo "hledger-web dependencies:"; ldd hledger-web; fi
         ./hledger --version
         ./hledger-ui --version
         ./hledger-web --version
