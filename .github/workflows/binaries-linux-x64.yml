@@ -95,6 +95,10 @@ jobs:
       run: |
         cabal update
 
+    - name: Clean any cached binaries from previous versions
+      run: |
+        find dist-newstyle/build/x86_64-linux/ghc-*/hledger*/x/*/build/*/hledger* -type f -executable -delete 2>/dev/null || true
+
     - name: Build with cabal
       run: |
         cabal build --enable-executable-static --ghc-options=-Werror hledger --constraint 'haskeline>=0.8.4.1' || (echo "ERROR: building hledger failed"; false)
@@ -105,9 +109,9 @@ jobs:
     - name: Gather binaries
       run: |
         mkdir tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-*/x/hledger/build/hledger/hledger tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-ui-*/x/hledger-ui/build/hledger-ui/hledger-ui tmp
-        cp dist-newstyle/build/x86_64-linux/ghc-*/hledger-web-*/x/hledger-web/build/hledger-web/hledger-web tmp
+        cp $(cabal list-bin hledger) tmp
+        cp $(cabal list-bin hledger-ui) tmp
+        cp $(cabal list-bin hledger-web) tmp
         cp hledger/embeddedfiles/*.1 tmp
         cp hledger/embeddedfiles/*.info tmp
         cp hledger/shell-completion/hledger-completion.bash tmp
