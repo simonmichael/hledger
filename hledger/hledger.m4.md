@@ -5276,6 +5276,12 @@ The q can be upper or lower case and the quarter number must be 1-4.
 `last/this/next day/week/month/quarter/year`
 : -1, 0, 1 periods from the current period
 
+`last/this/next tuesday`
+: the previous occurrence of the named day, or the next occurrence after today
+
+`last/this/next february`
+: the previous occurrence of 1st of the named month, or the next occurrence after the current month
+
 `in n days/weeks/months/quarters/years`
 : n periods from the current period
 

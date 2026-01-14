@@ -436,6 +436,12 @@ spanFromSmartDate refdate sdate = DateSpan (Just b) (Just e)
           span' (SmartRelative n Month)       = (Flex $ addGregorianMonthsClip n d, Flex $ addGregorianMonthsClip (n+1) d) where d = thismonth refdate
           span' (SmartRelative n Quarter)     = (Flex $ addGregorianMonthsClip (3*n) d, Flex $ addGregorianMonthsClip (3*n+3) d) where d = thisquarter refdate
           span' (SmartRelative n Year)        = (Flex $ addGregorianYearsClip n d, Flex $ addGregorianYearsClip (n+1) d) where d = thisyear refdate
+          span' (SmartRelativeMonth   LT m)   = (Flex d, Flex $ nextmonth d) where d = prevnamedmonth m refdate
+          span' (SmartRelativeMonth   EQ m)   = (Flex d, Flex $ nextmonth d) where d = thisnamedmonth m refdate
+          span' (SmartRelativeMonth   GT m)   = (Flex d, Flex $ nextmonth d) where d = nextnamedmonth m refdate
+          span' (SmartRelativeWeekDay LT wd)  = (Exact d, Exact $ nextday d) where d = prevnamedweekday wd refdate
+          span' (SmartRelativeWeekDay EQ wd)  = (Exact d, Exact $ nextday d) where d = thisnamedweekday wd refdate
+          span' (SmartRelativeWeekDay GT wd)  = (Exact d, Exact $ nextday d) where d = nextnamedweekday wd refdate
 
 -- showDay :: Day -> String
 -- showDay day = printf "%04d/%02d/%02d" y m d where (y,m,d) = toGregorian day
@@ -524,12 +530,25 @@ fixSmartDateStrEither' d s = case parsewith smartdateonly (T.toLower s) of
 -- >>> t "next year"
 -- "2009-01-01"
 --
--- t "last wed"
+-- refdate is Wednesday, 2008-11-26
+-- >>> t "last wednesday"
 -- "2008-11-19"
--- t "next friday"
--- "2008-11-28"
--- t "next january"
+-- >>> t "this wednesday"
+-- "2008-12-03"
+-- >>> t "next wednesday"
+-- "2008-12-03"
+-- >>> t "last january"
+-- "2008-01-01"
+-- >>> t "this january"
 -- "2009-01-01"
+-- >>> t "next january"
+-- "2009-01-01"
+-- >>> t "last november"
+-- "2007-11-01"
+-- >>> t "this november"
+-- "2009-11-01"
+-- >>> t "next november"
+-- "2009-11-01"
 --
 -- >>> t "in 5 days"
 -- "2008-12-01"
@@ -554,6 +573,12 @@ fixSmartDate refdate = fix
     fix (SmartRelative n Month)   = Flex  $ addGregorianMonthsClip n $ thismonth refdate
     fix (SmartRelative n Quarter) = Flex  $ addGregorianMonthsClip (3*n) $ thisquarter refdate
     fix (SmartRelative n Year)    = Flex  $ addGregorianYearsClip n $ thisyear refdate
+    fix (SmartRelativeMonth LT m)    = Flex $ prevnamedmonth m refdate
+    fix (SmartRelativeMonth EQ m)    = Flex $ thisnamedmonth m refdate
+    fix (SmartRelativeMonth GT m)    = Flex $ nextnamedmonth m refdate
+    fix (SmartRelativeWeekDay LT wd) = Exact $ prevnamedweekday wd refdate
+    fix (SmartRelativeWeekDay EQ wd) = Exact $ thisnamedweekday wd refdate
+    fix (SmartRelativeWeekDay GT wd) = Exact $ nextnamedweekday wd refdate
     (ry, rm, _) = toGregorian refdate
 
 prevday :: Day -> Day
@@ -573,6 +598,36 @@ prevmonth = startofmonth . addGregorianMonthsClip (-1)
 nextmonth = startofmonth . addGregorianMonthsClip 1
 startofmonth day = fromGregorian y m 1 where (y,m,_) = toGregorian day
 nthdayofmonth d day = fromGregorian y m d where (y,m,_) = toGregorian day
+
+prevnamedmonth :: Month -> Day -> Day
+prevnamedmonth targetmonth refdate = fromGregorian y' targetmonth 1
+  where
+    (y, m, _) = toGregorian refdate
+    y' = if targetmonth < m then y else y - 1
+
+nextnamedmonth :: Month -> Day -> Day
+nextnamedmonth targetmonth refdate = fromGregorian y' targetmonth 1
+  where
+    (y, m, _) = toGregorian refdate
+    y' = if targetmonth > m then y else y + 1
+
+thisnamedmonth :: Month -> Day -> Day
+thisnamedmonth = nextnamedmonth  -- "this" and "next" both mean next occurrence after current month
+
+prevnamedweekday :: WeekDay -> Day -> Day
+prevnamedweekday targetwd refdate = addDays (negate $ fromIntegral daysback) refdate
+  where
+    (_, curwd) = mondayStartWeek refdate
+    daysback = 1 + (curwd - targetwd - 1) `mod` 7
+
+nextnamedweekday :: WeekDay -> Day -> Day
+nextnamedweekday targetwd refdate = addDays (fromIntegral daysforward) refdate
+  where
+    (_, curwd) = mondayStartWeek refdate
+    daysforward = 1 + (targetwd - curwd - 1) `mod` 7
+
+thisnamedweekday :: WeekDay -> Day -> Day
+thisnamedweekday = nextnamedweekday  -- "this" and "next" both mean next occurrence after today
 
 thisquarter = startofquarter
 startofquarter day = fromGregorian y (firstmonthofquarter m) 1
@@ -780,6 +835,8 @@ Examples:
 > october, oct                                (start of month in current year)
 > yesterday, today, tomorrow                  (-1, 0, 1 days from today)
 > last/this/next day/week/month/quarter/year  (-1, 0, 1 periods from the current period)
+> last/this/next monday/mon                   (the previous or next named weekday; this=next)
+> last/next january/jan                       (previous or next start of named month; this disallowed to avoid confusion)
 > in n days/weeks/months/quarters/years       (n periods from the current period)
 > n days/weeks/months/quarters/years ago      (-n periods from the current period)
 > 20181201                                    (8 digit YYYYMMDD with valid year month and day)
@@ -819,27 +876,39 @@ Right (SmartAssumeStart 201813012 Nothing)
 smartdate :: TextParser m SmartDate
 smartdate = choice'
   -- XXX maybe obscures date errors ? see ledgerdate
-    [ relativeP
+    [ relativeinterval
+    , relativemonth
+    , relativeweekday
     , yyyymmdd
     , ymd
     , (\(m,d) -> SmartFromReference (Just m) d) <$> md
     , failIfInvalidDate . SmartFromReference Nothing =<< decimal
     , SmartMonth <$> (month <|> mon)
-    , SmartRelative 0    Day <$ string' "today"
     , SmartRelative (-1) Day <$ string' "yesterday"
+    , SmartRelative 0    Day <$ string' "today"
     , SmartRelative 1    Day <$ string' "tomorrow"
     ]
   where
-    relativeP = do
+    relativeinterval = do
         optional $ string' "in" <* skipNonNewlineSpaces
-        num      <- seqP <* skipNonNewlineSpaces
-        interval <- intervalP <* skipNonNewlineSpaces
+        num      <- relativenump <* skipNonNewlineSpaces
+        interval <- intervalp <* skipNonNewlineSpaces
         sign     <- choice [negate <$ string' "ago", id <$ string' "ahead", pure id]
         return $ SmartRelative (sign num) interval
-
-    seqP = choice [ 0 <$ string' "this", -1 <$ string' "last", 1 <$ string' "next", signed skipNonNewlineSpaces decimal ]
-    intervalP = choice [ Day <$ string' "day", Week <$ string' "week", Month <$ string' "month"
-                       , Quarter <$ string' "quarter", Year <$ string' "year" ] <* optional (char' 's')
+        where
+          relativenump = choice [ 0 <$ string' "this", -1 <$ string' "last", 1 <$ string' "next", signed skipNonNewlineSpaces decimal ]
+          intervalp    = choice [ Day <$ string' "day", Week <$ string' "week", Month <$ string' "month"
+                                , Quarter <$ string' "quarter", Year <$ string' "year" ] <* optional (char' 's')
+    relativemonth = do
+      dir <- choice [LT <$ string' "last", EQ <$ string' "this", GT <$ string' "next"]
+      skipNonNewlineSpaces
+      m <- (month <|> mon)
+      return $ SmartRelativeMonth dir m
+    relativeweekday = do
+      dir <- choice [LT <$ string' "last", EQ <$ string' "this", GT <$ string' "next"]
+      skipNonNewlineSpaces
+      w <- weekday
+      return $ SmartRelativeWeekDay dir w
 
 -- | Like smartdate, but there must be nothing other than whitespace after the date.
 smartdateonly :: TextParser m SmartDate

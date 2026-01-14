@@ -84,15 +84,23 @@ type WeekDay = Int   -- 1-7
 -- wildcard (so it would mean all days of that month). See the `smartdate`
 -- parser for more examples.
 --
--- Or, one of the standard periods and an offset relative to the reference date:
+-- Or, one of the standard periods and a numeric offset relative to the reference date:
 -- (last|this|next) (day|week|month|quarter|year), where "this" means the period
 -- containing the reference date.
+--
+-- Or, (last|this|next) weekdayname, where "this" "next".
+--
+-- Or, (last|this|next) monthname, where "this" means the previous 1st if in that month,
+-- otherwise the start of the next occurrence of that month.
+--
 data SmartDate
   = SmartCompleteDate Day
   | SmartAssumeStart Year (Maybe Month)         -- XXX improve these constructor names
   | SmartFromReference (Maybe Month) MonthDay   --
   | SmartMonth Month
   | SmartRelative Integer SmartInterval
+  | SmartRelativeMonth Ordering Month           -- ^ EQ will be treated like GT
+  | SmartRelativeWeekDay Ordering WeekDay
   deriving (Show)
 
 data SmartInterval = Day | Week | Month | Quarter | Year deriving (Show)
