@@ -85,3 +85,29 @@ $ hledger -f- reg date:2019-01-2019-02
 $ hledger -f- reg --forecast=2024
 2024-07-31                      (a)                              1             1
 2024-08-31                      (a)                              1             2
+
+# ** 0. Report interval can also be specified by a date: query.
+<
+2026-01-15
+    (a)    10
+
+2026-03-05
+    (a)    20
+
+2026-03-15
+    (a)    30
+
+$ hledger -f- reg -E date:monthly
+2026-01   a                                                     10            10
+2026-02                                                          0            10
+2026-03   a                                                     50            60
+
+# ** 0. date: queries override interval options, and the last date: query wins.
+$ hledger -f- reg -E date:monthly date:quarterly -Y
+2026Q1   a                                                      60            60
+
+# ** 0. Report interval in a date2: query is ignored.
+$ hledger -f- reg date2:"yearly in 2026"
+2026-01-15                      (a)                             10            10
+2026-03-05                      (a)                             20            30
+2026-03-15                      (a)                             30            60

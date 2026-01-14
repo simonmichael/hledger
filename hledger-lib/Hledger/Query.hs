@@ -152,6 +152,7 @@ data OrdPlus = Lt | LtEq | Gt | GtEq | Eq | AbsLt | AbsLtEq | AbsGt | AbsGtEq | 
 -- | A query option changes a query's/report's behaviour and output in some way.
 data QueryOpt = QueryOptInAcctOnly AccountName  -- ^ show an account register focussed on this account
               | QueryOptInAcct AccountName      -- ^ as above but include sub-accounts in the account register
+              | QueryOptInterval Interval       -- ^ report interval extracted from a date: query
            -- | QueryOptCostBasis      -- ^ show amounts converted to cost where possible
            -- | QueryOptDate2  -- ^ show secondary dates instead of primary dates
     deriving (Show, Eq)
@@ -302,11 +303,12 @@ parseQueryTerm _ (T.stripPrefix "payee:" -> Just s) = (,[]) <$> payeeTag (Just s
 parseQueryTerm _ (T.stripPrefix "note:" -> Just s) = (,[]) <$> noteTag (Just s)
 parseQueryTerm _ (T.stripPrefix "acct:" -> Just s) = (,[]) . Acct <$> toRegexCI s
 parseQueryTerm d (T.stripPrefix "date2:" -> Just s) =
-        case parsePeriodExpr d s of Left e         -> Left $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,spn) -> Right (Date2 spn, [])
+        case parsePeriodExpr d s of Left e                   -> Left $ "\"date2:"++T.unpack s++"\" gave a "++showDateParseError e
+                                    Right (_         , spn)  -> Right (Date2 spn, [])
 parseQueryTerm d (T.stripPrefix "date:" -> Just s) =
-        case parsePeriodExpr d s of Left e         -> Left $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
-                                    Right (_,spn) -> Right (Date spn, [])
+        case parsePeriodExpr d s of Left e                   -> Left $ "\"date:"++T.unpack s++"\" gave a "++showDateParseError e
+                                    Right (NoInterval, spn)  -> Right (Date spn, [])
+                                    Right (interval  , spn)  -> Right (Date spn, [QueryOptInterval interval])
 parseQueryTerm _ (T.stripPrefix "status:" -> Just s) =
         case parseStatus s of Left e   -> Left $ "\"status:"++T.unpack s++"\" gave a parse error: " ++ e
                               Right st -> Right (StatusQ st, [])
@@ -801,6 +803,7 @@ inAccount :: [QueryOpt] -> Maybe (AccountName,Bool)
 inAccount [] = Nothing
 inAccount (QueryOptInAcctOnly a:_) = Just (a,False)
 inAccount (QueryOptInAcct a:_) = Just (a,True)
+inAccount (QueryOptInterval _:rest) = inAccount rest
 
 -- | A query for the account(s) we are currently focussed on, if any.
 -- Just looks at the first query option.
@@ -808,6 +811,7 @@ inAccountQuery :: [QueryOpt] -> Maybe Query
 inAccountQuery [] = Nothing
 inAccountQuery (QueryOptInAcctOnly a : _) = Just . Acct $ accountNameToAccountOnlyRegex a
 inAccountQuery (QueryOptInAcct a     : _) = Just . Acct $ accountNameToAccountRegex a
+inAccountQuery (QueryOptInterval _   : rest) = inAccountQuery rest
 
 -- -- | Convert a query to its inverse.
 -- negateQuery :: Query -> Query

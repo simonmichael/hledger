@@ -78,7 +78,7 @@ import Data.Either.Extra (eitherToMaybe)
 import Data.Functor.Identity (Identity(..))
 import Data.List (partition)
 import Data.List.Extra (find, isPrefixOf, nubSort, stripPrefix)
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing, mapMaybe)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day, addDays)
 import Data.Default (Default(..))
@@ -466,6 +466,14 @@ intervalFromRawOpts = lastDef NoInterval . collectopts intervalfromrawopt
 extractIntervalOrNothing :: (Interval, DateSpan) -> Maybe Interval
 extractIntervalOrNothing (NoInterval, _) = Nothing
 extractIntervalOrNothing (interval, _) = Just interval
+
+-- | Get the last interval specified in query opts, if any.
+-- date: queries can specify a reporting interval.
+intervalFromQueryOpts :: [QueryOpt] -> Maybe Interval
+intervalFromQueryOpts = lastMay . mapMaybe getInterval
+  where
+    getInterval (QueryOptInterval i) = Just i
+    getInterval _ = Nothing
 
 -- | Get any statuses to be matched, as specified by -U/--unmarked,
 -- -P/--pending, -C/--cleared flags. -UPC is equivalent to no flags,
@@ -990,10 +998,14 @@ instance HasReportOpts ReportSpec where
 reportOptsToSpec :: Day -> ReportOpts -> Either String ReportSpec
 reportOptsToSpec day ropts = do
     (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
+    -- If there's an interval in the query opts, it overrides the interval from -p/--period/etc
+    let ropts' = case intervalFromQueryOpts queryopts of
+                   Just interval -> ropts{interval_ = interval}
+                   Nothing       -> ropts
     return ReportSpec
-      { _rsReportOpts = ropts
+      { _rsReportOpts = ropts'
       , _rsDay        = day
-      , _rsQuery      = simplifyQuery $ And [queryFromFlags ropts, argsquery]
+      , _rsQuery      = simplifyQuery $ And [queryFromFlags ropts', argsquery]
       , _rsQueryOpts  = queryopts
       }
 

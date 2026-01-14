@@ -5654,14 +5654,19 @@ Match transaction descriptions.
 ### date: query
 **`date:PERIODEXPR`**\
 Match dates (or with the `--date2` flag, [secondary dates](#secondary-dates)) within the specified period.
-PERIODEXPR is a [period expression](#period-expressions) with no report interval.
+PERIODEXPR is a [period expression](#period-expressions).
 Examples:\
 `date:2016`, `date:thismonth`, `date:2/1-2/15`, `date:2021-07-27..nextquarter`.
+
+PERIODEXPR may include a report interval (since 1.52).
+On the command line, this is equivalent to specifying a report interval with a command line option.
+In other contexts (hledger-ui, hledger-web), the report interval may be ignored.
 
 ### date2: query
 **`date2:PERIODEXPR`**\
 If you use secondary dates: this matches secondary dates within the specified period.
 It is not affected by the `--date2` flag.
+A report interval in PERIODEXPR will be ignored.
 
 ### depth: query
 **`depth:[REGEXP=]N`**\
