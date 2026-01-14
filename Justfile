@@ -42,6 +42,7 @@ JUST_HELPERS: help
 # ($VAR makes just code more like shell code;
 # {{ VAR }} handles spaces better and is fully evaluated in -n/--dry-run output.)
 set export := true
+set shell := ["bash", "-uc"]
 
 # and/or: -q --bell --stop-timeout=1
 
