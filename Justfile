@@ -547,7 +547,7 @@ installtest:
 # ** Benchmarking ------------------------------------------------------------
 BENCHMARKING:
 
-# generate standard sample journals in examples/
+# generate standard sample journals in examples/. Run just tools first.
 samplejournals:
     # small journals
     tools/generatejournal 3 5 5            > examples/ascii.journal
@@ -994,10 +994,10 @@ relbranch VER:
     make -C hledger/shell-completion/
     echo "now please commit any changes in hledger/shell-completion/"
 
-# Make draft release notes from changelogs. Run on release branch.
+# Make draft release notes from changelogs. Run on release branch. Run just tools first.
 @relnotes:
     just _on-release-branch
-    tools/relnotes.hs
+    tools/relnotes
 
 # Upload all packages to hackage (run from release branch).
 @hackageupload:
@@ -1668,6 +1668,10 @@ MISC:
 # ensure the Shake script is compiled
 Shake: # Shake.hs
     ./Shake.hs
+
+# ensure the tools/*.hs scripts are compiled
+tools:
+    tools/compile.sh
 
 # Files to include in emacs TAGS file:
 # 1. haskell source files with hasktags -e (or ctags -aeR)
