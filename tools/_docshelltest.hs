@@ -39,7 +39,7 @@ $ echo This test shall fail
 module Main where
 import Data.List (isPrefixOf)
 import System.Environment (getArgs)
-import System.Exit (exitFailure, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
+import System.Exit (exitFailure, exitSuccess, exitWith, ExitCode(ExitSuccess)) -- base 3 compatible
 import System.IO (hGetContents, hPutStr, hPutStrLn, stderr)
 import System.Process (runInteractiveCommand, waitForProcess)
 import Text.Printf (printf)

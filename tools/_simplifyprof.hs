@@ -1,4 +1,5 @@
-#!/usr/bin/env runhaskell
+#!/usr/bin/env stack
+-- stack script --resolver nightly-2025-09-30
 -- simplifyprof.hs somefile.prof
 -- filter uninteresting fields from GHC profile output
 -- tested with GHC 6.8
@@ -10,7 +11,7 @@ import Text.Printf
 
 main = do
   args <- getArgs
-  let f = head args
+  let f = head' args
   s <- readFile f
   let ls = lines s
   let (firstpart, secondpart) = break ("individual    inherited" `isInfixOf`) ls

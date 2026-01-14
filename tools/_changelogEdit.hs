@@ -36,12 +36,13 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 -- {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE PackageImports #-}
 {-# LANGUAGE RecordWildCards #-}
 
 import Data.Char
 import Data.Default
 import GHC.Generics
-import Data.List.Extra
+import "extra" Data.List.Extra
 -- import Data.Text qualified as T
 import System.Environment
 import System.IO.Extra

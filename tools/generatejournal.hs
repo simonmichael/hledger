@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc
+-- stack script --resolver nightly-2025-09-30
 {-
 generatejournal.hs NUMTXNS NUMACCTS ACCTDEPTH [--chinese|--mixed]
 
