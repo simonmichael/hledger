@@ -1000,8 +1000,8 @@ reportOptsToSpec day ropts = do
     (argsquery, queryopts) <- parseQueryList day $ querystring_ ropts
     -- If there's an interval in the query opts, it overrides the interval from -p/--period/etc
     let ropts' = case intervalFromQueryOpts queryopts of
-                   Just interval -> ropts{interval_ = interval}
-                   Nothing       -> ropts
+                   Just i  -> ropts{interval_=i}
+                   Nothing -> ropts
     return ReportSpec
       { _rsReportOpts = ropts'
       , _rsDay        = day
