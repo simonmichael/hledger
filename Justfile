@@ -404,9 +404,9 @@ test:
     @echo
     just embedtest
     @echo
-    just doctest
-    @echo
     just functest --hide
+    @echo
+    just doctest
     @echo
 
 # For quieter tests add --silent. It may hide troubleshooting info.
