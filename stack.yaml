@@ -14,6 +14,7 @@ resolver: nightly-2025-09-30
 
 notify-if-ghc-untested:   false
 notify-if-cabal-untested: false
+notify-if-no-run-tests:   false
 
 extra-deps:
 # for #2410, #2512:

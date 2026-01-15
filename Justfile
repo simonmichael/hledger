@@ -463,7 +463,7 @@ STACKTEST := STACK + ' test --fast'
 
 # run the doctests in hledger-lib module/function docs. DOCTESTARGS is passed through but seems not too useful.
 @doctest *DOCTESTARGS:
-    ($STACKTEST --ghc-options=-fobject-code --test-arguments="$DOCTESTARGS" hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
+    ({{ STACK }} test --test-arguments="$DOCTESTARGS" hledger-lib:test:doctest && echo $@ PASSED) || (echo $@ FAILED; false)
 
 # # run the unit tests in hledger-lib
 # unittest:
@@ -479,13 +479,16 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 
 # build hledger warning-free and run functional tests, with any shelltest OPTS. (after mktestaddons)
 @functest *STOPTS:
-    $STACK build --ghc-options=-Werror hledger
+    {{ STACK }} build --ghc-options=-Werror --test --no-run-tests hledger
     time (({{ SHELLTEST }} --exclude=/_ --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
         -x hledger/test/perf.test \
         -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-extra \
         && echo $@ PASSED) || (echo $@ FAILED; false))
-# too fragile
+# --test so that subsequent `stack test` won't recompile everything
+# --no-run-tests to avoid running the slow doctest suite every time
+
+# too fragile:
 #    echo
 #    just perftest {{ STOPTS }}
 
