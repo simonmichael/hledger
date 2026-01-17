@@ -1,5 +1,6 @@
 #!/usr/bin/env just
-# * Project scripts, using https://github.com/casey/just (last tested with 1.25)
+# * Project scripts
+# using https://github.com/casey/just, doc: https://just.systems/man/en
 # Usage: alias j=just, run j to list available scripts.
 #
 # Maintainable robust project automation is essential.
@@ -18,6 +19,7 @@
 # https://github.com/casey/just/discussions
 #
 # Here are other tools required by some of the scripts below:
+# - bash            - required, to ensure a predictable default shell
 # - ghc             - a haskell compiler in PATH (installing with ghcup is recommended)
 # - ghcid           - recompiles and optionally runs tests on file change
 # - stack           - installs haskell libs, runs ghc
@@ -35,19 +37,48 @@
 #   (highlight-lines-matching-regexp "^@?\\w.*\\w:$" 'hi-pink) ; recipe headings (misses recipes with dependencies)
 #   ))
 
-# ** just Helpers ------------------------------------------------------------
-JUST_HELPERS: help
+# ** just config ------------------------------------------------------------
 
-# Make constants and arguments available as $VAR as well as {{ VAR }}.
-# ($VAR makes just code more like shell code;
-# {{ VAR }} handles spaces better and is fully evaluated in -n/--dry-run output.)
+################################################################################
+# prelude.just - Standard definitions for justfiles.
+
+#set allow-duplicate-recipes
+set allow-duplicate-variables
+
 set export := true
+set positional-arguments := true
+
+just := 'just -f ' + justfile()
+
+# list recipes, optionally filtered by REGEX. Useful when there's many, but slower than just -ul.
+_help *REGEX:
+    #!/usr/bin/env bash
+    if [[ '{{ REGEX }}' == '' ]]
+    then just -f {{ justfile() }} -ul | gsed -E 's/(^ +[A-Z_-]+ )/\n\1/'; echo
+    else just -f {{ justfile() }} -ul | rg --pcre2 -i '{{ REGEX }}'; true
+    fi
+
+alias h := _help
+
+# check this justfile for errors and non-standard format
+@_chk:
+    just --fmt --unstable --check
+
+# if this justfile is error free but in non-standard format, reformat and commit it
+@_fmt:
+    just -q check || just --fmt --unstable && git commit -m 'just: fmt' -- {{ justfile() }}
+
+WATCHEXEC := 'watchexec'
+
+# rerun RECIPE when any watched-by-default file changes
+@_watch RECIPE *JOPTS:
+    $WATCHEXEC -r -- just $RECIPE {{ JOPTS }}
+################################################################################
+
+# Ensure a predictable default shell. bash will need to be installed to use this justfile.
 set shell := ["bash", "-uc"]
 
-# and/or: -q --bell --stop-timeout=1
-
-# The --wrap-process change is needed for watchexec 2.1.2 on mac, https://github.com/watchexec/watchexec/issues/864
-WATCHEXEC := 'watchexec --wrap-process=session'
+# ** Constants ------------------------------------------------------------
 
 # Open a web browser
 OPEN := 'open -a safari'
@@ -57,47 +88,6 @@ OPEN := 'open -a safari'
 #TODAY := `date +%Y-%m-%d`
 # just := "just -f " + justfile()
 # Use this justfile from within its directory, otherwise we must write {{ just }} everywhere.
-
-#[group('HELPERS')]  # XXX too noisy
-# list this justfile's recipes, optionally filtered by REGEX
-help *REGEX:
-    #!/usr/bin/env bash
-    if [[ '{{ REGEX }}' == '' ]]
-    then just -ul --color=always | sed -E 's/(^ +[A-Z_-]+ )/\n\1/'; echo
-    else just -ul --color=always | rg -i '{{ REGEX }}'; true
-    fi
-
-alias h := help
-
-#[group('HELPERS')]
-# check this justfile for errors and non-standard format
-@check:
-    just --fmt --unstable --check
-
-# if this justfile is error free but in non-standard format, reformat it, and if it has changes, commit it. (Eats blank lines and messes with comment layout a bit.)
-@format:
-    just -q chk || just -q --fmt --unstable && git diff --quiet || git commit -m ';just: format' -- {{ justfile() }}
-
-# rerun RECIPE when any watched-by-default file changes
-watch RECIPE *JOPTS:
-    #!/usr/bin/env bash
-    $WATCHEXEC  -r --filter-file <(git ls-files) -- just $RECIPE {{ JOPTS }}
-
-# rerun RECIPE when any git-committed file changes
-watchgit RECIPE *JOPTS:
-    #!/usr/bin/env bash
-    $WATCHEXEC  -r --filter-file <(git ls-files) -- just $RECIPE {{ JOPTS }}
-
-# show watchexec env vars when any file changes, printing events and ignoring nothing
-_watchdbg *WOPTS:
-    $WATCHEXEC  --ignore-nothing --print-events {{ WOPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
-
-# show watchexec env vars when any git-committed file changes
-_watchgitdbg *WOPTS:
-    #!/usr/bin/env bash
-     $WATCHEXEC  -r --filter-file <(git ls-files) {{ WOPTS }} -- 'env | rg "WATCHEXEC\w*"; true'
-
-# ** Constants ------------------------------------------------------------
 
 BROWSE := 'open'
 
