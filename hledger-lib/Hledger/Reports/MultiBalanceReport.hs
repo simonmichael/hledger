@@ -505,7 +505,7 @@ periodChanges = snd . mapAccumL (\prev new -> (new, opBalanceData maMinus new pr
 tests_MultiBalanceReport = testGroup "MultiBalanceReport" [
 
   let
-    amt0 = Amount {acommodity="$", aquantity=0, acost=Nothing,
+    amt0 = Amount {acommodity="$", aquantity=0, acost=Nothing, acostbasis=Nothing,
       astyle=AmountStyle {ascommodityside = L, ascommodityspaced = False, asdigitgroups = Nothing,
       asdecimalmark = Just '.', asprecision = Precision 2, asrounding = NoRounding}}
     (rspec,journal) `gives` r = do

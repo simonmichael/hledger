@@ -3204,40 +3204,30 @@ value       EXPR
 
 See also <https://hledger.org/ledger.html> for a detailed hledger/Ledger syntax comparison.
 
-### Other cost/lot notations
+### Ledger virtual costs
 
-A slight digression for Ledger and Beancount users.
+In Ledger, `(@) UNITCOST` and `(@@) TOTALCOST` are [virtual costs][ledger: virtual posting costs], which do not generate market prices.
+In hledger, these are equivalent to `@` and `@@`.
 
-**Ledger** has a number of cost/lot-related notations:
+### Ledger lot syntax
 
-- `@ UNITCOST` and `@@ TOTALCOST`
-  - expresses a conversion rate, as in hledger
-  - when buying, also creates a lot that can be selected at selling time
+In Ledger, these optional annotations after an amount help specify the cost basis of a newly acquired lot,
+or select existing lot(s) to dispose of:
 
-- `(@) UNITCOST` and `(@@) TOTALCOST` ([virtual cost][ledger: virtual posting costs])
-  - like the above, but also means "this cost was exceptional, don't use it when inferring market prices".
+- `{LOTUNITCOST}` and `{{{{LOTTOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
+- `[LOTDATE]` ([lot date][ledger: lot dates])
+- `(LOTNOTE)` ([lot note][ledger: lot notes])
+
+hledger does not yet calculate lots itself, but it accepts these annotations and will show them in `print`'s `txt`, `beancount`, and `json` output formats.
+This means you can use this syntax in your hledger journals (with an amountless extra posting to help transactions balance, when needed),
+and use the `print` command to export to Ledger or Beancount when you want to calculate lots and capital gains.
+
+### Ledger fixed lot costs
 
 - `{=UNITCOST}` and `{{{{=TOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
   - when buying, means "this cost is also the fixed value, don't let it fluctuate in value reports"
 
-- `{UNITCOST}` and `{{{{TOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
-  - can be used identically to `@ UNITCOST` and `@@ TOTALCOST`, also creates a lot
-  - when selling, combined with `@ ...`, selects an existing lot by its cost basis. Does not check if that lot is present.
-
-- `[YYYY/MM/DD]` ([lot date][ledger: lot dates])
-  - when buying, attaches this acquisition date to the lot
-  - when selling, selects a lot by its acquisition date
-
-- `(SOME TEXT)` ([lot note][ledger: lot notes])
-  - when buying, attaches this note to the lot
-  - when selling, selects a lot by its note
-
-Currently, hledger 
-
-- accepts any or all of the above in any order after the posting amount
-- supports `@` and `@@`
-- treats `(@)` and `(@@)` as synonyms for `@` and `@@`
-- and ignores the rest. (This can break transaction balancing.)
+Probably equivalent to `@`/`@@`, I'm not sure.
 
 [ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
