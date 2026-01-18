@@ -466,7 +466,7 @@ postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
 -- If the posting already has these tags (with any value), do nothing.
 postingAddHiddenAndMaybeVisibleTag :: Bool -> HiddenTag -> Posting -> Posting
 postingAddHiddenAndMaybeVisibleTag verbosetags ht p@Posting{pcomment=c, ptags} =
-  (p `postingAddTags` ([ht] <> [vt|verbosetags]))
+  (p `postingAddTags` ([ht] <> [vt |verbosetags]))
   {pcomment=if verbosetags && not hadtag then c `commentAddTag` vt else c}
   where
     vt@(vname,_) = toVisibleTag ht
