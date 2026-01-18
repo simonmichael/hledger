@@ -6319,6 +6319,7 @@ where A is the alphabetically first commodity symbol.
 You can customise the "equity:conversion" part by declaring an account with the `V`/`Conversion` [account type](#account-types).
 
 Note you will need to add [account declarations](#account-error-checking) for these to your journal, if you use `check accounts` or `check --strict`.
+(And unlike normal postings, generated equity postings do not inherit tags from account declarations.)
 
 ## Combining costs and equity conversion postings
 
