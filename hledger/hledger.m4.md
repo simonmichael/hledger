@@ -2023,7 +2023,7 @@ They are explained elsewhere, but here's a quick reference:
 
 The second group above (generated-transaction, etc.) are normally hidden, with a `_` prefix added.
 This means `print` doesn't show them by default; but you can still use them in queries.
-You can add the `--verbose-tags` flag to make them visible, which can be useful for troubleshooting.
+You can add the `--verbose-tags` flag to make them visible in `print` output, which can be useful for troubleshooting.
 
 
 ## Directives
