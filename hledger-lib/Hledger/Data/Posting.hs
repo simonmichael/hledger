@@ -516,7 +516,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
         cost = amountCost amt
         amtCommodity  = commodity amt
         costCommodity = commodity cost
-        convp = p{pbalanceassertion=Nothing, poriginal=Nothing}
+        convp = nullposting{pdate=pdate p, pdate2=pdate2 p, pstatus=pstatus p, ptransaction=ptransaction p}
           & postingAddHiddenAndMaybeVisibleTag verbosetags (conversionPostingTagName,"")
           & postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
         accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
