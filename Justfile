@@ -487,6 +487,8 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
     echo "Running performance tests..."
     time (({{ SHELLTEST }} {{ if STOPTS == '' { '' } else { STOPTS } }} hledger/test/_perf.test \
         && echo $@ PASSED) || (echo $@ FAILED; false))
+    echo "Now eyeball the recent perf.log for changes:"
+    tail -50 perf.log
 
 ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
 ADDONSDIR := 'hledger/test/cli/addons'
