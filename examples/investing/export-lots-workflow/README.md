@@ -1,8 +1,8 @@
 # Export Lots workflow
 
-In hledger's sm-costbasis branch, Ledger lot syntax is preserved in print's txt and beancount output.
+In latest hledger (master), Ledger lot syntax is preserved in print's txt and beancount output.
 This lets us export to other apps for lot and gains reports that hledger doesn't support yet.
-Here are some notes from my testing.
+Here are some notes on the process.
 
 ## hledger
 
