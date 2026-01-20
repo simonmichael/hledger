@@ -54,7 +54,7 @@ just := 'just -f ' + justfile()
 _help *REGEX:
     #!/usr/bin/env bash
     if [[ '{{ REGEX }}' == '' ]]
-    then just -f {{ justfile() }} -ul | gsed -E 's/(^ +[A-Z_-]+ )/\n\1/'; echo
+    then just -f {{ justfile() }} -ul | sed -E 's/(^ +[A-Z_-]+ )/\n\1/'; echo
     else just -f {{ justfile() }} -ul | rg --pcre2 -i '{{ REGEX }}'; true
     fi
 
