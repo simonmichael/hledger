@@ -485,10 +485,10 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 # remind how to test performance
 @perfhelp:
     echo "Some ways to compare performance of two installed hledger versions:"
-    echo "j installas new"
-    echo "j perftest"
-    echo "j bench -w hledger,hledger-new -n2 -N2"
-    echo "j bench-throughput hledger; j bench-throughput hledger-new"
+    echo "just installas new"
+    echo "just perftest"
+    echo "just bench -w hledger,hledger-new -n2 -N2"
+    echo "just bench-throughput hledger; just bench-throughput hledger-new"
 
 # run performance tests with the hledger in PATH, logging to perf.log and expecting a certain txns/s. Accepts shelltest OPTS.
 @perftest *STOPTS:
