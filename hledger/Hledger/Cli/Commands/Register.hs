@@ -26,6 +26,7 @@ import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.IO qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
+import Safe (readMay)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger hiding (per)
@@ -56,6 +57,7 @@ registermode = hledgerCommandMode
     ("fuzzy search for one recent posting with description closest to "++arg)
   ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+  ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts"
   ,flagReq  ["sort"] (\s opts -> Right $ setopt "sort" s opts) "FIELDS" 
     ("sort by: " <> sortKeysDescription
     <> ", or a comma-separated combination of these. For a descending sort, prefix with -. (Default: date)")
@@ -101,36 +103,36 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
     rpt = postingsReport rspec j
     render | fmt=="txt"  = postingsReportAsText opts
            | fmt=="json" = toJsonText
-           | fmt=="csv"  = printCSV . postingsReportAsCsv
-           | fmt=="tsv"  = printTSV . postingsReportAsCsv
+           | fmt=="csv"  = printCSV . postingsReportAsCsv opts
+           | fmt=="tsv"  = printTSV . postingsReportAsCsv opts
            | fmt=="html" =
                 (<>"\n") . Lucid.renderText . styledTableHtml .
                 map (map (fmap Lucid.toHtml)) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
+                postingsReportAsSpreadsheet opts oneLineNoCostFmt baseUrl query
            | fmt=="fods" =
                 printFods IO.localeEncoding . Map.singleton "Register" .
                 (,) (1,0) .
-                postingsReportAsSpreadsheet oneLineNoCostFmt baseUrl query
+                postingsReportAsSpreadsheet opts oneLineNoCostFmt baseUrl query
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where fmt = outputFormatFromOpts opts
             baseUrl = balance_base_url_ $ _rsReportOpts rspec
             query = querystring_ $ _rsReportOpts rspec
 
-postingsReportAsCsv :: PostingsReport -> CSV
-postingsReportAsCsv =
-  Spr.rawTableContent . postingsReportAsSpreadsheet machineFmt Nothing []
+postingsReportAsCsv :: CliOpts -> PostingsReport -> CSV
+postingsReportAsCsv opts =
+  Spr.rawTableContent . postingsReportAsSpreadsheet opts machineFmt Nothing []
 
 -- ToDo: --layout=bare etc.
 -- ToDo: Text output does not show headers, but Spreadsheet does
 postingsReportAsSpreadsheet ::
-  AmountFormat -> Maybe Text -> [Text] ->
+  CliOpts -> AmountFormat -> Maybe Text -> [Text] ->
   PostingsReport -> [[Spr.Cell Spr.NumLines Text]]
-postingsReportAsSpreadsheet fmt baseUrl query is =
+postingsReportAsSpreadsheet opts fmt baseUrl query is =
   Spr.addHeaderBorders
     (map Spr.headerCell
       ["txnidx","date","code","description","account","amount","total"])
   :
-  map (postingsReportItemAsRecord fmt baseUrl query) is
+  map (postingsReportItemAsRecord opts fmt baseUrl query) is
 
 {- ToDo:
 link txnidx to journal URL,
@@ -138,9 +140,9 @@ link txnidx to journal URL,
 -}
 postingsReportItemAsRecord ::
     (Spr.Lines border) =>
-    AmountFormat -> Maybe Text -> [Text] ->
+    CliOpts -> AmountFormat -> Maybe Text -> [Text] ->
     PostingsReportItem -> [Spr.Cell border Text]
-postingsReportItemAsRecord fmt baseUrl query (_, _, _, p, b) =
+postingsReportItemAsRecord opts@CliOpts{reportspec_=rspec} fmt baseUrl query (_, _, _, p, b) =
     [idx,
      (dateCell baseUrl query (paccount p) date) {Spr.cellType = Spr.TypeDate},
      cell code, cell desc,
@@ -153,8 +155,10 @@ postingsReportItemAsRecord fmt baseUrl query (_, _, _, p, b) =
     date = postingDate p -- XXX csv should show date2 with --date2
     code = maybe "" tcode $ ptransaction p
     desc = maybe "" tdescription $ ptransaction p
-    acct = bracket $ paccount p
+    acct = bracket . dropAcct . clipAcct $ paccount p
       where
+        clipAcct = clipOrEllipsifyAccountName (depth_ $ _rsReportOpts rspec)
+        dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
         bracket = case ptype p of
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
@@ -199,7 +203,7 @@ postingsReportAsText opts = TB.toLazyText .
 postingsReportItemAsText :: CliOpts -> Int -> Int
                          -> (PostingsReportItem, [WideBuilder], [WideBuilder])
                          -> TB.Builder
-postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperiod, mdesc, p, _), amt, bal) =
+postingsReportItemAsText opts@CliOpts{reportspec_=rspec} preferredamtwidth preferredbalwidth ((mdate, mperiod, mdesc, p, _), amt, bal) =
     table <> TB.singleton '\n'
   where
     table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
@@ -243,8 +247,10 @@ postingsReportItemAsText opts preferredamtwidth preferredbalwidth ((mdate, mperi
 
     -- gather content
     desc = fromMaybe "" mdesc
-    acct = parenthesise . elideAccountName awidth $ paccount p
+    acct = parenthesise . elideAccountName awidth . dropAcct . clipAcct $ paccount p
       where
+        clipAcct = clipOrEllipsifyAccountName (depth_ $ _rsReportOpts rspec)
+        dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
         (parenthesise, awidth) = case ptype p of
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)
             VirtualPosting         -> (wrap "(" ")", acctwidth-2)
