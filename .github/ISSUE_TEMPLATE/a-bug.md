@@ -22,7 +22,7 @@ Thanks for helping to make hledger better! Here's how to make a good bug report:
 
 2. In your bug report, please include if possible:
 
-- the output of `hledger --version` or (best) `hledger setup`
+- the output of `hledger --version` or (ideal, unless you think it's unneeded) `hledger setup`
 - which operating system you're running on
 - a link to the most relevant doc that you found, if any
 - a small reproducible example or instructions to reproduce.
