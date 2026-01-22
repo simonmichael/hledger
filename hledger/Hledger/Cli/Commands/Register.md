@@ -17,6 +17,7 @@ Flags:
                             description closest to DESC
   -r --related              show postings' siblings instead
      --invert               display all amounts with reversed sign
+     --drop=N               omit N leading account name parts
      --sort=FIELDS          sort by: date, desc, account, amount, absamount,
                             or a comma-separated combination of these. For a
                             descending sort, prefix with -. (Default: date)
@@ -71,6 +72,8 @@ $ hledger register checking -b 2008/6 --historical
 ```
 
 The `--depth` option limits the amount of sub-account detail displayed.
+
+The `--drop` option will trim leading segments from account names.
 
 The `--average`/`-A` flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
@@ -140,6 +143,15 @@ Note when using report intervals, if you specify start/end dates these
 will be adjusted outward if necessary to contain a whole number of
 intervals. This ensures that the first and last intervals are full
 length and comparable to the others in the report.
+
+If you have a deeply nested account tree some reports might benefit from trimming
+leading segments from the account names using `--drop`.
+
+```cli
+$ hledger register --monthly income --drop 1
+2008/01                 salary                                 $-1          $-1
+2008/06                 gifts                                  $-1          $-2
+```
 
 With `-m DESC`/`--match=DESC`, register does a fuzzy search for one recent posting
 whose description is most similar to DESC.
