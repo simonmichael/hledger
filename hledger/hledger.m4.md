@@ -1722,11 +1722,11 @@ When you are buying some commodity (or foreign currency) to hold as an investmen
 2. its original acquisition date
 3. and a sequence number or label, if needed, to disambiguate multiple acquisitions on the same day, or to serve as a mnemonic for easy reference.
 
-In hledger we call these three the "cost basis"; and if an amount has a cost basis, we call it a "lot".
+In hledger we call these three the "cost basis"; and if an amount being acquired has a cost basis, we call it a "lot".
 Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
 
-Note, though "cost basis" sounds similar to the "transacted cost" discussed above, they are distinct concepts.
-In some transactions the transacted cost and basis cost are the same, but in others they are not.
+Note, though "cost basis" sounds similar to the "cost" (transacted price) discussed above, they are distinct concepts.
+In some transactions the transacted price and basis cost are the same, but in others they are not.
 
 So cost basis has its own syntax, also called "lot syntax".
 hledger's lot syntax is like Ledger's: one or more of the following annotations, following the main amount:
@@ -1737,8 +1737,8 @@ hledger's lot syntax is like Ledger's: one or more of the following annotations,
 
 hledger does not yet do anything with this lot syntax, except to preserve it and show it in `print`'s `txt`, `beancount`, and `json` output.
 This means you can use this syntax in your hledger journals (plus an amountless extra posting to help transactions balance, if needed),
-then use the `print` command to [export](workflows.md#more-advanced-workflows)) to Ledger or Beancount or rustledger, 
-to use their lots/gains reports.
+then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports
+(see [Export Lots workflow](workflows.md#more-advanced-workflows)).
 
 ## Balance assertions
 
