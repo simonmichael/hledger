@@ -56,6 +56,7 @@ aregistermode = hledgerCommandMode
   -- ,flagNone ["average","A"] (setboolopt "average")
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
+  ,flagNone ["matching"] (setboolopt "matching") "show the matched account instead of related accounts"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts"
   ,flagReq  ["heading"] (\s opts -> Right $ setopt "heading" s opts) "YN"
@@ -119,15 +120,16 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       styleAmounts (journalCommodityStylesWith HardRounding j) $
       (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
       reverse items
+    matching = boolopt "matching" rawopts
     -- select renderer
-    render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
-           | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
-            | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq
-            | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq
-            | fmt=="fods" =
-                 printFods IO.localeEncoding . Map.singleton "Aregister" .
-                 (,) (1,0) .
-                 accountTransactionsReportAsSpreadsheet opts oneLineNoCostFmt hd wd (_rsQuery rspec') thisacctq
+    render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq matching
+           | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq matching
+           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq matching
+           | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq matching
+           | fmt=="fods" =
+                printFods IO.localeEncoding . Map.singleton "Aregister" .
+                (,) (1,0) .
+                accountTransactionsReportAsSpreadsheet opts oneLineNoCostFmt hd wd (_rsQuery rspec') thisacctq matching
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -137,39 +139,40 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   writeOutputLazyText opts $ render items'
 
 accountTransactionsReportAsCsv ::
-  CliOpts -> Bool -> WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv opts hd wd reportq thisacctq =
+  CliOpts -> Bool -> WhichDate -> Query -> Query -> Bool -> AccountTransactionsReport -> CSV
+accountTransactionsReportAsCsv opts hd wd reportq thisacctq matching =
   Spr.rawTableContent .
-  accountTransactionsReportAsSpreadsheet opts machineFmt hd wd reportq thisacctq
+  accountTransactionsReportAsSpreadsheet opts machineFmt hd wd reportq thisacctq matching
 
 accountTransactionsReportAsSpreadsheet ::
   CliOpts -> AmountFormat -> Bool ->
-  WhichDate -> Query -> Query -> AccountTransactionsReport ->
+  WhichDate -> Query -> Query -> Bool -> AccountTransactionsReport ->
   [[Spr.Cell Spr.NumLines Text]]
-accountTransactionsReportAsSpreadsheet opts fmt hd wd reportq thisacctq is =
+accountTransactionsReportAsSpreadsheet opts fmt hd wd reportq thisacctq matching is =
   optional hd
     [Spr.addHeaderBorders $ map Spr.headerCell $
       ["txnidx","date","code","description","otheraccounts","change","balance"]]
   ++
-  map (accountTransactionsReportItemAsRecord opts fmt True wd reportq thisacctq) is
+  map (accountTransactionsReportItemAsRecord opts fmt True wd reportq thisacctq matching) is
 
 accountTransactionsReportItemAsRecord ::
   CliOpts -> AmountFormat -> Bool ->
-  WhichDate -> Query -> Query -> AccountTransactionsReportItem ->
+  WhichDate -> Query -> Query -> Bool -> AccountTransactionsReportItem ->
   [Spr.Cell Spr.NumLines Text]
 accountTransactionsReportItemAsRecord
-  opts fmt internals wd reportq thisacctq
-  (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheraccts, change, balance)
+  opts fmt internals wd reportq thisacctq matching
+  (t@Transaction{tindex,tcode,tdescription,tpostings}, _, _issplit, otheraccts, change, balance)
   = (optional internals [Spr.integerCell tindex]) ++
     date :
     (optional internals [cell tcode]) ++
     [cell tdescription,
-     cell $ T.intercalate ", " $ map dropAcct $ nub otheraccts,
+     cell $ if matching then matchedAcct else T.intercalate ", " $ map dropAcct $ nub otheraccts,
      amountCell change,
      amountCell balance]
   where
     dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
     cell = Spr.defaultCell
+    matchedAcct = T.intercalate ", " . nub $ map paccount $ filter (matchesPosting thisacctq) tpostings
     date =
         (Spr.defaultCell $ showDate $
          transactionRegisterDate wd reportq thisacctq t)
@@ -178,8 +181,8 @@ accountTransactionsReportItemAsRecord
       wbToText <$> Spr.cellFromMixedAmount fmt (Spr.Class "amount", amt)
 
 -- | Render a register report as a HTML snippet.
-accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
-accountTransactionsReportAsHTML copts reportq thisacctq items =
+accountTransactionsReportAsHTML :: CliOpts -> Query -> Query -> Bool -> AccountTransactionsReport -> TL.Text
+accountTransactionsReportAsHTML copts reportq thisacctq matching items =
   htmlAsLazyText $ do
     L.link_ [L.rel_ "stylesheet", L.href_ "hledger.css"]
     L.table_ $ do
@@ -194,17 +197,17 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
         accountTransactionsReportItemAsRecord copts
           oneLineNoCostFmt False
           (whichDate $ _rsReportOpts $ reportspec_ copts)
-          reportq thisacctq
+          reportq thisacctq matching
 
 -- | Render a register report as plain text suitable for console output.
-accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
-accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
+accountTransactionsReportAsText :: CliOpts -> Query -> Query -> Bool -> AccountTransactionsReport -> TL.Text
+accountTransactionsReportAsText copts reportq thisacctq matching items = TB.toLazyText $
     (optional (headingopt copts) $ title <> TB.singleton '\n')
     <>
-    postingsOrTransactionsReportAsText alignAll copts itemAsText itemamt itembal items
+    postingsOrTransactionsReportAsText alignAll copts (itemAsText matching) itemamt itembal items
   where
     alignAll = boolopt "align-all" $ rawopts_ copts
-    itemAsText = accountTransactionsReportItemAsText copts reportq thisacctq
+    itemAsText m = accountTransactionsReportItemAsText copts reportq thisacctq m
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
 
@@ -241,13 +244,13 @@ optional b x = if b then x else mempty
 -- Returns a string which can be multi-line, eg if the running balance
 -- has multiple commodities.
 --
-accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Int -> Int
+accountTransactionsReportItemAsText :: CliOpts -> Query -> Query -> Bool -> Int -> Int
                                     -> (AccountTransactionsReportItem, [WideBuilder], [WideBuilder])
                                     -> TB.Builder
 accountTransactionsReportItemAsText
   copts@CliOpts{reportspec_=ReportSpec{_rsReportOpts=ropts}}
-  reportq thisacctq preferredamtwidth preferredbalwidth
-  ((t@Transaction{tdescription}, _, _issplit, otheraccts, _, _), amt, bal) =
+  reportq thisacctq matching preferredamtwidth preferredbalwidth
+  ((t@Transaction{tdescription,tpostings}, _, _issplit, otheraccts, _, _), amt, bal) =
     -- Transaction -- the transaction, unmodified
     -- Transaction -- the transaction, as seen from the current account
     -- Bool        -- is this a split (more than one posting to other accounts) ?
@@ -291,7 +294,11 @@ accountTransactionsReportItemAsText
     (descwidth, acctwidth) = (w, remaining - 2 - w)
       where w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
-    accts = T.intercalate ", " . map (dropAcct . accountSummarisedName) $ nub otheraccts
+    accts = if matching 
+            then T.intercalate ", " . map (dropAcct . accountSummarisedName) $ nub matchedaccts
+            else T.intercalate ", " . map (dropAcct . accountSummarisedName) $ nub otheraccts
+      where
+        matchedaccts = map paccount $ filter (matchesPosting thisacctq) tpostings
 
 -- tests
 
