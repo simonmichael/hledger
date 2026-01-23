@@ -1713,6 +1713,31 @@ Finally: using both equity postings and cost notation at the same time is allowe
 So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
 and your reports would have the advantages of both.
 
+## Cost basis / lot syntax
+
+When you are buying some commodity (or foreign currency) to hold as an investment, it may be important to keep track of 
+
+1. its original "acquisition cost", 
+2. its original "acquisition date", and 
+3. its sequence within the day, if there were multiple acquisitions on the same day.
+   And/or a mnemonic label for easy reference.
+
+In hledger we call these three the "cost basis"; and if an amount has a cost basis, we call it a "lot".
+Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
+
+Note, though "cost basis" sounds similar to the "transacted cost" discussed above, they are distinct concepts.
+In some transactions the transacted cost and basis cost are the same, but in others they are not.
+
+So cost basis has its own syntax, also called "lot syntax".
+hledger's lot syntax is like Ledger's: one or more of the following annotations, following the main amount:
+
+- `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}` (see [lot price][ledger: buying and selling stock])
+- `[LOTDATE]` (see [lot date][ledger: lot dates])
+- `(LOTLABEL)` (see [lot note][ledger: lot notes])
+
+hledger does not yet do anything with this lot syntax, except to preserve it and show it in `print`'s `txt`, `beancount`, and `json` output.
+This means you can use this syntax in your hledger journals (plus an amountless extra posting to help transactions balance, if needed),
+then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports.
 
 ## Balance assertions
 
