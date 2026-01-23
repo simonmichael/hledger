@@ -1684,11 +1684,15 @@ Note, the order of postings is significant: the cost will be attached to the fir
 So we had to switch the order of postings, to get the same meaning as above.
 Also, this form is the easiest to make undetected errors with; so it is rejected by `hledger check balanced`, and by strict mode.
 
-A big advantage of using cost notation is that hledger reports can show such amounts converted to their cost,
-when you add the [`-B/--cost`](#reporting-options) flag (see [Cost reporting](#cost-reporting)).
+Advantages of cost notation:
 
-An advantage of using equity postings is that they help to keep the accounting equation balanced (if you care about that).
-Also they translate easily to any other double entry accounting system.
+1. it's more compact and easier to read and write
+2. hledger reports can show such amounts converted to their cost, when you add the [`-B/--cost`](#reporting-options) flag (see [Cost reporting](#cost-reporting)).
+
+Advantages of equity postings
+
+1. they help to keep the accounting equation balanced (if you care about that)
+2. they translate easily to any other double entry accounting system.
 
 Most hledger users use cost notation and don't use equity postings.
 
