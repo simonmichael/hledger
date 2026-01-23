@@ -1717,10 +1717,9 @@ and your reports would have the advantages of both.
 
 When you are buying some commodity (or foreign currency) to hold as an investment, it may be important to keep track of 
 
-1. its original "acquisition cost", 
-2. its original "acquisition date", and 
-3. its sequence within the day, if there were multiple acquisitions on the same day.
-   And/or a mnemonic label for easy reference.
+1. its original acquisition cost
+2. its original acquisition date
+3. and a sequence number or label, if needed, to disambiguate multiple acquisitions on the same day, or to serve as a mnemonic for easy reference.
 
 In hledger we call these three the "cost basis"; and if an amount has a cost basis, we call it a "lot".
 Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
@@ -1737,7 +1736,8 @@ hledger's lot syntax is like Ledger's: one or more of the following annotations,
 
 hledger does not yet do anything with this lot syntax, except to preserve it and show it in `print`'s `txt`, `beancount`, and `json` output.
 This means you can use this syntax in your hledger journals (plus an amountless extra posting to help transactions balance, if needed),
-then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports.
+then use the `print` command to [export](workflows.md#more-advanced-workflows)) to Ledger or Beancount or rustledger, 
+to use their lots/gains reports.
 
 ## Balance assertions
 
