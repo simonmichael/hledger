@@ -1615,58 +1615,104 @@ This is explained in [Commodity display style](#commodity-display-style) below.
 
 <a name="transaction-prices"></a>
 
-### Costs
+## Costs
 
-After a posting amount, you can note its cost (when buying) or selling price (when selling) in another commodity,
-by writing either `@ UNITPRICE` or `@@ TOTALPRICE` after it.
-This indicates a conversion transaction, where one commodity is exchanged for another.
+In traditional double entry bookkeeping,
+to record a transaction where one commodity is exchanged for another,
+you add extra equity postings to balance the two commodities. Eg:
 
-(You might also see this called "transaction price" in hledger docs, discussions, or code;
-that term was directionally neutral and reminded that it is a price specific to a transaction,
-but we now just call it "cost", with the understanding that the transaction could be a purchase or a sale.)
+```journal
+2026-01-01 buy euros
+  assets:dollars     $-123
+  equity:conversion   $123
+  equity:conversion  €-100
+  assets:euros        €100
+```
 
-Costs are usually written explicitly with `@` or `@@`, but can also be
-inferred automatically for simple multi-commodity transactions.
-Note, if costs are inferred, the order of postings is significant;
-the first posting will have a cost attached, in the commodity of the second.
+hledger offers a more convenient @/@@ "cost notation" as an alternative:
+instead of equity postings, you can write the "conversion rate" or "transacted price" after a posting amount.
+hledger docs call this generically "cost", whether buying or selling.
+It can be written as either `@ UNITPRICE` or `@@ TOTALPRICE`.
+Eg you could write the above as:
 
-As an example, here are several ways to record purchases of a foreign
-currency in hledger, using the cost notation either explicitly or
-implicitly:
+```journal
+2026-01-01 buy euros
+  assets:dollars     $-123
+  assets:euros        €100 @ $1.23    ; unit cost (exchange rate)
+```
 
-1. Write the price per unit, as `@ UNITPRICE` after the amount:
+or:
 
-    ```journal
-    2009/1/1
-      assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-      assets:dollars                 ; balancing amount is -$135.00
-    ```
+```journal
+2026-01-01 buy euros
+  assets:dollars     $-123
+  assets:euros        €100 @@ $123    ; total cost
+```
 
-2. Write the total price, as `@@ TOTALPRICE` after the amount:
-
-    ```journal
-    2009/1/1
-      assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
-      assets:dollars
-    ```
-
-3. Specify amounts for all postings, using exactly two commodities,
-   and let hledger infer the price that balances the transaction.
-   Note the effect of posting order: the price is added to first posting,
-   making it `€100 @@ $135`, as in example 2:
-
-    ```journal
-    2009/1/1
-      assets:euros     €100          ; one hundred euros purchased
-      assets:dollars  $-135          ; for $135
-    ```
-
-Amounts can be converted to cost at report time using the [`-B/--cost`](#reporting-options) flag;
-this is discussed more in the [Cost reporting](#cost-reporting) section.
-
-Note that the cost normally should be a positive amount, though it's not required to be.
-This can be a little confusing, see discussion at 
+The cost should normally be a positive amount.
+Negative costs are supported, but can be confusing, as discussed at 
 [--infer-market-prices: market prices from transactions](#--infer-market-prices-market-prices-from-transactions).
+
+@/@@ costs participate in transaction balancing. So you could also write those less redundantly like so:
+
+```journal
+2026-01-01 buy euros
+  assets:dollars                      ; $-123 is inferred
+  assets:euros        €100 @ $1.23
+```
+
+or:
+
+```journal
+2026-01-01 buy euros
+  assets:dollars                      ; $-123 is inferred
+  assets:euros        €100 @@ $123
+```
+
+or even:
+
+```journal
+2026-01-01 buy euros
+  assets:euros        €100            ;  @@ $123 is inferred
+  assets:dollars     $-123
+```
+
+This last form works for transactions involving exactly two commodities, with neither cost notation nor equity postings.
+Note, the order of postings is significant: the cost will be attached to the first (top) posting.
+So we had to switch the order of postings, to get the same meaning as above.
+Also, this form is the easiest to make undetected errors with; so it is rejected by `hledger check balanced`, and by strict mode.
+
+You can convert cost notation to equity postings, with `--infer-equity`.
+Eg try `hledger print -x --infer-equity`. This always succeeds.
+
+And you can usually convert equity postings to @/@@ cost notation, with `--infer-costs`.
+Eg try `hledger print -x --infer-costs`.
+This succeeds wherever a suitable pair of equity postings is found (adjacent, with the right amounts to balance the transaction);
+in other places it will have no effect.
+
+A big advantage of the cost notation is that hledger reports can convert amounts to their cost commodity,
+by adding the [`-B/--cost`](#reporting-options) flag. (Discussed in the [Cost reporting](#cost-reporting) section.)
+If you used equity postings instead, the `--infer-costs` flag will be needed also.
+
+An advantage of the equity postings is that they help to keep the accounting equation balanced (if you care about that).
+And they translate easily to any other double entry accounting system.
+
+Finally: using both equity postings and cost notation at the same time is allowed:
+
+```journal
+2026-01-01 buy euros
+  assets:dollars     $-123
+  equity:conversion   $123
+  equity:conversion  €-100
+  assets:euros        €100 @ $1.23
+```
+
+...as long as all journal entries are well formed, such that hledger can detect the cost / equity postings equivalences.
+(Otherwise transactions will fail to balance and you'll get an error message.)
+
+So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
+and your reports would have the advantages of both.
+
 
 ## Balance assertions
 
