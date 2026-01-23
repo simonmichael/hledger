@@ -1631,7 +1631,7 @@ you add extra equity postings to balance the two commodities. Eg:
 
 hledger offers a more convenient @/@@ "cost notation" as an alternative:
 instead of equity postings, you can write the "conversion rate" or "transacted price" after a posting amount.
-hledger docs call this generically "cost", whether buying or selling.
+hledger docs generically call this "cost", whether buying or selling.
 It can be written as either `@ UNITPRICE` or `@@ TOTALPRICE`.
 Eg you could write the above as:
 
@@ -1653,7 +1653,9 @@ The cost should normally be a positive amount.
 Negative costs are supported, but can be confusing, as discussed at 
 [--infer-market-prices: market prices from transactions](#--infer-market-prices-market-prices-from-transactions).
 
-@/@@ costs participate in transaction balancing. So you could also write those less redundantly like so:
+Costs participate in transaction balancing.
+Amounts are converted to their cost before checking if the transaction is balanced.
+You could also write the above less redundantly, like so:
 
 ```journal
 2026-01-01 buy euros
