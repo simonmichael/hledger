@@ -1,0 +1,28 @@
+# -*- restclient -*-
+#
+
+:host = http://localhost:5000
+:api = :host/api/v1
+
+# spec
+GET :api/openapi.json
+
+# Get account names
+GET :api/accounts
+
+# how much i spent on coffee
+GET :api/accounts/ex:us:want:coffee/balance
+
+# Get one account balance. This fails bc `coffee` matches literally on the whole
+# account name rather than a portion like the cli does.
+GET :api/accounts/coffee/balance
+
+# get some txs
+GET :api/transactions
+
+
+# get a full balance report
+GET :api/balance
+
+# get a register
+GET :api/register
