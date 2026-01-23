@@ -1684,22 +1684,24 @@ Note, the order of postings is significant: the cost will be attached to the fir
 So we had to switch the order of postings, to get the same meaning as above.
 Also, this form is the easiest to make undetected errors with; so it is rejected by `hledger check balanced`, and by strict mode.
 
-You can convert cost notation to equity postings, with `--infer-equity`.
-Eg try `hledger print -x --infer-equity`. This always succeeds.
+A big advantage of using cost notation is that hledger reports can show such amounts converted to their cost,
+when you add the [`-B/--cost`](#reporting-options) flag (see [Cost reporting](#cost-reporting)).
 
-And you can usually convert equity postings to @/@@ cost notation, with `--infer-costs`.
+An advantage of using equity postings is that they help to keep the accounting equation balanced (if you care about that).
+Also they translate easily to any other double entry accounting system.
+
+Most hledger users use cost notation and don't use equity postings.
+
+But you can always convert cost notation to equity postings by adding `--infer-equity`.
+Eg try `hledger print -x --infer-equity`.
+
+And you can usually convert equity postings to cost notation by adding `--infer-costs`
+(see [Requirements for detecting equity conversion postings](#requirements-for-detecting-equity-conversion-postings)).
 Eg try `hledger print -x --infer-costs`.
-This succeeds wherever a suitable pair of equity postings is found (adjacent, with the right amounts to balance the transaction);
-in other places it will have no effect.
 
-A big advantage of the cost notation is that hledger reports can convert amounts to their cost commodity,
-by adding the [`-B/--cost`](#reporting-options) flag. (Discussed in the [Cost reporting](#cost-reporting) section.)
-If you used equity postings instead, the `--infer-costs` flag will be needed also.
-
-An advantage of the equity postings is that they help to keep the accounting equation balanced (if you care about that).
-And they translate easily to any other double entry accounting system.
-
-Finally: using both equity postings and cost notation at the same time is allowed:
+Finally: using both equity postings and cost notation at the same time is allowed,
+as long as the journal entry is well formed such that the equity postings / cost equivalences can be detected.
+(Otherwise you'll get an error message saying that the transaction is unbalanced.):
 
 ```journal
 2026-01-01 buy euros
@@ -1708,9 +1710,6 @@ Finally: using both equity postings and cost notation at the same time is allowe
   equity:conversion  €-100
   assets:euros        €100 @ $1.23
 ```
-
-...as long as all journal entries are well formed, such that hledger can detect the cost / equity postings equivalences.
-(Otherwise transactions will fail to balance and you'll get an error message.)
 
 So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
 and your reports would have the advantages of both.
