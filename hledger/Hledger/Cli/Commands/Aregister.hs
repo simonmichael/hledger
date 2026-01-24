@@ -30,6 +30,7 @@ import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
 import Control.Monad (when)
 import Lucid qualified as L hiding (Html)
+import Safe (readMay)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import System.IO qualified as IO
 import Text.Tabular.AsciiWide hiding (render)
@@ -56,6 +57,7 @@ aregistermode = hledgerCommandMode
   --    "show running average of posting amounts instead of total (implies --empty)"
   -- ,flagNone ["related","r"] (setboolopt "related") "show postings' siblings instead"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
+  ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts"
   ,flagReq  ["heading"] (\s opts -> Right $ setopt "heading" s opts) "YN"
      "show heading row above table: yes (default) or no"
   ,flagReq  ["width","w"] (\s opts -> Right $ setopt "width" s opts) "N"
@@ -120,12 +122,12 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
     -- select renderer
     render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
-           | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv hd wd (_rsQuery rspec') thisacctq
-           | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv hd wd (_rsQuery rspec') thisacctq
-           | fmt=="fods" =
-                printFods IO.localeEncoding . Map.singleton "Aregister" .
-                (,) (1,0) .
-                accountTransactionsReportAsSpreadsheet oneLineNoCostFmt hd wd (_rsQuery rspec') thisacctq
+            | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq
+            | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq
+            | fmt=="fods" =
+                 printFods IO.localeEncoding . Map.singleton "Aregister" .
+                 (,) (1,0) .
+                 accountTransactionsReportAsSpreadsheet opts oneLineNoCostFmt hd wd (_rsQuery rspec') thisacctq
            | fmt=="json" = toJsonText
            | otherwise   = error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
       where
@@ -135,37 +137,38 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
   writeOutputLazyText opts $ render items'
 
 accountTransactionsReportAsCsv ::
-  Bool -> WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv hd wd reportq thisacctq =
+  CliOpts -> Bool -> WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
+accountTransactionsReportAsCsv opts hd wd reportq thisacctq =
   Spr.rawTableContent .
-  accountTransactionsReportAsSpreadsheet machineFmt hd wd reportq thisacctq
+  accountTransactionsReportAsSpreadsheet opts machineFmt hd wd reportq thisacctq
 
 accountTransactionsReportAsSpreadsheet ::
-  AmountFormat -> Bool ->
+  CliOpts -> AmountFormat -> Bool ->
   WhichDate -> Query -> Query -> AccountTransactionsReport ->
   [[Spr.Cell Spr.NumLines Text]]
-accountTransactionsReportAsSpreadsheet fmt hd wd reportq thisacctq is =
+accountTransactionsReportAsSpreadsheet opts fmt hd wd reportq thisacctq is =
   optional hd
     [Spr.addHeaderBorders $ map Spr.headerCell $
       ["txnidx","date","code","description","otheraccounts","change","balance"]]
   ++
-  map (accountTransactionsReportItemAsRecord fmt True wd reportq thisacctq) is
+  map (accountTransactionsReportItemAsRecord opts fmt True wd reportq thisacctq) is
 
 accountTransactionsReportItemAsRecord ::
-  AmountFormat -> Bool ->
+  CliOpts -> AmountFormat -> Bool ->
   WhichDate -> Query -> Query -> AccountTransactionsReportItem ->
   [Spr.Cell Spr.NumLines Text]
 accountTransactionsReportItemAsRecord
-  fmt internals wd reportq thisacctq
+  opts fmt internals wd reportq thisacctq
   (t@Transaction{tindex,tcode,tdescription}, _, _issplit, otheraccts, change, balance)
   = (optional internals [Spr.integerCell tindex]) ++
     date :
     (optional internals [cell tcode]) ++
     [cell tdescription,
-     cell $ T.intercalate ", " $ nub otheraccts,
+     cell $ T.intercalate ", " $ map dropAcct $ nub otheraccts,
      amountCell change,
      amountCell balance]
   where
+    dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
     cell = Spr.defaultCell
     date =
         (Spr.defaultCell $ showDate $
@@ -188,7 +191,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
         L.th_ "balance"
       L.tbody_ $ for_ items $
         formatRow . map (fmap toHtml) .
-        accountTransactionsReportItemAsRecord
+        accountTransactionsReportItemAsRecord copts
           oneLineNoCostFmt False
           (whichDate $ _rsReportOpts $ reportspec_ copts)
           reportq thisacctq
@@ -253,6 +256,7 @@ accountTransactionsReportItemAsText
     -- MixedAmount -- the register's running total or the current account(s)'s historical balance, after this transaction
     table <> TB.singleton '\n'
   where
+    dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ copts))
     table = renderRowB def{tableBorders=False, borderSpaces=False} . Group NoLine $ map Header
       [ textCell TopLeft $ fitText (Just datewidth) (Just datewidth) True True date
       , spacerCell
@@ -287,7 +291,7 @@ accountTransactionsReportItemAsText
     (descwidth, acctwidth) = (w, remaining - 2 - w)
       where w = fromMaybe ((remaining - 2) `div` 2) mdescwidth
 
-    accts = T.intercalate ", " . map accountSummarisedName $ nub otheraccts
+    accts = T.intercalate ", " . map (dropAcct . accountSummarisedName) $ nub otheraccts
 
 -- tests
 
