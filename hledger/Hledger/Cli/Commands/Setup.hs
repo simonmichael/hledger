@@ -61,6 +61,7 @@ import Data.Map qualified as M
 import Data.Maybe
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
+import Data.Version qualified (showVersion)
 import Network.HTTP.Client
 import Network.HTTP.Types (statusCode, hLocation)
 import Network.HTTP.Req as R
@@ -128,6 +129,16 @@ setup _opts@CliOpts{rawopts_=_rawopts, reportspec_=_rspec} _ignoredj = do
 setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
+
+  let
+    os'
+      | os=="darwin" = "macos"
+      | os=="mingw32" = "windows"
+      | otherwise = os
+  pdesc "is running on"
+  putStrLn $ "      " <> os' <> " on " <> arch
+  pdesc "is compiled with"
+  putStrLn $ "      " <> compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
 
   pdesc "is a released version ?"
   if isReleaseVersion $ hbinPackageVersion binaryinfo
