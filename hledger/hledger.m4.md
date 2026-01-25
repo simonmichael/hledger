@@ -1720,7 +1720,7 @@ and your reports would have the advantages of both.
 
 ## Cost basis / lot syntax
 
-When you are buying some commodity (or foreign currency) to hold as an investment, it may be important to keep track of 
+If you are buying some commodity to hold as an investment, it may be important to keep track of 
 
 1. its original acquisition cost
 2. its original acquisition date
