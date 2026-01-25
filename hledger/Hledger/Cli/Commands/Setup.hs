@@ -562,7 +562,7 @@ getLatestHledgerVersionFromHledgerOrg = do
   do
     result <- try $ runReq defaultHttpConfig $ req GET url NoReqBody bsResponse (R.responseTimeout httptimeout)
     case result of
-      Left (e :: R.HttpException) -> return $ Left $ show e
+      Left (_ :: R.HttpException) -> return $ Left "(HTTP failure)"
       Right rsp -> case T.decodeUtf8' $ R.responseBody rsp of
         Left e  -> return $ Left $ show e
         Right t -> return $
@@ -572,7 +572,7 @@ getLatestHledgerVersionFromHledgerOrg = do
             versionline = take 1 $ dropWhile (not . ("current hledger release" `isInfixOf`)) $ lines $ T.unpack t
             version = takeWhile (`elem` ("0123456789."::[Char])) $ dropWhile (not . isDigit) $ headDef "" $ versionline
   -- work around potential failure on mac (& possible security issue, reported upstream)
-  `catch` (\(_ :: IOError) -> return $ Left "req failed (mac PATH issue ?)")
+  `catch` (\(_ :: IOError) -> return $ Left $ "(IO error" <> if os=="darwin" then " - mac PATH issue ?)" else ")")
 
 -- | Try to run the hledger in PATH with one or more sets of command line arguments.
 -- Returns the output from the first set of arguments that runs successfully,
