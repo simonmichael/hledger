@@ -78,7 +78,7 @@ import Hledger hiding (setupPager)
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Version
-import System.IO (localeEncoding)
+import System.IO (localeEncoding, stdout, hFlush)
 
 
 setupmode = hledgerCommandMode
@@ -130,6 +130,9 @@ setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
 
+  pdesc "is compiled with"
+  putStrLn $ "      " <> compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
+
   let
     os'
       | os=="darwin" = "macos"
@@ -137,30 +140,28 @@ setupHledger = do
       | otherwise = os
   pdesc "is running on"
   putStrLn $ "      " <> os' <> " on " <> arch
-  pdesc "is compiled with"
-  putStrLn $ "      " <> compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
-
-  pdesc "is a released version ?"
-  if isReleaseVersion $ hbinPackageVersion binaryinfo
-  then p Y prognameandversion
-  else i N prognameandversion
-
-  pdesc "is up to date ?"
-  elatestversionnumstr <- getLatestHledgerVersion
-  case elatestversionnumstr of
-    Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " , " <> e)
-    Right latestversionnumstr ->
-      case toVersion latestversionnumstr of
-        Nothing -> p U "couldn't parse latest version number"
-        Just latestversion -> p
-          (if hbinPackageVersion binaryinfo >= latestversion then Y else N)
-          (showVersion (hbinPackageVersion binaryinfo) <> " installed, latest is " <> latestversionnumstr)
 
   pdesc "is a native binary for this machine ?"
   case hbinArch binaryinfo of
     Nothing -> p U $ "couldn't detect this binary's architecture"
     Just a | a /= arch -> p N $ "binary is for " <> a <> ", system is " <> arch <> ", may run slowly"
     Just a -> p Y a
+
+  pdesc "is a released version ?"
+  if isReleaseVersion $ hbinPackageVersion binaryinfo
+  then p Y prognameandversion
+  else i N prognameandversion
+
+  pdesc "is up to date ? checking latest..." >> hFlush stdout
+  elatestversionnumstr <- getLatestHledgerVersion
+  case elatestversionnumstr of
+    Left e -> p U ("couldn't read " <> latestHledgerVersionUrlStr <> " " <> e)
+    Right latestversionnumstr ->
+      case toVersion latestversionnumstr of
+        Nothing -> p U "couldn't parse latest version number"
+        Just latestversion -> p
+          (if hbinPackageVersion binaryinfo >= latestversion then Y else N)
+          ("latest is " <> latestversionnumstr <> ", " <> showVersion (hbinPackageVersion binaryinfo) <> " is installed")
 
   pdesc "is installed in PATH (this version) ?"
   pathexes  <- findExecutables progname
