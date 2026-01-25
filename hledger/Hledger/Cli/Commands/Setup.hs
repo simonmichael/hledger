@@ -136,8 +136,11 @@ setupHledger = do
       | os=="darwin" = "macos"
       | os=="mingw32" = "windows"
       | otherwise = os
+  mosversion <- getOSVersion
+  let osdesc = os' <> maybe "" (" "<>) mosversion
   pdesc "is running on"
-  putStrLn $ "      " <> os' <> " on " <> arch
+  putStrLn $ "      " <> osdesc <> " on " <> arch
+
   pdesc "is built with a supported compiler/RTS"
   p (if rtsSupportsBoundThreads then Y else N) $ 
     compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
@@ -595,3 +598,16 @@ runHledger args = do
   pure $ case exit of
     ExitSuccess -> Right out
     ExitFailure _ -> Left err
+
+-- | Get the operating system version string, if possible.
+-- Uses platform-specific commands to detect the OS version.
+getOSVersion :: IO (Maybe String)
+getOSVersion = case os of
+  "darwin"  -> tryCommand "sw_vers" ["-productVersion"]
+  "mingw32" -> tryCommand "cmd" ["/c", "ver"]
+  "linux"   -> tryCommand "uname" ["-r"]
+  _         -> return Nothing
+  where
+    tryCommand cmd args =
+      (Just . strip <$> readProcess cmd args "")
+      `catch` (\(_ :: SomeException) -> return Nothing)
