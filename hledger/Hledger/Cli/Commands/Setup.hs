@@ -51,6 +51,7 @@ module Hledger.Cli.Commands.Setup (
 )
 where
 
+import Control.Concurrent (rtsSupportsBoundThreads)
 import Control.Exception
 import Control.Monad
 -- import Data.ByteString qualified as B
@@ -130,9 +131,6 @@ setupHledger :: IO (Maybe (Either String Conf))
 setupHledger = do
   pgroup "hledger"
 
-  pdesc "is compiled with"
-  putStrLn $ "      " <> compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
-
   let
     os'
       | os=="darwin" = "macos"
@@ -140,6 +138,10 @@ setupHledger = do
       | otherwise = os
   pdesc "is running on"
   putStrLn $ "      " <> os' <> " on " <> arch
+  pdesc "is built with a supported compiler/RTS"
+  p (if rtsSupportsBoundThreads then Y else N) $ 
+    compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
+      <> " " <> if rtsSupportsBoundThreads then "with OS threads" else "without OS threads"
 
   pdesc "is a native binary for this machine ?"
   case hbinArch binaryinfo of
