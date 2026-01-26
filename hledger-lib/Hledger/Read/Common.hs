@@ -841,7 +841,7 @@ amountp' mult =
     -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
     (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
-          <*> toPermutationWithDefault Nothing (Just <$> lotcostp <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotcostp (aquantity amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
   let mcostbasis =
@@ -1032,8 +1032,9 @@ balanceassertionp = do
 
 -- Parse a Ledger-style lot cost:
 -- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}.
-lotcostp :: JournalParser m (Maybe Amount)
-lotcostp =
+-- If total cost syntax {{}} is used, converts it to unit cost by dividing by the posting quantity.
+lotcostp :: Quantity -> JournalParser m (Maybe Amount)
+lotcostp postingqty =
   -- dbg "lotcostp" $
   label "ledger-style lot cost" $ do
   char '{'
@@ -1045,7 +1046,13 @@ lotcostp =
   lift skipNonNewlineSpaces
   char '}'
   when (doublebrace) $ void $ char '}'
-  pure ma
+  pure $ fmap (convertToUnitCost doublebrace) ma
+  where
+    -- Convert {{TOTALCOST}} to {UNITCOST} by dividing by posting quantity
+    convertToUnitCost isTotal lotamt =
+      if isTotal && postingqty /= 0
+      then lotamt { aquantity = aquantity lotamt / postingqty }
+      else lotamt
 
 -- Parse a Ledger-style [LOTDATE].
 lotdatep :: JournalParser m Day
