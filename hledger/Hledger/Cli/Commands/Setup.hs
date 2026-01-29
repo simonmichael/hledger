@@ -68,14 +68,14 @@ import Network.HTTP.Types (statusCode, hLocation)
 import Network.HTTP.Req as R
 import Safe
 import System.Directory
-import System.Environment (lookupEnv)
+import System.Environment (getEnvironment, lookupEnv)
 import System.Exit
 import System.FilePath
 import System.Info
 import System.Process
 import Text.Printf (printf)
 
-import Hledger hiding (setupPager)
+import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Version
@@ -310,24 +310,35 @@ setupTerminal meconf = do
               Just v  -> i Y v
 
           when (map toLower (takeBaseName pager) == "less") $ do
-            pdesc "the LESS variable is defined ?"
+            mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
             mLESS <- lookupEnv "LESS"
+
+            pdesc "the LESS variable is defined ?"
             case mLESS of
               Nothing -> i N ""
-              Just _  -> i Y ""
+              Just v  -> i Y $ v <> if isJust mHLEDGER_LESS then " (overridden)" else ""
 
             pdesc "the HLEDGER_LESS variable is defined ?"
-            mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
             case mHLEDGER_LESS of
               Nothing -> i N ""
               Just v  -> i Y v
 
             when (isNothing mHLEDGER_LESS) $ do
-              pdesc "adjusting LESS variable for color etc. ?"
+              pdesc "adjusting LESS var for consistent UX ?"
               usecolor <- useColorOnStdout
-              i (if usecolor then Y else N) ""
+              i Y $ lessVarValue mHLEDGER_LESS mLESS usecolor
 
-  pdesc "tables will use box-drawing chars ?"
+            pdesc "less is working with these options ?"
+            usecolor <- useColorOnStdout
+            let newlessvar = lessVarValue mHLEDGER_LESS mLESS usecolor
+            env <- getEnvironment
+            let customEnv = ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+            lessHasError <- lessIsWorking (Just customEnv)
+            if lessHasError
+              then p N "less --version shows a problem, check LESS/HLEDGER_LESS settings"
+              else p Y ""
+
+  pdesc "box-drawing chars are used by default ?"
   if isJust $ conflookup ("--pretty"==)
   then p Y ""
   else i N "you can use --pretty to enable them"
