@@ -77,10 +77,6 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
 #endif
 #endif
 
-  -- try to encourage user's $PAGER to properly display ANSI (in command line help)
-  usecolor <- useColorOnStdout
-  when usecolor setupPager
-
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if

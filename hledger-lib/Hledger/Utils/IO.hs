@@ -67,9 +67,10 @@ module Hledger.Utils.IO (
   getTerminalWidth,
 
   -- * Pager output
-  setupPager,
   findPager,
   runPager,
+  lessVarValue,
+  lessIsWorking,
 
   -- * ANSI colour/styles
 
@@ -149,15 +150,16 @@ import           Safe (headMay, maximumDef)
 import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..))
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
-import           System.Environment (getArgs, lookupEnv, setEnv, getProgName)
-import           System.Exit (exitFailure)
-import           System.FilePath (isRelative, (</>))
+import           System.Environment (getArgs, getEnvironment, lookupEnv, getProgName)
+import           System.Exit (ExitCode(ExitSuccess), exitFailure)
+import           System.FilePath (isRelative, (</>), takeBaseName)
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
 import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8)
 import System.IO.Encoding qualified as Enc
 import           System.IO.Unsafe (unsafePerformIO)
-import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, shell, waitForProcess, withCreateProcess)
+import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, proc, readCreateProcessWithExitCode, shell, waitForProcess, withCreateProcess)
+import           System.Timeout (timeout)
 import           Text.Pretty.Simple (CheckColorTty(..), OutputOptions(..), defaultOutputOptionsDarkBg, defaultOutputOptionsNoColor, pShowOpt, pPrintOpt)
 
 import Hledger.Utils.Text (WideBuilder(WideBuilder))
@@ -639,79 +641,16 @@ getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 -- Pager output
 -- somewhat hledger-specific
 
--- Configure some preferred options for the `less` pager,
--- by modifying the LESS environment variable in this program's environment.
--- If you are using some other pager, this will have no effect.
--- By default, this sets the following options, appending them to LESS's current value:
---
---   --chop-long-lines
---   --hilite-unread
---   --ignore-case
---   --no-init
---   --quit-at-eof
---   --quit-if-one-screen
---   --RAW-CONTROL-CHARS
---   --shift=8
---   --squeeze-blank-lines
---   --use-backslash
---
--- You can choose different options by setting the HLEDGER_LESS variable;
--- if set, its value will be used instead of LESS.
--- Or you can force hledger to use your exact LESS settings,
--- by setting HLEDGER_LESS equal to LESS.
---
-setupPager :: IO ()
-setupPager = do
-  let
-    -- keep synced with doc above
-    deflessopts = unwords [
-       "--chop-long-lines"
-      ,"--hilite-unread"
-      ,"--ignore-case"
-      ,"--no-init"
-      ,"--quit-at-eof"
-      ,"--quit-if-one-screen"
-      ,"--RAW-CONTROL-CHARS"
-      ,"--shift=8"
-      ,"--squeeze-blank-lines"
-      ,"--use-backslash"
-      -- ,"--use-color"  #2335 rejected by older less versions (eg 551)
-      ]
-  mhledgerless <- lookupEnv "HLEDGER_LESS"
-  mless        <- lookupEnv "LESS"
-  setEnv "LESS" $
-    case (mhledgerless, mless) of
-      (Just hledgerless, _) -> hledgerless
-      (_, Just less)        -> if deflessopts `isInfixOf` less then less else unwords [less, deflessopts]
-      _                     -> deflessopts
-
--- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
--- when appropriate, otherwise printing to standard output. Uses maybePagerFor.
---
--- hledger's output may contain ANSI style/color codes
--- (if the terminal supports them and they are not disabled by --color=no or NO_COLOR),
--- so the pager should be configured to handle these.
--- setupPager tries to configure that automatically when using the `less` pager.
---
-runPager :: String -> IO ()
-runPager s = do
-  mpager <- maybePagerFor s
-  case mpager of
-    Nothing -> putStr s
-    Just pager -> do
-      withCreateProcess (shell pager){std_in=CreatePipe} $
-        \mhin _ _ p -> do
-          -- Pipe in the text on stdin.
-          case mhin of
-            Nothing  -> return ()  -- shouldn't happen
-            Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
-              (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
-                -- If the pager quits early, we'll receive an EPIPE error; hide that.
-                `catch` \(e::IOException) -> case e of
-                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin
-                    -> return ()
-                  _ -> throwIO e
-          void $ waitForProcess p
+-- | Try to find a pager executable robustly, safely handling various error conditions
+-- like an unset PATH var or the specified pager not being found as an executable.
+-- The pager can be specified by a path or program name in the PAGER environment variable.
+-- If that is unset or has a problem, "less" is tried, then "more".
+-- If successful, the pager's path or program name is returned.
+findPager :: IO (Maybe String)  -- XXX probably a ByteString in fact ?
+findPager = do
+  mpagervar <- lookupEnv "PAGER"
+  let pagers = [p | Just p <- [mpagervar]] <> ["less", "more"]
+  headMay . catMaybes <$> mapM findExecutable pagers
 
 -- | Should a pager be used for displaying the given text on stdout, and if so, which one ?
 -- Uses a pager if findPager finds one and none of the following conditions are true:
@@ -740,17 +679,97 @@ maybePagerFor output = do
     guard $ oh > th || ow > tw
     mpager
 
--- | Try to find a pager executable robustly, safely handling various error conditions
--- like an unset PATH var or the specified pager not being found as an executable.
--- The pager can be specified by a path or program name in the PAGER environment variable.
--- If that is unset or has a problem, "less" is tried, then "more".
--- If successful, the pager's path or program name is returned.
-findPager :: IO (Maybe String)  -- XXX probably a ByteString in fact ?
-findPager = do
-  mpagervar <- lookupEnv "PAGER"
-  let pagers = [p | Just p <- [mpagervar]] <> ["less", "more"]
-  headMay . catMaybes <$> mapM findExecutable pagers
+-- | Display the given text on the terminal, trying to use a pager ($PAGER, less, or more)
+-- when appropriate (see maybePagerFor), otherwise printing to standard output.
+-- Also, if the pager is less, we modify the LESS environment variable (see lessVarValue)
+-- and check for problems which could cause confusing output (see lessIsWorking).
+runPager :: String -> IO ()
+runPager s = do
+  mpager <- maybePagerFor s
+  case mpager of
+    Nothing -> putStr s
+    Just pager -> do
 
+      -- If using less, customise the LESS environment variable
+      let pagerIsLess = map toLower (takeBaseName pager) == "less"
+      mCustomEnv <- if not pagerIsLess
+        then return Nothing
+        else do
+          mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
+          mLESS         <- lookupEnv "LESS"
+          usecolor      <- useColorOnStdout
+          let newlessvar = lessVarValue mHLEDGER_LESS mLESS usecolor
+          env <- getEnvironment
+          return $ Just $ ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+
+      -- If using less, check that less --version is working normally with our custom LESS environment (#2544)
+      when pagerIsLess $ do
+        lessHasError <- lessIsWorking mCustomEnv
+        when lessHasError $ error' $
+          "less --version is showing a problem when hledger runs it.\n" <>
+          "Please check your pager configuration in 'hledger setup'."
+
+      -- Now run the pager to display the given text; and hide harmless exceptions.
+      withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
+        \mhin _ _ p -> do
+          -- Pipe in the text on stdin.
+          case mhin of
+            Nothing  -> return ()  -- shouldn't happen
+            Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
+              (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
+                -- If the pager quits early, we'll receive an EPIPE error; hide that.
+                `catch` \(e::IOException) -> case e of
+                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin
+                    -> return ()
+                  _ -> throwIO e
+          void $ waitForProcess p
+
+-- | Test @less@, by running less --version and looking for a nonzero exit, timeout, or stderr output.
+-- Uses the provided environment, containing a LESS variable, if any.
+-- We do this because various LESS settings can cause some less versions to fail or cause confusing output without failing.
+lessIsWorking :: Maybe [(String, String)] -> IO Bool
+lessIsWorking mCustomEnv = do
+  result <- timeout 300000 $ readCreateProcessWithExitCode (proc "less" ["--version"]){env=mCustomEnv} ""
+  return $ case result of
+    Nothing -> True  -- Timeout
+    Just (exitCode, _, stderrOut) -> exitCode /= ExitSuccess || not (null stderrOut)
+
+-- | Compute the LESS environment variable value that hledger will use for the less pager.
+-- This used in runPager when invoking less, and also in the setup command for display.
+-- It takes the current HLEDGER_LESS and LESS env var values, and whether we are showing colour on stdout,
+-- and returns the adjusted LESS value that should be used. Specifically:
+--
+-- - If HLEDGER_LESS is defined, we use it in place of the LESS environment variable.
+--
+-- - Otherwise, if LESS is defined, append some preferred options (lessOptions and maybe lessColourOptions) to it.
+--
+-- - Otherwise, we set LESS to just use those preferred options.
+--
+lessVarValue :: Maybe String -> Maybe String -> Bool -> String
+lessVarValue mHLEDGER_LESS mLESS usecolor =
+  let extralessopts = unwords $ [lessOptions] <> [lessColourOptions | usecolor]
+  in case (mHLEDGER_LESS, mLESS) of
+       (Just hledgerlessvar, _) -> hledgerlessvar
+       (_, Just lessvar) -> if extralessopts `isInfixOf` lessvar then lessvar else unwords [lessvar, extralessopts]
+       _ -> extralessopts
+
+-- | hledger's preferred less options, for a consistent pleasant UX.
+lessOptions = unwords [
+   "--chop-long-lines"
+  ,"--hilite-unread"
+  ,"--ignore-case"
+  ,"--no-init"
+  ,"--quit-at-eof"
+  ,"--quit-if-one-screen"
+  ,"--shift=8"
+  ,"--squeeze-blank-lines"
+  ,"--use-backslash"
+  ]
+
+-- | Additional less options to use if we are showing colour on stdout.
+lessColourOptions = unwords [
+   "--RAW-CONTROL-CHARS"
+  ]
 
 
 -- ANSI colour/styles

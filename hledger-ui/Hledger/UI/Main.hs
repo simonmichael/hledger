@@ -100,8 +100,6 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
   -- when (debug_ $ cliopts_ opts) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show opts)
 
   usecolor <- useColorOnStdout
-  -- When ANSI colour/styling is available and enabled, encourage user's $PAGER to use it (for command line help).
-  when usecolor setupPager
   -- And when it's not, disable colour in the TUI ?
   -- Theme.hs's themes currently hard code various colours and styles provided by vty,
   -- which probably are disabled automatically when terminal doesn't support them.

@@ -224,9 +224,6 @@ main = handleExit $ withGhcDebug' $ do
   starttime <- getPOSIXTime
   -- give ghc-debug a chance to take control
   when (ghcDebugMode == GDPauseAtStart) $ ghcDebugPause'
-  -- try to encourage user's $PAGER to display ANSI when supported
-  usecolor <- useColorOnStdout
-  when usecolor setupPager
   -- Search PATH for addon commands. Exclude any that match builtin command names.
   addons <- addonCommandNames
 
