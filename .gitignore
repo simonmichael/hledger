@@ -15,6 +15,7 @@ _*
 .idea
 *.iml
 .shake
+.stack*
 .tmp
 .vscode
 tags
