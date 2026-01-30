@@ -756,21 +756,23 @@ If you see junk characters, you might need to configure your pager to handle ANS
 Or you could disable colour as described above.
 
 If you are using the [`less` pager](https://www.greenwoodsoftware.com/less/faq.html),
-hledger automatically appends a number of options to the `LESS` variable
-to enable ANSI colour and a number of other conveniences.
-(At the time of writing:
+hledger tries to provide a consistently pleasant experience by running it with some extra options added to your `LESS` environment variable:
+
 --chop-long-lines
 --hilite-unread
 --ignore-case
 --no-init
---quit-at-eof
 --quit-if-one-screen
---RAW-CONTROL-CHARS
 --shift=8
 --squeeze-blank-lines
 --use-backslash
-).
-If these don't work well, you can set your preferred options in the `HLEDGER_LESS` variable, which will be used instead.
+
+and when colour output is enabled:
+
+--RAW-CONTROL-CHARS
+
+You can prevent this by setting your preferred options in the `HLEDGER_LESS` variable, which will be used instead of `LESS`.
+
 
 ### HTML output
 

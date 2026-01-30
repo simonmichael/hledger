@@ -690,39 +690,38 @@ runPager s = do
     Nothing -> putStr s
     Just pager -> do
 
-      -- If using less, customise the LESS environment variable
+      -- If using less, customise the LESS environment variable and check if it works
       let pagerIsLess = map toLower (takeBaseName pager) == "less"
-      mCustomEnv <- if not pagerIsLess
-        then return Nothing
+      (mCustomEnv, shouldUsePager) <- if not pagerIsLess
+        then return (Nothing, True)
         else do
           mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
           mLESS         <- lookupEnv "LESS"
           usecolor      <- useColorOnStdout
           let newlessvar = lessVarValue mHLEDGER_LESS mLESS usecolor
           env <- getEnvironment
-          return $ Just $ ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+          let customEnv = ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+          -- Check that less --version is working (using our custom LESS) (#2544)
+          lessHasError <- lessIsWorking (Just customEnv) `catch` \(_::IOException) -> return True
+          when lessHasError $ warnIO $
+            "less --version fails with current LESS settings; disabling. Check 'hledger setup' for details.\n"
+          return (Just customEnv, not lessHasError)
 
-      -- If using less, check that less --version is working normally with our custom LESS environment (#2544)
-      when pagerIsLess $ do
-        lessHasError <- lessIsWorking mCustomEnv
-        when lessHasError $ error' $
-          "less --version is showing a problem when hledger runs it.\n" <>
-          "Please check your pager configuration in 'hledger setup'."
-
-      -- Now run the pager to display the given text; and hide harmless exceptions.
-      withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
-        \mhin _ _ p -> do
-          -- Pipe in the text on stdin.
-          case mhin of
-            Nothing  -> return ()  -- shouldn't happen
-            Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
-              (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
-                -- If the pager quits early, we'll receive an EPIPE error; hide that.
-                `catch` \(e::IOException) -> case e of
-                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin
-                    -> return ()
-                  _ -> throwIO e
-          void $ waitForProcess p
+      -- Run the pager, providing the text as input. Or if we found a problem already, just print.
+      if not shouldUsePager
+        then putStr s
+        else (withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
+          \mhin _ _ p -> do
+            case mhin of
+              Nothing  -> fail "Failed to create pipe to pager"
+              Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
+                (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
+                  -- If the pager quits early, we'll receive an EPIPE error; hide that.
+                  `catch` \(e::IOException) -> case e of
+                    IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin -> return ()
+                    _ -> throwIO e
+            void $ waitForProcess p)
+          `catch` \(_::IOException) -> putStr s
 
 -- | Test @less@, by running less --version and looking for a nonzero exit, timeout, or stderr output.
 -- Uses the provided environment, containing a LESS variable, if any.
@@ -753,18 +752,29 @@ lessVarValue mHLEDGER_LESS mLESS usecolor =
        (_, Just lessvar) -> if extralessopts `isInfixOf` lessvar then lessvar else unwords [lessvar, extralessopts]
        _ -> extralessopts
 
--- | hledger's preferred less options, for a consistent pleasant UX.
+-- keep synced: hledger.m4.md > Paging
+-- | hledger's preferred less options, which it will append to the user's LESS environment variable.
+-- The thinking here is: "Many people don't have their LESS optimised to get the best experience from modern less, as I didn't.
+-- Also as they use hledger on different machines, LESS is likely not consistent. 
+-- So let's add some settings that I have found reasonably robust, compatible, and good for usability.
+-- That will help provide a consistent good experience when viewing hledger's long outputs.
+-- And power users can prevent this by setting exactly the options they want in HLEDGER_LESS."
+-- Here's what they mean: https://manned.org/man/less#head5
+--
+-- Flags that might break older less versions (causing hledger to fall back to unpaged output) are avoided here.
+-- Such as --mouse and --wheel-lines (less >=530, 2018) and --use-color (less >=551, 2019).
+-- --hilite-unread (less >=443, 2011) is useful and considered old enough.
+--
 lessOptions = unwords [
    "--chop-long-lines"
   ,"--hilite-unread"
   ,"--ignore-case"
   ,"--no-init"
-  ,"--quit-at-eof"
   ,"--quit-if-one-screen"
   ,"--shift=8"
   ,"--squeeze-blank-lines"
   ,"--use-backslash"
-  ]
+  ] 
 
 -- | Additional less options to use if we are showing colour on stdout.
 lessColourOptions = unwords [
