@@ -690,42 +690,38 @@ runPager s = do
     Nothing -> putStr s
     Just pager -> do
 
-      -- If using less, customise the LESS environment variable
+      -- If using less, customise the LESS environment variable and check if it works
       let pagerIsLess = map toLower (takeBaseName pager) == "less"
-      mCustomEnv <- if not pagerIsLess
-        then return Nothing
+      (mCustomEnv, shouldUsePager) <- if not pagerIsLess
+        then return (Nothing, True)
         else do
           mHLEDGER_LESS <- lookupEnv "HLEDGER_LESS"
           mLESS         <- lookupEnv "LESS"
           usecolor      <- useColorOnStdout
           let newlessvar = lessVarValue mHLEDGER_LESS mLESS usecolor
           env <- getEnvironment
-          return $ Just $ ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+          let customEnv = ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
+          -- Check that less --version is working (using our custom LESS) (#2544)
+          lessHasError <- lessIsWorking (Just customEnv) `catch` \(_::IOException) -> return True
+          when lessHasError $ warnIO $
+            "less --version fails with current LESS settings; disabling. Check 'hledger setup' for details.\n"
+          return (Just customEnv, not lessHasError)
 
-      -- If using less, check that less --version is working normally with our custom LESS environment (#2544)
-      -- If the check itself fails (less not executable, etc.), treat that as an error.
-      when pagerIsLess $ do
-        lessHasError <- lessIsWorking mCustomEnv `catch` \(_::IOException) -> return True
-        when lessHasError $ error' $
-          "less --version fails or shows a problem when hledger runs it.\n" <>
-          "Please check your pager configuration in 'hledger setup'."
-
-      -- Now run the pager, piping in the text on stdin.
-      -- If the pager fails to start or has other problems, fall back to stdout.
-      (withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
-        \mhin _ _ p -> do
-          case mhin of
-            Nothing  -> fail "Failed to create pipe to pager"
-            Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
-              (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
-                -- If the pager quits early, we'll receive an EPIPE error; hide that.
-                `catch` \(e::IOException) -> case e of
-                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin -> return ()
-                  _ -> throwIO e
-          void $ waitForProcess p
-          -- when (exitcode /= ExitSuccess) $ ...  -- unlikely at this stage ? ignore
-          )
-      `catch` \(_::IOException) -> putStr s
+      -- Run the pager, providing the text as input. Or if we found a problem already, just print.
+      if not shouldUsePager
+        then putStr s
+        else (withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
+          \mhin _ _ p -> do
+            case mhin of
+              Nothing  -> fail "Failed to create pipe to pager"
+              Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
+                (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
+                  -- If the pager quits early, we'll receive an EPIPE error; hide that.
+                  `catch` \(e::IOException) -> case e of
+                    IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin -> return ()
+                    _ -> throwIO e
+            void $ waitForProcess p)
+          `catch` \(_::IOException) -> putStr s
 
 -- | Test @less@, by running less --version and looking for a nonzero exit, timeout, or stderr output.
 -- Uses the provided environment, containing a LESS variable, if any.
