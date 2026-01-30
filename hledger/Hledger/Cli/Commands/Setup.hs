@@ -144,7 +144,7 @@ setupHledger = do
   pdesc "is built with a supported compiler/RTS"
   p (if rtsSupportsBoundThreads then Y else N) $ 
     compilerName <> " " <> Data.Version.showVersion fullCompilerVersion
-      <> " " <> if rtsSupportsBoundThreads then "with OS threads" else "without OS threads"
+      <> if rtsSupportsBoundThreads then ", using threaded RTS" else ", RTS does not have threads enabled"
 
   pdesc "is a native binary for this machine ?"
   case hbinArch binaryinfo of
