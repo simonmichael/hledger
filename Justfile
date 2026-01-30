@@ -1094,14 +1094,16 @@ devtag-push:
 testbin:
     #!/usr/bin/env bash
     set -euo pipefail
-    git push -f origin HEAD:testbin
-    git push -f origin HEAD:binaries
+    git push -f origin HEAD:testbin  # testbin is the branch
+    git tag -f testlatest            # testlatest is the tag
+    git push -f origin testlatest
+    git push -f origin HEAD:binaries # also push to binaries branch to build binaries
     printf "When binaries have built successfully, run:\n just testbin-bin\n"
     just ghworkflows-open
 
 # Browse the github testbin prerelease.
 @testbin-open:
-    gh release view -w testbin
+    gh release view -w testlatest
 
 # Push the testbin prerelease notes to the github testbin prerelease.
 @testbin-notes:
