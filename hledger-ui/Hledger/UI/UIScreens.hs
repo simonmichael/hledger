@@ -63,7 +63,7 @@ screenUpdate opts d j = \case
   BS sst -> BS $ bsUpdate opts d j sst
   IS sst -> IS $ isUpdate opts d j sst
   RS sst -> RS $ rsUpdate opts d j sst
-  TS sst -> TS $ tsUpdate sst
+  TS sst -> TS $ tsUpdate opts d j sst
   ES sst -> ES $ esUpdate sst
 
 -- | Construct an error screen.
@@ -241,11 +241,12 @@ rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to
     }
 
 -- | Update a register screen from these options, reporting date, and journal.
-rsUpdate :: UIOpts -> Day -> Journal -> RegisterScreenState -> RegisterScreenState
-rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
-  dbgui "rsUpdate"
+rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive} =
+  dbgui "rsUpdate" $
   rss{_rssList=l'}
   where
+    -- Force evaluation of old list to allow GC
+    !oldlist = _rssList rss
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
     -- gather arguments and queries
     -- XXX temp
@@ -279,7 +280,8 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
       items
 
     -- pre-render the list items, helps calculate column widths
-    displayitems = map displayitem items'
+    -- Force evaluation to prevent thunk accumulation
+    !displayitems = map displayitem items'
       where
         displayitem (t, _, _issplit, otheraccts, change, bal) =
           RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
@@ -297,7 +299,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
 
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
-    blankitems = replicate uiNumBlankItems
+    !blankitems = replicate uiNumBlankItems
           RegisterScreenItem{rsItemDate          = ""
                             ,rsItemStatus        = Unmarked
                             ,rsItemDescription   = ""
@@ -308,7 +310,8 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
                             }
 
     -- build the new list widget
-    l = list RegisterList (V.fromList $ displayitems ++ blankitems) 1
+    !itemsVector = V.fromList $ displayitems ++ blankitems
+    !l = list RegisterList itemsVector 1
 
     -- ensure the appropriate list item is selected:
     -- if forcedefaultselection is true, the last (latest) transaction;  XXX still needed ?
@@ -316,7 +319,7 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
     -- otherwise, the transaction nearest in date to it;
     -- or if there's several with the same date, the nearest in journal order;
     -- otherwise, the last (latest) transaction.
-    l' = listMoveTo newselidx l
+    !l' = listMoveTo newselidx l
       where
         endidx = max 0 $ length displayitems - 1
         newselidx =
@@ -357,10 +360,17 @@ tsNew acct nts nt =
     ,_tssTransaction  = nt
     }
 
--- | Update a transaction screen. 
--- This currently does nothing because the initialisation in rsHandle is not so easy to extract.
--- To see the updated transaction, one must exit and re-enter the transaction screen.
--- See also tsHandle.
-tsUpdate :: TransactionScreenState -> TransactionScreenState
-tsUpdate = dbgui "tsUpdate"
-
+-- | Update a transaction screen by refreshing the current transaction from the journal.
+-- This preserves the current transaction selection while updating its data.
+-- XXX Caveat, this works by showing the transaction at the same index in the processed ledger,
+-- if transactions have been inserted or removed before the one shown this will just show
+-- whatever transaction landed at the same index in the new data set.
+tsUpdate :: UIOpts -> Day -> Journal -> TransactionScreenState -> TransactionScreenState
+tsUpdate _ _ j tss@TSS{_tssTransaction=(currentIdx,currentTxn)} = 
+  dbgui "tsUpdate" $
+  let 
+    -- Find the updated version of the current transaction in the journal
+    updatedTxn = case find (\t -> tindex t == tindex currentTxn) (jtxns j) of
+      Just t  -> t
+      Nothing -> currentTxn  -- fallback to current if not found
+  in tss { _tssTransaction = (currentIdx, updatedTxn) }
