@@ -752,18 +752,29 @@ lessVarValue mHLEDGER_LESS mLESS usecolor =
        (_, Just lessvar) -> if extralessopts `isInfixOf` lessvar then lessvar else unwords [lessvar, extralessopts]
        _ -> extralessopts
 
--- | hledger's preferred less options, for a consistent pleasant UX.
+-- keep synced: hledger.m4.md > Paging
+-- | hledger's preferred less options, which it will append to the user's LESS environment variable.
+-- The thinking here is: "Many people don't have their LESS optimised to get the best experience from modern less, as I didn't.
+-- Also as they use hledger on different machines, LESS is likely not consistent. 
+-- So let's add some settings that I have found reasonably robust, compatible, and good for usability.
+-- That will help provide a consistent good experience when viewing hledger's long outputs.
+-- And power users can prevent this by setting exactly the options they want in HLEDGER_LESS."
+-- Here's what they mean: https://manned.org/man/less#head5
+--
+-- Flags that might break older less versions (causing hledger to fall back to unpaged output) are avoided here.
+-- Such as --mouse and --wheel-lines (less >=530, 2018) and --use-color (less >=551, 2019).
+-- --hilite-unread (less >=443, 2011) is useful and considered old enough.
+--
 lessOptions = unwords [
    "--chop-long-lines"
   ,"--hilite-unread"
   ,"--ignore-case"
   ,"--no-init"
-  ,"--quit-at-eof"
   ,"--quit-if-one-screen"
   ,"--shift=8"
   ,"--squeeze-blank-lines"
   ,"--use-backslash"
-  ]
+  ] 
 
 -- | Additional less options to use if we are showing colour on stdout.
 lessColourOptions = unwords [
