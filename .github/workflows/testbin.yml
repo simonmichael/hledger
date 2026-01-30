@@ -136,7 +136,7 @@ jobs:
       # permissions:
       #   contents: write
       with:
-        tag_name: testbin
+        tag_name: testlatest
         files: |
           artifacts/*.zip
           artifacts/*.tar.gz
