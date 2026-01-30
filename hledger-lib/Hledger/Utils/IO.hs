@@ -703,26 +703,29 @@ runPager s = do
           return $ Just $ ("LESS", newlessvar) : filter ((/= "LESS") . fst) env
 
       -- If using less, check that less --version is working normally with our custom LESS environment (#2544)
+      -- If the check itself fails (less not executable, etc.), treat that as an error.
       when pagerIsLess $ do
-        lessHasError <- lessIsWorking mCustomEnv
+        lessHasError <- lessIsWorking mCustomEnv `catch` \(_::IOException) -> return True
         when lessHasError $ error' $
-          "less --version is showing a problem when hledger runs it.\n" <>
+          "less --version fails or shows a problem when hledger runs it.\n" <>
           "Please check your pager configuration in 'hledger setup'."
 
-      -- Now run the pager to display the given text; and hide harmless exceptions.
-      withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
+      -- Now run the pager, piping in the text on stdin.
+      -- If the pager fails to start or has other problems, fall back to stdout.
+      (withCreateProcess (shell pager){std_in=CreatePipe, env=mCustomEnv} $
         \mhin _ _ p -> do
-          -- Pipe in the text on stdin.
           case mhin of
-            Nothing  -> return ()  -- shouldn't happen
+            Nothing  -> fail "Failed to create pipe to pager"
             Just hin -> void $ forkIO $   -- Write from another thread to avoid deadlock ? Maybe unneeded, but just in case.
               (hPutStr hin s >> hClose hin)  -- Be sure to close the pipe so the pager knows we're done.
                 -- If the pager quits early, we'll receive an EPIPE error; hide that.
                 `catch` \(e::IOException) -> case e of
-                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin
-                    -> return ()
+                  IOError{ioe_type=ResourceVanished, ioe_errno=Just ioe, ioe_handle=Just hdl} | Errno ioe==ePIPE, hdl==hin -> return ()
                   _ -> throwIO e
           void $ waitForProcess p
+          -- when (exitcode /= ExitSuccess) $ ...  -- unlikely at this stage ? ignore
+          )
+      `catch` \(_::IOException) -> putStr s
 
 -- | Test @less@, by running less --version and looking for a nonzero exit, timeout, or stderr output.
 -- Uses the provided environment, containing a LESS variable, if any.
