@@ -187,3 +187,18 @@ $ hledger -f- print -O beancount
     Assets:Cash
 
 >=
+
+# ** 4. Transacted costs and cost bases are both hidden by default.
+<
+2026-01-01 Buy with transaction cost
+    assets:broker    10 AAPL @ $160
+    assets:cash
+
+2026-01-02 Buy with cost basis
+    assets:broker    10 AAPL {$150}
+    assets:cash
+
+$ hledger -f- bal assets:broker
+             20 AAPL  assets:broker
+--------------------
+             20 AAPL  
