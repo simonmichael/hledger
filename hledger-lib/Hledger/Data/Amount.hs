@@ -862,13 +862,6 @@ instance Num MixedAmount where
     abs    = mapMixedAmount (\amt -> amt { aquantity = abs (aquantity amt)})
     signum = error' "error, mixed amounts do not support signum"
 
--- | Calculate the key used to store an Amount within a MixedAmount.
-amountKey :: Amount -> MixedAmountKey
-amountKey amt@Amount{acommodity=c} = case acost amt of
-    Nothing             -> MixedAmountKeyNoCost    c
-    Just (TotalCost p) -> MixedAmountKeyTotalCost c (acommodity p)
-    Just (UnitCost  p) -> MixedAmountKeyUnitCost  c (acommodity p) (aquantity p)
-
 -- | The empty mixed amount.
 nullmixedamt :: MixedAmount
 nullmixedamt = Mixed mempty
@@ -883,7 +876,7 @@ missingmixedamt = mixedAmount missingamt
 -- instead it looks for missingamt among the Amounts.
 -- missingamt should always be alone, but detect it even if not.
 isMissingMixedAmount :: MixedAmount -> Bool
-isMissingMixedAmount (Mixed ma) = amountKey missingamt `M.member` ma
+isMissingMixedAmount (Mixed ma) = mixedAmountKey missingamt `M.member` ma
 
 -- | Convert amounts in various commodities into a mixed amount.
 mixed :: Foldable t => t Amount -> MixedAmount
@@ -891,12 +884,12 @@ mixed = maAddAmounts nullmixedamt
 
 -- | Create a MixedAmount from a single Amount.
 mixedAmount :: Amount -> MixedAmount
-mixedAmount a = Mixed $ M.singleton (amountKey a) a
+mixedAmount a = Mixed $ M.singleton (mixedAmountKey a) a
 
 -- | Add an Amount to a MixedAmount, normalising the result.
 -- Amounts with different costs are kept separate.
 maAddAmount :: MixedAmount -> Amount -> MixedAmount
-maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstCost (amountKey a) a ma
+maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstCost (mixedAmountKey a) a ma
 
 -- | Add a collection of Amounts to a MixedAmount, normalising the result.
 -- Amounts with different costs are kept separate.
@@ -1369,11 +1362,11 @@ mixedAmountSetPrecisionMin p = mapMixedAmountUnsafe (amountSetPrecisionMin p)
 mixedAmountSetPrecisionMax :: Word8 -> MixedAmount -> MixedAmount
 mixedAmountSetPrecisionMax p = mapMixedAmountUnsafe (amountSetPrecisionMax p)
 
--- | Remove all costs from a MixedAmount.
+-- | Remove all transacted costs and cost bases from a MixedAmount.
 mixedAmountStripCosts :: MixedAmount -> MixedAmount
 mixedAmountStripCosts (Mixed ma) =
-    foldl' (\m a -> maAddAmount m a{acost=Nothing}) (Mixed noCosts) withCosts
-  where (noCosts, withCosts) = M.partition (isNothing . acost) ma
+    foldl' (\m a -> maAddAmount m a{acost=Nothing, acostbasis=Nothing}) (Mixed noCosts) withCosts
+  where (noCosts, withCosts) = M.partition (\a -> isNothing (acost a) && isNothing (acostbasis a)) ma
 
 
 -------------------------------------------------------------------------------
