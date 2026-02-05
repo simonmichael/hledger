@@ -38,6 +38,7 @@ module Hledger.Data.Journal (
   journalPostingsAddAccountTags,
   journalPostingsKeepAccountTagsOnly,
   journalPostingsAddCommodityTags,
+  journalInferPostingsCostBasis,
   journalClassifyLotPostings,
 -- * Filtering
   filterJournalTransactions,
@@ -135,7 +136,7 @@ import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, maybeToList)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -662,12 +663,41 @@ journalCommodityTags :: Journal -> CommoditySymbol -> [Tag]
 journalCommodityTags Journal{jdeclaredcommoditytags} c =
   M.findWithDefault [] c jdeclaredcommoditytags
 
+-- | Does this commodity have a 'lots:' tag declared ?
+journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
+journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
+
 -- | To all postings in the journal, add any tags from their amount's commodities.
 -- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
 journalPostingsAddCommodityTags :: Journal -> Journal
 journalPostingsAddCommodityTags j = journalMapPostings addtags j
   where
     addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
+
+-- | For acquire postings (positive amounts) whose commodity has a 'lots:' tag,
+-- infer cost basis from transacted cost and posting date.
+-- Must be called before journalClassifyLotPostings.
+journalInferPostingsCostBasis :: Journal -> Journal
+journalInferPostingsCostBasis j = journalMapPostings (postingInferCostBasis j) j
+
+postingInferCostBasis :: Journal -> Posting -> Posting
+postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pamount p}
+  where
+    amountInferCostBasis :: Amount -> Amount
+    amountInferCostBasis a
+      | aquantity a <= 0                  = a  -- only positive (acquire) amounts
+      | isJust (acostbasis a)             = a  -- already has cost basis
+      | Nothing <- acost a                = a  -- no transacted cost
+      | not (journalCommodityUsesLots j (acommodity a)) = a  -- commodity not lot-tracked
+      | Just cost <- acost a              = a{acostbasis = Just (costToCostBasis (aquantity a) cost)}
+
+    costToCostBasis :: Quantity -> AmountCost -> CostBasis
+    costToCostBasis qty cost = CostBasis{cbCost=Just ucost, cbDate=Nothing, cbLabel=Nothing}
+      where
+        ucost = case cost of
+          UnitCost  amt -> amt
+          TotalCost amt | qty /= 0  -> amt{aquantity = aquantity amt / abs qty}
+                        | otherwise -> amt
 
 -- | Classify lot-related postings on Asset accounts by adding ptype tags.
 -- Must be called after journalAddAccountTypes so account types are available.
