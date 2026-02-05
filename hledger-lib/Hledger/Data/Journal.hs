@@ -35,7 +35,10 @@ module Hledger.Data.Journal (
   journalSetLastReadTime,
   journalRenumberAccountDeclarations,
   journalPivot,
-  -- * Filtering
+  journalPostingsAddAccountTags,
+  journalPostingsKeepAccountTagsOnly,
+  journalPostingsAddCommodityTags,
+-- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
   filterJournalRelatedPostings,
@@ -59,6 +62,7 @@ module Hledger.Data.Journal (
   journalLeafAccountNames,
   journalAccountNameTree,
   journalAccountTags,
+  journalCommodityTags,
   journalInheritedAccountTags,
   -- journalAmountAndPriceCommodities,
   -- journalAmountStyles,
@@ -97,10 +101,8 @@ module Hledger.Data.Journal (
   journalAccountType,
   journalAccountTypes,
   journalAddAccountTypes,
-  journalPostingsAddAccountTags,
-  journalPostingsKeepAccountTagsOnly,
+  -- * Conversion accounts
   defaultBaseConversionAccount,
-  -- journalPrices,
   journalBaseConversionAccount,
   journalConversionAccounts,
   -- * Misc
@@ -284,6 +286,9 @@ journalConcat j1 j2 =
     -- ,jdeclaredcommodities           :: M.Map CommoditySymbol Commodity
     ,jdeclaredcommodities               = (<>) (jdeclaredcommodities j1) (jdeclaredcommodities j2)
     --
+    -- ,jdeclaredcommoditytags     :: M.Map CommoditySymbol [Tag]
+    ,jdeclaredcommoditytags     = M.unionWith (<>) (jdeclaredcommoditytags j1) (jdeclaredcommoditytags j2)
+    --
     -- ,jinferredcommoditystyles   :: M.Map CommoditySymbol AmountStyle
     ,jinferredcommoditystyles       = (<>) (jinferredcommoditystyles j1) (jinferredcommoditystyles j2)
     --
@@ -345,8 +350,9 @@ nulljournal = Journal {
   ,jdeclaredaccounttypes      = M.empty
   ,jaccounttypes              = M.empty
   ,jglobalcommoditystyles     = M.empty
-  ,jdeclaredcommodities               = M.empty
-  ,jinferredcommoditystyles       = M.empty
+  ,jdeclaredcommodities       = M.empty
+  ,jdeclaredcommoditytags     = M.empty
+  ,jinferredcommoditystyles   = M.empty
   ,jpricedirectives           = []
   ,jinferredmarketprices      = []
   ,jtxnmodifiers              = []
@@ -638,10 +644,22 @@ journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
 
 -- | To all postings in the journal, add any tags from their account
 -- (including those inherited from parent accounts).
--- If the same tag exists on posting and account, the latter is ignored.
+-- If a tag already exists on the posting, it is not changed (the account tag will be ignored).
 journalPostingsAddAccountTags :: Journal -> Journal
 journalPostingsAddAccountTags j = journalMapPostings addtags j
   where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
+
+-- | Get any tags declared for this commodity.
+journalCommodityTags :: Journal -> CommoditySymbol -> [Tag]
+journalCommodityTags Journal{jdeclaredcommoditytags} c =
+  M.findWithDefault [] c jdeclaredcommoditytags
+
+-- | To all postings in the journal, add any tags from their amount's commodities.
+-- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
+journalPostingsAddCommodityTags :: Journal -> Journal
+journalPostingsAddCommodityTags j = journalMapPostings addtags j
+  where
+    addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
 
 -- | Remove all tags from the journal's postings except those provided by their account.
 -- This is useful for the accounts report.

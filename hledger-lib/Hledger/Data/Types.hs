@@ -334,8 +334,10 @@ data DigitGroupStyle = DigitGroups !Char ![Word8]
 type CommoditySymbol = Text
 
 data Commodity = Commodity {
-  csymbol :: CommoditySymbol,
-  cformat :: Maybe AmountStyle
+  csymbol  :: CommoditySymbol,
+  cformat  :: Maybe AmountStyle,
+  ccomment :: Text,              -- ^ any comment lines following the commodity directive
+  ctags    :: [Tag]              -- ^ tags extracted from the comment, if any
   } deriving (Show,Eq,Generic) --,Ord)
 
 -- | The cost basis of an individual lot - some quantity of an asset acquired at a given date and time.
@@ -666,6 +668,7 @@ data Journal = Journal {
   ,jdeclaredaccounttypes    :: M.Map AccountType [AccountName]        -- ^ Accounts which were declared with a type: tag, grouped by the type.
   ,jaccounttypes            :: M.Map AccountName AccountType          -- ^ All the account types known, from account declarations or account names or parent accounts.
   ,jdeclaredcommodities     :: M.Map CommoditySymbol Commodity        -- ^ Commodities (and their display styles) declared by commodity directives, in parse order.
+  ,jdeclaredcommoditytags   :: M.Map CommoditySymbol [Tag]            -- ^ Commodities which were declared with tags, and those tags.
   ,jinferredcommoditystyles :: M.Map CommoditySymbol AmountStyle      -- ^ Commodity display styles inferred from amounts in the journal.
   ,jglobalcommoditystyles   :: M.Map CommoditySymbol AmountStyle      -- ^ Commodity display styles declared by command line options (sometimes augmented, see the import command).
   ,jpricedirectives         :: [PriceDirective]                       -- ^ P (market price) directives in the journal, in parse order.

@@ -628,11 +628,13 @@ commoditydirectiveonelinep = do
     amt <- amountp
     pure $ (off, amt)
   lift skipNonNewlineSpaces
-  _ <- lift followingcommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle}
+  (comment, tags) <- lift transactioncommentp
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-  else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j})
+  else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j
+                       ,jdeclaredcommoditytags=if null tags then jdeclaredcommoditytags j
+                                               else M.insert acommodity tags $ jdeclaredcommoditytags j})
 
 pleaseincludedecimalpoint :: String
 pleaseincludedecimalpoint = chomp $ unlines [
@@ -653,12 +655,14 @@ commoditydirectivemultilinep = do
   string "commodity"
   lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
-  _ <- lift followingcommentp
+  (comment, tags) <- lift transactioncommentp
   -- read all subdirectives, saving format subdirectives as Lefts
   subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
   let mfmt = lastMay $ lefts subdirectives
-  let comm = Commodity{csymbol=sym, cformat=mfmt}
-  modify' (\j -> j{jdeclaredcommodities=M.insert sym comm $ jdeclaredcommodities j})
+  let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags}
+  modify' (\j -> j{jdeclaredcommodities=M.insert sym comm $ jdeclaredcommodities j
+                  ,jdeclaredcommoditytags=if null tags then jdeclaredcommoditytags j
+                                          else M.insert sym tags $ jdeclaredcommoditytags j})
   where
     indented = (lift skipNonNewlineSpaces1 >>)
 
