@@ -972,7 +972,7 @@ postingphelper isPostingRule mTransactionYear = do
       lift skipNonNewlineSpaces
       account <- modifiedaccountnamep True
       return (status, account)
-    let (ptype, account') = (accountNamePostingType account, textUnbracket account)
+    let (preal, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
     mult <- if isPostingRule then multiplierp else pure False
     amt <- optional $ amountp' mult
@@ -987,7 +987,7 @@ postingphelper isPostingRule mTransactionYear = do
             , paccount=account'
             , pamount=maybe missingmixedamt mixedAmount amt
             , pcomment=comment
-            , ptype=ptype
+            , preal=preal
             , ptags=tags
             , pbalanceassertion=massertion
             }
@@ -1178,7 +1178,7 @@ tests_JournalReader = testGroup "JournalReader" [
             paccount="a",
             pamount=mixedAmount (usd 1),
             pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
-            ptype=RegularPosting,
+            preal=RealPosting,
             ptags=[("ptag1","val1"),("ptag2","val2")],
             ptransaction=Nothing
             }

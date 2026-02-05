@@ -92,6 +92,7 @@ $ hledger -f- print -O json
         "pdate": null,
         "pdate2": null,
         "poriginal": null,
+        "preal": "RealPosting",
         "pstatus": "Unmarked",
         "ptags": [
           [
@@ -99,8 +100,7 @@ $ hledger -f- print -O json
             "acquire"
           ]
         ],
-        "ptransaction_": "1",
-        "ptype": "RegularPosting"
+        "ptransaction_": "1"
       },
       {
         "paccount": "assets:cash",
@@ -129,10 +129,10 @@ $ hledger -f- print -O json
         "pdate": null,
         "pdate2": null,
         "poriginal": null,
+        "preal": "RealPosting",
         "pstatus": "Unmarked",
         "ptags": [],
-        "ptransaction_": "1",
-        "ptype": "RegularPosting"
+        "ptransaction_": "1"
       }
     ],
     "tprecedingcomment": "",
