@@ -1758,13 +1758,18 @@ This is experimental work in progress. Here's what hledger currently does with c
 2. Commodities can be declared as "lotful" by adding a `lots` tag in their [declaration](#commodity-directive).
    Amounts of lotful commodities are assumed to always have a cost basis.
 
-3. In postings involving a positive amount of a lotful commodity,
-   if no cost basis is recorded, it is inferred from the transacted cost and added to the entry.
+3. In postings involving a positive amount of a lotful commodity, if there is no cost basis annotation,
+   it is inferred from the transacted cost and added to the entry.
    So eg `{$100}` will be added to `1 AAPL @ $100`.
 
-4. Lot postings (postings whose amount has a cost basis) are classified automatically,
+4. In postings involving a positive amount with a cost basis, if there's no transacted cost annotation,
+   it is inferred from the cost basis and added to the entry.
+   So eg `@ $100` will be added to `1 AAPL {$100}`.
+
+5. Lot postings (postings whose amount has a cost basis) are classified automatically,
    by a hidden `ptype` tag ("posting type") whose value is `acquire`, `dispose`, `transfer-from`, or `transfer-to`.
    These tags can be queried (`hledger reg tag:ptype=acquire`), or made visible with `hledger print --verbose-tags tag:ptype`.
+
 
 ## Balance assertions
 
