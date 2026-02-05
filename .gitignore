@@ -23,6 +23,9 @@ TAGS
 .obsidian
 stylish-haskell.yaml
 *.m4-e
+/.apl.history
+/.beads.AGENTS.md
+/.gitattributes
 
 # haskell stuff
 *.dyn_hi
@@ -64,7 +67,7 @@ packages*.svg
 /[a-z0-9].*
 ![a-z0-9].*/
 
-/[a-z0-9][a-z0-9].*/
+/[a-z0-9][a-z0-9].*
 ![a-z0-9][a-z0-9].*/
 
 /test*
@@ -117,7 +120,7 @@ old
 /finance
 /examples/demo/
 /doc/ghrelnotes.md
-/doc/RELEASING2.md
+/doc/.*
 /checks
 /tools/docshelltest
 .latest.*
