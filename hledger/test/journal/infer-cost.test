@@ -1,0 +1,54 @@
+# * Infer transacted cost (@ ...) from cost basis ({...}).
+
+# ** 1. Transacted cost is inferred from cost basis when amount is positive.
+# print shows the original form by default.
+<
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL {$100}
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL {$100}
+    assets:cash
+
+>=
+
+# ** 2. With -x, the inferred transacted cost is shown.
+<
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL {$100}
+    assets:cash
+
+$ hledger -f - print -x
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100 {$100}
+    assets:cash                        $-1000
+
+>=
+
+# ** 3. Transacted cost is not inferred for negative amounts (dispose postings).
+<
+2024-01-01 sell stock
+    assets:brokerage    -10 AAPL {$100}
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 sell stock
+    assets:brokerage    -10 AAPL {$100}
+    assets:cash
+
+>=
+
+# ** 4. Transacted cost is not inferred when already present.
+<
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL {$95} @ $100
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100 {$95}
+    assets:cash
+
+>=

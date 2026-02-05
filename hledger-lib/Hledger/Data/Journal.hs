@@ -39,6 +39,7 @@ module Hledger.Data.Journal (
   journalPostingsKeepAccountTagsOnly,
   journalPostingsAddCommodityTags,
   journalInferPostingsCostBasis,
+  journalInferPostingsTransactedCost,
   journalClassifyLotPostings,
 -- * Filtering
   filterJournalTransactions,
@@ -698,6 +699,26 @@ postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pa
           UnitCost  amt -> amt
           TotalCost amt | qty /= 0  -> amt{aquantity = aquantity amt / abs qty}
                         | otherwise -> amt
+
+-- | For positive postings with a cost basis, which are not lot transfers,
+-- infer transacted cost from cost basis.
+-- Must be called after journalClassifyLotPostings so ptype tags are available.
+journalInferPostingsTransactedCost :: Journal -> Journal
+journalInferPostingsTransactedCost = journalMapPostings postingInferTransactedCost
+
+postingInferTransactedCost :: Posting -> Posting
+postingInferTransactedCost p
+  | ("_ptype", "transfer-to") `elem` ptags p = p   -- not for transfer postings
+  | pamount p' == pamount p = p                    -- nothing changed
+  | otherwise               = p'{poriginal = Just $ originalPosting p}
+  where
+    p' = p{pamount = mapMixedAmount amountInferTransactedCost $ pamount p}
+    amountInferTransactedCost :: Amount -> Amount
+    amountInferTransactedCost a
+      | aquantity a <= 0                                    = a  -- only positive amounts
+      | isJust (acost a)                                    = a  -- already has transacted cost
+      | Just CostBasis{cbCost=Just c} <- acostbasis a       = a{acost = Just (UnitCost c)}
+      | otherwise                                           = a
 
 -- | Classify lot-related postings on Asset accounts by adding ptype tags.
 -- Must be called after journalAddAccountTypes so account types are available.
