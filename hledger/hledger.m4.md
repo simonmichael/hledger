@@ -1720,9 +1720,10 @@ as long as the journal entry is well formed such that the equity postings / cost
 So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
 and your reports would have the advantages of both.
 
-## Cost basis / lot syntax
+## Cost basis / Lot syntax
 
-If you are buying some commodity to hold as an investment, it may be important to keep track of 
+If you are buying some commodity to hold as an investment, it may be important to keep track of its *cost basis*.
+By that we mean:
 
 1. its original acquisition cost
 2. its original acquisition date
@@ -1731,20 +1732,31 @@ If you are buying some commodity to hold as an investment, it may be important t
 In hledger we call these three the "cost basis"; and if an amount being acquired has a cost basis, we call it a "lot".
 Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
 
-Note, though "cost basis" sounds similar to the "cost" (transacted price) discussed above, they are distinct concepts.
-In some transactions the transacted price and basis cost are the same, but in others they are not.
+Note, though "cost basis" sounds similar to the "cost" (transacted price) discussed above,
+they are distinct concepts and need not be the same (eg when a lot is transferred from a previous owner or previous account).
 
 So cost basis has its own syntax, also called "lot syntax".
-hledger's lot syntax is like Ledger's: one or more of the following annotations, following the main amount:
+hledger's lot syntax is like [Ledger's lot syntax][ledger: buying and selling stock]:
+one or more of the following annotations, in any order, following the main amount:
 
-- `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}` (see [lot price][ledger: buying and selling stock])
-- `[LOTDATE]` (see [lot date][ledger: lot dates])
-- `(LOTLABEL)` (see [lot note][ledger: lot notes])
+- `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`
+- `[LOTDATE]`
+- `(LOTLABEL)`
 
-hledger does not yet do anything with this lot syntax, except to preserve it and show it in `print`'s `txt`, `beancount`, and `json` output.
-This means you can use this syntax in your hledger journals (plus an amountless extra posting to help transactions balance, if needed),
-then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports
-(see [Export Lots workflow](workflows.md#more-advanced-workflows)).
+LOTLABEL can be used to attach a more memorable label to a lot.
+Also, when multiple acquisitions of the same commodity occur in one day,
+the label should be used to (a) uniquify and (b) order that day's acquisitions,
+eg by putting a timestamp or sequence number in it.
+
+Currently hledger only does a little with this lot syntax:
+
+1. It reproduces it in `print`'s `txt`, `beancount`, and `json` output.
+This means you can use this syntax in your hledger journals (perhaps adding an amountless extra posting to help transactions balance, if needed);
+then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports.
+See the [Export Lots workflow](workflows.md#more-advanced-workflows).
+
+2. It classifies postings using lot syntax, with a hidden `_ptype` tag whose value is one of:
+`acquire`, `dispose`, `transfer-from`, `transfer-to`. Or with `--verbose-tags`, a visible `ptype` tag is used.
 
 ## Balance assertions
 
