@@ -39,7 +39,7 @@ commoditiesmode = hledgerCommandMode
 commodities :: CliOpts -> Journal -> IO ()
 commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
-    filt = filter (matchesCommodity query)
+    filt = filter (matchesCommodityExtra (journalCommodityTags j) query)
     used       = dbg5 "used"       $ S.toList $ journalCommoditiesFromPriceDirectives j <> journalCommoditiesFromTransactions j
     declared'  = dbg5 "declared"   $ M.keys $ jdeclaredcommodities j
     unused     = dbg5 "unused"     $ declared' \\ used

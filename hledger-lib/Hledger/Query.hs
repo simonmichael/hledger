@@ -67,6 +67,7 @@ module Hledger.Query (
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
+  matchesCommodityExtra,
   matchesTag,
   -- patternsMatchTags,
   matchesPriceDirective,
@@ -829,6 +830,17 @@ matchesCommodity (And qs)         s = all (`matchesCommodity` s) qs
 matchesCommodity (AnyPosting qs)  s = all (`matchesCommodity` s) qs
 matchesCommodity (AllPostings qs) s = all1 (`matchesCommodity` s) qs
 matchesCommodity _                _ = False
+
+-- | Like matchesCommodity, but also supporting Tag queries,
+-- using the provided function to look up a commodity's tags.
+matchesCommodityExtra :: (CommoditySymbol -> [Tag]) -> Query -> CommoditySymbol -> Bool
+matchesCommodityExtra ctags (Not q)           c = not $ matchesCommodityExtra ctags q c
+matchesCommodityExtra ctags (Or  qs)          c = any (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (And qs)          c = all (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (AnyPosting  qs)  c = all (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (AllPostings qs)  c = all1 (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (Tag npat vpat)   c = patternsMatchTags npat vpat $ ctags c
+matchesCommodityExtra _     q                 c = matchesCommodity q c
 
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
