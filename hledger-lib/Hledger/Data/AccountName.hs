@@ -172,23 +172,23 @@ accountNameLevel a = T.length (T.filter (==acctsepchar) a) + 1
 unbudgetedAccountName :: T.Text
 unbudgetedAccountName = "<unbudgeted>"
 
-accountNamePostingType :: AccountName -> PostingType
+accountNamePostingType :: AccountName -> PostingRealness
 accountNamePostingType a
-    | T.null a = RegularPosting
+    | T.null a = RealPosting
     | T.head a == '[' && T.last a == ']' = BalancedVirtualPosting
     | T.head a == '(' && T.last a == ')' = VirtualPosting
-    | otherwise = RegularPosting
+    | otherwise = RealPosting
 
 accountNameWithoutPostingType :: AccountName -> AccountName
 accountNameWithoutPostingType a = case accountNamePostingType a of
                                     BalancedVirtualPosting -> textUnbracket a
                                     VirtualPosting -> textUnbracket a
-                                    RegularPosting -> a
+                                    RealPosting -> a
 
-accountNameWithPostingType :: PostingType -> AccountName -> AccountName
+accountNameWithPostingType :: PostingRealness -> AccountName -> AccountName
 accountNameWithPostingType BalancedVirtualPosting = wrap "[" "]" . accountNameWithoutPostingType
 accountNameWithPostingType VirtualPosting         = wrap "(" ")" . accountNameWithoutPostingType
-accountNameWithPostingType RegularPosting         = accountNameWithoutPostingType
+accountNameWithPostingType RealPosting            = accountNameWithoutPostingType
 
 -- | Prefix one account name to another, preserving posting type
 -- indicators like concatAccountNames.
@@ -200,7 +200,7 @@ joinAccountNames a b = concatAccountNames $ filter (not . T.null) [a,b]
 -- the resulting account name.
 concatAccountNames :: [AccountName] -> AccountName
 concatAccountNames as = accountNameWithPostingType t $ T.intercalate ":" $ map accountNameWithoutPostingType as
-    where t = headDef RegularPosting $ filter (/= RegularPosting) $ map accountNamePostingType as
+    where t = headDef RealPosting $ filter (/= RealPosting) $ map accountNamePostingType as
 
 -- | Rewrite an account name using all matching aliases from the given list, in sequence.
 -- Each alias sees the result of applying the previous aliases.

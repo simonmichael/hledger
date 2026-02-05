@@ -151,7 +151,7 @@ nullposting = Posting
                 ,paccount=""
                 ,pamount=nullmixedamt
                 ,pcomment=""
-                ,ptype=RegularPosting
+                ,preal=RealPosting
                 ,ptags=[]
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
@@ -167,7 +167,7 @@ post acc amt = posting {paccount=acc, pamount=mixedAmount amt}
 
 -- | Make a virtual (unbalanced) posting to an account.
 vpost :: AccountName -> Amount -> Posting
-vpost acc amt = (post acc amt){ptype=VirtualPosting}
+vpost acc amt = (post acc amt){preal=VirtualPosting}
 
 -- | Make a posting to an account, maybe with a balance assertion.
 post' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
@@ -175,7 +175,7 @@ post' acc amt ass = posting {paccount=acc, pamount=mixedAmount amt, pbalanceasse
 
 -- | Make a virtual (unbalanced) posting to an account, maybe with a balance assertion.
 vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
-vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion=ass}
+vpost' acc amt ass = (post' acc amt ass){preal=VirtualPosting, pbalanceassertion=ass}
 
 nullassertion :: BalanceAssertion
 nullassertion = BalanceAssertion
@@ -295,7 +295,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
       where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
 
-    pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+    pacctstr p' = showAccountName Nothing (preal p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'
     pstatusprefix p' = case pstatus p' of
         Unmarked -> ""
@@ -329,11 +329,11 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
                                               c:cs -> (c,cs)
 
 -- | Show an account name, clipped to the given width if any, and
--- appropriately bracketed/parenthesised for the given posting type.
-showAccountName :: Maybe Int -> PostingType -> AccountName -> Text
+-- appropriately bracketed/parenthesised for the given posting realness.
+showAccountName :: Maybe Int -> PostingRealness -> AccountName -> Text
 showAccountName w = fmt
   where
-    fmt RegularPosting         = maybe id T.take w
+    fmt RealPosting            = maybe id T.take w
     fmt VirtualPosting         = wrap "(" ")" . maybe id (T.takeEnd . subtract 2) w
     fmt BalancedVirtualPosting = wrap "[" "]" . maybe id (T.takeEnd . subtract 2) w
 
@@ -359,13 +359,13 @@ commentSpace = ("  "<>)
 
 
 isReal :: Posting -> Bool
-isReal p = ptype p == RegularPosting
+isReal p = preal p == RealPosting
 
 isVirtual :: Posting -> Bool
-isVirtual p = ptype p == VirtualPosting
+isVirtual p = preal p == VirtualPosting
 
 isBalancedVirtual :: Posting -> Bool
-isBalancedVirtual p = ptype p == BalancedVirtualPosting
+isBalancedVirtual p = preal p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
 hasAmount = not . isMissingMixedAmount . pamount
@@ -579,7 +579,7 @@ commentAddTagNextLine cmt (t,v) =
 tests_Posting = testGroup "Posting" [
 
   testCase "accountNamePostingType" $ do
-    accountNamePostingType "a" @?= RegularPosting
+    accountNamePostingType "a" @?= RealPosting
     accountNamePostingType "(a)" @?= VirtualPosting
     accountNamePostingType "[a]" @?= BalancedVirtualPosting
 

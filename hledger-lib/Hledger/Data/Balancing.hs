@@ -99,8 +99,8 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
     -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
       where
-        partitionPosting p ~(l, r) = case ptype p of
-            RegularPosting         -> (p:l, r)
+        partitionPosting p ~(l, r) = case preal p of
+            RealPosting            -> (p:l, r)
             BalancedVirtualPosting -> (l, p:r)
             VirtualPosting         -> (l, r)
 
@@ -272,8 +272,8 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
     inferamount :: Posting -> (Posting, Maybe MixedAmount)
     inferamount p =
       let
-        minferredamt = case ptype p of
-          RegularPosting         | not (hasAmount p) -> Just realsum
+        minferredamt = case preal p of
+          RealPosting            | not (hasAmount p) -> Just realsum
           BalancedVirtualPosting | not (hasAmount p) -> Just bvsum
           VirtualPosting         | not (hasAmount p) -> Just 0
           _                                          -> Nothing
@@ -338,17 +338,17 @@ transactionInferBalancingAmount styles t@Transaction{tpostings=ps}
 transactionInferBalancingCosts :: Transaction -> Transaction
 transactionInferBalancingCosts t@Transaction{tpostings=ps} = t{tpostings=ps'}
   where
-    ps' = map (costInferrerFor t BalancedVirtualPosting . costInferrerFor t RegularPosting) ps
+    ps' = map (costInferrerFor t BalancedVirtualPosting . costInferrerFor t RealPosting) ps
 
 -- | Generate a posting update function which assigns a suitable cost to
 -- balance the posting, if and as appropriate for the given transaction and
--- posting type (real or balanced virtual) (or if we cannot or should not infer
+-- posting realness (real or balanced virtual) (or if we cannot or should not infer
 -- costs, leaves the posting unchanged).
-costInferrerFor :: Transaction -> PostingType -> (Posting -> Posting)
+costInferrerFor :: Transaction -> PostingRealness -> (Posting -> Posting)
 costInferrerFor t pt = maybe id infercost inferFromAndTo
   where
     lbl = lbl_ "costInferrerFor"
-    postings     = filter ((==pt).ptype) $ tpostings t
+    postings     = filter ((==pt).preal) $ tpostings t
     pcommodities = map acommodity $ concatMap (amounts . pamount) postings
     sumamounts   = amounts $ sumPostings postings  -- amounts normalises to one amount per commodity & price
 
@@ -370,7 +370,7 @@ costInferrerFor t pt = maybe id infercost inferFromAndTo
     -- and the commodity of the amount matches the amount we're converting from,
     -- then set its cost based on the ratio between fromamount and toamount.
     infercost (fromamount, toamount) p
-        | [a] <- amounts (pamount p), ptype p == pt, acommodity a == acommodity fromamount
+        | [a] <- amounts (pamount p), preal p == pt, acommodity a == acommodity fromamount
             = p{ pamount   = mixedAmount a{acost=Just conversionprice}
                   & dbg9With (lbl "inferred cost".showMixedAmountOneLine)
                , poriginal = Just $ originalPosting p }
@@ -984,7 +984,7 @@ tests_Balancing =
             []
             [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
-            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = VirtualPosting}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), preal = VirtualPosting}
             ]
         ,testCase "balanced virtual postings need to balance among themselves" $
           assertBool "" $
@@ -1003,7 +1003,7 @@ tests_Balancing =
             []
             [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
-            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = BalancedVirtualPosting}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), preal = BalancedVirtualPosting}
             ]
         ,testCase "balanced virtual postings need to balance among themselves (2)" $
           assertBool "" $
@@ -1021,8 +1021,8 @@ tests_Balancing =
             []
             [ posting {paccount = "b", pamount = mixedAmount (usd 1.00)}
             , posting {paccount = "c", pamount = mixedAmount (usd (-1.00))}
-            , posting {paccount = "d", pamount = mixedAmount (usd 100), ptype = BalancedVirtualPosting}
-            , posting {paccount = "3", pamount = mixedAmount (usd (-100)), ptype = BalancedVirtualPosting}
+            , posting {paccount = "d", pamount = mixedAmount (usd 100), preal = BalancedVirtualPosting}
+            , posting {paccount = "3", pamount = mixedAmount (usd (-100)), preal = BalancedVirtualPosting}
             ]
         ]
 

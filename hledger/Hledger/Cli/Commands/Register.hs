@@ -159,7 +159,7 @@ postingsReportItemAsRecord opts@CliOpts{reportspec_=rspec} fmt baseUrl query (_,
       where
         clipAcct = clipOrEllipsifyAccountName (depth_ $ _rsReportOpts rspec)
         dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
-        bracket = case ptype p of
+        bracket = case preal p of
                              BalancedVirtualPosting -> wrap "[" "]"
                              VirtualPosting -> wrap "(" ")"
                              _ -> id
@@ -251,7 +251,7 @@ postingsReportItemAsText opts@CliOpts{reportspec_=rspec} preferredamtwidth prefe
       where
         clipAcct = clipOrEllipsifyAccountName (depth_ $ _rsReportOpts rspec)
         dropAcct = accountNameDrop (fromMaybe 0 $ readMay =<< maybestringopt "drop" (rawopts_ opts))
-        (parenthesise, awidth) = case ptype p of
+        (parenthesise, awidth) = case preal p of
             BalancedVirtualPosting -> (wrap "[" "]", acctwidth-2)
             VirtualPosting         -> (wrap "(" ")", acctwidth-2)
             _                      -> (id,acctwidth)

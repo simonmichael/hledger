@@ -615,7 +615,7 @@ tests_Transaction =
                   , paccount = "a"
                   , pamount = mixed [usd 1, hrs 2]
                   , pcomment = "pcomment1\npcomment2\n  tag3: val3  \n"
-                  , ptype = RegularPosting
+                  , preal = RealPosting
                   , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
                   }
            in showPostingLines p @?=
@@ -689,7 +689,7 @@ tests_Transaction =
                       , paccount = "a"
                       , pamount = mixed [usd 1, hrs 2]
                       , pcomment = "\npcomment2\n"
-                      , ptype = RegularPosting
+                      , preal = RealPosting
                       , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
                       }
                   ]

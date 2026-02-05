@@ -107,7 +107,7 @@ instance ToJSON MixedAmount where
 instance ToJSON BalanceAssertion
 instance ToJSON AmountCost
 instance ToJSON MarketPrice
-instance ToJSON PostingType
+instance ToJSON PostingRealness
 
 instance ToJSON Posting where
   toJSON = object . postingKV
@@ -127,7 +127,7 @@ postingKV Posting{..} =
     , "paccount"          .= paccount
     , "pamount"           .= pamount
     , "pcomment"          .= pcomment
-    , "ptype"             .= ptype
+    , "preal"             .= preal
     , "ptags"             .= ptags
     , "pbalanceassertion" .= pbalanceassertion
     -- To avoid a cycle, show just the parent transaction's index number
@@ -219,7 +219,7 @@ instance FromJSON MixedAmount where
 instance FromJSON BalanceAssertion
 instance FromJSON AmountCost
 instance FromJSON MarketPrice
-instance FromJSON PostingType
+instance FromJSON PostingRealness
 instance FromJSON Posting
 instance FromJSON Transaction
 instance FromJSON AccountDeclarationInfo

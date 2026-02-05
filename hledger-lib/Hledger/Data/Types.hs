@@ -501,7 +501,7 @@ instance Ord MixedAmountKey where
       pCostBasis (MixedAmountKeyCostBasisAndUnitCost  _ _ _ d l c q) = Just (c, q, d, l)
       pCostBasis (MixedAmountKeyCostBasisAndTotalCost _ _ d l c q)   = Just (c, q, d, l)
 
-data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
+data PostingRealness = RealPosting | VirtualPosting | BalancedVirtualPosting
   deriving (Eq,Show,Generic)
 
 type TagName = Text
@@ -570,13 +570,13 @@ data BalanceAssertion = BalanceAssertion {
     } deriving (Eq,Generic,Show)
 
 data Posting = Posting {
-      pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
-      pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
+      pdate             :: Maybe Day,               -- ^ this posting's date, if different from the transaction's
+      pdate2            :: Maybe Day,               -- ^ this posting's secondary date, if different from the transaction's
       pstatus           :: Status,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
-      pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
-      ptype             :: PostingType,
+      pcomment          :: Text,                    -- ^ this posting's comment lines, as a single non-indented multi-line string
+      preal             :: PostingRealness,         -- ^ is this a normal balanced posting, or a virtual/unbalanced one ?
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the posting comment 
                                                     --   and (after finalisation) the posting account's directive if any
       pbalanceassertion :: Maybe BalanceAssertion,  -- ^ an expected balance in the account after this posting,
@@ -604,7 +604,7 @@ instance Show Posting where
     ,"paccount="          ++ show paccount
     ,"pamount="           ++ show pamount
     ,"pcomment="          ++ show pcomment
-    ,"ptype="             ++ show ptype
+    ,"preal="             ++ show preal
     ,"ptags="             ++ show ptags
     ,"pbalanceassertion=" ++ show pbalanceassertion
     ,"ptransaction="      ++ show (ptransaction $> "txn")
@@ -905,7 +905,7 @@ instance NFData MixedAmountKey
 instance NFData Rounding
 instance NFData PayeeDeclarationInfo
 instance NFData PeriodicTransaction
-instance NFData PostingType
+instance NFData PostingRealness
 instance NFData PriceDirective
 instance NFData Side
 instance NFData Status

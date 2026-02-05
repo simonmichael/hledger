@@ -262,7 +262,7 @@ entryFromTimeclockInOut requiretimeordered i o
           "%s%s:\nThis clockout is earlier than the clockin."
           (makeTimeClockErrorExcerpt i "")
           (makeTimeClockErrorExcerpt o "")
-      ps = [posting{paccount=acctname, pamount=amt, ptype=VirtualPosting, ptransaction=Just t}]
+      ps = [posting{paccount=acctname, pamount=amt, preal=VirtualPosting, ptransaction=Just t}]
 
 
 -- tests
