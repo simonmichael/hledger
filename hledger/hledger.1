@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "December 2025" "hledger-1.51.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "February 2026" "hledger-1.51.99 " "hledger User Manuals"
 
 
 
@@ -755,9 +755,9 @@ replacement string to reference capturing groups in the search regexp.
 Otherwise, if you write \f[CR]\[rs]1\f[R], it will match the digit
 \f[CR]1\f[R].
 .IP "6." 3
-they do not support mode modifiers (\f[CR](?s)\f[R]), character classes
-(\f[CR]\[rs]w\f[R], \f[CR]\[rs]d\f[R]), or anything else not mentioned
-above.
+they do not support lazy quantifiers (\f[CR]*?\f[R]), mode modifiers
+(\f[CR](?s)\f[R]), character classes (\f[CR]\[rs]w\f[R],
+\f[CR]\[rs]d\f[R]), or anything else not mentioned above.
 .IP "7." 3
 they may not (I\[aq]m guessing not) properly support right\-to\-left or
 bidirectional text.
@@ -1169,15 +1169,21 @@ If you see junk characters, you might need to configure your pager to
 handle ANSI codes.
 Or you could disable colour as described above.
 .PP
-If you are using the \f[CR]less\f[R] pager, hledger automatically
-appends a number of options to the \f[CR]LESS\f[R] variable to enable
-ANSI colour and a number of other conveniences.
-(At the time of writing: \-\-chop\-long\-lines \-\-hilite\-unread
-\-\-ignore\-case \-\-no\-init \-\-quit\-at\-eof
-\-\-quit\-if\-one\-screen \-\-RAW\-CONTROL\-CHARS \-\-shift=8
-\-\-squeeze\-blank\-lines \-\-use\-backslash ).
-If these don\[aq]t work well, you can set your preferred options in the
-\f[CR]HLEDGER_LESS\f[R] variable, which will be used instead.
+If you are using the \f[CR]less\f[R] pager, hledger tries to provide a
+consistently pleasant experience by running it with some extra options
+added to your \f[CR]LESS\f[R] environment variable:
+.PP
+\-\-chop\-long\-lines \-\-hilite\-unread \-\-ignore\-case \-\-no\-init
+\-\-quit\-if\-one\-screen \-\-shift=8 \-\-squeeze\-blank\-lines
+\-\-use\-backslash
+.PP
+and when colour output is enabled:
+.PP
+\-\-RAW\-CONTROL\-CHARS
+.PP
+You can prevent this by setting your preferred options in the
+\f[CR]HLEDGER_LESS\f[R] variable, which will be used instead of
+\f[CR]LESS\f[R].
 .SS HTML output
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
@@ -2066,71 +2072,190 @@ displays them in output.
 This is explained in Commodity display style below.
 .PP
 .SS Costs
-After a posting amount, you can note its cost (when buying) or selling
-price (when selling) in another commodity, by writing either
-\f[CR]\[at] UNITPRICE\f[R] or \f[CR]\[at]\[at] TOTALPRICE\f[R] after it.
-This indicates a conversion transaction, where one commodity is
-exchanged for another.
-.PP
-(You might also see this called \[dq]transaction price\[dq] in hledger
-docs, discussions, or code; that term was directionally neutral and
-reminded that it is a price specific to a transaction, but we now just
-call it \[dq]cost\[dq], with the understanding that the transaction
-could be a purchase or a sale.)
-.PP
-Costs are usually written explicitly with \f[CR]\[at]\f[R] or
-\f[CR]\[at]\[at]\f[R], but can also be inferred automatically for simple
-multi\-commodity transactions.
-Note, if costs are inferred, the order of postings is significant; the
-first posting will have a cost attached, in the commodity of the second.
-.PP
-As an example, here are several ways to record purchases of a foreign
-currency in hledger, using the cost notation either explicitly or
-implicitly:
-.IP "1." 3
-Write the price per unit, as \f[CR]\[at] UNITPRICE\f[R] after the
-amount:
-.RS 4
+In traditional double entry bookkeeping, to record a transaction where
+one commodity is exchanged for another, you add extra equity postings to
+balance the two commodities.
+Eg:
 .IP
 .EX
-2009/1/1
-  assets:euros     €100 \[at] $1.35  ; one hundred euros purchased at $1.35 each
-  assets:dollars                 ; balancing amount is \-$135.00
+2026\-01\-01 buy euros
+  assets:dollars     $\-123
+  equity:conversion   $123
+  equity:conversion  €\-100
+  assets:euros        €100
 .EE
-.RE
-.IP "2." 3
-Write the total price, as \f[CR]\[at]\[at] TOTALPRICE\f[R] after the
-amount:
-.RS 4
+.PP
+hledger offers a more convenient \[at]/\[at]\[at] \[dq]cost
+notation\[dq] as an alternative: instead of equity postings, you can
+write the \[dq]conversion rate\[dq] or \[dq]transacted price\[dq] after
+a posting amount.
+hledger docs generically call this \[dq]cost\[dq], whether buying or
+selling.
+It can be written as either \f[CR]\[at] UNITPRICE\f[R] or
+\f[CR]\[at]\[at] TOTALPRICE\f[R].
+Eg you could write the above as:
 .IP
 .EX
-2009/1/1
-  assets:euros     €100 \[at]\[at] $135  ; one hundred euros purchased at $135 for the lot
-  assets:dollars
+2026\-01\-01 buy euros
+  assets:dollars     $\-123
+  assets:euros        €100 \[at] $1.23    ; unit cost (exchange rate)
 .EE
-.RE
-.IP "3." 3
-Specify amounts for all postings, using exactly two commodities, and let
-hledger infer the price that balances the transaction.
-Note the effect of posting order: the price is added to first posting,
-making it \f[CR]€100 \[at]\[at] $135\f[R], as in example 2:
-.RS 4
+.PP
+or:
 .IP
 .EX
-2009/1/1
-  assets:euros     €100          ; one hundred euros purchased
-  assets:dollars  $\-135          ; for $135
+2026\-01\-01 buy euros
+  assets:dollars     $\-123
+  assets:euros        €100 \[at]\[at] $123    ; total cost
 .EE
-.RE
 .PP
-Amounts can be converted to cost at report time using the
-\f[CR]\-B/\-\-cost\f[R] flag; this is discussed more in the Cost
-reporting section.
-.PP
-Note that the cost normally should be a positive amount, though it\[aq]s
-not required to be.
-This can be a little confusing, see discussion at
+The cost should normally be a positive amount.
+Negative costs are supported, but can be confusing, as discussed at
 \-\-infer\-market\-prices: market prices from transactions.
+.PP
+Costs participate in transaction balancing.
+Amounts are converted to their cost before checking if the transaction
+is balanced.
+You could also write the above less redundantly, like so:
+.IP
+.EX
+2026\-01\-01 buy euros
+  assets:dollars                      ; $\-123 is inferred
+  assets:euros        €100 \[at] $1.23
+.EE
+.PP
+or:
+.IP
+.EX
+2026\-01\-01 buy euros
+  assets:dollars                      ; $\-123 is inferred
+  assets:euros        €100 \[at]\[at] $123
+.EE
+.PP
+or even:
+.IP
+.EX
+2026\-01\-01 buy euros
+  assets:euros        €100            ;  \[at]\[at] $123 is inferred
+  assets:dollars     $\-123
+.EE
+.PP
+This last form works for transactions involving exactly two commodities,
+with neither cost notation nor equity postings.
+Note, the order of postings is significant: the cost will be attached to
+the first (top) posting.
+So we had to switch the order of postings, to get the same meaning as
+above.
+Also, this form is the easiest to make undetected errors with; so it is
+rejected by \f[CR]hledger check balanced\f[R], and by strict mode.
+.PP
+Advantages of cost notation:
+.IP "1." 3
+it\[aq]s more compact and easier to read and write
+.IP "2." 3
+hledger reports can show such amounts converted to their cost, when you
+add the \f[CR]\-B/\-\-cost\f[R] flag (see Cost reporting).
+.PP
+Advantages of equity postings
+.IP "1." 3
+they help to keep the accounting equation balanced (if you care about
+that)
+.IP "2." 3
+they translate easily to any other double entry accounting system.
+.PP
+Most hledger users use cost notation and don\[aq]t use equity postings.
+.PP
+But you can always convert cost notation to equity postings by adding
+\f[CR]\-\-infer\-equity\f[R].
+Eg try \f[CR]hledger print \-x \-\-infer\-equity\f[R].
+.PP
+And you can usually convert equity postings to cost notation by adding
+\f[CR]\-\-infer\-costs\f[R] (see Requirements for detecting equity
+conversion postings).
+Eg try \f[CR]hledger print \-x \-\-infer\-costs\f[R].
+.PP
+Finally: using both equity postings and cost notation at the same time
+is allowed, as long as the journal entry is well formed such that the
+equity postings / cost equivalences can be detected.
+(Otherwise you\[aq]ll get an error message saying that the transaction
+is unbalanced.):
+.IP
+.EX
+2026\-01\-01 buy euros
+  assets:dollars     $\-123
+  equity:conversion   $123
+  equity:conversion  €\-100
+  assets:euros        €100 \[at] $1.23
+.EE
+.PP
+So in principle you could enable both \f[CR]\-\-infer\-equity\f[R] and
+\f[CR]\-\-infer\-costs\f[R] in your config file, and your reports would
+have the advantages of both.
+.SS Cost basis / Lot syntax
+If you are buying some commodity to hold as an investment, it may be
+important to keep track of its \f[I]cost basis\f[R].
+By that we mean:
+.IP "1." 3
+its original acquisition cost
+.IP "2." 3
+its original acquisition date
+.IP "3." 3
+and a sequence number or label, if needed, to disambiguate multiple
+acquisitions on the same day, or to serve as a mnemonic for easy
+reference.
+.PP
+In hledger we call these three the \[dq]cost basis\[dq]; and if an
+amount being acquired has a cost basis, we call it a \[dq]lot\[dq].
+Tax authorities often require that lots are tracked carefully and
+disposed of (sold) in a certain order.
+.PP
+Note, though \[dq]cost basis\[dq] sounds similar to the \[dq]cost\[dq]
+(transacted price) discussed above, they are distinct concepts and need
+not be the same (eg when a lot is transferred from a previous owner or
+previous account).
+.PP
+So cost basis has its own syntax, also called \[dq]lot syntax\[dq].
+hledger\[aq]s lot syntax is like Ledger\[aq]s lot syntax: one or more of
+the following annotations, in any order, following the main amount:
+.IP \[bu] 2
+\f[CR]{LOTUNITCOST}\f[R] or \f[CR]{{LOTTOTALCOST}}\f[R]
+.IP \[bu] 2
+\f[CR][LOTDATE]\f[R]
+.IP \[bu] 2
+\f[CR](LOTLABEL)\f[R]
+.PP
+LOTLABEL can be used to attach a more memorable label to a lot.
+Also, when multiple acquisitions of the same commodity occur in one day,
+the label should be used to (a) uniquify and (b) order that day\[aq]s
+acquisitions, eg by putting a timestamp or sequence number in it.
+.PP
+This is experimental work in progress.
+Here\[aq]s what hledger currently does with cost basis / lots:
+.IP "1." 3
+Cost basis annotations are reproduced in \f[CR]print\f[R]\[aq]s
+\f[CR]txt\f[R], \f[CR]beancount\f[R], and \f[CR]json\f[R] output.
+This means you can use this syntax in your hledger journals (in some
+cases you might need to add an amountless extra posting to help
+transactions balance); then use the \f[CR]print\f[R] command to export
+to Beancount (or rustledger, or Ledger), so that you can use their lots
+reports.
+See the Export Lots workflow.
+.IP "2." 3
+Commodities can be declared as \[dq]lotful\[dq] by adding a
+\f[CR]lots\f[R] tag in their declaration.
+Amounts of lotful commodities are assumed to always have a cost basis.
+.IP "3." 3
+In postings involving a positive amount of a lotful commodity, if no
+cost basis is recorded, it is inferred from the transacted cost and
+added to the entry.
+So eg \f[CR]{$100}\f[R] will be added to \f[CR]1 AAPL \[at] $100\f[R].
+.IP "4." 3
+Lot postings (postings whose amount has a cost basis) are classified
+automatically, by a hidden \f[CR]ptype\f[R] tag (\[dq]posting type\[dq])
+whose value is \f[CR]acquire\f[R], \f[CR]dispose\f[R],
+\f[CR]transfer\-from\f[R], or \f[CR]transfer\-to\f[R].
+These tags can be queried (\f[CR]hledger reg tag:ptype=acquire\f[R]), or
+made visible with \f[CR]hledger print \-\-verbose\-tags tag:ptype\f[R].
 .SS Balance assertions
 hledger supports Ledger\-style balance assertions in journal files.
 These look like, for example, \f[CR]= EXPECTEDBALANCE\f[R] following a
@@ -2578,8 +2703,8 @@ The second group above (generated\-transaction, etc.)
 are normally hidden, with a \f[CR]_\f[R] prefix added.
 This means \f[CR]print\f[R] doesn\[aq]t show them by default; but you
 can still use them in queries.
-You can add the \f[CR]\-\-verbose\-tags\f[R] flag to make them visible,
-which can be useful for troubleshooting.
+You can add the \f[CR]\-\-verbose\-tags\f[R] flag to make them visible
+in \f[CR]print\f[R] output, which can be useful for troubleshooting.
 .SS Directives
 Besides transactions, there is something else you can put in a
 \f[CR]journal\f[R] file: directives.
@@ -2876,16 +3001,21 @@ account assets:bank:checking
 Text following \f[B]two or more spaces\f[R] and \f[CR];\f[R] at the end
 of an account directive line, and/or following \f[CR];\f[R] on indented
 lines immediately below it, form comments for that account.
-They are ignored except they may contain tags, which are not ignored.
 .PP
-The two\-space requirement for same\-line account comments is because
-\f[CR];\f[R] is allowed in account names.
+Same\-line account comments require two+ spaces before \f[CR];\f[R]
+because that character can appear in account names.
 .IP
 .EX
 account assets:bank:checking    ; same\-line comment, at least 2 spaces before the semicolon
   ; next\-line comment
   ; some tags \- type:A, acctnum:12345
 .EE
+.SS Account tags
+An account directive\[aq]s comment may contain tags.
+These will be propagated to all postings using that account, as hidden
+but queryable posting tags, except where the posting already a tag of
+the same name.
+(Posting tags override account tags.)
 .SS Account error checking
 By default, accounts need not be declared; they come into existence when
 a posting references them.
@@ -3010,29 +3140,36 @@ outflows
 T}
 .TE
 .PP
-hledger also uses a couple of subtypes:
+hledger also uses a few subtypes:
 .PP
 .TS
 tab(@);
-l l l.
+lw(23.3n) lw(23.3n) lw(23.3n).
 T{
 \f[CR]Cash\f[R]
 T}@T{
 \f[CR]C\f[R]
 T}@T{
-liquid assets
+liquid assets (subtype of Asset)
 T}
 T{
 \f[CR]Conversion\f[R]
 T}@T{
 \f[CR]V\f[R]
 T}@T{
-commodity conversions equity
+commodity conversions equity (subtype of Equity)
+T}
+T{
+\f[CR]Gain\f[R]
+T}@T{
+\f[CR]G\f[R]
+T}@T{
+capital gains/losses (subtype of Revenue)
 T}
 .TE
 .PP
-As a convenience, hledger will detect these types automatically from
-english account names.
+As a convenience, hledger will detect most of these types automatically
+from english account names.
 But it\[aq]s better to declare them explicitly by adding a
 \f[CR]type:\f[R] tag in the account directives.
 The tag\[aq]s value can be any of the types or one\-letter abbreviations
@@ -3052,6 +3189,8 @@ account assets:bank        ; type: C
 account assets:cash        ; type: C
 
 account equity:conversion  ; type: V
+
+account revenues:capital   ; type: G
 .EE
 .PP
 This enables the easy balancesheet, balancesheetequity, cashflow and
@@ -3366,7 +3505,7 @@ Commodity styles can be overridden by the
 (Related: #793)
 .SS Commodity directive syntax
 A commodity directive is normally the word \f[CR]commodity\f[R] followed
-by a sample amount (and optionally a comment).
+by a sample amount, and optionally a comment.
 Only the amount\[aq]s symbol and the number\[aq]s format is significant.
 Eg:
 .IP
@@ -3375,8 +3514,6 @@ commodity $1000.00
 commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no\-symbol commodity
 .EE
-.PP
-Commodities do not have tags (tags in the comment will be ignored).
 .PP
 A commodity directive\[aq]s sample amount must always include a period
 or comma decimal mark (this rule helps disambiguate decimal marks and
@@ -3418,6 +3555,12 @@ commodity INR
   format INR 1,00,00,000.00
   an unsupported subdirective  ; ignored by hledger
 .EE
+.SS Commodity tags
+A commodity directive\[aq]s comment may contain tags.
+These will be propagated to all postings using that commodity in their
+main amount, as hidden but queryable posting tags, except where the
+posting already a tag of the same name.
+(Posting tags override account tags override commodity tags.)
 .SS Commodity error checking
 In strict mode (\f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R]) (or when you run
 \f[CR]hledger check commodities\f[R]), hledger will report an error if
@@ -4125,26 +4268,31 @@ value       EXPR
 .PP
 See also https://hledger.org/ledger.html for a detailed hledger/Ledger
 syntax comparison.
-.SS Other cost/lot notations
-A slight digression for Ledger and Beancount users.
+.SS Ledger virtual costs
+In Ledger, \f[CR](\[at]) UNITCOST\f[R] and
+\f[CR](\[at]\[at]) TOTALCOST\f[R] are virtual costs, which do not
+generate market prices.
+In hledger, these are equivalent to \f[CR]\[at]\f[R] and
+\f[CR]\[at]\[at]\f[R].
+.SS Ledger lot syntax
+In Ledger, these optional annotations after an amount help specify the
+cost basis of a newly acquired lot, or select existing lot(s) to dispose
+of:
+.IP \[bu] 2
+\f[CR]{LOTUNITCOST}\f[R] and \f[CR]{{LOTTOTALCOST}}\f[R] (lot price)
+.IP \[bu] 2
+\f[CR][LOTDATE]\f[R] (lot date)
+.IP \[bu] 2
+\f[CR](LOTNOTE)\f[R] (lot note)
 .PP
-\f[B]Ledger\f[R] has a number of cost/lot\-related notations:
-.IP \[bu] 2
-\f[CR]\[at] UNITCOST\f[R] and \f[CR]\[at]\[at] TOTALCOST\f[R]
-.RS 2
-.IP \[bu] 2
-expresses a conversion rate, as in hledger
-.IP \[bu] 2
-when buying, also creates a lot that can be selected at selling time
-.RE
-.IP \[bu] 2
-\f[CR](\[at]) UNITCOST\f[R] and \f[CR](\[at]\[at]) TOTALCOST\f[R]
-(virtual cost)
-.RS 2
-.IP \[bu] 2
-like the above, but also means \[dq]this cost was exceptional, don\[aq]t
-use it when inferring market prices\[dq].
-.RE
+hledger does not yet calculate lots itself, but it accepts these
+annotations and will show them in \f[CR]print\f[R]\[aq]s \f[CR]txt\f[R],
+\f[CR]beancount\f[R], and \f[CR]json\f[R] output formats.
+This means you can use this syntax in your hledger journals (with an
+amountless extra posting to help transactions balance, when needed), and
+use the \f[CR]print\f[R] command to export to Ledger or Beancount when
+you want to calculate lots and capital gains.
+.SS Ledger fixed lot costs
 .IP \[bu] 2
 \f[CR]{=UNITCOST}\f[R] and \f[CR]{{=TOTALCOST}}\f[R] (fixed price)
 .RS 2
@@ -4152,45 +4300,9 @@ use it when inferring market prices\[dq].
 when buying, means \[dq]this cost is also the fixed value, don\[aq]t let
 it fluctuate in value reports\[dq]
 .RE
-.IP \[bu] 2
-\f[CR]{UNITCOST}\f[R] and \f[CR]{{TOTALCOST}}\f[R] (lot price)
-.RS 2
-.IP \[bu] 2
-can be used identically to \f[CR]\[at] UNITCOST\f[R] and
-\f[CR]\[at]\[at] TOTALCOST\f[R], also creates a lot
-.IP \[bu] 2
-when selling, combined with \f[CR]\[at] ...\f[R], selects an existing
-lot by its cost basis.
-Does not check if that lot is present.
-.RE
-.IP \[bu] 2
-\f[CR][YYYY/MM/DD]\f[R] (lot date)
-.RS 2
-.IP \[bu] 2
-when buying, attaches this acquisition date to the lot
-.IP \[bu] 2
-when selling, selects a lot by its acquisition date
-.RE
-.IP \[bu] 2
-\f[CR](SOME TEXT)\f[R] (lot note)
-.RS 2
-.IP \[bu] 2
-when buying, attaches this note to the lot
-.IP \[bu] 2
-when selling, selects a lot by its note
-.RE
 .PP
-Currently, hledger
-.IP \[bu] 2
-accepts any or all of the above in any order after the posting amount
-.IP \[bu] 2
-supports \f[CR]\[at]\f[R] and \f[CR]\[at]\[at]\f[R]
-.IP \[bu] 2
-treats \f[CR](\[at])\f[R] and \f[CR](\[at]\[at])\f[R] as synonyms for
-\f[CR]\[at]\f[R] and \f[CR]\[at]\[at]\f[R]
-.IP \[bu] 2
-and ignores the rest.
-(This can break transaction balancing.)
+Probably equivalent to \f[CR]\[at]\f[R]/\f[CR]\[at]\[at]\f[R], I\[aq]m
+not sure.
 .PP
 \f[B]Beancount\f[R] has simpler notation and different behaviour:
 .IP \[bu] 2
@@ -6555,6 +6667,14 @@ October 1st in current year
 \f[CR]last/this/next day/week/month/quarter/year\f[R]
 \-1, 0, 1 periods from the current period
 .TP
+\f[CR]last/this/next tuesday\f[R]
+the previous occurrence of the named day, or the next occurrence after
+today
+.TP
+\f[CR]last/this/next february\f[R]
+the previous occurrence of 1st of the named month, or the next
+occurrence after the current month
+.TP
 \f[CR]in n days/weeks/months/quarters/years\f[R]
 n periods from the current period
 .TP
@@ -7190,13 +7310,19 @@ Match transaction descriptions.
 .PD
 Match dates (or with the \f[CR]\-\-date2\f[R] flag, secondary dates)
 within the specified period.
-PERIODEXPR is a period expression with no report interval.
+PERIODEXPR is a period expression.
 Examples:
 .PD 0
 .P
 .PD
 \f[CR]date:2016\f[R], \f[CR]date:thismonth\f[R],
 \f[CR]date:2/1\-2/15\f[R], \f[CR]date:2021\-07\-27..nextquarter\f[R].
+.PP
+PERIODEXPR may include a report interval (since 1.52).
+On the command line, this is equivalent to specifying a report interval
+with a command line option.
+In other contexts (hledger\-ui, hledger\-web), the report interval may
+be ignored.
 .SS date2: query
 \f[B]\f[CB]date2:PERIODEXPR\f[B]\f[R]
 .PD 0
@@ -7205,6 +7331,7 @@ Examples:
 If you use secondary dates: this matches secondary dates within the
 specified period.
 It is not affected by the \f[CR]\-\-date2\f[R] flag.
+A report interval in PERIODEXPR will be ignored.
 .SS depth: query
 \f[B]\f[CB]depth:[REGEXP=]N\f[B]\f[R]
 .PD 0
@@ -7247,9 +7374,10 @@ Match unmarked, pending, or cleared transactions respectively.
 .PD
 Match by account type (see Declaring accounts > Account types).
 \f[CR]TYPECODES\f[R] is one or more of the single\-letter account type
-codes \f[CR]ALERXCV\f[R], case insensitive.
-Note \f[CR]type:A\f[R] and \f[CR]type:E\f[R] will also match their
-respective subtypes \f[CR]C\f[R] (Cash) and \f[CR]V\f[R] (Conversion).
+codes \f[CR]ALERXCVG\f[R], case insensitive.
+Note \f[CR]type:A\f[R], \f[CR]type:E\f[R], and \f[CR]type:R\f[R] will
+also match their respective subtypes \f[CR]C\f[R] (Cash), \f[CR]V\f[R]
+(Conversion), and \f[CR]G\f[R] (Gain).
 Certain kinds of account alias can disrupt account types, see Rewriting
 accounts > Aliases and account types.
 .SS tag: query
@@ -8053,6 +8181,8 @@ account with the \f[CR]V\f[R]/\f[CR]Conversion\f[R] account type.
 Note you will need to add account declarations for these to your
 journal, if you use \f[CR]check accounts\f[R] or
 \f[CR]check \-\-strict\f[R].
+(And unlike normal postings, generated equity postings do not inherit
+tags from account declarations.)
 .SS Combining costs and equity conversion postings
 Finally, you can use both the \[at]/\[at]\[at] cost notation and equity
 postings at the same time.
@@ -9342,6 +9472,12 @@ in the journal.
 .IP \[bu] 2
 \f[CR]add\f[R] creates entries in journal format; it won\[aq]t work with
 timeclock or timedot files.
+.IP \[bu] 2
+There is a known issue on Windows if this hledger version is built from
+stackage: the prompts will show ANSI junk instead of colours (#2410).
+You can avoid this by using official hledger release binaries or by
+building it with haskeline >=0.8.4; or by running \f[CR]add\f[R] with
+\f[CR]\-\-color=no\f[R], perhaps configured in your config file.
 .PP
 Examples:
 .IP \[bu] 2
@@ -9790,8 +9926,8 @@ but not declared, or declared but not used, or just the first one
 matched by a pattern (with \f[CR]\-\-find\f[R], returning a non\-zero
 exit code if it fails).
 .PP
-You can add \f[CR]cur:\f[R] query arguments to further limit the
-commodities.
+You can add query arguments to further limit the commodities; at least
+\f[CR]cur:\f[R] and \f[CR]tag:\f[R] are supported.
 .SS descriptions
 List the unique descriptions used in transactions.
 .IP
@@ -10376,6 +10512,7 @@ Flags:
                             description closest to DESC
   \-r \-\-related              show postings\[aq] siblings instead
      \-\-invert               display all amounts with reversed sign
+     \-\-drop=N               omit N leading account name parts
      \-\-sort=FIELDS          sort by: date, desc, account, amount, absamount,
                             or a comma\-separated combination of these. For a
                             descending sort, prefix with \-. (Default: date)
@@ -10432,6 +10569,9 @@ $ hledger register checking \-b 2008/6 \-\-historical
 .PP
 The \f[CR]\-\-depth\f[R] option limits the amount of sub\-account detail
 displayed.
+.PP
+The \f[CR]\-\-drop\f[R] option will trim leading segments from account
+names.
 .PP
 The \f[CR]\-\-average\f[R]/\f[CR]\-A\f[R] flag shows the running average
 posting amount instead of the running total (so, the final number
@@ -10509,6 +10649,16 @@ will be adjusted outward if necessary to contain a whole number of
 intervals.
 This ensures that the first and last intervals are full length and
 comparable to the others in the report.
+.PP
+If you have a deeply nested account tree some reports might benefit from
+trimming leading segments from the account names using
+\f[CR]\-\-drop\f[R].
+.IP
+.EX
+$ hledger register \-\-monthly income \-\-drop 1
+2008/01                 salary                                 $\-1          $\-1
+2008/06                 gifts                                  $\-1          $\-2
+.EE
 .PP
 With \f[CR]\-m DESC\f[R]/\f[CR]\-\-match=DESC\f[R], register does a
 fuzzy search for one recent posting whose description is most similar to
@@ -13145,7 +13295,7 @@ It depends on your shell, but running these commands in the terminal
 will work for many people; adapt if needed:
 .IP
 .EX
-$ echo \[aq]export LEDGER_FILE=\[ti]/finance/my.journal\[aq] >> \[ti]/.profile
+$ echo \[aq]export LEDGER_FILE=\[ti]/finance/main.journal\[aq] >> \[ti]/.profile
 $ source \[ti]/.profile
 .EE
 .PP
@@ -13164,7 +13314,7 @@ Add an entry to \f[CR]\[ti]/.MacOSX/environment.plist\f[R] like
 .IP
 .EX
 {
-  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/my.journal\[dq]
+  \[dq]LEDGER_FILE\[dq] : \[dq]\[ti]/finance/main.journal\[dq]
 }
 .EE
 .RE
@@ -13177,7 +13327,12 @@ When correctly configured for GUI applications:
 apps started from the dock or a spotlight search, such as a GUI Emacs,
 will be aware of the new LEDGER_FILE setting.
 .SS Set LEDGER_FILE on Windows
-Using the gui is easiest:
+It can be easier to create a default file at
+\f[CR]C:\[rs]Users\[rs]USER\[rs].hledger.journal\f[R], and have it
+include your other files.
+See I\[aq]m on Windows, how do I keep my files in AppData?
+.PP
+Otherwise: using the gui is easiest:
 .IP "1." 3
 In task bar, search for \f[CR]environment variables\f[R], and choose
 \[dq]Edit environment variables for your account\[dq].
@@ -13185,7 +13340,7 @@ In task bar, search for \f[CR]environment variables\f[R], and choose
 Create or change a \f[CR]LEDGER_FILE\f[R] setting in the User variables
 pane.
 A typical value would be
-\f[CR]C:\[rs]Users\[rs]USERNAME\[rs]finance\[rs]my.journal\f[R].
+\f[CR]C:\[rs]Users\[rs]USER\[rs]finance\[rs]main.journal\f[R].
 .IP "3." 3
 Click OK to complete the change.
 .IP "4." 3
@@ -13195,7 +13350,7 @@ And open a new powershell window.
 Or at the command line, you can do it this way:
 .IP "1." 3
 In a powershell window, run
-\f[CR][Environment]::SetEnvironmentVariable(\[dq]LEDGER_FILE\[dq], \[dq]C:\[rs]User\[rs]USERNAME\[rs]finance\[rs]my.journal\[dq], [System.EnvironmentVariableTarget]::User)\f[R]
+\f[CR][Environment]::SetEnvironmentVariable(\[dq]LEDGER_FILE\[dq], \[dq]C:\[rs]User\[rs]USER\[rs]finance\[rs]main.journal\[dq], [System.EnvironmentVariableTarget]::User)\f[R]
 .IP "2." 3
 And open a new powershell window.
 (Existing windows won\[aq]t see the change.)
