@@ -1397,6 +1397,10 @@ schedule *PERIOD:
 time *ARGS:
     hledger -n -f $TIMEDIR/time-all.journal bal hledger -YTA --transpose -0 {{ ARGS }}
 
+# open google search console report for hledger.org
+@google-search-console:
+    $OPEN 'https://search.google.com/search-console/performance/search-analytics?resource_id=sc-domain%3Ahledger.org&breakdown=page&metrics=CLICKS&hl=en&time_granularity=MONTH&num_of_months=16'
+
 # *** hledger version number helpers
 # (as hidden recipes, since just doesn't support global custom functions)
 # See doc/RELEASING.md > Glossary.
