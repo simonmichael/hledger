@@ -363,7 +363,7 @@ postingToSpreadsheet fmt baseUrl query p =
       Spr.cellFromAmount fmt
         (Spr.Class "amount", (wbToText $ showAmountB machineFmt amt, amt))
     status = T.pack . show $ pstatus p
-    account = showAccountName Nothing (ptype p) (paccount p)
+    account = showAccountName Nothing (preal p) (paccount p)
     comment = T.strip $ pcomment p
 
 addLocationTag :: Transaction -> Transaction

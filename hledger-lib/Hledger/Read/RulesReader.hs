@@ -1459,7 +1459,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
                              ,pbalanceassertion = mkBalanceAssertion rules record <$> mbalance
                              ,pcomment          = cmt
                              ,ptags             = tags
-                             ,ptype             = accountNamePostingType acct
+                             ,preal             = accountNamePostingType acct
                              }
          ]
 
