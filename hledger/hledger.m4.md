@@ -2604,7 +2604,8 @@ Commodity styles can be [overridden](#commodity-styles) by the `-c/--commodity-s
 ### Commodity directive syntax
 
 A commodity directive is normally the word `commodity`
-followed by a sample [amount](#amounts) (and optionally a comment).
+followed by a sample [amount](#amounts),
+and optionally a comment.
 Only the amount's symbol and the number's format is significant.
 Eg:
 
@@ -2613,8 +2614,6 @@ commodity $1000.00
 commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 ```
-
-Commodities do not have tags (tags in the comment will be ignored).
 
 A commodity directive's sample amount must always include a period or comma decimal mark
 (this rule helps disambiguate decimal marks and digit group marks).
@@ -2651,6 +2650,13 @@ commodity INR
   format INR 1,00,00,000.00
   an unsupported subdirective  ; ignored by hledger
 ```
+
+### Commodity tags
+
+A commodity directive's comment may contain [tags](#tags).
+These will be propagated to all postings using that commodity in their main amount, as hidden but queryable posting tags,
+except where the posting already a tag of the same name.
+(Posting tags override account tags override commodity tags.)
 
 ### Commodity error checking
 

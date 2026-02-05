@@ -78,6 +78,7 @@ module Hledger.Data.Posting (
   postingToCost,
   postingAddInferredEquityPostings,
   postingPriceDirectivesFromCost,
+  postingCommodities,
   tests_Posting
 )
 where
@@ -428,6 +429,11 @@ postingStatus :: Posting -> Status
 postingStatus Posting{pstatus=s, ptransaction=mt} = case s of
     Unmarked -> maybe Unmarked tstatus mt
     _ -> s
+
+-- | Get the commodity symbols used in a posting's amounts (not including costs).
+postingCommodities :: Posting -> [CommoditySymbol]
+postingCommodities = map acommodity . filter (not . isMissingAmount) . amountsRaw . pamount
+  where isMissingAmount a = acommodity a == "AUTO"
 
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]

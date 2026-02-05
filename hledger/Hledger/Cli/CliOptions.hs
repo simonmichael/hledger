@@ -638,9 +638,10 @@ rawOptsToCliOpts rawopts = do
               where err = error' $ "Unable to parse date \"" ++ d ++ "\""
     command = stringopt "command" rawopts
     moutputformat = maybestringopt "output-format" rawopts
-    postingaccttags = not $ command == "print" && moutputformat == Just "beancount"
+    -- if printing beancount format, don't propagate account and commodity tags to postings
+    autopostingtags = not $ command == "print" && moutputformat == Just "beancount"
   usecolor <- useColorOnStdout
-  let iopts = rawOptsToInputOpts day usecolor postingaccttags rawopts
+  let iopts = rawOptsToInputOpts day usecolor autopostingtags rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mtermwidth <- getTerminalWidth
   let availablewidth = fromMaybe defaultWidth mtermwidth
