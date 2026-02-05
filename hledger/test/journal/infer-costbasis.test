@@ -1,0 +1,96 @@
+# * Infer cost basis ({}) from transacted cost (@), for commodities with lots: tag.
+# Spec:
+# infer cost basis from transacted cost when acquiring:
+#  when a posting involving a positive amount of a commodity with the lots: tag
+#   has a transacted cost annotation but no cost basis annotation,
+#    infer its cost basis from the transacted cost and date.
+
+# ** 1. Cost basis is inferred from transacted cost when commodity has lots: tag and amount is positive.
+<
+commodity AAPL   ; lots:
+
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100 {$100}
+    assets:cash
+
+>=
+    
+# ** 2. Cost basis is not inferred without lots: tag.
+<
+commodity AAPL
+
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100
+    assets:cash
+
+>=
+
+# ** 3. Cost basis is not inferred for negative amounts (dispose postings).
+<
+commodity AAPL   ; lots:
+
+2024-01-01 sell stock
+    assets:brokerage    -10 AAPL @ $150
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 sell stock
+    assets:brokerage    -10 AAPL @ $150
+    assets:cash
+
+>=
+
+# ** 4. Cost basis is not inferred when it has been explicitly recorded.
+<
+commodity AAPL   ; lots:
+
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL {$95} @ $100
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @ $100 {$95}
+    assets:cash
+
+>=
+
+# ** 5. Cost basis is always per-unit, even if inferred from a total cost (@@).
+<
+commodity AAPL   ; lots:
+
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @@ $1000
+    assets:cash
+
+$ hledger -f - print
+2024-01-01 buy stock
+    assets:brokerage    10 AAPL @@ $1000 {$100}
+    assets:cash
+
+>=
+
+# # ** 0. Posting date is used for inferred cost basis date
+# <
+# commodity AAPL   ; lots:
+
+# 2024-03-15 buy stock
+#     assets:brokerage    10 AAPL @ $100  ; date:3/16
+#     assets:cash
+
+# $ hledger -f - print
+# 2024-03-15 buy stock
+#     assets:brokerage    10 AAPL @ $100 {$100} [2024-03-16]  ; date:3/16
+#     assets:cash
+
+# >=
