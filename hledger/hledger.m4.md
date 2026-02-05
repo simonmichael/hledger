@@ -2212,15 +2212,21 @@ account assets:bank:checking
 
 Text following **two or more spaces** and `;` at the end of an account directive line,
 and/or following `;` on indented lines immediately below it, form comments for that account.
-They are ignored except they may contain [tags](#tags), which are not ignored.
 
-The two-space requirement for same-line account comments is because `;` is allowed in account names.
+Same-line account comments require two+ spaces before `;` because that character can appear in account names.
 
 ```journal
 account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
   ; next-line comment
   ; some tags - type:A, acctnum:12345
 ```
+
+### Account tags
+
+An account directive's comment may contain [tags](#tags).
+These will be propagated to all postings using that account, as hidden but queryable posting tags,
+except where the posting already a tag of the same name.
+(Posting tags override account tags.)
 
 ### Account error checking
 
