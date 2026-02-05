@@ -395,6 +395,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
       <&> journalAddForecast verbose_tags_ (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> (if auto_posting_tags_ then journalPostingsAddAccountTags else id)     -- Maybe propagate account tags to postings
+      <&> journalClassifyLotPostings verbose_tags_                                  -- Classify lot postings (acquire/dispose/transfer)
       >>= journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ False   -- Tag equity conversion postings and redundant costs, to help journalBalanceTransactions ignore them.
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
