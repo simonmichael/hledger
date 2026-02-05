@@ -212,46 +212,37 @@ $ hledger -f- bal assets:broker
 
 # ** 5. Simple acquire - positive amount to Asset account with cost basis gets ptype:acquire tag
 <
-account assets:broker
-account assets:cash
-
 2026-01-01 Buy stock
     assets:broker     10 AAPL {$100}
     assets:cash      -$1000
 
-$ hledger -f- print -x --verbose-tags
+$ hledger -f- print --verbose-tags
 2026-01-01 Buy stock
-    assets:broker    10 AAPL @@ $1000 {$100}  ; ptype: acquire
-    assets:cash                       $-1000
+    assets:broker    10 AAPL {$100}  ; ptype: acquire
+    assets:cash              $-1000
 
 >=
 
 # ** 6. Simple dispose - negative amount to Asset account with cost basis gets ptype:dispose tag
 <
-account assets:broker
-account assets:cash
-
 2026-01-02 Sell stock
     assets:broker    -5 AAPL {$100}
     assets:cash       $500
 
-$ hledger -f- print -x --verbose-tags
+$ hledger -f- print --verbose-tags
 2026-01-02 Sell stock
-    assets:broker    -5 AAPL @@ $500 {$100}  ; ptype: dispose
-    assets:cash                        $500
+    assets:broker    -5 AAPL {$100}  ; ptype: dispose
+    assets:cash                $500
 
 >=
 
 # ** 7. Transfer between Asset accounts gets ptype:transfer-from and ptype:transfer-to tags
 <
-account assets:broker1
-account assets:broker2
-
 2026-01-03 Transfer
     assets:broker1   -10 AAPL {$100}
     assets:broker2    10 AAPL {$100}
 
-$ hledger -f- print -x --verbose-tags
+$ hledger -f- print --verbose-tags
 2026-01-03 Transfer
     assets:broker1    -10 AAPL {$100}  ; ptype: transfer-from
     assets:broker2     10 AAPL {$100}  ; ptype: transfer-to
@@ -260,14 +251,11 @@ $ hledger -f- print -x --verbose-tags
 
 # ** 8. No cost basis (@ instead of {}) - should not be classified
 <
-account assets:broker
-account assets:cash
-
 2026-01-04 Buy with @
     assets:broker     10 AAPL @ $100
     assets:cash      -$1000
 
-$ hledger -f- print -x
+$ hledger -f- print
 2026-01-04 Buy with @
     assets:broker    10 AAPL @ $100
     assets:cash              $-1000
@@ -276,17 +264,14 @@ $ hledger -f- print -x
 
 # ** 9. Non-Asset account - should not be classified even with cost basis
 <
-account equity:conversion
-account assets:cash
-
 2026-01-05 Equity
     equity:conversion   10 AAPL {$100}
     assets:cash        -$1000
 
-$ hledger -f- print -x
+$ hledger -f- print
 2026-01-05 Equity
-    equity:conversion    10 AAPL @@ $1000 {$100}
-    assets:cash                           $-1000
+    equity:conversion    10 AAPL {$100}
+    assets:cash                  $-1000
 
 >=
 
