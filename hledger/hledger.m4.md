@@ -1748,15 +1748,23 @@ Also, when multiple acquisitions of the same commodity occur in one day,
 the label should be used to (a) uniquify and (b) order that day's acquisitions,
 eg by putting a timestamp or sequence number in it.
 
-Currently hledger only does a little with this lot syntax:
+This is experimental work in progress. Here's what hledger currently does with cost basis / lots:
 
-1. It reproduces it in `print`'s `txt`, `beancount`, and `json` output.
-This means you can use this syntax in your hledger journals (perhaps adding an amountless extra posting to help transactions balance, if needed);
-then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports.
-See the [Export Lots workflow](workflows.md#more-advanced-workflows).
+1. Cost basis annotations are reproduced in `print`'s `txt`, `beancount`, and `json` output.
+   This means you can use this syntax in your hledger journals (in some cases you might need to add an amountless extra posting to help transactions balance);
+   then use the `print` command to export to Beancount (or rustledger, or Ledger), so that you can use their lots reports.
+   See the [Export Lots workflow](workflows.md#more-advanced-workflows).
 
-2. It classifies postings using lot syntax, with a hidden `_ptype` tag whose value is one of:
-`acquire`, `dispose`, `transfer-from`, `transfer-to`. Or with `--verbose-tags`, a visible `ptype` tag is used.
+2. Commodities can be declared as "lotful" by adding a `lots` tag in their [declaration](#commodity-directive).
+   Amounts of lotful commodities are assumed to always have a cost basis.
+
+3. In postings involving a positive amount of a lotful commodity,
+   if no cost basis is recorded, it is inferred from the transacted cost and added to the entry.
+   So eg `{$100}` will be added to `1 AAPL @ $100`.
+
+4. Lot postings (postings whose amount has a cost basis) are classified automatically,
+   by a hidden `ptype` tag ("posting type") whose value is `acquire`, `dispose`, `transfer-from`, or `transfer-to`.
+   These tags can be queried (`hledger reg tag:ptype=acquire`), or made visible with `hledger print --verbose-tags tag:ptype`.
 
 ## Balance assertions
 
