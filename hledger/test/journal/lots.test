@@ -320,3 +320,24 @@ $ hledger -f- print --verbose-tags
 
 >=
 
+# ** 13. Account lots: tag value becomes beancount booking method in open directive.
+<
+account assets:broker  ; lots: FIFO
+
+2026-01-08 Buy stock
+    assets:broker     10 AAPL @ $100
+    assets:cash     -$1000
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
+option "operating_currency" "USD"
+
+2026-01-08 open Assets:Broker "FIFO"
+2026-01-08 open Assets:Cash
+
+2026-01-08 * "Buy stock"
+    Assets:Broker    10 AAPL {100 USD} @ 100 USD
+    Assets:Cash                        -1000 USD
+
+>=
+
