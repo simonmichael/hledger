@@ -190,6 +190,7 @@ entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showt
 -- in various ways when necessary (see Beancount.hs). It renders:
 -- account open directives for each account used (on their earliest posting dates),
 -- operating_currency directives (based on currencies used in costs),
+-- sample tolerance options (commented),
 -- and transaction entries.
 -- Transaction and posting tags are converted to metadata lines.
 -- Account tags are not propagated to the open directive, currently.
@@ -197,8 +198,9 @@ entriesReportAsBeancount ::  Map AccountName [Tag] -> EntriesReport -> TL.Text
 entriesReportAsBeancount atags ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
   TL.concat [
-     TL.fromStrict operatingcurrencydirectives
-    ,TL.fromStrict openaccountdirectives
+     TL.fromStrict toleranceoptions
+    ,TL.fromStrict operatingcurrencyoptions
+    ,TL.fromStrict openaccounts
     ,"\n"
     ,entriesReportAsTextHelper showTransactionBeancount ts3
     ]
@@ -220,20 +222,28 @@ entriesReportAsBeancount atags ts =
               && any (any (isJust.acost) . amounts . pamount) (tpostings t)
       ]
 
+    -- https://beancount.github.io/docs/beancount_language_syntax.html
+    -- https://beancount.github.io/docs/beancount_language_syntax.html#options
+    -- https://beancount.github.io/docs/beancount_options_reference.html
+
     -- https://fava.pythonanywhere.com/example-beancount-file/help/beancount_syntax
     -- https://fava.pythonanywhere.com/example-beancount-file/help/options
-    -- "conversion-currencies
+    -- conversion-currencies
     -- When set, the currency conversion select dropdown in all charts will show the list of currencies specified in this option.
     -- By default, Fava lists all operating currencies and those currencies that match ISO 4217 currency codes."
 
-    -- http://furius.ca/beancount/doc/syntax
-    -- http://furius.ca/beancount/doc/options
+    -- https://beancount.github.io/docs/precision_tolerances.html
+    -- https://beancount.github.io/docs/precision_tolerances.html#configuration-for-default-tolerances
+    toleranceoptions = T.unlines [
+       ";option \"inferred_tolerance_default\" \"*:0.001\""
+      ]
+
     -- "This option may be supplied multiple times ...
     -- A list of currencies that we single out during reporting and create dedicated columns for ...
     -- we use this to display these values in table cells without their associated unit strings ...
     -- This is used to indicate the main currencies that you work with in real life"
     -- We use: all currencies used in costs.
-    operatingcurrencydirectives
+    operatingcurrencyoptions
       | null basecurrencies = ""
       | otherwise = T.unlines (map (todirective . commodityToBeancount) basecurrencies) <> "\n"
       where
@@ -253,13 +263,12 @@ entriesReportAsBeancount atags ts =
                   concatMap tpostings
                   ts3
 
-    -- http://furius.ca/beancount/doc/syntax
     -- "there exists an “Open” directive that is used to provide the start date of each account. 
     -- That can be located anywhere in the file, it does not have to appear in the file somewhere before you use an account name.
     -- You can just start using account names in transactions right away,
     -- though all account names that receive postings to them will eventually have to have
     -- a corresponding Open directive with a date that precedes all transactions posted to the account in the input file."
-    openaccountdirectives
+    openaccounts
       | null ts = ""
       | otherwise = T.unlines [
           T.intercalate "\n" $

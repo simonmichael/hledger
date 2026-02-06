@@ -873,6 +873,12 @@ Beancount doesn't allow [redundant costs and conversion postings](https://hledge
 If you have any of these, the conversion postings will be omitted.
 Currently we support at most one cost + conversion postings group per transaction.
 
+#### Beancount tolerance
+
+A sample `inferred_tolerance_default` option is provided (commented out).
+If Beancount complains that transactions aren't balanced, 
+this is an easy way to work around it.
+
 #### Beancount operating currency
 
 Declaring an operating currency (or several) improves Beancount and Fava reports.
