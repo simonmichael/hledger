@@ -647,6 +647,7 @@ journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
 
 -- | To all postings in the journal, add any tags from their account
 -- (including those inherited from parent accounts).
+-- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
 -- If a tag already exists on the posting, it is not changed (the account tag will be ignored).
 journalPostingsAddAccountTags :: Journal -> Journal
 journalPostingsAddAccountTags j = journalMapPostings addtags j
@@ -669,6 +670,7 @@ journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
 journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
 
 -- | To all postings in the journal, add any tags from their amount's commodities.
+-- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
 -- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
 journalPostingsAddCommodityTags :: Journal -> Journal
 journalPostingsAddCommodityTags j = journalMapPostings addtags j

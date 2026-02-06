@@ -2249,9 +2249,10 @@ account assets:bank:checking    ; same-line comment, at least 2 spaces before th
 ### Account tags
 
 An account directive's comment may contain [tags](#tags).
-These will be propagated to all postings using that account, as hidden but queryable posting tags,
-except where the posting already a tag of the same name.
-(Posting tags override account tags.)
+These will be inherited by all postings using that account,
+except where the posting already has a value for that tag.
+(A posting tag overrides an account tag.)
+Note, these tags will be queryable but won't be shown in `print` output, even with --verbose-tags.
 
 ### Account error checking
 
@@ -2679,9 +2680,10 @@ commodity INR
 ### Commodity tags
 
 A commodity directive's comment may contain [tags](#tags).
-These will be propagated to all postings using that commodity in their main amount, as hidden but queryable posting tags,
-except where the posting already a tag of the same name.
-(Posting tags override account tags override commodity tags.)
+These will be inherited by all postings using that commodity in their main amount,
+except where the posting already has a value for that tag.
+(A posting tag or an account tag overrides a commodity tag.)
+Note, these tags will be queryable but won't be shown in `print` output, even with --verbose-tags.
 
 ### Commodity error checking
 
