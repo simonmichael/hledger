@@ -829,9 +829,8 @@ You can use [account aliases](#alias-directive) to rewrite your account names te
 as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) config file.
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
-2024-12-20: Some more things not yet handled for you:
+2026-01: Some things not yet handled:
 
-- P directives are not converted automatically - convert those yourself.
 - Balance assignments are not converted (Beancount doesn't support them) - replace those with explicit amounts.
 
 #### Beancount account names
