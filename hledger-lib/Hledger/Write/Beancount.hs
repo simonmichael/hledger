@@ -222,7 +222,10 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
     statusandaccount = postingIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
     thisacctwidth = realLength pacct
-    mds = tagsToBeancountMetadata $ ptags p
+    mds = tagsToBeancountMetadata $ filter (tagInComment (pcomment p)) (ptags p)
+    tagInComment c (n,_) = case toRegex ("\\b" <> n <> ":") of
+      Right r -> regexMatchText r c
+      Left _  -> False
     metadatalines = map (postingIndent . showBeancountMetadata (Just maxtagnamewidth)) mds
       where maxtagnamewidth = maximum' $ map (T.length . fst) mds
     (samelinecomment, newlinecomments) =

@@ -166,3 +166,25 @@ $ hledger -f- print -O beancount
       ma: "ptag"
 
 >=
+
+# ** 9. Beancount output shows tags as beancount metadata (as well as in the comment);
+# and does not expose posting tags that weren't in the comment, such as those inherited from commodity and account.
+<
+commodity AAPL  ; lots:
+account assets:broker  ; type: Asset
+
+2026-01-01 Buy stock
+    assets:broker     10 AAPL {$100}
+    assets:cash      -$1000
+
+$ hledger -f- print -O beancount --verbose-tags
+2026-01-01 open Assets:Broker
+    type: "Asset"
+2026-01-01 open Assets:Cash
+
+2026-01-01 * "Buy stock"
+    Assets:Broker    10 AAPL {100 USD}  ; ptype: acquire
+      ptype: "acquire"
+    Assets:Cash              -1000 USD
+
+>=
