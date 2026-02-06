@@ -21,11 +21,11 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
 - **consistently mentioned in "good Haskell apps" discussions**
-- **2 low regression releases in a row** (2 major releases plus 3 more months with no new regressions found)
 - **200 committers**
+- **2 low regression releases in a row** (no new regressions found in 2 consecutive major releases plus 3 months)
 - **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
-- **match ledger speed**
 - **2.0 release**
+- **match ledger speed**
 - **3 low regression releases in a row**
 - **match ledger committers**
 - **match beancount stars**
@@ -42,10 +42,11 @@ mail lists are a choice these days, we don't use ours much
 
 - [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date), with Ledger and Beancount
 
-- [Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) rank:
+- [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories) rank:
 
 |      | all projects | non programming tools
 |------|--------------|-------------------------------------------------
+| 2026 | #15          | #4 (after pandoc, simplex chat, kmonad)
 | 2025 | #19          | #5 (after pandoc, simplex chat, kmonad, cardano)
 | 2023 | #32          |
 | 2022 | #34          |
@@ -54,6 +55,6 @@ mail lists are a choice these days, we don't use ours much
 | 2017 | #54          |
 | 2016 | #71          |
 
-- [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories) rank
+- [Top 100 Github-starred Haskell projects](https://github.com/EvanLi/Github-Ranking/blob/master/Top100/Haskell.md) (manually updated)
 
 See also: [ROADMAP](ROADMAP.md)
