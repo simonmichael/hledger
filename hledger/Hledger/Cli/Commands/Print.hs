@@ -20,7 +20,7 @@ where
 
 
 import Data.Function ((&))
-import Data.List (intersperse, intercalate)
+import Data.List (intersperse, intercalate, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import Data.Map (Map)
@@ -33,7 +33,7 @@ import Safe (lastMay, minimumDef)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
-import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
+import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata, showPriceDirectiveBeancount)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (styledTableHtml)
@@ -134,12 +134,13 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
   where
     -- print does user-specified rounding or (by default) no rounding, in all output formats
     styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
+    styledPrices = map (\pd -> pd{pdamount = styleAmounts styles $ pdamount pd}) $ jpricedirectives j
 
     fmt = outputFormatFromOpts opts
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
-           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map maybeoriginalamounts
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json"      = toJsonText                    . styleAmounts styles
@@ -191,16 +192,18 @@ entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showt
 -- account open directives for each account used (on their earliest posting dates),
 -- operating_currency directives (based on currencies used in costs),
 -- sample tolerance options (commented),
+-- price directives,
 -- and transaction entries.
 -- Transaction and posting tags are converted to metadata lines.
 -- Account tags are not propagated to the open directive, currently.
-entriesReportAsBeancount ::  Map AccountName [Tag] -> EntriesReport -> TL.Text
-entriesReportAsBeancount atags ts =
+entriesReportAsBeancount ::  Map AccountName [Tag] -> [PriceDirective] -> EntriesReport -> TL.Text
+entriesReportAsBeancount atags pricedirs ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
   TL.concat [
      TL.fromStrict toleranceoptions
     ,TL.fromStrict operatingcurrencyoptions
     ,TL.fromStrict openaccounts
+    ,TL.fromStrict pricedirectives
     ,"\n"
     ,entriesReportAsTextHelper showTransactionBeancount ts3
     ]
@@ -282,6 +285,12 @@ entriesReportAsBeancount atags ts =
         where
           firstdate = showDate $ minimumDef err $ map tdate ts3
             where err = error' "entriesReportAsBeancount: should not happen"
+
+    pricedirectives
+      | null pricedirs = ""
+      | otherwise = "\n" <> T.unlines (map showPriceDirectiveBeancount sortedpricedirs)
+      where
+        sortedpricedirs = sortOn pddate pricedirs
 
 entriesReportAsSql :: EntriesReport -> TL.Text
 entriesReportAsSql txns = TB.toLazyText $ mconcat

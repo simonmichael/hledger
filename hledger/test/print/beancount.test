@@ -195,3 +195,26 @@ $ hledger -f- print -O beancount --verbose-tags
     Assets:Cash              -1000 USD
 
 >=
+
+# ** 10. Price directives are converted to beancount price directives, sorted by date.
+<
+P 2026-01-15 AAPL 170.00 USD
+P 2026-01-10 EUR 1.08 USD
+
+2026-01-01
+    assets:cash    $100
+    equity:opening
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
+2026-01-01 open Assets:Cash
+2026-01-01 open Equity:Opening
+
+2026-01-10 price EUR 1.08 USD
+2026-01-15 price AAPL 170.00 USD
+
+2026-01-01 *
+    Assets:Cash            100 USD
+    Equity:Opening
+
+>=
