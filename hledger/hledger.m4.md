@@ -825,8 +825,10 @@ If you plan to export to Beancount often, you may want to follow its [convention
 
 There is one big adjustment you must handle yourself:
 for Beancount, the top level account names must be `Assets`, `Liabilities`, `Equity`, `Income`, and/or `Expenses`.
-You can use [account aliases](#alias-directive) to rewrite your account names temporarily, if needed,
-as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) config file.
+
+A top level hledger account named `revenue` or `revenues` (case insensitive) will be converted to `Income` for Beancount.
+To adjust other top level account names, you should use `--alias` (see [Account aliases](#alias-directive),
+or this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) file).
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
 #### Beancount account names

@@ -267,8 +267,11 @@ accountNameToBeancount a = b
     cs1 =
       map accountNameComponentToBeancount $ accountNameComponents $
       dbg9 "hledger account name  " a
+    cs1' = case cs1 of
+      (c:cs) | T.toLower c `elem` ["revenue", "revenues"] -> "Income":cs
+      cs -> cs
     cs2 =
-      case cs1 of
+      case cs1' of
         c:_ | c `notElem` beancountTopLevelAccounts -> error' e
           where
             e = T.unpack $ T.unlines [
