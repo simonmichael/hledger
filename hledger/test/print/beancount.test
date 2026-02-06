@@ -218,3 +218,29 @@ $ hledger -f- print -O beancount
     Equity:Opening
 
 >=
+
+# ** 11. "revenue" and "revenues" top-level account names are converted to "Income".
+<
+2026-01-01
+    assets:cash       $100
+    revenue:salary
+
+2026-01-02
+    assets:cash       $200
+    revenues:consulting
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
+2026-01-01 open Assets:Cash
+2026-01-01 open Income:Salary
+2026-01-01 open Income:Consulting
+
+2026-01-01 *
+    Assets:Cash           100 USD
+    Income:Salary
+
+2026-01-02 *
+    Assets:Cash               200 USD
+    Income:Consulting
+
+>=
