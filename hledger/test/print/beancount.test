@@ -244,3 +244,24 @@ $ hledger -f- print -O beancount
     Income:Consulting
 
 >=
+
+# ** 12. Single-character commodity names are doubled to meet beancount's 2-character minimum.
+<
+2026-01-01
+    assets:cash    1 K
+    equity:opening
+
+P 2026-01-01 K 2.00 USD
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.005"
+2026-01-01 open Assets:Cash
+2026-01-01 open Equity:Opening
+
+2026-01-01 price KK 2.00 USD
+
+2026-01-01 *
+    Assets:Cash               1 KK
+    Equity:Opening
+
+>=

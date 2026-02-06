@@ -372,6 +372,7 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- replaces spaces with dashes and other invalid characters with C<HEXBYTES>,
 -- prepends a C if the first character is not a letter,
 -- appends a C if the last character is not a letter or digit,
+-- doubles it if less than 2 characters,
 -- and disables hledger's enclosing double quotes.
 --
 -- >>> commodityToBeancount ""
@@ -384,6 +385,8 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- "A1"
 -- >>> commodityToBeancount "\"A 1!\""
 -- "A-1C21"
+-- >>> commodityToBeancount "K"
+-- "KK"
 --
 commodityToBeancount :: CommoditySymbol -> BeancountCommoditySymbol
 commodityToBeancount "" = "CC"
@@ -398,6 +401,7 @@ commodityToBeancount com =
       & T.concatMap (\d -> if isBeancountCommodityChar d then T.singleton d else T.pack $ charToBeancount d)
       & fixstart
       & fixend
+      & fixshort
   where
     fixstart bcom = case T.uncons bcom of
       Just (c,_) | isBeancountCommodityStartChar c -> bcom
@@ -405,6 +409,9 @@ commodityToBeancount com =
     fixend bcom = case T.unsnoc bcom of
       Just (_,c) | isBeancountCommodityEndChar c -> bcom
       _ -> bcom <> "C"
+    fixshort bcom
+      | T.length bcom < 2 = bcom <> bcom   -- e.g. "K" -> "KK"
+      | otherwise          = bcom
 
 -- | Is this a valid character in the middle of a Beancount commodity name (a capital letter, digit, or '._-) ?
 isBeancountCommodityChar :: Char -> Bool
