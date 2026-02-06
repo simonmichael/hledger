@@ -846,7 +846,7 @@ hledger will adjust your commodity names to make valid
 which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`, beginning with a letter and ending with a letter or digit.
 hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes),
 capitalise letters, replace spaces with `-`, replace other unsupported characters with `C<HEXBYTES>`,
-and prepend or append `C` if needed.
+and prepend or append `C` if needed. The no-symbol commodity will be translated as `CC`.
 
 #### Beancount balance assignments
 

@@ -375,7 +375,7 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- and disables hledger's enclosing double quotes.
 --
 -- >>> commodityToBeancount ""
--- "C"
+-- "CC"
 -- >>> commodityToBeancount "$"
 -- "USD"
 -- >>> commodityToBeancount "Usd"
@@ -386,6 +386,7 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- "A-1C21"
 --
 commodityToBeancount :: CommoditySymbol -> BeancountCommoditySymbol
+commodityToBeancount "" = "CC"
 commodityToBeancount com =
   dbg9 "beancount commodity name" $
   let com' = stripquotes com
