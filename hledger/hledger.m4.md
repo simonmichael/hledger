@@ -1727,11 +1727,14 @@ and your reports would have the advantages of both.
 
 ## Cost basis / Lot syntax
 
-If you are buying some commodity to hold as an investment, it may be important to keep track of its *cost basis*.
-By that we mean:
+If you are buying some amount of a commodity to hold as an investment,
+it may be important to keep track of its *cost basis* and *lots*.
+This is an advanced topic, but we dive into it here for reference; skip over if you don't need it.
 
-1. its original acquisition cost
-2. its original acquisition date
+In hledger, we use "cost basis" to mean:
+
+1. the amount's original acquisition cost
+2. the original acquisition date
 3. and a sequence number or label, if needed, to disambiguate multiple acquisitions on the same day, or to serve as a mnemonic for easy reference.
 
 In hledger we call these three the "cost basis"; and if an amount being acquired has a cost basis, we call it a "lot".
@@ -1760,20 +1763,23 @@ This is experimental work in progress. Here's what hledger currently does with c
    then use the `print` command to export to Beancount (or rustledger, or Ledger), so that you can use their lots reports.
    See the [Export Lots workflow](workflows.md#more-advanced-workflows).
 
-2. Commodities can be declared as "lotful" by adding a `lots` tag in their [declaration](#commodity-directive).
-   Amounts of lotful commodities are assumed to always have a cost basis.
+2. You can declare accounts as "lotful" by adding a `lots` tag in their [declaration](#account-directive).
+   Amounts posted to these accounts are assumed to have a cost basis, whether it's written in the journal or not.
 
-3. In postings involving a positive amount of a lotful commodity, if there is no cost basis annotation,
+3. Similarly, you can declare commodities as lotful by adding a `lots` tag in their [declaration](#commodity-directive).
+   Amounts of lotful commodities are assumed to have a cost basis.
+
+4. In postings involving a positive amount and a lotful commodity or account, if there is no cost basis annotation,
    it is inferred from the transacted cost and added to the entry.
-   So eg `{$100}` will be added to `1 AAPL @ $100`.
+   So eg `1 AAPL @ $100` will become `1 AAPL {$100} @ $100`.
 
-4. In postings involving a positive amount with a cost basis, if there's no transacted cost annotation,
+5. In postings involving a positive amount with a cost basis, if there's no transacted cost annotation,
    it is inferred from the cost basis and added to the entry.
-   So eg `@ $100` will be added to `1 AAPL {$100}`.
+   So eg `1 AAPL {$100}` will become `1 AAPL {$100} @ $100`.
 
-5. Lot postings (postings whose amount has a cost basis) are classified automatically,
+6. Lot postings (postings whose amount has a cost basis) are classified automatically,
    by a hidden `ptype` tag ("posting type") whose value is `acquire`, `dispose`, `transfer-from`, or `transfer-to`.
-   These tags can be queried (`hledger reg tag:ptype=acquire`), or made visible with `hledger print --verbose-tags tag:ptype`.
+   These tags can be queried (`hledger reg tag:ptype=acquire`), or made visible with `hledger print --verbose-tags`.
 
 
 ## Balance assertions

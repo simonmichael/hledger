@@ -305,3 +305,18 @@ $ hledger -f- print --verbose-tags
 
 >=
 
+# ** 12. Account-level lots: tag also triggers cost basis inference.
+<
+account assets:broker  ; lots:
+
+2026-01-07 Buy stock
+    assets:broker     10 AAPL @ $100
+    assets:cash     -$1000
+
+$ hledger -f- print --verbose-tags
+2026-01-07 Buy stock
+    assets:broker    10 AAPL {$100} @ $100  ; ptype: acquire
+    assets:cash                     $-1000
+
+>=
+
