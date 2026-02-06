@@ -341,3 +341,20 @@ option "operating_currency" "USD"
 
 >=
 
+# 14. Balance assignments get fully inferred amounts in beancount output.
+<
+2026-01-01 * opening balances
+    equity:opening
+    assets:cash    = 2000 USD
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
+2026-01-01 open Assets:Cash
+2026-01-01 open Equity:Opening
+
+2026-01-01 * "opening balances"
+    Equity:Opening
+    Assets:Cash           2000 USD
+
+>=
+

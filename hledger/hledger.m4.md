@@ -829,10 +829,6 @@ You can use [account aliases](#alias-directive) to rewrite your account names te
 as in this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) config file.
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
-2026-01: Some things not yet handled:
-
-- Balance assignments are not converted (Beancount doesn't support them) - replace those with explicit amounts.
-
 #### Beancount account names
 
 Aside from the top-level names, hledger will adjust your account names to make valid
@@ -849,6 +845,10 @@ which must be 2-24 uppercase letters, digits, or `'`, `.`, `_`, `-`, beginning w
 hledger will convert known currency symbols to [ISO 4217 currency codes](https://en.wikipedia.org/wiki/ISO_4217#Active_codes),
 capitalise letters, replace spaces with `-`, replace other unsupported characters with `C<HEXBYTES>`,
 and prepend or append `C` if needed.
+
+#### Beancount balance assignments
+
+Beancount doesn't support those; any balance assignments will be converted to explicit amounts.
 
 #### Beancount virtual postings
 
