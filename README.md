@@ -1,4 +1,38 @@
 # hledger
+
+## About the 2.x branch
+
+SM 2026-02:\
+This is `2.x-main`, a development branch for future hledger 2.x releases, begun in 2026-01.
+This branch is rewritable (receives force-pushes).
+For the current hledger 1.x series, see `master`.
+When 2.x becomes sufficiently notably better than 1.x, there'll be a 2.0 release.
+Then `master` will become `1.x-main` and `2.x-main` will become `main.`
+
+Some goals for 2.x:
+
+- continue and improve 1.x's reliability
+- excellent lots/capital gains tracking
+- more interoperability/convertibility
+- more speed
+- more customisation paths
+
+and:
+
+- more use of AI as a dev tool; clarify policies
+- more use of jj to simplify version management
+- more aggressive cleanup and simplification of code/doc/process/finance..
+- easier contribution
+
+and for 1.x:
+
+- continued installability/usability
+- preserve the stable/known hledger 1.x feature set
+- preserve the non-AI-assisted codebase; draw a line between pre and post-AI eras
+
+Discussion: [Thoughts on hledger 2 #2547](https://github.com/simonmichael/hledger/issues/2547)
+
+
 ## Robust, intuitive plain text accounting
 [![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
 [![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](https://hackage.haskell.org/package/hledger)
