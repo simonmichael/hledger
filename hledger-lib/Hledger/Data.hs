@@ -11,6 +11,7 @@ functionality.  This package re-exports all the Hledger.Data.* modules
 module Hledger.Data (
                module Hledger.Data.Account,
                module Hledger.Data.AccountName,
+               module Hledger.Data.AccountType,
                module Hledger.Data.Amount,
                module Hledger.Data.BalanceData,
                module Hledger.Data.Balancing,
@@ -41,6 +42,7 @@ import Test.Tasty (testGroup)
 import Hledger.Data.Account
 import Hledger.Data.BalanceData
 import Hledger.Data.AccountName
+import Hledger.Data.AccountType
 import Hledger.Data.Amount
 import Hledger.Data.Balancing
 import Hledger.Data.Currency
