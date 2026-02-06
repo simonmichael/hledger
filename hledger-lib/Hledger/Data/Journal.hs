@@ -669,6 +669,10 @@ journalCommodityTags Journal{jdeclaredcommoditytags} c =
 journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
 journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
 
+-- | Does this posting have a 'lots:' tag (eg inherited from its account) ?
+postingUsesLots :: Posting -> Bool
+postingUsesLots p = any ((== "lots") . T.toLower . fst) (ptags p)
+
 -- | To all postings in the journal, add any tags from their amount's commodities.
 -- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
 -- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
@@ -677,7 +681,7 @@ journalPostingsAddCommodityTags j = journalMapPostings addtags j
   where
     addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
 
--- | For acquire postings (positive amounts) whose commodity has a 'lots:' tag,
+-- | For acquire postings (positive amounts) whose commodity or account has a 'lots:' tag,
 -- infer cost basis from transacted cost and posting date.
 -- Must be called before journalClassifyLotPostings.
 journalInferPostingsCostBasis :: Journal -> Journal
@@ -691,7 +695,7 @@ postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pa
       | aquantity a <= 0                  = a  -- only positive (acquire) amounts
       | isJust (acostbasis a)             = a  -- already has cost basis
       | Nothing <- acost a                = a  -- no transacted cost
-      | not (journalCommodityUsesLots j (acommodity a)) = a  -- commodity not lot-tracked
+      | not (journalCommodityUsesLots j (acommodity a) || postingUsesLots p) = a  -- commodity/account not lot-tracked
       | Just cost <- acost a              = a{acostbasis = Just (costToCostBasis (aquantity a) cost)}
 
     costToCostBasis :: Quantity -> AmountCost -> CostBasis
