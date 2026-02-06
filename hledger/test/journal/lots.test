@@ -172,7 +172,7 @@ $ hledger -f- print -O json
     assets:cash
 
 $ hledger -f- print -O beancount
-;option "inferred_tolerance_default" "*:0.001"
+;option "inferred_tolerance_default" "*:0.005"
 2026-01-01 open Assets:Cash
 2026-01-01 open Assets:Investment
 
@@ -329,7 +329,7 @@ account assets:broker  ; lots: FIFO
     assets:cash     -$1000
 
 $ hledger -f- print -O beancount
-;option "inferred_tolerance_default" "*:0.001"
+;option "inferred_tolerance_default" "*:0.005"
 option "operating_currency" "USD"
 
 2026-01-08 open Assets:Broker "FIFO"
@@ -348,7 +348,7 @@ option "operating_currency" "USD"
     assets:cash    = 2000 USD
 
 $ hledger -f- print -O beancount
-;option "inferred_tolerance_default" "*:0.001"
+;option "inferred_tolerance_default" "*:0.005"
 2026-01-01 open Assets:Cash
 2026-01-01 open Equity:Opening
 
