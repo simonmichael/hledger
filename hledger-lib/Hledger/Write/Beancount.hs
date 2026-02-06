@@ -6,6 +6,7 @@ Helpers for beancount output.
 
 module Hledger.Write.Beancount (
   showTransactionBeancount,
+  showPriceDirectiveBeancount,
   -- postingsAsLinesBeancount,
   -- postingAsLinesBeancount,
   -- showAccountNameBeancount,
@@ -77,6 +78,17 @@ showTransactionBeancount t =
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
+
+-- | Render a PriceDirective in Beancount format: DATE price COMMODITY AMOUNT
+showPriceDirectiveBeancount :: PriceDirective -> Text
+showPriceDirectiveBeancount pd =
+  showDate (pddate pd)
+  <> " price "
+  <> commodityToBeancount (pdcommodity pd)
+  <> " "
+  <> wbToText (showAmountB beancountPriceFmt $ amountToBeancount $ pdamount pd)
+  where
+    beancountPriceFmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
 
 nl = "\n"
 
