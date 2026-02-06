@@ -322,6 +322,8 @@ amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', as
 showAmountCostBasisBeancountB :: AmountFormat -> Amount -> WideBuilder
 showAmountCostBasisBeancountB afmt amt = case acostbasis amt of
   Nothing -> mempty
+  Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
+    WideBuilder (TB.fromString " {}") 3
   Just CostBasis{cbCost, cbDate, cbLabel} ->
     case parts of
       [] -> mempty

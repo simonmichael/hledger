@@ -761,6 +761,8 @@ showAmountCostBasis = wbUnpack . showAmountCostBasisB defaultFmt
 showAmountCostBasisB :: AmountFormat -> Amount -> WideBuilder
 showAmountCostBasisB afmt amt = case acostbasis amt of
   Nothing -> mempty
+  Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
+    WideBuilder (TB.fromString " {}") 3
   Just CostBasis{cbCost, cbDate, cbLabel} ->
     lotcost <> lotdate <> lotnote
     where
