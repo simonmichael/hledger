@@ -93,6 +93,7 @@ import Text.Megaparsec.Char (char, string, string')
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
 import Hledger.Data.AccountName
+import Hledger.Data.AccountType
 import Hledger.Data.Amount (amountsRaw, mixedAmount, nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
