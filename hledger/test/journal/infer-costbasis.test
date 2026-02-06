@@ -15,11 +15,11 @@ commodity AAPL   ; lots:
 
 $ hledger -f - print
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL @ $100 {$100}
+    assets:brokerage    10 AAPL {$100} @ $100
     assets:cash
 
 >=
-    
+
 # ** 2. Cost basis is not inferred without lots: tag.
 <
 commodity AAPL
@@ -60,7 +60,7 @@ commodity AAPL   ; lots:
 
 $ hledger -f - print
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL @ $100 {$95}
+    assets:brokerage    10 AAPL {$95} @ $100
     assets:cash
 
 >=
@@ -75,7 +75,7 @@ commodity AAPL   ; lots:
 
 $ hledger -f - print
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL @@ $1000 {$100}
+    assets:brokerage    10 AAPL {$100} @@ $1000
     assets:cash
 
 >=

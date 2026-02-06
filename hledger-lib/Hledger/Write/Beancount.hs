@@ -200,11 +200,16 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = map addCostBasis $ showMixedAmountLinesPartsB displayopts a'
+      | otherwise   = map addCostBasisAndCost amtParts
         where
-          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False, displayCostBasis=False }
+          -- render amounts without cost or cost basis; we append them in beancount order (costbasis before cost) below
+          basefmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False, displayCost=False, displayCostBasis=False }
+          costfmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
           a' = mapMixedAmount amountToBeancount $ pamount p
-          addCostBasis (builder, amt) = builder <> showAmountCostBasisBeancountB displayopts amt
+          -- get the display builders (with costs stripped) paired with the original amounts (with costs intact)
+          amtParts = zip (map fst $ showMixedAmountLinesPartsB basefmt a') (amounts a')
+          addCostBasisAndCost (builder, amt) =
+            builder <> showAmountCostBasisBeancountB costfmt amt <> showAmountCostB costfmt amt
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     -- when there is a balance assertion, show it only on the last posting line

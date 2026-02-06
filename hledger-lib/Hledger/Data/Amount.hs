@@ -723,8 +723,8 @@ showAmountB
                    ,displayForceDecimalMark, displayCost, displayCostBasis, displayColour, displayQuotes}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
-      L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> cost <> costbasis
-      R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> cost <> costbasis
+      L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> costbasis <> cost
+      R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> costbasis <> cost
   where
     color = if displayColour && isNegativeAmount a then colorB Dull Red else id
     quantity = showAmountQuantity displayForceDecimalMark $
