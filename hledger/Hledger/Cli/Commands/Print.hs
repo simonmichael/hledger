@@ -140,7 +140,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
-           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json"      = toJsonText                    . styleAmounts styles
@@ -167,6 +167,17 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           | has (value . _Just) opts = id
           -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
           | otherwise = transactionWithMostlyOriginalPostings
+
+        -- Like maybeoriginalamounts, but also keeps the inferred amount for
+        -- balance assignment postings (which had no explicit amount).
+        -- Beancount requires all amounts to be explicit.
+        fillBalanceAssignments t = (maybeoriginalamounts t)
+          { tpostings = zipWith fillIfBalAssign (tpostings t) (tpostings $ maybeoriginalamounts t) }
+          where
+            fillIfBalAssign inferred reverted
+              | isJust (pbalanceassertion orig) && isMissingMixedAmount (pamount orig) = reverted { pamount = pamount inferred }
+              | otherwise = reverted
+              where orig = originalPosting inferred
 
 -- | Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings.
