@@ -249,7 +249,7 @@ entriesReportAsBeancount atags pricedirs ts =
     -- https://beancount.github.io/docs/precision_tolerances.html
     -- https://beancount.github.io/docs/precision_tolerances.html#configuration-for-default-tolerances
     toleranceoptions = T.unlines [
-       ";option \"inferred_tolerance_default\" \"*:0.001\""
+       ";option \"inferred_tolerance_default\" \"*:0.005\""
       ]
 
     -- "This option may be supplied multiple times ...
