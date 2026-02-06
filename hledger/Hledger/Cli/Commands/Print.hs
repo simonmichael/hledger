@@ -20,7 +20,7 @@ where
 
 
 import Data.Function ((&))
-import Data.List (intersperse, intercalate, sortOn)
+import Data.List (find, intersperse, intercalate, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import Data.Map (Map)
@@ -275,10 +275,13 @@ entriesReportAsBeancount atags pricedirs ts =
       | null ts = ""
       | otherwise = T.unlines [
           T.intercalate "\n" $
-            firstdate <> " open " <> accountNameToBeancount a :
+            firstdate <> " open " <> accountNameToBeancount a <> disposalmethod :
             mdlines
           | a <- nubSort $ concatMap (map paccount.tpostings) ts3
-          , let mds      = tagsToBeancountMetadata $ fromMaybe [] $ Map.lookup a atags
+          , let tags'          = fromMaybe [] $ Map.lookup a atags
+          , let lotsval        = maybe "" snd $ find ((== "lots") . T.toLower . fst) tags'
+          , let disposalmethod = if T.null lotsval then "" else " \"" <> lotsval <> "\""
+          , let mds      = tagsToBeancountMetadata $ filter ((/= "lots") . T.toLower . fst) tags'
           , let maxwidth = maximum' $ map (T.length . fst) mds
           , let mdlines  = map (postingIndent . showBeancountMetadata (Just maxwidth)) mds
           ]
