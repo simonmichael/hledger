@@ -1,4 +1,34 @@
 # hledger
+
+## About this branch
+
+This is the `hledger2` branch, a development branch for the hledger 2.x releases.
+This branch is mutable (it can be force-pushed).
+
+For the hledger 1.x series, see `hledger1`.
+`master` is currently the same as `hledger1`.
+It will absorb `hledger2`, and possibly be renamed to `main`, when hledger 2.0 is released.
+
+Some goals for the 2.x series:
+
+- continue and improve 1.x's reliability
+- provide excellent lot tracking and capital gains calculation
+- explore ethical use of AI as a dev tool
+- more cleanup and simplification of code, docs, process, finance
+- more speed
+- more interoperability
+- more use of jj for version management
+- easier contribution
+
+and for 1.x:
+
+- continued stability, installability
+- bugfix releases to fix newly discovered regressions, if any
+- preserve the non-AI-assisted codebase, and try to keep it that way
+
+Related discussion: [Thoughts on hledger 2 #2547](https://github.com/simonmichael/hledger/issues/2547)
+
+
 ## Robust, intuitive plain text accounting
 [![license](https://img.shields.io/badge/license-GPLv3+-brightgreen.svg)](https://www.gnu.org/licenses/gpl.html)
 [![on hackage](https://img.shields.io/hackage/v/hledger.svg?label=hackage&colorB=green)](https://hackage.haskell.org/package/hledger)
