@@ -16,6 +16,7 @@ $ hledger -f- print -O beancount
   equity:$-€:$    0 USD
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2000-01-01 open Assets:A
 2000-01-01 open Equity:C24-C20ac:C24
 
@@ -34,6 +35,7 @@ $ hledger -f- print -O beancount
   assets    0 "size 2 pencils"
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2000-01-01 open Assets:A
 
 2000-01-01 *
@@ -53,6 +55,7 @@ $ hledger -f- print -O beancount
   [c]
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2000-01-01 open Assets:A
 
 2000-01-01 *
@@ -72,6 +75,7 @@ $ hledger -f- print -O beancount
     Assets                     €-1
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2000-01-01 open Assets:A
 2000-01-01 open Equity:Conversion:C20ac-C24:C24
 2000-01-01 open Equity:Conversion:C20ac-C24:C20ac
@@ -94,6 +98,7 @@ $ hledger -f- print -O beancount
     Assets                     €-1
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 option "operating_currency" "EUR"
 
 2000-01-01 open Assets:A
@@ -144,6 +149,7 @@ account assets:cash  ; type:C
   assets:cash            0  ; a: ptag
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2000-01-01 open Assets:Cash
     type: "C"
 
@@ -178,6 +184,7 @@ account assets:broker  ; type: Asset
     assets:cash      -$1000
 
 $ hledger -f- print -O beancount --verbose-tags
+;option "inferred_tolerance_default" "*:0.001"
 2026-01-01 open Assets:Broker
     type: "Asset"
 2026-01-01 open Assets:Cash

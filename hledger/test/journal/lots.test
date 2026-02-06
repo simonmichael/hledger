@@ -172,6 +172,7 @@ $ hledger -f- print -O json
     assets:cash
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.001"
 2026-01-01 open Assets:Cash
 2026-01-01 open Assets:Investment
 
