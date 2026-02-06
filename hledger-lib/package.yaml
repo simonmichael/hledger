@@ -125,6 +125,7 @@ library:
   # - Hledger.Data
   # - Hledger.Data.Account
   # - Hledger.Data.AccountName
+  # - Hledger.Data.AccountType
   # - Hledger.Data.Amount
   # - Hledger.Data.BalanceData
   # - Hledger.Data.Balancing
