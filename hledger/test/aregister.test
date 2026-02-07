@@ -131,3 +131,14 @@ commodity $1.00
 $ hledger -f - areg a
 Transactions in a and subaccounts:
 2025-06-12                      a                            $1.00         $1.00
+
+# ** 9. aregister should respect the drop flag including when combining a list of accounts
+<
+2025-06-12
+  a:b   $1
+  a:c   $1
+  d
+
+$ hledger -f - areg d --drop 1
+Transactions in d and subaccounts:
+2025-06-12                      b, c                           $-2           $-2
