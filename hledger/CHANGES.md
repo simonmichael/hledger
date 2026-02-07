@@ -26,6 +26,177 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# ff93dcab
+
+- feat: commodity tags can be declared, affecting postings in that commodity
+
+- ;doc: separate Account tags section
+
+- imp:cli: drop --quit-at-eof from less options (and document those better)
+
+- imp:setup: ghc/RTS output
+
+- imp:setup: show LESS value more accurately, and test that less runs
+  When the pager is less, setup was showing hledger's modified LESS
+  value rather than it's value in the environment. Now it shows both.
+  And if HLEDGER_LESS is defined, LESS is shown with an "overridden" indicator.
+  Also, now it tests less --version as runPager does, and reports
+  problems caused by LESS/HLEDGER_LESS settings (helps troubleshoot
+  problems like #2544).
+
+- fix:cli: run the less pager more robustly [#2544]
+  The LESS env var configuration previously performed at startup
+  has been moved into runPager, improved, and clarified.
+  General and colour-specific options are now added to LESS separately.
+  And before running less we now test less --version for problems,
+  to catch more kinds of less failure and report them more clearly.
+
+- imp:setup: show the OS version
+
+- imp:setup: show when built without OS thread support
+
+- imp:setup: show more compact output when http fails
+
+- imp:setup: improve layout of top info; show warning before using http
+
+- imp:setup: show os, architecture, and compiler version
+
+- ;doc: Cost basis: edits
+
+- ;doc: Costs: edits
+
+- ;doc: Cost basis: edits
+
+- ;doc: Costs: edits
+
+- ;doc: Costs: edits
+
+- ;doc: Cost basis / lot syntax: edits
+
+- ;doc: new Cost basis / lot syntax section
+
+- ;doc: register: Add new --drop flag with usage example (Caleb Maclennan)
+
+- test: Add unit tests for new --drop flag including combined with --depth (Caleb Maclennan)
+
+- feat: register: Implement --drop flag mirroring functionality (Caleb Maclennan)
+  This implements the same --drop functionality as balance command for
+  register subcommand, allowing users to trim leading account name
+  components from register output.
+
+- ;doc: Costs: rewrite
+
+- feat:print: show lot info in beancount output; update docs
+
+- feat: preserve Ledger-style lot info, and show it in print's json & txt output
+
+- dev: add a CostBasis field to Amount
+
+- ;doc: Tag names: clarify --verbose-tags a little
+
+- ;doc:Inferring equity conversion postings: note account tags limitation
+
+- imp: date: queries can now configure a report interval
+  Now it's possible to write date:weekly or date:'weekly from last month',
+  instead of using -W or -p. This fixes an inconsistency, and removes
+  an obstacle to configuring report intervals in places like hledger-ui and hledger-web.
+
+- imp: smart dates now support "last|this|next WEEKDAY|MONTHNAME"
+
+- feat: accounts: add Gain (G) account type as subtype of Revenue [#2522] (g. nicholas d'andrea)
+  Add a new account type Gain with single-letter code G as a subtype of
+  Revenue, similar to how Cash is a subtype of Asset and Conversion is a
+  subtype of Equity. This enables tracking capital gains/losses separately
+  while still including them in income statements and close --retain.
+
+  Usage: account revenues:capital  ; type: G
+
+  - type:G matches only Gain accounts
+  - type:R matches both Revenue and Gain (subtype matching)
+  - Auto-detection from account names matching:
+    ^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)
+    e.g. income:gains, revenue:capital-gains, income:losses
+
+- ;add: allow older haskeline again, it's needed for stackage (reopens [#2410])
+  For now, `hledger add` with the stackage build of hledger 1.51.2+ will once again show ANSI junk.
+  Dev builds, the github release binaries, stackage builds of hledger-1.50..1.51.1,
+  and stackage hledger builds in future snapshots with a GHC that provides the fixed haskeline,
+  will remain free of that bug.
+
+- ;doc:changelogs: 1.51.2
+
+- ;doc: hledger's regular expressions: no lazy quantifiers
+
+- imp: -f now errors if given a glob matching no files, like LEDGER_FILE
+  Previously LEDGER_FILE=foo hledger add did, but hledger -f foo add didn't.
+  Now they both consistently will error if given a glob
+  (a path contining [, {, *, or ?) that matches nothing,
+  rather than auto-creating a file with a glob-like name.
+
+  Hledger.Utils.IO:
+  expandPathOrGlob
+
+- fix:add,import: autocreate missing journal files again (but later) [#2514]
+  This restores the pre-1.50.3 behaviour of add and import, which once
+  again auto-create a missing file (specified by -f or LEDGER_FILE or
+  the builtin default path) rather than giving an error.
+  This fixes #2514 and refines the fix for [#2485].
+
+  There's also an improvement: they no longer create it unconditionally at the start;
+  they create lazily, when they have data to write.
+
+  Hledger.Read:
+  defaultExistingJournalPath
+  defaultExistingJournalPathSafely
+  readPossibleJournalFile
+
+  Hledger.Cli.Utils:
+  withPossibleJournal
+
+- ;doc:COMMON TASKS:Setting LEDGER_FILE: updates
+
+- ;roi: rephrase IRR solver errors a bit (Dmitry Astapov)
+
+- ;roi: more input sanity checks (fixes #2505) (Dmitry Astapov)
+
+- cabal: update cabal files
+
+- fix: add, ui: better fix for add's [#2410], also fixes ui's [#2512]
+  By using newer haskeline fixing https://github.com/haskell/haskeline/issues/130.
+
+- ;pkg: allow base 4.22 / ghc 9.14
+
+- ;doc: merge change docs from 1.51.1
+
+- ;doc:changelogs, relnotes: merge 1.50.5
+
+- fix:journal:include: relative includes from a symlinked file work again [#2503]
+
+- imp!:aregister, journal: same-day txns respect order of -f options
+  If transactions on the same date are coming from two files specified
+  with -f options, we expect them to be displayed in parse order, ie
+  respecting the order of the -f options. This wasn't always the case,
+  now it is.
+
+  Also, transactions' tindex field is now unique across all files,
+  where previously it started at 1 in each file. This affects hledger
+  data generally, not just the aregister command.
+
+- imp:areg: keep no matched account error on one line
+
+- ;dev:journal:include: more tests, note a new regression like [#2499]
+
+- ;doc:changelogs:edits
+
+- ;doc: update embedded manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: set version to 1.51.99
+
+- ;doc: finalise changelogs for 1.51 on 2025-12-05
+
+
 # 1.51.2 2026-01-08
 
 Fixes

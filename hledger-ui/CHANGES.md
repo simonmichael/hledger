@@ -23,6 +23,38 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# ff93dcab
+
+- fix:cli: run the less pager more robustly [#2544]
+  The LESS env var configuration previously performed at startup
+  has been moved into runPager, improved, and clarified.
+  General and colour-specific options are now added to LESS separately.
+  And before running less we now test less --version for problems,
+  to catch more kinds of less failure and report them more clearly.
+
+- ;doc:changelogs: 1.51.2
+
+- ;cabal: update cabal files
+
+- hledger-ui: allow vty-crossplatform 0.5 (Jens Petersen)
+
+- cabal: update cabal files
+
+- ;pkg: allow base 4.22 / ghc 9.14
+
+- ;doc: merge change docs from 1.51.1
+
+- ;doc:changelogs, relnotes: merge 1.50.5
+
+- ;doc: update embedded manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: set version to 1.51.99
+
+- ;doc: finalise changelogs for 1.51 on 2025-12-05
+
+
 # 1.51.2 2026-01-08
 
 - hledger add invoked via the `a` key now shows output properly,

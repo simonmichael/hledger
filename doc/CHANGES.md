@@ -18,6 +18,225 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# ff93dcab
+
+- ;doc: ACHIEVEMENTS
+
+- ;tools:rledger.just
+
+- ;tools:gitignore
+
+- ;tools:just google-search-console
+
+- ;tools:workflows:binaries-windows: update for new ghc
+
+- ;tools: update testbin scripts, use testlatest tag / testbin branch
+
+- ;dev:gitignore: .stack* dirs
+
+- ;tools: github issue template: deemphasis setup output a little
+
+- just file perfhelp cleanup (Marko Kocic)
+
+- Replace gsed with sed in justfile (Marko Kocic)
+  sed is there on every Linux system by default. gsed needs to be
+  installed separately.
+
+- ;tools: just perfhelp
+
+- ;examples:export-lots-workflow: edit
+
+- ;doc:export-lots-workflow: edit
+
+- ;tools: just perftest: tail the perf log
+
+- ;doc:export-lots-workflow: claude-generated gains howtos for ledger/beancount/rledger
+
+- ;doc:examples: export-lots-workflow doc, scripts
+
+- ;examples: move lot tracking tests
+
+- ;tools:Justfile: cleanup, use standard prelude
+
+- ;bin: bashrc: drop clashy month aliases
+
+- ;doc: Investment Accounting Feature Ladder: move to joyful.com dev log
+
+- ;tools: just test: avoid double compilation of everything [#2528]
+  We now build with --test so that subsequent `stack test` won't recompile.
+  Also some past attempted workarounds have been dropped (--fast, -fobject-code).
+
+- tools: just test: run doctests last to reduce double compilation a little (Marko)
+
+- ;tools:Justfile: specify (and require) bash as default shell [#2527]
+  This ensures just scripts are using a known shell, rather than just
+  `sh` which varies by system.
+
+- ;tools: just tools compiles tools scripts
+
+- ;tools: cleanup; add compile.sh to build haskell scripts
+
+- ;doc: gh relnotes
+
+- ;workflows:binaries:linux: don't cache (and upload!) old binaries [#2526]
+
+- ;workflows:binaries:linux: cleanup, better dynamic/static output
+
+- ;tools:Justfile: cleanup; depend less on ghc in PATH
+
+- ;examples:debconf: add missing commodity declarations for consistent display
+
+- ;examples:debconf: update scripts, restore Ledger price-db support
+
+- ;bin:readme: fix ledgereval link
+
+- ;examples: debconf: edits
+
+- ;examples: debconf: more reports, all.ledger
+
+- ;examples: debconf: reports
+
+- ;examples: debconf: cleanups
+
+- ;examples: debconf: fixes
+
+- ;examples: debconf: makefile fix; drop 2026
+
+- ;examples: debconf: hledger readability
+
+- ;bin:ledgereval
+
+- ;examples: debconf: fix make check-*
+
+- ;examples: debconf: make check-*
+
+- ;examples: debconf: fetch all years
+
+- ;examples: how to get debconf's ledger files
+
+- ;doc:issue template: improve
+
+- ;doc:issue template: improve
+
+- ;doc:issue template: improve
+
+- ;doc:issue template: edit
+
+- ;doc:issue template: encourage a modern version
+
+- ;workflows:binaries:linux: ensure the linux binary uses a fixed haskeline [#2410]
+
+- ;pkg:stack: revert to ghc 9.12.2, 9.12.3 is buggy and not yet available with ghcup
+
+- ;doc: REGRESSIONS
+
+- ;pkg:stack: nightly-2026-01-08 / ghc 9.12.3
+
+- ;doc:gh relnotes
+
+- ;doc:relnotes
+
+- ;doc:ANNOUNCE
+
+- ;doc:changelogs: 1.51.2
+
+- ;bin:bashrc: fix LEDGER_FILE typo
+
+- ;bin:bashrc: cleanup
+
+- ;doc:ghtestbinnotes: bump version for diffing
+
+- ;doc:ghtestbinnotes: fix urls
+
+- ;workflows:binaries-linux-x64: add more caching
+
+- ;workflows: rename nightly -> testbin
+  The nightly tag is no longer usable, having been used in a test of
+  immutable releases on Github. The branch/tag/workflow/release is
+  now "testbin", intended for publishing unreleased binaries for testing.
+
+- readme: heading
+
+- ;dev: gitignore
+
+- ;examples:csv: opencollective: update
+
+- ;examples:csv: opencollective: update
+
+- ;examples:csv: Open Collective
+
+- ;doc:README: badges updates
+
+- ;doc:REGRESSIONS
+
+- ;doc:REGRESSIONS
+
+- fix: add, ui: better fix for add's [#2410], also fixes ui's [#2512]
+  By using newer haskeline fixing https://github.com/haskell/haskeline/issues/130.
+
+- ;examples:cctax: wording
+
+- ;doc:README: new badges provided by gitscope.dev
+
+- ;examples:csv: add Interactive Brokers example CSV rules files (#2508) (Ilja Kocken)
+
+- ;doc:cctax: updates
+
+- ;doc:cctax: updates
+
+- ;doc:cctax: updates
+
+- ;examples: csv/cctax: notes on exporting to cryptocurrency tax calculators
+
+- ;doc:relnotes: drop hackage links
+
+- ;dev: gitignore cleanups
+
+- ;doc:REGRESSIONS: reduce word wrapping in table
+
+- ;doc: ANNOUNCE: updates, new source text for announcements & blurbs
+
+- ;doc:relnotes: reorder
+
+- ;doc:relnotes: update package links
+
+- ;doc:REGRESSIONS
+
+- ;doc:ANNOUNCE: consolidate
+  Keep it short and ordered by priority for use in announcements of
+  different length
+
+- ;doc:RELEASING
+
+- ;doc: merge change docs from 1.51.1
+
+- ;doc:changelogs, relnotes: merge 1.50.5
+
+- ;scripts: fix all the scripts in ./bin. Fixes #2497 (Dmitry Astapov)
+
+- ;doc:relnotes:edits
+
+- ;doc:REGRESSIONS
+
+- ;doc:ANNOUNCE: add contributor names
+
+- ;doc:RELEASING: shorter release script
+
+- ;pkg: set version to 1.51.99
+
+- ;tools:just:ghrel-bin-upload -> ghrel-upload, fix
+
+- ;doc:ANNOUNCE.short:edit
+
+- ;doc:gh relnotes:1.51
+
+- ;doc:announcements:1.51
+
+- ;doc:relnotes:1.51
+
+- ;doc: finalise changelogs for 1.51 on 2025-12-05
+
+
 # 1.51.2 2026-01-08
 
 # 1.51.1 2025-12-08
