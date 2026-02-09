@@ -269,7 +269,17 @@ rsHandle ev = do
             VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection (regenerateScreens j d $ togglePending ui) >>= put'
             VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection (regenerateScreens j d $ toggleCleared ui) >>= put'
             VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection (regenerateScreens j d $ toggleForecast d ui) >>= put'
+			-- J/K Jumps: move 10 rows at a time
+            VtyEvent (EvKey (KChar 'J') []) -> do
+              let l' = listMoveBy 10 _rssList
+              let l'' = if isBlankElement (listSelectedElement l')
+                        then listMoveTo lastnonblankidx l'
+                        else l'
+              put' ui{aScreen=RS sst{_rssList=l''}}
 
+            VtyEvent (EvKey (KChar 'K') []) -> do
+              let l' = listMoveBy (-10) _rssList
+              put' ui{aScreen=RS sst{_rssList=l'}}
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens j d $ shrinkReportPeriod d ui
             VtyEvent (EvKey (KUp)       [MShift]) -> put' $ regenerateScreens j d $ growReportPeriod d ui
