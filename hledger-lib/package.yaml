@@ -138,6 +138,7 @@ library:
   # - Hledger.Data.JournalChecks.Uniqueleafnames
   # - Hledger.Data.Json
   # - Hledger.Data.Ledger
+  # - Hledger.Data.Lots
   # - Hledger.Data.Period
   # - Hledger.Data.PeriodData
   # - Hledger.Data.PeriodicTransaction

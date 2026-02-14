@@ -113,6 +113,7 @@ module Hledger.Data.Journal (
   journalConcat,
   journalNumberTransactions,
   journalNumberAndTieTransactions,
+  journalTieTransactions,
   journalUntieTransactions,
   journalModifyTransactions,
   journalApplyAliases,

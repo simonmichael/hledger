@@ -39,6 +39,7 @@ data InputOpts = InputOpts {
     ,auto_              :: Bool                 -- ^ generate extra postings according to auto posting rules ?
     ,infer_equity_      :: Bool                 -- ^ infer equity conversion postings from costs ?
     ,infer_costs_       :: Bool                 -- ^ infer costs from equity conversion postings ? distinct from BalancingOpts{infer_balancing_costs_}
+    ,lots_              :: Bool                 -- ^ calculate and display per-lot subaccounts for lotful commodities/accounts ?
     ,balancingopts_     :: BalancingOpts        -- ^ options for transaction balancing
     ,strict_            :: Bool                 -- ^ do extra correctness checks ?
     ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
@@ -61,6 +62,7 @@ definputopts = InputOpts
     , auto_              = False
     , infer_equity_      = False
     , infer_costs_       = False
+    , lots_              = False
     , balancingopts_     = defbalancingopts
     , strict_            = False
     , _defer             = False
