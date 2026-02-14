@@ -358,3 +358,60 @@ $ hledger -f- print -O beancount
 
 >=
 
+# * Lot calculation (--lots flag)
+
+# ** 15. With --lots, acquired lots are displayed in their own subaccounts.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy more
+    assets:stocks    5 AAPL {$55}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+              5 AAPL  assets:stocks:{2026-02-01, $55}
+>=
+
+# ** 16. Same-date acquisitions get labels added to ensure unique lot ids per commodity.
+<
+2026-01-15 buy morning
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-01-15 buy afternoon
+    assets:stocks    5 AAPL {$55}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, "0001", $50}
+              5 AAPL  assets:stocks:{2026-01-15, "0002", $55}
+>=
+
+# ** 17. User-provided labels are preserved.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50} [2026-01-15] (morning-buy)
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, "morning-buy", $50}
+>=
+
+# ** 18. User-provided labels resulting in non-unique lot ids are an error.
+<
+2026-01-15 buy first
+    assets:stocks    10 AAPL {$50} (mybuy)
+    assets:checking
+
+2026-01-15 buy second
+    assets:stocks    5 AAPL {$55} (mybuy)
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots
+>2 /lot id is not unique/
+>=1
+
+
