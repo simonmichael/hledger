@@ -23,6 +23,7 @@ module Hledger.Data (
                module Hledger.Data.JournalChecks,
                module Hledger.Data.Json,
                module Hledger.Data.Ledger,
+               module Hledger.Data.Lots,
                module Hledger.Data.Period,
                module Hledger.Data.PeriodData,
                module Hledger.Data.PeriodicTransaction,
@@ -53,6 +54,7 @@ import Hledger.Data.Journal
 import Hledger.Data.JournalChecks
 import Hledger.Data.Json
 import Hledger.Data.Ledger
+import Hledger.Data.Lots
 import Hledger.Data.Period
 import Hledger.Data.PeriodData
 import Hledger.Data.PeriodicTransaction

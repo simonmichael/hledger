@@ -332,6 +332,13 @@ data CostBasis = CostBasis {
   cbLabel :: !(Maybe Text)       -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
 } deriving (Show,Eq,Generic,Ord)
 
+-- | Identifies a specific lot of a commodity, by its acquisition date and optional label.
+-- Ordered by date first, then label (Nothing sorts before Just).
+data LotId = LotId {
+  lotDate  :: !Day,
+  lotLabel :: !(Maybe Text)
+} deriving (Show,Eq,Ord,Generic)
+
 data Amount = Amount {
   acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
   aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
@@ -899,6 +906,7 @@ instance NFData DigitGroupStyle
 instance NFData EFDay
 instance NFData Interval
 instance NFData Journal
+instance NFData LotId
 instance NFData MarketPrice
 instance NFData MixedAmount
 instance NFData MixedAmountKey
