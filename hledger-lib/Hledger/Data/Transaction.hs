@@ -300,31 +300,41 @@ transactionAddHiddenAndMaybeVisibleTag verbosetags ht t@Transaction{tcomment=c, 
 -- The verbosetags parameter controls whether the tags are made visible in comments.
 transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> Transaction -> Transaction
 transactionClassifyLotPostings verbosetags lookupAccountType t@Transaction{tpostings=ps}
-  | not (any hasCostBasis ps) = t
-  | otherwise = t{tpostings=map classifyPosting ps}
+  | not (any hasCostBasis ps) = dbg5 "classifyLotPostings: no cost basis found, skipping" t
+  | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=map classifyPosting ps}
   where
     hasCostBasis :: Posting -> Bool
-    hasCostBasis = any (isJust . acostbasis) . amountsRaw . pamount
+    hasCostBasis p = let amts = amountsRaw (pamount p)
+                         result = any (isJust . acostbasis) amts
+                     in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
 
     classifyPosting :: Posting -> Posting
     classifyPosting p =
-      case shouldClassify p of
+      case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
         Nothing -> p
         Just classification ->
-          let tag = ("ptype", classification)
-          in postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag tag) p
+          let htag = toHiddenTag ("ptype", classification)
+              p' = postingAddHiddenAndMaybeVisibleTag verbosetags htag p
+              -- ptype is an important tag, which we want `print --verbose-tags` to show, without requiring `print -x`.
+              -- The former displays poriginal, saved by transaction balancing,
+              -- which probably already happened by the time we are classifying lot postings.
+              -- To make sure --verbose-tags shows it, we'll add it to poriginal also.
+          in case poriginal p' of
+               Nothing   -> p'
+               Just orig -> p'{poriginal = Just $ postingAddHiddenAndMaybeVisibleTag verbosetags htag orig}
 
     -- Check if posting should be classified and return the classification:
     -- one of acquire, dispose, transfer-from, transfer-to.
     shouldClassify :: Posting -> Maybe Text
     shouldClassify p = do
       -- is the account an asset account ?
-      acctType <- lookupAccountType (paccount p)
+      let macctType = lookupAccountType (paccount p)
+      acctType <- dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " acctType") macctType
       guard $ isAssetType acctType
 
       -- does the posting amount have a cost basis ?
       let amts = amountsRaw $ pamount p
-      guard $ any (isJust . acostbasis) amts
+      guard $ dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " hasCostBasis") $ any (isJust . acostbasis) amts
 
       -- classify based on the sign and counterpostings
       let
