@@ -395,9 +395,6 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
       <&> journalAddForecast verbose_tags_ (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
       <&> journalPostingsAddAccountTags                                          -- Propagate account tags to postings (queryable but not visible in comments)
-      <&> journalInferPostingsCostBasis                                          -- Infer a cost basis from transacted cost when appropriate
-      <&> journalClassifyLotPostings verbose_tags_       -- Classify lot postings (acquire/dispose/transfer..), maybe with visible tags
-      <&> journalInferPostingsTransactedCost                                     -- Infer a transacted cost from cost basis for acquire postings
       >>= journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ False   -- Tag equity conversion postings and redundant costs, to help journalBalanceTransactions ignore them.
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
@@ -421,7 +418,12 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
       <&> journalRenumberAccountDeclarations
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")
-      >>= (if lots_ then journalCalculateLots else pure)
+      -- addition lots processing, with --lots:
+      <&> journalInferPostingsCostBasis                     -- Infer a cost basis from transacted cost when appropriate, for convenience
+      <&> journalClassifyLotPostings verbose_tags_          -- Classify lot postings (acquire/dispose/transfer..), maybe with visible tags.
+      <&> journalInferPostingsTransactedCost                -- In acquire postings, infer a transacted cost from cost basis, for convenience. (Not before classifying lot postings.)
+                                                            -- XXX too late for this cost to participate in transaction balancing though - problem ?
+      >>= (if lots_ then journalCalculateLots else pure)    -- Calculate lot movements, and add exact lot subaccounts
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

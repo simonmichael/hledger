@@ -13,6 +13,11 @@ date order, accumulating a map from commodities to their lots, and:
   the posting into one per lot.
   Dispose postings are required to have a transacted cost (the selling price).
 
+- For transfer postings: selects lots from the source account (like
+  dispose) and recreates them under the destination account. The lot's
+  cost basis is preserved through the transfer.
+  Multi-lot transfers are supported (eg via @{}@ to transfer all lots).
+
 For background, see doc\/SPEC-lots.md and doc\/PLAN-lots.md.
 -}
 
@@ -33,7 +38,7 @@ import Data.List (sortOn)
 import Data.List (foldl')
 #endif
 import Data.Map.Strict qualified as M
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (fromMaybe, isJust, isNothing)
 import Data.Set qualified as S
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -44,10 +49,12 @@ import Hledger.Data.Journal (journalTieTransactions)
 import Hledger.Data.Types
 import Hledger.Utils (SourcePos, sourcePosPretty)
 
--- | Map from commodity to (map from lot id to (account name, lot balance)).
+-- | Map from commodity to (map from lot id to (map from account name to lot balance)).
 -- Keyed by commodity at the top level so lots of different commodities don't clash.
 -- The inner Map LotId is ordered by date then label, supporting FIFO/LIFO naturally.
-type LotState = M.Map CommoditySymbol (M.Map LotId (AccountName, Amount))
+-- The innermost Map AccountName allows the same lot to exist at multiple accounts
+-- (eg after a partial lot transfer).
+type LotState = M.Map CommoditySymbol (M.Map LotId (M.Map AccountName Amount))
 
 -- | Render a lot name in the consolidated hledger format for use as a subaccount name.
 -- Format: @{YYYY-MM-DD, COST}@ or @{YYYY-MM-DD, \"LABEL\", COST}@.
@@ -60,9 +67,9 @@ showLotName CostBasis{cbDate, cbLabel, cbCost} =
     costPart  = maybe "" (\a -> ", " <> T.pack (showAmountWith noCostFmt a)) cbCost
 
 -- | Calculate detailed lot movements by walking transactions in date order.
--- Handles acquire postings (generating lot names as subaccounts) and
--- dispose postings (matching to existing lots using FIFO, splitting if needed).
--- Transfer postings are left unmodified for now.
+-- Handles acquire postings (generating lot names as subaccounts),
+-- dispose postings (matching to existing lots using FIFO, splitting if needed),
+-- and transfer postings (moving lots between accounts, preserving cost basis).
 journalCalculateLots :: Journal -> Either String Journal
 journalCalculateLots j
   | not $ any (any isLotPosting . tpostings) txns = Right j
@@ -77,6 +84,7 @@ journalCalculateLots j
 -- | Check if a posting has any lot-related ptype tag.
 isLotPosting :: Posting -> Bool
 isLotPosting p = isAcquirePosting p || isDisposePosting p
+             || isTransferFromPosting p || isTransferToPosting p
 
 -- | Check if a posting is an acquire posting (has _ptype:acquire tag).
 isAcquirePosting :: Posting -> Bool
@@ -122,16 +130,30 @@ validateUserLabels txns =
 getLotDate :: Transaction -> CostBasis -> Day
 getLotDate t cb = fromMaybe (tdate t) (cbDate cb)
 
--- | Process a single transaction: transform its acquire and dispose postings.
+-- | Process a single transaction: transform its acquire, dispose, and transfer postings.
+-- Transfer pairs are processed first (so that transferred lots are available for
+-- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
 processTransaction :: S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
                    -> Either String (LotState, [Transaction])
 processTransaction needsLabels (ls, acc) t = do
-    (ls', ps') <- foldMPostings ls [] (tpostings t)
-    return (ls', t{tpostings = reverse ps'} : acc)
+    -- Partition postings into transfer pairs and others
+    let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
+    pairs <- pairTransferPostings txnPos transferFroms transferTos
+    -- Process transfer pairs first, accumulating lot state changes
+    (ls', transferPs) <- foldM processOnePair (ls, []) pairs
+    -- Process remaining postings (acquire, dispose, passthrough)
+    (ls'', otherPs') <- foldMPostings ls' [] otherPs
+    -- Combine: transfer postings first, then others, preserving relative order
+    let allPs = reverse transferPs ++ reverse otherPs'
+    return (ls'', t{tpostings = allPs} : acc)
   where
     txnDate = tdate t
     txnPos = fst (tsourcepos t)
+
+    processOnePair (st, psAcc) (fromP, toP) = do
+      (st', fromPs, toPs) <- processTransferPair txnPos st fromP toP
+      return (st', reverse toPs ++ reverse fromPs ++ psAcc)
 
     foldMPostings :: LotState -> [Posting] -> [Posting] -> Either String (LotState, [Posting])
     foldMPostings st acc' [] = Right (st, acc')
@@ -144,6 +166,69 @@ processTransaction needsLabels (ls, acc) t = do
           foldMPostings st' (reverse newPs ++ acc') ps
       | otherwise =
           foldMPostings st (p:acc') ps
+
+-- | Partition a transaction's postings into transfer-from, transfer-to, and others.
+partitionTransferPostings :: [Posting] -> ([Posting], [Posting], [Posting])
+partitionTransferPostings = go [] [] []
+  where
+    go froms tos others [] = (reverse froms, reverse tos, reverse others)
+    go froms tos others (p:ps)
+      | isTransferFromPosting p = go (p:froms) tos others ps
+      | isTransferToPosting p   = go froms (p:tos) others ps
+      | otherwise               = go froms tos (p:others) ps
+
+-- | Pair transfer-from and transfer-to postings by commodity.
+-- Within each commodity group, froms and tos are sorted by cost basis fields
+-- (date, label, cost) so that explicit per-lot pairs align correctly even when
+-- interleaved. Cost basis mismatches are caught later by validation, not here.
+pairTransferPostings :: SourcePos -> [Posting] -> [Posting]
+                     -> Either String [(Posting, Posting)]
+pairTransferPostings _ [] [] = Right []
+pairTransferPostings txnPos froms tos = do
+    fromGroups <- groupByCommodity "transfer-from" froms
+    toGroups   <- groupByCommodity "transfer-to" tos
+    let allComms = S.union (M.keysSet fromGroups) (M.keysSet toGroups)
+    concat <$> mapM (matchCommodityGroup fromGroups toGroups) (S.toList allComms)
+  where
+    showPos = sourcePosPretty txnPos ++ ":\n"
+
+    -- Group postings by their lotful commodity (the one with cost basis).
+    groupByCommodity :: String -> [Posting] -> Either String (M.Map CommoditySymbol [Posting])
+    groupByCommodity label ps = do
+      tagged <- mapM (\p -> (,p) <$> postingCommodity label p) ps
+      Right $ M.map reverse $ M.fromListWith (++) [(c, [p]) | (c, p) <- tagged]
+
+    postingCommodity :: String -> Posting -> Either String CommoditySymbol
+    postingCommodity label p =
+      case [acommodity a | a <- amountsRaw (pamount p), isJust (acostbasis a)] of
+        [c] -> Right c
+        _   -> Left $ showPos ++ label ++ " posting has no lotful commodity"
+
+    -- Sort key for aligning pairs within a commodity group.
+    -- Extracts (date, label, normalized cost) from a posting's cost basis.
+    postingSortKey :: Posting -> (Maybe Day, Maybe T.Text, Maybe (CommoditySymbol, Quantity))
+    postingSortKey p =
+      case [cb | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]] of
+        [cb] -> (cbDate cb, cbLabel cb,
+                 fmap (\a -> (acommodity a, aquantity a)) (cbCost cb))
+        _    -> (Nothing, Nothing, Nothing)
+
+    matchCommodityGroup fromGroups toGroups comm = do
+      let fs = M.findWithDefault [] comm fromGroups
+          ts = M.findWithDefault [] comm toGroups
+      case (fs, ts) of
+        ([], _) -> Left $ showPos ++ "transfer-to posting for " ++ T.unpack comm
+                            ++ " has no matching transfer-from posting"
+        (_, []) -> Left $ showPos ++ "transfer-from posting for " ++ T.unpack comm
+                            ++ " has no matching transfer-to posting"
+        _ -> do
+          when (length fs /= length ts) $
+            Left $ showPos ++ "mismatched transfer postings for commodity " ++ T.unpack comm
+                       ++ ": " ++ show (length fs) ++ " transfer-from but "
+                       ++ show (length ts) ++ " transfer-to"
+          let sortedFs = sortOn postingSortKey fs
+              sortedTs = sortOn postingSortKey ts
+          Right $ zip sortedFs sortedTs
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
 processAcquirePosting :: S.Set (CommoditySymbol, Day) -> Day -> SourcePos -> LotState -> Posting
@@ -172,8 +257,8 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
               ++ " for commodity " ++ T.unpack commodity
 
     let p' = p{paccount = paccount p <> ":" <> lotName}
-    let lotState' = M.insertWith M.union commodity
-                      (M.singleton lotId (paccount p, lotAmt)) lotState
+    let lotState' = M.insertWith (M.unionWith M.union) commodity
+                      (M.singleton lotId (M.singleton (paccount p) lotAmt)) lotState
     return (lotState', p')
   where
     showPos = sourcePosPretty txnPos ++ ":\n"
@@ -200,9 +285,9 @@ processDisposePosting txnPos lotState p = do
       Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
 
     let posQty = negate disposeQty
-    selected <- selectLotsFIFO showPos commodity posQty cb lotState
+    selected <- selectLotsFIFO showPos Nothing commodity posQty cb lotState
 
-    let mkPosting (lotId, _acctName, storedAmt, consumedQty) = do
+    let mkPosting (lotId, storedAmt, consumedQty) = do
           lotCost <- case acostbasis storedAmt >>= cbCost of
             Just c  -> Right c
             Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
@@ -222,8 +307,8 @@ processDisposePosting txnPos lotState p = do
                  }
 
     newPostings <- mapM mkPosting selected
-    let consumed = [(lotId, qty) | (lotId, _, _, qty) <- selected]
-        lotState' = reduceLotState commodity consumed lotState
+    let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
+        lotState' = reduceLotState Nothing commodity consumed lotState
 
     return (lotState', newPostings)
   where
@@ -233,38 +318,146 @@ processDisposePosting txnPos lotState p = do
 isDisposePosting :: Posting -> Bool
 isDisposePosting p = ("_ptype", "dispose") `elem` ptags p
 
--- | Select lots to consume using FIFO (oldest first, across all accounts).
--- Given a commodity, a positive quantity to dispose, and a lot selector,
--- walks matching lots in key order (oldest first by date, then label).
+-- | Check if a posting is a transfer-from posting (has _ptype:transfer-from tag).
+isTransferFromPosting :: Posting -> Bool
+isTransferFromPosting p = ("_ptype", "transfer-from") `elem` ptags p
+
+-- | Check if a posting is a transfer-to posting (has _ptype:transfer-to tag).
+isTransferToPosting :: Posting -> Bool
+isTransferToPosting p = ("_ptype", "transfer-to") `elem` ptags p
+
+-- | Process a transfer pair: select lots from the source account (transfer-from)
+-- and recreate them under the destination account (transfer-to).
+-- Returns updated LotState and two lists of expanded postings (from, to).
+processTransferPair :: SourcePos -> LotState -> Posting -> Posting
+                    -> Either String (LotState, [Posting], [Posting])
+processTransferPair txnPos lotState fromP toP = do
+    -- Extract lotful amount and lot selector from transfer-from
+    let fromAmts = [(a, cb) | a <- amountsRaw (pamount fromP), Just cb <- [acostbasis a]]
+    (fromAmt, fromCb) <- case fromAmts of
+      []  -> Left $ showPos ++ "transfer-from posting has no cost basis"
+      [x] -> Right x
+      _   -> Left $ showPos ++ "transfer-from posting has multiple cost basis amounts (not yet supported)"
+
+    let commodity = acommodity fromAmt
+        transferQty = aquantity fromAmt
+
+    let toAmts = amountsRaw (pamount toP)
+
+    -- Validate transfer-from has negative quantity
+    when (transferQty >= 0) $
+      Left $ showPos ++ "transfer-from posting has non-negative quantity for " ++ T.unpack commodity
+
+    let posQty = negate transferQty
+
+    -- Select lots from source using FIFO
+    selected <- selectLotsFIFO showPos (Just (paccount fromP)) commodity posQty fromCb lotState
+
+    -- Extract the transfer-to cost basis for optional validation
+    let toCb = case [(a, cb) | a <- toAmts, Just cb <- [acostbasis a]] of
+                 [(_, cb)] -> Just cb
+                 _         -> Nothing
+
+    -- For each selected lot, generate from and to postings
+    (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings fromAmt toCb commodity) selected
+
+    -- Update lot state: remove from source, add to destination
+    let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
+        lotState' = reduceLotState (Just (paccount fromP)) commodity consumed lotState
+        lotState'' = foldl' (addTransferredLot commodity (paccount toP)) lotState' selected
+
+    return (lotState'', fromPs, toPs)
+  where
+    showPos = sourcePosPretty txnPos ++ ":\n"
+
+    mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
+        lotCost <- case acostbasis storedAmt >>= cbCost of
+          Just c  -> Right c
+          Nothing -> Left $ showPos ++ "lot " ++ show lotId
+                              ++ " for commodity " ++ T.unpack commodity
+                              ++ " has no cost basis (internal error)"
+        let lotCb = CostBasis
+              { cbDate  = Just (lotDate lotId)
+              , cbLabel = lotLabel lotId
+              , cbCost  = Just lotCost
+              }
+            lotName = showLotName lotCb
+
+        -- Validate transfer-to cost basis if it has specific fields
+        validateToCb toCb lotCb commodity
+
+        let fromAmt' = fromAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
+            toAmt'   = fromAmt'{aquantity = consumedQty}
+            fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
+                          , pamount  = mixedAmount fromAmt'
+                          }
+            toP'   = toP{ paccount = paccount toP <> ":" <> lotName
+                        , pamount  = mixedAmount toAmt'
+                        }
+        Right (fromP', toP')
+
+    -- Validate that transfer-to cost basis (if specified with concrete fields)
+    -- matches the lot's cost basis.
+    validateToCb Nothing _ _ = Right ()
+    validateToCb (Just toCb') lotCb commodity = do
+      case cbCost toCb' of
+        Just toCost | Just lotCost <- cbCost lotCb ->
+          when (acommodity toCost /= acommodity lotCost || aquantity toCost /= aquantity lotCost) $
+            Left $ showPos ++ "transfer-to cost basis " ++ T.unpack (showLotName toCb')
+                     ++ " does not match lot cost basis " ++ T.unpack (showLotName lotCb)
+                     ++ " for commodity " ++ T.unpack commodity
+        _ -> Right ()
+
+    -- Re-add a transferred lot to LotState under the destination account.
+    addTransferredLot commodity destAcct ls (lotId, storedAmt, consumedQty) =
+      let amt = storedAmt{aquantity = consumedQty}
+      in M.insertWith (M.unionWith M.union) commodity
+           (M.singleton lotId (M.singleton destAcct amt)) ls
+
+-- | Select lots to consume using FIFO (oldest first).
+-- When account is @Nothing@, selects globally across all accounts (for disposals).
+-- When account is @Just acct@, selects only from that account (for transfers).
 -- The lot selector filters which lots are eligible: each non-Nothing field
 -- in the selector must match the corresponding field in the lot's cost basis.
 -- An all-Nothing selector (from @{}@) matches all lots.
--- Returns a list of (lot id, account name, lot amount, quantity consumed from this lot).
+-- Returns a list of (lot id, lot amount, quantity consumed from this lot).
 -- Errors if total available quantity in matching lots is insufficient.
-selectLotsFIFO :: String -> CommoditySymbol -> Quantity -> CostBasis -> LotState
-               -> Either String [(LotId, AccountName, Amount, Quantity)]
-selectLotsFIFO posStr commodity qty selector lotState = do
+selectLotsFIFO :: String -> Maybe AccountName -> CommoditySymbol -> Quantity -> CostBasis -> LotState
+               -> Either String [(LotId, Amount, Quantity)]
+selectLotsFIFO posStr maccount commodity qty selector lotState = do
     let allLots = M.findWithDefault M.empty commodity lotState
-        matchingLots = M.filter (lotMatchesSelector selector) allLots
+        -- Flatten to (LotId, Amount) pairs, optionally filtering by account.
+        -- For global selection, sum quantities across accounts per lot.
+        -- For per-account selection, take only the specified account's balance.
+        flatLots = case maccount of
+          Nothing   -> M.mapMaybe pickAny allLots
+          Just acct -> M.mapMaybe (M.lookup acct) allLots
+        matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
       Left $ posStr ++ "no lots available for commodity " ++ T.unpack commodity
-    let available = sum [aquantity a | (_, a) <- M.elems matchingLots]
+    let available = sum [aquantity a | a <- M.elems matchingLots]
     when (available < qty) $
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
     Right $ go qty (M.toAscList matchingLots)
   where
+    -- For global selection, pick any account's Amount as representative
+    -- (they all share the same cost basis) and sum the total quantity.
+    pickAny acctMap = case M.elems acctMap of
+      []    -> Nothing
+      (a:_) -> Just a{aquantity = sum [aquantity x | x <- M.elems acctMap]}
+
     go 0 _ = []
     go _ [] = []  -- shouldn't happen after the check above
-    go remaining ((lotId, (acctName, lotAmt)):rest)
-      | remaining >= lotBal = (lotId, acctName, lotAmt, lotBal) : go (remaining - lotBal) rest
-      | otherwise           = [(lotId, acctName, lotAmt, remaining)]
+    go remaining ((lotId, lotAmt):rest)
+      | remaining >= lotBal = (lotId, lotAmt, lotBal) : go (remaining - lotBal) rest
+      | otherwise           = [(lotId, lotAmt, remaining)]
       where lotBal = aquantity lotAmt
 
 -- | Does a lot match a lot selector?
 -- Each non-Nothing field in the selector must match the lot's stored cost basis.
-lotMatchesSelector :: CostBasis -> (AccountName, Amount) -> Bool
-lotMatchesSelector selector (_, a) =
+lotMatchesSelector :: CostBasis -> Amount -> Bool
+lotMatchesSelector selector a =
     case acostbasis a of
       Nothing    -> False
       Just lotCb -> matchCost (cbCost selector) (cbCost lotCb)
@@ -282,16 +475,33 @@ lotMatchesSelector selector (_, a) =
     matchCost (Just sel) (Just lot) = acommodity sel == acommodity lot
                                    && aquantity sel == aquantity lot
 
--- | Subtract consumed quantities from LotState. Removes lots whose balance reaches zero.
-reduceLotState :: CommoditySymbol -> [(LotId, Quantity)] -> LotState -> LotState
-reduceLotState commodity consumed = M.adjust adjustCommodity commodity
+-- | Subtract consumed quantities from LotState.
+-- When account is @Nothing@, reduces globally across all accounts for each lot
+-- (consuming from accounts in map order until the quantity is fulfilled).
+-- When account is @Just acct@, reduces only from that specific account.
+-- Removes lot-account entries whose balance reaches zero.
+-- Removes the lot entirely if no accounts remain.
+reduceLotState :: Maybe AccountName -> CommoditySymbol -> [(LotId, Quantity)] -> LotState -> LotState
+reduceLotState maccount commodity consumed = M.adjust adjustCommodity commodity
   where
     adjustCommodity lots = foldl' reduceLot lots consumed
-    reduceLot lots (lotId, qty) = M.update shrink lotId lots
+    reduceLot lots (lotId, qty) = M.update shrinkLot lotId lots
       where
-        shrink (acctName, a)
-          | aquantity a <= qty = Nothing  -- fully consumed, remove
-          | otherwise          = Just (acctName, a{aquantity = aquantity a - qty})
+        shrinkLot acctMap =
+          let acctMap' = case maccount of
+                Just acct -> M.update (shrinkAmt qty) acct acctMap
+                Nothing   -> reduceAcrossAccounts qty acctMap
+          in if M.null acctMap' then Nothing else Just acctMap'
+        shrinkAmt qty a
+          | aquantity a <= qty = Nothing
+          | otherwise          = Just a{aquantity = aquantity a - qty}
+        -- Reduce across all accounts, consuming from each in map order.
+        reduceAcrossAccounts 0 m = m
+        reduceAcrossAccounts remaining m = case M.minViewWithKey m of
+          Nothing -> m  -- shouldn't happen
+          Just ((acct, a), rest)
+            | aquantity a <= remaining -> reduceAcrossAccounts (remaining - aquantity a) rest
+            | otherwise -> M.insert acct a{aquantity = aquantity a - remaining} rest
 
 -- | Generate a label for a lot that needs one (due to same-date collision).
 -- Uses a sequence number formatted as four (or more) digits: "0001", "0002", etc.
