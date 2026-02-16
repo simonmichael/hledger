@@ -20,6 +20,8 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Posting tags inherited from accounts                        | Account declarations                                      | journalPostingsAddAccountTags            |
 | Location of conversion equity postings and costful postings | @/@@ annotations + adjacent conversion account postings   | journalTagCostsAndEquity...(1st)         |
 | Auto postings                                               | Auto posting rules + postings in journal                  | journalAddAutoPostings                   |
+| Lot posting types                                           | Cost basis + amount sign + account type + counterpostings | journalClassifyLotPostings               |
+| Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
 | Transaction-balancing amounts                               | Counterpostings (or their costs)                          | journalBalanceTransactions               |
 | Transaction-balancing costs                                 | Costless two-commodity transactions                       | transactionInferBalancingCosts           |
 | Balance assignment amounts                                  | Running account balances vs asserted balances             | journalBalanceTransactions               |
@@ -28,9 +30,6 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Costs from equity postings (--infer-costs)                  | Equity conversion posting pairs                           | journalTagCostsAndEquity...(2nd)         |
 | Equity postings from costs (--infer-equity)                 | Costful postings                                          | journalInferEquityFromCosts              |
 | Market prices from costs                                    | Costful postings                                          | journalInferMarketPricesFromTransactions |
-| Cost basis from cost                                        | Positive costful postings in lotful commodities/accounts  | journalInferPostingsCostBasis            |
-| Lot posting types                                           | Cost basis + amount sign + account type + counterpostings | journalClassifyLotPostings               |
-| Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
 | Lot subaccounts                                             | Lot state tracking (applying FIFO etc.)                   | journalCalculateLots                     |
 
 ## Current pipeline sequence
@@ -59,23 +58,24 @@ journalFinalise
   9.  journalAddAutoPostings            -- if --auto, do transaction balancing (preliminary) to infer some missing amounts/costs,
                                         -- then apply auto posting rules. Calls journalBalanceTransactions.
 
+  -- Lot classification and transacted cost inference (before balancing)
+  10. journalClassifyLotPostings         -- tag lot postings as acquire/dispose/transfer-from/transfer-to
+  11. journalInferPostingsTransactedCost  -- infer cost from cost basis of acquire postings 
+
   -- Transaction balancing (main)
-  10. journalBalanceTransactions        -- infer remaining balancing amounts, balancing costs, and balance assignment amounts;
+  12. journalBalanceTransactions         -- infer remaining balancing amounts, balancing costs, and balance assignment amounts;
                                         -- and check transactions balanced and (unless --ignore-assertions) balance assertions satisfied.
 
   -- Post-balancing enrichment
-  11. journalInferCommodityStyles        -- infer canonical commodity styles, now with all amounts present
-  12. journalPostingsAddCommodityTags    -- propagate commodity tags to postings
-  13. journalTagCostsAndEquity...(2nd)   -- if --infer-costs, infer costs from equity conversion postings
-  14. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
-  15. journalInferMarketPricesFromTransactions  -- if --infer-market-prices, infer market prices from costs
+  13. journalInferCommodityStyles        -- infer canonical commodity styles, now with all amounts present
+  14. journalPostingsAddCommodityTags    -- propagate commodity tags to postings
+  15. journalTagCostsAndEquity...(2nd)   -- if --infer-costs, infer costs from equity conversion postings
+  16. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
+  17. journalInferMarketPricesFromTransactions  -- infer market prices from costs
 
-  -- Lot processing
-  16. journalInferPostingsCostBasis      -- infer cost basis of positive postings in a lotful account or commodity
-  17. journalClassifyLotPostings         -- tag lot postings as acquire/dispose/transfer-from/transfer-to
-  18. journalInferPostingsTransactedCost -- infer cost from cost basis of acquire postings
-  19. journalCalculateLots               -- with --lots: evaluate lot selectors, apply reduction methods,
-                                         -- calculate lot balances, add explicit lot subaccounts
+  -- Lot calculation
+  18. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
+                                        -- calculate lot balances, add explicit lot subaccounts
 ```
 
 ## Sequencing constraints
@@ -88,54 +88,39 @@ An arrow A → B means "A must run before B".
 - **journalAddAccountTypes → journalClassifyLotPostings**
   Classification looks up account types to identify Asset accounts.
 
-- **journalPostingsAddAccountTags → journalInferPostingsCostBasis**
-  Cost basis inference checks `postingUsesLots` which reads `ptags` (account `lots:` tag).
+- **journalPostingsAddAccountTags → journalClassifyLotPostings**
+  Classification may need `lots:` tags inherited from account declarations (in `ptags`).
 
 - **journalTagCostsAndEquity...(1st) → journalBalanceTransactions**
   The balancer needs to know which costs are redundant (equity-paired) to ignore them.
-
-- **journalBalanceTransactions → journalPostingsAddCommodityTags**
-  Balancing may infer missing posting amounts, changing their commodity from `AUTO` to a
-  real commodity. Commodity tag propagation should see the real commodity so it can
-  add the right tags. (In practice this is a soft constraint: the main consumer,
-  `journalInferPostingsCostBasis`, reads `jdeclaredcommoditytags` directly
-  rather than relying on commodity tags in `ptags`.)
-
-- **journalPostingsAddCommodityTags → journalInferPostingsCostBasis**
-  Cost basis inference checks `journalCommodityUsesLots`.
-  (Currently commodity tags are also propagated to ptags, but the inference
-  uses `journalCommodityUsesLots` which reads jdeclaredcommoditytags directly,
-  so this constraint may be soft.)
-
-- **journalInferPostingsCostBasis → journalClassifyLotPostings**
-  Classification checks `acostbasis`; some postings only get it via inference from `acost`.
 
 - **journalClassifyLotPostings → journalInferPostingsTransactedCost**
   Transacted cost inference skips `transfer-to` postings (which have no selling price),
   so it needs the `_ptype` tag to be present.
 
+- **journalInferPostingsTransactedCost → journalBalanceTransactions**
+  The balancer needs transacted costs to correctly infer missing amounts
+  (e.g., infer `-$500` for cash, not `-10 AAPL {$50}`).
+
+- **journalBalanceTransactions → journalPostingsAddCommodityTags**
+  Balancing may infer missing posting amounts, changing their commodity from `AUTO` to a
+  real commodity. Commodity tag propagation should see the real commodity so it can
+  add the right tags. (In practice this is a soft constraint: `journalInferPostingsCostBasis`
+  reads `jdeclaredcommoditytags` directly rather than relying on commodity tags in `ptags`.)
+
 - **journalClassifyLotPostings → journalCalculateLots**
   Lot calculation reads `_ptype` tags to identify acquire/dispose/transfer postings.
 
-### Conflicts / tensions
+### Design decisions
 
-- **journalInferPostingsTransactedCost vs journalBalanceTransactions**
-  The balancer infers balancing costs for two-commodity transactions with no `acost`.
-  If a posting has `{$50}` but no `@ $50`, the balancer sees no transacted cost and
-  infers `@@ $totalcost` — which works but (a) sets `poriginal` (complicating later
-  tag visibility in `print`), and (b) infers `-10 AAPL {$50}` for the cash counterpart
-  instead of `-$500` (breaking lot classification for the counterpart).
+- **Acquisitions require explicit `{}` cost basis annotation.**
+  Previously, `journalInferPostingsCostBasis` could infer `{$50}` from `@ $50` on lotful
+  commodities/accounts. This step has been removed to allow classification to run before
+  balancing. Without it, `@ $50` alone on a lotful commodity does not trigger lot classification.
 
-  If `journalInferPostingsTransactedCost` ran before balancing, the balancer would see
-  `@ $50` and infer `-$500` correctly. But then it can't skip transfer-to postings
-  (not yet classified), so it would add unwanted `@ $50` to transfer-to postings.
-
-  **This is the main unresolved sequencing conflict.**
-
-- **journalClassifyLotPostings vs poriginal**
-  Classification adds `_ptype` tags after balancing has set `poriginal`.
-  The `print` command uses `poriginal` by default, so the tags wouldn't be visible
-  with `--verbose-tags`. Current fix: classification also adds the tag to `poriginal`.
+- **Classification before balancing resolves the poriginal conflict.**
+  Since `_ptype` tags are added before the balancer sets `poriginal`, the tags are
+  naturally preserved in `poriginal` and visible in `print --verbose-tags` output.
 
 ## Key fields on Amount
 
@@ -147,13 +132,13 @@ These fields are central to the inference pipeline:
   inferred from cost basis.
 
 - **acostbasis** — lot cost basis (`{$50}` or `{2024-01-15, "lot1", $50}`).
-  Sources: parsed from journal, inferred from transacted cost on lotful postings.
+  Sources: parsed from journal (explicit `{}` required for lot tracking).
   Used by lot posting classification and lot calculation.
 
-These two fields are sometimes both present on the same amount (both explicit, or one or both inferred).
-Earlier pipeline steps (`journalInferCostBasis`, `journalInferPostingsTransactedCost`,
-`transactionInferBalancingCosts`) may infer one from the other, so in later steps
-you cannot assume that the presence of `acost` means the user wrote `@ $X`.
+These two fields are sometimes both present on the same amount (both explicit, or one inferred).
+`journalInferPostingsTransactedCost` and `transactionInferBalancingCosts` may infer
+`acost` from `acostbasis` or from counterpostings, so in later steps you cannot assume
+that the presence of `acost` means the user wrote `@ $X`.
 
 ## Key fields on Posting
 
@@ -164,9 +149,8 @@ you cannot assume that the presence of `acost` means the user wrote `@ $X`.
 - **poriginal** — snapshot of the posting before amount/cost inference, used by `print`
   to show journal entries close to how they were written. Set by: `transactionInferBalancingCosts`,
   `transactionInferBalancingAmount`, balance assignment processing,
-  `postingInferTransactedCost`. Not set by tag-adding steps (they modify the current
-  posting only), but `journalClassifyLotPostings` propagates `_ptype` to `poriginal`
-  as a special case (so `print --verbose-tags` works).
+  `postingInferTransactedCost`. Since classification runs before these steps,
+  `_ptype` tags are naturally included in `poriginal`.
 
 ## Conditional steps
 

@@ -313,15 +313,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType t@Transaction{tpost
       case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
         Nothing -> p
         Just classification ->
-          let htag = toHiddenTag ("ptype", classification)
-              p' = postingAddHiddenAndMaybeVisibleTag verbosetags htag p
-              -- ptype is an important tag, which we want `print --verbose-tags` to show, without requiring `print -x`.
-              -- The former displays poriginal, saved by transaction balancing,
-              -- which probably already happened by the time we are classifying lot postings.
-              -- To make sure --verbose-tags shows it, we'll add it to poriginal also.
-          in case poriginal p' of
-               Nothing   -> p'
-               Just orig -> p'{poriginal = Just $ postingAddHiddenAndMaybeVisibleTag verbosetags htag orig}
+          let tag = ("ptype", classification)
+          in postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag tag) p
 
     -- Check if posting should be classified and return the classification:
     -- one of acquire, dispose, transfer-from, transfer-to.

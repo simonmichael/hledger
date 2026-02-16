@@ -1,21 +1,18 @@
-# * Infer cost basis ({}) from transacted cost (@), for commodities with lots: tag.
-# Spec:
-# infer cost basis from transacted cost when acquiring:
-#  when a posting involving a positive amount of a commodity with the lots: tag
-#   has a transacted cost annotation but no cost basis annotation,
-#    infer its cost basis from the transacted cost and date.
+# * Cost basis ({}) on lot postings.
+# Acquisitions in lotful commodities/accounts require explicit {} cost basis annotation.
+# Transacted cost (@ @@) is inferred from cost basis for acquire postings, to help transaction balancing.
 
-# ** 1. Cost basis is inferred from transacted cost when commodity has lots: tag and amount is positive.
+# ** 1. Explicit cost basis on lotful commodity is shown; transacted cost is inferred.
 <
 commodity AAPL   ; lots:
 
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL @ $100
+    assets:brokerage    10 AAPL {$100}
     assets:cash
 
 $ hledger -f - print
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$100} @ $100
+    assets:brokerage    10 AAPL {$100}
     assets:cash
 
 >=
@@ -65,7 +62,7 @@ $ hledger -f - print
 
 >=
 
-# ** 5. Cost basis is always per-unit, even if inferred from a total cost (@@).
+# ** 5. Without explicit cost basis, a lotful commodity posting is not classified as a lot posting.
 <
 commodity AAPL   ; lots:
 
@@ -73,9 +70,9 @@ commodity AAPL   ; lots:
     assets:brokerage    10 AAPL @@ $1000
     assets:cash
 
-$ hledger -f - print
+$ hledger -f - print --verbose-tags
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$100} @@ $1000
+    assets:brokerage    10 AAPL @@ $1000
     assets:cash
 
 >=
