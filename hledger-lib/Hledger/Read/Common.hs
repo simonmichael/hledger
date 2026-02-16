@@ -403,6 +403,13 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
        -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalPostingAmountsDebug)
+      -- Lot posting classification and transacted cost inference, before balancing.
+      -- Classification needs account types (step 4) and acostbasis (from parsing; {} is required on acquisitions).
+      -- Transacted cost inference needs _ptype tags (to skip transfer-to postings).
+      -- The balancer needs transacted costs to correctly infer missing amounts (eg -$500 not -10 AAPL).
+      <&> journalClassifyLotPostings verbose_tags_          -- Classify lot postings (acquire/dispose/transfer..), maybe with visible tags.
+      <&> journalInferPostingsTransactedCost                -- In acquire postings, infer a transacted cost from cost basis.
+      <&> dbg9With (lbl "amounts after lot-classifying".showJournalPostingAmountsDebug)
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
       >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments and missing amounts, and maybe check balance assertions.
       <&> dbg9With (lbl "amounts after transaction-balancing".showJournalPostingAmountsDebug)
@@ -418,12 +425,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
       <&> journalRenumberAccountDeclarations
       <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")
-      -- addition lots processing, with --lots:
-      <&> journalInferPostingsCostBasis                     -- Infer a cost basis from transacted cost when appropriate, for convenience
-      <&> journalClassifyLotPostings verbose_tags_          -- Classify lot postings (acquire/dispose/transfer..), maybe with visible tags.
-      <&> journalInferPostingsTransactedCost                -- In acquire postings, infer a transacted cost from cost basis, for convenience. (Not before classifying lot postings.)
-                                                            -- XXX too late for this cost to participate in transaction balancing though - problem ?
-      >>= (if lots_ then journalCalculateLots else pure)    -- Calculate lot movements, and add exact lot subaccounts
+      >>= (if lots_ then journalCalculateLots else pure)    -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.
