@@ -1,4 +1,9 @@
-# * Lot syntax
+# An overview of lot functional tests:
+# 1. This file covers basic input/output of lot syntax.
+# 2. lots-*-entries.test cover basic lot posting classification and calculation, for many journal entry variants.
+# 3. lots-*.test cover more complex lot scenarios.
+
+# * Reading and writing lot syntax
 
 # ** 1. Ledger-style lot syntax is parsed and reproduced in print output.
 <
@@ -13,7 +18,20 @@ $ hledger -f- print
 
 >=
 
-# ** 2. Lot info appears in the acostbasis field in JSON output.
+# ** 2. Empty cost basis annotations like {} are also preserved in print output.
+<
+2026-01-01
+    assets:broker    10 AAPL {}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:broker      10 AAPL {}
+    assets:cash
+
+>=
+
+# ** 3. print's json output shows lot info in the acostbasis field.
 $ hledger -f- print -O json
 [
   {
@@ -153,7 +171,7 @@ $ hledger -f- print -O json
   }
 ]
 
-# ** 3. Lot info appears in Beancount lot syntax in beancount output.
+# ** 4. print's beancount output shows lot info with Beancount lot syntax.
 <
 2026-01-01 Buy stocks with full lot info
     assets:investment    10 AAPL {$150} [2026-01-01] (lot1)
@@ -194,7 +212,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# ** 4. Most reports aggregate amounts, hiding cost and cost basis by default.
+# ** 5. Most other reports ignore cost basis by default
 <
 2026-01-01 Buy with transaction cost
     assets:broker    10 AAPL @ $160
@@ -209,118 +227,7 @@ $ hledger -f- bal assets:broker
 --------------------
              20 AAPL  
 
-# ** 5. An empty cost basis annotation {} is preserved in print output.
-<
-2026-01-01
-    assets:broker    10 AAPL {}
-    assets:cash
-
-$ hledger -f- print
-2026-01-01
-    assets:broker      10 AAPL {}
-    assets:cash
-
->=
-
-# * Lot posting classification
-
-# ** 6. Simple acquire - positive amount to Asset account with cost basis gets ptype:acquire tag
-<
-2026-01-01 Buy stock
-    assets:broker     10 AAPL {$100}
-    assets:cash      -$1000
-
-$ hledger -f- print --verbose-tags
-2026-01-01 Buy stock
-    assets:broker    10 AAPL {$100}  ; ptype: acquire
-    assets:cash              $-1000
-
->=
-
-# ** 7. Simple dispose - negative amount to Asset account with cost basis gets ptype:dispose tag
-<
-2026-01-02 Sell stock
-    assets:broker    -5 AAPL {$100}
-    assets:cash       $500
-
-$ hledger -f- print --verbose-tags
-2026-01-02 Sell stock
-    assets:broker    -5 AAPL {$100}  ; ptype: dispose
-    assets:cash                $500
-
->=
-
-# ** 8. Transfer between Asset accounts gets ptype:transfer-from and ptype:transfer-to tags
-<
-2026-01-03 Transfer
-    assets:broker1   -10 AAPL {$100}
-    assets:broker2    10 AAPL {$100}
-
-$ hledger -f- print --verbose-tags
-2026-01-03 Transfer
-    assets:broker1    -10 AAPL {$100}  ; ptype: transfer-from
-    assets:broker2     10 AAPL {$100}  ; ptype: transfer-to
-
->=
-
-# ** 9. No cost basis (@ instead of {}) - should not be classified
-<
-2026-01-04 Buy with @
-    assets:broker     10 AAPL @ $100
-    assets:cash      -$1000
-
-$ hledger -f- print
-2026-01-04 Buy with @
-    assets:broker    10 AAPL @ $100
-    assets:cash              $-1000
-
->=
-
-# ** 10. Non-Asset account - should not be classified even with cost basis
-<
-2026-01-05 Equity
-    equity:conversion   10 AAPL {$100}
-    assets:cash        -$1000
-
-$ hledger -f- print
-2026-01-05 Equity
-    equity:conversion    10 AAPL {$100}
-    assets:cash                  $-1000
-
->=
-
-# ** 11. Cash-type account is recognised as Asset for lot classification.
-<
-commodity USDC  ; lots:
-account assets:usdc  ; type: Cash
-
-2026-01-06 Buy USDC
-    assets:usdc       1000 USDC {$1}
-    assets:cash     -$1000
-
-$ hledger -f- print --verbose-tags
-2026-01-06 Buy USDC
-    assets:usdc    1000 USDC {$1}  ; ptype: acquire
-    assets:cash            $-1000
-
->=
-
-# ** 12. Account-level lots: tag also triggers lot classification.
-<
-account assets:broker  ; lots:
-
-2026-01-07 Buy stock
-    assets:broker     10 AAPL {$100}
-    assets:cash     -$1000
-
-$ hledger -f- print --verbose-tags
-2026-01-07 Buy stock
-    assets:broker    10 AAPL {$100}  ; ptype: acquire
-    assets:cash              $-1000
-
->=
-
-# ** 13. Account lots: tag value becomes beancount booking method in open directive.
+# ** 13. In beancount output, an account's lots: tag value becomes the account's booking method
 <
 account assets:broker  ; lots: FIFO
 
@@ -356,263 +263,3 @@ $ hledger -f- print -O beancount
 
 >=
 
-# * Lot calculation (--lots flag)
-
-# ** 15. With --lots, acquired lots are displayed in their own subaccounts.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 buy more
-    assets:stocks    5 AAPL {$55}
-    assets:checking
-
-$ hledger -f- bal assets:stocks --lots -N
-             10 AAPL  assets:stocks:{2026-01-15, $50}
-              5 AAPL  assets:stocks:{2026-02-01, $55}
-
-# ** 16. Same-date acquisitions get labels added to ensure unique lot ids per commodity.
-<
-2026-01-15 buy morning
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-01-15 buy afternoon
-    assets:stocks    5 AAPL {$55}
-    assets:checking
-
-$ hledger -f- bal assets:stocks --lots -N
-             10 AAPL  assets:stocks:{2026-01-15, "0001", $50}
-              5 AAPL  assets:stocks:{2026-01-15, "0002", $55}
-
-# ** 17. User-provided labels are preserved.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50} [2026-01-15] (morning-buy)
-    assets:checking
-
-$ hledger -f- bal assets:stocks --lots -N
-             10 AAPL  assets:stocks:{2026-01-15, "morning-buy", $50}
-
-# ** 18. User-provided labels resulting in non-unique lot ids are an error.
-<
-2026-01-15 buy first
-    assets:stocks    10 AAPL {$50} (mybuy)
-    assets:checking
-
-2026-01-15 buy second
-    assets:stocks    5 AAPL {$55} (mybuy)
-    assets:checking
-
-$ hledger -f- bal assets:stocks --lots
->2 /lot id is not unique/
->=1
-
-# * Lot disposal (--lots flag, FIFO)
-
-# ** 19. Simple single-lot disposal: the sell posting selects the appropriate lot subaccount.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell
-    assets:stocks    -5 AAPL {$50} @ $50
-    assets:cash       $250
-
-$ hledger -f- bal assets:stocks --lots -N
-              5 AAPL  assets:stocks:{2026-01-15, $50}
-
-# ** 20. Full lot consumption: the lot is fully consumed.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell all
-    assets:stocks   -10 AAPL {$50} @ $50
-    assets:cash       $500
-
-$ hledger -f- bal assets:stocks --lots -N
-
-# ** 21. FIFO multi-lot disposal: sell with {} can select multiple lots, oldest first.
-<
-2026-01-15 buy cheap
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 buy expensive
-    assets:stocks    10 AAPL {$60}
-    assets:checking
-
-2026-03-01 sell some
-    assets:stocks   -15 AAPL {} @ $55
-    assets:cash      $825
-
-$ hledger -f- bal assets:stocks --lots -N
-              5 AAPL  assets:stocks:{2026-02-01, $60}
-
-# ** 22. Insufficient lots error: disposing more than is available at the specified cost fails.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell too many
-    assets:stocks   -15 AAPL {$50} @ $55
-    assets:cash      $825
-
-$ hledger -f- bal assets:stocks --lots
->2 /insufficient lots/
->=1
-
-# ** 23. Disposing when there's no lots at all gives a different error, apparently. ?
-<
-2026-02-01 sell without buying
-    assets:stocks    -5 AAPL {$50} @ $55
-    assets:cash       $275
-
-$ hledger -f- bal assets:stocks --lots
->2 /no lots available/
->=1
-
-# ** 24. Multiple disposals reduce lots correctly.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell some
-    assets:stocks    -3 AAPL {$50} @ $50
-    assets:cash       $150
-
-2026-02-15 sell more
-    assets:stocks    -4 AAPL {$50} @ $50
-    assets:cash       $200
-
-2026-03-01 sell rest
-    assets:stocks    -3 AAPL {$50} @ $50
-    assets:cash       $150
-
-$ hledger -f- bal assets:stocks --lots -N
-
-# ** 25. A dispose posting with unknown transacted cost (selling price) is an error.
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell
-    assets:stocks    -5 AAPL {$50}
-    assets:cash
-
-$ hledger -f- bal assets:stocks --lots
->2 /no transacted cost/
->=1
-
-# * Lot transfers (--lots flag)
-
-# ** 26. Simple single-lot transfer between two broker accounts.
-<
-2026-01-15 buy
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2    10 AAPL {$50}
-
-$ hledger -f- bal assets:broker --lots -N
-             10 AAPL  assets:broker2:{2026-01-15, $50}
-
-# ** 27. Wildcard multi-lot transfer with {}.
-<
-commodity AAPL  ; lots:
-account assets:broker1  ; lots:
-account assets:broker2  ; lots:
-
-2026-01-15 buy cheap
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 buy expensive
-    assets:broker1     5 AAPL {$60}
-    assets:checking
-
-2026-03-01 transfer all
-    assets:broker1   -15 AAPL {}
-    assets:broker2    15 AAPL {}
-
-$ hledger -f- bal assets:broker --lots -N
-             10 AAPL  assets:broker2:{2026-01-15, $50}
-              5 AAPL  assets:broker2:{2026-02-01, $60}
-
-# ** 28. Transfer then dispose from new account.
-<
-2026-01-15 buy
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2    10 AAPL {$50}
-
-2026-03-01 sell from broker2
-    assets:broker2    -5 AAPL {$50} @ $70
-    assets:cash       $350
-
-$ hledger -f- bal assets:broker --lots -N
-              5 AAPL  assets:broker2:{2026-01-15, $50}
-
-# ** 29. Transfer with matching cost basis on transfer-to (validation passes).
-<
-2026-01-15 buy
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2    10 AAPL {$50}
-
-$ hledger -f- bal assets:broker --lots -N
-             10 AAPL  assets:broker2:{2026-01-15, $50}
-
-# ** 30. Transfer with mismatched cost basis on transfer-to is an error.
-<
-2026-01-15 buy
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2    10 AAPL {$60}
-
-$ hledger -f- bal assets:broker --lots
->2 /does not match lot cost basis/
->=1
-
-# ** 31. Transfer without prior acquisition is an error.
-<
-2026-02-01 transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2    10 AAPL {$50}
-
-$ hledger -f- bal assets:broker --lots
->2 /no lots available/
->=1
-
-# ** 32. Mismatched transfer counts (1 from, 2 to) is an error.
-<
-2026-01-15 buy
-    assets:broker1    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 split transfer
-    assets:broker1   -10 AAPL {$50}
-    assets:broker2     5 AAPL {$50}
-    assets:broker3     5 AAPL {$50}
-
-$ hledger -f- bal assets:broker --lots
->2 /mismatched transfer postings/
->=1

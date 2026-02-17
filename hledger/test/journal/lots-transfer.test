@@ -1,0 +1,166 @@
+# Testing lot transfer scenarios.
+
+# * Lot transfers
+
+# ** 1. Simple transfer - gets ptype:transfer-from and ptype:transfer-to tags
+<
+2026-01-03 Transfer
+    assets:broker1   -10 AAPL {$100}
+    assets:broker2    10 AAPL {$100}
+
+$ hledger -f- print --verbose-tags
+2026-01-03 Transfer
+    assets:broker1    -10 AAPL {$100}  ; ptype: transfer-from
+    assets:broker2     10 AAPL {$100}  ; ptype: transfer-to
+
+>=
+
+# ** 2. Simple single-lot transfer between two broker accounts.
+<
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL {$50}
+
+$ hledger -f- bal assets:broker --lots -N
+             10 AAPL  assets:broker2:{2026-01-15, $50}
+
+# ** 3. Wildcard multi-lot transfer with {}.
+<
+commodity AAPL  ; lots:
+account assets:broker1  ; lots:
+account assets:broker2  ; lots:
+
+2026-01-15 buy cheap
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:broker1     5 AAPL {$60}
+    assets:checking
+
+2026-03-01 transfer all
+    assets:broker1   -15 AAPL {}
+    assets:broker2    15 AAPL {}
+
+$ hledger -f- bal assets:broker --lots -N
+             10 AAPL  assets:broker2:{2026-01-15, $50}
+              5 AAPL  assets:broker2:{2026-02-01, $60}
+
+# ** 4. Transfer-to posting without {} is classified when commodity has lots: tag.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:broker1     10 AAPL {$50}  ; ptype: acquire
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1    -10 AAPL {$50}  ; ptype: transfer-from
+    assets:broker2           10 AAPL  ; ptype: transfer-to
+
+>=
+
+# ** 5. Transfer-to posting without {} is classified when account has lots: tag.
+<
+account assets:broker2  ; lots:
+
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:broker1     10 AAPL {$50}  ; ptype: acquire
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1    -10 AAPL {$50}  ; ptype: transfer-from
+    assets:broker2           10 AAPL  ; ptype: transfer-to
+
+>=
+
+# ** 6. Transfer then dispose from new account.
+<
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL {$50}
+
+2026-03-01 sell from broker2
+    assets:broker2    -5 AAPL {$50} @ $70
+    assets:cash       $350
+
+$ hledger -f- bal assets:broker --lots -N
+              5 AAPL  assets:broker2:{2026-01-15, $50}
+
+# ** 7. Transfer with matching cost basis on transfer-to (validation passes).
+<
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL {$50}
+
+$ hledger -f- bal assets:broker --lots -N
+             10 AAPL  assets:broker2:{2026-01-15, $50}
+
+# ** 8. Transfer with mismatched cost basis on transfer-to is an error.
+<
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL {$60}
+
+$ hledger -f- bal assets:broker --lots
+>2 /does not match lot cost basis/
+>=1
+
+# ** 9. Transfer without prior acquisition is an error.
+<
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2    10 AAPL {$50}
+
+$ hledger -f- bal assets:broker --lots
+>2 /no lots available/
+>=1
+
+# ** 10. Mismatched transfer counts (1 from, 2 to) is an error.
+<
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 split transfer
+    assets:broker1   -10 AAPL {$50}
+    assets:broker2     5 AAPL {$50}
+    assets:broker3     5 AAPL {$50}
+
+$ hledger -f- bal assets:broker --lots
+>2 /mismatched transfer postings/
+>=1
