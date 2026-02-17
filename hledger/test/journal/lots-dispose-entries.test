@@ -1,0 +1,187 @@
+# Testing lot disposal journal entry variations, systematically.
+
+# * Dispose
+
+# ** With commodity/account not declared lotful
+
+# *** 1. dispose: {$50} @ $55, non-asset, non-lotful commodity/account
+<
+2026-01-01 buy
+    equity:opening    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 sell
+    equity:opening    -5 AAPL {$50} @ $55
+    assets:cash       $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    equity:opening    10 AAPL {$50}
+    assets:cash               $-500
+
+2026-02-01 sell
+    equity:opening    -5 AAPL {$50} @ $55
+    assets:cash                      $275
+
+>=
+
+# *** 2. dispose: {$50} @ $55, asset, non-lotful commodity/account
+<
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
+
+>=
+
+# ** With lotful commodity/account
+
+# *** 3. dispose: bare
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker         -5 AAPL
+    assets:cash              $275
+
+>=
+
+# *** 4. dispose: @ $55, no {}
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL @ $55
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL @ $55
+    assets:cash               $275
+
+>=
+
+# *** 5. dispose: {$50}, no selling price
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50}
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
+    assets:cash                                 $275
+
+>=
+
+# *** 6. dispose: {} @ $55
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {} @ $55
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
+
+>=
+
+# *** 7. dispose: {$50} @ $55
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
+
+>=
+
+# *** 8. dispose: {$50} @@ $275
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @@ $275
+    assets:cash      $275
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                $-500
+
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @@ $275  ; ptype: dispose
+    assets:cash                                                      $275
+
+>=
