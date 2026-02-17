@@ -4,7 +4,7 @@
 
 # ** With commodity/account not declared lotful
 
-# *** 1. dispose: {$50} @ $55, non-asset, non-lotful commodity/account
+# *** 1. dispose: {$50} @ $55, non-lotful commodity/account, non-asset. We'll let cost basis force a disposal, even from an unknown account type.
 <
 2026-01-01 buy
     equity:opening    10 AAPL {$50}
@@ -14,18 +14,14 @@
     equity:opening    -5 AAPL {$50} @ $55
     assets:cash       $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    equity:opening    10 AAPL {$50}
-    assets:cash               $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    equity:opening    -5 AAPL {$50} @ $55
-    assets:cash                      $275
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
 
 >=
 
-# *** 2. dispose: {$50} @ $55, asset, non-lotful commodity/account
+# *** 2. dispose: {$50} @ $55, non-lotful commodity/account, asset. Disposal detected.
 <
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -35,11 +31,7 @@ $ hledger -f- print --lots --verbose-tags
     assets:broker    -5 AAPL {$50} @ $55
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
     assets:cash                                                    $275
@@ -48,7 +40,7 @@ $ hledger -f- print --lots --verbose-tags
 
 # ** With lotful commodity/account
 
-# *** 3. dispose: bare
+# *** 3. dispose: implicit selling price. FIFO lot selected, disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -60,18 +52,14 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker         -5 AAPL
-    assets:cash              $275
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
 
 >=
 
-# *** 4. dispose: @ $55, no {}
+# *** 4. dispose: @ $55. FIFO lot selected, disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -83,18 +71,14 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL @ $55
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker    -5 AAPL @ $55
-    assets:cash               $275
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
+    assets:cash                                                    $275
 
 >=
 
-# *** 5. dispose: {$50}, no selling price
+# *** 5. dispose: {$50}, implicit selling price, explicit lot selector. Disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -106,18 +90,14 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL {$50}
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
     assets:cash                                 $275
 
 >=
 
-# *** 6. dispose: {} @ $55
+# *** 6. dispose: {} @ $55. Disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -129,18 +109,14 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL {} @ $55
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
     assets:cash                                                    $275
 
 >=
 
-# *** 7. dispose: {$50} @ $55
+# *** 7. dispose: {$50} @ $55. Disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -152,18 +128,14 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL {$50} @ $55
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @ $55  ; ptype: dispose
     assets:cash                                                    $275
 
 >=
 
-# *** 8. dispose: {$50} @@ $275
+# *** 8. dispose: {$50} @@ $275. Disposal detected.
 <
 commodity AAPL  ; lots:
 
@@ -175,11 +147,7 @@ commodity AAPL  ; lots:
     assets:broker    -5 AAPL {$50} @@ $275
     assets:cash      $275
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
-
+$ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} [2026-01-01] @@ $275  ; ptype: dispose
     assets:cash                                                      $275
