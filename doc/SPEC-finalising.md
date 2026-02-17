@@ -18,7 +18,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Consistent posting amount styles                            | Posting amounts written in journal                        | journalStyleAmounts                      |
 | Forecast transactions                                       | Periodic transaction rules + forecast period              | journalAddForecast                       |
 | Posting tags inherited from accounts                        | Account declarations                                      | journalPostingsAddAccountTags            |
-| Location of conversion equity postings and costful postings | @/@@ annotations + adjacent conversion account postings   | journalTagCostsAndEquity...(1st)         |
+| Location of conversion equity postings and costful postings | @/@@ annotations + adjacent conversion account postings   | journalTagCostsAndEquityAndMaybeInferCosts(1st)         |
 | Auto postings                                               | Auto posting rules + postings in journal                  | journalAddAutoPostings                   |
 | Lot posting types                                           | Cost basis + amount sign + account type + counterpostings | journalClassifyLotPostings               |
 | Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
@@ -27,7 +27,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Balance assignment amounts                                  | Running account balances vs asserted balances             | journalBalanceTransactions               |
 | Canonical commodity styles                                  | All posting amounts now present after balancing           | journalInferCommodityStyles              |
 | Posting tags inherited from commodities                     | Commodity declarations                                    | journalPostingsAddCommodityTags          |
-| Costs from equity postings (--infer-costs)                  | Equity conversion posting pairs                           | journalTagCostsAndEquity...(2nd)         |
+| Costs from equity postings (--infer-costs)                  | Equity conversion posting pairs                           | journalTagCostsAndEquityAndMaybeInferCosts(2nd)         |
 | Equity postings from costs (--infer-equity)                 | Costful postings                                          | journalInferEquityFromCosts              |
 | Market prices from costs                                    | Costful postings                                          | journalInferMarketPricesFromTransactions |
 | Lot subaccounts                                             | Lot state tracking (applying FIFO etc.)                   | journalCalculateLots                     |
@@ -52,7 +52,7 @@ journalFinalise
   7.  journalPostingsAddAccountTags     -- propagate account tags to postings
 
   -- Pre-balancing cost/equity tagging
-  8.  journalTagCostsAndEquity...(1st)  -- tag conversion equity postings + redundant costs (helps balancer ignore them)
+  8.  journalTagCostsAndEquityAndMaybeInferCosts(1st)  -- tag conversion equity postings + redundant costs (helps balancer ignore them)
 
   -- Generate auto postings
   9.  journalAddAutoPostings            -- if --auto, do transaction balancing (preliminary) to infer some missing amounts/costs,
@@ -69,7 +69,7 @@ journalFinalise
   -- Post-balancing enrichment
   13. journalInferCommodityStyles        -- infer canonical commodity styles, now with all amounts present
   14. journalPostingsAddCommodityTags    -- propagate commodity tags to postings
-  15. journalTagCostsAndEquity...(2nd)   -- if --infer-costs, infer costs from equity conversion postings
+  15. journalTagCostsAndEquityAndMaybeInferCosts(2nd)   -- if --infer-costs, infer costs from equity conversion postings
   16. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
   17. journalInferMarketPricesFromTransactions  -- infer market prices from costs
 
@@ -91,7 +91,7 @@ An arrow A → B means "A must run before B".
 - **journalPostingsAddAccountTags → journalClassifyLotPostings**
   Classification may need `lots:` tags inherited from account declarations (in `ptags`).
 
-- **journalTagCostsAndEquity...(1st) → journalBalanceTransactions**
+- **journalTagCostsAndEquityAndMaybeInferCosts(1st) → journalBalanceTransactions**
   The balancer needs to know which costs are redundant (equity-paired) to ignore them.
 
 - **journalClassifyLotPostings → journalInferPostingsTransactedCost**
