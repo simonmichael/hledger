@@ -39,7 +39,6 @@ module Hledger.Data.Transaction
 , partitionAndCheckConversionPostings
 , transactionAddTags
 , transactionAddHiddenAndMaybeVisibleTag
-, transactionClassifyLotPostings
   -- * helpers
 , TransactionBalancingPrecision(..)
 , payeeAndNoteFromDescription
@@ -63,7 +62,6 @@ module Hledger.Data.Transaction
 , tests_Transaction
 ) where
 
-import Control.Monad (guard)
 import Control.Monad.Trans.State (StateT(..), evalStateT)
 import Data.Bifunctor (first, second)
 import Data.Foldable (foldlM)
@@ -78,7 +76,6 @@ import Data.Time.Calendar (Day, fromGregorian)
 
 import Hledger.Utils
 import Hledger.Data.Types
-import Hledger.Data.AccountType
 import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
@@ -291,78 +288,6 @@ transactionAddHiddenAndMaybeVisibleTag verbosetags ht t@Transaction{tcomment=c, 
   where
     vt@(vname,_) = toVisibleTag ht
     hadtag = any ((== (T.toLower vname)) . T.toLower . fst) ttags  -- XXX should regex-quote vname
-
--- | Classify lot-related postings on Asset accounts by adding a ptype tag.
--- For each posting that involves an asset account and a cost basis:
--- - determine if it's of type "acquire" or "dispose" (based on amount sign)
--- - or "transfer-from" or "transfer-to" (if counterposting is also Asset with same commodity).
--- The lookupAccountType function should typically be `journalAccountType journal`.
--- The verbosetags parameter controls whether the tags are made visible in comments.
-transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> Transaction -> Transaction
-transactionClassifyLotPostings verbosetags lookupAccountType t@Transaction{tpostings=ps}
-  | not (any hasCostBasis ps) = dbg5 "classifyLotPostings: no cost basis found, skipping" t
-  | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=map classifyPosting ps}
-  where
-    hasCostBasis :: Posting -> Bool
-    hasCostBasis p = let amts = amountsRaw (pamount p)
-                         result = any (isJust . acostbasis) amts
-                     in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
-
-    classifyPosting :: Posting -> Posting
-    classifyPosting p =
-      case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
-        Nothing -> p
-        Just classification ->
-          let tag = ("ptype", classification)
-          in postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag tag) p
-
-    -- Check if posting should be classified and return the classification:
-    -- one of acquire, dispose, transfer-from, transfer-to.
-    shouldClassify :: Posting -> Maybe Text
-    shouldClassify p = do
-      -- is the account an asset account ?
-      let macctType = lookupAccountType (paccount p)
-      acctType <- dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " acctType") macctType
-      guard $ isAssetType acctType
-
-      -- does the posting amount have a cost basis ?
-      let amts = amountsRaw $ pamount p
-      guard $ dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " hasCostBasis") $ any (isJust . acostbasis) amts
-
-      -- classify based on the sign and counterpostings
-      let
-        isNeg = any isNegativeAmount amts
-        primaryType = if isNeg then "dispose" else "acquire"
-
-      -- check if this is a transfer (counterposting to Asset with same commodity and cost basis)
-      let
-        counterpostings = filter (\cp -> paccount cp /= paccount p) $ tpostings t
-        isTransfer = any (isAssetTransferCounterpart p) counterpostings
-
-      return $ if isTransfer
-        then if isNeg then "transfer-from" else "transfer-to"
-        else primaryType
-
-    -- Check if a posting is a transfer counterpart (Asset account, opposite sign, same commodity, with cost basis).
-    isAssetTransferCounterpart :: Posting -> Posting -> Bool
-    isAssetTransferCounterpart p counterP =
-      case lookupAccountType $ paccount counterP of
-        Just acctType | isAssetType acctType ->
-          let
-            pAmts = amountsRaw (pamount p)
-            cpAmts = amountsRaw (pamount counterP)
-            pCommodities = [acommodity a | a <- pAmts, isJust (acostbasis a)]
-            cpCommodities = [acommodity a | a <- cpAmts, isJust (acostbasis a)]
-            -- Check for opposite signs
-            pIsNeg = any isNegativeAmount pAmts
-            cpIsNeg = any isNegativeAmount cpAmts
-            oppositeSign = pIsNeg /= cpIsNeg
-          in
-               not (null pCommodities)
-            && not (null cpCommodities)
-            && any (`elem` cpCommodities) pCommodities
-            && oppositeSign
-        _ -> False
 
 -- | Find, associate, and tag the corresponding equity conversion postings and costful or potentially costful postings in this transaction.
 -- With a true addcosts argument, also generate and add any equivalent costs that are missing.
