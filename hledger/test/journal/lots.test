@@ -43,52 +43,15 @@ $ hledger -f- print -O json
     "tindex": 1,
     "tpostings": [
       {
-        "paccount": "assets:investment",
+        "paccount": "assets:broker",
         "pamount": [
           {
             "acommodity": "AAPL",
-            "acost": {
-              "contents": {
-                "acommodity": "$",
-                "acost": null,
-                "acostbasis": null,
-                "aquantity": {
-                  "decimalMantissa": 100,
-                  "decimalPlaces": 0,
-                  "floatingPoint": 100
-                },
-                "astyle": {
-                  "ascommodityside": "L",
-                  "ascommodityspaced": false,
-                  "asdecimalmark": null,
-                  "asdigitgroups": null,
-                  "asprecision": 0,
-                  "asrounding": "NoRounding"
-                }
-              },
-              "tag": "UnitCost"
-            },
+            "acost": null,
             "acostbasis": {
-              "cbCost": {
-                "acommodity": "$",
-                "acost": null,
-                "acostbasis": null,
-                "aquantity": {
-                  "decimalMantissa": 100,
-                  "decimalPlaces": 0,
-                  "floatingPoint": 100
-                },
-                "astyle": {
-                  "ascommodityside": "L",
-                  "ascommodityspaced": false,
-                  "asdecimalmark": null,
-                  "asdigitgroups": null,
-                  "asprecision": 0,
-                  "asrounding": "NoRounding"
-                }
-              },
-              "cbDate": "2026-01-01",
-              "cbLabel": "lot A"
+              "cbCost": null,
+              "cbDate": null,
+              "cbLabel": null
             },
             "aquantity": {
               "decimalMantissa": 10,
@@ -98,7 +61,7 @@ $ hledger -f- print -O json
             "astyle": {
               "ascommodityside": "R",
               "ascommodityspaced": true,
-              "asdecimalmark": null,
+              "asdecimalmark": ".",
               "asdigitgroups": null,
               "asprecision": 0,
               "asrounding": "NoRounding"
@@ -124,18 +87,22 @@ $ hledger -f- print -O json
         "paccount": "assets:cash",
         "pamount": [
           {
-            "acommodity": "$",
+            "acommodity": "AAPL",
             "acost": null,
-            "acostbasis": null,
+            "acostbasis": {
+              "cbCost": null,
+              "cbDate": null,
+              "cbLabel": null
+            },
             "aquantity": {
-              "decimalMantissa": -1000,
+              "decimalMantissa": -10,
               "decimalPlaces": 0,
-              "floatingPoint": -1000
+              "floatingPoint": -10
             },
             "astyle": {
-              "ascommodityside": "L",
-              "ascommodityspaced": false,
-              "asdecimalmark": null,
+              "ascommodityside": "R",
+              "ascommodityspaced": true,
+              "asdecimalmark": ".",
               "asdigitgroups": null,
               "asprecision": 0,
               "asrounding": "NoRounding"
@@ -212,22 +179,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# ** 5. Most other reports ignore cost basis by default
-<
-2026-01-01 Buy with transaction cost
-    assets:broker    10 AAPL @ $160
-    assets:cash
-
-2026-01-02 Buy with cost basis
-    assets:broker    10 AAPL {$150}
-    assets:cash
-
-$ hledger -f- bal assets:broker
-             20 AAPL  assets:broker
---------------------
-             20 AAPL  
-
-# ** 13. In beancount output, an account's lots: tag value becomes the account's booking method
+# ** 5. In beancount output, an account's lots: tag value becomes the account's booking method
 <
 account assets:broker  ; lots: FIFO
 
@@ -246,7 +198,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# 14. Balance assignments get fully inferred amounts in beancount output.
+# ** 6. In beancount output, balance assignment amounts are always made explicit.
 <
 2026-01-01 * opening balances
     equity:opening
@@ -262,4 +214,19 @@ $ hledger -f- print -O beancount
     Assets:Cash           2000 USD
 
 >=
+
+# ** 7. Most other reports ignore cost basis by default
+<
+2026-01-01 Buy with transaction cost
+    assets:broker    10 AAPL @ $160
+    assets:cash
+
+2026-01-02 Buy with cost basis
+    assets:broker    10 AAPL {$150}
+    assets:cash
+
+$ hledger -f- bal assets:broker
+             20 AAPL  assets:broker
+--------------------
+             20 AAPL  
 

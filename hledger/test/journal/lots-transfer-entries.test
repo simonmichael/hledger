@@ -4,7 +4,7 @@
 
 # ** With commodity/account not declared lotful
 
-# *** 1. transfer: from {$50}, to bare, asset, non-lotful commodity/account
+# *** 1. transfer: from {$50}, to costless basisless amount. Lot transfer detected.
 <
 2026-01-01 buy
     assets:broker1    10 AAPL {$50}
@@ -14,18 +14,14 @@
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: dispose
-    assets:broker2                             10 AAPL
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
 
 >=
 
-# *** 2. transfer: from {$50}, to {$50}, non-asset, non-lotful commodity/account
+# *** 2. transfer: from {$50}, to {$50}, non-lotful commodity/account, non-asset. Not an asset, but we'll allow it here.
 <
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -35,11 +31,14 @@ $ hledger -f- print --lots --verbose-tags
     assets:broker    -10 AAPL {$50}
     equity:opening    10 AAPL {$50}
 
-$ hledger -f- print --lots --verbose-tags
->2 /unbalanced/
->=1
+$ hledger -f- print desc:transfer --lots --verbose-tags
+2026-02-01 transfer
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
 
-# *** 3. transfer: from {$50}, to {$50}, asset, non-lotful commodity/account
+>=
+
+# *** 3. transfer: from {$50}, to {$50}, non-lotful commodity/account, asset.
 <
 2026-01-01 buy
     assets:broker1    10 AAPL {$50}
@@ -49,11 +48,7 @@ $ hledger -f- print --lots --verbose-tags
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL {$50}
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
     assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
     assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
@@ -62,7 +57,7 @@ $ hledger -f- print --lots --verbose-tags
 
 # ** With lotful commodity/account
 
-# *** 4. transfer: from {$50}, to bare
+# *** 4. transfer: from {$50}, to costless basisless amount. Lot transfer detected.
 <
 commodity AAPL  ; lots:
 
@@ -74,18 +69,14 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
     assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
     assets:broker2:{2026-01-01, $50}           10 AAPL  ; ptype: transfer-to
 
 >=
 
-# *** 5. transfer: from {$50}, to {}
+# *** 5. transfer: from {$50}, to {}. Lot transfer detected.
 <
 commodity AAPL  ; lots:
 
@@ -97,18 +88,14 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL {}
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
     assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
     assets:broker2:{2026-01-01, $50}        10 AAPL {}  ; ptype: transfer-to
 
 >=
 
-# *** 6. transfer: from {}, to {}
+# *** 6. transfer: from {}, to {}. Lot transfer detected.
 <
 commodity AAPL  ; lots:
 
@@ -120,18 +107,14 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {}
     assets:broker2    10 AAPL {}
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
     assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
     assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
 
 >=
 
-# *** 7. transfer: from {$50}, to {$50}
+# *** 7. transfer: from {$50}, to {$50}. Lot transfer detected.
 <
 commodity AAPL  ; lots:
 
@@ -143,18 +126,14 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL {$50}
 
-$ hledger -f- print --lots --verbose-tags
-2026-01-01 buy
-    assets:broker1:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                 $-500
-
+$ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
     assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
     assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
 
 >=
 
-# *** 8. transfer: from {$50} @ $50, to {$50}
+# *** 8. transfer: from {$50} @ $50, to {$50}. Error: lot transfers should have no transacted cost.
 <
 commodity AAPL  ; lots:
 
@@ -166,11 +145,11 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {$50} @ $50
     assets:broker2    10 AAPL {$50}
 
-$ hledger -f- print --lots --verbose-tags
->2 /unbalanced/
+$ hledger -f- print desc:transfer --lots --verbose-tags
+>2 /lot transfers should have no transacted cost/
 >=1
 
-# *** 9. transfer: from {$50}, to {$60} (mismatched)
+# *** 9. transfer: from {$50}, to {$60} (mismatched). Error: does not match.
 <
 commodity AAPL  ; lots:
 
@@ -182,6 +161,6 @@ commodity AAPL  ; lots:
     assets:broker1   -10 AAPL {$50}
     assets:broker2    10 AAPL {$60}
 
-$ hledger -f- print --lots --verbose-tags
->2 /transfer-to cost basis/
+$ hledger -f- print desc:transfer --lots --verbose-tags
+>2 /does not match transfer-to cost basis/
 >=1

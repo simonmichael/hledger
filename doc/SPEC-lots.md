@@ -131,7 +131,7 @@ so these should be inferred if not written explicitly.
 ## Inferring cost basis from transacted cost
 
 In postings with a positive amount, involving a lotful commodity or account,
-which have a transacted cost annotation but no cost basis annotation,
+which have a transacted cost but no explicit cost basis annotation,
 we infer a cost basis from the transacted cost.
 
 (journalInferPostingsCostBasis)
@@ -141,7 +141,8 @@ we infer a cost basis from the transacted cost.
 After inferring cost basis, we can identify lot postings. These are postings which
 
 - have a cost basis annotation (any of the {}, [], () notations)
-- or involve a lotful commodity or account.
+- or involve a lotful commodity or account
+- or are matched by a transfer-from posting in the same transaction.
 
 We classify lot postings, based on their amount sign and
 whether they are matched by an opposite posting in the same transaction,
@@ -184,7 +185,8 @@ we infer a transacted cost from the cost basis.
   It doesn't need a lot selector; if it has one, it must select the same lot as the transfer-from posting.
 
 - A dispose posting selects one more lots to be disposed (sold), like a transfer-from posting.
-  It must also specify a transacted cost (or that can be inferred from market price, in future).
+  It must also have a transacted cost, either explicit or inferred from transaction balancing
+  (or from market price, in future).
 
 ## Lot transactions
 
