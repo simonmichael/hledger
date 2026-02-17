@@ -1,0 +1,117 @@
+# Testing lot disposal scenarios.
+
+# * Lot disposal
+
+# ** 1. Simple dispose - negative amount to Asset account with cost basis - gets ptype:dispose tag
+<
+2026-01-02 Sell stock
+    assets:broker    -5 AAPL {$100}
+    assets:cash       $500
+
+$ hledger -f- print --verbose-tags
+2026-01-02 Sell stock
+    assets:broker    -5 AAPL {$100}  ; ptype: dispose
+    assets:cash                $500
+
+>=
+
+# ** 2. Simple single-lot disposal: the sell posting selects the appropriate lot subaccount.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $50
+    assets:cash       $250
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 3. Full lot consumption: the lot is fully consumed.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell all
+    assets:stocks   -10 AAPL {$50} @ $50
+    assets:cash       $500
+
+$ hledger -f- bal assets:stocks --lots -N
+
+# ** 4. FIFO multi-lot disposal: sell with {} can select multiple lots, oldest first.
+<
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -15 AAPL {} @ $55
+    assets:cash      $825
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-02-01, $60}
+
+# ** 5. Insufficient lots error: disposing more than is available at the specified cost fails.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell too many
+    assets:stocks   -15 AAPL {$50} @ $55
+    assets:cash      $825
+
+$ hledger -f- bal assets:stocks --lots
+>2 /insufficient lots/
+>=1
+
+# ** 6. Disposing when there's no lots at all gives a different error, apparently. ?
+<
+2026-02-01 sell without buying
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+
+$ hledger -f- bal assets:stocks --lots
+>2 /no lots available/
+>=1
+
+# ** 7. Multiple disposals reduce lots correctly.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell some
+    assets:stocks    -3 AAPL {$50} @ $50
+    assets:cash       $150
+
+2026-02-15 sell more
+    assets:stocks    -4 AAPL {$50} @ $50
+    assets:cash       $200
+
+2026-03-01 sell rest
+    assets:stocks    -3 AAPL {$50} @ $50
+    assets:cash       $150
+
+$ hledger -f- bal assets:stocks --lots -N
+
+# ** 8. A dispose posting with unknown transacted cost (selling price) is an error.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50}
+    assets:cash
+
+$ hledger -f- bal assets:stocks --lots
+>2 /no transacted cost/
+>=1
+
