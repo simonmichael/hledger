@@ -812,17 +812,27 @@ amountp' mult =
   label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
-  (mcost, _valuationexpr, mlotcost, mlotdate, mlotnote) <- runPermutation $
+  (mcost, _valuationexpr, mlotcb, mlotdate, mlotnote) <- runPermutation $
     -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
     (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
           <*> toPermutationWithDefault Nothing (Just <$> lotcostp (aquantity amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
+  -- Reject mixing consolidated {DATE,...} or {"LABEL",...} with ledger-style [DATE] or (NOTE)
+  let isConsolidated = case mlotcb of
+        Just cb | isJust (cbDate cb) || isJust (cbLabel cb) -> True
+        _ -> False
+  when (isConsolidated && (isJust mlotdate || isJust mlotnote)) $
+    Fail.fail "hledger lot syntax {...} cannot be combined with ledger-style [DATE] or (NOTE)"
   let mcostbasis =
-        case (mlotcost, mlotdate, mlotnote) of
+        case (mlotcb, mlotdate, mlotnote) of
           (Nothing, Nothing, Nothing) -> Nothing
-          _ -> Just $ CostBasis { cbCost = join mlotcost, cbDate = mlotdate, cbLabel = mlotnote }
+          _ -> Just $ CostBasis
+                 { cbCost  = mlotcb >>= cbCost
+                 , cbDate  = (mlotcb >>= cbDate) <|> mlotdate
+                 , cbLabel = (mlotcb >>= cbLabel) <|> mlotnote
+                 }
   pure $ amt { acost = mcost, acostbasis = mcostbasis }
 
 -- An amount with optional cost, but no cost basis.
@@ -1005,25 +1015,75 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style lot cost:
--- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}.
+-- Parse lot cost in curly braces.
+-- Accepts either:
+--   Ledger-style:  {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}
+--   Consolidated:  {DATE, "LABEL", COST} with all fields optional and in DLC order
 -- If total cost syntax {{}} is used, converts it to unit cost by dividing by the posting quantity.
-lotcostp :: Quantity -> JournalParser m (Maybe Amount)
+lotcostp :: Quantity -> JournalParser m CostBasis
 lotcostp postingqty =
   -- dbg "lotcostp" $
-  label "ledger-style lot cost" $ do
+  label "lot cost" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   lift skipNonNewlineSpaces
-  _fixed <- fmap isJust $ optional $ char '='
-  lift skipNonNewlineSpaces
-  ma <- optional $ simpleamountp False
-  lift skipNonNewlineSpaces
-  char '}'
-  when (doublebrace) $ void $ char '}'
-  pure $ fmap (convertToUnitCost doublebrace) ma
+  if doublebrace
+    then ledgerCost True
+    else do
+      -- Peek to decide: consolidated vs ledger
+      -- consolidated starts with date (digit), label ("), or empty }
+      -- ledger starts with =, amount, or empty }
+      c <- lookAhead anySingle
+      case c of
+        '}' -> char '}' >> pure (CostBasis Nothing Nothing Nothing)
+        '=' -> ledgerCost False
+        '"' -> consolidatedNoDate  -- no date, start with label
+        _   -> tryDateOrLedger
   where
-    -- Convert {{TOTALCOST}} to {UNITCOST} by dividing by posting quantity
+    tryDateOrLedger = do
+      -- Does input look like a date (YYYY-D...) ? If so, commit to consolidated
+      -- date parsing (no try), so invalid dates give clear errors instead of
+      -- falling through to the amount parser with a confusing message.
+      looksLikeDate <- option False $ lookAhead $ try $
+        count 4 digitChar >> char '-' >> digitChar >> pure True
+      if looksLikeDate
+        then do
+          d <- datep
+          lift skipNonNewlineSpaces
+          void $ lookAhead (oneOf [',','}'])
+          consolidatedAfterDate d
+        else ledgerCost False  -- not a date, parse as ledger amount
+
+    consolidatedAfterDate d = do
+      -- after date: optional ", LABEL", optional ", COST", then }
+      mlabel <- optional $ try $ char ',' >> lift skipNonNewlineSpaces >> quotedLabelp <* lift skipNonNewlineSpaces
+      mcost  <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
+      char '}'
+      pure $ CostBasis (Just d) mlabel mcost
+
+    consolidatedNoDate = do
+      -- parse "LABEL", then optional ", COST", then }
+      mlabel <- Just <$> quotedLabelp
+      lift skipNonNewlineSpaces
+      mcost <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
+      char '}'
+      pure $ CostBasis Nothing mlabel mcost
+
+    quotedLabelp = do
+      char '"'
+      lbl <- T.pack <$> many (noneOf ['"', '\n'])
+      char '"'
+      pure lbl
+
+    ledgerCost doublebrace = do
+      _fixed <- fmap isJust $ optional $ char '='
+      lift skipNonNewlineSpaces
+      ma <- optional $ simpleamountp False
+      lift skipNonNewlineSpaces
+      char '}'
+      when doublebrace $ void $ char '}'
+      pure $ CostBasis Nothing Nothing (fmap (convertToUnitCost doublebrace) ma)
+
     convertToUnitCost isTotal lotamt =
       if isTotal && postingqty /= 0
       then lotamt { aquantity = aquantity lotamt / postingqty }

@@ -18,7 +18,91 @@ $ hledger -f- print
 
 >=
 
-# ** 2. Empty cost basis annotations like {} are also preserved in print output.
+# ** 2. hledger consolidated lot syntax {DATE, COST} is accepted in input.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, $100}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {$100} [2026-01-01]
+    assets:cash
+
+>=
+
+# ** 3. hledger consolidated lot syntax with label {DATE, "LABEL", COST}.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {$100} [2026-01-01] (lot A)
+    assets:cash
+
+>=
+
+# ** 4. Partial: date only.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL [2026-01-01]
+    assets:cash
+
+>=
+
+# ** 5. Partial: label only.
+<
+2026-01-01
+    assets:investment    10 AAPL {"lot1"}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL (lot1)
+    assets:cash
+
+>=
+
+# ** 6. Consolidated with @ transacted cost.
+<
+2026-01-01
+    assets:broker    10 AAPL {2026-01-01, $100} @ $150
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:broker    10 AAPL {$100} [2026-01-01] @ $150
+    assets:cash
+
+>=
+
+# ** 7. Consolidated with --lots pipeline.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {2026-01-15, $50}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 8. Consolidated syntax rejects trailing [DATE].
+<
+2026-01-01
+    assets:broker    10 AAPL {2026-01-01, $100} [2026-01-01]
+    assets:cash
+
+$ hledger -f- print
+>2 /cannot be combined/
+>=1
+
+# ** 9. Empty cost basis annotations like {} are also preserved in print output.
 <
 2026-01-01
     assets:broker    10 AAPL {}
@@ -31,7 +115,7 @@ $ hledger -f- print
 
 >=
 
-# ** 3. print's json output shows lot info in the acostbasis field.
+# ** 10. print's json output shows lot info in the acostbasis field.
 $ hledger -f- print -O json
 [
   {
@@ -138,7 +222,7 @@ $ hledger -f- print -O json
   }
 ]
 
-# ** 4. print's beancount output shows lot info with Beancount lot syntax.
+# ** 11. print's beancount output shows lot info with Beancount lot syntax.
 <
 2026-01-01 Buy stocks with full lot info
     assets:investment    10 AAPL {$150} [2026-01-01] (lot1)
@@ -179,7 +263,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# ** 5. In beancount output, an account's lots: tag value becomes the account's booking method
+# ** 12. In beancount output, an account's lots: tag value becomes the account's booking method
 <
 account assets:broker  ; lots: FIFO
 
@@ -198,7 +282,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# ** 6. In beancount output, balance assignment amounts are always made explicit.
+# ** 13. In beancount output, balance assignment amounts are always made explicit.
 <
 2026-01-01 * opening balances
     equity:opening
@@ -215,7 +299,7 @@ $ hledger -f- print -O beancount
 
 >=
 
-# ** 7. Most other reports ignore cost basis by default
+# ** 14. Most other reports ignore cost basis by default
 <
 2026-01-01 Buy with transaction cost
     assets:broker    10 AAPL @ $160
