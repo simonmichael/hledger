@@ -1,6 +1,6 @@
 # Lot tracking
 
-Here is the current specification for lots functionality, some of which has been implemented already.
+Here is the current specification for lots functionality, some of which has been implemented in the lots branch.
 
 See also 
 - hledger manual > Cost basis / Lot syntax
@@ -31,8 +31,8 @@ There will be a new `--lots` flag, which will enable
 
 In the journal, it will be possible to record lot operations 
 
-1. fully implicitly, with maximum inference;
-2. partly explicitly, with missing parts inferred;
+1. implicitly, with compact notation and maximum inference;
+2. partly explicitly, with any missing parts inferred;
 3. or fully explicitly, requiring no inference.
 
 A typical workflow might be to use 1 primarily, or when processing/converting old journals;
@@ -40,8 +40,8 @@ and use `print` to convert to 3 for troubleshooting or reporting.
 
 ## Transacted cost and cost basis
 
-- Transacted cost is the conversion rate used to balance a single transaction.
-  It is recorded with @ or @@ annotations after an amount.
+- Transacted cost is the conversion rate used within a particular multi-commodity transaction.
+  It is recorded with a @ or @@ annotation after the amount(s).
 
 - Cost basis is the nominal acquisition cost of a lot,
   along with its acquisition date and perhaps a label.
@@ -49,13 +49,13 @@ and use `print` to convert to 3 for troubleshooting or reporting.
   It is recorded with hledger lot syntax (consolidated {} notation);
   we can also read ledger lot syntax (separate {}, [], () annotations).
 
-A posting amount can have transacted cost and/or cost basis.
-When displaying a posting with both, we show cost basis before transacted cost (like beancount).
-
 "Transacted cost" is an awkward term, overlapping with "cost basis",
 but it avoids too much change from the historical "cost", and we don't have a better alternative, currently.
 
 The hledger manual has more detail on these.
+
+A posting amount can have transacted cost, cost basis, both, or neither.
+When displaying a posting with both, we show cost basis before transacted cost (like beancount).
 
 ## Lot names
 
@@ -206,36 +206,30 @@ The special account type helps hledger identify these postings.
 
 ## Transaction balancing
 
-There are two kinds of transaction balancing:
+All journal entries, including lot-related ones, must pass normal transaction balancing.
+When summing postings it uses their transacted costs (not cost basis), if any.
+And it excludes (ignores) capital gain/loss postings, identified by their Gain account type.
+When the postings' sum is nonzero, and amountless postings exist, it can infer one balancing amount in each unbalanced commodity.
 
-1. **Normal transaction balancing**
-   All journal entries, including lot-related ones, must pass this.
-   When summing postings it uses their transacted costs (not cost basis), if any.
-   And it excludes (ignores) capital gain/loss postings, identified by their Gain account type.
+## Disposal balancing
 
-2. **Disposal balancing**
-   Journal entries involving lot disposals get this additional balancing pass.
-   When summing postings it uses their cost basis (not transacted cost), if any.
-   And it includes gain postings, or will infer one if needed.
-
-The different handling of gain postings allows both kinds of transaction balancing
-to succeed with the same journal entries.
-
-## Inferring/checking capital gain
+Journal entries involving lot disposals get this additional balancing pass.
+When summing postings it uses their cost basis (not transacted cost), if any.
+And it includes gain postings, or will infer one if needed.
 
 A disposal transaction's total realised capital gain/loss is calculated by 
 comparing the lot acquisition cost(s) for each dispose posting, and the total transacted disposal price.
 
-If the transaction contains a gain posting (or more than one),
-the recorded gain is expected to match the calculated gain.
-
+If the transaction contains a gain posting (or more than one), the recorded gain is expected to match the calculated gain.
 Otherwise, a gain posting is inferred, posting the calculated gain to the alphabetically first Gain account.
+Or if there is an amountless gain posting (at most one per commodity), we fill in its amount.
 This helps the transaction to pass disposal balancing.
+
+The inclusion/exclusion gain postings allows both kinds of transaction balancing to succeed with the same journal entries.
 
 ## Processing pipeline
 
-Lot-related processing can be thought of as an optional extra journal processing step, 
-enabled by the --lots flag. 
+Lot-related processing can be thought of as an optional extra journal processing step, enabled by the --lots flag. 
 
 But all the inferring conveniences make it quite interdependent with the other processing steps.
 See SPEC-finalising for more details of the implementation.
