@@ -1,5 +1,7 @@
 # Plan for calculating lots, 2026-02
 
+## Original plan
+
 For background, see SPEC-lots.md.
 
 In journalFinalise, after transaction balancing, we'll do all lot-related processing.
@@ -75,15 +77,16 @@ But it's fine to start with a simple implementation even if it's a bit slow.
 In general, we should do the simplest thing that could possibly work for now, to narrow scope.
 This applies generally to all unresolved questions, unless they really do need to be resolved now.
 
-## Amendments so far
+## Amendments
 
 1. LotState type: PLAN suggested Map Commodity (Map LotId (AccountName, Amount)). We use Map Commodity (Map LotId (Map AccountName Amount)) — triple-nested to support
    partial lot transfers (same LotId at two accounts).
 
-2. selectLotsFIFO is parameterised: Takes Maybe AccountName — Nothing for global FIFO (disposals, as SPEC describes), Just acct for per-account (transfers). PLAN/SPEC
-   didn't specify this detail.
+2. selectLotsFIFO is parameterised: Takes Maybe AccountName — Nothing to search across all accounts (used for disposals), Just acct to search within one account
+   (used for transfers, since the lots must come from the source account). Both use the same FIFO method; the parameter controls scope, not method.
 
-3. reduceLotState is parameterised: Same Maybe AccountName pattern — global reduction for disposals, per-account for transfers.
+3. reduceLotState is parameterised: Takes Maybe AccountName — Nothing for disposals (reduce across all accounts holding the lot), Just acct for transfers
+   (reduce only the source account's holding). This is about where to debit quantity, not about the lot selection method.
 
 4. Transfer pairing: PLAN said "pair by commodity". We pair by commodity, then sort by cost basis key within each commodity group to align explicit per-lot pairs.
    PLAN didn't anticipate multiple transfer pairs per commodity per transaction.
@@ -112,16 +115,17 @@ This applies generally to all unresolved questions, unless they really do need t
     transaction balancing amounts. E.g. bare `-5 AAPL` on a lotful commodity becomes `-5 AAPL {$50} [2026-01-01] @ $55` with ptype:dispose.
 
 
-## Next
-- clarify journalFinalise
-- clean up Lots.hs
+## Next ?
+
+- disposal/gains-aware transaction balancing.
+  how are all these disposal tests passing ? do we need more realistic disposal tests involving gains ? test with real world journals.
+  add disposal balancing step, per spec
+
 - pretty error messages
-- don't add lot subaccounts if they are already explicit
-- raise an error if the explicit lot subaccount is wrong
-- disposal/gains-aware transaction balancing
-- infer acquisition cost from market price
-- infer disposal price from market price
+- don't add lot subaccounts if they are already explicit; and raise an error if the explicit lot subaccount is wrong
 - update manual (hledger.m4.md)
 - read hledger lot syntax
 - print hledger lot syntax by default
 - print -o ledger output format
+- recognise some common commodity symbols as lotful ?
+- infer acquisition cost, disposal price from market price ?
