@@ -183,7 +183,7 @@ showTransactionHelper :: Bool -> Transaction -> TB.Builder
 showTransactionHelper onelineamounts t =
       TB.fromText descriptionline <> newline
     <> foldMap ((<> newline) . TB.fromText) newlinecomments
-    <> foldMap ((<> newline) . TB.fromText) (postingsAsLines onelineamounts $ tpostings t)
+    <> foldMap ((<> newline) . TB.fromText) (postingsAsLines defaultFmt onelineamounts $ tpostings t)
     <> newline
   where
     descriptionline = T.stripEnd $ showTransactionLineFirstPart t <> T.concat [desc, samelinecomment]
@@ -445,7 +445,7 @@ transactionTagCostsAndEquityAndMaybeInferCosts verbosetags1 addcosts conversiona
     deleteUniqueMatch p (x:xs) | p x       = if any p xs then Nothing else Just xs
                                | otherwise = (x:) <$> deleteUniqueMatch p xs
     deleteUniqueMatch _ []                 = Nothing
-    annotateWithPostings xs str = T.unlines $ str : postingsAsLines False xs
+    annotateWithPostings xs str = T.unlines $ str : postingsAsLines defaultFmt False xs
 
 dbgShowAmountPrecision a =
   case asprecision $ astyle a of
@@ -572,27 +572,27 @@ tests_Transaction =
         -- unbalanced amounts when precision is limited (#931)
         -- t4 = nulltransaction {tpostings = ["a" `post` usd (-0.01), "b" `post` usd (0.005), "c" `post` usd (0.005)]}
       in testGroup "postingsAsLines" [
-              testCase "null-transaction" $ postingsAsLines False (tpostings nulltransaction) @?= []
-            , testCase "implicit-amount" $ postingsAsLines False (tpostings timp) @?=
+              testCase "null-transaction" $ postingsAsLines defaultFmt False (tpostings nulltransaction) @?= []
+            , testCase "implicit-amount" $ postingsAsLines defaultFmt False (tpostings timp) @?=
                   [ "    a           $1.00"
                   , "    b" -- implicit amount remains implicit
                   ]
-            , testCase "explicit-amounts" $ postingsAsLines False (tpostings texp) @?=
+            , testCase "explicit-amounts" $ postingsAsLines defaultFmt False (tpostings texp) @?=
                   [ "    a           $1.00"
                   , "    b          $-1.00"
                   ]
-            , testCase "one-explicit-amount" $ postingsAsLines False (tpostings texp1) @?=
+            , testCase "one-explicit-amount" $ postingsAsLines defaultFmt False (tpostings texp1) @?=
                   [ "    (a)           $1.00"
                   ]
-            , testCase "explicit-amounts-two-commodities" $ postingsAsLines False (tpostings texp2) @?=
+            , testCase "explicit-amounts-two-commodities" $ postingsAsLines defaultFmt False (tpostings texp2) @?=
                   [ "    a             $1.00"
                   , "    b    -1.00h @ $1.00"
                   ]
-            , testCase "explicit-amounts-not-explicitly-balanced" $ postingsAsLines False (tpostings texp2b) @?=
+            , testCase "explicit-amounts-not-explicitly-balanced" $ postingsAsLines defaultFmt False (tpostings texp2b) @?=
                   [ "    a           $1.00"
                   , "    b          -1.00h"
                   ]
-            , testCase "implicit-amount-not-last" $ postingsAsLines False (tpostings t3) @?=
+            , testCase "implicit-amount-not-last" $ postingsAsLines defaultFmt False (tpostings t3) @?=
                   ["    a           $1.00", "    b", "    c          $-1.00"]
             -- , testCase "ensure-visibly-balanced" $
             --    in postingsAsLines False (tpostings t4) @?=

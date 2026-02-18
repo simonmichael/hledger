@@ -254,6 +254,7 @@ data AmountFormat = AmountFormat
   , displayCostBasis        :: Bool       -- ^ Whether to display Amounts' cost basis (Ledger-style lot syntax).
   , displayColour           :: Bool       -- ^ Whether to ansi-colourise negative Amounts.
   , displayQuotes           :: Bool       -- ^ Whether to enclose complex symbols in quotes (normally true)
+  , displayLedgerLotSyntax  :: Bool       -- ^ Whether to display cost basis using Ledger-style lot syntax ({COST} [DATE] (LABEL)) instead of hledger consolidated syntax.
   } deriving (Show)
 
 -- | By default, display amounts using @defaultFmt@ amount display options.
@@ -274,6 +275,7 @@ defaultFmt = AmountFormat {
   , displayCostBasis        = True
   , displayColour           = False
   , displayQuotes           = True
+  , displayLedgerLotSyntax  = False
   }
 
 -- | Like defaultFmt but show zero amounts with commodity symbol and styling, like non-zero amounts.
@@ -736,7 +738,9 @@ showAmountB
       | otherwise = (quantity, (if displayQuotes then quoteCommoditySymbolIfNeeded else id) $ acommodity a)
     space = if not (T.null comm) && ascommodityspaced style then WideBuilder (TB.singleton ' ') 1 else mempty
     cost = if displayCost then showAmountCostB afmt a else mempty
-    costbasis = if displayCostBasis then showAmountCostBasisB afmt a else mempty
+    costbasis = if displayCostBasis then
+                  (if displayLedgerLotSyntax afmt then showAmountCostBasisLedgerB else showAmountCostBasisB) afmt a
+                else mempty
 
 -- Show an amount's cost as @ UNITCOST or @@ TOTALCOST, plus a leading space, or "" if there's no cost.
 showAmountCost :: Amount -> String

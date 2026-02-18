@@ -215,14 +215,14 @@ originalPosting :: Posting -> Posting
 originalPosting p = fromMaybe p $ poriginal p
 
 showPosting :: Posting -> String
-showPosting p = T.unpack . T.unlines $ postingsAsLines False [p]
+showPosting p = T.unpack . T.unlines $ postingsAsLines defaultFmt False [p]
 
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command.
 showPostingLines :: Posting -> [Text]
-showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidth p
+showPostingLines p = first3 $ postingAsLines defaultFmt False False maxacctwidth maxamtwidth p
   where
-    linesWithWidths = map (postingAsLines False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
+    linesWithWidths = map (postingAsLines defaultFmt False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
@@ -244,10 +244,10 @@ showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidt
 -- Amounts' display precisions, which may have been limited by commodity directives,
 -- will be increased if necessary to ensure this.
 --
-postingsAsLines :: Bool -> [Posting] -> [Text]
-postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
+postingsAsLines :: AmountFormat -> Bool -> [Posting] -> [Text]
+postingsAsLines basefmt onelineamounts ps = concatMap first3 linesWithWidths
   where
-    linesWithWidths = map (postingAsLines False onelineamounts maxacctwidth maxamtwidth) ps
+    linesWithWidths = map (postingAsLines basefmt False onelineamounts maxacctwidth maxamtwidth) ps
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
@@ -274,8 +274,8 @@ postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
-postingAsLines :: Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
-postingAsLines elideamount onelineamounts acctwidth amtwidth p =
+postingAsLines :: AmountFormat -> Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
+postingAsLines basefmt elideamount onelineamounts acctwidth amtwidth p =
     (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
   where
     -- This needs to be converted to strict Text in order to strip trailing
@@ -308,7 +308,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     shownAmounts
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB displayopts $ pamount p
-        where displayopts = defaultFmt{
+        where displayopts = basefmt{
           displayZeroCommodity=True, displayForceDecimalMark=True, displayOneLine=onelineamounts
           }
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts

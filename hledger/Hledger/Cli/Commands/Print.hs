@@ -34,6 +34,7 @@ import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata, showPriceDirectiveBeancount)
+import Hledger.Write.Ledger (showTransactionLedger)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (styledTableHtml)
@@ -59,7 +60,7 @@ printmode = hledgerCommandMode
   ,roundFlag
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX"
     "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
-  ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
+  ,outputFormatFlag ["txt","ledger","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
@@ -140,6 +141,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="ledger"   = entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
