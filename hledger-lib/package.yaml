@@ -161,6 +161,7 @@ library:
   # - Hledger.Read.TimeclockReader
   # - Hledger.Write.Beancount
   # - Hledger.Write.Csv
+  # - Hledger.Write.Ledger
   # - Hledger.Write.Ods
   # - Hledger.Write.Html
   # - Hledger.Write.Html.Attribute
