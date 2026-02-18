@@ -5,7 +5,7 @@
 
 # * Reading and writing lot syntax
 
-# ** 1. Ledger-style lot syntax is parsed and reproduced in print output.
+# ** 1. Ledger-style lot syntax is parsed and printed in consolidated format.
 <
 2026-01-01
     assets:investment    10 AAPL @ $100 {$100} [2026-01-01] (lot A)
@@ -13,7 +13,7 @@
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL {$100} [2026-01-01] (lot A) @ $100
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100} @ $100
     assets:cash
 
 >=
@@ -26,7 +26,7 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL {$100} [2026-01-01]
+    assets:investment    10 AAPL {2026-01-01, $100}
     assets:cash
 
 >=
@@ -39,7 +39,7 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL {$100} [2026-01-01] (lot A)
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100}
     assets:cash
 
 >=
@@ -52,7 +52,7 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL [2026-01-01]
+    assets:investment    10 AAPL {2026-01-01}
     assets:cash
 
 >=
@@ -65,7 +65,7 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL (lot1)
+    assets:investment    10 AAPL {"lot1"}
     assets:cash
 
 >=
@@ -78,7 +78,7 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-01
-    assets:broker    10 AAPL {$100} [2026-01-01] @ $150
+    assets:broker    10 AAPL {2026-01-01, $100} @ $150
     assets:cash
 
 >=

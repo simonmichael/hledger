@@ -96,6 +96,8 @@ module Hledger.Data.Amount (
   showAmountCostB,
   showAmountCostBasis,
   showAmountCostBasisB,
+  showAmountCostBasisLedger,
+  showAmountCostBasisLedgerB,
   cshowAmount,
   showAmountWithZeroCommodity,
   showAmountDebug,
@@ -191,7 +193,7 @@ import Data.List (foldl')
 import Data.List.NonEmpty (NonEmpty(..), nonEmpty)
 import Data.Map.Strict qualified as M
 import Data.Set qualified as S
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (catMaybes, fromMaybe, isNothing)
 import Data.Semigroup (Semigroup(..))
 import Data.Text qualified as T
 import Data.Text.Lazy.Builder qualified as TB
@@ -753,13 +755,37 @@ showAmountCostDebug Nothing                = ""
 showAmountCostDebug (Just (UnitCost pa))  = "@ "  ++ showAmountDebug pa
 showAmountCostDebug (Just (TotalCost pa)) = "@@ " ++ showAmountDebug pa
 
--- | Show an amount's cost basis as Ledger-style lot syntax: {LOTCOST} [LOTDATE] (LOTNOTE).
+-- | Show an amount's cost basis as consolidated lot syntax: {DATE, "LABEL", COST}.
 showAmountCostBasis :: Amount -> String
 showAmountCostBasis = wbUnpack . showAmountCostBasisB defaultFmt
 
 -- showAmountCostBasis, efficient builder version.
 showAmountCostBasisB :: AmountFormat -> Amount -> WideBuilder
 showAmountCostBasisB afmt amt = case acostbasis amt of
+  Nothing -> mempty
+  Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
+    WideBuilder (TB.fromString " {}") 3
+  Just CostBasis{cbCost, cbDate, cbLabel} ->
+    case parts of
+      [] -> mempty
+      _  -> WideBuilder (TB.fromString " {") 2 <> contents <> WideBuilder (TB.singleton '}') 1
+    where
+      parts = catMaybes
+        [ fmap (wbFromText . T.pack . show) cbDate
+        , fmap (\l -> wbFromText ("\"" <> l <> "\"")) cbLabel
+        , fmap (showAmountB afmt) cbCost
+        ]
+      separator = WideBuilder (TB.fromString ", ") 2
+      contents = mconcat $ intersperse separator parts
+
+-- | Show an amount's cost basis as Ledger-style lot syntax: {LOTCOST} [LOTDATE] (LOTNOTE).
+-- Kept for future --ledger-lot-syntax flag (step 3).
+showAmountCostBasisLedger :: Amount -> String
+showAmountCostBasisLedger = wbUnpack . showAmountCostBasisLedgerB defaultFmt
+
+-- showAmountCostBasisLedger, efficient builder version.
+showAmountCostBasisLedgerB :: AmountFormat -> Amount -> WideBuilder
+showAmountCostBasisLedgerB afmt amt = case acostbasis amt of
   Nothing -> mempty
   Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
     WideBuilder (TB.fromString " {}") 3
