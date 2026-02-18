@@ -114,23 +114,27 @@ This applies generally to all unresolved questions, unless they really do need t
 12. Bare/@ disposals on lotful commodities get full lot inference: FIFO lot selection, cost basis, and transacted cost are all inferred from existing lots and
     transaction balancing amounts. E.g. bare `-5 AAPL` on a lotful commodity becomes `-5 AAPL {$50} [2026-01-01] @ $55` with ptype:dispose.
 
-13. {} on acquire infers cost basis from unit transacted cost: Previously `{} @ $50` was rejected as an error while `{} @@ $500` worked. Now both forms infer cost
-    basis — unit cost is used directly, total cost is normalised to per-unit. SPEC updated with clarification on `{}` inference from all forms of transacted cost.
+13. {} on acquire postings infers cost basis from transacted cost. Previously this worked only if there was no {} annotation at all.
 
 ## Next ?
 
-- disposal/gains-aware transaction balancing.
-  how are all these disposal tests passing ? do we need more realistic disposal tests involving gains ? test with real world journals.
-  add disposal balancing step, per spec
+key features:
 
+- read hledger lot syntax
+  - print hledger lot syntax by default
+  - print ledger lot syntax in a new ledger output format
+
+- update manual (hledger.m4.md)
+
+robustness:
 - pretty error messages
 - don't add lot subaccounts if they are already explicit; and raise an error if the explicit lot subaccount is wrong
-- update manual (hledger.m4.md)
-- read hledger lot syntax
-- print hledger lot syntax by default
-- print -o ledger output format
+- test/improve handling of explicit ptype (or _ptype) tags
+- figure out if lot subaccount names are a problem for beancount export. Just avoid --lots ? What about explicit lot subaccounts ?
+
+more features:
+- try again to infer basis even with no {} annotation ?
 - recognise some common commodity symbols as lotful ?
 - infer acquisition cost, disposal price from market price ?
-- figure out if lot subaccount names are a problem for beancount export. Just avoid --lots ? What about explicit lot subaccounts ?
 
 Remember: don't over-engineer. Build the vision, build high quality, but also: build what users actually need, and validate that with real users quickly.
