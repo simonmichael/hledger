@@ -53,6 +53,7 @@ $ hledger -f- bal assets:stocks --lots -N
 2026-03-01 sell some
     assets:stocks   -15 AAPL {} @ $55
     assets:cash      $825
+    revenue:gains   -$25
 
 $ hledger -f- bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-02-01, $60}
