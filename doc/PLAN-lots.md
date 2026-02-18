@@ -114,6 +114,7 @@ This applies generally to all unresolved questions, unless they really do need t
 
 ## Next
 - clarify journalFinalise
+- clean up Lots.hs
 - pretty error messages
 - don't add lot subaccounts if they are already explicit
 - raise an error if the explicit lot subaccount is wrong
