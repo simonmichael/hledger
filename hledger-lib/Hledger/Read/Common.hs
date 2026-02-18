@@ -373,7 +373,9 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
 
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
-      >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments/amounts, maybe check balance assertions
+      >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
+            (let bopts = balancingopts_{ignore_assertions_=not checkassertions}
+             in if lots_ then bopts{account_types_ = jaccounttypes j} else bopts) j)
 
       -- Post-balancing enrichment
       >>= journalInferCommodityStyles                                             -- infer commodity styles once more now that all posting amounts are present
@@ -389,6 +391,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
 
       -- Lot calculation
       >>= (if lots_ then journalCalculateLots else pure)                          -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
+      >>= (if lots_ then journalCheckDisposalBalancing else pure)                  -- with --lots: check disposal transactions balance at cost basis
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

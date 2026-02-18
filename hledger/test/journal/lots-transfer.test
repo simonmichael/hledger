@@ -109,6 +109,7 @@ $ hledger -f- print --verbose-tags
 2026-03-01 sell from broker2
     assets:broker2    -5 AAPL {$50} @ $70
     assets:cash       $350
+    revenue:gains   -$100
 
 $ hledger -f- bal assets:broker --lots -N
               5 AAPL  assets:broker2:{2026-01-15, $50}

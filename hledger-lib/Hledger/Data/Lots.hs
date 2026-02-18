@@ -32,6 +32,7 @@ For background, see doc\/SPEC-lots.md and doc\/PLAN-lots.md.
 
 module Hledger.Data.Lots (
   journalCalculateLots,
+  journalCheckDisposalBalancing,
   journalClassifyLotPostings,
   transactionClassifyLotPostings,
   showLotName,
@@ -39,7 +40,7 @@ module Hledger.Data.Lots (
 ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (foldM, guard, when)
+import Control.Monad (foldM, guard, unless, when)
 import Data.List (sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -53,11 +54,11 @@ import Data.Time.Calendar (Day)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountType (isAssetType)
-import Hledger.Data.Amount (amountsRaw, isNegativeAmount, mapMixedAmount, mixedAmount, noCostFmt, showAmountWith)
+import Hledger.Data.Amount (amountsRaw, isNegativeAmount, mapMixedAmount, mixedAmount, mixedAmountLooksZero, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Journal (journalAccountType, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions)
 import Hledger.Data.Posting (originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Types
-import Hledger.Utils (SourcePos, dbg5, sourcePosPretty)
+import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
 
 -- Types
 
@@ -249,6 +250,43 @@ journalCalculateLots j
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
+
+-- Disposal balancing
+
+-- | Check that each disposal transaction is balanced at cost basis.
+-- This runs after journalCalculateLots, which has filled in cost basis info on dispose postings.
+-- For each transaction containing dispose postings:
+--   sum all postings at cost basis (for amounts with acostbasis, use quantity * cbCost;
+--   for amounts without, use the amount as-is) and check the sum is zero.
+-- This ensures gain/loss postings are present and correct.
+journalCheckDisposalBalancing :: Journal -> Either String Journal
+journalCheckDisposalBalancing j = do
+    mapM_ checkTransaction (jtxns j)
+    Right j
+  where
+    checkTransaction t
+      | not (any isDisposePosting (tpostings t)) = Right ()
+      | otherwise =
+          let costBasisSum = foldMap postingCostBasisAmount (tpostings t)
+          in unless (mixedAmountLooksZero costBasisSum) $
+               Left $ disposalBalanceError t costBasisSum
+
+    -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
+    -- otherwise use the raw amount.
+    postingCostBasisAmount :: Posting -> MixedAmount
+    postingCostBasisAmount p = foldMap amountCostBasisValue (amountsRaw (pamount p))
+
+    amountCostBasisValue :: Amount -> MixedAmount
+    amountCostBasisValue a = case acostbasis a >>= cbCost of
+      Just basisCost -> mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
+      Nothing        -> mixedAmount a
+
+    disposalBalanceError :: Transaction -> MixedAmount -> String
+    disposalBalanceError t residual =
+      sourcePosPairPretty (tsourcepos t) ++ ":\n"
+      ++ "This disposal transaction is unbalanced at cost basis.\n"
+      ++ "The gain/loss posting may be missing or incorrect.\n"
+      ++ "Residual: " ++ showMixedAmountOneLine residual
 
 -- Posting type predicates
 
