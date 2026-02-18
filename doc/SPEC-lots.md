@@ -24,14 +24,14 @@ Historically, hledger has not provided much lot-tracking assistance:
 
 ## Lots mode
 
-There will be a new `--lots` flag, which will enable
+There is a new `--lots` general flag, which enables
 
-- automatic lot inference, tracking and validation
+- automatic lot inference, tracking and error checking
 - display of per-lot subaccounts and balances in all reports.
 
 In the journal, it will be possible to record lot operations 
 
-1. implicitly, with compact notation and maximum inference;
+1. implicitly, with minimal notation and maximum inference;
 2. partly explicitly, with any missing parts inferred;
 3. or fully explicitly, requiring no inference.
 
@@ -113,7 +113,6 @@ All fields are Maybe, so the same types serve for both definite and partial valu
 
 ```
 data CostBasis = CostBasis { cbDate :: Maybe Day, cbLabel :: Maybe Text, cbCost :: Maybe Amount }
-type LotName = CostBasis
 data LotId = LotId { lotDate :: Day, lotLabel :: Maybe Text }
 ```
 
@@ -132,9 +131,8 @@ so these should be inferred if not written explicitly.
 
 In postings with a positive amount, involving a lotful commodity or account,
 which have a transacted cost but no explicit cost basis annotation,
+or an empty cost basis annotation (`{}`),
 we infer a cost basis from the transacted cost.
-
-(journalInferPostingsCostBasis)
 
 ## Lot postings
 

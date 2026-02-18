@@ -434,6 +434,14 @@ pairTransferPostings txnPos froms tos = do
               sortedTs = sortOn postingSortKey ts
           Right $ zip sortedFs sortedTs
 
+-- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.
+-- If quantity is zero, returns the TotalCost amount as-is (avoiding division by zero).
+amountCostToUnitCost :: Quantity -> AmountCost -> Amount
+amountCostToUnitCost _   (UnitCost c)  = c
+amountCostToUnitCost qty (TotalCost c)
+  | qty == 0  = c
+  | otherwise = c{aquantity = aquantity c / qty}
+
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
@@ -449,8 +457,9 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
     let commodity = acommodity lotAmt
         date      = fromMaybe txnDate (cbDate cb)
 
-    -- Check if the original (pre-balancing) amount had an explicit transacted cost.
-    -- If so, {} with @ is an error; {} alone can infer cost basis from balancing.
+    -- Get the original (pre-balancing) amount to check for explicit transacted cost.
+    -- A unit cost on the original can be used directly as the cost basis;
+    -- a total cost on the balanced amount is normalised to a per-unit cost basis.
     let origAmt = case poriginal p of
           Just orig -> case [a | a <- amountsRaw (pamount orig), acommodity a == commodity] of
                          (a:_) -> a
@@ -460,11 +469,9 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
     lotBasis <- case cbCost cb of
       Just c  -> Right c
       Nothing
-        | isJust (acost origAmt) -> Left $ showPos ++ "acquire posting has no lot cost"
-        | otherwise -> case acost lotAmt of
-            Just (UnitCost c)  -> Right c
-            Just (TotalCost c) -> Right c{aquantity = aquantity c / aquantity lotAmt}
-            _                  -> Left $ showPos ++ "acquire posting has no lot cost"
+        | Just (UnitCost c) <- acost origAmt -> Right c
+        | Just cost <- acost lotAmt -> Right $ amountCostToUnitCost (aquantity lotAmt) cost
+        | otherwise                 -> Left $ showPos ++ "acquire posting has no lot cost"
 
     let cbInferred = isNothing (cbCost cb)
         needsLabel = S.member (commodity, date) needsLabels
@@ -546,10 +553,7 @@ processDisposePosting txnPos lotState p = do
             then do
               -- Normalize transacted cost to UnitCost and update poriginal
               -- so print shows the inferred cost basis and cost.
-              let normalizedCost = case acost lotAmt of
-                    Just (TotalCost c) ->
-                      Just $ UnitCost c{aquantity = abs (aquantity c) / abs (aquantity lotAmt)}
-                    other -> other
+              let normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
                   disposeAmt' = disposeAmt{acost = normalizedCost}
                   origP  = originalPosting p
                   origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
