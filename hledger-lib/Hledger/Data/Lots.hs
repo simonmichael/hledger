@@ -46,7 +46,7 @@ import Data.List (sortOn)
 import Data.List (foldl')
 #endif
 import Data.Map.Strict qualified as M
-import Data.Maybe (fromMaybe, isJust, isNothing)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -73,11 +73,13 @@ type LotState = M.Map CommoditySymbol (M.Map LotId (M.Map AccountName Amount))
 -- Format: @{YYYY-MM-DD, COST}@ or @{YYYY-MM-DD, \"LABEL\", COST}@.
 showLotName :: CostBasis -> T.Text
 showLotName CostBasis{cbDate, cbLabel, cbCost} =
-  "{" <> datePart <> labelPart <> costPart <> "}"
+  "{" <> T.intercalate ", " parts <> "}"
   where
-    datePart  = maybe "" (T.pack . show) cbDate
-    labelPart = maybe "" (\l -> ", \"" <> l <> "\"") cbLabel
-    costPart  = maybe "" (\a -> ", " <> T.pack (showAmountWith noCostFmt a)) cbCost
+    parts = catMaybes
+      [ fmap (T.pack . show) cbDate
+      , fmap (\l -> "\"" <> l <> "\"") cbLabel
+      , fmap (T.pack . showAmountWith noCostFmt) cbCost
+      ]
 
 -- Classification (pipeline stage 1)
 

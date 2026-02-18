@@ -33,8 +33,8 @@ $ hledger -f- print desc:transfer --lots --verbose-tags
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker:{2026-01-01, $50}     -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    equity:opening:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker:{2026-01-01, $50}     -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    equity:opening:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -50,8 +50,8 @@ $ hledger -f- print desc:transfer --lots --verbose-tags
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -109,8 +109,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -128,8 +128,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
