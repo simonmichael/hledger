@@ -72,9 +72,10 @@ journalFinalise
   15. journalTagCostsAndEquityAndMaybeInferCosts(2nd)   -- if --infer-costs, infer costs from equity conversion postings
   16. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
   17. journalInferMarketPricesFromTransactions  -- infer market prices from costs
+  18. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
 
   -- Lot calculation
-  18. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
+  19. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts
 ```
 
