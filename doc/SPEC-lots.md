@@ -183,6 +183,7 @@ we infer a transacted cost from the cost basis.
 - A transfer-to posting mirrors a corresponding transfer-from posting in the same transaction,
   recreating its lot(s) under a new parent account.
   It doesn't need a lot selector; if it has one, it must select the same lot as the transfer-from posting.
+  Transfer postings (both from and to) must not have explicit transacted cost (@ or @@); this is an error.
 
 - A dispose posting selects one more lots to be disposed (sold), like a transfer-from posting.
   It must also have a transacted cost, either explicit or inferred from transaction balancing

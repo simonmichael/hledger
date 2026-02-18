@@ -137,7 +137,7 @@ $ hledger -f- bal assets:broker --lots -N
     assets:broker2    10 AAPL {$60}
 
 $ hledger -f- bal assets:broker --lots
->2 /does not match lot cost basis/
+>2 /does not match transfer-to cost basis/
 >=1
 
 # ** 9. Transfer without prior acquisition is an error.
