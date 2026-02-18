@@ -327,9 +327,9 @@ data Commodity = Commodity {
 -- Or it can represent a cost basis matcher for selecting lots.
 -- Note: cost is always stored as a per-unit cost, even if the user specified total cost with {{}}.
 data CostBasis = CostBasis {
-  cbCost  :: !(Maybe Amount),    -- ^ nominal acquisition cost (per-unit)
   cbDate  :: !(Maybe Day),       -- ^ nominal acquisition date
-  cbLabel :: !(Maybe Text)       -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbLabel :: !(Maybe Text),      -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbCost  :: !(Maybe Amount)     -- ^ nominal acquisition cost (per-unit)
 } deriving (Show,Eq,Generic,Ord)
 
 -- | Identifies a specific lot of a commodity, by its acquisition date and optional label.
