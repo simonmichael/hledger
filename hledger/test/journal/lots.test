@@ -314,3 +314,15 @@ $ hledger -f- bal assets:broker
 --------------------
              20 AAPL  
 
+# ** 15. print -O ledger produces Ledger-style lot syntax.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100} @ $150
+    assets:cash
+
+$ hledger -f- print -O ledger
+2026-01-01
+    assets:investment    10 AAPL {$100} [2026-01-01] (lot A) @ $150
+    assets:cash
+
+>=

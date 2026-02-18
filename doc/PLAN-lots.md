@@ -120,10 +120,6 @@ This applies generally to all unresolved questions, unless they really do need t
 
 key features:
 
-- read hledger lot syntax
-  - print hledger lot syntax by default
-  - print ledger lot syntax in a new ledger output format
-
 - update manual (hledger.m4.md)
 
 robustness:
