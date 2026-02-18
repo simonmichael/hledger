@@ -188,6 +188,9 @@ we infer a transacted cost from the cost basis.
 - A dispose posting selects one more lots to be disposed (sold), like a transfer-from posting.
   It must also have a transacted cost, either explicit or inferred from transaction balancing
   (or from market price, in future).
+  When the dispose posting has no cost basis annotation but involves a lotful commodity or account,
+  the cost basis is inferred from the selected lot, and the transacted cost
+  (if inferred by the balancer as @@) is normalized to unit cost (@).
 
 ## Lot transactions
 
@@ -198,39 +201,41 @@ So lot transactions can be classified as "acquire", "transfer", or "dispose" (we
 ## Gain postings
 
 A gain posting is a posting to an account of Gain type (a subtype of Revenue).
-We use this gain account to record both capital gain and capital loss, depending on the amount sign.
-The special type helps hledger identify this account.
+We use this gain account to record capital gain and/or capital loss (depending on the amount sign).
+The special account type helps hledger identify these postings.
 
 ## Transaction balancing
 
 There are two kinds of transaction balancing:
 
-1. **Normal transaction balancing** uses transacted costs (not cost basis).
-   All journal entries must pass this as usual.
-   Gain postings (identifiable by Gain account type) are ignored by normal transaction balancing,
-   so that both kinds of balancing can succeed with the same journal entries.
+1. **Normal transaction balancing**
+   All journal entries, including lot-related ones, must pass this.
+   When summing postings it uses their transacted costs (not cost basis), if any.
+   And it excludes (ignores) capital gain/loss postings, identified by their Gain account type.
 
-2. **Lot disposal balancing** is a separate check that applies to disposal transactions only.
-   It uses cost basis instead of transacted cost for balancing,
-   and so it requires or infers an appropriate gain posting.
-   We calculate the total capital gain/loss
-   by comparing the lot acquisition cost(s) for each dispose posting
-   and the total transacted disposal price.
-   If the transaction contains a gain posting (or multiple gain postings),
-   we check that the recorded gain matches the calculated gain.
-   Otherwise, we infer a gain posting (using the alphabetically first Gain account).
+2. **Disposal balancing**
+   Journal entries involving lot disposals get this additional balancing pass.
+   When summing postings it uses their cost basis (not transacted cost), if any.
+   And it includes gain postings, or will infer one if needed.
 
-Lot disposal balancing could be done always, for best error checking;
-or only when lots mode is enabled, if it helps performance.
+The different handling of gain postings allows both kinds of transaction balancing
+to succeed with the same journal entries.
+
+## Inferring/checking capital gain
+
+A disposal transaction's total realised capital gain/loss is calculated by 
+comparing the lot acquisition cost(s) for each dispose posting, and the total transacted disposal price.
+
+If the transaction contains a gain posting (or more than one),
+the recorded gain is expected to match the calculated gain.
+
+Otherwise, a gain posting is inferred, posting the calculated gain to the alphabetically first Gain account.
+This helps the transaction to pass disposal balancing.
 
 ## Processing pipeline
 
-All lot-related processing happens in `journalFinalise`, after normal transaction balancing
-and all other standard validation. Lot functionality is treated as an optional addition
-that happens after all normal journal validation. The lot-related steps are:
+Lot-related processing can be thought of as an optional extra journal processing step, 
+enabled by the --lots flag. 
 
-1. `journalInferPostingsCostBasis` — infer cost basis from transacted cost where appropriate
-2. `journalClassifyLotPostings` — classify lot postings with ptype tags (acquire/dispose/transfer)
-3. `journalInferPostingsTransactedCost` — infer transacted cost from cost basis for acquire postings
-4. `journalCalculateLots` — calculate detailed lot movements (stateful, can fail)
-
+But all the inferring conveniences make it quite interdependent with the other processing steps.
+See SPEC-finalising for more details of the implementation.

@@ -20,7 +20,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Posting tags inherited from accounts                        | Account declarations                                      | journalPostingsAddAccountTags            |
 | Location of conversion equity postings and costful postings | @/@@ annotations + adjacent conversion account postings   | journalTagCostsAndEquityAndMaybeInferCosts(1st)         |
 | Auto postings                                               | Auto posting rules + postings in journal                  | journalAddAutoPostings                   |
-| Lot posting types                                           | Cost basis + amount sign + account type + counterpostings | journalClassifyLotPostings               |
+| Lot posting types                                           | Cost basis + amount sign + account type + lotful status + counterpostings | journalClassifyLotPostings               |
 | Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
 | Transaction-balancing amounts                               | Counterpostings (or their costs)                          | journalBalanceTransactions               |
 | Transaction-balancing costs                                 | Costless two-commodity transactions                       | transactionInferBalancingCosts           |
@@ -30,7 +30,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Costs from equity postings (--infer-costs)                  | Equity conversion posting pairs                           | journalTagCostsAndEquityAndMaybeInferCosts(2nd)         |
 | Equity postings from costs (--infer-equity)                 | Costful postings                                          | journalInferEquityFromCosts              |
 | Market prices from costs                                    | Costful postings                                          | journalInferMarketPricesFromTransactions |
-| Lot subaccounts                                             | Lot state tracking (applying FIFO etc.)                   | journalCalculateLots                     |
+| Lot subaccounts, cost basis and cost for bare disposals      | Lot state tracking (applying FIFO etc.)                   | journalCalculateLots                     |
 
 ## Current pipeline sequence
 
@@ -76,7 +76,8 @@ journalFinalise
 
   -- Lot calculation
   19. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
-                                        -- calculate lot balances, add explicit lot subaccounts
+                                        -- calculate lot balances, add explicit lot subaccounts,
+                                        -- infer cost basis for bare disposals, normalize transacted cost
 ```
 
 ## Sequencing constraints
@@ -133,7 +134,8 @@ These fields are central to the inference pipeline:
   inferred from cost basis.
 
 - **acostbasis** — lot cost basis (`{$50}` or `{2024-01-15, "lot1", $50}`).
-  Sources: parsed from journal (explicit `{}` required for lot tracking).
+  Sources: parsed from journal (explicit `{}` required for lot tracking);
+  also set by `journalCalculateLots` for bare disposals on lotful commodities.
   Used by lot posting classification and lot calculation.
 
 These two fields are sometimes both present on the same amount (both explicit, or one inferred).
@@ -150,7 +152,8 @@ that the presence of `acost` means the user wrote `@ $X`.
 - **poriginal** — snapshot of the posting before amount/cost inference, used by `print`
   to show journal entries close to how they were written. Set by: `transactionInferBalancingCosts`,
   `transactionInferBalancingAmount`, balance assignment processing,
-  `postingInferTransactedCost`. Since classification runs before these steps,
+  `postingInferTransactedCost`, `processDisposePosting` (bare disposals).
+  Since classification runs before these steps,
   `_ptype` tags are naturally included in `poriginal`.
 
 ## Conditional steps
