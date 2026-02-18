@@ -306,11 +306,16 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
 processDisposePosting :: SourcePos -> LotState -> Posting
                       -> Either String (LotState, [Posting])
 processDisposePosting txnPos lotState p = do
+    -- Extract lotful amount and lot selector. When cost basis is present, use it directly.
+    -- When absent (bare dispose on a lotful commodity), use a wildcard selector.
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
-    (lotAmt, cb) <- case lotAmts of
-      []  -> Left $ showPos ++ "dispose posting has no cost basis"
-      [x] -> Right x
-      _   -> Left $ showPos ++ "dispose posting has multiple cost basis amounts (not yet supported)"
+    (lotAmt, cb, isBare) <- case lotAmts of
+      [x] -> Right (fst x, snd x, False)
+      _   -> do
+        let bareAmts = [a | a <- amountsRaw (pamount p), isNegativeAmount a]
+        case bareAmts of
+          [a] -> Right (a, CostBasis Nothing Nothing Nothing, True)
+          _   -> Left $ showPos ++ "dispose posting has no cost basis"
 
     let commodity = acommodity lotAmt
         disposeQty = aquantity lotAmt
@@ -339,9 +344,28 @@ processDisposePosting txnPos lotState p = do
               -- Build the dispose amount: negative consumed quantity,
               -- keeping the original amount's commodity, style, cost, and cost basis.
               disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
-          Right p{ paccount = paccount p <> ":" <> lotName
-                 , pamount  = mixedAmount disposeAmt
-                 }
+          if isBare
+            then do
+              -- Normalize transacted cost to UnitCost and update poriginal
+              -- so print shows the inferred cost basis and cost.
+              let normalizedCost = case acost lotAmt of
+                    Just (TotalCost c) ->
+                      Just $ UnitCost c{aquantity = abs (aquantity c) / abs (aquantity lotAmt)}
+                    other -> other
+                  disposeAmt' = disposeAmt{acost = normalizedCost}
+                  origP  = originalPosting p
+                  origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
+                  updateAmt a | acommodity a == commodity =
+                                  a{acostbasis = Just lotCb, acost = normalizedCost}
+                              | otherwise = a
+              Right p{ paccount  = paccount p <> ":" <> lotName
+                     , pamount   = mixedAmount disposeAmt'
+                     , poriginal = Just origP'
+                     }
+            else
+              Right p{ paccount = paccount p <> ":" <> lotName
+                     , pamount  = mixedAmount disposeAmt
+                     }
 
     newPostings <- mapM mkPosting selected
     let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
@@ -583,13 +607,23 @@ journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionCl
 -- The verbosetags parameter controls whether the tags are made visible in comments.
 transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> Transaction -> Transaction
 transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
-  | not (any hasCostBasis ps) = dbg5 "classifyLotPostings: no cost basis found, skipping" t
+  | not (any hasLotRelevantAmount ps) = dbg5 "classifyLotPostings: no lot-relevant amounts found, skipping" t
   | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=map classifyPosting ps}
   where
     hasCostBasis :: Posting -> Bool
     hasCostBasis p = let amts = amountsRaw (pamount p)
                          result = any (isJust . acostbasis) amts
                      in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
+
+    hasLotRelevantAmount :: Posting -> Bool
+    hasLotRelevantAmount p = hasCostBasis p || hasNegativeLotfulAmount p
+
+    hasNegativeLotfulAmount :: Posting -> Bool
+    hasNegativeLotfulAmount p =
+      let amts = amountsRaw (pamount p)
+      in not (any (isJust . acostbasis) amts)
+         && any isNegativeAmount amts
+         && postingIsLotful p amts
 
     -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
     -- For each commodity, which accounts have:
@@ -654,7 +688,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                       lookupAccountType (paccount p)
           guard $ isAssetType acctType
           dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful/bare") $
-            shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts
+            shouldClassifyNegativeLotful p amts <|> shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts
 
     -- Classify a posting that has cost basis: acquire, dispose, transfer-from, or transfer-to.
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
@@ -667,6 +701,15 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       return $ if isTransfer
         then if isNeg then "transfer-from" else "transfer-to"
         else primaryType
+
+    -- Classify a negative lotful posting without cost basis as dispose or transfer-from.
+    shouldClassifyNegativeLotful :: Posting -> [Amount] -> Maybe Text
+    shouldClassifyNegativeLotful p amts = do
+      guard $ postingIsLotful p amts
+      guard $ any isNegativeAmount amts
+      let pCommodities = [acommodity a | a <- amts]
+          isTransfer = any (hasCounterpart (paccount p) True) pCommodities
+      return $ if isTransfer then "transfer-from" else "dispose"
 
     -- Classify a lotful posting without cost basis.
     -- A positive posting in a lotful commodity/account, with no transacted cost,

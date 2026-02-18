@@ -111,45 +111,8 @@ This applies generally to all unresolved questions, unless they really do need t
 12. Bare/@ disposals on lotful commodities get full lot inference: FIFO lot selection, cost basis, and transacted cost are all inferred from existing lots and
     transaction balancing amounts. E.g. bare `-5 AAPL` on a lotful commodity becomes `-5 AAPL {$50} [2026-01-01] @ $55` with ptype:dispose.
 
-## Fixing failing tests
-
-Updated test expectations in lots-*-entries.test reflect spec changes (amendments 8-12). 8 tests fail; we address 6 here (fixes A, C, D, E, F), deferring B (negative lotful classification).
-
-### Verification
-
-```
-stack build hledger && stack exec -- shelltest --execdir --hide -j8 \
-  hledger/test/journal/lots-acquire-entries.test \
-  hledger/test/journal/lots-transfer-entries.test \
-  hledger/test/journal/lots-dispose-entries.test
-```
-
-Then `just functest --hide` to check for regressions.
-
-### Summary of what was done:
-  - Fix F: Swapped error message wording in validateToCb — transfer #9 now passes
-  - Fix D: Infer cbCost from balancer-inferred acost when user writes {}:
-    - Uses poriginal to distinguish balancer-inferred costs (ok to infer) from explicit @ $50 (error)
-    - Uses filledCb (= cb{cbCost = Just lotBasis}) for the printed amount, preserving user-written fields
-    - Updates poriginal's amount with the inferred cost basis so print shows {$50} not {}
-    - Fixed test 8's missing trailing blank line before >=
-    - Acquire tests: all 12 pass
-  - Fixes A+C: Broadened classification for non-asset cost basis + bare transfer-to:
-    - collect: removed isAssetType outer guard; negCBAccts/posCBAccts accept any account type; renamed posLotfulAccts → posNoCBAccts (positive + asset + no CB)
-    - shouldClassify: cost-basis branch no longer requires asset; no-cost-basis branch still requires asset
-    - Added shouldClassifyBareTransferTo for bare positive asset postings with transfer-from counterpart
-    - Updated acquire #3 test (non-asset with {$50} now classified as acquire)
-    - Updated transfer #1 test (bare to-posting now classified as transfer-to)
-    - Fixed test output bugs in transfer #2 and dispose #1 (wrong account names)
-    - Lot entry tests: 26 pass, 3 fail (deferred B and E#8 only)
-  - Fix E: Transfer transacted cost check, using originalPosting to detect user-written @ vs pipeline-inferred acost:
-    - In processTransferPair, checks original (pre-balancing) amounts for acost on both from and to postings
-    - Errors with "lot transfers should have no transacted cost" when found
-    - Transfer test #9 now passes (transfer #8 already passed — caught by normal balancing)
-    - Lot entry tests: 27 pass, 2 fail (deferred B only)
 
 ## Next
-- fix remaining failing tests (B: dispose #3/#4)
 - clarify journalFinalise
 - pretty error messages
 - don't add lot subaccounts if they are already explicit
