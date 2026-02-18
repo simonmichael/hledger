@@ -16,8 +16,8 @@
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}           10 AAPL  ; ptype: transfer-to
 
 >=
 
@@ -33,8 +33,8 @@ $ hledger -f- print desc:transfer --lots --verbose-tags
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
+    assets:broker:{2026-01-01, $50}     -10 AAPL {$50} [2026-01-01]  ; ptype: transfer-from
+    equity:opening:{2026-01-01, $50}     10 AAPL {$50} [2026-01-01]  ; ptype: transfer-to
 
 >=
 
@@ -133,7 +133,7 @@ $ hledger -f- print desc:transfer --lots --verbose-tags
 
 >=
 
-# *** 8. transfer: from {$50} @ $50, to {$50}. Error: lot transfers should have no transacted cost.
+# *** 8. transfer: from {$50} @ $50, to {$50}. Error: unbalanced transaction.
 <
 commodity AAPL  ; lots:
 
@@ -146,10 +146,26 @@ commodity AAPL  ; lots:
     assets:broker2    10 AAPL {$50}
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
+>2 /transaction is unbalanced/
+>=1
+
+# *** 9. transfer: from {$50} @ $50, to {$50} @ $50. Error: lot transfers should have no transacted cost.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker1    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {$50} @ $50
+    assets:broker2    10 AAPL {$50} @ $50
+
+$ hledger -f- print desc:transfer --lots --verbose-tags
 >2 /lot transfers should have no transacted cost/
 >=1
 
-# *** 9. transfer: from {$50}, to {$60} (mismatched). Error: does not match.
+# *** 10. transfer: from {$50}, to {$60} (mismatched). Error: does not match.
 <
 commodity AAPL  ; lots:
 

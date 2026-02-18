@@ -381,6 +381,13 @@ processTransferPair txnPos lotState fromP toP = do
 
     let toAmts = amountsRaw (pamount toP)
 
+    -- Check that neither transfer posting has explicit transacted cost (@ or @@).
+    -- Use originalPosting to distinguish user-written @ from pipeline-inferred acost.
+    let origFromAmts = amountsRaw $ pamount $ originalPosting fromP
+        origToAmts   = amountsRaw $ pamount $ originalPosting toP
+    when (any (isJust . acost) origFromAmts || any (isJust . acost) origToAmts) $
+      Left $ showPos ++ "lot transfers should have no transacted cost"
+
     -- Validate transfer-from has negative quantity
     when (transferQty >= 0) $
       Left $ showPos ++ "transfer-from posting has non-negative quantity for " ++ T.unpack commodity
@@ -554,7 +561,7 @@ generateLabel commodity date lotState =
              $ M.dropWhileAntitone (\(LotId d _) -> d < date) existingLots
     nextNum = M.size sameDate + 1 :: Int
 
--- | Classify lot-related postings on Asset accounts by adding ptype tags.
+-- | Classify lot-related postings by adding ptype tags.
 -- Must be called after journalAddAccountTypes so account types are available.
 -- The verbosetags parameter controls whether the ptype tags will be made visible in comments.
 journalClassifyLotPostings :: Bool -> Journal -> Journal
@@ -563,12 +570,14 @@ journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionCl
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
 
--- | Classify lot-related postings on Asset accounts by adding a ptype tag.
--- For each posting that involves an asset account and a cost basis:
+-- | Classify lot-related postings by adding a ptype tag.
+-- For each posting with a cost basis (any account type):
 -- - determine if it's of type "acquire" or "dispose" (based on amount sign)
--- - or "transfer-from" or "transfer-to" (if counterposting is also Asset with same commodity).
--- A lotful posting without cost basis can also be classified as "transfer-to"
--- if there's a matching transfer-from counterpart (see shouldClassifyLotful).
+-- - or "transfer-from" or "transfer-to" (if counterposting with same commodity exists in a different account).
+-- For asset postings without cost basis:
+-- - a lotful posting can be classified as "transfer-to" (see shouldClassifyLotful)
+-- - a bare positive posting can be classified as "transfer-to" if there's a
+--   matching transfer-from counterpart (see shouldClassifyBareTransferTo).
 -- The lookupAccountType function should typically be `journalAccountType journal`.
 -- The commodityIsLotful function should typically be `journalCommodityUsesLots journal`.
 -- The verbosetags parameter controls whether the tags are made visible in comments.
@@ -584,32 +593,28 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 
     -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
     -- For each commodity, which accounts have:
-    --   negative asset postings with cost basis  (transfer-from candidates)
-    --   positive asset postings with cost basis  (transfer-to candidates, standard path)
-    --   positive lotful asset postings without cost basis or transacted cost  (transfer-to candidates, lotful path)
+    --   negative postings with cost basis  (transfer-from candidates; any account type)
+    --   positive postings with cost basis  (transfer-to candidates, standard path; any account type)
+    --   positive asset postings without cost basis  (transfer-to candidates, bare path; asset only)
     -- Account lists are deduplicated (typically 1-2 accounts per commodity).
-    negCBAccts, posCBAccts, posLotfulAccts :: M.Map CommoditySymbol [AccountName]
-    (negCBAccts, posCBAccts, posLotfulAccts) = foldl' collect (M.empty, M.empty, M.empty) ps
+    negCBAccts, posCBAccts, posNoCBAccts :: M.Map CommoditySymbol [AccountName]
+    (negCBAccts, posCBAccts, posNoCBAccts) = foldl' collect (M.empty, M.empty, M.empty) ps
       where
-        collect (!neg, !pos, !lotful) p =
-          case lookupAccountType (paccount p) of
-            Just acctType | isAssetType acctType ->
-              let amts    = amountsRaw (pamount p)
-                  acct    = paccount p
-                  isNeg   = any isNegativeAmount amts
-                  hasCB   = any (isJust . acostbasis) amts
-                  isLot   = postingIsLotful p amts
-                  hasCost = any (isJust . acost) amts
+        collect (!neg, !pos, !noCB) p =
+              let isAsset  = maybe False isAssetType (lookupAccountType (paccount p))
+                  amts     = amountsRaw (pamount p)
+                  acct     = paccount p
+                  isNeg    = any isNegativeAmount amts
+                  hasCB    = any (isJust . acostbasis) amts
                   cbComms  = [acommodity a | a <- amts, isJust (acostbasis a)]
                   allComms = [acommodity a | a <- amts]
-                  neg'    = if isNeg && hasCB
-                            then foldl' (addAcct acct) neg cbComms else neg
-                  pos'    = if not isNeg && hasCB
-                            then foldl' (addAcct acct) pos cbComms else pos
-                  lotful' = if not isNeg && isLot && not hasCB && not hasCost
-                            then foldl' (addAcct acct) lotful allComms else lotful
-              in (neg', pos', lotful')
-            _ -> (neg, pos, lotful)
+                  neg'     = if isNeg && hasCB
+                             then foldl' (addAcct acct) neg cbComms else neg
+                  pos'     = if not isNeg && hasCB
+                             then foldl' (addAcct acct) pos cbComms else pos
+                  noCB'    = if not isNeg && isAsset && not hasCB
+                             then foldl' (addAcct acct) noCB allComms else noCB
+              in (neg', pos', noCB')
         -- Add an account to a commodity's account list, deduplicating.
         -- The lists are short (bounded by distinct accounts, typically 1-2).
         addAcct acct m c = M.insertWith (\_ old -> if acct `elem` old then old else acct : old) c [acct] m
@@ -618,7 +623,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- in this commodity?  O(k) where k = distinct accounts per commodity (typically 1-2).
     hasCounterpart :: AccountName -> Bool -> CommoditySymbol -> Bool
     hasCounterpart acct isNeg c
-      | isNeg     = anyOtherAcct posCBAccts || anyOtherAcct posLotfulAccts
+      | isNeg     = anyOtherAcct posCBAccts || anyOtherAcct posNoCBAccts
       | otherwise = anyOtherAcct negCBAccts
       where anyOtherAcct m = any (/= acct) (M.findWithDefault [] c m)
 
@@ -638,17 +643,18 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- one of acquire, dispose, transfer-from, transfer-to.
     shouldClassify :: Posting -> Maybe Text
     shouldClassify p = do
-      -- is the account an asset account ?
-      let macctType = lookupAccountType (paccount p)
-      acctType <- dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " acctType") macctType
-      guard $ isAssetType acctType
-
       let amts = amountsRaw $ pamount p
       if any (isJust . acostbasis) amts
+        -- Cost basis present: classify regardless of account type (fix A)
         then dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " withCostBasis") $
              shouldClassifyWithCostBasis p amts
-        else dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful") $
-             shouldClassifyLotful p amts
+        else do
+          -- No cost basis: require asset account type
+          acctType <- dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " acctType") $
+                      lookupAccountType (paccount p)
+          guard $ isAssetType acctType
+          dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful/bare") $
+            shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts
 
     -- Classify a posting that has cost basis: acquire, dispose, transfer-from, or transfer-to.
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
@@ -670,6 +676,15 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       guard $ postingIsLotful p amts
       guard $ not $ any isNegativeAmount amts
       guard $ not $ any (isJust . acost) amts
+      let pCommodities = [acommodity a | a <- amts]
+      guard $ any (hasTransferFromCounterpart (paccount p)) pCommodities
+      return "transfer-to"
+
+    -- Classify a bare positive asset posting (no cost basis, not necessarily lotful)
+    -- as transfer-to if there's a matching transfer-from counterpart (fix C).
+    shouldClassifyBareTransferTo :: Posting -> [Amount] -> Maybe Text
+    shouldClassifyBareTransferTo p amts = do
+      guard $ not $ any isNegativeAmount amts
       let pCommodities = [acommodity a | a <- amts]
       guard $ any (hasTransferFromCounterpart (paccount p)) pCommodities
       return "transfer-to"

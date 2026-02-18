@@ -30,7 +30,7 @@ $ hledger -f- print --lots --verbose-tags
 
 >=
 
-# *** 3. acquire: {$50}, non-lotful commodity/account, non-asset. No lot posting detected.
+# *** 3. acquire: {$50}, non-lotful commodity/account, non-asset. Cost basis forces acquisition even from non-asset account.
 <
 2026-01-01 buy
     equity:opening    10 AAPL {$50}
@@ -38,8 +38,8 @@ $ hledger -f- print --lots --verbose-tags
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    equity:opening    10 AAPL {$50}
-    assets:cash               $-500
+    equity:opening:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
+    assets:cash                                 $-500
 
 >=
 
