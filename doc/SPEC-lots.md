@@ -165,18 +165,10 @@ we infer a transacted cost from the cost basis.
   or inferred from the transacted cost (or perhaps market price, in future).
 
 - A transfer-from posting selects one or more lots to be transferred elsewhere,
-  following some selection method. Either
-
+  following some selection/reduction method. Either
   - it has a lot selector (a full or partial cost basis annotation),
     which must unambiguously select a single existing lot ("SPECID" method)
-  - or it has no lot selector, in which case a default method is used, selecting one or more existing lots.
-    Planned lot selection methods include:
-    FIFO (oldest first, across all accounts), FIFO1 (oldest first, within each account),
-    LIFO (newest first, across all accounts), LIFO1 (newest first, within each account),
-    and SPECID (explicit selection via lot selector).
-    The method should be configurable in a relatively fine-grained way —
-    per account, per commodity, per time period, perhaps even per posting.
-    In future, the method might be specified with an annotation like {!METHOD, ...} inside the lot syntax.
+  - or it has no lot selector, in which case a default method is used ("FIFO" method), selecting one or more existing lots.
 
 - A transfer-to posting mirrors a corresponding transfer-from posting in the same transaction,
   recreating its lot(s) under a new parent account.
@@ -189,6 +181,19 @@ we infer a transacted cost from the cost basis.
   When the dispose posting has no cost basis annotation but involves a lotful commodity or account,
   the cost basis is inferred from the selected lot, and the transacted cost
   (if inferred by the balancer as @@) is normalized to unit cost (@).
+
+## Reduction methods
+
+Planned reduction methods include:
+
+FIFO (oldest first, across all accounts), FIFO1 (oldest first, within each account),
+LIFO (newest first, across all accounts), LIFO1 (newest first, within each account),
+and SPECID (explicit selection via lot selector).
+
+The method should be configurable in a relatively fine-grained way —
+per account, per commodity, per time period, perhaps even per posting.
+
+In future, the method might be specified with an annotation like {!METHOD, ...} inside the lot syntax.
 
 ## Lot transactions
 

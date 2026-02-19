@@ -119,8 +119,7 @@ This applies generally to all unresolved questions, unless they really do need t
 ## Next ?
 
 key features:
-
-- update manual (hledger.m4.md)
+- update manual
 
 robustness:
 - pretty error messages

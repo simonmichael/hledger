@@ -41,6 +41,8 @@ module Hledger.Data.Journal (
   journalInferPostingsCostBasis,
   journalInferPostingsTransactedCost,
   journalCommodityUsesLots,
+  journalCommodityLotsMethod,
+  postingLotsMethod,
 -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
@@ -673,6 +675,29 @@ journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommo
 -- | Does this posting have a 'lots:' tag (eg inherited from its account) ?
 postingUsesLots :: Posting -> Bool
 postingUsesLots p = any ((== "lots") . T.toLower . fst) (ptags p)
+
+-- | Get the reduction method from a commodity's lots: tag value, if any.
+journalCommodityLotsMethod :: Journal -> CommoditySymbol -> Maybe ReductionMethod
+journalCommodityLotsMethod j c =
+  case [v | (k, v) <- journalCommodityTags j c, T.toLower k == "lots"] of
+    (v:_) -> parseReductionMethod v
+    []    -> Nothing
+
+-- | Get the reduction method from a posting's lots: tag value (typically inherited from its account), if any.
+postingLotsMethod :: Posting -> Maybe ReductionMethod
+postingLotsMethod p =
+  case [v | (k, v) <- ptags p, T.toLower k == "lots"] of
+    (v:_) -> parseReductionMethod v
+    []    -> Nothing
+
+-- | Parse a reduction method name from a lots: tag value.
+parseReductionMethod :: Text -> Maybe ReductionMethod
+parseReductionMethod t = case T.toUpper (T.strip t) of
+  "FIFO"  -> Just FIFO
+  "FIFO1" -> Just FIFO1
+  "LIFO"  -> Just LIFO
+  "LIFO1" -> Just LIFO1
+  _       -> Nothing
 
 -- | To all postings in the journal, add any tags from their amount's commodities.
 -- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
