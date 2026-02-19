@@ -32,7 +32,7 @@ User-visible errors from this module, and their current verbosity:
 
 journalCalculateLots:
 
-* validateUserLabels: "lot id is not unique: commodity X, date D, label L" — no position
+* validateUserLabels: "lot id is not unique: commodity X, date D, label L" — start position + excerpt (points to second duplicate)
 
 * processAcquirePosting: "acquire posting has no cost basis", "...has multiple cost basis amounts",
   "...has no lot cost", "duplicate lot id: {...} for commodity X" — start position only
@@ -91,6 +91,7 @@ import Text.Printf (printf)
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType)
 import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
+import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
 import Hledger.Data.Posting (hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
@@ -447,20 +448,25 @@ validateUserLabels :: [Transaction] -> Either String ()
 validateUserLabels txns =
     case M.toList duplicates of
       [] -> Right ()
-      (((c, d, l), _):_) -> Left $ "lot id is not unique: commodity " ++ T.unpack c
-                              ++ ", date " ++ show d
-                              ++ ", label \"" ++ T.unpack l ++ "\""
+      (((c, d, l), t2:_):_) ->
+        let (f, line, _, ex) = makeTransactionErrorExcerpt t2 (const Nothing)
+        in Left $ printf (unlines [
+              "%s:%d:"
+             ,"%s"
+             ,"lot id is not unique: commodity %s, date %s, label \"%s\""
+             ]) f line ex (T.unpack c) (show d) (T.unpack l)
+      _ -> Right ()  -- shouldn't happen
   where
-    labeled = [ (acommodity a, getLotDate t cb, l)
+    labeled = [ ((acommodity a, getLotDate t cb, l), t)
               | t <- txns
               , p <- tpostings t
               , isAcquirePosting p
               , a <- amountsRaw (pamount p)
               , Just cb <- [acostbasis a]
-              , Just l <- [cbLabel cb]
+              , Just l  <- [cbLabel cb]
               ]
-    counts = foldl' (\m k -> M.insertWith (+) k (1 :: Int) m) M.empty labeled
-    duplicates = M.filter (> 1) counts
+    txnsByKey = foldl' (\m (k, t) -> M.insertWith (++) k [t] m) M.empty labeled
+    duplicates = M.filter (\ts -> length ts > 1) txnsByKey
 
 -- | Find (commodity, date) pairs that have multiple acquisitions and thus need labels.
 -- Only counts acquisitions that don't already have a user-provided label.
