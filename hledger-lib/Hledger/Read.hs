@@ -106,6 +106,7 @@ module Hledger.Read (
   readJournal,
   readJournalFile,
   readPossibleJournalFile,
+  readPossibleJournalFiles,
   readJournalFiles,
   readJournalFilesAndLatestDates,
 
@@ -142,7 +143,7 @@ import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
 import Data.List (group, sort, sortBy)
-import Data.List.NonEmpty (nonEmpty)
+import Data.List.NonEmpty (nonEmpty, NonEmpty((:|)))
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
@@ -348,6 +349,21 @@ readPossibleJournalFile iopts prefixedfile = do
       if exists
         then readJournalFile iopts prefixedfile
         else return $ nulljournal{jfiles = [(f, "")]}
+
+-- | Like readJournalFiles, but if the first file does not exist, provides an empty
+-- journal with that file path set. Other files must exist as normal.
+-- This is useful for commands like add and import that write to the first file,
+-- which might not exist yet, while also reading other files for completions etc.
+readPossibleJournalFiles :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO Journal
+readPossibleJournalFiles iopts pfs = case pfs of
+  []     -> return nulljournal
+  (f:fs) -> do
+    let iopts' = iopts{_defer=True}
+    j1 <- readPossibleJournalFile iopts' f
+    js <- mapM (readJournalFile iopts') fs
+    let combined = journalNumberTransactions $ sconcat (j1 :| js)
+    when (strict_ iopts) $ liftEither $ journalStrictChecks combined
+    return combined
 
 -- | Read a Journal from each specified file path (using @readJournalFile@)
 -- and combine them into one; or return the first error message.
