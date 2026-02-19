@@ -339,6 +339,12 @@ data LotId = LotId {
   lotLabel :: !(Maybe Text)
 } deriving (Show,Eq,Ord,Generic)
 
+-- | The method used to select lots for disposal or transfer.
+-- FIFO/LIFO select across all accounts; FIFO1/LIFO1 select within the posting's account only.
+-- SPECID is not represented here — it is detected structurally when a non-wildcard lot selector is present.
+data ReductionMethod = FIFO | FIFO1 | LIFO | LIFO1
+  deriving (Show,Read,Eq,Ord,Generic)
+
 data Amount = Amount {
   acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
   aquantity   :: !Quantity,            -- numeric quantity, or zero in case of "AUTO"
@@ -908,6 +914,7 @@ instance NFData Interval
 instance NFData Journal
 instance NFData LotId
 instance NFData MarketPrice
+instance NFData ReductionMethod
 instance NFData MixedAmount
 instance NFData MixedAmountKey
 instance NFData Rounding
