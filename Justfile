@@ -467,7 +467,7 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
 
 #  --hide-successes
 
-# build hledger warning-free and run functional tests, with any shelltest OPTS. (after mktestaddons)
+# build hledger warning-free and run functional tests, with any shelltest OPTS.
 @functest *STOPTS:
     {{ STACK }} build --ghc-options=-Werror --test --no-run-tests hledger
     time (({{ SHELLTEST }} --exclude=/_ --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
@@ -497,20 +497,6 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
         && echo $@ PASSED) || (echo $@ FAILED; false))
     echo "Now eyeball the recent perf.log for changes:"
     tail -50 perf.log
-
-ADDONEXTS := 'pl py rb sh hs lhs rkt exe com bat'
-ADDONSDIR := 'hledger/test/cli/addons'
-
-# generate dummy add-ons for testing the CLI
-mktestaddons:
-    #!/usr/bin/env sh
-    rm -rf $ADDONSDIR
-    mkdir -p $ADDONSDIR $ADDONSDIR/hledger-addondir
-    cd $ADDONSDIR
-    printf '#!/bin/sh\necho add-on: $0\necho args: $@\n' > hledger-addon
-    for E in '' {{ ADDONEXTS }}; do cp hledger-addon hledger-addon.$E; done
-    for F in addon. addon2 addon2.hs addon3.exe addon3.lhs addon4.exe add reg; do cp hledger-addon hledger-$F; done
-    chmod +x hledger-*
 
 # compare hledger's and ledger's balance report
 compare-balance:

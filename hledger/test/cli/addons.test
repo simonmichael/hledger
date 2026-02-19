@@ -1,6 +1,6 @@
 # * addon command subsystem tests
 # See also cli.test. These need:
-# - "just mktestaddons" to be run first to set up dummy addon scripts
+# - the dummy addon scripts in addons/ (committed in the repo)
 # - shelltest --execdir
 #
 # Because of the PATH setting, these don't obey shelltest -w
