@@ -3,8 +3,10 @@
 Here is the current specification for lots functionality, some of which has been implemented in the lots branch.
 
 See also 
-- hledger manual > Cost basis / Lot syntax
-- https://joyful.com/hledger+lot+tracking older, related dev notes
+- hledger manual: Basis / lots
+- hledger manual: Lot reporting
+- <https://joyful.com/hledger+lot+tracking>
+- <https://github.com/simonmichael/hledger/issues/1015>
 
 
 ## Lots
@@ -250,3 +252,34 @@ can differ from the price actually paid to acquire it. These may include:
 - **ESPPs** — shares bought at a discount; basis treatment depends on qualifying vs disqualifying disposition.
 - **Wash sales** — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
 - **Corporate actions** — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
+
+## Examples
+
+### Disposal
+
+A very implicit disposal:
+
+```
+2026-03-01 sell
+    assets:stocks   -15 AAPL
+    assets:cash      $900
+    revenue:gains
+```
+
+or:
+
+```
+2026-03-01 sell
+    assets:stocks   -15 AAPL @ $60
+    assets:cash      
+    revenue:gains
+```
+
+Explanation:
+
+1. revenue:gains is recognised as a Gain account so ignored by normal transaction balancing
+2. $60 sale price or $900 sale amount is inferred to balance the transaction
+
+if in --lots mode:
+3. 15 AAPL are reduced from one or more existing lots selected with assets:stock's or AAPL's or default (FIFO) reduction method
+4. disposal balancing infers the gain amount based on the reduction order, selected lot(s)' cost bases, and sale amount
