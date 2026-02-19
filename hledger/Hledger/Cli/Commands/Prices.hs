@@ -27,6 +27,7 @@ pricesmode = hledgerCommandMode
   [flagNone ["costs"]                (setboolopt "infer-market-prices") "deprecated, use --infer-market-prices instead"
   ,flagNone ["inverted-costs"]       (setboolopt "show-reverse") "deprecated, use --show-reverse instead"
   ,flagNone ["infer-reverse-prices"] (setboolopt "show-reverse") "deprecated, use --show-reverse instead"
+  ,flagReq  ["quoted"]               (\s opts -> Right $ setopt "quoted" s opts) "COMM" "Only show prices quoted in commodity matching COMM"
   ])
   ([], Just $ argsFlag "[QUERY]")
 
@@ -66,12 +67,22 @@ prices opts j = do
       then forwardprices `mergePriceDirectives` reverseprices
       else forwardprices
 
+    mbQuoted :: Maybe Regexp
+    mbQuoted = fmap (toRegex' . T.pack) $ maybestringopt "quoted" (rawopts_ opts)
+
+    includePrice pd =
+      matchesPriceDirective q pd &&
+      maybe True (pd `isQuotedIn`) mbQuoted
+
     filteredprices =
       -- dbg0 "filtered unsorted" $
-      filter (matchesPriceDirective q) allprices
+      filter includePrice allprices
 
   mapM_ (T.putStrLn . showPriceDirective . styleAmounts styles) $
     sortOn pddate filteredprices
+
+isQuotedIn :: PriceDirective -> Regexp -> Bool
+pd `isQuotedIn` r = regexMatchText r $ acommodity $ pdamount pd
 
 -- XXX performance
 -- | Append any new price directives (with different from commodity,
