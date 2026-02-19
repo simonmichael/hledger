@@ -231,7 +231,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 
 >=
 
-# *** 12. dispose: missing gain posting, no Gain account declared → error.
+# *** 12. dispose: missing gain posting, no Gain account declared → defaults to revenue:gains.
 <
 commodity AAPL  ; lots:
 
@@ -244,5 +244,9 @@ commodity AAPL  ; lots:
     assets:cash      $275
 
 $ hledger -f- print desc:sell --lots --verbose-tags
->2 /no Gain-type account was found/
->=1
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25
+
+>=
