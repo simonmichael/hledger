@@ -35,29 +35,29 @@ journalCalculateLots:
 * validateUserLabels: "lot id is not unique: commodity X, date D, label L" — start position + excerpt (points to second duplicate)
 
 * processAcquirePosting: "acquire posting has no cost basis", "...has multiple cost basis amounts",
-  "...has no lot cost", "duplicate lot id: {...} for commodity X" — start position only
+  "...has no lot cost", "duplicate lot id: {...} for commodity X" — start position + excerpt
 
 * processDisposePosting: "dispose posting has no cost basis", "...has no transacted cost (selling price)",
   "...has non-negative quantity", "SPECID requires a lot selector",
-  "lot ... has no cost basis (internal error)", "lot subaccount ... does not match resolved lot" — start position only
+  "lot ... has no cost basis (internal error)", "lot subaccount ... does not match resolved lot" — start position + excerpt
 
 * pairTransferPostings: "transfer-to/from posting ... has no matching ... posting",
-  "mismatched transfer postings for commodity X", "... posting has no lotful commodity" — start position only
+  "mismatched transfer postings for commodity X", "... posting has no lotful commodity" — start position + excerpt
 
 * processTransferPair: "transfer-from posting has no cost basis", "...has multiple cost basis amounts",
   "lot transfers should have no transacted cost", "transfer-from posting has non-negative quantity",
-  "lot ... has no cost basis (internal error)", "lot cost basis ... does not match transfer-to cost basis" — start position only
+  "lot ... has no cost basis (internal error)", "lot cost basis ... does not match transfer-to cost basis" — start position + excerpt
 
 * selectLots: "SPECID requires an explicit lot selector", "no lots available for commodity X",
-  "lot selector is ambiguous, matches N lots", "insufficient lots for commodity X" — start position only
+  "lot selector is ambiguous, matches N lots", "insufficient lots for commodity X" — start position + excerpt (via caller)
 
 journalInferAndCheckDisposalBalancing:
 
-* "This disposal transaction has multiple amountless gain postings" — start+end position, no excerpt
+* "This disposal transaction has multiple amountless gain postings" — start position + excerpt
 
-* "This disposal transaction is unbalanced at cost basis" — start+end position, no excerpt
+* "This disposal transaction is unbalanced at cost basis" — start position + excerpt
 
-All errors should eventually show a verbose excerpt (see Hledger.Data.Errors and doc/ERRORS.md).
+All errors now show a verbose excerpt (see Hledger.Data.Errors and doc/ERRORS.md).
 -}
 
 {-# LANGUAGE CPP #-}
@@ -96,7 +96,7 @@ import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, jou
 import Hledger.Data.Posting (hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
-import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
+import Hledger.Utils (dbg5)
 
 -- Types
 
@@ -377,7 +377,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
               checkBalance t'
               Right t'
             -- Multiple amountless gain postings: error
-            _ -> Left $ sourcePosPairPretty (tsourcepos t) ++ ":\n"
+            _ -> Left $ txnErrPrefix t
                      ++ "This disposal transaction has multiple amountless gain postings.\n"
                      ++ "At most one gain posting may have its amount inferred."
 
@@ -400,7 +400,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
 
     disposalBalanceError :: Transaction -> MixedAmount -> String
     disposalBalanceError t residual =
-      sourcePosPairPretty (tsourcepos t) ++ ":\n"
+      txnErrPrefix t
       ++ "This disposal transaction is unbalanced at cost basis.\n"
       ++ "The gain/loss posting may be missing or incorrect.\n"
       ++ "Residual: " ++ showMixedAmountOneLine residual
@@ -484,6 +484,12 @@ findDatesNeedingLabels txns =
       ]
     countAcquire m (c, d) = M.insertWith (+) (c, d) (1 :: Int) m
 
+-- | Format a verbose error prefix for a transaction: "file:line:\nexcerpt\n\n".
+-- Prepend to an error message to show source position and a transaction excerpt.
+txnErrPrefix :: Transaction -> String
+txnErrPrefix t = printf "%s:%d:\n%s\n" f line ex
+  where (f, line, _, ex) = makeTransactionErrorExcerpt t (const Nothing)
+
 -- | Get the lot date from cost basis, falling back to the transaction date.
 getLotDate :: Transaction -> CostBasis -> Day
 getLotDate t cb = fromMaybe (tdate t) (cbDate cb)
@@ -513,7 +519,7 @@ processTransaction :: Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Tra
 processTransaction j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
-    pairs <- pairTransferPostings txnPos transferFroms transferTos
+    pairs <- pairTransferPostings t transferFroms transferTos
     -- Process transfer pairs first, accumulating lot state changes
     (ls', transferPs) <- foldM processOnePair (ls, []) pairs
     -- Process remaining postings (acquire, dispose, passthrough)
@@ -523,20 +529,19 @@ processTransaction j needsLabels (ls, acc) t = do
     return (ls'', t{tpostings = allPs} : acc)
   where
     txnDate = tdate t
-    txnPos = fst (tsourcepos t)
 
     processOnePair (st, psAcc) (fromP, toP) = do
-      (st', fromPs, toPs) <- processTransferPair j txnPos st fromP toP
+      (st', fromPs, toPs) <- processTransferPair j t st fromP toP
       return (st', reverse toPs ++ reverse fromPs ++ psAcc)
 
     foldMPostings :: LotState -> [Posting] -> [Posting] -> Either String (LotState, [Posting])
     foldMPostings st acc' [] = Right (st, acc')
     foldMPostings st acc' (p:ps)
       | isAcquirePosting p = do
-          (st', p') <- processAcquirePosting needsLabels txnDate txnPos st p
+          (st', p') <- processAcquirePosting needsLabels txnDate t st p
           foldMPostings st' (p':acc') ps
       | isDisposePosting p = do
-          (st', newPs) <- processDisposePosting j txnPos st p
+          (st', newPs) <- processDisposePosting j t st p
           foldMPostings st' (reverse newPs ++ acc') ps
       | otherwise =
           foldMPostings st (p:acc') ps
@@ -555,16 +560,16 @@ partitionTransferPostings = go [] [] []
 -- Within each commodity group, froms and tos are sorted by cost basis fields
 -- (date, label, cost) so that explicit per-lot pairs align correctly even when
 -- interleaved. Cost basis mismatches are caught later by validation, not here.
-pairTransferPostings :: SourcePos -> [Posting] -> [Posting]
+pairTransferPostings :: Transaction -> [Posting] -> [Posting]
                      -> Either String [(Posting, Posting)]
 pairTransferPostings _ [] [] = Right []
-pairTransferPostings txnPos froms tos = do
+pairTransferPostings t froms tos = do
     fromGroups <- groupByCommodity "transfer-from" froms
     toGroups   <- groupByCommodity "transfer-to" tos
     let allComms = S.union (M.keysSet fromGroups) (M.keysSet toGroups)
     concat <$> mapM (matchCommodityGroup fromGroups toGroups) (S.toList allComms)
   where
-    showPos = sourcePosPretty txnPos ++ ":\n"
+    showPos = txnErrPrefix t
 
     -- Group postings by their lotful commodity (the one with cost basis).
     groupByCommodity :: String -> [Posting] -> Either String (M.Map CommoditySymbol [Posting])
@@ -618,9 +623,9 @@ amountCostToUnitCost qty (TotalCost c)
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
-processAcquirePosting :: S.Set (CommoditySymbol, Day) -> Day -> SourcePos -> LotState -> Posting
+processAcquirePosting :: S.Set (CommoditySymbol, Day) -> Day -> Transaction -> LotState -> Posting
                       -> Either String (LotState, Posting)
-processAcquirePosting needsLabels txnDate txnPos lotState p = do
+processAcquirePosting needsLabels txnDate t lotState p = do
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
     (lotAmt, cb) <- case lotAmts of
       []  -> Left $ showPos ++ "acquire posting has no cost basis"
@@ -681,14 +686,14 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
                       (M.singleton lotId (M.singleton (paccount p) lotStateAmt)) lotState
     return (lotState', p')
   where
-    showPos = sourcePosPretty txnPos ++ ":\n"
+    showPos = txnErrPrefix t
 
 -- | Process a dispose posting: match to existing lots using the resolved reduction method,
 -- split into multiple postings if the disposal spans multiple lots.
 -- Returns the list of resulting postings (one per matched lot).
-processDisposePosting :: Journal -> SourcePos -> LotState -> Posting
+processDisposePosting :: Journal -> Transaction -> LotState -> Posting
                       -> Either String (LotState, [Posting])
-processDisposePosting j txnPos lotState p = do
+processDisposePosting j t lotState p = do
     -- Extract lotful amount and lot selector. When cost basis is present, use it directly.
     -- When absent (bare dispose on a lotful commodity), use a wildcard selector.
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
@@ -771,14 +776,14 @@ processDisposePosting j txnPos lotState p = do
 
     return (lotState', newPostings)
   where
-    showPos = sourcePosPretty txnPos ++ ":\n"
+    showPos = txnErrPrefix t
 
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
 -- Returns updated LotState and two lists of expanded postings (from, to).
-processTransferPair :: Journal -> SourcePos -> LotState -> Posting -> Posting
+processTransferPair :: Journal -> Transaction -> LotState -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair j txnPos lotState fromP toP = do
+processTransferPair j t lotState fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from
     let fromAmts = [(a, cb) | a <- amountsRaw (pamount fromP), Just cb <- [acostbasis a]]
     (fromAmt, fromCb) <- case fromAmts of
@@ -824,7 +829,7 @@ processTransferPair j txnPos lotState fromP toP = do
 
     return (lotState'', fromPs, toPs)
   where
-    showPos = sourcePosPretty txnPos ++ ":\n"
+    showPos = txnErrPrefix t
 
     mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
         lotBasis <- case acostbasis storedAmt >>= cbCost of
