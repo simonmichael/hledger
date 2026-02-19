@@ -390,7 +390,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
 
       -- Lot calculation
       >>= (if lots_ then journalCalculateLots else pure)                          -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
-      >>= (if lots_ then journalCheckDisposalBalancing else pure)                  -- with --lots: check disposal transactions balance at cost basis
+      >>= (if lots_ then journalInferAndCheckDisposalBalancing else pure)           -- with --lots: infer gain amounts and check disposal transactions balance at cost basis
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.
