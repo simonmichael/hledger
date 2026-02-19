@@ -374,8 +374,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
       >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
-            (let bopts = balancingopts_{ignore_assertions_=not checkassertions}
-             in if lots_ then bopts{account_types_ = jaccounttypes j} else bopts) j)
+            (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j}) j)
 
       -- Post-balancing enrichment
       >>= journalInferCommodityStyles                                             -- infer commodity styles once more now that all posting amounts are present
