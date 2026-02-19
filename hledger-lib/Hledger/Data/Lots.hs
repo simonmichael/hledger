@@ -33,7 +33,7 @@ For background, see doc\/SPEC-lots.md and doc\/PLAN-lots.md.
 
 module Hledger.Data.Lots (
   journalCalculateLots,
-  journalCheckDisposalBalancing,
+  journalInferAndCheckDisposalBalancing,
   journalClassifyLotPostings,
   transactionClassifyLotPostings,
   showLotName,
@@ -54,10 +54,11 @@ import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Text.Printf (printf)
 
+import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType)
-import Hledger.Data.Amount (amountsRaw, isNegativeAmount, mapMixedAmount, mixedAmount, mixedAmountLooksZero, noCostFmt, showAmountWith, showMixedAmountOneLine)
+import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
-import Hledger.Data.Posting (originalPosting, postingAddHiddenAndMaybeVisibleTag)
+import Hledger.Data.Posting (hasAmount, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Types
 import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
 
@@ -280,28 +281,55 @@ journalCalculateLots j
 
 -- Disposal balancing
 
--- | Check that each disposal transaction is balanced at cost basis.
+-- | For each disposal transaction, infer any amountless gain posting's amount from cost basis,
+-- then check that the transaction is balanced at cost basis.
 -- This runs after journalCalculateLots, which has filled in cost basis info on dispose postings.
--- For each transaction containing dispose postings:
---   sum all postings at cost basis (for amounts with acostbasis, use quantity * cbCost;
---   for amounts without, use the amount as-is) and check the sum is zero.
--- This ensures gain/loss postings are present and correct.
-journalCheckDisposalBalancing :: Journal -> Either String Journal
-journalCheckDisposalBalancing j = do
-    mapM_ checkTransaction (jtxns j)
-    Right j
+journalInferAndCheckDisposalBalancing :: Journal -> Either String Journal
+journalInferAndCheckDisposalBalancing j = do
+    txns' <- mapM inferGainInTransaction (jtxns j)
+    Right j{jtxns = txns'}
   where
-    checkTransaction t
-      | not (any isDisposePosting (tpostings t)) = Right ()
-      | otherwise =
-          let costBasisSum = foldMap postingCostBasisAmount (tpostings t)
-          in unless (mixedAmountLooksZero costBasisSum) $
-               Left $ disposalBalanceError t costBasisSum
+    atypes = jaccounttypes j
+
+    isGain :: Posting -> Bool
+    isGain p = accountNameType atypes (paccount p) == Just Gain
+
+    inferGainInTransaction t
+      | not (any isDisposePosting (tpostings t)) = Right t
+      | otherwise = do
+          let (gainPs, otherPs) = partition' isGain (tpostings t)
+              (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
+          case amountlessGainPs of
+            -- No amountless gain postings: just check balance
+            [] -> do
+              checkBalance t
+              Right t
+            -- One amountless gain posting: infer its amount, then check
+            [gp] -> do
+              let otherSum = foldMap postingCostBasisAmount (otherPs ++ amountfulGainPs)
+                  inferredAmt = maNegate otherSum
+                  gp' = gp{ pamount   = inferredAmt
+                          , poriginal = Just $ originalPosting gp
+                          }
+                  t' = t{tpostings = map (\p -> if p == gp then gp' else p) (tpostings t)}
+              checkBalance t'
+              Right t'
+            -- Multiple amountless gain postings: error
+            _ -> Left $ sourcePosPairPretty (tsourcepos t) ++ ":\n"
+                     ++ "This disposal transaction has multiple amountless gain postings.\n"
+                     ++ "At most one gain posting may have its amount inferred."
+
+    checkBalance t =
+      let costBasisSum = foldMap postingCostBasisAmount (tpostings t)
+      in unless (mixedAmountLooksZero costBasisSum) $
+           Left $ disposalBalanceError t costBasisSum
 
     -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
-    -- otherwise use the raw amount.
+    -- otherwise use the raw amount. Amountless postings contribute nothing.
     postingCostBasisAmount :: Posting -> MixedAmount
-    postingCostBasisAmount p = foldMap amountCostBasisValue (amountsRaw (pamount p))
+    postingCostBasisAmount p
+      | not (hasAmount p) = nullmixedamt
+      | otherwise         = foldMap amountCostBasisValue (amountsRaw (pamount p))
 
     amountCostBasisValue :: Amount -> MixedAmount
     amountCostBasisValue a = case acostbasis a >>= cbCost of
@@ -314,6 +342,14 @@ journalCheckDisposalBalancing j = do
       ++ "This disposal transaction is unbalanced at cost basis.\n"
       ++ "The gain/loss posting may be missing or incorrect.\n"
       ++ "Residual: " ++ showMixedAmountOneLine residual
+
+    -- Like Data.List.partition but preserves the type for the predicate
+    partition' :: (a -> Bool) -> [a] -> ([a], [a])
+    partition' _ [] = ([], [])
+    partition' f (x:xs)
+      | f x       = (x:yes, no)
+      | otherwise  = (yes, x:no)
+      where (yes, no) = partition' f xs
 
 -- Posting type predicates
 
