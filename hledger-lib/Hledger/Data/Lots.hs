@@ -580,10 +580,15 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
         lotId      = LotId date lotLabel'
         fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel', cbCost = Just lotBasis}
         lotName    = showLotName fullCb
-        -- When cost basis was inferred, fill it in on the user's original cb;
-        -- the full cb (with date) is used only for the lot subaccount name and lot state key.
+        -- When cost basis was inferred, fill it in on the user's original cb
+        -- so that print shows {$50} not {}.
         filledCb   = cb{cbCost = Just lotBasis}
-        lotAmt'    = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
+        -- The lot state always stores the full cost basis (with date/label/cost)
+        -- so that disposal selectors like {2026-01-15, $50} can match.
+        lotStateAmt = lotAmt{acostbasis = Just fullCb}
+        -- The posting amount preserves the user's original cost basis fields
+        -- (only filling in cost when inferred) for print output fidelity.
+        postingAmt  = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
 
     let existingLots = M.findWithDefault M.empty commodity lotState
     when (M.member lotId existingLots) $
@@ -597,11 +602,11 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
                       updateCb a | acommodity a == commodity = a{acostbasis = Just filledCb}
                                  | otherwise                 = a
                   in p{paccount = paccount p <> ":" <> lotName
-                      ,pamount  = mixedAmount lotAmt'
+                      ,pamount  = mixedAmount postingAmt
                       ,poriginal = Just origP'}
              else p{paccount = paccount p <> ":" <> lotName}
     let lotState' = M.insertWith (M.unionWith M.union) commodity
-                      (M.singleton lotId (M.singleton (paccount p) lotAmt')) lotState
+                      (M.singleton lotId (M.singleton (paccount p) lotStateAmt)) lotState
     return (lotState', p')
   where
     showPos = sourcePosPretty txnPos ++ ":\n"
@@ -645,7 +650,9 @@ processDisposePosting j txnPos lotState p = do
 
     selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
-    let mkPosting (lotId, storedAmt, consumedQty) = do
+    let baseAcct = lotBaseAccount (paccount p)
+        hasExplicitLotAcct = baseAcct /= paccount p
+        mkPosting (lotId, storedAmt, consumedQty) = do
           lotBasis <- case acostbasis storedAmt >>= cbCost of
             Just c  -> Right c
             Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
@@ -657,6 +664,12 @@ processDisposePosting j txnPos lotState p = do
                 , cbCost  = Just lotBasis
                 }
               lotName = showLotName lotCb
+              expectedAcct = baseAcct <> ":" <> lotName
+          -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
+          when (hasExplicitLotAcct && paccount p /= expectedAcct) $
+            Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
+                    ++ " does not match the resolved lot " ++ T.unpack expectedAcct
+          let acctWithLot = expectedAcct
               -- Build the dispose amount: negative consumed quantity,
               -- keeping the original amount's commodity, style, cost, and cost basis.
               disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
@@ -671,12 +684,12 @@ processDisposePosting j txnPos lotState p = do
                   updateAmt a | acommodity a == commodity =
                                   a{aquantity = negate consumedQty, acostbasis = Just lotCb, acost = normalizedCost}
                               | otherwise = a
-              Right p{ paccount  = paccount p <> ":" <> lotName
+              Right p{ paccount  = acctWithLot
                      , pamount   = mixedAmount disposeAmt'
                      , poriginal = Just origP'
                      }
             else
-              Right p{ paccount = paccount p <> ":" <> lotName
+              Right p{ paccount = acctWithLot
                      , pamount  = mixedAmount disposeAmt
                      }
 
