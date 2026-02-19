@@ -211,7 +211,7 @@ fitText mminwidth mmaxwidth ellipsify rightside = clip . pad
     clip s =
       case mmaxwidth of
         Just w
-          | realLength s > w ->
+          | realLength s > max 0 w ->
             if rightside
               then textTakeWidth (w - T.length ellipsis) s <> ellipsis
               else ellipsis <> T.reverse (textTakeWidth (w - T.length ellipsis) $ T.reverse s)
@@ -287,5 +287,9 @@ tests_Text = testGroup "Text" [
      textUnbracket "[([]())]" @?= "[]()"
      textUnbracket "[([[[()]]])]" @?= ""
      textUnbracket "[([[[(]]])]" @?= "("
-     textUnbracket "[([[[)]]])]" @?= ")"
+     textUnbracket "[([[[)]]])]" @?= ")",
+   testCase "fitText" $ do
+     fitText Nothing (Just (-2)) True True "" @?= ""
+     fitText Nothing (Just 0) True True "" @?= ""
+     fitText Nothing (Just 6) True True "Test Text" @?= "Test.."
   ]

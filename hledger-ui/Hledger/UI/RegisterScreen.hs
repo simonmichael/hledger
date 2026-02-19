@@ -94,7 +94,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         -- allocating equally.
         descwidth = maxdescacctswidth `div` 2
         acctswidth = maxdescacctswidth - descwidth
-        colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
+        colwidths = (max 0 datewidth,max 0 descwidth,max 0 acctswidth,max 0 changewidth,max 0 balwidth)
 
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True _rssList
 
