@@ -629,7 +629,7 @@ processDisposePosting j txnPos lotState p = do
                   origP  = originalPosting p
                   origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
                   updateAmt a | acommodity a == commodity =
-                                  a{acostbasis = Just lotCb, acost = normalizedCost}
+                                  a{aquantity = negate consumedQty, acostbasis = Just lotCb, acost = normalizedCost}
                               | otherwise = a
               Right p{ paccount  = paccount p <> ":" <> lotName
                      , pamount   = mixedAmount disposeAmt'
