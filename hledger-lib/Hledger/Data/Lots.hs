@@ -13,9 +13,10 @@ This module implements two pipeline stages (see doc\/SPEC-finalising.md):
      them to the account name as subaccounts.
 
    - For dispose postings: selects an existing lot subaccount matched by
-     the posting's lot selector, using FIFO (oldest first).  If needed and
-     if the lot selector permits it, selects multiple lots, splitting
-     the posting into one per lot.
+     the posting's lot selector, using the configured reduction method
+     (FIFO by default, configurable per account\/commodity via @lots:@ tag).
+     If needed and if the lot selector permits it, selects multiple lots,
+     splitting the posting into one per lot.
      Dispose postings are required to have a transacted cost (the selling price).
 
    - For transfer postings: selects lots from the source account (like
@@ -55,7 +56,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountType (isAssetType)
 import Hledger.Data.Amount (amountsRaw, isNegativeAmount, mapMixedAmount, mixedAmount, mixedAmountLooksZero, noCostFmt, showAmountWith, showMixedAmountOneLine)
-import Hledger.Data.Journal (journalAccountType, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions)
+import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
 import Hledger.Data.Posting (originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Types
 import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
@@ -68,6 +69,30 @@ import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
 -- The innermost Map AccountName allows the same lot to exist at multiple accounts
 -- (eg after a partial lot transfer).
 type LotState = M.Map CommoditySymbol (M.Map LotId (M.Map AccountName Amount))
+
+-- | Resolve which reduction method to use for a posting.
+-- Checks the posting's account tags first (inherited via ptags), then commodity tags, defaulting to FIFO.
+resolveReductionMethod :: Journal -> Posting -> CommoditySymbol -> ReductionMethod
+resolveReductionMethod j p commodity =
+  fromMaybe FIFO $
+    postingLotsMethod p
+    <|> journalCommodityLotsMethod j commodity
+
+-- | Whether a reduction method uses per-account scope (FIFO1/LIFO1) vs global (FIFO/LIFO).
+methodIsPerAccount :: ReductionMethod -> Bool
+methodIsPerAccount FIFO1 = True
+methodIsPerAccount LIFO1 = True
+methodIsPerAccount _     = False
+
+-- | Strip any trailing lot subaccount (a component starting with '{') from an account name.
+-- E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes @\"assets:broker\"@.
+-- Handles the case where a user writes the lot subaccount explicitly in a journal entry.
+lotBaseAccount :: AccountName -> AccountName
+lotBaseAccount a =
+  let (prefix, lastComp) = T.breakOnEnd ":" a
+  in if not (T.null prefix) && "{" `T.isPrefixOf` lastComp
+     then T.init prefix  -- strip the trailing ':'
+     else a
 
 -- | Render a lot name in the consolidated hledger format for use as a subaccount name.
 -- Format: @{YYYY-MM-DD, COST}@ or @{YYYY-MM-DD, \"LABEL\", COST}@.
@@ -248,7 +273,7 @@ journalCalculateLots j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
-      (_, txns') <- foldM (processTransaction needsLabels) (M.empty, []) (sortOn tdate txns)
+      (_, txns') <- foldM (processTransaction j needsLabels) (M.empty, []) (sortOn tdate txns)
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
@@ -375,9 +400,9 @@ generateLabel commodity date lotState =
 -- Transfer pairs are processed first (so that transferred lots are available for
 -- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
-processTransaction :: S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
+processTransaction :: Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
                    -> Either String (LotState, [Transaction])
-processTransaction needsLabels (ls, acc) t = do
+processTransaction j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
     pairs <- pairTransferPostings txnPos transferFroms transferTos
@@ -393,7 +418,7 @@ processTransaction needsLabels (ls, acc) t = do
     txnPos = fst (tsourcepos t)
 
     processOnePair (st, psAcc) (fromP, toP) = do
-      (st', fromPs, toPs) <- processTransferPair txnPos st fromP toP
+      (st', fromPs, toPs) <- processTransferPair j txnPos st fromP toP
       return (st', reverse toPs ++ reverse fromPs ++ psAcc)
 
     foldMPostings :: LotState -> [Posting] -> [Posting] -> Either String (LotState, [Posting])
@@ -403,7 +428,7 @@ processTransaction needsLabels (ls, acc) t = do
           (st', p') <- processAcquirePosting needsLabels txnDate txnPos st p
           foldMPostings st' (p':acc') ps
       | isDisposePosting p = do
-          (st', newPs) <- processDisposePosting txnPos st p
+          (st', newPs) <- processDisposePosting j txnPos st p
           foldMPostings st' (reverse newPs ++ acc') ps
       | otherwise =
           foldMPostings st (p:acc') ps
@@ -545,12 +570,12 @@ processAcquirePosting needsLabels txnDate txnPos lotState p = do
   where
     showPos = sourcePosPretty txnPos ++ ":\n"
 
--- | Process a dispose posting: match to existing lots using FIFO,
+-- | Process a dispose posting: match to existing lots using the resolved reduction method,
 -- split into multiple postings if the disposal spans multiple lots.
 -- Returns the list of resulting postings (one per matched lot).
-processDisposePosting :: SourcePos -> LotState -> Posting
+processDisposePosting :: Journal -> SourcePos -> LotState -> Posting
                       -> Either String (LotState, [Posting])
-processDisposePosting txnPos lotState p = do
+processDisposePosting j txnPos lotState p = do
     -- Extract lotful amount and lot selector. When cost basis is present, use it directly.
     -- When absent (bare dispose on a lotful commodity), use a wildcard selector.
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
@@ -572,7 +597,13 @@ processDisposePosting txnPos lotState p = do
       Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
 
     let posQty = negate disposeQty
-    selected <- selectLotsFIFO showPos Nothing commodity posQty cb lotState
+        method = resolveReductionMethod j p commodity
+        -- Per-account methods (FIFO1/LIFO1) scope to the posting's base account
+        -- (stripping any explicit lot subaccount the user may have written).
+        scopeAcct = if methodIsPerAccount method
+                    then Just (lotBaseAccount (paccount p))
+                    else Nothing
+    selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
     let mkPosting (lotId, storedAmt, consumedQty) = do
           lotBasis <- case acostbasis storedAmt >>= cbCost of
@@ -611,7 +642,7 @@ processDisposePosting txnPos lotState p = do
 
     newPostings <- mapM mkPosting selected
     let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
-        lotState' = reduceLotState Nothing commodity consumed lotState
+        lotState' = reduceLotState scopeAcct commodity consumed lotState
 
     return (lotState', newPostings)
   where
@@ -620,9 +651,9 @@ processDisposePosting txnPos lotState p = do
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
 -- Returns updated LotState and two lists of expanded postings (from, to).
-processTransferPair :: SourcePos -> LotState -> Posting -> Posting
+processTransferPair :: Journal -> SourcePos -> LotState -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair txnPos lotState fromP toP = do
+processTransferPair j txnPos lotState fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from
     let fromAmts = [(a, cb) | a <- amountsRaw (pamount fromP), Just cb <- [acostbasis a]]
     (fromAmt, fromCb) <- case fromAmts of
@@ -647,9 +678,11 @@ processTransferPair txnPos lotState fromP toP = do
       Left $ showPos ++ "transfer-from posting has non-negative quantity for " ++ T.unpack commodity
 
     let posQty = negate transferQty
+        -- Transfers are always per-account (scoped to source), but ordering follows the method.
+        method = resolveReductionMethod j fromP commodity
 
-    -- Select lots from source using FIFO
-    selected <- selectLotsFIFO showPos (Just (paccount fromP)) commodity posQty fromCb lotState
+    -- Select lots from source account using the resolved method's ordering
+    selected <- selectLots method showPos (Just (lotBaseAccount (paccount fromP))) commodity posQty fromCb lotState
 
     -- Extract the transfer-to cost basis for optional validation
     let toCb = case [(a, cb) | a <- toAmts, Just cb <- [acostbasis a]] of
@@ -714,17 +747,22 @@ processTransferPair txnPos lotState fromP toP = do
 
 -- Lot state operations
 
--- | Select lots to consume using FIFO (oldest first).
--- When account is @Nothing@, selects globally across all accounts (for disposals).
--- When account is @Just acct@, selects only from that account (for transfers).
+-- | Select lots to consume using the given reduction method.
+-- The method controls two things:
+--   1. Ordering: FIFO\/FIFO1 use oldest-first; LIFO\/LIFO1 use newest-first.
+--   2. Scope: FIFO\/LIFO select globally across all accounts;
+--      FIFO1\/LIFO1 select only from the specified account.
+-- When @maccount@ is @Just acct@, that account is used for per-account methods
+-- and for transfers (which are always per-account regardless of method).
 -- The lot selector filters which lots are eligible: each non-Nothing field
 -- in the selector must match the corresponding field in the lot's cost basis.
 -- An all-Nothing selector (from @{}@) matches all lots.
 -- Returns a list of (lot id, lot amount, quantity consumed from this lot).
 -- Errors if total available quantity in matching lots is insufficient.
-selectLotsFIFO :: String -> Maybe AccountName -> CommoditySymbol -> Quantity -> CostBasis -> LotState
-               -> Either String [(LotId, Amount, Quantity)]
-selectLotsFIFO posStr maccount commodity qty selector lotState = do
+selectLots :: ReductionMethod -> String -> Maybe AccountName -> CommoditySymbol
+           -> Quantity -> CostBasis -> LotState
+           -> Either String [(LotId, Amount, Quantity)]
+selectLots method posStr maccount commodity qty selector lotState = do
     let allLots = M.findWithDefault M.empty commodity lotState
         -- Flatten to (LotId, Amount) pairs, optionally filtering by account.
         -- For global selection, sum quantities across accounts per lot.
@@ -739,7 +777,12 @@ selectLotsFIFO posStr maccount commodity qty selector lotState = do
     when (available < qty) $
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
-    Right $ go qty (M.toAscList matchingLots)
+    let orderedLots = case method of
+          FIFO  -> M.toAscList matchingLots
+          FIFO1 -> M.toAscList matchingLots
+          LIFO  -> M.toDescList matchingLots
+          LIFO1 -> M.toDescList matchingLots
+    Right $ go qty orderedLots
   where
     -- For global selection, pick any account's Amount as representative
     -- (they all share the same cost basis) and sum the total quantity.
