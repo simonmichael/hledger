@@ -130,6 +130,7 @@ Here are the regressions found since 2020.
 [#2503]: https://github.com/simonmichael/hledger/issues/2503
 [#2512]: https://github.com/simonmichael/hledger/issues/2512
 [#2514]: https://github.com/simonmichael/hledger/issues/2514
+[#2553]: https://github.com/simonmichael/hledger/issues/2553
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
@@ -237,6 +238,8 @@ Fixer  bounties began on 2024-01-01.
 | [#2514]                  | 1.51.2    | Simon Michael (N/A)                                                              | Simon Michael (N/A)
 | **1.51** 2025-12-05      | ---       | ---                                                                              | ---
 | [#2503]                  | 1.50.5, 1.51.1 | Simon Michael (N/A)                                                         | Simon Michael (N/A)
+| **1.51.2** 2026-01-08    | ---       | ---                                                                              | ---
+| [#2503]                  |           | pierovera                                                                        | Simon Michael (N/A)
 
 
 
