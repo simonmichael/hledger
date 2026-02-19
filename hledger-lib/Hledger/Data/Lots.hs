@@ -295,7 +295,9 @@ journalInferAndCheckDisposalBalancing j = do
     isGain :: Posting -> Bool
     isGain p = accountNameType atypes (paccount p) == Just Gain
 
-    gainAccounts = sort [a | (a, Gain) <- M.toList atypes]
+    gainAccount = case sort [a | (a, Gain) <- M.toList atypes] of
+      []    -> "revenue:gains"
+      (a:_) -> a
 
     inferGainInTransaction t
       | not (any isDisposePosting (tpostings t)) = Right t
@@ -310,17 +312,12 @@ journalInferAndCheckDisposalBalancing j = do
                   let residual = foldMap postingCostBasisAmount (tpostings t)
                   if mixedAmountLooksZero residual
                     then Right t
-                    else case gainAccounts of
-                      [] -> Left $ sourcePosPairPretty (tsourcepos t) ++ ":\n"
-                                ++ "This disposal transaction is unbalanced at cost basis "
-                                ++ "but no Gain-type account was found.\n"
-                                ++ "Declare one, eg: account revenue:gains  ; type: G"
-                      (acct:_) -> do
-                        let inferredAmt = maNegate residual
-                            gp = nullposting{paccount = acct, pamount = inferredAmt}
-                            t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
-                        checkBalance t'
-                        Right t'
+                    else do
+                      let inferredAmt = maNegate residual
+                          gp = nullposting{paccount = gainAccount, pamount = inferredAmt}
+                          t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
+                      checkBalance t'
+                      Right t'
               -- Has amountful gain postings, just check balance
               | otherwise -> do
                   checkBalance t
