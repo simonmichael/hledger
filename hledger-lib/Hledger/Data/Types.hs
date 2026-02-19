@@ -316,10 +316,11 @@ data DigitGroupStyle = DigitGroups !Char ![Word8]
 type CommoditySymbol = Text
 
 data Commodity = Commodity {
-  csymbol  :: CommoditySymbol,
-  cformat  :: Maybe AmountStyle,
-  ccomment :: Text,              -- ^ any comment lines following the commodity directive
-  ctags    :: [Tag]              -- ^ tags extracted from the comment, if any
+  csymbol    :: CommoditySymbol,
+  cformat    :: Maybe AmountStyle,
+  ccomment   :: Text,              -- ^ any comment lines following the commodity directive
+  ctags      :: [Tag],             -- ^ tags extracted from the comment, if any
+  csourcepos :: SourcePos          -- ^ source position of the commodity directive
   } deriving (Show,Eq,Generic) --,Ord)
 
 -- | The cost basis of an individual lot - some quantity of an asset acquired at a given date and time.

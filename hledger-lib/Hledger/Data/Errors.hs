@@ -7,6 +7,7 @@ Helpers for making error messages.
 
 module Hledger.Data.Errors (
   makeAccountTagErrorExcerpt,
+  makeCommodityTagErrorExcerpt,
   makePriceDirectiveErrorExcerpt,
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
@@ -58,6 +59,23 @@ makeAccountTagErrorExcerpt (a, adi) _t = (f, l, merrcols, ex)
 showAccountDirective (a, AccountDeclarationInfo{..}) =
   "account " <> a
   <> (if not $ T.null adicomment then "    ; " <> adicomment else "")
+
+-- | Given a commodity and a problem tag within it:
+-- render it as a megaparsec-style excerpt, showing the original line number.
+-- Returns the file path, line number, column(s) if known, and the rendered excerpt.
+makeCommodityTagErrorExcerpt :: Commodity -> TagName -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeCommodityTagErrorExcerpt comm _t = (f, l, merrcols, ex)
+  where
+    SourcePos f pos _ = csourcepos comm
+    l = unPos pos
+    txt = showCommodityDirective comm & textChomp & (<>"\n")
+    ex = decorateExcerpt l merrcols txt
+    merrcols = Nothing
+
+showCommodityDirective :: Commodity -> Text
+showCommodityDirective Commodity{..} =
+  "commodity " <> csymbol
+  <> (if not $ T.null ccomment then "  ; " <> ccomment else "")
 
 -- | Decorate a data excerpt with megaparsec-style left margin, line number,
 -- and marker/underline for the column(s) if known, for inclusion in an error message.

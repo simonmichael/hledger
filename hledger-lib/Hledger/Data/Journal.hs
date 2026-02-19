@@ -156,6 +156,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Errors (makeAccountTagErrorExcerpt, makeCommodityTagErrorExcerpt)
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
@@ -710,31 +711,35 @@ journalCheckLotsTagValues j = do
   mapM_ checkAccount   (jdeclaredaccounts j)
   Right j
   where
-    checkCommodity (comm, tags) =
-      let comment = maybe "" ccomment $ M.lookup comm (jdeclaredcommodities j)
-          directive = "commodity " <> T.unpack comm
-                   <> if T.null comment then "" else "  ; " <> T.unpack (textChomp comment)
-      in mapM_ (checkTagValue ("In commodity directive: " <> directive)) tags
+    msg :: String
+    msg = unlines [
+       "%s:%d:"
+      ,"%s"
+      ,"unrecognised lots: tag value %s."
+      ,"Use FIFO, FIFO1, LIFO, LIFO1, SPECID, or nothing (meaning FIFO)"
+      ]
+
+    checkCommodity (sym, tags) =
+      case M.lookup sym (jdeclaredcommodities j) of
+        Just comm -> mapM_ (checkCommodityTag comm) tags
+        Nothing   -> Right ()
+
+    checkCommodityTag comm (k, v)
+      | T.toLower k /= "lots"       = Right ()
+      | T.null (T.strip v)          = Right ()
+      | Just _ <- parseReductionMethod v = Right ()
+      | otherwise = Left $ printf msg f l ex (show v)
+          where (f, l, _mcols, ex) = makeCommodityTagErrorExcerpt comm k
 
     checkAccount (acctName, adi) =
-      mapM_ (checkTagValue (showExcerpt acctName adi)) (aditags adi)
+      mapM_ (checkAccountTag acctName adi) (aditags adi)
 
-    checkTagValue context (k, v)
-      | T.toLower k /= "lots"   = Right ()
-      | T.null (T.strip v)      = Right ()  -- bare lots: tag is fine
+    checkAccountTag acctName adi (k, v)
+      | T.toLower k /= "lots"       = Right ()
+      | T.null (T.strip v)          = Right ()
       | Just _ <- parseReductionMethod v = Right ()
-      | otherwise = Left $ unlines
-          [ "unrecognised lots: tag value " ++ show v
-          , context
-          , "Consider using one of: FIFO, FIFO1, LIFO, LIFO1, SPECID"
-          ]
-
-    showExcerpt acctName adi =
-      let SourcePos _f pos _ = adisourcepos adi
-          l = unPos pos
-          directive = "account " <> T.unpack acctName
-                   <> if T.null (adicomment adi) then "" else "    ; " <> T.unpack (textChomp (adicomment adi))
-      in  show l <> " | " <> directive
+      | otherwise = Left $ printf msg f l ex (show v)
+          where (f, l, _mcols, ex) = makeAccountTagErrorExcerpt (acctName, adi) k
 
 -- | To all postings in the journal, add any tags from their amount's commodities.
 -- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
