@@ -1650,6 +1650,8 @@ you add extra equity postings to balance the two commodities. Eg:
 hledger offers a more convenient @/@@ "cost notation" as an alternative:
 instead of equity postings, you can write the "conversion rate" or "transacted price" after a posting amount.
 hledger docs generically call this "cost", whether buying or selling.
+("cost" is an overloaded and generic term here, but we still use it for historical reasons. "Transacted price" is more precise.)
+
 It can be written as either `@ UNITPRICE` or `@@ TOTALPRICE`.
 Eg you could write the above as:
 
@@ -1736,61 +1738,48 @@ as long as the journal entry is well formed such that the equity postings / cost
 So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
 and your reports would have the advantages of both.
 
-## Cost basis / Lot syntax
+## Basis / lots
 
-If you are buying some amount of a commodity to hold as an investment,
-it may be important to keep track of its *cost basis* and *lots*.
-This is an advanced topic, but we dive into it here for reference; skip over if you don't need it.
+This is an advanced topic; skip over if you don't need it.
+For full details, see [Lot reporting](#lot-reporting).
 
-In hledger, we use "cost basis" to mean:
+If you are buying an amount of some commodity to hold as an investment,
+it may be important to keep track of its *cost basis* (AKA "basis") and *lots*.
+("Cost basis" and "cost" (see above) sound similar, and often have the same amount in simple purchases; but they are distinct concepts.)
 
-1. the amount's original acquisition cost
-2. the original acquisition date
-3. and a sequence number or label, if needed, to disambiguate multiple acquisitions on the same day, or to serve as a mnemonic for easy reference.
+The basis records:
 
-In hledger we call these three the "cost basis"; and if an amount being acquired has a cost basis, we call it a "lot".
-Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
+1. the amount's nominal acquisition cost (usually the same as the transacted cost, ie what you paid for it, but not always)
+2. the nominal acquisition date (usually the date you acquired it, but not always)
+3. and optionally a label, to disambiguate or identify lots.
 
-Note, though "cost basis" sounds similar to the "cost" (transacted price) discussed above,
-they are distinct concepts and need not be the same (eg when a lot is transferred from a previous owner or previous account).
+An amount with a basis is called a lot.
+The basis is a property of the lot, remaining with it throughout its lifetime.
+It is used to calculate capital gains/losses, eg for tax reporting.
 
-So cost basis has its own syntax, also called "lot syntax".
-hledger's lot syntax is like [Ledger's lot syntax][ledger: buying and selling stock]:
-one or more of the following annotations, in any order, following the main amount:
+### Lot syntax
 
-- `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`
-- `[LOTDATE]`
-- `(LOTLABEL)`
+A basis or lot can be described using "lot syntax". hledger supports two lot syntax styles:
 
-LOTLABEL can be used to attach a more memorable label to a lot.
-Also, when multiple acquisitions of the same commodity occur in one day,
-the label should be used to (a) uniquify and (b) order that day's acquisitions,
-eg by putting a timestamp or sequence number in it.
+**hledger lot syntax** puts all basis fields inside braces, comma-separated (like Beancount):
 
-This is experimental work in progress. Here's what hledger currently does with cost basis / lots:
+    10 AAPL {2026-01-15, $50}
+    10 AAPL {2026-01-15, "lot1", $50}
+    10 AAPL {$50}
+    10 AAPL {}
 
-1. Cost basis annotations are reproduced in `print`'s `txt`, `beancount`, and `json` output.
-   This means you can use this syntax in your hledger journals (in some cases you might need to add an amountless extra posting to help transactions balance);
-   then use the `print` command to export to Beancount (or rustledger, or Ledger), so that you can use their lots reports.
-   See the [Export Lots workflow](workflows.md#more-advanced-workflows).
+All fields are optional, but when present they must be in date-label-cost order.
+Dates must be in YYYY-MM-DD format, and labels must be double-quoted.
+The cost is a single-commodity costless hledger amount.
 
-2. You can declare accounts as "lotful" by adding a `lots` tag in their [declaration](#account-directive).
-   Amounts posted to these accounts are assumed to have a cost basis, whether it's written in the journal or not.
+When an amount has both a basis and a transacted price,
+like `-10 AAPL {$50} @ $60`, the preferred order is to write {} before @.
 
-3. Similarly, you can declare commodities as lotful by adding a `lots` tag in their [declaration](#commodity-directive).
-   Amounts of lotful commodities are assumed to have a cost basis.
+**Ledger lot syntax** uses separate annotations, in any order:
 
-4. In postings involving a positive amount and a lotful commodity or account, if there is no cost basis annotation,
-   it is inferred from the transacted cost and added to the entry.
-   So eg `1 AAPL @ $100` will become `1 AAPL {$100} @ $100`.
+    10 AAPL {$50} [2026-01-15] (lot1)
 
-5. In postings involving a positive amount with a cost basis, if there's no transacted cost annotation,
-   it is inferred from the cost basis and added to the entry.
-   So eg `1 AAPL {$100}` will become `1 AAPL {$100} @ $100`.
-
-6. Lot postings (postings whose amount has a cost basis) are classified automatically,
-   by a hidden `ptype` tag ("posting type") whose value is `acquire`, `dispose`, `transfer-from`, or `transfer-to`.
-   These tags can be queried (`hledger reg tag:ptype=acquire`), or made visible with `hledger print --verbose-tags`.
+hledger accepts both styles on input. Print output uses consolidated style by default, or Ledger style with `-O ledger`.
 
 
 ## Balance assertions
@@ -3350,27 +3339,17 @@ In hledger, these are equivalent to `@` and `@@`.
 
 ### Ledger lot syntax
 
-In Ledger, these optional annotations after an amount help specify the cost basis of a newly acquired lot,
-or select existing lot(s) to dispose of:
+In Ledger, these annotations after an amount help specify or select a lot's [cost basis](#basis-lots):
+`{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`, `[LOTDATE]`, and/or `(LOTNOTE)`.
+hledger will read these, as an alternative to its own [lot syntax](#lot-syntax)).
 
-- `{LOTUNITCOST}` and `{{{{LOTTOTALCOST}}}}` ([lot price][ledger: buying and selling stock])
-- `[LOTDATE]` ([lot date][ledger: lot dates])
-- `(LOTNOTE)` ([lot note][ledger: lot notes])
+We also read Ledger's [fixed price][ledger: fixing lot prices]) syntax,
+`{=LOTUNITCOST}` or `{{{{=LOTTOTALCOST}}}}`,
+treating it as equivalent to `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`,
 
-hledger does not yet calculate lots itself, but it accepts these annotations and will show them in `print`'s `txt`, `beancount`, and `json` output formats.
-This means you can use this syntax in your hledger journals (with an amountless extra posting to help transactions balance, when needed),
-and use the `print` command to export to Ledger or Beancount when you want to calculate lots and capital gains.
-
-### Ledger fixed lot costs
-
-- `{=UNITCOST}` and `{{{{=TOTALCOST}}}}` ([fixed price][ledger: fixing lot prices])
-  - when buying, means "this cost is also the fixed value, don't let it fluctuate in value reports"
-
-Probably equivalent to `@`/`@@`, I'm not sure.
-
+[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 [ledger: virtual posting costs]:    https://www.ledger-cli.org/3.0/doc/ledger3.html#Virtual-posting-costs
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
-[ledger: fixing lot prices]:        https://www.ledger-cli.org/3.0/doc/ledger3.html#Fixing-Lot-Prices
 [ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
 [ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
 
@@ -6945,6 +6924,183 @@ First, a quick glossary:
 | <br>                                                |                                                                  |                                                                   |                                                                                                |                                                                   |                                         |
 
 `--cumulative` is omitted to save space, it works like `-H` but with a zero starting balance.
+
+# Lot reporting
+
+With the `--lots` flag, hledger can track investment lots automatically:
+assigning lot subaccounts on acquisition, selecting lots on disposal using
+configurable methods, calculating capital gains, and showing per-lot balances
+in all reports.
+(Since 1.99.1, experimental. For more technical details, see [SPEC-lots.md](SPEC-lots.md)).
+
+## Lotful commodities and accounts
+
+Commodities and accounts can be declared as "lotful" by adding a `lots` tag
+in their declaration:
+
+```journal
+commodity AAPL  ; lots:
+account assets:stocks  ; lots:
+```
+
+This tells hledger that postings involving these always involve lots,
+enabling cost basis inference even when lot syntax is not written explicitly.
+
+The tag value can also specify a [reduction method](#reduction-methods):
+
+```journal
+commodity AAPL  ; lots: FIFO
+account assets:stocks  ; lots: LIFO
+```
+
+If no value is specified, the default is FIFO.
+
+## --lots
+
+Add `--lots` to any command to enable lot tracking. This activates:
+
+- **Lot classification** — postings are tagged as `acquire`, `dispose`,
+  `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
+  visible with `--verbose-tags`, queryable with `tag:ptype=...`).
+- **Cost basis inference** — for lotful commodities/accounts, cost basis
+  is inferred from transacted cost and vice versa.
+- **Lot calculation** — acquired lots become subaccounts; disposals and
+  transfers select from existing lots.
+- **Disposal balancing** — disposal transactions are checked for balance
+  at cost basis; gain amounts/postings are inferred when missing.
+
+## Lot subaccounts
+
+With `--lots`, each acquired lot becomes a subaccount named by its cost basis:
+
+```journal
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash     -$500
+```
+
+```cli
+$ hledger bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+```
+
+## Lot operations
+
+- **Acquire**: a positive lot posting creates a new lot subaccount.
+  The cost basis can be specified, or will be inferred, but at least an empty `{}` is required to signal an acquire.
+- **Transfer**: matched negative/positive lot postings move lots between accounts, preserving their cost basis.
+  Transfer postings should not have a transacted price.
+- **Dispose**: a negative lot posting sells from existing lot(s).
+  It must have a transacted price (the selling price), either explicit or inferred.
+
+Example disposal:
+
+```journal
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $60
+    assets:cash      $300
+    revenue:gains   -$50
+```
+
+With `--lots`, this selects the specified quantity of the matching lot (which must exist) and shows:
+
+```cli
+$ hledger print --lots desc:sell
+2026-02-01 sell
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash                                                   $300
+    revenue:gains                                                 $-50
+```
+
+## Reduction methods
+
+When a disposal or transfer doesn't specify a particular lot (eg the amount is `-5 AAPL` or `-5 AAPL {}`),
+hledger selects lot(s) automatically using a reduction method. The available methods are:
+
+| Method             | Selection order   | Scope               |
+|--------------------|-------------------|---------------------|
+| **FIFO** (default) | oldest first      | across all accounts |
+| **FIFO1**          | oldest first      | within one account  |
+| **LIFO**           | newest first      | across all accounts |
+| **LIFO1**          | newest first      | within one account  |
+| **SPECID**         | one specified lot | specified account   |
+
+An explicit lot selector (eg `{2026-01-15, $50}` or `{$50}`) uses specific-identification (SPECID).
+
+Configure the method via the `lots:` tag on a commodity or account declaration:
+
+```journal
+commodity AAPL  ; lots: FIFO
+account assets:stocks  ; lots: FIFO1
+```
+
+Account tags override commodity tags.
+
+## Gain postings and disposal balancing
+
+A **gain posting** is a posting to a [Gain-type account](#account-types) (type `G`, a subtype of Revenue). 
+In disposal transactions, it records the capital gain or loss,
+which is the difference between cost basis and selling price of the lots being sold.
+
+Accounts named like `revenue:gains` or `income:capital-gains` are detected as Gain accounts automatically,
+or you can declare one explicitly:
+
+```journal
+account gain/loss  ; type: G
+```
+
+Gain postings have special treatment:
+
+- **Normal transaction balancing** ignores gain postings (they don't count toward the balance check), and balances the transaction using transacted price
+- **Disposal balancing** (with `--lots`) includes gain postings, and balances the transaction using cost basis
+
+An amountless gain posting in a disposal transaction will have its amount filled in.
+Or if a disposal transaction is unbalanced at cost basis and has no gain posting,
+one is inferred automatically (posting to the first Gain account, or `revenue:gains` if none is declared).
+
+## Lot reporting example
+
+```journal
+commodity AAPL  ; lots:
+
+2026-01-15 buy low
+    assets:stocks      10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 buy high
+    assets:stocks      10 AAPL {$60}
+    assets:cash     -$600
+
+2026-03-01 sell some (FIFO, selects oldest lot first)
+    assets:stocks      -5 AAPL @ $70
+    assets:cash      $350
+    revenue:gains
+```
+
+```cli
+$ hledger bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-01-15, $50}
+             10 AAPL  assets:stocks:{2026-02-01, $60}
+```
+
+```cli
+$ hledger print --lots -x desc:sell
+2026-03-01 sell some (FIFO, selects oldest lot first)
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70
+    assets:cash                                                   $350
+    revenue:gains                                                -$100
+```
+```
+$ hledger print --lots -x desc:sell --verbose-tags
+2026-03-01 sell some (FIFO, selects oldest lot first)
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70  ; ptype: dispose
+    assets:cash                                                   $350
+    revenue:gains                                                $-100  ; ptype: gain
+```
+The gain of $100 was inferred: 5 shares acquired at $50, sold at $70 = 5 × ($70 - $50) = $100.
+
 
 # PART 4: COMMANDS
 
