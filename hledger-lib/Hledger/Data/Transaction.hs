@@ -95,7 +95,7 @@ data TransactionBalancingPrecision =
     -- Some valid journals are rejected until commodity directives are added.
     -- Small unbalanced remainders can be hidden, and in accounts that are never reconciled, can accumulate over time.
   | TBPExact
-    -- ^ Simpler, more robust behaviour, as in Ledger: use precision inferred from the transaction.
+    -- ^ Simpler, more robust behaviour, like (I thought) Ledger: use precision inferred from the transaction.
     -- Display precision and transaction balancing precision are independent; display precision never affects journal reading.
     -- Valid journals from ledger or beancount are accepted without needing commodity directives.
     -- Every imbalance in a transaction is visibly accounted for in that transaction's journal entry.
