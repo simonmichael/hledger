@@ -210,7 +210,28 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 >2 /disposal transaction is unbalanced at cost basis/
 >=1
 
-# *** 11. dispose: missing gain posting. Disposal balancing rejects this.
+# *** 11. dispose: missing gain posting is inferred from Gain account.
+<
+commodity AAPL  ; lots:
+account revenue:gains  ; type: G
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25
+
+>=
+
+# *** 12. dispose: missing gain posting, no Gain account declared → error.
 <
 commodity AAPL  ; lots:
 
@@ -223,5 +244,5 @@ commodity AAPL  ; lots:
     assets:cash      $275
 
 $ hledger -f- print desc:sell --lots --verbose-tags
->2 /disposal transaction is unbalanced at cost basis/
+>2 /no Gain-type account was found/
 >=1
