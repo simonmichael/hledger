@@ -78,12 +78,20 @@ defbalancingopts = BalancingOpts
   , account_types_         = M.empty
   }
 
--- | Is this posting to a Gain-type account ?
--- Used with --lots to exclude gain/loss postings from normal transaction balancing.
-isGainPosting :: M.Map AccountName AccountType -> Posting -> Bool
-isGainPosting atypes p
-  | M.null atypes = False  -- no account types available (--lots not active), never exclude
-  | otherwise     = accountNameType atypes (paccount p) == Just Gain
+-- | Is this posting to a Gain-type account in a disposal transaction ?
+-- Used to exclude gain/loss postings from normal transaction balancing,
+-- since in disposals the gain posting balances at cost basis, not at selling price.
+isGainPosting :: M.Map AccountName AccountType -> Transaction -> Posting -> Bool
+isGainPosting atypes t p
+  | M.null atypes             = False
+  | not (isDisposalTransaction atypes t) = False
+  | otherwise                 = accountNameType atypes (paccount p) == Just Gain
+
+-- | Does this transaction contain a disposal posting (one tagged _ptype: dispose) ?
+isDisposalTransaction :: M.Map AccountName AccountType -> Transaction -> Bool
+isDisposalTransaction atypes t
+  | M.null atypes = False
+  | otherwise     = any (("_ptype", "dispose") `elem`) $ map ptags $ tpostings t
 
 -- | Check that this transaction would appear balanced to a human when displayed.
 -- On success, returns the empty list, otherwise one or more error messages.
@@ -105,8 +113,8 @@ isGainPosting atypes p
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
 transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_balancing_, account_types_} t = errs
   where
-    -- With --lots, gain postings are excluded from normal balancing
-    isGain = isGainPosting account_types_
+    -- In disposal transactions, gain postings are excluded from normal balancing
+    isGain = isGainPosting account_types_ t
 
     -- get real and balanced virtual postings, to be checked separately
     (rps, bvps) = foldr partitionPosting ([], []) $ filter (not . isGain) $ tpostings t
@@ -276,7 +284,7 @@ transactionInferBalancingAmount styles atypes t@Transaction{tpostings=ps}
           )
   where
     lbl = lbl_ "transactionInferBalancingAmount"
-    isGain = isGainPosting atypes
+    isGain = isGainPosting atypes t
     (amountfulrealps, amountlessrealps) = partition hasAmount (filter (not . isGain) $ realPostings t)
     realsum = sumPostings amountfulrealps
       -- & dbg9With (lbl "real balancing amount".showMixedAmountOneLine)
@@ -364,7 +372,7 @@ costInferrerFor :: M.Map AccountName AccountType -> Transaction -> PostingRealne
 costInferrerFor atypes t pt = maybe id infercost inferFromAndTo
   where
     lbl = lbl_ "costInferrerFor"
-    isGain       = isGainPosting atypes
+    isGain       = isGainPosting atypes t
     postings     = filter (\p -> preal p == pt && not (isGain p)) $ tpostings t
     pcommodities = map acommodity $ concatMap (amounts . pamount) postings
     sumamounts   = amounts $ sumPostings postings  -- amounts normalises to one amount per commodity & price
