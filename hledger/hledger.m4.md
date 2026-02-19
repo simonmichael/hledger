@@ -647,16 +647,16 @@ $ hledger print -o -        # write to stdout (the default)
 Some commands offer other kinds of output, not just text on the terminal.
 Here are those commands and the formats currently supported:
 
-|  command           | txt | html | csv/tsv | fods | beancount | sql | json |
-|--------------------|-----|------|---------|------|-----------|-----|------|
-| aregister          | Y   | Y    | Y       | Y    |           |     | Y    |
-| balance            | Y   | Y    | Y       | Y    |           |     | Y    |
-| balancesheet       | Y   | Y    | Y       | Y    |           |     | Y    |
-| balancesheetequity | Y   | Y    | Y       | Y    |           |     | Y    |
-| cashflow           | Y   | Y    | Y       | Y    |           |     | Y    |
-| incomestatement    | Y   | Y    | Y       | Y    |           |     | Y    |
-| print              | Y   | Y    | Y       | Y    | Y         | Y   | Y    |
-| register           | Y   | Y    | Y       | Y    |           |     | Y    |
+|  command           | txt | html | csv/tsv | fods | ledger | beancount | sql | json |
+|--------------------|-----|------|---------|------|--------|-----------|-----|------|
+| aregister          | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| balance            | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| balancesheet       | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| balancesheetequity | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| cashflow           | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| incomestatement    | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| print              | Y   | Y    | Y       | Y    | Y      | Y         | Y   | Y    |
+| register           | Y   | Y    | Y       | Y    |        |           |     | Y    |
 
 <!--
 | accounts              |     |     |      |      |     |
@@ -807,9 +807,16 @@ using various utilities like `libreoffice --headless` or
 
 [FODS]: https://en.wikipedia.org/wiki/OpenDocument
 
+### Ledger output
+
+This is a Ledger-specific journal format supported by the `print` command.
+It is currently identical to hledger's default `print` output
+except that amounts' cost basis will use [Ledger's lot syntax](#ledger-lot-syntax),
+(`{COST} [DATE] (NOTE)`), not hledger's (`{DATE, "LABEL", COST}`).
+
 ### Beancount output
 
-This is [Beancount's journal format][beancount journal].
+This is [Beancount's journal format][beancount journal], supported by the `print` command.
 You can use this to export your hledger data to [Beancount], eg to use the [Fava] web app.
 
 hledger will try to adjust your data to suit Beancount, automatically.
