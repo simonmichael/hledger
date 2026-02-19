@@ -116,3 +116,45 @@ $ hledger -f- bal assets:stocks --lots
 >2 /no transacted cost/
 >=1
 
+# ** 9. Explicit lot subaccount on dispose posting is accepted when it matches the resolved lot.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {} @ $50
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash      $300
+    revenue:gains   -$50
+
+$ hledger -f- print --lots
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$50} @ $50
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash                                                   $300
+    revenue:gains                                                 $-50
+
+>=
+
+# ** 10. Explicit lot subaccount that doesn't match the resolved lot is an error.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {} @ $50
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks:{2026-02-01, $99}    -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash      $300
+    revenue:gains   -$50
+
+$ hledger -f- print --lots
+>2 /does not match the resolved lot/
+>=1
+
