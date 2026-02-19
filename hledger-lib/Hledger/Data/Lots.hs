@@ -42,7 +42,7 @@ module Hledger.Data.Lots (
 
 import Control.Applicative ((<|>))
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (sortOn)
+import Data.List (sort, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -58,7 +58,8 @@ import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType)
 import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
-import Hledger.Data.Posting (hasAmount, originalPosting, postingAddHiddenAndMaybeVisibleTag)
+import Hledger.Data.Posting (hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
+import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (SourcePos, dbg5, sourcePosPairPretty, sourcePosPretty)
 
@@ -294,16 +295,36 @@ journalInferAndCheckDisposalBalancing j = do
     isGain :: Posting -> Bool
     isGain p = accountNameType atypes (paccount p) == Just Gain
 
+    gainAccounts = sort [a | (a, Gain) <- M.toList atypes]
+
     inferGainInTransaction t
       | not (any isDisposePosting (tpostings t)) = Right t
       | otherwise = do
           let (gainPs, otherPs) = partition' isGain (tpostings t)
               (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
           case amountlessGainPs of
-            -- No amountless gain postings: just check balance
-            [] -> do
-              checkBalance t
-              Right t
+            -- No amountless gain postings
+            []
+              -- No gain postings at all: create one if residual is nonzero
+              | null gainPs -> do
+                  let residual = foldMap postingCostBasisAmount (tpostings t)
+                  if mixedAmountLooksZero residual
+                    then Right t
+                    else case gainAccounts of
+                      [] -> Left $ sourcePosPairPretty (tsourcepos t) ++ ":\n"
+                                ++ "This disposal transaction is unbalanced at cost basis "
+                                ++ "but no Gain-type account was found.\n"
+                                ++ "Declare one, eg: account revenue:gains  ; type: G"
+                      (acct:_) -> do
+                        let inferredAmt = maNegate residual
+                            gp = nullposting{paccount = acct, pamount = inferredAmt}
+                            t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
+                        checkBalance t'
+                        Right t'
+              -- Has amountful gain postings, just check balance
+              | otherwise -> do
+                  checkBalance t
+                  Right t
             -- One amountless gain posting: infer its amount, then check
             [gp] -> do
               let otherSum = foldMap postingCostBasisAmount (otherPs ++ amountfulGainPs)
