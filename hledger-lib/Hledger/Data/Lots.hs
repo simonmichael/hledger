@@ -25,6 +25,39 @@ This module implements two pipeline stages (see doc\/SPEC-finalising.md):
      Multi-lot transfers are supported (eg via @{}@ to transfer all lots).
 
 For background, see doc\/SPEC-lots.md and doc\/PLAN-lots.md.
+
+== Errors
+
+User-visible errors from this module, and their current verbosity:
+
+journalCalculateLots:
+
+* validateUserLabels: "lot id is not unique: commodity X, date D, label L" — no position
+
+* processAcquirePosting: "acquire posting has no cost basis", "...has multiple cost basis amounts",
+  "...has no lot cost", "duplicate lot id: {...} for commodity X" — start position only
+
+* processDisposePosting: "dispose posting has no cost basis", "...has no transacted cost (selling price)",
+  "...has non-negative quantity", "SPECID requires a lot selector",
+  "lot ... has no cost basis (internal error)", "lot subaccount ... does not match resolved lot" — start position only
+
+* pairTransferPostings: "transfer-to/from posting ... has no matching ... posting",
+  "mismatched transfer postings for commodity X", "... posting has no lotful commodity" — start position only
+
+* processTransferPair: "transfer-from posting has no cost basis", "...has multiple cost basis amounts",
+  "lot transfers should have no transacted cost", "transfer-from posting has non-negative quantity",
+  "lot ... has no cost basis (internal error)", "lot cost basis ... does not match transfer-to cost basis" — start position only
+
+* selectLots: "SPECID requires an explicit lot selector", "no lots available for commodity X",
+  "lot selector is ambiguous, matches N lots", "insufficient lots for commodity X" — start position only
+
+journalInferAndCheckDisposalBalancing:
+
+* "This disposal transaction has multiple amountless gain postings" — start+end position, no excerpt
+
+* "This disposal transaction is unbalanced at cost basis" — start+end position, no excerpt
+
+All errors should eventually show a verbose excerpt (see Hledger.Data.Errors and doc/ERRORS.md).
 -}
 
 {-# LANGUAGE CPP #-}
@@ -37,6 +70,7 @@ module Hledger.Data.Lots (
   journalClassifyLotPostings,
   transactionClassifyLotPostings,
   showLotName,
+  isGainPosting,
   -- LotState,
 ) where
 
@@ -132,7 +166,8 @@ journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionCl
 -- The verbosetags parameter controls whether the tags are made visible in comments.
 transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> Transaction -> Transaction
 transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
-  | not (any hasLotRelevantAmount ps) = dbg5 "classifyLotPostings: no lot-relevant amounts found, skipping" t
+  | not (any hasLotRelevantAmount ps) && not (any isGainAcct ps)
+    = dbg5 "classifyLotPostings: no lot-relevant amounts found, skipping" t
   | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=map classifyPosting ps}
   where
     hasCostBasis :: Posting -> Bool
@@ -190,13 +225,17 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     hasTransferFromCounterpart :: AccountName -> CommoditySymbol -> Bool
     hasTransferFromCounterpart acct c = any (/= acct) (M.findWithDefault [] c negCBAccts)
 
+    isGainAcct :: Posting -> Bool
+    isGainAcct p = lookupAccountType (paccount p) == Just Gain
+
     classifyPosting :: Posting -> Posting
     classifyPosting p =
       case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
-        Nothing -> p
-        Just classification ->
-          let tag = ("ptype", classification)
-          in postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag tag) p
+        Just classification -> addTag classification p
+        Nothing
+          | isGainAcct p -> addTag "gain" p
+          | otherwise    -> p
+      where addTag cls = postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag ("ptype", cls))
 
     -- Check if posting should be classified and return the classification:
     -- one of acquire, dispose, transfer-from, transfer-to.
@@ -285,8 +324,9 @@ journalCalculateLots j
 -- | For each disposal transaction, infer any amountless gain posting's amount from cost basis,
 -- then check that the transaction is balanced at cost basis.
 -- This runs after journalCalculateLots, which has filled in cost basis info on dispose postings.
-journalInferAndCheckDisposalBalancing :: Journal -> Either String Journal
-journalInferAndCheckDisposalBalancing j = do
+-- The verbosetags parameter controls whether the ptype tag will be made visible in comments.
+journalInferAndCheckDisposalBalancing :: Bool -> Journal -> Either String Journal
+journalInferAndCheckDisposalBalancing verbosetags j = do
     txns' <- mapM inferGainInTransaction (jtxns j)
     Right j{jtxns = txns'}
   where
@@ -298,6 +338,9 @@ journalInferAndCheckDisposalBalancing j = do
     gainAccount = case sort [a | (a, Gain) <- M.toList atypes] of
       []    -> "revenue:gains"
       (a:_) -> a
+
+    tagGain :: Posting -> Posting
+    tagGain = postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag ("ptype", "gain"))
 
     inferGainInTransaction t
       | not (any isDisposePosting (tpostings t)) = Right t
@@ -314,7 +357,7 @@ journalInferAndCheckDisposalBalancing j = do
                     then Right t
                     else do
                       let inferredAmt = maNegate residual
-                          gp = nullposting{paccount = gainAccount, pamount = inferredAmt}
+                          gp = tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
                           t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
                       checkBalance t'
                       Right t'
@@ -375,6 +418,7 @@ journalInferAndCheckDisposalBalancing j = do
 isLotPosting :: Posting -> Bool
 isLotPosting p = isAcquirePosting p || isDisposePosting p
              || isTransferFromPosting p || isTransferToPosting p
+             || isGainPosting p
 
 -- | Check if a posting is an acquire posting (has _ptype:acquire tag).
 isAcquirePosting :: Posting -> Bool
@@ -391,6 +435,10 @@ isTransferFromPosting p = ("_ptype", "transfer-from") `elem` ptags p
 -- | Check if a posting is a transfer-to posting (has _ptype:transfer-to tag).
 isTransferToPosting :: Posting -> Bool
 isTransferToPosting p = ("_ptype", "transfer-to") `elem` ptags p
+
+-- | Check if a posting is a gain posting (has _ptype:gain tag).
+isGainPosting :: Posting -> Bool
+isGainPosting p = ("_ptype", "gain") `elem` ptags p
 
 -- Validation and label generation
 
