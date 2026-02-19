@@ -79,7 +79,7 @@ resolveReductionMethod j p commodity =
     postingLotsMethod p
     <|> journalCommodityLotsMethod j commodity
 
--- | Whether a reduction method uses per-account scope (FIFO1/LIFO1) vs global (FIFO/LIFO).
+-- | Whether a reduction method uses per-account scope (FIFO1/LIFO1) vs global (FIFO/LIFO/SPECID).
 methodIsPerAccount :: ReductionMethod -> Bool
 methodIsPerAccount FIFO1 = True
 methodIsPerAccount LIFO1 = True
@@ -639,6 +639,10 @@ processDisposePosting j txnPos lotState p = do
         scopeAcct = if methodIsPerAccount method
                     then Just (lotBaseAccount (paccount p))
                     else Nothing
+
+    when (isBare && method == SPECID) $
+      Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
+
     selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
     let mkPosting (lotId, storedAmt, consumedQty) = do
@@ -799,6 +803,8 @@ selectLots :: ReductionMethod -> String -> Maybe AccountName -> CommoditySymbol
            -> Quantity -> CostBasis -> LotState
            -> Either String [(LotId, Amount, Quantity)]
 selectLots method posStr maccount commodity qty selector lotState = do
+    when (method == SPECID && isWildcardSelector selector) $
+      Left $ posStr ++ "SPECID requires an explicit lot selector"
     let allLots = M.findWithDefault M.empty commodity lotState
         -- Flatten to (LotId, Amount) pairs, optionally filtering by account.
         -- For global selection, sum quantities across accounts per lot.
@@ -809,15 +815,18 @@ selectLots method posStr maccount commodity qty selector lotState = do
         matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
       Left $ posStr ++ "no lots available for commodity " ++ T.unpack commodity
+    when (method == SPECID && M.size matchingLots > 1) $
+      Left $ posStr ++ "lot selector is ambiguous, matches " ++ show (M.size matchingLots) ++ " lots"
     let available = sum [aquantity a | a <- M.elems matchingLots]
     when (available < qty) $
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
     let orderedLots = case method of
-          FIFO  -> M.toAscList matchingLots
-          FIFO1 -> M.toAscList matchingLots
-          LIFO  -> M.toDescList matchingLots
-          LIFO1 -> M.toDescList matchingLots
+          FIFO   -> M.toAscList matchingLots
+          FIFO1  -> M.toAscList matchingLots
+          LIFO   -> M.toDescList matchingLots
+          LIFO1  -> M.toDescList matchingLots
+          SPECID -> M.toAscList matchingLots
     Right $ go qty orderedLots
   where
     -- For global selection, pick any account's Amount as representative
@@ -832,6 +841,11 @@ selectLots method posStr maccount commodity qty selector lotState = do
       | remaining >= lotBal = (lotId, lotAmt, lotBal) : go (remaining - lotBal) rest
       | otherwise           = [(lotId, lotAmt, remaining)]
       where lotBal = aquantity lotAmt
+
+-- | Is this an all-Nothing (wildcard) lot selector, i.e. from @{}@?
+isWildcardSelector :: CostBasis -> Bool
+isWildcardSelector (CostBasis Nothing Nothing Nothing) = True
+isWildcardSelector _ = False
 
 -- | Does a lot match a lot selector?
 -- Each non-Nothing field in the selector must match the lot's stored cost basis.

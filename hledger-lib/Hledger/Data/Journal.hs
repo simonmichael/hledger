@@ -43,6 +43,7 @@ module Hledger.Data.Journal (
   journalCommodityUsesLots,
   journalCommodityLotsMethod,
   postingLotsMethod,
+  journalCheckLotsTagValues,
 -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
@@ -693,11 +694,47 @@ postingLotsMethod p =
 -- | Parse a reduction method name from a lots: tag value.
 parseReductionMethod :: Text -> Maybe ReductionMethod
 parseReductionMethod t = case T.toUpper (T.strip t) of
-  "FIFO"  -> Just FIFO
-  "FIFO1" -> Just FIFO1
-  "LIFO"  -> Just LIFO
-  "LIFO1" -> Just LIFO1
-  _       -> Nothing
+  "FIFO"   -> Just FIFO
+  "FIFO1"  -> Just FIFO1
+  "LIFO"   -> Just LIFO
+  "LIFO1"  -> Just LIFO1
+  "SPECID" -> Just SPECID
+  _        -> Nothing
+
+-- | Check that all lots: tag values on commodity and account declarations are recognised.
+-- Empty values (bare @lots:@ tag) are valid and default to FIFO.
+-- Non-empty values must be one of the known reduction methods.
+journalCheckLotsTagValues :: Journal -> Either String Journal
+journalCheckLotsTagValues j = do
+  mapM_ checkCommodity (M.toList $ jdeclaredcommoditytags j)
+  mapM_ checkAccount   (jdeclaredaccounts j)
+  Right j
+  where
+    checkCommodity (comm, tags) =
+      let comment = maybe "" ccomment $ M.lookup comm (jdeclaredcommodities j)
+          directive = "commodity " <> T.unpack comm
+                   <> if T.null comment then "" else "  ; " <> T.unpack (textChomp comment)
+      in mapM_ (checkTagValue ("In commodity directive: " <> directive)) tags
+
+    checkAccount (acctName, adi) =
+      mapM_ (checkTagValue (showExcerpt acctName adi)) (aditags adi)
+
+    checkTagValue context (k, v)
+      | T.toLower k /= "lots"   = Right ()
+      | T.null (T.strip v)      = Right ()  -- bare lots: tag is fine
+      | Just _ <- parseReductionMethod v = Right ()
+      | otherwise = Left $ unlines
+          [ "unrecognised lots: tag value " ++ show v
+          , context
+          , "Consider using one of: FIFO, FIFO1, LIFO, LIFO1, SPECID"
+          ]
+
+    showExcerpt acctName adi =
+      let SourcePos _f pos _ = adisourcepos adi
+          l = unPos pos
+          directive = "account " <> T.unpack acctName
+                   <> if T.null (adicomment adi) then "" else "    ; " <> T.unpack (textChomp (adicomment adi))
+      in  show l <> " | " <> directive
 
 -- | To all postings in the journal, add any tags from their amount's commodities.
 -- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).

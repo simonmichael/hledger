@@ -341,8 +341,8 @@ data LotId = LotId {
 
 -- | The method used to select lots for disposal or transfer.
 -- FIFO/LIFO select across all accounts; FIFO1/LIFO1 select within the posting's account only.
--- SPECID is not represented here — it is detected structurally when a non-wildcard lot selector is present.
-data ReductionMethod = FIFO | FIFO1 | LIFO | LIFO1
+-- SPECID requires every disposal/transfer to have an explicit lot selector matching exactly one lot.
+data ReductionMethod = FIFO | FIFO1 | LIFO | LIFO1 | SPECID
   deriving (Show,Read,Eq,Ord,Generic)
 
 data Amount = Amount {
