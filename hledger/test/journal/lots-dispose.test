@@ -158,3 +158,55 @@ $ hledger -f- print --lots
 >2 /does not match the resolved lot/
 >=1
 
+# ** 11. Implicit multi-lot disposal: bare negative amount with no cost basis, sale price inferred from cash.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {} @ $50
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {} @ $55
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -15 AAPL
+    assets:cash      $900
+    revenue:gains
+
+$ hledger -f- print --lots -x desc:sell
+2026-03-01 sell some
+    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $60
+    assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
+    assets:cash                                                    $900
+    revenue:gains                                                 $-125
+
+>=
+
+# ** 12. Implicit multi-lot disposal: negative amount with explicit @ cost, cash and gains inferred.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {} @ $50
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {} @ $55
+    assets:checking
+
+2026-03-01 sell
+    assets:stocks   -15 AAPL @ $60
+    assets:cash
+    revenue:gains
+
+$ hledger -f- print --lots -x desc:sell
+2026-03-01 sell
+    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $60
+    assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
+    assets:cash                                                    $900
+    revenue:gains                                                 $-125
+
+>=
+
