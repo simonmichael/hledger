@@ -236,3 +236,17 @@ Lot-related processing can be thought of as an optional extra journal processing
 
 But all the inferring conveniences make it quite interdependent with the other processing steps.
 See SPEC-finalising for more details of the implementation.
+
+## When might cost basis differ from the transacted cost ?
+
+In many real-world scenarios, a lot's cost basis (the value recorded for tax purposes)
+can differ from the price actually paid to acquire it. These may include:
+
+- **Gifts** — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
+- **Inheritance** — inherited assets get a "stepped-up" basis to fair market value at the date of death.
+- **Employee stock options (NSOs)** — the bargain element (FMV minus exercise price) is taxed as ordinary income, and cost basis becomes the FMV at exercise, not the price paid.
+- **Incentive stock options (ISOs)** — cost basis is the exercise price for regular tax, but FMV at exercise for AMT, so the same lot can have two different bases depending on tax context.
+- **RSUs** — cost basis is FMV at vesting; the recipient paid nothing.
+- **ESPPs** — shares bought at a discount; basis treatment depends on qualifying vs disqualifying disposition.
+- **Wash sales** — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
+- **Corporate actions** — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
