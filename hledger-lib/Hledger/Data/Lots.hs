@@ -17,7 +17,7 @@ This module implements two pipeline stages (see doc\/SPEC-finalising.md):
      (FIFO by default, configurable per account\/commodity via @lots:@ tag).
      If needed and if the lot selector permits it, selects multiple lots,
      splitting the posting into one per lot.
-     Dispose postings are required to have a transacted cost (the selling price).
+     Dispose postings are required to have a transacted price (the selling price).
 
    - For transfer postings: selects lots from the source account (like
      dispose) and recreates them under the destination account. The lot's
@@ -28,36 +28,50 @@ For background, see doc\/SPEC-lots.md and doc\/PLAN-lots.md.
 
 == Errors
 
-User-visible errors from this module, and their current verbosity:
+User-visible errors from this module. See also Hledger.Data.Errors and doc/ERRORS.md.
 
 journalCalculateLots:
 
-* validateUserLabels: "lot id is not unique: commodity X, date D, label L" — start position + excerpt (points to second duplicate)
+* validateUserLabels:
+  "lot id is not unique: commodity X, date D, label L"
 
-* processAcquirePosting: "acquire posting has no cost basis", "...has multiple cost basis amounts",
-  "...has no lot cost", "duplicate lot id: {...} for commodity X" — start position + excerpt
+* processAcquirePosting:
+  "acquire posting has no cost basis",
+  "...has multiple cost basis amounts",
+  "...has no lot cost",
+  "duplicate lot id: {...} for commodity X"
 
-* processDisposePosting: "dispose posting has no cost basis", "...has no transacted cost (selling price)",
-  "...has non-negative quantity", "SPECID requires a lot selector",
-  "lot ... has no cost basis (internal error)", "lot subaccount ... does not match resolved lot" — start position + excerpt
+* processDisposePosting:
+  "dispose posting has no cost basis",
+  "...has no transacted price (selling price)",
+  "...has non-negative quantity",
+  "SPECID requires a lot selector",
+  "lot ... has no cost basis (internal error)",
+  "lot subaccount ... does not match resolved lot"
 
-* pairTransferPostings: "transfer-to/from posting ... has no matching ... posting",
-  "mismatched transfer postings for commodity X", "... posting has no lotful commodity" — start position + excerpt
+* pairTransferPostings:
+  "transfer-to/from posting ... has no matching ... posting",
+  "mismatched transfer postings for commodity X",
+  "... posting has no lotful commodity"
 
-* processTransferPair: "transfer-from posting has no cost basis", "...has multiple cost basis amounts",
-  "lot transfers should have no transacted cost", "transfer-from posting has non-negative quantity",
-  "lot ... has no cost basis (internal error)", "lot cost basis ... does not match transfer-to cost basis" — start position + excerpt
+* processTransferPair:
+  "transfer-from posting has no cost basis",
+  "...has multiple cost basis amounts",
+  "lot transfers should have no transacted price",
+  "transfer-from posting has non-negative quantity",
+  "lot ... has no cost basis (internal error)",
+  "lot cost basis ... does not match transfer-to cost basis"
 
-* selectLots: "SPECID requires an explicit lot selector", "no lots available for commodity X",
-  "lot selector is ambiguous, matches N lots", "insufficient lots for commodity X" — start position + excerpt (via caller)
+* selectLots:
+  "SPECID requires an explicit lot selector",
+  "no lots available for commodity X",
+  "lot selector is ambiguous, matches N lots",
+  "insufficient lots for commodity X"
 
-journalInferAndCheckDisposalBalancing:
+* journalInferAndCheckDisposalBalancing:
+  "This disposal transaction has multiple amountless gain postings",
+  "This disposal transaction is unbalanced at cost basis"
 
-* "This disposal transaction has multiple amountless gain postings" — start position + excerpt
-
-* "This disposal transaction is unbalanced at cost basis" — start position + excerpt
-
-All errors now show a verbose excerpt (see Hledger.Data.Errors and doc/ERRORS.md).
 -}
 
 {-# LANGUAGE CPP #-}
@@ -65,13 +79,11 @@ All errors now show a verbose excerpt (see Hledger.Data.Errors and doc/ERRORS.md
 {-# LANGUAGE NamedFieldPuns #-}
 
 module Hledger.Data.Lots (
+  journalClassifyLotPostings,
   journalCalculateLots,
   journalInferAndCheckDisposalBalancing,
-  journalClassifyLotPostings,
-  transactionClassifyLotPostings,
-  showLotName,
   isGainPosting,
-  -- LotState,
+  showLotName,
 ) where
 
 import Control.Applicative ((<|>))
@@ -277,7 +289,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       return $ if isTransfer then "transfer-from" else "dispose"
 
     -- Classify a lotful posting without cost basis.
-    -- A positive posting in a lotful commodity/account, with no transacted cost,
+    -- A positive posting in a lotful commodity/account, with no transacted price,
     -- and with a matching transfer-from counterpart, is classified as transfer-to.
     shouldClassifyLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyLotful p amts = do
@@ -635,7 +647,7 @@ processAcquirePosting needsLabels txnDate t lotState p = do
     let commodity = acommodity lotAmt
         date      = fromMaybe txnDate (cbDate cb)
 
-    -- Get the original (pre-balancing) amount to check for explicit transacted cost.
+    -- Get the original (pre-balancing) amount to check for explicit transacted price.
     -- A unit cost on the original can be used directly as the cost basis;
     -- a total cost on the balanced amount is normalised to a per-unit cost basis.
     let origAmt = case poriginal p of
@@ -709,7 +721,7 @@ processDisposePosting j t lotState p = do
         disposeQty = aquantity lotAmt
 
     when (isNothing (acost lotAmt)) $
-      Left $ showPos ++ "dispose posting has no transacted cost (selling price) for " ++ T.unpack commodity
+      Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
 
     when (disposeQty >= 0) $
       Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
@@ -752,7 +764,7 @@ processDisposePosting j t lotState p = do
               disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
           if isBare
             then do
-              -- Normalize transacted cost to UnitCost and update poriginal
+              -- Normalize transacted price to UnitCost and update poriginal
               -- so print shows the inferred cost basis and cost.
               let normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
                   disposeAmt' = disposeAmt{acost = normalizedCost}
@@ -796,12 +808,12 @@ processTransferPair j t lotState fromP toP = do
 
     let toAmts = amountsRaw (pamount toP)
 
-    -- Check that neither transfer posting has explicit transacted cost (@ or @@).
+    -- Check that neither transfer posting has explicit transacted price (@ or @@).
     -- Use originalPosting to distinguish user-written @ from pipeline-inferred acost.
     let origFromAmts = amountsRaw $ pamount $ originalPosting fromP
         origToAmts   = amountsRaw $ pamount $ originalPosting toP
     when (any (isJust . acost) origFromAmts || any (isJust . acost) origToAmts) $
-      Left $ showPos ++ "lot transfers should have no transacted cost"
+      Left $ showPos ++ "lot transfers should have no transacted price"
 
     -- Validate transfer-from has negative quantity
     when (transferQty >= 0) $
