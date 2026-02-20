@@ -141,7 +141,7 @@ we infer a cost basis from the transacted cost.
 After inferring cost basis, we can identify lot postings. These are postings which
 
 - have a cost basis annotation (any of the {}, [], () notations)
-- or involve a lotful commodity or account
+- or involve a lotful commodity or account (positive amounts are acquire, negative are dispose)
 - or are matched by a transfer-from posting in the same transaction.
 
 We classify lot postings, based on their amount sign and
@@ -149,6 +149,8 @@ whether they are matched by an opposite posting in the same transaction,
 and add a "ptype" tag to record their type:
 
 - Lot postings with a positive amount get ptype "acquire" or (if matched) "transfer-to".
+  On lotful commodities/accounts, even bare positive postings (no `{}` or `@`) are classified
+  as acquire; their cost basis is inferred from the transacted cost at lot calculation time.
 - Lot postings with a negative amount get ptype "dispose" or (if matched) "transfer-from".
 
 (journalClassifyLotPostings)

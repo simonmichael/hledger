@@ -115,10 +115,10 @@ An arrow A → B means "A must run before B".
 
 ### Design decisions
 
-- **Acquisitions require explicit `{}` cost basis annotation.**
-  Previously, `journalInferPostingsCostBasis` could infer `{$50}` from `@ $50` on lotful
-  commodities/accounts. This step has been removed to allow classification to run before
-  balancing. Without it, `@ $50` alone on a lotful commodity does not trigger lot classification.
+- **Acquisitions on lotful commodities are detected without explicit `{}`.**
+  Classification identifies positive lotful postings as acquire even without cost basis
+  annotation, symmetrically with bare dispose detection. Cost basis is inferred from
+  transacted cost (explicit or balancer-inferred) at lot calculation time.
 
 - **Classification before balancing resolves the poriginal conflict.**
   Since `_ptype` tags are added before the balancer sets `poriginal`, the tags are

@@ -62,7 +62,7 @@ $ hledger -f - print
 
 >=
 
-# ** 5. Without explicit cost basis, a lotful commodity posting is not classified as a lot posting.
+# ** 5. Without explicit cost basis, a lotful commodity posting with @ is classified as acquire.
 <
 commodity AAPL   ; lots:
 
@@ -72,7 +72,7 @@ commodity AAPL   ; lots:
 
 $ hledger -f - print --verbose-tags
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL @@ $1000
+    assets:brokerage    10 AAPL @@ $1000  ; ptype: acquire
     assets:cash
 
 >=
