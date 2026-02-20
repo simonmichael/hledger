@@ -239,13 +239,14 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           let n = min (length negs) (length poss)
           in take n negs ++ take n poss
 
-    -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
-    -- For each commodity, which accounts have:
+    -- Precompute per-commodity, per-quantity transfer counterpart info (O(n)).
+    -- Keyed by (commodity, |quantity|) so that transfer detection requires exact quantity matching.
+    -- For each key, which accounts have:
     --   negative postings with cost basis  (transfer-from candidates; any account type)
     --   positive postings with cost basis  (transfer-to candidates, standard path; any account type)
     --   positive asset postings without cost basis  (transfer-to candidates, bare path; asset only)
     -- Account lists are deduplicated (typically 1-2 accounts per commodity).
-    negCBAccts, posCBAccts, posNoCBAccts :: M.Map CommoditySymbol [AccountName]
+    negCBAccts, posCBAccts, posNoCBAccts :: M.Map (CommoditySymbol, Quantity) [AccountName]
     (negCBAccts, posCBAccts, posNoCBAccts) = foldl' collect (M.empty, M.empty, M.empty) (zip [0..] ps)
       where
         collect (!neg, !pos, !noCB) (i, p)
@@ -258,32 +259,32 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                   isNeg    = any isNegativeAmount amts
                   hasCB    = any (isJust . acostbasis) amts
                   isLotful = postingIsLotful p amts
-                  cbComms  = [acommodity a | a <- amts, isJust (acostbasis a)]
-                  allComms = [acommodity a | a <- amts]
+                  cbKeys   = [(acommodity a, abs (aquantity a)) | a <- amts, isJust (acostbasis a)]
+                  allKeys  = [(acommodity a, abs (aquantity a)) | a <- amts]
                   -- Include both cost-basis and bare lotful negatives, so
                   -- hasTransferFromCounterpart sees bare transfer-from postings.
                   neg'     = if isNeg && (hasCB || isLotful)
-                             then foldl' (addAcct acct) neg (if hasCB then cbComms else allComms) else neg
+                             then foldl' (addAcct acct) neg (if hasCB then cbKeys else allKeys) else neg
                   pos'     = if not isNeg && hasCB
-                             then foldl' (addAcct acct) pos cbComms else pos
+                             then foldl' (addAcct acct) pos cbKeys else pos
                   noCB'    = if not isNeg && isAsset && not hasCB
-                             then foldl' (addAcct acct) noCB allComms else noCB
+                             then foldl' (addAcct acct) noCB allKeys else noCB
               in (neg', pos', noCB')
-        -- Add an account to a commodity's account list, deduplicating.
-        -- The lists are short (bounded by distinct accounts, typically 1-2).
-        addAcct acct m c = M.insertWith (\_ old -> if acct `elem` old then old else acct : old) c [acct] m
+        -- Add an account to a (commodity, quantity) key's account list, deduplicating.
+        addAcct acct m k = M.insertWith (\_ old -> if acct `elem` old then old else acct : old) k [acct] m
 
     -- Is there a transfer counterpart for a posting in this account, with this sign,
-    -- in this commodity?  O(k) where k = distinct accounts per commodity (typically 1-2).
-    hasCounterpart :: AccountName -> Bool -> CommoditySymbol -> Bool
-    hasCounterpart acct isNeg c
+    -- in this commodity and quantity?
+    hasCounterpart :: AccountName -> Bool -> CommoditySymbol -> Quantity -> Bool
+    hasCounterpart acct isNeg c q
       | isNeg     = anyOtherAcct posCBAccts || anyOtherAcct posNoCBAccts
       | otherwise = anyOtherAcct negCBAccts
-      where anyOtherAcct m = any (/= acct) (M.findWithDefault [] c m)
+      where anyOtherAcct m = any (/= acct) (M.findWithDefault [] (c, abs q) m)
 
-    -- Is there a transfer-from counterpart (negative asset with cost basis) for this commodity?
-    hasTransferFromCounterpart :: AccountName -> CommoditySymbol -> Bool
-    hasTransferFromCounterpart acct c = any (/= acct) (M.findWithDefault [] c negCBAccts)
+    -- Is there a transfer-from counterpart (negative with cost basis or lotful)
+    -- for this commodity and quantity?
+    hasTransferFromCounterpart :: AccountName -> CommoditySymbol -> Quantity -> Bool
+    hasTransferFromCounterpart acct c q = any (/= acct) (M.findWithDefault [] (c, abs q) negCBAccts)
 
     isGainAcct :: Posting -> Bool
     isGainAcct p = lookupAccountType (paccount p) == Just Gain
@@ -326,8 +327,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       let
         isNeg = any isNegativeAmount amts
         primaryType = if isNeg then "dispose" else "acquire"
-        pCommodities = [acommodity a | a <- amts, isJust (acostbasis a)]
-        isTransfer = any (hasCounterpart (paccount p) isNeg) pCommodities
+        cbAmts = [(acommodity a, aquantity a) | a <- amts, isJust (acostbasis a)]
+        isTransfer = any (\(c, q) -> hasCounterpart (paccount p) isNeg c q) cbAmts
       return $ if isTransfer
         then if isNeg then "transfer-from" else "transfer-to"
         else primaryType
@@ -337,8 +338,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyNegativeLotful p amts = do
       guard $ postingIsLotful p amts
       guard $ any isNegativeAmount amts
-      let pCommodities = [acommodity a | a <- amts]
-          isTransfer = any (hasCounterpart (paccount p) True) pCommodities
+      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
+          isTransfer = any (\(c, q) -> hasCounterpart (paccount p) True c q) amtPairs
       return $ if isTransfer then "transfer-from" else "dispose"
 
     -- Classify a lotful posting without cost basis.
@@ -349,8 +350,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       guard $ postingIsLotful p amts
       guard $ not $ any isNegativeAmount amts
       guard $ not $ any (isJust . acost) amts
-      let pCommodities = [acommodity a | a <- amts]
-      guard $ any (hasTransferFromCounterpart (paccount p)) pCommodities
+      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
+      guard $ any (\(c, q) -> hasTransferFromCounterpart (paccount p) c q) amtPairs
       return "transfer-to"
 
     -- Classify a bare positive asset posting (no cost basis, not necessarily lotful)
@@ -358,8 +359,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyBareTransferTo :: Posting -> [Amount] -> Maybe Text
     shouldClassifyBareTransferTo p amts = do
       guard $ not $ any isNegativeAmount amts
-      let pCommodities = [acommodity a | a <- amts]
-      guard $ any (hasTransferFromCounterpart (paccount p)) pCommodities
+      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
+      guard $ any (\(c, q) -> hasTransferFromCounterpart (paccount p) c q) amtPairs
       return "transfer-to"
 
     -- Classify a positive lotful posting without cost basis as acquire.
