@@ -208,3 +208,17 @@ $ hledger -f- print --verbose-tags date:2026-02-01
 
 >=
 
+# ** 16. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 assert
+    assets:stocks    0 AAPL = 10 AAPL
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
