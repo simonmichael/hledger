@@ -7019,21 +7019,34 @@ $ hledger print --lots desc:sell
 When a disposal or transfer doesn't specify a particular lot (eg the amount is `-5 AAPL` or `-5 AAPL {}`),
 hledger selects lot(s) automatically using a reduction method. The available methods are:
 
-| Method             | Selection order   | Scope               |
-|--------------------|-------------------|---------------------|
-| **FIFO** (default) | oldest first      | across all accounts |
-| **FIFO1**          | oldest first      | within one account  |
-| **LIFO**           | newest first      | across all accounts |
-| **LIFO1**          | newest first      | within one account  |
-| **SPECID**         | one specified lot | specified account   |
+| Method             | Lots selected      | Scope               | Disposal cost basis  |
+|--------------------|--------------------|---------------------|----------------------|
+| **FIFO** (default) | oldest first       | across all accounts | each lot's cost      |
+| **FIFO1**          | oldest first       | within one account  | each lot's cost      |
+| **LIFO**           | newest first       | across all accounts | each lot's cost      |
+| **LIFO1**          | newest first       | within one account  | each lot's cost      |
+| **HIFO**           | highest cost first | across all accounts | each lot's cost      |
+| **HIFO1**          | highest cost first | within one account  | each lot's cost      |
+| **AVERAGE**        | oldest first       | across all accounts | weighted average cost|
+| **AVERAGE1**       | oldest first       | within one account  | weighted average cost|
+| **SPECID**         | one specified lot  | specified account   | specified lot's cost |
 
 An explicit lot selector (eg `{2026-01-15, $50}` or `{$50}`) uses specific-identification (SPECID).
+
+**HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
+which can be useful for tax optimization.
+
+**AVERAGE** uses the weighted average per-unit cost of the entire pool as the
+disposal cost basis, rather than each lot's individual cost.
+This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
+Lots are still consumed in FIFO order for bookkeeping purposes.
+Aliases: **AVG**, **AVG1**, **ACB**.
 
 Configure the method via the `lots:` tag on a commodity or account declaration:
 
 ```journal
 commodity AAPL  ; lots: FIFO
-account assets:stocks  ; lots: FIFO1
+account assets:stocks  ; lots: AVERAGE
 ```
 
 Account tags override commodity tags.
