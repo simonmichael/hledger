@@ -128,7 +128,7 @@ where
 
 --- ** imports
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
-import Control.Monad (foldM, join, liftM2, when, unless, (>=>), (<=<))
+import Control.Monad (foldM, liftM2, when, unless, (>=>), (<=<))
 import Control.Monad.Fail qualified as Fail (fail)
 import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.IO.Class (MonadIO, liftIO)
