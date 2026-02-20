@@ -113,7 +113,7 @@ $ hledger -f- bal assets:stocks --lots -N
     assets:cash
 
 $ hledger -f- bal assets:stocks --lots
->2 /no transacted cost/
+>2 /no transacted price/
 >=1
 
 # ** 9. Explicit lot subaccount on dispose posting is accepted when it matches the resolved lot.
