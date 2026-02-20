@@ -17,6 +17,7 @@ Flags:
                             total/balance (includes postings before report
                             start date) (default)
      --invert               display all amounts with reversed sign
+     --drop=N               omit N leading account name parts
      --heading=YN           show heading row above table: yes (default) or no
   -w --width=N              set output width (default: terminal width). -wN,M
                             sets description width as well.
