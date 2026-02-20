@@ -210,3 +210,20 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
+# ** 11. Bare negative lotful posting without selling price passes through with --lots
+# (no error, not processed as a lot posting).
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 gift given
+    assets:stocks    -5 AAPL
+    equity:opening
+
+$ hledger -f- bal assets:stocks --lots -N
+             -5 AAPL  assets:stocks
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
