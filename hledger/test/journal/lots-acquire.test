@@ -208,7 +208,26 @@ $ hledger -f- print --verbose-tags date:2026-02-01
 
 >=
 
-# ** 16. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
+# ** 16. Bare lotful transfer: both postings bare (no {}) - still classified as transfer.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:old    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 transfer
+    assets:old     -10 AAPL
+    assets:new      10 AAPL
+
+$ hledger -f- print --verbose-tags date:2026-02-01
+2026-02-01 transfer
+    assets:old        -10 AAPL  ; ptype: transfer-from
+    assets:new         10 AAPL  ; ptype: transfer-to
+
+>=
+
+# ** 17. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
 <
 commodity AAPL  ; lots:
 
@@ -222,7 +241,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 17. Bare positive lotful posting without inferable cost passes through with --lots
+# ** 18. Bare positive lotful posting without inferable cost passes through with --lots
 # (no error, not processed as a lot posting).
 <
 commodity AAPL  ; lots:

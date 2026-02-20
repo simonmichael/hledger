@@ -228,10 +228,13 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                   acct     = paccount p
                   isNeg    = any isNegativeAmount amts
                   hasCB    = any (isJust . acostbasis) amts
+                  isLotful = postingIsLotful p amts
                   cbComms  = [acommodity a | a <- amts, isJust (acostbasis a)]
                   allComms = [acommodity a | a <- amts]
-                  neg'     = if isNeg && hasCB
-                             then foldl' (addAcct acct) neg cbComms else neg
+                  -- Include both cost-basis and bare lotful negatives, so
+                  -- hasTransferFromCounterpart sees bare transfer-from postings.
+                  neg'     = if isNeg && (hasCB || isLotful)
+                             then foldl' (addAcct acct) neg (if hasCB then cbComms else allComms) else neg
                   pos'     = if not isNeg && hasCB
                              then foldl' (addAcct acct) pos cbComms else pos
                   noCB'    = if not isNeg && isAsset && not hasCB
