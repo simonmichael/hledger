@@ -188,7 +188,7 @@ transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> 
 transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
   | not (any hasLotRelevantAmount ps) && not (any isGainAcct ps)
     = dbg5 "classifyLotPostings: no lot-relevant amounts found, skipping" t
-  | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=map classifyPosting ps}
+  | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=zipWith classifyAt [0..] ps}
   where
     hasCostBasis :: Posting -> Bool
     hasCostBasis p = let amts = amountsRaw (pamount p)
@@ -216,6 +216,29 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
          && any (\a -> aquantity a > 0) amts  -- has a strictly positive amount (not zero or amountless)
          && postingIsLotful p amts
 
+    -- Same-account transfer pairs: within each account, match positive and negative
+    -- postings with the same commodity and absolute quantity as transfer pairs.
+    -- When there are more of one sign than the other, the excess are left unmatched
+    -- (and will be classified normally as acquire/dispose).
+    sameAcctTransferSet :: S.Set Int
+    sameAcctTransferSet = S.fromList $ concatMap matchPairs $ M.elems grouped
+      where
+        grouped :: M.Map (AccountName, CommoditySymbol, Quantity) ([Int], [Int])
+        grouped = foldl' addPosting M.empty (zip [0..] ps)
+        addPosting m (i, p)
+          | not (isReal p) = m
+          | not (hasLotRelevantAmount p) = m
+          | otherwise = foldl' (addAmt i (paccount p)) m (amountsRaw (pamount p))
+        addAmt i acct m a
+          | q < 0     = M.insertWith mergePair (acct, acommodity a, negate q) ([i], []) m
+          | q > 0     = M.insertWith mergePair (acct, acommodity a, q)        ([], [i]) m
+          | otherwise = m
+          where q = aquantity a
+        mergePair (n1, p1) (n2, p2) = (n1++n2, p1++p2)
+        matchPairs (negs, poss) =
+          let n = min (length negs) (length poss)
+          in take n negs ++ take n poss
+
     -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
     -- For each commodity, which accounts have:
     --   negative postings with cost basis  (transfer-from candidates; any account type)
@@ -223,10 +246,11 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     --   positive asset postings without cost basis  (transfer-to candidates, bare path; asset only)
     -- Account lists are deduplicated (typically 1-2 accounts per commodity).
     negCBAccts, posCBAccts, posNoCBAccts :: M.Map CommoditySymbol [AccountName]
-    (negCBAccts, posCBAccts, posNoCBAccts) = foldl' collect (M.empty, M.empty, M.empty) ps
+    (negCBAccts, posCBAccts, posNoCBAccts) = foldl' collect (M.empty, M.empty, M.empty) (zip [0..] ps)
       where
-        collect (!neg, !pos, !noCB) p
+        collect (!neg, !pos, !noCB) (i, p)
               | not (isReal p) = (neg, pos, noCB)  -- skip virtual postings
+              | i `S.member` sameAcctTransferSet = (neg, pos, noCB)  -- skip same-account transfer pairs
               | otherwise =
               let isAsset  = maybe False isAssetType (lookupAccountType (paccount p))
                   amts     = amountsRaw (pamount p)
@@ -264,9 +288,13 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     isGainAcct :: Posting -> Bool
     isGainAcct p = lookupAccountType (paccount p) == Just Gain
 
-    classifyPosting :: Posting -> Posting
-    classifyPosting p
+    classifyAt :: Int -> Posting -> Posting
+    classifyAt i p
       | not (isReal p) = p  -- skip virtual (parenthesised) postings
+      | i `S.member` sameAcctTransferSet =
+          let amts = amountsRaw (pamount p)
+              cls = if any isNegativeAmount amts then "transfer-from" else "transfer-to"
+          in addTag cls p
       | otherwise =
       case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
         Just classification -> addTag classification p
