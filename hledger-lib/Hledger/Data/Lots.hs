@@ -327,6 +327,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- Classify a positive lotful posting without cost basis as acquire.
     -- This is the fallback for positive lotful postings that aren't transfer-to.
     -- The cost basis will be inferred later from transacted cost (explicit or balancer-inferred).
+    -- If cost can't be inferred, the classification is removed at lot calculation time.
     shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyPositiveLotful p amts = do
       guard $ postingIsLotful p amts
@@ -451,6 +452,12 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
 
 -- Posting type predicates
 
+-- | Remove the _ptype tag from a posting, declassifying it as a lot posting.
+-- Used when a bare lotful posting was tentatively classified but cost/price
+-- can't be inferred at lot calculation time.
+stripPtypeTag :: Posting -> Posting
+stripPtypeTag p = p{ptags = filter (\(k,_) -> k /= "_ptype") (ptags p)}
+
 -- | Check if a posting has any lot-related ptype tag.
 isLotPosting :: Posting -> Bool
 isLotPosting p = isAcquirePosting p || isDisposePosting p
@@ -506,19 +513,22 @@ validateUserLabels txns =
 
 -- | Find (commodity, date) pairs that have multiple acquisitions and thus need labels.
 -- Only counts acquisitions that don't already have a user-provided label.
+-- Includes bare acquire postings (no acostbasis), which use the transaction date.
 findDatesNeedingLabels :: [Transaction] -> S.Set (CommoditySymbol, Day)
 findDatesNeedingLabels txns =
     M.keysSet $ M.filter (> 1) counts
   where
     counts = foldl' countAcquire M.empty
-      [ (acommodity a, getLotDate t cb)
+      [ (acommodity a, acquireDate t a)
       | t <- txns
       , p <- tpostings t
       , isAcquirePosting p
       , a <- amountsRaw (pamount p)
-      , Just cb <- [acostbasis a]
       ]
     countAcquire m (c, d) = M.insertWith (+) (c, d) (1 :: Int) m
+    acquireDate t a = case acostbasis a of
+      Just cb -> getLotDate t cb
+      Nothing -> tdate t
 
 -- | Format a verbose error prefix for a transaction: "file:line:\nexcerpt\n\n".
 -- Prepend to an error message to show source position and a transaction excerpt.
@@ -683,52 +693,57 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                          []    -> lotAmt
           Nothing   -> lotAmt
 
-    lotBasis <- case cbCost cb of
-      Just c  -> Right c
-      Nothing
-        | Just (UnitCost c) <- acost origAmt -> Right c
-        | Just cost <- acost lotAmt -> Right $ amountCostToUnitCost (aquantity lotAmt) cost
-        | otherwise                 -> Left $ showPos ++ "acquire posting has no lot cost"
+    let maybeLotBasis = case cbCost cb of
+          Just c  -> Just c
+          Nothing
+            | Just (UnitCost c) <- acost origAmt -> Just c
+            | Just cost <- acost lotAmt -> Just $ amountCostToUnitCost (aquantity lotAmt) cost
+            | otherwise                 -> Nothing
 
-    let cbInferred = isNothing (cbCost cb)
-        needsLabel = S.member (commodity, date) needsLabels
-        lotLabel'  = cbLabel cb <|> if needsLabel then Just (generateLabel commodity date lotState) else Nothing
-        lotId      = LotId date lotLabel'
-        fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel', cbCost = Just lotBasis}
-        lotName    = showLotName fullCb
-        -- When cost basis was inferred, fill it in on the user's original cb
-        -- so that print shows {$50} not {}.
-        filledCb   = cb{cbCost = Just lotBasis}
-        -- The lot state always stores the full cost basis (with date/label/cost)
-        -- so that disposal selectors like {2026-01-15, $50} can match.
-        lotStateAmt = lotAmt{acostbasis = Just fullCb}
-        -- The posting amount preserves the user's original cost basis fields
-        -- (only filling in cost when inferred) for print output fidelity.
-        postingAmt  = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
+    case maybeLotBasis of
+      -- Bare acquire with no inferable cost: silently declassify and pass through.
+      Nothing | isBare    -> Right (lotState, stripPtypeTag p)
+              | otherwise -> Left $ showPos ++ "acquire posting has no lot cost"
+      Just lotBasis -> do
+        let cbInferred = isNothing (cbCost cb)
+            needsLabel = S.member (commodity, date) needsLabels
+            lotLabel'  = cbLabel cb <|> if needsLabel then Just (generateLabel commodity date lotState) else Nothing
+            lotId      = LotId date lotLabel'
+            fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel', cbCost = Just lotBasis}
+            lotName    = showLotName fullCb
+            -- When cost basis was inferred, fill it in on the user's original cb
+            -- so that print shows {$50} not {}.
+            filledCb   = cb{cbCost = Just lotBasis}
+            -- The lot state always stores the full cost basis (with date/label/cost)
+            -- so that disposal selectors like {2026-01-15, $50} can match.
+            lotStateAmt = lotAmt{acostbasis = Just fullCb}
+            -- The posting amount preserves the user's original cost basis fields
+            -- (only filling in cost when inferred) for print output fidelity.
+            postingAmt  = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
 
-    let existingLots = M.findWithDefault M.empty commodity lotState
-    when (M.member lotId existingLots) $
-      Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
-              ++ " for commodity " ++ T.unpack commodity
+        let existingLots = M.findWithDefault M.empty commodity lotState
+        when (M.member lotId existingLots) $
+          Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
+                  ++ " for commodity " ++ T.unpack commodity
 
-    let p' = if cbInferred
-             then let -- Update the original posting's cost basis too, so print shows {$50} not {}
-                      -- For bare acquires, also normalize transacted cost to UnitCost
-                      normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
-                      origP  = originalPosting p
-                      origP' = origP{pamount = mapMixedAmount updateCb $ pamount origP}
-                      updateCb a
-                        | acommodity a == commodity =
-                            if isBare then a{acostbasis = Just filledCb, acost = normalizedCost}
-                            else a{acostbasis = Just filledCb}
-                        | otherwise = a
-                  in p{paccount = paccount p <> ":" <> lotName
-                      ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
-                      ,poriginal = Just origP'}
-             else p{paccount = paccount p <> ":" <> lotName}
-    let lotState' = M.insertWith (M.unionWith M.union) commodity
-                      (M.singleton lotId (M.singleton (paccount p) lotStateAmt)) lotState
-    return (lotState', p')
+        let p' = if cbInferred
+                 then let -- Update the original posting's cost basis too, so print shows {$50} not {}
+                          -- For bare acquires, also normalize transacted cost to UnitCost
+                          normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
+                          origP  = originalPosting p
+                          origP' = origP{pamount = mapMixedAmount updateCb $ pamount origP}
+                          updateCb a
+                            | acommodity a == commodity =
+                                if isBare then a{acostbasis = Just filledCb, acost = normalizedCost}
+                                else a{acostbasis = Just filledCb}
+                            | otherwise = a
+                      in p{paccount = paccount p <> ":" <> lotName
+                          ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
+                          ,poriginal = Just origP'}
+                 else p{paccount = paccount p <> ":" <> lotName}
+        let lotState' = M.insertWith (M.unionWith M.union) commodity
+                          (M.singleton lotId (M.singleton (paccount p) lotStateAmt)) lotState
+        return (lotState', p')
   where
     showPos = txnErrPrefix t
 
@@ -752,91 +767,95 @@ processDisposePosting j t lotState p = do
     let commodity = acommodity lotAmt
         disposeQty = aquantity lotAmt
 
-    when (isNothing (acost lotAmt)) $
-      Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
+    -- Bare dispose with no transacted price: silently declassify and pass through.
+    -- Non-bare dispose (explicit {}) without price is still an error.
+    case acost lotAmt of
+      Nothing | isBare    -> return (lotState, [stripPtypeTag p])
+              | otherwise -> Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
+      Just _ -> do
 
-    when (disposeQty >= 0) $
-      Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
+        when (disposeQty >= 0) $
+          Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
 
-    let posQty = negate disposeQty
-        method = resolveReductionMethod j p commodity
-        -- Per-account methods (FIFO1/LIFO1) scope to the posting's base account
-        -- (stripping any explicit lot subaccount the user may have written).
-        scopeAcct = if methodIsPerAccount method
-                    then Just (lotBaseAccount (paccount p))
-                    else Nothing
+        let posQty = negate disposeQty
+            method = resolveReductionMethod j p commodity
+            -- Per-account methods (FIFO1/LIFO1) scope to the posting's base account
+            -- (stripping any explicit lot subaccount the user may have written).
+            scopeAcct = if methodIsPerAccount method
+                        then Just (lotBaseAccount (paccount p))
+                        else Nothing
 
-    when (isBare && method == SPECID) $
-      Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
+        when (isBare && method == SPECID) $
+          Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
 
-    selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
+        selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
-    -- For AVERAGE methods, compute the weighted average cost across the entire pool
-    -- (not just the selected lots). The pool is scoped the same way as lot selection.
-    mavgCost <- if methodIsAverage method
-      then do
-        let allLots = M.findWithDefault M.empty commodity lotState
-            flatLots = case scopeAcct of
-              Nothing   -> M.mapMaybe lotPickAny allLots
-              Just acct -> M.mapMaybe (M.lookup acct) allLots
-        fmap Just $ poolWeightedAvgCost showPos flatLots
-      else Right Nothing
+        -- For AVERAGE methods, compute the weighted average cost across the entire pool
+        -- (not just the selected lots). The pool is scoped the same way as lot selection.
+        mavgCost <- if methodIsAverage method
+          then do
+            let allLots = M.findWithDefault M.empty commodity lotState
+                flatLots = case scopeAcct of
+                  Nothing   -> M.mapMaybe lotPickAny allLots
+                  Just acct -> M.mapMaybe (M.lookup acct) allLots
+            fmap Just $ poolWeightedAvgCost showPos flatLots
+          else Right Nothing
 
-    let baseAcct = lotBaseAccount (paccount p)
-        hasExplicitLotAcct = baseAcct /= paccount p
-        mkPosting (lotId, storedAmt, consumedQty) = do
-          -- The original lot's cost basis is always needed for the lot subaccount name.
-          origBasis <- case acostbasis storedAmt >>= cbCost of
-            Just c  -> Right c
-            Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
-                                ++ " for commodity " ++ T.unpack commodity
-                                ++ " has no cost basis (internal error)"
-          -- For AVERAGE methods, use the weighted average cost for the disposal amount.
-          -- For all other methods, use the original lot's cost.
-          let disposalBasis = fromMaybe origBasis mavgCost
-              -- Lot name uses the original cost (so the subaccount matches the acquisition).
-              lotCb = CostBasis
-                { cbDate  = Just (lotDate lotId)
-                , cbLabel = lotLabel lotId
-                , cbCost  = Just origBasis
-                }
-              -- Disposal cost basis uses average cost when applicable.
-              dispCb = lotCb{cbCost = Just disposalBasis}
-              lotName = showLotName lotCb
-              expectedAcct = baseAcct <> ":" <> lotName
-          -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
-          when (hasExplicitLotAcct && paccount p /= expectedAcct) $
-            Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
-                    ++ " does not match the resolved lot " ++ T.unpack expectedAcct
-          let acctWithLot = expectedAcct
-              -- Build the dispose amount: negative consumed quantity,
-              -- keeping the original amount's commodity, style, cost, and cost basis.
-              disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just dispCb}
-          if isBare
-            then do
-              -- Normalize transacted price to UnitCost and update poriginal
-              -- so print shows the inferred cost basis and cost.
-              let normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
-                  disposeAmt' = disposeAmt{acost = normalizedCost}
-                  origP  = originalPosting p
-                  origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
-                  updateAmt a | acommodity a == commodity =
-                                  a{aquantity = negate consumedQty, acostbasis = Just dispCb, acost = normalizedCost}
-                              | otherwise = a
-              Right p{ paccount  = acctWithLot
-                     , pamount   = mixedAmount disposeAmt'
-                     , poriginal = Just origP'
-                     }
-            else
-              Right p{ paccount = acctWithLot
-                     , pamount  = mixedAmount disposeAmt
-                     }
+        let baseAcct = lotBaseAccount (paccount p)
+            hasExplicitLotAcct = baseAcct /= paccount p
+            mkPosting (lotId, storedAmt, consumedQty) = do
+              -- The original lot's cost basis is always needed for the lot subaccount name.
+              origBasis <- case acostbasis storedAmt >>= cbCost of
+                Just c  -> Right c
+                Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
+                                    ++ " for commodity " ++ T.unpack commodity
+                                    ++ " has no cost basis (internal error)"
+              -- For AVERAGE methods, use the weighted average cost for the disposal amount.
+              -- For all other methods, use the original lot's cost.
+              let disposalBasis = fromMaybe origBasis mavgCost
+                  -- Lot name uses the original cost (so the subaccount matches the acquisition).
+                  lotCb = CostBasis
+                    { cbDate  = Just (lotDate lotId)
+                    , cbLabel = lotLabel lotId
+                    , cbCost  = Just origBasis
+                    }
+                  -- Disposal cost basis uses average cost when applicable.
+                  dispCb = lotCb{cbCost = Just disposalBasis}
+                  lotName = showLotName lotCb
+                  expectedAcct = baseAcct <> ":" <> lotName
+              -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
+              when (hasExplicitLotAcct && paccount p /= expectedAcct) $
+                Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
+                        ++ " does not match the resolved lot " ++ T.unpack expectedAcct
+              let acctWithLot = expectedAcct
+                  -- Build the dispose amount: negative consumed quantity,
+                  -- keeping the original amount's commodity, style, cost, and cost basis.
+                  disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just dispCb}
+              if isBare
+                then do
+                  -- Normalize transacted price to UnitCost and update poriginal
+                  -- so print shows the inferred cost basis and cost.
+                  let normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
+                      disposeAmt' = disposeAmt{acost = normalizedCost}
+                      origP  = originalPosting p
+                      origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
+                      updateAmt a | acommodity a == commodity =
+                                      a{aquantity = negate consumedQty, acostbasis = Just dispCb, acost = normalizedCost}
+                                  | otherwise = a
+                  Right p{ paccount  = acctWithLot
+                         , pamount   = mixedAmount disposeAmt'
+                         , poriginal = Just origP'
+                         }
+                else
+                  Right p{ paccount = acctWithLot
+                         , pamount  = mixedAmount disposeAmt
+                         }
 
-    newPostings <- mapM mkPosting selected
-    let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
-        lotState' = reduceLotState scopeAcct commodity consumed lotState
+        newPostings <- mapM mkPosting selected
+        let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
+            lotState' = reduceLotState scopeAcct commodity consumed lotState
 
-    return (lotState', newPostings)
+        return (lotState', newPostings)
   where
     showPos = txnErrPrefix t
 
