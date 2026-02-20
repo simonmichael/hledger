@@ -210,7 +210,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       let amts = amountsRaw (pamount p)
       in not (any (isJust . acostbasis) amts)
          && not (any isNegativeAmount amts)
-         && any (not . isNegativeAmount) amts  -- has a positive amount (not amountless)
+         && any (\a -> aquantity a > 0) amts  -- has a strictly positive amount (not zero or amountless)
          && postingIsLotful p amts
 
     -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
@@ -330,7 +330,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyPositiveLotful p amts = do
       guard $ postingIsLotful p amts
-      guard $ not $ any isNegativeAmount amts
+      guard $ any (\a -> aquantity a > 0) amts
       return "acquire"
 
     -- Check if a posting is lotful: its commodity or account has a lots: tag.
