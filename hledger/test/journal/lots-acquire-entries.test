@@ -58,7 +58,7 @@ $ hledger -f- print --lots --verbose-tags
 
 # ** With lotful commodity/account
 
-# *** 5. acquire: implicit cost. No lot posting detected.
+# *** 5. acquire: implicit cost, lotful commodity. Bare acquire detected, cost inferred from balancer.
 <
 commodity AAPL  ; lots:
 2026-01-01 buy
@@ -67,12 +67,12 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker         10 AAPL
-    assets:cash             $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
+    assets:cash                                      $-500
 
 >=
 
-# *** 6. acquire: @ $50. No lot posting detected.
+# *** 6. acquire: @ $50, lotful commodity. Bare acquire detected, cost from @.
 <
 commodity AAPL  ; lots:
 2026-01-01 buy
@@ -81,12 +81,12 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker    10 AAPL @ $50
-    assets:cash              $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
+    assets:cash                                      $-500
 
 >=
 
-# *** 7. acquire: @@ $500. No lot posting detected.
+# *** 7. acquire: @@ $500, lotful commodity. Bare acquire detected, cost from @@.
 <
 commodity AAPL  ; lots:
 2026-01-01 buy
@@ -95,8 +95,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker    10 AAPL @@ $500
-    assets:cash                $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
+    assets:cash                                      $-500
 
 >=
 
