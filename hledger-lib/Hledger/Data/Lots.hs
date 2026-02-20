@@ -68,6 +68,10 @@ journalCalculateLots:
   "lot selector is ambiguous, matches N lots",
   "insufficient lots for commodity X"
 
+* poolWeightedAvgCost:
+  "no lots with cost basis available for averaging",
+  "cannot average lots with different cost commodities"
+
 * journalInferAndCheckDisposalBalancing:
   "This disposal transaction has multiple amountless gain postings",
   "This disposal transaction is unbalanced at cost basis"
@@ -89,6 +93,7 @@ module Hledger.Data.Lots (
 import Control.Applicative ((<|>))
 import Control.Monad (foldM, guard, unless, when)
 import Data.List (sort, sortOn)
+import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -127,11 +132,13 @@ resolveReductionMethod j p commodity =
     postingLotsMethod p
     <|> journalCommodityLotsMethod j commodity
 
--- | Whether a reduction method uses per-account scope (FIFO1/LIFO1) vs global (FIFO/LIFO/SPECID).
+-- | Whether a reduction method uses per-account scope (FIFO1/LIFO1/HIFO1/AVERAGE1) vs global.
 methodIsPerAccount :: ReductionMethod -> Bool
-methodIsPerAccount FIFO1 = True
-methodIsPerAccount LIFO1 = True
-methodIsPerAccount _     = False
+methodIsPerAccount FIFO1    = True
+methodIsPerAccount LIFO1    = True
+methodIsPerAccount HIFO1    = True
+methodIsPerAccount AVERAGE1 = True
+methodIsPerAccount _        = False
 
 -- | Strip any trailing lot subaccount (a component starting with '{') from an account name.
 -- E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes @\"assets:broker\"@.
@@ -739,19 +746,37 @@ processDisposePosting j t lotState p = do
 
     selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
+    -- For AVERAGE methods, compute the weighted average cost across the entire pool
+    -- (not just the selected lots). The pool is scoped the same way as lot selection.
+    mavgCost <- if methodIsAverage method
+      then do
+        let allLots = M.findWithDefault M.empty commodity lotState
+            flatLots = case scopeAcct of
+              Nothing   -> M.mapMaybe lotPickAny allLots
+              Just acct -> M.mapMaybe (M.lookup acct) allLots
+        fmap Just $ poolWeightedAvgCost showPos flatLots
+      else Right Nothing
+
     let baseAcct = lotBaseAccount (paccount p)
         hasExplicitLotAcct = baseAcct /= paccount p
         mkPosting (lotId, storedAmt, consumedQty) = do
-          lotBasis <- case acostbasis storedAmt >>= cbCost of
+          -- The original lot's cost basis is always needed for the lot subaccount name.
+          origBasis <- case acostbasis storedAmt >>= cbCost of
             Just c  -> Right c
             Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
                                 ++ " for commodity " ++ T.unpack commodity
                                 ++ " has no cost basis (internal error)"
-          let lotCb = CostBasis
+          -- For AVERAGE methods, use the weighted average cost for the disposal amount.
+          -- For all other methods, use the original lot's cost.
+          let disposalBasis = fromMaybe origBasis mavgCost
+              -- Lot name uses the original cost (so the subaccount matches the acquisition).
+              lotCb = CostBasis
                 { cbDate  = Just (lotDate lotId)
                 , cbLabel = lotLabel lotId
-                , cbCost  = Just lotBasis
+                , cbCost  = Just origBasis
                 }
+              -- Disposal cost basis uses average cost when applicable.
+              dispCb = lotCb{cbCost = Just disposalBasis}
               lotName = showLotName lotCb
               expectedAcct = baseAcct <> ":" <> lotName
           -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
@@ -761,7 +786,7 @@ processDisposePosting j t lotState p = do
           let acctWithLot = expectedAcct
               -- Build the dispose amount: negative consumed quantity,
               -- keeping the original amount's commodity, style, cost, and cost basis.
-              disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
+              disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just dispCb}
           if isBare
             then do
               -- Normalize transacted price to UnitCost and update poriginal
@@ -771,7 +796,7 @@ processDisposePosting j t lotState p = do
                   origP  = originalPosting p
                   origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
                   updateAmt a | acommodity a == commodity =
-                                  a{aquantity = negate consumedQty, acostbasis = Just lotCb, acost = normalizedCost}
+                                  a{aquantity = negate consumedQty, acostbasis = Just dispCb, acost = normalizedCost}
                               | otherwise = a
               Right p{ paccount  = acctWithLot
                      , pamount   = mixedAmount disposeAmt'
@@ -891,9 +916,10 @@ processTransferPair j t lotState fromP toP = do
 
 -- | Select lots to consume using the given reduction method.
 -- The method controls two things:
---   1. Ordering: FIFO\/FIFO1 use oldest-first; LIFO\/LIFO1 use newest-first.
---   2. Scope: FIFO\/LIFO select globally across all accounts;
---      FIFO1\/LIFO1 select only from the specified account.
+--   1. Ordering: FIFO\/FIFO1 use oldest-first; LIFO\/LIFO1 use newest-first;
+--      HIFO\/HIFO1 use highest per-unit cost first; AVERAGE\/AVERAGE1 use FIFO order.
+--   2. Scope: FIFO\/LIFO\/HIFO\/AVERAGE select globally across all accounts;
+--      FIFO1\/LIFO1\/HIFO1\/AVERAGE1 select only from the specified account.
 -- When @maccount@ is @Just acct@, that account is used for per-account methods
 -- and for transfers (which are always per-account regardless of method).
 -- The lot selector filters which lots are eligible: each non-Nothing field
@@ -912,7 +938,7 @@ selectLots method posStr maccount commodity qty selector lotState = do
         -- For global selection, sum quantities across accounts per lot.
         -- For per-account selection, take only the specified account's balance.
         flatLots = case maccount of
-          Nothing   -> M.mapMaybe pickAny allLots
+          Nothing   -> M.mapMaybe lotPickAny allLots
           Just acct -> M.mapMaybe (M.lookup acct) allLots
         matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
@@ -924,25 +950,56 @@ selectLots method posStr maccount commodity qty selector lotState = do
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
     let orderedLots = case method of
-          FIFO   -> M.toAscList matchingLots
-          FIFO1  -> M.toAscList matchingLots
-          LIFO   -> M.toDescList matchingLots
-          LIFO1  -> M.toDescList matchingLots
-          SPECID -> M.toAscList matchingLots
+          FIFO     -> M.toAscList matchingLots
+          FIFO1    -> M.toAscList matchingLots
+          LIFO     -> M.toDescList matchingLots
+          LIFO1    -> M.toDescList matchingLots
+          HIFO     -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
+          HIFO1    -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
+          AVERAGE  -> M.toAscList matchingLots
+          AVERAGE1 -> M.toAscList matchingLots
+          SPECID   -> M.toAscList matchingLots
     Right $ go qty orderedLots
   where
-    -- For global selection, pick any account's Amount as representative
-    -- (they all share the same cost basis) and sum the total quantity.
-    pickAny acctMap = case M.elems acctMap of
-      []    -> Nothing
-      (a:_) -> Just a{aquantity = sum [aquantity x | x <- M.elems acctMap]}
-
     go 0 _ = []
     go _ [] = []  -- shouldn't happen after the check above
     go remaining ((lotId, lotAmt):rest)
       | remaining >= lotBal = (lotId, lotAmt, lotBal) : go (remaining - lotBal) rest
       | otherwise           = [(lotId, lotAmt, remaining)]
       where lotBal = aquantity lotAmt
+
+-- | For global lot selection, pick any account's Amount as representative
+-- (they all share the same cost basis) and sum the total quantity.
+lotPickAny :: M.Map AccountName Amount -> Maybe Amount
+lotPickAny acctMap = case M.elems acctMap of
+  []    -> Nothing
+  (a:_) -> Just a{aquantity = sum [aquantity x | x <- M.elems acctMap]}
+
+-- | Extract the per-unit cost quantity from a lot entry, for HIFO sorting.
+lotPerUnitCost :: (LotId, Amount) -> Quantity
+lotPerUnitCost (_, a) = maybe 0 aquantity (acostbasis a >>= cbCost)
+
+-- | Whether a reduction method uses weighted average cost basis for disposals.
+methodIsAverage :: ReductionMethod -> Bool
+methodIsAverage AVERAGE  = True
+methodIsAverage AVERAGE1 = True
+methodIsAverage _        = False
+
+-- | Compute the weighted average per-unit cost across all lots in a pool.
+-- All lots must have cost basis in the same commodity.
+-- Returns a representative cost Amount with the weighted average quantity.
+poolWeightedAvgCost :: String -> M.Map LotId Amount -> Either String Amount
+poolWeightedAvgCost posStr lots = do
+    let costs = [(aquantity a, c) | a <- M.elems lots, Just cb <- [acostbasis a], Just c <- [cbCost cb]]
+    case costs of
+      [] -> Left $ posStr ++ "no lots with cost basis available for averaging"
+      ((_, firstCost):rest)
+        | any (\(_, c) -> acommodity c /= acommodity firstCost) rest ->
+            Left $ posStr ++ "cannot average lots with different cost commodities"
+        | otherwise ->
+            let totalQty  = sum [q | (q, _) <- costs]
+                totalCost = sum [q * aquantity c | (q, c) <- costs]
+            in Right firstCost{aquantity = totalCost / totalQty}
 
 -- | Is this an all-Nothing (wildcard) lot selector, i.e. from @{}@?
 isWildcardSelector :: CostBasis -> Bool

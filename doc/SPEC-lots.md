@@ -190,7 +190,13 @@ Planned reduction methods include:
 
 FIFO (oldest first, across all accounts), FIFO1 (oldest first, within each account),
 LIFO (newest first, across all accounts), LIFO1 (newest first, within each account),
+HIFO (highest cost first, across all accounts), HIFO1 (highest cost first, within each account),
+AVERAGE (weighted average cost basis, across all accounts), AVERAGE1 (weighted average cost basis, within each account),
 and SPECID (explicit selection via lot selector).
+
+AVERAGE/AVERAGE1 use FIFO consumption order for bookkeeping, but apply
+the pool's weighted average per-unit cost as the disposal cost basis.
+Aliases: AVG, AVG1, ACB (Canadian Adjusted Cost Base).
 
 The method should be configurable in a relatively fine-grained way —
 per account, per commodity, per time period, perhaps even per posting.

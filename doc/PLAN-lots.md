@@ -323,7 +323,6 @@ design/spec iteration visible in the commit history.
 
 - acquire: try again to infer basis even with no {} annotation
 - infer acquire price, dispose price from market price ?
-- AVERAGE reduction method(s) ?
 - recognise some common commodity symbols as lotful ?
 
 cleanups:
