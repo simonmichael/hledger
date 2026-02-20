@@ -151,7 +151,9 @@ $ hledger -f- bal assets:broker --lots
 >2 /no lots available/
 >=1
 
-# ** 10. Mismatched transfer counts (1 from, 2 to) is an error.
+# ** 10. Split transfers (1 from at qty 10, 2 to at qty 5) are not detected as transfers
+# because transfer detection requires exact quantity matching. The postings are classified
+# as dispose + acquire + acquire, and the transaction is unbalanced.
 <
 2026-01-15 buy
     assets:broker1    10 AAPL {$50}
@@ -163,5 +165,51 @@ $ hledger -f- bal assets:broker --lots
     assets:broker3     5 AAPL {$50}
 
 $ hledger -f- bal assets:broker --lots
->2 /mismatched transfer postings/
+>2 /unbalanced/
 >=1
+
+# ** 11. Cross-account transfer with fee: only matching-quantity postings are transfers.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:a    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:a       -1 A {$100}
+    assets:b        1 A {$100}
+    assets:a    -0.02 A {$100}
+    expenses:fees  $2
+
+$ hledger -f- print --verbose-tags date:2026-02-17
+2026-02-17 transfer with fee
+    assets:a            -1 A {$100}  ; ptype: transfer-from
+    assets:b             1 A {$100}  ; ptype: transfer-to
+    assets:a         -0.02 A {$100}  ; ptype: dispose
+    expenses:fees                $2
+
+>=
+
+# ** 12. Same-account transfer with fee: quantity matching pairs the transfer postings.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:cc    1 A {$100}
+    assets:cash
+
+2026-02-17 reclassify with fee
+    assets:cc       -1 A
+    assets:cc        1 A
+    assets:cc    -0.02 A
+    expenses:fees  $2
+
+$ hledger -f- print --verbose-tags date:2026-02-17
+2026-02-17 reclassify with fee
+    assets:cc                -1 A  ; ptype: transfer-from
+    assets:cc                 1 A  ; ptype: transfer-to
+    assets:cc             -0.02 A  ; ptype: dispose
+    expenses:fees              $2
+
+>=
