@@ -196,13 +196,21 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                      in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
 
     hasLotRelevantAmount :: Posting -> Bool
-    hasLotRelevantAmount p = hasCostBasis p || hasNegativeLotfulAmount p
+    hasLotRelevantAmount p = hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p
 
     hasNegativeLotfulAmount :: Posting -> Bool
     hasNegativeLotfulAmount p =
       let amts = amountsRaw (pamount p)
       in not (any (isJust . acostbasis) amts)
          && any isNegativeAmount amts
+         && postingIsLotful p amts
+
+    hasPositiveLotfulAmount :: Posting -> Bool
+    hasPositiveLotfulAmount p =
+      let amts = amountsRaw (pamount p)
+      in not (any (isJust . acostbasis) amts)
+         && not (any isNegativeAmount amts)
+         && any (not . isNegativeAmount) amts  -- has a positive amount (not amountless)
          && postingIsLotful p amts
 
     -- Precompute per-commodity transfer counterpart info in a single pass over all postings (O(n)).
@@ -272,7 +280,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                       lookupAccountType (paccount p)
           guard $ isAssetType acctType
           dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful/bare") $
-            shouldClassifyNegativeLotful p amts <|> shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts
+            shouldClassifyNegativeLotful p amts <|> shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts <|> shouldClassifyPositiveLotful p amts
 
     -- Classify a posting that has cost basis: acquire, dispose, transfer-from, or transfer-to.
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
@@ -315,6 +323,15 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       let pCommodities = [acommodity a | a <- amts]
       guard $ any (hasTransferFromCounterpart (paccount p)) pCommodities
       return "transfer-to"
+
+    -- Classify a positive lotful posting without cost basis as acquire.
+    -- This is the fallback for positive lotful postings that aren't transfer-to.
+    -- The cost basis will be inferred later from transacted cost (explicit or balancer-inferred).
+    shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
+    shouldClassifyPositiveLotful p amts = do
+      guard $ postingIsLotful p amts
+      guard $ not $ any isNegativeAmount amts
+      return "acquire"
 
     -- Check if a posting is lotful: its commodity or account has a lots: tag.
     postingIsLotful :: Posting -> [Amount] -> Bool
@@ -646,10 +663,13 @@ processAcquirePosting :: S.Set (CommoditySymbol, Day) -> Day -> Transaction -> L
                       -> Either String (LotState, Posting)
 processAcquirePosting needsLabels txnDate t lotState p = do
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
-    (lotAmt, cb) <- case lotAmts of
-      []  -> Left $ showPos ++ "acquire posting has no cost basis"
-      [x] -> Right x
-      _   -> Left $ showPos ++ "acquire posting has multiple cost basis amounts (not yet supported)"
+    (lotAmt, cb, isBare) <- case lotAmts of
+      [x] -> Right (fst x, snd x, False)
+      _   -> do
+        let bareAmts = [a | a <- amountsRaw (pamount p), not (isNegativeAmount a)]
+        case bareAmts of
+          [a] -> Right (a, CostBasis Nothing Nothing Nothing, True)
+          _   -> Left $ showPos ++ "acquire posting has no cost basis"
 
     let commodity = acommodity lotAmt
         date      = fromMaybe txnDate (cbDate cb)
@@ -693,12 +713,17 @@ processAcquirePosting needsLabels txnDate t lotState p = do
 
     let p' = if cbInferred
              then let -- Update the original posting's cost basis too, so print shows {$50} not {}
+                      -- For bare acquires, also normalize transacted cost to UnitCost
+                      normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
                       origP  = originalPosting p
                       origP' = origP{pamount = mapMixedAmount updateCb $ pamount origP}
-                      updateCb a | acommodity a == commodity = a{acostbasis = Just filledCb}
-                                 | otherwise                 = a
+                      updateCb a
+                        | acommodity a == commodity =
+                            if isBare then a{acostbasis = Just filledCb, acost = normalizedCost}
+                            else a{acostbasis = Just filledCb}
+                        | otherwise = a
                   in p{paccount = paccount p <> ":" <> lotName
-                      ,pamount  = mixedAmount postingAmt
+                      ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
                       ,poriginal = Just origP'}
              else p{paccount = paccount p <> ":" <> lotName}
     let lotState' = M.insertWith (M.unionWith M.union) commodity

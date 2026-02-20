@@ -124,4 +124,87 @@ $ hledger -f- bal assets:stocks --lots
 >2 /-:5:/
 >=1
 
+# ** 10. Bare acquire with explicit @ on lotful commodity - classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50  ; ptype: acquire
+    assets:cash              $-500
+
+>=
+
+# ** 11. Bare acquire with @ on lotful commodity creates a lot subaccount with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 12. Bare acquire with balancer-inferred cost on lotful commodity - classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL
+    assets:cash     -$500
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:stocks         10 AAPL  ; ptype: acquire
+    assets:cash             $-500
+
+>=
+
+# ** 13. Bare acquire with balancer-inferred cost creates a lot subaccount with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL
+    assets:cash     -$500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 14. Without lots: tag, bare positive posting with @ is NOT classified as acquire.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- print
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash              $-500
+
+>=
+
+# ** 15. Transfer-to takes priority over bare acquire when transfer-from counterpart exists.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:old    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 transfer
+    assets:old     -10 AAPL {$50}
+    assets:new      10 AAPL
+
+$ hledger -f- print --verbose-tags date:2026-02-01
+2026-02-01 transfer
+    assets:old    -10 AAPL {$50}  ; ptype: transfer-from
+    assets:new           10 AAPL  ; ptype: transfer-to
+
+>=
 

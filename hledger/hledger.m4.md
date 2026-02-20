@@ -6989,7 +6989,9 @@ $ hledger bal assets:stocks --lots -N
 ## Lot operations
 
 - **Acquire**: a positive lot posting creates a new lot subaccount.
-  The cost basis can be specified, or will be inferred, but at least an empty `{}` is required to signal an acquire.
+  The cost basis can be specified explicitly with `{}`, or will be inferred from the transacted cost.
+  On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
+  with cost inferred from the transaction's other postings.
 - **Transfer**: matched negative/positive lot postings move lots between accounts, preserving their cost basis.
   Transfer postings should not have a transacted price.
 - **Dispose**: a negative lot posting sells from existing lot(s).

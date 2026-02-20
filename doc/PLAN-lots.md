@@ -192,6 +192,13 @@ Overall assessment
 
 13. {} on acquire postings infers cost basis from transacted cost. Previously this worked only if there was no {} annotation at all.
 
+14. Bare/@ acquisitions on lotful commodities: Positive postings in a lotful commodity/account
+    are now classified as acquire even without explicit {} notation, symmetrically with how bare
+    negative lotful postings are classified as dispose (amendment 12). Cost basis is inferred from
+    transacted cost (explicit @ or balancer-inferred). The removed journalInferPostingsCostBasis
+    is no longer needed — classification detects bare acquires directly, and processAcquirePosting
+    infers cost basis from acost at lot calculation time (after balancing).
+
 (+ many followup improvements)
 
 ## Assessment
@@ -321,9 +328,10 @@ design/spec iteration visible in the commit history.
  
 ## Next ?
 
-- acquire: try again to infer basis even with no {} annotation
 - infer acquire price, dispose price from market price ?
 - recognise some common commodity symbols as lotful ?
+- clarify workflow/add special support for clopening lot balances (migrating them to a new file)
+- infer/set amount basis from lot subaccount names ?
 
 cleanups:
 - renames: cost -> price, cost basis -> basis and cost ?
