@@ -196,7 +196,10 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                      in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
 
     hasLotRelevantAmount :: Posting -> Bool
-    hasLotRelevantAmount p = hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p
+    hasLotRelevantAmount p = isReal p && (hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p)
+
+    isReal :: Posting -> Bool
+    isReal p = preal p == RealPosting
 
     hasNegativeLotfulAmount :: Posting -> Bool
     hasNegativeLotfulAmount p =
@@ -222,7 +225,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     negCBAccts, posCBAccts, posNoCBAccts :: M.Map CommoditySymbol [AccountName]
     (negCBAccts, posCBAccts, posNoCBAccts) = foldl' collect (M.empty, M.empty, M.empty) ps
       where
-        collect (!neg, !pos, !noCB) p =
+        collect (!neg, !pos, !noCB) p
+              | not (isReal p) = (neg, pos, noCB)  -- skip virtual postings
+              | otherwise =
               let isAsset  = maybe False isAssetType (lookupAccountType (paccount p))
                   amts     = amountsRaw (pamount p)
                   acct     = paccount p
@@ -260,7 +265,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     isGainAcct p = lookupAccountType (paccount p) == Just Gain
 
     classifyPosting :: Posting -> Posting
-    classifyPosting p =
+    classifyPosting p
+      | not (isReal p) = p  -- skip virtual (parenthesised) postings
+      | otherwise =
       case dbg5 ("classifyLotPostings: classifyPosting " ++ show (paccount p) ++ " result") $ shouldClassify p of
         Just classification -> addTag classification p
         Nothing
@@ -868,12 +875,17 @@ processDisposePosting j t lotState p = do
 processTransferPair :: Journal -> Transaction -> LotState -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
 processTransferPair j t lotState fromP toP = do
-    -- Extract lotful amount and lot selector from transfer-from
+    -- Extract lotful amount and lot selector from transfer-from.
+    -- When cost basis is present, use it directly as the lot selector.
+    -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
     let fromAmts = [(a, cb) | a <- amountsRaw (pamount fromP), Just cb <- [acostbasis a]]
-    (fromAmt, fromCb) <- case fromAmts of
-      []  -> Left $ showPos ++ "transfer-from posting has no cost basis"
-      [x] -> Right x
-      _   -> Left $ showPos ++ "transfer-from posting has multiple cost basis amounts (not yet supported)"
+    (fromAmt, fromCb, isBare) <- case fromAmts of
+      [x] -> Right (fst x, snd x, False)
+      _   -> do
+        let bareAmts = [a | a <- amountsRaw (pamount fromP), isNegativeAmount a]
+        case bareAmts of
+          [a] -> Right (a, CostBasis Nothing Nothing Nothing, True)
+          _   -> Left $ showPos ++ "transfer-from posting has no cost basis"
 
     let commodity = acommodity fromAmt
         transferQty = aquantity fromAmt
@@ -904,7 +916,7 @@ processTransferPair j t lotState fromP toP = do
                  _         -> Nothing
 
     -- For each selected lot, generate from and to postings
-    (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings fromAmt toCb commodity) selected
+    (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isBare fromAmt toCb commodity) selected
 
     -- Update lot state: remove from source, add to destination
     let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
@@ -915,7 +927,7 @@ processTransferPair j t lotState fromP toP = do
   where
     showPos = txnErrPrefix t
 
-    mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
+    mkTransferPostings isBare' fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
         lotBasis <- case acostbasis storedAmt >>= cbCost of
           Just c  -> Right c
           Nothing -> Left $ showPos ++ "lot " ++ show lotId
@@ -933,13 +945,34 @@ processTransferPair j t lotState fromP toP = do
 
         let fromAmt' = fromAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
             toAmt'   = fromAmt'{aquantity = consumedQty}
-            fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
-                          , pamount  = mixedAmount fromAmt'
-                          }
-            toP'   = toP{ paccount = paccount toP <> ":" <> lotName
-                        , pamount  = mixedAmount toAmt'
-                        }
-        Right (fromP', toP')
+        if isBare'
+          then do
+            -- For bare transfers, update poriginal so print shows the inferred cost basis.
+            let origFromP = originalPosting fromP
+                origFromP' = origFromP{pamount = mapMixedAmount (updateBare commodity lotCb (negate consumedQty)) (pamount origFromP)}
+                origToP = originalPosting toP
+                origToP' = origToP{pamount = mapMixedAmount (updateBare commodity lotCb consumedQty) (pamount origToP)}
+                fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
+                              , pamount  = mixedAmount fromAmt'
+                              , poriginal = Just origFromP'
+                              }
+                toP'   = toP{ paccount = paccount toP <> ":" <> lotName
+                            , pamount  = mixedAmount toAmt'
+                            , poriginal = Just origToP'
+                            }
+            Right (fromP', toP')
+          else do
+            let fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
+                              , pamount  = mixedAmount fromAmt'
+                              }
+                toP'   = toP{ paccount = paccount toP <> ":" <> lotName
+                            , pamount  = mixedAmount toAmt'
+                            }
+            Right (fromP', toP')
+
+    updateBare commodity lotCb qty a
+      | acommodity a == commodity = a{aquantity = qty, acostbasis = Just lotCb}
+      | otherwise = a
 
     -- Validate that transfer-to cost basis (if specified with concrete fields)
     -- matches the lot's cost basis.
