@@ -225,7 +225,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey (KChar 'l') [MCtrl]) -> centerSelection >> redraw     -- C-l: redraw
     VtyEvent (EvKey KEsc        []) -> modify' (resetScreens d)           -- ESC: reset
     VtyEvent (EvKey (KChar c)   []) | c == '?' -> modify' (setMode Help)  -- ?: enter help mode
-
+    
     -- AppEvents come from the system, in --watch mode.
     -- XXX currently they are handled only in Normal mode
     -- XXX be sure we don't leave unconsumed app events piling up
@@ -248,6 +248,18 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
     VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
     VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor endPosition (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
+    -- J/K Jumps: move 10 rows at a time
+    VtyEvent (EvKey (KChar 'J') []) -> do
+      let l' = listMoveBy 10 l
+      -- Ensure we don't jump into the blank padding at the end
+      let l'' = if isBlankItem (listSelectedElement l')
+                then listMoveTo lastnonblankidx l'
+                else l'
+      put' ui{aScreen=scons ass{_assList=l''}}
+
+    VtyEvent (EvKey (KChar 'K') []) -> do
+      let l' = listMoveBy (-10) l
+      put' ui{aScreen=scons ass{_assList=l'}}
 
     -- adjust the period displayed:
     VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)

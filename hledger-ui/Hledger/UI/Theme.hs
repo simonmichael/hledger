@@ -24,7 +24,7 @@ import Brick
 import Safe (headErr)
 
 defaultTheme :: AttrMap
-defaultTheme = fromMaybe (snd $ headErr themesList) $ getTheme "white"  -- PARTIAL headErr succeeds because themesList is non-null
+defaultTheme = fromMaybe (snd $ headErr themesList) $ getTheme "light"  -- PARTIAL headErr succeeds because themesList is non-null
   -- the theme named here should exist;
   -- otherwise it will take the first one from the list,
   -- which must be non-empty.
@@ -60,12 +60,12 @@ themeNames = map fst themesList
 
 (&) = withStyle
 active = fg brightWhite & bold
-selectbg = yellow
+selectbg = cyan
 select = black `on` selectbg
 
 themesList :: [(String, AttrMap)]
 themesList = [
-   ("default", attrMap (black `on` white) [
+   ("light", attrMap (black `on` white) [
      (attrName "border"                                        , white `on` black & dim)
     ,(attrName "border" <> attrName "bold"                              , currentAttr & bold)
     ,(attrName "border" <> attrName "depth"                             , active)
@@ -124,7 +124,7 @@ themesList = [
     , (attrName "list" <> attrName "balance" <> attrName "positive"                        , fg white)
     , (attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` black    & bold)
     , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , yellow `on` black & bold)
-    , (attrName "list" <> attrName "selected"                                              , yellow `on` black & bold)
+    , (attrName "list" <> attrName "selected"                                              , cyan `on` black & bold)
   ])
 
   ]
