@@ -123,7 +123,7 @@ add opts j
         showHelp
         let today = opts^.rsDay
             state = defAddState{asOpts=opts
-                              ,asArgs=listofstringopt "args" $ rawopts_ opts
+                              ,asArgs=dropFirstDoubleDash $ listofstringopt "args" $ rawopts_ opts
                               ,asToday=today
                               ,asDefDate=today
                               ,asJournal=j
@@ -468,6 +468,15 @@ completer completions def = completeWord Nothing "" completionsFor
 --------------------------------------------------------------------------------
 
 -- utilities
+
+dropFirstDoubleDash :: [String] -> [String]
+dropFirstDoubleDash = dropIf (== "--")
+
+dropIf :: (a -> Bool) -> [a] -> [a]
+dropIf _ [] = []
+dropIf f (x:xs)
+  | f x = xs
+  | otherwise = x:xs
 
 maybeExit = parser (\s -> if s == "." then throw UnexpectedEOF else Just s)
 
