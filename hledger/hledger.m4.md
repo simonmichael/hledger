@@ -5996,6 +5996,7 @@ Mostly, this is done only if you request it:
 - The `--infer-market-prices` flag infers `P` price directives from costs.
 - The `--auto` flag adds extra postings to transactions matched by [auto posting rules](#auto-postings).
 - The `--forecast` option generates transactions from [periodic transaction rules](#periodic-transactions).
+- The `--lots` flag adds extra lot subaccounts to postings for detailed [lot reporting](#lot-reporting).
 - The `balance --budget` report infers budget goals from periodic transaction rules.
 - Commands like `close`, `rewrite`, and `hledger-interest` generate transactions or postings.
 - CSV data is converted to transactions by applying CSV conversion rules.. etc.
@@ -6009,6 +6010,25 @@ If you are curious what data is being generated and why, run `hledger print -x -
 `generated-transaction` (from periodic rules) and `generated-posting`, `modified` (from auto posting rules).
 Similar hidden tags (with an underscore prefix) are always present, also,
 so you can always match such data with queries like `tag:generated` or `tag:modified`.
+
+# Detecting special postings
+
+hledger detects certain kinds of postings, both generated and non-generated, and tags them for additional processing.
+These are documented elsewhere, but this section gives an overview of the special posting detection rules.
+
+By default, the [tags](#tags) are hidden (with a `_` prefix), so they can be queried but they won't appear in `print` output.
+To also add visible tags, use `--verbose-tags` (useful for troubleshooting).
+
+| Tag                   | Detected pattern                                                                                                                                                         | Effect                                                                                                |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------|
+| `conversion-posting`  | A pair of adjacent, single-commodity, costless postings to `Conversion`-type accounts, with a nearby corresponding costful or potentially corresponding costless posting | Helps transaction balancer infer costs or avoid redundancy in commodity conversions                   |
+| `cost-posting`        | A costful posting whose amount and transacted cost correspond to a conversion postings pair; or a costless posting matching one of the pair                              | Helps transaction balancer infer costs or avoid redundancy in commodity conversions                   |
+| `generated-posting`   | Postings generated at runtime                                                                                                                                            | Helps users understand or find postings added at runtime by hledger                                   |
+| `ptype:acquire`       | Positive postings with [lot annotations](#lot-syntax), or in a lotful commodity/account, with no matching counterposting                                                 | Creates a new lot                                                                                     |
+| `ptype:dispose`       | Negative postings with lot annotations, or in a lotful commodity/account, with no matching counterposting                                                                | Selects and reduces existing lots                                                                     |
+| `ptype:transfer-from` | The negative posting of a pair of counterpostings, at least one with lot annoutation or a lotful commodity/account                                                       | Moves lots between accounts, preserving cost basis                                                    |
+| `ptype:transfer-to`   | The positive posting of a transfer pair                                                                                                                                  | As above                                                                                              |
+| `ptype:gain`          | A posting to a `Gain`-type account                                                                                                                                       | Helps transaction balancer avoid redundancy, helps disposal balancer check realised capital gain/loss |
 
 # Forecasting
 
