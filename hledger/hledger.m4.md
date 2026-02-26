@@ -7053,6 +7053,19 @@ account assets:stocks  ; lots: AVERAGE
 
 Account tags override commodity tags.
 
+## Lot postings with balance assertions 
+
+On a dispose or transfer posting without an explicit lot subaccount, a [balance assertion](#balance-assertions)
+always refers to the parent account's balance. So if lot subaccounts are added witih `--lots`, the assertion is not affected.
+
+By contrast, in a journal entry where the lot subaccounts are recorded explicitly, a balance assertion
+refers to the lot subaccount's balance.
+
+This means that `hledger print --lots`, if it adds explicit lot subaccounts to a journal entry,
+could potentially change the meaning of balance assertions, breaking them. To avoid this, in such cases it will move
+the balance assertion to a new zero-amount posting to the parent account (and make sure it's subaccount-inclusive).
+(So eg `hledger -f- print --lots -x | hledger -f- check assertions` will still pass.)
+
 ## Gain postings and disposal balancing
 
 A **gain posting** is a posting to a [Gain-type account](#account-types) (type `G`, a subtype of Revenue). 

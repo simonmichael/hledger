@@ -240,6 +240,22 @@ This helps the transaction to pass disposal balancing.
 
 The inclusion/exclusion gain postings allows both kinds of transaction balancing to succeed with the same journal entries.
 
+## Balance assertions
+
+A balance assertion on a dispose or transfer posting (eg `= 0 AAPL`) runs before `--lots` processing
+(in `journalBalanceTransactions`), when the posting is still on the parent account — so it checks the
+parent account's balance, as expected.
+
+When `--lots` later splits that posting onto lot subaccounts, the assertion is removed from the lot
+postings and re-attached to a new zero-amount `_generated-posting` on the original parent account,
+with `bainclusive = True` (ie the `=*` syntax). This makes the assertion check the inclusive balance
+of the parent plus all its lot subaccounts, which is the semantically correct interpretation when the
+output is re-read later (eg after `print --lots -x`).
+
+If the original posting's account is already an explicit lot subaccount (eg
+`assets:stocks:{2026-01-15, $50}`), the assertion is left on the split posting unchanged, since it
+already targets the right account.
+
 ## Processing pipeline
 
 Lot-related processing can be thought of as an optional extra journal processing step, enabled by the --lots flag. 
