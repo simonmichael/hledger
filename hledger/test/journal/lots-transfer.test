@@ -243,3 +243,22 @@ $ hledger -f- print --lots -x desc:transfer
 
 >=
 
+# ** 14. Transfer with explicit lot subaccounts - no double-append.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:broker1    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 transfer with explicit lot subaccounts
+    assets:broker1:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-01-15, $50}     10 AAPL {2026-01-15, $50}
+
+$ hledger -f- print --lots -x desc:transfer
+2026-02-01 transfer with explicit lot subaccounts
+    assets:broker1:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-01-15, $50}     10 AAPL {2026-01-15, $50}
+
+>=
+

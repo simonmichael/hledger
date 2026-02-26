@@ -6983,7 +6983,8 @@ Add `--lots` to any command to enable lot tracking. This activates:
   `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
   visible with `--verbose-tags`, queryable with `tag:ptype=...`).
 - **Cost basis inference** — for lotful commodities/accounts, cost basis
-  is inferred from transacted cost and vice versa.
+  is inferred from transacted cost and vice versa. When a lot subaccount
+  is written in the account name, cost basis is also inferred from it.
 - **Lot calculation** — acquired lots become subaccounts; disposals and
   transfers select from existing lots.
 - **Disposal balancing** — disposal transactions are checked for balance
@@ -7006,10 +7007,27 @@ $ hledger bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 ```
 
+You can also write lot subaccounts explicitly. When a posting's account name
+ends with a lot subaccount (like `:{2026-01-15, $50}`), the cost basis is
+parsed from it automatically, so a `{}` annotation on the amount is optional:
+
+```journal
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL
+    assets:cash
+```
+
+This is equivalent to writing `10 AAPL {2026-01-15, $50}`. If both the account
+name and the amount specify a cost basis, they must agree.
+
 ## Lot operations
 
 - **Acquire**: a positive lot posting creates a new lot subaccount.
-  The cost basis can be specified explicitly with `{}`, or will be inferred from the transacted cost.
+  The cost basis can be specified explicitly with `{}` on the amount,
+  inferred from the lot subaccount name,
+  or inferred from the transacted cost.
   On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
   with cost inferred from the transaction's other postings.
 - **Transfer**: matched negative/positive lot postings move lots between accounts, preserving their cost basis.

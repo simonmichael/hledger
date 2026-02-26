@@ -87,6 +87,10 @@ module Hledger.Data.Lots (
   journalCalculateLots,
   journalInferAndCheckDisposalBalancing,
   isGainPosting,
+  lotBaseAccount,
+  lotSubaccountName,
+  mergeCostBasis,
+  parseLotName,
   showLotName,
 ) where
 
@@ -102,7 +106,8 @@ import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Time.Calendar (Day)
+import Data.Char (isDigit)
+import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
@@ -161,6 +166,106 @@ showLotName CostBasis{cbDate, cbLabel, cbCost} =
       , fmap (\l -> "\"" <> l <> "\"") cbLabel
       , fmap (T.pack . showAmountWith noCostFmt) cbCost
       ]
+
+-- | Extract the lot subaccount name (the @{...}@ component) from an account name,
+-- or @Nothing@ if there is none.
+-- E.g., @\"assets:broker:{2026-01-15, $50}\"@ returns @Just \"{2026-01-15, $50}\"@.
+lotSubaccountName :: AccountName -> Maybe Text
+lotSubaccountName a =
+  let (prefix, lastComp) = T.breakOnEnd ":" a
+  in if not (T.null prefix) && "{" `T.isPrefixOf` lastComp
+     then Just lastComp
+     else Nothing
+
+-- | Parse a lot name (as produced by 'showLotName') back into a 'CostBasis'.
+-- The input should be the full @{...}@ string including braces.
+-- Parts are comma-separated and all optional: date (@YYYY-MM-DD@),
+-- label (@\"LABEL\"@), and cost (parsed by the supplied callback).
+-- The callback avoids an import cycle (Lots.hs cannot import Read-layer parsers).
+parseLotName :: (String -> Maybe Amount) -> Text -> Either String CostBasis
+parseLotName parseAmt t = do
+  inner <- case T.stripPrefix "{" t >>= T.stripSuffix "}" of
+    Just s  -> Right (T.strip s)
+    Nothing -> Left $ "lot name must be enclosed in braces: " ++ T.unpack t
+  if T.null inner
+    then Right $ CostBasis Nothing Nothing Nothing
+    else do
+      let parts = map T.strip $ splitOnCommas inner
+      parseParts parts
+  where
+    parseParts parts = go parts Nothing Nothing Nothing
+      where
+        go [] d l c = Right $ CostBasis d l c
+        go (p:ps) d l c
+          | isDatePart p = case parseDate p of
+              Just day -> go ps (Just day) l c
+              Nothing  -> Left $ "invalid date in lot name: " ++ T.unpack p
+          | isLabelPart p = go ps d (Just (T.drop 1 (T.dropEnd 1 p))) c
+          | otherwise = case parseAmt (T.unpack p) of
+              Just amt -> go ps d l (Just amt)
+              Nothing  -> Left $ "cannot parse lot name part: " ++ T.unpack p
+
+    isDatePart p = T.length p == 10 && T.all (\c -> isDigit c || c == '-') p
+    isLabelPart p = "\"" `T.isPrefixOf` p && "\"" `T.isSuffixOf` p && T.length p >= 2
+
+    parseDate p = do
+      let s = T.unpack p
+      case s of
+        [y1,y2,y3,y4,'-',m1,m2,'-',d1,d2] ->
+          fromGregorianValid
+            (read [y1,y2,y3,y4])
+            (read [m1,m2])
+            (read [d1,d2])
+        _ -> Nothing
+
+    -- Split on commas, but not within double-quoted strings.
+    -- E.g. @"2026-01-15, \"my, label\", $50"@ -> @["2026-01-15", "\"my, label\"", "$50"]@.
+    splitOnCommas :: Text -> [Text]
+    splitOnCommas s
+      | T.null s  = []
+      | otherwise = let (part, rest) = takeField s
+                    in part : if T.null rest then [] else splitOnCommas rest
+
+    -- Consume one comma-separated field (respecting double quotes), returning
+    -- (field, remaining-after-comma).
+    takeField :: Text -> (Text, Text)
+    takeField = go T.empty False
+      where
+        go acc inQuote s
+          | T.null s             = (acc, T.empty)
+          | c == '"'             = go (T.snoc acc c) (not inQuote) cs
+          | c == ',' && not inQuote = (acc, cs)
+          | otherwise            = go (T.snoc acc c) inQuote cs
+          where (c, cs) = (T.head s, T.tail s)
+
+-- | Merge two 'CostBasis' values. For each field, if both are @Just@, they
+-- must agree (returns error if not); otherwise takes whichever is @Just@.
+-- The first argument is typically the account-name basis (more complete),
+-- the second is the amount's existing basis.
+mergeCostBasis :: CostBasis -> CostBasis -> Either String CostBasis
+mergeCostBasis a b = do
+  d <- mergeField "date"  show     (cbDate a) (cbDate b)
+  l <- mergeField "label" T.unpack (cbLabel a) (cbLabel b)
+  c <- mergeCostField (cbCost a) (cbCost b)
+  Right $ CostBasis d l c
+  where
+    mergeField :: Eq a => String -> (a -> String) -> Maybe a -> Maybe a -> Either String (Maybe a)
+    mergeField _ _ Nothing  y       = Right y
+    mergeField _ _ x       Nothing  = Right x
+    mergeField name showVal (Just x) (Just y)
+      | x == y    = Right (Just x)
+      | otherwise = Left $ "conflicting cost basis " ++ name
+                      ++ ": account name has " ++ showVal x
+                      ++ " but amount has " ++ showVal y
+
+    mergeCostField :: Maybe Amount -> Maybe Amount -> Either String (Maybe Amount)
+    mergeCostField Nothing  y       = Right y
+    mergeCostField x       Nothing  = Right x
+    mergeCostField (Just x) (Just y)
+      | acommodity x == acommodity y && aquantity x == aquantity y = Right (Just x)
+      | otherwise = Left $ "conflicting cost basis cost"
+                      ++ ": account name has " ++ showAmountWith noCostFmt x
+                      ++ " but amount has " ++ showAmountWith noCostFmt y
 
 -- Classification (pipeline stage 1)
 
@@ -228,7 +333,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         addPosting m (i, p)
           | not (isReal p) = m
           | not (hasLotRelevantAmount p) = m
-          | otherwise = foldl' (addAmt i (paccount p)) m (amountsRaw (pamount p))
+          | otherwise = foldl' (addAmt i (lotBaseAccount (paccount p))) m (amountsRaw (pamount p))
         addAmt i acct m a
           | q < 0     = M.insertWith mergePair (acct, acommodity a, negate q) ([i], []) m
           | q > 0     = M.insertWith mergePair (acct, acommodity a, q)        ([], [i]) m
@@ -253,9 +358,10 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
               | not (isReal p) = (neg, pos, noCB)  -- skip virtual postings
               | i `S.member` sameAcctTransferSet = (neg, pos, noCB)  -- skip same-account transfer pairs
               | otherwise =
-              let isAsset  = maybe False isAssetType (lookupAccountType (paccount p))
+              let baseAcct = lotBaseAccount (paccount p)
+                  isAsset  = maybe False isAssetType (lookupAccountType baseAcct)
                   amts     = amountsRaw (pamount p)
-                  acct     = paccount p
+                  acct     = baseAcct
                   isNeg    = any isNegativeAmount amts
                   hasCB    = any (isJust . acostbasis) amts
                   isLotful = postingIsLotful p amts
@@ -309,6 +415,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassify :: Posting -> Maybe Text
     shouldClassify p = do
       let amts = amountsRaw $ pamount p
+          baseAcct = lotBaseAccount (paccount p)
       if any (isJust . acostbasis) amts
         -- Cost basis present: classify regardless of account type (fix A)
         then dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " withCostBasis") $
@@ -316,7 +423,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         else do
           -- No cost basis: require asset account type
           acctType <- dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " acctType") $
-                      lookupAccountType (paccount p)
+                      lookupAccountType baseAcct
           guard $ isAssetType acctType
           dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful/bare") $
             shouldClassifyNegativeLotful p amts <|> shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts <|> shouldClassifyPositiveLotful p amts
@@ -325,10 +432,11 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
     shouldClassifyWithCostBasis p amts = do
       let
+        baseAcct = lotBaseAccount (paccount p)
         isNeg = any isNegativeAmount amts
         primaryType = if isNeg then "dispose" else "acquire"
         cbAmts = [(acommodity a, aquantity a) | a <- amts, isJust (acostbasis a)]
-        isTransfer = any (\(c, q) -> hasCounterpart (paccount p) isNeg c q) cbAmts
+        isTransfer = any (\(c, q) -> hasCounterpart baseAcct isNeg c q) cbAmts
       return $ if isTransfer
         then if isNeg then "transfer-from" else "transfer-to"
         else primaryType
@@ -338,8 +446,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyNegativeLotful p amts = do
       guard $ postingIsLotful p amts
       guard $ any isNegativeAmount amts
-      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
-          isTransfer = any (\(c, q) -> hasCounterpart (paccount p) True c q) amtPairs
+      let baseAcct = lotBaseAccount (paccount p)
+          amtPairs = [(acommodity a, aquantity a) | a <- amts]
+          isTransfer = any (\(c, q) -> hasCounterpart baseAcct True c q) amtPairs
       return $ if isTransfer then "transfer-from" else "dispose"
 
     -- Classify a lotful posting without cost basis.
@@ -350,8 +459,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       guard $ postingIsLotful p amts
       guard $ not $ any isNegativeAmount amts
       guard $ not $ any (isJust . acost) amts
-      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
-      guard $ any (\(c, q) -> hasTransferFromCounterpart (paccount p) c q) amtPairs
+      let baseAcct = lotBaseAccount (paccount p)
+          amtPairs = [(acommodity a, aquantity a) | a <- amts]
+      guard $ any (\(c, q) -> hasTransferFromCounterpart baseAcct c q) amtPairs
       return "transfer-to"
 
     -- Classify a bare positive asset posting (no cost basis, not necessarily lotful)
@@ -359,8 +469,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyBareTransferTo :: Posting -> [Amount] -> Maybe Text
     shouldClassifyBareTransferTo p amts = do
       guard $ not $ any isNegativeAmount amts
-      let amtPairs = [(acommodity a, aquantity a) | a <- amts]
-      guard $ any (\(c, q) -> hasTransferFromCounterpart (paccount p) c q) amtPairs
+      let baseAcct = lotBaseAccount (paccount p)
+          amtPairs = [(acommodity a, aquantity a) | a <- amts]
+      guard $ any (\(c, q) -> hasTransferFromCounterpart baseAcct c q) amtPairs
       return "transfer-to"
 
     -- Classify a positive lotful posting without cost basis as acquire.
@@ -784,6 +895,15 @@ processAcquirePosting needsLabels txnDate t lotState p = do
             -- (only filling in cost when inferred) for print output fidelity.
             postingAmt  = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
 
+        let baseAcct = lotBaseAccount (paccount p)
+            hasExplicitLotAcct = baseAcct /= paccount p
+            expectedAcct = baseAcct <> ":" <> lotName
+
+        -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
+        when (hasExplicitLotAcct && paccount p /= expectedAcct) $
+          Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
+                  ++ " does not match the resolved lot " ++ T.unpack expectedAcct
+
         let existingLots = M.findWithDefault M.empty commodity lotState
         when (M.member lotId existingLots) $
           Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
@@ -800,12 +920,12 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                                 if isBare then a{acostbasis = Just filledCb, acost = normalizedCost}
                                 else a{acostbasis = Just filledCb}
                             | otherwise = a
-                      in p{paccount = paccount p <> ":" <> lotName
+                      in p{paccount = expectedAcct
                           ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
                           ,poriginal = Just origP'}
-                 else p{paccount = paccount p <> ":" <> lotName}
+                 else p{paccount = expectedAcct}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
-                          (M.singleton lotId (M.singleton (paccount p) lotStateAmt)) lotState
+                          (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
         return (lotState', p')
   where
     showPos = txnErrPrefix t
@@ -972,9 +1092,12 @@ processTransferPair verbosetags j t lotState fromP toP = do
     (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isBare fromAmt toCb commodity) selected
 
     -- Update lot state: remove from source, add to destination
-    let consumed   = [(lotId, qty) | (lotId, _, qty) <- selected]
-        lotState'  = reduceLotState (Just (paccount fromP)) commodity consumed lotState
-        lotState'' = foldl' (addTransferredLot commodity (paccount toP)) lotState' selected
+    -- Use base accounts (without lot subaccount) for LotState keys.
+    let fromBaseAcct = lotBaseAccount (paccount fromP)
+        toBaseAcct   = lotBaseAccount (paccount toP)
+        consumed   = [(lotId, qty) | (lotId, _, qty) <- selected]
+        lotState'  = reduceLotState (Just fromBaseAcct) commodity consumed lotState
+        lotState'' = foldl' (addTransferredLot commodity toBaseAcct) lotState' selected
 
     return ( lotState''
            , preserveParentAssertion verbosetags (paccount fromP) (pbalanceassertion fromP) fromPs
@@ -995,6 +1118,9 @@ processTransferPair verbosetags j t lotState fromP toP = do
               , cbCost  = Just lotBasis
               }
             lotName = showLotName lotCb
+            -- Use base accounts to avoid double-appending lot subaccounts.
+            fromAcct = lotBaseAccount (paccount fromP) <> ":" <> lotName
+            toAcct   = lotBaseAccount (paccount toP)   <> ":" <> lotName
 
         -- Validate transfer-to cost basis if it has specific fields
         validateToCb toCb lotCb commodity
@@ -1008,20 +1134,20 @@ processTransferPair verbosetags j t lotState fromP toP = do
                 origFromP' = origFromP{pamount = mapMixedAmount (updateBare commodity lotCb (negate consumedQty)) (pamount origFromP)}
                 origToP = originalPosting toP
                 origToP' = origToP{pamount = mapMixedAmount (updateBare commodity lotCb consumedQty) (pamount origToP)}
-                fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
+                fromP' = fromP{ paccount = fromAcct
                               , pamount  = mixedAmount fromAmt'
                               , poriginal = Just origFromP'
                               }
-                toP'   = toP{ paccount = paccount toP <> ":" <> lotName
+                toP'   = toP{ paccount = toAcct
                             , pamount  = mixedAmount toAmt'
                             , poriginal = Just origToP'
                             }
             Right (fromP', toP')
           else do
-            let fromP' = fromP{ paccount = paccount fromP <> ":" <> lotName
+            let fromP' = fromP{ paccount = fromAcct
                               , pamount  = mixedAmount fromAmt'
                               }
-                toP'   = toP{ paccount = paccount toP <> ":" <> lotName
+                toP'   = toP{ paccount = toAcct
                             , pamount  = mixedAmount toAmt'
                             }
             Right (fromP', toP')
