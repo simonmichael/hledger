@@ -234,7 +234,7 @@ entriesReportAsBeancount atags pricedirs ts =
       -- Assume the simple case of no more than one cost + conversion posting group in each transaction.
       -- Actually that seems to be required by hledger right now.
       , let isredundantconvp p =
-              matchesPosting (Tag (toRegex' "conversion-posting") Nothing) p
+              matchesPosting (Tag (toRegex' conversionPostingTagName) Nothing) p
               && any (any (isJust.acost) . amounts . pamount) (tpostings t)
       ]
 
