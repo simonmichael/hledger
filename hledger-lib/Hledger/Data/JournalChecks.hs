@@ -42,6 +42,7 @@ import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
+import Hledger.Data.Lots (lotBaseAccount)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -58,7 +59,7 @@ journalCheckAccounts :: Journal -> Either String ()
 journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
     checkacct p@Posting{paccount=a}
-      | a `elem` journalAccountNamesDeclared j = Right ()
+      | acct `elem` journalAccountNamesDeclared j = Right ()
       | otherwise = Left $ printf (unlines [
            "%s:%d:"
           ,"%s"
@@ -67,8 +68,9 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex a a
+          ]) f l ex acct acct
         where
+          acct = lotBaseAccount a
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 
 -- | Check all balance assertions in the journal and return an error message if any of them fail.

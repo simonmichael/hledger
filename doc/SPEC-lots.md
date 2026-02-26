@@ -77,6 +77,7 @@ Eg assets:stocks:aaaa:{2026-02-10, "lot1", $50}.
 So the label and the cost's commodity symbol may not contain double-quotes, colons, or semicolons.
 When a lot subaccount is written explicitly by the user, the cost basis is parsed from the subaccount name
 and applied to the posting's amounts (see "Inferring cost basis from lot subaccount names").
+When checking account names, lot subaccounts are ignored; only the base account needs to be declared.
 
 Partial lot names are also used; these have some or all of the parts missing.
 The minimal partial lot name is rendered as {}.
