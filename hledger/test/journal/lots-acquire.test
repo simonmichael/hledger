@@ -258,3 +258,45 @@ $ hledger -f- bal assets:stocks --lots -N
               5 AAPL  assets:stocks
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
+# ** 19. Explicit lot subaccount infers cost basis from account name (no {} on amount).
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL
+    assets:cash
+
+$ hledger -f- print --lots -x
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                                  $-500
+
+>=
+
+# ** 20. Explicit lot subaccount with matching {} on amount - no double-append.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$50}
+    assets:cash
+
+$ hledger -f- print --lots -x
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                                  $-500
+
+>=
+
+# ** 21. Conflicting cost basis between lot subaccount and amount annotation is an error.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$99}
+    assets:cash
+
+$ hledger -f- print --lots
+>2 /conflicting cost basis cost/
+>=1
+

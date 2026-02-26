@@ -20,6 +20,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Posting tags inherited from accounts                        | Account declarations                                      | journalPostingsAddAccountTags            |
 | Location of conversion equity postings and costful postings | @/@@ annotations + adjacent conversion account postings   | journalTagCostsAndEquityAndMaybeInferCosts(1st)         |
 | Auto postings                                               | Auto posting rules + postings in journal                  | journalAddAutoPostings                   |
+| Cost basis from lot subaccount names                        | Account names containing {…} subaccounts                  | journalInferBasisFromAccountNames        |
 | Lot posting types                                           | Cost basis + amount sign + account type + lotful status + counterpostings | journalClassifyLotPostings               |
 | Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
 | Transaction-balancing amounts                               | Counterpostings (or their costs)                          | journalBalanceTransactions               |
@@ -58,24 +59,25 @@ journalFinalise
   9.  journalAddAutoPostings            -- if --auto, do transaction balancing (preliminary) to infer some missing amounts/costs,
                                         -- then apply auto posting rules. Calls journalBalanceTransactions.
 
-  -- Lot classification and transacted cost inference (before balancing)
-  10. journalClassifyLotPostings         -- tag lot postings as acquire/dispose/transfer-from/transfer-to
-  11. journalInferPostingsTransactedCost  -- infer cost from cost basis of acquire postings 
+  -- Lot cost basis inference from account names, classification, and transacted cost inference (before balancing)
+  10. journalInferBasisFromAccountNames  -- if account name has a {…} lot subaccount, parse cost basis from it
+  11. journalClassifyLotPostings         -- tag lot postings as acquire/dispose/transfer-from/transfer-to
+  12. journalInferPostingsTransactedCost  -- infer cost from cost basis of acquire postings
 
   -- Transaction balancing (main)
-  12. journalBalanceTransactions         -- infer remaining balancing amounts, balancing costs, and balance assignment amounts;
+  13. journalBalanceTransactions         -- infer remaining balancing amounts, balancing costs, and balance assignment amounts;
                                         -- and check transactions balanced and (unless --ignore-assertions) balance assertions satisfied.
 
   -- Post-balancing enrichment
-  13. journalInferCommodityStyles        -- infer canonical commodity styles, now with all amounts present
-  14. journalPostingsAddCommodityTags    -- propagate commodity tags to postings
-  15. journalTagCostsAndEquityAndMaybeInferCosts(2nd)   -- if --infer-costs, infer costs from equity conversion postings
-  16. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
-  17. journalInferMarketPricesFromTransactions  -- infer market prices from costs
-  18. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
+  14. journalInferCommodityStyles        -- infer canonical commodity styles, now with all amounts present
+  15. journalPostingsAddCommodityTags    -- propagate commodity tags to postings
+  16. journalTagCostsAndEquityAndMaybeInferCosts(2nd)   -- if --infer-costs, infer costs from equity conversion postings
+  17. journalInferEquityFromCosts        -- if --infer-equity, infer equity conversion postings from costs
+  18. journalInferMarketPricesFromTransactions  -- infer market prices from costs
+  19. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
 
   -- Lot calculation
-  19. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
+  20. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
                                         -- infer cost basis for bare disposals, normalize transacted cost
 ```
@@ -92,6 +94,9 @@ An arrow A → B means "A must run before B".
 
 - **journalPostingsAddAccountTags → journalClassifyLotPostings**
   Classification may need `lots:` tags inherited from account declarations (in `ptags`).
+
+- **journalInferBasisFromAccountNames → journalClassifyLotPostings**
+  Classification checks `acostbasis` to identify lot postings; cost basis inferred from account names must be present first.
 
 - **journalTagCostsAndEquityAndMaybeInferCosts(1st) → journalBalanceTransactions**
   The balancer needs to know which costs are redundant (equity-paired) to ignore them.

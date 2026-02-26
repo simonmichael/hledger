@@ -368,6 +368,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
             else pure)
 
       -- Lot classification and transacted cost inference
+      >>= journalInferBasisFromAccountNames                                       -- infer cost basis from lot subaccount names
       <&> journalClassifyLotPostings verbose_tags_                                -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
       <&> journalInferPostingsTransactedCost                                      -- in acquire postings, infer a transacted cost from cost basis
 
@@ -419,6 +420,36 @@ journalAddForecast verbosetags (Just forecastspan) j = j{jtxns = jtxns j ++ fore
       . filter (spanContainsDate forecastspan . tdate)
       . concatMap (\pt -> runPeriodicTransaction verbosetags pt forecastspan)
       $ jperiodictxns j
+
+-- | For each posting whose account name contains a lot subaccount (e.g.
+-- @assets:broker:{2026-01-15, $50}@), parse the cost basis from the subaccount
+-- name and set or merge it into the posting's amounts' @acostbasis@.
+-- This allows users to write lot subaccounts explicitly without redundant @{...}@
+-- amount annotations.
+journalInferBasisFromAccountNames :: Journal -> Either String Journal
+journalInferBasisFromAccountNames j = do
+  txns' <- mapM processTransaction (jtxns j)
+  Right j{jtxns = txns'}
+  where
+    parseAmt s = case parseamount s of
+      Right a  -> Just a
+      Left _   -> Nothing
+
+    processTransaction t = do
+      ps' <- mapM processPosting (tpostings t)
+      Right t{tpostings = ps'}
+
+    processPosting p = case lotSubaccountName (paccount p) of
+      Nothing   -> Right p
+      Just name -> do
+        cb <- parseLotName parseAmt name
+        let updateAmt a = case acostbasis a of
+              Nothing -> Right a{acostbasis = Just cb}
+              Just existing -> do
+                merged <- mergeCostBasis cb existing
+                Right a{acostbasis = Just merged}
+        amts' <- mapM updateAmt (amountsRaw (pamount p))
+        Right p{pamount = foldMap mixedAmount amts'}
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
