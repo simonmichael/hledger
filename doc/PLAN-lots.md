@@ -328,24 +328,11 @@ design/spec iteration visible in the commit history.
  
 ## Next ?
 
+- support clopening lot balances to a new file
+  - classify asset -> equity and equity -> asset as transfers
+- continue testing with real world journals
+
 - infer acquire price, dispose price from market price ?
 - recognise some common commodity symbols as lotful ?
-- clarify workflow/add special support for clopening lot balances (migrating them to a new file)
-- infer/set amount basis from lot subaccount names ?
-
-cleanups:
-- renames: cost -> price, cost basis -> basis and cost ?
-     Amount{acost,acostbasis} -> Amount{aprice,abasis}
-     CostBasis{cbcost} -> Basis{bcost}
-  --cost/--basis/-B, --price/-P, --value/-V/--market/--exchange/-X ?
-  --infer-costs
-  --infer-market-prices
-  P directive
-  cost and price are both unavoidably generic (price more so because less directional)
-  basis price/cost, acquisition price/cost, disposal price/sale amount, market price
-  Cost Reporting, Transacted Value Reporting, Market Value Reporting
-- enable --infer-costs/equity/market-prices always ?
-- clean up old --exchange, --market flags ?
-- add --value types: tx (may exist as "cost"), basis ?
 
 Remember: don't over-engineer. Build the vision, build high quality, but most of all build what users actually need, and validate that with real users quickly.
