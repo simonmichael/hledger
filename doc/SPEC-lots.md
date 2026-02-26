@@ -75,6 +75,8 @@ This is similar to Beancount's lot syntax, except it requires DLC order (date, l
 Full lot names may be used as subaccount names, identifying lots within a parent account.
 Eg assets:stocks:aaaa:{2026-02-10, "lot1", $50}.
 So the label and the cost's commodity symbol may not contain double-quotes, colons, or semicolons.
+When a lot subaccount is written explicitly by the user, the cost basis is parsed from the subaccount name
+and applied to the posting's amounts (see "Inferring cost basis from lot subaccount names").
 
 Partial lot names are also used; these have some or all of the parts missing.
 The minimal partial lot name is rendered as {}.
@@ -135,6 +137,20 @@ In postings with a positive amount, involving a lotful commodity or account,
 which have a transacted cost but no explicit cost basis annotation,
 or an empty cost basis annotation (`{}`),
 we infer a cost basis from the transacted cost.
+
+## Inferring cost basis from lot subaccount names
+
+When a posting's account name contains a lot subaccount (a final component starting with `{`),
+the cost basis is parsed from the subaccount name and applied to the posting's amounts.
+If the amount already has a cost basis annotation, the two are merged:
+any `Nothing` fields are filled in from the other source,
+and any fields present in both must agree (otherwise an error is reported).
+
+This allows `print --lots` output (which has explicit lot subaccounts) to be re-read
+without losing cost basis information, and allows users to write lot subaccounts
+directly without a redundant `{}` annotation on the amount.
+
+(journalInferBasisFromAccountNames, runs unconditionally before journalClassifyLotPostings)
 
 ## Lot postings
 
@@ -258,9 +274,9 @@ already targets the right account.
 
 ## Processing pipeline
 
-Lot-related processing can be thought of as an optional extra journal processing step, enabled by the --lots flag. 
-
-But all the inferring conveniences make it quite interdependent with the other processing steps.
+Most lot-related processing is optional, enabled by the --lots flag.
+However, cost basis inference from lot subaccount names and lot classification run unconditionally
+(since they affect transaction balancing and other pipeline stages).
 See SPEC-finalising for more details of the implementation.
 
 ## When might cost basis differ from the transacted cost ?

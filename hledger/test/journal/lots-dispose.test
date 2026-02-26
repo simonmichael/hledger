@@ -155,7 +155,7 @@ commodity AAPL  ; lots:
     revenue:gains   -$50
 
 $ hledger -f- print --lots
->2 /does not match the resolved lot/
+>2 /conflicting cost basis date/
 >=1
 
 # ** 11. Implicit multi-lot disposal: bare negative amount with no cost basis, sale price inferred from cash.
@@ -304,4 +304,25 @@ $ hledger -f- check assertions
     assets:cash       $1400
 
 $ hledger -f- print --lots -x | hledger -f- check assertions
+
+# ** 17. Dispose with explicit lot subaccount infers cost basis from account name.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 sell with explicit lot subaccount
+    assets:stocks:{2026-01-15, $50}    -5 AAPL @ $60
+    assets:cash
+    revenue:gains
+
+$ hledger -f- print --lots -x desc:sell
+2026-02-01 sell with explicit lot subaccount
+    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash                                                   $300
+    revenue:gains                                                 $-50
+
+>=
 
