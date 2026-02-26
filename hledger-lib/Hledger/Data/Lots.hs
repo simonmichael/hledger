@@ -110,7 +110,7 @@ import Hledger.Data.AccountType (isAssetType)
 import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
-import Hledger.Data.Posting (hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5)
@@ -385,13 +385,14 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 -- Handles acquire postings (generating lot names as subaccounts),
 -- dispose postings (matching to existing lots using FIFO, splitting if needed),
 -- and transfer postings (moving lots between accounts, preserving cost basis).
-journalCalculateLots :: Journal -> Either String Journal
-journalCalculateLots j
+-- The verbosetags parameter controls whether generated-posting tags are made visible in comments.
+journalCalculateLots :: Bool -> Journal -> Either String Journal
+journalCalculateLots verbosetags j
   | not $ any (any isLotPosting . tpostings) txns = Right j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
-      (_, txns') <- foldM (processTransaction j needsLabels) (M.empty, []) (sortOn tdate txns)
+      (_, txns') <- foldM (processTransaction verbosetags j needsLabels) (M.empty, []) (sortOn tdate txns)
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
@@ -497,6 +498,28 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
 stripPtypeTag :: Posting -> Posting
 stripPtypeTag p = p{ptags = filter (\(k,_) -> k /= "_ptype") (ptags p)}
 
+-- | When an implicit-lot-subaccount posting (one whose account was a plain account,
+-- not already a lot subaccount) is converted to explicit lot subaccount posting(s),
+-- and it had a balance assertion, move the assertion to a new zero-amount generated
+-- posting on the original parent account, making it subaccount-inclusive (=* style).
+-- This preserves the assertion's meaning when the output is re-read without --lots:
+-- the assertion checks the total of all lot subaccounts rather than the (empty)
+-- direct balance of the parent.
+-- If the original account was already a lot subaccount, the split postings are
+-- returned unchanged (the assertion already targets the right account).
+preserveParentAssertion :: Bool -> AccountName -> Maybe BalanceAssertion -> [Posting] -> [Posting]
+preserveParentAssertion _           _        Nothing  ps = ps
+preserveParentAssertion _           origAcct (Just _) ps
+    | lotBaseAccount origAcct /= origAcct = ps  -- already an explicit lot subaccount; leave as-is
+preserveParentAssertion verbosetags origAcct (Just ba) ps =
+    map (\p -> p{pbalanceassertion = Nothing}) ps
+    ++ [ postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+           nullposting
+             { paccount          = origAcct
+             , pamount           = mixedAmount (baamount ba){aquantity = 0}
+             , pbalanceassertion = Just ba{bainclusive = True}
+             } ]
+
 -- | Check if a posting has any lot-related ptype tag.
 isLotPosting :: Posting -> Bool
 isLotPosting p = isAcquirePosting p || isDisposePosting p
@@ -599,9 +622,9 @@ generateLabel commodity date lotState =
 -- Transfer pairs are processed first (so that transferred lots are available for
 -- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
-processTransaction :: Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
+processTransaction :: Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
                    -> Either String (LotState, [Transaction])
-processTransaction j needsLabels (ls, acc) t = do
+processTransaction verbosetags j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
     pairs <- pairTransferPostings t transferFroms transferTos
@@ -616,7 +639,7 @@ processTransaction j needsLabels (ls, acc) t = do
     txnDate = tdate t
 
     processOnePair (st, psAcc) (fromP, toP) = do
-      (st', fromPs, toPs) <- processTransferPair j t st fromP toP
+      (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromP toP
       return (st', reverse toPs ++ reverse fromPs ++ psAcc)
 
     foldMPostings :: LotState -> [Posting] -> [Posting] -> Either String (LotState, [Posting])
@@ -626,7 +649,7 @@ processTransaction j needsLabels (ls, acc) t = do
           (st', p') <- processAcquirePosting needsLabels txnDate t st p
           foldMPostings st' (p':acc') ps
       | isDisposePosting p = do
-          (st', newPs) <- processDisposePosting j t st p
+          (st', newPs) <- processDisposePosting verbosetags j t st p
           foldMPostings st' (reverse newPs ++ acc') ps
       | otherwise =
           foldMPostings st (p:acc') ps
@@ -789,9 +812,9 @@ processAcquirePosting needsLabels txnDate t lotState p = do
 -- | Process a dispose posting: match to existing lots using the resolved reduction method,
 -- split into multiple postings if the disposal spans multiple lots.
 -- Returns the list of resulting postings (one per matched lot).
-processDisposePosting :: Journal -> Transaction -> LotState -> Posting
+processDisposePosting :: Bool -> Journal -> Transaction -> LotState -> Posting
                       -> Either String (LotState, [Posting])
-processDisposePosting j t lotState p = do
+processDisposePosting verbosetags j t lotState p = do
     -- Extract lotful amount and lot selector. When cost basis is present, use it directly.
     -- When absent (bare dispose on a lotful commodity), use a wildcard selector.
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
@@ -891,19 +914,19 @@ processDisposePosting j t lotState p = do
                          }
 
         newPostings <- mapM mkPosting selected
-        let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
+        let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
             lotState' = reduceLotState scopeAcct commodity consumed lotState
 
-        return (lotState', newPostings)
+        return (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) newPostings)
   where
     showPos = txnErrPrefix t
 
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
 -- Returns updated LotState and two lists of expanded postings (from, to).
-processTransferPair :: Journal -> Transaction -> LotState -> Posting -> Posting
+processTransferPair :: Bool -> Journal -> Transaction -> LotState -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair j t lotState fromP toP = do
+processTransferPair verbosetags j t lotState fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from.
     -- When cost basis is present, use it directly as the lot selector.
     -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
@@ -948,11 +971,14 @@ processTransferPair j t lotState fromP toP = do
     (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isBare fromAmt toCb commodity) selected
 
     -- Update lot state: remove from source, add to destination
-    let consumed = [(lotId, qty) | (lotId, _, qty) <- selected]
-        lotState' = reduceLotState (Just (paccount fromP)) commodity consumed lotState
+    let consumed   = [(lotId, qty) | (lotId, _, qty) <- selected]
+        lotState'  = reduceLotState (Just (paccount fromP)) commodity consumed lotState
         lotState'' = foldl' (addTransferredLot commodity (paccount toP)) lotState' selected
 
-    return (lotState'', fromPs, toPs)
+    return ( lotState''
+           , preserveParentAssertion verbosetags (paccount fromP) (pbalanceassertion fromP) fromPs
+           , preserveParentAssertion verbosetags (paccount toP)   (pbalanceassertion toP)   toPs
+           )
   where
     showPos = txnErrPrefix t
 
