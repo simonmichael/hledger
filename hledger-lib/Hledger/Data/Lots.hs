@@ -435,7 +435,8 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
                     then Right t
                     else do
                       let inferredAmt = maNegate residual
-                          gp = tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
+                          gp = postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+                                 $ tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
                           t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
                       checkBalance t'
                       Right t'
