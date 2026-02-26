@@ -227,3 +227,81 @@ $ hledger -f- bal assets:stocks --lots -N
              -5 AAPL  assets:stocks
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
+# ** 13. Balance assertion on a multi-lot disposal is moved to a generated parent-account
+# posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
+
+<
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell all
+    assets:stocks    -20 AAPL {} @ $70 = 0 AAPL
+    assets:cash       $1400
+
+$ hledger -f- print --lots -x desc:sell
+2026-03-01 sell all
+    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $70
+    assets:stocks:{2026-02-01, $60}    -10 AAPL {2026-02-01, $60} @ $70
+    assets:stocks                                                0 AAPL =* 0 AAPL
+    assets:cash                                                   $1400
+    revenue:gains                                                 $-300
+
+>=
+
+# ** 14. A balance assertion on a dispose posting is moved to a generated parent-account
+# posting with subaccount-inclusive checking (=*).
+# Here after selling lot1, assets:stocks:{2026-01-15, $50} is 0 but assets:stocks:{2026-02-01, $60} is 10 AAPL.
+# The assertion = 10 AAPL, converted to =*, checks the inclusive balance of assets:stocks = 10 AAPL.
+<
+2026-01-15 buy lot1
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot2
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell lot1
+    assets:stocks    -10 AAPL {} @ $70 = 10 AAPL
+    assets:cash       $700
+
+$ hledger -f- --lots check assertions
+
+# ** 15. But if a lot subaccount is written explicitly, a balance assertion checks that subaccount's balance.
+<
+2026-01-15 buy lot1
+    assets:stocks:{2026-01-15, $50}    10 AAPL
+    assets:checking
+
+2026-02-01 buy lot2
+    assets:stocks:{2026-02-01, $60}    10 AAPL
+    assets:checking
+
+2026-03-01 sell lot1
+    assets:stocks:{2026-01-15, $50}    -10 AAPL = 0 AAPL
+    assets:cash       $700
+
+$ hledger -f- check assertions
+
+# ** 16. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
+# The generated parent-account posting with =* preserves the assertion's semantics.
+<
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell all
+    assets:stocks    -20 AAPL {} @ $70 = 0 AAPL
+    assets:cash       $1400
+
+$ hledger -f- print --lots -x | hledger -f- check assertions
+

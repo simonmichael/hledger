@@ -213,3 +213,33 @@ $ hledger -f- print --verbose-tags date:2026-02-17
     expenses:fees              $2
 
 >=
+
+# ** 13. Balance assertion on a multi-lot transfer is moved to a generated parent-account
+# posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
+<
+commodity AAPL
+  lots: true
+
+2026-01-15 buy lot1
+    assets:broker1    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot2
+    assets:broker1    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 transfer both lots
+    assets:broker1    -20 AAPL {} = 0 AAPL
+    assets:broker2     20 AAPL = 20 AAPL
+
+$ hledger -f- print --lots -x desc:transfer
+2026-03-01 transfer both lots
+    assets:broker1:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ 1.00 AAPL {}
+    assets:broker1:{2026-02-01, $60}    -10 AAPL {2026-02-01, $60} @ 1.00 AAPL {}
+    assets:broker1                                                         0 AAPL =* 0 AAPL
+    assets:broker2:{2026-01-15, $50}     10 AAPL {2026-01-15, $50} @ 1.00 AAPL {}
+    assets:broker2:{2026-02-01, $60}     10 AAPL {2026-02-01, $60} @ 1.00 AAPL {}
+    assets:broker2                                                         0 AAPL =* 20 AAPL
+
+>=
+
