@@ -2280,6 +2280,7 @@ Some notes:
 - The account directive's scope is "whole file and below" (see [directives](#directives)). This means it affects all of the current file, and any files it includes, but not parent or sibling files. The position of account directives within the file does not matter, though it's usual to put them at the top.
 - Accounts can only be declared in `journal` files, but will affect [included](#include-directive) files of all types.
 - It's currently not possible to declare "all possible subaccounts" with a wildcard; every account posted to must be declared.
+- As an exception: lot subaccounts (a final account name component like `:{2026-01-15, $50}`) are always ignored by `check accounts`, and need not be declared.
 - If you use the [--infer-equity](#inferring-equity-conversion-postings) flag, you will also need declarations for the account names it generates.
 
 ### Account display order
@@ -7021,6 +7022,10 @@ commodity AAPL  ; lots:
 
 This is equivalent to writing `10 AAPL {2026-01-15, $50}`. If both the account
 name and the amount specify a cost basis, they must agree.
+
+With [strict account checking](#account-error-checking), lot subaccounts are automatically
+exempt — you only need to declare the base account (eg `account assets:stocks`),
+not each individual lot subaccount.
 
 ## Lot operations
 
