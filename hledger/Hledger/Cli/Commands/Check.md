@@ -58,6 +58,8 @@ These provide extra error-catching power to help you keep your data clean and co
 
 - **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
+  (Except lot subaccounts, like `:{2026-01-15, $50}`, which are automatically exempt;
+  only their base account needs to be declared.)
 
 ### Other checks
 
