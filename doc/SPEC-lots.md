@@ -169,6 +169,13 @@ and add a "ptype" tag to record their type:
   On lotful commodities/accounts, even bare positive postings (no `{}` or `@`) are classified
   as acquire; their cost basis is inferred from the transacted cost at lot calculation time.
 - Lot postings with a negative amount get ptype "dispose" or (if matched) "transfer-from".
+- A lot posting is also classified as an equity transfer (not acquire/dispose) when the
+  transaction has an equity counterpart posting with no explicit lotful amounts and the
+  posting has no transacted price. Negative lot postings get "transfer-from", positive
+  ones get "transfer-to". This handles equity transfers: lots moving to equity
+  (e.g. close --clopen --lots closing transaction) or from equity (e.g. the corresponding
+  opening transaction), where the transfer happens in two separate transactions rather
+  than a single from/to pair.
 
 (journalClassifyLotPostings)
 
@@ -195,6 +202,13 @@ we infer a transacted cost from the cost basis.
   recreating its lot(s) under a new parent account.
   It doesn't need a lot selector; if it has one, it must select the same lot as the transfer-from posting.
   Transfer postings (both from and to) must not have explicit transacted cost (@ or @@); this is an error.
+
+- An equity transfer is a variant of a lot transfer that happens in two parts across
+  separate transactions (e.g. a closing transaction transfers lots into equity, and an
+  opening transaction transfers them back out). In the closing transaction, transfer-from
+  postings reduce lots from the lot state. In the opening transaction, transfer-to
+  postings re-add the lots to the lot state, preserving their original cost basis.
+  The equity postings do not track lots.
 
 - A dispose posting selects one more lots to be disposed (sold), like a transfer-from posting.
   It must also have a transacted cost, either explicit or inferred from transaction balancing
@@ -272,6 +286,12 @@ output is re-read later (eg after `print --lots -x`).
 If the original posting's account is already an explicit lot subaccount (eg
 `assets:stocks:{2026-01-15, $50}`), the assertion is left on the split posting unchanged, since it
 already targets the right account.
+
+`close --lots` does not generate balance assertions on lot subaccount postings in the
+closing transaction (e.g. `assets:stocks:{2026-01-15, $50}`), because these assertions
+would be invalid when the output is re-read: balance assertions run before lot calculation,
+so the lot subaccounts would not yet have their expected balances. Non-lot-subaccount
+postings (e.g. `assets:cash`) and opening transaction postings retain their assertions.
 
 ## Processing pipeline
 

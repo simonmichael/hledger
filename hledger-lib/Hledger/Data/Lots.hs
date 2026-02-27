@@ -111,7 +111,7 @@ import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
-import Hledger.Data.AccountType (isAssetType)
+import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
@@ -428,6 +428,18 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " lotful/bare") $
             shouldClassifyNegativeLotful p amts <|> shouldClassifyLotful p amts <|> shouldClassifyBareTransferTo p amts <|> shouldClassifyPositiveLotful p amts
 
+    -- True when the transaction has an equity posting with no explicit cost-basis amounts.
+    -- This indicates an equity transfer: lots move to/from equity in two parts
+    -- (e.g. close --clopen --lots generates a closing txn transferring lots into equity,
+    -- and an opening txn transferring them back out), allowing the negative lot postings
+    -- to be classified as transfer-from rather than dispose.
+    hasEquityCounterpart :: Bool
+    hasEquityCounterpart = any isEquityNonLotPosting ps
+      where
+        isEquityNonLotPosting q =
+          maybe False isEquityType (lookupAccountType (lotBaseAccount (paccount q)))
+          && not (any (isJust . acostbasis) (amountsRaw (pamount q)))
+
     -- Classify a posting that has cost basis: acquire, dispose, transfer-from, or transfer-to.
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
     shouldClassifyWithCostBasis p amts = do
@@ -437,7 +449,12 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         primaryType = if isNeg then "dispose" else "acquire"
         cbAmts = [(acommodity a, aquantity a) | a <- amts, isJust (acostbasis a)]
         isTransfer = any (\(c, q) -> hasCounterpart baseAcct isNeg c q) cbAmts
-      return $ if isTransfer
+        -- Also treat as equity transfer when: no transacted price written,
+        -- and an equity counterpart posting is present. This handles lots moving
+        -- to/from equity (e.g. close --clopen --lots generates a closing txn with
+        -- negative lot postings and an opening txn with positive lot postings).
+        isEquityTransfer = not (any (isJust . acost) amts) && hasEquityCounterpart
+      return $ if isTransfer || isEquityTransfer
         then if isNeg then "transfer-from" else "transfer-to"
         else primaryType
 
@@ -739,14 +756,34 @@ processTransaction :: Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotSta
 processTransaction verbosetags j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
-    pairs <- pairTransferPostings t transferFroms transferTos
-    -- Process transfer pairs first, accumulating lot state changes
-    (ls', transferPs) <- foldM processOnePair (ls, []) pairs
-    -- Process remaining postings (acquire, dispose, passthrough)
-    (ls'', otherPs') <- foldMPostings ls' [] otherPs
-    -- Combine: transfer postings first, then others, preserving relative order
-    let allPs = reverse transferPs ++ reverse otherPs'
-    return (ls'', t{tpostings = allPs} : acc)
+        hasEquityOther = any (isEquityPosting j) otherPs
+    -- Closing equity transfer: transfer-from postings with no transfer-to counterpart,
+    -- where an equity posting receives the lots (e.g. close --clopen --lots).
+    -- Reduce lots from state; pass all postings through unchanged (equity does not track lots).
+    if not (null transferFroms) && null transferTos && hasEquityOther
+      then do
+        ls' <- foldM (reduceLotTransferToEquity j t) ls transferFroms
+        return (ls', t : acc)
+    -- Opening equity transfer: transfer-to postings with no transfer-from counterpart,
+    -- where an equity posting is the source (e.g. opening balances from close --clopen --lots).
+    -- Process transfer-to postings as acquires to add lots to the state.
+    else if null transferFroms && not (null transferTos) && hasEquityOther
+      then do
+        (ls', processedPs) <- foldM (\(st, acc') p -> do
+            (st', p') <- processAcquirePosting needsLabels txnDate t st p
+            return (st', p' : acc')
+          ) (ls, []) transferTos
+        let allPs = reverse processedPs ++ otherPs
+        return (ls', t{tpostings = allPs} : acc)
+    else do
+        pairs <- pairTransferPostings t transferFroms transferTos
+        -- Process transfer pairs first, accumulating lot state changes
+        (ls', transferPs) <- foldM processOnePair (ls, []) pairs
+        -- Process remaining postings (acquire, dispose, passthrough)
+        (ls'', otherPs') <- foldMPostings ls' [] otherPs
+        -- Combine: transfer postings first, then others, preserving relative order
+        let allPs = reverse transferPs ++ reverse otherPs'
+        return (ls'', t{tpostings = allPs} : acc)
   where
     txnDate = tdate t
 
@@ -765,6 +802,26 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
           foldMPostings st' (reverse newPs ++ acc') ps
       | otherwise =
           foldMPostings st (p:acc') ps
+
+-- | True if the posting is in an equity account.
+isEquityPosting :: Journal -> Posting -> Bool
+isEquityPosting j p = maybe False isEquityType (journalAccountType j (lotBaseAccount (paccount p)))
+
+-- | Reduce lots from the lot state for a transfer-from posting going to an equity account.
+-- Used when lots are transferred to equity (e.g. close --clopen --lots): reduces the lots
+-- without requiring a matching transfer-to posting, since equity does not track lots.
+reduceLotTransferToEquity :: Journal -> Transaction -> LotState -> Posting -> Either String LotState
+reduceLotTransferToEquity j t ls p =
+    case [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a], isNegativeAmount a] of
+      [(a, cb)] -> do
+        let commodity = acommodity a
+            qty       = negate (aquantity a)
+            acct      = lotBaseAccount (paccount p)
+            method    = resolveReductionMethod j p commodity
+        selected <- selectLots method (txnErrPrefix t) (Just acct) commodity qty cb ls
+        let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
+        return $ reduceLotState (Just acct) commodity consumed ls
+      _ -> Right ls  -- no single lot amount (e.g. cash posting): pass through
 
 -- | Partition a transaction's postings into transfer-from, transfer-to, and others.
 partitionTransferPostings :: [Posting] -> ([Posting], [Posting], [Posting])
