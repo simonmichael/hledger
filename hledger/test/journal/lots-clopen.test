@@ -1,0 +1,90 @@
+# * Tests for close --clopen with --lots (clopening workflow).
+
+# ** 1. Equity transfers with --lots: in a closing balances transaction,
+# lot postings transferring to equity are classified as transfers, not disposals.
+# Without this, --lots would error because dispose postings require a selling price.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 starting balance
+    assets:cash     $1000
+    equity:start
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-07-01 buy more
+    assets:stocks     5 AAPL {$70}
+    assets:cash
+
+2026-12-31 closing balances
+    assets:cash                               $-150 = $0
+    assets:stocks:{2026-01-15, $50}        -10 AAPL
+    assets:stocks:{2026-07-01, $70}         -5 AAPL
+    equity:start
+
+$ hledger -f- check --lots
+
+# ** 2. Opening equity transfers with --lots: in an opening balances transaction,
+# positive lot postings from equity are classified as transfer-to, not acquire.
+# This is the second half of a close --clopen --lots workflow.
+<
+commodity AAPL  ; lots:
+
+2027-01-01 opening balances
+    assets:cash                                $150
+    assets:stocks:{2026-01-15, $50}          10 AAPL
+    assets:stocks:{2026-07-01, $70}           5 AAPL
+    equity:start
+
+$ hledger -f- check --lots
+
+# ** 3. Full clopen round-trip: closing followed by opening, check --lots succeeds.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 starting balance
+    assets:cash     $1000
+    equity:start
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-07-01 buy more
+    assets:stocks     5 AAPL {$70}
+    assets:cash
+
+2026-12-31 closing balances
+    assets:cash                               $-150 = $0
+    assets:stocks:{2026-01-15, $50}        -10 AAPL
+    assets:stocks:{2026-07-01, $70}         -5 AAPL
+    equity:start
+
+2027-01-01 opening balances
+    assets:cash                                $150
+    assets:stocks:{2026-01-15, $50}          10 AAPL
+    assets:stocks:{2026-07-01, $70}           5 AAPL
+    equity:start
+
+$ hledger -f- check --lots
+
+# ** 4. Opening equity transfer postings get ptype:transfer-to (visible with --verbose-tags).
+<
+commodity AAPL  ; lots:
+
+2027-01-01 opening balances
+    assets:cash                                $150
+    assets:stocks:{2026-01-15, $50}          10 AAPL
+    assets:stocks:{2026-07-01, $70}           5 AAPL
+    equity:start
+
+$ hledger -f- print --lots --verbose-tags
+2027-01-01 opening balances
+    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50}  ; ptype: transfer-to
+    assets:stocks:{2026-07-01, $70}     5 AAPL {2026-07-01, $70}  ; ptype: transfer-to
+    assets:cash                                             $150
+    equity:start
+
+>=
