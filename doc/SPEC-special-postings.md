@@ -15,11 +15,13 @@ Here's an overview of ways hledger infers things based on certain configurations
   │                  │                           │ a different account                                                                            │
   ├──────────────────┼───────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
   │ transfer-from    │ _ptype:transfer-from      │ Negative amount + cost basis (or lotful), AND a matching positive counterpart in a different   │
-  │                  │                           │ account with same commodity and exact quantity                                                 │
+  │                  │                           │ account with same commodity and exact quantity; OR negative lotful amount with no transacted    │
+  │                  │                           │ price and an equity counterpart posting (equity transfer)                                      │
   ├──────────────────┼───────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
   │                  │                           │ Positive amount + cost basis with matching negative counterpart; OR positive lotful amount     │
   │ transfer-to      │ _ptype:transfer-to        │ with no @ cost and a matching transfer-from counterpart; OR bare positive asset posting with a │
-  │                  │                           │  matching transfer-from counterpart                                                            │
+  │                  │                           │ matching transfer-from counterpart; OR positive lot posting with an equity counterpart (equity │
+  │                  │                           │ transfer, e.g. opening balances from close --clopen --lots)                                    │
   ├──────────────────┼───────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
   │ gain             │ _ptype:gain               │ Posting to a Gain-type account                                                                 │
   ├──────────────────┼───────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
