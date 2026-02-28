@@ -396,9 +396,9 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
             "csv"  -> printCSV . budgetReportAsCsv ropts
             "tsv"  -> printTSV . budgetReportAsCsv ropts
             "html" -> (<>"\n") . htmlAsLazyText .
-                      styledTableHtml . map (map (fmap toHtml)) . budgetReportAsSpreadsheet ropts
+                      styledTableHtml . map (map (fmap toHtml)) . budgetReportAsSpreadsheet oneLineNoCostFmt ropts
             "fods" -> printFods IO.localeEncoding .
-                      Map.singleton "Budget Report" . (,) (1,0) . budgetReportAsSpreadsheet ropts
+                      Map.singleton "Budget Report" . (,) (1,0) . budgetReportAsSpreadsheet oneLineNoCostFmt ropts
             _      -> error' $ unsupportedOutputFormatError fmt
       writeOutputLazyText opts $ render budgetreport
 
@@ -1140,11 +1140,12 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
 budgetReportAsCsv :: ReportOpts -> BudgetReport -> [[Text]]
 budgetReportAsCsv ropts report
   = rawTableContent $
-    budgetReportAsSpreadsheet ropts report
+    budgetReportAsSpreadsheet machineFmt ropts report
 
 budgetReportAsSpreadsheet ::
-  ReportOpts -> BudgetReport -> [[Ods.Cell Ods.NumLines Text]]
+  AmountFormat -> ReportOpts -> BudgetReport -> [[Ods.Cell Ods.NumLines Text]]
 budgetReportAsSpreadsheet
+  fmt
   ropts@ReportOpts{..}
   (PeriodicReport colspans items totrow)
   = (if transpose_ then Ods.transpose else id) $
@@ -1179,7 +1180,7 @@ budgetReportAsSpreadsheet
     flattentuples rc tups =
         concat [[(amountClass rc, a),(budgetClass rc, b)] | (a,b) <- tups]
     showNorm (cls,mval) =
-        maybe Ods.emptyCell (fmap wbToText . curry (cellFromMixedAmount oneLineNoCostFmt) cls) mval
+        maybe Ods.emptyCell (fmap wbToText . curry (cellFromMixedAmount fmt) cls) mval
 
     rowAsTexts :: RowClass
                -> Ods.Cell Ods.NumLines Text
@@ -1196,7 +1197,7 @@ budgetReportAsSpreadsheet
         _ -> [map showNorm vals]
       where
         cs = S.toList . mconcat . map maCommodities $ mapMaybe snd vals
-        dopts = oneLineNoCostFmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
+        dopts = fmt{displayCommodity=layout_ /= LayoutBare, displayCommodityOrder=Just cs, displayMinWidth=Nothing}
         vals = flattentuples rc (if not summary_only_ then as else [])
             ++ concat [[(rowTotalClass rc, rowtot),
                         (budgetTotalClass rc, budgettot)]
