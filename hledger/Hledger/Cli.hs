@@ -545,8 +545,8 @@ moveFlagsAfterCommand :: [String] -> (String, [String], [String])
 moveFlagsAfterCommand args =
   case moveFlagAndVal (as1, []) of
     ([],as1')                    -> ("", as, as) where as = as1' <> as2
-    (unmoved@(('-':_):_), moved) -> ("", as, as) where as = unmoved <> moved <> as2
-    (cmdarg:unmoved, moved)      -> (cmdarg, as, cmdarg:as) where as = unmoved <> moved <> as2
+    (unmoved@(('-':_):_), moved) -> ("", as, as) where as = moved <> unmoved <> as2
+    (cmdarg:unmoved, moved)      -> (cmdarg, as, cmdarg:as) where as = moved <> unmoved <> as2
   where
     (as1, as2) = break (== "--") args
     -- Move the next argument to the end if it is a movable flag, along with its subsequent value argument if any.
