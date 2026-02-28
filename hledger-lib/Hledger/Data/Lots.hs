@@ -112,7 +112,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
-import Hledger.Data.Amount (amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
+import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
@@ -1070,7 +1070,7 @@ processDisposePosting verbosetags j t lotState p = do
               let acctWithLot = expectedAcct
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
-                  disposeAmt = lotAmt{aquantity = negate consumedQty, acostbasis = Just dispCb}
+                  disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
               if isBare
                 then do
                   -- Normalize transacted price to UnitCost and update poriginal
@@ -1080,7 +1080,7 @@ processDisposePosting verbosetags j t lotState p = do
                       origP  = originalPosting p
                       origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
                       updateAmt a | acommodity a == commodity =
-                                      a{aquantity = negate consumedQty, acostbasis = Just dispCb, acost = normalizedCost}
+                                      (amountSetQuantity (negate consumedQty) a){acostbasis = Just dispCb, acost = normalizedCost}
                                   | otherwise = a
                   Right p{ paccount  = acctWithLot
                          , pamount   = mixedAmount disposeAmt'
@@ -1182,8 +1182,8 @@ processTransferPair verbosetags j t lotState fromP toP = do
         -- Validate transfer-to cost basis if it has specific fields
         validateToCb toCb lotCb commodity
 
-        let fromAmt' = fromAmt{aquantity = negate consumedQty, acostbasis = Just lotCb}
-            toAmt'   = fromAmt'{aquantity = consumedQty}
+        let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
+            toAmt'   = amountSetQuantity consumedQty fromAmt'
         if isBare'
           then do
             -- For bare transfers, update poriginal so print shows the inferred cost basis.
@@ -1210,7 +1210,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
             Right (fromP', toP')
 
     updateBare commodity lotCb qty a
-      | acommodity a == commodity = a{aquantity = qty, acostbasis = Just lotCb}
+      | acommodity a == commodity = (amountSetQuantity qty a){acostbasis = Just lotCb}
       | otherwise = a
 
     -- Validate that transfer-to cost basis (if specified with concrete fields)

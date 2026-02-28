@@ -262,3 +262,65 @@ $ hledger -f- print --lots -x desc:transfer
 
 >=
 
+# ** 15. Bare transfer (no cost basis notation) splitting a quantity into lots
+# with more decimal places. Regression test: the lot-split amounts must not
+# appear as zero in balance reports due to insufficient display precision.
+<
+commodity 0.00000000 BTC  ; lots:
+
+2026-01-01 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-02 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-03 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-04 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-05 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-06 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-07 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-08 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-09 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-01-10 buy
+    assets:exchange1    0.01 BTC @ $1200
+    assets:cash
+
+2026-02-01 transfer
+    assets:exchange1    -0.1 BTC
+    assets:exchange2     0.1 BTC
+
+$ hledger -f- bal cur:BTC acct:exchange2 --lots -N
+      0.01000000 BTC  assets:exchange2:{2026-01-01, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-02, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-03, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-04, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-05, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-06, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-07, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-08, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-09, $1200}
+      0.01000000 BTC  assets:exchange2:{2026-01-10, $1200}
+

@@ -66,6 +66,7 @@ module Hledger.Data.Amount (
   amountCost,
   amountIsZero,
   amountLooksZero,
+  amountSetQuantity,
   divideAmount,
   multiplyAmount,
   invertAmount,
@@ -387,6 +388,13 @@ divideAmount n = transformAmount (/n)
 -- | Multiply an amount's quantity (and its total cost, if it has one) by a constant.
 multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n = transformAmount (*n)
+
+-- | Replace an amount's quantity, resetting display precision to NaturalPrecision.
+-- This is the safe way to set a new quantity that may have different decimal places
+-- than the original — NaturalPrecision ensures the exact value is always displayed.
+-- Commodity styles will override the precision at rendering time.
+amountSetQuantity :: Quantity -> Amount -> Amount
+amountSetQuantity q a = a{aquantity=q, astyle=(astyle a){asprecision=NaturalPrecision}}
 
 -- | Invert an amount (replace its quantity q with 1/q).
 -- (Its cost if any is not changed, currently.)
