@@ -7085,8 +7085,6 @@ which can be useful for tax optimization.
 disposal cost basis, rather than each lot's individual cost.
 This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
 Lots are still consumed in FIFO order for bookkeeping purposes.
-Aliases: **AVG**, **AVG1**, **ACB**.
-
 Configure the method via the `lots:` tag on a commodity or account declaration:
 
 ```journal
