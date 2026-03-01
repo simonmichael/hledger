@@ -207,8 +207,8 @@ entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showt
 -- sample tolerance options (commented),
 -- price directives,
 -- and transaction entries.
--- Transaction and posting tags are converted to metadata lines.
--- Account tags are not propagated to the open directive, currently.
+-- Transaction, posting, and account tags are converted to metadata lines.
+-- Account tags appear as metadata on the open directive.
 entriesReportAsBeancount ::  Map AccountName [Tag] -> [PriceDirective] -> EntriesReport -> TL.Text
 entriesReportAsBeancount atags pricedirs ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
