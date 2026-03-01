@@ -25,8 +25,8 @@ Flags:
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, ledger, beancount, csv, tsv, html, fods,
-                            json, sql.
+                            txt, ledger, beancount, csv, tsv, html, fods, json,
+                            sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 ```
