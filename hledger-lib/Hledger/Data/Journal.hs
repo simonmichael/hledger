@@ -703,9 +703,6 @@ parseReductionMethod t = case T.toUpper (T.strip t) of
   "HIFO1"   -> Just HIFO1
   "AVERAGE" -> Just AVERAGE
   "AVERAGE1"-> Just AVERAGE1
-  "AVG"     -> Just AVERAGE
-  "AVG1"    -> Just AVERAGE1
-  "ACB"     -> Just AVERAGE
   "SPECID"  -> Just SPECID
   _         -> Nothing
 

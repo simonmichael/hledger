@@ -229,8 +229,6 @@ and SPECID (explicit selection via lot selector).
 
 AVERAGE/AVERAGE1 use FIFO consumption order for bookkeeping, but apply
 the pool's weighted average per-unit cost as the disposal cost basis.
-Aliases: AVG, AVG1, ACB (Canadian Adjusted Cost Base).
-
 The method should be configurable in a relatively fine-grained way —
 per account, per commodity, per time period, perhaps even per posting.
 
