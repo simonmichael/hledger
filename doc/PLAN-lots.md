@@ -328,11 +328,11 @@ design/spec iteration visible in the commit history.
  
 ## Next ?
 
-- support clopening lot balances to a new file
-  - classify asset -> equity and equity -> asset as transfers
-- continue testing with real world journals
-
+- more testing with real world journals
+- an amountless posting's lotful commodity is not recognised (lot postings are classified before amounts are filled)
+- and declaring the amountless posting's account lotful should help, but doesn't
 - infer acquire price, dispose price from market price ?
 - recognise some common commodity symbols as lotful ?
+- consolidate lot tests ?
 
 Remember: don't over-engineer. Build the vision, build high quality, but most of all build what users actually need, and validate that with real users quickly.
