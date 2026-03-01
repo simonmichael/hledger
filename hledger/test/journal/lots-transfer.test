@@ -217,9 +217,6 @@ $ hledger -f- print --verbose-tags date:2026-02-17
 # ** 13. Balance assertion on a multi-lot transfer is moved to a generated parent-account
 # posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
 <
-commodity AAPL
-  lots: true
-
 2026-01-15 buy lot1
     assets:broker1    10 AAPL {$50}
     assets:checking

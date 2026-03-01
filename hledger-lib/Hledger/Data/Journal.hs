@@ -754,7 +754,8 @@ journalPostingsAddCommodityTags j = journalMapPostings addtags j
     addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
 
 -- | For acquire postings (positive amounts) whose commodity or account has a 'lots:' tag,
--- infer cost basis from transacted cost and posting date.
+-- infer cost basis (cost only, no date or label) from transacted cost.
+-- The lot date will later default to the transaction date.
 -- Must be called before journalClassifyLotPostings.
 journalInferPostingsCostBasis :: Journal -> Journal
 journalInferPostingsCostBasis j = journalMapPostings (postingInferCostBasis j) j
