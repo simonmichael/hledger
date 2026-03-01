@@ -804,7 +804,7 @@ showAmountCostBasisLedgerB afmt amt = case acostbasis amt of
   Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
     WideBuilder (TB.fromString " {}") 3
   Just CostBasis{cbCost, cbDate, cbLabel} ->
-    lotcost <> lotdate <> lotnote
+    lotdate <> lotnote <> lotcost
     where
       lotcost = case cbCost of
         Nothing -> mempty
