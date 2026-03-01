@@ -6980,16 +6980,16 @@ If no value is specified, the default is FIFO.
 
 Add `--lots` to any command to enable lot tracking. This activates:
 
-- **Lot classification** — postings are tagged as `acquire`, `dispose`,
+- **Lot posting classification** — lot-related postings are tagged as `acquire`, `dispose`,
   `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
   visible with `--verbose-tags`, queryable with `tag:ptype=...`).
 - **Cost basis inference** — for lotful commodities/accounts, cost basis
-  is inferred from transacted cost and vice versa. When a lot subaccount
-  is written in the account name, cost basis is also inferred from it.
+  is inferred from transacted cost and vice versa. Or when the account name
+  ends with a lot subaccount, cost basis can also be inferred from that.
 - **Lot calculation** — acquired lots become subaccounts; disposals and
   transfers select from existing lots.
 - **Disposal balancing** — disposal transactions are checked for balance
-  at cost basis; gain amounts/postings are inferred when missing.
+  at cost basis; gain amounts/postings are inferred if missing.
 
 ## Lot subaccounts
 
@@ -7020,27 +7020,26 @@ commodity AAPL  ; lots:
     assets:cash
 ```
 
-This is equivalent to writing `10 AAPL {2026-01-15, $50}`. If both the account
-name and the amount specify a cost basis, they must agree.
+This is equivalent to writing `10 AAPL {2026-01-15, $50}`. 
+(If both the account name and the amount specify a cost basis, they must agree.)
 
-With [strict account checking](#account-error-checking), lot subaccounts are automatically
-exempt — you only need to declare the base account (eg `account assets:stocks`),
-not each individual lot subaccount.
+When [strictly checking account names](#account-error-checking), lot subaccounts are automatically exempt —
+you only need to declare the base account (eg `account assets:stocks`), not each individual lot subaccount.
 
 ## Lot operations
 
-- **Acquire**: a positive lot posting creates a new lot subaccount.
+- **Acquire**: a positive lot posting creates a new lot.
   The cost basis can be specified explicitly with `{}` on the amount,
   inferred from the lot subaccount name,
   or inferred from the transacted cost.
   On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
   with cost inferred from the transaction's other postings.
-- **Transfer**: matched negative/positive lot postings move lots between accounts, preserving their cost basis.
+- **Transfer**: a matching pair of negative/positive lot postings moves a lot between accounts, preserving its cost basis.
   Transfer postings should not have a transacted price.
-- **Dispose**: a negative lot posting sells from existing lot(s).
+- **Dispose**: a negative lot posting sells from one or more existing lots.
   It must have a transacted price (the selling price), either explicit or inferred.
 
-Example disposal:
+An example disposal entry:
 
 ```journal
 2026-02-01 sell
@@ -7049,7 +7048,7 @@ Example disposal:
     revenue:gains   -$50
 ```
 
-With `--lots`, this selects the specified quantity of the matching lot (which must exist) and shows:
+With `--lots`, this selects the specified quantity of the matching lot (which must exist) and will show something like:
 
 ```cli
 $ hledger print --lots desc:sell
