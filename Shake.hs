@@ -1,6 +1,7 @@
 #!/usr/bin/env stack
 {- stack script --resolver nightly-2025-09-30 --compile
    --extra-include-dirs /Library/Developer/CommandLineTools/SDKs/MacOSX12.1.sdk/usr/include/ffi
+   --extra-dep shake-0.19.9
    --package base-prelude
    --package directory
    --package extra
