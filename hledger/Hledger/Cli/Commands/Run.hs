@@ -170,27 +170,29 @@ runREPL :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journ
 runREPL defaultJournalOverride findBuiltinCommand addons = do
   isTerminal <- isStdinTerminal
   if not isTerminal
-    then runInputT defaultSettings (loop "")
+    then runInputT defaultSettings (loop False "")
     else do
       putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
-      runInputT defaultSettings (loop "% ")
+      runInputT defaultSettings (loop True "% ")
   where
-  loop :: String -> InputT IO ()
-  loop prompt = do
+  loop :: Bool -> String -> InputT IO ()
+  loop interactive prompt = do
     minput <- getInputLine prompt
     case minput of
       Nothing -> return ()
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        liftIO $ (runCommand defaultJournalOverride findBuiltinCommand addons $ argsAddDoubleDash $ parseCommand input)
-                  `catches`
+        let cmd = runCommand defaultJournalOverride findBuiltinCommand addons $ argsAddDoubleDash $ parseCommand input
+        liftIO $ if interactive
+          then cmd `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
                   ,Handler (\(e::IOError)   -> putStrLn $ rstrip $ show e)
                   ,Handler (\(_::ExitCode)  -> return ())
                   ,Handler (\UserInterrupt  -> return ())
                   ]
-        loop prompt
+          else cmd
+        loop interactive prompt
 
 isStdinTerminal = do
   op <- hIsOpen stdin
