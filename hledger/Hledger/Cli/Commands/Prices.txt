@@ -8,6 +8,7 @@ reversing known prices.
 Flags:
      --show-reverse         also show the prices inferred by reversing known
                             prices
+     --quoted COMM          only show prices quoted in commodity matching COMM
 
 Price amounts are always displayed with their full precision, except for
 reverse prices which are limited to 8 decimal digits.
