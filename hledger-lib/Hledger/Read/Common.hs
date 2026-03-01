@@ -128,7 +128,7 @@ where
 
 --- ** imports
 import Control.Applicative.Permutations (runPermutation, toPermutationWithDefault)
-import Control.Monad (foldM, join, liftM2, when, unless, (>=>), (<=<))
+import Control.Monad (foldM, liftM2, when, unless, (>=>), (<=<))
 import Control.Monad.Fail qualified as Fail (fail)
 import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -152,7 +152,6 @@ import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Time.LocalTime (LocalTime(..), TimeOfDay(..))
 import Data.Word (Word8)
 import System.Directory (canonicalizePath)
-import System.FilePath (takeFileName)
 import System.IO (Handle)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
@@ -208,8 +207,8 @@ isStdin f = case splitAtElement ':' f of
 
 -- | Parse an InputOpts from a RawOpts and a provided date.
 -- This will fail with a usage error if the forecast period expression cannot be parsed.
-rawOptsToInputOpts :: Day -> Bool -> Bool -> RawOpts -> InputOpts
-rawOptsToInputOpts day usecoloronstdout autopostingtags rawopts =
+rawOptsToInputOpts :: Day -> Bool -> RawOpts -> InputOpts
+rawOptsToInputOpts day usecoloronstdout rawopts =
 
     let
         -- Allow/disallow implicit-cost conversion transactions, according to policy in Check.md.
@@ -244,12 +243,12 @@ rawOptsToInputOpts day usecoloronstdout autopostingtags rawopts =
       ,new_save_          = True
       ,pivot_             = stringopt "pivot" rawopts
       ,forecast_          = forecastPeriodFromRawOpts day rawopts
-      ,auto_posting_tags_ = autopostingtags
       ,verbose_tags_      = boolopt "verbose-tags" rawopts
       ,reportspan_        = DateSpan (Exact <$> queryStartDate False datequery) (Exact <$> queryEndDate False datequery)
       ,auto_              = boolopt "auto" rawopts
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,infer_costs_       = boolopt "infer-costs" rawopts
+      ,lots_              = boolopt "lots" rawopts
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_     = boolopt "ignore-assertions" rawopts
                                , infer_balancing_costs_ = not noinferbalancingcosts
@@ -330,94 +329,70 @@ initialiseAndParseJournal parser iopts f txt = do
 {- HLINT ignore journalFinalise "Redundant <&>" -} -- silence this warning, the code is clearer as is
 --  note this activates TH, may slow compilation ? https://github.com/ndmitchell/hlint/blob/master/README.md#customizing-the-hints
 --
--- | Post-process a Journal that has just been parsed or generated, in this order:
---
--- - add misc info (file path, read time) 
---
--- - reverse transactions into their original parse order
---
--- - apply canonical commodity styles
---
--- - propagate account tags to postings
---
--- - maybe add forecast transactions
---
--- - propagate account tags to postings (again to affect forecast transactions)
---
--- - maybe add auto postings
---
--- - propagate account tags to postings (again to affect auto postings)
---
--- - evaluate balance assignments and balance each transaction
---
--- - maybe check balance assertions
---
--- - maybe infer costs from equity postings
---
--- - maybe infer equity postings from costs
---
--- - manye infer market prices from costs
---
--- One correctness check (parseable) has already passed when this function is called.
--- Up to four more are performed here:
---
---  - ordereddates (when enabled)
---
---  - assertions (when enabled)
---
---  - autobalanced (and with --strict, balanced ?), in the journalBalanceTransactions step.
---
--- Others (commodities, accounts..) are done later by journalStrictChecks.
---
+-- | Post-process a parsed Journal: infer missing information, check validity,
+-- and enrich postings with computed metadata.
+-- See doc\/SPEC-finalising.md for the full pipeline specification.
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,strict_,auto_posting_tags_,verbose_tags_,_ioDay} f txt pj = do
+journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,lots_,strict_,verbose_tags_,_ioDay} f txt pj = do
   let
     BalancingOpts{commodity_styles_, ignore_assertions_} = balancingopts_
-    fname = "journalFinalise " <> takeFileName f
-    lbl = lbl_ fname
-    -- Some not so pleasant hacks
-    -- We want to know when certain checks have been explicitly requested with the check command,
-    -- but it does not run until later. For now, inspect the command line with unsafePerformIO.
+    -- Hack: peek at the command line to know if certain checks were requested.
     checking checkname = "check" `elem` args && checkname `elem` args where args = progArgs
-    -- We will check ordered dates when "check ordereddates" is used.
     checkordereddates = checking "ordereddates"
-    -- We will check balance assertions by default, unless -I is used, but always if -s or "check assertions" are used.
     checkassertions = not ignore_assertions_ || strict_ || checking "assertions"
 
   t <- liftIO getPOSIXTime
   liftEither $
     pj{jglobalcommoditystyles=fromMaybe mempty commodity_styles_}
-      &   journalSetLastReadTime t                       -- save the last read time
-      &   journalAddFile (f, txt)                        -- save the main file's info
-      &   journalReverse                                 -- convert all lists to the order they were parsed
-      &   journalAddAccountTypes                         -- build a map of all known account types
+
+      -- Setup
+      &   journalSetLastReadTime t                                                -- save the last read time
+      &   journalAddFile (f, txt)                                                 -- save the main file's info
+      &   journalReverse                                                          -- convert all lists to the order they were parsed
+
+      -- Account types and amount styles
+      &   journalAddAccountTypes                                                  -- build a map of all known account types
             -- XXX does not see conversion accounts generated by journalInferEquityFromCosts below, requiring a workaround in journalCheckAccounts. Do it later ?
-      &   journalStyleAmounts                            -- Infer and apply commodity styles (but don't round) - should be done early
-      <&> journalAddForecast verbose_tags_ (forecastPeriod iopts pj)   -- Add forecast transactions if enabled
-      <&> (if auto_posting_tags_ then journalPostingsAddAccountTags else id)     -- Maybe propagate account tags to postings
-      >>= journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ False   -- Tag equity conversion postings and redundant costs, to help journalBalanceTransactions ignore them.
+      &   journalStyleAmounts                                                     -- infer and apply commodity styles (but don't round) - should be done early
+
+      -- Forecast and account tags
+      <&> journalAddForecast verbose_tags_ (forecastPeriod iopts pj)              -- add forecast transactions if enabled
+      <&> journalPostingsAddAccountTags                                           -- propagate account tags to postings (queryable but hidden)
+
+      -- Pre-balancing cost/equity tagging
+      >>= journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ False          -- tag equity conversion postings and redundant costs, to help the transaction balancer ignore them
+
+      -- Auto postings
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
-            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_  -- Add auto postings if enabled, and account tags if needed. Does preliminary transaction balancing.
+            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_       -- add auto postings if enabled; does preliminary transaction balancing
             else pure)
-      -- XXX how to force debug output here ?
-       -- >>= Right . dbg0With (concatMap (T.unpack.showTransaction).jtxns)
-       -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
-      <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalPostingAmountsDebug)
-      >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
-      >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments and missing amounts, and maybe check balance assertions.
-      <&> dbg9With (lbl "amounts after transaction-balancing".showJournalPostingAmountsDebug)
-      -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalPostingAmountsDebug)
-      >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present
-      -- >>= Right . dbg0With (pshow.journalCommodityStyles)
-      <&> (if auto_posting_tags_ then journalPostingsAddCommodityTags else id)  -- Maybe propagate commodity tags to postings (after amounts are inferred)
-      >>= (if infer_costs_  then journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ True else pure)  -- With --infer-costs, infer costs from equity postings where possible
-      <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)          -- With --infer-equity, infer equity postings from costs where possible
-      <&> dbg9With (lbl "amounts after equity-inferring".showJournalPostingAmountsDebug)
-      <&> journalInferMarketPricesFromTransactions       -- infer market prices from commodity-exchanging transactions
-      -- <&> dbg6Msg fname  -- debug logging
-      <&> dbgJournalAcctDeclOrder (fname <> ": acct decls           : ")
-      <&> journalRenumberAccountDeclarations
-      <&> dbgJournalAcctDeclOrder (fname <> ": acct decls renumbered: ")
+
+      -- Lot classification and transacted cost inference
+      >>= journalInferBasisFromAccountNames                                       -- infer cost basis from lot subaccount names
+      <&> journalClassifyLotPostings verbose_tags_                                -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
+      <&> journalInferPostingsTransactedCost                                      -- in acquire postings, infer a transacted cost from cost basis
+
+      -- Transaction balancing
+      >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
+      >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
+            (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j}) j)
+
+      -- Post-balancing enrichment
+      >>= journalInferCommodityStyles                                             -- infer commodity styles once more now that all posting amounts are present
+      <&> journalPostingsAddCommodityTags                                         -- propagate amounts' commodity tags to postings (queryable but hidden)
+
+      -- Cost/equity inference
+      >>= (if infer_costs_  then journalTagCostsAndEquityAndMaybeInferCosts verbose_tags_ True else pure)   -- maybe infer costs from equity postings
+      <&> (if infer_equity_ then journalInferEquityFromCosts verbose_tags_ else id)                         -- maybe infer equity postings from costs
+
+      -- Market prices and renumbering
+      <&> journalInferMarketPricesFromTransactions                                -- infer market prices from commodity-exchanging transactions
+      <&> journalRenumberAccountDeclarations                                      -- renumber account declarations for consistent ordering
+
+      -- Lot calculation
+      >>= (if lots_ then journalCheckLotsTagValues else pure)                     -- with --lots: validate lots: tag values
+      >>= (if lots_ then journalCalculateLots verbose_tags_ else pure)            -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
+      >>= (if lots_ then journalInferAndCheckDisposalBalancing verbose_tags_ else pure)  -- with --lots: infer gain amounts and check disposal transactions balance at cost basis
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.
@@ -445,6 +420,36 @@ journalAddForecast verbosetags (Just forecastspan) j = j{jtxns = jtxns j ++ fore
       . filter (spanContainsDate forecastspan . tdate)
       . concatMap (\pt -> runPeriodicTransaction verbosetags pt forecastspan)
       $ jperiodictxns j
+
+-- | For each posting whose account name contains a lot subaccount (e.g.
+-- @assets:broker:{2026-01-15, $50}@), parse the cost basis from the subaccount
+-- name and set or merge it into the posting's amounts' @acostbasis@.
+-- This allows users to write lot subaccounts explicitly without redundant @{...}@
+-- amount annotations.
+journalInferBasisFromAccountNames :: Journal -> Either String Journal
+journalInferBasisFromAccountNames j = do
+  txns' <- mapM processTransaction (jtxns j)
+  Right j{jtxns = txns'}
+  where
+    parseAmt s = case parseamount s of
+      Right a  -> Just a
+      Left _   -> Nothing
+
+    processTransaction t = do
+      ps' <- mapM processPosting (tpostings t)
+      Right t{tpostings = ps'}
+
+    processPosting p = case lotSubaccountName (paccount p) of
+      Nothing   -> Right p
+      Just name -> do
+        cb <- parseLotName parseAmt name
+        let updateAmt a = case acostbasis a of
+              Nothing -> Right a{acostbasis = Just cb}
+              Just existing -> do
+                merged <- mergeCostBasis cb existing
+                Right a{acostbasis = Just merged}
+        amts' <- mapM updateAmt (amountsRaw (pamount p))
+        Right p{pamount = foldMap mixedAmount amts'}
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
@@ -838,17 +843,27 @@ amountp' mult =
   label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
-  (mcost, _valuationexpr, mlotcost, mlotdate, mlotnote) <- runPermutation $
+  (mcost, _valuationexpr, mlotcb, mlotdate, mlotnote) <- runPermutation $
     -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
     (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
           <*> toPermutationWithDefault Nothing (Just <$> lotcostp (aquantity amt) <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
+  -- Reject mixing consolidated {DATE,...} or {"LABEL",...} with ledger-style [DATE] or (NOTE)
+  let isConsolidated = case mlotcb of
+        Just cb | isJust (cbDate cb) || isJust (cbLabel cb) -> True
+        _ -> False
+  when (isConsolidated && (isJust mlotdate || isJust mlotnote)) $
+    Fail.fail "hledger lot syntax {...} cannot be combined with ledger-style [DATE] or (NOTE)"
   let mcostbasis =
-        case (mlotcost, mlotdate, mlotnote) of
+        case (mlotcb, mlotdate, mlotnote) of
           (Nothing, Nothing, Nothing) -> Nothing
-          _ -> Just $ CostBasis { cbCost = join mlotcost, cbDate = mlotdate, cbLabel = mlotnote }
+          _ -> Just $ CostBasis
+                 { cbCost  = mlotcb >>= cbCost
+                 , cbDate  = (mlotcb >>= cbDate) <|> mlotdate
+                 , cbLabel = (mlotcb >>= cbLabel) <|> mlotnote
+                 }
   pure $ amt { acost = mcost, acostbasis = mcostbasis }
 
 -- An amount with optional cost, but no cost basis.
@@ -1031,25 +1046,75 @@ balanceassertionp = do
     , baposition  = sourcepos
     }
 
--- Parse a Ledger-style lot cost:
--- {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}.
+-- Parse lot cost in curly braces.
+-- Accepts either:
+--   Ledger-style:  {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}
+--   Consolidated:  {DATE, "LABEL", COST} with all fields optional and in DLC order
 -- If total cost syntax {{}} is used, converts it to unit cost by dividing by the posting quantity.
-lotcostp :: Quantity -> JournalParser m (Maybe Amount)
+lotcostp :: Quantity -> JournalParser m CostBasis
 lotcostp postingqty =
   -- dbg "lotcostp" $
-  label "ledger-style lot cost" $ do
+  label "lot cost" $ do
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   lift skipNonNewlineSpaces
-  _fixed <- fmap isJust $ optional $ char '='
-  lift skipNonNewlineSpaces
-  ma <- optional $ simpleamountp False
-  lift skipNonNewlineSpaces
-  char '}'
-  when (doublebrace) $ void $ char '}'
-  pure $ fmap (convertToUnitCost doublebrace) ma
+  if doublebrace
+    then ledgerCost True
+    else do
+      -- Peek to decide: consolidated vs ledger
+      -- consolidated starts with date (digit), label ("), or empty }
+      -- ledger starts with =, amount, or empty }
+      c <- lookAhead anySingle
+      case c of
+        '}' -> char '}' >> pure (CostBasis Nothing Nothing Nothing)
+        '=' -> ledgerCost False
+        '"' -> consolidatedNoDate  -- no date, start with label
+        _   -> tryDateOrLedger
   where
-    -- Convert {{TOTALCOST}} to {UNITCOST} by dividing by posting quantity
+    tryDateOrLedger = do
+      -- Does input look like a date (YYYY-D...) ? If so, commit to consolidated
+      -- date parsing (no try), so invalid dates give clear errors instead of
+      -- falling through to the amount parser with a confusing message.
+      looksLikeDate <- option False $ lookAhead $ try $
+        count 4 digitChar >> char '-' >> digitChar >> pure True
+      if looksLikeDate
+        then do
+          d <- datep
+          lift skipNonNewlineSpaces
+          void $ lookAhead (oneOf [',','}'])
+          consolidatedAfterDate d
+        else ledgerCost False  -- not a date, parse as ledger amount
+
+    consolidatedAfterDate d = do
+      -- after date: optional ", LABEL", optional ", COST", then }
+      mlabel <- optional $ try $ char ',' >> lift skipNonNewlineSpaces >> quotedLabelp <* lift skipNonNewlineSpaces
+      mcost  <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
+      char '}'
+      pure $ CostBasis (Just d) mlabel mcost
+
+    consolidatedNoDate = do
+      -- parse "LABEL", then optional ", COST", then }
+      mlabel <- Just <$> quotedLabelp
+      lift skipNonNewlineSpaces
+      mcost <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
+      char '}'
+      pure $ CostBasis Nothing mlabel mcost
+
+    quotedLabelp = do
+      char '"'
+      lbl <- T.pack <$> many (noneOf ['"', '\n'])
+      char '"'
+      pure lbl
+
+    ledgerCost doublebrace = do
+      _fixed <- fmap isJust $ optional $ char '='
+      lift skipNonNewlineSpaces
+      ma <- optional $ simpleamountp False
+      lift skipNonNewlineSpaces
+      char '}'
+      when doublebrace $ void $ char '}'
+      pure $ CostBasis Nothing Nothing (fmap (convertToUnitCost doublebrace) ma)
+
     convertToUnitCost isTotal lotamt =
       if isTotal && postingqty /= 0
       then lotamt { aquantity = aquantity lotamt / postingqty }

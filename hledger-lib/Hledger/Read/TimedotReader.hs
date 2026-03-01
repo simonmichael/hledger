@@ -190,7 +190,7 @@ timedotentryp = do
     ps = [
       nullposting{paccount=a
                 ,pamount=mixedAmount $ nullamt{acommodity=c, aquantity=hours, astyle=s}
-                ,ptype=VirtualPosting
+                ,preal=VirtualPosting
                 ,pcomment=comment
                 ,ptags=tags
                 }

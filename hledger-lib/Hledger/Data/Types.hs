@@ -114,8 +114,6 @@ data EFDay = Exact Day | Flex Day deriving (Eq,Generic,Show)
 -- EFDay's Ord instance treats them like ordinary dates, ignoring exact/flexible.
 instance Ord EFDay where compare d1 d2 = compare (fromEFDay d1) (fromEFDay d2)
 
--- instance Ord EFDay where compare = maCompare
-
 fromEFDay :: EFDay -> Day
 fromEFDay (Exact d) = d
 fromEFDay (Flex  d) = d
@@ -218,22 +216,6 @@ isIncomeStatementAccountType t = t `elem` [
   Gain
   ]
 
--- | Check whether the first argument is a subtype of the second: either equal
--- or one of the defined subtypes.
-isAccountSubtypeOf :: AccountType -> AccountType -> Bool
-isAccountSubtypeOf Asset      Asset      = True
-isAccountSubtypeOf Liability  Liability  = True
-isAccountSubtypeOf Equity     Equity     = True
-isAccountSubtypeOf Revenue    Revenue    = True
-isAccountSubtypeOf Expense    Expense    = True
-isAccountSubtypeOf Cash       Cash       = True
-isAccountSubtypeOf Cash       Asset      = True
-isAccountSubtypeOf Conversion Conversion = True
-isAccountSubtypeOf Conversion Equity     = True
-isAccountSubtypeOf Gain       Gain       = True
-isAccountSubtypeOf Gain       Revenue    = True
-isAccountSubtypeOf _          _          = False
-
 -- not worth the trouble, letters defined in accountdirectivep for now
 --instance Read AccountType
 --  where
@@ -334,10 +316,11 @@ data DigitGroupStyle = DigitGroups !Char ![Word8]
 type CommoditySymbol = Text
 
 data Commodity = Commodity {
-  csymbol  :: CommoditySymbol,
-  cformat  :: Maybe AmountStyle,
-  ccomment :: Text,              -- ^ any comment lines following the commodity directive
-  ctags    :: [Tag]              -- ^ tags extracted from the comment, if any
+  csymbol    :: CommoditySymbol,
+  cformat    :: Maybe AmountStyle,
+  ccomment   :: Text,              -- ^ any comment lines following the commodity directive
+  ctags      :: [Tag],             -- ^ tags extracted from the comment, if any
+  csourcepos :: SourcePos          -- ^ source position of the commodity directive
   } deriving (Show,Eq,Generic) --,Ord)
 
 -- | The cost basis of an individual lot - some quantity of an asset acquired at a given date and time.
@@ -345,10 +328,25 @@ data Commodity = Commodity {
 -- Or it can represent a cost basis matcher for selecting lots.
 -- Note: cost is always stored as a per-unit cost, even if the user specified total cost with {{}}.
 data CostBasis = CostBasis {
-  cbCost  :: !(Maybe Amount),    -- ^ nominal acquisition cost (per-unit)
   cbDate  :: !(Maybe Day),       -- ^ nominal acquisition date
-  cbLabel :: !(Maybe Text)       -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbLabel :: !(Maybe Text),      -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbCost  :: !(Maybe Amount)     -- ^ nominal acquisition cost (per-unit)
 } deriving (Show,Eq,Generic,Ord)
+
+-- | Identifies a specific lot of a commodity, by its acquisition date and optional label.
+-- Ordered by date first, then label (Nothing sorts before Just).
+data LotId = LotId {
+  lotDate  :: !Day,
+  lotLabel :: !(Maybe Text)
+} deriving (Show,Eq,Ord,Generic)
+
+-- | The method used to select lots for disposal or transfer.
+-- FIFO/LIFO select across all accounts; FIFO1/LIFO1 select within the posting's account only.
+-- HIFO/HIFO1 select highest cost first (globally or per-account).
+-- AVERAGE/AVERAGE1 use weighted average cost basis for disposals (FIFO consumption order).
+-- SPECID requires every disposal/transfer to have an explicit lot selector matching exactly one lot.
+data ReductionMethod = FIFO | FIFO1 | LIFO | LIFO1 | HIFO | HIFO1 | AVERAGE | AVERAGE1 | SPECID
+  deriving (Show,Read,Eq,Ord,Generic)
 
 data Amount = Amount {
   acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
@@ -375,8 +373,87 @@ instance HasAmounts a =>
   HasAmounts (Maybe a)
   where styleAmounts styles = fmap (styleAmounts styles)
 
+-- | hledger's most general amount type, which can contain multiple commodities, transacted costs, and cost bases,
+-- all tracked separately.
+-- Internally it is a map from MixedAmountKey to Amount, for efficiency and so that every mixed amount has a single canonical form.
+newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount)
+  deriving (Generic,Show)
 
-newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Generic,Show)
+type UnitCostQuantity = Quantity
+type TotalCostQuantity = Quantity
+
+-- | There is a unique MixedAmountKey for every combination of Amount commodity, unit/total transacted cost, and cost basis date/label/cost.
+-- This is roughly equivalent to @MixedAmountKey = MixedAmountKey CommoditySymbol (Maybe AmountCost) (Maybe CostBasis)@,
+-- but flattened into six slightly complicated constructors for overall simplicity and efficiency,
+-- avoiding complications from needing to ignore Amount's style information.
+data MixedAmountKey
+  -- = MixedAmountKeyNoCost                   !CommoditySymbol
+  -- | MixedAmountKeyUnitCost                 !CommoditySymbol !CommoditySymbol !Quantity
+  -- | MixedAmountKeyTotalCost                !CommoditySymbol !CommoditySymbol
+  -- | MixedAmountKeyCostBasis                !CommoditySymbol !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
+  -- | MixedAmountKeyCostBasisAndUnitCost     !CommoditySymbol !CommoditySymbol !Quantity !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
+  -- | MixedAmountKeyCostBasisAndTotalCost    !CommoditySymbol !CommoditySymbol !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
+
+  -- | No transacted cost or cost basis
+  = MixedAmountKeyNoCost
+      !CommoditySymbol           -- ^ amount commodity
+
+  -- | Unit transacted cost only (@)
+  | MixedAmountKeyUnitCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+      !UnitCostQuantity          -- ^ transacted cost per unit
+
+  -- | Total transacted cost only (@@)
+  | MixedAmountKeyTotalCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+
+  -- | Cost basis only ({})
+  | MixedAmountKeyCostBasis
+      !CommoditySymbol           -- ^ amount commodity
+      !(Maybe Day)               -- ^ cost basis date
+      !(Maybe Text)              -- ^ cost basis label
+      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
+      !(Maybe UnitCostQuantity)  -- ^ cost basis unit cost
+
+  -- | Cost basis and unit transacted cost ({} @)
+  | MixedAmountKeyCostBasisAndUnitCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+      !UnitCostQuantity          -- ^ transacted cost per unit
+      !(Maybe Day)               -- ^ cost basis date
+      !(Maybe Text)              -- ^ cost basis label
+      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
+      !(Maybe UnitCostQuantity)  -- ^ cost basis cost per unit
+
+  -- | Cost basis and total transacted cost ({} @@)
+  | MixedAmountKeyCostBasisAndTotalCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+      !(Maybe Day)               -- ^ cost basis date
+      !(Maybe Text)              -- ^ cost basis label
+      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
+      !(Maybe UnitCostQuantity)  -- ^ cost basis cost per unit
+
+  deriving (Eq, Generic, Show)
+
+-- | Calculate the key that should be used to store this Amount within a MixedAmount,
+-- from its commodity, cost basis if any, and transacted cost if any.
+mixedAmountKey :: Amount -> MixedAmountKey
+mixedAmountKey Amount{acommodity=c, acost, acostbasis} =
+  case (acost, acostbasis) of
+    (Nothing,            Nothing)   -> MixedAmountKeyNoCost                c
+    (Just (UnitCost  p), Nothing)   -> MixedAmountKeyUnitCost              c (acommodity p)       (aquantity p)
+    (Just (TotalCost p), Nothing)   -> MixedAmountKeyTotalCost             c (acommodity p)
+    (Nothing,            Just cb)   -> MixedAmountKeyCostBasis             c (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
+    (Just (UnitCost  p), Just cb)   -> MixedAmountKeyCostBasisAndUnitCost  c (acommodity p)       (aquantity p)        (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
+    (Just (TotalCost p), Just cb)   -> MixedAmountKeyCostBasisAndTotalCost c (acommodity p)                            (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
+  where
+    cbCostCommodity CostBasis{cbCost=Just Amount{acommodity=cc}} = Just cc
+    cbCostCommodity _ = Nothing
+    cbCostQuantity CostBasis{cbCost=Just Amount{aquantity=q}} = Just q
+    cbCostQuantity _ = Nothing
 
 instance Eq  MixedAmount where a == b  = maCompare a b == EQ
 instance Ord MixedAmount where compare = maCompare
@@ -398,39 +475,50 @@ maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
                         Just (TotalCost p) -> aquantity p
                         _                   -> 0
 
--- | Stores the CommoditySymbol of the Amount, along with the CommoditySymbol of
--- the cost, and its unit cost if being used.
-data MixedAmountKey
-  = MixedAmountKeyNoCost   !CommoditySymbol
-  | MixedAmountKeyTotalCost !CommoditySymbol !CommoditySymbol
-  | MixedAmountKeyUnitCost  !CommoditySymbol !CommoditySymbol !Quantity
-  deriving (Eq,Generic,Show)
-
 -- | We don't auto-derive the Ord instance because it would give an undesired ordering.
--- We want the keys to be sorted lexicographically:
+-- We want the keys to be sorted in this order (for historical reasons ?):
 -- (1) By the primary commodity of the amount.
--- (2) By the commodity of the cost, with no cost being first.
--- (3) By the unit cost, from most negative to most positive, with total costs
--- before unit costs.
--- For example, we would like the ordering to give
--- MixedAmountKeyNoCost "X" < MixedAmountKeyTotalCost "X" "Z" < MixedAmountKeyNoCost "Y"
+-- (2) By the commodity of the transacted cost, with no transacted cost being first.
+-- (3) By the transacted cost, from most negative to most positive, with total costs before unit costs
+-- (4) By the cost basis (date, label, cost), with no cost basis being first.
+-- For example, we would like the ordering to give:
+--   MixedAmountKeyNoCost "A"
+--   < MixedAmountKeyTotalCost "A" "B" 100
+--   < MixedAmountKeyUnitCost "A" "B" 100
+--   < MixedAmountKeyNoCost "B"
 instance Ord MixedAmountKey where
-  compare = comparing commodity <> comparing pCommodity <> comparing pCost
+  compare = comparing commodity <> comparing pCommodity <> comparing pCost <> comparing pCostBasis
     where
-      commodity (MixedAmountKeyNoCost    c)     = c
-      commodity (MixedAmountKeyTotalCost c _)   = c
-      commodity (MixedAmountKeyUnitCost  c _ _) = c
+      commodity (MixedAmountKeyNoCost                c)             = c
+      commodity (MixedAmountKeyUnitCost              c _ _)         = c
+      commodity (MixedAmountKeyTotalCost             c _)           = c
+      commodity (MixedAmountKeyCostBasis             c _ _ _ _)     = c
+      commodity (MixedAmountKeyCostBasisAndUnitCost  c _ _ _ _ _ _) = c
+      commodity (MixedAmountKeyCostBasisAndTotalCost c _ _ _ _ _)   = c
 
-      pCommodity (MixedAmountKeyNoCost    _)      = Nothing
-      pCommodity (MixedAmountKeyTotalCost _ pc)   = Just pc
-      pCommodity (MixedAmountKeyUnitCost  _ pc _) = Just pc
+      pCommodity (MixedAmountKeyNoCost                _)              = Nothing
+      pCommodity (MixedAmountKeyUnitCost              _ pc _)         = Just pc
+      pCommodity (MixedAmountKeyTotalCost             _ pc)           = Just pc
+      pCommodity (MixedAmountKeyCostBasis             _ _ _ _ _)      = Nothing
+      pCommodity (MixedAmountKeyCostBasisAndUnitCost  _ pc _ _ _ _ _) = Just pc
+      pCommodity (MixedAmountKeyCostBasisAndTotalCost _ pc _ _ _ _)   = Just pc
 
-      pCost (MixedAmountKeyNoCost    _)     = Nothing
-      pCost (MixedAmountKeyTotalCost _ _)   = Nothing
-      pCost (MixedAmountKeyUnitCost  _ _ q) = Just q
+      pCost (MixedAmountKeyNoCost                _)             = Nothing
+      pCost (MixedAmountKeyUnitCost              _ _ q)         = Just (1, Just q)
+      pCost (MixedAmountKeyTotalCost             _ _)           = Just (0 :: Int, Nothing)
+      pCost (MixedAmountKeyCostBasis             _ _ _ _ _)     = Nothing
+      pCost (MixedAmountKeyCostBasisAndUnitCost  _ _ q _ _ _ _) = Just (1, Just q)
+      pCost (MixedAmountKeyCostBasisAndTotalCost _ _ _ _ _ _)   = Just (0, Nothing)
 
-data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
-                   deriving (Eq,Show,Generic)
+      pCostBasis (MixedAmountKeyNoCost                _)             = Nothing
+      pCostBasis (MixedAmountKeyUnitCost              _ _ _)         = Nothing
+      pCostBasis (MixedAmountKeyTotalCost             _ _)           = Nothing
+      pCostBasis (MixedAmountKeyCostBasis             _ d l c q)     = Just (c, q, d, l)
+      pCostBasis (MixedAmountKeyCostBasisAndUnitCost  _ _ _ d l c q) = Just (c, q, d, l)
+      pCostBasis (MixedAmountKeyCostBasisAndTotalCost _ _ d l c q)   = Just (c, q, d, l)
+
+data PostingRealness = RealPosting | VirtualPosting | BalancedVirtualPosting
+  deriving (Eq,Show,Generic)
 
 type TagName = Text
 type TagValue = Text
@@ -498,13 +586,13 @@ data BalanceAssertion = BalanceAssertion {
     } deriving (Eq,Generic,Show)
 
 data Posting = Posting {
-      pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
-      pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
+      pdate             :: Maybe Day,               -- ^ this posting's date, if different from the transaction's
+      pdate2            :: Maybe Day,               -- ^ this posting's secondary date, if different from the transaction's
       pstatus           :: Status,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
-      pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
-      ptype             :: PostingType,
+      pcomment          :: Text,                    -- ^ this posting's comment lines, as a single non-indented multi-line string
+      preal             :: PostingRealness,         -- ^ is this a normal balanced posting, or a virtual/unbalanced one ?
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the posting comment 
                                                     --   and (after finalisation) the posting account's directive if any
       pbalanceassertion :: Maybe BalanceAssertion,  -- ^ an expected balance in the account after this posting,
@@ -532,7 +620,7 @@ instance Show Posting where
     ,"paccount="          ++ show paccount
     ,"pamount="           ++ show pamount
     ,"pcomment="          ++ show pcomment
-    ,"ptype="             ++ show ptype
+    ,"preal="             ++ show preal
     ,"ptags="             ++ show ptags
     ,"pbalanceassertion=" ++ show pbalanceassertion
     ,"ptransaction="      ++ show (ptransaction $> "txn")
@@ -827,13 +915,15 @@ instance NFData DigitGroupStyle
 instance NFData EFDay
 instance NFData Interval
 instance NFData Journal
+instance NFData LotId
 instance NFData MarketPrice
+instance NFData ReductionMethod
 instance NFData MixedAmount
 instance NFData MixedAmountKey
 instance NFData Rounding
 instance NFData PayeeDeclarationInfo
 instance NFData PeriodicTransaction
-instance NFData PostingType
+instance NFData PostingRealness
 instance NFData PriceDirective
 instance NFData Side
 instance NFData Status

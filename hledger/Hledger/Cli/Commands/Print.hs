@@ -20,7 +20,7 @@ where
 
 
 import Data.Function ((&))
-import Data.List (intersperse, intercalate)
+import Data.List (find, intersperse, intercalate, sortOn)
 import Data.List.Extra (nubSort)
 import Data.Text (Text)
 import Data.Map (Map)
@@ -33,7 +33,8 @@ import Safe (lastMay, minimumDef)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
-import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata)
+import Hledger.Write.Beancount (accountNameToBeancount, showTransactionBeancount, showBeancountMetadata, showPriceDirectiveBeancount)
+import Hledger.Write.Ledger (showTransactionLedger)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html.Lucid (styledTableHtml)
@@ -59,7 +60,7 @@ printmode = hledgerCommandMode
   ,roundFlag
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX"
     "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
-  ,outputFormatFlag ["txt","beancount","csv","tsv","html","fods","json","sql"]
+  ,outputFormatFlag ["txt","ledger","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
@@ -134,12 +135,14 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
   where
     -- print does user-specified rounding or (by default) no rounding, in all output formats
     styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
+    styledPrices = map (\pd -> pd{pdamount = styleAmounts styles $ pdamount pd}) $ jpricedirectives j
 
     fmt = outputFormatFromOpts opts
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
-           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="ledger"   = entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="json"      = toJsonText                    . styleAmounts styles
@@ -167,6 +170,17 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
           | otherwise = transactionWithMostlyOriginalPostings
 
+        -- Like maybeoriginalamounts, but also keeps the inferred amount for
+        -- balance assignment postings (which had no explicit amount).
+        -- Beancount requires all amounts to be explicit.
+        fillBalanceAssignments t = (maybeoriginalamounts t)
+          { tpostings = zipWith fillIfBalAssign (tpostings t) (tpostings $ maybeoriginalamounts t) }
+          where
+            fillIfBalAssign inferred reverted
+              | isJust (pbalanceassertion orig) && isMissingMixedAmount (pamount orig) = reverted { pamount = pamount inferred }
+              | otherwise = reverted
+              where orig = originalPosting inferred
+
 -- | Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings.
 -- This is mainly for showing transactions with the amounts in their original journal format.
@@ -190,15 +204,19 @@ entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showt
 -- in various ways when necessary (see Beancount.hs). It renders:
 -- account open directives for each account used (on their earliest posting dates),
 -- operating_currency directives (based on currencies used in costs),
+-- sample tolerance options (commented),
+-- price directives,
 -- and transaction entries.
 -- Transaction and posting tags are converted to metadata lines.
 -- Account tags are not propagated to the open directive, currently.
-entriesReportAsBeancount ::  Map AccountName [Tag] -> EntriesReport -> TL.Text
-entriesReportAsBeancount atags ts =
+entriesReportAsBeancount ::  Map AccountName [Tag] -> [PriceDirective] -> EntriesReport -> TL.Text
+entriesReportAsBeancount atags pricedirs ts =
   -- PERF: gathers and converts all account names, then repeats that work when showing each transaction
   TL.concat [
-     TL.fromStrict operatingcurrencydirectives
-    ,TL.fromStrict openaccountdirectives
+     TL.fromStrict toleranceoptions
+    ,TL.fromStrict operatingcurrencyoptions
+    ,TL.fromStrict openaccounts
+    ,TL.fromStrict pricedirectives
     ,"\n"
     ,entriesReportAsTextHelper showTransactionBeancount ts3
     ]
@@ -216,24 +234,32 @@ entriesReportAsBeancount atags ts =
       -- Assume the simple case of no more than one cost + conversion posting group in each transaction.
       -- Actually that seems to be required by hledger right now.
       , let isredundantconvp p =
-              matchesPosting (Tag (toRegex' "conversion-posting") Nothing) p
+              matchesPosting (Tag (toRegex' conversionPostingTagName) Nothing) p
               && any (any (isJust.acost) . amounts . pamount) (tpostings t)
       ]
 
+    -- https://beancount.github.io/docs/beancount_language_syntax.html
+    -- https://beancount.github.io/docs/beancount_language_syntax.html#options
+    -- https://beancount.github.io/docs/beancount_options_reference.html
+
     -- https://fava.pythonanywhere.com/example-beancount-file/help/beancount_syntax
     -- https://fava.pythonanywhere.com/example-beancount-file/help/options
-    -- "conversion-currencies
+    -- conversion-currencies
     -- When set, the currency conversion select dropdown in all charts will show the list of currencies specified in this option.
     -- By default, Fava lists all operating currencies and those currencies that match ISO 4217 currency codes."
 
-    -- http://furius.ca/beancount/doc/syntax
-    -- http://furius.ca/beancount/doc/options
+    -- https://beancount.github.io/docs/precision_tolerances.html
+    -- https://beancount.github.io/docs/precision_tolerances.html#configuration-for-default-tolerances
+    toleranceoptions = T.unlines [
+       ";option \"inferred_tolerance_default\" \"*:0.005\""
+      ]
+
     -- "This option may be supplied multiple times ...
     -- A list of currencies that we single out during reporting and create dedicated columns for ...
     -- we use this to display these values in table cells without their associated unit strings ...
     -- This is used to indicate the main currencies that you work with in real life"
     -- We use: all currencies used in costs.
-    operatingcurrencydirectives
+    operatingcurrencyoptions
       | null basecurrencies = ""
       | otherwise = T.unlines (map (todirective . commodityToBeancount) basecurrencies) <> "\n"
       where
@@ -253,26 +279,34 @@ entriesReportAsBeancount atags ts =
                   concatMap tpostings
                   ts3
 
-    -- http://furius.ca/beancount/doc/syntax
     -- "there exists an “Open” directive that is used to provide the start date of each account. 
     -- That can be located anywhere in the file, it does not have to appear in the file somewhere before you use an account name.
     -- You can just start using account names in transactions right away,
     -- though all account names that receive postings to them will eventually have to have
     -- a corresponding Open directive with a date that precedes all transactions posted to the account in the input file."
-    openaccountdirectives
+    openaccounts
       | null ts = ""
       | otherwise = T.unlines [
           T.intercalate "\n" $
-            firstdate <> " open " <> accountNameToBeancount a :
+            firstdate <> " open " <> accountNameToBeancount a <> disposalmethod :
             mdlines
           | a <- nubSort $ concatMap (map paccount.tpostings) ts3
-          , let mds      = tagsToBeancountMetadata $ fromMaybe [] $ Map.lookup a atags
+          , let tags'          = fromMaybe [] $ Map.lookup a atags
+          , let lotsval        = maybe "" snd $ find ((== "lots") . T.toLower . fst) tags'
+          , let disposalmethod = if T.null lotsval then "" else " \"" <> lotsval <> "\""
+          , let mds      = tagsToBeancountMetadata $ filter ((/= "lots") . T.toLower . fst) tags'
           , let maxwidth = maximum' $ map (T.length . fst) mds
           , let mdlines  = map (postingIndent . showBeancountMetadata (Just maxwidth)) mds
           ]
         where
           firstdate = showDate $ minimumDef err $ map tdate ts3
             where err = error' "entriesReportAsBeancount: should not happen"
+
+    pricedirectives
+      | null pricedirs = ""
+      | otherwise = "\n" <> T.unlines (map showPriceDirectiveBeancount sortedpricedirs)
+      where
+        sortedpricedirs = sortOn pddate pricedirs
 
 entriesReportAsSql :: EntriesReport -> TL.Text
 entriesReportAsSql txns = TB.toLazyText $ mconcat
@@ -363,7 +397,7 @@ postingToSpreadsheet fmt baseUrl query p =
       Spr.cellFromAmount fmt
         (Spr.Class "amount", (wbToText $ showAmountB machineFmt amt, amt))
     status = T.pack . show $ pstatus p
-    account = showAccountName Nothing (ptype p) (paccount p)
+    account = showAccountName Nothing (preal p) (paccount p)
     comment = T.strip $ pcomment p
 
 addLocationTag :: Transaction -> Transaction

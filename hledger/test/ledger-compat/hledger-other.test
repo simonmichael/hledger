@@ -112,5 +112,3 @@ $ hledger -f- check
     Income:Capital Gains       $-125.00
 
 $ hledger -f- check
->2 /transaction is unbalanced/
->=1

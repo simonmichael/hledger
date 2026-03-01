@@ -21,4 +21,5 @@ or used but not declared,
 or declared but not used,
 or just the first one matched by a pattern (with `--find`, returning a non-zero exit code if it fails).
 
-You can add `cur:` [query arguments](#queries) to further limit the commodities.
+You can add [query arguments](#queries) to further limit the commodities;
+at least `cur:` and `tag:` are supported.

@@ -1,6 +1,11 @@
-# * Lot syntax
+# An overview of lot functional tests:
+# 1. This file covers basic input/output of lot syntax.
+# 2. lots-*-entries.test cover basic lot posting classification and calculation, for many journal entry variants.
+# 3. lots-*.test cover more complex lot scenarios.
 
-# ** 1. Ledger-style lot syntax is parsed and reproduced in print output.
+# * Reading and writing lot syntax
+
+# ** 1. Ledger-style lot syntax is parsed and printed in consolidated format.
 <
 2026-01-01
     assets:investment    10 AAPL @ $100 {$100} [2026-01-01] (lot A)
@@ -8,12 +13,109 @@
 
 $ hledger -f- print
 2026-01-01
-    assets:investment    10 AAPL @ $100 {$100} [2026-01-01] (lot A)
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100} @ $100
     assets:cash
 
 >=
 
-# ** 2. Lot info appears in the acostbasis field in JSON output.
+# ** 2. hledger consolidated lot syntax {DATE, COST} is accepted in input.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, $100}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, $100}
+    assets:cash
+
+>=
+
+# ** 3. hledger consolidated lot syntax with label {DATE, "LABEL", COST}.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100}
+    assets:cash
+
+>=
+
+# ** 4. Partial: date only.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01}
+    assets:cash
+
+>=
+
+# ** 5. Partial: label only.
+<
+2026-01-01
+    assets:investment    10 AAPL {"lot1"}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:investment    10 AAPL {"lot1"}
+    assets:cash
+
+>=
+
+# ** 6. Consolidated with @ transacted cost.
+<
+2026-01-01
+    assets:broker    10 AAPL {2026-01-01, $100} @ $150
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:broker    10 AAPL {2026-01-01, $100} @ $150
+    assets:cash
+
+>=
+
+# ** 7. Consolidated with --lots pipeline.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {2026-01-15, $50}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 8. Consolidated syntax rejects trailing [DATE].
+<
+2026-01-01
+    assets:broker    10 AAPL {2026-01-01, $100} [2026-01-01]
+    assets:cash
+
+$ hledger -f- print
+>2 /cannot be combined/
+>=1
+
+# ** 9. Empty cost basis annotations like {} are also preserved in print output.
+<
+2026-01-01
+    assets:broker    10 AAPL {}
+    assets:cash
+
+$ hledger -f- print
+2026-01-01
+    assets:broker      10 AAPL {}
+    assets:cash
+
+>=
+
+# ** 10. print's json output shows lot info in the acostbasis field.
 $ hledger -f- print -O json
 [
   {
@@ -25,52 +127,15 @@ $ hledger -f- print -O json
     "tindex": 1,
     "tpostings": [
       {
-        "paccount": "assets:investment",
+        "paccount": "assets:broker",
         "pamount": [
           {
             "acommodity": "AAPL",
-            "acost": {
-              "contents": {
-                "acommodity": "$",
-                "acost": null,
-                "acostbasis": null,
-                "aquantity": {
-                  "decimalMantissa": 100,
-                  "decimalPlaces": 0,
-                  "floatingPoint": 100
-                },
-                "astyle": {
-                  "ascommodityside": "L",
-                  "ascommodityspaced": false,
-                  "asdecimalmark": null,
-                  "asdigitgroups": null,
-                  "asprecision": 0,
-                  "asrounding": "NoRounding"
-                }
-              },
-              "tag": "UnitCost"
-            },
+            "acost": null,
             "acostbasis": {
-              "cbCost": {
-                "acommodity": "$",
-                "acost": null,
-                "acostbasis": null,
-                "aquantity": {
-                  "decimalMantissa": 100,
-                  "decimalPlaces": 0,
-                  "floatingPoint": 100
-                },
-                "astyle": {
-                  "ascommodityside": "L",
-                  "ascommodityspaced": false,
-                  "asdecimalmark": null,
-                  "asdigitgroups": null,
-                  "asprecision": 0,
-                  "asrounding": "NoRounding"
-                }
-              },
-              "cbDate": "2026-01-01",
-              "cbLabel": "lot A"
+              "cbCost": null,
+              "cbDate": null,
+              "cbLabel": null
             },
             "aquantity": {
               "decimalMantissa": 10,
@@ -80,7 +145,7 @@ $ hledger -f- print -O json
             "astyle": {
               "ascommodityside": "R",
               "ascommodityspaced": true,
-              "asdecimalmark": null,
+              "asdecimalmark": ".",
               "asdigitgroups": null,
               "asprecision": 0,
               "asrounding": "NoRounding"
@@ -92,27 +157,36 @@ $ hledger -f- print -O json
         "pdate": null,
         "pdate2": null,
         "poriginal": null,
+        "preal": "RealPosting",
         "pstatus": "Unmarked",
-        "ptags": [],
-        "ptransaction_": "1",
-        "ptype": "RegularPosting"
+        "ptags": [
+          [
+            "_ptype",
+            "acquire"
+          ]
+        ],
+        "ptransaction_": "1"
       },
       {
         "paccount": "assets:cash",
         "pamount": [
           {
-            "acommodity": "$",
+            "acommodity": "AAPL",
             "acost": null,
-            "acostbasis": null,
+            "acostbasis": {
+              "cbCost": null,
+              "cbDate": null,
+              "cbLabel": null
+            },
             "aquantity": {
-              "decimalMantissa": -1000,
+              "decimalMantissa": -10,
               "decimalPlaces": 0,
-              "floatingPoint": -1000
+              "floatingPoint": -10
             },
             "astyle": {
-              "ascommodityside": "L",
-              "ascommodityspaced": false,
-              "asdecimalmark": null,
+              "ascommodityside": "R",
+              "ascommodityspaced": true,
+              "asdecimalmark": ".",
               "asdigitgroups": null,
               "asprecision": 0,
               "asrounding": "NoRounding"
@@ -124,10 +198,10 @@ $ hledger -f- print -O json
         "pdate": null,
         "pdate2": null,
         "poriginal": null,
+        "preal": "RealPosting",
         "pstatus": "Unmarked",
         "ptags": [],
-        "ptransaction_": "1",
-        "ptype": "RegularPosting"
+        "ptransaction_": "1"
       }
     ],
     "tprecedingcomment": "",
@@ -148,7 +222,7 @@ $ hledger -f- print -O json
   }
 ]
 
-# ** 3. Lot info appears in Beancount lot syntax in beancount output.
+# ** 11. print's beancount output shows lot info with Beancount lot syntax.
 <
 2026-01-01 Buy stocks with full lot info
     assets:investment    10 AAPL {$150} [2026-01-01] (lot1)
@@ -167,6 +241,7 @@ $ hledger -f- print -O json
     assets:cash
 
 $ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.005"
 2026-01-01 open Assets:Cash
 2026-01-01 open Assets:Investment
 
@@ -185,5 +260,69 @@ $ hledger -f- print -O beancount
 2026-01-04 * "Buy stocks with label only"
     Assets:Investment    2 GOOG {"lot4"}
     Assets:Cash
+
+>=
+
+# ** 12. In beancount output, an account's lots: tag value becomes the account's booking method
+<
+account assets:broker  ; lots: FIFO
+
+2026-01-08 Buy stock
+    assets:broker     10 AAPL {$100}
+    assets:cash     -$1000
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.005"
+2026-01-08 open Assets:Broker "FIFO"
+2026-01-08 open Assets:Cash
+
+2026-01-08 * "Buy stock"
+    Assets:Broker    10 AAPL {100 USD}
+    Assets:Cash              -1000 USD
+
+>=
+
+# ** 13. In beancount output, balance assignment amounts are always made explicit.
+<
+2026-01-01 * opening balances
+    equity:opening
+    assets:cash    = 2000 USD
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.005"
+2026-01-01 open Assets:Cash
+2026-01-01 open Equity:Opening
+
+2026-01-01 * "opening balances"
+    Equity:Opening
+    Assets:Cash           2000 USD
+
+>=
+
+# ** 14. Most other reports ignore cost basis by default
+<
+2026-01-01 Buy with transaction cost
+    assets:broker    10 AAPL @ $160
+    assets:cash
+
+2026-01-02 Buy with cost basis
+    assets:broker    10 AAPL {$150}
+    assets:cash
+
+$ hledger -f- bal assets:broker
+             20 AAPL  assets:broker
+--------------------
+             20 AAPL  
+
+# ** 15. print -O ledger produces Ledger-style lot syntax.
+<
+2026-01-01
+    assets:investment    10 AAPL {2026-01-01, "lot A", $100} @ $150
+    assets:cash
+
+$ hledger -f- print -O ledger
+2026-01-01
+    assets:investment    10 AAPL {$100} [2026-01-01] (lot A) @ $150
+    assets:cash
 
 >=

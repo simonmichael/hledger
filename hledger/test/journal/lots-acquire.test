@@ -1,0 +1,302 @@
+# Testing lot acquisition scenarios.
+
+# * Lot acquisition
+
+# ** 1. Simple acquire - positive amount to Asset account with cost basis - gets ptype:acquire tag
+<
+2026-01-01 Buy stock
+    assets:broker     10 AAPL {$100}
+    assets:cash      -$1000
+
+$ hledger -f- print --verbose-tags
+2026-01-01 Buy stock
+    assets:broker    10 AAPL {$100}  ; ptype: acquire
+    assets:cash              $-1000
+
+>=
+
+# ** 2. No cost basis (@ instead of {}) - not recognised
+<
+2026-01-04 Buy with @
+    assets:broker     10 AAPL @ $100
+    assets:cash      -$1000
+
+$ hledger -f- print
+2026-01-04 Buy with @
+    assets:broker    10 AAPL @ $100
+    assets:cash              $-1000
+
+>=
+
+# ** 3. Non-Asset account - should not be recognised even with cost basis
+<
+2026-01-05 Equity
+    equity:conversion   10 AAPL {$100}
+    assets:cash        -$1000
+
+$ hledger -f- print
+2026-01-05 Equity
+    equity:conversion    10 AAPL {$100}
+    assets:cash                  $-1000
+
+>=
+
+# ** 4. Cash accounts are recognised as asset accounts for lot classification.
+<
+commodity USDC  ; lots:
+account assets:usdc  ; type: Cash
+
+2026-01-06 Buy USDC
+    assets:usdc       1000 USDC {$1}
+    assets:cash     -$1000
+
+$ hledger -f- print --verbose-tags
+2026-01-06 Buy USDC
+    assets:usdc    1000 USDC {$1}  ; ptype: acquire
+    assets:cash            $-1000
+
+>=
+
+# ** 5. Account-level lots: tag also triggers lot classification.
+<
+account assets:broker  ; lots:
+
+2026-01-07 Buy stock
+    assets:broker     10 AAPL {$100}
+    assets:cash     -$1000
+
+$ hledger -f- print --verbose-tags
+2026-01-07 Buy stock
+    assets:broker    10 AAPL {$100}  ; ptype: acquire
+    assets:cash              $-1000
+
+>=
+
+# ** 6. With --lots, acquired lots are displayed in their own subaccounts.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy more
+    assets:stocks    5 AAPL {$55}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+              5 AAPL  assets:stocks:{2026-02-01, $55}
+
+# ** 7. Same-date acquisitions get labels added to ensure unique lot ids per commodity.
+<
+2026-01-15 buy morning
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-01-15 buy afternoon
+    assets:stocks    5 AAPL {$55}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, "0001", $50}
+              5 AAPL  assets:stocks:{2026-01-15, "0002", $55}
+
+# ** 8. User-provided labels are preserved.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50} [2026-01-15] (morning-buy)
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, "morning-buy", $50}
+
+# ** 9. User-provided labels resulting in non-unique lot ids are an error,
+# with a source position and excerpt pointing to the duplicate transaction.
+<
+2026-01-15 buy first
+    assets:stocks    10 AAPL {$50} (mybuy)
+    assets:checking
+
+2026-01-15 buy second
+    assets:stocks    5 AAPL {$55} (mybuy)
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots
+>2 /-:5:/
+>=1
+
+# ** 10. Bare acquire with explicit @ on lotful commodity - classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50  ; ptype: acquire
+    assets:cash              $-500
+
+>=
+
+# ** 11. Bare acquire with @ on lotful commodity creates a lot subaccount with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 12. Bare acquire with balancer-inferred cost on lotful commodity - classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL
+    assets:cash     -$500
+
+$ hledger -f- print --verbose-tags
+2026-01-15 buy
+    assets:stocks         10 AAPL  ; ptype: acquire
+    assets:cash             $-500
+
+>=
+
+# ** 13. Bare acquire with balancer-inferred cost creates a lot subaccount with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL
+    assets:cash     -$500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 14. Without lots: tag, bare positive posting with @ is NOT classified as acquire.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash     -$500
+
+$ hledger -f- print
+2026-01-15 buy
+    assets:stocks    10 AAPL @ $50
+    assets:cash              $-500
+
+>=
+
+# ** 15. Transfer-to takes priority over bare acquire when transfer-from counterpart exists.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:old    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 transfer
+    assets:old     -10 AAPL {$50}
+    assets:new      10 AAPL
+
+$ hledger -f- print --verbose-tags date:2026-02-01
+2026-02-01 transfer
+    assets:old    -10 AAPL {$50}  ; ptype: transfer-from
+    assets:new           10 AAPL  ; ptype: transfer-to
+
+>=
+
+# ** 16. Bare lotful transfer: both postings bare (no {}) - still classified as transfer.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:old    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 transfer
+    assets:old     -10 AAPL
+    assets:new      10 AAPL
+
+$ hledger -f- print --verbose-tags date:2026-02-01
+2026-02-01 transfer
+    assets:old        -10 AAPL  ; ptype: transfer-from
+    assets:new         10 AAPL  ; ptype: transfer-to
+
+>=
+
+# ** 17. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 assert
+    assets:stocks    0 AAPL = 10 AAPL
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 18. Bare positive lotful posting without inferable cost passes through with --lots
+# (no error, not processed as a lot posting).
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 gift received
+    assets:stocks    5 AAPL
+    equity:opening
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 19. Explicit lot subaccount infers cost basis from account name (no {} on amount).
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL
+    assets:cash
+
+$ hledger -f- print --lots -x
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                                  $-500
+
+>=
+
+# ** 20. Explicit lot subaccount with matching {} on amount - no double-append.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$50}
+    assets:cash
+
+$ hledger -f- print --lots -x
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                                  $-500
+
+>=
+
+# ** 21. Conflicting cost basis between lot subaccount and amount annotation is an error.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$99}
+    assets:cash
+
+$ hledger -f- print --lots
+>2 /conflicting cost basis cost/
+>=1
+

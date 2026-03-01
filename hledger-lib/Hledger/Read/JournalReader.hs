@@ -621,15 +621,16 @@ commoditydirectivep = commoditydirectiveonelinep <|> commoditydirectivemultiline
 -- >>> Right _ <- rjp commoditydirectiveonelinep "commodity $1.00 ; blah\n"
 commoditydirectiveonelinep :: JournalParser m ()
 commoditydirectiveonelinep = do
-  (off, Amount{acommodity,astyle}) <- try $ do
+  (off, pos, Amount{acommodity,astyle}) <- try $ do
     string "commodity"
+    pos <- getSourcePos
     lift skipNonNewlineSpaces1
     off <- getOffset
     amt <- amountp
-    pure $ (off, amt)
+    pure $ (off, pos, amt)
   lift skipNonNewlineSpaces
   (comment, tags) <- lift transactioncommentp
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags, csourcepos=pos}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j
@@ -653,13 +654,14 @@ pleaseincludedecimalpoint = chomp $ unlines [
 commoditydirectivemultilinep :: JournalParser m ()
 commoditydirectivemultilinep = do
   string "commodity"
+  pos <- getSourcePos
   lift skipNonNewlineSpaces1
   sym <- lift commoditysymbolp
   (comment, tags) <- lift transactioncommentp
   -- read all subdirectives, saving format subdirectives as Lefts
   subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
   let mfmt = lastMay $ lefts subdirectives
-  let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags}
+  let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags, csourcepos=pos}
   modify' (\j -> j{jdeclaredcommodities=M.insert sym comm $ jdeclaredcommodities j
                   ,jdeclaredcommoditytags=if null tags then jdeclaredcommoditytags j
                                           else M.insert sym tags $ jdeclaredcommoditytags j})
@@ -972,7 +974,7 @@ postingphelper isPostingRule mTransactionYear = do
       lift skipNonNewlineSpaces
       account <- modifiedaccountnamep True
       return (status, account)
-    let (ptype, account') = (accountNamePostingType account, textUnbracket account)
+    let (preal, account') = (accountNamePostingType account, textUnbracket account)
     lift skipNonNewlineSpaces
     mult <- if isPostingRule then multiplierp else pure False
     amt <- optional $ amountp' mult
@@ -987,7 +989,7 @@ postingphelper isPostingRule mTransactionYear = do
             , paccount=account'
             , pamount=maybe missingmixedamt mixedAmount amt
             , pcomment=comment
-            , ptype=ptype
+            , preal=preal
             , ptags=tags
             , pbalanceassertion=massertion
             }
@@ -1178,7 +1180,7 @@ tests_JournalReader = testGroup "JournalReader" [
             paccount="a",
             pamount=mixedAmount (usd 1),
             pcomment="pcomment1\npcomment2\nptag1: val1\nptag2: val2\n",
-            ptype=RegularPosting,
+            preal=RealPosting,
             ptags=[("ptag1","val1"),("ptag2","val2")],
             ptransaction=Nothing
             }

@@ -38,6 +38,12 @@ module Hledger.Data.Journal (
   journalPostingsAddAccountTags,
   journalPostingsKeepAccountTagsOnly,
   journalPostingsAddCommodityTags,
+  journalInferPostingsCostBasis,
+  journalInferPostingsTransactedCost,
+  journalCommodityUsesLots,
+  journalCommodityLotsMethod,
+  postingLotsMethod,
+  journalCheckLotsTagValues,
 -- * Filtering
   filterJournalTransactions,
   filterJournalPostings,
@@ -110,6 +116,7 @@ module Hledger.Data.Journal (
   journalConcat,
   journalNumberTransactions,
   journalNumberAndTieTransactions,
+  journalTieTransactions,
   journalUntieTransactions,
   journalModifyTransactions,
   journalApplyAliases,
@@ -134,7 +141,7 @@ import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
+import Data.Maybe (catMaybes, fromMaybe, isJust, mapMaybe, maybeToList)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -149,6 +156,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Errors (makeAccountTagErrorExcerpt, makeCommodityTagErrorExcerpt)
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
@@ -644,22 +652,11 @@ journalDeclaredAccountTypes Journal{jdeclaredaccounttypes} =
 
 -- | To all postings in the journal, add any tags from their account
 -- (including those inherited from parent accounts).
+-- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
 -- If a tag already exists on the posting, it is not changed (the account tag will be ignored).
 journalPostingsAddAccountTags :: Journal -> Journal
 journalPostingsAddAccountTags j = journalMapPostings addtags j
   where addtags p = p `postingAddTags` (journalInheritedAccountTags j $ paccount p)
-
--- | Get any tags declared for this commodity.
-journalCommodityTags :: Journal -> CommoditySymbol -> [Tag]
-journalCommodityTags Journal{jdeclaredcommoditytags} c =
-  M.findWithDefault [] c jdeclaredcommoditytags
-
--- | To all postings in the journal, add any tags from their amount's commodities.
--- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
-journalPostingsAddCommodityTags :: Journal -> Journal
-journalPostingsAddCommodityTags j = journalMapPostings addtags j
-  where
-    addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
 
 -- | Remove all tags from the journal's postings except those provided by their account.
 -- This is useful for the accounts report.
@@ -667,6 +664,139 @@ journalPostingsAddCommodityTags j = journalMapPostings addtags j
 journalPostingsKeepAccountTagsOnly :: Journal -> Journal
 journalPostingsKeepAccountTagsOnly j = journalMapPostings keepaccounttags j
   where keepaccounttags p = p{ptags=[]} `postingAddTags` (journalInheritedAccountTags j $ paccount p)
+
+-- | Get any tags declared for this commodity.
+journalCommodityTags :: Journal -> CommoditySymbol -> [Tag]
+journalCommodityTags Journal{jdeclaredcommoditytags} c =
+  M.findWithDefault [] c jdeclaredcommoditytags
+
+-- | Does this commodity have a 'lots:' tag declared ?
+journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
+journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
+
+-- | Does this posting have a 'lots:' tag (eg inherited from its account) ?
+postingUsesLots :: Posting -> Bool
+postingUsesLots p = any ((== "lots") . T.toLower . fst) (ptags p)
+
+-- | Get the reduction method from a commodity's lots: tag value, if any.
+journalCommodityLotsMethod :: Journal -> CommoditySymbol -> Maybe ReductionMethod
+journalCommodityLotsMethod j c =
+  case [v | (k, v) <- journalCommodityTags j c, T.toLower k == "lots"] of
+    (v:_) -> parseReductionMethod v
+    []    -> Nothing
+
+-- | Get the reduction method from a posting's lots: tag value (typically inherited from its account), if any.
+postingLotsMethod :: Posting -> Maybe ReductionMethod
+postingLotsMethod p =
+  case [v | (k, v) <- ptags p, T.toLower k == "lots"] of
+    (v:_) -> parseReductionMethod v
+    []    -> Nothing
+
+-- | Parse a reduction method name from a lots: tag value.
+parseReductionMethod :: Text -> Maybe ReductionMethod
+parseReductionMethod t = case T.toUpper (T.strip t) of
+  "FIFO"    -> Just FIFO
+  "FIFO1"   -> Just FIFO1
+  "LIFO"    -> Just LIFO
+  "LIFO1"   -> Just LIFO1
+  "HIFO"    -> Just HIFO
+  "HIFO1"   -> Just HIFO1
+  "AVERAGE" -> Just AVERAGE
+  "AVERAGE1"-> Just AVERAGE1
+  "SPECID"  -> Just SPECID
+  _         -> Nothing
+
+-- | Check that all lots: tag values on commodity and account declarations are recognised.
+-- Empty values (bare @lots:@ tag) are valid and default to FIFO.
+-- Non-empty values must be one of the known reduction methods.
+journalCheckLotsTagValues :: Journal -> Either String Journal
+journalCheckLotsTagValues j = do
+  mapM_ checkCommodity (M.toList $ jdeclaredcommoditytags j)
+  mapM_ checkAccount   (jdeclaredaccounts j)
+  Right j
+  where
+    msg :: String
+    msg = unlines [
+       "%s:%d:"
+      ,"%s"
+      ,"unrecognised lots: tag value %s."
+      ,"Use FIFO, FIFO1, LIFO, LIFO1, HIFO, HIFO1, AVERAGE, AVERAGE1, SPECID, or nothing (meaning FIFO)"
+      ]
+
+    checkCommodity (sym, tags) =
+      case M.lookup sym (jdeclaredcommodities j) of
+        Just comm -> mapM_ (checkCommodityTag comm) tags
+        Nothing   -> Right ()
+
+    checkCommodityTag comm (k, v)
+      | T.toLower k /= "lots"       = Right ()
+      | T.null (T.strip v)          = Right ()
+      | Just _ <- parseReductionMethod v = Right ()
+      | otherwise = Left $ printf msg f l ex (show v)
+          where (f, l, _mcols, ex) = makeCommodityTagErrorExcerpt comm k
+
+    checkAccount (acctName, adi) =
+      mapM_ (checkAccountTag acctName adi) (aditags adi)
+
+    checkAccountTag acctName adi (k, v)
+      | T.toLower k /= "lots"       = Right ()
+      | T.null (T.strip v)          = Right ()
+      | Just _ <- parseReductionMethod v = Right ()
+      | otherwise = Left $ printf msg f l ex (show v)
+          where (f, l, _mcols, ex) = makeAccountTagErrorExcerpt (acctName, adi) k
+
+-- | To all postings in the journal, add any tags from their amount's commodities.
+-- Tags are added to ptags (making them queryable) but not to pcomment (so they don't appear in print output).
+-- If a tag already exists on the posting, it is not changed (the commodity tag will be ignored).
+journalPostingsAddCommodityTags :: Journal -> Journal
+journalPostingsAddCommodityTags j = journalMapPostings addtags j
+  where
+    addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
+
+-- | For acquire postings (positive amounts) whose commodity or account has a 'lots:' tag,
+-- infer cost basis from transacted cost and posting date.
+-- Must be called before journalClassifyLotPostings.
+journalInferPostingsCostBasis :: Journal -> Journal
+journalInferPostingsCostBasis j = journalMapPostings (postingInferCostBasis j) j
+
+postingInferCostBasis :: Journal -> Posting -> Posting
+postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pamount p}
+  where
+    amountInferCostBasis :: Amount -> Amount
+    amountInferCostBasis a
+      | aquantity a <= 0                  = a  -- only positive (acquire) amounts
+      | isJust (acostbasis a)             = a  -- already has cost basis
+      | Nothing <- acost a                = a  -- no transacted cost
+      | not (journalCommodityUsesLots j (acommodity a) || postingUsesLots p) = a  -- commodity/account not lot-tracked
+      | Just cost <- acost a              = a{acostbasis = Just (costToCostBasis (aquantity a) cost)}
+
+    costToCostBasis :: Quantity -> AmountCost -> CostBasis
+    costToCostBasis qty cost = CostBasis{cbCost=Just ucost, cbDate=Nothing, cbLabel=Nothing}
+      where
+        ucost = case cost of
+          UnitCost  amt -> amt
+          TotalCost amt | qty /= 0  -> amt{aquantity = aquantity amt / abs qty}
+                        | otherwise -> amt
+
+-- | For positive postings with a cost basis, which are not lot transfers,
+-- infer transacted cost from cost basis.
+-- Must be called after journalClassifyLotPostings so ptype tags are available.
+journalInferPostingsTransactedCost :: Journal -> Journal
+journalInferPostingsTransactedCost = journalMapPostings postingInferTransactedCost
+
+postingInferTransactedCost :: Posting -> Posting
+postingInferTransactedCost p
+  | ("_ptype", "transfer-to") `elem` ptags p = p   -- not for transfer postings
+  | pamount p' == pamount p = p                    -- nothing changed
+  | otherwise               = p'{poriginal = Just $ originalPosting p}
+  where
+    p' = p{pamount = mapMixedAmount amountInferTransactedCost $ pamount p}
+    amountInferTransactedCost :: Amount -> Amount
+    amountInferTransactedCost a
+      | aquantity a <= 0                                    = a  -- only positive amounts
+      | isJust (acost a)                                    = a  -- already has transacted cost
+      | Just CostBasis{cbCost=Just c} <- acostbasis a       = a{acost = Just (UnitCost c)}
+      | otherwise                                           = a
 
 -- | The account name to use for conversion postings generated by --infer-equity.
 -- This is the first account declared with type V/Conversion,

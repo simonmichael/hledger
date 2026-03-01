@@ -6,6 +6,7 @@ Helpers for beancount output.
 
 module Hledger.Write.Beancount (
   showTransactionBeancount,
+  showPriceDirectiveBeancount,
   -- postingsAsLinesBeancount,
   -- postingAsLinesBeancount,
   -- showAccountNameBeancount,
@@ -77,6 +78,17 @@ showTransactionBeancount t =
     (samelinecomment, newlinecomments) =
       case renderCommentLines (tcomment t) of []   -> ("",[])
                                               c:cs -> (c,cs)
+
+-- | Render a PriceDirective in Beancount format: DATE price COMMODITY AMOUNT
+showPriceDirectiveBeancount :: PriceDirective -> Text
+showPriceDirectiveBeancount pd =
+  showDate (pddate pd)
+  <> " price "
+  <> commodityToBeancount (pdcommodity pd)
+  <> " "
+  <> wbToText (showAmountB beancountPriceFmt $ amountToBeancount $ pdamount pd)
+  where
+    beancountPriceFmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
 
 nl = "\n"
 
@@ -200,11 +212,16 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- amtwidth at all.
     shownAmounts
       | elideamount = [mempty]
-      | otherwise   = map addCostBasis $ showMixedAmountLinesPartsB displayopts a'
+      | otherwise   = map addCostBasisAndCost amtParts
         where
-          displayopts = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False, displayCostBasis=False }
+          -- render amounts without cost or cost basis; we append them in beancount order (costbasis before cost) below
+          basefmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False, displayCost=False, displayCostBasis=False }
+          costfmt = defaultFmt{ displayZeroCommodity=True, displayForceDecimalMark=True, displayQuotes=False }
           a' = mapMixedAmount amountToBeancount $ pamount p
-          addCostBasis (builder, amt) = builder <> showAmountCostBasisBeancountB displayopts amt
+          -- get the display builders (with costs stripped) paired with the original amounts (with costs intact)
+          amtParts = zip (map fst $ showMixedAmountLinesPartsB basefmt a') (amounts a')
+          addCostBasisAndCost (builder, amt) =
+            builder <> showAmountCostBasisBeancountB costfmt amt <> showAmountCostB costfmt amt
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
 
     -- when there is a balance assertion, show it only on the last posting line
@@ -217,7 +234,10 @@ postingAsLinesBeancount elideamount acctwidth amtwidth p =
     -- pad to the maximum account name width, plus 2 to leave room for status flags, to keep amounts aligned
     statusandaccount = postingIndent . fitText (Just $ 2 + acctwidth) Nothing False True $ pstatusandacct p
     thisacctwidth = realLength pacct
-    mds = tagsToBeancountMetadata $ ptags p
+    mds = tagsToBeancountMetadata $ filter (tagInComment (pcomment p)) (ptags p)
+    tagInComment c (n,_) = case toRegex ("\\b" <> n <> ":") of
+      Right r -> regexMatchText r c
+      Left _  -> False
     metadatalines = map (postingIndent . showBeancountMetadata (Just maxtagnamewidth)) mds
       where maxtagnamewidth = maximum' $ map (T.length . fst) mds
     (samelinecomment, newlinecomments) =
@@ -247,8 +267,11 @@ accountNameToBeancount a = b
     cs1 =
       map accountNameComponentToBeancount $ accountNameComponents $
       dbg9 "hledger account name  " a
+    cs1' = case cs1 of
+      (c:cs) | T.toLower c `elem` ["revenue", "revenues"] -> "Income":cs
+      cs -> cs
     cs2 =
-      case cs1 of
+      case cs1' of
         c:_ | c `notElem` beancountTopLevelAccounts -> error' e
           where
             e = T.unpack $ T.unlines [
@@ -322,6 +345,8 @@ amountToBeancount a@Amount{acommodity=c,astyle=s,acost=mp} = a{acommodity=c', as
 showAmountCostBasisBeancountB :: AmountFormat -> Amount -> WideBuilder
 showAmountCostBasisBeancountB afmt amt = case acostbasis amt of
   Nothing -> mempty
+  Just CostBasis{cbCost=Nothing, cbDate=Nothing, cbLabel=Nothing} ->
+    WideBuilder (TB.fromString " {}") 3
   Just CostBasis{cbCost, cbDate, cbLabel} ->
     case parts of
       [] -> mempty
@@ -347,10 +372,11 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- replaces spaces with dashes and other invalid characters with C<HEXBYTES>,
 -- prepends a C if the first character is not a letter,
 -- appends a C if the last character is not a letter or digit,
+-- doubles it if less than 2 characters,
 -- and disables hledger's enclosing double quotes.
 --
 -- >>> commodityToBeancount ""
--- "C"
+-- "CC"
 -- >>> commodityToBeancount "$"
 -- "USD"
 -- >>> commodityToBeancount "Usd"
@@ -359,8 +385,11 @@ type BeancountCommoditySymbol = CommoditySymbol
 -- "A1"
 -- >>> commodityToBeancount "\"A 1!\""
 -- "A-1C21"
+-- >>> commodityToBeancount "K"
+-- "KK"
 --
 commodityToBeancount :: CommoditySymbol -> BeancountCommoditySymbol
+commodityToBeancount "" = "CC"
 commodityToBeancount com =
   dbg9 "beancount commodity name" $
   let com' = stripquotes com
@@ -372,6 +401,7 @@ commodityToBeancount com =
       & T.concatMap (\d -> if isBeancountCommodityChar d then T.singleton d else T.pack $ charToBeancount d)
       & fixstart
       & fixend
+      & fixshort
   where
     fixstart bcom = case T.uncons bcom of
       Just (c,_) | isBeancountCommodityStartChar c -> bcom
@@ -379,6 +409,9 @@ commodityToBeancount com =
     fixend bcom = case T.unsnoc bcom of
       Just (_,c) | isBeancountCommodityEndChar c -> bcom
       _ -> bcom <> "C"
+    fixshort bcom
+      | T.length bcom < 2 = bcom <> bcom   -- e.g. "K" -> "KK"
+      | otherwise          = bcom
 
 -- | Is this a valid character in the middle of a Beancount commodity name (a capital letter, digit, or '._-) ?
 isBeancountCommodityChar :: Char -> Bool

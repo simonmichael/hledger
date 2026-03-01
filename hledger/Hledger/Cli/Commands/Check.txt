@@ -59,7 +59,9 @@ correct:
   against mistyping or omitting commodity symbols.
 
 - accounts - all account names used must be declared. This prevents the
-  use of mis-spelled or outdated account names.
+  use of mis-spelled or outdated account names. (Except lot subaccounts,
+  like :{2026-01-15, $50}, which are automatically exempt; only their
+  base account needs to be declared.)
 
 Other checks
 

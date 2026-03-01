@@ -1,0 +1,252 @@
+# Testing lot disposal journal entry variations, systematically.
+
+# * Dispose
+
+# ** With commodity/account not declared lotful
+
+# *** 1. dispose: {$50} @ $55, non-lotful commodity/account, non-asset. We'll let cost basis force a disposal, even from an unknown account type.
+<
+2026-01-01 buy
+    equity:opening    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 sell
+    equity:opening    -5 AAPL {$50} @ $55
+    assets:cash       $275
+    revenue:gains    -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    equity:opening:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                    $275
+    revenue:gains                                                  $-25  ; ptype: gain
+
+>=
+
+# *** 2. dispose: {$50} @ $55, non-lotful commodity/account, asset. Disposal detected.
+<
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+    revenue:gains   -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain
+
+>=
+
+# ** With lotful commodity/account
+
+# *** 3. dispose: implicit selling price. FIFO lot selected, disposal detected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL
+    assets:cash       $275
+    revenue:gains    -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain
+
+>=
+
+# *** 4. dispose: @ $55. FIFO lot selected, disposal detected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL @ $55
+    assets:cash      $275
+    revenue:gains   -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain
+
+>=
+
+# *** 5. dispose: {$50}, implicit selling price, explicit lot selector. Disposal detected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50}
+    assets:cash       $275
+    revenue:gains    -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+
+>=
+
+# *** 6. dispose: {} @ $55. Disposal detected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {} @ $55
+    assets:cash      $275
+    revenue:gains   -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain
+
+>=
+
+# *** 7. dispose: {$50} @ $55. Disposal detected.
+# Also shows that a Gain-type account can be declared explicitly with type: G.
+<
+commodity AAPL  ; lots:
+account capital gains  ; type: G
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+    capital gains   -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    capital gains                                                 $-25  ; ptype: gain
+
+>=
+
+# *** 8. dispose: {$50} @@ $275. Disposal detected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @@ $275
+    assets:cash      $275
+    revenue:gains   -$25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @@ $275  ; ptype: dispose
+    assets:cash                                                     $275
+    revenue:gains                                                   $-25  ; ptype: gain
+
+>=
+
+# ** Disposal balancing validation
+
+# *** 9. dispose at cost: no gain/loss, transaction balances at cost basis.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $50
+    assets:cash      $250
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $50  ; ptype: dispose
+    assets:cash                                                   $250
+
+>=
+
+# *** 10. dispose: wrong gain amount. Disposal balancing rejects this.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+    revenue:gains   -$30
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+>2 /disposal transaction is unbalanced at cost basis/
+>=1
+
+# *** 11. dispose: missing gain posting is inferred from Gain account.
+<
+commodity AAPL  ; lots:
+account revenue:gains  ; type: G
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain, generated-posting:
+
+>=
+
+# *** 12. dispose: missing gain posting, no Gain account declared → defaults to revenue:gains.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
+    assets:cash                                                   $275
+    revenue:gains                                                 $-25  ; ptype: gain, generated-posting:
+
+>=

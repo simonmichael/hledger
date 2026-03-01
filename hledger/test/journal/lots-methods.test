@@ -1,0 +1,317 @@
+# Testing lot reduction methods: FIFO (default), LIFO, FIFO1, LIFO1.
+# Where possible, disposals use a selling price different from cost basis
+# to exercise gain/loss posting exclusion from transaction balancing.
+
+# * Reduction methods
+
+# ** 1. LIFO disposal via commodity tag: newest lot consumed first.
+<
+commodity AAPL  ; lots: LIFO
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -15 AAPL {} @ $55
+    assets:cash      $825
+    revenue:gains    $-75
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 2. LIFO disposal via account tag: newest lot consumed first.
+<
+account assets:stocks  ; lots: LIFO
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -10 AAPL {} @ $50
+    assets:cash      $500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 3. Account tag overrides commodity tag.
+<
+commodity AAPL  ; lots: FIFO
+account assets:stocks  ; lots: LIFO
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -10 AAPL {} @ $50
+    assets:cash      $500
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $50}
+
+# ** 4. Bare lots: tag (no value) defaults to FIFO: oldest lot consumed first.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell some
+    assets:stocks   -15 AAPL {} @ $55
+    assets:cash      $825
+    revenue:gains    $-75
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-02-01, $50}
+
+# ** 5. FIFO1 disposal: per-account scope, oldest first.
+# Lots in broker2 are untouched even though they exist.
+<
+commodity AAPL  ; lots: FIFO1
+
+2026-01-15 buy in broker1
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2    5 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell from broker1
+    assets:broker1   -10 AAPL {} @ $50
+    assets:cash       $500
+
+$ hledger -f- bal assets:broker --lots -N
+              5 AAPL  assets:broker2:{2026-02-01, $50}
+
+# ** 6. FIFO1 vs FIFO: with insufficient lots in one account, FIFO1 fails
+# even if another account has enough lots.
+<
+commodity AAPL  ; lots: FIFO1
+
+2026-01-15 buy in broker1
+    assets:broker1    5 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2   10 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell too many from broker1
+    assets:broker1   -8 AAPL {} @ $50
+    assets:cash       $400
+
+$ hledger -f- bal assets:broker --lots
+>2 /insufficient lots/
+>=1
+
+# ** 7. LIFO1 disposal: per-account scope, newest first.
+# broker2's 2026-03-01 lot is newer globally but LIFO1 is scoped to broker1.
+<
+commodity AAPL  ; lots: LIFO1
+
+2026-01-15 buy in broker1 lot 1
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker1 lot 2
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-03-01 buy in broker2
+    assets:broker2   10 AAPL {$50}
+    assets:checking
+
+2026-04-01 sell from broker1
+    assets:broker1   -10 AAPL {} @ $50
+    assets:cash       $500
+
+$ hledger -f- bal assets:broker --lots -N
+             10 AAPL  assets:broker1:{2026-01-15, $50}
+             10 AAPL  assets:broker2:{2026-03-01, $50}
+
+# ** 8. LIFO transfer: lots are transferred newest first.
+<
+commodity AAPL  ; lots: LIFO
+
+2026-01-15 buy lot 1
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:broker1    5 AAPL {$50}
+    assets:checking
+
+2026-03-01 transfer some
+    assets:broker1   -8 AAPL {}
+    assets:broker2    8 AAPL {}
+
+$ hledger -f- bal assets:broker --lots -N
+              7 AAPL  assets:broker1:{2026-01-15, $50}
+              3 AAPL  assets:broker2:{2026-01-15, $50}
+              5 AAPL  assets:broker2:{2026-02-01, $50}
+
+# ** 9. FIFO1 multi-lot disposal within one account: oldest lots consumed first.
+<
+account assets:broker  ; lots: FIFO1
+
+2026-01-15 buy lot 1
+    assets:broker    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:broker     5 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell spanning lots
+    assets:broker   -12 AAPL {} @ $50
+    assets:cash      $600
+
+$ hledger -f- bal assets:broker --lots -N
+              3 AAPL  assets:broker:{2026-02-01, $50}
+
+# ** 10. HIFO disposal: highest cost lot consumed first.
+<
+commodity AAPL  ; lots: HIFO
+
+2026-01-15 buy lot 1 (cheap)
+    assets:stocks    10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy lot 2 (expensive)
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 buy lot 3 (medium)
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-04-01 sell some
+    assets:stocks   -15 AAPL {} @ $65
+    assets:cash      $975
+    revenue:gains    $-125
+
+$ hledger -f- bal assets:stocks --lots -N
+             10 AAPL  assets:stocks:{2026-01-15, $40}
+              5 AAPL  assets:stocks:{2026-03-01, $50}
+
+# ** 11. HIFO1 disposal: per-account scope, highest cost first.
+# broker2's expensive lot is untouched because HIFO1 is scoped to broker1.
+<
+commodity AAPL  ; lots: HIFO1
+
+2026-01-15 buy in broker1 (cheap)
+    assets:broker1   10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy in broker1 (expensive)
+    assets:broker1   10 AAPL {$60}
+    assets:checking
+
+2026-03-01 buy in broker2 (very expensive)
+    assets:broker2   10 AAPL {$80}
+    assets:checking
+
+2026-04-01 sell from broker1
+    assets:broker1   -10 AAPL {} @ $65
+    assets:cash       $650
+    revenue:gains     $-50
+
+$ hledger -f- bal assets:broker --lots -N
+             10 AAPL  assets:broker1:{2026-01-15, $40}
+             10 AAPL  assets:broker2:{2026-03-01, $80}
+
+# ** 12. AVERAGE disposal: weighted average cost basis.
+# Two lots at different costs; disposal uses the weighted average cost ($50).
+# Lot subaccounts retain original acquisition costs in their names.
+# The gain posting ($-25) confirms average cost is used: 5 * ($55 - $50) = $25.
+# With FIFO (non-average), the gain would be 5 * ($55 - $40) = $75.
+<
+commodity AAPL  ; lots: AVERAGE
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell some (average cost is $50)
+    assets:stocks    -5 AAPL {} @ $55
+    assets:cash       $275
+    revenue:gains    $-25
+
+$ hledger -f- bal assets:stocks --lots -N
+              5 AAPL  assets:stocks:{2026-01-15, $40}
+             10 AAPL  assets:stocks:{2026-02-01, $60}
+
+# ** 13. AVERAGE1 disposal: per-account weighted average cost basis.
+# Each account has its own average. broker1 avg = (10*40 + 10*60)/20 = $50.
+# broker2's $80 lots are excluded from the average since AVERAGE1 scopes per-account.
+<
+commodity AAPL  ; lots: AVERAGE1
+
+2026-01-15 buy in broker1 (cheap)
+    assets:broker1   10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy in broker1 (expensive)
+    assets:broker1   10 AAPL {$60}
+    assets:checking
+
+2026-03-01 buy in broker2
+    assets:broker2   10 AAPL {$80}
+    assets:checking
+
+2026-04-01 sell from broker1 (avg cost $50)
+    assets:broker1    -5 AAPL {} @ $55
+    assets:cash        $275
+    revenue:gains     $-25
+
+$ hledger -f- bal assets:broker --lots -N
+              5 AAPL  assets:broker1:{2026-01-15, $40}
+             10 AAPL  assets:broker1:{2026-02-01, $60}
+             10 AAPL  assets:broker2:{2026-03-01, $80}
+
+# ** 14. AVERAGE with partial disposal: average is of the entire pool.
+# Pool avg = (10*30 + 20*60)/30 = $50. Only 3 units consumed from first lot.
+# Gain = 3 * ($55 - $50) = $15.
+<
+commodity AAPL  ; lots: AVERAGE
+
+2026-01-15 buy lot 1
+    assets:stocks    10 AAPL {$30}
+    assets:checking
+
+2026-02-01 buy lot 2
+    assets:stocks    20 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell a few (pool avg = (10*30 + 20*60)/30 = $50)
+    assets:stocks    -3 AAPL {} @ $55
+    assets:cash       $165
+    revenue:gains    $-15
+
+$ hledger -f- bal assets:stocks --lots -N
+              7 AAPL  assets:stocks:{2026-01-15, $30}
+             20 AAPL  assets:stocks:{2026-02-01, $60}

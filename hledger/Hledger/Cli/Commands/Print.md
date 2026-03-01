@@ -25,7 +25,8 @@ Flags:
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, beancount, csv, tsv, html, fods, json, sql.
+                            txt, ledger, beancount, csv, tsv, html, fods, json,
+                            sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 ```
@@ -151,7 +152,11 @@ This command also supports the
 [output destination](hledger.html#output-destination) and
 [output format](hledger.html#output-format) options
 The output formats supported are
-`txt`, `beancount` (*Added in 1.32*), `csv`, `tsv` (*Added in 1.32*), `json` and `sql`.
+`txt`, `ledger`, `beancount` (*Added in 1.32*), `csv`, `tsv` (*Added in 1.32*), `json` and `sql`.
+
+The `ledger` format is currently the same as `txt` except it renders amounts' cost basis
+using Ledger's lot syntax (`[DATE] (LABEL) {COST}`)
+instead of hledger's (`{DATE, "LABEL", COST}`).
 
 The `beancount` format tries to produce Beancount-compatible output, as follows:
 
