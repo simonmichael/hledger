@@ -9,7 +9,7 @@ Here are some current policies on AI use in the hledger project:
 
 - hledger 1.x has been developed without AI assistance.
 
-- hledger 2.x is developed with careful AI-assistance.
+- hledger 2.x is developed with careful AI assistance.
 
 - hledger does not use AI at runtime.
 
@@ -19,11 +19,16 @@ Here are some current policies on AI use in the hledger project:
 Justification for AI use in this project:
 
 - I needed it to fully design and implement robust automated lot tracking in hledger.
-  This is a valuable (I hope) feature, that I have been wanting for years, but it was just too big to tackle.
-  Use of AI tools made it possible, and I think it was unlikely to ever happen without them.
+  This is a feature that I have been wanting for years, but it was just too big/intricate to tackle.
+  Use of AI tools made it possible. I think it's unlikely hledger would have ever got this feature without them.
+
+- I believe this new implementation provides flexibility currently not available elsewhere
+  (Beancount/Ledger/rustledger/BittyTax/rotki/RP2/..) - private, plain text, and capable of modelling 
+  most real world lot operations and US pre- and post-2025 booking methods.
+  This provides (I hope) real world value.
 
 - I hope it is overall more efficient in resources and human energy,
-  to use AI once to develop efficient deterministic software providing real world value to many,
+  Using AI once to develop efficient deterministic software
   than to have everyone using AI to try and do the same tasks less efficiently and less reliably.
   Ie, let's move the AI use upstream as far as possible - use it briefly at design/implementation time,
   not repeatedly at usage time.
