@@ -18,6 +18,10 @@ Here are some current policies on AI use in the hledger project:
 
 Justification for AI use in this project:
 
+- I needed it to fully design and implement robust automated lot tracking in hledger.
+  This is a valuable (I hope) feature, that I have been wanting for years, but it was just too big to tackle.
+  Use of AI tools made it possible, and I think it was unlikely to ever happen without them.
+
 - I hope it is overall more efficient in resources and human energy,
   to use AI once to develop efficient deterministic software providing real world value to many,
   than to have everyone using AI to try and do the same tasks less efficiently and less reliably.
