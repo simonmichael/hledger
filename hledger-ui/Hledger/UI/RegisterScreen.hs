@@ -73,7 +73,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         maxamtswidth = max 0 (totalwidth - minnonamtcolswidth - whitespacewidth)
         maxchangewidthseen = maximum' $ map (wbWidth . rsItemChangeAmount) displayitems
         maxbalwidthseen = maximum' $ map (wbWidth . rsItemBalanceAmount) displayitems
-        changewidthproportion = fromIntegral maxchangewidthseen / fromIntegral (maxchangewidthseen + maxbalwidthseen)
+        changewidthproportion = fromIntegral maxchangewidthseen `divideSafe` fromIntegral (maxchangewidthseen + maxbalwidthseen)
         maxchangewidth = round $ changewidthproportion * fromIntegral maxamtswidth
         maxbalwidth = maxamtswidth - maxchangewidth
         changewidth = min maxchangewidth maxchangewidthseen
@@ -94,7 +94,7 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
         -- allocating equally.
         descwidth = maxdescacctswidth `div` 2
         acctswidth = maxdescacctswidth - descwidth
-        colwidths = (max 0 datewidth,max 0 descwidth,max 0 acctswidth,max 0 changewidth,max 0 balwidth)
+        colwidths = (datewidth,descwidth,acctswidth,changewidth,balwidth)
 
       render $ defaultLayout toplabel bottomlabel $ renderList (rsDrawItem colwidths) True _rssList
 

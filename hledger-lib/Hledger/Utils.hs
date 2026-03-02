@@ -18,6 +18,8 @@ module Hledger.Utils (
   curry4,
   uncurry4,
 
+  divideSafe,
+
   -- * Lists
   maximum',
   maximumStrict,
@@ -145,6 +147,11 @@ curry4 f w x y z = f (w, x, y, z)
 
 uncurry4 :: (a -> b -> c -> d -> e) -> (a, b, c, d) -> e
 uncurry4 f (w, x, y, z) = f w x y z
+
+-- | Division, returning 0 when the denominator is 0.
+divideSafe :: (Eq a, Fractional a) => a -> a -> a
+divideSafe _ 0 = 0
+divideSafe a b = a / b
 
 -- Lists
 
