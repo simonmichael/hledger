@@ -269,7 +269,6 @@ rsHandle ev = do
             VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection (regenerateScreens j d $ togglePending ui) >>= put'
             VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection (regenerateScreens j d $ toggleCleared ui) >>= put'
             VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection (regenerateScreens j d $ toggleForecast d ui) >>= put'
-			-- J/K Jumps: move 10 rows at a time
             VtyEvent (EvKey (KChar 'J') []) -> do
               let l' = listMoveBy 10 _rssList
               let l'' = if isBlankElement (listSelectedElement l')

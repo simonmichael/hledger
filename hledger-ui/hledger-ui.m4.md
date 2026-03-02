@@ -102,8 +102,9 @@ The cursor keys navigate:
 `RIGHT` or `ENTER` goes deeper,
 `LEFT` returns to the previous screen,
 `UP`/`DOWN`/`PGUP`/`PGDN`/`HOME`/`END` move up and down through lists.
+`J`/`K` jump down/up 10 items at a time.
 Emacs-style (`CTRL-p`/`CTRL-n`/`CTRL-f`/`CTRL-b`)
-and VI-style (`k`,`j`,`l`,`h`) 
+and VI-style (`k`,`j`,`l`,`h`)
 movement keys are also supported.
 
 (Tip: movement speed is limited by your keyboard repeat rate, to move faster you may want to adjust it.
