@@ -279,7 +279,7 @@ accountTransactionsReportItemAsText
         mincolwidth = 2 -- columns always show at least an ellipsis
         maxamtswidth = max 0 (totalwidth - (datewidth + 1 + mincolwidth + 2 + mincolwidth + 2 + 2))
         shortfall = (preferredamtwidth + preferredbalwidth) - maxamtswidth
-        amtwidthproportion = fromIntegral preferredamtwidth / fromIntegral (preferredamtwidth + preferredbalwidth)
+        amtwidthproportion = fromIntegral preferredamtwidth `divideSafe` fromIntegral (preferredamtwidth + preferredbalwidth)
         adjustedamtwidth = round $ amtwidthproportion * fromIntegral maxamtswidth
         adjustedbalwidth = maxamtswidth - adjustedamtwidth
 

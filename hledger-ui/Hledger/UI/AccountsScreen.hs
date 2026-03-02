@@ -93,7 +93,7 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
 
             totalwidthseen = totalacctwidthseen + totalbalwidthseen
             shortfall = preferredacctwidth + preferredbalwidth + 2 - availwidth
-            acctwidthproportion = fromIntegral totalacctwidthseen / fromIntegral totalwidthseen
+            acctwidthproportion = fromIntegral totalacctwidthseen `divideSafe` fromIntegral totalwidthseen
             adjustedacctwidth = min preferredacctwidth . max 15 . round $ acctwidthproportion * fromIntegral (availwidth - 2)  -- leave 2 whitespace for padding
             adjustedbalwidth  = availwidth - 2 - adjustedacctwidth
 
