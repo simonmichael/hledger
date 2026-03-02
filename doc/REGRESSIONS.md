@@ -239,7 +239,7 @@ Fixer  bounties began on 2024-01-01.
 | **1.51** 2025-12-05      | ---       | ---                                                                              | ---
 | [#2503]                  | 1.50.5, 1.51.1 | Simon Michael (N/A)                                                         | Simon Michael (N/A)
 | **1.51.2** 2026-01-08    | ---       | ---                                                                              | ---
-| [#2503]                  |           | pierovera                                                                        | Simon Michael (N/A)
+| [#2553]                  |           | pierovera                                                                        | Simon Michael (N/A)
 
 
 
