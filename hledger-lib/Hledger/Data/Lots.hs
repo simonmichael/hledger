@@ -70,7 +70,8 @@ journalCalculateLots:
 
 * poolWeightedAvgCost:
   "no lots with cost basis available for averaging",
-  "cannot average lots with different cost commodities"
+  "cannot average lots with different cost commodities",
+  "cannot average lots with zero total quantity"
 
 * journalInferAndCheckDisposalBalancing:
   "This disposal transaction has multiple amountless gain postings",
@@ -1318,7 +1319,9 @@ poolWeightedAvgCost posStr lots = do
         | otherwise ->
             let totalQty  = sum [q | (q, _) <- costs]
                 totalCost = sum [q * aquantity c | (q, c) <- costs]
-            in Right firstCost{aquantity = totalCost / totalQty}
+            in if totalQty == 0
+               then Left $ posStr ++ "cannot average lots with zero total quantity"
+               else Right firstCost{aquantity = totalCost / totalQty}
 
 -- | Is this an all-Nothing (wildcard) lot selector, i.e. from @{}@?
 isWildcardSelector :: CostBasis -> Bool
