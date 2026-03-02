@@ -123,7 +123,7 @@ themesList = [
     , (attrName "list" <> attrName "balance" <> attrName "negative"                        , fg red)
     , (attrName "list" <> attrName "balance" <> attrName "positive"                        , fg white)
     , (attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` black    & bold)
-    , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , yellow `on` black & bold)
+    , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , cyan `on` black & bold)
     , (attrName "list" <> attrName "selected"                                              , cyan `on` black & bold)
   ])
 
