@@ -385,8 +385,10 @@ multiplyAmount :: Quantity -> Amount -> Amount
 multiplyAmount n = transformAmount (*n)
 
 -- | Invert an amount (replace its quantity q with 1/q).
--- (Its cost if any is not changed, currently.)
+-- The amount's transacted price, if any, is not changed.
+-- An amount with zero quantity is left unchanged.
 invertAmount :: Amount -> Amount
+invertAmount a@Amount{aquantity=0} = a
 invertAmount a@Amount{aquantity=q} = a{aquantity=1/q}
 
 -- | Is this amount negative ? The cost is ignored.
