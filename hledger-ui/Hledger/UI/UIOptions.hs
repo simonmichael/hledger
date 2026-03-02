@@ -116,7 +116,8 @@ rawOptsToUIOpts rawopts = do
   where
     -- show historical balance by default (unlike hledger)
     accum = fromMaybe Historical $ balanceAccumulationOverride rawopts
-    checkTheme t = if t `M.member` themes then t else usageError $ "invalid theme name: " ++ t
+    checkTheme t = let t' = if t == "default" then "light" else t  -- "default" is a deprecated alias for "light"
+                   in if t' `M.member` themes then t' else usageError $ "invalid theme name: " ++ t
 
 -- XXX some refactoring seems due
 getHledgerUIOpts :: IO UIOpts

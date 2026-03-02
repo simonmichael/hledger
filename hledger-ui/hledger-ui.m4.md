@@ -58,8 +58,8 @@ hledger-ui provides the following options:
 Flags:
   -w --watch                watch for data and date changes and reload
                             automatically
-     --theme=THEME          use this custom display theme (default,
-                            greenterm, terminal, dark)
+     --theme=THEME          use this custom display theme (light,
+                            dark, terminal, greenterm)
      --cash                 start in the cash accounts screen
      --bs                   start in the balance sheet accounts screen
      --is                   start in the income statement accounts screen

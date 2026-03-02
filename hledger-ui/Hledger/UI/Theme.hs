@@ -94,16 +94,6 @@ themesList = [
     -- ,(attrName "list" <> attrName "selected"                         , black `on` brightYellow)
   ])
 
-  ,("greenterm", attrMap (green `on` black) [
-    (attrName "list" <> attrName "selected"                             , black `on` green)
-  ])
-
-  ,("terminal", attrMap defAttr [
-    (attrName "border"                                         , white `on` black),
-    (attrName "list"                                           , defAttr),
-    (attrName "list" <> attrName "selected"                             , defAttr & reverseVideo)
-  ])
-
   ,("dark", attrMap (white `on` black & dim) [
       (attrName "border"                                                                   , white `on` black)
     , (attrName "border" <> attrName "bold"                                                , currentAttr & bold)
@@ -125,6 +115,16 @@ themesList = [
     , (attrName "list" <> attrName "balance" <> attrName "negative" <> attrName "selected" , red `on` black    & bold)
     , (attrName "list" <> attrName "balance" <> attrName "positive" <> attrName "selected" , cyan `on` black & bold)
     , (attrName "list" <> attrName "selected"                                              , cyan `on` black & bold)
+  ])
+
+  ,("terminal", attrMap defAttr [
+    (attrName "border"                                         , white `on` black),
+    (attrName "list"                                           , defAttr),
+    (attrName "list" <> attrName "selected"                             , defAttr & reverseVideo)
+  ])
+
+  ,("greenterm", attrMap (green `on` black) [
+    (attrName "list" <> attrName "selected"                             , black `on` green)
   ])
 
   ]
