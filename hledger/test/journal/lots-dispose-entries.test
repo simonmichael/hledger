@@ -101,9 +101,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
-    assets:cash                                 $275
-    revenue:gains                               $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50}  ; ptype: dispose
+    assets:cash                                             $275
+    revenue:gains                                           $-25  ; ptype: gain
 
 >=
 
