@@ -1126,12 +1126,12 @@ processTransferPair verbosetags j t lotState fromP toP = do
     -- When cost basis is present, use it directly as the lot selector.
     -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
     let fromAmts = [(a, cb) | a <- amountsRaw (pamount fromP), Just cb <- [acostbasis a]]
-    (fromAmt, fromCb, isBare) <- case fromAmts of
-      [x] -> Right (fst x, snd x, False)
+    (fromAmt, fromCb) <- case fromAmts of
+      [x] -> Right x
       _   -> do
         let bareAmts = [a | a <- amountsRaw (pamount fromP), isNegativeAmount a]
         case bareAmts of
-          [a] -> Right (a, CostBasis Nothing Nothing Nothing, True)
+          [a] -> Right (a, CostBasis Nothing Nothing Nothing)
           _   -> Left $ showPos ++ "transfer-from posting has no cost basis"
 
     let commodity = acommodity fromAmt
@@ -1163,7 +1163,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
                  _         -> Nothing
 
     -- For each selected lot, generate from and to postings
-    (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isBare fromAmt toCb commodity) selected
+    (fromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings fromAmt toCb commodity) selected
 
     -- Update lot state: remove from source, add to destination
     -- Use base accounts (without lot subaccount) for LotState keys.
@@ -1180,7 +1180,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
   where
     showPos = txnErrPrefix t
 
-    mkTransferPostings isBare' fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
+    mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
         lotBasis <- case acostbasis storedAmt >>= cbCost of
           Just c  -> Right c
           Nothing -> Left $ showPos ++ "lot " ++ show lotId
@@ -1201,40 +1201,22 @@ processTransferPair verbosetags j t lotState fromP toP = do
 
         let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
             toAmt'   = amountSetQuantity consumedQty fromAmt'
-        if isBare'
-          then do
-            -- For bare transfers, update poriginal so print shows the inferred cost basis.
-            let origFromP = originalPosting fromP
-                origFromP' = origFromP{pamount = mapMixedAmount (updateBare commodity lotCb (negate consumedQty)) (pamount origFromP)}
-                origToP = originalPosting toP
-                origToP' = origToP{pamount = mapMixedAmount (updateBare commodity lotCb consumedQty) (pamount origToP)}
-                fromP' = fromP{ paccount = fromAcct
-                              , pamount  = mixedAmount fromAmt'
-                              , poriginal = Just origFromP'
-                              }
-                toP'   = toP{ paccount = toAcct
-                            , pamount  = mixedAmount toAmt'
-                            , poriginal = Just origToP'
-                            }
-            Right (fromP', toP')
-          -- Non-bare: user wrote explicit {$50} on from/to.
-          -- Set poriginal so print consistently shows the resolved lot CB.
-          else do
-            let origFromP = originalPosting fromP
-                origFromP' = origFromP{pamount = mapMixedAmount (updateBare commodity lotCb (negate consumedQty)) (pamount origFromP)}
-                origToP = originalPosting toP
-                origToP' = origToP{pamount = mapMixedAmount (updateBare commodity lotCb consumedQty) (pamount origToP)}
-                fromP' = fromP{ paccount = fromAcct
-                              , pamount  = mixedAmount fromAmt'
-                              , poriginal = Just origFromP'
-                              }
-                toP'   = toP{ paccount = toAcct
-                            , pamount  = mixedAmount toAmt'
-                            , poriginal = Just origToP'
-                            }
-            Right (fromP', toP')
+            -- Update poriginal so print shows the resolved lot CB.
+            origFromP = originalPosting fromP
+            origFromP' = origFromP{pamount = mapMixedAmount (updateOrig commodity lotCb (negate consumedQty)) (pamount origFromP)}
+            origToP = originalPosting toP
+            origToP' = origToP{pamount = mapMixedAmount (updateOrig commodity lotCb consumedQty) (pamount origToP)}
+            fromP' = fromP{ paccount = fromAcct
+                          , pamount  = mixedAmount fromAmt'
+                          , poriginal = Just origFromP'
+                          }
+            toP'   = toP{ paccount = toAcct
+                        , pamount  = mixedAmount toAmt'
+                        , poriginal = Just origToP'
+                        }
+        Right (fromP', toP')
 
-    updateBare commodity lotCb qty a
+    updateOrig commodity lotCb qty a
       | acommodity a == commodity = (amountSetQuantity qty a){acostbasis = Just lotCb}
       | otherwise = a
 
