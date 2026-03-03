@@ -898,6 +898,11 @@ amountCostToUnitCost qty (TotalCost c)
   | qty == 0  = c
   | otherwise = c{aquantity = aquantity c / qty}
 
+-- | Normalize an amount's transacted cost to UnitCost form (converting TotalCost by dividing by quantity).
+-- Returns Nothing if the amount has no transacted cost.
+amountNormalizeCostToUnit :: Amount -> Maybe AmountCost
+amountNormalizeCostToUnit a = fmap (UnitCost . amountCostToUnitCost (aquantity a)) (acost a)
+
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
@@ -969,9 +974,8 @@ processAcquirePosting needsLabels txnDate t lotState p = do
 
         let -- For bare acquires with inferred CB, normalize transacted cost to UnitCost
             -- in the posting's pamount (not in poriginal — that preserves what the user wrote).
-            normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
             p' = p{paccount = expectedAcct
-                   ,pamount  = mixedAmount $ if isBare && cbInferred then postingAmt{acost = normalizedCost} else postingAmt
+                   ,pamount  = mixedAmount $ if isBare && cbInferred then postingAmt{acost = amountNormalizeCostToUnit lotAmt} else postingAmt
                    ,poriginal = Just (originalPosting p)}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
                           (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
@@ -1064,8 +1068,7 @@ processDisposePosting verbosetags j t lotState p = do
                   -- keeping the original amount's commodity, style, cost, and cost basis.
                   disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
               let -- For bare disposes, normalize transacted cost to UnitCost in pamount.
-                  normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
-                  disposeAmt' = if isBare then disposeAmt{acost = normalizedCost} else disposeAmt
+                  disposeAmt' = if isBare then disposeAmt{acost = amountNormalizeCostToUnit lotAmt} else disposeAmt
                   -- poriginal preserves the user's original annotations, only updating quantity.
                   origP  = originalPosting p
                   origP' = origP{pamount = mapMixedAmount updateOrigQty $ pamount origP}
