@@ -967,28 +967,12 @@ processAcquirePosting needsLabels txnDate t lotState p = do
           Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
                   ++ " for commodity " ++ T.unpack commodity
 
-        let p' = if cbInferred
-                 then let -- Update the original posting's cost basis too, so print shows {$50} not {}
-                          -- For bare acquires, also normalize transacted cost to UnitCost
-                          normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
-                          origP  = originalPosting p
-                          origP' = origP{pamount = mapMixedAmount updateCb $ pamount origP}
-                          updateCb a
-                            | acommodity a == commodity =
-                                if isBare then a{acostbasis = Just filledCb, acost = normalizedCost}
-                                else a{acostbasis = Just filledCb}
-                            | otherwise = a
-                      in p{paccount = expectedAcct
-                          ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
-                          ,poriginal = Just origP'}
-                 -- Non-bare, non-inferred: user wrote explicit {$50}.
-                 -- Set poriginal so print consistently shows the lot CB.
-                 else let origP  = originalPosting p
-                          origP' = origP{pamount = mapMixedAmount updateOrigCb $ pamount origP}
-                          updateOrigCb a
-                            | acommodity a == commodity = a{acostbasis = Just filledCb}
-                            | otherwise = a
-                      in p{paccount = expectedAcct, poriginal = Just origP'}
+        let -- For bare acquires with inferred CB, normalize transacted cost to UnitCost
+            -- in the posting's pamount (not in poriginal — that preserves what the user wrote).
+            normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
+            p' = p{paccount = expectedAcct
+                   ,pamount  = mixedAmount $ if isBare && cbInferred then postingAmt{acost = normalizedCost} else postingAmt
+                   ,poriginal = Just (originalPosting p)}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
                           (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
         return (lotState', p')
@@ -1079,34 +1063,19 @@ processDisposePosting verbosetags j t lotState p = do
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
                   disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
-              if isBare
-                then do
-                  -- Normalize transacted price to UnitCost and update poriginal
-                  -- so print shows the inferred cost basis and cost.
-                  let normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
-                      disposeAmt' = disposeAmt{acost = normalizedCost}
-                      origP  = originalPosting p
-                      origP' = origP{pamount = mapMixedAmount updateAmt $ pamount origP}
-                      updateAmt a | acommodity a == commodity =
-                                      (amountSetQuantity (negate consumedQty) a){acostbasis = Just dispCb, acost = normalizedCost}
-                                  | otherwise = a
-                  Right p{ paccount  = acctWithLot
-                         , pamount   = mixedAmount disposeAmt'
-                         , poriginal = Just origP'
-                         }
-                -- Non-bare: user wrote explicit {$50}.
-                -- Set poriginal so print consistently shows the resolved lot CB.
-                else do
-                  let origP  = originalPosting p
-                      origP' = origP{pamount = mapMixedAmount updateNonBareAmt $ pamount origP}
-                      updateNonBareAmt a
-                        | acommodity a == commodity =
-                            (amountSetQuantity (negate consumedQty) a){acostbasis = Just dispCb}
-                        | otherwise = a
-                  Right p{ paccount  = acctWithLot
-                         , pamount   = mixedAmount disposeAmt
-                         , poriginal = Just origP'
-                         }
+              let -- For bare disposes, normalize transacted cost to UnitCost in pamount.
+                  normalizedCost = fmap (UnitCost . amountCostToUnitCost (aquantity lotAmt)) (acost lotAmt)
+                  disposeAmt' = if isBare then disposeAmt{acost = normalizedCost} else disposeAmt
+                  -- poriginal preserves the user's original annotations, only updating quantity.
+                  origP  = originalPosting p
+                  origP' = origP{pamount = mapMixedAmount updateOrigQty $ pamount origP}
+                  updateOrigQty a
+                    | acommodity a == commodity = amountSetQuantity (negate consumedQty) a
+                    | otherwise = a
+              Right p{ paccount  = acctWithLot
+                     , pamount   = mixedAmount disposeAmt'
+                     , poriginal = Just origP'
+                     }
 
         newPostings <- mapM mkPosting selected
         let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
@@ -1201,11 +1170,11 @@ processTransferPair verbosetags j t lotState fromP toP = do
 
         let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
             toAmt'   = amountSetQuantity consumedQty fromAmt'
-            -- Update poriginal so print shows the resolved lot CB.
+            -- poriginal preserves the user's original annotations, only updating quantity.
             origFromP = originalPosting fromP
-            origFromP' = origFromP{pamount = mapMixedAmount (updateOrig commodity lotCb (negate consumedQty)) (pamount origFromP)}
+            origFromP' = origFromP{pamount = mapMixedAmount (updateOrigQty commodity (negate consumedQty)) (pamount origFromP)}
             origToP = originalPosting toP
-            origToP' = origToP{pamount = mapMixedAmount (updateOrig commodity lotCb consumedQty) (pamount origToP)}
+            origToP' = origToP{pamount = mapMixedAmount (updateOrigQty commodity consumedQty) (pamount origToP)}
             fromP' = fromP{ paccount = fromAcct
                           , pamount  = mixedAmount fromAmt'
                           , poriginal = Just origFromP'
@@ -1216,8 +1185,8 @@ processTransferPair verbosetags j t lotState fromP toP = do
                         }
         Right (fromP', toP')
 
-    updateOrig commodity lotCb qty a
-      | acommodity a == commodity = (amountSetQuantity qty a){acostbasis = Just lotCb}
+    updateOrigQty commodity qty a
+      | acommodity a == commodity = amountSetQuantity qty a
       | otherwise = a
 
     -- Validate that transfer-to cost basis (if specified with concrete fields)
