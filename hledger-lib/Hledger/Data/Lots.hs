@@ -903,6 +903,12 @@ amountCostToUnitCost qty (TotalCost c)
 amountNormalizeCostToUnit :: Amount -> Maybe AmountCost
 amountNormalizeCostToUnit a = fmap (UnitCost . amountCostToUnitCost (aquantity a)) (acost a)
 
+-- | Set the quantity of an amount matching the given commodity; leave others unchanged.
+amountSetQuantityOf :: CommoditySymbol -> Quantity -> Amount -> Amount
+amountSetQuantityOf c q a
+  | acommodity a == c = amountSetQuantity q a
+  | otherwise         = a
+
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
@@ -1071,10 +1077,7 @@ processDisposePosting verbosetags j t lotState p = do
                   disposeAmt' = if isBare then disposeAmt{acost = amountNormalizeCostToUnit lotAmt} else disposeAmt
                   -- poriginal preserves the user's original annotations, only updating quantity.
                   origP  = originalPosting p
-                  origP' = origP{pamount = mapMixedAmount updateOrigQty $ pamount origP}
-                  updateOrigQty a
-                    | acommodity a == commodity = amountSetQuantity (negate consumedQty) a
-                    | otherwise = a
+                  origP' = origP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) $ pamount origP}
               Right p{ paccount  = acctWithLot
                      , pamount   = mixedAmount disposeAmt'
                      , poriginal = Just origP'
@@ -1175,9 +1178,9 @@ processTransferPair verbosetags j t lotState fromP toP = do
             toAmt'   = amountSetQuantity consumedQty fromAmt'
             -- poriginal preserves the user's original annotations, only updating quantity.
             origFromP = originalPosting fromP
-            origFromP' = origFromP{pamount = mapMixedAmount (updateOrigQty commodity (negate consumedQty)) (pamount origFromP)}
+            origFromP' = origFromP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) (pamount origFromP)}
             origToP = originalPosting toP
-            origToP' = origToP{pamount = mapMixedAmount (updateOrigQty commodity consumedQty) (pamount origToP)}
+            origToP' = origToP{pamount = mapMixedAmount (amountSetQuantityOf commodity consumedQty) (pamount origToP)}
             fromP' = fromP{ paccount = fromAcct
                           , pamount  = mixedAmount fromAmt'
                           , poriginal = Just origFromP'
@@ -1187,10 +1190,6 @@ processTransferPair verbosetags j t lotState fromP toP = do
                         , poriginal = Just origToP'
                         }
         Right (fromP', toP')
-
-    updateOrigQty commodity qty a
-      | acommodity a == commodity = amountSetQuantity qty a
-      | otherwise = a
 
     -- Validate that transfer-to cost basis (if specified with concrete fields)
     -- matches the lot's cost basis.
