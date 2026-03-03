@@ -225,7 +225,7 @@ checkAssertions balances0 asserts0 postingss
               -- Restrict to accounts mentioned in the predicate, and pretty-print balances
               balances' = filter (flip inAssertion p . fst) balances
               maxalen   = maximum $ map (T.length . fst) balances'
-              accounts = [ a <> padding <> T.pack (show m)
+              accounts = [ a <> padding <> T.pack (H.showMixedAmount m)
                          | (a,m) <- balances'
                          , let padding = T.replicate (2 + maxalen - T.length a) " "
                          ]
