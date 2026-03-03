@@ -981,7 +981,14 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                       in p{paccount = expectedAcct
                           ,pamount  = mixedAmount $ if isBare then postingAmt{acost = normalizedCost} else postingAmt
                           ,poriginal = Just origP'}
-                 else p{paccount = expectedAcct}
+                 -- Non-bare, non-inferred: user wrote explicit {$50}.
+                 -- Set poriginal so print consistently shows the lot CB.
+                 else let origP  = originalPosting p
+                          origP' = origP{pamount = mapMixedAmount updateOrigCb $ pamount origP}
+                          updateOrigCb a
+                            | acommodity a == commodity = a{acostbasis = Just filledCb}
+                            | otherwise = a
+                      in p{paccount = expectedAcct, poriginal = Just origP'}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
                           (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
         return (lotState', p')
@@ -1087,9 +1094,18 @@ processDisposePosting verbosetags j t lotState p = do
                          , pamount   = mixedAmount disposeAmt'
                          , poriginal = Just origP'
                          }
-                else
-                  Right p{ paccount = acctWithLot
-                         , pamount  = mixedAmount disposeAmt
+                -- Non-bare: user wrote explicit {$50}.
+                -- Set poriginal so print consistently shows the resolved lot CB.
+                else do
+                  let origP  = originalPosting p
+                      origP' = origP{pamount = mapMixedAmount updateNonBareAmt $ pamount origP}
+                      updateNonBareAmt a
+                        | acommodity a == commodity =
+                            (amountSetQuantity (negate consumedQty) a){acostbasis = Just dispCb}
+                        | otherwise = a
+                  Right p{ paccount  = acctWithLot
+                         , pamount   = mixedAmount disposeAmt
+                         , poriginal = Just origP'
                          }
 
         newPostings <- mapM mkPosting selected
@@ -1201,12 +1217,20 @@ processTransferPair verbosetags j t lotState fromP toP = do
                             , poriginal = Just origToP'
                             }
             Right (fromP', toP')
+          -- Non-bare: user wrote explicit {$50} on from/to.
+          -- Set poriginal so print consistently shows the resolved lot CB.
           else do
-            let fromP' = fromP{ paccount = fromAcct
+            let origFromP = originalPosting fromP
+                origFromP' = origFromP{pamount = mapMixedAmount (updateBare commodity lotCb (negate consumedQty)) (pamount origFromP)}
+                origToP = originalPosting toP
+                origToP' = origToP{pamount = mapMixedAmount (updateBare commodity lotCb consumedQty) (pamount origToP)}
+                fromP' = fromP{ paccount = fromAcct
                               , pamount  = mixedAmount fromAmt'
+                              , poriginal = Just origFromP'
                               }
                 toP'   = toP{ paccount = toAcct
                             , pamount  = mixedAmount toAmt'
+                            , poriginal = Just origToP'
                             }
             Right (fromP', toP')
 

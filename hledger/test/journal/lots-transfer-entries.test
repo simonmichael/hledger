@@ -16,8 +16,8 @@
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}           10 AAPL  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -71,8 +71,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}           10 AAPL  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -90,8 +90,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
 2026-02-01 transfer
-    assets:broker1:{2026-01-01, $50}    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:broker2:{2026-01-01, $50}        10 AAPL {}  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $50}    -10 AAPL {2026-01-01, $50}  ; ptype: transfer-from
+    assets:broker2:{2026-01-01, $50}     10 AAPL {2026-01-01, $50}  ; ptype: transfer-to
 
 >=
 
@@ -180,3 +180,97 @@ commodity AAPL  ; lots:
 $ hledger -f- print desc:transfer --lots --verbose-tags
 >2 /does not match transfer-to cost basis/
 >=1
+
+# ** Bare acquire (@ price) followed by transfer with varying {} placement
+
+# *** 11. transfer: bare acquire via @ price, no {} on either transfer posting.
+<
+commodity AAA 0.00  ; lots:
+
+2000-01-01 buy
+    assets:cash         -100 USD
+    assets:x1              1 AAA @ 100 USD
+
+2000-01-01 transfer
+    assets:x1                                     -0.02 AAA
+    assets:x2                                      0.02 AAA
+
+$ hledger -f- print --verbose-tags --lots
+2000-01-01 buy
+    assets:cash                                         -100 USD
+    assets:x1:{2000-01-01, 100 USD}    AAA 1 {100 USD} @ 100 USD  ; ptype: acquire
+
+2000-01-01 transfer
+    assets:x1:{2000-01-01, 100 USD}    AAA -0.02 {2000-01-01, 100 USD}  ; ptype: transfer-from
+    assets:x2:{2000-01-01, 100 USD}     AAA 0.02 {2000-01-01, 100 USD}  ; ptype: transfer-to
+
+>=0
+
+# *** 12. transfer: bare acquire via @ price, {} on from posting only.
+<
+commodity AAA 0.00  ; lots:
+
+2000-01-01 buy
+    assets:cash         -100 USD
+    assets:x1              1 AAA @ 100 USD
+
+2000-01-01 transfer
+    assets:x1                                     -0.02 AAA {}
+    assets:x2                                      0.02 AAA
+
+$ hledger -f- print --verbose-tags --lots
+2000-01-01 buy
+    assets:cash                                         -100 USD
+    assets:x1:{2000-01-01, 100 USD}    AAA 1 {100 USD} @ 100 USD  ; ptype: acquire
+
+2000-01-01 transfer
+    assets:x1:{2000-01-01, 100 USD}    AAA -0.02 {2000-01-01, 100 USD}  ; ptype: transfer-from
+    assets:x2:{2000-01-01, 100 USD}     AAA 0.02 {2000-01-01, 100 USD}  ; ptype: transfer-to
+
+>=0
+
+# *** 13. transfer: bare acquire via @ price, {} on to posting only.
+<
+commodity AAA 0.00  ; lots:
+
+2000-01-01 buy
+    assets:cash         -100 USD
+    assets:x1              1 AAA @ 100 USD
+
+2000-01-01 transfer
+    assets:x1                                     -0.02 AAA
+    assets:x2                                      0.02 AAA {}
+
+$ hledger -f- print --verbose-tags --lots
+2000-01-01 buy
+    assets:cash                                         -100 USD
+    assets:x1:{2000-01-01, 100 USD}    AAA 1 {100 USD} @ 100 USD  ; ptype: acquire
+
+2000-01-01 transfer
+    assets:x1:{2000-01-01, 100 USD}    AAA -0.02 {2000-01-01, 100 USD}  ; ptype: transfer-from
+    assets:x2:{2000-01-01, 100 USD}     AAA 0.02 {2000-01-01, 100 USD}  ; ptype: transfer-to
+
+>=0
+
+# *** 14. transfer: bare acquire via @ price, {} on both transfer postings.
+<
+commodity AAA 0.00  ; lots:
+
+2000-01-01 buy
+    assets:cash         -100 USD
+    assets:x1              1 AAA @ 100 USD
+
+2000-01-01 transfer
+    assets:x1                                     -0.02 AAA {}
+    assets:x2                                      0.02 AAA {}
+
+$ hledger -f- print --verbose-tags --lots
+2000-01-01 buy
+    assets:cash                                         -100 USD
+    assets:x1:{2000-01-01, 100 USD}    AAA 1 {100 USD} @ 100 USD  ; ptype: acquire
+
+2000-01-01 transfer
+    assets:x1:{2000-01-01, 100 USD}    AAA -0.02 {2000-01-01, 100 USD}  ; ptype: transfer-from
+    assets:x2:{2000-01-01, 100 USD}     AAA 0.02 {2000-01-01, 100 USD}  ; ptype: transfer-to
+
+>=0
