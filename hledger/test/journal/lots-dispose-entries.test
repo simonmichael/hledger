@@ -17,9 +17,9 @@
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    equity:opening:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                    $275
-    revenue:gains                                                  $-25  ; ptype: gain
+    equity:opening:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                        $275
+    revenue:gains                                      $-25  ; ptype: gain
 
 >=
 
@@ -36,9 +36,9 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                       $275
+    revenue:gains                                     $-25  ; ptype: gain
 
 >=
 
@@ -59,9 +59,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}         -5 AAPL  ; ptype: dispose
+    assets:cash                                $275
+    revenue:gains                              $-25  ; ptype: gain
 
 >=
 
@@ -80,9 +80,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
 
 >=
 
@@ -101,9 +101,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50}  ; ptype: dispose
-    assets:cash                                             $275
-    revenue:gains                                           $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
 
 >=
 
@@ -122,9 +122,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {} @ $55  ; ptype: dispose
+    assets:cash                                    $275
+    revenue:gains                                  $-25  ; ptype: gain
 
 >=
 
@@ -145,9 +145,9 @@ account capital gains  ; type: G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    capital gains                                                 $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                       $275
+    capital gains                                     $-25  ; ptype: gain
 
 >=
 
@@ -166,9 +166,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @@ $275  ; ptype: dispose
-    assets:cash                                                     $275
-    revenue:gains                                                   $-25  ; ptype: gain
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @@ $275  ; ptype: dispose
+    assets:cash                                         $275
+    revenue:gains                                       $-25  ; ptype: gain
 
 >=
 
@@ -188,8 +188,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $50  ; ptype: dispose
-    assets:cash                                                   $250
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $50  ; ptype: dispose
+    assets:cash                                       $250
 
 >=
 
@@ -225,9 +225,9 @@ account revenue:gains  ; type: G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain, generated-posting:
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                       $275
+    revenue:gains                                     $-25  ; ptype: gain, generated-posting:
 
 >=
 
@@ -245,8 +245,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {2026-01-01, $50} @ $55  ; ptype: dispose
-    assets:cash                                                   $275
-    revenue:gains                                                 $-25  ; ptype: gain, generated-posting:
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                       $275
+    revenue:gains                                     $-25  ; ptype: gain, generated-posting:
 
 >=

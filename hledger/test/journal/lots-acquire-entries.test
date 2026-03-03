@@ -67,8 +67,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
-    assets:cash                                      $-500
+    assets:broker:{2026-01-01, $50}         10 AAPL  ; ptype: acquire
+    assets:cash                               $-500
 
 >=
 
@@ -81,8 +81,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
-    assets:cash                                      $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL @ $50  ; ptype: acquire
+    assets:cash                                $-500
 
 >=
 
@@ -95,8 +95,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
-    assets:cash                                      $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL @@ $500  ; ptype: acquire
+    assets:cash                                  $-500
 
 >=
 
@@ -109,8 +109,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50}  ; ptype: acquire
-    assets:cash                                $-500
+    assets:broker:{2026-01-01, $50}      10 AAPL {}  ; ptype: acquire
+    assets:cash                               $-500
 
 >=
 
@@ -123,8 +123,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @ $50  ; ptype: acquire
-    assets:cash                                      $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL {} @ $50  ; ptype: acquire
+    assets:cash                                   $-500
 
 >=
 
@@ -137,8 +137,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2026-01-01 buy
-    assets:broker:{2026-01-01, $50}    10 AAPL {$50} @@ $500  ; ptype: acquire
-    assets:cash                                        $-500
+    assets:broker:{2026-01-01, $50}    10 AAPL {} @@ $500  ; ptype: acquire
+    assets:cash                                     $-500
 
 >=
 
@@ -183,4 +183,3 @@ $ hledger -f- print --lots --verbose-tags
     assets:cash                                        $-500
 
 >=
-
