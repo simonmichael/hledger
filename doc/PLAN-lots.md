@@ -328,11 +328,18 @@ design/spec iteration visible in the commit history.
  
 ## Next ?
 
+- prevent confusing same commodity different basis amounts, hidden inferred conversion costs
+   - simplify MixedAmountKey
+      - review/cleanup
+
+- investigate the latest adm/a.j, disposal posting not being lot-tracked / not generating a gain posting
+
 - more testing with real world journals
 - an amountless posting's lotful commodity is not recognised (lot postings are classified before amounts are filled)
 - and declaring the amountless posting's account lotful should help, but doesn't
 - infer acquire price, dispose price from market price ?
 - recognise some common commodity symbols as lotful ?
 - consolidate lot tests ?
+- insert ptype at start of comment, not at end ?
 
 Remember: don't over-engineer. Build the vision, build high quality, but most of all build what users actually need, and validate that with real users quickly.

@@ -373,87 +373,51 @@ instance HasAmounts a =>
   HasAmounts (Maybe a)
   where styleAmounts styles = fmap (styleAmounts styles)
 
--- | hledger's most general amount type, which can contain multiple commodities, transacted costs, and cost bases,
--- all tracked separately.
+-- | hledger's most general amount type.
+-- It can contain multiple single-commodity Amounts, each possibly with a transacted cost and/or a lot cost basis attached.
 -- Internally it is a map from MixedAmountKey to Amount, for efficiency and so that every mixed amount has a single canonical form.
 newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount)
   deriving (Generic,Show)
 
-type UnitCostQuantity = Quantity
-type TotalCostQuantity = Quantity
-
--- | There is a unique MixedAmountKey for every combination of Amount commodity, unit/total transacted cost, and cost basis date/label/cost.
--- This is roughly equivalent to @MixedAmountKey = MixedAmountKey CommoditySymbol (Maybe AmountCost) (Maybe CostBasis)@,
--- but flattened into six slightly complicated constructors for overall simplicity and efficiency,
--- avoiding complications from needing to ignore Amount's style information.
+-- | The key used to group amounts within a MixedAmount: commodity and an optional unit or total transacted cost.
+-- Amounts with the same commodity and transacted cost are combined; different transacted costs are kept separate.
+-- (Lot cost basis is not part of the key, so not kept separate; subaccounts are used for that.)
 data MixedAmountKey
-  -- = MixedAmountKeyNoCost                   !CommoditySymbol
-  -- | MixedAmountKeyUnitCost                 !CommoditySymbol !CommoditySymbol !Quantity
-  -- | MixedAmountKeyTotalCost                !CommoditySymbol !CommoditySymbol
-  -- | MixedAmountKeyCostBasis                !CommoditySymbol !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
-  -- | MixedAmountKeyCostBasisAndUnitCost     !CommoditySymbol !CommoditySymbol !Quantity !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
-  -- | MixedAmountKeyCostBasisAndTotalCost    !CommoditySymbol !CommoditySymbol !(Maybe CommoditySymbol) !(Maybe Quantity) !(Maybe Day) !(Maybe Text)
-
-  -- | No transacted cost or cost basis
   = MixedAmountKeyNoCost
       !CommoditySymbol           -- ^ amount commodity
-
-  -- | Unit transacted cost only (@)
   | MixedAmountKeyUnitCost
       !CommoditySymbol           -- ^ amount commodity
       !CommoditySymbol           -- ^ transacted cost commodity
-      !UnitCostQuantity          -- ^ transacted cost per unit
-
-  -- | Total transacted cost only (@@)
+      !Quantity                  -- ^ transacted cost per unit
   | MixedAmountKeyTotalCost
       !CommoditySymbol           -- ^ amount commodity
       !CommoditySymbol           -- ^ transacted cost commodity
-
-  -- | Cost basis only ({})
-  | MixedAmountKeyCostBasis
-      !CommoditySymbol           -- ^ amount commodity
-      !(Maybe Day)               -- ^ cost basis date
-      !(Maybe Text)              -- ^ cost basis label
-      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
-      !(Maybe UnitCostQuantity)  -- ^ cost basis unit cost
-
-  -- | Cost basis and unit transacted cost ({} @)
-  | MixedAmountKeyCostBasisAndUnitCost
-      !CommoditySymbol           -- ^ amount commodity
-      !CommoditySymbol           -- ^ transacted cost commodity
-      !UnitCostQuantity          -- ^ transacted cost per unit
-      !(Maybe Day)               -- ^ cost basis date
-      !(Maybe Text)              -- ^ cost basis label
-      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
-      !(Maybe UnitCostQuantity)  -- ^ cost basis cost per unit
-
-  -- | Cost basis and total transacted cost ({} @@)
-  | MixedAmountKeyCostBasisAndTotalCost
-      !CommoditySymbol           -- ^ amount commodity
-      !CommoditySymbol           -- ^ transacted cost commodity
-      !(Maybe Day)               -- ^ cost basis date
-      !(Maybe Text)              -- ^ cost basis label
-      !(Maybe CommoditySymbol)   -- ^ cost basis commodity
-      !(Maybe UnitCostQuantity)  -- ^ cost basis cost per unit
-
   deriving (Eq, Generic, Show)
 
--- | Calculate the key that should be used to store this Amount within a MixedAmount,
--- from its commodity, cost basis if any, and transacted cost if any.
+-- | Sort by commodity, then cost commodity (no cost first), then cost type and quantity.
+instance Ord MixedAmountKey where
+  compare = comparing commodity <> comparing costCommodity <> comparing costDetail
+    where
+      commodity (MixedAmountKeyNoCost    c)     = c
+      commodity (MixedAmountKeyUnitCost  c _ _) = c
+      commodity (MixedAmountKeyTotalCost c _)   = c
+
+      costCommodity (MixedAmountKeyNoCost    _)      = Nothing
+      costCommodity (MixedAmountKeyUnitCost  _ pc _)  = Just pc
+      costCommodity (MixedAmountKeyTotalCost _ pc)    = Just pc
+
+      costDetail (MixedAmountKeyNoCost    _)     = Nothing
+      costDetail (MixedAmountKeyUnitCost  _ _ q) = Just (1 :: Int, Just q)
+      costDetail (MixedAmountKeyTotalCost _ _)   = Just (0, Nothing)
+
+-- | Calculate the key for storing this Amount within a MixedAmount,
+-- from its commodity and transacted cost (ignoring cost basis).
 mixedAmountKey :: Amount -> MixedAmountKey
-mixedAmountKey Amount{acommodity=c, acost, acostbasis} =
-  case (acost, acostbasis) of
-    (Nothing,            Nothing)   -> MixedAmountKeyNoCost                c
-    (Just (UnitCost  p), Nothing)   -> MixedAmountKeyUnitCost              c (acommodity p)       (aquantity p)
-    (Just (TotalCost p), Nothing)   -> MixedAmountKeyTotalCost             c (acommodity p)
-    (Nothing,            Just cb)   -> MixedAmountKeyCostBasis             c (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
-    (Just (UnitCost  p), Just cb)   -> MixedAmountKeyCostBasisAndUnitCost  c (acommodity p)       (aquantity p)        (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
-    (Just (TotalCost p), Just cb)   -> MixedAmountKeyCostBasisAndTotalCost c (acommodity p)                            (cbDate cb) (cbLabel cb) (cbCostCommodity cb) (cbCostQuantity cb)
-  where
-    cbCostCommodity CostBasis{cbCost=Just Amount{acommodity=cc}} = Just cc
-    cbCostCommodity _ = Nothing
-    cbCostQuantity CostBasis{cbCost=Just Amount{aquantity=q}} = Just q
-    cbCostQuantity _ = Nothing
+mixedAmountKey Amount{acommodity=c, acost} =
+  case acost of
+    Nothing            -> MixedAmountKeyNoCost    c
+    Just (UnitCost  p) -> MixedAmountKeyUnitCost  c (acommodity p) (aquantity p)
+    Just (TotalCost p) -> MixedAmountKeyTotalCost c (acommodity p)
 
 instance Eq  MixedAmount where a == b  = maCompare a b == EQ
 instance Ord MixedAmount where compare = maCompare
@@ -474,48 +438,6 @@ maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
     totalcost x = case acost x of
                         Just (TotalCost p) -> aquantity p
                         _                   -> 0
-
--- | We don't auto-derive the Ord instance because it would give an undesired ordering.
--- We want the keys to be sorted in this order (for historical reasons ?):
--- (1) By the primary commodity of the amount.
--- (2) By the commodity of the transacted cost, with no transacted cost being first.
--- (3) By the transacted cost, from most negative to most positive, with total costs before unit costs
--- (4) By the cost basis (date, label, cost), with no cost basis being first.
--- For example, we would like the ordering to give:
---   MixedAmountKeyNoCost "A"
---   < MixedAmountKeyTotalCost "A" "B" 100
---   < MixedAmountKeyUnitCost "A" "B" 100
---   < MixedAmountKeyNoCost "B"
-instance Ord MixedAmountKey where
-  compare = comparing commodity <> comparing pCommodity <> comparing pCost <> comparing pCostBasis
-    where
-      commodity (MixedAmountKeyNoCost                c)             = c
-      commodity (MixedAmountKeyUnitCost              c _ _)         = c
-      commodity (MixedAmountKeyTotalCost             c _)           = c
-      commodity (MixedAmountKeyCostBasis             c _ _ _ _)     = c
-      commodity (MixedAmountKeyCostBasisAndUnitCost  c _ _ _ _ _ _) = c
-      commodity (MixedAmountKeyCostBasisAndTotalCost c _ _ _ _ _)   = c
-
-      pCommodity (MixedAmountKeyNoCost                _)              = Nothing
-      pCommodity (MixedAmountKeyUnitCost              _ pc _)         = Just pc
-      pCommodity (MixedAmountKeyTotalCost             _ pc)           = Just pc
-      pCommodity (MixedAmountKeyCostBasis             _ _ _ _ _)      = Nothing
-      pCommodity (MixedAmountKeyCostBasisAndUnitCost  _ pc _ _ _ _ _) = Just pc
-      pCommodity (MixedAmountKeyCostBasisAndTotalCost _ pc _ _ _ _)   = Just pc
-
-      pCost (MixedAmountKeyNoCost                _)             = Nothing
-      pCost (MixedAmountKeyUnitCost              _ _ q)         = Just (1, Just q)
-      pCost (MixedAmountKeyTotalCost             _ _)           = Just (0 :: Int, Nothing)
-      pCost (MixedAmountKeyCostBasis             _ _ _ _ _)     = Nothing
-      pCost (MixedAmountKeyCostBasisAndUnitCost  _ _ q _ _ _ _) = Just (1, Just q)
-      pCost (MixedAmountKeyCostBasisAndTotalCost _ _ _ _ _ _)   = Just (0, Nothing)
-
-      pCostBasis (MixedAmountKeyNoCost                _)             = Nothing
-      pCostBasis (MixedAmountKeyUnitCost              _ _ _)         = Nothing
-      pCostBasis (MixedAmountKeyTotalCost             _ _)           = Nothing
-      pCostBasis (MixedAmountKeyCostBasis             _ d l c q)     = Just (c, q, d, l)
-      pCostBasis (MixedAmountKeyCostBasisAndUnitCost  _ _ _ d l c q) = Just (c, q, d, l)
-      pCostBasis (MixedAmountKeyCostBasisAndTotalCost _ _ d l c q)   = Just (c, q, d, l)
 
 data PostingRealness = RealPosting | VirtualPosting | BalancedVirtualPosting
   deriving (Eq,Show,Generic)
