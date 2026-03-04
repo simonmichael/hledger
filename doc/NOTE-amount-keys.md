@@ -191,7 +191,7 @@ From designing a clean-slate implementation:
 ## Related Files
 
 - **Implementation:** hledger-lib/Hledger/Data/Types.hs (MixedAmountKey)
-- **Operations:** hledger-lib/Hledger/Data/Amount.hs (maAddAmount, sumSimilarAmountsUsingFirstCost)
+- **Operations:** hledger-lib/Hledger/Data/Amount.hs (maAddAmount, sumSimilarAmounts)
 - **Tests:** hledger-lib/Hledger/Data/Amount.hs:1425 ("adding mixed amounts with total costs")
 - **Other docs:**
   - doc/REFACTOR-prices-duplication.md
@@ -236,3 +236,12 @@ The choice affects:
 - Memory usage and complexity
 
 **Next steps:** Consider whether @ should be recording-only, with explicit {} required for lot tracking.
+
+## 2026-03: Simplified to 3 constructors (commodity + transacted cost)
+
+Cost basis was removed from MixedAmountKey because lot identity is now carried
+by subaccounts in `--lots` mode, and no reports display cost basis in aggregated output.
+
+Transacted cost remains in the key because balance assignments and balance
+inference rely on keeping same-commodity different-cost amounts separate during
+MixedAmount arithmetic.

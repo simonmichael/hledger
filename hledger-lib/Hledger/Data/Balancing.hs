@@ -286,10 +286,10 @@ transactionInferBalancingAmount styles atypes t@Transaction{tpostings=ps}
     lbl = lbl_ "transactionInferBalancingAmount"
     isGain = isGainPosting atypes t
     (amountfulrealps, amountlessrealps) = partition hasAmount (filter (not . isGain) $ realPostings t)
-    realsum = sumPostings amountfulrealps
+    realsum = maSum $ map (mixedAmountCost . pamount) amountfulrealps
       -- & dbg9With (lbl "real balancing amount".showMixedAmountOneLine)
     (amountfulbvps, amountlessbvps) = partition hasAmount (filter (not . isGain) $ balancedVirtualPostings t)
-    bvsum = sumPostings amountfulbvps
+    bvsum = maSum $ map (mixedAmountCost . pamount) amountfulbvps
 
     inferamount :: Posting -> (Posting, Maybe MixedAmount)
     inferamount p

@@ -928,34 +928,31 @@ mixed = maAddAmounts nullmixedamt
 mixedAmount :: Amount -> MixedAmount
 mixedAmount a = Mixed $ M.singleton (mixedAmountKey a) a
 
--- | Add an Amount to a MixedAmount, normalising the result.
--- Amounts with different costs are kept separate.
-maAddAmount :: MixedAmount -> Amount -> MixedAmount
-maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmountsUsingFirstCost (mixedAmountKey a) a ma
-
--- | Add a collection of Amounts to a MixedAmount, normalising the result.
--- Amounts with different costs are kept separate.
-maAddAmounts :: Foldable t => MixedAmount -> t Amount -> MixedAmount
-maAddAmounts = foldl' maAddAmount
-
 -- | Negate mixed amount's quantities (and total costs, if any).
 maNegate :: MixedAmount -> MixedAmount
 maNegate = transformMixedAmount negate
 
--- | Sum two MixedAmount, keeping the cost of the first if any.
--- Amounts with different costs are kept separate (since 2021).
+-- | Sum two MixedAmounts. (Any cost basis on the amounts will be lost.)
 maPlus :: MixedAmount -> MixedAmount -> MixedAmount
-maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmountsUsingFirstCost as bs
+maPlus (Mixed as) (Mixed bs) = Mixed $ M.unionWith sumSimilarAmounts as bs
 
--- | Subtract a MixedAmount from another.
--- Amounts with different costs are kept separate.
+-- | Subtract a MixedAmount from another. (Any cost basis on the amounts will be lost.)
 maMinus :: MixedAmount -> MixedAmount -> MixedAmount
 maMinus a = maPlus a . maNegate
 
--- | Sum a collection of MixedAmounts.
--- Amounts with different costs are kept separate.
-maSum :: Foldable t => t MixedAmount -> MixedAmount
+-- | Sum a collection of MixedAmounts. (Any cost basis on the amounts will be lost.)
+maSum :: (Foldable t) => t MixedAmount -> MixedAmount
 maSum = foldl' maPlus nullmixedamt
+
+-- | Add an Amount to a MixedAmount, and then normalise that.
+-- (Any cost basis on the amounts will be lost.)
+maAddAmount :: MixedAmount -> Amount -> MixedAmount
+maAddAmount (Mixed ma) a = Mixed $ M.insertWith sumSimilarAmounts (mixedAmountKey a) a ma
+
+-- | Add a collection of Amounts to a MixedAmount, and then normalise that.
+-- (Any cost basis on the amounts will be lost.)
+maAddAmounts :: (Foldable t) => MixedAmount -> t Amount -> MixedAmount
+maAddAmounts = foldl' maAddAmount
 
 -- | Divide a mixed amount's quantities (and total costs, if any) by a constant.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
@@ -1061,8 +1058,7 @@ amountsPreservingZeros (Mixed ma)
 -- | Get a mixed amount's component amounts without normalising zero and missing
 -- amounts. This is used for JSON serialisation, so the order is important. In
 -- particular, we want the Amounts given in the order of the MixedAmountKeys,
--- i.e. lexicographically first by commodity, then by cost commodity, then by
--- unit cost from most negative to most positive.
+-- i.e. sorted by commodity and transacted cost.
 amountsRaw :: MixedAmount -> [Amount]
 amountsRaw (Mixed ma) = toList ma
 
@@ -1085,11 +1081,12 @@ unifyMixedAmount = foldM combine 0 . amounts
       | acommodity amt == acommodity result = Just $ amt + result
       | otherwise                           = Nothing
 
--- | Sum same-commodity amounts in a lossy way, applying the first
--- cost to the result and discarding any other costs. Only used as a
--- rendering helper.
-sumSimilarAmountsUsingFirstCost :: Amount -> Amount -> Amount
-sumSimilarAmountsUsingFirstCost a b = (a + b){acost=p}
+-- | Sum amounts which have the same MixedAmountKey; ie they have the same commodity and the same transacted cost if any.
+-- If they have total transacted costs, those are also summed.
+-- If they have a unit cost, that is preserved.
+-- If they have a lot cost basis, that is removed.
+sumSimilarAmounts :: Amount -> Amount -> Amount
+sumSimilarAmounts a b = (a + b){acost=p, acostbasis=Nothing}
   where
     p = case (acost a, acost b) of
         (Just (TotalCost ap), Just (TotalCost bp))
@@ -1100,17 +1097,8 @@ sumSimilarAmountsUsingFirstCost a b = (a + b){acost=p}
 filterMixedAmount :: (Amount -> Bool) -> MixedAmount -> MixedAmount
 filterMixedAmount p (Mixed ma) = Mixed $ M.filter p ma
 
--- | Return an unnormalised MixedAmount containing just the amounts in the
--- requested commodity from the original mixed amount.
---
--- The result will contain at least one Amount of the requested commodity,
--- even if the original mixed amount did not (with quantity zero in that case,
--- and this would be discarded when the mixed amount is next normalised).
---
--- The result can contain more than one Amount of the requested commodity,
--- eg because there were several with different costs,
--- or simply because the original mixed amount was was unnormalised.
---
+-- | Return a MixedAmount containing just the amount of the requested commodity
+-- that was in the original mixed amount (or zero if there was none).
 filterMixedAmountByCommodity :: CommoditySymbol -> MixedAmount -> MixedAmount
 filterMixedAmountByCommodity c (Mixed ma)
   | M.null ma' = mixedAmount nullamt{acommodity=c}
@@ -1122,8 +1110,8 @@ mapMixedAmount :: (Amount -> Amount) -> MixedAmount -> MixedAmount
 mapMixedAmount f (Mixed ma) = mixed . map f $ toList ma
 
 -- | Apply a transform to a mixed amount's component 'Amount's, which does not
--- affect the key of the amount (i.e. doesn't change the commodity, cost
--- commodity, or unit cost amount). This condition is not checked.
+-- affect the key of the amount (i.e. doesn't change the commodity or transacted cost).
+-- This condition is not checked.
 mapMixedAmountUnsafe :: (Amount -> Amount) -> MixedAmount -> MixedAmount
 mapMixedAmountUnsafe f (Mixed ma) = Mixed $ M.map f ma  -- Use M.map instead of fmap to maintain strictness
 
