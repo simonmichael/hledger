@@ -323,3 +323,37 @@ $ hledger -f- bal cur:BTC acct:exchange2 --lots -N
       0.01000000 BTC  assets:exchange2:{2026-01-09, $1200}
       0.01000000 BTC  assets:exchange2:{2026-01-10, $1200}
 
+# ** 16. Bare disposal to expense (no selling price) gets lot subaccount, no gain posting.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 pay fee
+    assets:x1    -0.001 A
+    expenses:fees  0.001 A
+
+$ hledger -f- print --lots -x desc:fee
+2026-02-17 pay fee
+    assets:x1:{2026-01-15, $100}    -0.001 A {2026-01-15, $100}
+    expenses:fees                                       0.001 A
+
+>=
+
+# ** 17. Bare disposal to expense: remaining lot balance is reduced correctly.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 pay fee
+    assets:x1    -0.001 A
+    expenses:fees  0.001 A
+
+$ hledger -f- bal assets:x1 --lots -N
+             0.999 A  assets:x1:{2026-01-15, $100}
+

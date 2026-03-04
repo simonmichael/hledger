@@ -17,7 +17,8 @@ This module implements two pipeline stages (see doc\/SPEC-finalising.md):
      (FIFO by default, configurable per account\/commodity via @lots:@ tag).
      If needed and if the lot selector permits it, selects multiple lots,
      splitting the posting into one per lot.
-     Dispose postings are required to have a transacted price (the selling price).
+     Dispose postings with a transacted price (selling price) generate gain postings.
+     Bare disposes without a price (e.g. fee deductions) get lot subaccounts but no gain.
 
    - For transfer postings: selects lots from the source account (like
      dispose) and recreates them under the destination account. The lot's
@@ -549,8 +550,11 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
     tagGain :: Posting -> Posting
     tagGain = postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag ("ptype", "gain"))
 
+    disposeHasPrice p = isDisposePosting p && any (isJust . acost) (amountsRaw (pamount p))
+
     inferGainInTransaction t
       | not (any isDisposePosting (tpostings t)) = Right t
+      | not (any disposeHasPrice (tpostings t))  = Right t
       | otherwise = do
           let (gainPs, otherPs) = partition' isGain (tpostings t)
               (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
@@ -1009,12 +1013,11 @@ processDisposePosting verbosetags j t lotState p = do
     let commodity = acommodity lotAmt
         disposeQty = aquantity lotAmt
 
-    -- Bare dispose with no transacted price: silently declassify and pass through.
-    -- Non-bare dispose (explicit {}) without price is still an error.
+    -- Non-bare dispose (explicit {}) without price is an error.
+    -- Bare dispose without price proceeds to lot matching (but skips gain generation).
     case acost lotAmt of
-      Nothing | isBare    -> return (lotState, [stripPtypeTag p])
-              | otherwise -> Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
-      Just _ -> do
+      Nothing | not isBare -> Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
+      _ -> do
 
         when (disposeQty >= 0) $
           Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
@@ -1073,8 +1076,11 @@ processDisposePosting verbosetags j t lotState p = do
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
                   disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
-              let -- For bare disposes, normalize transacted cost to UnitCost in pamount.
-                  disposeAmt' = if isBare then disposeAmt{acost = amountNormalizeCostToUnit lotAmt} else disposeAmt
+              let -- For bare disposes with a price, normalize transacted cost to UnitCost.
+                  -- For bare disposes without a price (e.g. fee deductions), keep no cost.
+                  disposeAmt' | isNothing (acost lotAmt) = disposeAmt{acost = Nothing}
+                              | isBare    = disposeAmt{acost = amountNormalizeCostToUnit lotAmt}
+                              | otherwise = disposeAmt
                   -- poriginal preserves the user's original annotations, only updating quantity.
                   origP  = originalPosting p
                   origP' = origP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) $ pamount origP}
