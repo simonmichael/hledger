@@ -369,9 +369,11 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                   isLotful = postingIsLotful p amts
                   cbKeys   = [(acommodity a, abs (aquantity a)) | a <- amts, isJust (acostbasis a)]
                   allKeys  = [(acommodity a, abs (aquantity a)) | a <- amts]
-                  -- Include both cost-basis and bare lotful negatives, so
-                  -- hasTransferFromCounterpart sees bare transfer-from postings.
-                  neg'     = if isNeg && (hasCB || isLotful)
+                  -- Include cost-basis negatives (any account type) and bare lotful
+                  -- negatives on asset accounts. Non-asset bare lotful negatives
+                  -- (e.g. revenue) are excluded — they shouldn't be transfer counterparts.
+                  -- Equity transfers are handled separately via hasEquityCounterpart.
+                  neg'     = if isNeg && (hasCB || (isLotful && isAsset))
                              then foldl' (addAcct acct) neg (if hasCB then cbKeys else allKeys) else neg
                   pos'     = if not isNeg && hasCB
                              then foldl' (addAcct acct) pos cbKeys else pos
@@ -495,12 +497,17 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 
     -- Classify a positive lotful posting without cost basis as acquire.
     -- This is the fallback for positive lotful postings that aren't transfer-to.
-    -- The cost basis will be inferred later from transacted cost (explicit or balancer-inferred).
-    -- If cost can't be inferred, the classification is removed at lot calculation time.
+    -- Requires a transacted price or a different-commodity posting in the transaction
+    -- (so the balancer can infer a cost). Without either, no lot can be created.
     shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyPositiveLotful p amts = do
       guard $ postingIsLotful p amts
       guard $ any (\a -> aquantity a > 0) amts
+      let commodities = S.fromList [acommodity a | a <- amts]
+          hasPrice = any (isJust . acost) amts
+          hasDiffCommodity = any (\q -> any ((`S.notMember` commodities) . acommodity) (amountsRaw (pamount q)))
+                               (filter (\q -> q /= p && hasAmount q) ps)
+      guard $ hasPrice || hasDiffCommodity
       return "acquire"
 
     -- Check if a posting is lotful: its commodity or account has a lots: tag.
