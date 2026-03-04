@@ -210,8 +210,8 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 11. Bare negative lotful posting without selling price passes through with --lots
-# (no error, not processed as a lot posting).
+# ** 11. Bare negative lotful posting without selling price gets a lot subaccount
+# (dispose matches lot via FIFO, no gain posting since there's no selling price).
 <
 commodity AAPL  ; lots:
 
@@ -224,8 +224,7 @@ commodity AAPL  ; lots:
     equity:opening
 
 $ hledger -f- bal assets:stocks --lots -N
-             -5 AAPL  assets:stocks
-             10 AAPL  assets:stocks:{2026-01-15, $50}
+              5 AAPL  assets:stocks:{2026-01-15, $50}
 
 # ** 13. Balance assertion on a multi-lot disposal is moved to a generated parent-account
 # posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
