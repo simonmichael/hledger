@@ -382,6 +382,60 @@ infrastructure: "acquired 0.02 BTC on x1", "transferred 0.02 BTC from x1 to x2",
 "disposed 0.01998945 BTC (global FIFO, consumed from x1:{...})". This pinpoints
 exactly which transaction consumed "missing" lots.
 
+## Better detection of transfers with fees
+
+> It's common for a lot transfers to have a small disposal (or several) for fees, and these are not always recorded as matching posting pairs. Can you see a robust way we could detect these ?
+
+The problem has two parts:
+
+1. Classification — Transfer detection requires (commodity, |quantity|) exact match. In test.j line 688:
+- assets:cc:x1  ETH -0.05075600 (source)
+- expenses:fees  ETH  0.00075600 (fee)
+- assets:cc:x2  ETH  0.05000000 (destination)
+
+The source quantity (0.05075600) ≠ destination quantity (0.05000000), so counterpart detection fails. Neither posting gets classified.
+
+2. Processing — pairIndexedTransferPostings requires equal numbers of from/to postings per commodity, and processTransferPair uses the from-posting's full quantity.
+
+There are a few approaches:
+
+Approach A: Transaction-level net-flow detection
+
+After the existing exact-match classification pass, do a second pass looking at still-unclassified postings. For each lotful commodity in the transaction, compute:
+- Net outflow from each asset account (negative lotful amounts)
+- Net inflow to each asset account (positive amounts)
+
+If there's exactly one source and one destination for the same commodity, classify them as transfer-from/to. The fee postings (to expense accounts) are left unclassified or classified as dispose.
+
+Problem: the fee posting (expenses:fees ETH 0.00075600) is also lotful (ETH has lots: tag). It might need to be classified as a dispose to properly reduce lots.
+
+Approach B: Split the source posting
+
+Classify the full source as transfer-from, but during processing, transfer only the destination quantity's worth of lots, and dispose the remainder (fee). This keeps classification simple but makes processTransferPair handle the quantity mismatch.
+
+Problem: the fee posting is a separate posting on a different account — it's not part of the source posting. The lots consumed from x1 need to cover both the transfer and the fee.
+
+Approach C: Relaxed counterpart matching (simplest)
+
+Change the counterpart maps to be keyed by commodity only (not quantity), or add a secondary lookup that matches on commodity alone when exact-quantity matching fails. When a negative lotful asset posting has no exact counterpart but there IS a positive posting of the same
+commodity on a different asset account, classify:
+- The negative posting as transfer-from
+- The positive posting as transfer-to
+- Any other same-commodity postings on non-asset accounts (the fee) as dispose
+
+Then in processing, processTransferPair would transfer min(|from_qty|, to_qty) lots, and the excess on the source side would need separate dispose handling.
+
+This is the most robust but requires changes to both classification and processing.
+
+Approach D: Treat fees as part of the transfer
+
+The simplest pragmatic fix: when the source quantity exceeds the destination, the transfer processes the destination's quantity from the source's lots. The fee amount (source - dest) is simply "lost" from the lot perspective — those lots get reduced but no gain is recorded (the fee
+is already recorded as an expense). This matches real-world semantics: you transferred X, the exchange took a cut.
+
+Should transfer+fee patterns also work when the fee posting has a price (e.g. `expenses:fees ETH 0.00075600 @ $1169`)?
+That would make the fee posting look like a dispose (has a price), which could conflict with the transfer-from classification of the source. 
+→ Classify fee as dispose
+
 ## Next ?
 
 - more testing with real world journals
@@ -391,3 +445,4 @@ exactly which transaction consumed "missing" lots.
 - insert ptype at start of comment, not at end ?
 
 Remember: don't over-engineer. Build the vision, build high quality, but most of all build what users actually need, and validate that with real users quickly.
+
