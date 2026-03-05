@@ -368,8 +368,8 @@ transactionTagCostsAndEquityAndMaybeInferCosts verbosetags1 addcosts conversiona
 
         -- A function that adds a cost and/or tag to a numbered posting if appropriate.
         postingAddCostAndOrTag np costp (n,p) =
-          (n, if | n == np            -> costp & postingAddHiddenAndMaybeVisibleTag verbosetags (costPostingTagName,"")        -- if it's the specified posting number, replace it with the costful posting, and tag it
-                 | n == n1 || n == n2 -> p     & postingAddHiddenAndMaybeVisibleTag verbosetags (conversionPostingTagName,"")  -- if it's one of the equity conversion postings, tag it
+          (n, if | n == np            -> costp & postingAddHiddenAndMaybeVisibleTag False verbosetags (costPostingTagName,"")        -- if it's the specified posting number, replace it with the costful posting, and tag it
+                 | n == n1 || n == n2 -> p     & postingAddHiddenAndMaybeVisibleTag False verbosetags (conversionPostingTagName,"")  -- if it's one of the equity conversion postings, tag it
                  | otherwise          -> p)
 
       -- Annotate any errors with the conversion posting pair

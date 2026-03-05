@@ -53,6 +53,7 @@ module Hledger.Data.Posting (
   commentAddTag,
   commentAddTagUnspaced,
   commentAddTagNextLine,
+  commentPrependTag,
   generatedTransactionTagName,
   modifiedTransactionTagName,
   generatedPostingTagName,
@@ -470,11 +471,12 @@ postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
 -- | Add the given hidden tag to a posting; and with a true argument,
 -- also add the equivalent visible tag to the posting's tags and comment fields.
 -- If the posting already has these tags (with any value), do nothing.
-postingAddHiddenAndMaybeVisibleTag :: Bool -> HiddenTag -> Posting -> Posting
-postingAddHiddenAndMaybeVisibleTag verbosetags ht p@Posting{pcomment=c, ptags} =
+postingAddHiddenAndMaybeVisibleTag :: Bool -> Bool -> HiddenTag -> Posting -> Posting
+postingAddHiddenAndMaybeVisibleTag prepend verbosetags ht p@Posting{pcomment=c, ptags} =
   (p `postingAddTags` ([ht] <> [vt |verbosetags]))
-  {pcomment=if verbosetags && not hadtag then c `commentAddTag` vt else c}
+  {pcomment=if verbosetags && not hadtag then addFn c vt else c}
   where
+    addFn = if prepend then commentPrependTag else commentAddTag
     vt@(vname,_) = toVisibleTag ht
     hadtag = any ((== (T.toLower vname)) . T.toLower . fst) ptags  -- XXX should regex-quote vname
 
@@ -505,7 +507,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
   | costPostingTagName `elem` map fst (ptags p) = [p]
   -- tag the posting, and for each of its costs, add an equivalent pair of conversion postings after it
   | otherwise =
-    postingAddHiddenAndMaybeVisibleTag verbosetags (costPostingTagName,"") p :
+    postingAddHiddenAndMaybeVisibleTag False verbosetags (costPostingTagName,"") p :
     concatMap makeConversionPostings costs
   where
     costs = filter (isJust . acost) . amountsRaw $ pamount p
@@ -523,8 +525,8 @@ postingAddInferredEquityPostings verbosetags equityAcct p
         amtCommodity  = commodity amt
         costCommodity = commodity cost
         convp = nullposting{pdate=pdate p, pdate2=pdate2 p, pstatus=pstatus p, ptransaction=ptransaction p}
-          & postingAddHiddenAndMaybeVisibleTag verbosetags (conversionPostingTagName,"")
-          & postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+          & postingAddHiddenAndMaybeVisibleTag False verbosetags (conversionPostingTagName,"")
+          & postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
         accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
         -- Take the commodity of an amount and collapse consecutive spaces to a single space
         commodity = T.unwords . filter (not . T.null) . T.words . acommodity
@@ -554,6 +556,16 @@ commentAddTag :: Text -> Tag -> Text
 commentAddTag c (t,v)
   | T.null c' = tag
   | otherwise = c' `commentJoin` tag
+  where
+    c'  = T.stripEnd c
+    tag = t <> ": " <> v
+
+-- | Add a tag at the start of a comment, comma-separated from any prior content.
+-- A space is inserted following the colon, before the value.
+commentPrependTag :: Text -> Tag -> Text
+commentPrependTag c (t,v)
+  | T.null c' = tag
+  | otherwise = tag `commentJoin` c'
   where
     c'  = T.stripEnd c
     tag = t <> ": " <> v

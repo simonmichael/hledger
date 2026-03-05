@@ -407,7 +407,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         Nothing
           | isGainAcct p -> addTag "gain" p
           | otherwise    -> p
-      where addTag cls = postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag ("ptype", cls))
+      where addTag cls = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", cls))
 
     -- Check if posting should be classified and return the classification:
     -- one of acquire, dispose, transfer-from, transfer-to.
@@ -575,7 +575,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       (a:_) -> a
 
     tagGain :: Posting -> Posting
-    tagGain = postingAddHiddenAndMaybeVisibleTag verbosetags (toHiddenTag ("ptype", "gain"))
+    tagGain = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", "gain"))
 
     disposeHasPrice p = isDisposePosting p && any (isJust . acost) (amountsRaw (pamount p))
 
@@ -595,7 +595,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
                     then Right t
                     else do
                       let inferredAmt = maNegate residual
-                          gp = postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+                          gp = postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
                                  $ tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
                           t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
                       checkBalance t'
@@ -674,7 +674,7 @@ preserveParentAssertion _           origAcct (Just _) ps
     | lotBaseAccount origAcct /= origAcct = ps  -- already an explicit lot subaccount; leave as-is
 preserveParentAssertion verbosetags origAcct (Just ba) ps =
     map (\p -> p{pbalanceassertion = Nothing}) ps
-    ++ [ postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+    ++ [ postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
            nullposting
              { paccount          = origAcct
              , pamount           = mixedAmount (baamount ba){aquantity = 0}
