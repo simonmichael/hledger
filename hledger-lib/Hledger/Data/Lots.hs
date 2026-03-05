@@ -289,8 +289,8 @@ journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionCl
 transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> Transaction -> Transaction
 transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
   | not (any hasLotRelevantAmount ps) && not (any isGainAcct ps)
-    = dbg5 "classifyLotPostings: no lot-relevant amounts found, skipping" t
-  | otherwise = dbg5 "classifyLotPostings: classifying" $ t{tpostings=zipWith classifyAt [0..] ps}
+    = lotDbg t "no lot-relevant amounts, skipping" t
+  | otherwise = lotDbg t "classifying" $ t{tpostings=zipWith classifyAt [0..] ps}
   where
     hasCostBasis :: Posting -> Bool
     hasCostBasis p = let amts = amountsRaw (pamount p)
@@ -767,6 +767,15 @@ txnErrPrefix :: Transaction -> String
 txnErrPrefix t = printf "%s:%d:\n%s\n" f line ex
   where (f, line, _, ex) = makeTransactionErrorExcerpt t (const Nothing)
 
+-- | Emit a dbg5 trace for a lot operation: "lots: FILE:LINE DATE DESC: message".
+lotDbg :: Transaction -> String -> a -> a
+lotDbg t msg = dbg5With (\_ -> "lots: " ++ txnDbgPrefix t ++ ": " ++ msg)
+
+-- | Format a one-line transaction summary for debug traces: "FILE:LINE DATE DESC".
+txnDbgPrefix :: Transaction -> String
+txnDbgPrefix t = printf "%s:%d %s %s" f line (show (tdate t)) (T.unpack (tdescription t))
+  where (f, line, _, _) = makeTransactionErrorExcerpt t (const Nothing)
+
 -- | Get the lot date from cost basis, falling back to the transaction date.
 getLotDate :: Transaction -> CostBasis -> Day
 getLotDate t cb = fromMaybe (tdate t) (cbDate cb)
@@ -885,9 +894,9 @@ reduceLotTransferToEquity j t ls p =
             method    = resolveReductionMethod j p commodity
         selected <- selectLots method (txnErrPrefix t) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
-        return $ dbg5With (\_ -> "lots: equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
-                                  ++ " from " ++ T.unpack acct
-                                  ++ " (lots: " ++ showSelectedLots selected ++ ")")
+        return $ lotDbg t ("equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
+                           ++ " from " ++ T.unpack acct
+                           ++ " (lots: " ++ showSelectedLots selected ++ ")")
                $ reduceLotState acct commodity consumed ls
       _ -> Right ls  -- no single lot amount (e.g. cash posting): pass through
 
@@ -1052,9 +1061,9 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                    ,poriginal = Just (originalPosting p)}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
                           (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
-        return $ dbg5With (\_ -> "lots: acquired " ++ show (aquantity lotAmt) ++ " "
-                                  ++ T.unpack commodity ++ " " ++ T.unpack lotName
-                                  ++ " on " ++ T.unpack baseAcct)
+        return $ lotDbg t ("acquired " ++ show (aquantity lotAmt) ++ " "
+                           ++ T.unpack commodity ++ " " ++ T.unpack lotName
+                           ++ " on " ++ T.unpack baseAcct)
                (lotState', p')
   where
     showPos = txnErrPrefix t
@@ -1155,9 +1164,9 @@ processDisposePosting verbosetags j t lotState p = do
         let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
             lotState' = reduceLotState scopeAcct commodity consumed lotState
 
-        return $ dbg5With (\_ -> "lots: disposed " ++ show posQty ++ " " ++ T.unpack commodity
-                                  ++ " from " ++ T.unpack scopeAcct
-                                  ++ " (" ++ show method ++ ", lots: " ++ showSelectedLots selected ++ ")")
+        return $ lotDbg t ("disposed " ++ show posQty ++ " " ++ T.unpack commodity
+                           ++ " from " ++ T.unpack scopeAcct
+                           ++ " (" ++ show method ++ ", lots: " ++ showSelectedLots selected ++ ")")
                (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) newPostings)
   where
     showPos = txnErrPrefix t
@@ -1231,10 +1240,10 @@ processTransferPair verbosetags j t lotState fromP toP = do
         lotState'  = reduceLotState fromBaseAcct commodity consumed lotState
         lotState'' = foldl' (addTransferredLot commodity toBaseAcct) lotState' transferLots
 
-    return $ dbg5With (\_ -> "lots: transferred " ++ show fromQty ++ " " ++ T.unpack commodity
-                              ++ " from " ++ T.unpack fromBaseAcct ++ " to " ++ T.unpack toBaseAcct
-                              ++ " (lots: " ++ showSelectedLots selected
-                              ++ if feeQty > 0 then "; fee: " ++ show feeQty ++ ")" else ")")
+    return $ lotDbg t ("transferred " ++ show fromQty ++ " " ++ T.unpack commodity
+                        ++ " from " ++ T.unpack fromBaseAcct ++ " to " ++ T.unpack toBaseAcct
+                        ++ " (lots: " ++ showSelectedLots selected
+                        ++ if feeQty > 0 then "; fee: " ++ show feeQty ++ ")" else ")")
            ( lotState''
            , preserveParentAssertion verbosetags (paccount fromP) (pbalanceassertion fromP) (transferFromPs ++ feeFromPs)
            , preserveParentAssertion verbosetags (paccount toP)   (pbalanceassertion toP)   toPs
