@@ -198,20 +198,22 @@ These require an asset account type and a lotful commodity or account
 
 - **Negative lotful** →
   `transfer-from` if a counterpart (same commodity, exact quantity,
-  different account) exists.
-  Otherwise `dispose`, unless: (a) the posting has no transacted price, and
-  (b) another asset account in the same transaction receives a positive
-  lotful amount of the same commodity. In that case, classification is
-  skipped — it is a transfer+fee pattern where the destination account's
-  later trades handle lot reduction via global FIFO.
+  different account) exists, or if another asset account in the same
+  transaction receives a positive lotful amount of the same commodity
+  (transfer+fee pattern, where source qty > dest qty due to fees).
+  Otherwise `dispose` if the posting has a transacted price.
 
 - **Positive lotful, no price, with transfer-from counterpart** →
-  `transfer-to`. This handles bare transfer-to postings in lotful
-  commodities/accounts that don't repeat the `{...}` notation.
+  `transfer-to`. The counterpart can match by exact quantity or by
+  commodity only (for transfer+fee patterns). This handles bare
+  transfer-to postings in lotful commodities/accounts that don't repeat
+  the `{...}` notation.
 
 - **Positive (any), no cost basis, with cost-basis transfer-from counterpart** →
-  `transfer-to`. This handles the receiving side of transfers where the
-  sending side has `{...}` but the receiving side doesn't.
+  `transfer-to`. The counterpart can match by exact quantity or by
+  commodity only (for transfer+fee patterns). This handles the receiving
+  side of transfers where the sending side has `{...}` but the receiving
+  side doesn't.
 
 - **Positive lotful with a plausible cost source** →
   `acquire`. A cost source is plausible when the posting has a transacted
@@ -236,7 +238,15 @@ Transfer detection uses precomputed maps keyed by (commodity, |quantity|):
 
 A posting has a "counterpart" when the opposite-sign map contains a
 different account for the same commodity and quantity. This requires exact
-quantity matching — partial matches are not detected as transfers.
+quantity matching for the primary check (`hasCounterpart`,
+`hasTransferFromCounterpart`).
+
+A commodity-only fallback (`hasTransferFromCommodityMatch`) checks
+`negCBAccts` for any entry with the same commodity in a different account,
+ignoring quantity. This is used by `shouldClassifyLotful` and
+`shouldClassifyBareTransferTo` to detect transfer-to postings in
+transfer+fee patterns where the destination receives less than the source
+sends.
 
 ### Main functions
 
@@ -244,7 +254,7 @@ quantity matching — partial matches are not detected as transfers.
 - `transactionClassifyLotPostings`: per-transaction classifier.
   - `sameAcctTransferSet`: precomputed set of same-account transfer pair indices.
   - `negCBAccts`, `posCBAccts`, `posNoCBAccts`: counterpart maps.
-  - `hasCounterpart`, `hasTransferFromCounterpart`: counterpart lookups.
+  - `hasCounterpart`, `hasTransferFromCounterpart`, `hasTransferFromCommodityMatch`: counterpart lookups.
   - `classifyAt`: per-posting dispatch.
   - `shouldClassify` → `shouldClassifyWithCostBasis`, `shouldClassifyNegativeLotful`,
     `shouldClassifyLotful`, `shouldClassifyBareTransferTo`, `shouldClassifyPositiveLotful`.
@@ -273,6 +283,11 @@ we infer a transacted cost from the cost basis.
   recreating its lot(s) under a new parent account.
   It doesn't need a lot selector; if it has one, it must select the same lot as the transfer-from posting.
   Transfer postings (both from and to) must not have explicit transacted cost (@ or @@); this is an error.
+  When the transfer-to quantity is less than the transfer-from quantity (a transfer+fee pattern),
+  lots are selected for the full source quantity, then split: the transfer portion's lots are
+  recreated at the destination, and the fee portion's lots are consumed from source only
+  (generating from-postings on lot subaccounts with no corresponding to-postings, like a
+  silent disposal with no gain).
 
 - An equity transfer is a variant of a lot transfer that happens in two parts across
   separate transactions (e.g. a closing transaction transfers lots into equity, and an

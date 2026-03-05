@@ -357,3 +357,65 @@ commodity A  ; lots:
 $ hledger -f- bal assets:x1 --lots -N
              0.999 A  assets:x1:{2026-01-15, $100}
 
+# ** 18. Transfer+fee pattern: source qty > dest qty, fee deducted.
+# The transfer is detected despite inexact quantity matching.
+# Fee portion lots are consumed from source but not added to destination.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    1.05 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:x1     -1.05 A
+    expenses:fees  0.05 A
+    assets:x2      1.00 A
+
+$ hledger -f- print --lots -x desc:transfer
+2026-02-17 transfer with fee
+    assets:x1:{2026-01-15, $100}    -1.00 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100}
+    expenses:fees                                       0.05 A
+    assets:x2:{2026-01-15, $100}     1.00 A {2026-01-15, $100}
+
+>=
+
+# ** 19. Transfer+fee: destination gets only the transferred lots, not fee lots.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    1.05 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:x1     -1.05 A
+    expenses:fees  0.05 A
+    assets:x2      1.00 A
+
+$ hledger -f- bal assets:x2 --lots -N
+              1.00 A  assets:x2:{2026-01-15, $100}
+>=
+
+# ** 20. Transfer+fee: subsequent disposal from destination works.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    2 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:x1     -1.05 A
+    expenses:fees  0.05 A
+    assets:x2      1.00 A
+
+2026-03-01 sell
+    assets:x2    -1.00 A @ $150
+    assets:cash
+    revenue:gains
+
+$ hledger -f- bal assets:x1 assets:x2 --lots -N
+              0.95 A  assets:x1:{2026-01-15, $100}
+

@@ -7036,6 +7036,8 @@ you only need to declare the base account (eg `account assets:stocks`), not each
   with cost inferred from the transaction's other postings.
 - **Transfer**: a matching pair of negative/positive lot postings moves a lot between accounts, preserving its cost basis.
   Transfer postings should not have a transacted price.
+  If the destination receives less than the source sends (eg due to a fee deducted by an exchange),
+  the fee portion of lots is consumed from the source without being recreated at the destination.
 - **Dispose**: a negative lot posting sells from one or more existing lots.
   It must have a transacted price (the selling price), either explicit or inferred.
 
