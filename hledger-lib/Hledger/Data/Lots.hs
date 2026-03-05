@@ -98,7 +98,7 @@ module Hledger.Data.Lots (
 
 import Control.Applicative ((<|>))
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (sort, sortOn)
+import Data.List (intercalate, sort, sortOn)
 import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -120,7 +120,7 @@ import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, jou
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
-import Hledger.Utils (dbg5)
+import Hledger.Utils (dbg5, dbg5With)
 
 -- Types
 
@@ -867,7 +867,10 @@ reduceLotTransferToEquity j t ls p =
             method    = resolveReductionMethod j p commodity
         selected <- selectLots method (txnErrPrefix t) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
-        return $ reduceLotState acct commodity consumed ls
+        return $ dbg5With (\_ -> "lots: equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
+                                  ++ " from " ++ T.unpack acct
+                                  ++ " (lots: " ++ showSelectedLots selected ++ ")")
+               $ reduceLotState acct commodity consumed ls
       _ -> Right ls  -- no single lot amount (e.g. cash posting): pass through
 
 -- | Partition a transaction's postings into transfer-from, transfer-to, and others.
@@ -1031,7 +1034,10 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                    ,poriginal = Just (originalPosting p)}
         let lotState' = M.insertWith (M.unionWith M.union) commodity
                           (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
-        return (lotState', p')
+        return $ dbg5With (\_ -> "lots: acquired " ++ show (aquantity lotAmt) ++ " "
+                                  ++ T.unpack commodity ++ " " ++ T.unpack lotName
+                                  ++ " on " ++ T.unpack baseAcct)
+               (lotState', p')
   where
     showPos = txnErrPrefix t
 
@@ -1131,7 +1137,10 @@ processDisposePosting verbosetags j t lotState p = do
         let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
             lotState' = reduceLotState scopeAcct commodity consumed lotState
 
-        return (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) newPostings)
+        return $ dbg5With (\_ -> "lots: disposed " ++ show posQty ++ " " ++ T.unpack commodity
+                                  ++ " from " ++ T.unpack scopeAcct
+                                  ++ " (" ++ show method ++ ", lots: " ++ showSelectedLots selected ++ ")")
+               (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) newPostings)
   where
     showPos = txnErrPrefix t
 
@@ -1204,7 +1213,11 @@ processTransferPair verbosetags j t lotState fromP toP = do
         lotState'  = reduceLotState fromBaseAcct commodity consumed lotState
         lotState'' = foldl' (addTransferredLot commodity toBaseAcct) lotState' transferLots
 
-    return ( lotState''
+    return $ dbg5With (\_ -> "lots: transferred " ++ show fromQty ++ " " ++ T.unpack commodity
+                              ++ " from " ++ T.unpack fromBaseAcct ++ " to " ++ T.unpack toBaseAcct
+                              ++ " (lots: " ++ showSelectedLots selected
+                              ++ if feeQty > 0 then "; fee: " ++ show feeQty ++ ")" else ")")
+           ( lotState''
            , preserveParentAssertion verbosetags (paccount fromP) (pbalanceassertion fromP) (transferFromPs ++ feeFromPs)
            , preserveParentAssertion verbosetags (paccount toP)   (pbalanceassertion toP)   toPs
            )
@@ -1415,3 +1428,14 @@ reduceLotState account commodity consumed = M.adjust adjustCommodity commodity
         shrinkAmt q a
           | aquantity a <= q = Nothing
           | otherwise        = Just a{aquantity = aquantity a - q}
+
+-- Debug trace helpers
+
+-- | Reconstruct a CostBasis from a LotId and a stored Amount (for display in trace messages).
+lotIdToCb :: LotId -> Amount -> CostBasis
+lotIdToCb lid a = CostBasis (Just (lotDate lid)) (lotLabel lid) (acostbasis a >>= cbCost)
+
+-- | Show selected lots for trace messages: "{2026-01-15, $50} 5, {2026-02-01, $60} 3"
+showSelectedLots :: [(LotId, Amount, Quantity)] -> String
+showSelectedLots = intercalate ", " . map fmt
+  where fmt (lid, a, qty) = T.unpack (showLotName (lotIdToCb lid a)) ++ " " ++ show qty
