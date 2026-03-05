@@ -60,7 +60,9 @@ If we find such acquisitions that have user-added labels, we should check that t
 (again across all accounts, to be safe) and report an error otherwise.
 
 There are multiple lot selection (AKA reduction) methods:
-FIFO, LIFO, HIFO, AVERAGE, and SPECID at least. All methods are per-account.
+FIFO, LIFO, HIFO, AVERAGE, SPECID, and their global validation variants
+(FIFOALL, LIFOALL, HIFOALL, AVERAGEALL). Base methods are per-account.
+*ALL variants select per-account but validate against the global ordering.
 We should assume the method can be vary/be configured in a relatively fine-grained way -
 per account, per commodity, per time period, perhaps even per posting.
 In future we might want to add a {!METHOD, ...} part inside the lot syntax,

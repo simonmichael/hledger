@@ -695,12 +695,16 @@ postingLotsMethod p =
 -- | Parse a reduction method name from a lots: tag value.
 parseReductionMethod :: Text -> Maybe ReductionMethod
 parseReductionMethod t = case T.toUpper (T.strip t) of
-  "FIFO"    -> Just FIFO
-  "LIFO"    -> Just LIFO
-  "HIFO"    -> Just HIFO
-  "AVERAGE" -> Just AVERAGE
-  "SPECID"  -> Just SPECID
-  _         -> Nothing
+  "FIFO"       -> Just FIFO
+  "LIFO"       -> Just LIFO
+  "HIFO"       -> Just HIFO
+  "AVERAGE"    -> Just AVERAGE
+  "SPECID"     -> Just SPECID
+  "FIFOALL"    -> Just FIFOALL
+  "LIFOALL"    -> Just LIFOALL
+  "HIFOALL"    -> Just HIFOALL
+  "AVERAGEALL" -> Just AVERAGEALL
+  _            -> Nothing
 
 -- | Check that all lots: tag values on commodity and account declarations are recognised.
 -- Empty values (bare @lots:@ tag) are valid and default to FIFO.
@@ -716,7 +720,7 @@ journalCheckLotsTagValues j = do
        "%s:%d:"
       ,"%s"
       ,"unrecognised lots: tag value %s."
-      ,"Use FIFO, LIFO, HIFO, AVERAGE, SPECID, or nothing (meaning FIFO)"
+      ,"Use FIFO, LIFO, HIFO, AVERAGE, SPECID, FIFOALL, LIFOALL, HIFOALL, AVERAGEALL, or nothing (meaning FIFO)"
       ]
 
     checkCommodity (sym, tags) =

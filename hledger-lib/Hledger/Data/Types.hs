@@ -341,11 +341,16 @@ data LotId = LotId {
 } deriving (Show,Eq,Ord,Generic)
 
 -- | The method used to select lots for disposal or transfer.
--- All methods are per-account (scoped to the posting's account).
+-- Per-account methods (scoped to the posting's account):
 -- FIFO/LIFO select oldest/newest first. HIFO selects highest cost first.
 -- AVERAGE uses weighted average cost basis for disposals (FIFO consumption order).
 -- SPECID requires every disposal/transfer to have an explicit lot selector matching exactly one lot.
+-- Global validation methods (*ALL variants):
+-- FIFOALL/LIFOALL/HIFOALL select per-account but validate that the selected lots would also
+-- be chosen first if all accounts' lots were considered together. Errors if not.
+-- AVERAGEALL additionally computes weighted average cost across the global pool.
 data ReductionMethod = FIFO | LIFO | HIFO | AVERAGE | SPECID
+                     | FIFOALL | LIFOALL | HIFOALL | AVERAGEALL
   deriving (Show,Read,Eq,Ord,Generic)
 
 data Amount = Amount {

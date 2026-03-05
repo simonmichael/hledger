@@ -315,3 +315,113 @@ commodity AAPL  ; lots: AVERAGE
 $ hledger -f- bal assets:stocks --lots -N
               7 AAPL  assets:stocks:{2026-01-15, $30}
              20 AAPL  assets:stocks:{2026-02-01, $60}
+
+# * Global reduction methods (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL)
+
+# ** 15. FIFOALL: dispose from account with globally-oldest lot passes.
+<
+commodity AAPL  ; lots: FIFOALL
+
+2026-01-15 buy in broker1 (oldest globally)
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2    5 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell from broker1 (has globally oldest lot, OK)
+    assets:broker1   -5 AAPL {} @ $55
+    assets:cash       $275
+    revenue:gains    $-25
+
+$ hledger -f- bal assets:broker --lots -N
+              5 AAPL  assets:broker1:{2026-01-15, $50}
+              5 AAPL  assets:broker2:{2026-02-01, $50}
+
+# ** 16. FIFOALL: dispose from account but another account has an older lot: error.
+<
+commodity AAPL  ; lots: FIFOALL
+
+2026-01-15 buy in broker1 (oldest globally)
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2    5 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell from broker2 (but broker1 has older lot)
+    assets:broker2   -5 AAPL {} @ $55
+    assets:cash       $275
+    revenue:gains    $-25
+
+$ hledger -f- bal assets:broker --lots -N
+>2 /FIFOALL.*higher priority/
+>=1
+
+# ** 17. LIFOALL: dispose from account but another account has a newer lot: error.
+<
+commodity AAPL  ; lots: LIFOALL
+
+2026-01-15 buy in broker1
+    assets:broker1   10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2    5 AAPL {$50}
+    assets:checking
+
+2026-03-01 sell from broker1 (but broker2 has newer lot under LIFO)
+    assets:broker1   -5 AAPL {} @ $55
+    assets:cash       $275
+    revenue:gains    $-25
+
+$ hledger -f- bal assets:broker --lots -N
+>2 /LIFOALL.*higher priority/
+>=1
+
+# ** 18. HIFOALL: dispose from account but another account has a higher-cost lot: error.
+<
+commodity AAPL  ; lots: HIFOALL
+
+2026-01-15 buy in broker1 (cheap)
+    assets:broker1   10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy in broker2 (expensive)
+    assets:broker2    5 AAPL {$60}
+    assets:checking
+
+2026-03-01 sell from broker1 (but broker2 has higher-cost lot under HIFO)
+    assets:broker1   -5 AAPL {} @ $55
+    assets:cash       $275
+    revenue:gains    $-75
+
+$ hledger -f- bal assets:broker --lots -N
+>2 /HIFOALL.*higher priority/
+>=1
+
+# ** 19. AVERAGEALL: dispose uses global weighted average cost, not per-account.
+# broker1 has 10 @ $40, broker2 has 10 @ $80. Global avg = (10*40 + 10*80)/20 = $60.
+# Per-account avg for broker1 would be $40.
+# Gain = 5 * ($65 - $60) = $25. (With per-account AVERAGE, gain would be 5 * ($65 - $40) = $125.)
+<
+commodity AAPL  ; lots: AVERAGEALL
+
+2026-01-15 buy in broker1 (cheap)
+    assets:broker1   10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy in broker2 (expensive)
+    assets:broker2   10 AAPL {$80}
+    assets:checking
+
+2026-03-01 sell from broker1 (global avg cost $60)
+    assets:broker1    -5 AAPL {} @ $65
+    assets:cash        $325
+    revenue:gains     $-25
+
+$ hledger -f- bal assets:broker --lots -N
+              5 AAPL  assets:broker1:{2026-01-15, $40}
+             10 AAPL  assets:broker2:{2026-02-01, $80}

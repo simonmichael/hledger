@@ -311,6 +311,13 @@ FIFO (oldest first), LIFO (newest first), HIFO (highest cost first),
 AVERAGE (weighted average cost basis), and SPECID (explicit selection via lot selector).
 All methods are per-account: they only consider lots within the posting's account.
 
+Global validation variants: FIFOALL, LIFOALL, HIFOALL, AVERAGEALL.
+These select per-account like the base methods, but validate that the selected lots
+would also be chosen first if all accounts' lots were considered together.
+If not, an error is raised showing which lots on other accounts have higher priority.
+AVERAGEALL additionally computes the weighted average cost across the global pool
+(all accounts), not just the posting's account.
+
 AVERAGE uses FIFO consumption order for bookkeeping, but applies
 the pool's weighted average per-unit cost as the disposal cost basis.
 The method is configurable per account and per commodity via the `lots:` tag,
