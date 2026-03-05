@@ -834,12 +834,15 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
     else do
         let indexedFroms = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferFromPosting p]
             indexedTos   = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
-        pairs <- pairIndexedTransferPostings t indexedFroms indexedTos
-        -- Process transfer pairs first, building an IntMap from original index to expanded postings.
-        (ls', transferMap) <- foldM processOnePair (ls, M.empty) pairs
-        -- Walk all postings in original order, substituting expanded results.
-        (ls'', allPs) <- foldMPostings ls' [] (zip [0..] (tpostings t)) transferMap
-        return (ls'', t{tpostings = reverse allPs} : acc)
+        case pairIndexedTransferPostings t indexedFroms indexedTos of
+          Left err | lotswarn -> warn err $ Right (ls, t : acc)
+          Left err -> Left err
+          Right pairs -> do
+            -- Process transfer pairs first, building an IntMap from original index to expanded postings.
+            (ls', transferMap) <- foldM processOnePair (ls, M.empty) pairs
+            -- Walk all postings in original order, substituting expanded results.
+            (ls'', allPs) <- foldMPostings ls' [] (zip [0..] (tpostings t)) transferMap
+            return (ls'', t{tpostings = reverse allPs} : acc)
   where
     txnDate = tdate t
 
