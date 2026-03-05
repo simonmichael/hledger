@@ -1,6 +1,6 @@
 # Lot tracking
 
-Here is the current specification for lots functionality, some of which has been implemented in the lots branch.
+Here is the current specification for lots functionality, most of which has been implemented in the lots branch.
 
 See also 
 - hledger manual: Basis / lots
@@ -31,13 +31,13 @@ There is a new `--lots` general flag, which enables
 - automatic lot inference, tracking and error checking
 - display of per-lot subaccounts and balances in all reports.
 
-In the journal, it will be possible to record lot operations 
+In the journal, lot operations can be recorded
 
 1. implicitly, with minimal notation and maximum inference;
 2. partly explicitly, with any missing parts inferred;
 3. or fully explicitly, requiring no inference.
 
-A typical workflow might be to use 1 primarily, or when processing/converting old journals;
+A typical workflow is to use 1 primarily, or when processing/converting old journals;
 and use `print` to convert to 3 for troubleshooting or reporting.
 
 ## Transacted cost and cost basis
@@ -130,7 +130,7 @@ Commodities and/or accounts can be declared as lotful, by adding a "lots" tag to
 This signifies that their postings always involve a cost basis and lots, 
 so these should be inferred if not written explicitly.
 
-(In future, we will also recognise some common commodity symbols as lotful, even without the lots tag.)
+(In future, we may also recognise some common commodity symbols as lotful, even without the lots tag.)
 
 ## Inferring cost basis from transacted cost
 
@@ -290,18 +290,16 @@ we infer a transacted cost from the cost basis.
 
 ## Reduction methods
 
-Planned reduction methods include:
+The reduction methods are:
 
-FIFO (oldest first, across all accounts), FIFO1 (oldest first, within each account),
-LIFO (newest first, across all accounts), LIFO1 (newest first, within each account),
-HIFO (highest cost first, across all accounts), HIFO1 (highest cost first, within each account),
-AVERAGE (weighted average cost basis, across all accounts), AVERAGE1 (weighted average cost basis, within each account),
-and SPECID (explicit selection via lot selector).
+FIFO (oldest first), LIFO (newest first), HIFO (highest cost first),
+AVERAGE (weighted average cost basis), and SPECID (explicit selection via lot selector).
+All methods are per-account: they only consider lots within the posting's account.
 
-AVERAGE/AVERAGE1 use FIFO consumption order for bookkeeping, but apply
+AVERAGE uses FIFO consumption order for bookkeeping, but applies
 the pool's weighted average per-unit cost as the disposal cost basis.
-The method should be configurable in a relatively fine-grained way —
-per account, per commodity, per time period, perhaps even per posting.
+The method is configurable per account and per commodity via the `lots:` tag,
+and per posting via the `lots:` tag on a posting comment.
 
 In future, the method might be specified with an annotation like {!METHOD, ...} inside the lot syntax.
 

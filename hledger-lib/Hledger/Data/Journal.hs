@@ -696,13 +696,9 @@ postingLotsMethod p =
 parseReductionMethod :: Text -> Maybe ReductionMethod
 parseReductionMethod t = case T.toUpper (T.strip t) of
   "FIFO"    -> Just FIFO
-  "FIFO1"   -> Just FIFO1
   "LIFO"    -> Just LIFO
-  "LIFO1"   -> Just LIFO1
   "HIFO"    -> Just HIFO
-  "HIFO1"   -> Just HIFO1
   "AVERAGE" -> Just AVERAGE
-  "AVERAGE1"-> Just AVERAGE1
   "SPECID"  -> Just SPECID
   _         -> Nothing
 
@@ -720,7 +716,7 @@ journalCheckLotsTagValues j = do
        "%s:%d:"
       ,"%s"
       ,"unrecognised lots: tag value %s."
-      ,"Use FIFO, FIFO1, LIFO, LIFO1, HIFO, HIFO1, AVERAGE, AVERAGE1, SPECID, or nothing (meaning FIFO)"
+      ,"Use FIFO, LIFO, HIFO, AVERAGE, SPECID, or nothing (meaning FIFO)"
       ]
 
     checkCommodity (sym, tags) =

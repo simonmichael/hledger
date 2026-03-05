@@ -7067,17 +7067,15 @@ $ hledger print --lots desc:sell
 When a disposal or transfer doesn't specify a particular lot (eg the amount is `-5 AAPL` or `-5 AAPL {}`),
 hledger selects lot(s) automatically using a reduction method. The available methods are:
 
-| Method             | Lots selected      | Scope               | Disposal cost basis  |
-|--------------------|--------------------|---------------------|----------------------|
-| **FIFO** (default) | oldest first       | across all accounts | each lot's cost      |
-| **FIFO1**          | oldest first       | within one account  | each lot's cost      |
-| **LIFO**           | newest first       | across all accounts | each lot's cost      |
-| **LIFO1**          | newest first       | within one account  | each lot's cost      |
-| **HIFO**           | highest cost first | across all accounts | each lot's cost      |
-| **HIFO1**          | highest cost first | within one account  | each lot's cost      |
-| **AVERAGE**        | oldest first       | across all accounts | weighted average cost|
-| **AVERAGE1**       | oldest first       | within one account  | weighted average cost|
-| **SPECID**         | one specified lot  | specified account   | specified lot's cost |
+| Method             | Lots selected      | Disposal cost basis  |
+|--------------------|--------------------|-----------------------|
+| **FIFO** (default) | oldest first       | each lot's cost       |
+| **LIFO**           | newest first       | each lot's cost       |
+| **HIFO**           | highest cost first | each lot's cost       |
+| **AVERAGE**        | oldest first       | weighted average cost |
+| **SPECID**         | one specified lot  | specified lot's cost  |
+
+All methods are per-account: they only consider lots within the posting's account.
 
 An explicit lot selector (eg `{2026-01-15, $50}` or `{$50}`) uses specific-identification (SPECID).
 
