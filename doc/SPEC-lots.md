@@ -155,29 +155,100 @@ directly without a redundant `{}` annotation on the amount.
 
 ## Lot postings
 
-After inferring cost basis, we can identify lot postings. These are postings which
+After inferring cost basis, we identify and classify lot postings.
+A `ptype` tag is added to each classified posting to record its type:
+acquire, dispose, transfer-from, transfer-to, or gain.
 
-- have a cost basis annotation (any of the {}, [], () notations)
-- or involve a lotful commodity or account (positive amounts are acquire, negative are dispose)
-- or are matched by a transfer-from posting in the same transaction.
+(`journalClassifyLotPostings` → `transactionClassifyLotPostings`)
 
-We classify lot postings, based on their amount sign and
-whether they are matched by an opposite posting in the same transaction,
-and add a "ptype" tag to record their type:
+### Classification summary
 
-- Lot postings with a positive amount get ptype "acquire" or (if matched) "transfer-to".
-  On lotful commodities/accounts, even bare positive postings (no `{}` or `@`) are classified
-  as acquire; their cost basis is inferred from the transacted cost at lot calculation time.
-- Lot postings with a negative amount get ptype "dispose" or (if matched) "transfer-from".
-- A lot posting is also classified as an equity transfer (not acquire/dispose) when the
-  transaction has an equity counterpart posting with no explicit lotful amounts and the
-  posting has no transacted price. Negative lot postings get "transfer-from", positive
-  ones get "transfer-to". This handles equity transfers: lots moving to equity
-  (e.g. close --clopen --lots closing transaction) or from equity (e.g. the corresponding
-  opening transaction), where the transfer happens in two separate transactions rather
-  than a single from/to pair.
+In short: a lotful commodity entering an asset account is an **acquire**.
+A lotful commodity leaving an asset account is a **dispose**.
+A lotful commodity moving between asset accounts is a **transfer**.
+The details below handle edge cases: bare postings without `{...}`,
+equity transfers, partial transfers with fees, and cost source inference.
 
-(journalClassifyLotPostings)
+### Classification rules
+
+Classification proceeds in several steps. Virtual (parenthesised) postings
+are never classified.
+
+**1. Same-account transfer pairs.**
+Within each account, negative and positive postings with the same commodity
+and exact absolute quantity are paired as transfer-from / transfer-to.
+When there are more of one sign than the other, the excess are left
+unmatched and classified by the rules below.
+
+**2. Postings with cost basis (`{...}`).**
+These are classified regardless of account type:
+
+- **Negative** → `dispose`, or `transfer-from` if a counterpart posting
+  (same commodity and quantity, different account) exists.
+- **Positive** → `acquire`, or `transfer-to` if a counterpart exists.
+- **Equity transfer override**: if the posting has no transacted price
+  (`@ ...`) and an equity counterpart posting (no cost basis) exists in
+  the transaction, it is classified as transfer-from/to instead of
+  dispose/acquire. This handles `close --clopen --lots` style equity
+  transfers where lots move to/from equity in separate transactions.
+
+**3. Bare postings on lotful asset accounts (no cost basis).**
+These require an asset account type and a lotful commodity or account
+(`lots:` tag). They are tried in this order:
+
+- **Negative lotful** →
+  `transfer-from` if a counterpart (same commodity, exact quantity,
+  different account) exists.
+  Otherwise `dispose`, unless: (a) the posting has no transacted price, and
+  (b) another asset account in the same transaction receives a positive
+  lotful amount of the same commodity. In that case, classification is
+  skipped — it is a transfer+fee pattern where the destination account's
+  later trades handle lot reduction via global FIFO.
+
+- **Positive lotful, no price, with transfer-from counterpart** →
+  `transfer-to`. This handles bare transfer-to postings in lotful
+  commodities/accounts that don't repeat the `{...}` notation.
+
+- **Positive (any), no cost basis, with cost-basis transfer-from counterpart** →
+  `transfer-to`. This handles the receiving side of transfers where the
+  sending side has `{...}` but the receiving side doesn't.
+
+- **Positive lotful with a plausible cost source** →
+  `acquire`. A cost source is plausible when the posting has a transacted
+  price (`@ ...`), or the transaction contains a different-commodity posting
+  (allowing the balancer to infer a cost), or a transfer-from counterpart
+  exists. Without any of these, no lot can be created and classification is
+  skipped.
+
+**4. Gain accounts.**
+Postings in accounts with type `Gain` (and not otherwise classified) get
+ptype `gain`.
+
+### Counterpart detection
+
+Transfer detection uses precomputed maps keyed by (commodity, |quantity|):
+
+- `negCBAccts`: accounts with negative postings that have cost basis
+  (any account type), or are bare lotful negatives on asset accounts.
+  Non-asset bare lotful negatives (e.g. revenue) are excluded.
+- `posCBAccts`: accounts with positive postings that have cost basis.
+- `posNoCBAccts`: accounts with positive asset postings without cost basis.
+
+A posting has a "counterpart" when the opposite-sign map contains a
+different account for the same commodity and quantity. This requires exact
+quantity matching — partial matches are not detected as transfers.
+
+### Main functions
+
+- `journalClassifyLotPostings`: entry point, maps over transactions.
+- `transactionClassifyLotPostings`: per-transaction classifier.
+  - `sameAcctTransferSet`: precomputed set of same-account transfer pair indices.
+  - `negCBAccts`, `posCBAccts`, `posNoCBAccts`: counterpart maps.
+  - `hasCounterpart`, `hasTransferFromCounterpart`: counterpart lookups.
+  - `classifyAt`: per-posting dispatch.
+  - `shouldClassify` → `shouldClassifyWithCostBasis`, `shouldClassifyNegativeLotful`,
+    `shouldClassifyLotful`, `shouldClassifyBareTransferTo`, `shouldClassifyPositiveLotful`.
+  - `postingIsLotful`: checks for `lots:` tag on commodity or account.
 
 ## Inferring transacted cost from cost basis
 

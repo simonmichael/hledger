@@ -50,7 +50,7 @@ journalCalculateLots:
   "lot ... has no cost basis (internal error)",
   "lot subaccount ... does not match resolved lot"
 
-* pairTransferPostings:
+* pairIndexedTransferPostings:
   "transfer-to/from posting ... has no matching ... posting",
   "mismatched transfer postings for commodity X",
   "... posting has no lotful commodity"
@@ -291,6 +291,9 @@ journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionCl
 -- The lookupAccountType function should typically be `journalAccountType journal`.
 -- The commodityIsLotful function should typically be `journalCommodityUsesLots journal`.
 -- The verbosetags parameter controls whether the tags are made visible in comments.
+--
+-- For more detail on classification rules, please see doc/SPEC-lots.md > Lot postings.
+--
 transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> Transaction -> Transaction
 transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
   | not (any hasLotRelevantAmount ps) && not (any isGainAcct ps)
@@ -463,14 +466,35 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         else primaryType
 
     -- Classify a negative lotful posting without cost basis as dispose or transfer-from.
+    -- If the posting has no transacted price and another asset account in the same
+    -- transaction receives a positive lotful amount of the same commodity (even at
+    -- different quantity), skip classification — it's a transfer+fee pattern and
+    -- global FIFO will handle the lot reduction when the destination account trades.
     shouldClassifyNegativeLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyNegativeLotful p amts = do
       guard $ postingIsLotful p amts
       guard $ any isNegativeAmount amts
       let baseAcct = lotBaseAccount (paccount p)
+          hasPrice = any (isJust . acost) amts
+          negCommodities = S.fromList [acommodity a | a <- amts, isNegativeAmount a]
           amtPairs = [(acommodity a, aquantity a) | a <- amts]
           isTransfer = any (\(c, q) -> hasCounterpart baseAcct True c q) amtPairs
-      return $ if isTransfer then "transfer-from" else "dispose"
+          -- Check for positive lotful amounts in other asset accounts (same commodity).
+          otherAssetReceives = any isOtherAssetWithLotful (filter (/= p) ps)
+          isOtherAssetWithLotful q =
+            let qAmts = amountsRaw (pamount q)
+                qBase = lotBaseAccount (paccount q)
+            in qBase /= baseAcct
+               && maybe False isAssetType (lookupAccountType qBase)
+               && postingIsLotful q qAmts
+               && any (\a -> aquantity a > 0 && acommodity a `S.member` negCommodities) qAmts
+      if isTransfer
+        then return "transfer-from"
+        else do
+          -- Only classify as dispose if there's no positive lotful amount in another
+          -- asset account (same commodity). If there is, it's a transfer+fee pattern.
+          guard $ hasPrice || not otherAssetReceives
+          return "dispose"
 
     -- Classify a lotful posting without cost basis.
     -- A positive posting in a lotful commodity/account, with no transacted price,
@@ -497,8 +521,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 
     -- Classify a positive lotful posting without cost basis as acquire.
     -- This is the fallback for positive lotful postings that aren't transfer-to.
-    -- Requires a transacted price or a different-commodity posting in the transaction
-    -- (so the balancer can infer a cost). Without either, no lot can be created.
+    -- Requires a plausible cost source: transacted price, different-commodity posting
+    -- (for balancer inference), or a transfer-from counterpart (whose lot cost is inherited).
+    -- Without any of these, no lot can be created so we skip classification.
     shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyPositiveLotful p amts = do
       guard $ postingIsLotful p amts
@@ -507,7 +532,10 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           hasPrice = any (isJust . acost) amts
           hasDiffCommodity = any (\q -> any ((`S.notMember` commodities) . acommodity) (amountsRaw (pamount q)))
                                (filter (\q -> q /= p && hasAmount q) ps)
-      guard $ hasPrice || hasDiffCommodity
+          baseAcct = lotBaseAccount (paccount p)
+          hasTransferFrom = any (\(c, q) -> hasTransferFromCounterpart baseAcct c q)
+                              [(acommodity a, aquantity a) | a <- amts]
+      guard $ hasPrice || hasDiffCommodity || hasTransferFrom
       return "acquire"
 
     -- Check if a posting is lotful: its commodity or account has a lots: tag.
@@ -781,39 +809,47 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
     -- Process transfer-to postings as acquires to add lots to the state.
     else if null transferFroms && not (null transferTos) && hasEquityOther
       then do
-        (ls', processedPs) <- foldM (\(st, acc') p -> do
+        -- Build map of processed transfer-to postings, then reconstruct in original order.
+        let indexedTos = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
+        (ls', toMap) <- foldM (\(st, m) (i, p) -> do
             (st', p') <- processAcquirePosting needsLabels txnDate t st p
-            return (st', p' : acc')
-          ) (ls, []) transferTos
-        let allPs = reverse processedPs ++ otherPs
+            return (st', M.insert i p' m)
+          ) (ls, M.empty) indexedTos
+        let allPs = [maybe p id (M.lookup i toMap) | (i, p) <- zip [0..] (tpostings t)]
         return (ls', t{tpostings = allPs} : acc)
     else do
-        pairs <- pairTransferPostings t transferFroms transferTos
-        -- Process transfer pairs first, accumulating lot state changes
-        (ls', transferPs) <- foldM processOnePair (ls, []) pairs
-        -- Process remaining postings (acquire, dispose, passthrough)
-        (ls'', otherPs') <- foldMPostings ls' [] otherPs
-        -- Combine: transfer postings first, then others, preserving relative order
-        let allPs = reverse transferPs ++ reverse otherPs'
-        return (ls'', t{tpostings = allPs} : acc)
+        let indexedFroms = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferFromPosting p]
+            indexedTos   = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
+        pairs <- pairIndexedTransferPostings t indexedFroms indexedTos
+        -- Process transfer pairs first, building an IntMap from original index to expanded postings.
+        (ls', transferMap) <- foldM processOnePair (ls, M.empty) pairs
+        -- Walk all postings in original order, substituting expanded results.
+        (ls'', allPs) <- foldMPostings ls' [] (zip [0..] (tpostings t)) transferMap
+        return (ls'', t{tpostings = reverse allPs} : acc)
   where
     txnDate = tdate t
 
-    processOnePair (st, psAcc) (fromP, toP) = do
+    -- Process a transfer pair; record expanded postings keyed by original index.
+    processOnePair (st, m) (fromIdx, fromP, toIdx, toP) = do
       (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromP toP
-      return (st', reverse toPs ++ reverse fromPs ++ psAcc)
+      let m' = M.insert fromIdx fromPs $ M.insert toIdx toPs m
+      return (st', m')
 
-    foldMPostings :: LotState -> [Posting] -> [Posting] -> Either String (LotState, [Posting])
-    foldMPostings st acc' [] = Right (st, acc')
-    foldMPostings st acc' (p:ps)
+    -- Walk postings in original order, looking up transfer results or processing normally.
+    foldMPostings :: LotState -> [Posting] -> [(Int, Posting)] -> M.Map Int [Posting]
+                  -> Either String (LotState, [Posting])
+    foldMPostings st acc' [] _ = Right (st, acc')
+    foldMPostings st acc' ((i,p):ps) tmap
+      | Just expanded <- M.lookup i tmap =
+          foldMPostings st (reverse expanded ++ acc') ps tmap
       | isAcquirePosting p = do
           (st', p') <- processAcquirePosting needsLabels txnDate t st p
-          foldMPostings st' (p':acc') ps
+          foldMPostings st' (p':acc') ps tmap
       | isDisposePosting p = do
           (st', newPs) <- processDisposePosting verbosetags j t st p
-          foldMPostings st' (reverse newPs ++ acc') ps
+          foldMPostings st' (reverse newPs ++ acc') ps tmap
       | otherwise =
-          foldMPostings st (p:acc') ps
+          foldMPostings st (p:acc') ps tmap
 
 -- | True if the posting is in an equity account.
 isEquityPosting :: Journal -> Posting -> Bool
@@ -845,14 +881,15 @@ partitionTransferPostings = go [] [] []
       | isTransferToPosting p   = go froms (p:tos) others ps
       | otherwise               = go froms tos (p:others) ps
 
--- | Pair transfer-from and transfer-to postings by commodity.
+-- | Pair indexed transfer-from and transfer-to postings by commodity.
 -- Within each commodity group, froms and tos are sorted by cost basis fields
 -- (date, label, cost) so that explicit per-lot pairs align correctly even when
 -- interleaved. Cost basis mismatches are caught later by validation, not here.
-pairTransferPostings :: Transaction -> [Posting] -> [Posting]
-                     -> Either String [(Posting, Posting)]
-pairTransferPostings _ [] [] = Right []
-pairTransferPostings t froms tos = do
+-- Returns (fromIndex, fromPosting, toIndex, toPosting) tuples.
+pairIndexedTransferPostings :: Transaction -> [(Int, Posting)] -> [(Int, Posting)]
+                            -> Either String [(Int, Posting, Int, Posting)]
+pairIndexedTransferPostings _ [] [] = Right []
+pairIndexedTransferPostings t froms tos = do
     fromGroups <- groupByCommodity "transfer-from" froms
     toGroups   <- groupByCommodity "transfer-to" tos
     let allComms = S.union (M.keysSet fromGroups) (M.keysSet toGroups)
@@ -860,11 +897,11 @@ pairTransferPostings t froms tos = do
   where
     showPos = txnErrPrefix t
 
-    -- Group postings by their lotful commodity (the one with cost basis).
-    groupByCommodity :: String -> [Posting] -> Either String (M.Map CommoditySymbol [Posting])
-    groupByCommodity label ps = do
-      tagged <- mapM (\p -> (,p) <$> postingCommodity label p) ps
-      Right $ M.map reverse $ M.fromListWith (++) [(c, [p]) | (c, p) <- tagged]
+    -- Group indexed postings by their lotful commodity.
+    groupByCommodity :: String -> [(Int, Posting)] -> Either String (M.Map CommoditySymbol [(Int, Posting)])
+    groupByCommodity label ips = do
+      tagged <- mapM (\ip -> (,ip) <$> postingCommodity label (snd ip)) ips
+      Right $ M.map reverse $ M.fromListWith (++) [(c, [ip]) | (c, ip) <- tagged]
 
     postingCommodity :: String -> Posting -> Either String CommoditySymbol
     postingCommodity label p =
@@ -876,9 +913,8 @@ pairTransferPostings t froms tos = do
                  _   -> Left $ showPos ++ label ++ " posting has no lotful commodity"
 
     -- Sort key for aligning pairs within a commodity group.
-    -- Extracts (date, label, normalized cost) from a posting's cost basis.
-    postingSortKey :: Posting -> (Maybe Day, Maybe T.Text, Maybe (CommoditySymbol, Quantity))
-    postingSortKey p =
+    postingSortKey :: (Int, Posting) -> (Maybe Day, Maybe T.Text, Maybe (CommoditySymbol, Quantity))
+    postingSortKey (_, p) =
       case [cb | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]] of
         [cb] -> (cbDate cb, cbLabel cb,
                  fmap (\a -> (acommodity a, aquantity a)) (cbCost cb))
@@ -899,7 +935,7 @@ pairTransferPostings t froms tos = do
                        ++ show (length ts) ++ " transfer-to"
           let sortedFs = sortOn postingSortKey fs
               sortedTs = sortOn postingSortKey ts
-          Right $ zip sortedFs sortedTs
+          Right [(fi, fp, ti, tp) | ((fi, fp), (ti, tp)) <- zip sortedFs sortedTs]
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.
 -- If quantity is zero, returns the TotalCost amount as-is (avoiding division by zero).
