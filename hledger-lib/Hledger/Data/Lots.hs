@@ -69,6 +69,9 @@ journalCalculateLots:
   "lot selector is ambiguous, matches N lots in account Y",
   "insufficient lots for commodity X in account Y"
 
+* validateGlobalCompliance:
+  "METHOD: lot(s) on other account(s) have higher priority than the lots in ACCT"
+
 * poolWeightedAvgCost:
   "no lots with cost basis available for averaging",
   "cannot average lots with different cost commodities",
@@ -1111,12 +1114,14 @@ processDisposePosting verbosetags j t lotState p = do
 
         selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
 
-        -- For AVERAGE methods, compute the weighted average cost across the entire pool
-        -- (not just the selected lots). The pool is scoped the same way as lot selection.
+        -- For AVERAGE methods, compute the weighted average cost across the pool.
+        -- AVERAGEALL uses the global pool (all accounts); AVERAGE uses per-account scope.
         mavgCost <- if methodIsAverage method
           then do
             let allLots = M.findWithDefault M.empty commodity lotState
-                flatLots = M.mapMaybe (M.lookup scopeAcct) allLots
+                flatLots = if methodIsGlobal method
+                           then flattenAllAccountLots allLots
+                           else M.mapMaybe (M.lookup scopeAcct) allLots
             fmap Just $ poolWeightedAvgCost showPos flatLots
           else Right Nothing
 
@@ -1333,13 +1338,12 @@ processTransferPair verbosetags j t lotState fromP toP = do
 -- Lot state operations
 
 -- | Select lots to consume using the given reduction method.
--- The method controls two things:
---   1. Ordering: FIFO\/FIFO1 use oldest-first; LIFO\/LIFO1 use newest-first;
---      HIFO\/HIFO1 use highest per-unit cost first; AVERAGE\/AVERAGE1 use FIFO order.
---   2. Scope: FIFO\/LIFO\/HIFO\/AVERAGE select globally across all accounts;
---      FIFO1\/LIFO1\/HIFO1\/AVERAGE1 select only from the specified account.
--- When @maccount@ is @Just acct@, that account is used for per-account methods
--- and for transfers (which are always per-account regardless of method).
+-- All methods select from the specified account only.
+-- Ordering: FIFO\/FIFOALL oldest-first; LIFO\/LIFOALL newest-first;
+-- HIFO\/HIFOALL highest per-unit cost first; AVERAGE\/AVERAGEALL FIFO order;
+-- SPECID requires an explicit selector matching one lot.
+-- The *ALL variants additionally validate that the selected lots would also be
+-- chosen first if all accounts' lots were considered together (see 'validateGlobalCompliance').
 -- The lot selector filters which lots are eligible: each non-Nothing field
 -- in the selector must match the corresponding field in the lot's cost basis.
 -- An all-Nothing selector (from @{}@) matches all lots.
@@ -1369,13 +1373,18 @@ selectLots method posStr account commodity qty selector lotState = do
               ++ " in account " ++ T.unpack account
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
               ++ "\nAvailable lots:" ++ showLotList matchingLots
-    let orderedLots = case method of
+    let base = methodBaseOrdering method
+        orderedLots = case base of
           FIFO    -> M.toAscList matchingLots
           LIFO    -> M.toDescList matchingLots
           HIFO    -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
           AVERAGE -> M.toAscList matchingLots
           SPECID  -> M.toAscList matchingLots
-    Right $ go qty orderedLots
+          _       -> M.toAscList matchingLots  -- unreachable after methodBaseOrdering
+        selected = go qty orderedLots
+    when (methodIsGlobal method) $
+      validateGlobalCompliance method posStr account commodity qty selector lotState selected
+    Right selected
   where
     go 0 _ = []
     go _ [] = []  -- shouldn't happen after the check above
@@ -1419,8 +1428,86 @@ lotPerUnitCost (_, a) = maybe 0 aquantity (acostbasis a >>= cbCost)
 
 -- | Whether a reduction method uses weighted average cost basis for disposals.
 methodIsAverage :: ReductionMethod -> Bool
-methodIsAverage AVERAGE = True
-methodIsAverage _       = False
+methodIsAverage AVERAGE    = True
+methodIsAverage AVERAGEALL = True
+methodIsAverage _          = False
+
+-- | Whether a reduction method requires global validation across all accounts.
+methodIsGlobal :: ReductionMethod -> Bool
+methodIsGlobal FIFOALL    = True
+methodIsGlobal LIFOALL    = True
+methodIsGlobal HIFOALL    = True
+methodIsGlobal AVERAGEALL = True
+methodIsGlobal _          = False
+
+-- | Map a *ALL method to its base ordering, or return the method unchanged.
+methodBaseOrdering :: ReductionMethod -> ReductionMethod
+methodBaseOrdering FIFOALL    = FIFO
+methodBaseOrdering LIFOALL    = LIFO
+methodBaseOrdering HIFOALL    = HIFO
+methodBaseOrdering AVERAGEALL = AVERAGE
+methodBaseOrdering m          = m
+
+-- | Flatten lots across all accounts, summing quantities for shared lot IDs.
+-- From @Map LotId (Map AccountName Amount)@ to @Map LotId Amount@,
+-- combining quantities across accounts (taking the first Amount's metadata).
+flattenAllAccountLots :: M.Map LotId (M.Map AccountName Amount) -> M.Map LotId Amount
+flattenAllAccountLots = M.mapMaybe flattenAccts
+  where
+    flattenAccts acctMap =
+      case M.elems acctMap of
+        []       -> Nothing
+        (a:rest) -> Just a{aquantity = aquantity a + sum (map aquantity rest)}
+
+-- | Validate that the per-account selected lots would also be chosen first
+-- under a global ordering across all accounts. Errors if lots on other accounts
+-- have higher priority than the selected lots.
+validateGlobalCompliance :: ReductionMethod -> String -> AccountName -> CommoditySymbol
+                         -> Quantity -> CostBasis -> LotState
+                         -> [(LotId, Amount, Quantity)] -> Either String ()
+validateGlobalCompliance method posStr account commodity qty selector lotState selected = do
+    let allLots = M.findWithDefault M.empty commodity lotState
+        globalFlat = flattenAllAccountLots allLots
+        globalMatching = M.filter (lotMatchesSelector selector) globalFlat
+        base = methodBaseOrdering method
+        globalOrdered = case base of
+          FIFO    -> M.toAscList globalMatching
+          LIFO    -> M.toDescList globalMatching
+          HIFO    -> sortOn (Down . lotPerUnitCost) (M.toList globalMatching)
+          AVERAGE -> M.toAscList globalMatching
+          _       -> M.toAscList globalMatching
+        -- Greedily consume qty from the globally-ordered list
+        globalSelectedIds = S.fromList $ map fst3 $ goConsume qty globalOrdered
+        selectedIds = S.fromList [lid | (lid, _, _) <- selected]
+        -- Lot IDs that would be globally selected but are NOT in the per-account selection
+        -- (i.e. they exist on other accounts and have higher priority)
+        higherPriorityElsewhere = S.difference globalSelectedIds selectedIds
+    unless (S.null higherPriorityElsewhere) $ do
+      -- Build detailed error showing which accounts hold the higher-priority lots
+      let otherLots = [(acct, lid, a)
+                      | lid <- S.toList higherPriorityElsewhere
+                      , Just acctMap <- [M.lookup lid allLots]
+                      , (acct, a) <- M.toList acctMap]
+          byAcct = M.fromListWith (++) [(acct, [(lid, a)]) | (acct, lid, a) <- otherLots]
+          fmtAcct (acct, lots) = "\n  " ++ T.unpack acct ++ ": "
+            ++ intercalate ", " [T.unpack (showLotName (lotIdToCb lid a)) ++ "  " ++ show (aquantity a)
+                                | (lid, a) <- lots]
+          fmtSelected = concatMap (\(lid, a, q) -> "\n  " ++ T.unpack (showLotName (lotIdToCb lid a))
+                                                    ++ "  " ++ show q) selected
+      Left $ posStr ++ show method ++ ": lot(s) on other account(s) have higher priority than the lots in "
+              ++ T.unpack account ++ ":"
+              ++ concatMap fmtAcct (M.toAscList byAcct)
+              ++ "\nSelected from " ++ T.unpack account ++ ":"
+              ++ fmtSelected
+              ++ "\nConsider disposing from the account(s) listed above first, or use "
+              ++ show (methodBaseOrdering method) ++ " for per-account scope."
+  where
+    goConsume 0 _ = []
+    goConsume _ [] = []
+    goConsume remaining ((lotId, lotAmt):rest)
+      | remaining >= aquantity lotAmt = (lotId, lotAmt, aquantity lotAmt) : goConsume (remaining - aquantity lotAmt) rest
+      | otherwise = [(lotId, lotAmt, remaining)]
+    fst3 (x, _, _) = x
 
 -- | Compute the weighted average per-unit cost across all lots in a pool.
 -- All lots must have cost basis in the same commodity.
