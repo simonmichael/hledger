@@ -82,9 +82,9 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots --verbose-tags
 2027-01-01 opening balances
+    assets:cash                                             $150
     assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50}  ; ptype: transfer-to
     assets:stocks:{2026-07-01, $70}     5 AAPL {2026-07-01, $70}  ; ptype: transfer-to
-    assets:cash                                             $150
     equity:start
 
 >=

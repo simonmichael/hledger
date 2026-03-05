@@ -326,17 +326,34 @@ design/spec iteration visible in the commit history.
 
  Does NOT match: revenue:other-gains, expenses:gains, revenue:gaming
  
+## Future: transaction-level classification ?
+
+The current posting classification logic (`shouldClassify` and friends) is a chain of
+per-posting rules with growing guard conditions. Each new edge case (bare disposals,
+revenue postings, partial transfers with fees) adds another condition. This is getting
+harder to reason about.
+
+A potentially simpler model: **classify at the transaction level first, then assign
+roles to postings**. Instead of asking "what is this posting?" with counterpart lookups,
+ask "what is this transaction doing with lotful commodities?":
+
+1. Look at all lotful commodity flows in the transaction.
+2. If a commodity flows between two asset accounts (any quantity) → it's a **transfer**
+   (possibly with fees going to expense).
+3. If a commodity flows from asset to non-asset (expense, equity) → it's a **disposal**.
+4. If a commodity flows into an asset from non-asset or with a price → it's an **acquisition**.
+5. Otherwise → **untracked** (not enough info to track lots).
+
+This is essentially what the counterpart maps approximate, but described as a
+transaction-level pattern rather than per-posting guards. It could make the logic
+more tractable and reduce the number of special cases.
+
+This could be attempted as a parallel code path alongside the current implementation,
+validated against the same test suite, then swapped in once confirmed equivalent.
+
 ## Next ?
 
-- prevent confusing same commodity different basis amounts, hidden inferred conversion costs
-   - simplify MixedAmountKey
-      - review/cleanup
-
-- investigate the latest adm/a.j, disposal posting not being lot-tracked / not generating a gain posting
-
 - more testing with real world journals
-- an amountless posting's lotful commodity is not recognised (lot postings are classified before amounts are filled)
-- and declaring the amountless posting's account lotful should help, but doesn't
 - infer acquire price, dispose price from market price ?
 - recognise some common commodity symbols as lotful ?
 - consolidate lot tests ?
