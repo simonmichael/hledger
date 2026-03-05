@@ -1327,12 +1327,18 @@ selectLots method posStr account commodity qty selector lotState = do
         matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
       Left $ posStr ++ "no lots available for commodity " ++ T.unpack commodity
+              ++ " in account " ++ T.unpack account
+              ++ showOtherAccountLots allLots
     when (method == SPECID && M.size matchingLots > 1) $
-      Left $ posStr ++ "lot selector is ambiguous, matches " ++ show (M.size matchingLots) ++ " lots"
+      Left $ posStr ++ "lot selector is ambiguous, matches " ++ show (M.size matchingLots)
+              ++ " lots in account " ++ T.unpack account ++ ":"
+              ++ showLotList matchingLots
     let available = sum [aquantity a | a <- M.elems matchingLots]
     when (available < qty) $
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
+              ++ " in account " ++ T.unpack account
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
+              ++ "\nAvailable lots:" ++ showLotList matchingLots
     let orderedLots = case method of
           FIFO    -> M.toAscList matchingLots
           LIFO    -> M.toDescList matchingLots
@@ -1347,6 +1353,23 @@ selectLots method posStr account commodity qty selector lotState = do
       | remaining >= lotBal = (lotId, lotAmt, lotBal) : go (remaining - lotBal) rest
       | otherwise           = [(lotId, lotAmt, remaining)]
       where lotBal = aquantity lotAmt
+
+    showLotList :: M.Map LotId Amount -> String
+    showLotList lots = concatMap fmt (M.toAscList lots)
+      where fmt (lid, a) = "\n  " ++ T.unpack (showLotName (lotIdToCb lid a))
+                            ++ "  " ++ show (aquantity a)
+
+    showOtherAccountLots :: M.Map LotId (M.Map AccountName Amount) -> String
+    showOtherAccountLots allLots' =
+      let others = [(acct, lid, a) | (lid, acctMap) <- M.toAscList allLots'
+                                    , (acct, a) <- M.toList acctMap, acct /= account]
+          byAcct = M.fromListWith (++) [(acct, [(lid, a)]) | (acct, lid, a) <- others]
+      in if M.null byAcct then ""
+         else "\nLots of " ++ T.unpack commodity ++ " on other accounts:"
+           ++ concatMap fmtAcct (M.toAscList byAcct)
+      where fmtAcct (acct, lots) = "\n  " ++ T.unpack acct ++ ": "
+              ++ intercalate ", " [T.unpack (showLotName (lotIdToCb lid a)) ++ " " ++ show (aquantity a)
+                                  | (lid, a) <- lots]
 
 -- | Split a list of selected lots at a quantity boundary.
 -- Returns (lots for the first portion, lots for the remainder).
