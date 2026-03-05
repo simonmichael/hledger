@@ -47,3 +47,19 @@ $ hledger -f- print --lots-warn 2>/dev/null
 
 $ hledger -f- print --lots 2>/dev/null
 >=1
+
+# ** 4. transfer with lot selection failure warns and passes through with --lots-warn
+<
+account assets:x1  ; type:A, lots: FIFO
+account assets:x2  ; type:A, lots: FIFO
+
+2026-02-01 transfer
+    assets:x1    -5 AAPL {$50}
+    assets:x2     5 AAPL {}
+
+$ hledger -f- print --lots-warn 2>/dev/null
+2026-02-01 transfer
+    assets:x1    -5 AAPL {$50}
+    assets:x2        5 AAPL {}
+
+>=0
