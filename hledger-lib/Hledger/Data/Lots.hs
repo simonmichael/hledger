@@ -65,9 +65,9 @@ journalCalculateLots:
 
 * selectLots:
   "SPECID requires an explicit lot selector",
-  "no lots available for commodity X",
-  "lot selector is ambiguous, matches N lots",
-  "insufficient lots for commodity X"
+  "no lots available for commodity X in account Y",
+  "lot selector is ambiguous, matches N lots in account Y",
+  "insufficient lots for commodity X in account Y"
 
 * poolWeightedAvgCost:
   "no lots with cost basis available for averaging",
@@ -120,7 +120,7 @@ import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, jou
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
-import Hledger.Utils (dbg5, dbg5With)
+import Hledger.Utils (dbg5, dbg5With, warn)
 
 -- Types
 
@@ -550,13 +550,14 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 -- dispose postings (matching to existing lots using FIFO, splitting if needed),
 -- and transfer postings (moving lots between accounts, preserving cost basis).
 -- The verbosetags parameter controls whether generated-posting tags are made visible in comments.
-journalCalculateLots :: Bool -> Journal -> Either String Journal
-journalCalculateLots verbosetags j
+-- The lotswarn parameter controls whether lot selection errors are warnings (True) or fatal (False).
+journalCalculateLots :: Bool -> Bool -> Journal -> Either String Journal
+journalCalculateLots verbosetags lotswarn j
   | not $ any (any isLotPosting . tpostings) txns = Right j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
-      (_, txns') <- foldM (processTransaction verbosetags j needsLabels) (M.empty, []) (sortOn tdate txns)
+      (_, txns') <- foldM (processTransaction verbosetags lotswarn j needsLabels) (M.empty, []) (sortOn tdate txns)
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
@@ -790,9 +791,9 @@ generateLabel commodity date lotState =
 -- Transfer pairs are processed first (so that transferred lots are available for
 -- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
-processTransaction :: Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
+processTransaction :: Bool -> Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
                    -> Either String (LotState, [Transaction])
-processTransaction verbosetags j needsLabels (ls, acc) t = do
+processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
         hasEquityOther = any (isEquityPosting j) otherPs
@@ -801,7 +802,12 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
     -- Reduce lots from state; pass all postings through unchanged (equity does not track lots).
     if not (null transferFroms) && null transferTos && hasEquityOther
       then do
-        ls' <- foldM (reduceLotTransferToEquity j t) ls transferFroms
+        ls' <- if lotswarn
+               then foldM (\st p -> case reduceLotTransferToEquity j t st p of
+                              Right st' -> Right st'
+                              Left err  -> warn err $ Right st
+                           ) ls transferFroms
+               else foldM (reduceLotTransferToEquity j t) ls transferFroms
         return (ls', t : acc)
     -- Opening equity transfer: transfer-to postings with no transfer-from counterpart,
     -- where an equity posting is the source (e.g. opening balances from close --clopen --lots).
@@ -829,10 +835,16 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
     txnDate = tdate t
 
     -- Process a transfer pair; record expanded postings keyed by original index.
-    processOnePair (st, m) (fromIdx, fromP, toIdx, toP) = do
-      (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromP toP
-      let m' = M.insert fromIdx fromPs $ M.insert toIdx toPs m
-      return (st', m')
+    processOnePair (st, m) (fromIdx, fromP, toIdx, toP) =
+      case processTransferPair verbosetags j t st fromP toP of
+        Right (st', fromPs, toPs) ->
+          let m' = M.insert fromIdx fromPs $ M.insert toIdx toPs m
+          in Right (st', m')
+        Left err
+          | lotswarn ->
+              let m' = M.insert fromIdx [fromP] $ M.insert toIdx [toP] m
+              in warn err $ Right (st, m')
+          | otherwise -> Left err
 
     -- Walk postings in original order, looking up transfer results or processing normally.
     foldMPostings :: LotState -> [Posting] -> [(Int, Posting)] -> M.Map Int [Posting]
@@ -844,9 +856,15 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
       | isAcquirePosting p = do
           (st', p') <- processAcquirePosting needsLabels txnDate t st p
           foldMPostings st' (p':acc') ps tmap
-      | isDisposePosting p = do
-          (st', newPs) <- processDisposePosting verbosetags j t st p
-          foldMPostings st' (reverse newPs ++ acc') ps tmap
+      | isDisposePosting p =
+          case processDisposePosting verbosetags j t st p of
+            Right (st', newPs) ->
+              foldMPostings st' (reverse newPs ++ acc') ps tmap
+            Left err
+              | lotswarn ->
+                  warn err $
+                    foldMPostings st (p:acc') ps tmap
+              | otherwise -> Left err
       | otherwise =
           foldMPostings st (p:acc') ps tmap
 

@@ -1,0 +1,49 @@
+# Testing --lots-warn mode.
+
+# ** 1. --lots-warn implies --lots; insufficient lots exits 0 (posting passes through unchanged)
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -15 AAPL {$50} @ $55
+    assets:cash       $825
+    revenues:gains
+
+$ hledger -f- print --lots-warn 2>/dev/null
+2026-01-15 buy
+    assets:stocks:{2026-01-15, $50}    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks     -15 AAPL {$50} @ $55
+    assets:cash                       $825
+    revenues:gains
+
+>=0
+
+# ** 2. no lots available with --lots-warn exits 0
+<
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+    revenues:gains
+
+$ hledger -f- print --lots-warn 2>/dev/null
+2026-02-01 sell
+    assets:stocks     -5 AAPL {$50} @ $55
+    assets:cash                      $275
+    revenues:gains
+
+>=0
+
+# ** 3. without --lots-warn, same input errors (exits 1)
+<
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+    revenues:gains
+
+$ hledger -f- print --lots 2>/dev/null
+>=1
