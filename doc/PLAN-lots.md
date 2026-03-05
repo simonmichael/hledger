@@ -360,28 +360,6 @@ a dispose from account B can consume account A's lots via global FIFO.
 The `lots:` tag configures only the reduction *order*; the *scope* is always
 the posting's account. All methods are per-account.
 
-## Debugging aids for lot errors
-
-Currently, lot errors (e.g. "insufficient lots") abort processing and show minimal
-context. This makes it hard to diagnose why lot state diverged from expectations,
-especially in large real-world journals.
-
-### 1. Richer error messages (cheapest)
-In `selectLots`, when "insufficient lots" occurs, include the available lots in the
-error message: account, date, cost basis, and quantity for each. This immediately
-reveals if lots are on the wrong account or were unexpectedly consumed.
-
-### 2. Lenient mode (`--lots-lenient` or similar)
-Turn lot errors into warnings and continue processing. For "insufficient lots",
-consume what's available and flag the posting. This lets `print --lots` show output
-for the whole journal so users can spot where things went wrong visually.
-
-### 3. Lot state trace (debug level)
-Log lot state changes as transactions are processed using the existing `dbg`
-infrastructure: "acquired 0.02 BTC on x1", "transferred 0.02 BTC from x1 to x2",
-"disposed 0.01998945 BTC (global FIFO, consumed from x1:{...})". This pinpoints
-exactly which transaction consumed "missing" lots.
-
 ## Better detection of transfers with fees
 
 > It's common for a lot transfers to have a small disposal (or several) for fees, and these are not always recorded as matching posting pairs. Can you see a robust way we could detect these ?

@@ -248,7 +248,8 @@ rawOptsToInputOpts day usecoloronstdout rawopts =
       ,auto_              = boolopt "auto" rawopts
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,infer_costs_       = boolopt "infer-costs" rawopts
-      ,lots_              = boolopt "lots" rawopts
+      ,lots_              = boolopt "lots" rawopts || boolopt "lots-warn" rawopts
+      ,lots_warn_      = boolopt "lots-warn" rawopts
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_     = boolopt "ignore-assertions" rawopts
                                , infer_balancing_costs_ = not noinferbalancingcosts
@@ -333,7 +334,7 @@ initialiseAndParseJournal parser iopts f txt = do
 -- and enrich postings with computed metadata.
 -- See doc\/SPEC-finalising.md for the full pipeline specification.
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,lots_,strict_,verbose_tags_,_ioDay} f txt pj = do
+journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,lots_,lots_warn_,strict_,verbose_tags_,_ioDay} f txt pj = do
   let
     BalancingOpts{commodity_styles_, ignore_assertions_} = balancingopts_
     -- Hack: peek at the command line to know if certain checks were requested.
@@ -391,7 +392,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
 
       -- Lot calculation
       >>= (if lots_ then journalCheckLotsTagValues else pure)                     -- with --lots: validate lots: tag values
-      >>= (if lots_ then journalCalculateLots verbose_tags_ else pure)            -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
+      >>= (if lots_ then journalCalculateLots verbose_tags_ lots_warn_ else pure)  -- with --lots: evaluate lot selectors, calculate lot balances, add lot subaccounts
       >>= (if lots_ then journalInferAndCheckDisposalBalancing verbose_tags_ else pure)  -- with --lots: infer gain amounts and check disposal transactions balance at cost basis
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
