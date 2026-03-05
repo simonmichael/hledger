@@ -139,14 +139,6 @@ resolveReductionMethod j p commodity =
     postingLotsMethod p
     <|> journalCommodityLotsMethod j commodity
 
--- | Whether a reduction method uses per-account scope (FIFO1/LIFO1/HIFO1/AVERAGE1) vs global.
-methodIsPerAccount :: ReductionMethod -> Bool
-methodIsPerAccount FIFO1    = True
-methodIsPerAccount LIFO1    = True
-methodIsPerAccount HIFO1    = True
-methodIsPerAccount AVERAGE1 = True
-methodIsPerAccount _        = False
-
 -- | Strip any trailing lot subaccount (a component starting with '{') from an account name.
 -- E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes @\"assets:broker\"@.
 -- Handles the case where a user writes the lot subaccount explicitly in a journal entry.
@@ -866,9 +858,9 @@ reduceLotTransferToEquity j t ls p =
             qty       = negate (aquantity a)
             acct      = lotBaseAccount (paccount p)
             method    = resolveReductionMethod j p commodity
-        selected <- selectLots method (txnErrPrefix t) (Just acct) commodity qty cb ls
+        selected <- selectLots method (txnErrPrefix t) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
-        return $ reduceLotState (Just acct) commodity consumed ls
+        return $ reduceLotState acct commodity consumed ls
       _ -> Right ls  -- no single lot amount (e.g. cash posting): pass through
 
 -- | Partition a transaction's postings into transfer-from, transfer-to, and others.
@@ -1067,11 +1059,9 @@ processDisposePosting verbosetags j t lotState p = do
 
         let posQty = negate disposeQty
             method = resolveReductionMethod j p commodity
-            -- Per-account methods (FIFO1/LIFO1) scope to the posting's base account
+            -- All methods are per-account, scoped to the posting's base account
             -- (stripping any explicit lot subaccount the user may have written).
-            scopeAcct = if methodIsPerAccount method
-                        then Just (lotBaseAccount (paccount p))
-                        else Nothing
+            scopeAcct = lotBaseAccount (paccount p)
 
         when (isBare && method == SPECID) $
           Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
@@ -1083,9 +1073,7 @@ processDisposePosting verbosetags j t lotState p = do
         mavgCost <- if methodIsAverage method
           then do
             let allLots = M.findWithDefault M.empty commodity lotState
-                flatLots = case scopeAcct of
-                  Nothing   -> M.mapMaybe lotPickAny allLots
-                  Just acct -> M.mapMaybe (M.lookup acct) allLots
+                flatLots = M.mapMaybe (M.lookup scopeAcct) allLots
             fmap Just $ poolWeightedAvgCost showPos flatLots
           else Right Nothing
 
@@ -1179,7 +1167,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
         method = resolveReductionMethod j fromP commodity
 
     -- Select lots from source account using the resolved method's ordering
-    selected <- selectLots method showPos (Just (lotBaseAccount (paccount fromP))) commodity posQty fromCb lotState
+    selected <- selectLots method showPos (lotBaseAccount (paccount fromP)) commodity posQty fromCb lotState
 
     -- Extract the transfer-to cost basis for optional validation
     let toCb = case [(a, cb) | a <- toAmts, Just cb <- [acostbasis a]] of
@@ -1194,7 +1182,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
     let fromBaseAcct = lotBaseAccount (paccount fromP)
         toBaseAcct   = lotBaseAccount (paccount toP)
         consumed   = [(lotId, qty) | (lotId, _, qty) <- selected]
-        lotState'  = reduceLotState (Just fromBaseAcct) commodity consumed lotState
+        lotState'  = reduceLotState fromBaseAcct commodity consumed lotState
         lotState'' = foldl' (addTransferredLot commodity toBaseAcct) lotState' selected
 
     return ( lotState''
@@ -1273,19 +1261,15 @@ processTransferPair verbosetags j t lotState fromP toP = do
 -- An all-Nothing selector (from @{}@) matches all lots.
 -- Returns a list of (lot id, lot amount, quantity consumed from this lot).
 -- Errors if total available quantity in matching lots is insufficient.
-selectLots :: ReductionMethod -> String -> Maybe AccountName -> CommoditySymbol
+selectLots :: ReductionMethod -> String -> AccountName -> CommoditySymbol
            -> Quantity -> CostBasis -> LotState
            -> Either String [(LotId, Amount, Quantity)]
-selectLots method posStr maccount commodity qty selector lotState = do
+selectLots method posStr account commodity qty selector lotState = do
     when (method == SPECID && isWildcardSelector selector) $
       Left $ posStr ++ "SPECID requires an explicit lot selector"
     let allLots = M.findWithDefault M.empty commodity lotState
-        -- Flatten to (LotId, Amount) pairs, optionally filtering by account.
-        -- For global selection, sum quantities across accounts per lot.
-        -- For per-account selection, take only the specified account's balance.
-        flatLots = case maccount of
-          Nothing   -> M.mapMaybe lotPickAny allLots
-          Just acct -> M.mapMaybe (M.lookup acct) allLots
+        -- Flatten to (LotId, Amount) pairs, taking only the specified account's balance.
+        flatLots = M.mapMaybe (M.lookup account) allLots
         matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
       Left $ posStr ++ "no lots available for commodity " ++ T.unpack commodity
@@ -1296,15 +1280,11 @@ selectLots method posStr maccount commodity qty selector lotState = do
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
     let orderedLots = case method of
-          FIFO     -> M.toAscList matchingLots
-          FIFO1    -> M.toAscList matchingLots
-          LIFO     -> M.toDescList matchingLots
-          LIFO1    -> M.toDescList matchingLots
-          HIFO     -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
-          HIFO1    -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
-          AVERAGE  -> M.toAscList matchingLots
-          AVERAGE1 -> M.toAscList matchingLots
-          SPECID   -> M.toAscList matchingLots
+          FIFO    -> M.toAscList matchingLots
+          LIFO    -> M.toDescList matchingLots
+          HIFO    -> sortOn (Down . lotPerUnitCost) (M.toList matchingLots)
+          AVERAGE -> M.toAscList matchingLots
+          SPECID  -> M.toAscList matchingLots
     Right $ go qty orderedLots
   where
     go 0 _ = []
@@ -1314,22 +1294,14 @@ selectLots method posStr maccount commodity qty selector lotState = do
       | otherwise           = [(lotId, lotAmt, remaining)]
       where lotBal = aquantity lotAmt
 
--- | For global lot selection, pick any account's Amount as representative
--- (they all share the same cost basis) and sum the total quantity.
-lotPickAny :: M.Map AccountName Amount -> Maybe Amount
-lotPickAny acctMap = case M.elems acctMap of
-  []    -> Nothing
-  (a:_) -> Just a{aquantity = sum [aquantity x | x <- M.elems acctMap]}
-
 -- | Extract the per-unit cost quantity from a lot entry, for HIFO sorting.
 lotPerUnitCost :: (LotId, Amount) -> Quantity
 lotPerUnitCost (_, a) = maybe 0 aquantity (acostbasis a >>= cbCost)
 
 -- | Whether a reduction method uses weighted average cost basis for disposals.
 methodIsAverage :: ReductionMethod -> Bool
-methodIsAverage AVERAGE  = True
-methodIsAverage AVERAGE1 = True
-methodIsAverage _        = False
+methodIsAverage AVERAGE = True
+methodIsAverage _       = False
 
 -- | Compute the weighted average per-unit cost across all lots in a pool.
 -- All lots must have cost basis in the same commodity.
@@ -1375,30 +1347,18 @@ lotMatchesSelector selector a =
     matchCost (Just sel) (Just lot) = acommodity sel == acommodity lot
                                    && aquantity sel == aquantity lot
 
--- | Subtract consumed quantities from LotState.
--- When account is @Nothing@, reduces globally across all accounts for each lot
--- (consuming from accounts in map order until the quantity is fulfilled).
--- When account is @Just acct@, reduces only from that specific account.
+-- | Subtract consumed quantities from LotState for a specific account.
 -- Removes lot-account entries whose balance reaches zero.
 -- Removes the lot entirely if no accounts remain.
-reduceLotState :: Maybe AccountName -> CommoditySymbol -> [(LotId, Quantity)] -> LotState -> LotState
-reduceLotState maccount commodity consumed = M.adjust adjustCommodity commodity
+reduceLotState :: AccountName -> CommoditySymbol -> [(LotId, Quantity)] -> LotState -> LotState
+reduceLotState account commodity consumed = M.adjust adjustCommodity commodity
   where
     adjustCommodity lots = foldl' reduceLot lots consumed
     reduceLot lots (lotId, qty) = M.update shrinkLot lotId lots
       where
         shrinkLot acctMap =
-          let acctMap' = case maccount of
-                Just acct -> M.update (shrinkAmt qty) acct acctMap
-                Nothing   -> reduceAcrossAccounts qty acctMap
+          let acctMap' = M.update (shrinkAmt qty) account acctMap
           in if M.null acctMap' then Nothing else Just acctMap'
         shrinkAmt q a
           | aquantity a <= q = Nothing
           | otherwise        = Just a{aquantity = aquantity a - q}
-        -- Reduce across all accounts, consuming from each in map order.
-        reduceAcrossAccounts 0 m = m
-        reduceAcrossAccounts remaining m = case M.minViewWithKey m of
-          Nothing -> m  -- shouldn't happen
-          Just ((acct, a), rest)
-            | aquantity a <= remaining -> reduceAcrossAccounts (remaining - aquantity a) rest
-            | otherwise -> M.insert acct a{aquantity = aquantity a - remaining} rest

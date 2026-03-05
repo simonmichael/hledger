@@ -59,8 +59,8 @@ we should add NNNN labels based on parse/processing order.
 If we find such acquisitions that have user-added labels, we should check that the resulting lot ids are indeed unique
 (again across all accounts, to be safe) and report an error otherwise.
 
-We are not implementing them yet, but there will be multiple lot selection methods: 
-FIFO (across accounts), FIFO1 (per account), LIFO, LIFO1, and SPECID at least.
+There are multiple lot selection (AKA reduction) methods:
+FIFO, LIFO, HIFO, AVERAGE, and SPECID at least. All methods are per-account.
 We should assume the method can be vary/be configured in a relatively fine-grained way -
 per account, per commodity, per time period, perhaps even per posting.
 In future we might want to add a {!METHOD, ...} part inside the lot syntax,
@@ -68,8 +68,8 @@ as another way to select lots or as an extra validation that the lot selection s
 
 We will want a data structure for the calculated lot state that is relatively efficient
 for implementing all the planned lot selection methods.
-Suggestions include Map Commodity (Map LotId (AccountName, Amount)) for FIFO/LIFO
-or Map (AccountName, Commodity) (Map LotId Amount) for FIFO1/LIFO1.
+Suggestions include Map Commodity (Map LotId (AccountName, Amount))
+or Map (AccountName, Commodity) (Map LotId Amount) for per-account selection.
 We'll want to be able to search in order of date + label.
 We might find more suitable alternatives to standard Map, in the base library or on Hackage.
 But it's fine to start with a simple implementation even if it's a bit slow.
@@ -126,8 +126,8 @@ Problem areas and open questions
   The plan doesn't detail this algorithm. 
   Getting this right matters for determinism and for lot ids to sort correctly.
 
-  5. FIFO across accounts vs. per-account — The spec mentions FIFO (global) now and FIFO1 (per-account) later, but the plan only mentions FIFO. 
-  The stateful map design needs to accommodate both from the start or risk a rewrite.
+  5. All methods are per-account — lot selection is always scoped to the posting's account.
+  The stateful map design accommodates this with Map Commodity (Map LotId (Map AccountName Amount)).
 
   6. Posting splitting — When a disposal/transfer selects multiple lots, postings are replicated. 
   This changes the structure of transactions after they've been parsed and partially processed, 
@@ -239,7 +239,7 @@ High. This is a fundamental extension to hledger's data model and processing pip
 - Adds new fields to core types (Posting, Amount)
 - Modifies transaction balancing semantics (gain postings excluded from normal balancing)
 - Adds a new pipeline stage (lot calculation runs after balancing in journalFinalise)
-- Multiple reduction methods (FIFO, FIFO1, LIFO, LIFO1)
+- Multiple reduction methods (FIFO, LIFO, HIFO, AVERAGE, SPECID)
 - Gain posting inference (auto-creating revenue postings)
 - New input syntax (consolidated lot syntax {...})
 - New output format (-O ledger)
@@ -350,6 +350,37 @@ more tractable and reduce the number of special cases.
 
 This could be attempted as a parallel code path alongside the current implementation,
 validated against the same test suite, then swapped in once confirmed equivalent.
+
+## Make lot reduction account-scoped
+
+Global reduction methods (FIFO, LIFO, etc.) can conflict with the specific
+accounts in journal entries, leading to confusing lot errors. For example,
+a dispose from account B can consume account A's lots via global FIFO.
+
+The `lots:` tag configures only the reduction *order*; the *scope* is always
+the posting's account. All methods are per-account.
+
+## Debugging aids for lot errors
+
+Currently, lot errors (e.g. "insufficient lots") abort processing and show minimal
+context. This makes it hard to diagnose why lot state diverged from expectations,
+especially in large real-world journals.
+
+### 1. Richer error messages (cheapest)
+In `selectLots`, when "insufficient lots" occurs, include the available lots in the
+error message: account, date, cost basis, and quantity for each. This immediately
+reveals if lots are on the wrong account or were unexpectedly consumed.
+
+### 2. Lenient mode (`--lots-lenient` or similar)
+Turn lot errors into warnings and continue processing. For "insufficient lots",
+consume what's available and flag the posting. This lets `print --lots` show output
+for the whole journal so users can spot where things went wrong visually.
+
+### 3. Lot state trace (debug level)
+Log lot state changes as transactions are processed using the existing `dbg`
+infrastructure: "acquired 0.02 BTC on x1", "transferred 0.02 BTC from x1 to x2",
+"disposed 0.01998945 BTC (global FIFO, consumed from x1:{...})". This pinpoints
+exactly which transaction consumed "missing" lots.
 
 ## Next ?
 
