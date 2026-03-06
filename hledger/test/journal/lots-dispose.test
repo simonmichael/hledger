@@ -325,3 +325,55 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
+# ** 17. Insufficient lots error shows reduction method.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell too many
+    assets:stocks   -15 AAPL {$50} @ $55
+    assets:cash      $825
+
+$ hledger -f- bal assets:stocks --lots
+>2 /Using FIFO \(default\)/
+>=1
+
+# ** 18. Insufficient lots error shows review hint.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell too many
+    assets:stocks   -15 AAPL {$50} @ $55
+    assets:cash      $825
+
+$ hledger -f- bal assets:stocks --lots
+>2 /hledger reg assets:stocks cur:AAPL --lots-warn -e 2026-02-02/
+>=1
+
+# ** 19. No lots available error shows commodity tag as method source.
+<
+commodity AAPL  ; lots: LIFO
+
+2026-02-01 sell without buying
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+
+$ hledger -f- bal assets:stocks --lots
+>2 /Using LIFO \(from commodity tag on AAPL\)/
+>=1
+
+# ** 20. Error shows account tag as method source.
+<
+account assets:stocks  ; lots: LIFO
+
+2026-02-01 sell without buying
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+
+$ hledger -f- bal assets:stocks --lots
+>2 /Using LIFO \(from account tag on assets:stocks\)/
+>=1
+
