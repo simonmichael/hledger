@@ -1105,8 +1105,17 @@ processAcquirePosting needsLabels txnDate t lotState p = do
         let cbInferred = isNothing (cbCost cb)
             needsLabel = S.member (commodity, date) needsLabels
             lotLabel'  = cbLabel cb <|> if needsLabel then Just (generateLabel commodity date lotState) else Nothing
-            lotId      = LotId date lotLabel'
-            fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel', cbCost = Just lotBasis}
+            -- If the lot id already exists (e.g. an equity transfer-to on the same date
+            -- as a regular acquire, not predicted by findDatesNeedingLabels), auto-generate
+            -- a label to disambiguate.
+            existingLots = M.findWithDefault M.empty commodity lotState
+            lotId0     = LotId date lotLabel'
+            (lotId, lotLabel'')
+              | isNothing (cbLabel cb) && M.member lotId0 existingLots
+                = let l = generateLabel commodity date lotState
+                  in (LotId date (Just l), Just l)
+              | otherwise = (lotId0, lotLabel')
+            fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasis}
             lotName    = showLotName fullCb
             -- When cost basis was inferred, fill it in on the user's original cb
             -- so that print shows {$50} not {}.
@@ -1127,7 +1136,6 @@ processAcquirePosting needsLabels txnDate t lotState p = do
           Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
                   ++ " does not match the resolved lot " ++ T.unpack expectedAcct
 
-        let existingLots = M.findWithDefault M.empty commodity lotState
         when (M.member lotId existingLots) $
           Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
                   ++ " for commodity " ++ T.unpack commodity
