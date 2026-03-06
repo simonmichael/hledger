@@ -120,9 +120,9 @@ import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
-import Hledger.Data.Errors (makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod, postingLotsMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
+import Hledger.Data.Errors (makePostingErrorExcerpt, makeTransactionErrorExcerpt)
+import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With, warn)
@@ -136,16 +136,8 @@ import Hledger.Utils (dbg5, dbg5With, warn)
 -- (eg after a partial lot transfer).
 type LotState = M.Map CommoditySymbol (M.Map LotId (M.Map AccountName Amount))
 
--- | Resolve which reduction method to use for a posting.
--- Checks the posting's account tags first (inherited via ptags), then commodity tags, defaulting to FIFO.
-resolveReductionMethod :: Journal -> Posting -> CommoditySymbol -> ReductionMethod
-resolveReductionMethod j p commodity =
-  fromMaybe FIFO $
-    postingLotsMethod p
-    <|> journalCommodityLotsMethod j commodity
-
--- | Like resolveReductionMethod, but also returns where the method came from.
--- Account tags take priority over commodity tags (matching resolveReductionMethod).
+-- | Resolve which reduction method to use for a posting, and where it came from.
+-- Checks account-inherited tags first, then commodity tags, defaulting to FIFO.
 -- Since commodity tags are propagated to ptags, we distinguish by checking the
 -- commodity's own declared tags separately.
 resolveReductionMethodWithSource :: Journal -> Posting -> CommoditySymbol -> (ReductionMethod, String)
@@ -791,6 +783,14 @@ txnErrPrefix :: Transaction -> String
 txnErrPrefix t = printf "%s:%d:\n%s\n" f line ex
   where (f, line, _, ex) = makeTransactionErrorExcerpt t (const Nothing)
 
+-- | Format a verbose error prefix for a posting: "file:line:\nexcerpt\n\n".
+-- Like txnErrPrefix but highlights the specific posting line.
+-- Strips costs from the posting before lookup, since makePostingErrorExcerpt
+-- matches by comparing cost-stripped transaction postings against the argument.
+postingErrPrefix :: Posting -> String
+postingErrPrefix p = printf "%s:%d:\n%s\n" f line ex
+  where (f, line, _, ex) = makePostingErrorExcerpt (postingStripCosts p) (\_ _ _ -> Nothing)
+
 -- | Emit a dbg5 trace for a lot operation: "lots: FILE:LINE DATE DESC: message".
 lotDbg :: Transaction -> String -> a -> a
 lotDbg t msg = dbg5With (\_ -> "lots: " ++ txnDbgPrefix t ++ ": " ++ msg)
@@ -920,7 +920,7 @@ reduceLotTransferToEquity j t ls p =
             acct      = lotBaseAccount (paccount p)
             (method, methodSource) = resolveReductionMethodWithSource j p commodity
         selected <- first (enrichLotError method methodSource acct commodity (tdate t))
-                  $ selectLots method (txnErrPrefix t) acct commodity qty cb ls
+                  $ selectLots method (postingErrPrefix p) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
         return $ lotDbg t ("equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
                            ++ " from " ++ T.unpack acct
@@ -1135,7 +1135,7 @@ processDisposePosting verbosetags j t lotState p = do
           Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
 
         selected <- first (enrichLotError method methodSource scopeAcct commodity (tdate t))
-                  $ selectLots method showPos scopeAcct commodity posQty cb lotState
+                  $ selectLots method (postingErrPrefix p) scopeAcct commodity posQty cb lotState
 
         -- For AVERAGE methods, compute the weighted average cost across the pool.
         -- AVERAGEALL uses the global pool (all accounts); AVERAGE uses per-account scope.
@@ -1248,7 +1248,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
 
     -- Select lots from source account for the full fromQty
     selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t))
-              $ selectLots method showPos fromBaseAcct commodity fromQty fromCb lotState
+              $ selectLots method (postingErrPrefix fromP) fromBaseAcct commodity fromQty fromCb lotState
 
     -- Split selected lots into transfer portion and fee portion
     let (transferLots, feeLots) = if feeQty > 0
