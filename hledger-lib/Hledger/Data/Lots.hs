@@ -124,7 +124,7 @@ import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
@@ -957,7 +957,7 @@ reduceLotTransferToEquity j t ls p =
             qty       = negate (aquantity a)
             acct      = lotBaseAccount (paccount p)
             (method, methodSource) = resolveReductionMethodWithSource j p commodity
-        selected <- first (enrichLotError method methodSource acct commodity (tdate t))
+        selected <- first (enrichLotError method methodSource acct commodity (tdate t) (journalFilePaths j))
                   $ selectLots method (postingErrPrefix p) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
         return $ lotDbg t ("equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
@@ -1171,7 +1171,7 @@ processDisposePosting verbosetags j t lotState p = do
         when (isBare && method == SPECID) $
           Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
 
-        selected <- first (enrichLotError method methodSource scopeAcct commodity (tdate t))
+        selected <- first (enrichLotError method methodSource scopeAcct commodity (tdate t) (journalFilePaths j))
                   $ selectLots method (postingErrPrefix p) scopeAcct commodity posQty cb lotState
 
         -- For AVERAGE methods, compute the weighted average cost across the pool.
@@ -1284,7 +1284,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
         fromBaseAcct = lotBaseAccount (paccount fromP)
 
     -- Select lots from source account for the full fromQty
-    selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t))
+    selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t) (journalFilePaths j))
               $ selectLots method (postingErrPrefix fromP) fromBaseAcct commodity fromQty fromCb lotState
 
     -- Split selected lots into transfer portion and fee portion
@@ -1410,12 +1410,14 @@ addLotState commodity lotId account amt =
 
 -- | Enrich a selectLots error with reduction method info and a review hint.
 enrichLotError :: ReductionMethod -> String -> AccountName -> CommoditySymbol
-               -> Day -> String -> String
-enrichLotError method methodSource account commodity txnDate err =
+               -> Day -> [FilePath] -> String -> String
+enrichLotError method methodSource account commodity txnDate files err =
   err ++ "\nUsing " ++ show method ++ " (" ++ methodSource ++ ")."
-      ++ "\nTo review lot operations: hledger reg "
-      ++ T.unpack account ++ " cur:" ++ T.unpack commodity
+      ++ "\nTo review lot movements: hledger"
+      ++ concatMap (" -f " ++) files
+      ++ " reg " ++ T.unpack account ++ " cur:" ++ T.unpack commodity
       ++ " --lots-warn -e " ++ T.unpack (showDate (addDays 1 txnDate))
+      ++ " --verbose-tags"
 
 -- | Select lots to consume using the given reduction method.
 -- All methods select from the specified account only.
