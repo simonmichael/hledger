@@ -416,6 +416,20 @@ Should transfer+fee patterns also work when the fee posting has a price (e.g. `e
 That would make the fee posting look like a dispose (has a price), which could conflict with the transfer-from classification of the source. 
 → Classify fee as dispose
 
+## Incompatibilities between hledger 1 and 2
+
+Most of the new lots functionality is activated only when --lots is used.
+But there are some exceptions.
+
+- Lot postings are always classified (with ptype tag).
+
+- Postings whose account is detected as Gain type are excluded from normal transaction balancing.
+  This means accounts declared with type:Gain, but also accounts like revenues:gain, income:gain etc.
+  whose name is matched by `^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)`.
+  These are now excluded from transaction balancing, where before they were not.
+  Transactions involving them may be reported as unbalanced.
+  To work around: rename the account, or declare it as type:Asset not Gain.
+
 ## Next ?
 
 - more testing with real world journals
