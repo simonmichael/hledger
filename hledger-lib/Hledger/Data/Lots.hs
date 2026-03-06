@@ -52,7 +52,7 @@ journalCalculateLots:
 
 * pairIndexedTransferPostings:
   "transfer-to/from posting ... has no matching ... posting",
-  "mismatched transfer postings for commodity X",
+  -- "mismatched transfer postings for commodity X",
   "... posting has no lotful commodity"
 
 * processTransferPair:
@@ -986,10 +986,10 @@ pairIndexedTransferPostings t froms tos = do
         (_, []) -> Left $ showPos ++ "transfer-from posting for " ++ T.unpack comm
                             ++ " has no matching transfer-to posting"
         _ -> do
-          when (length fs /= length ts) $
-            Left $ showPos ++ "mismatched transfer postings for commodity " ++ T.unpack comm
-                       ++ ": " ++ show (length fs) ++ " transfer-from but "
-                       ++ show (length ts) ++ " transfer-to"
+          -- when (length fs /= length ts) $
+          --   Left $ showPos ++ "mismatched transfer postings for commodity " ++ T.unpack comm
+          --              ++ ": " ++ show (length fs) ++ " transfer-from but "
+          --              ++ show (length ts) ++ " transfer-to"
           let sortedFs = sortOn postingSortKey fs
               sortedTs = sortOn postingSortKey ts
           Right [(fi, fp, ti, tp) | ((fi, fp), (ti, tp)) <- zip sortedFs sortedTs]
