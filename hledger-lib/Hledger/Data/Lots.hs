@@ -491,7 +491,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       guard $ any isNegativeAmount amts
       let baseAcct = lotBaseAccount (paccount p)
           hasPrice = any (isJust . acost) amts
-          negCommodities = S.fromList [acommodity a | a <- amts, isNegativeAmount a]
+          negAmts = [a | a <- amts, isNegativeAmount a]
+          negCommodities = S.fromList [acommodity a | a <- negAmts]
           amtPairs = [(acommodity a, aquantity a) | a <- amts]
           isTransfer = any (\(c, q) -> hasCounterpart baseAcct True c q) amtPairs
           -- Check for positive lotful amounts in other asset accounts (same commodity).
@@ -503,10 +504,21 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                && maybe False isAssetType (lookupAccountType qBase)
                && postingIsLotful q qAmts
                && any (\a -> aquantity a > 0 && acommodity a `S.member` negCommodities) qAmts
-      if isTransfer || otherAssetReceives
+          -- Does a non-asset posting receive exactly this commodity+quantity?
+          -- If so, this posting is likely a fee/dispose (e.g. paired with expenses:fees),
+          -- not part of a transfer to another asset account.
+          hasFeeCounterpart = any isFeeCounterpart (filter (/= p) ps)
+          isFeeCounterpart q =
+            let qAmts = amountsRaw (pamount q)
+                qBase = lotBaseAccount (paccount q)
+            in not (maybe False isAssetType (lookupAccountType qBase))
+               && any (\a -> aquantity a > 0
+                          && any (\na -> acommodity na == acommodity a
+                                      && abs (aquantity na) == aquantity a) negAmts) qAmts
+      if isTransfer || (otherAssetReceives && not hasFeeCounterpart)
         then return "transfer-from"
         else do
-          guard $ hasPrice || not otherAssetReceives
+          guard $ hasPrice || hasFeeCounterpart || not otherAssetReceives
           return "dispose"
 
     -- Classify a lotful posting without cost basis.
