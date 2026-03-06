@@ -377,3 +377,17 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using LIFO \(from account tag on assets:stocks\)/
 >=1
 
+# ** 21. Lot error highlights the posting line, not the transaction line.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell too many
+    assets:stocks   -15 AAPL {$50} @ $55
+    assets:cash      $825
+
+$ hledger -f- bal assets:stocks --lots
+>2 /6 \|     assets:stocks/
+>=1
+
