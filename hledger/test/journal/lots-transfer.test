@@ -419,3 +419,30 @@ commodity A  ; lots:
 $ hledger -f- bal assets:x1 assets:x2 --lots -N
               0.95 A  assets:x1:{2026-01-15, $100}
 
+# ** 21. Two transfers moving portions of the same lot to the same destination account.
+# The lot quantities should be summed, not overwritten.
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:x1    3 A {$100}
+    assets:cash
+
+2026-02-01 transfer batch 1
+    assets:x1    -1.01 A
+    expenses:fees 0.01 A
+    assets:x2     1.00 A
+
+2026-02-01 transfer batch 2
+    assets:x1    -1.01 A
+    expenses:fees 0.01 A
+    assets:x2     1.00 A
+
+2026-03-01 sell all from x2
+    assets:x2    -2 A @ $150
+    assets:cash
+    revenue:gains
+
+$ hledger -f- bal assets --lots -N
+              0.98 A  assets:x1:{2026-01-15, $100}
+
