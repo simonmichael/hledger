@@ -350,7 +350,7 @@ $ hledger -f- bal assets:stocks --lots
     assets:cash      $825
 
 $ hledger -f- bal assets:stocks --lots
->2 /hledger reg assets:stocks cur:AAPL --lots-warn -e 2026-02-02/
+>2 /hledger -f - reg assets:stocks cur:AAPL --lots-warn -e 2026-02-02/
 >=1
 
 # ** 19. No lots available error shows commodity tag as method source.
