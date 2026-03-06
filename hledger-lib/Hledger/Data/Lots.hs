@@ -100,6 +100,7 @@ module Hledger.Data.Lots (
 ) where
 
 import Control.Applicative ((<|>))
+import Data.Bifunctor (first)
 import Control.Monad (foldM, guard, unless, when)
 import Data.List (intercalate, sort, sortOn)
 import Data.Ord (Down(..))
@@ -112,14 +113,15 @@ import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Char (isDigit)
-import Data.Time.Calendar (Day, fromGregorianValid)
+import Data.Time.Calendar (Day, addDays, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
+import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalMapTransactions, journalTieTransactions, postingLotsMethod)
+import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod, postingLotsMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
@@ -141,6 +143,25 @@ resolveReductionMethod j p commodity =
   fromMaybe FIFO $
     postingLotsMethod p
     <|> journalCommodityLotsMethod j commodity
+
+-- | Like resolveReductionMethod, but also returns where the method came from.
+-- Account tags take priority over commodity tags (matching resolveReductionMethod).
+-- Since commodity tags are propagated to ptags, we distinguish by checking the
+-- commodity's own declared tags separately.
+resolveReductionMethodWithSource :: Journal -> Posting -> CommoditySymbol -> (ReductionMethod, String)
+resolveReductionMethodWithSource j p commodity =
+  case accountLotsMethod of
+    Just m  -> (m, "from account tag on " ++ T.unpack (paccount p))
+    Nothing -> case journalCommodityLotsMethod j commodity of
+      Just m  -> (m, "from commodity tag on " ++ T.unpack commodity)
+      Nothing -> (FIFO, "default")
+  where
+    -- Check account-inherited tags only (excluding commodity-propagated tags).
+    accountLotsMethod =
+      let acctTags = journalInheritedAccountTags j (paccount p)
+      in case [v | (k, v) <- acctTags, T.toLower k == "lots"] of
+           (v:_) -> parseReductionMethod v
+           []    -> Nothing
 
 -- | Strip any trailing lot subaccount (a component starting with '{') from an account name.
 -- E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes @\"assets:broker\"@.
@@ -897,8 +918,9 @@ reduceLotTransferToEquity j t ls p =
         let commodity = acommodity a
             qty       = negate (aquantity a)
             acct      = lotBaseAccount (paccount p)
-            method    = resolveReductionMethod j p commodity
-        selected <- selectLots method (txnErrPrefix t) acct commodity qty cb ls
+            (method, methodSource) = resolveReductionMethodWithSource j p commodity
+        selected <- first (enrichLotError method methodSource acct commodity (tdate t))
+                  $ selectLots method (txnErrPrefix t) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
         return $ lotDbg t ("equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
                            ++ " from " ++ T.unpack acct
@@ -1104,7 +1126,7 @@ processDisposePosting verbosetags j t lotState p = do
           Left $ showPos ++ "dispose posting has non-negative quantity for " ++ T.unpack commodity
 
         let posQty = negate disposeQty
-            method = resolveReductionMethod j p commodity
+            (method, methodSource) = resolveReductionMethodWithSource j p commodity
             -- All methods are per-account, scoped to the posting's base account
             -- (stripping any explicit lot subaccount the user may have written).
             scopeAcct = lotBaseAccount (paccount p)
@@ -1112,7 +1134,8 @@ processDisposePosting verbosetags j t lotState p = do
         when (isBare && method == SPECID) $
           Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
 
-        selected <- selectLots method showPos scopeAcct commodity posQty cb lotState
+        selected <- first (enrichLotError method methodSource scopeAcct commodity (tdate t))
+                  $ selectLots method showPos scopeAcct commodity posQty cb lotState
 
         -- For AVERAGE methods, compute the weighted average cost across the pool.
         -- AVERAGEALL uses the global pool (all accounts); AVERAGE uses per-account scope.
@@ -1220,10 +1243,12 @@ processTransferPair verbosetags j t lotState fromP toP = do
                   _                 -> fromQty
         feeQty = fromQty - toQty
         -- Transfers are always per-account (scoped to source), but ordering follows the method.
-        method = resolveReductionMethod j fromP commodity
+        (method, methodSource) = resolveReductionMethodWithSource j fromP commodity
+        fromBaseAcct = lotBaseAccount (paccount fromP)
 
     -- Select lots from source account for the full fromQty
-    selected <- selectLots method showPos (lotBaseAccount (paccount fromP)) commodity fromQty fromCb lotState
+    selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t))
+              $ selectLots method showPos fromBaseAcct commodity fromQty fromCb lotState
 
     -- Split selected lots into transfer portion and fee portion
     let (transferLots, feeLots) = if feeQty > 0
@@ -1242,8 +1267,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
     feeFromPs <- mapM (mkFeeFromPosting fromAmt commodity) feeLots
 
     -- Update lot state: remove full fromQty from source, add only transfer portion to destination
-    let fromBaseAcct = lotBaseAccount (paccount fromP)
-        toBaseAcct   = lotBaseAccount (paccount toP)
+    let toBaseAcct   = lotBaseAccount (paccount toP)
         consumed   = [(lotId, qty) | (lotId, _, qty) <- selected]
         lotState'  = reduceLotState fromBaseAcct commodity consumed lotState
         lotState'' = foldl' (addTransferredLot commodity toBaseAcct) lotState' transferLots
@@ -1337,6 +1361,15 @@ processTransferPair verbosetags j t lotState fromP toP = do
 
 -- Lot state operations
 
+-- | Enrich a selectLots error with reduction method info and a review hint.
+enrichLotError :: ReductionMethod -> String -> AccountName -> CommoditySymbol
+               -> Day -> String -> String
+enrichLotError method methodSource account commodity txnDate err =
+  err ++ "\nUsing " ++ show method ++ " (" ++ methodSource ++ ")."
+      ++ "\nTo review lot operations: hledger reg "
+      ++ T.unpack account ++ " cur:" ++ T.unpack commodity
+      ++ " --lots-warn -e " ++ T.unpack (showDate (addDays 1 txnDate))
+
 -- | Select lots to consume using the given reduction method.
 -- All methods select from the specified account only.
 -- Ordering: FIFO\/FIFOALL oldest-first; LIFO\/LIFOALL newest-first;
@@ -1373,6 +1406,7 @@ selectLots method posStr account commodity qty selector lotState = do
               ++ " in account " ++ T.unpack account
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
               ++ "\nAvailable lots:" ++ showLotList matchingLots
+              ++ showOtherAccountLots allLots
     let base = methodBaseOrdering method
         orderedLots = case base of
           FIFO    -> M.toAscList matchingLots

@@ -43,6 +43,7 @@ module Hledger.Data.Journal (
   journalCommodityUsesLots,
   journalCommodityLotsMethod,
   postingLotsMethod,
+  parseReductionMethod,
   journalCheckLotsTagValues,
 -- * Filtering
   filterJournalTransactions,
