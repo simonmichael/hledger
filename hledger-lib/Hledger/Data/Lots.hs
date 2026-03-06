@@ -77,6 +77,9 @@ journalCalculateLots:
   "cannot average lots with different cost commodities",
   "cannot average lots with zero total quantity"
 
+* foldMPostings (--lots-warn only):
+  "X is declared lotful ... but this posting was not classified"
+
 * journalInferAndCheckDisposalBalancing:
   "This disposal transaction has multiple amountless gain postings",
   "This disposal transaction is unbalanced at cost basis"
@@ -122,7 +125,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With, warn)
@@ -315,9 +318,6 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 
     hasLotRelevantAmount :: Posting -> Bool
     hasLotRelevantAmount p = isReal p && (hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p)
-
-    isReal :: Posting -> Bool
-    isReal p = preal p == RealPosting
 
     hasNegativeLotfulAmount :: Posting -> Bool
     hasNegativeLotfulAmount p =
@@ -569,7 +569,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 -- The lotswarn parameter controls whether lot selection errors are warnings (True) or fatal (False).
 journalCalculateLots :: Bool -> Bool -> Journal -> Either String Journal
 journalCalculateLots verbosetags lotswarn j
-  | not $ any (any isLotPosting . tpostings) txns = Right j
+  | not $ any (any isLotPosting . tpostings) txns = warnUnclassified $ Right j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
@@ -577,6 +577,12 @@ journalCalculateLots verbosetags lotswarn j
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
+    -- When lotswarn is active, warn about unclassified lotful postings even on the early-exit path
+    -- (when no postings were classified at all, foldMPostings never runs).
+    warnUnclassified
+      | lotswarn  = foldr (\p -> warn (unclassifiedLotWarning j p)) `flip`
+                      [p | t <- txns, p <- tpostings t, isUnclassifiedLotfulPosting j p]
+      | otherwise = id
 
 -- Disposal balancing
 
@@ -730,6 +736,35 @@ isTransferToPosting p = ("_ptype", "transfer-to") `elem` ptags p
 -- | Check if a posting is a gain posting (has _ptype:gain tag).
 isGainPosting :: Posting -> Bool
 isGainPosting p = ("_ptype", "gain") `elem` ptags p
+
+-- | True if this posting involves a lotful commodity/account in an asset account
+-- but has no _ptype tag (wasn't classified as acquire/dispose/transfer/gain).
+isUnclassifiedLotfulPosting :: Journal -> Posting -> Bool
+isUnclassifiedLotfulPosting j p =
+  isReal p
+  && hasAmount p
+  && any ((/= 0) . aquantity) amts
+  && not (isLotPosting p)
+  && (any ((== "lots") . T.toLower . fst) (ptags p)
+      || any (journalCommodityUsesLots j . acommodity) amts)
+  && maybe False isAssetType (journalAccountType j (lotBaseAccount (paccount p)))
+  where amts = amountsRaw (pamount p)
+
+-- | Build a warning message for an unclassified lotful posting.
+unclassifiedLotWarning :: Journal -> Posting -> String
+unclassifiedLotWarning j p =
+  let amts = amountsRaw (pamount p)
+      lotfulCommodities = [acommodity a | a <- amts, journalCommodityUsesLots j (acommodity a)]
+      hasAccountTag = any ((== "lots") . T.toLower . fst) (ptags p)
+      source = case (lotfulCommodities, hasAccountTag) of
+        (c:_, _)   -> T.unpack c ++ " is declared lotful (commodity lots: tag)"
+        ([], True)  -> T.unpack (paccount p) ++ " is declared lotful (account lots: tag)"
+        _           -> "posting involves a lotful commodity or account"
+  in postingErrPrefix p
+     ++ source ++ " but this posting was not classified as\n"
+     ++ "acquire, dispose, or transfer. Lot state will not be updated.\n"
+     ++ "Possible fixes: add a cost basis ({$X}), a price (@ $X),\n"
+     ++ "or check the account type declaration."
 
 -- Validation and label generation
 
@@ -902,7 +937,10 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
                     foldMPostings st (p:acc') ps tmap
               | otherwise -> Left err
       | otherwise =
-          foldMPostings st (p:acc') ps tmap
+          let go = foldMPostings st (p:acc') ps tmap
+          in if lotswarn && isUnclassifiedLotfulPosting j p
+             then warn (unclassifiedLotWarning j p) go
+             else go
 
 -- | True if the posting is in an equity account.
 isEquityPosting :: Journal -> Posting -> Bool
