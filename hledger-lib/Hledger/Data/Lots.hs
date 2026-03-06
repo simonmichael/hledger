@@ -1125,8 +1125,7 @@ processAcquirePosting needsLabels txnDate t lotState p = do
             p' = p{paccount = expectedAcct
                    ,pamount  = mixedAmount $ if isBare && cbInferred then postingAmt{acost = amountNormalizeCostToUnit lotAmt} else postingAmt
                    ,poriginal = Just (originalPosting p)}
-        let lotState' = M.insertWith (M.unionWith M.union) commodity
-                          (M.singleton lotId (M.singleton baseAcct lotStateAmt)) lotState
+        let lotState' = addLotState commodity lotId baseAcct lotStateAmt lotState
         return $ lotDbg t ("acquired " ++ show (aquantity lotAmt) ++ " "
                            ++ T.unpack commodity ++ " " ++ T.unpack lotName
                            ++ " on " ++ T.unpack baseAcct)
@@ -1394,10 +1393,20 @@ processTransferPair verbosetags j t lotState fromP toP = do
     -- Re-add a transferred lot to LotState under the destination account.
     addTransferredLot commodity destAcct ls (lotId, storedAmt, consumedQty) =
       let amt = storedAmt{aquantity = consumedQty}
-      in M.insertWith (M.unionWith M.union) commodity
-           (M.singleton lotId (M.singleton destAcct amt)) ls
+      in addLotState commodity lotId destAcct amt ls
 
 -- Lot state operations
+
+-- | Add an amount to LotState for a specific account/commodity/lot.
+-- If the lot already exists on that account, quantities are summed (not overwritten).
+-- This can happen when the same lot is transferred to the same destination account
+-- by multiple transactions (e.g. two transfers on the same date both move portions
+-- of the same lot).
+addLotState :: CommoditySymbol -> LotId -> AccountName -> Amount -> LotState -> LotState
+addLotState commodity lotId account amt =
+  M.insertWith (M.unionWith (M.unionWith addQty)) commodity
+    (M.singleton lotId (M.singleton account amt))
+  where addQty a1 a2 = a1{aquantity = aquantity a1 + aquantity a2}
 
 -- | Enrich a selectLots error with reduction method info and a review hint.
 enrichLotError :: ReductionMethod -> String -> AccountName -> CommoditySymbol
