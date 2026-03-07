@@ -1,0 +1,49 @@
+# * check lots
+
+# ** 1. succeeds with valid buy-only lot data
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+$ hledger -f - check lots
+
+# ** 2. succeeds with valid buy and sell
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -10 AAPL {$50} @ $55
+    assets:cash       $550
+    revenues:gains
+
+$ hledger -f - check lots
+
+# ** 3. fails with invalid lots: tag value on commodity declaration
+<
+commodity AAPL ; lots: BADMETHOD
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+$ hledger -f - check lots
+>2 /unrecognised lots: tag value/
+>=1
+
+# ** 4. fails when selling more lots than available
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -15 AAPL {$50} @ $55
+    assets:cash       $825
+    revenues:gains
+
+$ hledger -f - check lots
+>2 /insufficient lots/
+>=1
