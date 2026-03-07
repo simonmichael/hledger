@@ -11,6 +11,7 @@ module Hledger.Data.Errors (
   makePriceDirectiveErrorExcerpt,
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
+  makePostingErrorExcerptByIndex,
   makePostingAccountErrorExcerpt,
   makeBalanceAssertionErrorExcerpt,
   transactionFindPostingIndex,
@@ -198,6 +199,24 @@ decoratePostingErrorExcerpt absline relline mcols txt =
       ]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show absline) + 1
+
+-- | Like 'makePostingErrorExcerpt', but identifies the posting by its
+-- 0-based index in the transaction rather than by equality search.
+-- This avoids false mismatches when postings have been modified after parsing
+-- (e.g. by the balancer), and is unambiguous when duplicate postings exist.
+makePostingErrorExcerptByIndex :: Transaction -> Int -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePostingErrorExcerptByIndex t idx = (f, errabsline, Nothing, ex)
+  where
+    (SourcePos f tl _) = fst $ tsourcepos t
+    errrelline =
+      commentExtraLines (tcomment t) +
+      sum (map postingLines $ take (idx + 1) $ tpostings t)
+      where
+        postingLines p' = 1 + commentExtraLines (pcomment p')
+        commentExtraLines c = max 0 (length (T.lines c) - 1)
+    errabsline = unPos tl + errrelline
+    txntxt = showTransaction t & textChomp & (<>"\n")
+    ex = decoratePostingErrorExcerpt errabsline errrelline Nothing txntxt
 
 -- | Find the 1-based index of the first posting in this transaction
 -- satisfying the given predicate.
