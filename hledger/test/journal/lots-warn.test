@@ -1,44 +1,6 @@
-# Testing --lots-warn mode.
+# Tests for lot error behavior (formerly testing --lots-warn mode, which has been removed).
 
-# ** 1. --lots-warn implies --lots; insufficient lots exits 0 (posting passes through unchanged)
-<
-2026-01-15 buy
-    assets:stocks    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell
-    assets:stocks    -15 AAPL {$50} @ $55
-    assets:cash       $825
-    revenues:gains
-
-$ hledger -f- print --lots-warn 2>/dev/null
-2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}    10 AAPL {$50}
-    assets:checking
-
-2026-02-01 sell
-    assets:stocks     -15 AAPL {$50} @ $55
-    assets:cash                       $825
-    revenues:gains
-
->=0
-
-# ** 2. no lots available with --lots-warn exits 0
-<
-2026-02-01 sell
-    assets:stocks    -5 AAPL {$50} @ $55
-    assets:cash       $275
-    revenues:gains
-
-$ hledger -f- print --lots-warn 2>/dev/null
-2026-02-01 sell
-    assets:stocks     -5 AAPL {$50} @ $55
-    assets:cash                      $275
-    revenues:gains
-
->=0
-
-# ** 3. without --lots-warn, same input errors (exits 1)
+# ** 1. no lots available with --lots errors (exits 1)
 <
 2026-02-01 sell
     assets:stocks    -5 AAPL {$50} @ $55
@@ -48,37 +10,9 @@ $ hledger -f- print --lots-warn 2>/dev/null
 $ hledger -f- print --lots 2>/dev/null
 >=1
 
-# ** 4. transfer with lot selection failure warns and passes through with --lots-warn
-<
-account assets:x1  ; type:A, lots: FIFO
-account assets:x2  ; type:A, lots: FIFO
-
-2026-02-01 transfer
-    assets:x1    -5 AAPL {$50}
-    assets:x2     5 AAPL {}
-
-$ hledger -f- print --lots-warn 2>/dev/null
-2026-02-01 transfer
-    assets:x1    -5 AAPL {$50}
-    assets:x2        5 AAPL {}
-
->=0
-
-# ** 5. Unclassified lotful commodity posting in asset account warns with --lots-warn.
+# ** 2. Unclassified lotful commodity posting in asset account is a hard error with --lots.
 # AAPL has lots: tag, assets:broker is an asset account, but the posting has no cost basis
-# and no price, so classification fails. With --lots-warn we get a warning on stderr.
-<
-commodity AAPL  ; lots:
-
-2026-01-15 mysterious
-    assets:broker    10 AAPL
-    income:mystery
-
-$ hledger -f- bal assets --lots-warn 2>&1
->  /was not classified/
->=0
-
-# ** 6. Same input without --lots-warn passes silently (no warning, no error).
+# and no price, so classification fails. With --lots this is an error.
 <
 commodity AAPL  ; lots:
 
@@ -87,20 +21,20 @@ commodity AAPL  ; lots:
     income:mystery
 
 $ hledger -f- bal assets --lots 2>&1
-> !/was not classified/
->=0
+> /was not classified/
+>=1
 
-# ** 7. Non-lotful commodity in asset account does not warn.
+# ** 3. Non-lotful commodity in asset account does not error with --lots.
 <
 2026-01-15 normal
     assets:checking    $100
     income:salary
 
-$ hledger -f- bal assets --lots-warn 2>&1
+$ hledger -f- bal assets --lots 2>&1
 > !/was not classified/
 >=0
 
-# ** 8. Gain posting does not trigger unclassified warning.
+# ** 4. Gain posting does not trigger unclassified error with --lots.
 <
 account revenue:gains  ; type:V
 
@@ -113,24 +47,11 @@ account revenue:gains  ; type:V
     assets:cash      $300
     revenue:gains
 
-$ hledger -f- bal assets --lots-warn 2>&1
+$ hledger -f- bal assets --lots 2>&1
 > !/was not classified/
 >=0
 
-# ** 9. Bare acquire with no inferable cost warns about missing price with --lots-warn.
-<
-commodity T  ; lots:
-
-2026-01-17 buy
-    assets:wj       -52 A
-    assets:broker    2220 T  ; @ $0.01
-    equity:conversion
-
-$ hledger -f- bal assets --lots-warn 2>&1
-> /has no cost basis or price/
->=0
-
-# ** 10. Same input without --lots-warn errors (bare acquire with no inferable cost).
+# ** 5. Bare acquire with no inferable cost errors with --lots.
 <
 commodity T  ; lots:
 

@@ -241,8 +241,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 18. Bare positive lotful posting without inferable cost passes through with --lots
-# (no error, not processed as a lot posting).
+# ** 18. Bare positive lotful posting without inferable cost is a hard error with --lots.
 <
 commodity AAPL  ; lots:
 
@@ -254,9 +253,8 @@ commodity AAPL  ; lots:
     assets:stocks    5 AAPL
     equity:opening
 
-$ hledger -f- bal assets:stocks --lots -N
-              5 AAPL  assets:stocks
-             10 AAPL  assets:stocks:{2026-01-15, $50}
+$ hledger -f- bal assets:stocks --lots 2>/dev/null
+>=1
 
 # ** 19. Explicit lot subaccount infers cost basis from account name (no {} on amount).
 <
