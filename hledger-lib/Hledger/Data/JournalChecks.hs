@@ -17,7 +17,6 @@ module Hledger.Data.JournalChecks (
   journalCheckPairedConversionPostings,
   journalCheckRecentAssertions,
   journalCheckTags,
-  parseErrorDate,
   module Hledger.Data.JournalChecks.Ordereddates,
   module Hledger.Data.JournalChecks.Uniqueleafnames,
 )
@@ -39,13 +38,12 @@ import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, convers
 import Hledger.Data.Types
 import Hledger.Data.Amount (amountIsZero, amountsRaw, defaultFmt, missingamt, oneLineFmt, showMixedAmountWith)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
-import Data.Time (Day, diffDays)
-import Data.Time.Calendar (fromGregorianValid)
+import Data.Time (diffDays)
 import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
-import Hledger.Data.Lots (lotBaseAccount, journalCalculateLots, journalCalculateLotsQuiet, journalInferAndCheckDisposalBalancing)
+import Hledger.Data.Lots (lotBaseAccount, journalCalculateLots, journalInferAndCheckDisposalBalancing)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -339,31 +337,9 @@ findRecentAssertionError ps = do
 -- | Check all lot tracking calculations: validate lot tag values on declarations,
 -- calculate per-lot subaccounts, and verify disposal transactions balance correctly.
 -- Equivalent to loading the journal with --lots --verbose-tags.
--- Uses strict mode (lotswarn=False): lot selection failures are fatal.
 journalCheckLots :: Journal -> Either String ()
 journalCheckLots j =
   journalCheckLotsTagValues j
-  >>= journalCalculateLots True False
+  >>= journalCalculateLots True
   >>= journalInferAndCheckDisposalBalancing True
   >> Right ()
-
--- | Parse the first YYYY-MM-DD date from an error string.
--- Used to extract the transaction date from a disposal balance error message
--- for scoping diagnostic output.
-parseErrorDate :: String -> Maybe Day
-parseErrorDate [] = Nothing
-parseErrorDate s@(_:cs)
-  | length s >= 10
-  , all isDigitC (take 4 s)
-  , s !! 4 == '-'
-  , isDigitC (s !! 5), isDigitC (s !! 6)
-  , s !! 7 == '-'
-  , isDigitC (s !! 8), isDigitC (s !! 9)
-  = case fromGregorianValid (readI 0 4) (readN 5 2) (readN 8 2) of
-      Just d  -> Just d
-      Nothing -> parseErrorDate cs
-  | otherwise = parseErrorDate cs
-  where
-    isDigitC x = x >= '0' && x <= '9'
-    readI start len = read (take len (drop start s)) :: Integer
-    readN start len = read (take len (drop start s)) :: Int
