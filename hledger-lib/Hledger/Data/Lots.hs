@@ -125,7 +125,7 @@ import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
-import Hledger.Data.Errors (makePostingErrorExcerpt, makeTransactionErrorExcerpt)
+import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (txnTieKnot)
@@ -590,7 +590,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 journalCalculateLots :: Bool -> Journal -> Either String Journal
 journalCalculateLots verbosetags j
   | not $ any (any isLotPosting . tpostings) txns = do
-      mapM_ checkUnclassified [p | t <- txns, p <- tpostings t]
+      mapM_ checkUnclassified [(t, i, p) | t <- txns, (i, p) <- zip [0..] (tpostings t)]
       Right j
   | otherwise = do
       validateUserLabels txns
@@ -599,8 +599,8 @@ journalCalculateLots verbosetags j
       Right (journalTieTransactions $ j{jtxns = reverse txns'})
   where
     txns = jtxns j
-    checkUnclassified p
-      | isUnclassifiedLotfulPosting j p = Left (unclassifiedLotWarning j p)
+    checkUnclassified (t, i, p)
+      | isUnclassifiedLotfulPosting j p = Left (unclassifiedLotWarning j t i p)
       | otherwise                       = Right ()
 
 -- Disposal balancing
@@ -770,9 +770,10 @@ isUnclassifiedLotfulPosting j p =
       | hasAccountLotsTag     = any ((/= 0) . aquantity) amts
       | otherwise             = False
 
--- | Build a warning message for an unclassified lotful posting.
-unclassifiedLotWarning :: Journal -> Posting -> String
-unclassifiedLotWarning j p =
+-- | Build an error message for an unclassified lotful posting.
+-- Takes the transaction and the 0-based posting index for precise source location.
+unclassifiedLotWarning :: Journal -> Transaction -> Int -> Posting -> String
+unclassifiedLotWarning j t idx p =
   let amts = amountsRaw (pamount p)
       lotfulCommodities = [acommodity a | a <- amts, journalCommodityUsesLots j (acommodity a)]
       hasAccountTag = any ((== "lots") . T.toLower . fst) (ptags p)
@@ -780,7 +781,8 @@ unclassifiedLotWarning j p =
         (c:_, _)   -> T.unpack c ++ " is declared lotful (commodity lots: tag)"
         ([], True)  -> T.unpack (paccount p) ++ " is declared lotful (account lots: tag)"
         _           -> "posting involves a lotful commodity or account"
-  in postingErrPrefix p
+      (f, line, _, ex) = makePostingErrorExcerptByIndex t idx
+  in printf "%s:%d:\n%s\n" f line ex
      ++ source ++ " but this posting was not classified as\n"
      ++ "acquire, dispose, or transfer. Lot state will not be updated.\n"
      ++ "Possible fixes: add a cost basis ({$X}), a price (@ $X),\n"
@@ -937,7 +939,7 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
           (st', newPs) <- processDisposePosting verbosetags j t st p
           foldMPostings st' (reverse newPs ++ acc') ps tmap
       | isUnclassifiedLotfulPosting j p =
-          Left (unclassifiedLotWarning j p)
+          Left (unclassifiedLotWarning j t i p)
       | otherwise =
           foldMPostings st (p:acc') ps tmap
 
