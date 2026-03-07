@@ -682,7 +682,6 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
     disposalBalanceError t residual =
       txnErrPrefix t
       ++ "This disposal transaction is unbalanced at cost basis.\n"
-      ++ "The gain/loss posting may be missing or incorrect.\n"
       ++ "Residual: " ++ showMixedAmountOneLine residual
 
     -- Like Data.List.partition but preserves the type for the predicate
