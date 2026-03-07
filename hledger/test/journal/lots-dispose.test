@@ -391,3 +391,23 @@ $ hledger -f- bal assets:stocks --lots
 >2 /6 \|     assets:stocks/
 >=1
 
+# ** 22. Expense posting with cost basis does not get a lot subaccount.
+<
+commodity AAPL  ; lots:
+account revenue:gains  ; type: G
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$80}
+    assets:cash
+
+2026-02-01 sell with stock fee
+    assets:stocks    -5 AAPL {$80} @ $90
+    expenses:fees    0.1 AAPL {$80} @ $90
+    assets:cash      $441
+    revenue:gains   -$49
+
+$ hledger -f- bal --lots -N
+               $-359  assets:cash
+            5.0 AAPL  assets:stocks:{2026-01-15, $80}
+            0.1 AAPL  expenses:fees
+                $-49  revenue:gains
