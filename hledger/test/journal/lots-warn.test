@@ -24,7 +24,31 @@ $ hledger -f- bal assets --lots 2>&1
 > /was not classified/
 >=1
 
-# ** 3. Non-lotful commodity in asset account does not error with --lots.
+# ** 3. Zero-amount lotful posting (eg a balance assertion) is not an error with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 check balance
+    assets:broker    0 AAPL = 0 AAPL
+    income:mystery
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 4. Implicit zero-amount lotful posting (balance assignment inferring zero) is not an error with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 check balance
+    assets:broker    = 0 AAPL
+    income:mystery
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 5. Non-lotful commodity in asset account does not error with --lots.
 <
 2026-01-15 normal
     assets:checking    $100
@@ -34,7 +58,7 @@ $ hledger -f- bal assets --lots 2>&1
 > !/was not classified/
 >=0
 
-# ** 4. Gain posting does not trigger unclassified error with --lots.
+# ** 6. Gain posting does not trigger unclassified error with --lots.
 <
 account revenue:gains  ; type:V
 
@@ -51,7 +75,7 @@ $ hledger -f- bal assets --lots 2>&1
 > !/was not classified/
 >=0
 
-# ** 5. Bare acquire with no inferable cost errors with --lots.
+# ** 7. Bare acquire with no inferable cost errors with --lots.
 <
 commodity T  ; lots:
 

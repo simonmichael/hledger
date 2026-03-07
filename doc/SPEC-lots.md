@@ -226,6 +226,18 @@ These require an asset account type and a lotful commodity or account
 Postings in accounts with type `Gain` (and not otherwise classified) get
 ptype `gain`.
 
+### Unclassified lotful postings
+
+With `--lots`, a real posting with a nonzero lotful commodity in an asset account
+that was not classified (no `_ptype` tag) is an error.
+This catches lotful postings that need lot tracking but weren't recognised.
+
+Zero-amount lotful postings (e.g. `0 AAPL = 100 AAPL` balance assertions)
+are exempt: no lot movement occurs, so no classification is needed.
+This applies regardless of whether the amount was written explicitly or left implicit.
+
+(`isUnclassifiedLotfulPosting` in Lots.hs)
+
 ### Counterpart detection
 
 Transfer detection uses precomputed maps keyed by (commodity, |quantity|):
