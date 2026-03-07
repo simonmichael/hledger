@@ -7064,12 +7064,20 @@ $ hledger print --lots desc:sell
 
 When a disposal or transfer doesn't specify a particular lot (eg the amount is like `-5 AAPL {}`, or just `-5 AAPL`),
 hledger selects lot(s) automatically using a reduction method.
-This is configured by giving the commodity's (or account's) `lots:` tag a value.
+You can configure the method via the `lots:` tag on a commodity or account declaration (account tags override commodity tags):
+
+```journal
+commodity AAPL             ; lots: FIFOALL
+account assets:mutualfund  ; lots: AVERAGE
+```
+
+The default method is `FIFO` (first in first out within one account).
 The available methods are:
 
 | Method             | Lots selected      | Disposal cost basis       | Error checking
-|--------------------|--------------------|---------------------------|---------------------------------------
-| **FIFO** (default) | oldest first       | each lot's cost           | Sufficient lot(s) exist in the specified account.
+|--------------------|--------------------|---------------------------|---------------------------------------------------------------------------------------
+| **SPECID**         | one specific lot   | specified lot's cost      | A matching lot, with sufficient balance, exists in the account.
+| **FIFO** (default) | oldest first       | each lot's cost           | Sufficient lot(s) exist in the account.
 | **LIFO**           | newest first       | each lot's cost           | "
 | **HIFO**           | highest cost first | each lot's cost           | "
 | **AVERAGE**        | oldest first       | weighted average cost     | "
@@ -7077,43 +7085,27 @@ The available methods are:
 | **LIFOALL**        | newest first       | each lot's cost           | "
 | **HIFOALL**        | highest cost first | each lot's cost           | "
 | **AVERAGEALL**     | oldest first       | global weighted avg cost  | "
-| **SPECID**         | one specified lot  | specified lot's cost      | This lot exists in the account, and has sufficient balance.
-
-**HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
-which can be useful for tax optimization.
-
-**AVERAGE** uses the weighted average per-unit cost of the account's pool as the
-disposal cost basis, rather than each lot's individual cost.
-This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
-Lots are still consumed in FIFO order for bookkeeping purposes.
 
 **SPECID** (specific identification) is what you're using if the journal entry contains 
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
 or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
 
-### All-accounts reduction
+**HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
+which can be useful for tax optimization.
+
+**AVERAGE** consumes lots in FIFO order,
+but uses the weighted average per-unit cost, within the specified account,
+as the disposal cost basis, rather than each lot's individual cost.
+This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
 
 All of these methods select lots from the account mentioned in the posting.
+But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL) additionally validate
+that these lots are the ones that would be chosen if considering the global pool (all accounts holding that commodity).
+So if there is a more appropriate lot in another account (eg an older lot when using FIFOALL),
+they will raise an error showing which account holds it.
+This is useful if you need to enforce a global disposal order across all accounts (brokers, exchanges, wallets etc).
 
-The **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL)
-also validate that these lots are the ones that would be chosen
-if all accounts' lots were considered together.
-If there is a more appropriate lot in another account (eg an older lot when using FIFOALL),
-an error is raised showing which account holds it.
-This is useful to check and enforce a consistent global disposal order
-across multiple brokerage/exchange/wallet accounts.
-
-**AVERAGEALL** additionally computes the weighted average cost across the global pool
-(all accounts holding that commodity), not just the posting's account.
-
-Configure the method via the `lots:` tag on a commodity or account declaration:
-
-```journal
-commodity AAPL  ; lots: FIFO
-account assets:stocks  ; lots: AVERAGEALL
-```
-
-Account tags override commodity tags.
+**AVERAGEALL** computes the weighted average cost across the global pool.
 
 ## Lot postings with balance assertions 
 
