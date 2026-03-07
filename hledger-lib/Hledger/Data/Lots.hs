@@ -476,9 +476,14 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         -- to/from equity (e.g. close --clopen --lots generates a closing txn with
         -- negative lot postings and an opening txn with positive lot postings).
         isEquityTransfer = not (any (isJust . acost) amts) && hasEquityCounterpart
-      return $ if isTransfer || isEquityTransfer
-        then if isNeg then "transfer-from" else "transfer-to"
-        else primaryType
+      if isTransfer || isEquityTransfer
+        then return $ if isNeg then "transfer-from" else "transfer-to"
+        else do
+          -- Don't classify income statement accounts (Revenue, Expense, Gain) as acquire/dispose.
+          -- These are flow accounts that should not track lots or get lot subaccounts.
+          -- E.g. expenses:fees 0.1 ETSY {$80} @ $90 in a stock-fee disposal.
+          guard $ not $ maybe False isIncomeStatementAccountType (lookupAccountType baseAcct)
+          return primaryType
 
     -- Classify a negative lotful posting without cost basis as dispose or transfer-from.
     -- If the posting has no transacted price and another asset account in the same
