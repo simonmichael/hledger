@@ -7071,15 +7071,11 @@ hledger selects lot(s) automatically using a reduction method. The available met
 | **LIFO**           | newest first       | each lot's cost           |
 | **HIFO**           | highest cost first | each lot's cost           |
 | **AVERAGE**        | oldest first       | weighted average cost     |
-| **SPECID**         | one specified lot  | specified lot's cost      |
 | **FIFOALL**        | oldest first       | each lot's cost           |
 | **LIFOALL**        | newest first       | each lot's cost           |
 | **HIFOALL**        | highest cost first | each lot's cost           |
 | **AVERAGEALL**     | oldest first       | global weighted avg cost  |
-
-All methods select lots from the posting's account only.
-
-An explicit lot selector (eg `{2026-01-15, $50}` or `{$50}`) uses specific-identification (SPECID).
+| **SPECID**         | one specified lot  | specified lot's cost      |
 
 **HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
 which can be useful for tax optimization.
@@ -7089,15 +7085,20 @@ disposal cost basis, rather than each lot's individual cost.
 This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
 Lots are still consumed in FIFO order for bookkeeping purposes.
 
+**SPECID** (specific identification) is in use if a journal entry contains explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
+or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
+
 ### All-accounts reduction
 
-The **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL) work like their base methods
-but additionally validate that the selected lots would also be chosen first
+All of these methods select lots from the account mentioned in the posting.
+
+The **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL)
+also validate that these lots are the ones that would be chosen
 if all accounts' lots were considered together.
-If a lot on another account has higher priority (eg is older under FIFOALL),
+If there is a more appropriate lot in another account (eg an older lot when using FIFOALL),
 an error is raised showing which account holds it.
-This is useful when you want to enforce a consistent global disposal order
-across multiple brokerage accounts.
+This is useful to check and enforce a consistent global disposal order
+across multiple brokerage/exchange/wallet accounts.
 
 **AVERAGEALL** additionally computes the weighted average cost across the global pool
 (all accounts holding that commodity), not just the posting's account.
