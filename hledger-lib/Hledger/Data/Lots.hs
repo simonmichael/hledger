@@ -793,6 +793,20 @@ unclassifiedLotWarning j p =
      ++ "Possible fixes: add a cost basis ({$X}), a price (@ $X),\n"
      ++ "or check the account type declaration."
 
+-- | Warning for a bare acquire posting that was declassified because no cost basis
+-- could be inferred. This catches e.g. prices accidentally left inside comments.
+declassifiedAcquireWarning :: Journal -> Posting -> String
+declassifiedAcquireWarning j p =
+  let amts = amountsRaw (pamount p)
+      lotfulCommodities = [acommodity a | a <- amts, journalCommodityUsesLots j (acommodity a)]
+      commodity = case lotfulCommodities of
+        (c:_) -> T.unpack c
+        _     -> "?"
+  in postingErrPrefix p
+     ++ commodity ++ " is lotful but this acquire posting has no cost basis or price.\n"
+     ++ "No lot will be created. If a price was intended, check it is not\n"
+     ++ "inside a comment (after ;)."
+
 -- Validation and label generation
 
 -- | Validate that user-provided labels don't create duplicate lot ids.
@@ -954,7 +968,12 @@ processTransaction warnFn verbosetags lotswarn j needsLabels (ls, acc) t = do
           foldMPostings st (reverse expanded ++ acc') ps tmap
       | isAcquirePosting p = do
           (st', p') <- processAcquirePosting needsLabels txnDate t st p
-          foldMPostings st' (p':acc') ps tmap
+          let go = foldMPostings st' (p':acc') ps tmap
+          -- Warn when a bare acquire was declassified because no cost could be inferred.
+          -- This catches e.g. prices accidentally left inside comments.
+          if lotswarn && not (isAcquirePosting p')
+            then warnFn (declassifiedAcquireWarning j p) go
+            else go
       | isDisposePosting p =
           case processDisposePosting verbosetags j t st p of
             Right (st', newPs) ->
