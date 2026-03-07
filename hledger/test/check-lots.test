@@ -33,7 +33,7 @@ $ hledger -f - check lots
 >2 /unrecognised lots: tag value/
 >=1
 
-# ** 4. fails when selling more lots than available
+# ** 4. check lots fails when selling more lots than available (strict mode)
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -46,4 +46,48 @@ $ hledger -f - check lots
 
 $ hledger -f - check lots
 >2 /insufficient lots/
+>=1
+
+# ** 5. check lotswarn succeeds with warning when selling more lots than available
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -15 AAPL {$50} @ $55
+    assets:cash       $825
+    revenues:gains
+
+$ hledger -f - check lotswarn
+>2 /insufficient lots/
+
+# ** 6. check lots fails on disposal balance error
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -10 AAPL {$50} @ $55
+    assets:cash       $550
+    revenues:gains    $-999
+
+$ hledger -f - check lots
+>2 /unbalanced at cost basis/
+>=1
+
+# ** 7. check lotswarn also fails on disposal balance error
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell
+    assets:stocks    -10 AAPL {$50} @ $55
+    assets:cash       $550
+    revenues:gains    $-999
+
+$ hledger -f - check lotswarn
+>2 /unbalanced at cost basis/
 >=1

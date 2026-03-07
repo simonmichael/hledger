@@ -69,7 +69,12 @@ These are not wanted by everyone, but can be run using the `check` command:
   Checks lots tag values on declarations, lot posting classification,
   calculation of lot movements, capital gains,
   and correct balancing of disposal transactions.
-  Equivalent to `hledger check --lots --verbose-tags`.
+  Stops at the first error.
+
+- **lotswarn** - like `lots`, but lot selection failures are shown as warnings
+  rather than causing a hard failure. Only declaration errors and
+  disposal balance failures are fatal. Useful for reviewing lot data
+  that has known gaps or incomplete cost basis information.
 
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.

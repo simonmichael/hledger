@@ -89,10 +89,12 @@ journalCalculateLots:
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
   journalCalculateLots,
+  journalCalculateLotsQuiet,
   journalInferAndCheckDisposalBalancing,
   isGainPosting,
   lotBaseAccount,
@@ -585,19 +587,28 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
 -- The verbosetags parameter controls whether generated-posting tags are made visible in comments.
 -- The lotswarn parameter controls whether lot selection errors are warnings (True) or fatal (False).
 journalCalculateLots :: Bool -> Bool -> Journal -> Either String Journal
-journalCalculateLots verbosetags lotswarn j
+journalCalculateLots = journalCalculateLotsImpl warn
+
+-- | Like 'journalCalculateLots' but suppresses all warning output (no trace/stderr).
+-- Useful for a first pass when you only want to detect hard errors without printing warnings.
+journalCalculateLotsQuiet :: Bool -> Bool -> Journal -> Either String Journal
+journalCalculateLotsQuiet = journalCalculateLotsImpl (\_ x -> x)
+
+-- | Internal implementation of lot calculation, parameterised by the warn function.
+journalCalculateLotsImpl :: (forall a. String -> a -> a) -> Bool -> Bool -> Journal -> Either String Journal
+journalCalculateLotsImpl warnFn verbosetags lotswarn j
   | not $ any (any isLotPosting . tpostings) txns = warnUnclassified $ Right j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
-      (_, txns') <- foldM (processTransaction verbosetags lotswarn j needsLabels) (M.empty, []) (sortOn tdate txns)
+      (_, txns') <- foldM (processTransaction warnFn verbosetags lotswarn j needsLabels) (M.empty, []) (sortOn tdate txns)
       Right $ journalTieTransactions $ j{jtxns = reverse txns'}
   where
     txns = jtxns j
     -- When lotswarn is active, warn about unclassified lotful postings even on the early-exit path
     -- (when no postings were classified at all, foldMPostings never runs).
     warnUnclassified
-      | lotswarn  = foldr (\p -> warn (unclassifiedLotWarning j p)) `flip`
+      | lotswarn  = foldr (\p -> warnFn (unclassifiedLotWarning j p)) `flip`
                       [p | t <- txns, p <- tpostings t, isUnclassifiedLotfulPosting j p]
       | otherwise = id
 
@@ -875,9 +886,10 @@ generateLabel commodity date lotState =
 -- Transfer pairs are processed first (so that transferred lots are available for
 -- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
-processTransaction :: Bool -> Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
-                   -> Either String (LotState, [Transaction])
-processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
+-- Parameterised by a warn function, allowing callers to suppress or redirect warning output.
+processTransaction :: (forall a. String -> a -> a) -> Bool -> Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
+                       -> Either String (LotState, [Transaction])
+processTransaction warnFn verbosetags lotswarn j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
         hasEquityOther = any (isEquityPosting j) otherPs
@@ -889,7 +901,7 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
         ls' <- if lotswarn
                then foldM (\st p -> case reduceLotTransferToEquity j t st p of
                               Right st' -> Right st'
-                              Left err  -> warn err $ Right st
+                              Left err  -> warnFn err $ Right st
                            ) ls transferFroms
                else foldM (reduceLotTransferToEquity j t) ls transferFroms
         return (ls', t : acc)
@@ -910,7 +922,7 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
         let indexedFroms = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferFromPosting p]
             indexedTos   = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
         case pairIndexedTransferPostings t indexedFroms indexedTos of
-          Left err | lotswarn -> warn err $ Right (ls, t : acc)
+          Left err | lotswarn -> warnFn err $ Right (ls, t : acc)
           Left err -> Left err
           Right pairs -> do
             -- Process transfer pairs first, building an IntMap from original index to expanded postings.
@@ -930,7 +942,7 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
         Left err
           | lotswarn ->
               let m' = M.insert fromIdx [fromP] $ M.insert toIdx [toP] m
-              in warn err $ Right (st, m')
+              in warnFn err $ Right (st, m')
           | otherwise -> Left err
 
     -- Walk postings in original order, looking up transfer results or processing normally.
@@ -949,13 +961,13 @@ processTransaction verbosetags lotswarn j needsLabels (ls, acc) t = do
               foldMPostings st' (reverse newPs ++ acc') ps tmap
             Left err
               | lotswarn ->
-                  warn err $
+                  warnFn err $
                     foldMPostings st (p:acc') ps tmap
               | otherwise -> Left err
       | otherwise =
           let go = foldMPostings st (p:acc') ps tmap
           in if lotswarn && isUnclassifiedLotfulPosting j p
-             then warn (unclassifiedLotWarning j p) go
+             then warnFn (unclassifiedLotWarning j p) go
              else go
 
 -- | True if the posting is in an equity account.
