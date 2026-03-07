@@ -65,6 +65,12 @@ These provide extra error-catching power to help you keep your data clean and co
 
 These are not wanted by everyone, but can be run using the `check` command:
 
+- **lots** - all lot tracking calculations succeed.
+  Checks lots tag values on declarations, lot posting classification,
+  calculation of lot movements, capital gains,
+  and correct balancing of disposal transactions.
+  Equivalent to `hledger check --lots --verbose-tags`.
+
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.
   Note hledger fairly often finds unintended tags in comments.

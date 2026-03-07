@@ -12,6 +12,7 @@ module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckBalanceAssertions,
   journalCheckCommodities,
+  journalCheckLots,
   journalCheckPayees,
   journalCheckPairedConversionPostings,
   journalCheckRecentAssertions,
@@ -42,7 +43,7 @@ import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
-import Hledger.Data.Lots (lotBaseAccount)
+import Hledger.Data.Lots (lotBaseAccount, journalCalculateLots, journalInferAndCheckDisposalBalancing)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -332,3 +333,13 @@ findRecentAssertionError ps = do
 --       (if baiLatestClearedAssertionStatus==Unmarked then " " else show baiLatestClearedAssertionStatus)
 --       (show baiLatestClearedAssertionDate)
 --       (diffDays today baiLatestClearedAssertionDate)
+
+-- | Check all lot tracking calculations: validate lot tag values on declarations,
+-- calculate per-lot subaccounts, and verify disposal transactions balance correctly.
+-- Equivalent to loading the journal with --lots --verbose-tags.
+journalCheckLots :: Journal -> Either String ()
+journalCheckLots j =
+  journalCheckLotsTagValues j
+  >>= journalCalculateLots True False
+  >>= journalInferAndCheckDisposalBalancing True
+  >> Right ()

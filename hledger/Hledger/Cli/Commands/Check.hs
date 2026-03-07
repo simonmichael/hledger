@@ -62,6 +62,7 @@ data Check =
   | Commodities
   | Accounts
   -- done when specified with the check command
+  | Lots
   | Ordereddates
   | Payees
   | Tags
@@ -102,6 +103,7 @@ runCheck _opts j (chck,_) = do
       Assertions      -> Right ()
       Accounts        -> journalCheckAccounts j
       Commodities     -> journalCheckCommodities j
+      Lots            -> journalCheckLots j
       Ordereddates    -> journalCheckOrdereddates j
       Payees          -> journalCheckPayees j
       Recentassertions -> journalCheckRecentAssertions j
