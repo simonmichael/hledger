@@ -48,7 +48,7 @@ $ hledger -f - check lots
 >2 /insufficient lots/
 >=1
 
-# ** 5. check lotswarn succeeds with warning when selling more lots than available
+# ** 5. check lotswarn fails with warning when selling more lots than available
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -61,6 +61,7 @@ $ hledger -f - check lots
 
 $ hledger -f - check lotswarn
 >2 /insufficient lots/
+>=1
 
 # ** 6. check lots fails on disposal balance error
 <

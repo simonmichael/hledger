@@ -12,8 +12,9 @@ module Hledger.Cli.Commands.Check (
 import Data.Char (toLower)
 import Data.Either (partitionEithers)
 import Data.List (isPrefixOf, find, sort)
-import Control.Monad (forM_)
+import Control.Monad (forM_, when)
 import System.Console.CmdArgs.Explicit
+import System.Exit (exitWith, ExitCode(..))
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -96,12 +97,12 @@ parseCheckArgument s =
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
 runCheck _opts j (chck,_) = case chck of
   -- Lotswarn check: uses lotswarn=True (lot selection failures are warnings, not fatal).
-  -- Only fails on hard errors (bad declarations, disposal balance failures).
   -- Two-pass approach:
   -- Pass 1 (quiet): detect whether there's a hard error, without printing warnings.
-  -- Pass 2 (diagnostic): re-run with warnings enabled. If pass 1 found an error,
-  --   scope the diagnostic pass to transactions up to the error date; otherwise
-  --   run on the full journal so all warnings are shown.
+  -- Pass 2 (diagnostic): re-run with warnings enabled and counted. If pass 1 found
+  --   an error, scope the diagnostic pass to transactions up to the error date;
+  --   otherwise run on the full journal so all warnings are shown.
+  -- Exits non-zero if any warnings or errors were found.
   Lotswarn -> do
     let j1 = either error' id $ journalCheckLotsTagValues j
     case journalCalculateLotsQuiet True True j1 of
@@ -110,17 +111,20 @@ runCheck _opts j (chck,_) = case chck of
         case journalInferAndCheckDisposalBalancing True j2 of
           Right _ -> do
             -- No hard error; run diagnostic pass on full journal to show all warnings
-            case journalCalculateLots True True j1 of
-              Left _  -> return ()
-              Right _ -> return ()
+            let warnings = case journalCalculateLotsImpl True True j1 of
+                  Left _        -> []  -- shouldn't happen since quiet pass succeeded
+                  Right (_, ws) -> ws
+            mapM_ warnIO warnings
+            when (not $ null warnings) $ exitWith (ExitFailure 1)
           Left err -> do
             -- Hard error; scope diagnostic pass to transactions up to the error date
             let jFiltered = case parseErrorDate err of
                   Just d  -> j1{jtxns = filter (\t -> tdate t <= d) (jtxns j1)}
                   Nothing -> j1
-            case journalCalculateLots True True jFiltered of
-              Left _  -> return ()
-              Right _ -> return ()
+            let warnings = case journalCalculateLotsImpl True True jFiltered of
+                  Left _        -> []
+                  Right (_, ws) -> ws
+            mapM_ warnIO warnings
             error' err
 
   _ -> do
