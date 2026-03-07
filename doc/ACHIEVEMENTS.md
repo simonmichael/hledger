@@ -46,7 +46,7 @@ mail lists are a choice these days, we don't use ours much
 
 |      | all projects | non programming tools
 |------|--------------|-------------------------------------------------
-| 2026 | #15          | #4 (after pandoc, simplex chat, kmonad)
+| 2026 | #11          | #4 (after pandoc, simplex chat, kmonad)
 | 2025 | #19          | #5 (after pandoc, simplex chat, kmonad, cardano)
 | 2023 | #32          |
 | 2022 | #34          |
