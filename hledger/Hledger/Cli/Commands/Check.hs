@@ -63,6 +63,7 @@ data Check =
   | Accounts
   -- done when specified with the check command
   | Lots
+  | Lotswarn
   | Ordereddates
   | Payees
   | Tags
@@ -90,26 +91,55 @@ parseCheckArgument s =
     (checkname:checkargs) = words' s
 
 -- XXX do all of these print on stderr ?
--- | Run the named error check, possibly with some arguments, 
+-- | Run the named error check, possibly with some arguments,
 -- on this journal with these options.
 runCheck :: CliOpts -> Journal -> (Check,[String]) -> IO ()
-runCheck _opts j (chck,_) = do
-  let
-    results = case chck of
-      -- these checks are assumed to have passed earlier during journal parsing (if enabled):
-      Parseable       -> Right ()
-      Autobalanced    -> Right ()
-      Balanced        -> Right ()
-      Assertions      -> Right ()
-      Accounts        -> journalCheckAccounts j
-      Commodities     -> journalCheckCommodities j
-      Lots            -> journalCheckLots j
-      Ordereddates    -> journalCheckOrdereddates j
-      Payees          -> journalCheckPayees j
-      Recentassertions -> journalCheckRecentAssertions j
-      Tags            -> journalCheckTags j
-      Uniqueleafnames -> journalCheckUniqueleafnames j
+runCheck _opts j (chck,_) = case chck of
+  -- Lotswarn check: uses lotswarn=True (lot selection failures are warnings, not fatal).
+  -- Only fails on hard errors (bad declarations, disposal balance failures).
+  -- Two-pass approach:
+  -- Pass 1 (quiet): detect whether there's a hard error, without printing warnings.
+  -- Pass 2 (diagnostic): re-run with warnings enabled. If pass 1 found an error,
+  --   scope the diagnostic pass to transactions up to the error date; otherwise
+  --   run on the full journal so all warnings are shown.
+  Lotswarn -> do
+    let j1 = either error' id $ journalCheckLotsTagValues j
+    case journalCalculateLotsQuiet True True j1 of
+      Left err -> error' err
+      Right j2 ->
+        case journalInferAndCheckDisposalBalancing True j2 of
+          Right _ -> do
+            -- No hard error; run diagnostic pass on full journal to show all warnings
+            case journalCalculateLots True True j1 of
+              Left _  -> return ()
+              Right _ -> return ()
+          Left err -> do
+            -- Hard error; scope diagnostic pass to transactions up to the error date
+            let jFiltered = case parseErrorDate err of
+                  Just d  -> j1{jtxns = filter (\t -> tdate t <= d) (jtxns j1)}
+                  Nothing -> j1
+            case journalCalculateLots True True jFiltered of
+              Left _  -> return ()
+              Right _ -> return ()
+            error' err
 
-  case results of
-    Right () -> return ()
-    Left err -> error' err
+  _ -> do
+    let
+      results = case chck of
+        -- these checks are assumed to have passed earlier during journal parsing (if enabled):
+        Parseable       -> Right ()
+        Autobalanced    -> Right ()
+        Balanced        -> Right ()
+        Assertions      -> Right ()
+        Accounts        -> journalCheckAccounts j
+        Commodities     -> journalCheckCommodities j
+        Lots            -> journalCheckLots j
+        Ordereddates    -> journalCheckOrdereddates j
+        Payees          -> journalCheckPayees j
+        Recentassertions -> journalCheckRecentAssertions j
+        Tags            -> journalCheckTags j
+        Uniqueleafnames -> journalCheckUniqueleafnames j
+
+    case results of
+      Right () -> return ()
+      Left err -> error' err
