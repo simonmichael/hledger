@@ -116,3 +116,29 @@ account revenue:gains  ; type:V
 $ hledger -f- bal assets --lots-warn 2>&1
 > !/was not classified/
 >=0
+
+# ** 9. Bare acquire with no inferable cost warns about missing price with --lots-warn.
+<
+commodity T  ; lots:
+
+2026-01-17 buy
+    assets:wj       -52 A
+    assets:broker    2220 T  ; @ $0.01
+    equity:conversion
+
+$ hledger -f- bal assets --lots-warn 2>&1
+> /has no cost basis or price/
+>=0
+
+# ** 10. Same input without --lots-warn does not warn.
+<
+commodity T  ; lots:
+
+2026-01-17 buy
+    assets:wj       -52 A
+    assets:broker    2220 T  ; @ $0.01
+    equity:conversion
+
+$ hledger -f- bal assets --lots 2>&1
+> !/has no cost basis or price/
+>=0
