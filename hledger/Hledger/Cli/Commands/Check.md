@@ -72,9 +72,9 @@ These are not wanted by everyone, but can be run using the `check` command:
   Stops at the first error.
 
 - **lotswarn** - like `lots`, but lot selection failures are shown as warnings
-  rather than causing a hard failure. Only declaration errors and
-  disposal balance failures are fatal. Useful for reviewing lot data
-  that has known gaps or incomplete cost basis information.
+  rather than causing a hard failure. All warnings are shown before exiting.
+  Exits with non-zero status if any warnings or errors were found.
+  Useful for reviewing lot data that has known gaps or incomplete cost basis information.
 
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.
