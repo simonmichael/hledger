@@ -130,7 +130,7 @@ $ hledger -f- bal assets --lots-warn 2>&1
 > /has no cost basis or price/
 >=0
 
-# ** 10. Same input without --lots-warn does not warn.
+# ** 10. Same input without --lots-warn errors (bare acquire with no inferable cost).
 <
 commodity T  ; lots:
 
@@ -140,5 +140,5 @@ commodity T  ; lots:
     equity:conversion
 
 $ hledger -f- bal assets --lots 2>&1
-> !/has no cost basis or price/
->=0
+> /has no cost basis or price/
+>=1

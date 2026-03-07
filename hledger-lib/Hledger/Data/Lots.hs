@@ -547,6 +547,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassifyBareTransferTo :: Posting -> [Amount] -> Maybe Text
     shouldClassifyBareTransferTo p amts = do
       guard $ not $ any isNegativeAmount amts
+      guard $ not $ any (isJust . acost) amts
       let baseAcct = lotBaseAccount (paccount p)
           amtPairs = [(acommodity a, aquantity a) | a <- amts]
       guard $ any (\(c, q) -> hasTransferFromCounterpart baseAcct c q) amtPairs
@@ -793,20 +794,6 @@ unclassifiedLotWarning j p =
      ++ "Possible fixes: add a cost basis ({$X}), a price (@ $X),\n"
      ++ "or check the account type declaration."
 
--- | Warning for a bare acquire posting that was declassified because no cost basis
--- could be inferred. This catches e.g. prices accidentally left inside comments.
-declassifiedAcquireWarning :: Journal -> Posting -> String
-declassifiedAcquireWarning j p =
-  let amts = amountsRaw (pamount p)
-      lotfulCommodities = [acommodity a | a <- amts, journalCommodityUsesLots j (acommodity a)]
-      commodity = case lotfulCommodities of
-        (c:_) -> T.unpack c
-        _     -> "?"
-  in postingErrPrefix p
-     ++ commodity ++ " is lotful but this acquire posting has no cost basis or price.\n"
-     ++ "No lot will be created. If a price was intended, check it is not\n"
-     ++ "inside a comment (after ;)."
-
 -- Validation and label generation
 
 -- | Validate that user-provided labels don't create duplicate lot ids.
@@ -966,14 +953,15 @@ processTransaction warnFn verbosetags lotswarn j needsLabels (ls, acc) t = do
     foldMPostings st acc' ((i,p):ps) tmap
       | Just expanded <- M.lookup i tmap =
           foldMPostings st (reverse expanded ++ acc') ps tmap
-      | isAcquirePosting p = do
-          (st', p') <- processAcquirePosting needsLabels txnDate t st p
-          let go = foldMPostings st' (p':acc') ps tmap
-          -- Warn when a bare acquire was declassified because no cost could be inferred.
-          -- This catches e.g. prices accidentally left inside comments.
-          if lotswarn && not (isAcquirePosting p')
-            then warnFn (declassifiedAcquireWarning j p) go
-            else go
+      | isAcquirePosting p =
+          case processAcquirePosting needsLabels txnDate t st p of
+            Right (st', p') ->
+              foldMPostings st' (p':acc') ps tmap
+            Left err
+              | lotswarn ->
+                  warnFn err $
+                    foldMPostings st (stripPtypeTag p:acc') ps tmap
+              | otherwise -> Left err
       | isDisposePosting p =
           case processDisposePosting verbosetags j t st p of
             Right (st', newPs) ->
@@ -1133,8 +1121,9 @@ processAcquirePosting needsLabels txnDate t lotState p = do
             | otherwise                 -> Nothing
 
     case maybeLotBasis of
-      -- Bare acquire with no inferable cost: silently declassify and pass through.
-      Nothing | isBare    -> Right (lotState, stripPtypeTag p)
+      Nothing | isBare    -> Left $ showPos ++ T.unpack commodity
+                                      ++ " is lotful but this acquire posting has no cost basis or price.\n"
+                                      ++ "No lot will be created."
               | otherwise -> Left $ showPos ++ "acquire posting has no lot cost"
       Just lotBasis -> do
         let cbInferred = isNothing (cbCost cb)
@@ -1509,7 +1498,7 @@ selectLots method posStr account commodity qty selector lotState = do
       Left $ posStr ++ "insufficient lots for commodity " ++ T.unpack commodity
               ++ " in account " ++ T.unpack account
               ++ ": need " ++ show qty ++ " but only " ++ show available ++ " available"
-              ++ "\nAvailable lots:" ++ showLotList matchingLots
+              ++ "\nAvailable lots in this account:" ++ showLotList matchingLots
               ++ showOtherAccountLots allLots
     let base = methodBaseOrdering method
         orderedLots = case base of
@@ -1542,7 +1531,7 @@ selectLots method posStr account commodity qty selector lotState = do
                                     , (acct, a) <- M.toList acctMap, acct /= account]
           byAcct = M.fromListWith (++) [(acct, [(lid, a)]) | (acct, lid, a) <- others]
       in if M.null byAcct then ""
-         else "\nLots of " ++ T.unpack commodity ++ " on other accounts:"
+         else "\nLots of " ++ T.unpack commodity ++ " in other accounts:"
            ++ concatMap fmtAcct (M.toAscList byAcct)
       where fmtAcct (acct, lots) = "\n  " ++ T.unpack acct ++ ": "
               ++ intercalate ", " [T.unpack (showLotName (lotIdToCb lid a)) ++ " " ++ show (aquantity a)
