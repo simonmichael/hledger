@@ -78,8 +78,9 @@ journalCalculateLots:
   "cannot average lots with different cost commodities",
   "cannot average lots with zero total quantity"
 
-* foldMPostings:
+* foldMPostings (via isUnclassifiedLotfulPosting):
   "X is declared lotful ... but this posting was not classified"
+  (exempt: zero-amount lotful postings)
 
 * journalInferAndCheckDisposalBalancing:
   "This disposal transaction has multiple amountless gain postings",
@@ -700,12 +701,6 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
 
 -- Posting type predicates
 
--- | Remove the _ptype tag from a posting, declassifying it as a lot posting.
--- Used when a bare lotful posting was tentatively classified but cost/price
--- can't be inferred at lot calculation time.
-stripPtypeTag :: Posting -> Posting
-stripPtypeTag p = p{ptags = filter (\(k,_) -> k /= "_ptype") (ptags p)}
-
 -- | When an implicit-lot-subaccount posting (one whose account was a plain account,
 -- not already a lot subaccount) is converted to explicit lot subaccount posting(s),
 -- and it had a balance assertion, move the assertion to a new zero-amount generated
@@ -756,16 +751,24 @@ isGainPosting p = ("_ptype", "gain") `elem` ptags p
 
 -- | True if this posting involves a lotful commodity/account in an asset account
 -- but has no _ptype tag (wasn't classified as acquire/dispose/transfer/gain).
+-- Postings with zero amount in the lotful commodity are exempt (no lot tracking needed).
 isUnclassifiedLotfulPosting :: Journal -> Posting -> Bool
 isUnclassifiedLotfulPosting j p =
   isReal p
   && hasAmount p
-  && any ((/= 0) . aquantity) amts
   && not (isLotPosting p)
-  && (any ((== "lots") . T.toLower . fst) (ptags p)
-      || any (journalCommodityUsesLots j . acommodity) amts)
   && maybe False isAssetType (journalAccountType j (lotBaseAccount (paccount p)))
-  where amts = amountsRaw (pamount p)
+  && hasNonzeroLotfulAmount
+  where
+    amts = amountsRaw (pamount p)
+    lotfulAmts = filter (journalCommodityUsesLots j . acommodity) amts
+    hasAccountLotsTag = any ((== "lots") . T.toLower . fst) (ptags p)
+    -- Flag only when the lotful commodity itself has nonzero quantity.
+    -- For account-level lots: tags with no commodity-lotful amounts, fall back to all amounts.
+    hasNonzeroLotfulAmount
+      | not (null lotfulAmts) = any ((/= 0) . aquantity) lotfulAmts
+      | hasAccountLotsTag     = any ((/= 0) . aquantity) amts
+      | otherwise             = False
 
 -- | Build a warning message for an unclassified lotful posting.
 unclassifiedLotWarning :: Journal -> Posting -> String
