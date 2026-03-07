@@ -534,7 +534,7 @@ tests_Commands = testGroup "Commands" [
       j <- readJournal'' "apply account test\n2008/12/07 One\n  (from)  $-1\n  (to)  $1\n"  -- PARTIAL:
       let p = headErr $ tpostings $ headErr $ jtxns j  -- PARTIAL headErrs succeed because txns & postings provided
       paccount p @?= "test:from"
-      ptype p @?= VirtualPosting
+      preal p @?= VirtualPosting
     ]
 
   ,testCase "alias directive" $ do

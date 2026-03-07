@@ -246,7 +246,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           p = nullposting{paccount=T.pack $ stripbrackets account
                           ,pamount=mixedamt
                           ,pcomment=T.dropAround isNewline comment
-                          ,ptype=accountNamePostingType $ T.pack account
+                          ,preal=accountNamePostingType $ T.pack account
                           ,pbalanceassertion = assertion
                           ,pdate=pdate1
                           ,pdate2=pdate2
@@ -338,7 +338,7 @@ accountWizard :: PrevInput -> AddState -> Wizard Haskeline (Maybe String)
 accountWizard PrevInput{..} AddState{..} = do
   let pnum = length asPostings + 1
       historicalp = fmap ((!! (pnum - 1)) . (++ (repeat nullposting)) . tpostings) asSimilarTransaction
-      historicalacct = case historicalp of Just p  -> showAccountName Nothing (ptype p) (paccount p)
+      historicalacct = case historicalp of Just p  -> showAccountName Nothing (preal p) (paccount p)
                                            Nothing -> ""
       def = headDef (T.unpack historicalacct) asArgs
       endmsg | canfinish && null def = " (or . or enter to finish this transaction)"

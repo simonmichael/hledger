@@ -137,7 +137,7 @@ validatePostings acctsRes amtsRes = let
   zipRow (Left e) (Left e') = Left (Just e, Just e')
   zipRow (Left e) (Right _) = Left (Just e, Nothing)
   zipRow (Right _) (Left e) = Left (Nothing, Just e)
-  zipRow (Right acct') (Right amt) = Right (nullposting {paccount = acct, ptype = atype, pamount = mixedAmount amt})
+  zipRow (Right acct') (Right amt) = Right (nullposting {paccount = acct, preal = atype, pamount = mixedAmount amt})
     where
       acct = accountNameWithoutPostingType acct'
       atype = accountNamePostingType acct'

@@ -182,6 +182,7 @@ inputflags = [
     ])
   ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
   ,flagNone ["infer-equity"] (setboolopt "infer-equity") "infer costs from conversion equity postings"
+  ,flagNone ["lots"] (setboolopt "lots") "calculate and show lots"
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value
   --  2021-02 --infer-market-price added, --infer-value deprecated
@@ -637,11 +638,8 @@ rawOptsToCliOpts rawopts = do
             Just d  -> either (const err) fromEFDay $ fixSmartDateStrEither' currentDay (T.pack d)
               where err = error' $ "Unable to parse date \"" ++ d ++ "\""
     command = stringopt "command" rawopts
-    moutputformat = maybestringopt "output-format" rawopts
-    -- if printing beancount format, don't propagate account and commodity tags to postings
-    autopostingtags = not $ command == "print" && moutputformat == Just "beancount"
   usecolor <- useColorOnStdout
-  let iopts = rawOptsToInputOpts day usecolor autopostingtags rawopts
+  let iopts = rawOptsToInputOpts day usecolor rawopts
   rspec <- either error' pure $ rawOptsToReportSpec day usecolor rawopts  -- PARTIAL:
   mtermwidth <- getTerminalWidth
   let availablewidth = fromMaybe defaultWidth mtermwidth
@@ -652,7 +650,7 @@ rawOptsToCliOpts rawopts = do
              ,inputopts_       = iopts
              ,reportspec_      = rspec
              ,output_file_     = maybestringopt "output-file" rawopts
-             ,output_format_   = moutputformat
+             ,output_format_   = maybestringopt "output-format" rawopts
              ,pageropt_        = maybeynopt "pager" rawopts
              ,coloropt_        = maybeynaopt "color" rawopts
              ,debug_           = posintopt "debug" rawopts
@@ -787,6 +785,16 @@ outputFormatFromOpts opts =
     Just f  -> f
     Nothing ->
       case filePathExtension <$> output_file_ opts of
+        Just ext | ext `elem` outputFormats -> ext
+        _                                   -> defaultOutputFormat
+
+-- | Like outputFormatFromOpts, but works on RawOpts (before CliOpts are constructed).
+outputFormatFromRawOpts :: RawOpts -> String
+outputFormatFromRawOpts rawopts =
+  case maybestringopt "output-format" rawopts of
+    Just f  -> f
+    Nothing ->
+      case filePathExtension <$> maybestringopt "output-file" rawopts of
         Just ext | ext `elem` outputFormats -> ext
         _                                   -> defaultOutputFormat
 

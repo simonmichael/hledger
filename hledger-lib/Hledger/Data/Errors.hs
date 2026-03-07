@@ -7,9 +7,11 @@ Helpers for making error messages.
 
 module Hledger.Data.Errors (
   makeAccountTagErrorExcerpt,
+  makeCommodityTagErrorExcerpt,
   makePriceDirectiveErrorExcerpt,
   makeTransactionErrorExcerpt,
   makePostingErrorExcerpt,
+  makePostingErrorExcerptByIndex,
   makePostingAccountErrorExcerpt,
   makeBalanceAssertionErrorExcerpt,
   transactionFindPostingIndex,
@@ -58,6 +60,23 @@ makeAccountTagErrorExcerpt (a, adi) _t = (f, l, merrcols, ex)
 showAccountDirective (a, AccountDeclarationInfo{..}) =
   "account " <> a
   <> (if not $ T.null adicomment then "    ; " <> adicomment else "")
+
+-- | Given a commodity and a problem tag within it:
+-- render it as a megaparsec-style excerpt, showing the original line number.
+-- Returns the file path, line number, column(s) if known, and the rendered excerpt.
+makeCommodityTagErrorExcerpt :: Commodity -> TagName -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makeCommodityTagErrorExcerpt comm _t = (f, l, merrcols, ex)
+  where
+    SourcePos f pos _ = csourcepos comm
+    l = unPos pos
+    txt = showCommodityDirective comm & textChomp & (<>"\n")
+    ex = decorateExcerpt l merrcols txt
+    merrcols = Nothing
+
+showCommodityDirective :: Commodity -> Text
+showCommodityDirective Commodity{..} =
+  "commodity " <> csymbol
+  <> (if not $ T.null ccomment then "  ; " <> ccomment else "")
 
 -- | Decorate a data excerpt with megaparsec-style left margin, line number,
 -- and marker/underline for the column(s) if known, for inclusion in an error message.
@@ -180,6 +199,24 @@ decoratePostingErrorExcerpt absline relline mcols txt =
       ]
     lineprefix = T.replicate marginw " " <> "| "
       where  marginw = length (show absline) + 1
+
+-- | Like 'makePostingErrorExcerpt', but identifies the posting by its
+-- 0-based index in the transaction rather than by equality search.
+-- This avoids false mismatches when postings have been modified after parsing
+-- (e.g. by the balancer), and is unambiguous when duplicate postings exist.
+makePostingErrorExcerptByIndex :: Transaction -> Int -> (FilePath, Int, Maybe (Int, Maybe Int), Text)
+makePostingErrorExcerptByIndex t idx = (f, errabsline, Nothing, ex)
+  where
+    (SourcePos f tl _) = fst $ tsourcepos t
+    errrelline =
+      commentExtraLines (tcomment t) +
+      sum (map postingLines $ take (idx + 1) $ tpostings t)
+      where
+        postingLines p' = 1 + commentExtraLines (pcomment p')
+        commentExtraLines c = max 0 (length (T.lines c) - 1)
+    errabsline = unPos tl + errrelline
+    txntxt = showTransaction t & textChomp & (<>"\n")
+    ex = decoratePostingErrorExcerpt errabsline errrelline Nothing txntxt
 
 -- | Find the 1-based index of the first posting in this transaction
 -- satisfying the given predicate.

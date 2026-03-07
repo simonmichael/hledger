@@ -125,6 +125,7 @@ library:
   # - Hledger.Data
   # - Hledger.Data.Account
   # - Hledger.Data.AccountName
+  # - Hledger.Data.AccountType
   # - Hledger.Data.Amount
   # - Hledger.Data.BalanceData
   # - Hledger.Data.Balancing
@@ -137,6 +138,7 @@ library:
   # - Hledger.Data.JournalChecks.Uniqueleafnames
   # - Hledger.Data.Json
   # - Hledger.Data.Ledger
+  # - Hledger.Data.Lots
   # - Hledger.Data.Period
   # - Hledger.Data.PeriodData
   # - Hledger.Data.PeriodicTransaction
@@ -159,6 +161,7 @@ library:
   # - Hledger.Read.TimeclockReader
   # - Hledger.Write.Beancount
   # - Hledger.Write.Csv
+  # - Hledger.Write.Ledger
   # - Hledger.Write.Ods
   # - Hledger.Write.Html
   # - Hledger.Write.Html.Attribute

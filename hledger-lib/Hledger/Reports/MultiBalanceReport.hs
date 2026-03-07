@@ -195,7 +195,7 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
     -- If we're re-valuing every period, we need to have the unvalued start
     -- balance, so we can do it ourselves later.
     ropts' = if isJust (valuationAfterSum ropts)
-        then ropts{period_=dateSpanAsPeriod fullreportspan, value_=Nothing, conversionop_=Just NoConversionOp}  -- If we're valuing after the sum, don't do it now
+        then ropts{period_=dateSpanAsPeriod fullreportspan, value_=Nothing}  -- If we're valuing after the sum, don't do it now
         else ropts{period_=dateSpanAsPeriod fullreportspan}
 
     -- q projected back before the report start date.

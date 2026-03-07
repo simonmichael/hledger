@@ -114,8 +114,6 @@ data EFDay = Exact Day | Flex Day deriving (Eq,Generic,Show)
 -- EFDay's Ord instance treats them like ordinary dates, ignoring exact/flexible.
 instance Ord EFDay where compare d1 d2 = compare (fromEFDay d1) (fromEFDay d2)
 
--- instance Ord EFDay where compare = maCompare
-
 fromEFDay :: EFDay -> Day
 fromEFDay (Exact d) = d
 fromEFDay (Flex  d) = d
@@ -218,22 +216,6 @@ isIncomeStatementAccountType t = t `elem` [
   Gain
   ]
 
--- | Check whether the first argument is a subtype of the second: either equal
--- or one of the defined subtypes.
-isAccountSubtypeOf :: AccountType -> AccountType -> Bool
-isAccountSubtypeOf Asset      Asset      = True
-isAccountSubtypeOf Liability  Liability  = True
-isAccountSubtypeOf Equity     Equity     = True
-isAccountSubtypeOf Revenue    Revenue    = True
-isAccountSubtypeOf Expense    Expense    = True
-isAccountSubtypeOf Cash       Cash       = True
-isAccountSubtypeOf Cash       Asset      = True
-isAccountSubtypeOf Conversion Conversion = True
-isAccountSubtypeOf Conversion Equity     = True
-isAccountSubtypeOf Gain       Gain       = True
-isAccountSubtypeOf Gain       Revenue    = True
-isAccountSubtypeOf _          _          = False
-
 -- not worth the trouble, letters defined in accountdirectivep for now
 --instance Read AccountType
 --  where
@@ -334,10 +316,11 @@ data DigitGroupStyle = DigitGroups !Char ![Word8]
 type CommoditySymbol = Text
 
 data Commodity = Commodity {
-  csymbol  :: CommoditySymbol,
-  cformat  :: Maybe AmountStyle,
-  ccomment :: Text,              -- ^ any comment lines following the commodity directive
-  ctags    :: [Tag]              -- ^ tags extracted from the comment, if any
+  csymbol    :: CommoditySymbol,
+  cformat    :: Maybe AmountStyle,
+  ccomment   :: Text,              -- ^ any comment lines following the commodity directive
+  ctags      :: [Tag],             -- ^ tags extracted from the comment, if any
+  csourcepos :: SourcePos          -- ^ source position of the commodity directive
   } deriving (Show,Eq,Generic) --,Ord)
 
 -- | The cost basis of an individual lot - some quantity of an asset acquired at a given date and time.
@@ -345,10 +328,30 @@ data Commodity = Commodity {
 -- Or it can represent a cost basis matcher for selecting lots.
 -- Note: cost is always stored as a per-unit cost, even if the user specified total cost with {{}}.
 data CostBasis = CostBasis {
-  cbCost  :: !(Maybe Amount),    -- ^ nominal acquisition cost (per-unit)
   cbDate  :: !(Maybe Day),       -- ^ nominal acquisition date
-  cbLabel :: !(Maybe Text)       -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbLabel :: !(Maybe Text),      -- ^ a short label to ensure uniqueness, correct intra-day order, or memorability, if needed
+  cbCost  :: !(Maybe Amount)     -- ^ nominal acquisition cost (per-unit)
 } deriving (Show,Eq,Generic,Ord)
+
+-- | Identifies a specific lot of a commodity, by its acquisition date and optional label.
+-- Ordered by date first, then label (Nothing sorts before Just).
+data LotId = LotId {
+  lotDate  :: !Day,
+  lotLabel :: !(Maybe Text)
+} deriving (Show,Eq,Ord,Generic)
+
+-- | The method used to select lots for disposal or transfer.
+-- Per-account methods (scoped to the posting's account):
+-- FIFO/LIFO select oldest/newest first. HIFO selects highest cost first.
+-- AVERAGE uses weighted average cost basis for disposals (FIFO consumption order).
+-- SPECID requires every disposal/transfer to have an explicit lot selector matching exactly one lot.
+-- Global validation methods (*ALL variants):
+-- FIFOALL/LIFOALL/HIFOALL select per-account but validate that the selected lots would also
+-- be chosen first if all accounts' lots were considered together. Errors if not.
+-- AVERAGEALL additionally computes weighted average cost across the global pool.
+data ReductionMethod = FIFO | LIFO | HIFO | AVERAGE | SPECID
+                     | FIFOALL | LIFOALL | HIFOALL | AVERAGEALL
+  deriving (Show,Read,Eq,Ord,Generic)
 
 data Amount = Amount {
   acommodity  :: !CommoditySymbol,     -- commodity symbol, or special value "AUTO"
@@ -375,8 +378,51 @@ instance HasAmounts a =>
   HasAmounts (Maybe a)
   where styleAmounts styles = fmap (styleAmounts styles)
 
+-- | hledger's most general amount type.
+-- It can contain multiple single-commodity Amounts, each possibly with a transacted cost and/or a lot cost basis attached.
+-- Internally it is a map from MixedAmountKey to Amount, for efficiency and so that every mixed amount has a single canonical form.
+newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount)
+  deriving (Generic,Show)
 
-newtype MixedAmount = Mixed (M.Map MixedAmountKey Amount) deriving (Generic,Show)
+-- | The key used to group amounts within a MixedAmount: commodity and an optional unit or total transacted cost.
+-- Amounts with the same commodity and transacted cost are combined; different transacted costs are kept separate.
+-- (Lot cost basis is not part of the key, so not kept separate; subaccounts are used for that.)
+data MixedAmountKey
+  = MixedAmountKeyNoCost
+      !CommoditySymbol           -- ^ amount commodity
+  | MixedAmountKeyUnitCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+      !Quantity                  -- ^ transacted cost per unit
+  | MixedAmountKeyTotalCost
+      !CommoditySymbol           -- ^ amount commodity
+      !CommoditySymbol           -- ^ transacted cost commodity
+  deriving (Eq, Generic, Show)
+
+-- | Sort by commodity, then cost commodity (no cost first), then cost type and quantity.
+instance Ord MixedAmountKey where
+  compare = comparing commodity <> comparing costCommodity <> comparing costDetail
+    where
+      commodity (MixedAmountKeyNoCost    c)     = c
+      commodity (MixedAmountKeyUnitCost  c _ _) = c
+      commodity (MixedAmountKeyTotalCost c _)   = c
+
+      costCommodity (MixedAmountKeyNoCost    _)      = Nothing
+      costCommodity (MixedAmountKeyUnitCost  _ pc _)  = Just pc
+      costCommodity (MixedAmountKeyTotalCost _ pc)    = Just pc
+
+      costDetail (MixedAmountKeyNoCost    _)     = Nothing
+      costDetail (MixedAmountKeyUnitCost  _ _ q) = Just (1 :: Int, Just q)
+      costDetail (MixedAmountKeyTotalCost _ _)   = Just (0, Nothing)
+
+-- | Calculate the key for storing this Amount within a MixedAmount,
+-- from its commodity and transacted cost (ignoring cost basis).
+mixedAmountKey :: Amount -> MixedAmountKey
+mixedAmountKey Amount{acommodity=c, acost} =
+  case acost of
+    Nothing            -> MixedAmountKeyNoCost    c
+    Just (UnitCost  p) -> MixedAmountKeyUnitCost  c (acommodity p) (aquantity p)
+    Just (TotalCost p) -> MixedAmountKeyTotalCost c (acommodity p)
 
 instance Eq  MixedAmount where a == b  = maCompare a b == EQ
 instance Ord MixedAmount where compare = maCompare
@@ -398,39 +444,8 @@ maCompare (Mixed a) (Mixed b) = go (M.toList a) (M.toList b)
                         Just (TotalCost p) -> aquantity p
                         _                   -> 0
 
--- | Stores the CommoditySymbol of the Amount, along with the CommoditySymbol of
--- the cost, and its unit cost if being used.
-data MixedAmountKey
-  = MixedAmountKeyNoCost   !CommoditySymbol
-  | MixedAmountKeyTotalCost !CommoditySymbol !CommoditySymbol
-  | MixedAmountKeyUnitCost  !CommoditySymbol !CommoditySymbol !Quantity
-  deriving (Eq,Generic,Show)
-
--- | We don't auto-derive the Ord instance because it would give an undesired ordering.
--- We want the keys to be sorted lexicographically:
--- (1) By the primary commodity of the amount.
--- (2) By the commodity of the cost, with no cost being first.
--- (3) By the unit cost, from most negative to most positive, with total costs
--- before unit costs.
--- For example, we would like the ordering to give
--- MixedAmountKeyNoCost "X" < MixedAmountKeyTotalCost "X" "Z" < MixedAmountKeyNoCost "Y"
-instance Ord MixedAmountKey where
-  compare = comparing commodity <> comparing pCommodity <> comparing pCost
-    where
-      commodity (MixedAmountKeyNoCost    c)     = c
-      commodity (MixedAmountKeyTotalCost c _)   = c
-      commodity (MixedAmountKeyUnitCost  c _ _) = c
-
-      pCommodity (MixedAmountKeyNoCost    _)      = Nothing
-      pCommodity (MixedAmountKeyTotalCost _ pc)   = Just pc
-      pCommodity (MixedAmountKeyUnitCost  _ pc _) = Just pc
-
-      pCost (MixedAmountKeyNoCost    _)     = Nothing
-      pCost (MixedAmountKeyTotalCost _ _)   = Nothing
-      pCost (MixedAmountKeyUnitCost  _ _ q) = Just q
-
-data PostingType = RegularPosting | VirtualPosting | BalancedVirtualPosting
-                   deriving (Eq,Show,Generic)
+data PostingRealness = RealPosting | VirtualPosting | BalancedVirtualPosting
+  deriving (Eq,Show,Generic)
 
 type TagName = Text
 type TagValue = Text
@@ -498,13 +513,13 @@ data BalanceAssertion = BalanceAssertion {
     } deriving (Eq,Generic,Show)
 
 data Posting = Posting {
-      pdate             :: Maybe Day,         -- ^ this posting's date, if different from the transaction's
-      pdate2            :: Maybe Day,         -- ^ this posting's secondary date, if different from the transaction's
+      pdate             :: Maybe Day,               -- ^ this posting's date, if different from the transaction's
+      pdate2            :: Maybe Day,               -- ^ this posting's secondary date, if different from the transaction's
       pstatus           :: Status,
       paccount          :: AccountName,
       pamount           :: MixedAmount,
-      pcomment          :: Text,              -- ^ this posting's comment lines, as a single non-indented multi-line string
-      ptype             :: PostingType,
+      pcomment          :: Text,                    -- ^ this posting's comment lines, as a single non-indented multi-line string
+      preal             :: PostingRealness,         -- ^ is this a normal balanced posting, or a virtual/unbalanced one ?
       ptags             :: [Tag],                   -- ^ tag names and values, extracted from the posting comment 
                                                     --   and (after finalisation) the posting account's directive if any
       pbalanceassertion :: Maybe BalanceAssertion,  -- ^ an expected balance in the account after this posting,
@@ -532,7 +547,7 @@ instance Show Posting where
     ,"paccount="          ++ show paccount
     ,"pamount="           ++ show pamount
     ,"pcomment="          ++ show pcomment
-    ,"ptype="             ++ show ptype
+    ,"preal="             ++ show preal
     ,"ptags="             ++ show ptags
     ,"pbalanceassertion=" ++ show pbalanceassertion
     ,"ptransaction="      ++ show (ptransaction $> "txn")
@@ -827,13 +842,15 @@ instance NFData DigitGroupStyle
 instance NFData EFDay
 instance NFData Interval
 instance NFData Journal
+instance NFData LotId
 instance NFData MarketPrice
+instance NFData ReductionMethod
 instance NFData MixedAmount
 instance NFData MixedAmountKey
 instance NFData Rounding
 instance NFData PayeeDeclarationInfo
 instance NFData PeriodicTransaction
-instance NFData PostingType
+instance NFData PostingRealness
 instance NFData PriceDirective
 instance NFData Side
 instance NFData Status
