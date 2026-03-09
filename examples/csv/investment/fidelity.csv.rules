@@ -1,11 +1,19 @@
 # Fidelity account csv rules
-# Fidelity's csv can be found at: All accounts > Activity & Orders > Download icon at top right
+# These rules are for a specific kind of csv from Fidelity:
+# 1. Accounts & Trade > Portfolio > All accounts > Activity & Orders
+# 2. Select a suitable date range
+# 3. Make sure no filters are selected (easiest)
+# 4. Click download icon at top right
+# This csv will have 13 fields (12 commas).
 
 # This csv needs leading spaces removed before we convert it.
 # Eg: sed 's/^ //' History_for_Account_NNN.csv > History_for_Account_NNN.clean.csv
 
 # Read the cleaned copy
-source History_for_Account_Z30149175*.clean.csv
+source History_for_Account_Z12345678*.csv
+
+# Keep the csvs
+#archive
 
 newest-first
 intra-day-reversed
@@ -22,17 +30,36 @@ fields Run_Date, Action, Symbol, Security_Description, Security_Type, Quantity, 
 date %Run_Date
 date-format %m/%d/%Y
 
-description fidelity | %Action
+description Fidelity | %Action
 currency $
+amount   %Amount_Usd
+balance  %Cash_Balance_Usd
+
+account1 assets:inv:fidelity:cash
 
 # Transactions come in various types, including:
 
+# Electronic Funds Transfer Received (Cash)
 if %Action Transfer Received \(Cash\)
- account1 assets:bank:wf:checking
- account2 assets:brokerage:fi:qpctq
- amount   -%Amount_Usd
+ account1 assets:bank:bb:checking
+ account2 assets:inv:fidelity:cash
 
+# WIRE TRANSFER TO BANK (Cash)
+if %Action WIRE TRANSFER
+ account2 assets:bank:bb:checking
+ 
+# INTEREST EARNED FDIC INSURED DEPOSIT AT CITIBANK NOT... (QPCTQ) (Cash)
 if %Action INTEREST EARNED
- account1 revenues:dividends:qpctq
- account2 assets:brokerage:fi:qpctq
- amount   -%Amount_Usd
+ account2 revenues:interest
+if %Action INTEREST EARNED.*QPCTQ
+ account2 revenues:interest:qpctq
+
+# DIVIDEND RECEIVED FIDELITY GOVERNMENT MONEY MARKET (SPAXX) (Cash)
+if %Action DIVIDEND RECEIVED
+ account2 revenues:dividends
+if %Action DIVIDEND RECEIVED.*SPAXX
+ account2 revenues:dividends:spaxx
+
+# REINVESTMENT FIDELITY GOVERNMENT MONEY MARKET (SPAXX) (Cash)
+if %Action REINVESTMENT
+ skip
