@@ -6,13 +6,10 @@
 # 4. Click download icon at top right
 # This csv will have 13 fields (12 commas).
 
-# This csv needs leading spaces removed before we convert it.
-# Eg: sed 's/^ //' History_for_Account_NNN.csv > History_for_Account_NNN.clean.csv
-
-# Read the cleaned copy
+# Read the downloaded csv. Adjust the filename here.
 source History_for_Account_Z12345678*.csv
 
-# Keep the csvs
+# Save all csvs in data/.
 #archive
 
 newest-first
