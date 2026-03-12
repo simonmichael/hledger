@@ -4084,9 +4084,9 @@ When using these, there's two things to be aware of:
    the whole record matcher sees instead: `2023-01-01,Acme, Inc. ,1,000`
 
 2. Field matchers expect either a CSV field number, or a [CSV field name](#field-names) declared with [`fields`](#fields-list).
-   (Don't use a hledger field name here, unless it is also a CSV field name.)
-   A non-CSV field name will cause the matcher to match against `""` (the empty string),
-   and does not raise an error, allowing easier reuse of common rules with different CSV files.
+   Anything else will cause it to match against the empty string, and probably fail silently
+   (this makes it easier to reuse common rules with different CSV files).
+   Don't use a hledger field name here (see [CSV fields and hledger fields](#csv-fields-and-hledger-fields)).
 
 You can also prefix a matcher with `!` (and optional space) to negate it.
 Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is NOT present.
