@@ -1332,10 +1332,14 @@ and no flags to see the most up-to-date state of your finances.
 
 ## Code
 
-After the status mark, but before the description, you can optionally
-write a transaction "code", enclosed in parentheses. This is a good
-place to record a check number, or some other important transaction id
-or reference number.
+After the status mark, but before the description,
+you can optionally write a transaction "code", such as a check number or transaction id, enclosed in parentheses,
+
+This has a few limitations:
+The code must not contain a closing parenthesis (or it will be truncated).
+Codes tend to disrupt alignment of the register report, making it harder to scan visually.
+And you can't store more than one value there per transaction.
+For these reasons you might want to avoid the code field and use [tags](#tags] instead.
 
 ## Description
 
