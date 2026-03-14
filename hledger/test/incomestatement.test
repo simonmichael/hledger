@@ -330,3 +330,28 @@ Income Statement 2025-01-01..2025-01-02
  Expenses ||                        
 ----------++------------------------
 
+# ** 11. With --declared and --empty, account declaration order is preserved
+<
+account revenues:b
+account revenues:a
+account expenses:y
+account expenses:x
+
+2025-01-01 txn
+    revenues:a      -1
+    expenses:x       1
+
+$ hledger -f - incomestatement -N --empty --declared
+Income Statement 2025-01-01
+
+            || 2025-01-01 
+============++============
+ Revenues   ||            
+------------++------------
+ revenues:b ||          0 
+ revenues:a ||          1 
+============++============
+ Expenses   ||            
+------------++------------
+ expenses:y ||          0 
+ expenses:x ||          1 
