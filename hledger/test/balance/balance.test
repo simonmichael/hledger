@@ -259,3 +259,19 @@ $ hledger -f sample.journal balance -b 1000-01-01 -e 1000-01-02
 $ hledger -f- balance
 --------------------
                    0  
+
+# ** 21. Ordering of accounts with no postings is preserved when --declared and --empty are used
+<
+account a
+account b
+account c
+
+2025-01-01 txn
+    a       1
+    c      -1
+$ hledger -f - balance --empty --declared
+                   1  a
+                   0  b
+                  -1  c
+--------------------
+                   0  

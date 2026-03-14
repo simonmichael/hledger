@@ -218,14 +218,14 @@ getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle 
 -- of 'Posting's.
 generateMultiBalanceAccount :: ReportSpec -> Journal -> PriceOracle -> Maybe DayPartition -> [Posting] -> Account BalanceData
 generateMultiBalanceAccount rspec@ReportSpec{_rsReportOpts=ropts} j priceoracle colspans =
+    -- Set account declaration info (for sorting purposes)
+    mapAccounts (accountSetDeclarationInfo j)
     -- Add declared accounts if called with --declared and --empty
-    (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
+    . (if (declared_ ropts && empty_ ropts) then addDeclaredAccounts rspec j else id)
     -- Negate amounts if applicable
     . (if invert_ ropts then fmap (mapBalanceData maNegate) else id)
     -- Mark which accounts are boring and which are interesting
     . markAccountBoring rspec
-    -- Set account declaration info (for sorting purposes)
-    . mapAccounts (accountSetDeclarationInfo j)
     -- Process changes into normal, cumulative, or historical amounts, plus value them
     . calculateReportAccount rspec j priceoracle colspans
     -- Clip account names
