@@ -2740,7 +2740,7 @@ to their value in another, on or after that date.
 These prices are often obtained from
 a [stock exchange](https://en.wikipedia.org/wiki/Stock_exchange),
 [cryptocurrency exchange](https://en.wikipedia.org/wiki/Cryptocurrency_exchange),
-the or [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
+or the [foreign exchange market](https://en.wikipedia.org/wiki/Foreign_exchange_market).
 
 The format is:
 
