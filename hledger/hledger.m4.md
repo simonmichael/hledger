@@ -16,7 +16,7 @@ _notinfo_({{
 
 `hledger`\
 or\
-`hledger COMMAND [OPTS] [ARGS]`\
+`hledger COMMAND [OPTS] [ARGS]`
 
 _notinfo_({{
 # DESCRIPTION
