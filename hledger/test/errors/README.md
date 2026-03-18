@@ -1,10 +1,5 @@
 # ERRORS
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 hledger produces a variety of error messages in different situations.
 They are intended first for humans and secondly for parsing by tools
 like [flycheck-hledger][].

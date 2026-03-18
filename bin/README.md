@@ -1,10 +1,5 @@
 # Scripts and add-ons
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 (This is the README in the hledger repo's `bin/` directory,
 also published as the [Scripts and add-ons] page on hledger.org.)
 <!-- This page can be viewed on github or hledger.org, so use absolute urls here: -->

@@ -1,10 +1,5 @@
 # MOCKUPS
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 Old mockups, draft docs and notes exploring possible future features.
 See also <https://github.com/simonmichael/hledger/tree/master/doc/mockups>
 

@@ -1,10 +1,5 @@
 # COMMITS
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 In the hledger project we try to follow certain conventions for commit messages,
 because good messages lead to good commits => good change docs => 
 easier code review => quicker merging => faster delivery of quality software.

@@ -1,10 +1,5 @@
 # Changelogs
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 See also RELEASING.md.
 
 ## Update master changelogs often

@@ -1,10 +1,5 @@
 # Finance
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 This is the home for the hledger project's finances. (Shortcut: [hledger.org/finance](https://hledger.org/finance))
 
 ## Reports

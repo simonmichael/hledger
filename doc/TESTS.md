@@ -1,10 +1,5 @@
 # TESTS
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 About testing in the hledger project, as of 201809.
 
 ## Kinds of tests

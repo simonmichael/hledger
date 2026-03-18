@@ -1,10 +1,5 @@
 # Contributor Quick Start
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 New contributors of all kinds are always welcome in the hledger project. 
 We invite you to jump in, and thank you!
 
