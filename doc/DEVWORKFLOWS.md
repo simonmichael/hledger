@@ -1,10 +1,5 @@
 # Developer workflows
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 ## Get developer tools
 
 Ensure [`stack`](https://haskell-lang.org/get-started) is installed

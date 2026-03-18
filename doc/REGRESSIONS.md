@@ -1,10 +1,5 @@
 # Regression bounty
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 Shortcut: [regressions.hledger.org](https://regressions.hledger.org)
 
 A regression is "something that used to work, that broke", or "an unintended not-good change"

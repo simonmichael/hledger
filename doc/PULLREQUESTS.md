@@ -1,10 +1,5 @@
 # Pull requests
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 Shortcut urls:
 
 - <http://prs.hledger.org>

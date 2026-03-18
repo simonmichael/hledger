@@ -1,10 +1,5 @@
 # Issues
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 The hledger project\'s issue tracker is on github.
 
 Shortcut urls:

@@ -1,10 +1,5 @@
 # Files
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 Some views and explanations of files in the hledger project, as of 2022-12.
 (Needs update..)
 

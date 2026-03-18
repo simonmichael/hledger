@@ -1,11 +1,5 @@
 # ROADMAP
 
-<div class="pagetoc">
-
-<!-- toc -->
-</div>
-
-
 Ideas of where the hledger project should be going next.
 Being listed here suggests a bit of commitment, perhaps even a schedule.
 

@@ -9,11 +9,6 @@
 
 # Release notes
 
-<div class="pagetoc">
-
-<!-- toc -->
-</div>
-
 <!-- Beware: multiple paragraphs within HTML comments breaks mdbook, comment each line for now -->
 
 <!-- In the release headings, dates appear first to keep them out of the -->

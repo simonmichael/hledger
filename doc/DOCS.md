@@ -1,10 +1,5 @@
 # DOCS
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 An overview of hledger's documentation structure and maintenance procedures, for developers and maintainers.
 (For user documentation, see [Docs](doc.md).
 For all developer documentation, see [Developer docs](dev.md).)

@@ -1,10 +1,5 @@
 # RELEASING
 
-<div class=pagetoc>
-
-<!-- toc -->
-</div>
-
 Notes for hledger release managers and maintainers.
 
 ## Goals
